@@ -1,5 +1,5 @@
 import { EInvoiceWithRelations } from "./types"
-import { Company, Contact, EInvoiceLine } from "@prisma/client"
+import { Company, Contact, EInvoiceLine, Prisma } from "@prisma/client"
 
 const UBL_NAMESPACES = {
   invoice: "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2",
@@ -24,7 +24,7 @@ function formatDate(date: Date): string {
   return date.toISOString().split("T")[0]
 }
 
-function formatDecimal(value: number | string, decimals: number = 2): string {
+function formatDecimal(value: number | string | Prisma.Decimal, decimals: number = 2): string {
   return Number(value).toFixed(decimals)
 }
 

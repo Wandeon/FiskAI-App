@@ -3,8 +3,11 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { companySchema, CompanyInput } from "@/lib/validations"
+import { companySchema } from "@/lib/validations"
 import { createCompany } from "@/app/actions/company"
+import { z } from "zod"
+
+type CompanyFormInput = z.input<typeof companySchema>
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -17,7 +20,7 @@ export default function OnboardingPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CompanyInput>({
+  } = useForm<CompanyFormInput>({
     resolver: zodResolver(companySchema),
     defaultValues: {
       country: "HR",
@@ -25,7 +28,7 @@ export default function OnboardingPage() {
     },
   })
 
-  async function onSubmit(data: CompanyInput) {
+  async function onSubmit(data: CompanyFormInput) {
     setLoading(true)
     setError(null)
 

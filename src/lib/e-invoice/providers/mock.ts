@@ -1,5 +1,5 @@
+import { EInvoiceProvider } from "../provider"
 import {
-  EInvoiceProvider,
   EInvoiceWithRelations,
   SendInvoiceResult,
   IncomingInvoice,

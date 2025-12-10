@@ -7,7 +7,7 @@ import { companySchema, companySettingsSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-export async function createCompany(formData: z.infer<typeof companySchema>) {
+export async function createCompany(formData: z.input<typeof companySchema>) {
   const user = await requireAuth()
 
   const validatedFields = companySchema.safeParse(formData)
@@ -48,7 +48,7 @@ export async function createCompany(formData: z.infer<typeof companySchema>) {
 
 export async function updateCompany(
   companyId: string,
-  formData: z.infer<typeof companySchema>
+  formData: z.input<typeof companySchema>
 ) {
   const user = await requireAuth()
 

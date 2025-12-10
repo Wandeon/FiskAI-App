@@ -4,8 +4,11 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { eInvoiceSchema, EInvoiceInput } from "@/lib/validations"
-import { createEInvoice, sendEInvoice } from "@/app/actions/e-invoice"
+import { eInvoiceSchema } from "@/lib/validations"
+import { createEInvoice } from "@/app/actions/e-invoice"
+import { z } from "zod"
+
+type EInvoiceFormInput = z.input<typeof eInvoiceSchema>
 import { getContacts } from "@/app/actions/contact"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,7 +27,7 @@ export default function NewEInvoicePage() {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<EInvoiceInput>({
+  } = useForm<EInvoiceFormInput>({
     resolver: zodResolver(eInvoiceSchema),
     defaultValues: {
       issueDate: new Date(),
@@ -65,7 +68,7 @@ export default function NewEInvoicePage() {
     { net: 0, vat: 0, total: 0 }
   )
 
-  async function onSubmit(data: EInvoiceInput) {
+  async function onSubmit(data: EInvoiceFormInput) {
     setLoading(true)
     setError(null)
 

@@ -6,9 +6,10 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { eInvoiceSchema } from "@/lib/validations"
 import { createEInvoiceProvider, generateUBLInvoice } from "@/lib/e-invoice"
 import { revalidatePath } from "next/cache"
-import { Decimal } from "@prisma/client/runtime/library"
+import { Prisma } from "@prisma/client"
+const Decimal = Prisma.Decimal
 
-export async function createEInvoice(formData: z.infer<typeof eInvoiceSchema>) {
+export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
@@ -152,7 +153,7 @@ export async function getEInvoices(
     where: {
       companyId: company.id,
       ...(direction && { direction }),
-      ...(status && { status: status as any }),
+      ...(status && { status: status as "DRAFT" | "PENDING_FISCALIZATION" | "FISCALIZED" | "SENT" | "DELIVERED" | "ACCEPTED" | "REJECTED" | "ARCHIVED" | "ERROR" }),
     },
     include: {
       buyer: true,

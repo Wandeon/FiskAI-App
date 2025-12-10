@@ -32,7 +32,7 @@ export function createEInvoiceProvider(
 ): EInvoiceProvider {
   switch (providerName) {
     case "mock":
-      // Dynamic import to avoid bundling all providers
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { MockProvider } = require("./providers/mock")
       return new MockProvider(config)
     case "ie-racuni":
