@@ -1,0 +1,31 @@
+# docker-compose.yml - Base configuration (shared)
+services:
+  fiskai-db:
+    image: postgres:16-alpine
+    container_name: fiskai-postgres
+    restart: unless-stopped
+    volumes:
+      - fiskai_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fiskai} -d ${POSTGRES_DB:-fiskai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fiskai-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiskai-app
+    restart: unless-stopped
+    depends_on:
+      fiskai-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 || r.statusCode === 307 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  fiskai_postgres_data:

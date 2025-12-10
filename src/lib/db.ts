@@ -1,14 +1,16 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
+import { withTenantIsolation } from './prisma-extensions'
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma: ReturnType<typeof withTenantIsolation> | undefined
   pool: Pool | undefined
 }
 
 const pool = globalForPrisma.pool ?? new Pool({ connectionString: process.env.DATABASE_URL })
-const db = globalForPrisma.prisma ?? new PrismaClient({ adapter: new PrismaPg(pool) })
+const basePrisma = new PrismaClient({ adapter: new PrismaPg(pool) })
+const db = globalForPrisma.prisma ?? withTenantIsolation(basePrisma)
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = db
@@ -16,3 +18,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export { db }
+export { setTenantContext, getTenantContext } from './prisma-extensions'

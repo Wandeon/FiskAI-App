@@ -1,0 +1,35 @@
+# docker-compose.prod.yml - Production overrides
+services:
+  fiskai-db:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-fiskai}
+    networks:
+      - fiskai_internal
+
+  fiskai-app:
+    environment:
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL required}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:?NEXTAUTH_URL required}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?NEXTAUTH_SECRET required}
+      - AUTH_TRUST_HOST=true
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-FiskAI}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL required}
+      - EINVOICE_KEY_SECRET=${EINVOICE_KEY_SECRET:?EINVOICE_KEY_SECRET required}
+    networks:
+      - fiskai_internal
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fiskai.rule=Host(`${APP_DOMAIN:-erp.metrica.hr}`)"
+      - "traefik.http.routers.fiskai.entrypoints=https"
+      - "traefik.http.routers.fiskai.tls=true"
+      - "traefik.http.routers.fiskai.tls.certresolver=letsencrypt"
+      - "traefik.http.services.fiskai.loadbalancer.server.port=3000"
+
+networks:
+  fiskai_internal:
+    driver: bridge
+  coolify:
+    external: true

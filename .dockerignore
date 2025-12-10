@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+out
+dist
+
+# Version control
+.git
+.gitignore
+
+# Environment files (but keep examples)
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage
+.nyc_output
+
+# Documentation
+docs
+
+# Docker files
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# IDE and editor folders
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Log files
+npm-debug.log
+npm-error.log
+yarn-debug.log
+yarn-error.log
+lerna-debug.log
+
+# Misc
+.cache
+.env.example
+README.md
+CHANGELOG.md
+LICENSE
