@@ -80,6 +80,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
             invoiceId={invoice.id}
             status={invoice.status}
             hasProvider={!!company.eInvoiceProvider}
+            paidAt={invoice.paidAt}
           />
         </div>
       </div>
@@ -283,6 +284,12 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
                 <span className="text-gray-500">Ažurirano</span>
                 <span>{new Date(invoice.updatedAt).toLocaleString("hr-HR")}</span>
               </div>
+              {invoice.paidAt && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Plaćeno</span>
+                  <span>{new Date(invoice.paidAt).toLocaleString("hr-HR")}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

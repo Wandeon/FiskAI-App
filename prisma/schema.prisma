@@ -262,6 +262,7 @@ model EInvoice {
   updatedAt  DateTime  @updatedAt
   sentAt     DateTime?
   receivedAt DateTime?
+  paidAt     DateTime?
 
   @@index([companyId])
   @@index([status])

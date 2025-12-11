@@ -270,3 +270,44 @@ export async function deleteEInvoice(eInvoiceId: string) {
   revalidatePath("/e-invoices")
   return { success: "E-Invoice deleted" }
 }
+
+export async function markInvoiceAsPaid(invoiceId: string) {
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  // Find invoice and validate ownership
+  const eInvoice = await db.eInvoice.findFirst({
+    where: {
+      id: invoiceId,
+      companyId: company.id,
+    },
+  })
+
+  if (!eInvoice) {
+    return { error: "Invoice not found or you don't have permission to access it" }
+  }
+
+  // Check if invoice is in a valid status to be marked as paid
+  const validStatuses = ["FISCALIZED", "SENT", "DELIVERED"]
+  if (!validStatuses.includes(eInvoice.status)) {
+    return { error: "Invoice must be fiscalized, sent, or delivered to mark as paid" }
+  }
+
+  // Check if already paid
+  if (eInvoice.paidAt) {
+    return { error: "Invoice is already marked as paid" }
+  }
+
+  // Update invoice
+  await db.eInvoice.update({
+    where: { id: invoiceId },
+    data: {
+      paidAt: new Date(),
+      status: "ACCEPTED",
+    },
+  })
+
+  revalidatePath("/e-invoices")
+  revalidatePath(`/e-invoices/${invoiceId}`)
+  return { success: "Invoice marked as paid" }
+}
