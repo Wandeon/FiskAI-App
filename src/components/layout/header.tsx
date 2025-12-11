@@ -8,6 +8,7 @@ import { QuickActions, Notifications, UserMenu, CompanyStatus } from "./header-a
 import { CommandPalette } from "@/components/ui/command-palette"
 import { getNotificationCenterFeed, countUnreadNotifications } from "@/lib/notifications"
 import { db } from "@/lib/db"
+import { OnboardingProgressPill } from "./onboarding-progress-pill"
 
 export async function Header() {
   const session = await auth()
@@ -25,9 +26,16 @@ export async function Header() {
 
   let notificationItems: Awaited<ReturnType<typeof getNotificationCenterFeed>>["items"] = []
   let notificationUnreadCount = 0
+  let onboardingProgress: { completed: number; total: number } | null = null
 
   if (session?.user?.id && currentCompany) {
-    const [feed, companyUser] = await Promise.all([
+    const [
+      feed,
+      companyUser,
+      contactCount,
+      productCount,
+      eInvoiceCount,
+    ] = await Promise.all([
       getNotificationCenterFeed({
         userId: session.user.id,
         company: {
@@ -40,9 +48,25 @@ export async function Header() {
         where: { userId: session.user.id, companyId: currentCompany.id },
         select: { notificationSeenAt: true },
       }),
+      db.contact.count({ where: { companyId: currentCompany.id } }),
+      db.product.count({ where: { companyId: currentCompany.id } }),
+      db.eInvoice.count({ where: { companyId: currentCompany.id } }),
     ])
     notificationItems = feed.items
     notificationUnreadCount = countUnreadNotifications(feed.items, companyUser?.notificationSeenAt ?? null)
+
+    const steps = [
+      Boolean(currentCompany.oib && currentCompany.address),
+      Boolean(currentCompany.eInvoiceProvider),
+      contactCount > 0,
+      productCount > 0,
+      eInvoiceCount > 0,
+    ]
+
+    onboardingProgress = {
+      completed: steps.filter(Boolean).length,
+      total: steps.length,
+    }
   }
 
   return (
@@ -78,6 +102,14 @@ export async function Header() {
                 draftCount={0}
               />
             </div>
+          )}
+
+          {onboardingProgress && (
+            <OnboardingProgressPill
+              completed={onboardingProgress.completed}
+              total={onboardingProgress.total}
+              className="hidden lg:flex"
+            />
           )}
         </div>
 

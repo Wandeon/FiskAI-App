@@ -9,6 +9,9 @@ The new shell/components (Header, Sidebar, MobileNav, FAB, redesigned Contacts p
 - Contacts page quick filters + command palette hook for segmentation.
 - E-invoice composer upgrades: autosave indicator, sticky mobile controls, PDF preview/download component.
 - Header notification center wired to live e-invoice/audit data (`src/lib/notifications.ts`), auto-refreshes every 60 s, and shows unread badges + mark-as-read state per company user.
+- Products table now uses searchable + multi-select filters to slice by VAT category/status with inline stats.
+- Settings hub reorganized into tabbed navigation with compliance status cards and quick links to premises/audit log.
+- Header now surfaces an onboarding progress pill with CTA + accountant invite link, so admins see remaining setup steps globally.
 - Dashboard hero/insights: gradient hero banner, revenue trend sparkline, invite/AI action cards, reorganized onboarding grid.
 
 ## Upcoming Enhancements
