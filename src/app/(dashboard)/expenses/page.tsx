@@ -101,7 +101,7 @@ export default async function ExpensesPage({
     ]
   }
 
-  const [expenses, total, categories, stats] = await Promise.all([
+  const [expenses, total, categories, statusBuckets] = await Promise.all([
     db.expense.findMany({
       where,
       include: {
@@ -117,14 +117,24 @@ export default async function ExpensesPage({
       where: { OR: [{ companyId: company.id }, { companyId: null }] },
       orderBy: { name: 'asc' },
     }),
-    db.expense.aggregate({
-      where: { companyId: company.id, status: 'PAID' },
+    db.expense.groupBy({
+      by: ['status'],
+      where: { companyId: company.id },
       _sum: { totalAmount: true },
-      _count: true,
+      _count: { id: true },
     }),
   ])
 
   const totalPages = Math.ceil(total / pageSize)
+
+  const getBucket = (status: ExpenseStatus) => statusBuckets.find((bucket) => bucket.status === status)
+  const sumFor = (status: ExpenseStatus) => Number(getBucket(status)?._sum.totalAmount || 0)
+  const countFor = (status: ExpenseStatus) => Number(getBucket(status)?._count.id || 0)
+  const paidSum = sumFor('PAID')
+  const pendingSum = sumFor('PENDING')
+  const draftCount = countFor('DRAFT')
+  const pendingCount = countFor('PENDING')
+  const paidCount = countFor('PAID')
 
   const columns: Column<typeof expenses[0]>[] = [
     {
@@ -202,13 +212,44 @@ export default async function ExpensesPage({
         <Card>
           <CardContent className="pt-4">
             <p className="text-2xl font-bold">
-              {new Intl.NumberFormat('hr-HR', { style: 'currency', currency: 'EUR' }).format(
-                Number(stats._sum.totalAmount || 0)
-              )}
+              {new Intl.NumberFormat('hr-HR', { style: 'currency', currency: 'EUR' }).format(paidSum)}
             </p>
-            <p className="text-sm text-gray-500">Plaćeno</p>
+            <p className="text-sm text-gray-500">Plaćeno ({paidCount})</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <p className="text-2xl font-bold">
+              {new Intl.NumberFormat('hr-HR', { style: 'currency', currency: 'EUR' }).format(pendingSum)}
+            </p>
+            <p className="text-sm text-gray-500">Čeka plaćanje ({pendingCount})</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <p className="text-2xl font-bold">{draftCount}</p>
+            <p className="text-sm text-gray-500">Nacrti</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick status filters */}
+      <div className="flex flex-wrap gap-2 text-sm">
+        {([
+          { status: 'PENDING' as const, label: 'Čeka plaćanje', count: pendingCount },
+          { status: 'PAID' as const, label: 'Plaćeno', count: paidCount },
+          { status: 'DRAFT' as const, label: 'Nacrt', count: draftCount },
+        ]).map((item) => (
+          <Link
+            key={item.status}
+            href={buildPaginationLink(1, searchTerm, [item.status], selectedCategories)}
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-1 font-medium text-[var(--foreground)] hover:border-brand-200 hover:text-brand-700"
+          >
+            <span className="inline-flex h-2 w-2 rounded-full bg-brand-500" />
+            {item.label}
+            <span className="text-xs text-[var(--muted)]">({item.count})</span>
+          </Link>
+        ))}
       </div>
 
       <ExpenseFilters

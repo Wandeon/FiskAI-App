@@ -25,6 +25,7 @@ The new shell/components (Header, Sidebar, MobileNav, FAB, redesigned Contacts p
 - Dashboard hero/insights: gradient hero banner, revenue trend sparkline, invite/AI action cards, reorganized onboarding grid.
 - Dashboard insight column now includes PDV overview (plaćeno/u tijeku), invoice funnel visualization, and contextual tips so admins see tax exposure and conversion health at a glance.
 - Products page now surfaces a “Zdravlje kataloga” card that highlights missing šifre, nula cijena, and neaktivni artikli with quick CTA to add items (CSV import button stubbed for upcoming bulk imports).
+- Expenses list gained quick status chips + aggregate cards (paid/pending/draft counts and sums) so finance teams can jump straight to actionable buckets.
 
 ## Upcoming Enhancements
 ### 1. Visual Language & Theming
