@@ -104,6 +104,18 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Business Premises Section */}
+        <Link href="/settings/premises">
+          <Card className="cursor-pointer transition-colors hover:bg-gray-50">
+            <CardHeader>
+              <CardTitle>Poslovni prostori</CardTitle>
+              <CardDescription>
+                Upravljanje poslovnim prostorima i naplatnim uređajima za fiskalizaciju
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
         {/* Audit Log Section */}
         <Link href="/settings/audit-log">
           <Card className="cursor-pointer transition-colors hover:bg-gray-50">

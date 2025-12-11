@@ -85,11 +85,14 @@ model Company {
   eInvoiceApiKeyEncrypted String? // AES-256-GCM encrypted, format: iv:ciphertext:tag
 
   // Relations
-  users     CompanyUser[]
-  contacts  Contact[]
-  products  Product[]
-  eInvoices EInvoice[]
-  auditLogs AuditLog[]
+  users            CompanyUser[]
+  contacts         Contact[]
+  products         Product[]
+  eInvoices        EInvoice[]
+  auditLogs        AuditLog[]
+  businessPremises BusinessPremises[]
+  paymentDevices   PaymentDevice[]
+  invoiceSequences InvoiceSequence[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -306,4 +309,63 @@ enum AuditAction {
   EXPORT
   LOGIN
   LOGOUT
+}
+
+// ============================================
+// INVOICE NUMBERING MODULE (Croatian Fiskalizacija)
+// ============================================
+
+model BusinessPremises {
+  id        String  @id @default(cuid())
+  companyId String
+  code      Int // 1, 2, 3... (numeric code for legal format)
+  name      String // "Glavni ured", "Poslovnica Zagreb"
+  address   String?
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  devices   PaymentDevice[]
+  sequences InvoiceSequence[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+model PaymentDevice {
+  id                 String  @id @default(cuid())
+  companyId          String
+  businessPremisesId String
+  code               Int // 1, 2, 3... (numeric code for legal format)
+  name               String // "Blagajna 1", "POS terminal"
+  isDefault          Boolean @default(false)
+  isActive           Boolean @default(true)
+
+  company          Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  businessPremises BusinessPremises @relation(fields: [businessPremisesId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([businessPremisesId, code])
+  @@index([companyId])
+}
+
+model InvoiceSequence {
+  id                 String @id @default(cuid())
+  companyId          String
+  businessPremisesId String
+  year               Int // 2025
+  lastNumber         Int    @default(0)
+
+  company          Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  businessPremises BusinessPremises @relation(fields: [businessPremisesId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([businessPremisesId, year])
+  @@index([companyId])
 }

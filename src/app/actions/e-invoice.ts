@@ -8,6 +8,7 @@ import { createEInvoiceProvider, generateUBLInvoice } from "@/lib/e-invoice"
 import { revalidatePath } from "next/cache"
 import { Prisma } from "@prisma/client"
 import { decryptOptionalSecret } from "@/lib/secrets"
+import { getNextInvoiceNumber } from "@/lib/invoice-numbering"
 const Decimal = Prisma.Decimal
 
 export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
@@ -33,6 +34,16 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
 
   if (!buyerExists) {
     return { error: "Invalid buyer - contact not found or doesn't belong to your company" }
+  }
+
+  // Generate invoice number if not provided (using Croatian format)
+  let invoiceNumber = invoiceData.invoiceNumber
+  let internalReference: string | undefined
+
+  if (!invoiceNumber || invoiceNumber.trim() === "") {
+    const numbering = await getNextInvoiceNumber(company.id)
+    invoiceNumber = numbering.invoiceNumber
+    internalReference = numbering.internalReference
   }
 
   // Calculate totals using Decimal for all money calculations
@@ -74,11 +85,11 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
       companyId: company.id,
       direction: "OUTBOUND",
       buyerId,
-      invoiceNumber: invoiceData.invoiceNumber,
+      invoiceNumber,  // Use generated or provided invoice number
       issueDate: invoiceData.issueDate,
       dueDate: invoiceData.dueDate,
       currency: invoiceData.currency,
-      buyerReference: invoiceData.buyerReference,
+      buyerReference: internalReference || invoiceData.buyerReference,  // Store internal ref in buyerReference for now
       netAmount,
       vatAmount,
       totalAmount,
