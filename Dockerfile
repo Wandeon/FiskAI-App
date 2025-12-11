@@ -1,12 +1,18 @@
 # Dockerfile
 FROM --platform=linux/arm64 node:20-alpine AS base
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
+
+# Copy Prisma schema (needed for postinstall prisma generate)
+COPY prisma ./prisma
 
 # Install dependencies
 RUN npm ci
@@ -37,18 +43,22 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
+# Copy public assets
 COPY --from=builder /app/public ./public
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Set up .next directory with correct permissions
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
+# Copy standalone output (includes only production dependencies)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy Prisma client (required at runtime)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 

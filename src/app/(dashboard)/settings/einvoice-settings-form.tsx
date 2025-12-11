@@ -10,6 +10,7 @@ import { updateCompanySettings } from "@/app/actions/company"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Company } from "@prisma/client"
+import { toast } from "@/lib/toast"
 
 type SettingsFormInput = z.input<typeof companySettingsSchema>
 
@@ -76,11 +77,13 @@ export function EInvoiceSettingsForm({ company }: EInvoiceSettingsFormProps) {
 
     if (result?.error) {
       setError(result.error)
+      toast.error("Greška", result.error)
       setLoading(false)
       return
     }
 
     setSuccess("Postavke e-računa uspješno ažurirane")
+    toast.success("Postavke e-računa spremljene")
     setLoading(false)
     router.refresh()
   }

@@ -10,6 +10,7 @@ import { updateCompany } from "@/app/actions/company"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Company } from "@prisma/client"
+import { toast } from "@/lib/toast"
 
 type CompanyFormInput = z.input<typeof companySchema>
 
@@ -53,11 +54,13 @@ export function CompanySettingsForm({ company }: CompanySettingsFormProps) {
 
     if (result?.error) {
       setError(result.error)
+      toast.error("Greška", result.error)
       setLoading(false)
       return
     }
 
     setSuccess("Podaci uspješno ažurirani")
+    toast.success("Postavke spremljene")
     setLoading(false)
     router.refresh()
   }

@@ -10,15 +10,19 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Contact } from "@prisma/client"
+import { Combobox, ComboboxOption } from "@/components/ui/combobox"
+import { ProductPicker } from "@/components/invoice/product-picker"
+import { Contact, Product } from "@prisma/client"
+import { toast } from "@/lib/toast"
 
 type EInvoiceFormInput = z.input<typeof eInvoiceSchema>
 
 interface InvoiceFormProps {
   contacts: Contact[]
+  products: Product[]
 }
 
-export function InvoiceForm({ contacts }: InvoiceFormProps) {
+export function InvoiceForm({ contacts, products }: InvoiceFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -28,6 +32,7 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<EInvoiceFormInput>({
     resolver: zodResolver(eInvoiceSchema),
@@ -74,11 +79,37 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
 
     if (result?.error) {
       setError(result.error)
+      toast.error("Greška", result.error)
       setLoading(false)
       return
     }
 
+    toast.success("E-račun kreiran", "Možete ga pregledati i poslati")
     router.push("/e-invoices")
+  }
+
+  const buyerOptions: ComboboxOption[] = contacts.map((contact) => ({
+    value: contact.id,
+    label: contact.name,
+    description: `OIB: ${contact.oib}`,
+  }))
+
+  const handleProductSelect = (product: Product) => {
+    const unitPrice = typeof product.price === 'number'
+      ? product.price
+      : product.price.toNumber()
+    const vatRate = typeof product.vatRate === 'number'
+      ? product.vatRate
+      : product.vatRate.toNumber()
+
+    append({
+      description: product.name,
+      quantity: 1,
+      unit: product.unit,
+      unitPrice: unitPrice,
+      vatRate: vatRate,
+      vatCategory: "S",
+    })
   }
 
   return (
@@ -98,19 +129,17 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="buyer-select" className="text-sm font-medium">Kupac</label>
-              <select
+              <label htmlFor="buyer-select" className="text-sm font-medium">
+                Kupac *
+              </label>
+              <Combobox
                 id="buyer-select"
-                className="h-10 w-full rounded-md border border-gray-300 px-3"
-                {...register("buyerId")}
-              >
-                <option value="">Odaberite kupca</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name} {contact.oib && `(${contact.oib})`}
-                  </option>
-                ))}
-              </select>
+                options={buyerOptions}
+                value={watch("buyerId") || ""}
+                onChange={(value) => setValue("buyerId", value)}
+                placeholder="Pretraži kupce..."
+                emptyMessage="Nema pronađenih kupaca"
+              />
               {errors.buyerId && (
                 <p className="text-sm text-red-500">{errors.buyerId.message}</p>
               )}
@@ -167,6 +196,12 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Brzo dodaj proizvod
+              </label>
+              <ProductPicker products={products} onSelect={handleProductSelect} />
+            </div>
             {fields.map((field, index) => (
               <div
                 key={field.id}

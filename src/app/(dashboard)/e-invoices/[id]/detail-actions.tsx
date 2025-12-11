@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { sendEInvoice, deleteEInvoice } from "@/app/actions/e-invoice"
 import { Button } from "@/components/ui/button"
+import { toast } from "@/lib/toast"
 
 interface InvoiceDetailActionsProps {
   invoiceId: string
@@ -19,7 +20,7 @@ export function InvoiceDetailActions({ invoiceId, status, hasProvider }: Invoice
 
   async function handleSend() {
     if (!hasProvider) {
-      alert("Molimo konfigurirajte informacijskog posrednika u postavkama prije slanja računa.")
+      toast.error("Greška", "Molimo konfigurirajte informacijskog posrednika u postavkama prije slanja računa.")
       return
     }
 
@@ -33,12 +34,13 @@ export function InvoiceDetailActions({ invoiceId, status, hasProvider }: Invoice
     const result = await sendEInvoice(invoiceId)
 
     if (result?.error) {
-      alert(result.error)
+      toast.error("Greška pri slanju", result.error)
       setLoading(false)
       setAction(null)
       return
     }
 
+    toast.success("E-račun poslan", "Fiskalizacija u tijeku")
     router.refresh()
     setLoading(false)
     setAction(null)
@@ -55,12 +57,13 @@ export function InvoiceDetailActions({ invoiceId, status, hasProvider }: Invoice
     const result = await deleteEInvoice(invoiceId)
 
     if (result?.error) {
-      alert(result.error)
+      toast.error("Greška", result.error)
       setLoading(false)
       setAction(null)
       return
     }
 
+    toast.success("E-račun obrisan")
     router.push("/e-invoices")
   }
 

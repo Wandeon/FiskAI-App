@@ -4,6 +4,7 @@ import { getEInvoices } from "@/app/actions/e-invoice"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EInvoiceActions } from "./invoice-actions"
+import { DataTable, Column } from "@/components/ui/data-table"
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Nacrt",
@@ -29,6 +30,22 @@ const statusColors: Record<string, string> = {
   ERROR: "bg-red-100 text-red-700",
 }
 
+type InvoiceItem = {
+  id: string
+  invoiceNumber: string
+  issueDate: Date
+  dueDate: Date | null
+  totalAmount: number | { toNumber: () => number }
+  vatAmount: number | { toNumber: () => number }
+  currency: string
+  status: string
+  jir: string | null
+  buyer: {
+    name: string
+    oib: string | null
+  } | null
+}
+
 export default async function EInvoicesPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
@@ -42,6 +59,96 @@ export default async function EInvoicesPage() {
     sent: eInvoices.filter(i => ["SENT", "DELIVERED", "ACCEPTED"].includes(i.status)).length,
     totalAmount: eInvoices.reduce((sum, i) => sum + Number(i.totalAmount), 0),
   }
+
+  // Define table columns
+  const columns: Column<InvoiceItem>[] = [
+    {
+      key: "invoiceNumber",
+      header: "Broj računa",
+      cell: (invoice) => (
+        <div>
+          <Link
+            href={`/e-invoices/${invoice.id}`}
+            className="font-medium text-blue-600 hover:underline"
+          >
+            {invoice.invoiceNumber}
+          </Link>
+          {invoice.jir && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              JIR: {invoice.jir.substring(0, 8)}...
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "buyer",
+      header: "Kupac",
+      cell: (invoice) => (
+        <div>
+          <p className="font-medium">{invoice.buyer?.name || "-"}</p>
+          {invoice.buyer?.oib && (
+            <p className="text-xs text-gray-500">OIB: {invoice.buyer.oib}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "issueDate",
+      header: "Datum",
+      cell: (invoice) =>
+        new Date(invoice.issueDate).toLocaleDateString("hr-HR"),
+    },
+    {
+      key: "dueDate",
+      header: "Dospijeće",
+      cell: (invoice) =>
+        invoice.dueDate
+          ? new Date(invoice.dueDate).toLocaleDateString("hr-HR")
+          : "-",
+    },
+    {
+      key: "totalAmount",
+      header: "Iznos",
+      className: "text-right",
+      cell: (invoice) => (
+        <div>
+          <p className="font-mono font-medium">
+            {Number(invoice.totalAmount).toFixed(2)} {invoice.currency}
+          </p>
+          <p className="text-xs text-gray-500">
+            PDV: {Number(invoice.vatAmount).toFixed(2)}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      className: "text-center",
+      cell: (invoice) => (
+        <span
+          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+            statusColors[invoice.status] || "bg-gray-100 text-gray-700"
+          }`}
+        >
+          {statusLabels[invoice.status] || invoice.status}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Akcije",
+      className: "text-right",
+      cell: (invoice) => (
+        <EInvoiceActions
+          invoiceId={invoice.id}
+          status={invoice.status}
+          hasProvider={!!company.eInvoiceProvider}
+        />
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -95,94 +202,13 @@ export default async function EInvoicesPage() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Broj računa
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Kupac
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Datum
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Dospijeće
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">
-                      Iznos
-                    </th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">
-                      Akcije
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {eInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/e-invoices/${invoice.id}`}
-                          className="font-medium text-blue-600 hover:underline"
-                        >
-                          {invoice.invoiceNumber}
-                        </Link>
-                        {invoice.jir && (
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            JIR: {invoice.jir.substring(0, 8)}...
-                          </p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="font-medium">{invoice.buyer?.name || "-"}</p>
-                          {invoice.buyer?.oib && (
-                            <p className="text-xs text-gray-500">OIB: {invoice.buyer.oib}</p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {new Date(invoice.issueDate).toLocaleDateString("hr-HR")}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {invoice.dueDate
-                          ? new Date(invoice.dueDate).toLocaleDateString("hr-HR")
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <p className="font-mono font-medium">
-                          {Number(invoice.totalAmount).toFixed(2)} {invoice.currency}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          PDV: {Number(invoice.vatAmount).toFixed(2)}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                            statusColors[invoice.status] || "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {statusLabels[invoice.status] || invoice.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <EInvoiceActions
-                          invoiceId={invoice.id}
-                          status={invoice.status}
-                          hasProvider={!!company.eInvoiceProvider}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={columns}
+              data={eInvoices}
+              caption="Popis e-računa"
+              emptyMessage="Nemate još nijedan e-račun. Kliknite 'Novi E-Račun' za početak."
+              getRowKey={(invoice) => invoice.id}
+            />
           )}
         </CardContent>
       </Card>
