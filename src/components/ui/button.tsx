@@ -19,8 +19,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             "bg-red-600 text-white hover:bg-red-700": variant === "destructive",
           },
           {
-            "h-10 px-4 py-2": size === "default",
-            "h-8 px-3 text-sm": size === "sm",
+            "h-10 px-4 py-2 min-h-[44px] md:min-h-0": size === "default",
+            "h-8 px-3 text-sm min-h-[36px] md:min-h-0": size === "sm",
             "h-12 px-6 text-lg": size === "lg",
           },
           className

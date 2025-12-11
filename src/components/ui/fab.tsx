@@ -1,33 +1,71 @@
 'use client'
 
-import { ReactNode } from 'react'
-import { useIsMobile } from '@/hooks/use-media-query'
-import { cn } from '@/lib/utils'
+import Link from "next/link"
+import { Plus, X, FileText, Users, Package, Receipt } from "lucide-react"
+import { useState } from "react"
+import { cn } from "@/lib/utils"
+
+interface FABAction {
+  href: string
+  icon: React.ReactNode
+  label: string
+}
+
+const defaultActions: FABAction[] = [
+  { href: "/e-invoices/new", icon: <Receipt className="h-5 w-5" />, label: "E-račun" },
+  { href: "/invoices/new", icon: <FileText className="h-5 w-5" />, label: "Račun" },
+  { href: "/contacts/new", icon: <Users className="h-5 w-5" />, label: "Kontakt" },
+  { href: "/products/new", icon: <Package className="h-5 w-5" />, label: "Proizvod" },
+]
 
 interface FABProps {
-  icon: ReactNode
-  onClick: () => void
-  label?: string
+  actions?: FABAction[]
   className?: string
 }
 
-export function FAB({ icon, onClick, label, className }: FABProps) {
-  const isMobile = useIsMobile()
-
-  if (!isMobile) {
-    return null
-  }
+export function FAB({ actions = defaultActions, className }: FABProps) {
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className={cn(
-        'fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95',
-        className
-      )}
-    >
-      {icon}
-    </button>
+    <div className={cn("fixed right-4 bottom-20 z-30 md:hidden", className)}>
+      {/* Action buttons */}
+      <div
+        className={cn(
+          "flex flex-col-reverse gap-3 mb-3 transition-all duration-200",
+          isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        )}
+      >
+        {actions.map((action, index) => (
+          <Link
+            key={action.href}
+            href={action.href}
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 animate-scale-in"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <span className="rounded-lg bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)] shadow-elevated">
+              {action.label}
+            </span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface)] text-brand-600 shadow-elevated">
+              {action.icon}
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Main FAB button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "flex h-14 w-14 items-center justify-center rounded-full shadow-elevated transition-all duration-200 touch-target",
+          isOpen
+            ? "bg-[var(--surface-secondary)] text-[var(--foreground)] rotate-45"
+            : "bg-brand-600 text-white"
+        )}
+        aria-label={isOpen ? "Zatvori izbornik" : "Otvori brze akcije"}
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
+      </button>
+    </div>
   )
 }

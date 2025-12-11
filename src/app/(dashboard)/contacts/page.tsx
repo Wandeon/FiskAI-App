@@ -1,6 +1,11 @@
 import Link from "next/link"
+import { Suspense } from "react"
+import { Plus, Users } from "lucide-react"
 import { getContactList } from "@/app/actions/contact-list"
-import { DeleteContactButton } from "./delete-button"
+import { ContactCard } from "@/components/contacts/contact-card"
+import { ContactFilters } from "@/components/contacts/contact-filters"
+import { ContactListSkeleton } from "@/components/contacts/contact-skeleton"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { ContactType } from "@prisma/client"
 
@@ -8,151 +13,105 @@ interface PageProps {
   searchParams: Promise<{ search?: string; type?: string; page?: string }>
 }
 
-export default async function ContactsPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const search = params.search || ""
-  const type = (params.type as ContactType | "ALL") || "ALL"
-  const page = parseInt(params.page || "1", 10)
-
+async function ContactList({ search, type, page }: { search: string; type: string; page: number }) {
   const { contacts, pagination } = await getContactList({
     search,
-    type,
+    type: type as ContactType | "ALL",
     page,
-    limit: 20,
+    limit: 12,
   })
 
-  const typeLabels: Record<ContactType, string> = {
-    CUSTOMER: "Kupac",
-    SUPPLIER: "Dobavljač",
-    BOTH: "Kupac/Dobavljač",
-  }
-
-  const typeColors: Record<ContactType, string> = {
-    CUSTOMER: "bg-blue-100 text-blue-700",
-    SUPPLIER: "bg-purple-100 text-purple-700",
-    BOTH: "bg-green-100 text-green-700",
+  if (contacts.length === 0) {
+    return (
+      <EmptyState
+        icon={<Users className="h-8 w-8" />}
+        title={search || type !== "ALL" ? "Nema rezultata" : "Nemate kontakata"}
+        description={
+          search || type !== "ALL"
+            ? "Pokušajte s drugim filterima"
+            : "Dodajte svoj prvi kontakt za početak fakturiranja"
+        }
+        action={
+          !search && type === "ALL" ? (
+            <Link href="/contacts/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Dodaj kontakt
+              </Button>
+            </Link>
+          ) : undefined
+        }
+      />
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Kontakti</h1>
-          <p className="text-sm text-gray-600">
-            {pagination.total} kontakata ukupno
-          </p>
-        </div>
-        <Link href="/contacts/new">
-          <Button>+ Novi kontakt</Button>
-        </Link>
+    <>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {contacts.map((contact) => (
+          <ContactCard key={contact.id} contact={contact} />
+        ))}
       </div>
 
-      {/* Search and Filter */}
-      <form className="flex gap-4" method="get">
-        <input
-          type="text"
-          name="search"
-          defaultValue={search}
-          placeholder="Pretraži po nazivu, OIB-u ili emailu..."
-          className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          name="type"
-          defaultValue={type}
-          className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="ALL">Svi tipovi</option>
-          <option value="CUSTOMER">Kupci</option>
-          <option value="SUPPLIER">Dobavljači</option>
-          <option value="BOTH">Kupci/Dobavljači</option>
-        </select>
-        <Button type="submit" variant="outline">
-          Filtriraj
-        </Button>
-      </form>
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 pt-6">
+          {page > 1 && (
+            <Link
+              href={`/contacts?page=${page - 1}${search ? `&search=${search}` : ""}${type !== "ALL" ? `&type=${type}` : ""}`}
+            >
+              <Button variant="outline">Prethodna</Button>
+            </Link>
+          )}
 
-      {contacts.length === 0 ? (
-        <div className="rounded-md border border-dashed border-gray-300 p-8 text-center">
-          <p className="text-gray-500">
-            {search || type !== "ALL"
-              ? "Nema kontakata koji odgovaraju filteru"
-              : "Nemate još nijedan kontakt"}
-          </p>
-          {!search && type === "ALL" && (
-            <Link href="/contacts/new" className="mt-2 inline-block text-blue-600 hover:underline">
-              Dodajte prvi kontakt
+          <span className="text-sm text-[var(--muted)]">
+            Stranica {page} od {pagination.totalPages}
+          </span>
+
+          {pagination.hasMore && (
+            <Link
+              href={`/contacts?page=${page + 1}${search ? `&search=${search}` : ""}${type !== "ALL" ? `&type=${type}` : ""}`}
+            >
+              <Button variant="outline">Sljedeća</Button>
             </Link>
           )}
         </div>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {contacts.map((contact) => (
-              <div
-                key={contact.id}
-                className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-              >
-                <div className="mb-2 flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium">{contact.name}</h3>
-                    <span
-                      className={`mt-1 inline-block rounded px-2 py-0.5 text-xs ${
-                        typeColors[contact.type]
-                      }`}
-                    >
-                      {typeLabels[contact.type]}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {contact._count.eInvoicesAsBuyer + contact._count.eInvoicesAsSeller} računa
-                  </div>
-                </div>
-                <div className="mt-3 space-y-1 text-sm text-gray-600">
-                  <p>OIB: {contact.oib}</p>
-                  {contact.email && <p>{contact.email}</p>}
-                  {contact.phone && <p>{contact.phone}</p>}
-                  {contact.city && <p>{contact.city}</p>}
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Link href={`/contacts/${contact.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      Uredi
-                    </Button>
-                  </Link>
-                  <DeleteContactButton contactId={contact.id} contactName={contact.name} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              {page > 1 && (
-                <Link
-                  href={`/contacts?page=${page - 1}${search ? `&search=${search}` : ""}${type !== "ALL" ? `&type=${type}` : ""}`}
-                >
-                  <Button variant="outline" size="sm">
-                    Prethodna
-                  </Button>
-                </Link>
-              )}
-              <span className="text-sm text-gray-600">
-                Stranica {page} od {pagination.totalPages}
-              </span>
-              {pagination.hasMore && (
-                <Link
-                  href={`/contacts?page=${page + 1}${search ? `&search=${search}` : ""}${type !== "ALL" ? `&type=${type}` : ""}`}
-                >
-                  <Button variant="outline" size="sm">
-                    Sljedeća
-                  </Button>
-                </Link>
-              )}
-            </div>
-          )}
-        </>
       )}
+    </>
+  )
+}
+
+export default async function ContactsPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const search = params.search || ""
+  const type = params.type || "ALL"
+  const page = parseInt(params.page || "1", 10)
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Kontakti</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">
+            Upravljajte kupcima i dobavljačima
+          </p>
+        </div>
+        <Link href="/contacts/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Novi kontakt
+          </Button>
+        </Link>
+      </div>
+
+      {/* Filters */}
+      <ContactFilters initialSearch={search} initialType={type} />
+
+      {/* Contact List */}
+      <Suspense fallback={<ContactListSkeleton />}>
+        <ContactList search={search} type={type} page={page} />
+      </Suspense>
     </div>
   )
 }

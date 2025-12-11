@@ -21,9 +21,15 @@ export default function RootLayout({
           position="top-right"
           richColors
           closeButton
+          expand
           toastOptions={{
-            className: "font-sans",
+            className: "font-sans rounded-card shadow-elevated",
             duration: 4000,
+            style: {
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--foreground)',
+            },
           }}
         />
         <Suspense fallback={null}>

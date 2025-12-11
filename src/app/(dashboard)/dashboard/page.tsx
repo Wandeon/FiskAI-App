@@ -1,9 +1,12 @@
 import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Prisma } from "@prisma/client"
-import Link from "next/link"
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
+import { AlertBanner } from "@/components/dashboard/alert-banner"
+import { RecentActivity } from "@/components/dashboard/recent-activity"
+import { QuickStats } from "@/components/dashboard/quick-stats"
+import { FiscalizationStatus } from "@/components/dashboard/fiscalization-status"
 
 const Decimal = Prisma.Decimal
 
@@ -21,7 +24,6 @@ export default async function DashboardPage() {
     contactCount,
     productCount,
     draftInvoices,
-    pendingInvoices,
     recentInvoices,
     totalRevenue,
   ] = await Promise.all([
@@ -30,12 +32,6 @@ export default async function DashboardPage() {
     db.product.count({ where: { companyId: company.id } }),
     db.eInvoice.count({
       where: { companyId: company.id, status: "DRAFT" },
-    }),
-    db.eInvoice.count({
-      where: {
-        companyId: company.id,
-        status: { in: ["PENDING_FISCALIZATION", "SENT"] },
-      },
     }),
     db.eInvoice.findMany({
       where: { companyId: company.id },
@@ -59,210 +55,100 @@ export default async function DashboardPage() {
     }),
   ])
 
-  const totalRevenueValue = totalRevenue._sum.totalAmount || new Decimal(0)
+  const totalRevenueValue = Number(totalRevenue._sum.totalAmount || new Decimal(0))
 
-  const statusLabels: Record<string, string> = {
-    DRAFT: "Nacrt",
-    PENDING_FISCALIZATION: "Fiskalizacija",
-    FISCALIZED: "Fiskalizirano",
-    SENT: "Poslano",
-    DELIVERED: "Dostavljeno",
-    ACCEPTED: "Prihvaceno",
-    REJECTED: "Odbijeno",
-    ERROR: "Greska",
-  }
+  // Onboarding checklist items
+  const onboardingItems = [
+    {
+      id: "company",
+      label: "Podaci o tvrtki",
+      description: "Dodajte OIB, adresu i kontakt podatke",
+      href: "/settings",
+      completed: !!company.oib && !!company.address,
+    },
+    {
+      id: "provider",
+      label: "Konfigurirajte posrednika",
+      description: "Povežite se s IE-Računi ili drugim posrednikom",
+      href: "/settings",
+      completed: !!company.eInvoiceProvider,
+    },
+    {
+      id: "contact",
+      label: "Dodajte prvi kontakt",
+      description: "Kreirajte kupca ili dobavljača",
+      href: "/contacts/new",
+      completed: contactCount > 0,
+    },
+    {
+      id: "product",
+      label: "Dodajte proizvod ili uslugu",
+      description: "Kreirajte artikl za fakturiranje",
+      href: "/products/new",
+      completed: productCount > 0,
+    },
+    {
+      id: "invoice",
+      label: "Kreirajte prvi e-račun",
+      description: "Izdajte i fiskalizirajte račun",
+      href: "/e-invoices/new",
+      completed: eInvoiceCount > 0,
+    },
+  ]
 
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    PENDING_FISCALIZATION: "bg-yellow-100 text-yellow-700",
-    FISCALIZED: "bg-blue-100 text-blue-700",
-    SENT: "bg-purple-100 text-purple-700",
-    DELIVERED: "bg-green-100 text-green-700",
-    ACCEPTED: "bg-green-100 text-green-700",
-    REJECTED: "bg-red-100 text-red-700",
-    ERROR: "bg-red-100 text-red-700",
-  }
+  const firstName = user.name?.split(' ')[0] || user.email?.split('@')[0] || 'korisniče'
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dobrodosli, {user.name || user.email}</h1>
-          <p className="text-gray-600">{company.name}</p>
-        </div>
-        <Link
-          href="/e-invoices/new"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Novi e-racun
-        </Link>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Ukupni prihod</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-green-600">
-              {totalRevenueValue.toFixed(2)} EUR
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">E-Racuni</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{eInvoiceCount}</p>
-            {draftInvoices > 0 && (
-              <p className="text-sm text-yellow-600">{draftInvoices} u nacrtu</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Kontakti</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{contactCount}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Proizvodi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{productCount}</p>
-          </CardContent>
-        </Card>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+          Dobrodošli, {firstName}!
+        </h1>
+        <p className="text-[var(--muted)] mt-1">{company.name}</p>
       </div>
 
       {/* Alerts */}
-      {(draftInvoices > 0 || pendingInvoices > 0 || !company.eInvoiceProvider) && (
-        <div className="space-y-2">
-          {!company.eInvoiceProvider && (
-            <div className="flex items-center gap-3 rounded-md border border-red-200 bg-red-50 p-4">
-              <span className="text-red-600">!</span>
-              <div className="flex-1">
-                <p className="font-medium text-red-800">E-racuni nisu konfigurirani</p>
-                <p className="text-sm text-red-600">Konfigurirajte posrednika u postavkama</p>
-              </div>
-              <Link
-                href="/settings"
-                className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
-              >
-                Postavke
-              </Link>
-            </div>
-          )}
-          {draftInvoices > 0 && (
-            <div className="flex items-center gap-3 rounded-md border border-yellow-200 bg-yellow-50 p-4">
-              <span className="text-yellow-600">i</span>
-              <div className="flex-1">
-                <p className="font-medium text-yellow-800">{draftInvoices} racuna u nacrtu</p>
-                <p className="text-sm text-yellow-600">Zavrssite ih i posaljite</p>
-              </div>
-              <Link
-                href="/e-invoices?status=DRAFT"
-                className="rounded bg-yellow-600 px-3 py-1 text-sm text-white hover:bg-yellow-700"
-              >
-                Pregledaj
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
+      <div className="space-y-3">
+        {!company.eInvoiceProvider && (
+          <AlertBanner
+            type="error"
+            title="E-računi nisu konfigurirani"
+            description="Povežite se s posrednikom za slanje e-računa"
+            action={{ label: "Konfiguriraj", href: "/settings" }}
+          />
+        )}
+        {draftInvoices > 0 && (
+          <AlertBanner
+            type="warning"
+            title={`${draftInvoices} ${draftInvoices === 1 ? 'račun' : draftInvoices < 5 ? 'računa' : 'računa'} u nacrtu`}
+            description="Dovršite ih i pošaljite kupcima"
+            action={{ label: "Pregledaj", href: "/e-invoices?status=DRAFT" }}
+          />
+        )}
+      </div>
 
+      {/* Onboarding Checklist */}
+      <OnboardingChecklist items={onboardingItems} />
+
+      {/* Quick Stats */}
+      <QuickStats
+        totalRevenue={totalRevenueValue}
+        eInvoiceCount={eInvoiceCount}
+        contactCount={contactCount}
+        productCount={productCount}
+        draftCount={draftInvoices}
+      />
+
+      {/* Two Column Layout */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Invoices */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Nedavni e-racuni</span>
-              <Link href="/e-invoices" className="text-sm font-normal text-blue-600 hover:underline">
-                Vidi sve
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentInvoices.length === 0 ? (
-              <p className="text-center text-gray-500 py-4">Nema e-racuna</p>
-            ) : (
-              <div className="space-y-3">
-                {recentInvoices.map((invoice) => (
-                  <Link
-                    key={invoice.id}
-                    href={`/e-invoices/${invoice.id}`}
-                    className="flex items-center justify-between rounded-md border p-3 hover:bg-gray-50"
-                  >
-                    <div>
-                      <p className="font-medium">{invoice.invoiceNumber}</p>
-                      <p className="text-sm text-gray-500">{invoice.buyer?.name || "—"}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">{Number(invoice.totalAmount).toFixed(2)} EUR</p>
-                      <span
-                        className={`inline-block rounded px-2 py-0.5 text-xs ${
-                          statusColors[invoice.status] || "bg-gray-100"
-                        }`}
-                      >
-                        {statusLabels[invoice.status] || invoice.status}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Fiskalizacija Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fiskalizacija 2.0 Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-md border p-3">
-                <span>PDV obveznik</span>
-                <span
-                  className={`rounded px-2 py-1 text-sm ${
-                    company.isVatPayer ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {company.isVatPayer ? "Da" : "Ne"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-md border p-3">
-                <span>Posrednik</span>
-                <span
-                  className={`rounded px-2 py-1 text-sm ${
-                    company.eInvoiceProvider
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {company.eInvoiceProvider || "Nije konfiguriran"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-md border p-3">
-                <span>OIB</span>
-                <span className="font-mono text-sm">{company.oib}</span>
-              </div>
-              {company.vatNumber && (
-                <div className="flex items-center justify-between rounded-md border p-3">
-                  <span>PDV broj</span>
-                  <span className="font-mono text-sm">{company.vatNumber}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <RecentActivity invoices={recentInvoices} />
+        <FiscalizationStatus
+          isVatPayer={company.isVatPayer}
+          eInvoiceProvider={company.eInvoiceProvider}
+          oib={company.oib}
+          vatNumber={company.vatNumber}
+        />
       </div>
     </div>
   )

@@ -2,103 +2,136 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { navigation, isNavItemActive } from "@/lib/navigation"
 
-const navigation = [
-  { name: "Nadzorna ploča", href: "/dashboard", icon: "📊" },
-  { name: "Dokumenti", href: "/invoices", icon: "📋" },
-  { name: "E-Računi", href: "/e-invoices", icon: "📄" },
-  { name: "Troškovi", href: "/expenses", icon: "💸" },
-  { name: "Banka", href: "/banking", icon: "🏦" },
-  { name: "Izvještaji", href: "/reports", icon: "📈" },
-  { name: "Kontakti", href: "/contacts", icon: "👥" },
-  { name: "Proizvodi", href: "/products", icon: "📦" },
-  { name: "Postavke", href: "/settings", icon: "⚙️" },
-]
+interface MobileNavProps {
+  companyName?: string
+  userName?: string
+}
 
-export function MobileNav() {
+export function MobileNav({ companyName, userName }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
-  const handleClose = () => setIsOpen(false)
+  // Close on route change
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
+
+  // Prevent body scroll when open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   return (
     <>
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-40 md:hidden rounded-md bg-white p-2 shadow-md border border-gray-200"
-        aria-label="Open menu"
+        className="fixed left-4 top-4 z-40 md:hidden rounded-lg bg-[var(--surface)] p-2 shadow-card border border-[var(--border)] hover:bg-[var(--surface-secondary)] transition-colors"
+        aria-label="Otvori izbornik"
       >
-        <svg
-          className="h-6 w-6 text-gray-700"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <Menu className="h-5 w-5 text-[var(--foreground)]" />
       </button>
 
       {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={handleClose}
-          aria-hidden="true"
-        />
-      )}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsOpen(false)}
+        aria-hidden="true"
+      />
 
-      {/* Slide-out Sidebar */}
+      {/* Slide-out Drawer */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-xl transition-transform duration-300 md:hidden",
+          "fixed top-0 left-0 z-50 h-full w-72 bg-[var(--surface)] shadow-elevated transition-transform duration-300 md:hidden",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between border-b border-gray-200 p-4">
-          <h2 className="text-lg font-semibold text-gray-900">FiskAI</h2>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-white font-bold text-lg">
+              F
+            </div>
+            <div>
+              <h2 className="font-semibold text-[var(--foreground)]">FiskAI</h2>
+              {companyName && (
+                <p className="text-xs text-[var(--muted)] truncate max-w-[140px]">{companyName}</p>
+              )}
+            </div>
+          </div>
           <button
-            onClick={handleClose}
-            className="rounded-md p-1 hover:bg-gray-100"
-            aria-label="Close menu"
+            onClick={() => setIsOpen(false)}
+            className="rounded-lg p-2 hover:bg-[var(--surface-secondary)] transition-colors"
+            aria-label="Zatvori izbornik"
           >
-            <svg
-              className="h-6 w-6 text-gray-700"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="h-5 w-5 text-[var(--muted)]" />
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1 p-4">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={handleClose}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                pathname === item.href
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-100"
-              )}
-            >
-              <span>{item.icon}</span>
-              {item.name}
-            </Link>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto scrollbar-thin p-4">
+          {navigation.map((section, sectionIdx) => (
+            <div key={section.title} className={cn(sectionIdx > 0 && "mt-6")}>
+              <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                {section.title}
+              </h3>
+
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = isNavItemActive(item, pathname)
+                  const Icon = item.icon
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400"
+                          : "text-[var(--foreground)] hover:bg-[var(--surface-secondary)]"
+                      )}
+                    >
+                      <Icon className={cn(
+                        "h-5 w-5",
+                        isActive ? "text-brand-600 dark:text-brand-400" : "text-[var(--muted)]"
+                      )} />
+                      <span className="flex-1">{item.name}</span>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900 dark:text-brand-300">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
           ))}
         </nav>
+
+        {/* Footer */}
+        {userName && (
+          <div className="border-t border-[var(--border)] p-4">
+            <p className="text-sm text-[var(--muted)]">Prijavljeni kao</p>
+            <p className="font-medium text-[var(--foreground)] truncate">{userName}</p>
+          </div>
+        )}
       </aside>
     </>
   )

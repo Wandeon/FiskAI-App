@@ -1,10 +1,9 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useTransition } from "react"
+import { Trash2 } from "lucide-react"
 import { deleteContact } from "@/app/actions/contact"
-import { Button } from "@/components/ui/button"
-import { toast } from "@/lib/toast"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface DeleteContactButtonProps {
   contactId: string
@@ -12,35 +11,37 @@ interface DeleteContactButtonProps {
 }
 
 export function DeleteContactButton({ contactId, contactName }: DeleteContactButtonProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
-  async function handleDelete() {
-    if (!confirm(`Jeste li sigurni da želite obrisati kontakt "${contactName}"?`)) {
-      return
-    }
-
-    setLoading(true)
-    const result = await deleteContact(contactId)
-
-    if (result?.error) {
-      toast.error("Greška", result.error)
-      setLoading(false)
-      return
-    }
-
-    toast.success("Kontakt obrisan")
-    router.refresh()
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteContact(contactId)
+      setIsOpen(false)
+    })
   }
 
   return (
-    <Button
-      variant="destructive"
-      size="sm"
-      onClick={handleDelete}
-      disabled={loading}
-    >
-      {loading ? "..." : "Obriši"}
-    </Button>
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="rounded-button p-2 text-[var(--muted)] hover:bg-danger-50 hover:text-danger-600 transition-colors"
+        title="Obriši"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+
+      <ConfirmDialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onConfirm={handleDelete}
+        title="Obriši kontakt"
+        description={`Jeste li sigurni da želite obrisati kontakt "${contactName}"? Ova radnja se ne može poništiti.`}
+        confirmLabel="Obriši"
+        cancelLabel="Odustani"
+        variant="danger"
+        loading={isPending}
+      />
+    </>
   )
 }

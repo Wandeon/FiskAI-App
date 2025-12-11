@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { deleteProduct } from "@/app/actions/product"
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { toast } from "@/lib/toast"
 
 interface DeleteProductButtonProps {
@@ -14,12 +15,9 @@ interface DeleteProductButtonProps {
 export function DeleteProductButton({ productId, productName }: DeleteProductButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   async function handleDelete() {
-    if (!confirm(`Jeste li sigurni da želite obrisati proizvod "${productName}"?`)) {
-      return
-    }
-
     setLoading(true)
     const result = await deleteProduct(productId)
 
@@ -30,17 +28,32 @@ export function DeleteProductButton({ productId, productName }: DeleteProductBut
     }
 
     toast.success("Proizvod obrisan")
+    setIsOpen(false)
     router.refresh()
   }
 
   return (
-    <Button
-      variant="destructive"
-      size="sm"
-      onClick={handleDelete}
-      disabled={loading}
-    >
-      {loading ? "..." : "Obriši"}
-    </Button>
+    <>
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        disabled={loading}
+      >
+        Obriši
+      </Button>
+
+      <ConfirmDialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onConfirm={handleDelete}
+        title="Obriši proizvod"
+        description={`Jeste li sigurni da želite obrisati proizvod "${productName}"? Ova akcija se ne može poništiti.`}
+        confirmLabel="Obriši proizvod"
+        cancelLabel="Odustani"
+        variant="danger"
+        loading={loading}
+      />
+    </>
   )
 }
