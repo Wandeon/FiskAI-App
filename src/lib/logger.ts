@@ -1,5 +1,6 @@
 // src/lib/logger.ts
 import pino from "pino"
+import { getContext } from "./context"
 
 const isDev = process.env.NODE_ENV !== "production"
 
@@ -19,6 +20,17 @@ export const logger = pino({
     env: process.env.NODE_ENV,
     app: "fiskai",
   },
+  mixin() {
+    const context = getContext()
+    if (!context) return {}
+    return {
+      requestId: context.requestId,
+      userId: context.userId,
+      companyId: context.companyId,
+      path: context.path,
+      method: context.method,
+    }
+  },
   redact: {
     paths: ["password", "passwordHash", "apiKey", "secret", "token"],
     censor: "[REDACTED]",
@@ -33,3 +45,4 @@ export const authLogger = createLogger("auth")
 export const dbLogger = createLogger("database")
 export const invoiceLogger = createLogger("e-invoice")
 export const apiLogger = createLogger("api")
+

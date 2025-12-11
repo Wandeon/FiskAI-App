@@ -134,19 +134,30 @@ export const auditMiddleware = async (params: MiddlewareParams, next: Middleware
     }
 
     if (companyId && entityId) {
+      // Try to get user context from AsyncLocalStorage if not provided
+      let userId: string | null = null;
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { getContext } = require('./context');
+        const ctx = getContext();
+        if (ctx?.userId) userId = ctx.userId;
+      } catch (e) {
+        // Ignore import errors or context errors
+      }
+
       auditQueue.push({
         companyId,
-        userId: null,
+        userId,
         action,
         entity: params.model,
         entityId,
         changes,
       });
     }
-  }
 
-  // Process queue asynchronously (fire and forget)
-  processAuditQueue().catch(console.error);
+    // Process queue asynchronously (fire and forget)
+    processAuditQueue().catch(console.error);
 
-  return result;
-};
+    return result;
+  };
