@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { unitCodes, vatCategories } from "@/lib/validations/product"
 import { ProductTable } from "@/components/products/product-table"
 import { ProductHealth } from "@/components/products/product-health"
+import { ProductCsvImport } from "@/components/products/product-csv-import"
 
 export default async function ProductsPage() {
   const user = await requireAuth()
@@ -63,6 +64,7 @@ export default async function ProductsPage() {
             missingSkuCount={products.filter((product) => !product.sku).length}
             zeroPriceCount={products.filter((product) => Number(product.price) === 0).length}
           />
+          <ProductCsvImport />
           <ProductTable products={tableProducts} vatOptions={vatOptions} />
         </>
       )}

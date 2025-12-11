@@ -29,6 +29,13 @@ The new shell/components (Header, Sidebar, MobileNav, FAB, redesigned Contacts p
 - Invoices list now shows status buckets (Nacrti, Poslano/Fiskalizacija, Dostavljeno/Prihvaćeno, Greške/Odbijeno) with counts and sums, plus type cards that highlight active filters for faster triage.
 - Invoices buckets now surface multi-currency sums and an overdue alert based on due dates, so teams can see dospjeli dokumenti and outstanding amounts per currency at a glance.
 - Expenses gained “Top kategorije” summary cards (aggregated per currency) and a quick link to manage categories, so teams can see where spend concentrates.
+- Contacts filters now support saved presets (local, named) so users can reapply common segment/type/search combinations in one click.
+- Contacts page now has a board view toggle (list ↔ board) grouping contacts by tip (Kupci, Dobavljači, Kupci/Dobavljači, Ostalo) with preserved filters and segment chips.
+- Products page now includes a CSV import helper (sample download + client-side parsing with row counts) to prep bulk catalog uploads before server-side import is wired.
+- Products table now supports inline edits (price + aktivan toggle) with server-side validation via `updateProductInline`, reducing clicks for catalog maintenance.
+- CSV import now posts to `/api/products/import` (validates up to 500 rows) to create products server-side and revalidate the list.
+- Expenses table/cards now allow inline status cycling (Nacrt → Čeka plaćanje → Plaćeno → Otkazano) via `updateExpenseInline`, keeping list/table views in sync.
+- Added offline indicator for mobile/desktop when connectivity drops, plus a global skip-link and reduced-motion fallback to improve accessibility/UX.
 
 ## Upcoming Enhancements
 ### 1. Visual Language & Theming

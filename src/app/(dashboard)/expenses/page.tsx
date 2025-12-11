@@ -8,6 +8,7 @@ import { ExpenseStatus, Prisma } from '@prisma/client'
 import { ExpenseFilters } from '@/components/expenses/expense-filters'
 import type { MultiSelectOption } from '@/components/ui/multi-select'
 import { ResponsiveTable, type Column } from '@/components/ui/responsive-table'
+import { ExpenseInlineStatus } from '@/components/expenses/expense-inline-status'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Nacrt',
@@ -186,11 +187,7 @@ export default async function ExpensesPage({
     {
       key: 'status',
       label: 'Status',
-      render: (exp) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[exp.status]}`}>
-          {STATUS_LABELS[exp.status]}
-        </span>
-      ),
+      render: (exp) => <ExpenseInlineStatus id={exp.id} status={exp.status} />,
     },
     {
       key: 'actions',
@@ -339,12 +336,15 @@ export default async function ExpensesPage({
                   <p className="font-medium text-[var(--foreground)]">{exp.category.name}</p>
                   <p className="text-xs uppercase tracking-wide text-[var(--muted)]">Kategorija</p>
                 </div>
-                <Link
-                  href={`/expenses/${exp.id}`}
-                  className="text-sm font-semibold text-brand-600 hover:text-brand-700"
-                >
-                  Detalji →
-                </Link>
+                <div className="flex items-center gap-3">
+                  <ExpenseInlineStatus id={exp.id} status={exp.status} />
+                  <Link
+                    href={`/expenses/${exp.id}`}
+                    className="text-sm font-semibold text-brand-600 hover:text-brand-700"
+                  >
+                    Detalji →
+                  </Link>
+                </div>
               </div>
             </div>
           )}

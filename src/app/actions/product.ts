@@ -6,6 +6,17 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { productSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 
+const productInlineSchema = productSchema.pick({
+  name: true,
+  sku: true,
+  description: true,
+  unit: true,
+  price: true,
+  vatRate: true,
+  vatCategory: true,
+  isActive: true,
+})
+
 export async function createProduct(formData: z.infer<typeof productSchema>) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
@@ -54,6 +65,47 @@ export async function updateProduct(
   const product = await db.product.update({
     where: { id: productId },
     data: validatedFields.data,
+  })
+
+  revalidatePath("/products")
+  return { success: "Proizvod ažuriran", data: product }
+}
+
+export async function updateProductInline(
+  productId: string,
+  partial: Partial<z.infer<typeof productInlineSchema>>
+) {
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  const existing = await db.product.findFirst({
+    where: { id: productId, companyId: company.id },
+  })
+
+  if (!existing) {
+    return { error: "Proizvod nije pronađen" }
+  }
+
+  const merged = {
+    name: existing.name,
+    sku: existing.sku,
+    description: existing.description,
+    unit: existing.unit,
+    price: existing.price,
+    vatRate: existing.vatRate,
+    vatCategory: existing.vatCategory,
+    isActive: existing.isActive,
+    ...partial,
+  }
+
+  const validated = productInlineSchema.safeParse(merged)
+  if (!validated.success) {
+    return { error: "Neispravni podaci", details: validated.error.flatten() }
+  }
+
+  const product = await db.product.update({
+    where: { id: productId },
+    data: validated.data,
   })
 
   revalidatePath("/products")

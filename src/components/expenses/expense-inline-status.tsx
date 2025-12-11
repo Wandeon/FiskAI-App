@@ -1,0 +1,65 @@
+'use client'
+
+import { useTransition, useState } from 'react'
+import { Loader2, Check, XCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { updateExpenseInline } from '@/app/actions/expense'
+import { toast } from '@/lib/toast'
+import type { ExpenseStatus } from '@prisma/client'
+
+const STATUS_LABELS: Record<ExpenseStatus, string> = {
+  DRAFT: 'Nacrt',
+  PENDING: 'Čeka plaćanje',
+  PAID: 'Plaćeno',
+  CANCELLED: 'Otkazano',
+}
+
+const STATUS_COLORS: Record<ExpenseStatus, string> = {
+  DRAFT: 'bg-gray-100 text-gray-800',
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  PAID: 'bg-green-100 text-green-800',
+  CANCELLED: 'bg-red-100 text-red-800',
+}
+
+export function ExpenseInlineStatus({ id, status }: { id: string; status: ExpenseStatus }) {
+  const [current, setCurrent] = useState<ExpenseStatus>(status)
+  const [saving, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  const cycle = () => {
+    const order: ExpenseStatus[] = ['DRAFT', 'PENDING', 'PAID', 'CANCELLED']
+    const idx = order.indexOf(current)
+    return order[(idx + 1) % order.length]
+  }
+
+  const save = (next: ExpenseStatus) => {
+    startTransition(async () => {
+      setError(null)
+      const res = await updateExpenseInline(id, { status: next })
+      if (res?.success) {
+        setCurrent(next)
+        toast.success('Status ažuriran')
+      } else {
+        setError(res?.error || 'Greška')
+        toast.error('Greška', res?.error || 'Status nije ažuriran')
+      }
+    })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => save(cycle())}
+      className={cn(
+        'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold transition',
+        STATUS_COLORS[current]
+      )}
+      disabled={saving}
+      aria-label="Promijeni status troška"
+    >
+      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+      {STATUS_LABELS[current]}
+      {error && <XCircle className="h-4 w-4 text-rose-600" />}
+    </button>
+  )
+}

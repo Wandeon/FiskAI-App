@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { requireAuth, requireCompany } from '@/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
 import { Prisma, ExpenseStatus, PaymentMethod } from '@prisma/client'
+import { z } from 'zod'
 
 const Decimal = Prisma.Decimal
 
@@ -195,6 +196,56 @@ export async function markExpenseAsPaid(
   } catch (error) {
     console.error('Failed to mark expense as paid:', error)
     return { success: false, error: 'Greška pri označavanju plaćanja' }
+  }
+}
+
+const expenseInlineSchema = z.object({
+  status: z.nativeEnum(ExpenseStatus).optional(),
+  totalAmount: z.number().optional(),
+})
+
+export async function updateExpenseInline(
+  id: string,
+  input: Partial<z.infer<typeof expenseInlineSchema>>
+): Promise<ActionResult> {
+  try {
+    const user = await requireAuth()
+    const company = await requireCompany(user.id!)
+
+    const existing = await db.expense.findFirst({
+      where: { id, companyId: company.id },
+    })
+
+    if (!existing) {
+      return { success: false, error: 'Trošak nije pronađen' }
+    }
+
+    const validated = expenseInlineSchema.safeParse(input)
+    if (!validated.success) {
+      return { success: false, error: 'Neispravni podaci' }
+    }
+
+    const data: Prisma.ExpenseUpdateInput = {}
+    if (validated.data.status) {
+      data.status = validated.data.status
+      if (validated.data.status === 'PAID') {
+        data.paymentDate = new Date()
+      }
+    }
+    if (validated.data.totalAmount !== undefined) {
+      data.totalAmount = new Decimal(validated.data.totalAmount)
+    }
+
+    const expense = await db.expense.update({
+      where: { id },
+      data,
+    })
+
+    revalidatePath('/expenses')
+    return { success: true, data: expense }
+  } catch (error) {
+    console.error('Failed to update expense inline:', error)
+    return { success: false, error: 'Greška pri ažuriranju' }
   }
 }
 

@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DeleteProductButton } from "@/app/(dashboard)/products/delete-button"
 import { cn } from "@/lib/utils"
+import { updateProductInline } from "@/app/actions/product"
+import { toast } from "@/lib/toast"
+import { Loader2, Check, XCircle } from "lucide-react"
 
 type ProductRow = {
   id: string
@@ -36,6 +39,9 @@ export function ProductTable({ products, vatOptions }: ProductTableProps) {
   const [search, setSearch] = useState("")
   const [selectedVat, setSelectedVat] = useState<MultiSelectOption[]>([])
   const [selectedStatus, setSelectedStatus] = useState<MultiSelectOption[]>([])
+  const [drafts, setDrafts] = useState<Record<string, { price: string; isActive: boolean }>>({})
+  const [savingId, setSavingId] = useState<string | null>(null)
+  const [errorId, setErrorId] = useState<string | null>(null)
 
   const filteredProducts = useMemo(() => {
     const searchTerm = search.trim().toLowerCase()
@@ -153,7 +159,21 @@ export function ProductTable({ products, vatOptions }: ProductTableProps) {
                     {product.sku || "—"}
                   </td>
                   <td className="px-4 py-4 align-top text-right font-mono text-sm text-[var(--foreground)]">
-                    {formatCurrency(product.price)}
+                    <Input
+                      value={drafts[product.id]?.price ?? product.price.toString()}
+                      onChange={(e) =>
+                        setDrafts((prev) => ({
+                          ...prev,
+                          [product.id]: {
+                            price: e.target.value,
+                            isActive: prev[product.id]?.isActive ?? product.isActive,
+                          },
+                        }))
+                      }
+                      className="h-8 w-32 text-right"
+                      type="number"
+                      step="0.01"
+                    />
                   </td>
                   <td className="px-4 py-4 align-top text-center text-sm text-[var(--foreground)]">
                     <span className="font-medium">{product.unitLabel}</span>
@@ -166,19 +186,61 @@ export function ProductTable({ products, vatOptions }: ProductTableProps) {
                     </div>
                   </td>
                   <td className="px-4 py-4 align-top text-center">
-                    <span
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDrafts((prev) => ({
+                          ...prev,
+                          [product.id]: {
+                            price: prev[product.id]?.price ?? product.price.toString(),
+                            isActive: !(prev[product.id]?.isActive ?? product.isActive),
+                          },
+                        }))
+                      }
                       className={cn(
-                        "inline-flex rounded-full px-3 py-0.5 text-xs font-semibold",
-                        product.isActive
+                        "inline-flex items-center gap-2 rounded-full px-3 py-0.5 text-xs font-semibold transition",
+                        drafts[product.id]?.isActive ?? product.isActive
                           ? "bg-success-100 text-success-700"
-                          : "bg-[var(--surface-secondary)] text-[var(--muted)]"
+                          : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
                       )}
                     >
-                      {product.isActive ? "Aktivan" : "Neaktivan"}
-                    </span>
+                      {drafts[product.id]?.isActive ?? product.isActive ? "Aktivan" : "Neaktivan"}
+                    </button>
                   </td>
                   <td className="px-4 py-4 align-top">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                          setSavingId(product.id)
+                          setErrorId(null)
+                          const priceValue = Number(drafts[product.id]?.price ?? product.price)
+                          const isActive = drafts[product.id]?.isActive ?? product.isActive
+                          const result = await updateProductInline(product.id, { price: priceValue, isActive })
+                          if (result?.error) {
+                            setErrorId(product.id)
+                            toast.error("Greška", result.error)
+                          } else {
+                            toast.success("Ažurirano", "Proizvod ažuriran")
+                            setDrafts((prev) => {
+                              const next = { ...prev }
+                              delete next[product.id]
+                              return next
+                            })
+                          }
+                          setSavingId(null)
+                        }}
+                        disabled={savingId === product.id}
+                      >
+                        {savingId === product.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : errorId === product.id ? (
+                          <XCircle className="h-4 w-4 text-rose-600" />
+                        ) : (
+                          <Check className="h-4 w-4 text-emerald-600" />
+                        )}
+                      </Button>
                       <Link href={`/products/${product.id}/edit`}>
                         <Button variant="outline" size="sm">
                           Uredi
@@ -195,13 +257,4 @@ export function ProductTable({ products, vatOptions }: ProductTableProps) {
       )}
     </div>
   )
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("hr-HR", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)
 }

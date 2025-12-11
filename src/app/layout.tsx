@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { AnalyticsProvider } from "@/components/providers/analytics-provider";
+import { OfflineIndicator } from "@/components/layout/offline-indicator";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,8 @@ export default function RootLayout({
   return (
     <html lang="hr">
       <body>
+        <a href="#glavni-sadrzaj" className="skip-link">Preskoči na sadržaj</a>
+        <OfflineIndicator />
         <Toaster
           position="top-right"
           richColors
@@ -34,7 +37,7 @@ export default function RootLayout({
         />
         <Suspense fallback={null}>
           <AnalyticsProvider>
-            {children}
+            <main id="glavni-sadrzaj">{children}</main>
           </AnalyticsProvider>
         </Suspense>
       </body>
