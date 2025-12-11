@@ -1,0 +1,262 @@
+'use server'
+
+import { db, setTenantContext } from '@/lib/db'
+import { requireAuth, requireCompany } from '@/lib/auth-utils'
+import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+
+const createBankAccountSchema = z.object({
+  name: z.string().min(1, 'Naziv je obavezan'),
+  iban: z.string().regex(/^HR\d{19}$/, 'IBAN mora biti u formatu HR + 19 znamenki'),
+  bankName: z.string().min(1, 'Naziv banke je obavezan'),
+  currency: z.string().default('EUR'),
+  isDefault: z.boolean().optional().default(false),
+})
+
+export async function createBankAccount(formData: FormData) {
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  setTenantContext({
+    companyId: company.id,
+    userId: user.id!,
+  })
+
+  const data = {
+    name: formData.get('name'),
+    iban: formData.get('iban'),
+    bankName: formData.get('bankName'),
+    currency: formData.get('currency') || 'EUR',
+    isDefault: formData.get('isDefault') === 'on',
+  }
+
+  const validation = createBankAccountSchema.safeParse(data)
+  if (!validation.success) {
+    return {
+      success: false,
+      error: validation.error.issues[0].message,
+    }
+  }
+
+  try {
+    // If this is the first account, make it default
+    const existingCount = await db.bankAccount.count({
+      where: { companyId: company.id },
+    })
+
+    const isDefault = validation.data.isDefault || existingCount === 0
+
+    // If setting as default, unset other defaults
+    if (isDefault) {
+      await db.bankAccount.updateMany({
+        where: { companyId: company.id, isDefault: true },
+        data: { isDefault: false },
+      })
+    }
+
+    const account = await db.bankAccount.create({
+      data: {
+        ...validation.data,
+        companyId: company.id,
+        currentBalance: 0,
+        isDefault,
+      },
+    })
+
+    revalidatePath('/banking')
+    revalidatePath('/banking/accounts')
+
+    return {
+      success: true,
+      data: account,
+    }
+  } catch (error) {
+    console.error('[createBankAccount] Error:', error)
+    if ((error as { code?: string }).code === 'P2002') {
+      return {
+        success: false,
+        error: 'Račun s ovim IBAN-om već postoji',
+      }
+    }
+    return {
+      success: false,
+      error: 'Greška pri kreiranju računa',
+    }
+  }
+}
+
+export async function deleteBankAccount(accountId: string) {
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  setTenantContext({
+    companyId: company.id,
+    userId: user.id!,
+  })
+
+  try {
+    // Check if account has transactions
+    const transactionCount = await db.bankTransaction.count({
+      where: { bankAccountId: accountId },
+    })
+
+    if (transactionCount > 0) {
+      return {
+        success: false,
+        error: 'Ne možete obrisati račun koji ima transakcije',
+      }
+    }
+
+    await db.bankAccount.delete({
+      where: { id: accountId },
+    })
+
+    revalidatePath('/banking')
+    revalidatePath('/banking/accounts')
+
+    return { success: true }
+  } catch (error) {
+    console.error('[deleteBankAccount] Error:', error)
+    return {
+      success: false,
+      error: 'Greška pri brisanju računa',
+    }
+  }
+}
+
+export async function setDefaultBankAccount(accountId: string) {
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  setTenantContext({
+    companyId: company.id,
+    userId: user.id!,
+  })
+
+  try {
+    // Unset all defaults
+    await db.bankAccount.updateMany({
+      where: { companyId: company.id, isDefault: true },
+      data: { isDefault: false },
+    })
+
+    // Set new default
+    await db.bankAccount.update({
+      where: { id: accountId },
+      data: { isDefault: true },
+    })
+
+    revalidatePath('/banking')
+    revalidatePath('/banking/accounts')
+
+    return { success: true }
+  } catch (error) {
+    console.error('[setDefaultBankAccount] Error:', error)
+    return {
+      success: false,
+      error: 'Greška pri postavljanju zadanog računa',
+    }
+  }
+}
+
+const importTransactionSchema = z.object({
+  accountId: z.string(),
+  date: z.string().or(z.date()),
+  description: z.string(),
+  amount: z.number().or(z.string()),
+  balance: z.number().or(z.string()),
+  reference: z.string().optional(),
+  counterpartyName: z.string().optional(),
+  counterpartyIban: z.string().optional(),
+})
+
+export async function importBankStatement(formData: FormData) {
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  setTenantContext({
+    companyId: company.id,
+    userId: user.id!,
+  })
+
+  const accountId = formData.get('accountId') as string
+  const fileName = formData.get('fileName') as string
+  const transactionsJson = formData.get('transactions') as string
+
+  if (!accountId || !transactionsJson) {
+    return {
+      success: false,
+      error: 'Nedostaju podaci',
+    }
+  }
+
+  try {
+    const transactions = JSON.parse(transactionsJson)
+
+    // Validate all transactions
+    const validatedTransactions = transactions.map((t: Record<string, unknown>) => {
+      const validation = importTransactionSchema.safeParse({ ...t, accountId })
+      if (!validation.success) {
+        throw new Error(`Invalid transaction: ${validation.error.issues[0].message}`)
+      }
+      return validation.data
+    })
+
+    // Create import record
+    const importRecord = await db.bankImport.create({
+      data: {
+        companyId: company.id,
+        bankAccountId: accountId,
+        fileName: fileName || 'imported.csv',
+        format: 'CSV',
+        transactionCount: validatedTransactions.length,
+        importedBy: user.id!,
+      },
+    })
+
+    // Insert transactions
+    for (const txn of validatedTransactions) {
+      await db.bankTransaction.create({
+        data: {
+          companyId: company.id,
+          bankAccountId: accountId,
+          date: new Date(txn.date),
+          description: txn.description,
+          amount: typeof txn.amount === 'string' ? parseFloat(txn.amount) : txn.amount,
+          balance: typeof txn.balance === 'string' ? parseFloat(txn.balance) : txn.balance,
+          reference: txn.reference || null,
+          counterpartyName: txn.counterpartyName || null,
+          counterpartyIban: txn.counterpartyIban || null,
+          matchStatus: 'UNMATCHED',
+        },
+      })
+    }
+
+    // Update account balance
+    const lastBalance = validatedTransactions[validatedTransactions.length - 1].balance
+    await db.bankAccount.update({
+      where: { id: accountId },
+      data: {
+        currentBalance: typeof lastBalance === 'string' ? parseFloat(lastBalance) : lastBalance,
+        lastSyncAt: new Date(),
+      },
+    })
+
+    revalidatePath('/banking')
+    revalidatePath('/banking/transactions')
+
+    return {
+      success: true,
+      data: {
+        importId: importRecord.id,
+        count: validatedTransactions.length,
+      },
+    }
+  } catch (error) {
+    console.error('[importBankStatement] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Greška pri uvozu izvoda',
+    }
+  }
+}

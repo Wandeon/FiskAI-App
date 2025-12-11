@@ -9,6 +9,7 @@ const navigation = [
   { name: "Dokumenti", href: "/invoices", icon: "📋" },
   { name: "E-Računi", href: "/e-invoices", icon: "📄" },
   { name: "Troškovi", href: "/expenses", icon: "💸" },
+  { name: "Banka", href: "/banking", icon: "🏦" },
   { name: "Izvještaji", href: "/reports", icon: "📈" },
   { name: "Kontakti", href: "/contacts", icon: "👥" },
   { name: "Proizvodi", href: "/products", icon: "📦" },
