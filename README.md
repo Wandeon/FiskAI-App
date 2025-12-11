@@ -43,7 +43,8 @@ FiskAI is a cloud-based, modular accounting solution designed for Croatian compa
 
 ## Maintenance Log
 
-- **2025-12-10** – Introduced global command palette (`⌘K`), header search affordance, mobile bottom navigation, and enhanced multi-step e-invoice composer with autosave indicator + sticky mobile controls (see `audit/ui-ux-refresh-2025-12-10-v2.md`).
+- **2025-02-15** – Notification Center bell now consumes real e-invoice/audit data via `src/lib/notifications.ts`, refreshes every 60s through `/api/notifications`, and tracks unread state per company user (`notificationSeenAt` migration + `/api/notifications/read`). See `audit/work-log-2025-02-14.md`.
+- **2025-12-10** – Introduced global command palette (`⌘K`), header search affordance, mobile bottom navigation, enhanced multi-step e-invoice composer, and a redesigned dashboard hero/trend visualization (see `audit/ui-ux-refresh-2025-12-10-v2.md`).
 - **2025-02-14** – Added GitHub Actions CI workflow, baseline accessibility fixes (Croatian document locale, ARIA-aware inputs, labeled buyer select, invoice table caption/scope), tenant-safety updates (Prisma unique constraints + migration, buyer-company validation), and secret management improvements (`.env.example`, docker-compose variable substitution, removed `AUTH_TRUST_HOST`). See `audit/work-log-2025-02-14.md` for details.
 
 ## License

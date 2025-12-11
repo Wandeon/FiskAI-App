@@ -65,7 +65,7 @@ export async function GET() {
         "Content-Type": "text/plain; version=0.0.4; charset=utf-8",
       },
     })
-  } catch (error) {
+  } catch {
     const metrics = [
       "# HELP fiskai_up Application up status (1 = up, 0 = down)",
       "# TYPE fiskai_up gauge",

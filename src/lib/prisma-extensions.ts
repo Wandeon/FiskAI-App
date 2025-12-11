@@ -140,11 +140,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
         async create({ model, args, query }) {
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             args.data = {
               ...args.data,
               companyId: context.companyId,
-            } as any
+            } as typeof args.data
           }
           const result = await query(args)
 

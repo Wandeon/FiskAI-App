@@ -8,6 +8,8 @@ The new shell/components (Header, Sidebar, MobileNav, FAB, redesigned Contacts p
 - Mobile shell upgrades: bottom navigation bar, floating FAB trigger for quick actions/search.
 - Contacts page quick filters + command palette hook for segmentation.
 - E-invoice composer upgrades: autosave indicator, sticky mobile controls, PDF preview/download component.
+- Header notification center wired to live e-invoice/audit data (`src/lib/notifications.ts`), auto-refreshes every 60 s, and shows unread badges + mark-as-read state per company user.
+- Dashboard hero/insights: gradient hero banner, revenue trend sparkline, invite/AI action cards, reorganized onboarding grid.
 
 ## Upcoming Enhancements
 ### 1. Visual Language & Theming

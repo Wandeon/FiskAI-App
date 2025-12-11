@@ -42,7 +42,7 @@ export class MockProvider implements EInvoiceProvider {
     return []
   }
 
-  async getInvoiceStatus(providerRef: string): Promise<InvoiceStatusResult> {
+  async getInvoiceStatus(): Promise<InvoiceStatusResult> {
     await new Promise((resolve) => setTimeout(resolve, 200))
 
     return {

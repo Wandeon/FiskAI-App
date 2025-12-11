@@ -21,8 +21,8 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
       <ol className="flex items-center justify-center gap-2">
         {steps.map((step, index) => {
           const isActive = step.number === currentStep
-          const isCompleted = step.number < currentStep || isStepValid(step.number as OnboardingStep)
           const isPast = step.number < currentStep
+          const isCompleted = isPast || isStepValid(step.number as OnboardingStep)
 
           return (
             <li key={step.number} className="flex items-center">
@@ -36,7 +36,7 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                   )}
                   aria-current={isActive ? "step" : undefined}
                 >
-                  {isPast ? (
+                  {isCompleted && !isActive ? (
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"

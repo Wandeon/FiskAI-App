@@ -56,7 +56,6 @@ export function EInvoiceSettingsForm({ company }: EInvoiceSettingsFormProps) {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
   } = useForm<SettingsFormInput>({
     resolver: zodResolver(companySettingsSchema),
     defaultValues: {

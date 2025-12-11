@@ -29,7 +29,7 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
   }
 
   // Create company and link to user as owner
-  const company = await db.company.create({
+  await db.company.create({
     data: {
       ...data,
       vatNumber: data.isVatPayer ? `HR${data.oib}` : null,

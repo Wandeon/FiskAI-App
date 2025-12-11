@@ -1,14 +1,19 @@
 import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { Prisma } from "@prisma/client"
+import { Prisma, EInvoiceStatus } from "@prisma/client"
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
 import { AlertBanner } from "@/components/dashboard/alert-banner"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { QuickStats } from "@/components/dashboard/quick-stats"
 import { FiscalizationStatus } from "@/components/dashboard/fiscalization-status"
+import { HeroBanner } from "@/components/dashboard/hero-banner"
+import { RevenueTrendCard } from "@/components/dashboard/revenue-trend-card"
+import { ActionCards } from "@/components/dashboard/action-cards"
 
 const Decimal = Prisma.Decimal
+
+const revenueStatuses: EInvoiceStatus[] = ["FISCALIZED", "SENT", "DELIVERED", "ACCEPTED"]
 
 export default async function DashboardPage() {
   const user = await requireAuth()
@@ -19,6 +24,11 @@ export default async function DashboardPage() {
   }
 
   // Get counts and financial data
+  const monthsWindow = 6
+  const trendStart = new Date()
+  trendStart.setMonth(trendStart.getMonth() - (monthsWindow - 1))
+  trendStart.setDate(1)
+
   const [
     eInvoiceCount,
     contactCount,
@@ -26,6 +36,7 @@ export default async function DashboardPage() {
     draftInvoices,
     recentInvoices,
     totalRevenue,
+    revenueTrendRaw,
   ] = await Promise.all([
     db.eInvoice.count({ where: { companyId: company.id } }),
     db.contact.count({ where: { companyId: company.id } }),
@@ -53,9 +64,43 @@ export default async function DashboardPage() {
       },
       _sum: { totalAmount: true },
     }),
+    db.eInvoice.findMany({
+      where: {
+        companyId: company.id,
+        status: { in: revenueStatuses },
+        createdAt: { gte: trendStart },
+      },
+      select: {
+        createdAt: true,
+        totalAmount: true,
+      },
+    }),
   ])
 
   const totalRevenueValue = Number(totalRevenue._sum.totalAmount || new Decimal(0))
+
+  const trendBuckets = Array.from({ length: monthsWindow }).map((_, index) => {
+    const date = new Date()
+    date.setMonth(date.getMonth() - (monthsWindow - index - 1))
+    date.setDate(1)
+    return {
+      key: `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`,
+      label: date.toLocaleString("hr-HR", { month: "short" }),
+    }
+  })
+
+  const revenueTrendData = trendBuckets.map((bucket) => {
+    const monthlyTotal = revenueTrendRaw.reduce((sum, invoice) => {
+      const invoiceKey = `${invoice.createdAt.getFullYear()}-${(invoice.createdAt.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}`
+      if (invoiceKey === bucket.key) {
+        return sum + Number(invoice.totalAmount || 0)
+      }
+      return sum
+    }, 0)
+    return { label: bucket.label, value: monthlyTotal }
+  })
 
   // Onboarding checklist items
   const onboardingItems = [
@@ -100,15 +145,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
-          Dobrodošli, {firstName}!
-        </h1>
-        <p className="text-[var(--muted)] mt-1">{company.name}</p>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <HeroBanner
+          className="lg:col-span-2"
+          userName={firstName}
+          companyName={company.name}
+          draftInvoices={draftInvoices}
+          providerConfigured={!!company.eInvoiceProvider}
+          contactCount={contactCount}
+        />
+        <OnboardingChecklist items={onboardingItems} className="h-full" />
       </div>
 
-      {/* Alerts */}
       <div className="space-y-3">
         {!company.eInvoiceProvider && (
           <AlertBanner
@@ -128,10 +176,6 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Onboarding Checklist */}
-      <OnboardingChecklist items={onboardingItems} />
-
-      {/* Quick Stats */}
       <QuickStats
         totalRevenue={totalRevenueValue}
         eInvoiceCount={eInvoiceCount}
@@ -140,15 +184,19 @@ export default async function DashboardPage() {
         draftCount={draftInvoices}
       />
 
-      {/* Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RecentActivity invoices={recentInvoices} />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <RevenueTrendCard data={revenueTrendData} className="lg:col-span-2" />
         <FiscalizationStatus
           isVatPayer={company.isVatPayer}
           eInvoiceProvider={company.eInvoiceProvider}
           oib={company.oib}
           vatNumber={company.vatNumber}
         />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RecentActivity invoices={recentInvoices} />
+        <ActionCards />
       </div>
     </div>
   )

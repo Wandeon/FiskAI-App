@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { CompanySwitcher } from "./company-switcher"
 import { QuickActions, Notifications, UserMenu, CompanyStatus } from "./header-actions"
 import { CommandPalette } from "@/components/ui/command-palette"
+import { getNotificationCenterFeed, countUnreadNotifications } from "@/lib/notifications"
+import { db } from "@/lib/db"
 
 export async function Header() {
   const session = await auth()
@@ -19,6 +21,28 @@ export async function Header() {
     } catch {
       // User not fully set up yet
     }
+  }
+
+  let notificationItems: Awaited<ReturnType<typeof getNotificationCenterFeed>>["items"] = []
+  let notificationUnreadCount = 0
+
+  if (session?.user?.id && currentCompany) {
+    const [feed, companyUser] = await Promise.all([
+      getNotificationCenterFeed({
+        userId: session.user.id,
+        company: {
+          id: currentCompany.id,
+          name: currentCompany.name,
+          eInvoiceProvider: currentCompany.eInvoiceProvider,
+        },
+      }),
+      db.companyUser.findFirst({
+        where: { userId: session.user.id, companyId: currentCompany.id },
+        select: { notificationSeenAt: true },
+      }),
+    ])
+    notificationItems = feed.items
+    notificationUnreadCount = countUnreadNotifications(feed.items, companyUser?.notificationSeenAt ?? null)
   }
 
   return (
@@ -66,7 +90,10 @@ export async function Header() {
               <QuickActions className="hidden sm:block" />
 
               {/* Notifications */}
-              <Notifications count={0} />
+              <Notifications
+                initialItems={notificationItems}
+                initialUnreadCount={notificationUnreadCount}
+              />
 
               {/* User Menu */}
               <UserMenu

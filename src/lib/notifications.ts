@@ -1,0 +1,288 @@
+import { db, setTenantContext, getTenantContext } from "@/lib/db"
+import type { NotificationItem, NotificationType } from "@/types/notifications"
+import type { AuditAction, Company } from "@prisma/client"
+
+type NotificationCenterContext = {
+  userId: string
+  company: Pick<Company, "id" | "name" | "eInvoiceProvider">
+}
+
+export type NotificationFeed = {
+  items: NotificationItem[]
+  latestEventAt: Date | null
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  FISCALIZED: "Račun fiskaliziran",
+  DELIVERED: "Račun dostavljen",
+  ACCEPTED: "Kupac je prihvatio račun",
+  SENT: "Račun poslan prema kupcu",
+  ERROR: "Greška kod slanja",
+  REJECTED: "Kupac odbio račun",
+  PENDING_FISCALIZATION: "Čeka fiskalizaciju",
+}
+
+const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
+  CREATE: "Kreirano",
+  UPDATE: "Ažurirano",
+  DELETE: "Obrisano",
+  VIEW: "Pregledano",
+  EXPORT: "Izvezeno",
+  LOGIN: "Prijava",
+  LOGOUT: "Odjava",
+}
+
+const ENTITY_LABELS: Record<string, string> = {
+  EInvoice: "E-račun",
+  Contact: "Kontakt",
+  Product: "Proizvod",
+  Company: "Tvrtka",
+  BankAccount: "Bankovni račun",
+}
+
+export async function getNotificationCenterFeed({
+  userId,
+  company,
+}: NotificationCenterContext): Promise<NotificationFeed> {
+  if (!userId || !company?.id) {
+    return { items: [], latestEventAt: null }
+  }
+
+  const previousContext = getTenantContext()
+  setTenantContext({ companyId: company.id, userId })
+
+  try {
+    const [
+      draftCount,
+      pendingFiscalizationCount,
+      errorInvoiceCount,
+      recentInvoices,
+      recentActivity,
+    ] = await Promise.all([
+      db.eInvoice.count({
+        where: { companyId: company.id, status: "DRAFT" },
+      }),
+      db.eInvoice.count({
+        where: { companyId: company.id, status: "PENDING_FISCALIZATION" },
+      }),
+      db.eInvoice.count({
+        where: {
+          companyId: company.id,
+          status: { in: ["ERROR", "REJECTED"] },
+        },
+      }),
+      db.eInvoice.findMany({
+        where: {
+          companyId: company.id,
+          status: {
+            in: [
+              "FISCALIZED",
+              "DELIVERED",
+              "ACCEPTED",
+              "SENT",
+              "REJECTED",
+              "ERROR",
+            ],
+          },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          invoiceNumber: true,
+          totalAmount: true,
+          status: true,
+          updatedAt: true,
+          buyer: { select: { name: true } },
+        },
+      }),
+      db.auditLog.findMany({
+        where: { companyId: company.id },
+        orderBy: { timestamp: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          action: true,
+          entity: true,
+          entityId: true,
+          timestamp: true,
+          changes: true,
+        },
+      }),
+    ])
+
+    const alerts: NotificationItem[] = []
+    const nowLabel = "upravo ažurirano"
+
+    if (!company.eInvoiceProvider) {
+      alerts.push({
+        id: "provider-missing",
+        type: "warning",
+        title: "Povežite posrednika za e-račune",
+        description: `Tvrtka ${company.name} još nije povezana s državnim posrednikom.`,
+        timestamp: nowLabel,
+        action: { label: "Postavke", href: "/settings" },
+      })
+    }
+
+    if (errorInvoiceCount > 0) {
+      alerts.push({
+        id: "invoice-errors",
+        type: "warning",
+        title: `${errorInvoiceCount} rač. ima grešku`,
+        description: "Provjerite odbijene ili vraćene e-račune",
+        timestamp: nowLabel,
+        action: { label: "Pregledaj", href: "/e-invoices?status=ERROR" },
+      })
+    }
+
+    if (pendingFiscalizationCount > 0) {
+      alerts.push({
+        id: "pending-fiscalization",
+        type: "info",
+        title: `${pendingFiscalizationCount} rač. čeka fiskalizaciju`,
+        description: "Dovršite fiskalizaciju kako bi računi bili valjani",
+        timestamp: nowLabel,
+        action: { label: "Otvorite listu", href: "/e-invoices?status=PENDING_FISCALIZATION" },
+      })
+    }
+
+    if (draftCount > 0) {
+      alerts.push({
+        id: "draft-invoices",
+        type: "info",
+        title: `${draftCount} nacrta spremno za slanje`,
+        description: "Dovršite nacrte i pošaljite kupcima",
+        timestamp: nowLabel,
+        action: { label: "Nacrti", href: "/e-invoices?status=DRAFT" },
+      })
+    }
+
+    const invoiceNotifications: NotificationItem[] = recentInvoices.map(
+      (invoice) => {
+        const amount = Number(invoice.totalAmount || 0)
+        return {
+          id: `invoice-${invoice.id}`,
+          type: statusToNotificationType(invoice.status),
+          title: STATUS_LABELS[invoice.status] || invoice.status,
+          description: [
+            invoice.invoiceNumber || "Bez broja",
+            invoice.buyer?.name,
+            `${amount.toLocaleString("hr-HR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })} €`,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          timestamp: formatRelativeTime(invoice.updatedAt),
+          rawTimestamp: invoice.updatedAt.toISOString(),
+          action: { label: "Otvori račun", href: `/e-invoices/${invoice.id}` },
+        }
+      }
+    )
+
+    const activityNotifications = recentActivity
+      .map((entry) => {
+        const entityLabel = ENTITY_LABELS[entry.entity] || entry.entity
+        const targetName = extractEntityName(entry.changes) || entry.entityId
+        const actionLabel = AUDIT_ACTION_LABELS[entry.action] || entry.action
+
+        return {
+          id: `activity-${entry.id}`,
+          type: (entry.action === "DELETE" ? "warning" : "info") as NotificationType,
+          title: `${actionLabel} – ${entityLabel}`,
+          description: targetName,
+          timestamp: formatRelativeTime(entry.timestamp),
+          rawTimestamp: entry.timestamp.toISOString(),
+          action: { label: "Audit log", href: "/settings/audit-log" },
+        }
+      })
+
+    const items = [...alerts, ...invoiceNotifications, ...activityNotifications].slice(0, 10)
+    const latestEventAt = items.reduce<Date | null>((latest, item) => {
+      if (!item.rawTimestamp) return latest
+      const ts = new Date(item.rawTimestamp)
+      if (!latest || ts > latest) return ts
+      return latest
+    }, null)
+
+    return { items, latestEventAt }
+  } finally {
+    setTenantContext(previousContext)
+  }
+}
+
+export async function getNotificationCenterItems(context: NotificationCenterContext) {
+  const feed = await getNotificationCenterFeed(context)
+  return feed.items
+}
+
+export function countUnreadNotifications(items: NotificationItem[], lastSeen: Date | null | undefined) {
+  if (!lastSeen) {
+    return items.filter((item) => Boolean(item.rawTimestamp)).length
+  }
+
+  const lastSeenTime = lastSeen.getTime()
+  return items.filter((item) => {
+    if (!item.rawTimestamp) return false
+    const ts = new Date(item.rawTimestamp).getTime()
+    return ts > lastSeenTime
+  }).length
+}
+
+function statusToNotificationType(status: string): NotificationType {
+  if (status === "FISCALIZED" || status === "DELIVERED" || status === "ACCEPTED") {
+    return "success"
+  }
+  if (status === "ERROR" || status === "REJECTED") {
+    return "warning"
+  }
+  return "info"
+}
+
+function formatRelativeTime(date: Date) {
+  const diff = Date.now() - date.getTime()
+  const minute = 60 * 1000
+  if (diff < minute) {
+    return "prije nekoliko sekundi"
+  }
+  const minutes = Math.floor(diff / minute)
+  if (minutes < 60) {
+    return `prije ${minutes} min`
+  }
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) {
+    return `prije ${hours} h`
+  }
+  const days = Math.floor(hours / 24)
+  return `prije ${days} d`
+}
+
+function extractEntityName(changes: unknown): string | undefined {
+  if (!changes || typeof changes !== "object") return undefined
+  const payload = changes as Record<string, unknown>
+  const after = isRecord(payload.after) ? payload.after : undefined
+  const before = isRecord(payload.before) ? payload.before : undefined
+
+  const candidates = [
+    after?.name,
+    before?.name,
+    after?.invoiceNumber,
+    before?.invoiceNumber,
+    after?.iban,
+    before?.iban,
+  ]
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate
+    }
+  }
+
+  return undefined
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { Camera, Upload, X, Check, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -108,10 +109,13 @@ export function ReceiptScanner({ onExtracted, onCancel }: ReceiptScannerProps) {
 
         {preview && (
           <div className="relative">
-            <img
+            <Image
               src={preview}
               alt="Receipt preview"
-              className="w-full h-auto rounded-lg border"
+              width={800}
+              height={600}
+              className="w-full h-auto rounded-lg border object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
             {isProcessing && (
               <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">

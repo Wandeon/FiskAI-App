@@ -109,6 +109,7 @@ model CompanyUser {
   companyId String
   role      Role    @default(MEMBER)
   isDefault Boolean @default(false)
+  notificationSeenAt DateTime?
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)

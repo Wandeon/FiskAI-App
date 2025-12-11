@@ -1,19 +1,21 @@
 'use client'
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import {
   Plus,
   FileText,
   Users,
   Package,
-  Bell,
   ChevronDown,
   Settings,
   User
 } from "lucide-react"
 import { LogoutButton } from "./logout-button"
+import { NotificationCenter } from "@/components/ui/notification-center"
+import type { NotificationItem } from "@/types/notifications"
 
 // Quick Actions Dropdown
 interface QuickActionsProps {
@@ -75,71 +77,78 @@ export function QuickActions({ className }: QuickActionsProps) {
 
 // Notifications Bell
 interface NotificationsProps {
-  count?: number
+  initialItems?: NotificationItem[]
+  initialUnreadCount?: number
   className?: string
 }
 
-export function Notifications({ count = 0, className }: NotificationsProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+type NotificationResponse = {
+  items: NotificationItem[]
+  unreadCount: number
+}
+
+export function Notifications({
+  initialItems = [],
+  initialUnreadCount = 0,
+  className,
+}: NotificationsProps) {
+  const [items, setItems] = useState<NotificationItem[]>(initialItems)
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
+    setItems(initialItems)
+  }, [initialItems])
+
+  useEffect(() => {
+    setUnreadCount(initialUnreadCount)
+  }, [initialUnreadCount])
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await fetch("/api/notifications", { cache: "no-store" })
+      if (!response.ok) return
+      const data = (await response.json()) as NotificationResponse
+      setItems(data.items ?? [])
+      setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : 0)
+    } catch (error) {
+      console.error("Failed to fetch notifications", error)
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  return (
-    <div ref={ref} className={cn("relative", className)}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] transition-colors focus-ring"
-        aria-label="Obavijesti"
-      >
-        <Bell className="h-5 w-5" />
-        {count > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger-500 text-xs font-medium text-white">
-            {count > 9 ? '9+' : count}
-          </span>
-        )}
-      </button>
+  const markAsRead = useCallback(async () => {
+    try {
+      await fetch("/api/notifications/read", { method: "POST" })
+    } catch (error) {
+      console.error("Failed to mark notifications as read", error)
+    }
+  }, [])
 
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-card border border-[var(--border)] bg-[var(--surface)] shadow-elevated animate-scale-in z-50">
-          <div className="border-b border-[var(--border)] px-4 py-3">
-            <h3 className="font-semibold text-[var(--foreground)]">Obavijesti</h3>
-          </div>
-          <div className="max-h-80 overflow-y-auto scrollbar-thin">
-            {count === 0 ? (
-              <div className="py-8 text-center text-sm text-[var(--muted)]">
-                Nema novih obavijesti
-              </div>
-            ) : (
-              <div className="p-2">
-                {/* Placeholder notifications - in real app, would come from props/API */}
-                <div className="rounded-lg px-3 py-2 hover:bg-[var(--surface-secondary)]">
-                  <p className="text-sm text-[var(--foreground)]">Novi e-račun od Primjer d.o.o.</p>
-                  <p className="text-xs text-[var(--muted)] mt-1">Prije 5 minuta</p>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="border-t border-[var(--border)] px-4 py-2">
-            <Link
-              href="/notifications"
-              className="text-sm text-brand-600 hover:text-brand-700"
-              onClick={() => setIsOpen(false)}
-            >
-              Prikaži sve obavijesti
-            </Link>
-          </div>
-        </div>
-      )}
-    </div>
+  useEffect(() => {
+    const interval = setInterval(fetchNotifications, 60000)
+    fetchNotifications()
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        fetchNotifications()
+        if (unreadCount > 0) {
+          setUnreadCount(0)
+          void markAsRead()
+        }
+      }
+    },
+    [fetchNotifications, markAsRead, unreadCount]
+  )
+
+  return (
+    <NotificationCenter
+      items={items}
+      className={className}
+      badgeCount={unreadCount}
+      onOpenChange={handleOpenChange}
+    />
   )
 }
 
@@ -178,9 +187,11 @@ export function UserMenu({ user, className }: UserMenuProps) {
         className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-[var(--surface-secondary)] transition-colors focus-ring"
       >
         {user.image ? (
-          <img
+          <Image
             src={user.image}
             alt={user.name || 'User'}
+            width={32}
+            height={32}
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { image, text, type } = body
+    const { image, text } = body
 
     if (image) {
       // Image extraction (base64)
