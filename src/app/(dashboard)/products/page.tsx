@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { unitCodes, vatCategories } from "@/lib/validations/product"
 import { ProductTable } from "@/components/products/product-table"
+import { ProductHealth } from "@/components/products/product-health"
 
 export default async function ProductsPage() {
   const user = await requireAuth()
@@ -55,7 +56,15 @@ export default async function ProductsPage() {
           </CardContent>
         </Card>
       ) : (
-        <ProductTable products={tableProducts} vatOptions={vatOptions} />
+        <>
+          <ProductHealth
+            total={products.length}
+            inactiveCount={products.filter((product) => !product.isActive).length}
+            missingSkuCount={products.filter((product) => !product.sku).length}
+            zeroPriceCount={products.filter((product) => Number(product.price) === 0).length}
+          />
+          <ProductTable products={tableProducts} vatOptions={vatOptions} />
+        </>
       )}
     </div>
   )

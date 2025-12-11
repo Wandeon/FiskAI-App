@@ -24,6 +24,7 @@ The new shell/components (Header, Sidebar, MobileNav, FAB, redesigned Contacts p
 - Contact filters now include segment chips (PDV obveznici, bez e-maila, bez e-računa) to target workflow personas quickly.
 - Dashboard hero/insights: gradient hero banner, revenue trend sparkline, invite/AI action cards, reorganized onboarding grid.
 - Dashboard insight column now includes PDV overview (plaćeno/u tijeku), invoice funnel visualization, and contextual tips so admins see tax exposure and conversion health at a glance.
+- Products page now surfaces a “Zdravlje kataloga” card that highlights missing šifre, nula cijena, and neaktivni artikli with quick CTA to add items (CSV import button stubbed for upcoming bulk imports).
 
 ## Upcoming Enhancements
 ### 1. Visual Language & Theming
