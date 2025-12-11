@@ -189,6 +189,18 @@ model EInvoice {
   companyId String
   direction EInvoiceDirection
 
+  // Document type (defaults to E_INVOICE for backward compatibility)
+  type InvoiceType @default(E_INVOICE)
+
+  // Internal reference with year prefix (e.g., "2025/43-1-1")
+  internalReference String?
+
+  // Notes/description
+  notes String? @db.Text
+
+  // Conversion tracking (for Quote → Invoice conversion)
+  convertedFromId String?
+
   // Parties
   sellerId String?
   buyerId  String?
@@ -231,6 +243,10 @@ model EInvoice {
   buyer   Contact?       @relation("EInvoiceBuyer", fields: [buyerId], references: [id])
   lines   EInvoiceLine[]
 
+  // Conversion tracking
+  convertedFrom EInvoice?  @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
+  convertedTo   EInvoice[] @relation("InvoiceConversion")
+
   // Timestamps
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -241,6 +257,7 @@ model EInvoice {
   @@index([status])
   @@index([invoiceNumber])
   @@index([direction])
+  @@index([type])
 }
 
 enum EInvoiceDirection {
@@ -258,6 +275,15 @@ enum EInvoiceStatus {
   REJECTED
   ARCHIVED
   ERROR
+}
+
+enum InvoiceType {
+  INVOICE // Standard invoice (Račun)
+  E_INVOICE // Electronic invoice (E-Račun) - existing
+  QUOTE // Price quote (Ponuda)
+  PROFORMA // Proforma invoice (Predračun)
+  CREDIT_NOTE // Credit note (Odobrenje)
+  DEBIT_NOTE // Debit note (Terećenje)
 }
 
 model EInvoiceLine {

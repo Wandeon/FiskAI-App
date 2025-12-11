@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 const navigation = [
   { name: "Nadzorna ploča", href: "/dashboard", icon: "📊" },
+  { name: "Dokumenti", href: "/invoices", icon: "📋" },
   { name: "E-Računi", href: "/e-invoices", icon: "📄" },
   { name: "Kontakti", href: "/contacts", icon: "👥" },
   { name: "Proizvodi", href: "/products", icon: "📦" },
