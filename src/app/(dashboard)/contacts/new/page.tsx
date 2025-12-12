@@ -10,6 +10,8 @@ import { createContact } from "@/app/actions/contact"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { OibInput } from "@/components/ui/oib-input"
+import { toast } from "@/lib/toast"
 
 type ContactFormInput = z.input<typeof contactSchema>
 
@@ -22,6 +24,8 @@ export default function NewContactPage() {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<ContactFormInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -29,6 +33,8 @@ export default function NewContactPage() {
       country: "HR",
     },
   })
+
+  const oibValue = watch("oib") || ""
 
   async function onSubmit(data: ContactFormInput) {
     setLoading(true)
@@ -46,6 +52,27 @@ export default function NewContactPage() {
     }
 
     router.push("/contacts")
+  }
+
+  function handleOibLookupSuccess(data: {
+    name?: string
+    address?: string
+    city?: string
+    postalCode?: string
+    vatNumber?: string
+  }) {
+    // Auto-fill form fields with looked up data
+    if (data.name) setValue("name", data.name)
+    if (data.address) setValue("address", data.address)
+    if (data.city) setValue("city", data.city)
+    if (data.postalCode) setValue("postalCode", data.postalCode)
+    if (data.vatNumber) setValue("vatNumber", data.vatNumber)
+    
+    toast.success("Pronađeno!", "Podaci o tvrtki su automatski popunjeni")
+  }
+
+  function handleOibLookupError(errorMsg: string) {
+    toast.error("Nije pronađeno", errorMsg)
   }
 
   return (
@@ -80,21 +107,22 @@ export default function NewContactPage() {
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-medium">OIB</label>
+              <OibInput
+                value={oibValue}
+                onChange={(value) => setValue("oib", value)}
+                onLookupSuccess={handleOibLookupSuccess}
+                onLookupError={handleOibLookupError}
+                error={errors.oib?.message}
+              />
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium">Naziv *</label>
               <Input
                 {...register("name")}
                 placeholder="Naziv tvrtke ili ime osobe"
                 error={errors.name?.message}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">OIB</label>
-              <Input
-                {...register("oib")}
-                placeholder="12345678901"
-                maxLength={11}
-                error={errors.oib?.message}
               />
             </div>
 
