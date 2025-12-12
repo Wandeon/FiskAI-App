@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { startAuthentication } from "@simplewebauthn/browser"
-import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types"
+import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser"
 import { KeyRound } from "lucide-react"
 import { toast } from "@/lib/toast"
 
@@ -74,9 +74,9 @@ export default function LoginPage() {
       }
 
       const { userId, ...options } = await startResponse.json()
-      const authResponse = await startAuthentication(
+      const authResponse = await startAuthentication({ optionsJSON: 
         options as PublicKeyCredentialRequestOptionsJSON
-      )
+       })
 
       const finishResponse = await fetch("/api/webauthn/login/finish", {
         method: "POST",

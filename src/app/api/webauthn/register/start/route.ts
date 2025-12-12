@@ -26,11 +26,10 @@ export async function POST(req: NextRequest) {
       user.email,
       user.name || user.email,
       user.webAuthnCredentials.map((cred) => ({
-        id: cred.id,
         credentialId: cred.credentialId,
         publicKey: cred.publicKey,
         counter: cred.counter,
-        transports: cred.transports || undefined,
+        transports: cred.transports ?? null,
       }))
     );
 

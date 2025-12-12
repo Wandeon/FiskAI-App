@@ -21,12 +21,12 @@ const tabs = [
     description: "Informacijski posrednik i API ključevi",
     icon: ReceiptText,
   },
-  },
   {
     id: "security",
     label: "Sigurnost",
     description: "Passkeys i autentifikacija",
     icon: KeyRound,
+  },
   {
     id: "plan",
     label: "Plan & pravna forma",

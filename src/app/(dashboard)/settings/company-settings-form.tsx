@@ -95,7 +95,7 @@ export function CompanySettingsForm({ company }: CompanySettingsFormProps) {
             disabled
             className="bg-gray-50"
           />
-          <p className="text-xs text-gray-500">OIB se ne može mijenjati</p>
+          <p className="text-xs text-gray-500">OIB se ne može mijenjati nakon kreiranja tvrtke</p>
         </div>
 
         <div className="space-y-2 md:col-span-2">

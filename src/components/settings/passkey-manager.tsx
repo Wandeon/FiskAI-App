@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { startRegistration } from "@simplewebauthn/browser";
-import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
+import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/server";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import { Trash2, KeyRound, Plus } from "lucide-react";
@@ -65,7 +65,7 @@ export function PasskeyManager() {
         await startResponse.json();
 
       // Prompt user for passkey
-      const registrationResponse = await startRegistration(options);
+      const registrationResponse = await startRegistration({ optionsJSON: options });
 
       // Finish registration
       const finishResponse = await fetch("/api/webauthn/register/finish", {

@@ -3,15 +3,12 @@ import {
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
-  type GenerateRegistrationOptionsOpts,
-  type GenerateAuthenticationOptionsOpts,
-  type VerifyRegistrationResponseOpts,
-  type VerifyAuthenticationResponseOpts,
 } from '@simplewebauthn/server';
 import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
-} from '@simplewebauthn/types';
+  AuthenticatorTransportFuture,
+} from '@simplewebauthn/server';
 
 // Environment configuration
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'erp.metrica.hr';
@@ -27,14 +24,16 @@ interface ChallengeData {
 const challengeStore = new Map<string, ChallengeData>();
 
 // Clean up expired challenges every minute
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of challengeStore.entries()) {
-    if (value.expiresAt < now) {
-      challengeStore.delete(key);
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of challengeStore.entries()) {
+      if (value.expiresAt < now) {
+        challengeStore.delete(key);
+      }
     }
-  }
-}, 60000);
+  }, 60000);
+}
 
 export function storeChallenge(userId: string, challenge: string): void {
   challengeStore.set(userId, {
@@ -57,32 +56,31 @@ export function deleteChallenge(userId: string): void {
   challengeStore.delete(userId);
 }
 
+// Types for registered credentials
 export interface RegisteredCredential {
-  id: string;
   credentialId: string;
   publicKey: string;
   counter: bigint;
-  transports?: string;
+  transports: string | null;
 }
 
+// Generate registration options for new passkey
 export async function generateWebAuthnRegistrationOptions(
   userId: string,
   userName: string,
   userDisplayName: string,
-  existingCredentials: RegisteredCredential[]
+  existingCredentials: RegisteredCredential[] = []
 ) {
-  const opts: GenerateRegistrationOptionsOpts = {
+  const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
     userName,
     userDisplayName,
-    timeout: 60000,
     attestationType: 'none',
     excludeCredentials: existingCredentials.map((cred) => ({
-      id: Buffer.from(cred.credentialId, 'base64'),
-      type: 'public-key',
-      transports: cred.transports
-        ? (JSON.parse(cred.transports) as AuthenticatorTransport[])
+      id: cred.credentialId,
+      transports: cred.transports 
+        ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
     })),
     authenticatorSelection: {
@@ -90,13 +88,13 @@ export async function generateWebAuthnRegistrationOptions(
       userVerification: 'preferred',
       authenticatorAttachment: 'platform',
     },
-  };
+  });
 
-  const options = await generateRegistrationOptions(opts);
   storeChallenge(userId, options.challenge);
   return options;
 }
 
+// Verify registration response
 export async function verifyWebAuthnRegistration(
   userId: string,
   response: RegistrationResponseJSON
@@ -106,53 +104,50 @@ export async function verifyWebAuthnRegistration(
     throw new Error('Challenge not found or expired');
   }
 
-  const opts: VerifyRegistrationResponseOpts = {
+  const verification = await verifyRegistrationResponse({
     response,
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
     requireUserVerification: false,
-  };
+  });
 
-  const verification = await verifyRegistrationResponse(opts);
   deleteChallenge(userId);
 
   if (!verification.verified || !verification.registrationInfo) {
     throw new Error('Registration verification failed');
   }
 
-  const { credentialPublicKey, credentialID, counter } =
-    verification.registrationInfo;
-
   return {
-    credentialId: Buffer.from(credentialID).toString('base64'),
-    publicKey: Buffer.from(credentialPublicKey).toString('base64'),
-    counter: BigInt(counter),
+    verified: true,
+    credentialId: verification.registrationInfo.credential.id,
+    publicKey: Buffer.from(verification.registrationInfo.credential.publicKey).toString('base64'),
+    counter: BigInt(verification.registrationInfo.credential.counter),
+    transports: response.response.transports,
   };
 }
 
+// Generate authentication options for login
 export async function generateWebAuthnAuthenticationOptions(
   userId: string,
   credentials: RegisteredCredential[]
 ) {
-  const opts: GenerateAuthenticationOptionsOpts = {
-    timeout: 60000,
+  const options = await generateAuthenticationOptions({
+    rpID: RP_ID,
     allowCredentials: credentials.map((cred) => ({
-      id: Buffer.from(cred.credentialId, 'base64'),
-      type: 'public-key',
+      id: cred.credentialId,
       transports: cred.transports
-        ? (JSON.parse(cred.transports) as AuthenticatorTransport[])
+        ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
     })),
     userVerification: 'preferred',
-    rpID: RP_ID,
-  };
+  });
 
-  const options = await generateAuthenticationOptions(opts);
   storeChallenge(userId, options.challenge);
   return options;
 }
 
+// Verify authentication response
 export async function verifyWebAuthnAuthentication(
   userId: string,
   response: AuthenticationResponseJSON,
@@ -163,20 +158,19 @@ export async function verifyWebAuthnAuthentication(
     throw new Error('Challenge not found or expired');
   }
 
-  const opts: VerifyAuthenticationResponseOpts = {
+  const verification = await verifyAuthenticationResponse({
     response,
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
-    authenticator: {
-      credentialID: Buffer.from(credential.credentialId, 'base64'),
-      credentialPublicKey: Buffer.from(credential.publicKey, 'base64'),
+    credential: {
+      id: credential.credentialId,
+      publicKey: Buffer.from(credential.publicKey, 'base64'),
       counter: Number(credential.counter),
     },
     requireUserVerification: false,
-  };
+  });
 
-  const verification = await verifyAuthenticationResponse(opts);
   deleteChallenge(userId);
 
   if (!verification.verified) {
