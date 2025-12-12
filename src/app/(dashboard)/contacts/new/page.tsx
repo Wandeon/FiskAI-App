@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -270,8 +271,8 @@ export default function NewContactPage() {
         </Card>
 
         <div className="flex gap-4">
-          <Button type="submit" disabled={loading}>
-            {loading ? "Spremanje..." : "Spremi kontakt"}
+          <Button type="submit" disabled={loading} className="min-w-[140px]">
+            {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Spremanje...</> : "Spremi kontakt"}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Odustani

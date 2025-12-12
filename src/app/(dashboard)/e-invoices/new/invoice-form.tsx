@@ -172,17 +172,12 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
     })
   }
 
-  const handleLineChange = (index: number, field: string, value: string | number) => {
-    const currentLine = fields[index]
+const handleLineChange = (index: number, field: string, value: string | number) => {
     if (!invoiceVisibility.showVatFields && field === "vatRate") {
       return
     }
-    const nextLine = {
-      ...currentLine,
-      [field]: value,
-      ...(invoiceVisibility.showVatFields ? {} : { vatRate: 0 }),
-    }
-    update(index, nextLine)
+    // Use setValue instead of update to prevent focus loss
+    setValue(`lines..` as any, value, { shouldDirty: true })
   }
 
   const handleDownloadPdf = () => {
