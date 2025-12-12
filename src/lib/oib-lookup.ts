@@ -143,7 +143,7 @@ async function lookupVies(oib: string): Promise<OibLookupResult> {
 
     return {
       success: true,
-      name: data.name || "",
+      name: extractShortName(data.name) || "",
       address: addressParts.street,
       city: addressParts.city,
       postalCode: addressParts.postalCode,
@@ -211,7 +211,7 @@ async function lookupSudskiRegistar(oib: string): Promise<OibLookupResult> {
     const data = await response.json()
 
     // Extract company name
-    const name = data.tvrtka?.ime || data.skracena_tvrtka?.ime || ""
+    const name = data.skracena_tvrtka?.ime || extractShortName(data.tvrtka?.ime) || ""
 
     // Extract address
     const sjediste = data.sjediste || {}
@@ -290,6 +290,39 @@ export async function lookupOib(oib: string): Promise<OibLookupResult> {
 /**
  * Parse Croatian address string into components
  */
+/**
+ * Extract short company name from full legal name
+ * "INOXMONT-VS - drustvo s ogranicenom odgovornoscu za..." -> "INOXMONT-VS d.o.o."
+ */
+function extractShortName(fullName: string | undefined): string {
+  if (!fullName) return ""
+  
+  // Common patterns: "NAME - drustvo s ogranicenom odgovornoscu..." or "NAME d.o.o."
+  // Split on " - " which typically separates short name from long legal description
+  const dashIndex = fullName.indexOf(" - ")
+  if (dashIndex > 0) {
+    const shortPart = fullName.substring(0, dashIndex).trim()
+    // Append appropriate suffix based on common patterns in description
+    const lowerFull = fullName.toLowerCase()
+    if (lowerFull.includes("drustvo s ogranicenom") || lowerFull.includes("d.o.o")) {
+      return shortPart + " d.o.o."
+    }
+    if (lowerFull.includes("dionicko drustvo") || lowerFull.includes("d.d")) {
+      return shortPart + " d.d."
+    }
+    if (lowerFull.includes("jednostavno drustvo") || lowerFull.includes("j.d.o.o")) {
+      return shortPart + " j.d.o.o."
+    }
+    return shortPart
+  }
+  
+  // If no separator, return as-is but truncate if very long
+  if (fullName.length > 60) {
+    return fullName.substring(0, 57) + "..."
+  }
+  return fullName
+}
+
 function parseAddress(address: string): { street: string; city: string; postalCode: string } {
   if (!address) {
     return { street: "", city: "", postalCode: "" }

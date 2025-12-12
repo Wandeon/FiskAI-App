@@ -110,7 +110,7 @@ export function Combobox({
 
       {/* Display selected value when not searching */}
       {!isOpen && selectedOption && (
-        <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm">
+        <div className="pointer-events-none absolute inset-y-0 left-3 right-10 flex items-center text-sm truncate">
           {selectedOption.label}
         </div>
       )}
