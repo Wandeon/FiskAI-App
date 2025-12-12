@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyWebAuthnAuthentication } from '@/lib/webauthn';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,11 +22,11 @@ export async function POST(req: NextRequest) {
     const rawIdBase64url =
       typeof response.rawId === 'string'
         ? response.rawId
-        : isoBase64URL.fromBuffer(Buffer.from(response.rawId));
+        : Buffer.from(response.rawId).toString('base64url');
 
     let rawIdBase64: string | null = null;
     try {
-      rawIdBase64 = isoBase64URL.toBuffer(rawIdBase64url).toString('base64');
+      rawIdBase64 = Buffer.from(rawIdBase64url, 'base64url').toString('base64');
     } catch (e) {
       void e;
     }

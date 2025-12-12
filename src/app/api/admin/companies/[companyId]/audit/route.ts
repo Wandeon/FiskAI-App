@@ -3,17 +3,22 @@ import { db } from "@/lib/db"
 import { isGlobalAdmin } from "@/lib/admin"
 import { auth } from "@/lib/auth"
 
-export async function GET(request: NextRequest, { params }: { params: { companyId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ companyId: string }> }
+) {
   const session = await auth()
   if (!session?.user?.email || !isGlobalAdmin(session.user.email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
   }
 
+  const { companyId } = await params
+
   const limitParam = Number(request.nextUrl.searchParams.get("limit") || 200)
   const limit = Math.min(Math.max(limitParam, 10), 1000)
 
   const logs = await db.auditLog.findMany({
-    where: { companyId: params.companyId },
+    where: { companyId },
     orderBy: { timestamp: "desc" },
     take: limit,
   })
@@ -37,7 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: { companyI
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="audit-${params.companyId}.csv"`,
+      "Content-Disposition": `attachment; filename="audit-${companyId}.csv"`,
     },
   })
 }

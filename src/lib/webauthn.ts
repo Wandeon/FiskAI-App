@@ -9,7 +9,6 @@ import type {
   AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
 } from '@simplewebauthn/server';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 // Environment configuration
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'erp.metrica.hr';
@@ -67,9 +66,9 @@ export interface RegisteredCredential {
 
 function toBufferFromId(id: string): Buffer {
   try {
-    return isoBase64URL.toBuffer(id);
-  } catch (e) {
-    void e;
+    return Buffer.from(id, 'base64url');
+  } catch {
+    // Fall back to base64 (older stored values) or raw string.
     try {
       return Buffer.from(id, 'base64');
     } catch {
@@ -80,11 +79,7 @@ function toBufferFromId(id: string): Buffer {
 
 function toBase64UrlId(id: string | Buffer): string {
   const buf = Buffer.isBuffer(id) ? id : toBufferFromId(id);
-  try {
-    return isoBase64URL.fromBuffer(buf);
-  } catch {
-    return buf.toString('base64');
-  }
+  return buf.toString('base64url');
 }
 
 // Generate registration options for new passkey
@@ -101,7 +96,7 @@ export async function generateWebAuthnRegistrationOptions(
     userDisplayName,
     attestationType: 'none',
     excludeCredentials: existingCredentials.map((cred) => ({
-      id: toBufferFromId(cred.credentialId),
+      id: toBase64UrlId(cred.credentialId),
       transports: cred.transports 
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
@@ -158,7 +153,7 @@ export async function generateWebAuthnAuthenticationOptions(
   const options = await generateAuthenticationOptions({
     rpID: RP_ID,
     allowCredentials: credentials.map((cred) => ({
-      id: toBufferFromId(cred.credentialId),
+      id: toBase64UrlId(cred.credentialId),
       transports: cred.transports
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
@@ -187,7 +182,7 @@ export async function verifyWebAuthnAuthentication(
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
     credential: {
-      id: toBufferFromId(credential.credentialId),
+      id: toBase64UrlId(credential.credentialId),
       publicKey: Buffer.from(credential.publicKey, 'base64'),
       counter: Number(credential.counter),
     },

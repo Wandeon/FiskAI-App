@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowRight, Search, Notebook } from "lucide-react"
 
 export default function AssistantPage() {
@@ -16,16 +15,18 @@ export default function AssistantPage() {
               Asistent je u izradi. U međuvremenu koristite postojeće brze akcije i pretragu kako biste došli do računa i kontakata bez klikanja kroz izbornik.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link href="/e-invoices/new">
-                  <ArrowRight className="mr-2 h-4 w-4" /> Novi e-račun
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/contacts">
-                  <ArrowRight className="mr-2 h-4 w-4" /> Pregled kontakata
-                </Link>
-              </Button>
+              <Link
+                href="/e-invoices/new"
+                className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 min-h-[44px] md:min-h-0"
+              >
+                <ArrowRight className="mr-2 h-4 w-4" /> Novi e-račun
+              </Link>
+              <Link
+                href="/contacts"
+                className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 font-medium transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 min-h-[44px] md:min-h-0"
+              >
+                <ArrowRight className="mr-2 h-4 w-4" /> Pregled kontakata
+              </Link>
             </div>
           </div>
         </div>

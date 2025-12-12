@@ -1,7 +1,6 @@
 import { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
-import Link from "next/link"
 import { LogOut } from "lucide-react"
 
 const ADMIN_COOKIE = "fiskai_admin_auth"

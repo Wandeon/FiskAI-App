@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { startAuthentication } from "@simplewebauthn/browser"
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser"
-import { KeyRound, Settings } from "lucide-react"
+import { KeyRound } from "lucide-react"
 import { toast } from "@/lib/toast"
 
 export default function LoginPage() {
@@ -115,14 +115,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative">
-      {/* Subtle admin icon in top right */}
-      <Link
-        href="/admin-login"
-        className="absolute -top-10 right-0 text-gray-200 hover:text-gray-400 transition-colors"
-      >
-        <Settings className="h-4 w-4" />
-      </Link>
-
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Prijava u FiskAI</CardTitle>

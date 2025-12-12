@@ -87,6 +87,7 @@ export function EditContactForm({ contact }: EditContactFormProps) {
     const result = await updateContact(contact.id, {
       ...data,
       country: data.country || "HR",
+      paymentTermsDays: Number(data.paymentTermsDays ?? 15),
     })
 
     if (result?.error) {

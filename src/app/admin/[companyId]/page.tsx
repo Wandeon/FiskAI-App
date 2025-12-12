@@ -8,8 +8,8 @@ import { db } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 
 type PageProps = {
-  params: { companyId: string }
-  searchParams?: { action?: string; entity?: string; limit?: string }
+  params: Promise<{ companyId: string }>
+  searchParams?: Promise<{ action?: string; entity?: string; limit?: string }>
 }
 
 export default async function AdminCompanyPage({ params, searchParams }: PageProps) {
@@ -18,8 +18,11 @@ export default async function AdminCompanyPage({ params, searchParams }: PagePro
     redirect("/dashboard")
   }
 
+  const { companyId } = await params
+  const resolvedSearchParams = (await searchParams) ?? {}
+
   const company = await db.company.findUnique({
-    where: { id: params.companyId },
+    where: { id: companyId },
     select: {
       id: true,
       name: true,
@@ -42,9 +45,9 @@ export default async function AdminCompanyPage({ params, searchParams }: PagePro
   }
 
   const entitlements = getEntitlementsList(company.entitlements)
-  const actionFilter = searchParams?.action?.toUpperCase() as AuditAction | undefined
-  const entityFilter = searchParams?.entity
-  const take = Math.min(Number(searchParams?.limit || 30) || 30, 200)
+  const actionFilter = resolvedSearchParams.action?.toUpperCase() as AuditAction | undefined
+  const entityFilter = resolvedSearchParams.entity
+  const take = Math.min(Number(resolvedSearchParams.limit || 30) || 30, 200)
 
   const [companyUsers, auditLogs, stats] = await Promise.all([
     db.companyUser.findMany({

@@ -76,6 +76,7 @@ export default function NewContactPage() {
     const result = await createContact({
       ...data,
       country: data.country || "HR",
+      paymentTermsDays: Number(data.paymentTermsDays ?? 15),
     })
 
     if (result?.error) {
