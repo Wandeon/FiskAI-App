@@ -1,7 +1,8 @@
-export const dynamic = "force-dynamic"
 import Link from "next/link"
 import { getEntitlementsList, MODULE_LABELS } from "@/lib/admin"
 import { db } from "@/lib/db"
+
+export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
   const companies = await db.company.findMany({

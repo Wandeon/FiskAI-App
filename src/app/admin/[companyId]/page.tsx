@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AuditAction } from "@prisma/client"
@@ -7,6 +6,8 @@ import { requireAuth } from "@/lib/auth-utils"
 import { getEntitlementsList, isGlobalAdmin, MODULE_LABELS } from "@/lib/admin"
 import { db } from "@/lib/db"
 import { Button } from "@/components/ui/button"
+
+export const dynamic = "force-dynamic"
 
 type PageProps = {
   params: Promise<{ companyId: string }>
