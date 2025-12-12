@@ -253,10 +253,6 @@ async function lookupSudskiRegistar(oib: string): Promise<OibLookupResult> {
 }
 
 /**
- * Search companies by name in Sudski Registar
- */
-
-/**
  * Main lookup function - tries VIES first, then Sudski Registar
  */
 export async function lookupOib(oib: string): Promise<OibLookupResult> {
@@ -363,7 +359,7 @@ function parseAddress(address: string): { street: string; city: string; postalCo
 /**
  * Get approximate postal code from zupanija and opcina codes
  */
-function getPostalCodeFromZupanija(zupanijaId: number, _opcinaId?: number): string {
+function getPostalCodeFromZupanija(zupanijaId: number, opcinaId?: number): string {
   // Croatian postal codes by zupanija (approximate)
   const zupanijaPostalCodes: Record<number, string> = {
     1: "31000",  // Osjecko-baranjska
@@ -389,5 +385,6 @@ function getPostalCodeFromZupanija(zupanijaId: number, _opcinaId?: number): stri
     21: "10000", // Grad Zagreb
   }
 
+  void opcinaId
   return zupanijaPostalCodes[zupanijaId] || ""
 }

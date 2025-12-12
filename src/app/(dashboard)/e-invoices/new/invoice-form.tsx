@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray, type Path } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { eInvoiceSchema } from "@/lib/validations"
 import { createEInvoice } from "@/app/actions/e-invoice"
@@ -12,12 +12,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PageCard, PageCardHeader, PageCardTitle, PageCardContent } from "@/components/ui/page-card"
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
-import { ProductPicker } from "@/components/invoice/product-picker"
 import { InvoiceSummary } from "@/components/invoice/invoice-summary"
 import { StepIndicator } from "@/components/invoice/invoice-step-indicator"
-import { LineItemEditor } from "@/components/invoice/line-item-editor"
+import { LineItemTable, type ProductSuggestion } from "@/components/invoice/line-item-table"
 import { AlertBanner } from "@/components/dashboard/alert-banner"
-import { Contact, Product, Company } from "@prisma/client"
+import { Contact, Company } from "@prisma/client"
 import { InvoicePdfPreview } from "@/components/invoice/invoice-pdf-preview"
 import { renderToStaticMarkup } from "react-dom/server"
 import { toast } from "@/lib/toast"
@@ -28,11 +27,23 @@ import { getInvoiceVisibility } from "@/lib/field-visibility"
 
 type EInvoiceFormInput = z.input<typeof eInvoiceSchema>
 
+type PlainProduct = {
+  id: string
+  name: string
+  sku?: string | null
+  description?: string | null
+  unit: string
+  price: number
+  vatRate: number
+  vatCategory: string
+}
+
 interface InvoiceFormProps {
   contacts: Contact[]
-  products: Product[]
+  products: PlainProduct[]
   company: Company
   capabilities: Capabilities
+  nextInvoiceNumber: string
 }
 
 const STEPS = [
@@ -41,13 +52,24 @@ const STEPS = [
   { id: "review", name: "Pregled" },
 ]
 
-export function InvoiceForm({ contacts, products, company, capabilities }: InvoiceFormProps) {
+const DEFAULT_PAYMENT_TERMS_DAYS = 15
+
+const formatDateInput = (date: Date) => date.toISOString().slice(0, 10)
+const addDays = (date: Date, days: number) => {
+  const next = new Date(date)
+  next.setDate(next.getDate() + days)
+  return next
+}
+
+export function InvoiceForm({ contacts, products, company, capabilities, nextInvoiceNumber }: InvoiceFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+  const [dueDateTouched, setDueDateTouched] = useState(false)
   const invoiceVisibility = getInvoiceVisibility(capabilities)
+  const today = useMemo(() => new Date(), [])
 
   const {
     register,
@@ -60,7 +82,9 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
   } = useForm<EInvoiceFormInput>({
     resolver: zodResolver(eInvoiceSchema),
     defaultValues: {
-      issueDate: new Date(),
+      issueDate: formatDateInput(today),
+      dueDate: formatDateInput(addDays(today, DEFAULT_PAYMENT_TERMS_DAYS)),
+      invoiceNumber: nextInvoiceNumber,
       currency: "EUR",
       lines: [
         {
@@ -82,6 +106,15 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
 
   const watchedValues = watch()
   const selectedBuyer = contacts.find(c => c.id === watchedValues.buyerId)
+  const buyerPaymentTerms = selectedBuyer?.paymentTermsDays ?? DEFAULT_PAYMENT_TERMS_DAYS
+  const issueDate = useMemo(() => {
+    const issueDateValue = watchedValues.issueDate as string | Date | undefined
+    return issueDateValue ? new Date(issueDateValue) : null
+  }, [watchedValues.issueDate])
+  const dueDate = useMemo(() => {
+    const dueDateValue = watchedValues.dueDate as string | Date | undefined
+    return dueDateValue ? new Date(dueDateValue) : undefined
+  }, [watchedValues.dueDate])
 
   // Autosave to localStorage
   useEffect(() => {
@@ -90,13 +123,41 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
       try {
         const draft = JSON.parse(savedDraft)
         Object.keys(draft).forEach(key => {
-          setValue(key as keyof EInvoiceFormInput, draft[key])
+          if (key === "issueDate" && draft[key]) {
+            setValue("issueDate", formatDateInput(new Date(draft[key])), { shouldValidate: true })
+          } else if (key === "dueDate" && draft[key]) {
+            setValue("dueDate", formatDateInput(new Date(draft[key])), { shouldValidate: true })
+          } else {
+            setValue(key as keyof EInvoiceFormInput, draft[key])
+          }
         })
+        if (draft.dueDate) {
+          setDueDateTouched(true)
+        }
       } catch {
         // Invalid draft, ignore
       }
+    } else {
+      setValue("issueDate", formatDateInput(today), { shouldValidate: true })
+      setValue("invoiceNumber", nextInvoiceNumber, { shouldValidate: true })
     }
-  }, [setValue])
+  }, [setValue, nextInvoiceNumber, today])
+
+  // Ensure issue date is always populated for the date input (prevents mm/dd/yyyy placeholder)
+  useEffect(() => {
+    if (!watchedValues.issueDate) {
+      setValue("issueDate", formatDateInput(today), { shouldValidate: true })
+    }
+  }, [watchedValues.issueDate, setValue, today])
+
+  // Keep due date aligned with buyer's payment terms unless user overrides it
+  useEffect(() => {
+    if (!issueDate) return
+    if (dueDateTouched) return
+
+    const computedDue = formatDateInput(addDays(issueDate, buyerPaymentTerms))
+    setValue("dueDate", computedDue, { shouldValidate: true })
+  }, [issueDate, buyerPaymentTerms, dueDateTouched, setValue])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -154,30 +215,12 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
     description: `OIB: ${contact.oib}`,
   }))
 
-  const handleProductSelect = (product: Product) => {
-    const unitPrice = typeof product.price === 'number'
-      ? product.price
-      : product.price.toNumber()
-    const vatRate = typeof product.vatRate === 'number'
-      ? product.vatRate
-      : product.vatRate.toNumber()
-
-    append({
-      description: product.name,
-      quantity: 1,
-      unit: product.unit,
-      unitPrice: unitPrice,
-      vatRate: invoiceVisibility.showVatFields ? vatRate : 0,
-      vatCategory: "S",
-    })
-  }
-
   const handleLineChange = (index: number, field: string, value: string | number) => {
     if (!invoiceVisibility.showVatFields && field === "vatRate") {
       return
     }
     // Update a single field to avoid replacing the whole array and losing focus
-    setValue(`lines.${index}.${field}` as any, value, { shouldDirty: true, shouldValidate: false })
+    setValue(`lines.${index}.${field}` as Path<EInvoiceFormInput>, value, { shouldDirty: true, shouldValidate: false })
   }
 
   const handleDownloadPdf = () => {
@@ -204,7 +247,7 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="mx-auto max-w-[1780px] space-y-6 px-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -246,9 +289,9 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid gap-6 lg:grid-cols-12">
+        <div className="grid gap-6 lg:grid-cols-12 items-start">
           {/* Main Form Area */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-9 space-y-6 self-start">
             {/* Step 1: Buyer Info */}
             <div className={cn(currentStep !== 0 && "hidden")}>
               <PageCard>
@@ -289,7 +332,18 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
                       <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
                         Datum dospijeća
                       </label>
-                      <Input type="date" {...register("dueDate")} />
+                      <Input
+                        type="date"
+                        {...register("dueDate", {
+                          onChange: (e) => {
+                            setDueDateTouched(true)
+                            return e
+                          },
+                        })}
+                      />
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        {buyerPaymentTerms} dana prema postavkama kupca.
+                      </p>
                     </div>
 
                     <div>
@@ -297,9 +351,12 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
                         Broj računa
                       </label>
                       <Input
+                        readOnly
+                        aria-readonly="true"
                         {...register("invoiceNumber")}
-                        placeholder="Automatski"
+                        placeholder={nextInvoiceNumber}
                         error={errors.invoiceNumber?.message}
+                        className="bg-gray-50 text-gray-700"
                       />
                     </div>
 
@@ -317,27 +374,19 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
             {/* Step 2: Line Items */}
             <div className={cn(currentStep !== 1 && "hidden")}>
               <PageCard>
-                <PageCardHeader
-                  actions={
-                    <ProductPicker products={products} onSelect={handleProductSelect} />
-                  }
-                >
+                <PageCardHeader>
                   <PageCardTitle>Stavke računa</PageCardTitle>
                 </PageCardHeader>
                 <PageCardContent>
-                  <div className="space-y-4">
-                    {fields.map((field, index) => (
-          <LineItemEditor
-            key={field.id}
-            index={index}
-            line={watchedValues.lines[index] || field}
-            onChange={(f, v) => handleLineChange(index, f, v)}
-            onRemove={() => remove(index)}
-            canRemove={fields.length > 1}
-            showVat={invoiceVisibility.showVatFields}
-          />
-        ))}
-
+                  <div className="space-y-3">
+                    <LineItemTable
+                      lines={watchedValues.lines}
+                      onChange={(row, field, value) => handleLineChange(row, field, value)}
+                      onRemove={(row) => remove(row)}
+                      canRemove={() => fields.length > 1}
+                      showVat={invoiceVisibility.showVatFields}
+                      products={products as ProductSuggestion[]}
+                    />
                     <Button
                       type="button"
                       variant="outline"
@@ -347,7 +396,7 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
                           quantity: 1,
                           unit: "C62",
                           unitPrice: 0,
-                          vatRate: 25,
+                          vatRate: invoiceVisibility.showVatFields ? 25 : 0,
                           vatCategory: "S",
                         })
                       }
@@ -377,13 +426,13 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
                   <PageCardTitle>Pregled i slanje</PageCardTitle>
                 </PageCardHeader>
                 <PageCardContent>
-                  <div className="space-y-6 max-w-5xl mx-auto">
+                  <div className="mx-auto max-w-6xl space-y-6">
                     <InvoicePdfPreview
                       company={company}
                       buyer={selectedBuyer || null}
                       invoiceNumber={watchedValues.invoiceNumber || "Draft"}
-                      issueDate={watchedValues.issueDate as Date | undefined}
-                      dueDate={watchedValues.dueDate as Date | undefined}
+                      issueDate={issueDate ?? undefined}
+                      dueDate={dueDate}
                       lines={watchedValues.lines}
                       currency={watchedValues.currency || "EUR"}
                     />
@@ -434,11 +483,11 @@ export function InvoiceForm({ contacts, products, company, capabilities }: Invoi
           </div>
 
           {/* Sidebar Summary */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3">
             <InvoiceSummary
               buyer={selectedBuyer ? { name: selectedBuyer.name, oib: selectedBuyer.oib } : null}
-              invoiceNumber={watchedValues.invoiceNumber}
-              issueDate={watchedValues.issueDate as Date | undefined}
+              invoiceNumber={watchedValues.invoiceNumber || nextInvoiceNumber}
+              issueDate={issueDate ?? undefined}
               lines={watchedValues.lines}
               currency={watchedValues.currency}
             />

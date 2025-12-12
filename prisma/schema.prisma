@@ -160,6 +160,7 @@ model Contact {
   country    String      @default("HR")
   email      String?
   phone      String?
+  paymentTermsDays Int   @default(15)
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 

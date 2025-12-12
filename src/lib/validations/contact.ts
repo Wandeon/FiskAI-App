@@ -11,6 +11,7 @@ export const contactSchema = z.object({
   country: z.string().default("HR"),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
+  paymentTermsDays: z.coerce.number().int().min(0).max(365).default(15),
 })
 
 export type ContactInput = z.infer<typeof contactSchema>

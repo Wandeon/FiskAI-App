@@ -9,6 +9,7 @@ import type {
   AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
 } from '@simplewebauthn/server';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 // Environment configuration
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'erp.metrica.hr';
@@ -64,6 +65,28 @@ export interface RegisteredCredential {
   transports: string | null;
 }
 
+function toBufferFromId(id: string): Buffer {
+  try {
+    return isoBase64URL.toBuffer(id);
+  } catch (e) {
+    void e;
+    try {
+      return Buffer.from(id, 'base64');
+    } catch {
+      return Buffer.from(id);
+    }
+  }
+}
+
+function toBase64UrlId(id: string | Buffer): string {
+  const buf = Buffer.isBuffer(id) ? id : toBufferFromId(id);
+  try {
+    return isoBase64URL.fromBuffer(buf);
+  } catch {
+    return buf.toString('base64');
+  }
+}
+
 // Generate registration options for new passkey
 export async function generateWebAuthnRegistrationOptions(
   userId: string,
@@ -78,7 +101,7 @@ export async function generateWebAuthnRegistrationOptions(
     userDisplayName,
     attestationType: 'none',
     excludeCredentials: existingCredentials.map((cred) => ({
-      id: cred.credentialId,
+      id: toBufferFromId(cred.credentialId),
       transports: cred.transports 
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
@@ -120,7 +143,7 @@ export async function verifyWebAuthnRegistration(
 
   return {
     verified: true,
-    credentialId: verification.registrationInfo.credential.id,
+    credentialId: toBase64UrlId(verification.registrationInfo.credential.id),
     publicKey: Buffer.from(verification.registrationInfo.credential.publicKey).toString('base64'),
     counter: BigInt(verification.registrationInfo.credential.counter),
     transports: response.response.transports,
@@ -135,7 +158,7 @@ export async function generateWebAuthnAuthenticationOptions(
   const options = await generateAuthenticationOptions({
     rpID: RP_ID,
     allowCredentials: credentials.map((cred) => ({
-      id: cred.credentialId,
+      id: toBufferFromId(cred.credentialId),
       transports: cred.transports
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
@@ -164,7 +187,7 @@ export async function verifyWebAuthnAuthentication(
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
     credential: {
-      id: credential.credentialId,
+      id: toBufferFromId(credential.credentialId),
       publicKey: Buffer.from(credential.publicKey, 'base64'),
       counter: Number(credential.counter),
     },

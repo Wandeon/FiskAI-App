@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyWebAuthnAuthentication } from '@/lib/webauthn';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,17 +19,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find the credential
-    const credential = await db.webAuthnCredential.findUnique({
+    // Normalize the credential ID (rawId is base64url from the browser)
+    const rawIdBase64url =
+      typeof response.rawId === 'string'
+        ? response.rawId
+        : isoBase64URL.fromBuffer(Buffer.from(response.rawId));
+
+    let rawIdBase64: string | null = null;
+    try {
+      rawIdBase64 = isoBase64URL.toBuffer(rawIdBase64url).toString('base64');
+    } catch (e) {
+      void e;
+    }
+
+    const credential = await db.webAuthnCredential.findFirst({
       where: {
-        credentialId: Buffer.from(
-          response.rawId,
-          'base64'
-        ).toString('base64'),
+        OR: [
+          { credentialId: rawIdBase64url },
+          ...(rawIdBase64 ? [{ credentialId: rawIdBase64 }] : []),
+        ],
       },
-      include: {
-        user: true,
-      },
+      include: { user: true },
     });
 
     if (!credential || credential.userId !== userId) {

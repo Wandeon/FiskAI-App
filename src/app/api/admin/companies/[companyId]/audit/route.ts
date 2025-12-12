@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { isGlobalAdmin } from "@/lib/admin"
+import { auth } from "@/lib/auth"
+
+export async function GET(request: NextRequest, { params }: { params: { companyId: string } }) {
+  const session = await auth()
+  if (!session?.user?.email || !isGlobalAdmin(session.user.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+  }
+
+  const limitParam = Number(request.nextUrl.searchParams.get("limit") || 200)
+  const limit = Math.min(Math.max(limitParam, 10), 1000)
+
+  const logs = await db.auditLog.findMany({
+    where: { companyId: params.companyId },
+    orderBy: { timestamp: "desc" },
+    take: limit,
+  })
+
+  const rows = [
+    ["timestamp", "action", "entity", "entityId", "userId", "ipAddress", "userAgent"].join(","),
+    ...logs.map((log) =>
+      [
+        log.timestamp.toISOString(),
+        log.action,
+        log.entity,
+        log.entityId,
+        log.userId ?? "",
+        log.ipAddress ?? "",
+        (log.userAgent ?? "").replace(/"/g, "'"),
+      ].join(",")
+    ),
+  ].join("\n")
+
+  return new NextResponse(rows, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="audit-${params.companyId}.csv"`,
+    },
+  })
+}

@@ -126,6 +126,91 @@ export async function getNextInvoiceNumber(
 }
 
 /**
+ * Peek the next invoice number without incrementing the sequence.
+ * Ensures default premises/device/sequence exist but does not advance the counter.
+ */
+export async function previewNextInvoiceNumber(
+  companyId: string,
+  businessPremisesId?: string,
+  paymentDeviceId?: string
+): Promise<InvoiceNumber> {
+  const currentYear = new Date().getFullYear()
+
+  let premises = businessPremisesId
+    ? await db.businessPremises.findUnique({ where: { id: businessPremisesId } })
+    : await db.businessPremises.findFirst({
+        where: { companyId, isDefault: true, isActive: true },
+      })
+
+  if (!premises) {
+    premises = await db.businessPremises.create({
+      data: {
+        companyId,
+        code: 1,
+        name: 'Glavni ured',
+        isDefault: true,
+        isActive: true,
+      },
+    })
+  }
+
+  let device = paymentDeviceId
+    ? await db.paymentDevice.findUnique({ where: { id: paymentDeviceId } })
+    : await db.paymentDevice.findFirst({
+        where: {
+          companyId,
+          businessPremisesId: premises.id,
+          isDefault: true,
+          isActive: true
+        },
+      })
+
+  if (!device) {
+    device = await db.paymentDevice.create({
+      data: {
+        companyId,
+        businessPremisesId: premises.id,
+        code: 1,
+        name: 'Naplatni uređaj 1',
+        isDefault: true,
+        isActive: true,
+      },
+    })
+  }
+
+  const sequence = await db.invoiceSequence.upsert({
+    where: {
+      businessPremisesId_year: {
+        businessPremisesId: premises.id,
+        year: currentYear,
+      },
+    },
+    update: {
+      lastNumber: { increment: 0 }, // no-op to avoid advancing sequence
+    },
+    create: {
+      companyId,
+      businessPremisesId: premises.id,
+      year: currentYear,
+      lastNumber: 0,
+    },
+  })
+
+  const nextNumber = (sequence.lastNumber ?? 0) + 1
+  const invoiceNumber = `${nextNumber}-${premises.code}-${device.code}`
+  const internalReference = `${currentYear}/${invoiceNumber}`
+
+  return {
+    invoiceNumber,
+    internalReference,
+    sequentialNumber: nextNumber,
+    premisesCode: premises.code,
+    deviceCode: device.code,
+    year: currentYear,
+  }
+}
+
+/**
  * Parse an invoice number string into its components.
  *
  * @param invoiceNumber - Invoice number string (e.g., "43-1-1")

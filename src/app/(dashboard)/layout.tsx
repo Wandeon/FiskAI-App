@@ -49,7 +49,9 @@ export default async function DashboardLayout({
 
         {/* Main Content - add bottom padding for mobile FAB */}
         <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
-          {children}
+          <div className="mx-auto w-full max-w-6xl">
+            {children}
+          </div>
         </main>
 
       </div>

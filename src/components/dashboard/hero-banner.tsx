@@ -44,40 +44,47 @@ export function HeroBanner({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Link href="/e-invoices/new" className="surface-glass rounded-2xl border-white/20 p-4 transition hover:bg-white/20">
-            <p className="text-xs uppercase tracking-wide text-white/70">Sljedeći korak</p>
-            <p className="text-lg font-semibold">Kreirajte e-račun</p>
-            <p className="mt-1 text-sm text-white/80 flex items-center gap-1">
+          <Link
+            href="/e-invoices/new"
+            className="surface-glass rounded-2xl border-white/20 p-4 transition hover:bg-white/20 text-slate-900"
+          >
+            <p className="text-xs uppercase tracking-wide text-slate-600">Sljedeći korak</p>
+            <p className="text-lg font-semibold text-slate-900">Kreirajte e-račun</p>
+            <p className="mt-1 text-sm text-slate-700 flex items-center gap-1">
               <ArrowRight className="icon-md" /> brzo iz nacrta
             </p>
           </Link>
-          <div className="surface-glass rounded-2xl border-white/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/70">Nacrti</p>
+          <div className="surface-glass rounded-2xl border-white/20 p-4 text-slate-900">
+            <p className="text-xs uppercase tracking-wide text-slate-600">Nacrti</p>
             <div className="mt-1 flex items-end gap-2">
-              <p className="text-3xl font-semibold">{draftInvoices}</p>
-              <p className="text-sm text-white/80">računa</p>
+              <p className="text-3xl font-semibold text-slate-900">{draftInvoices}</p>
+              <p className="text-sm text-slate-700">računa</p>
             </div>
-            <p className="mt-1 text-sm text-white/80 flex items-center gap-1">
+            <p className="mt-1 text-sm text-slate-700 flex items-center gap-1">
               <Clock className="icon-md" /> spremni za slanje
             </p>
           </div>
-          <div className="surface-glass rounded-2xl border-white/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/70">Status posrednika</p>
+          <div className="surface-glass rounded-2xl border-white/20 p-4 text-slate-900">
+            <p className="text-xs uppercase tracking-wide text-slate-600">Status posrednika</p>
             <div className="mt-1 flex items-center gap-2">
-              <div className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full",
-                providerConfigured ? "bg-emerald-500/20" : "bg-yellow-500/20"
-              )}>
-                <ShieldCheck className={cn(
-                  "icon-md",
-                  providerConfigured ? "text-emerald-300" : "text-yellow-200"
-                )} />
+              <div
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-full",
+                  providerConfigured ? "bg-emerald-100" : "bg-amber-100"
+                )}
+              >
+                <ShieldCheck
+                  className={cn(
+                    "icon-md",
+                    providerConfigured ? "text-emerald-700" : "text-amber-700"
+                  )}
+                />
               </div>
               <div>
                 <p className="text-base font-semibold">
                   {providerConfigured ? "Spremni za fiskalizaciju" : "Povežite posrednika"}
                 </p>
-                <p className="text-xs text-white/80">
+                <p className="text-xs text-slate-700">
                   {providerConfigured ? "E-računi se mogu slati odmah" : "Završite postavke u minutama"}
                 </p>
               </div>
@@ -99,7 +106,7 @@ export function HeroBanner({
               className={cn(buttonBaseStyles, "border border-white/40 text-white hover:bg-white/10")}
             >
               <Users className="icon-md mr-2" />
-              Pozovi računovodstvo
+              Pošalji poziv na email
             </Link>
           </div>
           <p className="text-xs text-white/70">

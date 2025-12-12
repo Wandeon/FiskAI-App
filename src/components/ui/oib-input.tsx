@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Input } from "./input"
 import { Loader2, Check, AlertCircle, Search } from "lucide-react"
 import { Button } from "./button"
@@ -37,6 +37,7 @@ export function OibInput({
   const [lookupSuccess, setLookupSuccess] = useState(false)
   const [lookupError, setLookupError] = useState<string | null>(null)
   const [progress, setProgress] = useState<string | null>(null)
+  const [lastLookupValue, setLastLookupValue] = useState<string | null>(null)
 
   const performLookup = useCallback(async (oib: string) => {
     setIsLookingUp(true)
@@ -97,8 +98,23 @@ export function OibInput({
       setLookupSuccess(false)
       return
     }
+    setLastLookupValue(value)
     performLookup(value)
   }
+
+  // Auto-fetch when 11 digits are present and we haven't already tried this value
+  useEffect(() => {
+    if (
+      value &&
+      value.length === 11 &&
+      !isLookingUp &&
+      value !== lastLookupValue &&
+      /^\d{11}$/.test(value)
+    ) {
+      setLastLookupValue(value)
+      performLookup(value)
+    }
+  }, [isLookingUp, lastLookupValue, performLookup, value])
 
   return (
     <div className={cn("space-y-1", className)}>
@@ -125,7 +141,7 @@ export function OibInput({
           variant="outline"
           onClick={handleLookup}
           disabled={disabled || isLookingUp}
-          className="shrink-0"
+          className="shrink-0 h-10 min-h-0"
         >
           {isLookingUp ? (
             <>
@@ -135,7 +151,7 @@ export function OibInput({
           ) : (
             <>
               <Search className="h-4 w-4 mr-2" />
-              Traži OIB
+              Dohvati podatke
             </>
           )}
         </Button>

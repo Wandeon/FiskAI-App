@@ -99,21 +99,15 @@ export function Combobox({
             : undefined
         }
         className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        placeholder={isOpen ? "Pretraži..." : selectedOption?.label || placeholder}
-        value={isOpen ? search : ""}
+        placeholder={isOpen ? "Pretraži..." : placeholder}
+        value={isOpen ? search : (selectedOption?.label ?? "")}
         onChange={(e) => setSearch(e.target.value)}
         onFocus={() => setIsOpen(true)}
         onBlur={() => setTimeout(() => setIsOpen(false), 200)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        readOnly={!isOpen}
       />
-
-      {/* Display selected value when not searching */}
-      {!isOpen && selectedOption && (
-        <div className="pointer-events-none absolute inset-y-0 left-3 right-10 flex items-center text-sm truncate">
-          {selectedOption.label}
-        </div>
-      )}
 
       {/* Dropdown arrow */}
       <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">

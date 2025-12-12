@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -10,9 +10,9 @@ import { updateContact } from "@/app/actions/contact"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { OibInput } from "@/components/ui/oib-input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Contact } from "@prisma/client"
 import { toast } from "@/lib/toast"
+import { lookupCityByPostalCode, lookupPostalByCity } from "@/lib/postal-codes"
 
 type ContactFormInput = z.input<typeof contactSchema>
 
@@ -31,6 +31,8 @@ export function EditContactForm({ contact }: EditContactFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [cityTouched, setCityTouched] = useState(false)
+  const [postalTouched, setPostalTouched] = useState(false)
 
   const {
     register,
@@ -51,13 +53,32 @@ export function EditContactForm({ contact }: EditContactFormProps) {
       country: contact.country,
       email: contact.email || "",
       phone: contact.phone || "",
+      paymentTermsDays: contact.paymentTermsDays ?? 15,
     },
   })
 
   const oibValue = watch("oib") || ""
   const countryValue = watch("country") || "HR"
+  const postalCodeValue = watch("postalCode") || ""
+  const cityValue = watch("city") || ""
+  const paymentTermsValue = watch("paymentTermsDays") ?? 15
   const isLocalCustomer = countryValue === "HR"
   const isEuCustomer = EU_COUNTRIES.includes(countryValue) && countryValue !== "HR"
+  const paymentQuickOptions = [0, 7, 15, 30]
+
+  useEffect(() => {
+    const suggestedCity = lookupCityByPostalCode(postalCodeValue)
+    if (suggestedCity && !cityTouched && (!cityValue || cityValue.trim() === "")) {
+      setValue("city", suggestedCity)
+    }
+  }, [postalCodeValue, cityValue, cityTouched, setValue])
+
+  useEffect(() => {
+    const suggestedPostal = lookupPostalByCity(cityValue)
+    if (suggestedPostal && !postalTouched && (!postalCodeValue || postalCodeValue.trim() === "")) {
+      setValue("postalCode", suggestedPostal)
+    }
+  }, [cityValue, postalCodeValue, postalTouched, setValue])
 
   async function onSubmit(data: ContactFormInput) {
     setLoading(true)
@@ -105,11 +126,15 @@ export function EditContactForm({ contact }: EditContactFormProps) {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Osnovni podaci</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+      <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
+        <section className="grid gap-4 p-6 md:grid-cols-2">
+          <div className="md:col-span-2 flex items-start justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Osnovni podaci</h2>
+              <p className="text-sm text-[var(--muted)]">Brza identifikacija i fiskalni podaci</p>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Vrsta kontakta</label>
             <select
@@ -166,44 +191,22 @@ export function EditContactForm({ contact }: EditContactFormProps) {
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Naziv *</label>
-            <Input
-              {...register("name")}
-              placeholder="Naziv tvrtke ili ime osobe"
-              error={errors.name?.message}
-            />
-          </div>
-
           {isLocalCustomer ? (
-            <>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">OIB</label>
-                <OibInput
-                  value={oibValue}
-                  onChange={(value) => setValue("oib", value)}
-                  onLookupSuccess={handleOibLookupSuccess}
-                  onLookupError={handleOibLookupError}
-                  error={errors.oib?.message}
-                />
-                <p className="text-xs text-gray-500">
-                  11 znamenaka - automatski pronalazi podatke tvrtke
-                </p>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">PDV ID</label>
-                <Input
-                  {...register("vatNumber")}
-                  placeholder="HR12345678901"
-                  disabled
-                />
-                <p className="text-xs text-gray-500">
-                  Automatski popunjeno iz OIB-a (HR + OIB)
-                </p>
-              </div>
-            </>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium">OIB</label>
+              <OibInput
+                value={oibValue}
+                onChange={(value) => setValue("oib", value)}
+                onLookupSuccess={handleOibLookupSuccess}
+                onLookupError={handleOibLookupError}
+                error={errors.oib?.message}
+              />
+              <p className="text-xs text-gray-500">
+                11 znamenaka — kliknite “Dohvati podatke” za automatsko popunjavanje naziva/adrese.
+              </p>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium">
                 {isEuCustomer ? "PDV ID (VAT)" : "Porezni broj"}
               </label>
@@ -218,14 +221,71 @@ export function EditContactForm({ contact }: EditContactFormProps) {
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Adresa</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Naziv *</label>
+            <Input
+              {...register("name")}
+              placeholder="Naziv tvrtke ili ime osobe"
+              error={errors.name?.message}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Rok plaćanja</label>
+            <div className="flex flex-wrap gap-2">
+              {paymentQuickOptions.map((days) => {
+                const label = days === 0 ? "Odmah" : `${days} dana`
+                const isActive = paymentTermsValue === days
+                return (
+                  <Button
+                    key={days}
+                    type="button"
+                    size="sm"
+                    variant={isActive ? "default" : "outline"}
+                    onClick={() => setValue("paymentTermsDays", days, { shouldValidate: true })}
+                  >
+                    {label}
+                  </Button>
+                )
+              })}
+            </div>
+            <Input
+              type="number"
+              min={0}
+              max={365}
+              {...register("paymentTermsDays", { valueAsNumber: true })}
+              placeholder="npr. 15"
+            />
+            <p className="text-xs text-gray-500">
+              Standardni rok plaćanja za ovog kupca (koristi se za izračun dospijeća).
+            </p>
+            {errors.paymentTermsDays && (
+              <p className="text-sm text-red-500">{errors.paymentTermsDays.message}</p>
+            )}
+          </div>
+
+          {isLocalCustomer && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">PDV ID</label>
+              <Input
+                {...register("vatNumber")}
+                placeholder="HR12345678901"
+                disabled
+              />
+              <p className="text-xs text-gray-500">
+                Automatski popunjeno iz OIB-a (HR + OIB)
+              </p>
+            </div>
+          )}
+        </section>
+
+        <section className="grid gap-4 p-6 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Adresa</h2>
+            <p className="text-sm text-[var(--muted)]">Poštanski broj i grad se povezuju automatski kad je moguće</p>
+          </div>
+
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium">Ulica i broj</label>
             <Input
@@ -237,7 +297,12 @@ export function EditContactForm({ contact }: EditContactFormProps) {
           <div className="space-y-2">
             <label className="text-sm font-medium">Poštanski broj</label>
             <Input
-              {...register("postalCode")}
+              {...register("postalCode", {
+                onChange: (e) => {
+                  setPostalTouched(true)
+                  return e
+                },
+              })}
               placeholder="10000"
             />
           </div>
@@ -245,18 +310,22 @@ export function EditContactForm({ contact }: EditContactFormProps) {
           <div className="space-y-2">
             <label className="text-sm font-medium">Grad</label>
             <Input
-              {...register("city")}
+              {...register("city", {
+                onChange: (e) => {
+                  setCityTouched(true)
+                  return e
+                },
+              })}
               placeholder="Zagreb"
             />
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Kontakt podaci</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 p-6 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Kontakt podaci</h2>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
             <Input
@@ -274,8 +343,8 @@ export function EditContactForm({ contact }: EditContactFormProps) {
               placeholder="+385 1 234 5678"
             />
           </div>
-        </CardContent>
-      </Card>
+        </section>
+      </div>
 
       <div className="flex gap-4">
         <Button type="submit" disabled={loading}>
