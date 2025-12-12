@@ -9,6 +9,7 @@ import { contactSchema } from "@/lib/validations"
 import { updateContact } from "@/app/actions/contact"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { OibInput } from "@/components/ui/oib-input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Contact } from "@prisma/client"
 
@@ -27,6 +28,7 @@ export function EditContactForm({ contact }: EditContactFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<ContactFormInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -100,10 +102,9 @@ export function EditContactForm({ contact }: EditContactFormProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">OIB</label>
-            <Input
-              {...register("oib")}
-              placeholder="12345678901"
-              maxLength={11}
+            <OibInput
+              value={contact.oib || ""}
+              onChange={(val) => setValue("oib", val)}
               error={errors.oib?.message}
             />
           </div>

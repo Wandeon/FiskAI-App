@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyWebAuthnAuthentication } from '@/lib/webauthn';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
-import { signIn } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {

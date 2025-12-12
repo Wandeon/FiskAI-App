@@ -16,6 +16,32 @@ export interface OibLookupResult {
   error?: string
 }
 
+export interface OibSearchResult {
+  success: boolean
+  results?: Array<{
+    name: string
+    oib?: string
+    address?: string
+    city?: string
+    postalCode?: string
+    vatNumber?: string
+  }>
+  error?: string
+}
+
+export interface OibSearchResult {
+  success: boolean
+  results?: Array<{
+    name: string
+    oib?: string
+    address?: string
+    city?: string
+    postalCode?: string
+    vatNumber?: string
+  }>
+  error?: string
+}
+
 /**
  * Validates OIB format and checksum
  * OIB is 11 digits with ISO 7064, MOD 11-10 checksum
@@ -107,8 +133,9 @@ async function lookupVies(oib: string): Promise<OibLookupResult> {
  * Currently implemented without API key (can be added later)
  * Only works for d.o.o./j.d.o.o., not obrt
  */
-async function lookupSudskiRegistar(_oib: string): Promise<OibLookupResult> {
+async function lookupSudskiRegistar(oib: string): Promise<OibLookupResult> {
   try {
+    void oib
     // Note: Sudski Registar API requires authentication
     // For now, return "not implemented" gracefully
     // When API key is available, implement the actual lookup
@@ -145,7 +172,7 @@ async function lookupSudskiRegistar(_oib: string): Promise<OibLookupResult> {
       source: "sudski-registar",
     }
     */
-  } catch (_error) {
+  } catch {
     return {
       success: false,
       error: "Greška pri pozivanju Sudski Registar API-ja",
@@ -234,5 +261,21 @@ export async function lookupOib(oib: string): Promise<OibLookupResult> {
     success: false,
     error: "OIB nije pronađen ni u jednom sustavu. Unesite podatke ručno.",
     source: "manual",
+  }
+}
+
+export async function searchCompaniesByName(query: string): Promise<OibSearchResult> {
+  void query
+  if (!process.env.SUDSKI_REGISTAR_API_KEY) {
+    return {
+      success: false,
+      error: "Sudski registar nije konfiguriran",
+    }
+  }
+
+  // Placeholder: replace with real Sudski Registar search implementation once API key/process is available.
+  return {
+    success: false,
+    error: "Pretraga po nazivu nije implementirana (Sudski registar API potreban)",
   }
 }
