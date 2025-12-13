@@ -19,10 +19,42 @@ export function getTenantContext(): TenantContext | null {
 }
 
 // Models that require tenant filtering
-const TENANT_MODELS = ["Contact", "Product", "EInvoice", "EInvoiceLine", "AuditLog", "BankAccount", "BankTransaction", "BankImport"] as const
+const TENANT_MODELS = [
+  "Contact",
+  "Product",
+  "EInvoice",
+  "EInvoiceLine",
+  "AuditLog",
+  "BankAccount",
+  "BankTransaction",
+  "BankImport",
+  "Expense",
+  "ExpenseCategory",
+  "RecurringExpense",
+  "SavedReport",
+  "SupportTicket",
+  "SupportTicketMessage",
+  "BusinessPremises",
+  "PaymentDevice",
+  "InvoiceSequence",
+  "CompanyUser" // Protect access to company-user relationships
+] as const
 
 // Models to audit (exclude AuditLog itself to prevent infinite loops)
-const AUDITED_MODELS = ["Contact", "Product", "EInvoice", "Company", "BankAccount"] as const
+const AUDITED_MODELS = [
+  "Contact",
+  "Product",
+  "EInvoice",
+  "Company",
+  "BankAccount",
+  "Expense",
+  "ExpenseCategory",
+  "RecurringExpense",
+  "BusinessPremises",
+  "PaymentDevice",
+  "InvoiceSequence",
+  "SupportTicket"
+] as const
 type AuditedModel = typeof AUDITED_MODELS[number]
 
 // Audit queue to avoid blocking main operations

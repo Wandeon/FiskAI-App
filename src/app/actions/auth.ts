@@ -7,6 +7,7 @@ import { signIn, signOut } from "@/lib/auth"
 import { registerSchema, loginSchema } from "@/lib/validations"
 import { redirect } from "next/navigation"
 import { AuthError } from "next-auth"
+import { checkRateLimit } from "@/lib/security/rate-limit"
 
 export async function register(formData: z.infer<typeof registerSchema>) {
   const validatedFields = registerSchema.safeParse(formData)
@@ -47,6 +48,15 @@ export async function login(formData: z.infer<typeof loginSchema>) {
 
   const { email, password } = validatedFields.data
 
+  // Rate limiting for login attempts
+  const identifier = `login_${email.toLowerCase()}`
+  const rateLimitResult = checkRateLimit(identifier, 'LOGIN')
+
+  if (!rateLimitResult.allowed) {
+    // Don't reveal that account exists or rate limit status
+    return { error: "Invalid credentials" }
+  }
+
   try {
     await signIn("credentials", {
       email,
@@ -74,6 +84,15 @@ export async function logout() {
 }
 
 export async function requestPasswordReset(email: string) {
+  // Rate limiting for password reset attempts
+  const identifier = `password_reset_${email.toLowerCase()}`
+  const rateLimitResult = checkRateLimit(identifier, 'PASSWORD_RESET')
+
+  if (!rateLimitResult.allowed) {
+    // Always return success to prevent information leakage and rate limit detection
+    return { success: true }
+  }
+
   try {
     // Always return success to prevent email enumeration
     const user = await db.user.findUnique({
@@ -110,10 +129,10 @@ export async function requestPasswordReset(email: string) {
 
     // Send password reset email
     const resetLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${token}`
-    
+
     const { sendEmail } = await import('@/lib/email')
     const { PasswordResetEmail } = await import('@/lib/email/templates/password-reset-email')
-    
+
     await sendEmail({
       to: user.email,
       subject: 'Resetiranje lozinke - FiskAI',
