@@ -51,6 +51,32 @@ export interface AddSupportMessageInput {
   body: string
 }
 
+export async function assignSupportTicket(ticketId: string, userId: string | null) {
+  try {
+    const user = await requireAuth()
+    const company = await requireCompany(user.id!)
+
+    const ticket = await db.supportTicket.findFirst({
+      where: { id: ticketId, companyId: company.id },
+      select: { id: true },
+    })
+
+    if (!ticket) {
+      return { success: false, error: "Ticket not found" }
+    }
+
+    await db.supportTicket.update({
+      where: { id: ticketId },
+      data: { assignedToId: userId },
+    })
+
+    return { success: true }
+  } catch (error) {
+    logger.error({ error, ticketId }, "Failed to assign ticket")
+    return { success: false, error: "Dodjela nije uspjela" }
+  }
+}
+
 /**
  * Create a new support ticket
  */

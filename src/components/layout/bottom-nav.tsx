@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useCapabilities } from "@/hooks/use-capabilities"
+import { useTicketSummary } from "@/hooks/use-ticket-summary"
 import {
   LayoutDashboard,
   FileText,
@@ -12,12 +13,14 @@ import {
   Settings,
   Plus,
   Receipt,
-  Package
+  Package,
+  LifeBuoy
 } from "lucide-react"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Početna" },
   { href: "/e-invoices", icon: FileText, label: "Računi", module: "invoicing" },
+  { href: "/support", icon: LifeBuoy, label: "Support" },
   { href: "/contacts", icon: Users, label: "Kontakti" },
   { href: "/settings", icon: Settings, label: "Postavke", module: "settings" },
 ]
@@ -33,6 +36,7 @@ export function BottomNav() {
   const pathname = usePathname()
   const [isQuickOpen, setIsQuickOpen] = useState(false)
   const capabilities = useCapabilities()
+  const { summary } = useTicketSummary()
 
   return (
     <>
@@ -85,7 +89,7 @@ export function BottomNav() {
               key={item.href}
               item={item}
               activePath={pathname}
-              badge={undefined} // Removed support badge until support is fully implemented
+              badge={item.href === "/support" ? summary?.unread || summary?.openCount || undefined : undefined}
             />
           ))}
 
@@ -108,7 +112,7 @@ export function BottomNav() {
               key={item.href}
               item={item}
               activePath={pathname}
-              badge={undefined} // Removed support badge until support is fully implemented
+              badge={item.href === "/support" ? summary?.unread || summary?.openCount || undefined : undefined}
             />
           ))}
         </div>

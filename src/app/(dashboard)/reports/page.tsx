@@ -13,6 +13,7 @@ const REPORTS = [
   { href: '/reports/expenses', title: 'Troškovi po kategoriji', description: 'Analiza rashoda po kategorijama', icon: '💰' },
   { href: '/reports/revenue', title: 'Prihodi po kupcu', description: 'Analiza prihoda po kupcima', icon: '👥' },
   { href: '/reports/export', title: 'Izvoz za knjigovođu', description: 'CSV izvoz računa i troškova (datum od-do)', icon: '📦' },
+  { href: '/reports/kpr', title: 'KPR / PO-SD', description: 'Plaćeni računi po mjesecima i PO-SD sažetak', icon: '📘' },
 ]
 
 export default async function ReportsPage() {

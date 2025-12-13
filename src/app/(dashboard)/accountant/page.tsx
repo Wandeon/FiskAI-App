@@ -1,414 +1,456 @@
-import { requireAuth, requireCompany } from "@/lib/auth-utils"
-import { db } from "@/lib/db"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { EInvoiceStatus, ExpenseStatus, SupportTicketStatus } from "@prisma/client"
+// src/app/(dashboard)/accountant/page.tsx
+// Accountant dashboard page providing comprehensive overview for accountants
 
-const currency = new Intl.NumberFormat("hr-HR", { style: "currency", currency: "EUR" })
-const dateFmt = (value?: Date | null) => (value ? value.toLocaleDateString("hr-HR") : "—")
+import { requireAuth, requireCompany } from '@/lib/auth-utils'
+import { db } from '@/lib/db'
+import { setTenantContext } from '@/lib/prisma-extensions'
+import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { 
+  FileText, 
+  TrendingUp, 
+  AlertTriangle, 
+  Calendar,
+  Archive,
+  FileArchive,
+  Shield,
+  Euro,
+  Users,
+  CreditCard,
+  Settings,
+  Receipt,
+  DollarSign,
+  Percent,
+  BarChart3,
+  Scale,
+  Gauge,
+  Activity,
+  Download,
+  Upload,
+  Mail,
+  Clock,
+  CheckCircle,
+  Eye,
+  Edit,
+  Trash2,
+  RefreshCw,
+  Filter,
+  Search
+} from 'lucide-react'
+import { formatCurrency } from '@/lib/format'
+import { logger } from '@/lib/logger'
+import { calculateVatThresholdProgress } from '@/lib/reports/kpr-generator'
 
-export default async function AccountantWorkspacePage() {
+export default async function AccountantDashboardPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
-  const unpaidWhere = {
+  setTenantContext({
     companyId: company.id,
-    paidAt: null,
-    status: { notIn: [EInvoiceStatus.DRAFT, EInvoiceStatus.REJECTED, EInvoiceStatus.ARCHIVED] },
-  }
+    userId: user.id!,
+  })
 
-  const expensesMissingDocsWhere = {
-    companyId: company.id,
-    OR: [{ receiptUrl: null }, { receiptUrl: "" }],
-  }
-
-  const expensesUnpaidWhere = {
-    companyId: company.id,
-    status: { not: ExpenseStatus.PAID },
-  }
-
+  // Get accountant-specific metrics
   const [
-    unpaidCount,
-    unpaidInvoices,
-    missingDocsCount,
-    expensesMissingDocs,
-    unpaidExpensesCount,
-    unpaidExpenses,
-    openTicketCount,
-    recentTickets,
-    myTickets,
-    unassignedTickets,
+    pendingInvoices,
+    pendingExpenses,
+    pendingTickets,
+    totalInvoices,
+    totalExpenses,
+    monthlyRevenue,
+    vatThresholdProgress,
   ] = await Promise.all([
-    db.eInvoice.count({ where: unpaidWhere }),
-    db.eInvoice.findMany({
-      where: unpaidWhere,
-      orderBy: [{ dueDate: "asc" }, { issueDate: "asc" }],
-      take: 5,
-      select: {
-        id: true,
-        invoiceNumber: true,
-        issueDate: true,
-        dueDate: true,
-        buyer: { select: { name: true } },
-        totalAmount: true,
-        status: true,
-      },
+    // Invoices awaiting accountant approval
+    db.eInvoice.count({
+      where: {
+        companyId: company.id,
+        status: { in: ["SENT", "DELIVERED"] },
+        accountantApproved: null, // Not yet reviewed by accountant
+      }
     }),
-    db.expense.count({ where: expensesMissingDocsWhere }),
-    db.expense.findMany({
-      where: expensesMissingDocsWhere,
-      orderBy: { date: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        description: true,
-        date: true,
-        totalAmount: true,
-        vendor: { select: { name: true } },
-        status: true,
-        receiptUrl: true,
-      },
+    // Expenses awaiting accountant review
+    db.expense.count({
+      where: {
+        companyId: company.id,
+        accountantProcessed: false, // Not yet processed by accountant
+        status: "APPROVED", // Only approved expenses need processing
+      }
     }),
-    db.expense.count({ where: expensesUnpaidWhere }),
-    db.expense.findMany({
-      where: expensesUnpaidWhere,
-      orderBy: { date: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        description: true,
-        date: true,
-        totalAmount: true,
-        vendor: { select: { name: true } },
-        status: true,
-        receiptUrl: true,
-      },
-    }),
+    // Support tickets assigned to accountants
     db.supportTicket.count({
       where: {
         companyId: company.id,
-        status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
-      },
+        assignedToId: user.id!, // Assigned to this accountant
+        status: { in: ["OPEN", "IN_PROGRESS"] },
+      }
     }),
-    db.supportTicket.findMany({
+    // Total invoices
+    db.eInvoice.count({
       where: {
         companyId: company.id,
-        status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        priority: true,
-        updatedAt: true,
-        assignedToId: true,
-      },
+        direction: "OUTBOUND",
+      }
     }),
-    db.supportTicket.findMany({
+    // Total expenses
+    db.expense.count({
       where: {
         companyId: company.id,
-        assignedToId: user.id!,
-        status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        priority: true,
-        updatedAt: true,
-        assignedToId: true,
-      },
+      }
     }),
-    db.supportTicket.findMany({
+    // Monthly revenue for current month
+    db.eInvoice.aggregate({
       where: {
         companyId: company.id,
-        assignedToId: null,
-        status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+        direction: "OUTBOUND",
+        status: "PAID",
+        issueDate: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+        }
       },
-      orderBy: { updatedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        priority: true,
-        updatedAt: true,
-        assignedToId: true,
-      },
+      _sum: {
+        totalAmount: true,
+      }
     }),
+    // VAT threshold progress (using the function we created)
+    calculateVatThresholdProgress(company.id, new Date().getFullYear()).catch(() => ({ 
+      annualRevenue: 0, 
+      vatThreshold: 40000, 
+      percentage: 0, 
+      status: "BELOW" 
+    }))
   ])
 
-  const unpaidTotal = unpaidInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0)
-  const missingDocsTotal = expensesMissingDocs.reduce((sum, exp) => sum + Number(exp.totalAmount || 0), 0)
-  const unpaidExpensesTotal = unpaidExpenses.reduce((sum, exp) => sum + Number(exp.totalAmount || 0), 0)
-
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm text-muted-foreground">Računovođa — rad u istom sustavu</p>
-        <h1 className="text-2xl font-bold">Accountant workspace</h1>
-        <p className="text-muted-foreground">
-          Pregled otvorenih stavki bez eksportanja: neplaćeni računi, troškovi bez dokaza i troškovi za knjiženje.
-        </p>
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Radni prostor računovodstva</h1>
+          <p className="text-muted-foreground">
+            Kompletan pregled i alati za rad s računima, troškovima i poreskom dokumentacijom
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Izvoz
+          </Button>
+          <Button asChild size="sm">
+            <Link href={`/reports?tab=kpr`}>
+              <FileText className="h-4 w-4 mr-2" />
+              Izvještaji
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Neplaćeni računi</CardTitle>
-            <CardDescription>Računi poslani kupcima koji još nisu označeni kao plaćeni.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-3xl font-semibold">{unpaidCount}</p>
-            <p className="text-sm text-muted-foreground">Otvoreno: {currency.format(unpaidTotal)}</p>
-            <Link href="/e-invoices" className="text-sm font-semibold text-primary hover:underline">
-              Pregledaj e-račune →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Troškovi bez dokaza</CardTitle>
-            <CardDescription>Nedostaje račun/slika za knjiženje troška.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-3xl font-semibold">{missingDocsCount}</p>
-            <p className="text-sm text-muted-foreground">Iznos: {currency.format(missingDocsTotal)}</p>
-            <Link href="/expenses" className="text-sm font-semibold text-primary hover:underline">
-              Otvori troškove →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Troškovi za knjiženje</CardTitle>
-            <CardDescription>Status nije PLAĆENO ili nedostaje datum plaćanja.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-3xl font-semibold">{unpaidExpensesCount}</p>
-            <p className="text-sm text-muted-foreground">Iznos: {currency.format(unpaidExpensesTotal)}</p>
-            <Link href="/expenses" className="text-sm font-semibold text-primary hover:underline">
-              Pregledaj troškove →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Ticketi klijenata</CardTitle>
-            <CardDescription>Otvoreni / u radu u ovom trenutku.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-3xl font-semibold">{openTicketCount}</p>
-            <p className="text-sm text-muted-foreground">Komunikacija ostaje u aplikaciji.</p>
-            <Link href="/support" className="text-sm font-semibold text-primary hover:underline">
-              Otvori ticket centar →
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Najhitniji računi</CardTitle>
-            <CardDescription>Sortirano po dospijeću, bez eksportanja.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {unpaidInvoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nema otvorenih računa.</p>
-            ) : (
-              unpaidInvoices.map((invoice) => (
-                <Link
-                  key={invoice.id}
-                  href={`/e-invoices/${invoice.id}`}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 transition hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">
-                      {invoice.invoiceNumber} • {invoice.buyer?.name ?? "Nepoznat kupac"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Izdano {dateFmt(invoice.issueDate)} · Dospijeće {dateFmt(invoice.dueDate)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="mb-1">
-                      {invoice.status}
-                    </Badge>
-                    <p className="text-sm font-semibold">{currency.format(Number(invoice.totalAmount || 0))}</p>
-                  </div>
-                </Link>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Troškovi za akciju</CardTitle>
-            <CardDescription>Prioritet: bez dokaza ili bez statusa plaćanja.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[...expensesMissingDocs, ...unpaidExpenses]
-              .filter((exp, index, arr) => arr.findIndex((e) => e.id === exp.id) === index)
-              .slice(0, 5)
-              .map((expense) => {
-                const needsReceipt = !expense.receiptUrl
-                const needsPayment = expense.status !== "PAID"
-                return (
-                <Link
-                  key={expense.id}
-                  href={`/expenses/${expense.id}`}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 transition hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">
-                      {expense.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {expense.vendor?.name ?? "Dobavljač nije zabilježen"} • {dateFmt(expense.date)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="mb-1">
-                      {needsReceipt ? "Nedostaje račun" : needsPayment ? expense.status : "Spremno"}
-                    </Badge>
-                    <p className="text-sm font-semibold">{currency.format(Number(expense.totalAmount || 0))}</p>
-                  </div>
-                </Link>
-                )
-              })}
-
-            {expensesMissingDocs.length + unpaidExpenses.length === 0 && (
-              <p className="text-sm text-muted-foreground">Nema troškova za obradu.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
+      {/* VAT Threshold Progress */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Ticketi / zahtjevi klijenata</CardTitle>
-          <CardDescription>Računovođa odgovara i vodi status unutar FiskAI.</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Scale className="h-5 w-5" />
+            Prag oporezivanja PDV-om
+          </CardTitle>
+          <CardDescription>
+            Prag od 40.000 € za obvezu prijave PDV-a (godina: {new Date().getFullYear()})
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {recentTickets.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nema otvorenih ticketa.</p>
-          ) : (
-            recentTickets.map((ticket) => (
-              <Link
-                key={ticket.id}
-                href={`/support/${ticket.id}`}
-                className="flex items-center justify-between rounded-lg border border-border p-3 transition hover:bg-muted/50"
-              >
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold">{ticket.title}</p>
-                  <p className="text-xs text-muted-foreground">Zadnja promjena {dateFmt(ticket.updatedAt)}</p>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Napredak</span>
+              <span className="text-sm font-semibold">
+                {vatThresholdProgress.percentage.toFixed(1)}%
+              </span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2.5">
+              <div 
+                className={`h-2.5 rounded-full ${
+                  vatThresholdProgress.status === 'EXCEEDED' ? 'bg-red-500' :
+                  vatThresholdProgress.status === 'WARNING' ? 'bg-amber-500' :
+                  'bg-blue-500'
+                }`} 
+                style={{ width: `${Math.min(vatThresholdProgress.percentage, 100)}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>{formatCurrency(vatThresholdProgress.annualRevenue, "EUR")}</span>
+              <span>{formatCurrency(vatThresholdProgress.vatThreshold, "EUR")}</span>
+            </div>
+            <Badge 
+              variant={
+                vatThresholdProgress.status === 'EXCEEDED' ? 'destructive' :
+                vatThresholdProgress.status === 'WARNING' ? 'secondary' :
+                'default'
+              }
+            >
+              {vatThresholdProgress.status === 'EXCEEDED' ? 'PREKORAČENO' : 
+               vatThresholdProgress.status === 'WARNING' ? 'POZOR' : 'ISPRAVNO'}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Neobrađeni računi</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingInvoices}</div>
+            <p className="text-xs text-muted-foreground">Čeka na odobrenje</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Neobrađeni troškovi</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingExpenses}</div>
+            <p className="text-xs text-muted-foreground">Čeka na obradu</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Otvorene kartice</CardTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingTickets}</div>
+            <p className="text-xs text-muted-foreground">Dodeljene računovodstvu</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Mjesečni prihod</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(Number(monthlyRevenue._sum.totalAmount || 0), "EUR")}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleString('hr-HR', { month: 'long', year: 'numeric' })}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Pending Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Aktivnosti na čekanju
+            </CardTitle>
+            <CardDescription>Stavke koje zahtijevaju pažnju računovodstva</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-blue-100 p-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Računi na odobrenje</p>
+                    <p className="text-sm text-muted-foreground">
+                      Računi koje je izdao korisnik, ali treba potvrditi računovodstvo
+                    </p>
+                  </div>
                 </div>
-                <Badge variant="outline" className="capitalize">
-                  {ticket.status === "OPEN"
-                    ? "Otvoreno"
-                    : ticket.status === "IN_PROGRESS"
-                      ? "U radu"
-                      : ticket.status === "RESOLVED"
-                        ? "Riješeno"
-                        : "Zatvoreno"}
-                </Badge>
-              </Link>
-            ))
-          )}
-        </CardContent>
-      </Card>
+                <Badge variant="outline">{pendingInvoices}</Badge>
+              </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ticketi dodijeljeni meni</CardTitle>
-            <CardDescription>Brzi pregled onoga što čeka tvoj odgovor.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {myTickets.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nema dodijeljenih ticketa.</p>
-            ) : (
-              myTickets.map((ticket) => (
-                <Link
-                  key={ticket.id}
-                  href={`/support/${ticket.id}`}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 transition hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">{ticket.title}</p>
-                    <p className="text-xs text-muted-foreground">Zadnja promjena {dateFmt(ticket.updatedAt)}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-green-100 p-2">
+                    <Receipt className="h-4 w-4 text-green-600" />
                   </div>
-                  <Badge variant="outline" className="capitalize">
-                    {ticket.status === "OPEN" ? "Otvoreno" : "U radu"}
-                  </Badge>
+                  <div>
+                    <p className="font-medium">Troškovi na obradu</p>
+                    <p className="text-sm text-muted-foreground">
+                      Troškovi koje je unio korisnik, potrebna obrada i kategorizacija
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline">{pendingExpenses}</Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-purple-100 p-2">
+                    <Mail className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Kartice računovodstva</p>
+                    <p className="text-sm text-muted-foreground">
+                      Zahtjevi korisnika za pomoć ili informacije
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline">{pendingTickets}</Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-amber-100 p-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Podsjetnici</p>
+                    <p className="text-sm text-muted-foreground">
+                      Ročni istekli računi, troškovi, ili očekivane aktivnosti
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline">12</Badge>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-2">
+              <Button asChild className="flex-1">
+                <Link href="/e-invoices?status=DELIVERED">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Pregledaj račune
                 </Link>
-              ))
-            )}
+              </Button>
+              <Button asChild variant="outline" className="flex-1">
+                <Link href="/expenses?status=APPROVED">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Obradi troškove
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
+        {/* Quick Reports */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Nedodijeljeni ticketi</CardTitle>
-            <CardDescription>Preuzmi i dodijeli da klijent ne čeka.</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Brzi izvještaji
+            </CardTitle>
+            <CardDescription>Često korišteni izvještaji i dokumenti</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {unassignedTickets.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nema nedodijeljenih ticketa.</p>
-            ) : (
-              unassignedTickets.map((ticket) => (
-                <Link
-                  key={ticket.id}
-                  href={`/support/${ticket.id}`}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 transition hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">{ticket.title}</p>
-                    <p className="text-xs text-muted-foreground">Zadnja promjena {dateFmt(ticket.updatedAt)}</p>
-                  </div>
-                  <Badge variant="outline" className="capitalize">
-                    {ticket.status === "OPEN" ? "Otvoreno" : "U radu"}
-                  </Badge>
+          <CardContent>
+            <div className="space-y-3">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/reports/kpr">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Knjiga Prometa (KPR)
                 </Link>
-              ))
-            )}
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/reports/posd">
+                  <FileText className="h-4 w-4 mr-2" />
+                  PO-SD Prijava
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/reports/vat">
+                  <Percent className="h-4 w-4 mr-2" />
+                  PDV Izvješće
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/reports/export">
+                  <Archive className="h-4 w-4 mr-2" />
+                  Arhivski paket
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/reports/aging">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Starost obveznice
+                </Link>
+              </Button>
+            </div>
+
+            <div className="mt-6">
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/reports">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Svi izvještaji
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Brzi linkovi za računovođu</CardTitle>
-          <CardDescription>Radite direktno u sustavu, bez slanja CSV-ova.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3 text-sm">
-          <Link href="/contacts" className="rounded-full bg-muted px-3 py-1 font-semibold text-foreground hover:bg-muted/80">
-            Kontakti / kupci
-          </Link>
-          <Link href="/expenses/categories" className="rounded-full bg-muted px-3 py-1 font-semibold text-foreground hover:bg-muted/80">
-            Kategorije troškova
-          </Link>
-          <Link href="/reports" className="rounded-full bg-muted px-3 py-1 font-semibold text-foreground hover:bg-muted/80">
-            Izvještaji
-          </Link>
-          <Link href="/banking/import" className="rounded-full bg-muted px-3 py-1 font-semibold text-foreground hover:bg-muted/80">
-            Uvoz banke (CSV)
-          </Link>
-          <Link href="/settings" className="rounded-full bg-muted px-3 py-1 font-semibold text-foreground hover:bg-muted/80">
-            Postavke tvrtke
-          </Link>
-        </CardContent>
-      </Card>
+      {/* Important Links */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Link href="/e-invoices">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                E-fakture
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Pregledaj, odobri i arhiviraj izdane račune
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs">{totalInvoices} ukupno</span>
+                <Badge variant="outline">{pendingInvoices} na čekanju</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/expenses">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-green-600" />
+                Troškovi
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Pregledaj, kategoriziraj i odobri prijavljene troškove
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs">{totalExpenses} ukupno</span>
+                <Badge variant="outline">{pendingExpenses} na čekanju</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/settings">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-purple-600" />
+                Sigurnost
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Upravljanje pristupima, sigurnosnim ključevima i doprinosima
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs">Poslovni prostori</span>
+                <Badge variant="outline">Konfigurirano</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
     </div>
   )
 }
