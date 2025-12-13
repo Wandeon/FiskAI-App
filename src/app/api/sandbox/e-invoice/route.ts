@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAuth, requireCompany } from "@/lib/auth-utils";
 import { getFiscalProvider, testFiscalProvider } from "@/lib/e-invoice/fiscal-provider";
+import { FiscalConfig } from "@/lib/e-invoice/fiscal-types";
 import { validateCroatianCompliance } from "@/lib/compliance/en16931-validator";
 import { logger } from "@/lib/logger";
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request data", details: parsed.error.errors },
+        { error: "Invalid request data", details: parsed.error.issues },
         { status: 400 }
       );
     }
@@ -101,7 +102,7 @@ async function testConnection(company: any) {
   try {
     const config = {
       provider: 'mock', // Always use mock for sandbox
-    };
+    } as Partial<FiscalConfig>;
 
     const result = await testFiscalProvider(config);
 

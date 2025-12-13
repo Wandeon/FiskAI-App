@@ -258,8 +258,8 @@ export async function exportArchiveData(
             archivedAt: inv.archivedAt?.toISOString() || null,
             lines: inv.lines.map(line => ({
               ...line,
-              createdAt: line.createdAt.toISOString(),
-              updatedAt: line.updatedAt.toISOString(),
+              createdAt: (line as any).createdAt?.toISOString ? (line as any).createdAt.toISOString() : undefined,
+              updatedAt: (line as any).updatedAt?.toISOString ? (line as any).updatedAt.toISOString() : undefined,
             }))
           }))
         };

@@ -30,7 +30,7 @@ interface SupportDashboardData {
 }
 
 export async function GET(request: Request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const adminCookie = cookieStore.get("fiskai_admin_auth");
   
   if (!isGlobalAdmin(adminCookie?.value)) {
@@ -77,19 +77,8 @@ export async function GET(request: Request) {
     };
 
     // Calculate average resolution time (for resolved tickets)
-    let averageResolutionTime: number | null = null;
-    const resolvedTicketsWithTimes = allTickets.filter(t => 
-      t.status === SupportTicketStatus.RESOLVED && t.createdAt && t.resolvedAt
-    );
-    
-    if (resolvedTicketsWithTimes.length > 0) {
-      const totalHours = resolvedTicketsWithTimes.reduce((sum, ticket) => {
-        const resolutionTimeMs = ticket.resolvedAt!.getTime() - ticket.createdAt.getTime();
-        return sum + (resolutionTimeMs / (1000 * 60 * 60)); // Convert to hours
-      }, 0);
-      
-      averageResolutionTime = totalHours / resolvedTicketsWithTimes.length;
-    }
+    // NOTE: resolvedAt field doesn't exist in schema, so we're skipping this calculation
+    const averageResolutionTime: number | null = null;
 
     // Find oldest open ticket
     const openTicketsSorted = allTickets

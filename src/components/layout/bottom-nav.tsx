@@ -5,6 +5,15 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useCapabilities } from "@/hooks/use-capabilities"
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Settings,
+  Plus,
+  Receipt,
+  Package
+} from "lucide-react"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Početna" },
@@ -24,7 +33,6 @@ export function BottomNav() {
   const pathname = usePathname()
   const [isQuickOpen, setIsQuickOpen] = useState(false)
   const capabilities = useCapabilities()
-  const supportBadge = summary?.unreadForMe || summary?.openCount || 0
 
   return (
     <>
@@ -77,7 +85,7 @@ export function BottomNav() {
               key={item.href}
               item={item}
               activePath={pathname}
-              badge={item.href === "/support" ? supportBadge : undefined}
+              badge={undefined} // Removed support badge until support is fully implemented
             />
           ))}
 
@@ -100,7 +108,7 @@ export function BottomNav() {
               key={item.href}
               item={item}
               activePath={pathname}
-              badge={item.href === "/support" ? supportBadge : undefined}
+              badge={undefined} // Removed support badge until support is fully implemented
             />
           ))}
         </div>

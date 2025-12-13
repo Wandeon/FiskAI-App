@@ -72,8 +72,10 @@ export async function createSupportTicket(input: CreateSupportTicketInput) {
         status: SupportTicketStatus.OPEN,
       },
       include: {
-        createdUser: { select: { name: true, email: true } },
-        assignedUser: { select: { name: true, email: true } },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       }
     })
 
@@ -89,7 +91,7 @@ export async function createSupportTicket(input: CreateSupportTicketInput) {
     logger.error({ error }, "Failed to create support ticket")
     
     if (error instanceof z.ZodError) {
-      return { success: false, error: "Invalid input data", details: error.errors }
+      return { success: false, error: "Invalid input data", details: error.issues }
     }
     
     return { success: false, error: "Failed to create support ticket" }
@@ -110,13 +112,8 @@ export async function getSupportTicket(ticketId: string) {
         companyId: company.id,
       },
       include: {
-        createdUser: { select: { name: true, email: true, image: true } },
-        assignedUser: { select: { name: true, email: true, image: true } },
         messages: {
-          orderBy: { createdAt: "asc" },
-          include: {
-            author: { select: { name: true, email: true, image: true } }
-          }
+          orderBy: { createdAt: "asc" }
         }
       }
     })
@@ -173,12 +170,9 @@ export async function getSupportTickets(
         skip,
         orderBy: { updatedAt: "desc" },
         include: {
-          createdUser: { select: { name: true, email: true } },
-          assignedUser: { select: { name: true, email: true } },
           messages: {
             select: {
-              createdAt: true,
-              author: { select: { name: true } }
+              createdAt: true
             },
             orderBy: { createdAt: "desc" },
             take: 1,
@@ -242,7 +236,7 @@ export async function updateSupportTicket(ticketId: string, input: UpdateSupport
     if (validated.status !== undefined) {
       updateData.status = validated.status
       // If status is being changed to RESOLVED/CLOSED, update resolvedAt
-      if ([SupportTicketStatus.RESOLVED, SupportTicketStatus.CLOSED].includes(validated.status)) {
+      if (validated.status === SupportTicketStatus.RESOLVED || validated.status === SupportTicketStatus.CLOSED) {
         updateData.resolvedAt = new Date()
       }
     }
@@ -254,8 +248,10 @@ export async function updateSupportTicket(ticketId: string, input: UpdateSupport
       where: { id: ticketId },
       data: updateData,
       include: {
-        createdUser: { select: { name: true, email: true } },
-        assignedUser: { select: { name: true, email: true } },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       }
     })
 
@@ -272,7 +268,7 @@ export async function updateSupportTicket(ticketId: string, input: UpdateSupport
     logger.error({ error, ticketId }, "Failed to update support ticket")
     
     if (error instanceof z.ZodError) {
-      return { success: false, error: "Invalid input data", details: error.errors }
+      return { success: false, error: "Invalid input data", details: error.issues }
     }
     
     return { success: false, error: "Failed to update support ticket" }
@@ -304,9 +300,6 @@ export async function addSupportTicketMessage(ticketId: string, input: AddSuppor
         ticketId: ticket.id,
         authorId: user.id!,
         body: validated.body.trim(),
-      },
-      include: {
-        author: { select: { name: true, email: true } }
       }
     })
 
@@ -329,7 +322,7 @@ export async function addSupportTicketMessage(ticketId: string, input: AddSuppor
     logger.error({ error, ticketId }, "Failed to add support ticket message")
     
     if (error instanceof z.ZodError) {
-      return { success: false, error: "Invalid input data", details: error.errors }
+      return { success: false, error: "Invalid input data", details: error.issues }
     }
     
     return { success: false, error: "Failed to add support ticket message" }
@@ -347,7 +340,7 @@ export async function closeSupportTicket(ticketId: string, resolutionNote?: stri
     // Verify ticket belongs to company
     const ticket = await db.supportTicket.findFirst({
       where: { id: ticketId, companyId: company.id },
-      select: { id: true, status: true }
+      select: { id: true, status: true, body: true }
     })
 
     if (!ticket) {
@@ -363,12 +356,13 @@ export async function closeSupportTicket(ticketId: string, resolutionNote?: stri
       where: { id: ticketId },
       data: {
         status: SupportTicketStatus.CLOSED,
-        resolvedAt: new Date(),
         ...(resolutionNote && { body: `${ticket.body || ''}\n\n---\nRješenje: ${resolutionNote}`.trim() })
       },
       include: {
-        createdUser: { select: { name: true, email: true } },
-        assignedUser: { select: { name: true, email: true } },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       }
     })
 
@@ -412,11 +406,12 @@ export async function reopenSupportTicket(ticketId: string) {
       where: { id: ticketId },
       data: {
         status: SupportTicketStatus.OPEN,
-        resolvedAt: null,
       },
       include: {
-        createdUser: { select: { name: true, email: true } },
-        assignedUser: { select: { name: true, email: true } },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       }
     })
 

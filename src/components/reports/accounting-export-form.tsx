@@ -50,27 +50,33 @@ export function AccountingExportForm() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Button asChild className="justify-center gap-2">
-          <a href={buildUrl("/api/exports/invoices")} download>
-            <FileSpreadsheet className="h-4 w-4" />
-            Izvoz računa (CSV)
-          </a>
-        </Button>
-        <Button asChild variant="secondary" className="justify-center gap-2">
-          <a href={buildUrl("/api/exports/expenses")} download>
-            <Receipt className="h-4 w-4" />
-            Izvoz troškova (CSV)
-          </a>
-        </Button>
+        <a
+          href={buildUrl("/api/exports/invoices")}
+          download
+          className="justify-center gap-2 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Izvoz računa (CSV)
+        </a>
+        <a
+          href={buildUrl("/api/exports/expenses")}
+          download
+          className="justify-center gap-2 inline-flex items-center rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+        >
+          <Receipt className="h-4 w-4" />
+          Izvoz troškova (CSV)
+        </a>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-1">
-        <Button asChild variant="outline" className="justify-center gap-2">
-          <a href={buildUrl("/api/exports/season-pack")} download>
-            <Archive className="h-4 w-4" />
-            “Tax season” paket (ZIP)
-          </a>
-        </Button>
+        <a
+          href={buildUrl("/api/exports/season-pack")}
+          download
+          className="justify-center gap-2 inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        >
+          <Archive className="h-4 w-4" />
+          {"\"Tax season\" paket (ZIP)"}
+        </a>
       </div>
 
       <p className="text-sm text-muted-foreground">

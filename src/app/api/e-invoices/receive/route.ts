@@ -60,14 +60,14 @@ export async function POST(request: Request) {
       logger.warn({
         userId: user.id,
         companyId: company.id,
-        validationErrors: parsed.error.errors,
+        validationErrors: parsed.error.issues,
         operation: "incoming_invoice_validation_failed"
       }, "Incoming invoice validation failed");
 
       return NextResponse.json(
         { 
           error: "Invalid invoice data", 
-          details: parsed.error.errors 
+          details: parsed.error.issues
         }, 
         { status: 400 }
       );
