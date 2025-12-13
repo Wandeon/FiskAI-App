@@ -1,16 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { importBankStatement } from '../actions'
 import { useRouter } from 'next/navigation'
 import type { BankAccount } from '@prisma/client'
-import { parseCSV, type ParsedTransaction, type SupportedBank } from '@/lib/banking/csv-parser'
-import { parseCSV, type ParsedTransaction, type SupportedBank } from '@/lib/banking/csv-parser'
+import type { SupportedBank } from '@/lib/banking/csv-parser'
 
 type ImportFormProps = {
   accounts: Pick<BankAccount, 'id' | 'name' | 'iban'>[]
+}
+
+type PreviewTransaction = {
+  date: string
+  description: string
+  amount: number
+  balance: number
+  reference?: string
+  counterpartyName?: string
+  counterpartyIban?: string
 }
 
 export function ImportForm({ accounts }: ImportFormProps) {
@@ -21,9 +30,9 @@ export function ImportForm({ accounts }: ImportFormProps) {
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.id || '')
   const [selectedBank, setSelectedBank] = useState<SupportedBank>('generic')
   const [fileName, setFileName] = useState<string | null>(null)
-const [previewData, setPreviewData] = useState<ParsedTransaction[] | null>(null)
+  const [previewData, setPreviewData] = useState<PreviewTransaction[] | null>(null)
 
-  function parseCSV(csvText: string): ParsedTransaction[] {
+  function parseCSV(csvText: string): PreviewTransaction[] {
     const lines = csvText.trim().split('\n')
     if (lines.length < 2) {
       throw new Error('CSV datoteka je prazna ili nema podataka')
@@ -50,14 +59,14 @@ const [previewData, setPreviewData] = useState<ParsedTransaction[] | null>(null)
     }
 
     // Parse data rows
-    const transactions: ParsedTransaction[] = []
+    const transactions: PreviewTransaction[] = []
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim()
       if (!line) continue
 
       const values = line.split(',').map((v) => v.trim())
 
-      const transaction: ParsedTransaction = {
+      const transaction: PreviewTransaction = {
         date: values[dateIndex],
         description: values[descIndex],
         amount: parseFloat(values[amountIndex]),
@@ -94,7 +103,7 @@ const [previewData, setPreviewData] = useState<ParsedTransaction[] | null>(null)
     return transactions
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) {
       setFileName(null)
@@ -110,7 +119,7 @@ const [previewData, setPreviewData] = useState<ParsedTransaction[] | null>(null)
     reader.onload = (event) => {
       try {
         const csvText = event.target?.result as string
-        const parsed = parseCSV(csvText, selectedBank)
+        const parsed = parseCSV(csvText)
         setPreviewData(parsed)
         setError(null)
       } catch (err) {
@@ -142,9 +151,13 @@ const [previewData, setPreviewData] = useState<ParsedTransaction[] | null>(null)
     const result = await importBankStatement(formData)
 
     if (result.success) {
-      setSuccess(
-        `Uspješno uvezeno ${result.data?.count} transakcija!`
-      )
+      const count = result.data?.count ?? 0
+      const message = [`Uspješno uvezeno ${count} transakcija`]
+      const autoMatched = result.data?.autoMatchedCount ?? 0
+      if (autoMatched > 0) {
+        message.push(`AI je automatski povezao ${autoMatched} transakcija`)
+      }
+      setSuccess(message.join(' · '))
       setPreviewData(null)
       setFileName(null)
       // Reset file input

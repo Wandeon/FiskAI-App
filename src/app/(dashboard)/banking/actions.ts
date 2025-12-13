@@ -4,6 +4,7 @@ import { db, setTenantContext } from '@/lib/db'
 import { requireAuth, requireCompany } from '@/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { runAutoMatchTransactions } from '@/lib/banking/reconciliation-service'
 
 const createBankAccountSchema = z.object({
   name: z.string().min(1, 'Naziv je obavezan'),
@@ -216,24 +217,25 @@ export async function importBankStatement(formData: FormData) {
       },
     })
 
-    // Insert transactions
-    for (const txn of validatedTransactions) {
-      await db.bankTransaction.create({
-        data: {
-          companyId: company.id,
-          bankAccountId: accountId,
-          date: new Date(txn.date),
-          description: txn.description,
-          amount: typeof txn.amount === 'string' ? parseFloat(txn.amount) : txn.amount,
-          balance: txn.balance !== undefined
-            ? (typeof txn.balance === 'string' ? parseFloat(txn.balance) : txn.balance)
-            : 0,
-          reference: txn.reference || null,
-          counterpartyName: txn.counterpartyName || null,
-          counterpartyIban: txn.counterpartyIban || null,
-          matchStatus: 'UNMATCHED',
-        },
-      })
+      // Insert transactions
+      for (const txn of validatedTransactions) {
+        await db.bankTransaction.create({
+          data: {
+            companyId: company.id,
+            bankAccountId: accountId,
+            date: new Date(txn.date),
+            description: txn.description,
+            amount: typeof txn.amount === 'string' ? parseFloat(txn.amount) : txn.amount,
+            balance: txn.balance !== undefined
+              ? (typeof txn.balance === 'string' ? parseFloat(txn.balance) : txn.balance)
+              : 0,
+            reference: txn.reference || null,
+            counterpartyName: txn.counterpartyName || null,
+            counterpartyIban: txn.counterpartyIban || null,
+            matchStatus: 'UNMATCHED',
+            confidenceScore: 0,
+          },
+        })
     }
 
     // Update account balance if provided
@@ -248,6 +250,12 @@ export async function importBankStatement(formData: FormData) {
       })
     }
 
+    const autoMatchResult = await runAutoMatchTransactions({
+      companyId: company.id,
+      bankAccountId: accountId,
+      userId: user.id!,
+    })
+
     revalidatePath('/banking')
     revalidatePath('/banking/transactions')
 
@@ -256,6 +264,8 @@ export async function importBankStatement(formData: FormData) {
       data: {
         importId: importRecord.id,
         count: validatedTransactions.length,
+        autoMatchedCount: autoMatchResult.matchedCount,
+        autoMatchedEvaluated: autoMatchResult.evaluated,
       },
     }
   } catch (error) {

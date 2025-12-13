@@ -9,19 +9,23 @@ export interface ReconciliationResult {
   reason: string
 }
 
+export interface InvoiceCandidate {
+  invoiceId: string
+  invoiceNumber: string | null
+  issueDate: Date
+  totalAmount: number
+  score: number
+  reason: string
+}
+
 export function matchTransactionsToInvoices(
   transactions: (ParsedTransaction & { id: string })[],
   invoices: (EInvoice & { lines: EInvoiceLine[] })[]
 ): ReconciliationResult[] {
   return transactions.map((transaction) => {
-    const invoiceMatches = invoices.map((invoice) => ({
-      invoiceId: invoice.id,
-      score: calculateMatchScore(transaction, invoice),
-    }))
-
-    invoiceMatches.sort((a, b) => b.score - a.score)
-    const topMatch = invoiceMatches[0]
-    const secondMatch = invoiceMatches[1]
+    const matches = buildInvoiceMatches(transaction, invoices)
+    const topMatch = matches[0]
+    const secondMatch = matches[1]
 
     if (topMatch && secondMatch && topMatch.score > 0 && secondMatch.score === topMatch.score) {
       return {
@@ -36,7 +40,7 @@ export function matchTransactionsToInvoices(
     if (topMatch && topMatch.score >= 70) {
       return {
         transactionId: transaction.id,
-        matchedInvoiceId: topMatch.invoiceId,
+        matchedInvoiceId: topMatch.invoice.id,
         matchStatus: topMatch.score >= 85 ? "matched" : "partial",
         confidenceScore: topMatch.score,
         reason: getScoreReason(topMatch.score),
@@ -51,6 +55,42 @@ export function matchTransactionsToInvoices(
       reason: "No matching invoice found",
     }
   })
+}
+
+export function getInvoiceCandidates(
+  transaction: ParsedTransaction & { id: string },
+  invoices: (EInvoice & { lines: EInvoiceLine[] })[],
+  limit = 3
+): InvoiceCandidate[] {
+  const matches = buildInvoiceMatches(transaction, invoices)
+  return matches
+    .filter((match) => match.score > 0)
+    .slice(0, limit)
+    .map((match) => ({
+      invoiceId: match.invoice.id,
+      invoiceNumber: match.invoice.invoiceNumber || null,
+      issueDate: match.invoice.issueDate,
+      totalAmount: Number(match.invoice.totalAmount || match.invoice.netAmount || 0),
+      score: match.score,
+      reason: getScoreReason(match.score),
+    }))
+}
+
+interface InvoiceMatch {
+  invoice: EInvoice & { lines: EInvoiceLine[] }
+  score: number
+}
+
+function buildInvoiceMatches(
+  transaction: ParsedTransaction & { id: string },
+  invoices: (EInvoice & { lines: EInvoiceLine[] })[]
+): InvoiceMatch[] {
+  const matches = invoices.map((invoice) => ({
+    invoice,
+    score: calculateMatchScore(transaction, invoice),
+  }))
+  matches.sort((a, b) => b.score - a.score)
+  return matches
 }
 
 function calculateMatchScore(transaction: ParsedTransaction, invoice: EInvoice): number {

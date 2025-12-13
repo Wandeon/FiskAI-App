@@ -616,6 +616,7 @@ model BankTransaction {
   matchedInvoiceId String?
   matchedExpenseId String?
   matchStatus      MatchStatus @default(UNMATCHED)
+  confidenceScore  Int?
   matchedAt        DateTime?
   matchedBy        String?
 

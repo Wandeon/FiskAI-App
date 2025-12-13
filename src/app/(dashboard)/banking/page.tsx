@@ -58,6 +58,9 @@ export default async function BankingPage() {
           <Link href="/banking/import">
             <Button variant="outline">Uvoz izvoda</Button>
           </Link>
+          <Link href="/banking/reconciliation">
+            <Button variant="ghost">Pomirenje</Button>
+          </Link>
           <Link href="/banking/accounts">
             <Button>Upravljaj računima</Button>
           </Link>
