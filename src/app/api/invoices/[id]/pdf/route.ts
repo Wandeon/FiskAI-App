@@ -6,6 +6,7 @@ import { setTenantContext } from '@/lib/prisma-extensions'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { InvoicePDFDocument } from '@/lib/pdf/invoice-template'
 import { logger } from '@/lib/logger'
+import { generateInvoiceBarcodeDataUrl } from "@/lib/barcode"
 
 export async function GET(
   request: NextRequest,
@@ -74,6 +75,8 @@ export async function GET(
           phone: company.phone,
         }
 
+        const bankAccount = invoice.bankAccount || company.iban || undefined
+
         // Prepare data for PDF template
         const pdfData = {
           invoice: {
@@ -90,6 +93,7 @@ export async function GET(
             zki: invoice.zki,
             type: invoice.type,
             status: invoice.status,
+            includeBarcode: invoice.includeBarcode ?? true,
           },
           seller: {
             name: sellerData.name,
@@ -120,10 +124,24 @@ export async function GET(
             vatRate: Number(line.vatRate),
             vatAmount: Number(line.vatAmount),
           })),
+          bankAccount,
+        }
+
+        let barcodeDataUrl: string | null = null
+        if (pdfData.invoice.includeBarcode && bankAccount) {
+          barcodeDataUrl = await generateInvoiceBarcodeDataUrl({
+            creditorName: pdfData.seller.name,
+            creditorIban: bankAccount,
+            amount: pdfData.invoice.totalAmount,
+            currency: pdfData.invoice.currency,
+            invoiceNumber: pdfData.invoice.invoiceNumber,
+            dueDate: pdfData.invoice.dueDate || undefined,
+            reference: pdfData.invoice.invoiceNumber,
+          })
         }
 
         // Generate PDF
-        const doc = InvoicePDFDocument(pdfData)
+        const doc = InvoicePDFDocument({ ...pdfData, barcodeDataUrl })
         const pdfBuffer = await renderToBuffer(doc)
 
         const durationMs = Date.now() - startedAt

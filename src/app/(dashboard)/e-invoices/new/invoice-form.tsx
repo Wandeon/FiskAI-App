@@ -86,6 +86,8 @@ export function InvoiceForm({ contacts, products, company, capabilities, nextInv
       dueDate: formatDateInput(addDays(today, DEFAULT_PAYMENT_TERMS_DAYS)),
       invoiceNumber: nextInvoiceNumber,
       currency: "EUR",
+      bankAccount: company.iban || "",
+      includeBarcode: true,
       lines: [
         {
           description: "",
@@ -365,6 +367,32 @@ export function InvoiceForm({ contacts, products, company, capabilities, nextInv
                         Referenca kupca
                       </label>
                       <Input {...register("buyerReference")} placeholder="Opcionalno" />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
+                        IBAN za QR kod
+                      </label>
+                      <Input
+                        {...register("bankAccount")}
+                        placeholder="HRXX..."
+                        error={errors.bankAccount?.message}
+                      />
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        Po zadanom koristi IBAN tvrtke. QR kod će biti na PDF-u.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="includeBarcode"
+                        {...register("includeBarcode")}
+                        defaultChecked
+                      />
+                      <label htmlFor="includeBarcode" className="text-sm text-[var(--foreground)]">
+                        Uključi QR kod za plaćanje na PDF
+                      </label>
                     </div>
                   </div>
                 </PageCardContent>

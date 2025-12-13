@@ -16,6 +16,8 @@ export const eInvoiceSchema = z.object({
   dueDate: z.coerce.date().optional(),
   currency: z.string().default("EUR"),
   buyerReference: z.string().optional(),
+  bankAccount: z.string().regex(/^HR\d{2}\d{17}$/, "Neispravan IBAN").optional().or(z.literal("")),
+  includeBarcode: z.boolean().optional(),
   lines: z.array(eInvoiceLineSchema).min(1, "At least one line item is required"),
 })
 

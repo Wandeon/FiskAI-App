@@ -112,6 +112,7 @@ model Company {
   recurringExpenses RecurringExpense[]
   savedReports      SavedReport[]
   bankAccounts      BankAccount[]
+  supportTickets    SupportTicket[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -233,6 +234,8 @@ model EInvoice {
   dueDate        DateTime?
   currency       String    @default("EUR")
   buyerReference String?
+  bankAccount    String?
+  includeBarcode Boolean   @default(true)
 
   // Amounts
   netAmount   Decimal @db.Decimal(10, 2)
@@ -656,6 +659,59 @@ enum ImportFormat {
   CSV
   XML_CAMT053
   MT940
+}
+
+// ============================================
+// SUPPORT / TICKETING MODULE
+// ============================================
+
+model SupportTicket {
+  id           String              @id @default(cuid())
+  companyId    String
+  createdById  String?
+  assignedToId String?
+
+  title    String
+  body     String? @db.Text
+  status   SupportTicketStatus   @default(OPEN)
+  priority SupportTicketPriority @default(NORMAL)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  messages SupportTicketMessage[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([priority])
+}
+
+model SupportTicketMessage {
+  id       String @id @default(cuid())
+  ticketId String
+  authorId String?
+  body     String @db.Text
+
+  createdAt DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
 model WebAuthnCredential {

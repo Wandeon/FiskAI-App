@@ -12,6 +12,7 @@ const REPORTS = [
   { href: '/reports/aging', title: 'Starost potraživanja', description: 'Pregled dospjelih računa (30/60/90 dana)', icon: '⏰' },
   { href: '/reports/expenses', title: 'Troškovi po kategoriji', description: 'Analiza rashoda po kategorijama', icon: '💰' },
   { href: '/reports/revenue', title: 'Prihodi po kupcu', description: 'Analiza prihoda po kupcima', icon: '👥' },
+  { href: '/reports/export', title: 'Izvoz za knjigovođu', description: 'CSV izvoz računa i troškova (datum od-do)', icon: '📦' },
 ]
 
 export default async function ReportsPage() {

@@ -5,6 +5,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer'
 
 // Type definitions
@@ -23,6 +24,7 @@ type InvoiceData = {
     zki: string | null
     type: string
     status: string
+    includeBarcode?: boolean
   }
   seller: {
     name: string
@@ -53,6 +55,8 @@ type InvoiceData = {
     vatRate: number
     vatAmount: number
   }>
+  bankAccount?: string
+  barcodeDataUrl?: string | null
 }
 
 // Styles
@@ -178,6 +182,22 @@ const styles = StyleSheet.create({
     marginTop: 30,
     paddingTop: 15,
     borderTop: '1px solid #ddd',
+  },
+  barcodeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 10,
+  },
+  barcodeBox: {
+    width: 120,
+    height: 120,
+    border: '1px solid #ddd',
+    padding: 4,
+  },
+  barcodeLabel: {
+    fontSize: 8,
+    marginBottom: 4,
   },
   footerSection: {
     marginBottom: 10,
@@ -408,15 +428,32 @@ export const InvoicePDFTemplate: React.FC<{ data: InvoiceData }> = ({ data }) =>
 
         {/* Footer */}
         <View style={styles.footer}>
-          {seller.iban && (
-            <View style={styles.footerSection}>
-              <Text style={styles.footerTitle}>Podaci za plaćanje</Text>
-              <Text style={styles.footerText}>IBAN: {seller.iban}</Text>
-              <Text style={styles.footerText}>
-                Model: HR01, Poziv na broj: {invoice.invoiceNumber.replace(/[^0-9]/g, '')}
-              </Text>
+          <View style={styles.barcodeRow}>
+            <View style={{ flex: 1, marginRight: 12 }}>
+              {seller.iban && (
+                <View style={styles.footerSection}>
+                  <Text style={styles.footerTitle}>Podaci za plaćanje</Text>
+                  <Text style={styles.footerText}>IBAN: {seller.iban}</Text>
+                  <Text style={styles.footerText}>
+                    Model: HR01, Poziv na broj: {invoice.invoiceNumber.replace(/[^0-9]/g, '')}
+                  </Text>
+                </View>
+              )}
+              {data.bankAccount && (
+                <View style={styles.footerSection}>
+                  <Text style={styles.footerTitle}>Plaćanje na račun</Text>
+                  <Text style={styles.footerText}>IBAN za uplatu: {data.bankAccount}</Text>
+                </View>
+              )}
             </View>
-          )}
+
+            {data.barcodeDataUrl && (
+              <View style={styles.barcodeBox}>
+                <Text style={styles.barcodeLabel}>Plaćanje QR kodom</Text>
+                <Image src={data.barcodeDataUrl} style={{ width: 110, height: 110 }} />
+              </View>
+            )}
+          </View>
         </View>
       </Page>
     </Document>

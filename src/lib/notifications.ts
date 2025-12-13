@@ -1,6 +1,6 @@
 import { db, setTenantContext, getTenantContext } from "@/lib/db"
 import type { NotificationItem, NotificationType } from "@/types/notifications"
-import type { AuditAction, Company } from "@prisma/client"
+import type { AuditAction, Company, SupportTicketStatus } from "@prisma/client"
 
 type NotificationCenterContext = {
   userId: string
@@ -56,8 +56,14 @@ export async function getNotificationCenterFeed({
       draftCount,
       pendingFiscalizationCount,
       errorInvoiceCount,
+      overdueInvoiceCount,
       recentInvoices,
       recentActivity,
+      openTicketCount,
+      recentTickets,
+      staleTicketCount,
+      unassignedTicketCount,
+      overdueExpenseCount,
     ] = await Promise.all([
       db.eInvoice.count({
         where: { companyId: company.id, status: "DRAFT" },
@@ -69,6 +75,14 @@ export async function getNotificationCenterFeed({
         where: {
           companyId: company.id,
           status: { in: ["ERROR", "REJECTED"] },
+        },
+      }),
+      db.eInvoice.count({
+        where: {
+          companyId: company.id,
+          paidAt: null,
+          dueDate: { lt: new Date() },
+          status: { notIn: ["DRAFT", "ARCHIVED"] },
         },
       }),
       db.eInvoice.findMany({
@@ -107,6 +121,48 @@ export async function getNotificationCenterFeed({
           entityId: true,
           timestamp: true,
           changes: true,
+        },
+      }),
+      db.supportTicket.count({
+        where: {
+          companyId: company.id,
+          status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+        },
+      }),
+      db.supportTicket.findMany({
+        where: {
+          companyId: company.id,
+          status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 3,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          updatedAt: true,
+        },
+      }),
+      db.supportTicket.count({
+        where: {
+          companyId: company.id,
+          status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+          updatedAt: { lt: new Date(Date.now() - 1000 * 60 * 60 * 48) },
+        },
+      }),
+      db.supportTicket.count({
+        where: {
+          companyId: company.id,
+          status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+          assignedToId: null,
+        },
+      }),
+      db.expense.count({
+        where: {
+          companyId: company.id,
+          status: { not: "PAID" },
+          date: { lt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30) },
         },
       }),
     ])
@@ -158,6 +214,61 @@ export async function getNotificationCenterFeed({
       })
     }
 
+    if (overdueInvoiceCount > 0) {
+      alerts.push({
+        id: "overdue-invoices",
+        type: "warning",
+        title: `${overdueInvoiceCount} rač. je dospjelo`,
+        description: "Provjerite plaćanje i pošaljite podsjetnik",
+        timestamp: nowLabel,
+        action: { label: "Pregledaj", href: "/e-invoices?status=SENT" },
+      })
+    }
+
+    if (openTicketCount > 0) {
+      alerts.push({
+        id: "open-tickets",
+        type: "info",
+        title: `${openTicketCount} ticket${openTicketCount === 1 ? "" : "a"} čeka odgovor`,
+        description: "Komunikacija s klijentima ostaje u aplikaciji",
+        timestamp: nowLabel,
+        action: { label: "Ticket centar", href: "/support" },
+      })
+    }
+
+    if (unassignedTicketCount > 0) {
+      alerts.push({
+        id: "unassigned-tickets",
+        type: "warning",
+        title: `${unassignedTicketCount} ticket${unassignedTicketCount === 1 ? "" : "a"} bez dodjele`,
+        description: "Dodijelite računovođi kako bi se obradio",
+        timestamp: nowLabel,
+        action: { label: "Dodijeli", href: "/support" },
+      })
+    }
+
+    if (staleTicketCount > 0) {
+      alerts.push({
+        id: "stale-tickets",
+        type: "warning",
+        title: `${staleTicketCount} ticket${staleTicketCount === 1 ? "" : "a"} čeka >48h`,
+        description: "Odgovorite ili promijenite status",
+        timestamp: nowLabel,
+        action: { label: "Ticket centar", href: "/support" },
+      })
+    }
+
+    if (overdueExpenseCount > 0) {
+      alerts.push({
+        id: "overdue-expenses",
+        type: "warning",
+        title: `${overdueExpenseCount} trošak${overdueExpenseCount === 1 ? "" : "a"} starije od 30d`,
+        description: "Ažurirajte status plaćanja ili dodajte dokaz",
+        timestamp: nowLabel,
+        action: { label: "Troškovi", href: "/expenses" },
+      })
+    }
+
     const invoiceNotifications: NotificationItem[] = recentInvoices.map(
       (invoice) => {
         const amount = Number(invoice.totalAmount || 0)
@@ -199,7 +310,17 @@ export async function getNotificationCenterFeed({
         }
       })
 
-    const items = [...alerts, ...invoiceNotifications, ...activityNotifications].slice(0, 10)
+    const ticketNotifications: NotificationItem[] = recentTickets.map((ticket) => ({
+      id: `ticket-${ticket.id}`,
+      type: "info",
+      title: `Ticket: ${ticket.title}`,
+      description: `${ticket.status === "OPEN" ? "Otvoreno" : "U radu"} · ${ticket.priority.toLowerCase()}`,
+      timestamp: formatRelativeTime(ticket.updatedAt),
+      rawTimestamp: ticket.updatedAt.toISOString(),
+      action: { label: "Otvori ticket", href: `/support/${ticket.id}` },
+    }))
+
+    const items = [...alerts, ...ticketNotifications, ...invoiceNotifications, ...activityNotifications].slice(0, 12)
     const latestEventAt = items.reduce<Date | null>((latest, item) => {
       if (!item.rawTimestamp) return latest
       const ts = new Date(item.rawTimestamp)

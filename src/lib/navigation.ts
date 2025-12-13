@@ -8,6 +8,9 @@ import {
   Users,
   Package,
   Settings,
+  UserCog,
+  LifeBuoy,
+  KeyRound,
   type LucideIcon
 } from "lucide-react"
 
@@ -61,6 +64,13 @@ export const navigation: NavSection[] = [
     ],
   },
   {
+    title: "Suradnja",
+    items: [
+      { name: "Računovođa", href: "/accountant", icon: UserCog },
+      { name: "Podrška", href: "/support", icon: LifeBuoy },
+    ],
+  },
+  {
     title: "Podaci",
     items: [
       { name: "Kontakti", href: "/contacts", icon: Users },
@@ -70,6 +80,7 @@ export const navigation: NavSection[] = [
   {
     title: "Sustav",
     items: [
+      { name: "Računovođe", href: "/settings/accountants", icon: KeyRound },
       { name: "Postavke", href: "/settings", icon: Settings, module: "settings" },
     ],
   },

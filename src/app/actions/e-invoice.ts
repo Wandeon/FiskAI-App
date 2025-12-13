@@ -90,6 +90,8 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
       dueDate: invoiceData.dueDate,
       currency: invoiceData.currency,
       buyerReference: internalReference || invoiceData.buyerReference,  // Store internal ref in buyerReference for now
+      bankAccount: invoiceData.bankAccount?.trim() || null,
+      includeBarcode: invoiceData.includeBarcode ?? true,
       netAmount,
       vatAmount,
       totalAmount,

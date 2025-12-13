@@ -2,14 +2,16 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, FileText, Users, Settings, Plus, Receipt, Package } from "lucide-react"
+import { LayoutDashboard, FileText, Users, Settings, Plus, Receipt, Package, LifeBuoy } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useCapabilities } from "@/hooks/use-capabilities"
+import { useTicketSummary } from "@/hooks/use-ticket-summary"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Početna" },
   { href: "/e-invoices", icon: FileText, label: "Računi", module: "invoicing" },
+  { href: "/support", icon: LifeBuoy, label: "Podrška" },
   { href: "/contacts", icon: Users, label: "Kontakti" },
   { href: "/settings", icon: Settings, label: "Postavke", module: "settings" },
 ]
@@ -25,6 +27,8 @@ export function BottomNav() {
   const pathname = usePathname()
   const [isQuickOpen, setIsQuickOpen] = useState(false)
   const capabilities = useCapabilities()
+  const { summary } = useTicketSummary()
+  const supportBadge = summary?.unreadForMe || summary?.openCount || 0
 
   return (
     <>
@@ -73,7 +77,12 @@ export function BottomNav() {
             .filter((item) => (item.module ? capabilities.modules[item.module as keyof typeof capabilities.modules]?.enabled !== false : true))
             .slice(0, 2)
             .map((item) => (
-            <NavLink key={item.href} item={item} activePath={pathname} />
+            <NavLink
+              key={item.href}
+              item={item}
+              activePath={pathname}
+              badge={item.href === "/support" ? supportBadge : undefined}
+            />
           ))}
 
           <button
@@ -91,7 +100,12 @@ export function BottomNav() {
             .filter((item) => (item.module ? capabilities.modules[item.module as keyof typeof capabilities.modules]?.enabled !== false : true))
             .slice(2)
             .map((item) => (
-            <NavLink key={item.href} item={item} activePath={pathname} />
+            <NavLink
+              key={item.href}
+              item={item}
+              activePath={pathname}
+              badge={item.href === "/support" ? supportBadge : undefined}
+            />
           ))}
         </div>
       </nav>
@@ -99,7 +113,7 @@ export function BottomNav() {
   )
 }
 
-function NavLink({ item, activePath }: { item: typeof navItems[number]; activePath: string }) {
+function NavLink({ item, activePath, badge }: { item: typeof navItems[number]; activePath: string; badge?: number }) {
   const isActive =
     activePath === item.href || activePath.startsWith(item.href + "/")
   const Icon = item.icon
@@ -111,7 +125,14 @@ function NavLink({ item, activePath }: { item: typeof navItems[number]; activePa
         isActive ? "text-brand-600" : "text-[var(--muted)]"
       )}
     >
-      <Icon className="h-5 w-5" />
+      <div className="relative">
+        <Icon className="h-5 w-5" />
+        {badge && badge > 0 && (
+          <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger-500 px-1 text-[10px] font-semibold text-white">
+            {badge > 9 ? "9+" : badge}
+          </span>
+        )}
+      </div>
       <span>{item.label}</span>
     </Link>
   )
