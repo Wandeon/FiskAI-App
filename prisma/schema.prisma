@@ -103,6 +103,8 @@ model Company {
   statementPages          StatementPage[]
   supportTickets          SupportTicket[]
   statementTransactions   Transaction[]
+  bankConnections         BankConnection[]
+  potentialDuplicates     PotentialDuplicate[]
 }
 
 model CompanyUser {
@@ -403,14 +405,23 @@ model BankAccount {
   isDefault      Boolean           @default(false)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+
+  // Bank Sync fields
+  syncProvider          SyncProvider?
+  syncProviderAccountId String?
+  connectionStatus      ConnectionStatus @default(MANUAL)
+  connectionExpiresAt   DateTime?
+
   company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   imports        BankImport[]
   transactions   BankTransaction[]
   importJobs     ImportJob[]
   statements     Statement[]
+  connection     BankConnection?
 
   @@unique([companyId, iban])
   @@index([companyId])
+  @@index([connectionStatus])
 }
 
 model BankTransaction {
@@ -431,6 +442,11 @@ model BankTransaction {
   matchedBy        String?
   createdAt        DateTime    @default(now())
   confidenceScore  Int?
+
+  // Bank Sync fields
+  externalId       String?
+  source           TransactionSource @default(MANUAL)
+
   bankAccount      BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
   matchedExpense   Expense?    @relation(fields: [matchedExpenseId], references: [id])
   matchedInvoice   EInvoice?   @relation(fields: [matchedInvoiceId], references: [id])
@@ -439,6 +455,56 @@ model BankTransaction {
   @@index([bankAccountId])
   @@index([matchStatus])
   @@index([date])
+  @@index([externalId])
+}
+
+model BankConnection {
+  id                    String           @id @default(cuid())
+  companyId             String
+  bankAccountId         String           @unique
+
+  provider              SyncProvider
+  providerConnectionId  String
+  institutionId         String
+  institutionName       String
+
+  status                ConnectionStatus @default(MANUAL)
+  authorizedAt          DateTime?
+  expiresAt             DateTime?
+  lastError             String?
+
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  company               Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bankAccount           BankAccount      @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([status])
+  @@index([providerConnectionId])
+}
+
+model PotentialDuplicate {
+  id                String              @id @default(cuid())
+  companyId         String
+
+  transactionAId    String
+  transactionBId    String
+
+  similarityScore   Float
+  reason            String
+
+  status            DuplicateStatus     @default(PENDING)
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  resolution        DuplicateResolution?
+
+  createdAt         DateTime            @default(now())
+
+  company           Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([status])
 }
 
 model BankImport {
@@ -746,4 +812,32 @@ enum SupportTicketPriority {
   NORMAL
   HIGH
   URGENT
+}
+
+enum SyncProvider {
+  GOCARDLESS
+  PLAID
+  SALTEDGE
+}
+
+enum ConnectionStatus {
+  MANUAL
+  CONNECTED
+  EXPIRED
+}
+
+enum TransactionSource {
+  MANUAL
+  AIS_SYNC
+}
+
+enum DuplicateStatus {
+  PENDING
+  RESOLVED
+}
+
+enum DuplicateResolution {
+  KEEP_BOTH
+  MERGE
+  DELETE_NEW
 }
