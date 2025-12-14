@@ -1,8 +1,6 @@
 import {
   LayoutDashboard,
   FileText,
-  Receipt,
-  Wallet,
   Building2,
   BarChart3,
   Users,
@@ -40,25 +38,17 @@ export const navigation: NavSection[] = [
     items: [
       {
         name: "Dokumenti",
-        href: "/invoices",
+        href: "/documents",
         icon: FileText,
         module: "invoicing",
         children: [
-          { name: "Svi dokumenti", href: "/invoices" },
-          { name: "Novi dokument", href: "/invoices/new" },
+          { name: "Svi dokumenti", href: "/documents" },
+          { name: "Računi", href: "/documents?category=invoice" },
+          { name: "E-Računi", href: "/documents?category=e-invoice" },
+          { name: "Bankovni izvodi", href: "/documents?category=bank-statement" },
+          { name: "Troškovi", href: "/documents?category=expense" },
         ]
       },
-      {
-        name: "E-Računi",
-        href: "/e-invoices",
-        icon: Receipt,
-        module: "eInvoicing",
-        children: [
-          { name: "Svi e-računi", href: "/e-invoices" },
-          { name: "Novi e-račun", href: "/e-invoices/new" },
-        ]
-      },
-      { name: "Troškovi", href: "/expenses", icon: Wallet, module: "expenses" },
       { name: "Banka", href: "/banking", icon: Building2, module: "banking" },
       { name: "Izvještaji", href: "/reports", icon: BarChart3, module: "reports" },
     ],

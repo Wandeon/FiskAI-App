@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ImportForm } from './import-form'
+import { StatementDropzone } from './statement-dropzone'
 
 export default async function ImportPage() {
   const user = await requireAuth()
@@ -19,6 +20,12 @@ export default async function ImportPage() {
   const accounts = await db.bankAccount.findMany({
     where: { companyId: company.id },
     orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+    select: {
+      id: true,
+      name: true,
+      iban: true,
+      currency: true,
+    },
   })
 
   // Get recent imports
@@ -33,6 +40,22 @@ export default async function ImportPage() {
     take: 10,
   })
 
+  const lastStatements = await db.statement.groupBy({
+    by: ['bankAccountId'],
+    where: { companyId: company.id },
+    _max: { statementDate: true, sequenceNumber: true },
+  })
+  const lastByAccount = lastStatements.reduce<Record<string, { date: string | null; sequenceNumber: number | null }>>(
+    (acc, s) => {
+      acc[s.bankAccountId] = {
+        date: s._max.statementDate ? s._max.statementDate.toISOString() : null,
+        sequenceNumber: s._max.sequenceNumber ?? null,
+      }
+      return acc
+    },
+    {}
+  )
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -41,10 +64,27 @@ export default async function ImportPage() {
           <h1 className="text-2xl font-bold">Uvoz izvoda</h1>
           <p className="text-gray-500">Uvezite bankovne transakcije iz CSV datoteke</p>
         </div>
-        <Link href="/banking">
-          <Button variant="outline">Natrag na bankarstvo</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/banking/documents">
+            <Button variant="ghost">Dokumenti</Button>
+          </Link>
+          <Link href="/banking">
+            <Button variant="outline">Natrag na bankarstvo</Button>
+          </Link>
+        </div>
       </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          {accounts.length === 0 ? (
+            <div className="py-4 text-sm text-gray-500">
+              Najprije morate dodati bankovni račun prije uvoza izvoda.
+            </div>
+          ) : (
+            <StatementDropzone accounts={accounts} lastByAccount={lastByAccount} />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Import Form */}
       <Card>

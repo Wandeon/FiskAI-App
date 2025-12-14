@@ -8,7 +8,11 @@ import { runAutoMatchTransactions } from '@/lib/banking/reconciliation-service'
 
 const createBankAccountSchema = z.object({
   name: z.string().min(1, 'Naziv je obavezan'),
-  iban: z.string().regex(/^HR\d{19}$/, 'IBAN mora biti u formatu HR + 19 znamenki'),
+  iban: z.string()
+    .transform((val) => val.replace(/\s/g, '').toUpperCase())
+    .refine((val) => /^HR\d{19}$/.test(val), {
+      message: 'IBAN mora biti u formatu HR + 19 znamenki',
+    }),
   bankName: z.string().min(1, 'Naziv banke je obavezan'),
   currency: z.string().default('EUR'),
   isDefault: z.boolean().optional().default(false),
@@ -197,10 +201,23 @@ export async function importBankStatement(formData: FormData) {
     const transactions = JSON.parse(transactionsJson)
 
     // Validate all transactions
-    const validatedTransactions = transactions.map((t: Record<string, unknown>) => {
-      const validation = importTransactionSchema.safeParse({ ...t, accountId })
+    console.log('[importBankStatement] Parsing transactions:', transactions.length, 'items')
+
+    const validatedTransactions = transactions.map((t: Record<string, unknown>, index: number) => {
+      // Ensure amount and balance are numbers
+      const processed = {
+        ...t,
+        accountId,
+        amount: typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount,
+        balance: t.balance !== undefined
+          ? (typeof t.balance === 'string' ? parseFloat(t.balance) : t.balance)
+          : 0
+      }
+
+      const validation = importTransactionSchema.safeParse(processed)
       if (!validation.success) {
-        throw new Error(`Invalid transaction: ${validation.error.issues[0].message}`)
+        console.error(`[importBankStatement] Transaction ${index} validation failed:`, validation.error.issues)
+        throw new Error(`Invalid transaction at row ${index + 1}: ${validation.error.issues[0].message}`)
       }
       return validation.data
     })
