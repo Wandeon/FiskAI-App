@@ -68,13 +68,16 @@ export async function POST(request: Request) {
       bankAccountId // Use bankAccountId as reference
     )
 
+    // Derive provider enum from provider name
+    const providerEnum = provider.name.toUpperCase() as 'GOCARDLESS' | 'PLAID' | 'SALTEDGE'
+
     // Store connection record
     await db.bankConnection.upsert({
       where: { bankAccountId },
       create: {
         companyId: company.id,
         bankAccountId,
-        provider: 'GOCARDLESS',
+        provider: providerEnum,
         providerConnectionId: result.connectionId,
         institutionId,
         institutionName: bankAccount.bankName,

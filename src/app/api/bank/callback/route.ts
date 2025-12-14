@@ -44,6 +44,9 @@ export async function GET(request: Request) {
       redirect('/banking?error=iban_not_found')
     }
 
+    // Derive provider enum from connection
+    const providerEnum = connection.provider
+
     // Update connection and bank account
     await db.$transaction([
       db.bankConnection.update({
@@ -58,7 +61,7 @@ export async function GET(request: Request) {
       db.bankAccount.update({
         where: { id: connection.bankAccountId },
         data: {
-          syncProvider: 'GOCARDLESS',
+          syncProvider: providerEnum,
           syncProviderAccountId: matchedAccount.id,
           connectionStatus: 'CONNECTED',
           connectionExpiresAt: result.expiresAt,
