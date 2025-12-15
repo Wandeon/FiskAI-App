@@ -109,3 +109,38 @@ export function formatEUR(amount: number): string {
     currency: "EUR",
   }).format(amount)
 }
+
+export interface JdooCosts {
+  monthlyDirectorSalary: number
+  yearlyContributions: number
+  yearlyTax: number // profit tax
+  effectiveTaxRate: number
+}
+
+export function calculateJdooCosts(
+  annualRevenue: number,
+  hasOtherEmployment: boolean = false
+): JdooCosts {
+  // If director has other employment, no mandatory salary
+  // Otherwise, minimum salary contributions apply
+  const monthlyDirectorSalary = hasOtherEmployment ? 0 : 700 // minimum base
+  const yearlyContributions = hasOtherEmployment ? 0 : monthlyDirectorSalary * 12 * 0.365 // ~36.5% contributions
+
+  // Simplified profit calculation (revenue - costs - salary)
+  const estimatedCosts = annualRevenue * 0.2 // assume 20% business costs
+  const directorSalaryCost = monthlyDirectorSalary * 12 * 1.365 // gross cost
+  const taxableProfit = Math.max(0, annualRevenue - estimatedCosts - directorSalaryCost)
+
+  // Profit tax: 10% up to 1M EUR, 18% above
+  const yearlyTax =
+    taxableProfit <= 1000000
+      ? taxableProfit * 0.1
+      : 1000000 * 0.1 + (taxableProfit - 1000000) * 0.18
+
+  return {
+    monthlyDirectorSalary,
+    yearlyContributions: Math.round(yearlyContributions),
+    yearlyTax: Math.round(yearlyTax),
+    effectiveTaxRate: annualRevenue > 0 ? (yearlyTax / annualRevenue) * 100 : 0,
+  }
+}
