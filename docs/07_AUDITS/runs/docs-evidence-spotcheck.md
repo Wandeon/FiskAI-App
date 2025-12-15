@@ -1,0 +1,227 @@
+# Docs Evidence Spot Check (2025-12-15)
+
+## Sample
+Sampled 30 feature docs from `docs/02_FEATURES/features` using even index spacing.
+
+- accountant-dashboard.md
+- ai-assistant.md
+- ai-receipt-extraction.md
+- auth-passkeys.md
+- banking-accounts.md
+- banking-disconnect.md
+- banking-reconciliation.md
+- contacts-edit.md
+- dashboard-action-cards.md
+- dashboard-onboarding.md
+- dashboard-vat-overview.md
+- documents-upload.md
+- e-invoicing-details.md
+- expenses-categories.md
+- expenses-mark-paid.md
+- expenses-view.md
+- fiscal-status.md
+- invoicing-convert.md
+- invoicing-email.md
+- invoicing-view.md
+- legal-ai-data.md
+- legal-privacy.md
+- marketing-features.md
+- products-edit.md
+- reports-aging.md
+- reports-pausalni-obrt.md
+- settings-audit-log.md
+- settings-email.md
+- support-messaging.md
+- system-status.md
+
+## Findings
+
+- Broken evidence links: 13
+- Missing/undetailed evidence references: 162
+
+### Broken link list
+
+- **banking-reconciliation.md** → `src/app/(dashboard)/banking/transactions/page.tsx:26-449` (line out of range)
+- **documents-upload.md** → `src/app/(dashboard)/documents/page.tsx:38-324` (line out of range)
+- **expenses-view.md** → `src/app/(dashboard)/documents/page.tsx:298-320` (line out of range)
+- **invoicing-email.md** → `prisma/migrations/20251215130000_add_email_tracking_fields/migration.sql:1-18` (line out of range)
+- **invoicing-view.md** → `src/app/(dashboard)/documents/page.tsx:298-320` (line out of range)
+- **legal-ai-data.md** → `/src/app/(marketing)/ai-data-policy/page.tsx` (missing file)
+- **legal-ai-data.md** → `src/app/(dashboard)/ai-assistant/*` (missing file)
+- **legal-ai-data.md** → `src/app/(dashboard)/expenses/receipt-scanner/*` (missing file)
+- **legal-ai-data.md** → `src/app/(dashboard)/settings/ai/page.tsx` (missing file)
+- **legal-ai-data.md** → `src/lib/ai/category-suggestions.ts` (missing file)
+- **legal-ai-data.md** → `src/lib/ai/document-extraction.ts` (missing file)
+- **legal-ai-data.md** → `src/lib/ai/transaction-matching.ts` (missing file)
+- **legal-ai-data.md** → `src/lib/legal/policy-versions.ts` (missing file)
+
+### Missing evidence list
+
+- **accountant-dashboard.md** → `prisma/schema.prisma` (missing line or symbol reference)
+- **accountant-dashboard.md** → `src/app/(dashboard)/accountant/page.tsx` (missing line or symbol reference)
+- **accountant-dashboard.md** → `src/components/dashboard/action-cards.tsx` (missing line or symbol reference)
+- **accountant-dashboard.md** → `src/components/layout/company-switcher.tsx` (missing line or symbol reference)
+- **accountant-dashboard.md** → `src/lib/navigation.ts` (missing line or symbol reference)
+- **accountant-dashboard.md** → `src/lib/rbac.ts` (missing line or symbol reference)
+- **accountant-dashboard.md** → `src/lib/reports/kpr-generator.ts` (missing line or symbol reference)
+- **ai-assistant.md** → `src/app/(dashboard)/assistant/page.tsx` (missing line or symbol reference)
+- **ai-assistant.md** → `src/components/dashboard/action-cards.tsx` (missing line or symbol reference)
+- **ai-assistant.md** → `src/components/dashboard/hero-banner.tsx` (missing line or symbol reference)
+- **ai-assistant.md** → `src/components/dashboard/insights-card.tsx` (missing line or symbol reference)
+- **ai-assistant.md** → `src/components/ui/command-palette.tsx` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/app/api/webauthn/login/finish/route.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/app/api/webauthn/login/start/route.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/app/api/webauthn/passkeys/[id]/route.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/app/api/webauthn/passkeys/route.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/app/api/webauthn/register/finish/route.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/app/api/webauthn/register/start/route.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/components/settings/passkey-manager.tsx` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/lib/webauthn.ts` (missing line or symbol reference)
+- **auth-passkeys.md** → `src/lib/webauthn.ts:106,161` (symbol not found)
+- **auth-passkeys.md** → `src/lib/webauthn.ts:142,200` (symbol not found)
+- **banking-accounts.md** → `prisma/schema.prisma:444,934-938` (symbol not found)
+- **banking-accounts.md** → `prisma/schema.prisma:446,940-944` (symbol not found)
+- **banking-accounts.md** → `src/app/(dashboard)/banking/accounts/account-form.tsx` (missing line or symbol reference)
+- **banking-accounts.md** → `src/app/(dashboard)/banking/accounts/page.tsx` (missing line or symbol reference)
+- **banking-accounts.md** → `src/app/(dashboard)/banking/actions.ts` (missing line or symbol reference)
+- **banking-accounts.md** → `src/app/(dashboard)/banking/components/connect-button.tsx` (missing line or symbol reference)
+- **banking-accounts.md** → `src/app/(dashboard)/banking/components/connection-badge.tsx` (missing line or symbol reference)
+- **banking-accounts.md** → `src/components/ui/empty-state.tsx` (missing line or symbol reference)
+- **banking-accounts.md** → `src/lib/banking/constants.ts` (missing line or symbol reference)
+- **banking-disconnect.md** → `src/app/(dashboard)/banking/accounts/page.tsx` (missing line or symbol reference)
+- **banking-disconnect.md** → `src/app/(dashboard)/banking/components/connect-button.tsx` (missing line or symbol reference)
+- **banking-disconnect.md** → `src/app/(dashboard)/banking/components/connection-badge.tsx` (missing line or symbol reference)
+- **banking-disconnect.md** → `src/app/(dashboard)/banking/page.tsx` (missing line or symbol reference)
+- **banking-disconnect.md** → `src/app/api/bank/disconnect/route.ts` (missing line or symbol reference)
+- **contacts-edit.md** → `src/app/(dashboard)/contacts/[id]/edit/edit-form.tsx` (missing line or symbol reference)
+- **contacts-edit.md** → `src/app/(dashboard)/contacts/[id]/edit/page.tsx` (missing line or symbol reference)
+- **contacts-edit.md** → `src/app/(dashboard)/contacts/[id]/page.tsx` (missing line or symbol reference)
+- **contacts-edit.md** → `src/components/contacts/contact-card.tsx` (missing line or symbol reference)
+- **contacts-edit.md** → `src/components/ui/oib-input.tsx` (missing line or symbol reference)
+- **contacts-edit.md** → `src/lib/postal-codes.ts` (missing line or symbol reference)
+- **dashboard-action-cards.md** → `src/app/(dashboard)/accountant/page.tsx` (missing line or symbol reference)
+- **dashboard-action-cards.md** → `src/app/(dashboard)/assistant/page.tsx` (missing line or symbol reference)
+- **dashboard-action-cards.md** → `src/components/dashboard/action-cards.tsx` (missing line or symbol reference)
+- **dashboard-action-cards.md** → `src/components/dashboard/action-cards.tsx:10,12,28,30` (symbol not found)
+- **dashboard-onboarding.md** → `src/app/(dashboard)/onboarding/page.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/app/actions/company.ts` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/dashboard/onboarding-checklist.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/layout/onboarding-progress-pill.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-address.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-basic-info.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-basic-info.tsx:10,39,44` (symbol not found)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-basic-info.tsx:16,21` (symbol not found)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-basic-info.tsx:9,16,21` (symbol not found)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-contact-tax.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/onboarding/step-indicator.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/components/ui/oib-input.tsx` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/lib/analytics.ts` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/lib/stores/onboarding-store.ts` (missing line or symbol reference)
+- **dashboard-onboarding.md** → `src/lib/toast.ts` (missing line or symbol reference)
+- **dashboard-vat-overview.md** → `src/app/(dashboard)/dashboard/page.tsx` (missing line or symbol reference)
+- **dashboard-vat-overview.md** → `src/components/dashboard/vat-overview-card.tsx` (missing line or symbol reference)
+- **e-invoicing-details.md** → `prisma/schema.prisma` (missing line or symbol reference)
+- **e-invoicing-details.md** → `prisma/schema.prisma:217-219,232` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx` (missing line or symbol reference)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:29,52,75` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:33-48,56-71,79-92` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:46,69,92` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:95,108-112` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:95-97,102-133` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:98,114-123` (symbol not found)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/page.tsx` (missing line or symbol reference)
+- **e-invoicing-details.md** → `src/app/(dashboard)/e-invoices/[id]/page.tsx:69,72-78` (symbol not found)
+- **expenses-categories.md** → `src/app/(dashboard)/expenses/categories/category-form.tsx` (missing line or symbol reference)
+- **expenses-categories.md** → `src/app/(dashboard)/expenses/categories/page.tsx` (missing line or symbol reference)
+- **expenses-categories.md** → `src/app/(dashboard)/expenses/categories/seed-button.tsx` (missing line or symbol reference)
+- **expenses-mark-paid.md** → `src/app/(dashboard)/expenses/[id]/expense-actions.tsx` (missing line or symbol reference)
+- **expenses-mark-paid.md** → `src/app/(dashboard)/expenses/[id]/page.tsx` (missing line or symbol reference)
+- **expenses-mark-paid.md** → `src/components/expenses/expense-inline-status.tsx` (missing line or symbol reference)
+- **expenses-mark-paid.md** → `src/lib/banking/expense-reconciliation-service.ts` (missing line or symbol reference)
+- **expenses-view.md** → `prisma/schema.prisma:358,834-839` (symbol not found)
+- **expenses-view.md** → `src/app/(dashboard)/documents/page.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/app/(dashboard)/documents/page.tsx:134,176` (symbol not found)
+- **expenses-view.md** → `src/app/(dashboard)/expenses/[id]/expense-actions.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/app/(dashboard)/expenses/[id]/page.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/app/(dashboard)/expenses/page.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/components/documents/category-cards.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/components/documents/documents-client.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/components/expenses/expense-filters.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/components/expenses/expense-inline-status.tsx` (missing line or symbol reference)
+- **expenses-view.md** → `src/components/ui/responsive-table.tsx` (missing line or symbol reference)
+- **fiscal-status.md** → `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx` (missing line or symbol reference)
+- **fiscal-status.md** → `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx` (missing line or symbol reference)
+- **fiscal-status.md** → `src/app/(dashboard)/settings/fiscalisation/page.tsx` (missing line or symbol reference)
+- **fiscal-status.md** → `src/app/api/cron/fiscal-processor/route.ts` (missing line or symbol reference)
+- **invoicing-convert.md** → `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx` (missing line or symbol reference)
+- **invoicing-email.md** → `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx` (missing line or symbol reference)
+- **invoicing-email.md** → `src/app/api/webhooks/resend/route.ts:113, 133, 140, 150, 160, 168, 172` (symbol not found)
+- **invoicing-email.md** → `src/app/api/webhooks/resend/route.ts:138-140, 146-147` (symbol not found)
+- **invoicing-email.md** → `src/lib/email/templates/invoice-email.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `prisma/schema.prisma:194,799-801` (symbol not found)
+- **invoicing-view.md** → `prisma/schema.prisma:205,803-813` (symbol not found)
+- **invoicing-view.md** → `prisma/schema.prisma:228,815-822` (symbol not found)
+- **invoicing-view.md** → `src/app/(dashboard)/documents/page.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/app/(dashboard)/documents/page.tsx:134,176` (symbol not found)
+- **invoicing-view.md** → `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/app/(dashboard)/invoices/[id]/page.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/app/(dashboard)/invoices/page.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/components/documents/category-cards.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/components/documents/documents-client.tsx` (missing line or symbol reference)
+- **invoicing-view.md** → `src/components/ui/responsive-table.tsx` (missing line or symbol reference)
+- **legal-ai-data.md** → `src/app/(marketing)/ai-data-policy/page.tsx` (missing line or symbol reference)
+- **legal-ai-data.md** → `src/app/(marketing)/layout.tsx` (missing line or symbol reference)
+- **legal-ai-data.md** → `src/app/(marketing)/privacy/page.tsx` (missing line or symbol reference)
+- **products-edit.md** → `src/app/(dashboard)/products/[id]/edit/edit-form.tsx` (missing line or symbol reference)
+- **products-edit.md** → `src/app/(dashboard)/products/[id]/edit/page.tsx` (missing line or symbol reference)
+- **products-edit.md** → `src/app/(dashboard)/products/delete-button.tsx` (missing line or symbol reference)
+- **products-edit.md** → `src/app/(dashboard)/products/page.tsx` (missing line or symbol reference)
+- **products-edit.md** → `src/components/products/product-table.tsx` (missing line or symbol reference)
+- **products-edit.md** → `src/lib/validations/product.ts` (missing line or symbol reference)
+- **reports-aging.md** → `src/app/(dashboard)/reports/aging/page.tsx` (missing line or symbol reference)
+- **reports-aging.md** → `src/app/(dashboard)/reports/page.tsx` (missing line or symbol reference)
+- **reports-aging.md** → `src/components/documents/reports-sidebar.tsx` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/app/(dashboard)/reports/export/page.tsx` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/app/(dashboard)/reports/pausalni-obrt/page.tsx` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/app/(dashboard)/reports/vat-threshold/page.tsx` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/app/api/exports/season-pack/route.ts` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/app/api/reports/vat-threshold/route.ts` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/components/reports/accounting-export-form.tsx` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/lib/reports/accountant-export.ts` (missing line or symbol reference)
+- **reports-pausalni-obrt.md** → `src/lib/reports/kpr-generator.ts` (missing line or symbol reference)
+- **settings-audit-log.md** → `src/app/(dashboard)/settings/audit-log/page.tsx` (missing line or symbol reference)
+- **settings-audit-log.md** → `src/app/api/admin/companies/[companyId]/audit/route.ts` (missing line or symbol reference)
+- **settings-audit-log.md** → `src/components/ui/data-table.tsx` (missing line or symbol reference)
+- **settings-email.md** → `src/app/(dashboard)/settings/email/components/connect-button.tsx` (missing line or symbol reference)
+- **settings-email.md** → `src/app/(dashboard)/settings/email/components/connect-button.tsx:52,59` (symbol not found)
+- **settings-email.md** → `src/app/(dashboard)/settings/email/components/connection-list.tsx` (missing line or symbol reference)
+- **settings-email.md** → `src/app/(dashboard)/settings/email/components/import-rules.tsx` (missing line or symbol reference)
+- **settings-email.md** → `src/app/(dashboard)/settings/email/page.tsx` (missing line or symbol reference)
+- **settings-email.md** → `src/app/api/cron/email-sync/route.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/app/api/email/[connectionId]/disconnect/route.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/app/api/email/callback/route.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/app/api/email/connect/route.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/app/api/email/rules/route.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/app/api/email/rules/route.ts:8,34` (symbol not found)
+- **settings-email.md** → `src/lib/email-sync/provider.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/lib/email-sync/providers/gmail.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/lib/email-sync/providers/gmail.ts:7,src/lib/email-sync/providers/microsoft.ts:8` (symbol not found)
+- **settings-email.md** → `src/lib/email-sync/providers/index.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/lib/email-sync/providers/microsoft.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/lib/email-sync/sync-service.ts` (missing line or symbol reference)
+- **settings-email.md** → `src/lib/email-sync/sync-service.ts:89-92,96-102` (symbol not found)
+- **support-messaging.md** → `src/app/(dashboard)/support/[id]/page.tsx` (missing line or symbol reference)
+- **support-messaging.md** → `src/app/api/support/tickets/[id]/messages/route.ts` (missing line or symbol reference)
+- **support-messaging.md** → `src/components/support/support-reply-form.tsx` (missing line or symbol reference)
+- **system-status.md** → `src/app/(marketing)/status/page.tsx` (missing line or symbol reference)
+- **system-status.md** → `src/app/api/health/ready/route.ts` (missing line or symbol reference)
+- **system-status.md** → `src/app/api/health/route.ts` (missing line or symbol reference)
+- **system-status.md** → `src/app/api/status/route.ts` (missing line or symbol reference)
+- **system-status.md** → `src/lib/monitoring/system-health.ts` (missing line or symbol reference)
+
+## Recommendations
+
+- Add line ranges or function references to all evidence links so auditors can trace implementation.
+- Update or replace evidence pointing to missing files or out-of-range line spans.
+- For AI legal data features, align evidence paths with the current AI policy pages and AI service modules.
