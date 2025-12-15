@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Camera, Sparkles, Loader2 } from 'lucide-react'
+import { Camera, Sparkles, Loader2, Paperclip, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,10 @@ import { createExpense } from '@/app/actions/expense'
 import { ReceiptScanner } from '@/components/expense/receipt-scanner'
 import type { ExpenseCategory } from '@prisma/client'
 import type { ExtractedReceipt, CategorySuggestion } from '@/lib/ai/types'
+
+interface ExtractedReceiptWithUrl extends ExtractedReceipt {
+  receiptUrl?: string
+}
 
 interface ExpenseFormProps {
   vendors: Array<{ id: string; name: string }>
@@ -38,6 +42,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
   const [vatDeductible, setVatDeductible] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState('')
   const [notes, setNotes] = useState('')
+  const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined)
 
   const net = parseFloat(netAmount) || 0
   const vat = net * (parseFloat(vatRate) / 100)
@@ -78,7 +83,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
     return () => clearTimeout(timeoutId)
   }, [description, vendorName])
 
-  const handleExtracted = (data: ExtractedReceipt) => {
+  const handleExtracted = (data: ExtractedReceiptWithUrl) => {
     // Fill form with extracted data
     setVendorName(data.vendor)
     if (data.vendorOib) setVendorOib(data.vendorOib)
@@ -117,6 +122,11 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
       setDescription(itemsDesc)
     }
 
+    // Store receipt URL if uploaded
+    if (data.receiptUrl) {
+      setReceiptUrl(data.receiptUrl)
+    }
+
     setShowScanner(false)
     toast.success('Podaci uspješno izvučeni iz računa!')
   }
@@ -140,6 +150,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
       vatDeductible,
       paymentMethod: paymentMethod || undefined,
       notes: notes || undefined,
+      receiptUrl,
     })
     setIsLoading(false)
 
@@ -164,7 +175,20 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex justify-end items-center gap-4">
+        {receiptUrl && (
+          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-md">
+            <Paperclip className="h-4 w-4" />
+            <span>Račun priložen</span>
+            <button
+              type="button"
+              onClick={() => setReceiptUrl(undefined)}
+              className="text-green-600 hover:text-green-800"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
         <Button
           type="button"
           variant="outline"
@@ -190,24 +214,35 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
               {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
             </select>
             {suggestions.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-2 space-y-2">
                 <span className="text-xs text-gray-500 flex items-center">
                   <Sparkles className="h-3 w-3 mr-1" />
                   Prijedlozi:
                 </span>
-                {suggestions.map((suggestion) => (
-                  <Badge
-                    key={suggestion.categoryId}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-gray-200"
-                    onClick={() => setCategoryId(suggestion.categoryId)}
-                  >
-                    {suggestion.categoryName}
-                    <span className="ml-1 text-xs opacity-70">
-                      ({Math.round(suggestion.confidence * 100)}%)
-                    </span>
-                  </Badge>
-                ))}
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.categoryId}
+                      className="group relative"
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-gray-200"
+                        onClick={() => setCategoryId(suggestion.categoryId)}
+                      >
+                        {suggestion.categoryName}
+                        <span className="ml-1 text-xs opacity-70">
+                          ({Math.round(suggestion.confidence * 100)}%)
+                        </span>
+                      </Badge>
+                      {suggestion.reason && (
+                        <div className="absolute z-10 hidden group-hover:block bottom-full left-0 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap">
+                          {suggestion.reason}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

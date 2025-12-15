@@ -421,11 +421,12 @@ export async function sendInvoiceEmail(invoiceId: string) {
       return { error: result.error || "Failed to send email" }
     }
 
-    // Track sentAt timestamp
+    // Track sentAt timestamp and email message ID for webhook tracking
     await db.eInvoice.update({
       where: { id: invoiceId },
       data: {
         sentAt: new Date(),
+        emailMessageId: result.data?.id || null,
       },
     })
 

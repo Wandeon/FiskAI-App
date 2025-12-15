@@ -27,6 +27,7 @@ interface CreateExpenseInput {
   currency?: string
   paymentMethod?: string
   notes?: string
+  receiptUrl?: string
 }
 
 export async function createExpense(input: CreateExpenseInput): Promise<ActionResult> {
@@ -75,6 +76,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
         paymentMethod: input.paymentMethod as PaymentMethod | null,
         paymentDate: input.paymentMethod ? new Date() : null,
         notes: input.notes || null,
+        receiptUrl: input.receiptUrl || null,
       },
     })
 
@@ -122,6 +124,9 @@ export async function updateExpense(
         updateData.status = 'PAID'
         updateData.paymentDate = new Date()
       }
+    }
+    if ((input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl !== undefined) {
+      updateData.receiptUrl = (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl || null
     }
 
     const expense = await db.expense.update({

@@ -33,10 +33,12 @@ export async function suggestCategory(
     const matches = keywords.filter(kw => descLower.includes(kw))
 
     if (matches.length > 0) {
+      const matchedWords = matches.slice(0, 3).join(', ')
       suggestions.push({
         categoryId: cat.id,
         categoryName: cat.name,
-        confidence: Math.min(matches.length * 0.3, 0.9)
+        confidence: Math.min(matches.length * 0.3, 0.9),
+        reason: `Prepoznate ključne riječi: ${matchedWords}`,
       })
     }
   }
@@ -79,7 +81,8 @@ export async function suggestCategoryByVendor(
     return {
       categoryId: previousExpense.category.id,
       categoryName: previousExpense.category.name,
-      confidence: 0.95
+      confidence: 0.95,
+      reason: `Prethodno korišteno za "${contact.name}"`,
     }
   }
 

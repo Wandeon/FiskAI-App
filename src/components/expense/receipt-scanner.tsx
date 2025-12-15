@@ -7,8 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ExtractedReceipt } from '@/lib/ai/types'
 
+interface ExtractedReceiptWithUrl extends ExtractedReceipt {
+  receiptUrl?: string
+}
+
 interface ReceiptScannerProps {
-  onExtracted: (data: ExtractedReceipt) => void
+  onExtracted: (data: ExtractedReceiptWithUrl) => void
   onCancel?: () => void
 }
 
@@ -16,12 +20,14 @@ export function ReceiptScanner({ onExtracted, onCancel }: ReceiptScannerProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [currentFile, setCurrentFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const processImage = async (file: File) => {
     setIsProcessing(true)
     setError(null)
+    setCurrentFile(file)
 
     try {
       // Create preview
@@ -48,7 +54,27 @@ export function ReceiptScanner({ onExtracted, onCancel }: ReceiptScannerProps) {
       }
 
       if (result.success && result.data) {
-        onExtracted(result.data)
+        // Upload the receipt image to R2 storage
+        let receiptUrl: string | undefined
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const uploadResponse = await fetch('/api/receipts/upload', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json()
+            receiptUrl = uploadResult.receiptUrl
+          }
+        } catch (uploadError) {
+          // Log but don't fail - extraction succeeded, storage is optional
+          console.warn('Receipt upload failed:', uploadError)
+        }
+
+        onExtracted({ ...result.data, receiptUrl })
       } else {
         throw new Error(result.error || 'Failed to extract data')
       }
@@ -90,6 +116,7 @@ export function ReceiptScanner({ onExtracted, onCancel }: ReceiptScannerProps) {
     setPreview(null)
     setError(null)
     setIsProcessing(false)
+    setCurrentFile(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (cameraInputRef.current) cameraInputRef.current.value = ''
     onCancel?.()

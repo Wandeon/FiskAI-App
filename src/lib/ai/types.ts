@@ -38,4 +38,5 @@ export interface CategorySuggestion {
   categoryId: string
   categoryName: string
   confidence: number
+  reason?: string // Human-readable explanation of why this category was suggested
 }

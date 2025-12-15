@@ -205,6 +205,13 @@ model EInvoice {
   updatedAt         DateTime          @updatedAt
   sentAt            DateTime?
   receivedAt        DateTime?
+  // Email tracking (via Resend webhooks)
+  emailMessageId    String?
+  emailDeliveredAt  DateTime?
+  emailOpenedAt     DateTime?
+  emailClickedAt    DateTime?
+  emailBouncedAt    DateTime?
+  emailBounceReason String?
   type              InvoiceType       @default(E_INVOICE)
   internalReference String?
   notes             String?
@@ -235,6 +242,7 @@ model EInvoice {
   @@index([invoiceNumber])
   @@index([direction])
   @@index([type])
+  @@index([emailMessageId])
 }
 
 model EInvoiceLine {
