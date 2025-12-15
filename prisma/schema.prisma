@@ -105,6 +105,9 @@ model Company {
   statementTransactions   Transaction[]
   bankConnections         BankConnection[]
   potentialDuplicates     PotentialDuplicate[]
+  emailConnections        EmailConnection[]
+  emailImportRules        EmailImportRule[]
+  emailAttachments        EmailAttachment[]
 }
 
 model CompanyUser {
@@ -507,6 +510,88 @@ model PotentialDuplicate {
   @@index([status])
 }
 
+model EmailConnection {
+  id                String                @id @default(cuid())
+  companyId         String
+  provider          EmailProvider
+  emailAddress      String
+  status            EmailConnectionStatus @default(CONNECTED)
+
+  accessTokenEnc    String?
+  refreshTokenEnc   String
+  tokenExpiresAt    DateTime?
+  scopes            String[]
+
+  lastSyncAt        DateTime?
+  syncCursor        String?
+  lastError         String?
+
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  company           Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importRules       EmailImportRule[]
+  attachments       EmailAttachment[]
+
+  @@unique([companyId, emailAddress])
+  @@index([companyId])
+  @@index([status])
+}
+
+model EmailImportRule {
+  id                String           @id @default(cuid())
+  connectionId      String
+  companyId         String
+
+  senderEmail       String?
+  senderDomain      String?
+  subjectContains   String?
+  filenameContains  String?
+
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  connection        EmailConnection  @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId])
+  @@index([companyId])
+}
+
+model EmailAttachment {
+  id                    String            @id @default(cuid())
+  companyId             String
+  connectionId          String
+
+  providerMessageId     String
+  providerAttachmentId  String?
+  contentHash           String
+
+  receivedAt            DateTime
+  senderEmail           String
+  subject               String
+  filename              String
+  mimeType              String
+  sizeBytes             Int
+
+  r2Key                 String
+  status                AttachmentStatus  @default(PENDING)
+  importJobId           String?           @unique
+
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  connection            EmailConnection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importJob             ImportJob?        @relation(fields: [importJobId], references: [id])
+
+  @@unique([connectionId, contentHash])
+  @@index([companyId])
+  @@index([connectionId])
+  @@index([status])
+}
+
 model BankImport {
   id               String       @id @default(cuid())
   companyId        String
@@ -540,9 +625,10 @@ model ImportJob {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   bankAccount    BankAccount?  @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  company        Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   statement      Statement?
   invoice        EInvoice?
+  emailAttachment EmailAttachment?
 
   @@index([companyId])
   @@index([bankAccountId])
