@@ -4,7 +4,7 @@
 
 **Last Updated:** 2025-12-15
 **Total Features:** 108
-**Coverage:** 42% (45/108 documented)
+**Coverage:** 51% (55/108 documented)
 
 ## Registry
 
@@ -62,17 +62,17 @@
 | F044              | Manual Transaction Matching   | Banking       | ✅     | Actions                            | Medium     | [→](features/banking-manual-match.md)      |
 | F045              | Banking Documents             | Banking       | ✅     | /banking/documents                 | Medium     | [→](features/banking-documents.md)         |
 | **CONTACTS**      |
-| F046              | Create Contact                | Contacts      | ❌     | /contacts/new                      | Medium     | -                                          |
-| F047              | View Contacts                 | Contacts      | ❌     | /contacts                          | Medium     | -                                          |
-| F048              | Edit Contact                  | Contacts      | ❌     | /contacts/:id/edit                 | Medium     | -                                          |
-| F049              | Contact Details               | Contacts      | ❌     | /contacts/:id                      | Medium     | -                                          |
-| F050              | Contact Filtering             | Contacts      | ❌     | /contacts                          | Low        | -                                          |
-| F051              | OIB Lookup                    | Contacts      | ❌     | /api/oib/lookup                    | Low        | -                                          |
+| F046              | Create Contact                | Contacts      | ✅     | /contacts/new                      | Medium     | [→](features/contacts-create.md)           |
+| F047              | View Contacts                 | Contacts      | ✅     | /contacts                          | Medium     | [→](features/contacts-view.md)             |
+| F048              | Edit Contact                  | Contacts      | ✅     | /contacts/:id/edit                 | Medium     | [→](features/contacts-edit.md)             |
+| F049              | Contact Details               | Contacts      | ✅     | /contacts/:id                      | Medium     | [→](features/contacts-details.md)          |
+| F050              | Contact Filtering             | Contacts      | ✅     | /contacts                          | Low        | [→](features/contacts-filtering.md)        |
+| F051              | OIB Lookup                    | Contacts      | ✅     | /api/oib/lookup                    | Low        | [→](features/contacts-oib-lookup.md)       |
 | **PRODUCTS**      |
-| F052              | Create Product                | Products      | ❌     | /products/new                      | Medium     | -                                          |
-| F053              | View Products                 | Products      | ❌     | /products                          | Medium     | -                                          |
-| F054              | Edit Product                  | Products      | ❌     | /products/:id/edit                 | Medium     | -                                          |
-| F055              | Product CSV Import            | Products      | ❌     | /api/products/import               | Medium     | -                                          |
+| F052              | Create Product                | Products      | ✅     | /products/new                      | Medium     | [→](features/products-create.md)           |
+| F053              | View Products                 | Products      | ✅     | /products                          | Medium     | [→](features/products-view.md)             |
+| F054              | Edit Product                  | Products      | ✅     | /products/:id/edit                 | Medium     | [→](features/products-edit.md)             |
+| F055              | Product CSV Import            | Products      | ✅     | /api/products/import               | Medium     | [→](features/products-import.md)           |
 | **REPORTS**       |
 | F056              | KPR Report                    | Reports       | ❌     | /reports/kpr                       | High       | -                                          |
 | F057              | VAT Report                    | Reports       | ❌     | /reports/vat                       | High       | -                                          |
