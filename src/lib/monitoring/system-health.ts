@@ -95,16 +95,28 @@ export async function checkSystemHealth(): Promise<SystemHealth> {
     overallStatus = "unhealthy";
   }
 
-  // Check disk space (if available in the environment)
+  // Check disk space
   try {
-    // Note: In a real implementation, this would check actual disk space
-    // For now, we'll just add a placeholder that would check the actual disk
+    const diskHealth = await checkDiskSpace();
+    const usagePercent = diskHealth.usagePercent;
+
+    let status: "passed" | "warning" | "failed" = "passed";
+    if (usagePercent > 90) {
+      status = "failed";
+      overallStatus = overallStatus === "healthy" ? "degraded" : overallStatus;
+    } else if (usagePercent > 80) {
+      status = "warning";
+      overallStatus = overallStatus === "healthy" ? "degraded" : overallStatus;
+    }
+
     checks.push({
       name: "disk_space",
-      status: "passed", // Assuming OK for now
-      message: "Disk space check (implementation needed)",
+      status,
+      message: `${diskHealth.freeGb.toFixed(1)}GB free of ${diskHealth.totalGb.toFixed(1)}GB (${usagePercent.toFixed(1)}% used)`,
       details: {
-        // In a real implementation: freeSpace, totalSpace, usagePercentage
+        freeBytes: diskHealth.freeBytes,
+        totalBytes: diskHealth.totalBytes,
+        usagePercent,
       }
     });
   } catch (error) {
@@ -141,11 +153,11 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
     const start = new Date().getTime();
     await db.$queryRaw`SELECT 1`;
     const pingTime = new Date().getTime() - start;
-    
+
     // Get database version
     const result: any = await db.$queryRaw`SELECT version()`;
     const version = result?.[0]?.version || "unknown";
-    
+
     return {
       connected: true,
       pingTime,
@@ -156,6 +168,65 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
     return {
       connected: false,
     };
+  }
+}
+
+interface DiskHealth {
+  freeBytes: number;
+  totalBytes: number;
+  freeGb: number;
+  totalGb: number;
+  usagePercent: number;
+}
+
+/**
+ * Check disk space using Node.js fs.statfs (Node 18.15+)
+ */
+export async function checkDiskSpace(): Promise<DiskHealth> {
+  const fs = await import("fs/promises");
+  const path = process.cwd();
+
+  try {
+    // Node.js 18.15+ has fs.statfs
+    const stats = await fs.statfs(path);
+    const totalBytes = stats.blocks * stats.bsize;
+    const freeBytes = stats.bfree * stats.bsize;
+    const usedBytes = totalBytes - freeBytes;
+
+    return {
+      freeBytes,
+      totalBytes,
+      freeGb: freeBytes / (1024 * 1024 * 1024),
+      totalGb: totalBytes / (1024 * 1024 * 1024),
+      usagePercent: (usedBytes / totalBytes) * 100,
+    };
+  } catch (error) {
+    // Fallback for older Node.js or environments where statfs isn't available
+    logger.warn({ error }, "fs.statfs not available, trying df command");
+
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(exec);
+
+    try {
+      const { stdout } = await execAsync("df -B1 / | tail -1");
+      const parts = stdout.trim().split(/\s+/);
+      // df output: Filesystem 1B-blocks Used Available Use% Mounted
+      const totalBytes = parseInt(parts[1], 10);
+      const freeBytes = parseInt(parts[3], 10);
+      const usedBytes = totalBytes - freeBytes;
+
+      return {
+        freeBytes,
+        totalBytes,
+        freeGb: freeBytes / (1024 * 1024 * 1024),
+        totalGb: totalBytes / (1024 * 1024 * 1024),
+        usagePercent: (usedBytes / totalBytes) * 100,
+      };
+    } catch (dfError) {
+      logger.error({ error: dfError }, "df command also failed");
+      throw new Error("Unable to check disk space");
+    }
   }
 }
 

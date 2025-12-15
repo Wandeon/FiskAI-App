@@ -1,5 +1,6 @@
 // src/lib/prisma-extensions.ts
 import { PrismaClient, AuditAction } from "@prisma/client"
+import { AsyncLocalStorage } from "node:async_hooks"
 
 // Context for current request
 export type TenantContext = {
@@ -7,15 +8,45 @@ export type TenantContext = {
   userId: string
 }
 
-// Global variable to hold current tenant context (set per-request)
-let currentTenantContext: TenantContext | null = null
+// AsyncLocalStorage for request-scoped tenant context (thread-safe)
+const tenantContextStore = new AsyncLocalStorage<TenantContext>()
 
+/**
+ * Sets the tenant context for the current async context.
+ * IMPORTANT: For proper isolation, prefer using `runWithTenant()` which
+ * wraps your code in an AsyncLocalStorage context.
+ *
+ * When called outside of `runWithTenant()`, this will NOT set context
+ * (as there's no AsyncLocalStorage store to update).
+ */
 export function setTenantContext(context: TenantContext | null) {
-  currentTenantContext = context
+  // Note: This function now requires being inside runWithTenant()
+  // The context is automatically set by runWithTenant, but this function
+  // exists for backward compatibility during migration
+  const store = tenantContextStore.getStore()
+  if (store && context) {
+    // Update the existing store (mutates in place within the current async context)
+    Object.assign(store, context)
+  }
 }
 
 export function getTenantContext(): TenantContext | null {
-  return currentTenantContext
+  return tenantContextStore.getStore() ?? null
+}
+
+/**
+ * Run a function with tenant context properly scoped.
+ * This ensures the tenant context is isolated per-request and won't leak
+ * between concurrent requests (fixes race condition from global variable).
+ *
+ * Usage:
+ *   return runWithTenant({ companyId, userId }, async () => {
+ *     // All db operations here will have tenant isolation
+ *     return await db.contact.findMany()
+ *   })
+ */
+export function runWithTenant<T>(context: TenantContext, fn: () => T): T {
+  return tenantContextStore.run(context, fn)
 }
 
 // Models that require tenant filtering
@@ -223,6 +254,99 @@ export function withTenantIsolation(prisma: PrismaClient) {
           }
 
           return result
+        },
+        // === Missing operations for full tenant isolation ===
+        async createMany({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            // Add companyId to each record being created
+            if (Array.isArray(args.data)) {
+              args.data = args.data.map((item: Record<string, unknown>) => ({
+                ...item,
+                companyId: context.companyId,
+              }))
+            } else {
+              args.data = {
+                ...args.data,
+                companyId: context.companyId,
+              }
+            }
+          }
+          return query(args)
+        },
+        async updateMany({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            args.where = {
+              ...args.where,
+              companyId: context.companyId,
+            }
+          }
+          return query(args)
+        },
+        async deleteMany({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            args.where = {
+              ...args.where,
+              companyId: context.companyId,
+            }
+          }
+          return query(args)
+        },
+        async upsert({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            // Add tenant filter to where clause
+            args.where = {
+              ...args.where,
+              companyId: context.companyId,
+            }
+            // Add companyId to create data
+            args.create = {
+              ...args.create,
+              companyId: context.companyId,
+            } as typeof args.create
+            // Note: update data doesn't need companyId as it can't change
+          }
+          const result = await query(args)
+
+          // Audit logging for upsert operations
+          if (AUDITED_MODELS.includes(model as AuditedModel) && result && typeof result === "object") {
+            queueAuditLog(prismaBase, model, "UPDATE", result as Record<string, unknown>)
+          }
+
+          return result
+        },
+        async count({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            args.where = {
+              ...args.where,
+              companyId: context.companyId,
+            }
+          }
+          return query(args)
+        },
+        async aggregate({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            args.where = {
+              ...args.where,
+              companyId: context.companyId,
+            }
+          }
+          return query(args)
+        },
+        async groupBy({ model, args, query }) {
+          const context = getTenantContext()
+          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+            args.where = {
+              ...args.where,
+              companyId: context.companyId,
+            }
+          }
+          return query(args)
         },
       },
     },
