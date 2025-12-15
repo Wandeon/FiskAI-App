@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { InvoiceActions } from './invoice-actions'
+import { FiscalStatusBadge } from './fiscal-status-badge'
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: 'Račun',
@@ -50,12 +51,25 @@ export default async function InvoiceDetailPage({
       lines: { orderBy: { lineNumber: 'asc' } },
       convertedFrom: { select: { id: true, invoiceNumber: true, type: true } },
       convertedTo: { select: { id: true, invoiceNumber: true, type: true } },
+      fiscalRequests: {
+        orderBy: { createdAt: 'desc' },
+        take: 1
+      },
     },
   })
 
   if (!invoice) {
     notFound()
   }
+
+  // Check if company has an active fiscal certificate
+  const activeCertificate = await db.fiscalCertificate.findFirst({
+    where: {
+      companyId: company.id,
+      environment: company.fiscalEnvironment || 'PROD',
+      status: 'ACTIVE',
+    }
+  })
 
   const formatCurrency = (amount: number | string) =>
     new Intl.NumberFormat('hr-HR', {
@@ -148,7 +162,7 @@ export default async function InvoiceDetailPage({
           <CardHeader>
             <CardTitle className="text-base">Detalji</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <dl className="grid grid-cols-2 gap-2 text-sm">
               <dt className="text-gray-500">Datum izdavanja:</dt>
               <dd>{new Date(invoice.issueDate).toLocaleDateString('hr-HR')}</dd>
@@ -158,19 +172,16 @@ export default async function InvoiceDetailPage({
                   <dd>{new Date(invoice.dueDate).toLocaleDateString('hr-HR')}</dd>
                 </>
               )}
-              {invoice.jir && (
-                <>
-                  <dt className="text-gray-500">JIR:</dt>
-                  <dd className="font-mono text-xs">{invoice.jir}</dd>
-                </>
-              )}
-              {invoice.zki && (
-                <>
-                  <dt className="text-gray-500">ZKI:</dt>
-                  <dd className="font-mono text-xs truncate">{invoice.zki}</dd>
-                </>
-              )}
             </dl>
+
+            {/* Fiscal Status */}
+            <div className="pt-2 border-t">
+              <div className="text-sm font-medium text-gray-700 mb-2">Status fiskalizacije</div>
+              <FiscalStatusBadge
+                invoice={invoice}
+                hasCertificate={!!activeCertificate}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>

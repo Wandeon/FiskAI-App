@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache"
 import { Prisma } from "@prisma/client"
 import { decryptOptionalSecret } from "@/lib/secrets"
 import { getNextInvoiceNumber } from "@/lib/invoice-numbering"
+import { shouldFiscalizeInvoice, queueFiscalRequest } from "@/lib/fiscal/should-fiscalize"
 const Decimal = Prisma.Decimal
 
 export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
@@ -166,7 +167,7 @@ export async function sendEInvoice(eInvoiceId: string) {
   }
 
   // Update invoice with fiscalization data
-  await db.eInvoice.update({
+  const updatedInvoice = await db.eInvoice.update({
     where: { id: eInvoiceId },
     data: {
       status: "SENT",
@@ -177,7 +178,29 @@ export async function sendEInvoice(eInvoiceId: string) {
       fiscalizedAt: result.jir ? new Date() : null,
       sentAt: new Date(),
     },
+    include: {
+      company: true,
+    },
   })
+
+  // After invoice is sent, check if it needs fiscalization
+  try {
+    const fiscalDecision = await shouldFiscalizeInvoice({
+      ...updatedInvoice,
+      company,
+    })
+
+    if (fiscalDecision.shouldFiscalize) {
+      await queueFiscalRequest(updatedInvoice.id, company.id, fiscalDecision)
+      await db.eInvoice.update({
+        where: { id: updatedInvoice.id },
+        data: { fiscalStatus: 'PENDING' }
+      })
+    }
+  } catch (fiscalError) {
+    // Log but don't fail the invoice send if fiscalization queueing fails
+    console.error('[sendEInvoice] Fiscalization queueing error:', fiscalError)
+  }
 
   revalidatePath("/e-invoices")
   return { success: "E-Invoice sent successfully", data: result }

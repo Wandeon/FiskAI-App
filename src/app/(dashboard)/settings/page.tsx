@@ -4,7 +4,7 @@ import { CompanySettingsForm } from "./company-settings-form"
 import { EInvoiceSettingsForm } from "./einvoice-settings-form"
 import Link from "next/link"
 import { PasskeyManager } from "@/components/settings/passkey-manager"
-import { Building2, ReceiptText, ShieldCheck, KeyRound, ChevronRight, ArrowUpRight, ListChecks } from "lucide-react"
+import { Building2, ReceiptText, ShieldCheck, KeyRound, ChevronRight, ArrowUpRight, ListChecks, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PlanSettingsForm } from "./plan-settings-form"
 
@@ -100,6 +100,13 @@ export default async function SettingsPage({ searchParams }: PageProps) {
               Napredne sekcije
             </p>
             <div className="mt-3 space-y-2 text-sm">
+              <Link
+                href="/settings/fiscalisation"
+                className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"
+              >
+                <span>Fiskalizacija</span>
+                <ArrowUpRight className="h-4 w-4 text-[var(--muted)]" />
+              </Link>
               <Link
                 href="/settings/premises"
                 className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"
