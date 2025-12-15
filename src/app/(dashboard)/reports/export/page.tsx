@@ -13,7 +13,8 @@ export default async function ExportPage() {
         <p className="text-sm text-muted-foreground">Paušalni obrt — handoff za knjigovođu</p>
         <h1 className="text-2xl font-bold">Izvoz podataka</h1>
         <p className="text-muted-foreground">
-          Preuzmite CSV datoteke s računima i troškovima za odabrano razdoblje. Dodali smo linkove na skenirane račune kako bi knjigovođa imala sve dokaze.
+          Preuzmite kompletne podatke za knjigovođu u CSV ili ZIP formatu. Izvoz uključuje račune, troškove,
+          KPR (Knjiga Primitaka i Izdataka) i sažetak s poveznicama na skenirane račune.
         </p>
       </div>
 
@@ -31,18 +32,16 @@ export default async function ExportPage() {
         <Card className="bg-muted/30">
           <CardHeader>
             <CardTitle className="text-base">Što je uključeno</CardTitle>
-            <CardDescription>Poklapa se s “definition of done” za prve korisnike</CardDescription>
+            <CardDescription>Kompletni izvoz za "tax season" handoff</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>• Računi: broj, datumi, kupac, status, osnovica/PDV/ukupno, plaćeno, reference.</p>
-            <p>• Troškovi: dobavljač, kategorija, status plaćanja, iznosi, link na skenirani račun.</p>
-            <p>• Datum od/do za brzi “Q1/Q2” ili godišnji export.</p>
-            <p>
-              Ako trebate PDF ili prilagođeni format, javite se na{" "}
-              <Link className="font-medium text-foreground underline" href="/contact">
-                /contact
-              </Link>
-              .
+            <p>• <strong>Računi</strong>: broj, datumi, kupac, OIB, status, osnovica/PDV/ukupno, plaćeno, reference.</p>
+            <p>• <strong>Troškovi</strong>: datum, dobavljač, kategorija, iznosi, PDV, link na skenirani račun.</p>
+            <p>• <strong>KPR</strong>: Knjiga Primitaka i Izdataka - samo plaćeni računi (za paušalni obrt).</p>
+            <p>• <strong>Sažetak</strong>: ukupni prihodi, rashodi i neto rezultat za razdoblje.</p>
+            <p>• <strong>Tax Season ZIP</strong>: sve gore navedeno u jednom paketu s README uputama.</p>
+            <p className="pt-2 border-t mt-2">
+              Sve datoteke su u CSV formatu optimiziranom za Excel. Datum od/do omogućava brzi Q1/Q2 ili godišnji izvoz.
             </p>
           </CardContent>
         </Card>
