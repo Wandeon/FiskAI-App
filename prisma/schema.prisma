@@ -66,66 +66,67 @@ model PasswordResetToken {
 }
 
 model Company {
-  id                      String             @id @default(cuid())
+  id                      String    @id @default(cuid())
   name                    String
-  oib                     String             @unique
+  oib                     String    @unique
   vatNumber               String?
   address                 String
   city                    String
   postalCode              String
-  country                 String             @default("HR")
+  country                 String    @default("HR")
   email                   String?
   phone                   String?
   iban                    String?
-  isVatPayer              Boolean            @default(false)
+  isVatPayer              Boolean   @default(false)
   eInvoiceProvider        String?
-  createdAt               DateTime           @default(now())
-  updatedAt               DateTime           @updatedAt
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
   eInvoiceApiKeyEncrypted String?
   legalForm               String?
   entitlements            Json?
   featureFlags            Json?
-  fiscalEnabled           Boolean             @default(false)
-  fiscalEnvironment       FiscalEnv           @default(PROD)
-  premisesCode            String              @default("1")
-  deviceCode              String              @default("1")
+  fiscalEnabled           Boolean   @default(false)
+  fiscalEnvironment       FiscalEnv @default(PROD)
+  premisesCode            String    @default("1")
+  deviceCode              String    @default("1")
 
   // Billing/Subscription fields
-  stripeCustomerId              String?   @unique
-  stripeSubscriptionId          String?   @unique
-  subscriptionStatus            String?   @default("trialing")
-  subscriptionPlan              String?   @default("pausalni")
+  stripeCustomerId               String?   @unique
+  stripeSubscriptionId           String?   @unique
+  subscriptionStatus             String?   @default("trialing")
+  subscriptionPlan               String?   @default("pausalni")
   subscriptionCurrentPeriodStart DateTime?
   subscriptionCurrentPeriodEnd   DateTime?
-  invoiceLimit                  Int       @default(50)
-  userLimit                     Int       @default(1)
-  trialEndsAt                   DateTime?
+  invoiceLimit                   Int       @default(50)
+  userLimit                      Int       @default(1)
+  trialEndsAt                    DateTime?
 
-  auditLogs               AuditLog[]
-  bankAccounts            BankAccount[]
-  businessPremises        BusinessPremises[]
-  users                   CompanyUser[]
-  contacts                Contact[]
-  eInvoices               EInvoice[]
-  expenses                Expense[]
-  expenseCategories       ExpenseCategory[]
-  importJobs              ImportJob[]
-  invoiceSequences        InvoiceSequence[]
-  paymentDevices          PaymentDevice[]
-  products                Product[]
-  recurringExpenses       RecurringExpense[]
-  savedReports            SavedReport[]
-  statements              Statement[]
-  statementPages          StatementPage[]
-  supportTickets          SupportTicket[]
-  statementTransactions   Transaction[]
-  bankConnections         BankConnection[]
-  potentialDuplicates     PotentialDuplicate[]
-  emailConnections        EmailConnection[]
-  emailImportRules        EmailImportRule[]
-  emailAttachments        EmailAttachment[]
-  fiscalCertificates      FiscalCertificate[]
-  fiscalRequests          FiscalRequest[]
+  auditLogs             AuditLog[]
+  bankAccounts          BankAccount[]
+  businessPremises      BusinessPremises[]
+  users                 CompanyUser[]
+  contacts              Contact[]
+  eInvoices             EInvoice[]
+  expenses              Expense[]
+  expenseCategories     ExpenseCategory[]
+  importJobs            ImportJob[]
+  invoiceSequences      InvoiceSequence[]
+  paymentDevices        PaymentDevice[]
+  products              Product[]
+  recurringExpenses     RecurringExpense[]
+  savedReports          SavedReport[]
+  statements            Statement[]
+  statementPages        StatementPage[]
+  supportTickets        SupportTicket[]
+  statementTransactions Transaction[]
+  bankConnections       BankConnection[]
+  potentialDuplicates   PotentialDuplicate[]
+  emailConnections      EmailConnection[]
+  emailImportRules      EmailImportRule[]
+  emailAttachments      EmailAttachment[]
+  fiscalCertificates    FiscalCertificate[]
+  fiscalRequests        FiscalRequest[]
+  aiUsage               AIUsage[]
 }
 
 model CompanyUser {
@@ -231,12 +232,12 @@ model EInvoice {
   paidAt            DateTime?
   bankAccount       String?
   includeBarcode    Boolean           @default(true)
-  paymentMethod     PaymentMethod?    // Required for fiscalization: CASH/CARD must be fiscalized
+  paymentMethod     PaymentMethod? // Required for fiscalization: CASH/CARD must be fiscalized
   // Vendor payment details (for inbound invoices)
   vendorIban        String?
   vendorBankName    String?
-  paymentReference  String?           // poziv na broj primatelja
-  paymentModel      String?           // HR00, HR01, etc.
+  paymentReference  String? // poziv na broj primatelja
+  paymentModel      String? // HR00, HR01, etc.
   // Source document link
   importJobId       String?           @unique
   bankTransactions  BankTransaction[]
@@ -427,17 +428,17 @@ model SavedReport {
 }
 
 model BankAccount {
-  id             String            @id @default(cuid())
+  id             String    @id @default(cuid())
   companyId      String
   name           String
   iban           String
   bankName       String
-  currency       String            @default("EUR")
-  currentBalance Decimal           @db.Decimal(12, 2)
+  currency       String    @default("EUR")
+  currentBalance Decimal   @db.Decimal(12, 2)
   lastSyncAt     DateTime?
-  isDefault      Boolean           @default(false)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  isDefault      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Bank Sync fields
   syncProvider          SyncProvider?
@@ -445,12 +446,12 @@ model BankAccount {
   connectionStatus      ConnectionStatus @default(MANUAL)
   connectionExpiresAt   DateTime?
 
-  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  imports        BankImport[]
-  transactions   BankTransaction[]
-  importJobs     ImportJob[]
-  statements     Statement[]
-  connection     BankConnection?
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  imports      BankImport[]
+  transactions BankTransaction[]
+  importJobs   ImportJob[]
+  statements   Statement[]
+  connection   BankConnection?
 
   @@unique([companyId, iban])
   @@index([companyId])
@@ -477,12 +478,12 @@ model BankTransaction {
   confidenceScore  Int?
 
   // Bank Sync fields
-  externalId       String?
-  source           TransactionSource @default(MANUAL)
+  externalId String?
+  source     TransactionSource @default(MANUAL)
 
-  bankAccount      BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  matchedExpense   Expense?    @relation(fields: [matchedExpenseId], references: [id])
-  matchedInvoice   EInvoice?   @relation(fields: [matchedInvoiceId], references: [id])
+  bankAccount    BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  matchedExpense Expense?    @relation(fields: [matchedExpenseId], references: [id])
+  matchedInvoice EInvoice?   @relation(fields: [matchedInvoiceId], references: [id])
 
   @@index([companyId])
   @@index([bankAccountId])
@@ -492,25 +493,25 @@ model BankTransaction {
 }
 
 model BankConnection {
-  id                    String           @id @default(cuid())
-  companyId             String
-  bankAccountId         String           @unique
+  id            String @id @default(cuid())
+  companyId     String
+  bankAccountId String @unique
 
-  provider              SyncProvider
-  providerConnectionId  String
-  institutionId         String
-  institutionName       String
+  provider             SyncProvider
+  providerConnectionId String
+  institutionId        String
+  institutionName      String
 
-  status                ConnectionStatus @default(MANUAL)
-  authorizedAt          DateTime?
-  expiresAt             DateTime?
-  lastError             String?
+  status       ConnectionStatus @default(MANUAL)
+  authorizedAt DateTime?
+  expiresAt    DateTime?
+  lastError    String?
 
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  company               Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  bankAccount           BankAccount      @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([status])
@@ -518,50 +519,50 @@ model BankConnection {
 }
 
 model PotentialDuplicate {
-  id                String              @id @default(cuid())
-  companyId         String
+  id        String @id @default(cuid())
+  companyId String
 
-  transactionAId    String
-  transactionBId    String
+  transactionAId String
+  transactionBId String
 
-  similarityScore   Float
-  reason            String
+  similarityScore Float
+  reason          String
 
-  status            DuplicateStatus     @default(PENDING)
-  resolvedAt        DateTime?
-  resolvedBy        String?
-  resolution        DuplicateResolution?
+  status     DuplicateStatus      @default(PENDING)
+  resolvedAt DateTime?
+  resolvedBy String?
+  resolution DuplicateResolution?
 
-  createdAt         DateTime            @default(now())
+  createdAt DateTime @default(now())
 
-  company           Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([status])
 }
 
 model EmailConnection {
-  id                String                @id @default(cuid())
-  companyId         String
-  provider          EmailProvider
-  emailAddress      String
-  status            EmailConnectionStatus @default(CONNECTED)
+  id           String                @id @default(cuid())
+  companyId    String
+  provider     EmailProvider
+  emailAddress String
+  status       EmailConnectionStatus @default(CONNECTED)
 
-  accessTokenEnc    String?
-  refreshTokenEnc   String
-  tokenExpiresAt    DateTime?
-  scopes            String[]
+  accessTokenEnc  String?
+  refreshTokenEnc String
+  tokenExpiresAt  DateTime?
+  scopes          String[]
 
-  lastSyncAt        DateTime?
-  syncCursor        String?
-  lastError         String?
+  lastSyncAt DateTime?
+  syncCursor String?
+  lastError  String?
 
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  company           Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  importRules       EmailImportRule[]
-  attachments       EmailAttachment[]
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importRules EmailImportRule[]
+  attachments EmailAttachment[]
 
   @@unique([companyId, emailAddress])
   @@index([companyId])
@@ -569,52 +570,52 @@ model EmailConnection {
 }
 
 model EmailImportRule {
-  id                String           @id @default(cuid())
-  connectionId      String
-  companyId         String
+  id           String @id @default(cuid())
+  connectionId String
+  companyId    String
 
-  senderEmail       String?
-  senderDomain      String?
-  subjectContains   String?
-  filenameContains  String?
+  senderEmail      String?
+  senderDomain     String?
+  subjectContains  String?
+  filenameContains String?
 
-  isActive          Boolean          @default(true)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  connection        EmailConnection  @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection EmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([connectionId])
   @@index([companyId])
 }
 
 model EmailAttachment {
-  id                    String            @id @default(cuid())
-  companyId             String
-  connectionId          String
+  id           String @id @default(cuid())
+  companyId    String
+  connectionId String
 
-  providerMessageId     String
-  providerAttachmentId  String?
-  contentHash           String
+  providerMessageId    String
+  providerAttachmentId String?
+  contentHash          String
 
-  receivedAt            DateTime
-  senderEmail           String
-  subject               String
-  filename              String
-  mimeType              String
-  sizeBytes             Int
+  receivedAt  DateTime
+  senderEmail String
+  subject     String
+  filename    String
+  mimeType    String
+  sizeBytes   Int
 
-  r2Key                 String
-  status                AttachmentStatus  @default(PENDING)
-  importJobId           String?           @unique
+  r2Key       String
+  status      AttachmentStatus @default(PENDING)
+  importJobId String?          @unique
 
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  connection            EmailConnection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  importJob             ImportJob?        @relation(fields: [importJobId], references: [id])
+  connection EmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importJob  ImportJob?      @relation(fields: [importJobId], references: [id])
 
   @@unique([connectionId, contentHash])
   @@index([companyId])
@@ -638,26 +639,26 @@ model BankImport {
 }
 
 model ImportJob {
-  id             String        @id @default(cuid())
-  companyId      String
-  userId         String
-  bankAccountId  String?
-  fileChecksum   String
-  originalName   String
-  storagePath    String
-  status         JobStatus     @default(PENDING)
-  documentType   DocumentType?
-  extractedData  Json?
-  tierUsed       TierType?
-  failureReason  String?
-  pagesProcessed Int           @default(0)
-  pagesFailed    Int           @default(0)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  bankAccount    BankAccount?  @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  statement      Statement?
-  invoice        EInvoice?
+  id              String           @id @default(cuid())
+  companyId       String
+  userId          String
+  bankAccountId   String?
+  fileChecksum    String
+  originalName    String
+  storagePath     String
+  status          JobStatus        @default(PENDING)
+  documentType    DocumentType?
+  extractedData   Json?
+  tierUsed        TierType?
+  failureReason   String?
+  pagesProcessed  Int              @default(0)
+  pagesFailed     Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  bankAccount     BankAccount?     @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  statement       Statement?
+  invoice         EInvoice?
   emailAttachment EmailAttachment?
 
   @@index([companyId])
@@ -1004,25 +1005,25 @@ enum FiscalMessageType {
 }
 
 model FiscalCertificate {
-  id               String      @id @default(cuid())
+  id               String     @id @default(cuid())
   companyId        String
   environment      FiscalEnv
-  provider         String      @default("DIRECT")
+  provider         String     @default("DIRECT")
   certSubject      String
   certSerial       String
   certNotBefore    DateTime
   certNotAfter     DateTime
   oibExtracted     String
   certSha256       String
-  encryptedP12     String      @db.Text
+  encryptedP12     String     @db.Text
   encryptedDataKey String
-  status           CertStatus  @default(PENDING)
+  status           CertStatus @default(PENDING)
   lastUsedAt       DateTime?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 
-  company          Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  fiscalRequests   FiscalRequest[]
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalRequests FiscalRequest[]
 
   @@unique([companyId, environment])
   @@index([companyId])
@@ -1030,34 +1031,70 @@ model FiscalCertificate {
 }
 
 model FiscalRequest {
-  id              String            @id @default(cuid())
-  companyId       String
-  certificateId   String
-  invoiceId       String?
-  messageType     FiscalMessageType
-  status          FiscalStatus      @default(QUEUED)
-  attemptCount    Int               @default(0)
-  maxAttempts     Int               @default(5)
-  nextRetryAt     DateTime          @default(now())
-  lockedAt        DateTime?
-  lockedBy        String?
-  jir             String?
-  zki             String?
-  errorCode       String?
-  errorMessage    String?
-  lastHttpStatus  Int?
-  requestXml      String?           @db.Text
-  signedXml       String?           @db.Text
-  responseXml     String?           @db.Text
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id             String            @id @default(cuid())
+  companyId      String
+  certificateId  String
+  invoiceId      String?
+  messageType    FiscalMessageType
+  status         FiscalStatus      @default(QUEUED)
+  attemptCount   Int               @default(0)
+  maxAttempts    Int               @default(5)
+  nextRetryAt    DateTime          @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  jir            String?
+  zki            String?
+  errorCode      String?
+  errorMessage   String?
+  lastHttpStatus Int?
+  requestXml     String?           @db.Text
+  signedXml      String?           @db.Text
+  responseXml    String?           @db.Text
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
-  company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  certificate     FiscalCertificate @relation(fields: [certificateId], references: [id])
-  invoice         EInvoice?         @relation(fields: [invoiceId], references: [id])
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  certificate FiscalCertificate @relation(fields: [certificateId], references: [id])
+  invoice     EInvoice?         @relation(fields: [invoiceId], references: [id])
 
   @@unique([companyId, invoiceId, messageType])
   @@index([status, nextRetryAt])
   @@index([companyId])
   @@index([invoiceId])
+}
+
+model AIFeedback {
+  id        String @id @default(cuid())
+  companyId String
+  userId    String
+
+  entityType String // "expense", "invoice", etc.
+  entityId   String
+  operation  String // "ocr_receipt", "category_suggestion", "ocr_invoice"
+
+  feedback   String // "correct", "incorrect", "partial"
+  correction Json? // What the correct value should be
+  notes      String?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([operation])
+}
+
+model AIUsage {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  operation  String // e.g., "ocr_receipt", "extract_receipt", "extract_invoice", "categorize_expense"
+  tokensUsed Int?
+  costCents  Int? // Cost in cents (EUR)
+  model      String? // e.g., "gpt-4o", "gpt-4o-mini"
+  success    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([companyId, operation])
 }

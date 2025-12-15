@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { ExtractionResult, ExtractedReceipt } from './types'
+import { trackAIUsage } from './usage-tracking'
 
 // Lazy-load OpenAI client to avoid build errors when API key is not set
 function getOpenAI() {
@@ -11,11 +12,19 @@ function getOpenAI() {
   })
 }
 
-export async function extractFromImage(imageBase64: string): Promise<ExtractionResult<ExtractedReceipt>> {
+export async function extractFromImage(
+  imageBase64: string,
+  companyId?: string
+): Promise<ExtractionResult<ExtractedReceipt>> {
+  const model = 'gpt-4o'
+  let success = false
+  let inputTokens = 0
+  let outputTokens = 0
+
   try {
     const openai = getOpenAI()
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model,
       messages: [
         {
           role: 'user',
@@ -47,16 +56,56 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`
       max_tokens: 1000
     })
 
+    // Track token usage
+    inputTokens = response.usage?.prompt_tokens || 0
+    outputTokens = response.usage?.completion_tokens || 0
+
     const content = response.choices[0]?.message?.content || ''
     // Extract JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: 'ocr_receipt',
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
       return { success: false, error: 'No JSON in response', rawText: content }
     }
 
     const data = JSON.parse(jsonMatch[0]) as ExtractedReceipt
+    success = true
+
+    // Track successful usage
+    if (companyId) {
+      await trackAIUsage({
+        companyId,
+        operation: 'ocr_receipt',
+        model,
+        inputTokens,
+        outputTokens,
+        success: true,
+      })
+    }
+
     return { success: true, data }
   } catch (error) {
+    // Track failed usage
+    if (companyId) {
+      await trackAIUsage({
+        companyId,
+        operation: 'ocr_receipt',
+        model,
+        inputTokens,
+        outputTokens,
+        success: false,
+      })
+    }
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'OCR failed'
@@ -64,11 +113,18 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`
   }
 }
 
-export async function extractFromImageUrl(imageUrl: string): Promise<ExtractionResult<ExtractedReceipt>> {
+export async function extractFromImageUrl(
+  imageUrl: string,
+  companyId?: string
+): Promise<ExtractionResult<ExtractedReceipt>> {
+  const model = 'gpt-4o'
+  let inputTokens = 0
+  let outputTokens = 0
+
   try {
     const openai = getOpenAI()
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model,
       messages: [
         {
           role: 'user',
@@ -100,15 +156,54 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`
       max_tokens: 1000
     })
 
+    // Track token usage
+    inputTokens = response.usage?.prompt_tokens || 0
+    outputTokens = response.usage?.completion_tokens || 0
+
     const content = response.choices[0]?.message?.content || ''
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: 'ocr_receipt',
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
       return { success: false, error: 'No JSON in response', rawText: content }
     }
 
     const data = JSON.parse(jsonMatch[0]) as ExtractedReceipt
+
+    // Track successful usage
+    if (companyId) {
+      await trackAIUsage({
+        companyId,
+        operation: 'ocr_receipt',
+        model,
+        inputTokens,
+        outputTokens,
+        success: true,
+      })
+    }
+
     return { success: true, data }
   } catch (error) {
+    // Track failed usage
+    if (companyId) {
+      await trackAIUsage({
+        companyId,
+        operation: 'ocr_receipt',
+        model,
+        inputTokens,
+        outputTokens,
+        success: false,
+      })
+    }
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'OCR failed'
