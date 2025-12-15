@@ -1,4 +1,10 @@
 # docker-compose.dev.yml - Development overrides
+#
+# WARNING: These credentials are for LOCAL DEVELOPMENT ONLY.
+# Never use these values in production or expose this setup to the internet.
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
 services:
   fiskai-db:
     environment:
@@ -6,7 +12,7 @@ services:
       POSTGRES_PASSWORD: fiskai_dev_password
       POSTGRES_DB: fiskai
     ports:
-      - "5434:5432"
+      - "5434:5432"  # Exposed for local DB tools (DBeaver, pgAdmin, etc.)
     networks:
       - fiskai_dev
 
@@ -14,10 +20,11 @@ services:
     environment:
       - DATABASE_URL=postgresql://fiskai:fiskai_dev_password@fiskai-db:5432/fiskai?schema=public
       - NEXTAUTH_URL=http://localhost:3002
-      - NEXTAUTH_SECRET=dev_secret_change_in_production
+      - NEXTAUTH_SECRET=dev_secret_not_for_production_use_only
       - NEXT_PUBLIC_APP_NAME=FiskAI Dev
       - NEXT_PUBLIC_APP_URL=http://localhost:3002
-      - EINVOICE_KEY_SECRET=dev_einvoice_secret_32_chars_min
+      - EINVOICE_KEY_SECRET=dev_einvoice_secret_32_chars_minimum
+      # AUTH_TRUST_HOST safe in dev since localhost only
       - AUTH_TRUST_HOST=true
     ports:
       - "3002:3000"
