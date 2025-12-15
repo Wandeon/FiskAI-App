@@ -6,7 +6,7 @@ import { INCOME_TAX_BRACKETS, MONTHLY_CONTRIBUTIONS, HOK } from "@/lib/knowledge
 import { cn } from "@/lib/utils"
 
 interface CalculatorConfig {
-  businessTypes: Array<"pausalni" | "obrt-dohodak" | "jdoo" | "doo">
+  businessTypes: Array<"pausalni" | "obrt-dohodak" | "jdoo">
   defaultRevenue?: number
 }
 
