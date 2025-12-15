@@ -17,6 +17,7 @@ services:
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-FiskAI}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL required}
       - EINVOICE_KEY_SECRET=${EINVOICE_KEY_SECRET:?EINVOICE_KEY_SECRET required}
+      # FISCAL_CERT_KEY: Set in Coolify secrets
     networks:
       - fiskai_internal
       - coolify
