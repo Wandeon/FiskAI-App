@@ -166,6 +166,7 @@ model Contact {
   eInvoicesAsSeller EInvoice[]  @relation("EInvoiceSeller")
   expensesAsVendor  Expense[]   @relation("ExpenseVendor")
 
+  @@unique([companyId, oib])
   @@index([companyId])
   @@index([oib])
 }
@@ -250,6 +251,7 @@ model EInvoice {
   lines             EInvoiceLine[]
   fiscalRequests    FiscalRequest[]
 
+  @@unique([companyId, invoiceNumber])
   @@index([companyId])
   @@index([status])
   @@index([invoiceNumber])
