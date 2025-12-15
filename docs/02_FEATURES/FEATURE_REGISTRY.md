@@ -4,7 +4,7 @@
 
 **Last Updated:** 2025-12-15
 **Total Features:** 108
-**Coverage:** 33% (36/108 documented)
+**Coverage:** 42% (45/108 documented)
 
 ## Registry
 
@@ -52,15 +52,15 @@
 | F035              | Mark Expense as Paid          | Expenses      | ✅     | /expenses/:id                      | Low        | [→](features/expenses-mark-paid.md)        |
 | F036              | Recurring Expenses            | Expenses      | ✅     | Database + Actions                 | Medium     | [→](features/expenses-recurring.md)        |
 | **BANKING**       |
-| F037              | View Bank Accounts            | Banking       | ❌     | /banking/accounts                  | Medium     | -                                          |
-| F038              | Connect Bank Account          | Banking       | ❌     | /api/bank/connect                  | High       | -                                          |
-| F039              | Disconnect Bank Account       | Banking       | ❌     | /api/bank/disconnect               | Low        | -                                          |
-| F040              | View Bank Transactions        | Banking       | ❌     | /banking/transactions              | High       | -                                          |
-| F041              | Import Bank Statement         | Banking       | ❌     | /banking/import                    | High       | -                                          |
-| F042              | Bank Reconciliation           | Banking       | ❌     | /banking/reconciliation            | High       | -                                          |
-| F043              | Auto-Match Transactions       | Banking       | ❌     | /api/banking/reconciliation/match  | High       | -                                          |
-| F044              | Manual Transaction Matching   | Banking       | ❌     | Actions                            | Medium     | -                                          |
-| F045              | Banking Documents             | Banking       | ❌     | /banking/documents                 | Medium     | -                                          |
+| F037              | View Bank Accounts            | Banking       | ✅     | /banking/accounts                  | Medium     | [→](features/banking-accounts.md)          |
+| F038              | Connect Bank Account          | Banking       | ✅     | /api/bank/connect                  | High       | [→](features/banking-connect.md)           |
+| F039              | Disconnect Bank Account       | Banking       | ✅     | /api/bank/disconnect               | Low        | [→](features/banking-disconnect.md)        |
+| F040              | View Bank Transactions        | Banking       | ✅     | /banking/transactions              | High       | [→](features/banking-transactions.md)      |
+| F041              | Import Bank Statement         | Banking       | ✅     | /banking/import                    | High       | [→](features/banking-import.md)            |
+| F042              | Bank Reconciliation           | Banking       | ✅     | /banking/reconciliation            | High       | [→](features/banking-reconciliation.md)    |
+| F043              | Auto-Match Transactions       | Banking       | ✅     | /api/banking/reconciliation/match  | High       | [→](features/banking-auto-match.md)        |
+| F044              | Manual Transaction Matching   | Banking       | ✅     | Actions                            | Medium     | [→](features/banking-manual-match.md)      |
+| F045              | Banking Documents             | Banking       | ✅     | /banking/documents                 | Medium     | [→](features/banking-documents.md)         |
 | **CONTACTS**      |
 | F046              | Create Contact                | Contacts      | ❌     | /contacts/new                      | Medium     | -                                          |
 | F047              | View Contacts                 | Contacts      | ❌     | /contacts                          | Medium     | -                                          |
