@@ -3,17 +3,17 @@
 
 import { z } from "zod"
 import { db } from "@/lib/db"
-import { 
-  requireAuth, 
-  requireCompany,
+import {
+  requireAuth,
+  requireCompanyWithContext,
   getCurrentUser,
   getCurrentCompany
 } from "@/lib/auth-utils"
-import { 
-  SupportTicketPriority, 
+import {
+  SupportTicketPriority,
   SupportTicketStatus,
   SupportTicket,
-  SupportTicketMessage 
+  SupportTicketMessage
 } from "@prisma/client"
 import { logger } from "@/lib/logger"
 
@@ -54,23 +54,24 @@ export interface AddSupportMessageInput {
 export async function assignSupportTicket(ticketId: string, userId: string | null) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    const ticket = await db.supportTicket.findFirst({
-      where: { id: ticketId, companyId: company.id },
-      select: { id: true },
+    return requireCompanyWithContext(user.id!, async () => {
+      const ticket = await db.supportTicket.findFirst({
+        where: { id: ticketId },
+        select: { id: true },
+      })
+
+      if (!ticket) {
+        return { success: false, error: "Ticket not found" }
+      }
+
+      await db.supportTicket.update({
+        where: { id: ticketId },
+        data: { assignedToId: userId },
+      })
+
+      return { success: true }
     })
-
-    if (!ticket) {
-      return { success: false, error: "Ticket not found" }
-    }
-
-    await db.supportTicket.update({
-      where: { id: ticketId },
-      data: { assignedToId: userId },
-    })
-
-    return { success: true }
   } catch (error) {
     logger.error({ error, ticketId }, "Failed to assign ticket")
     return { success: false, error: "Dodjela nije uspjela" }
@@ -83,43 +84,43 @@ export async function assignSupportTicket(ticketId: string, userId: string | nul
 export async function createSupportTicket(input: CreateSupportTicketInput) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    const validated = createSupportTicketSchema.parse(input)
+    return requireCompanyWithContext(user.id!, async (company) => {
+      const validated = createSupportTicketSchema.parse(input)
 
-    const ticket = await db.supportTicket.create({
-      data: {
-        companyId: company.id,
-        createdById: user.id!,
-        assignedToId: null, // Initially unassigned
-        title: validated.title.trim(),
-        body: validated.body?.trim() || null,
-        priority: validated.priority,
-        status: SupportTicketStatus.OPEN,
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
+      const ticket = await db.supportTicket.create({
+        data: {
+          createdById: user.id!,
+          assignedToId: null, // Initially unassigned
+          title: validated.title.trim(),
+          body: validated.body?.trim() || null,
+          priority: validated.priority,
+          status: SupportTicketStatus.OPEN,
+        },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
         }
-      }
+      })
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        ticketId: ticket.id,
+        operation: "support_ticket_created"
+      }, "Support ticket created")
+
+      return { success: true, data: ticket }
     })
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      ticketId: ticket.id,
-      operation: "support_ticket_created"
-    }, "Support ticket created")
-
-    return { success: true, data: ticket }
   } catch (error) {
     logger.error({ error }, "Failed to create support ticket")
-    
+
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid input data", details: error.issues }
     }
-    
+
     return { success: false, error: "Failed to create support ticket" }
   }
 }
@@ -130,32 +131,30 @@ export async function createSupportTicket(input: CreateSupportTicketInput) {
 export async function getSupportTicket(ticketId: string) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    const ticket = await db.supportTicket.findFirst({
-      where: {
-        id: ticketId,
-        companyId: company.id,
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: "asc" }
+    return requireCompanyWithContext(user.id!, async (company) => {
+      const ticket = await db.supportTicket.findFirst({
+        where: { id: ticketId },
+        include: {
+          messages: {
+            orderBy: { createdAt: "asc" }
+          }
         }
+      })
+
+      if (!ticket) {
+        return { success: false, error: "Ticket not found" }
       }
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        ticketId,
+        operation: "support_ticket_fetched"
+      }, "Support ticket fetched")
+
+      return { success: true, data: ticket }
     })
-
-    if (!ticket) {
-      return { success: false, error: "Ticket not found" }
-    }
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      ticketId,
-      operation: "support_ticket_fetched"
-    }, "Support ticket fetched")
-
-    return { success: true, data: ticket }
   } catch (error) {
     logger.error({ error, ticketId }, "Failed to get support ticket")
     return { success: false, error: "Failed to get support ticket" }
@@ -173,60 +172,59 @@ export async function getSupportTickets(
 ) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    const skip = (page - 1) * limit
+    return requireCompanyWithContext(user.id!, async (company) => {
+      const skip = (page - 1) * limit
 
-    const whereClause: any = {
-      companyId: company.id,
-    }
+      const whereClause: any = {}
 
-    if (status && status.length > 0) {
-      whereClause.status = { in: status }
-    }
-
-    if (priority && priority.length > 0) {
-      whereClause.priority = { in: priority }
-    }
-
-    const [tickets, totalCount] = await Promise.all([
-      db.supportTicket.findMany({
-        where: whereClause,
-        take: limit,
-        skip,
-        orderBy: { updatedAt: "desc" },
-        include: {
-          messages: {
-            select: {
-              createdAt: true
-            },
-            orderBy: { createdAt: "desc" },
-            take: 1,
-          }
-        }
-      }),
-      db.supportTicket.count({ where: whereClause })
-    ])
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      operation: "support_tickets_fetched",
-      count: tickets.length,
-      total: totalCount
-    }, "Support tickets fetched")
-
-    return { 
-      success: true, 
-      data: tickets,
-      meta: {
-        totalCount,
-        page,
-        totalPages: Math.ceil(totalCount / limit),
-        hasNextPage: skip + tickets.length < totalCount,
-        hasPrevPage: page > 1,
+      if (status && status.length > 0) {
+        whereClause.status = { in: status }
       }
-    }
+
+      if (priority && priority.length > 0) {
+        whereClause.priority = { in: priority }
+      }
+
+      const [tickets, totalCount] = await Promise.all([
+        db.supportTicket.findMany({
+          where: whereClause,
+          take: limit,
+          skip,
+          orderBy: { updatedAt: "desc" },
+          include: {
+            messages: {
+              select: {
+                createdAt: true
+              },
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            }
+          }
+        }),
+        db.supportTicket.count({ where: whereClause })
+      ])
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        operation: "support_tickets_fetched",
+        count: tickets.length,
+        total: totalCount
+      }, "Support tickets fetched")
+
+      return {
+        success: true,
+        data: tickets,
+        meta: {
+          totalCount,
+          page,
+          totalPages: Math.ceil(totalCount / limit),
+          hasNextPage: skip + tickets.length < totalCount,
+          hasPrevPage: page > 1,
+        }
+      }
+    })
   } catch (error) {
     logger.error({ error }, "Failed to get support tickets")
     return { success: false, error: "Failed to get support tickets" }
@@ -239,64 +237,62 @@ export async function getSupportTickets(
 export async function updateSupportTicket(ticketId: string, input: UpdateSupportTicketInput) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    // Verify ticket belongs to company
-    const existingTicket = await db.supportTicket.findFirst({
-      where: { id: ticketId, companyId: company.id },
-      select: { id: true }
-    })
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Verify ticket belongs to company (automatically filtered by tenant context)
+      const existingTicket = await db.supportTicket.findFirst({
+        where: { id: ticketId },
+        select: { id: true }
+      })
 
-    if (!existingTicket) {
-      return { success: false, error: "Ticket not found" }
-    }
-
-    // Validate input
-    const validated = updateSupportTicketSchema.partial().parse(input)
-
-    // Prepare update data
-    const updateData: any = {}
-    if (validated.title !== undefined) updateData.title = validated.title.trim()
-    if (validated.body !== undefined) updateData.body = validated.body.trim()
-    if (validated.priority !== undefined) updateData.priority = validated.priority
-    if (validated.status !== undefined) {
-      updateData.status = validated.status
-      // If status is being changed to RESOLVED/CLOSED, update resolvedAt
-      if (validated.status === SupportTicketStatus.RESOLVED || validated.status === SupportTicketStatus.CLOSED) {
-        updateData.resolvedAt = new Date()
+      if (!existingTicket) {
+        return { success: false, error: "Ticket not found" }
       }
-    }
 
-    // Update assignedTo if needed and user has admin rights
-    // For now, we'll just update the other fields
-    
-    const ticket = await db.supportTicket.update({
-      where: { id: ticketId },
-      data: updateData,
-      include: {
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
+      // Validate input
+      const validated = updateSupportTicketSchema.partial().parse(input)
+
+      // Prepare update data
+      const updateData: any = {}
+      if (validated.title !== undefined) updateData.title = validated.title.trim()
+      if (validated.body !== undefined) updateData.body = validated.body.trim()
+      if (validated.priority !== undefined) updateData.priority = validated.priority
+      if (validated.status !== undefined) {
+        updateData.status = validated.status
+        // If status is being changed to RESOLVED/CLOSED, update resolvedAt
+        if (validated.status === SupportTicketStatus.RESOLVED || validated.status === SupportTicketStatus.CLOSED) {
+          updateData.resolvedAt = new Date()
         }
       }
+
+      const ticket = await db.supportTicket.update({
+        where: { id: ticketId },
+        data: updateData,
+        include: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        }
+      })
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        ticketId,
+        operation: "support_ticket_updated",
+        changes: Object.keys(updateData)
+      }, "Support ticket updated")
+
+      return { success: true, data: ticket }
     })
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      ticketId,
-      operation: "support_ticket_updated",
-      changes: Object.keys(updateData)
-    }, "Support ticket updated")
-
-    return { success: true, data: ticket }
   } catch (error) {
     logger.error({ error, ticketId }, "Failed to update support ticket")
-    
+
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid input data", details: error.issues }
     }
-    
+
     return { success: false, error: "Failed to update support ticket" }
   }
 }
@@ -307,50 +303,51 @@ export async function updateSupportTicket(ticketId: string, input: UpdateSupport
 export async function addSupportTicketMessage(ticketId: string, input: AddSupportMessageInput) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    // Verify ticket belongs to company
-    const ticket = await db.supportTicket.findFirst({
-      where: { id: ticketId, companyId: company.id },
-      select: { id: true }
-    })
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Verify ticket belongs to company (automatically filtered by tenant context)
+      const ticket = await db.supportTicket.findFirst({
+        where: { id: ticketId },
+        select: { id: true }
+      })
 
-    if (!ticket) {
-      return { success: false, error: "Ticket not found" }
-    }
-
-    const validated = addSupportMessageSchema.parse(input)
-
-    const message = await db.supportTicketMessage.create({
-      data: {
-        ticketId: ticket.id,
-        authorId: user.id!,
-        body: validated.body.trim(),
+      if (!ticket) {
+        return { success: false, error: "Ticket not found" }
       }
+
+      const validated = addSupportMessageSchema.parse(input)
+
+      const message = await db.supportTicketMessage.create({
+        data: {
+          ticketId: ticket.id,
+          authorId: user.id!,
+          body: validated.body.trim(),
+        }
+      })
+
+      // Update ticket's updatedAt
+      await db.supportTicket.update({
+        where: { id: ticket.id },
+        data: { updatedAt: new Date() }
+      })
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        ticketId,
+        messageId: message.id,
+        operation: "support_ticket_message_added"
+      }, "Support ticket message added")
+
+      return { success: true, data: message }
     })
-
-    // Update ticket's updatedAt
-    await db.supportTicket.update({
-      where: { id: ticket.id },
-      data: { updatedAt: new Date() }
-    })
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      ticketId,
-      messageId: message.id,
-      operation: "support_ticket_message_added"
-    }, "Support ticket message added")
-
-    return { success: true, data: message }
   } catch (error) {
     logger.error({ error, ticketId }, "Failed to add support ticket message")
-    
+
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid input data", details: error.issues }
     }
-    
+
     return { success: false, error: "Failed to add support ticket message" }
   }
 }
@@ -361,45 +358,46 @@ export async function addSupportTicketMessage(ticketId: string, input: AddSuppor
 export async function closeSupportTicket(ticketId: string, resolutionNote?: string) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    // Verify ticket belongs to company
-    const ticket = await db.supportTicket.findFirst({
-      where: { id: ticketId, companyId: company.id },
-      select: { id: true, status: true, body: true }
-    })
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Verify ticket belongs to company (automatically filtered by tenant context)
+      const ticket = await db.supportTicket.findFirst({
+        where: { id: ticketId },
+        select: { id: true, status: true, body: true }
+      })
 
-    if (!ticket) {
-      return { success: false, error: "Ticket not found" }
-    }
-
-    // If ticket is already closed, return success
-    if (ticket.status === SupportTicketStatus.CLOSED) {
-      return { success: true, data: { ...ticket, status: SupportTicketStatus.CLOSED } }
-    }
-
-    const updatedTicket = await db.supportTicket.update({
-      where: { id: ticketId },
-      data: {
-        status: SupportTicketStatus.CLOSED,
-        ...(resolutionNote && { body: `${ticket.body || ''}\n\n---\nRješenje: ${resolutionNote}`.trim() })
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
+      if (!ticket) {
+        return { success: false, error: "Ticket not found" }
       }
+
+      // If ticket is already closed, return success
+      if (ticket.status === SupportTicketStatus.CLOSED) {
+        return { success: true, data: { ...ticket, status: SupportTicketStatus.CLOSED } }
+      }
+
+      const updatedTicket = await db.supportTicket.update({
+        where: { id: ticketId },
+        data: {
+          status: SupportTicketStatus.CLOSED,
+          ...(resolutionNote && { body: `${ticket.body || ''}\n\n---\nRješenje: ${resolutionNote}`.trim() })
+        },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        }
+      })
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        ticketId,
+        operation: "support_ticket_closed"
+      }, "Support ticket closed")
+
+      return { success: true, data: updatedTicket }
     })
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      ticketId,
-      operation: "support_ticket_closed"
-    }, "Support ticket closed")
-
-    return { success: true, data: updatedTicket }
   } catch (error) {
     logger.error({ error, ticketId }, "Failed to close support ticket")
     return { success: false, error: "Failed to close support ticket" }
@@ -412,43 +410,43 @@ export async function closeSupportTicket(ticketId: string, resolutionNote?: stri
 export async function reopenSupportTicket(ticketId: string) {
   try {
     const user = await requireAuth()
-    const company = await requireCompany(user.id!)
 
-    // Verify ticket belongs to company
-    const ticket = await db.supportTicket.findFirst({
-      where: { 
-        id: ticketId, 
-        companyId: company.id,
-        status: { in: [SupportTicketStatus.CLOSED, SupportTicketStatus.RESOLVED] }
-      },
-      select: { id: true }
-    })
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Verify ticket belongs to company (automatically filtered by tenant context)
+      const ticket = await db.supportTicket.findFirst({
+        where: {
+          id: ticketId,
+          status: { in: [SupportTicketStatus.CLOSED, SupportTicketStatus.RESOLVED] }
+        },
+        select: { id: true }
+      })
 
-    if (!ticket) {
-      return { success: false, error: "Ticket not found or not in closed/resolved state" }
-    }
-
-    const updatedTicket = await db.supportTicket.update({
-      where: { id: ticketId },
-      data: {
-        status: SupportTicketStatus.OPEN,
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
+      if (!ticket) {
+        return { success: false, error: "Ticket not found or not in closed/resolved state" }
       }
+
+      const updatedTicket = await db.supportTicket.update({
+        where: { id: ticketId },
+        data: {
+          status: SupportTicketStatus.OPEN,
+        },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        }
+      })
+
+      logger.info({
+        userId: user.id,
+        companyId: company.id,
+        ticketId,
+        operation: "support_ticket_reopened"
+      }, "Support ticket reopened")
+
+      return { success: true, data: updatedTicket }
     })
-
-    logger.info({
-      userId: user.id,
-      companyId: company.id,
-      ticketId,
-      operation: "support_ticket_reopened"
-    }, "Support ticket reopened")
-
-    return { success: true, data: updatedTicket }
   } catch (error) {
     logger.error({ error, ticketId }, "Failed to reopen support ticket")
     return { success: false, error: "Failed to reopen support ticket" }
