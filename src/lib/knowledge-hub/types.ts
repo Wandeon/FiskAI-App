@@ -66,3 +66,39 @@ export interface ComparisonFrontmatter {
   compares: string[] // e.g., ["pausalni", "obrt-dohodak", "jdoo"]
   decisionContext: string // e.g., "starting-solo", "additional-income"
 }
+
+// Business type comparison data
+export interface BusinessTypeComparison {
+  slug: string
+  name: string
+  maxRevenue: number | null // null = unlimited
+  monthlyContributions: number
+  taxRate: string // e.g., "~10%" or "20% + prirez"
+  vatRequired: boolean
+  vatThreshold: number
+  fiscalization: boolean
+  bookkeeping: "none" | "simple" | "full"
+  estimatedBookkeepingCost: number
+  bestFor: string[]
+  notSuitableFor: string[]
+}
+
+// Comparison table row
+export interface ComparisonRow {
+  label: string
+  values: Record<string, string | number | boolean>
+  tooltip?: string
+}
+
+// Comparison calculator result
+export interface ComparisonResult {
+  businessType: string
+  annualContributions: number
+  annualTax: number
+  bookkeepingCost: number
+  otherCosts: number
+  totalCosts: number
+  netIncome: number
+  isRecommended: boolean
+  recommendationReason?: string
+}
