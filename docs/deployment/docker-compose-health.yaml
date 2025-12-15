@@ -1,0 +1,126 @@
+# Docker Compose with Health Checks
+# Example configuration for FiskAI with health check support
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:16-alpine
+    container_name: fiskai-db
+    environment:
+      POSTGRES_DB: fiskai
+      POSTGRES_USER: fiskai
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiskai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - fiskai-network
+
+  # FiskAI application
+  app:
+    image: fiskai:latest
+    container_name: fiskai-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://fiskai:${DB_PASSWORD}@postgres:5432/fiskai
+      APP_VERSION: "0.1.0"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Use the /api/health endpoint
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fiskai-network
+    restart: unless-stopped
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: fiskai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fiskai-network
+    restart: unless-stopped
+
+  # Monitoring container (optional)
+  # Continuously monitors the health endpoints
+  monitor:
+    image: curlimages/curl:latest
+    container_name: fiskai-monitor
+    depends_on:
+      app:
+        condition: service_healthy
+    command: >
+      sh -c "
+      while true; do
+        echo '=== Health Check ===' &&
+        curl -s http://app:3000/api/health | grep -o '\"status\":\"[^\"]*\"' &&
+        echo '' &&
+        echo '=== Readiness Check ===' &&
+        curl -s http://app:3000/api/health/ready | grep -o '\"status\":\"[^\"]*\"' &&
+        echo '' &&
+        echo '=== Status Info ===' &&
+        curl -s http://app:3000/api/status | grep -o '\"uptime\":{[^}]*}' &&
+        echo '' &&
+        echo 'Sleeping for 60 seconds...' &&
+        sleep 60;
+      done
+      "
+    networks:
+      - fiskai-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  fiskai-network:
+    driver: bridge
+
+# Usage:
+# 1. Set DB_PASSWORD in .env file:
+#    echo "DB_PASSWORD=your_secure_password" > .env
+#
+# 2. Start services:
+#    docker-compose -f docker-compose-health.yaml up -d
+#
+# 3. Check health status:
+#    docker-compose -f docker-compose-health.yaml ps
+#    curl http://localhost:3000/api/health
+#
+# 4. View monitoring logs:
+#    docker-compose -f docker-compose-health.yaml logs -f monitor
+#
+# 5. Stop services:
+#    docker-compose -f docker-compose-health.yaml down
