@@ -34,6 +34,9 @@ RUN npx prisma generate
 # Disable telemetry during the build
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Increase Node.js memory limit for build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Build the application
 RUN npm run build
 
