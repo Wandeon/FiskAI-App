@@ -1,5 +1,5 @@
 {
-  "generated": "2025-12-15T14:44:32.006Z",
+  "generated": "2025-12-15T14:51:50.134Z",
   "count": 72,
   "endpoints": [
     {
@@ -20,27 +20,27 @@
     {
       "path": "/api/ai/extract",
       "file": "src/app/api/ai/extract/route.ts",
-      "methods": []
+      "methods": ["POST"]
     },
     {
       "path": "/api/ai/feedback",
       "file": "src/app/api/ai/feedback/route.ts",
-      "methods": []
+      "methods": ["GET", "POST"]
     },
     {
       "path": "/api/ai/suggest-category",
       "file": "src/app/api/ai/suggest-category/route.ts",
-      "methods": []
+      "methods": ["POST"]
     },
     {
       "path": "/api/ai/usage",
       "file": "src/app/api/ai/usage/route.ts",
-      "methods": []
+      "methods": ["GET"]
     },
     {
       "path": "/api/auth/:...nextauth",
       "file": "src/app/api/auth/[...nextauth]/route.ts",
-      "methods": []
+      "methods": ["GET", "POST"]
     },
     {
       "path": "/api/bank/callback",
@@ -190,12 +190,12 @@
     {
       "path": "/api/health",
       "file": "src/app/api/health/route.ts",
-      "methods": []
+      "methods": ["GET"]
     },
     {
       "path": "/api/health/ready",
       "file": "src/app/api/health/ready/route.ts",
-      "methods": []
+      "methods": ["GET"]
     },
     {
       "path": "/api/import/jobs/:id",
@@ -240,17 +240,17 @@
     {
       "path": "/api/metrics",
       "file": "src/app/api/metrics/route.ts",
-      "methods": []
+      "methods": ["GET"]
     },
     {
       "path": "/api/notifications",
       "file": "src/app/api/notifications/route.ts",
-      "methods": []
+      "methods": ["GET"]
     },
     {
       "path": "/api/notifications/read",
       "file": "src/app/api/notifications/read/route.ts",
-      "methods": []
+      "methods": ["POST"]
     },
     {
       "path": "/api/oib/lookup",
@@ -305,7 +305,7 @@
     {
       "path": "/api/status",
       "file": "src/app/api/status/route.ts",
-      "methods": []
+      "methods": ["GET"]
     },
     {
       "path": "/api/support/tickets",

@@ -29,19 +29,38 @@ function findApiEndpoints(dir: string, basePath: string = "/api"): ApiEndpoint[]
       endpoints.push(...findApiEndpoints(fullPath, `${basePath}/${segment}`))
     } else if (entry.name === "route.ts" || entry.name === "route.tsx") {
       const content = fs.readFileSync(fullPath, "utf-8")
-      const methods: string[] = []
+      const methodsSet = new Set<string>()
 
       // Detect exported HTTP methods
-      if (/export\s+(async\s+)?function\s+GET/i.test(content)) methods.push("GET")
-      if (/export\s+(async\s+)?function\s+POST/i.test(content)) methods.push("POST")
-      if (/export\s+(async\s+)?function\s+PUT/i.test(content)) methods.push("PUT")
-      if (/export\s+(async\s+)?function\s+PATCH/i.test(content)) methods.push("PATCH")
-      if (/export\s+(async\s+)?function\s+DELETE/i.test(content)) methods.push("DELETE")
+      // Pattern 1: export async function METHOD or export function METHOD
+      if (/export\s+(async\s+)?function\s+GET/i.test(content)) methodsSet.add("GET")
+      if (/export\s+(async\s+)?function\s+POST/i.test(content)) methodsSet.add("POST")
+      if (/export\s+(async\s+)?function\s+PUT/i.test(content)) methodsSet.add("PUT")
+      if (/export\s+(async\s+)?function\s+PATCH/i.test(content)) methodsSet.add("PATCH")
+      if (/export\s+(async\s+)?function\s+DELETE/i.test(content)) methodsSet.add("DELETE")
+
+      // Pattern 2: export const METHOD = (for wrapped handlers like withApiLogging)
+      if (/export\s+const\s+GET\s*=/i.test(content)) methodsSet.add("GET")
+      if (/export\s+const\s+POST\s*=/i.test(content)) methodsSet.add("POST")
+      if (/export\s+const\s+PUT\s*=/i.test(content)) methodsSet.add("PUT")
+      if (/export\s+const\s+PATCH\s*=/i.test(content)) methodsSet.add("PATCH")
+      if (/export\s+const\s+DELETE\s*=/i.test(content)) methodsSet.add("DELETE")
+
+      // Pattern 3: export const { METHOD, ... } = handlers (destructuring)
+      const destructuringMatch = content.match(/export\s+const\s+\{\s*([^}]+)\s*\}\s*=/i)
+      if (destructuringMatch) {
+        const methods = destructuringMatch[1].split(",").map((m) => m.trim())
+        methods.forEach((method) => {
+          if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())) {
+            methodsSet.add(method.toUpperCase())
+          }
+        })
+      }
 
       endpoints.push({
         path: basePath,
         file: fullPath.replace(process.cwd() + "/", ""),
-        methods,
+        methods: Array.from(methodsSet),
       })
     }
   }
