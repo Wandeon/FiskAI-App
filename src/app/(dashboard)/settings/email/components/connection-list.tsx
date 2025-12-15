@@ -85,9 +85,10 @@ export function EmailConnectionList({ connections }: EmailConnectionListProps) {
               </Badge>
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={() => handleDisconnect(connection.id)}
                 disabled={disconnecting === connection.id}
+                className="h-8 w-8 p-0"
               >
                 {disconnecting === connection.id ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
