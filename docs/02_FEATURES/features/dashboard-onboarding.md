@@ -156,15 +156,15 @@ Guides new users through essential setup steps to configure their company and st
 
 ## Evidence Links
 
-1. `src/app/(dashboard)/onboarding/page.tsx:1-38` - Main onboarding wizard page
-2. `src/lib/stores/onboarding-store.ts:1-86` - Zustand store with state management and validation
-3. `src/components/onboarding/step-indicator.tsx:1-75` - Visual step progress indicator
-4. `src/components/onboarding/step-basic-info.tsx:1-94` - Step 1 component with OIB lookup
-5. `src/components/onboarding/step-address.tsx:1-93` - Step 2 address input component
-6. `src/components/onboarding/step-contact-tax.tsx:1-131` - Step 3 with company creation
+1. `src/app/(dashboard)/onboarding/page.tsx:1-36` - Main onboarding wizard page
+2. `src/lib/stores/onboarding-store.ts:1-85` - Zustand store with state management and validation
+3. `src/components/onboarding/step-indicator.tsx:1-74` - Visual step progress indicator
+4. `src/components/onboarding/step-basic-info.tsx:1-93` - Step 1 component with OIB lookup
+5. `src/components/onboarding/step-address.tsx:1-91` - Step 2 address input component
+6. `src/components/onboarding/step-contact-tax.tsx:1-130` - Step 3 with company creation
 7. `src/app/actions/company.ts:11-48` - Server action for company creation
-8. `src/components/dashboard/onboarding-checklist.tsx:1-82` - Dashboard checklist component
+8. `src/components/dashboard/onboarding-checklist.tsx:1-81` - Dashboard checklist component
 9. `src/app/(dashboard)/dashboard/page.tsx:114-151` - Checklist items definition and logic
-10. `src/components/layout/onboarding-progress-pill.tsx:1-50` - Header progress widget
+10. `src/components/layout/onboarding-progress-pill.tsx:1-49` - Header progress widget
 11. `prisma/schema.prisma:68-130` - Company and CompanyUser data models
 12. `src/app/(dashboard)/dashboard/page.tsx:24-26` - Redirect logic for users without company

@@ -408,7 +408,7 @@ Three export formats available → `src/app/(dashboard)/reports/vat-threshold/pa
 
 1. VAT threshold page component → `src/app/(dashboard)/reports/vat-threshold/page.tsx:46`
 2. API GET endpoint for threshold data → `src/app/api/reports/vat-threshold/route.ts:10`
-3. Core calculation function → `src/lib/reports/kpr-generator.ts:256-328`
+3. Core calculation function → `src/lib/reports/kpr-generator.ts:256-327`
 4. Threshold status classification logic → `src/lib/reports/kpr-generator.ts:296-302`
 5. Revenue query with fiscalized status filter → `src/lib/reports/kpr-generator.ts:270-284`
 6. Monthly breakdown aggregation → `src/app/(dashboard)/reports/vat-threshold/page.tsx:60-100`

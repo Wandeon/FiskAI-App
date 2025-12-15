@@ -75,7 +75,7 @@ The status page displays comprehensive system information in Croatian:
 
 ### Health Check System
 
-The system implements comprehensive health monitoring → `src/lib/monitoring/system-health.ts:1-307`:
+The system implements comprehensive health monitoring → `src/lib/monitoring/system-health.ts:1-306`:
 
 **Database Health Check** → `src/lib/monitoring/system-health.ts:150-172`:
 
@@ -142,7 +142,7 @@ The system implements comprehensive health monitoring → `src/lib/monitoring/sy
   - Minimum uptime of 5 seconds required → `src/app/api/health/ready/route.ts:84-95`
 - **Use Case**: Ensures app is fully initialized before receiving traffic
 
-**3. Status Information** → `src/app/api/status/route.ts:1-54`:
+**3. Status Information** → `src/app/api/status/route.ts:1-53`:
 
 - **Path**: `/api/status`
 - **Purpose**: System status for monitoring dashboards
@@ -188,7 +188,7 @@ FiskAI prioritizes transparency with users:
 
 The status page supports operational requirements:
 
-- **Monitoring Integration**: API endpoints for external monitoring tools → `MONITORING_ENDPOINTS.md:1-362`
+- **Monitoring Integration**: API endpoints for external monitoring tools → `MONITORING_ENDPOINTS.md:1-332`
 - **Load Balancer Support**: Fast health checks (<100ms target) → `MONITORING_ENDPOINTS.md:306`
 - **Container Orchestration**: Kubernetes readiness/liveness probes → `MONITORING_ENDPOINTS.md:152-171`
 - **Incident Response**: Quick visibility into system health for support team
@@ -264,7 +264,7 @@ Only aggregate counts are shown → `MONITORING_ENDPOINTS.md:217-224`
 
 ### Internal Integration
 
-**Marketing Site** → `src/app/(marketing)/layout.tsx:1-149`:
+**Marketing Site** → `src/app/(marketing)/layout.tsx:1-139`:
 
 - Footer navigation includes status page link
 - Consistent layout and branding
@@ -340,18 +340,18 @@ Only aggregate counts are shown → `MONITORING_ENDPOINTS.md:217-224`
 
 ## Evidence Links
 
-1. `src/app/(marketing)/status/page.tsx:1-145` - Main status page implementation
-2. `src/lib/monitoring/system-health.ts:1-307` - Core health checking and metrics library
+1. `src/app/(marketing)/status/page.tsx:1-134` - Main status page implementation
+2. `src/lib/monitoring/system-health.ts:1-306` - Core health checking and metrics library
 3. `src/app/api/health/route.ts:1-74` - Basic health check endpoint
 4. `src/app/api/health/ready/route.ts:1-108` - Readiness probe endpoint
-5. `src/app/api/status/route.ts:1-54` - System status information endpoint
+5. `src/app/api/status/route.ts:1-53` - System status information endpoint
 6. `src/app/(marketing)/layout.tsx:106` - Footer navigation link to status
 7. `src/app/(marketing)/layout.tsx:133` - Footer bottom link to status
 8. `src/app/(marketing)/security/page.tsx:110` - Security page status link
 9. `src/app/(marketing)/terms/page.tsx:119` - Terms page status reference
 10. `src/app/sitemap.ts:13` - Sitemap entry for /status
-11. `MONITORING_ENDPOINTS.md:1-362` - Complete monitoring endpoints documentation
-12. `src/app/api/health/README.md:1-123` - Health check endpoints quick reference
+11. `MONITORING_ENDPOINTS.md:1-332` - Complete monitoring endpoints documentation
+12. `src/app/api/health/README.md:1-122` - Health check endpoints quick reference
 13. `docs/02_FEATURES/FEATURE_REGISTRY.md:136` - Feature registry entry F104
 14. `docs/monitoring-architecture.md` - Overall monitoring architecture documentation
 15. `QUICK_START_MONITORING.md` - Quick start guide for monitoring setup

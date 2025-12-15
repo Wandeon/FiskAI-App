@@ -28,7 +28,7 @@ The Accountant Dashboard provides a comprehensive workspace for accountants (bot
 3. System validates company association → `src/app/(dashboard)/accountant/page.tsx:48`
 4. System sets tenant context for isolation → `src/app/(dashboard)/accountant/page.tsx:50-53`
 5. System fetches accountant-specific metrics in parallel → `src/app/(dashboard)/accountant/page.tsx:55-124`
-6. Dashboard renders with metrics and action items → `src/app/(dashboard)/accountant/page.tsx:126-456`
+6. Dashboard renders with metrics and action items → `src/app/(dashboard)/accountant/page.tsx:126-455`
 
 ### Metrics Collection Flow
 
@@ -390,7 +390,7 @@ The Accountant Dashboard provides a comprehensive workspace for accountants (bot
 
 ### Landing Page
 
-**Location** → `src/app/(marketing)/for/accountants/page.tsx:10-417`
+**Location** → `src/app/(marketing)/for/accountants/page.tsx:10-416`
 
 **Target Audience**: Professional accountants and accounting firms
 

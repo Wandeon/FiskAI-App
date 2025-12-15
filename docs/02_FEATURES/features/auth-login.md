@@ -81,7 +81,7 @@ Allows users to authenticate and access the FiskAI application using email/passw
 
 - **Login attempts**: 5 attempts per 15 minutes -> `src/lib/security/rate-limit.ts:14-18`
 - **Block duration**: 1 hour after max attempts -> `src/lib/security/rate-limit.ts:17`
-- **Implementation**: In-memory store with automatic cleanup -> `src/lib/security/rate-limit.ts:10-119`
+- **Implementation**: In-memory store with automatic cleanup -> `src/lib/security/rate-limit.ts:10-118`
 - **Applied at**: Action level and auth provider level -> `src/app/actions/auth.ts:70-77` and `src/lib/auth.ts:29-36`
 
 ### Password Security

@@ -200,7 +200,7 @@ Promise.all([
 
 ## Support Dashboard API
 
-**Endpoint** → `src/app/api/admin/support/dashboard/route.ts:32-130`
+**Endpoint** → `src/app/api/admin/support/dashboard/route.ts:32-129`
 
 - GET /api/admin/support/dashboard
 - Returns comprehensive support ticket metrics
@@ -256,8 +256,8 @@ None - This is a pure internal admin interface with no external API integrations
 3. `src/app/admin/layout.tsx:13-45` - Admin layout with authentication guard
 4. `src/app/admin-login/page.tsx:11-89` - Admin login interface
 5. `src/app/api/admin/auth/route.ts:7-30` - Admin authentication API endpoints
-6. `src/app/api/admin/companies/[companyId]/audit/route.ts:6-49` - Audit log CSV export API
-7. `src/app/api/admin/support/dashboard/route.ts:32-130` - Support dashboard metrics API
+6. `src/app/api/admin/companies/[companyId]/audit/route.ts:6-48` - Audit log CSV export API
+7. `src/app/api/admin/support/dashboard/route.ts:32-129` - Support dashboard metrics API
 8. `src/lib/admin.ts:1-20` - Admin utility functions and module labels
 9. `prisma/schema.prisma:68-92` - Company model with entitlements and feature flags
 10. `prisma/schema.prisma:132-141` - CompanyUser model for user-company relationships

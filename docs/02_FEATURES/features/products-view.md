@@ -408,7 +408,7 @@ None currently. Products are an internal catalog feature without external API in
 2. `src/components/products/product-table.tsx:38-260` - Filterable table with inline editing
 3. `src/components/products/product-health.tsx:12-82` - Data quality metrics dashboard
 4. `src/components/products/product-csv-import.tsx:21-152` - CSV import with validation
-5. `src/app/actions/product.ts:20-164` - Server actions for CRUD operations and search
+5. `src/app/actions/product.ts:20-163` - Server actions for CRUD operations and search
 6. `src/app/(dashboard)/products/new/page.tsx:16-202` - Product creation form
 7. `src/app/(dashboard)/products/[id]/edit/page.tsx:10-32` - Product edit page wrapper
 8. `src/app/(dashboard)/products/[id]/edit/edit-form.tsx:21-206` - Product edit form

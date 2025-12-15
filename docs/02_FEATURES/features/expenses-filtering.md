@@ -277,7 +277,7 @@ Offset-based pagination with multi-value filter preservation → Historical refe
 
 ## Export Functionality
 
-CSV export endpoint supports date-range filtering → `src/app/api/exports/expenses/route.ts:1-141`
+CSV export endpoint supports date-range filtering → `src/app/api/exports/expenses/route.ts:1-130`
 
 **Features:**
 

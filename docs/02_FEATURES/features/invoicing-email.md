@@ -184,7 +184,7 @@ For B2B invoices, email includes yellow warning box explaining:
 
 ### Resend Email Service
 
-- **API Client**: `src/lib/email.ts:1-66`
+- **API Client**: `src/lib/email.ts:1-65`
 - **Configuration**:
   - `RESEND_API_KEY`: API authentication → `.env.example:23`
   - `RESEND_FROM_EMAIL`: Sender address (default: noreply@fiskai.app) → `.env.example:24`
@@ -277,11 +277,11 @@ RESEND_WEBHOOK_SECRET=whsec_your_resend_webhook_secret
 ## Evidence Links
 
 1. `src/app/actions/e-invoice.ts:348-445` - Server action for sending invoice email
-2. `src/lib/email/templates/invoice-email.tsx:1-227` - React Email template with styling
-3. `src/lib/email.ts:1-66` - Resend email service integration
-4. `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx:1-137` - UI component with send button
-5. `src/app/api/webhooks/resend/route.ts:1-196` - Webhook handler for email tracking
-6. `src/app/api/invoices/[id]/pdf/route.ts:1-168` - PDF generation API endpoint
+2. `src/lib/email/templates/invoice-email.tsx:1-226` - React Email template with styling
+3. `src/lib/email.ts:1-65` - Resend email service integration
+4. `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx:1-136` - UI component with send button
+5. `src/app/api/webhooks/resend/route.ts:1-195` - Webhook handler for email tracking
+6. `src/app/api/invoices/[id]/pdf/route.ts:1-165` - PDF generation API endpoint
 7. `prisma/schema.prisma:190-258` - EInvoice model with email tracking fields
 8. `prisma/migrations/20251215130000_add_email_tracking_fields/migration.sql:1-18` - Database migration for tracking
 9. `.env.example:22-26` - Environment variable configuration

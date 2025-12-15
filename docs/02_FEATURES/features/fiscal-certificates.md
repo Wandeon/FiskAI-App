@@ -53,11 +53,11 @@ Enables multi-tenant Croatian fiscalization (Fiskalizacija 1.0) by allowing comp
 
 ### Certificate Usage Flow
 
-1. Invoice finalized with cash payment method → `src/lib/fiscal/should-fiscalize.ts:208-282`
-2. System checks if fiscalization enabled for company → `src/lib/fiscal/should-fiscalize.ts:214-216`
-3. System validates payment method requires fiscalization → `src/lib/fiscal/should-fiscalize.ts:219-223`
-4. System finds active certificate for environment → `src/lib/fiscal/should-fiscalize.ts:244-280`
-5. Fiscal request queued with certificate ID → `src/lib/fiscal/should-fiscalize.ts:284-321`
+1. Invoice finalized with cash payment method → `src/lib/fiscal/should-fiscalize.ts:1-131`
+2. System checks if fiscalization enabled for company → `src/lib/fiscal/should-fiscalize.ts:1-131`
+3. System validates payment method requires fiscalization → `src/lib/fiscal/should-fiscalize.ts:1-131`
+4. System finds active certificate for environment → `src/lib/fiscal/should-fiscalize.ts:1-131`
+5. Fiscal request queued with certificate ID → `src/lib/fiscal/should-fiscalize.ts:1-131`
 6. Cron processor acquires request with row locking → Via external cron job (not in codebase)
 7. Pipeline loads and decrypts certificate → `src/lib/fiscal/fiscal-pipeline.ts:23-48`
 8. System parses P12 and extracts private key → `src/lib/fiscal/certificate-parser.ts:17-60`
@@ -82,7 +82,7 @@ Enables multi-tenant Croatian fiscalization (Fiskalizacija 1.0) by allowing comp
 | Module                    | Purpose                                         | Location                                                                          |
 | ------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------- |
 | FiscalisationSettingsPage | Main settings page with certificate overview    | `src/app/(dashboard)/settings/fiscalisation/page.tsx:7-59`                        |
-| CertificateCard           | Certificate status display and management       | `src/app/(dashboard)/settings/fiscalisation/certificate-card.tsx:18-292`          |
+| CertificateCard           | Certificate status display and management       | `src/app/(dashboard)/settings/fiscalisation/certificate-card.tsx:18-291`          |
 | CertificateUploadDialog   | 3-step wizard for certificate upload            | `src/app/(dashboard)/settings/fiscalisation/certificate-upload-dialog.tsx:32-437` |
 | FiscalStatusPanel         | Recent requests table and stats dashboard       | `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx:77-241`       |
 | validateCertificateAction | Server action to parse and validate certificate | `src/app/actions/fiscal-certificate.ts:26-69`                                     |
@@ -96,7 +96,7 @@ Enables multi-tenant Croatian fiscalization (Fiskalizacija 1.0) by allowing comp
 | decryptWithEnvelope       | Decrypt certificate using master key            | `src/lib/fiscal/envelope-encryption.ts:56-87`                                     |
 | executeFiscalRequest      | Full pipeline: decrypt, sign, submit            | `src/lib/fiscal/fiscal-pipeline.ts:19-128`                                        |
 | signXML                   | XMLDSIG signing with certificate                | `src/lib/fiscal/xml-signer.ts:10-43`                                              |
-| shouldFiscalizeInvoice    | Decision logic for fiscalization requirements   | `src/lib/fiscal/should-fiscalize.ts:208-282`                                      |
+| shouldFiscalizeInvoice    | Decision logic for fiscalization requirements   | `src/lib/fiscal/should-fiscalize.ts:1-131`                                        |
 
 ## Data
 
@@ -607,7 +607,7 @@ Displays last 20 requests → `src/app/(dashboard)/settings/fiscalisation/page.t
 **Error Display**:
 
 - Error message shown below actions → `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx:224-230`
-- Truncated to 50 characters → `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx:226-228`
+- Truncated to 50 characters → `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx:226-227`
 - Red text color → `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx:225`
 
 ### Data Loading
@@ -636,20 +636,20 @@ Parallel queries for efficiency → `src/app/(dashboard)/settings/fiscalisation/
 
 ### Invoice Finalization
 
-Fiscalization trigger → `src/lib/fiscal/should-fiscalize.ts:208-282`:
+Fiscalization trigger → `src/lib/fiscal/should-fiscalize.ts:1-131`:
 
 **Decision Criteria** (all must be true):
 
-1. Company has fiscalization enabled → `src/lib/fiscal/should-fiscalize.ts:214-216`
-2. Payment method is cash-equivalent (CASH, CARD, G, K) → `src/lib/fiscal/should-fiscalize.ts:219-223`
-3. Invoice not already fiscalized (no JIR) → `src/lib/fiscal/should-fiscalize.ts:226-228`
-4. No pending request exists → `src/lib/fiscal/should-fiscalize.ts:231-242`
-5. Active certificate exists for environment → `src/lib/fiscal/should-fiscalize.ts:244-280`
+1. Company has fiscalization enabled → `src/lib/fiscal/should-fiscalize.ts:1-131`
+2. Payment method is cash-equivalent (CASH, CARD, G, K) → `src/lib/fiscal/should-fiscalize.ts:1-131`
+3. Invoice not already fiscalized (no JIR) → `src/lib/fiscal/should-fiscalize.ts:1-131`
+4. No pending request exists → `src/lib/fiscal/should-fiscalize.ts:1-131`
+5. Active certificate exists for environment → `src/lib/fiscal/should-fiscalize.ts:1-131`
 
-**Queue Creation** → `src/lib/fiscal/should-fiscalize.ts:284-321`:
+**Queue Creation** → `src/lib/fiscal/should-fiscalize.ts:1-131`:
 
-- Upsert to prevent duplicates → `src/lib/fiscal/should-fiscalize.ts:293-318`
-- Unique constraint on `(companyId, invoiceId, messageType)` → `src/lib/fiscal/should-fiscalize.ts:294-298`
+- Upsert to prevent duplicates → `src/lib/fiscal/should-fiscalize.ts:1-131`
+- Unique constraint on `(companyId, invoiceId, messageType)` → `src/lib/fiscal/should-fiscalize.ts:1-131`
 - Sets status to QUEUED → `src/lib/fiscal/should-fiscalize.ts:304, 310`
 - Resets attempt counter → `src/lib/fiscal/should-fiscalize.ts:305, 311`
 - Schedules for immediate processing → `src/lib/fiscal/should-fiscalize.ts:307, 313`
@@ -916,7 +916,7 @@ Validation before certificate use:
 **Depended by**:
 
 - [[fiscal-processing]] - Request queue processing (planned)
-- [[invoice-fiscalization]] - Automatic fiscalization on finalize → `src/lib/fiscal/should-fiscalize.ts:208-282`
+- [[invoice-fiscalization]] - Automatic fiscalization on finalize → `src/lib/fiscal/should-fiscalize.ts:1-131`
 - [[fiscal-reporting]] - Certificate usage statistics (future)
 
 ## Environment Configuration
@@ -962,7 +962,7 @@ Planned but not yet implemented:
 ## Evidence Links
 
 1. `src/app/(dashboard)/settings/fiscalisation/page.tsx:7-59` - Main fiscalisation settings page
-2. `src/app/(dashboard)/settings/fiscalisation/certificate-card.tsx:18-292` - Certificate display and management component
+2. `src/app/(dashboard)/settings/fiscalisation/certificate-card.tsx:18-291` - Certificate display and management component
 3. `src/app/(dashboard)/settings/fiscalisation/certificate-upload-dialog.tsx:32-437` - 3-step upload wizard
 4. `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx:77-241` - Request monitoring dashboard
 5. `src/app/actions/fiscal-certificate.ts:26-69` - Validate certificate server action
@@ -977,11 +977,11 @@ Planned but not yet implemented:
 14. `src/lib/fiscal/envelope-encryption.ts:56-87` - Envelope decryption
 15. `src/lib/fiscal/fiscal-pipeline.ts:19-128` - End-to-end fiscalization pipeline
 16. `src/lib/fiscal/xml-signer.ts:10-43` - XMLDSIG signature generation
-17. `src/lib/fiscal/should-fiscalize.ts:208-282` - Fiscalization decision logic
-18. `src/lib/fiscal/should-fiscalize.ts:284-321` - Queue fiscal request
+17. `src/lib/fiscal/should-fiscalize.ts:1-131` - Fiscalization decision logic
+18. `src/lib/fiscal/should-fiscalize.ts:1-131` - Queue fiscal request
 19. `prisma/schema.prisma:1007-1031` - FiscalCertificate model definition
 20. `prisma/schema.prisma:1033-1063` - FiscalRequest model definition
 21. `prisma/schema.prisma:981-1005` - Fiscal enums (FiscalEnv, CertStatus, FiscalStatus, FiscalMessageType)
 22. `prisma/migrations/20251215081318_add_fiscal_certificates/migration.sql:1-104` - Database migration
-23. `docs/plans/2025-12-15-fiscal-certificates.md:1-2126` - Implementation plan and architecture
-24. `src/lib/fiscal/utils.ts:1-68` - Fiscal utility functions
+23. `docs/plans/2025-12-15-fiscal-certificates.md:1-2016` - Implementation plan and architecture
+24. `src/lib/fiscal/utils.ts:1-21` - Fiscal utility functions

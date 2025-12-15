@@ -198,7 +198,7 @@ Based on architecture documentation → `docs/design/architecture.md:551-562`:
 3. `src/components/dashboard/hero-banner.tsx:97-103` - Hero banner assistant CTA button
 4. `src/components/dashboard/insights-card.tsx:42-47` - Insights card assistant recommendation
 5. `src/app/(dashboard)/dashboard/page.tsx:271` - Action cards rendered in dashboard
-6. `src/components/ui/command-palette.tsx:1-194` - Command palette implementation
+6. `src/components/ui/command-palette.tsx:1-193` - Command palette implementation
 7. `src/components/layout/header.tsx:127` - Command palette header integration
 8. `src/lib/navigation.ts:29-77` - Navigation system for command palette
 9. `docs/design/architecture.md:551-562` - Conversational assistant architecture plan

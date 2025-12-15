@@ -15,7 +15,7 @@ The Bank Reconciliation feature enables FiskAI to automatically match bank trans
 | Type | Path                     | Evidence                                                                                             |
 | ---- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
 | Page | Reconciliation Dashboard | `/banking/reconciliation` → `src/app/(dashboard)/banking/reconciliation/page.tsx:9-70`               |
-| Page | Transaction List         | `/banking/transactions` → `src/app/(dashboard)/banking/transactions/page.tsx:26-450`                 |
+| Page | Transaction List         | `/banking/transactions` → `src/app/(dashboard)/banking/transactions/page.tsx:26-449`                 |
 | Page | Import Statement         | `/banking/import` → `src/app/(dashboard)/banking/import/page.tsx:10-218`                             |
 | API  | Reconciliation Data      | `GET /api/banking/reconciliation` → `src/app/api/banking/reconciliation/route.ts:19-148`             |
 | API  | Manual Match             | `POST /api/banking/reconciliation/match` → `src/app/api/banking/reconciliation/match/route.ts:12-90` |
@@ -574,7 +574,7 @@ ReconciliationDashboard shows errors inline → `src/app/(dashboard)/banking/rec
 7. `src/lib/banking/csv-parser.ts:27-192` - Multi-bank CSV parser with smart detection
 8. `src/app/(dashboard)/banking/import/import-form.tsx:25-319` - CSV upload form with preview
 9. `src/app/(dashboard)/banking/actions.ts:170-282` - Server action for statement import
-10. `src/app/(dashboard)/banking/transactions/page.tsx:26-450` - Transaction list with filtering
+10. `src/app/(dashboard)/banking/transactions/page.tsx:26-449` - Transaction list with filtering
 11. `prisma/schema.prisma:461-492` - BankTransaction model with matching fields
 12. `prisma/schema.prisma:872-877` - MatchStatus enum definition
 13. `src/lib/banking/reconciliation-config.ts:1-2` - Auto-match threshold configuration

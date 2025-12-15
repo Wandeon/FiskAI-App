@@ -53,7 +53,7 @@ Allows users to modify existing invoice details (buyer, dates, line items, notes
 | deleteInvoice action | Server action to delete DRAFT invoices          | `src/app/actions/invoice.ts:269-306`                        |
 | Document Router      | Routes document IDs to appropriate detail pages | `src/app/(dashboard)/documents/[id]/page.tsx`               |
 | FiscalStatusBadge    | Displays fiscalization status                   | `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx` |
-| Invoice Editor       | Client component for editing invoice data       | `src/components/import/invoice-editor.tsx:1-386`            |
+| Invoice Editor       | Client component for editing invoice data       | `src/components/import/invoice-editor.tsx:1-366`            |
 
 ## Data
 
@@ -182,7 +182,7 @@ Source: `src/app/actions/invoice.ts:201-207`
 
 ### Editor Components
 
-- **InvoiceEditor**: Full editor for invoice data -> `src/components/import/invoice-editor.tsx:1-386`
+- **InvoiceEditor**: Full editor for invoice data -> `src/components/import/invoice-editor.tsx:1-366`
   - Line item editing with inline validation
   - Real-time total calculations
   - Vendor and payment info editing
@@ -247,5 +247,5 @@ Source: `src/app/(dashboard)/invoices/[id]/page.tsx:20-30`
 11. `prisma/schema.prisma:183-259` - EInvoice model with status field
 12. `prisma/schema.prisma:261-276` - EInvoiceLine model
 13. `prisma/schema.prisma:803-813` - EInvoiceStatus enum definition
-14. `src/components/import/invoice-editor.tsx:1-386` - Client-side invoice editor component
+14. `src/components/import/invoice-editor.tsx:1-366` - Client-side invoice editor component
 15. `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx:1-73` - Fiscal status display component

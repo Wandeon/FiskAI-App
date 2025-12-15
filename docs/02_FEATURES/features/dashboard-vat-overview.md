@@ -130,7 +130,7 @@ This VAT calculation logic is also used in:
 
 ## Evidence Links
 
-1. `src/components/dashboard/vat-overview-card.tsx:1-80` - Complete VAT overview card component with UI rendering
+1. `src/components/dashboard/vat-overview-card.tsx:1-79` - Complete VAT overview card component with UI rendering
 2. `src/app/(dashboard)/dashboard/page.tsx:81-87` - Database query grouping invoices by status and summing VAT
 3. `src/app/(dashboard)/dashboard/page.tsx:158-165` - VAT calculation logic using status categorization
 4. `src/app/(dashboard)/dashboard/page.tsx:258-262` - VatOverviewCard instantiation with calculated props

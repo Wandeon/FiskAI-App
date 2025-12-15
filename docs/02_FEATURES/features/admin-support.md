@@ -151,14 +151,14 @@ Unlike regular support endpoints that enforce company isolation, the admin dashb
 
 ### User-Facing Support System
 
-**Ticket List Page** → `src/app/(dashboard)/support/page.tsx:1-115`
+**Ticket List Page** → `src/app/(dashboard)/support/page.tsx:1-114`
 
 - Company-scoped ticket list (max 50 tickets)
 - Create new support ticket form
 - Status and priority badges
 - Assignment tracking
 
-**Ticket Detail Page** → `src/app/(dashboard)/support/[id]/page.tsx:1-111`
+**Ticket Detail Page** → `src/app/(dashboard)/support/[id]/page.tsx:1-110`
 
 - Full ticket conversation thread
 - Message history with author attribution
@@ -231,21 +231,21 @@ OPEN → IN_PROGRESS → RESOLVED → CLOSED
 
 ### Support UI Components
 
-**CreateSupportTicketForm** → `src/components/support/create-support-ticket-form.tsx:1-92`
+**CreateSupportTicketForm** → `src/components/support/create-support-ticket-form.tsx:1-91`
 
 - Form with title, body (description), and priority selector
 - Client-side validation
 - Submits to `/api/support/tickets` POST endpoint
 - Toast notifications for success/error states
 
-**SupportStatusButtons** → `src/components/support/support-status-buttons.tsx:1-80`
+**SupportStatusButtons** → `src/components/support/support-status-buttons.tsx:1-79`
 
 - `CloseSupportTicketButton`: Sets ticket status to CLOSED
 - `ReopenSupportTicketButton`: Reopens closed/resolved tickets
 - Optimistic UI with pending states
 - PATCH requests to `/api/support/tickets/[id]/status`
 
-**AssignSupportTicketButton** → `src/components/support/support-assign-button.tsx:1-51`
+**AssignSupportTicketButton** → `src/components/support/support-assign-button.tsx:1-50`
 
 - Toggle assignment of ticket to current user
 - Shows "Preuzmi tiket" (Take ticket) or "Makni dodjelu" (Unassign)
@@ -310,17 +310,17 @@ OPEN → IN_PROGRESS → RESOLVED → CLOSED
 
 ## Evidence Links
 
-1. `src/app/api/admin/support/dashboard/route.ts:1-130` - Complete admin dashboard API implementation
+1. `src/app/api/admin/support/dashboard/route.ts:1-129` - Complete admin dashboard API implementation
 2. `src/app/api/admin/support/dashboard/route.ts:10-30` - SupportDashboardData interface definition
 3. `src/lib/admin.ts:1-5` - Global admin authentication check
-4. `src/app/actions/support-ticket.ts:1-455` - Comprehensive ticket management actions
-5. `src/app/(dashboard)/support/page.tsx:1-115` - User-facing support ticket list page
-6. `src/app/(dashboard)/support/[id]/page.tsx:1-111` - Ticket detail page with messages
-7. `src/hooks/use-ticket-summary.ts:1-39` - Real-time ticket summary hook with 60s polling
+4. `src/app/actions/support-ticket.ts:1-434` - Comprehensive ticket management actions
+5. `src/app/(dashboard)/support/page.tsx:1-114` - User-facing support ticket list page
+6. `src/app/(dashboard)/support/[id]/page.tsx:1-110` - Ticket detail page with messages
+7. `src/hooks/use-ticket-summary.ts:1-38` - Real-time ticket summary hook with 60s polling
 8. `src/app/api/support/tickets/summary/route.ts:1-56` - Company-scoped ticket summary endpoint
 9. `prisma/schema.prisma:741-769` - SupportTicket and SupportTicketMessage models
-10. `src/components/support/create-support-ticket-form.tsx:1-92` - Ticket creation form component
-11. `src/components/support/support-status-buttons.tsx:1-80` - Close/reopen ticket buttons
-12. `src/components/support/support-assign-button.tsx:1-51` - Ticket assignment button
-13. `src/app/api/support/tickets/route.ts:1-82` - Ticket list and creation API endpoints
-14. `src/app/api/support/tickets/[id]/status/route.ts:1-47` - Ticket status update endpoint
+10. `src/components/support/create-support-ticket-form.tsx:1-91` - Ticket creation form component
+11. `src/components/support/support-status-buttons.tsx:1-79` - Close/reopen ticket buttons
+12. `src/components/support/support-assign-button.tsx:1-50` - Ticket assignment button
+13. `src/app/api/support/tickets/route.ts:1-81` - Ticket list and creation API endpoints
+14. `src/app/api/support/tickets/[id]/status/route.ts:1-45` - Ticket status update endpoint

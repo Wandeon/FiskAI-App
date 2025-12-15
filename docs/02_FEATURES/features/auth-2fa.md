@@ -18,7 +18,7 @@ This feature implements passwordless authentication using WebAuthn/Passkeys tech
 | ---- | ----------------- | --------------------------------------------------- |
 | Page | /settings         | `src/app/(dashboard)/settings/page.tsx:171-183`     |
 | Page | /login (passkeys) | `src/app/(auth)/login/page.tsx:55-100`              |
-| API  | /api/webauthn/\*  | `src/app/api/webauthn/register/start/route.ts:1-45` |
+| API  | /api/webauthn/\*  | `src/app/api/webauthn/register/start/route.ts:1-43` |
 
 ## Core Flow
 
@@ -79,7 +79,7 @@ This feature implements passwordless authentication using WebAuthn/Passkeys tech
 
 ## Integrations
 
-- **@simplewebauthn/server** → `src/lib/webauthn.ts:1-202` - Server-side WebAuthn operations
+- **@simplewebauthn/server** → `src/lib/webauthn.ts:1-201` - Server-side WebAuthn operations
 - **@simplewebauthn/browser** → `src/components/settings/passkey-manager.tsx:5` - Browser-side WebAuthn operations
 - WebAuthn API (browser native) - FIDO2/WebAuthn standard compliance
 
@@ -129,14 +129,14 @@ Unsupported browsers display a warning message → `src/components/settings/pass
 
 ## Evidence Links
 
-1. `src/components/settings/passkey-manager.tsx:1-212` - Complete passkey management UI
-2. `src/lib/webauthn.ts:1-202` - WebAuthn core library implementation
-3. `src/app/api/webauthn/register/start/route.ts:1-45` - Registration initiation endpoint
-4. `src/app/api/webauthn/register/finish/route.ts:1-70` - Registration verification endpoint
-5. `src/app/api/webauthn/login/start/route.ts:1-54` - Authentication initiation endpoint
-6. `src/app/api/webauthn/login/finish/route.ts:1-99` - Authentication verification endpoint
-7. `src/app/api/webauthn/passkeys/route.ts:1-36` - List passkeys endpoint
-8. `src/app/api/webauthn/passkeys/[id]/route.ts:1-38` - Delete passkey endpoint
+1. `src/components/settings/passkey-manager.tsx:1-201` - Complete passkey management UI
+2. `src/lib/webauthn.ts:1-201` - WebAuthn core library implementation
+3. `src/app/api/webauthn/register/start/route.ts:1-43` - Registration initiation endpoint
+4. `src/app/api/webauthn/register/finish/route.ts:1-69` - Registration verification endpoint
+5. `src/app/api/webauthn/login/start/route.ts:1-53` - Authentication initiation endpoint
+6. `src/app/api/webauthn/login/finish/route.ts:1-98` - Authentication verification endpoint
+7. `src/app/api/webauthn/passkeys/route.ts:1-33` - List passkeys endpoint
+8. `src/app/api/webauthn/passkeys/[id]/route.ts:1-36` - Delete passkey endpoint
 9. `src/app/(dashboard)/settings/page.tsx:171-183` - Security settings tab integration
 10. `src/app/(auth)/login/page.tsx:55-100` - Login page with passkey support
 11. `src/app/actions/auth.ts:213-239` - Passkey login server action

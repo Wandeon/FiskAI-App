@@ -124,7 +124,7 @@ Allows new users to create an account in FiskAI by providing their name, email, 
 
 - **NextAuth**: Authentication framework → `src/lib/auth.ts:9-116`
 - **React Hook Form**: Form state management → `src/app/(auth)/register/page.tsx:19-25`
-- **Zod**: Schema validation → `src/lib/validations/auth.ts:1-24`
+- **Zod**: Schema validation → `src/lib/validations/auth.ts:1-23`
 - **bcryptjs**: Password hashing → `src/app/actions/auth.ts:4`
 - **Prisma**: Database ORM → `src/app/actions/auth.ts:5`
 - **Resend/React Email**: Email sending (templates) → `src/app/actions/auth.ts:42-43`

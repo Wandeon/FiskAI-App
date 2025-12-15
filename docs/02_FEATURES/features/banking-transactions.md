@@ -45,7 +45,7 @@ Provides a comprehensive view of all bank transactions imported from bank statem
 ### Sync Status Flow
 
 1. Transactions display source indicator (MANUAL vs AIS_SYNC) -> `prisma/schema.prisma:482`
-2. Bank account shows connection status badge -> `src/app/(dashboard)/banking/components/connection-badge.tsx:1-44`
+2. Bank account shows connection status badge -> `src/app/(dashboard)/banking/components/connection-badge.tsx:1-43`
 3. Connection statuses: MANUAL, CONNECTED, EXPIRED -> `prisma/schema.prisma:940-944`
 4. Connected accounts show expiry warning if within 14 days -> `src/app/(dashboard)/banking/components/connection-badge.tsx:20-24`
 5. Expired connections show amber warning badge -> `src/app/(dashboard)/banking/components/connection-badge.tsx:29-36`
@@ -485,16 +485,16 @@ Parser features:
 
 ## Evidence Links
 
-1. `src/app/(dashboard)/banking/transactions/page.tsx:26-450` - Main transactions list page with filtering and pagination
+1. `src/app/(dashboard)/banking/transactions/page.tsx:26-449` - Main transactions list page with filtering and pagination
 2. `prisma/schema.prisma:461-493` - BankTransaction table schema with all fields and relations
 3. `prisma/schema.prisma:430-459` - BankAccount table schema with sync fields
 4. `src/app/(dashboard)/banking/actions.ts:170-278` - Import bank statement server action
 5. `src/lib/banking/reconciliation-service.ts:15-137` - Auto-match transaction reconciliation service
 6. `src/lib/banking/csv-parser.ts:26-99` - CSV parser with multi-bank format support
 7. `src/app/(dashboard)/banking/page.tsx:42-51` - Banking dashboard recent transactions query
-8. `src/app/(dashboard)/banking/import/page.tsx:1-219` - Import page with instructions and recent imports
-9. `src/components/ui/responsive-table.tsx:1-50` - Responsive table component for adaptive layout
-10. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-44` - Connection status badge component
+8. `src/app/(dashboard)/banking/import/page.tsx:1-209` - Import page with instructions and recent imports
+9. `src/components/ui/responsive-table.tsx:1-49` - Responsive table component for adaptive layout
+10. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-43` - Connection status badge component
 11. `src/lib/navigation.ts:52` - Banking navigation menu entry
 12. `prisma/schema.prisma:872-877` - MatchStatus enum definition
 13. `prisma/schema.prisma:934-949` - Sync provider and connection status enums

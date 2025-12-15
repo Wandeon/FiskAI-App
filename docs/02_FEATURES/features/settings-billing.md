@@ -354,14 +354,14 @@ Source: `src/lib/billing/stripe.ts:342-370`
 
 1. `src/app/(dashboard)/settings/billing/page.tsx:1-53` - Billing page server component with usage stats loading
 2. `src/app/(dashboard)/settings/billing/billing-page-client.tsx:1-284` - Client component with plan selection and portal access
-3. `src/lib/billing/stripe.ts:1-371` - Core Stripe integration with plans, checkout, portal, webhooks
+3. `src/lib/billing/stripe.ts:1-361` - Core Stripe integration with plans, checkout, portal, webhooks
 4. `src/lib/billing/stripe.ts:26-48` - Plan configuration (pausalni, standard, pro)
 5. `src/lib/billing/stripe.ts:83-139` - Checkout session creation with subscription metadata
 6. `src/lib/billing/stripe.ts:144-164` - Customer portal session creation
 7. `src/lib/billing/stripe.ts:169-204` - Webhook event handling and routing
 8. `src/lib/billing/stripe.ts:294-337` - Invoice limit enforcement (canCreateInvoice)
 9. `src/lib/billing/stripe.ts:342-370` - Usage statistics calculation (getUsageStats)
-10. `src/app/api/billing/checkout/route.ts:1-47` - Checkout API endpoint
+10. `src/app/api/billing/checkout/route.ts:1-45` - Checkout API endpoint
 11. `src/app/api/billing/portal/route.ts:1-41` - Portal API endpoint
 12. `src/app/api/billing/webhook/route.ts:1-28` - Webhook API endpoint
 13. `src/app/actions/invoice.ts:41-48` - Invoice creation limit check

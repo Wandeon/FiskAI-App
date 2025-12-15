@@ -402,10 +402,10 @@ Support data feeds into company-wide metrics → `src/lib/notifications.ts:127-1
 
 1. `src/app/(dashboard)/support/[id]/page.tsx:1-110` - Main ticket detail page implementation
 2. `src/components/support/support-reply-form.tsx:1-56` - Reply form component with message submission
-3. `src/components/support/support-status-buttons.tsx:1-80` - Close and reopen button components
-4. `src/components/support/support-assign-button.tsx:1-50` - Assign/unassign ticket functionality
-5. `src/app/api/support/tickets/[id]/messages/route.ts:1-54` - POST endpoint for creating messages
-6. `src/app/api/support/tickets/[id]/status/route.ts:1-47` - PATCH endpoint for updating status
+3. `src/components/support/support-status-buttons.tsx:1-79` - Close and reopen button components
+4. `src/components/support/support-assign-button.tsx:1-49` - Assign/unassign ticket functionality
+5. `src/app/api/support/tickets/[id]/messages/route.ts:1-53` - POST endpoint for creating messages
+6. `src/app/api/support/tickets/[id]/status/route.ts:1-45` - PATCH endpoint for updating status
 7. `prisma/schema.prisma:741-769` - Database models for SupportTicket and SupportTicketMessage
 8. `prisma/schema.prisma:920-932` - Enums for status and priority values
 9. `src/lib/notifications.ts:229-258` - Support ticket notification alerts

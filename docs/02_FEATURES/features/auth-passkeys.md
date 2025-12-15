@@ -107,14 +107,14 @@ Enables passwordless authentication using WebAuthn/FIDO2 passkeys stored on user
 
 ## Evidence Links
 
-1. `src/components/settings/passkey-manager.tsx:1-211` - Complete passkey management UI component
-2. `src/lib/webauthn.ts:1-202` - Core WebAuthn registration and authentication logic
-3. `src/app/api/webauthn/register/start/route.ts:1-44` - Registration initiation endpoint
+1. `src/components/settings/passkey-manager.tsx:1-201` - Complete passkey management UI component
+2. `src/lib/webauthn.ts:1-201` - Core WebAuthn registration and authentication logic
+3. `src/app/api/webauthn/register/start/route.ts:1-43` - Registration initiation endpoint
 4. `src/app/api/webauthn/register/finish/route.ts:1-69` - Registration completion endpoint
 5. `src/app/api/webauthn/login/start/route.ts:1-53` - Authentication initiation endpoint
 6. `src/app/api/webauthn/login/finish/route.ts:1-98` - Authentication completion endpoint
-7. `src/app/api/webauthn/passkeys/route.ts:1-35` - List passkeys endpoint
-8. `src/app/api/webauthn/passkeys/[id]/route.ts:1-37` - Delete passkey endpoint
+7. `src/app/api/webauthn/passkeys/route.ts:1-33` - List passkeys endpoint
+8. `src/app/api/webauthn/passkeys/[id]/route.ts:1-36` - Delete passkey endpoint
 9. `src/app/(auth)/login/page.tsx:55-114` - Passkey login flow in login page
 10. `src/app/(dashboard)/settings/page.tsx:171-183` - Security tab with PasskeyManager
 11. `src/app/actions/auth.ts:213-239` - loginWithPasskey server action

@@ -109,5 +109,5 @@ All queries are scoped to the current company using `companyId` filter.
 4. `src/app/(dashboard)/dashboard/page.tsx:63-69` - Revenue aggregation query with status filter
 5. `src/app/(dashboard)/dashboard/page.tsx:199-226` - Stats highlights array construction with formatting
 6. `src/components/dashboard/today-actions-card.tsx:79-94` - Stats grid rendering
-7. `src/components/ui/stat-card.tsx:1-60` - Reusable stat card component (alternate implementation)
+7. `src/components/ui/stat-card.tsx:1-59` - Reusable stat card component (alternate implementation)
 8. `prisma/schema.prisma:191-199` - EInvoice model schema

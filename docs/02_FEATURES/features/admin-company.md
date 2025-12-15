@@ -516,10 +516,10 @@ None - this is an internal administrative interface.
 
 1. `src/app/admin/page.tsx:7-95` - Company list page with table and module badges
 2. `src/app/admin/[companyId]/page.tsx:17-379` - Company detail page with stats, users, and audit logs
-3. `src/app/admin/layout.tsx:1-45` - Admin layout with authentication check and header
+3. `src/app/admin/layout.tsx:1-43` - Admin layout with authentication check and header
 4. `src/app/admin-login/page.tsx:11-89` - Admin login form with password authentication
 5. `src/app/api/admin/auth/route.ts:1-30` - Authentication API for login/logout with cookie management
-6. `src/app/api/admin/companies/[companyId]/audit/route.ts:1-49` - CSV export endpoint for audit logs
+6. `src/app/api/admin/companies/[companyId]/audit/route.ts:1-47` - CSV export endpoint for audit logs
 7. `src/lib/admin.ts:1-20` - Admin utilities: isGlobalAdmin, MODULE_LABELS, getEntitlementsList
 8. `prisma/schema.prisma:68-118` - Company table schema with entitlements and feature flags
 9. `prisma/schema.prisma:132-146` - CompanyUser table schema for memberships

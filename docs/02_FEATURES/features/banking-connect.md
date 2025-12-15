@@ -56,7 +56,7 @@ Enables automatic bank account synchronization via PSD2-compliant Account Inform
 | gocardlessProvider           | GoCardless API implementation                    | `src/lib/bank-sync/providers/gocardless.ts:91-260`            |
 | getProvider                  | Provider factory and configuration checker       | `src/lib/bank-sync/providers/index.ts:10-30`                  |
 | processTransactionsWithDedup | Deduplication engine for transactions            | `src/lib/bank-sync/dedup.ts:131-184`                          |
-| bank-sync cron               | Daily synchronization background job             | `src/app/api/cron/bank-sync/route.ts:8-119`                   |
+| bank-sync cron               | Daily synchronization background job             | `src/app/api/cron/bank-sync/route.ts:8-118`                   |
 
 ## Data
 
@@ -177,7 +177,7 @@ Triggered immediately after successful connection → `src/app/api/bank/callback
 
 ### Daily Synchronization
 
-Background cron job runs daily at 5 AM UTC → `vercel.json:3-6`, `src/app/api/cron/bank-sync/route.ts:8-119`:
+Background cron job runs daily at 5 AM UTC → `vercel.json:3-6`, `src/app/api/cron/bank-sync/route.ts:8-118`:
 
 1. **Authorization Check**: Validates cron secret → `src/app/api/cron/bank-sync/route.ts:10-15`
 2. **Account Discovery**: Finds all CONNECTED accounts → `src/app/api/cron/bank-sync/route.ts:26-29`
@@ -453,18 +453,18 @@ Configuration in `.env.example:12, 32-40`
 1. `src/app/api/bank/connect/route.ts:9-102` - Connection initiation API endpoint
 2. `src/app/api/bank/callback/route.ts:8-106` - OAuth callback handler and initial sync
 3. `src/app/api/bank/disconnect/route.ts:8-59` - Disconnection API endpoint
-4. `src/app/(dashboard)/banking/components/connect-button.tsx:1-113` - Connection UI component
-5. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-44` - Status badge component
-6. `src/app/(dashboard)/banking/page.tsx:1-270` - Banking dashboard page
-7. `src/lib/bank-sync/provider.ts:1-51` - Provider abstraction interface
-8. `src/lib/bank-sync/providers/gocardless.ts:1-261` - GoCardless implementation
-9. `src/lib/bank-sync/providers/index.ts:1-31` - Provider factory and configuration
-10. `src/lib/bank-sync/dedup.ts:1-225` - Deduplication engine with fuzzy matching
-11. `src/lib/bank-sync/types.ts:1-35` - TypeScript interfaces for providers
-12. `src/app/api/cron/bank-sync/route.ts:1-119` - Daily synchronization cron job
+4. `src/app/(dashboard)/banking/components/connect-button.tsx:1-112` - Connection UI component
+5. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-43` - Status badge component
+6. `src/app/(dashboard)/banking/page.tsx:1-269` - Banking dashboard page
+7. `src/lib/bank-sync/provider.ts:1-50` - Provider abstraction interface
+8. `src/lib/bank-sync/providers/gocardless.ts:1-260` - GoCardless implementation
+9. `src/lib/bank-sync/providers/index.ts:1-30` - Provider factory and configuration
+10. `src/lib/bank-sync/dedup.ts:1-224` - Deduplication engine with fuzzy matching
+11. `src/lib/bank-sync/types.ts:1-33` - TypeScript interfaces for providers
+12. `src/app/api/cron/bank-sync/route.ts:1-118` - Daily synchronization cron job
 13. `prisma/schema.prisma:430-519` - BankAccount and BankConnection models
 14. `prisma/schema.prisma:934-949` - SyncProvider and ConnectionStatus enums
 15. `.env.example:12, 32-40` - Environment variable configuration
 16. `vercel.json:1-12` - Cron job schedule configuration
-17. `src/lib/auth-utils.ts:1-49` - Authentication and authorization utilities
+17. `src/lib/auth-utils.ts:1-47` - Authentication and authorization utilities
 18. `docs/plans/2024-12-14-bank-sync-ais-design.md:1-200` - Architecture and design documentation

@@ -224,7 +224,7 @@ All UI text in Croatian (Croatian language):
 
 2. Email delivery system
    - Resend email service → `src/lib/email.ts:25-64`
-   - Password reset email template → `src/lib/email/templates/password-reset-email.tsx:1-176`
+   - Password reset email template → `src/lib/email/templates/password-reset-email.tsx:1-175`
 
 3. Authentication system
    - User model with passwordHash field
@@ -326,7 +326,7 @@ All UI text in Croatian (Croatian language):
 
 ## Evidence Links
 
-1. **`src/app/(auth)/reset-password/page.tsx:1-152`** - Complete reset password page implementation with form, validation, and token handling
+1. **`src/app/(auth)/reset-password/page.tsx:1-151`** - Complete reset password page implementation with form, validation, and token handling
 2. **`src/app/actions/auth.ts:172-211`** - resetPassword server action with token validation, expiration check, password update, and token cleanup
 3. **`prisma/schema.prisma:59-66`** - PasswordResetToken database model with fields, constraints, and user relation
 4. **`prisma/migrations/20251212_add_password_reset_token/migration.sql:1-16`** - Database migration creating PasswordResetToken table with indexes and foreign key

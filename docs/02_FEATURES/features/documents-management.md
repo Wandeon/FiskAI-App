@@ -775,17 +775,17 @@ Keywords for invoices:
 ## Evidence Links
 
 1. `src/app/(dashboard)/documents/page.tsx:1-324` - Main unified documents hub page with upload, filtering, search, pagination
-2. `src/components/documents/documents-client.tsx:1-307` - Client-side state management, upload handling, and processing sidebar
+2. `src/components/documents/documents-client.tsx:1-306` - Client-side state management, upload handling, and processing sidebar
 3. `src/components/documents/category-cards.tsx:1-117` - Category filter cards with counts and active state
-4. `src/components/documents/new-document-dropdown.tsx:1-103` - Document creation dropdown menu
-5. `src/components/documents/compact-dropzone.tsx:1-161` - File upload dropzone with camera support
-6. `src/components/documents/reports-sidebar.tsx:1-143` - Processing queue sidebar with job cards
-7. `src/components/import/processing-card.tsx:1-169` - Individual job status card with actions
-8. `src/app/(dashboard)/documents/[id]/page.tsx:1-58` - Smart detail router for all document types
+4. `src/components/documents/new-document-dropdown.tsx:1-102` - Document creation dropdown menu
+5. `src/components/documents/compact-dropzone.tsx:1-160` - File upload dropzone with camera support
+6. `src/components/documents/reports-sidebar.tsx:1-133` - Processing queue sidebar with job cards
+7. `src/components/import/processing-card.tsx:1-168` - Individual job status card with actions
+8. `src/app/(dashboard)/documents/[id]/page.tsx:1-57` - Smart detail router for all document types
 9. `src/lib/documents/unified-query.ts:1-237` - Unified query and normalization for all document types
 10. `src/lib/import/detect-document-type.ts:1-154` - Automatic document type detection algorithm
 11. `src/app/api/import/upload/route.ts:1-95` - File upload API endpoint with validation
-12. `src/app/api/import/jobs/[id]/route.ts:1-47` - Job status query endpoint
-13. `src/app/api/import/jobs/[id]/confirm/route.ts:1-159` - Job confirmation and data save endpoint
+12. `src/app/api/import/jobs/[id]/route.ts:1-45` - Job status query endpoint
+13. `src/app/api/import/jobs/[id]/confirm/route.ts:1-158` - Job confirmation and data save endpoint
 14. `src/lib/navigation.ts:38-55` - Main navigation with documents submenu
 15. `prisma/schema.prisma:641-668, 191-226, 345-373, 885-906` - ImportJob, EInvoice, Expense tables and enums

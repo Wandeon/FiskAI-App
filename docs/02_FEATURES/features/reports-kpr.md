@@ -66,10 +66,10 @@ The KPR Report feature generates the Croatian "Knjiga Primitaka i Izdataka" (Boo
 
 | Module            | Purpose                              | Location                                          |
 | ----------------- | ------------------------------------ | ------------------------------------------------- |
-| KprPage           | Main report page with filters and UI | `src/app/(dashboard)/reports/kpr/page.tsx:16-356` |
+| KprPage           | Main report page with filters and UI | `src/app/(dashboard)/reports/kpr/page.tsx:16-355` |
 | fetchKpr          | Core data aggregation function       | `src/lib/reports/kpr.ts:51-205`                   |
 | kprToCsv          | CSV export formatter                 | `src/lib/reports/kpr.ts:207-242`                  |
-| kprToExcel        | Excel-enhanced CSV formatter         | `src/lib/reports/kpr-excel.ts:7-157`              |
+| kprToExcel        | Excel-enhanced CSV formatter         | `src/lib/reports/kpr-excel.ts:7-156`              |
 | KprPdfDocument    | React-PDF document component         | `src/lib/reports/kpr-pdf.tsx:168-286`             |
 | posdXml           | PO-SD XML generator for tax filing   | `src/lib/reports/kpr.ts:272-291`                  |
 | generateKPRReport | Legacy KPR generator (VAT breakdown) | `src/lib/reports/kpr-generator.ts:51-191`         |
@@ -347,7 +347,7 @@ Redni broj,Datum,Broj računa/dokumenta,Opis,Primitak (Prihod),Izdatak (Trošak)
 
 ### Excel Export
 
-Enhanced CSV with rich formatting → `src/lib/reports/kpr-excel.ts:7-157`:
+Enhanced CSV with rich formatting → `src/lib/reports/kpr-excel.ts:7-156`:
 
 **Structure**:
 
@@ -980,7 +980,7 @@ db.eInvoice.findMany({
 9. `src/lib/reports/kpr.ts:207-242` - CSV export formatter (kprToCsv)
 10. `src/lib/reports/kpr.ts:272-291` - PO-SD XML generator
 11. `src/lib/reports/kpr-pdf.tsx:168-286` - React-PDF document component
-12. `src/lib/reports/kpr-excel.ts:7-157` - Excel-enhanced CSV formatter
+12. `src/lib/reports/kpr-excel.ts:7-156` - Excel-enhanced CSV formatter
 13. `src/app/api/reports/kpr/route.ts:5-31` - CSV export API endpoint
 14. `src/app/api/reports/kpr/pdf/route.ts:7-47` - PDF export API endpoint
 15. `src/app/api/reports/kpr/excel/route.ts:6-34` - Excel export API endpoint

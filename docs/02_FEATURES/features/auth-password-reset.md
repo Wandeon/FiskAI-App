@@ -86,7 +86,7 @@ Allows users to securely reset their forgotten password via email verification. 
 
 ## Integrations
 
-- **Resend Email Service** → `src/lib/email.ts:1-66`
+- **Resend Email Service** → `src/lib/email.ts:1-65`
   - API Key: `RESEND_API_KEY` environment variable
   - From Email: `RESEND_FROM_EMAIL` or defaults to `noreply@fiskai.app`
   - Template: React Email components for styled emails
@@ -167,10 +167,10 @@ The password reset email (`src/lib/email/templates/password-reset-email.tsx`) in
 
 ## Evidence Links
 
-1. `src/app/(auth)/forgot-password/page.tsx:1-111` - Forgot password form UI
-2. `src/app/(auth)/reset-password/page.tsx:1-152` - Reset password form UI
+1. `src/app/(auth)/forgot-password/page.tsx:1-110` - Forgot password form UI
+2. `src/app/(auth)/reset-password/page.tsx:1-151` - Reset password form UI
 3. `src/app/actions/auth.ts:105-211` - Password reset server actions
-4. `src/lib/email/templates/password-reset-email.tsx:1-176` - Email template
+4. `src/lib/email/templates/password-reset-email.tsx:1-175` - Email template
 5. `src/lib/email.ts:25-64` - Email sending service
 6. `src/lib/security/rate-limit.ts:19-23` - Rate limit configuration
 7. `src/lib/security/rate-limit.ts:34-95` - Rate limit implementation

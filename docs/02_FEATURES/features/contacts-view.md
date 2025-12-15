@@ -365,12 +365,12 @@ None currently. Contacts are an internal data management feature without externa
 
 ## Evidence Links
 
-1. `src/app/(dashboard)/contacts/page.tsx:85-253` - Main contacts page with list/board views and quick filters
+1. `src/app/(dashboard)/contacts/page.tsx:85-252` - Main contacts page with list/board views and quick filters
 2. `src/components/contacts/contact-card.tsx:29-150` - Contact card component with avatar, details, and quick actions
 3. `src/components/contacts/contact-filters.tsx:36-310` - Advanced filtering component with search, segments, and presets
 4. `src/app/(dashboard)/contacts/[id]/page.tsx:31-436` - Contact detail page with analytics and invoice history
 5. `src/app/actions/contact-list.ts:17-93` - Server action for fetching filtered and paginated contacts
-6. `src/app/actions/contact.ts:9-111` - CRUD server actions for contact management
+6. `src/app/actions/contact.ts:9-110` - CRUD server actions for contact management
 7. `src/app/(dashboard)/contacts/delete-button.tsx:13-47` - Delete contact button with confirmation dialog
 8. `prisma/schema.prisma:148-171` - Contact model schema with fields and relations
 9. `prisma/schema.prisma:792-796` - ContactType enum definition (CUSTOMER, SUPPLIER, BOTH)

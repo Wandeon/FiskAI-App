@@ -49,7 +49,7 @@ Provides a comprehensive overview page for individual contacts (customers and su
 | --------------------- | ------------------------------------------ | ------------------------------------------------ |
 | Contact Overview Page | Server component rendering contact details | `src/app/(dashboard)/contacts/[id]/page.tsx`     |
 | Contact Card          | Contact card display in list view          | `src/components/contacts/contact-card.tsx`       |
-| Contact Actions       | CRUD operations for contacts               | `src/app/actions/contact.ts:9-111`               |
+| Contact Actions       | CRUD operations for contacts               | `src/app/actions/contact.ts:9-110`               |
 | Contact List          | Filtered and paginated contact listing     | `src/app/actions/contact-list.ts:17-93`          |
 | Delete Button         | Client component for contact deletion      | `src/app/(dashboard)/contacts/delete-button.tsx` |
 
@@ -376,7 +376,7 @@ Logic: `src/app/(dashboard)/contacts/[id]/page.tsx:130`
 ## Related Features
 
 - **Contact List**: `src/app/(dashboard)/contacts/page.tsx:85-145` (F032)
-- **Contact CRUD**: `src/app/actions/contact.ts:9-111` (F031)
+- **Contact CRUD**: `src/app/actions/contact.ts:9-110` (F031)
 - **E-Invoice Creation**: Pre-fills contact data
 - **Expense Tracking**: Vendor relationship display
 - **Payment Analytics**: Contact-level payment metrics

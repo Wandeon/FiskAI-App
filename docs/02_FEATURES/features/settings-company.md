@@ -447,17 +447,17 @@ Navigation links in left sidebar -> `src/app/(dashboard)/settings/page.tsx:98-12
 
 ## Evidence Links
 
-1. `src/app/(dashboard)/settings/page.tsx:1-283` - Main settings page with tab navigation and all sections
-2. `src/app/(dashboard)/settings/company-settings-form.tsx:1-167` - Company profile form with validation
-3. `src/app/(dashboard)/settings/einvoice-settings-form.tsx:1-198` - E-invoice provider configuration form
-4. `src/app/(dashboard)/settings/plan-settings-form.tsx:1-123` - Legal form and entitlements form
+1. `src/app/(dashboard)/settings/page.tsx:1-282` - Main settings page with tab navigation and all sections
+2. `src/app/(dashboard)/settings/company-settings-form.tsx:1-165` - Company profile form with validation
+3. `src/app/(dashboard)/settings/einvoice-settings-form.tsx:1-197` - E-invoice provider configuration form
+4. `src/app/(dashboard)/settings/plan-settings-form.tsx:1-122` - Legal form and entitlements form
 5. `src/app/actions/company.ts:50-87` - updateCompany server action with role validation
 6. `src/app/actions/company.ts:89-127` - updateCompanySettings server action with encryption
 7. `src/app/actions/company.ts:129-166` - updateCompanyPlan server action
-8. `src/lib/validations/company.ts:1-34` - All company validation schemas (3 schemas)
-9. `src/lib/capabilities.ts:1-60` - Capabilities system deriving visibility from company config
+8. `src/lib/validations/company.ts:1-33` - All company validation schemas (3 schemas)
+9. `src/lib/capabilities.ts:1-59` - Capabilities system deriving visibility from company config
 10. `src/lib/auth-utils.ts:43-49` - requireCompany helper for authentication
 11. `prisma/schema.prisma:68-118` - Company model with all fields and relations
-12. `src/components/onboarding/step-basic-info.tsx:1-94` - Initial company creation flow
-13. `src/components/onboarding/step-contact-tax.tsx:1-131` - Company creation with tax info
-14. `src/lib/field-visibility.ts:1-14` - Field visibility derived from capabilities
+12. `src/components/onboarding/step-basic-info.tsx:1-93` - Initial company creation flow
+13. `src/components/onboarding/step-contact-tax.tsx:1-130` - Company creation with tax info
+14. `src/lib/field-visibility.ts:1-13` - Field visibility derived from capabilities

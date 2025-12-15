@@ -346,10 +346,10 @@ Evidence: `src/components/expense/receipt-scanner.tsx:57-75`
 ## Evidence Links
 
 1. `src/app/api/ai/extract/route.ts:1-84` - Complete API endpoint implementation
-2. `src/lib/ai/ocr.ts:1-212` - OCR extraction with GPT-4o Vision
+2. `src/lib/ai/ocr.ts:1-201` - OCR extraction with GPT-4o Vision
 3. `src/lib/ai/extract.ts:1-200` - Text-based extraction with GPT-4o-mini
 4. `src/lib/ai/types.ts:1-42` - TypeScript interfaces for extraction
-5. `src/lib/ai/usage-tracking.ts:1-99` - Usage tracking and cost calculation
+5. `src/lib/ai/usage-tracking.ts:1-98` - Usage tracking and cost calculation
 6. `src/lib/ai/rate-limiter.ts:1-100` - Rate limiting configuration and logic
 7. `src/components/expense/receipt-scanner.tsx:1-231` - Receipt scanner UI component
 8. `src/components/expense/receipt-scanner-with-feedback.tsx:1-258` - Scanner with feedback

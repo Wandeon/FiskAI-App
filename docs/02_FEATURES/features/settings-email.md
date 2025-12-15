@@ -419,14 +419,14 @@ Shows mail icon with message when no connections exist -> `src/app/(dashboard)/s
 ## Evidence Links
 
 1. `src/app/(dashboard)/settings/email/page.tsx:1-59` - Email settings page with connection list
-2. `src/app/(dashboard)/settings/email/components/connect-button.tsx:1-68` - OAuth initiation for Gmail/Outlook
+2. `src/app/(dashboard)/settings/email/components/connect-button.tsx:1-67` - OAuth initiation for Gmail/Outlook
 3. `src/app/(dashboard)/settings/email/components/connection-list.tsx:1-117` - Connected email management UI
 4. `src/app/(dashboard)/settings/email/components/import-rules.tsx:1-188` - Import rule configuration UI
-5. `src/app/api/email/connect/route.ts:1-49` - OAuth URL generation endpoint
+5. `src/app/api/email/connect/route.ts:1-47` - OAuth URL generation endpoint
 6. `src/app/api/email/callback/route.ts:1-95` - OAuth callback with token exchange
 7. `src/app/api/email/rules/route.ts:1-89` - Import rule CRUD operations
 8. `src/lib/email-sync/sync-service.ts:1-250` - Core sync logic with deduplication
-9. `src/lib/email-sync/providers/gmail.ts:1-152` - Gmail provider implementation
+9. `src/lib/email-sync/providers/gmail.ts:1-151` - Gmail provider implementation
 10. `src/lib/email-sync/providers/microsoft.ts:1-154` - Microsoft provider implementation
-11. `src/app/api/cron/email-sync/route.ts:1-38` - Daily sync cron job
+11. `src/app/api/cron/email-sync/route.ts:1-36` - Daily sync cron job
 12. `prisma/schema.prisma:544-618` - EmailConnection, EmailImportRule, EmailAttachment models

@@ -177,7 +177,7 @@ The system creates invoice and lines in a single atomic transaction:
 
 ### GET /api/e-invoices/receive
 
-The GET endpoint provides filtering for received invoices → `src/app/api/e-invoices/receive/route.ts:226-287`
+The GET endpoint provides filtering for received invoices → `src/app/api/e-invoices/receive/route.ts:226-286`
 
 **Query Parameters:**
 

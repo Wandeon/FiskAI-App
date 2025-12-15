@@ -223,7 +223,7 @@ Validates all input fields before calculation → line 88-125:
 
 ## Fiscal XML Structure
 
-Croatian fiscalization XML standard → `src/lib/fiscal/xml-builder.ts:1-194`:
+Croatian fiscalization XML standard → `src/lib/fiscal/xml-builder.ts:1-193`:
 
 ### Namespace and Schema
 
@@ -306,7 +306,7 @@ Negative amounts with reference to original JIR:
 
 ## Digital Signature
 
-XML signing with X.509 certificate → `src/lib/fiscal/xml-signer.ts:1-51`:
+XML signing with X.509 certificate → `src/lib/fiscal/xml-signer.ts:1-50`:
 
 ### Signature Configuration → line 10-22
 
@@ -330,7 +330,7 @@ XML signing with X.509 certificate → `src/lib/fiscal/xml-signer.ts:1-51`:
 
 ## CIS Communication
 
-SOAP client for Croatian Tax Authority → `src/lib/fiscal/porezna-client.ts:1-161`:
+SOAP client for Croatian Tax Authority → `src/lib/fiscal/porezna-client.ts:1-160`:
 
 ### Endpoints → line 4-7
 
@@ -390,7 +390,7 @@ Helper function removes XML namespace prefixes for simpler parsing.
 
 ## Background Processing
 
-Async fiscal request processor → `src/app/api/cron/fiscal-processor/route.ts:1-227`:
+Async fiscal request processor → `src/app/api/cron/fiscal-processor/route.ts:1-226`:
 
 ### Job Acquisition → line 28-45
 
@@ -568,7 +568,7 @@ Digital certificate lifecycle → `src/app/actions/fiscal-certificate.ts` and `s
 
 ## UI Components
 
-### Fiscal Status Badge → `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx:1-167`
+### Fiscal Status Badge → `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx:1-165`
 
 **Display States**:
 
@@ -614,7 +614,7 @@ Digital certificate lifecycle → `src/app/actions/fiscal-certificate.ts` and `s
 - Success toast + page refresh → line 160-161
 - Error toast with message → line 163
 
-### Fiscalisation Settings Page → `src/app/(dashboard)/settings/fiscalisation/page.tsx:1-60`
+### Fiscalisation Settings Page → `src/app/(dashboard)/settings/fiscalisation/page.tsx:1-59`
 
 **Layout**:
 
@@ -1005,16 +1005,16 @@ Configuration locations:
 
 ## Evidence Links
 
-1. `src/lib/fiscal/should-fiscalize.ts:1-132` - Fiscalization decision engine and queue management
-2. `src/lib/fiscal/fiscal-pipeline.ts:1-166` - Core pipeline: certificate → sign → submit → parse
-3. `src/lib/fiscal/xml-builder.ts:1-194` - Fiscal XML generation (RacunZahtjev and Storno)
+1. `src/lib/fiscal/should-fiscalize.ts:1-131` - Fiscalization decision engine and queue management
+2. `src/lib/fiscal/fiscal-pipeline.ts:1-165` - Core pipeline: certificate → sign → submit → parse
+3. `src/lib/fiscal/xml-builder.ts:1-193` - Fiscal XML generation (RacunZahtjev and Storno)
 4. `src/lib/e-invoice/zki.ts:1-125` - ZKI calculation with RSA-SHA256 signature
-5. `src/lib/fiscal/xml-signer.ts:1-51` - Digital signature with X.509 certificate
-6. `src/lib/fiscal/porezna-client.ts:1-161` - SOAP client for CIS endpoints
-7. `src/app/api/cron/fiscal-processor/route.ts:1-227` - Background processor with retry logic
+5. `src/lib/fiscal/xml-signer.ts:1-50` - Digital signature with X.509 certificate
+6. `src/lib/fiscal/porezna-client.ts:1-160` - SOAP client for CIS endpoints
+7. `src/app/api/cron/fiscal-processor/route.ts:1-226` - Background processor with retry logic
 8. `src/app/actions/fiscal-certificate.ts:1-278` - Certificate management and manual fiscalization
-9. `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx:1-167` - UI component for fiscal status
-10. `src/app/(dashboard)/settings/fiscalisation/page.tsx:1-60` - Certificate settings page
+9. `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx:1-165` - UI component for fiscal status
+10. `src/app/(dashboard)/settings/fiscalisation/page.tsx:1-59` - Certificate settings page
 11. `src/app/actions/e-invoice.ts:199-216` - Automatic fiscalization after e-invoice send
 12. `prisma/schema.prisma:1033-1063` - FiscalRequest table schema
 13. `prisma/schema.prisma:1007-1031` - FiscalCertificate table schema

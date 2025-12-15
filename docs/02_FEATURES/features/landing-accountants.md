@@ -110,7 +110,7 @@ The Accountants Landing Page is a targeted marketing page designed to attract an
 2. **Pristup klijentima** (Client Access)
    - Icon: Users
    - Benefits: Free access for accountants, view all clients in one place, platform communication, change notifications
-   - Evidence: `src/app/(dashboard)/accountant/page.tsx:46-456`
+   - Evidence: `src/app/(dashboard)/accountant/page.tsx:46-455`
 
 3. **Izvještaji i analize** (Reports and Analytics)
    - Icon: BarChart

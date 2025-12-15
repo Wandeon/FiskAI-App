@@ -260,7 +260,7 @@ Import page requires bank account selection -> `src/app/(dashboard)/banking/impo
 
 #### Bank Connection Integration
 
-Optional automated sync with bank APIs -> `src/app/(dashboard)/banking/components/connect-button.tsx:1-113`
+Optional automated sync with bank APIs -> `src/app/(dashboard)/banking/components/connect-button.tsx:1-112`
 
 - Connection badge shows status: Manual, Connected, Expired
 - Connect button initiates OAuth flow with bank
@@ -399,14 +399,14 @@ new Intl.NumberFormat("hr-HR", {
 
 ## Evidence Links
 
-1. `src/app/(dashboard)/banking/accounts/page.tsx:1-159` - Main bank accounts list page with account cards and actions
-2. `src/app/(dashboard)/banking/accounts/account-form.tsx:1-202` - Client form for adding bank accounts with IBAN validation
+1. `src/app/(dashboard)/banking/accounts/page.tsx:1-158` - Main bank accounts list page with account cards and actions
+2. `src/app/(dashboard)/banking/accounts/account-form.tsx:1-201` - Client form for adding bank accounts with IBAN validation
 3. `src/app/(dashboard)/banking/actions.ts:9-156` - Server actions for creating, deleting, and setting default accounts
-4. `src/lib/banking/constants.ts:1-139` - IBAN validation, bank detection, and Croatian bank registry
-5. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-44` - Connection status badge component
-6. `src/app/(dashboard)/banking/components/connect-button.tsx:1-113` - Bank connection/disconnection button component
+4. `src/lib/banking/constants.ts:1-138` - IBAN validation, bank detection, and Croatian bank registry
+5. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-43` - Connection status badge component
+6. `src/app/(dashboard)/banking/components/connect-button.tsx:1-112` - Bank connection/disconnection button component
 7. `prisma/schema.prisma:430-459` - BankAccount table schema with fields and relations
 8. `prisma/schema.prisma:495-519` - BankConnection table schema for automated sync
 9. `src/app/(dashboard)/banking/page.tsx:22-166` - Banking dashboard with account overview
 10. `src/app/(dashboard)/banking/import/page.tsx:20-100` - Import page requiring account selection
-11. `src/components/ui/empty-state.tsx:1-37` - Empty state component for zero accounts
+11. `src/components/ui/empty-state.tsx:1-36` - Empty state component for zero accounts

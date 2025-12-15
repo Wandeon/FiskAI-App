@@ -303,7 +303,7 @@ RecurringExpense is protected by tenant middleware → `src/lib/prisma-extension
 
 ### Authorization
 
-Following existing expense patterns → `src/app/actions/expense.ts:1-376`:
+Following existing expense patterns → `src/app/actions/expense.ts:1-365`:
 
 1. **Create/Update** - Requires authenticated user with company context
 2. **Delete** - Requires specific permission (`expense:delete`)

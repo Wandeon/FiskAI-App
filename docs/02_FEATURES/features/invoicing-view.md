@@ -44,7 +44,7 @@ Provides a unified view of all invoices (regular and e-invoices) alongside other
 4. Fiscal certificate status checked -> `src/app/(dashboard)/invoices/[id]/page.tsx:66-72`
 5. Invoice header displays number, type, and status -> `src/app/(dashboard)/invoices/[id]/page.tsx:84-92`
 6. Buyer and invoice details shown in cards -> `src/app/(dashboard)/invoices/[id]/page.tsx:138-186`
-7. Fiscal status badge with JIR/ZKI displayed -> `src/components/invoices/[id]/fiscal-status-badge.tsx:19-166`
+7. Fiscal status badge with JIR/ZKI displayed -> `src/app/(dashboard)/invoices/[id]/fiscal-status-badge.tsx:19-166`
 8. Line items table shows products/services -> `src/app/(dashboard)/invoices/[id]/page.tsx:190-220`
 9. Totals card calculates net, VAT, and total amounts -> `src/app/(dashboard)/invoices/[id]/page.tsx:223-242`
 10. Invoice actions toolbar provides PDF download, email send, convert, delete -> `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx:15-136`

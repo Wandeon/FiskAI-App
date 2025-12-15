@@ -12,7 +12,7 @@ Provides a unified document upload system at `/documents` that enables users to 
 | Component | CompactDropzone          | `src/components/documents/compact-dropzone.tsx:18-161` |
 | Component | DocumentsClient          | `src/components/documents/documents-client.tsx:28-307` |
 | API       | POST /api/import/upload  | `src/app/api/import/upload/route.ts:14-95`             |
-| API       | POST /api/import/process | `src/app/api/import/process/route.ts:9-404`            |
+| API       | POST /api/import/process | `src/app/api/import/process/route.ts:9-403`            |
 | API       | GET /api/import/jobs/:id | `src/app/api/import/jobs/[id]/route.ts:6-47`           |
 | Storage   | R2 Client                | `src/lib/r2-client.ts:5-67`                            |
 | Detection | Document Type Detection  | `src/lib/import/detect-document-type.ts:19-154`        |
@@ -585,7 +585,7 @@ const { documents, total, counts } = await queryUnifiedDocuments({
    `src/app/api/import/upload/route.ts:14-95`
 
 5. **Processing API Endpoint** - AI-powered data extraction for all document types
-   `src/app/api/import/process/route.ts:9-404`
+   `src/app/api/import/process/route.ts:9-403`
 
 6. **Document Type Detection** - Intelligent detection from filename, extension, and content
    `src/lib/import/detect-document-type.ts:19-154`

@@ -320,7 +320,7 @@ Source: `src/app/(dashboard)/contacts/[id]/edit/edit-form.tsx:67,238-252`
 ## Evidence Links
 
 1. `src/app/(dashboard)/contacts/[id]/edit/page.tsx:1-32` - Edit page server component with contact loading
-2. `src/app/(dashboard)/contacts/[id]/edit/edit-form.tsx:1-360` - Complete edit form with validation and auto-lookup
+2. `src/app/(dashboard)/contacts/[id]/edit/edit-form.tsx:1-330` - Complete edit form with validation and auto-lookup
 3. `src/app/actions/contact.ts:28-58` - updateContact server action with ownership validation
 4. `src/app/actions/contact.ts:36-42` - Contact ownership check through tenant context
 5. `src/app/actions/contact.ts:44-48` - Server-side Zod schema validation

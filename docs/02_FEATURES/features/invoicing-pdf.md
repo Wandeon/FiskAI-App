@@ -362,11 +362,11 @@ The invoice email (`src/lib/email/templates/invoice-email.tsx`) includes:
 ## Evidence Links
 
 1. `src/app/api/invoices/[id]/pdf/route.ts:11-167` - Main PDF generation API route
-2. `src/lib/pdf/invoice-template.tsx:1-466` - PDF template with React components
+2. `src/lib/pdf/invoice-template.tsx:1-456` - PDF template with React components
 3. `src/lib/barcode.ts:4-125` - IBAN validation and EPC QR code generation
 4. `src/app/(dashboard)/invoices/[id]/invoice-actions.tsx:57-86` - Download button handler
 5. `src/app/actions/e-invoice.ts:348-445` - Email sending with PDF attachment
-6. `src/lib/email/templates/invoice-email.tsx:1-227` - Email template for invoice delivery
+6. `src/lib/email/templates/invoice-email.tsx:1-226` - Email template for invoice delivery
 7. `src/lib/email.ts:25-64` - Email service with attachment support
 8. `package.json:42` - @react-pdf/renderer dependency
 9. `package.json:66` - qrcode dependency

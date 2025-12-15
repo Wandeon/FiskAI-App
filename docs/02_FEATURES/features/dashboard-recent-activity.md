@@ -109,7 +109,7 @@ Each activity item shows:
 
 ## Evidence Links
 
-1. `src/components/dashboard/recent-activity.tsx:1-99` - Complete RecentActivity component implementation
+1. `src/components/dashboard/recent-activity.tsx:1-98` - Complete RecentActivity component implementation
 2. `src/app/(dashboard)/dashboard/page.tsx:50-62` - Database query fetching recent invoices
 3. `src/app/(dashboard)/dashboard/page.tsx:270` - Component rendered in dashboard layout
 4. `src/components/dashboard/recent-activity.tsx:22-31` - Status configuration with colors and labels

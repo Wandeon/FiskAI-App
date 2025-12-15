@@ -315,13 +315,13 @@ Source: `src/components/expenses/expense-inline-status.tsx:17-22`
 ## Evidence Links
 
 1. `src/app/(dashboard)/expenses/[id]/page.tsx:1-116` - Main expense detail page with status display
-2. `src/app/(dashboard)/expenses/[id]/expense-actions.tsx:1-60` - Action buttons with pay/delete logic
+2. `src/app/(dashboard)/expenses/[id]/expense-actions.tsx:1-59` - Action buttons with pay/delete logic
 3. `src/app/actions/expense.ts:95-149` - updateExpense server action with no status restrictions
 4. `src/app/actions/expense.ts:103-109` - Expense existence check (no status validation)
 5. `src/app/actions/expense.ts:111-134` - Field updates with partial input support
 6. `src/app/actions/expense.ts:141-142` - Cache revalidation for UI updates
 7. `src/app/actions/expense.ts:181-218` - markExpenseAsPaid with status validation
 8. `src/app/actions/expense.ts:225-269` - updateExpenseInline for quick status changes
-9. `src/components/expenses/expense-inline-status.tsx:1-66` - Inline status editing component
+9. `src/components/expenses/expense-inline-status.tsx:1-65` - Inline status editing component
 10. `prisma/schema.prisma:345-374` - Expense model with all fields
 11. `prisma/schema.prisma:834-839` - ExpenseStatus enum definition

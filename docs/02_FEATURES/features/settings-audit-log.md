@@ -432,8 +432,8 @@ GET /api/admin/companies/{companyId}/audit?limit=500
 7. `src/lib/context.ts:11-25` - AsyncLocalStorage for context propagation
 8. `src/app/(dashboard)/settings/page.tsx:118-123` - Settings sidebar navigation link
 9. `src/app/(dashboard)/settings/page.tsx:239-246` - Settings compliance tab card link
-10. `src/components/ui/data-table.tsx:1-78` - Generic data table component
+10. `src/components/ui/data-table.tsx:1-77` - Generic data table component
 11. `src/app/api/admin/companies/[companyId]/audit/route.ts:6-48` - Admin CSV export endpoint
-12. `prisma/migrations/20251211_add_audit_log/migration.sql:1-31` - Database migration for audit log
+12. `prisma/migrations/20251211_add_audit_log/migration.sql:1-30` - Database migration for audit log
 13. `src/lib/navigation.ts:74` - Settings navigation menu entry
 14. `src/lib/db.ts:1-22` - Database client with Prisma extensions

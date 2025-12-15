@@ -180,7 +180,7 @@ Source: `src/app/api/bank/disconnect/route.ts:43-46`
 
 ### ConnectionBadge Component
 
-- **Purpose**: Visual status indicator -> `src/app/(dashboard)/banking/components/connection-badge.tsx:1-44`
+- **Purpose**: Visual status indicator -> `src/app/(dashboard)/banking/components/connection-badge.tsx:1-43`
 - **CONNECTED**: Green badge with dot, shows days until expiry if <14 days -> `src/app/(dashboard)/banking/components/connection-badge.tsx:9-27`
 - **EXPIRED**: Amber badge with warning -> `src/app/(dashboard)/banking/components/connection-badge.tsx:29-36`
 - **MANUAL**: Gray badge "Ručni uvoz" -> `src/app/(dashboard)/banking/components/connection-badge.tsx:38-42`
@@ -290,7 +290,7 @@ After disconnection, account reverts to manual import:
 1. `src/app/api/bank/disconnect/route.ts:1-59` - Complete disconnect API endpoint implementation
 2. `src/app/(dashboard)/banking/components/connect-button.tsx:47-73` - Disconnect handler with confirmation dialog
 3. `src/app/(dashboard)/banking/page.tsx:155-159` - ConnectButton integration in banking dashboard
-4. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-44` - Connection status badge component
+4. `src/app/(dashboard)/banking/components/connection-badge.tsx:1-43` - Connection status badge component
 5. `prisma/schema.prisma:430-459` - BankAccount model with connection fields
 6. `prisma/schema.prisma:495-519` - BankConnection model and cascade delete relationship
 7. `prisma/schema.prisma:940-944` - ConnectionStatus enum definition

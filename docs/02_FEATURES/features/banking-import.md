@@ -100,7 +100,7 @@ The Import Bank Statement feature enables users to import and process bank state
   - protivna_strana (counterparty name)
   - protivni_iban (counterparty IBAN)
 
-- **CSV Parsing Features** → `src/lib/banking/csv-parser.ts:27-193`
+- **CSV Parsing Features** → `src/lib/banking/csv-parser.ts:27-192`
   - Auto-detect decimal separator (comma vs dot) → `src/lib/banking/csv-parser.ts:172-179`
   - Multiple date format support → `src/lib/banking/csv-parser.ts:133-158`
   - Invoice number extraction from description → `src/lib/banking/csv-parser.ts:181-192`

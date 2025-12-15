@@ -504,4 +504,4 @@ None currently. Support tickets are an internal communication feature without ex
 12. `prisma/schema.prisma:741-758` - SupportTicket model schema with fields, relations, and indexes
 13. `prisma/schema.prisma:760-769` - SupportTicketMessage model schema for conversation threads
 14. `prisma/schema.prisma:920-932` - SupportTicketStatus and SupportTicketPriority enum definitions
-15. `src/app/api/admin/support/dashboard/route.ts:32-130` - Admin-only support metrics and dashboard API
+15. `src/app/api/admin/support/dashboard/route.ts:32-129` - Admin-only support metrics and dashboard API

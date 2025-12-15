@@ -18,7 +18,7 @@ Displays transparent pricing information for all FiskAI subscription plans inclu
 | Navigation | Header nav link       | `src/app/(marketing)/layout.tsx:62`        |
 | Footer     | Footer link           | `src/app/(marketing)/layout.tsx:103`       |
 | Sitemap    | /sitemap.xml entry    | `src/app/sitemap.ts:13`                    |
-| Routes     | Marketing route group | `docs/_meta/inventory/routes.json:294-298` |
+| Routes     | Marketing route group | `docs/_meta/inventory/routes.json:294-297` |
 
 ## Core Flow
 
@@ -125,7 +125,7 @@ Displays transparent pricing information for all FiskAI subscription plans inclu
 | Marketing Layout     | Navigation and footer with pricing links | `src/app/(marketing)/layout.tsx`           |
 | Sitemap              | SEO sitemap including pricing page       | `src/app/sitemap.ts`                       |
 | Billing Plans Config | Server-side plan definitions and pricing | `src/lib/billing/stripe.ts:26-48`          |
-| Routes Inventory     | Route registry for pricing page          | `docs/_meta/inventory/routes.json:294-298` |
+| Routes Inventory     | Route registry for pricing page          | `docs/_meta/inventory/routes.json:294-297` |
 
 ## Data
 
@@ -198,7 +198,7 @@ Pricing information is defined in both the marketing page (display) and the bill
 
 ## Evidence Links
 
-1. **Pricing Page Component**: `src/app/(marketing)/pricing/page.tsx:1-353`
+1. **Pricing Page Component**: `src/app/(marketing)/pricing/page.tsx:1-333`
    - Main pricing page with all tiers, features, and CTAs
 
 2. **Marketing Layout Navigation**: `src/app/(marketing)/layout.tsx:62`
@@ -210,7 +210,7 @@ Pricing information is defined in both the marketing page (display) and the bill
 4. **Sitemap Entry**: `src/app/sitemap.ts:13`
    - SEO sitemap includes /pricing route
 
-5. **Route Registry**: `docs/_meta/inventory/routes.json:294-298`
+5. **Route Registry**: `docs/_meta/inventory/routes.json:294-297`
    - Pricing page registered in routes inventory
 
 6. **Billing Plan Configuration**: `src/lib/billing/stripe.ts:26-48`

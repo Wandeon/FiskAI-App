@@ -405,15 +405,15 @@ Configuration in `.env.example:13, 55-57, 39-40`
 
 1. `src/app/actions/e-invoice.ts:129-220` - Server action for e-invoice transmission with fiscalization
 2. `src/lib/e-invoice/ubl-generator.ts:1-190` - UBL 2.1 XML generation with EN16931 compliance
-3. `src/lib/e-invoice/provider.ts:1-45` - Provider abstraction and factory
-4. `src/lib/e-invoice/providers/mock.ts:1-71` - Mock provider for testing
+3. `src/lib/e-invoice/provider.ts:1-43` - Provider abstraction and factory
+4. `src/lib/e-invoice/providers/mock.ts:1-70` - Mock provider for testing
 5. `src/app/(dashboard)/e-invoices/[id]/detail-actions.tsx:1-136` - UI component with send button
 6. `src/app/(dashboard)/e-invoices/[id]/page.tsx:1-299` - E-invoice detail page with status display
-7. `src/lib/fiscal/should-fiscalize.ts:1-132` - Fiscal decision engine and queue management
-8. `src/lib/fiscal/fiscal-pipeline.ts:1-166` - Certificate-based fiscal pipeline
-9. `src/app/api/cron/fiscal-processor/route.ts:1-227` - Background fiscal processor with retry
-10. `src/app/(dashboard)/settings/einvoice-settings-form.tsx:1-198` - Provider configuration UI
+7. `src/lib/fiscal/should-fiscalize.ts:1-131` - Fiscal decision engine and queue management
+8. `src/lib/fiscal/fiscal-pipeline.ts:1-165` - Certificate-based fiscal pipeline
+9. `src/app/api/cron/fiscal-processor/route.ts:1-226` - Background fiscal processor with retry
+10. `src/app/(dashboard)/settings/einvoice-settings-form.tsx:1-197` - Provider configuration UI
 11. `prisma/schema.prisma:191-259` - EInvoice model with status tracking
 12. `.env.example:13, 39-40, 55-57` - Environment variable configuration
 13. `src/lib/e-invoice/index.ts:1-9` - E-invoice module exports
-14. `src/lib/e-invoice/types.ts:1-46` - TypeScript interfaces for providers
+14. `src/lib/e-invoice/types.ts:1-45` - TypeScript interfaces for providers

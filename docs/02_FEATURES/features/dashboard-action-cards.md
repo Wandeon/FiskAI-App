@@ -69,7 +69,7 @@ The Accountant Workspace (`/accountant`) provides comprehensive accounting tools
 - **Monthly Revenue**: Current month financial overview
 - **Direct Links**: E-invoices, expenses, and security settings
 
-Evidence: `src/app/(dashboard)/accountant/page.tsx:46-456`
+Evidence: `src/app/(dashboard)/accountant/page.tsx:46-455`
 
 ## Dependencies
 
@@ -96,10 +96,10 @@ Evidence: `src/app/(dashboard)/accountant/page.tsx:46-456`
 
 ## Evidence Links
 
-1. `src/components/dashboard/action-cards.tsx:1-48` - Complete ActionCards component implementation
+1. `src/components/dashboard/action-cards.tsx:1-47` - Complete ActionCards component implementation
 2. `src/app/(dashboard)/dashboard/page.tsx:8` - ActionCards import statement
 3. `src/app/(dashboard)/dashboard/page.tsx:271` - ActionCards rendered in dashboard grid
-4. `src/app/(dashboard)/assistant/page.tsx:1-58` - FiskAI Assistant destination page
-5. `src/app/(dashboard)/accountant/page.tsx:1-456` - Accountant Workspace destination page
+4. `src/app/(dashboard)/assistant/page.tsx:1-57` - FiskAI Assistant destination page
+5. `src/app/(dashboard)/accountant/page.tsx:1-436` - Accountant Workspace destination page
 6. `docs/_meta/inventory/components.json:36-40` - ActionCards component inventory entry
 7. `src/components/dashboard/action-cards.tsx:20-25` - Assistant card button with navigation link
