@@ -4,7 +4,7 @@
 
 **Last Updated:** 2025-12-15
 **Total Features:** 108
-**Coverage:** 26% (28/108 documented)
+**Coverage:** 33% (36/108 documented)
 
 ## Registry
 
@@ -43,14 +43,14 @@
 | F027              | Receive E-Invoice             | E-Invoicing   | ✅     | /api/e-invoices/receive            | Medium     | [→](features/e-invoicing-receive.md)       |
 | F028              | E-Invoice Compliance Check    | E-Invoicing   | ✅     | /api/compliance/en16931            | Medium     | [→](features/e-invoicing-compliance.md)    |
 | **EXPENSES**      |
-| F029              | Create Expense                | Expenses      | ❌     | /expenses/new                      | Medium     | -                                          |
-| F030              | View Expenses                 | Expenses      | ❌     | /expenses                          | High       | -                                          |
-| F031              | Edit Expense                  | Expenses      | ❌     | /expenses/:id                      | Medium     | -                                          |
-| F032              | Receipt Scanner               | Expenses      | ❌     | /expenses/new                      | High       | -                                          |
-| F033              | Expense Categories            | Expenses      | ❌     | /expenses/categories               | Medium     | -                                          |
-| F034              | Expense Filtering             | Expenses      | ❌     | /expenses                          | Medium     | -                                          |
-| F035              | Mark Expense as Paid          | Expenses      | ❌     | /expenses/:id                      | Low        | -                                          |
-| F036              | Recurring Expenses            | Expenses      | ❌     | Database + Actions                 | Medium     | -                                          |
+| F029              | Create Expense                | Expenses      | ✅     | /expenses/new                      | Medium     | [→](features/expenses-create.md)           |
+| F030              | View Expenses                 | Expenses      | ✅     | /expenses                          | High       | [→](features/expenses-view.md)             |
+| F031              | Edit Expense                  | Expenses      | ✅     | /expenses/:id                      | Medium     | [→](features/expenses-edit.md)             |
+| F032              | Receipt Scanner               | Expenses      | ✅     | /expenses/new                      | High       | [→](features/expenses-receipt-scanner.md)  |
+| F033              | Expense Categories            | Expenses      | ✅     | /expenses/categories               | Medium     | [→](features/expenses-categories.md)       |
+| F034              | Expense Filtering             | Expenses      | ✅     | /expenses                          | Medium     | [→](features/expenses-filtering.md)        |
+| F035              | Mark Expense as Paid          | Expenses      | ✅     | /expenses/:id                      | Low        | [→](features/expenses-mark-paid.md)        |
+| F036              | Recurring Expenses            | Expenses      | ✅     | Database + Actions                 | Medium     | [→](features/expenses-recurring.md)        |
 | **BANKING**       |
 | F037              | View Bank Accounts            | Banking       | ❌     | /banking/accounts                  | Medium     | -                                          |
 | F038              | Connect Bank Account          | Banking       | ❌     | /api/bank/connect                  | High       | -                                          |
