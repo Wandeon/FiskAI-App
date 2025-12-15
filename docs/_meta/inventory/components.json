@@ -1,0 +1,529 @@
+{
+  "generated": "2025-12-15T14:44:33.841Z",
+  "count": 86,
+  "components": [
+    {
+      "name": "ai-feedback",
+      "file": "src/components/ai/ai-feedback.tsx",
+      "directory": "src/components/ai",
+      "exports": ["AIFeedback", "AIConfidenceBadge"]
+    },
+    {
+      "name": "ai-stats-widget",
+      "file": "src/components/ai/ai-stats-widget.tsx",
+      "directory": "src/components/ai",
+      "exports": ["AIStatsWidget", "CompactAIStats"]
+    },
+    {
+      "name": "contact-card",
+      "file": "src/components/contacts/contact-card.tsx",
+      "directory": "src/components/contacts",
+      "exports": ["ContactCard"]
+    },
+    {
+      "name": "contact-filters",
+      "file": "src/components/contacts/contact-filters.tsx",
+      "directory": "src/components/contacts",
+      "exports": ["ContactFilters"]
+    },
+    {
+      "name": "contact-skeleton",
+      "file": "src/components/contacts/contact-skeleton.tsx",
+      "directory": "src/components/contacts",
+      "exports": ["ContactCardSkeleton", "ContactListSkeleton"]
+    },
+    {
+      "name": "action-cards",
+      "file": "src/components/dashboard/action-cards.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["ActionCards"]
+    },
+    {
+      "name": "alert-banner",
+      "file": "src/components/dashboard/alert-banner.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["AlertBanner"]
+    },
+    {
+      "name": "fiscalization-status",
+      "file": "src/components/dashboard/fiscalization-status.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["FiscalizationStatus"]
+    },
+    {
+      "name": "hero-banner",
+      "file": "src/components/dashboard/hero-banner.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["HeroBanner"]
+    },
+    {
+      "name": "insights-card",
+      "file": "src/components/dashboard/insights-card.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["InsightsCard"]
+    },
+    {
+      "name": "invoice-funnel-card",
+      "file": "src/components/dashboard/invoice-funnel-card.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["InvoiceFunnelCard"]
+    },
+    {
+      "name": "onboarding-checklist",
+      "file": "src/components/dashboard/onboarding-checklist.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["OnboardingChecklist"]
+    },
+    {
+      "name": "quick-stats",
+      "file": "src/components/dashboard/quick-stats.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["QuickStats"]
+    },
+    {
+      "name": "recent-activity",
+      "file": "src/components/dashboard/recent-activity.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["RecentActivity"]
+    },
+    {
+      "name": "revenue-trend-card",
+      "file": "src/components/dashboard/revenue-trend-card.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["RevenueTrendCard"]
+    },
+    {
+      "name": "today-actions-card",
+      "file": "src/components/dashboard/today-actions-card.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["TodayActionsCard"]
+    },
+    {
+      "name": "vat-overview-card",
+      "file": "src/components/dashboard/vat-overview-card.tsx",
+      "directory": "src/components/dashboard",
+      "exports": ["VatOverviewCard"]
+    },
+    {
+      "name": "category-cards",
+      "file": "src/components/documents/category-cards.tsx",
+      "directory": "src/components/documents",
+      "exports": ["CategoryCards"]
+    },
+    {
+      "name": "compact-dropzone",
+      "file": "src/components/documents/compact-dropzone.tsx",
+      "directory": "src/components/documents",
+      "exports": ["CompactDropzone"]
+    },
+    {
+      "name": "documents-client",
+      "file": "src/components/documents/documents-client.tsx",
+      "directory": "src/components/documents",
+      "exports": ["DocumentsClient"]
+    },
+    {
+      "name": "new-document-dropdown",
+      "file": "src/components/documents/new-document-dropdown.tsx",
+      "directory": "src/components/documents",
+      "exports": ["NewDocumentDropdown"]
+    },
+    {
+      "name": "reports-sidebar",
+      "file": "src/components/documents/reports-sidebar.tsx",
+      "directory": "src/components/documents",
+      "exports": ["ReportsSidebar"]
+    },
+    {
+      "name": "receipt-scanner-with-feedback",
+      "file": "src/components/expense/receipt-scanner-with-feedback.tsx",
+      "directory": "src/components/expense",
+      "exports": ["ReceiptScannerWithFeedback"]
+    },
+    {
+      "name": "receipt-scanner",
+      "file": "src/components/expense/receipt-scanner.tsx",
+      "directory": "src/components/expense",
+      "exports": ["ReceiptScanner"]
+    },
+    {
+      "name": "expense-filters",
+      "file": "src/components/expenses/expense-filters.tsx",
+      "directory": "src/components/expenses",
+      "exports": ["ExpenseFilters"]
+    },
+    {
+      "name": "expense-inline-status",
+      "file": "src/components/expenses/expense-inline-status.tsx",
+      "directory": "src/components/expenses",
+      "exports": ["ExpenseInlineStatus"]
+    },
+    {
+      "name": "confirmation-modal",
+      "file": "src/components/import/confirmation-modal.tsx",
+      "directory": "src/components/import",
+      "exports": ["ConfirmationModal"]
+    },
+    {
+      "name": "document-scanner",
+      "file": "src/components/import/document-scanner.tsx",
+      "directory": "src/components/import",
+      "exports": ["DocumentScanner"]
+    },
+    {
+      "name": "invoice-editor",
+      "file": "src/components/import/invoice-editor.tsx",
+      "directory": "src/components/import",
+      "exports": ["InvoiceEditor"]
+    },
+    {
+      "name": "pdf-viewer",
+      "file": "src/components/import/pdf-viewer.tsx",
+      "directory": "src/components/import",
+      "exports": ["PdfViewer", "ImageViewer"]
+    },
+    {
+      "name": "processing-card",
+      "file": "src/components/import/processing-card.tsx",
+      "directory": "src/components/import",
+      "exports": ["ProcessingCard"]
+    },
+    {
+      "name": "processing-queue",
+      "file": "src/components/import/processing-queue.tsx",
+      "directory": "src/components/import",
+      "exports": ["ProcessingQueue"]
+    },
+    {
+      "name": "smart-dropzone",
+      "file": "src/components/import/smart-dropzone.tsx",
+      "directory": "src/components/import",
+      "exports": ["SmartDropzone"]
+    },
+    {
+      "name": "transaction-editor",
+      "file": "src/components/import/transaction-editor.tsx",
+      "directory": "src/components/import",
+      "exports": ["TransactionEditor"]
+    },
+    {
+      "name": "invoice-pdf-preview",
+      "file": "src/components/invoice/invoice-pdf-preview.tsx",
+      "directory": "src/components/invoice",
+      "exports": ["InvoicePdfPreview"]
+    },
+    {
+      "name": "invoice-step-indicator",
+      "file": "src/components/invoice/invoice-step-indicator.tsx",
+      "directory": "src/components/invoice",
+      "exports": ["StepIndicator"]
+    },
+    {
+      "name": "invoice-summary",
+      "file": "src/components/invoice/invoice-summary.tsx",
+      "directory": "src/components/invoice",
+      "exports": ["InvoiceSummary"]
+    },
+    {
+      "name": "line-item-table",
+      "file": "src/components/invoice/line-item-table.tsx",
+      "directory": "src/components/invoice",
+      "exports": ["LineItemTable"]
+    },
+    {
+      "name": "product-picker",
+      "file": "src/components/invoice/product-picker.tsx",
+      "directory": "src/components/invoice",
+      "exports": ["ProductPicker"]
+    },
+    {
+      "name": "invoice-filters",
+      "file": "src/components/invoices/invoice-filters.tsx",
+      "directory": "src/components/invoices",
+      "exports": ["InvoiceFilters"]
+    },
+    {
+      "name": "bottom-nav",
+      "file": "src/components/layout/bottom-nav.tsx",
+      "directory": "src/components/layout",
+      "exports": ["BottomNav"]
+    },
+    {
+      "name": "company-switcher",
+      "file": "src/components/layout/company-switcher.tsx",
+      "directory": "src/components/layout",
+      "exports": ["CompanySwitcher"]
+    },
+    {
+      "name": "feature-guard",
+      "file": "src/components/layout/feature-guard.tsx",
+      "directory": "src/components/layout",
+      "exports": ["FeatureGuard"]
+    },
+    {
+      "name": "header-actions",
+      "file": "src/components/layout/header-actions.tsx",
+      "directory": "src/components/layout",
+      "exports": ["QuickActions", "Notifications", "UserMenu", "CompanyStatus"]
+    },
+    {
+      "name": "header",
+      "file": "src/components/layout/header.tsx",
+      "directory": "src/components/layout",
+      "exports": ["Header"]
+    },
+    {
+      "name": "logout-button",
+      "file": "src/components/layout/logout-button.tsx",
+      "directory": "src/components/layout",
+      "exports": ["LogoutButton"]
+    },
+    {
+      "name": "mobile-action-bar",
+      "file": "src/components/layout/mobile-action-bar.tsx",
+      "directory": "src/components/layout",
+      "exports": ["MobileActionBar"]
+    },
+    {
+      "name": "mobile-nav",
+      "file": "src/components/layout/mobile-nav.tsx",
+      "directory": "src/components/layout",
+      "exports": ["MobileNav"]
+    },
+    {
+      "name": "offline-indicator",
+      "file": "src/components/layout/offline-indicator.tsx",
+      "directory": "src/components/layout",
+      "exports": ["OfflineIndicator"]
+    },
+    {
+      "name": "onboarding-progress-pill",
+      "file": "src/components/layout/onboarding-progress-pill.tsx",
+      "directory": "src/components/layout",
+      "exports": ["OnboardingProgressPill"]
+    },
+    {
+      "name": "plan-badge",
+      "file": "src/components/layout/plan-badge.tsx",
+      "directory": "src/components/layout",
+      "exports": ["PlanBadge"]
+    },
+    {
+      "name": "sidebar",
+      "file": "src/components/layout/sidebar.tsx",
+      "directory": "src/components/layout",
+      "exports": ["Sidebar"]
+    },
+    {
+      "name": "marketing-analytics-init",
+      "file": "src/components/marketing/marketing-analytics-init.tsx",
+      "directory": "src/components/marketing",
+      "exports": ["MarketingAnalyticsInit", "useMarketingAnalytics", "TrackedButton", "TrackedLink"]
+    },
+    {
+      "name": "step-address",
+      "file": "src/components/onboarding/step-address.tsx",
+      "directory": "src/components/onboarding",
+      "exports": ["StepAddress"]
+    },
+    {
+      "name": "step-basic-info",
+      "file": "src/components/onboarding/step-basic-info.tsx",
+      "directory": "src/components/onboarding",
+      "exports": ["StepBasicInfo"]
+    },
+    {
+      "name": "step-contact-tax",
+      "file": "src/components/onboarding/step-contact-tax.tsx",
+      "directory": "src/components/onboarding",
+      "exports": ["StepContactTax"]
+    },
+    {
+      "name": "step-indicator",
+      "file": "src/components/onboarding/step-indicator.tsx",
+      "directory": "src/components/onboarding",
+      "exports": ["StepIndicator"]
+    },
+    {
+      "name": "product-csv-import",
+      "file": "src/components/products/product-csv-import.tsx",
+      "directory": "src/components/products",
+      "exports": ["ProductCsvImport"]
+    },
+    {
+      "name": "product-health",
+      "file": "src/components/products/product-health.tsx",
+      "directory": "src/components/products",
+      "exports": ["ProductHealth"]
+    },
+    {
+      "name": "product-table",
+      "file": "src/components/products/product-table.tsx",
+      "directory": "src/components/products",
+      "exports": ["ProductTable"]
+    },
+    {
+      "name": "analytics-provider",
+      "file": "src/components/providers/analytics-provider.tsx",
+      "directory": "src/components/providers",
+      "exports": ["AnalyticsProvider"]
+    },
+    {
+      "name": "accounting-export-form",
+      "file": "src/components/reports/accounting-export-form.tsx",
+      "directory": "src/components/reports",
+      "exports": ["AccountingExportForm"]
+    },
+    {
+      "name": "passkey-manager",
+      "file": "src/components/settings/passkey-manager.tsx",
+      "directory": "src/components/settings",
+      "exports": ["PasskeyManager"]
+    },
+    {
+      "name": "create-support-ticket-form",
+      "file": "src/components/support/create-support-ticket-form.tsx",
+      "directory": "src/components/support",
+      "exports": ["CreateSupportTicketForm"]
+    },
+    {
+      "name": "support-assign-button",
+      "file": "src/components/support/support-assign-button.tsx",
+      "directory": "src/components/support",
+      "exports": ["AssignSupportTicketButton"]
+    },
+    {
+      "name": "support-reply-form",
+      "file": "src/components/support/support-reply-form.tsx",
+      "directory": "src/components/support",
+      "exports": ["SupportReplyForm"]
+    },
+    {
+      "name": "support-status-buttons",
+      "file": "src/components/support/support-status-buttons.tsx",
+      "directory": "src/components/support",
+      "exports": ["CloseSupportTicketButton", "ReopenSupportTicketButton"]
+    },
+    {
+      "name": "combobox",
+      "file": "src/components/ui/combobox.tsx",
+      "directory": "src/components/ui",
+      "exports": ["Combobox"]
+    },
+    {
+      "name": "command-palette",
+      "file": "src/components/ui/command-palette.tsx",
+      "directory": "src/components/ui",
+      "exports": ["CommandPalette"]
+    },
+    {
+      "name": "confirm-dialog",
+      "file": "src/components/ui/confirm-dialog.tsx",
+      "directory": "src/components/ui",
+      "exports": ["ConfirmDialog"]
+    },
+    {
+      "name": "data-table",
+      "file": "src/components/ui/data-table.tsx",
+      "directory": "src/components/ui",
+      "exports": ["DataTable"]
+    },
+    {
+      "name": "dropdown-menu",
+      "file": "src/components/ui/dropdown-menu.tsx",
+      "directory": "src/components/ui",
+      "exports": ["DropdownMenu", "DropdownMenuTrigger", "DropdownMenuContent", "DropdownMenuItem"]
+    },
+    {
+      "name": "empty-state",
+      "file": "src/components/ui/empty-state.tsx",
+      "directory": "src/components/ui",
+      "exports": ["EmptyState"]
+    },
+    {
+      "name": "fab",
+      "file": "src/components/ui/fab.tsx",
+      "directory": "src/components/ui",
+      "exports": ["FAB"]
+    },
+    {
+      "name": "label",
+      "file": "src/components/ui/label.tsx",
+      "directory": "src/components/ui",
+      "exports": ["Label"]
+    },
+    {
+      "name": "loading-spinner",
+      "file": "src/components/ui/loading-spinner.tsx",
+      "directory": "src/components/ui",
+      "exports": ["LoadingSpinner", "LoadingOverlay", "LoadingDots"]
+    },
+    {
+      "name": "mobile-card",
+      "file": "src/components/ui/mobile-card.tsx",
+      "directory": "src/components/ui",
+      "exports": ["MobileCard"]
+    },
+    {
+      "name": "modal",
+      "file": "src/components/ui/modal.tsx",
+      "directory": "src/components/ui",
+      "exports": ["Modal", "ModalFooter"]
+    },
+    {
+      "name": "multi-select",
+      "file": "src/components/ui/multi-select.tsx",
+      "directory": "src/components/ui",
+      "exports": ["MultiSelect"]
+    },
+    {
+      "name": "notification-center",
+      "file": "src/components/ui/notification-center.tsx",
+      "directory": "src/components/ui",
+      "exports": ["NotificationCenter"]
+    },
+    {
+      "name": "oib-input",
+      "file": "src/components/ui/oib-input.tsx",
+      "directory": "src/components/ui",
+      "exports": ["OibInput"]
+    },
+    {
+      "name": "page-card",
+      "file": "src/components/ui/page-card.tsx",
+      "directory": "src/components/ui",
+      "exports": [
+        "PageCard",
+        "PageCardHeader",
+        "PageCardContent",
+        "PageCardFooter",
+        "PageCardTitle",
+        "PageCardDescription"
+      ]
+    },
+    {
+      "name": "progress-bar",
+      "file": "src/components/ui/progress-bar.tsx",
+      "directory": "src/components/ui",
+      "exports": ["ProgressBar", "ProgressSteps"]
+    },
+    {
+      "name": "responsive-table",
+      "file": "src/components/ui/responsive-table.tsx",
+      "directory": "src/components/ui",
+      "exports": ["ResponsiveTable"]
+    },
+    {
+      "name": "skeleton",
+      "file": "src/components/ui/skeleton.tsx",
+      "directory": "src/components/ui",
+      "exports": ["Skeleton", "SkeletonCard", "SkeletonTable"]
+    },
+    {
+      "name": "stat-card",
+      "file": "src/components/ui/stat-card.tsx",
+      "directory": "src/components/ui",
+      "exports": ["StatCard"]
+    }
+  ]
+}

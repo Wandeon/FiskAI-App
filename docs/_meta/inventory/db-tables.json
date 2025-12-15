@@ -1,0 +1,3253 @@
+{
+  "generated": "2025-12-15T14:44:37.225Z",
+  "schemaFile": "prisma/schema.prisma",
+  "count": 38,
+  "models": [
+    {
+      "name": "Account",
+      "line": 25,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 26
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 27
+        },
+        {
+          "name": "type",
+          "type": "String",
+          "line": 28
+        },
+        {
+          "name": "provider",
+          "type": "String",
+          "line": 29
+        },
+        {
+          "name": "providerAccountId",
+          "type": "String",
+          "line": 30
+        },
+        {
+          "name": "refresh_token",
+          "type": "String",
+          "line": 31
+        },
+        {
+          "name": "access_token",
+          "type": "String",
+          "line": 32
+        },
+        {
+          "name": "expires_at",
+          "type": "Int",
+          "line": 33
+        },
+        {
+          "name": "token_type",
+          "type": "String",
+          "line": 34
+        },
+        {
+          "name": "scope",
+          "type": "String",
+          "line": 35
+        },
+        {
+          "name": "id_token",
+          "type": "String",
+          "line": 36
+        },
+        {
+          "name": "session_state",
+          "type": "String",
+          "line": 37
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "line": 38
+        }
+      ],
+      "relations": ["User"]
+    },
+    {
+      "name": "AIFeedback",
+      "line": 1066,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 1067
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 1068
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 1069
+        },
+        {
+          "name": "entityType",
+          "type": "String",
+          "line": 1071
+        },
+        {
+          "name": "entityId",
+          "type": "String",
+          "line": 1072
+        },
+        {
+          "name": "operation",
+          "type": "String",
+          "line": 1073
+        },
+        {
+          "name": "feedback",
+          "type": "String",
+          "line": 1075
+        },
+        {
+          "name": "correction",
+          "type": "Json",
+          "line": 1076
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "line": 1077
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 1079
+        }
+      ],
+      "relations": []
+    },
+    {
+      "name": "AIUsage",
+      "line": 1086,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 1087
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 1088
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 1089
+        },
+        {
+          "name": "operation",
+          "type": "String",
+          "line": 1091
+        },
+        {
+          "name": "tokensUsed",
+          "type": "Int",
+          "line": 1092
+        },
+        {
+          "name": "costCents",
+          "type": "Int",
+          "line": 1093
+        },
+        {
+          "name": "model",
+          "type": "String",
+          "line": 1094
+        },
+        {
+          "name": "success",
+          "type": "Boolean",
+          "line": 1095
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 1096
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "AuditLog",
+      "line": 278,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 279
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 280
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 281
+        },
+        {
+          "name": "action",
+          "type": "AuditAction",
+          "line": 282
+        },
+        {
+          "name": "entity",
+          "type": "String",
+          "line": 283
+        },
+        {
+          "name": "entityId",
+          "type": "String",
+          "line": 284
+        },
+        {
+          "name": "changes",
+          "type": "Json",
+          "line": 285
+        },
+        {
+          "name": "ipAddress",
+          "type": "String",
+          "line": 286
+        },
+        {
+          "name": "userAgent",
+          "type": "String",
+          "line": 287
+        },
+        {
+          "name": "timestamp",
+          "type": "DateTime",
+          "line": 288
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 289
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "BankAccount",
+      "line": 430,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 431
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 432
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 433
+        },
+        {
+          "name": "iban",
+          "type": "String",
+          "line": 434
+        },
+        {
+          "name": "bankName",
+          "type": "String",
+          "line": 435
+        },
+        {
+          "name": "currency",
+          "type": "String",
+          "line": 436
+        },
+        {
+          "name": "currentBalance",
+          "type": "Decimal",
+          "line": 437
+        },
+        {
+          "name": "lastSyncAt",
+          "type": "DateTime",
+          "line": 438
+        },
+        {
+          "name": "isDefault",
+          "type": "Boolean",
+          "line": 439
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 440
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 441
+        },
+        {
+          "name": "syncProvider",
+          "type": "SyncProvider",
+          "line": 444
+        },
+        {
+          "name": "syncProviderAccountId",
+          "type": "String",
+          "line": 445
+        },
+        {
+          "name": "connectionStatus",
+          "type": "ConnectionStatus",
+          "line": 446
+        },
+        {
+          "name": "connectionExpiresAt",
+          "type": "DateTime",
+          "line": 447
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 449
+        },
+        {
+          "name": "imports",
+          "type": "BankImport[]",
+          "line": 450
+        },
+        {
+          "name": "transactions",
+          "type": "BankTransaction[]",
+          "line": 451
+        },
+        {
+          "name": "importJobs",
+          "type": "ImportJob[]",
+          "line": 452
+        },
+        {
+          "name": "statements",
+          "type": "Statement[]",
+          "line": 453
+        },
+        {
+          "name": "connection",
+          "type": "BankConnection",
+          "line": 454
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "BankConnection",
+      "line": 495,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 496
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 497
+        },
+        {
+          "name": "bankAccountId",
+          "type": "String",
+          "line": 498
+        },
+        {
+          "name": "provider",
+          "type": "SyncProvider",
+          "line": 500
+        },
+        {
+          "name": "providerConnectionId",
+          "type": "String",
+          "line": 501
+        },
+        {
+          "name": "institutionId",
+          "type": "String",
+          "line": 502
+        },
+        {
+          "name": "institutionName",
+          "type": "String",
+          "line": 503
+        },
+        {
+          "name": "status",
+          "type": "ConnectionStatus",
+          "line": 505
+        },
+        {
+          "name": "authorizedAt",
+          "type": "DateTime",
+          "line": 506
+        },
+        {
+          "name": "expiresAt",
+          "type": "DateTime",
+          "line": 507
+        },
+        {
+          "name": "lastError",
+          "type": "String",
+          "line": 508
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 510
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 511
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 513
+        },
+        {
+          "name": "bankAccount",
+          "type": "BankAccount",
+          "line": 514
+        }
+      ],
+      "relations": ["Company", "BankAccount"]
+    },
+    {
+      "name": "BankImport",
+      "line": 626,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 627
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 628
+        },
+        {
+          "name": "bankAccountId",
+          "type": "String",
+          "line": 629
+        },
+        {
+          "name": "fileName",
+          "type": "String",
+          "line": 630
+        },
+        {
+          "name": "format",
+          "type": "ImportFormat",
+          "line": 631
+        },
+        {
+          "name": "transactionCount",
+          "type": "Int",
+          "line": 632
+        },
+        {
+          "name": "importedAt",
+          "type": "DateTime",
+          "line": 633
+        },
+        {
+          "name": "importedBy",
+          "type": "String",
+          "line": 634
+        },
+        {
+          "name": "bankAccount",
+          "type": "BankAccount",
+          "line": 635
+        }
+      ],
+      "relations": ["BankAccount"]
+    },
+    {
+      "name": "BankTransaction",
+      "line": 461,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 462
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 463
+        },
+        {
+          "name": "bankAccountId",
+          "type": "String",
+          "line": 464
+        },
+        {
+          "name": "date",
+          "type": "DateTime",
+          "line": 465
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "line": 466
+        },
+        {
+          "name": "amount",
+          "type": "Decimal",
+          "line": 467
+        },
+        {
+          "name": "balance",
+          "type": "Decimal",
+          "line": 468
+        },
+        {
+          "name": "reference",
+          "type": "String",
+          "line": 469
+        },
+        {
+          "name": "counterpartyName",
+          "type": "String",
+          "line": 470
+        },
+        {
+          "name": "counterpartyIban",
+          "type": "String",
+          "line": 471
+        },
+        {
+          "name": "matchedInvoiceId",
+          "type": "String",
+          "line": 472
+        },
+        {
+          "name": "matchedExpenseId",
+          "type": "String",
+          "line": 473
+        },
+        {
+          "name": "matchStatus",
+          "type": "MatchStatus",
+          "line": 474
+        },
+        {
+          "name": "matchedAt",
+          "type": "DateTime",
+          "line": 475
+        },
+        {
+          "name": "matchedBy",
+          "type": "String",
+          "line": 476
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 477
+        },
+        {
+          "name": "confidenceScore",
+          "type": "Int",
+          "line": 478
+        },
+        {
+          "name": "externalId",
+          "type": "String",
+          "line": 481
+        },
+        {
+          "name": "source",
+          "type": "TransactionSource",
+          "line": 482
+        },
+        {
+          "name": "bankAccount",
+          "type": "BankAccount",
+          "line": 484
+        },
+        {
+          "name": "matchedExpense",
+          "type": "Expense",
+          "line": 485
+        },
+        {
+          "name": "matchedInvoice",
+          "type": "EInvoice",
+          "line": 486
+        }
+      ],
+      "relations": ["BankAccount", "Expense", "EInvoice"]
+    },
+    {
+      "name": "BusinessPremises",
+      "line": 296,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 297
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 298
+        },
+        {
+          "name": "code",
+          "type": "Int",
+          "line": 299
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 300
+        },
+        {
+          "name": "address",
+          "type": "String",
+          "line": 301
+        },
+        {
+          "name": "isDefault",
+          "type": "Boolean",
+          "line": 302
+        },
+        {
+          "name": "isActive",
+          "type": "Boolean",
+          "line": 303
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 304
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 305
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 306
+        },
+        {
+          "name": "sequences",
+          "type": "InvoiceSequence[]",
+          "line": 307
+        },
+        {
+          "name": "devices",
+          "type": "PaymentDevice[]",
+          "line": 308
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "Company",
+      "line": 68,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 69
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 70
+        },
+        {
+          "name": "oib",
+          "type": "String",
+          "line": 71
+        },
+        {
+          "name": "vatNumber",
+          "type": "String",
+          "line": 72
+        },
+        {
+          "name": "address",
+          "type": "String",
+          "line": 73
+        },
+        {
+          "name": "city",
+          "type": "String",
+          "line": 74
+        },
+        {
+          "name": "postalCode",
+          "type": "String",
+          "line": 75
+        },
+        {
+          "name": "country",
+          "type": "String",
+          "line": 76
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "line": 77
+        },
+        {
+          "name": "phone",
+          "type": "String",
+          "line": 78
+        },
+        {
+          "name": "iban",
+          "type": "String",
+          "line": 79
+        },
+        {
+          "name": "isVatPayer",
+          "type": "Boolean",
+          "line": 80
+        },
+        {
+          "name": "eInvoiceProvider",
+          "type": "String",
+          "line": 81
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 82
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 83
+        },
+        {
+          "name": "eInvoiceApiKeyEncrypted",
+          "type": "String",
+          "line": 84
+        },
+        {
+          "name": "legalForm",
+          "type": "String",
+          "line": 85
+        },
+        {
+          "name": "entitlements",
+          "type": "Json",
+          "line": 86
+        },
+        {
+          "name": "featureFlags",
+          "type": "Json",
+          "line": 87
+        },
+        {
+          "name": "fiscalEnabled",
+          "type": "Boolean",
+          "line": 88
+        },
+        {
+          "name": "fiscalEnvironment",
+          "type": "FiscalEnv",
+          "line": 89
+        },
+        {
+          "name": "premisesCode",
+          "type": "String",
+          "line": 90
+        },
+        {
+          "name": "deviceCode",
+          "type": "String",
+          "line": 91
+        },
+        {
+          "name": "stripeCustomerId",
+          "type": "String",
+          "line": 94
+        },
+        {
+          "name": "stripeSubscriptionId",
+          "type": "String",
+          "line": 95
+        },
+        {
+          "name": "subscriptionStatus",
+          "type": "String",
+          "line": 96
+        },
+        {
+          "name": "subscriptionPlan",
+          "type": "String",
+          "line": 97
+        },
+        {
+          "name": "subscriptionCurrentPeriodStart",
+          "type": "DateTime",
+          "line": 98
+        },
+        {
+          "name": "subscriptionCurrentPeriodEnd",
+          "type": "DateTime",
+          "line": 99
+        },
+        {
+          "name": "invoiceLimit",
+          "type": "Int",
+          "line": 100
+        },
+        {
+          "name": "userLimit",
+          "type": "Int",
+          "line": 101
+        },
+        {
+          "name": "trialEndsAt",
+          "type": "DateTime",
+          "line": 102
+        },
+        {
+          "name": "auditLogs",
+          "type": "AuditLog[]",
+          "line": 104
+        },
+        {
+          "name": "bankAccounts",
+          "type": "BankAccount[]",
+          "line": 105
+        },
+        {
+          "name": "businessPremises",
+          "type": "BusinessPremises[]",
+          "line": 106
+        },
+        {
+          "name": "users",
+          "type": "CompanyUser[]",
+          "line": 107
+        },
+        {
+          "name": "contacts",
+          "type": "Contact[]",
+          "line": 108
+        },
+        {
+          "name": "eInvoices",
+          "type": "EInvoice[]",
+          "line": 109
+        },
+        {
+          "name": "expenses",
+          "type": "Expense[]",
+          "line": 110
+        },
+        {
+          "name": "expenseCategories",
+          "type": "ExpenseCategory[]",
+          "line": 111
+        },
+        {
+          "name": "importJobs",
+          "type": "ImportJob[]",
+          "line": 112
+        },
+        {
+          "name": "invoiceSequences",
+          "type": "InvoiceSequence[]",
+          "line": 113
+        },
+        {
+          "name": "paymentDevices",
+          "type": "PaymentDevice[]",
+          "line": 114
+        },
+        {
+          "name": "products",
+          "type": "Product[]",
+          "line": 115
+        },
+        {
+          "name": "recurringExpenses",
+          "type": "RecurringExpense[]",
+          "line": 116
+        },
+        {
+          "name": "savedReports",
+          "type": "SavedReport[]",
+          "line": 117
+        },
+        {
+          "name": "statements",
+          "type": "Statement[]",
+          "line": 118
+        },
+        {
+          "name": "statementPages",
+          "type": "StatementPage[]",
+          "line": 119
+        },
+        {
+          "name": "supportTickets",
+          "type": "SupportTicket[]",
+          "line": 120
+        },
+        {
+          "name": "statementTransactions",
+          "type": "Transaction[]",
+          "line": 121
+        },
+        {
+          "name": "bankConnections",
+          "type": "BankConnection[]",
+          "line": 122
+        },
+        {
+          "name": "potentialDuplicates",
+          "type": "PotentialDuplicate[]",
+          "line": 123
+        },
+        {
+          "name": "emailConnections",
+          "type": "EmailConnection[]",
+          "line": 124
+        },
+        {
+          "name": "emailImportRules",
+          "type": "EmailImportRule[]",
+          "line": 125
+        },
+        {
+          "name": "emailAttachments",
+          "type": "EmailAttachment[]",
+          "line": 126
+        },
+        {
+          "name": "fiscalCertificates",
+          "type": "FiscalCertificate[]",
+          "line": 127
+        },
+        {
+          "name": "fiscalRequests",
+          "type": "FiscalRequest[]",
+          "line": 128
+        },
+        {
+          "name": "aiUsage",
+          "type": "AIUsage[]",
+          "line": 129
+        }
+      ],
+      "relations": []
+    },
+    {
+      "name": "CompanyUser",
+      "line": 132,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 133
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 134
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 135
+        },
+        {
+          "name": "role",
+          "type": "Role",
+          "line": 136
+        },
+        {
+          "name": "isDefault",
+          "type": "Boolean",
+          "line": 137
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 138
+        },
+        {
+          "name": "notificationSeenAt",
+          "type": "DateTime",
+          "line": 139
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 140
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "line": 141
+        }
+      ],
+      "relations": ["Company", "User"]
+    },
+    {
+      "name": "Contact",
+      "line": 148,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 149
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 150
+        },
+        {
+          "name": "type",
+          "type": "ContactType",
+          "line": 151
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 152
+        },
+        {
+          "name": "oib",
+          "type": "String",
+          "line": 153
+        },
+        {
+          "name": "vatNumber",
+          "type": "String",
+          "line": 154
+        },
+        {
+          "name": "address",
+          "type": "String",
+          "line": 155
+        },
+        {
+          "name": "city",
+          "type": "String",
+          "line": 156
+        },
+        {
+          "name": "postalCode",
+          "type": "String",
+          "line": 157
+        },
+        {
+          "name": "country",
+          "type": "String",
+          "line": 158
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "line": 159
+        },
+        {
+          "name": "phone",
+          "type": "String",
+          "line": 160
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 161
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 162
+        },
+        {
+          "name": "paymentTermsDays",
+          "type": "Int",
+          "line": 163
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 164
+        },
+        {
+          "name": "eInvoicesAsBuyer",
+          "type": "EInvoice[]",
+          "line": 165
+        },
+        {
+          "name": "eInvoicesAsSeller",
+          "type": "EInvoice[]",
+          "line": 166
+        },
+        {
+          "name": "expensesAsVendor",
+          "type": "Expense[]",
+          "line": 167
+        }
+      ],
+      "relations": ["Company", "EInvoice", "EInvoice", "Expense"]
+    },
+    {
+      "name": "EInvoice",
+      "line": 191,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 192
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 193
+        },
+        {
+          "name": "direction",
+          "type": "EInvoiceDirection",
+          "line": 194
+        },
+        {
+          "name": "sellerId",
+          "type": "String",
+          "line": 195
+        },
+        {
+          "name": "buyerId",
+          "type": "String",
+          "line": 196
+        },
+        {
+          "name": "invoiceNumber",
+          "type": "String",
+          "line": 197
+        },
+        {
+          "name": "issueDate",
+          "type": "DateTime",
+          "line": 198
+        },
+        {
+          "name": "dueDate",
+          "type": "DateTime",
+          "line": 199
+        },
+        {
+          "name": "currency",
+          "type": "String",
+          "line": 200
+        },
+        {
+          "name": "buyerReference",
+          "type": "String",
+          "line": 201
+        },
+        {
+          "name": "netAmount",
+          "type": "Decimal",
+          "line": 202
+        },
+        {
+          "name": "vatAmount",
+          "type": "Decimal",
+          "line": 203
+        },
+        {
+          "name": "totalAmount",
+          "type": "Decimal",
+          "line": 204
+        },
+        {
+          "name": "status",
+          "type": "EInvoiceStatus",
+          "line": 205
+        },
+        {
+          "name": "jir",
+          "type": "String",
+          "line": 206
+        },
+        {
+          "name": "zki",
+          "type": "String",
+          "line": 207
+        },
+        {
+          "name": "fiscalizedAt",
+          "type": "DateTime",
+          "line": 208
+        },
+        {
+          "name": "fiscalStatus",
+          "type": "String",
+          "line": 209
+        },
+        {
+          "name": "operatorOib",
+          "type": "String",
+          "line": 210
+        },
+        {
+          "name": "ublXml",
+          "type": "String",
+          "line": 211
+        },
+        {
+          "name": "providerRef",
+          "type": "String",
+          "line": 212
+        },
+        {
+          "name": "providerStatus",
+          "type": "String",
+          "line": 213
+        },
+        {
+          "name": "providerError",
+          "type": "String",
+          "line": 214
+        },
+        {
+          "name": "archivedAt",
+          "type": "DateTime",
+          "line": 215
+        },
+        {
+          "name": "archiveRef",
+          "type": "String",
+          "line": 216
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 217
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 218
+        },
+        {
+          "name": "sentAt",
+          "type": "DateTime",
+          "line": 219
+        },
+        {
+          "name": "receivedAt",
+          "type": "DateTime",
+          "line": 220
+        },
+        {
+          "name": "emailMessageId",
+          "type": "String",
+          "line": 222
+        },
+        {
+          "name": "emailDeliveredAt",
+          "type": "DateTime",
+          "line": 223
+        },
+        {
+          "name": "emailOpenedAt",
+          "type": "DateTime",
+          "line": 224
+        },
+        {
+          "name": "emailClickedAt",
+          "type": "DateTime",
+          "line": 225
+        },
+        {
+          "name": "emailBouncedAt",
+          "type": "DateTime",
+          "line": 226
+        },
+        {
+          "name": "emailBounceReason",
+          "type": "String",
+          "line": 227
+        },
+        {
+          "name": "type",
+          "type": "InvoiceType",
+          "line": 228
+        },
+        {
+          "name": "internalReference",
+          "type": "String",
+          "line": 229
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "line": 230
+        },
+        {
+          "name": "convertedFromId",
+          "type": "String",
+          "line": 231
+        },
+        {
+          "name": "paidAt",
+          "type": "DateTime",
+          "line": 232
+        },
+        {
+          "name": "bankAccount",
+          "type": "String",
+          "line": 233
+        },
+        {
+          "name": "includeBarcode",
+          "type": "Boolean",
+          "line": 234
+        },
+        {
+          "name": "paymentMethod",
+          "type": "PaymentMethod",
+          "line": 235
+        },
+        {
+          "name": "vendorIban",
+          "type": "String",
+          "line": 237
+        },
+        {
+          "name": "vendorBankName",
+          "type": "String",
+          "line": 238
+        },
+        {
+          "name": "paymentReference",
+          "type": "String",
+          "line": 239
+        },
+        {
+          "name": "paymentModel",
+          "type": "String",
+          "line": 240
+        },
+        {
+          "name": "importJobId",
+          "type": "String",
+          "line": 242
+        },
+        {
+          "name": "bankTransactions",
+          "type": "BankTransaction[]",
+          "line": 243
+        },
+        {
+          "name": "buyer",
+          "type": "Contact",
+          "line": 244
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 245
+        },
+        {
+          "name": "convertedFrom",
+          "type": "EInvoice",
+          "line": 246
+        },
+        {
+          "name": "convertedTo",
+          "type": "EInvoice[]",
+          "line": 247
+        },
+        {
+          "name": "seller",
+          "type": "Contact",
+          "line": 248
+        },
+        {
+          "name": "importJob",
+          "type": "ImportJob",
+          "line": 249
+        },
+        {
+          "name": "lines",
+          "type": "EInvoiceLine[]",
+          "line": 250
+        },
+        {
+          "name": "fiscalRequests",
+          "type": "FiscalRequest[]",
+          "line": 251
+        }
+      ],
+      "relations": ["Contact", "Company", "EInvoice", "EInvoice", "Contact", "ImportJob"]
+    },
+    {
+      "name": "EInvoiceLine",
+      "line": 261,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 262
+        },
+        {
+          "name": "eInvoiceId",
+          "type": "String",
+          "line": 263
+        },
+        {
+          "name": "lineNumber",
+          "type": "Int",
+          "line": 264
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "line": 265
+        },
+        {
+          "name": "quantity",
+          "type": "Decimal",
+          "line": 266
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "line": 267
+        },
+        {
+          "name": "unitPrice",
+          "type": "Decimal",
+          "line": 268
+        },
+        {
+          "name": "netAmount",
+          "type": "Decimal",
+          "line": 269
+        },
+        {
+          "name": "vatRate",
+          "type": "Decimal",
+          "line": 270
+        },
+        {
+          "name": "vatCategory",
+          "type": "String",
+          "line": 271
+        },
+        {
+          "name": "vatAmount",
+          "type": "Decimal",
+          "line": 272
+        },
+        {
+          "name": "eInvoice",
+          "type": "EInvoice",
+          "line": 273
+        }
+      ],
+      "relations": ["EInvoice"]
+    },
+    {
+      "name": "EmailAttachment",
+      "line": 593,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 594
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 595
+        },
+        {
+          "name": "connectionId",
+          "type": "String",
+          "line": 596
+        },
+        {
+          "name": "providerMessageId",
+          "type": "String",
+          "line": 598
+        },
+        {
+          "name": "providerAttachmentId",
+          "type": "String",
+          "line": 599
+        },
+        {
+          "name": "contentHash",
+          "type": "String",
+          "line": 600
+        },
+        {
+          "name": "receivedAt",
+          "type": "DateTime",
+          "line": 602
+        },
+        {
+          "name": "senderEmail",
+          "type": "String",
+          "line": 603
+        },
+        {
+          "name": "subject",
+          "type": "String",
+          "line": 604
+        },
+        {
+          "name": "filename",
+          "type": "String",
+          "line": 605
+        },
+        {
+          "name": "mimeType",
+          "type": "String",
+          "line": 606
+        },
+        {
+          "name": "sizeBytes",
+          "type": "Int",
+          "line": 607
+        },
+        {
+          "name": "r2Key",
+          "type": "String",
+          "line": 609
+        },
+        {
+          "name": "status",
+          "type": "AttachmentStatus",
+          "line": 610
+        },
+        {
+          "name": "importJobId",
+          "type": "String",
+          "line": 611
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 613
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 614
+        },
+        {
+          "name": "connection",
+          "type": "EmailConnection",
+          "line": 616
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 617
+        },
+        {
+          "name": "importJob",
+          "type": "ImportJob",
+          "line": 618
+        }
+      ],
+      "relations": ["EmailConnection", "Company", "ImportJob"]
+    },
+    {
+      "name": "EmailConnection",
+      "line": 544,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 545
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 546
+        },
+        {
+          "name": "provider",
+          "type": "EmailProvider",
+          "line": 547
+        },
+        {
+          "name": "emailAddress",
+          "type": "String",
+          "line": 548
+        },
+        {
+          "name": "status",
+          "type": "EmailConnectionStatus",
+          "line": 549
+        },
+        {
+          "name": "accessTokenEnc",
+          "type": "String",
+          "line": 551
+        },
+        {
+          "name": "refreshTokenEnc",
+          "type": "String",
+          "line": 552
+        },
+        {
+          "name": "tokenExpiresAt",
+          "type": "DateTime",
+          "line": 553
+        },
+        {
+          "name": "scopes",
+          "type": "String[]",
+          "line": 554
+        },
+        {
+          "name": "lastSyncAt",
+          "type": "DateTime",
+          "line": 556
+        },
+        {
+          "name": "syncCursor",
+          "type": "String",
+          "line": 557
+        },
+        {
+          "name": "lastError",
+          "type": "String",
+          "line": 558
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 560
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 561
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 563
+        },
+        {
+          "name": "importRules",
+          "type": "EmailImportRule[]",
+          "line": 564
+        },
+        {
+          "name": "attachments",
+          "type": "EmailAttachment[]",
+          "line": 565
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "EmailImportRule",
+      "line": 572,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 573
+        },
+        {
+          "name": "connectionId",
+          "type": "String",
+          "line": 574
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 575
+        },
+        {
+          "name": "senderEmail",
+          "type": "String",
+          "line": 577
+        },
+        {
+          "name": "senderDomain",
+          "type": "String",
+          "line": 578
+        },
+        {
+          "name": "subjectContains",
+          "type": "String",
+          "line": 579
+        },
+        {
+          "name": "filenameContains",
+          "type": "String",
+          "line": 580
+        },
+        {
+          "name": "isActive",
+          "type": "Boolean",
+          "line": 582
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 583
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 584
+        },
+        {
+          "name": "connection",
+          "type": "EmailConnection",
+          "line": 586
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 587
+        }
+      ],
+      "relations": ["EmailConnection", "Company"]
+    },
+    {
+      "name": "Expense",
+      "line": 345,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 346
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 347
+        },
+        {
+          "name": "vendorId",
+          "type": "String",
+          "line": 348
+        },
+        {
+          "name": "categoryId",
+          "type": "String",
+          "line": 349
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "line": 350
+        },
+        {
+          "name": "date",
+          "type": "DateTime",
+          "line": 351
+        },
+        {
+          "name": "dueDate",
+          "type": "DateTime",
+          "line": 352
+        },
+        {
+          "name": "netAmount",
+          "type": "Decimal",
+          "line": 353
+        },
+        {
+          "name": "vatAmount",
+          "type": "Decimal",
+          "line": 354
+        },
+        {
+          "name": "totalAmount",
+          "type": "Decimal",
+          "line": 355
+        },
+        {
+          "name": "vatDeductible",
+          "type": "Boolean",
+          "line": 356
+        },
+        {
+          "name": "currency",
+          "type": "String",
+          "line": 357
+        },
+        {
+          "name": "status",
+          "type": "ExpenseStatus",
+          "line": 358
+        },
+        {
+          "name": "paymentMethod",
+          "type": "PaymentMethod",
+          "line": 359
+        },
+        {
+          "name": "paymentDate",
+          "type": "DateTime",
+          "line": 360
+        },
+        {
+          "name": "receiptUrl",
+          "type": "String",
+          "line": 361
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "line": 362
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 363
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 364
+        },
+        {
+          "name": "bankTransactions",
+          "type": "BankTransaction[]",
+          "line": 365
+        },
+        {
+          "name": "category",
+          "type": "ExpenseCategory",
+          "line": 366
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 367
+        },
+        {
+          "name": "vendor",
+          "type": "Contact",
+          "line": 368
+        }
+      ],
+      "relations": ["ExpenseCategory", "Company", "Contact"]
+    },
+    {
+      "name": "ExpenseCategory",
+      "line": 376,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 377
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 378
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 379
+        },
+        {
+          "name": "code",
+          "type": "String",
+          "line": 380
+        },
+        {
+          "name": "vatDeductibleDefault",
+          "type": "Boolean",
+          "line": 381
+        },
+        {
+          "name": "isActive",
+          "type": "Boolean",
+          "line": 382
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 383
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 384
+        },
+        {
+          "name": "expenses",
+          "type": "Expense[]",
+          "line": 385
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 386
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "FiscalCertificate",
+      "line": 1007,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 1008
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 1009
+        },
+        {
+          "name": "environment",
+          "type": "FiscalEnv",
+          "line": 1010
+        },
+        {
+          "name": "provider",
+          "type": "String",
+          "line": 1011
+        },
+        {
+          "name": "certSubject",
+          "type": "String",
+          "line": 1012
+        },
+        {
+          "name": "certSerial",
+          "type": "String",
+          "line": 1013
+        },
+        {
+          "name": "certNotBefore",
+          "type": "DateTime",
+          "line": 1014
+        },
+        {
+          "name": "certNotAfter",
+          "type": "DateTime",
+          "line": 1015
+        },
+        {
+          "name": "oibExtracted",
+          "type": "String",
+          "line": 1016
+        },
+        {
+          "name": "certSha256",
+          "type": "String",
+          "line": 1017
+        },
+        {
+          "name": "encryptedP12",
+          "type": "String",
+          "line": 1018
+        },
+        {
+          "name": "encryptedDataKey",
+          "type": "String",
+          "line": 1019
+        },
+        {
+          "name": "status",
+          "type": "CertStatus",
+          "line": 1020
+        },
+        {
+          "name": "lastUsedAt",
+          "type": "DateTime",
+          "line": 1021
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 1022
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 1023
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 1025
+        },
+        {
+          "name": "fiscalRequests",
+          "type": "FiscalRequest[]",
+          "line": 1026
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "FiscalRequest",
+      "line": 1033,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 1034
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 1035
+        },
+        {
+          "name": "certificateId",
+          "type": "String",
+          "line": 1036
+        },
+        {
+          "name": "invoiceId",
+          "type": "String",
+          "line": 1037
+        },
+        {
+          "name": "messageType",
+          "type": "FiscalMessageType",
+          "line": 1038
+        },
+        {
+          "name": "status",
+          "type": "FiscalStatus",
+          "line": 1039
+        },
+        {
+          "name": "attemptCount",
+          "type": "Int",
+          "line": 1040
+        },
+        {
+          "name": "maxAttempts",
+          "type": "Int",
+          "line": 1041
+        },
+        {
+          "name": "nextRetryAt",
+          "type": "DateTime",
+          "line": 1042
+        },
+        {
+          "name": "lockedAt",
+          "type": "DateTime",
+          "line": 1043
+        },
+        {
+          "name": "lockedBy",
+          "type": "String",
+          "line": 1044
+        },
+        {
+          "name": "jir",
+          "type": "String",
+          "line": 1045
+        },
+        {
+          "name": "zki",
+          "type": "String",
+          "line": 1046
+        },
+        {
+          "name": "errorCode",
+          "type": "String",
+          "line": 1047
+        },
+        {
+          "name": "errorMessage",
+          "type": "String",
+          "line": 1048
+        },
+        {
+          "name": "lastHttpStatus",
+          "type": "Int",
+          "line": 1049
+        },
+        {
+          "name": "requestXml",
+          "type": "String",
+          "line": 1050
+        },
+        {
+          "name": "signedXml",
+          "type": "String",
+          "line": 1051
+        },
+        {
+          "name": "responseXml",
+          "type": "String",
+          "line": 1052
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 1053
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 1054
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 1056
+        },
+        {
+          "name": "certificate",
+          "type": "FiscalCertificate",
+          "line": 1057
+        },
+        {
+          "name": "invoice",
+          "type": "EInvoice",
+          "line": 1058
+        }
+      ],
+      "relations": ["Company", "FiscalCertificate", "EInvoice"]
+    },
+    {
+      "name": "ImportJob",
+      "line": 641,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 642
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 643
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 644
+        },
+        {
+          "name": "bankAccountId",
+          "type": "String",
+          "line": 645
+        },
+        {
+          "name": "fileChecksum",
+          "type": "String",
+          "line": 646
+        },
+        {
+          "name": "originalName",
+          "type": "String",
+          "line": 647
+        },
+        {
+          "name": "storagePath",
+          "type": "String",
+          "line": 648
+        },
+        {
+          "name": "status",
+          "type": "JobStatus",
+          "line": 649
+        },
+        {
+          "name": "documentType",
+          "type": "DocumentType",
+          "line": 650
+        },
+        {
+          "name": "extractedData",
+          "type": "Json",
+          "line": 651
+        },
+        {
+          "name": "tierUsed",
+          "type": "TierType",
+          "line": 652
+        },
+        {
+          "name": "failureReason",
+          "type": "String",
+          "line": 653
+        },
+        {
+          "name": "pagesProcessed",
+          "type": "Int",
+          "line": 654
+        },
+        {
+          "name": "pagesFailed",
+          "type": "Int",
+          "line": 655
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 656
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 657
+        },
+        {
+          "name": "bankAccount",
+          "type": "BankAccount",
+          "line": 658
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 659
+        },
+        {
+          "name": "statement",
+          "type": "Statement",
+          "line": 660
+        },
+        {
+          "name": "invoice",
+          "type": "EInvoice",
+          "line": 661
+        },
+        {
+          "name": "emailAttachment",
+          "type": "EmailAttachment",
+          "line": 662
+        }
+      ],
+      "relations": ["BankAccount", "Company"]
+    },
+    {
+      "name": "InvoiceSequence",
+      "line": 331,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 332
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 333
+        },
+        {
+          "name": "businessPremisesId",
+          "type": "String",
+          "line": 334
+        },
+        {
+          "name": "year",
+          "type": "Int",
+          "line": 335
+        },
+        {
+          "name": "lastNumber",
+          "type": "Int",
+          "line": 336
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 337
+        },
+        {
+          "name": "businessPremises",
+          "type": "BusinessPremises",
+          "line": 338
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 339
+        }
+      ],
+      "relations": ["BusinessPremises", "Company"]
+    },
+    {
+      "name": "PasswordResetToken",
+      "line": 59,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 60
+        },
+        {
+          "name": "token",
+          "type": "String",
+          "line": 61
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 62
+        },
+        {
+          "name": "expiresAt",
+          "type": "DateTime",
+          "line": 63
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 64
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "line": 65
+        }
+      ],
+      "relations": ["User"]
+    },
+    {
+      "name": "PaymentDevice",
+      "line": 314,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 315
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 316
+        },
+        {
+          "name": "businessPremisesId",
+          "type": "String",
+          "line": 317
+        },
+        {
+          "name": "code",
+          "type": "Int",
+          "line": 318
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 319
+        },
+        {
+          "name": "isDefault",
+          "type": "Boolean",
+          "line": 320
+        },
+        {
+          "name": "isActive",
+          "type": "Boolean",
+          "line": 321
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 322
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 323
+        },
+        {
+          "name": "businessPremises",
+          "type": "BusinessPremises",
+          "line": 324
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 325
+        }
+      ],
+      "relations": ["BusinessPremises", "Company"]
+    },
+    {
+      "name": "PotentialDuplicate",
+      "line": 521,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 522
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 523
+        },
+        {
+          "name": "transactionAId",
+          "type": "String",
+          "line": 525
+        },
+        {
+          "name": "transactionBId",
+          "type": "String",
+          "line": 526
+        },
+        {
+          "name": "similarityScore",
+          "type": "Float",
+          "line": 528
+        },
+        {
+          "name": "reason",
+          "type": "String",
+          "line": 529
+        },
+        {
+          "name": "status",
+          "type": "DuplicateStatus",
+          "line": 531
+        },
+        {
+          "name": "resolvedAt",
+          "type": "DateTime",
+          "line": 532
+        },
+        {
+          "name": "resolvedBy",
+          "type": "String",
+          "line": 533
+        },
+        {
+          "name": "resolution",
+          "type": "DuplicateResolution",
+          "line": 534
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 536
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 538
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "Product",
+      "line": 173,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 174
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 175
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 176
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "line": 177
+        },
+        {
+          "name": "sku",
+          "type": "String",
+          "line": 178
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "line": 179
+        },
+        {
+          "name": "price",
+          "type": "Decimal",
+          "line": 180
+        },
+        {
+          "name": "vatRate",
+          "type": "Decimal",
+          "line": 181
+        },
+        {
+          "name": "vatCategory",
+          "type": "String",
+          "line": 182
+        },
+        {
+          "name": "isActive",
+          "type": "Boolean",
+          "line": 183
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 184
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 185
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 186
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "RecurringExpense",
+      "line": 392,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 393
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 394
+        },
+        {
+          "name": "vendorId",
+          "type": "String",
+          "line": 395
+        },
+        {
+          "name": "categoryId",
+          "type": "String",
+          "line": 396
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "line": 397
+        },
+        {
+          "name": "netAmount",
+          "type": "Decimal",
+          "line": 398
+        },
+        {
+          "name": "vatAmount",
+          "type": "Decimal",
+          "line": 399
+        },
+        {
+          "name": "totalAmount",
+          "type": "Decimal",
+          "line": 400
+        },
+        {
+          "name": "frequency",
+          "type": "Frequency",
+          "line": 401
+        },
+        {
+          "name": "nextDate",
+          "type": "DateTime",
+          "line": 402
+        },
+        {
+          "name": "endDate",
+          "type": "DateTime",
+          "line": 403
+        },
+        {
+          "name": "isActive",
+          "type": "Boolean",
+          "line": 404
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 405
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 406
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 407
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "SavedReport",
+      "line": 413,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 414
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 415
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 416
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 417
+        },
+        {
+          "name": "type",
+          "type": "ReportType",
+          "line": 418
+        },
+        {
+          "name": "filters",
+          "type": "Json",
+          "line": 419
+        },
+        {
+          "name": "schedule",
+          "type": "ReportSchedule",
+          "line": 420
+        },
+        {
+          "name": "emailTo",
+          "type": "String[]",
+          "line": 421
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 422
+        },
+        {
+          "name": "lastRunAt",
+          "type": "DateTime",
+          "line": 423
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 424
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "Session",
+      "line": 43,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 44
+        },
+        {
+          "name": "sessionToken",
+          "type": "String",
+          "line": 45
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 46
+        },
+        {
+          "name": "expires",
+          "type": "DateTime",
+          "line": 47
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "line": 48
+        }
+      ],
+      "relations": ["User"]
+    },
+    {
+      "name": "Statement",
+      "line": 670,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 671
+        },
+        {
+          "name": "importJobId",
+          "type": "String",
+          "line": 672
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 673
+        },
+        {
+          "name": "bankAccountId",
+          "type": "String",
+          "line": 674
+        },
+        {
+          "name": "statementDate",
+          "type": "DateTime",
+          "line": 675
+        },
+        {
+          "name": "periodStart",
+          "type": "DateTime",
+          "line": 676
+        },
+        {
+          "name": "periodEnd",
+          "type": "DateTime",
+          "line": 677
+        },
+        {
+          "name": "sequenceNumber",
+          "type": "Int",
+          "line": 678
+        },
+        {
+          "name": "previousStatementId",
+          "type": "String",
+          "line": 679
+        },
+        {
+          "name": "openingBalance",
+          "type": "Decimal",
+          "line": 680
+        },
+        {
+          "name": "closingBalance",
+          "type": "Decimal",
+          "line": 681
+        },
+        {
+          "name": "currency",
+          "type": "String",
+          "line": 682
+        },
+        {
+          "name": "isGapDetected",
+          "type": "Boolean",
+          "line": 683
+        },
+        {
+          "name": "isLocked",
+          "type": "Boolean",
+          "line": 684
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 685
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 686
+        },
+        {
+          "name": "bankAccount",
+          "type": "BankAccount",
+          "line": 687
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 688
+        },
+        {
+          "name": "importJob",
+          "type": "ImportJob",
+          "line": 689
+        },
+        {
+          "name": "previousStatement",
+          "type": "Statement",
+          "line": 690
+        },
+        {
+          "name": "nextStatements",
+          "type": "Statement[]",
+          "line": 691
+        },
+        {
+          "name": "pages",
+          "type": "StatementPage[]",
+          "line": 692
+        },
+        {
+          "name": "transactions",
+          "type": "Transaction[]",
+          "line": 693
+        }
+      ],
+      "relations": ["BankAccount", "Company", "ImportJob", "Statement", "Statement"]
+    },
+    {
+      "name": "StatementPage",
+      "line": 701,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 702
+        },
+        {
+          "name": "statementId",
+          "type": "String",
+          "line": 703
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 704
+        },
+        {
+          "name": "pageNumber",
+          "type": "Int",
+          "line": 705
+        },
+        {
+          "name": "pageStartBalance",
+          "type": "Decimal",
+          "line": 706
+        },
+        {
+          "name": "pageEndBalance",
+          "type": "Decimal",
+          "line": 707
+        },
+        {
+          "name": "status",
+          "type": "PageStatus",
+          "line": 708
+        },
+        {
+          "name": "rawText",
+          "type": "String",
+          "line": 709
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 710
+        },
+        {
+          "name": "statement",
+          "type": "Statement",
+          "line": 711
+        },
+        {
+          "name": "transactions",
+          "type": "Transaction[]",
+          "line": 712
+        }
+      ],
+      "relations": ["Company", "Statement"]
+    },
+    {
+      "name": "SupportTicket",
+      "line": 741,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 742
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 743
+        },
+        {
+          "name": "createdById",
+          "type": "String",
+          "line": 744
+        },
+        {
+          "name": "assignedToId",
+          "type": "String",
+          "line": 745
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "line": 746
+        },
+        {
+          "name": "body",
+          "type": "String",
+          "line": 747
+        },
+        {
+          "name": "status",
+          "type": "SupportTicketStatus",
+          "line": 748
+        },
+        {
+          "name": "priority",
+          "type": "SupportTicketPriority",
+          "line": 749
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 750
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 751
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 752
+        },
+        {
+          "name": "messages",
+          "type": "SupportTicketMessage[]",
+          "line": 753
+        }
+      ],
+      "relations": ["Company"]
+    },
+    {
+      "name": "SupportTicketMessage",
+      "line": 760,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 761
+        },
+        {
+          "name": "ticketId",
+          "type": "String",
+          "line": 762
+        },
+        {
+          "name": "authorId",
+          "type": "String",
+          "line": 763
+        },
+        {
+          "name": "body",
+          "type": "String",
+          "line": 764
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 765
+        },
+        {
+          "name": "ticket",
+          "type": "SupportTicket",
+          "line": 766
+        }
+      ],
+      "relations": ["SupportTicket"]
+    },
+    {
+      "name": "Transaction",
+      "line": 718,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 719
+        },
+        {
+          "name": "statementId",
+          "type": "String",
+          "line": 720
+        },
+        {
+          "name": "pageId",
+          "type": "String",
+          "line": 721
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "line": 722
+        },
+        {
+          "name": "date",
+          "type": "DateTime",
+          "line": 723
+        },
+        {
+          "name": "amount",
+          "type": "Decimal",
+          "line": 724
+        },
+        {
+          "name": "direction",
+          "type": "TxDirection",
+          "line": 725
+        },
+        {
+          "name": "payeeName",
+          "type": "String",
+          "line": 726
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "line": 727
+        },
+        {
+          "name": "reference",
+          "type": "String",
+          "line": 728
+        },
+        {
+          "name": "iban",
+          "type": "String",
+          "line": 729
+        },
+        {
+          "name": "category",
+          "type": "String",
+          "line": 730
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "line": 731
+        },
+        {
+          "name": "page",
+          "type": "StatementPage",
+          "line": 732
+        },
+        {
+          "name": "statement",
+          "type": "Statement",
+          "line": 733
+        }
+      ],
+      "relations": ["Company", "StatementPage", "Statement"]
+    },
+    {
+      "name": "User",
+      "line": 9,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 10
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "line": 11
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 12
+        },
+        {
+          "name": "emailVerified",
+          "type": "DateTime",
+          "line": 13
+        },
+        {
+          "name": "image",
+          "type": "String",
+          "line": 14
+        },
+        {
+          "name": "passwordHash",
+          "type": "String",
+          "line": 15
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 16
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "line": 17
+        },
+        {
+          "name": "accounts",
+          "type": "Account[]",
+          "line": 18
+        },
+        {
+          "name": "companies",
+          "type": "CompanyUser[]",
+          "line": 19
+        },
+        {
+          "name": "passwordResetTokens",
+          "type": "PasswordResetToken[]",
+          "line": 20
+        },
+        {
+          "name": "sessions",
+          "type": "Session[]",
+          "line": 21
+        },
+        {
+          "name": "webAuthnCredentials",
+          "type": "WebAuthnCredential[]",
+          "line": 22
+        }
+      ],
+      "relations": []
+    },
+    {
+      "name": "VerificationToken",
+      "line": 51,
+      "fields": [
+        {
+          "name": "identifier",
+          "type": "String",
+          "line": 52
+        },
+        {
+          "name": "token",
+          "type": "String",
+          "line": 53
+        },
+        {
+          "name": "expires",
+          "type": "DateTime",
+          "line": 54
+        }
+      ],
+      "relations": []
+    },
+    {
+      "name": "WebAuthnCredential",
+      "line": 771,
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "line": 772
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "line": 773
+        },
+        {
+          "name": "credentialId",
+          "type": "String",
+          "line": 774
+        },
+        {
+          "name": "publicKey",
+          "type": "String",
+          "line": 775
+        },
+        {
+          "name": "counter",
+          "type": "BigInt",
+          "line": 776
+        },
+        {
+          "name": "transports",
+          "type": "String",
+          "line": 777
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "line": 778
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "line": 779
+        },
+        {
+          "name": "lastUsedAt",
+          "type": "DateTime",
+          "line": 780
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "line": 781
+        }
+      ],
+      "relations": ["User"]
+    }
+  ]
+}

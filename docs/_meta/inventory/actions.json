@@ -1,0 +1,376 @@
+{
+  "generated": "2025-12-15T14:44:35.665Z",
+  "count": 74,
+  "actions": [
+    {
+      "name": "register",
+      "file": "src/app/actions/auth.ts",
+      "line": 12
+    },
+    {
+      "name": "login",
+      "file": "src/app/actions/auth.ts",
+      "line": 61
+    },
+    {
+      "name": "logout",
+      "file": "src/app/actions/auth.ts",
+      "line": 100
+    },
+    {
+      "name": "requestPasswordReset",
+      "file": "src/app/actions/auth.ts",
+      "line": 105
+    },
+    {
+      "name": "resetPassword",
+      "file": "src/app/actions/auth.ts",
+      "line": 172
+    },
+    {
+      "name": "loginWithPasskey",
+      "file": "src/app/actions/auth.ts",
+      "line": 213
+    },
+    {
+      "name": "createBankAccount",
+      "file": "src/app/actions/banking.ts",
+      "line": 52
+    },
+    {
+      "name": "updateBankAccount",
+      "file": "src/app/actions/banking.ts",
+      "line": 102
+    },
+    {
+      "name": "deleteBankAccount",
+      "file": "src/app/actions/banking.ts",
+      "line": 154
+    },
+    {
+      "name": "importBankStatement",
+      "file": "src/app/actions/banking.ts",
+      "line": 195
+    },
+    {
+      "name": "matchTransaction",
+      "file": "src/app/actions/banking.ts",
+      "line": 295
+    },
+    {
+      "name": "unmatchTransaction",
+      "file": "src/app/actions/banking.ts",
+      "line": 360
+    },
+    {
+      "name": "ignoreTransaction",
+      "file": "src/app/actions/banking.ts",
+      "line": 404
+    },
+    {
+      "name": "autoMatchTransactions",
+      "file": "src/app/actions/banking.ts",
+      "line": 443
+    },
+    {
+      "name": "switchCompany",
+      "file": "src/app/actions/company-switch.ts",
+      "line": 7
+    },
+    {
+      "name": "getUserCompanies",
+      "file": "src/app/actions/company-switch.ts",
+      "line": 40
+    },
+    {
+      "name": "createCompany",
+      "file": "src/app/actions/company.ts",
+      "line": 11
+    },
+    {
+      "name": "updateCompany",
+      "file": "src/app/actions/company.ts",
+      "line": 50
+    },
+    {
+      "name": "updateCompanySettings",
+      "file": "src/app/actions/company.ts",
+      "line": 89
+    },
+    {
+      "name": "updateCompanyPlan",
+      "file": "src/app/actions/company.ts",
+      "line": 129
+    },
+    {
+      "name": "switchCompany",
+      "file": "src/app/actions/company.ts",
+      "line": 168
+    },
+    {
+      "name": "getUserCompanies",
+      "file": "src/app/actions/company.ts",
+      "line": 198
+    },
+    {
+      "name": "getContactList",
+      "file": "src/app/actions/contact-list.ts",
+      "line": 17
+    },
+    {
+      "name": "createContact",
+      "file": "src/app/actions/contact.ts",
+      "line": 9
+    },
+    {
+      "name": "updateContact",
+      "file": "src/app/actions/contact.ts",
+      "line": 28
+    },
+    {
+      "name": "deleteContact",
+      "file": "src/app/actions/contact.ts",
+      "line": 60
+    },
+    {
+      "name": "getContacts",
+      "file": "src/app/actions/contact.ts",
+      "line": 81
+    },
+    {
+      "name": "searchContacts",
+      "file": "src/app/actions/contact.ts",
+      "line": 94
+    },
+    {
+      "name": "createEInvoice",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 16
+    },
+    {
+      "name": "sendEInvoice",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 129
+    },
+    {
+      "name": "getEInvoices",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 222
+    },
+    {
+      "name": "getEInvoice",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 269
+    },
+    {
+      "name": "deleteEInvoice",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 285
+    },
+    {
+      "name": "markInvoiceAsPaid",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 309
+    },
+    {
+      "name": "sendInvoiceEmail",
+      "file": "src/app/actions/e-invoice.ts",
+      "line": 348
+    },
+    {
+      "name": "autoMatchExpenses",
+      "file": "src/app/actions/expense-reconciliation.ts",
+      "line": 21
+    },
+    {
+      "name": "getExpenseSuggestions",
+      "file": "src/app/actions/expense-reconciliation.ts",
+      "line": 48
+    },
+    {
+      "name": "manuallyLinkExpense",
+      "file": "src/app/actions/expense-reconciliation.ts",
+      "line": 70
+    },
+    {
+      "name": "unlinkExpense",
+      "file": "src/app/actions/expense-reconciliation.ts",
+      "line": 98
+    },
+    {
+      "name": "createExpense",
+      "file": "src/app/actions/expense.ts",
+      "line": 33
+    },
+    {
+      "name": "updateExpense",
+      "file": "src/app/actions/expense.ts",
+      "line": 95
+    },
+    {
+      "name": "deleteExpense",
+      "file": "src/app/actions/expense.ts",
+      "line": 151
+    },
+    {
+      "name": "markExpenseAsPaid",
+      "file": "src/app/actions/expense.ts",
+      "line": 181
+    },
+    {
+      "name": "updateExpenseInline",
+      "file": "src/app/actions/expense.ts",
+      "line": 225
+    },
+    {
+      "name": "createExpenseCategory",
+      "file": "src/app/actions/expense.ts",
+      "line": 272
+    },
+    {
+      "name": "deleteExpenseCategory",
+      "file": "src/app/actions/expense.ts",
+      "line": 307
+    },
+    {
+      "name": "seedDefaultCategories",
+      "file": "src/app/actions/expense.ts",
+      "line": 344
+    },
+    {
+      "name": "validateCertificateAction",
+      "file": "src/app/actions/fiscal-certificate.ts",
+      "line": 26
+    },
+    {
+      "name": "saveCertificateAction",
+      "file": "src/app/actions/fiscal-certificate.ts",
+      "line": 71
+    },
+    {
+      "name": "deleteCertificateAction",
+      "file": "src/app/actions/fiscal-certificate.ts",
+      "line": 147
+    },
+    {
+      "name": "retryFiscalRequestAction",
+      "file": "src/app/actions/fiscal-certificate.ts",
+      "line": 200
+    },
+    {
+      "name": "manualFiscalizeAction",
+      "file": "src/app/actions/fiscal-certificate.ts",
+      "line": 253
+    },
+    {
+      "name": "fiscalizeInvoice",
+      "file": "src/app/actions/fiscalize.ts",
+      "line": 18
+    },
+    {
+      "name": "checkFiscalStatus",
+      "file": "src/app/actions/fiscalize.ts",
+      "line": 210
+    },
+    {
+      "name": "cancelFiscalizedInvoice",
+      "file": "src/app/actions/fiscalize.ts",
+      "line": 261
+    },
+    {
+      "name": "createInvoice",
+      "file": "src/app/actions/invoice.ts",
+      "line": 35
+    },
+    {
+      "name": "convertToInvoice",
+      "file": "src/app/actions/invoice.ts",
+      "line": 117
+    },
+    {
+      "name": "updateInvoice",
+      "file": "src/app/actions/invoice.ts",
+      "line": 193
+    },
+    {
+      "name": "deleteInvoice",
+      "file": "src/app/actions/invoice.ts",
+      "line": 269
+    },
+    {
+      "name": "getInvoice",
+      "file": "src/app/actions/invoice.ts",
+      "line": 308
+    },
+    {
+      "name": "getInvoices",
+      "file": "src/app/actions/invoice.ts",
+      "line": 325
+    },
+    {
+      "name": "createPremises",
+      "file": "src/app/actions/premises.ts",
+      "line": 28
+    },
+    {
+      "name": "updatePremises",
+      "file": "src/app/actions/premises.ts",
+      "line": 76
+    },
+    {
+      "name": "deletePremises",
+      "file": "src/app/actions/premises.ts",
+      "line": 122
+    },
+    {
+      "name": "createDevice",
+      "file": "src/app/actions/premises.ts",
+      "line": 158
+    },
+    {
+      "name": "updateDevice",
+      "file": "src/app/actions/premises.ts",
+      "line": 206
+    },
+    {
+      "name": "deleteDevice",
+      "file": "src/app/actions/premises.ts",
+      "line": 256
+    },
+    {
+      "name": "getDefaultPremisesAndDevice",
+      "file": "src/app/actions/premises.ts",
+      "line": 267
+    },
+    {
+      "name": "createProduct",
+      "file": "src/app/actions/product.ts",
+      "line": 20
+    },
+    {
+      "name": "updateProduct",
+      "file": "src/app/actions/product.ts",
+      "line": 39
+    },
+    {
+      "name": "updateProductInline",
+      "file": "src/app/actions/product.ts",
+      "line": 70
+    },
+    {
+      "name": "deleteProduct",
+      "file": "src/app/actions/product.ts",
+      "line": 112
+    },
+    {
+      "name": "getProducts",
+      "file": "src/app/actions/product.ts",
+      "line": 133
+    },
+    {
+      "name": "searchProducts",
+      "file": "src/app/actions/product.ts",
+      "line": 146
+    }
+  ]
+}

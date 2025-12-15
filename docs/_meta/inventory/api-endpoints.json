@@ -1,0 +1,366 @@
+{
+  "generated": "2025-12-15T14:44:32.006Z",
+  "count": 72,
+  "endpoints": [
+    {
+      "path": "/api/admin/auth",
+      "file": "src/app/api/admin/auth/route.ts",
+      "methods": ["POST", "DELETE"]
+    },
+    {
+      "path": "/api/admin/companies/:companyId/audit",
+      "file": "src/app/api/admin/companies/[companyId]/audit/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/admin/support/dashboard",
+      "file": "src/app/api/admin/support/dashboard/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/ai/extract",
+      "file": "src/app/api/ai/extract/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/ai/feedback",
+      "file": "src/app/api/ai/feedback/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/ai/suggest-category",
+      "file": "src/app/api/ai/suggest-category/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/ai/usage",
+      "file": "src/app/api/ai/usage/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/auth/:...nextauth",
+      "file": "src/app/api/auth/[...nextauth]/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/bank/callback",
+      "file": "src/app/api/bank/callback/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/bank/connect",
+      "file": "src/app/api/bank/connect/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/bank/disconnect",
+      "file": "src/app/api/bank/disconnect/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/banking/import/jobs/:id",
+      "file": "src/app/api/banking/import/jobs/[id]/route.ts",
+      "methods": ["GET", "PATCH", "DELETE"]
+    },
+    {
+      "path": "/api/banking/import/jobs/:id/file",
+      "file": "src/app/api/banking/import/jobs/[id]/file/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/banking/import/jobs/:id/status",
+      "file": "src/app/api/banking/import/jobs/[id]/status/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/banking/import/process",
+      "file": "src/app/api/banking/import/process/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/banking/import/upload",
+      "file": "src/app/api/banking/import/upload/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/banking/reconciliation",
+      "file": "src/app/api/banking/reconciliation/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/banking/reconciliation/match",
+      "file": "src/app/api/banking/reconciliation/match/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/billing/checkout",
+      "file": "src/app/api/billing/checkout/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/billing/portal",
+      "file": "src/app/api/billing/portal/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/billing/webhook",
+      "file": "src/app/api/billing/webhook/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/capabilities",
+      "file": "src/app/api/capabilities/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/compliance/en16931",
+      "file": "src/app/api/compliance/en16931/route.ts",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "path": "/api/cron/bank-sync",
+      "file": "src/app/api/cron/bank-sync/route.ts",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "path": "/api/cron/email-sync",
+      "file": "src/app/api/cron/email-sync/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/cron/fiscal-processor",
+      "file": "src/app/api/cron/fiscal-processor/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/e-invoices/inbox",
+      "file": "src/app/api/e-invoices/inbox/route.ts",
+      "methods": ["GET", "POST", "PATCH"]
+    },
+    {
+      "path": "/api/e-invoices/receive",
+      "file": "src/app/api/e-invoices/receive/route.ts",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "path": "/api/email/:connectionId/disconnect",
+      "file": "src/app/api/email/[connectionId]/disconnect/route.ts",
+      "methods": ["DELETE"]
+    },
+    {
+      "path": "/api/email/callback",
+      "file": "src/app/api/email/callback/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/email/connect",
+      "file": "src/app/api/email/connect/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/email/rules",
+      "file": "src/app/api/email/rules/route.ts",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "path": "/api/email/rules/:id",
+      "file": "src/app/api/email/rules/[id]/route.ts",
+      "methods": ["PUT", "DELETE"]
+    },
+    {
+      "path": "/api/exports/company",
+      "file": "src/app/api/exports/company/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/exports/expenses",
+      "file": "src/app/api/exports/expenses/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/exports/invoices",
+      "file": "src/app/api/exports/invoices/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/exports/season-pack",
+      "file": "src/app/api/exports/season-pack/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/health",
+      "file": "src/app/api/health/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/health/ready",
+      "file": "src/app/api/health/ready/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/import/jobs/:id",
+      "file": "src/app/api/import/jobs/[id]/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/import/jobs/:id/confirm",
+      "file": "src/app/api/import/jobs/[id]/confirm/route.ts",
+      "methods": ["PUT"]
+    },
+    {
+      "path": "/api/import/jobs/:id/file",
+      "file": "src/app/api/import/jobs/[id]/file/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/import/jobs/:id/reject",
+      "file": "src/app/api/import/jobs/[id]/reject/route.ts",
+      "methods": ["PUT"]
+    },
+    {
+      "path": "/api/import/jobs/:id/type",
+      "file": "src/app/api/import/jobs/[id]/type/route.ts",
+      "methods": ["PUT"]
+    },
+    {
+      "path": "/api/import/process",
+      "file": "src/app/api/import/process/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/import/upload",
+      "file": "src/app/api/import/upload/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/invoices/:id/pdf",
+      "file": "src/app/api/invoices/[id]/pdf/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/metrics",
+      "file": "src/app/api/metrics/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/notifications",
+      "file": "src/app/api/notifications/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/notifications/read",
+      "file": "src/app/api/notifications/read/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/oib/lookup",
+      "file": "src/app/api/oib/lookup/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/products/import",
+      "file": "src/app/api/products/import/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/receipts/upload",
+      "file": "src/app/api/receipts/upload/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/receipts/view",
+      "file": "src/app/api/receipts/view/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/reports/accountant-export",
+      "file": "src/app/api/reports/accountant-export/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/reports/kpr",
+      "file": "src/app/api/reports/kpr/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/reports/kpr/excel",
+      "file": "src/app/api/reports/kpr/excel/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/reports/kpr/pdf",
+      "file": "src/app/api/reports/kpr/pdf/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/reports/vat-threshold",
+      "file": "src/app/api/reports/vat-threshold/route.ts",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "path": "/api/sandbox/e-invoice",
+      "file": "src/app/api/sandbox/e-invoice/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/status",
+      "file": "src/app/api/status/route.ts",
+      "methods": []
+    },
+    {
+      "path": "/api/support/tickets",
+      "file": "src/app/api/support/tickets/route.ts",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "path": "/api/support/tickets/:id/messages",
+      "file": "src/app/api/support/tickets/[id]/messages/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/support/tickets/:id/status",
+      "file": "src/app/api/support/tickets/[id]/status/route.ts",
+      "methods": ["PATCH"]
+    },
+    {
+      "path": "/api/support/tickets/summary",
+      "file": "src/app/api/support/tickets/summary/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/webauthn/login/finish",
+      "file": "src/app/api/webauthn/login/finish/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/webauthn/login/start",
+      "file": "src/app/api/webauthn/login/start/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/webauthn/passkeys",
+      "file": "src/app/api/webauthn/passkeys/route.ts",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/api/webauthn/passkeys/:id",
+      "file": "src/app/api/webauthn/passkeys/[id]/route.ts",
+      "methods": ["DELETE"]
+    },
+    {
+      "path": "/api/webauthn/register/finish",
+      "file": "src/app/api/webauthn/register/finish/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/webauthn/register/start",
+      "file": "src/app/api/webauthn/register/start/route.ts",
+      "methods": ["POST"]
+    },
+    {
+      "path": "/api/webhooks/resend",
+      "file": "src/app/api/webhooks/resend/route.ts",
+      "methods": ["POST"]
+    }
+  ]
+}

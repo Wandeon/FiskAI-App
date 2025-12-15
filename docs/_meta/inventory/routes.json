@@ -1,0 +1,450 @@
+{
+  "generated": "2025-12-15T14:44:29.998Z",
+  "count": 74,
+  "routes": [
+    {
+      "path": "/",
+      "file": "src/app/(auth)/layout.tsx",
+      "type": "layout",
+      "routeGroup": null
+    },
+    {
+      "path": "/",
+      "file": "src/app/(dashboard)/layout.tsx",
+      "type": "layout",
+      "routeGroup": null
+    },
+    {
+      "path": "/",
+      "file": "src/app/(marketing)/layout.tsx",
+      "type": "layout",
+      "routeGroup": null
+    },
+    {
+      "path": "/",
+      "file": "src/app/(marketing)/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/",
+      "file": "src/app/layout.tsx",
+      "type": "layout",
+      "routeGroup": null
+    },
+    {
+      "path": "/about",
+      "file": "src/app/(marketing)/about/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/accountant",
+      "file": "src/app/(dashboard)/accountant/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/admin",
+      "file": "src/app/admin/layout.tsx",
+      "type": "layout",
+      "routeGroup": null
+    },
+    {
+      "path": "/admin",
+      "file": "src/app/admin/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/admin-login",
+      "file": "src/app/admin-login/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/admin/:companyId",
+      "file": "src/app/admin/[companyId]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/ai-data-policy",
+      "file": "src/app/(marketing)/ai-data-policy/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/assistant",
+      "file": "src/app/(dashboard)/assistant/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking",
+      "file": "src/app/(dashboard)/banking/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking/accounts",
+      "file": "src/app/(dashboard)/banking/accounts/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking/documents",
+      "file": "src/app/(dashboard)/banking/documents/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking/documents/:id",
+      "file": "src/app/(dashboard)/banking/documents/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking/import",
+      "file": "src/app/(dashboard)/banking/import/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking/reconciliation",
+      "file": "src/app/(dashboard)/banking/reconciliation/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/banking/transactions",
+      "file": "src/app/(dashboard)/banking/transactions/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/contact",
+      "file": "src/app/(marketing)/contact/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/contacts",
+      "file": "src/app/(dashboard)/contacts/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/contacts/:id",
+      "file": "src/app/(dashboard)/contacts/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/contacts/:id/edit",
+      "file": "src/app/(dashboard)/contacts/[id]/edit/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/contacts/new",
+      "file": "src/app/(dashboard)/contacts/new/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/cookies",
+      "file": "src/app/(marketing)/cookies/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/dashboard",
+      "file": "src/app/(dashboard)/dashboard/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/documents",
+      "file": "src/app/(dashboard)/documents/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/documents/:id",
+      "file": "src/app/(dashboard)/documents/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/dpa",
+      "file": "src/app/(marketing)/dpa/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/e-invoices",
+      "file": "src/app/(dashboard)/e-invoices/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/e-invoices/:id",
+      "file": "src/app/(dashboard)/e-invoices/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/e-invoices/new",
+      "file": "src/app/(dashboard)/e-invoices/new/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/expenses",
+      "file": "src/app/(dashboard)/expenses/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/expenses/:id",
+      "file": "src/app/(dashboard)/expenses/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/expenses/categories",
+      "file": "src/app/(dashboard)/expenses/categories/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/expenses/new",
+      "file": "src/app/(dashboard)/expenses/new/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/features",
+      "file": "src/app/(marketing)/features/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/for/accountants",
+      "file": "src/app/(marketing)/for/accountants/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/for/dooo",
+      "file": "src/app/(marketing)/for/dooo/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/for/pausalni-obrt",
+      "file": "src/app/(marketing)/for/pausalni-obrt/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/forgot-password",
+      "file": "src/app/(auth)/forgot-password/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/import",
+      "file": "src/app/(dashboard)/import/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/invoices",
+      "file": "src/app/(dashboard)/invoices/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/invoices/:id",
+      "file": "src/app/(dashboard)/invoices/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/invoices/new",
+      "file": "src/app/(dashboard)/invoices/new/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/login",
+      "file": "src/app/(auth)/login/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/onboarding",
+      "file": "src/app/(dashboard)/onboarding/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/pricing",
+      "file": "src/app/(marketing)/pricing/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/privacy",
+      "file": "src/app/(marketing)/privacy/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/products",
+      "file": "src/app/(dashboard)/products/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/products/:id/edit",
+      "file": "src/app/(dashboard)/products/[id]/edit/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/products/new",
+      "file": "src/app/(dashboard)/products/new/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/register",
+      "file": "src/app/(auth)/register/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports",
+      "file": "src/app/(dashboard)/reports/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/aging",
+      "file": "src/app/(dashboard)/reports/aging/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/export",
+      "file": "src/app/(dashboard)/reports/export/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/kpr",
+      "file": "src/app/(dashboard)/reports/kpr/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/pausalni-obrt",
+      "file": "src/app/(dashboard)/reports/pausalni-obrt/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/profit-loss",
+      "file": "src/app/(dashboard)/reports/profit-loss/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/vat",
+      "file": "src/app/(dashboard)/reports/vat/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reports/vat-threshold",
+      "file": "src/app/(dashboard)/reports/vat-threshold/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/reset-password",
+      "file": "src/app/(auth)/reset-password/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/security",
+      "file": "src/app/(marketing)/security/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/settings",
+      "file": "src/app/(dashboard)/settings/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/settings/audit-log",
+      "file": "src/app/(dashboard)/settings/audit-log/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/settings/billing",
+      "file": "src/app/(dashboard)/settings/billing/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/settings/email",
+      "file": "src/app/(dashboard)/settings/email/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/settings/fiscalisation",
+      "file": "src/app/(dashboard)/settings/fiscalisation/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/settings/premises",
+      "file": "src/app/(dashboard)/settings/premises/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/status",
+      "file": "src/app/(marketing)/status/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/support",
+      "file": "src/app/(dashboard)/support/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/support/:id",
+      "file": "src/app/(dashboard)/support/[id]/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    },
+    {
+      "path": "/terms",
+      "file": "src/app/(marketing)/terms/page.tsx",
+      "type": "page",
+      "routeGroup": null
+    }
+  ]
+}
