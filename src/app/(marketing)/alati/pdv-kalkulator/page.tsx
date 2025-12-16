@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { PDVThresholdCalculator } from "@/components/knowledge-hub/calculators/PDVThresholdCalculator"
+import { TrendingUp, ArrowRight, Bell } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "PDV Kalkulator - Kada prelazim prag? | FiskAI",
@@ -60,6 +61,39 @@ export default function PDVCalculatorPage() {
             <Link href="/vodic/pausalni-obrt#pdv">PDV za paušalne obrtnike</Link>
           </li>
         </ul>
+      </section>
+
+      {/* Upsell Section */}
+      <section className="mt-12 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500">
+            <TrendingUp className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-amber-900">Automatsko praćenje PDV praga</h3>
+            <p className="mt-1 text-sm text-amber-700">
+              FiskAI prati vaš prihod u realnom vremenu i upozorava vas kada se približite PDV
+              pragu. Bez iznenađenja.
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-amber-800">
+              <li className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-amber-600" /> Upozorenje na 80% praga
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Projekcija do kraja godine
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Automatski izvještaj za knjigovođu
+              </li>
+            </ul>
+            <Link
+              href="/register"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-700"
+            >
+              Prati prag automatski <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   )

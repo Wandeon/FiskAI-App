@@ -12,6 +12,7 @@ type NavItem = { href: string; label: string }
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/features", label: "Mogućnosti" },
+  { href: "/alati", label: "Alati" },
   { href: "/pricing", label: "Cijene" },
   { href: "/baza-znanja", label: "Baza znanja" },
   { href: "/security", label: "Sigurnost" },

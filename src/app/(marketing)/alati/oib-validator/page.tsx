@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Shield, CheckCircle, XCircle, Info } from "lucide-react"
+import Link from "next/link"
+import { Shield, CheckCircle, XCircle, Info, FileText, ArrowRight } from "lucide-react"
 import { validateOIB } from "@/lib/einvoice/validators"
 
 export default function OIBValidatorPage() {
@@ -179,6 +180,41 @@ export default function OIBValidatorPage() {
                 <li>Koristi se na računima i e-računima</li>
                 <li>Nužan za prijavu poreza i komunikaciju s državnim tijelima</li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Upsell Section */}
+        <div className="mt-6 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-purple-600">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-purple-900">
+                Automatska validacija na računu
+              </h3>
+              <p className="mt-1 text-sm text-purple-700">
+                FiskAI automatski validira OIB kupca i prodavača kod svakog računa. Nema više
+                grešaka koje vraća Porezna.
+              </p>
+              <ul className="mt-3 space-y-1 text-sm text-purple-800">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✓</span> Automatska provjera pri unosu
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✓</span> Upozorenje na neispravan OIB
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✓</span> UBL 2.1 e-računi s validiranim podacima
+                </li>
+              </ul>
+              <Link
+                href="/register"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-purple-700"
+              >
+                Isprobaj FiskAI <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

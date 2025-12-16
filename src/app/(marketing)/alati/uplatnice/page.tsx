@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { PaymentSlipGenerator } from "@/components/knowledge-hub/calculators/PaymentSlipGenerator"
 import { PAYMENT_IBANS, PAYMENT_MODEL } from "@/lib/knowledge-hub/constants"
+import { Rocket, ArrowRight, Save } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Generator Uplatnica | FiskAI",
@@ -62,6 +63,39 @@ export default function PaymentSlipsPage() {
         <p>
           <strong>Model:</strong> {PAYMENT_MODEL}
         </p>
+      </section>
+
+      {/* Upsell Section */}
+      <section className="mt-12 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-600">
+            <Save className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-blue-900">Spremi predloške uplatnica</h3>
+            <p className="mt-1 text-sm text-blue-700">
+              FiskAI automatski izračunava doprinose i generira uplatnice na temelju vaših prihoda.
+              Više nikad ne morate ručno kopirati IBAN-ove.
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-blue-800">
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Automatski izračun MIO/HZZO doprinosa
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Podsjetnici prije isteka roka
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Povijest svih uplata na jednom mjestu
+              </li>
+            </ul>
+            <Link
+              href="/register"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Započni besplatno <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   )

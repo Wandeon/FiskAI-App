@@ -21,6 +21,13 @@ import { QuickStatsBar } from "./guide/QuickStatsBar"
 import { TableOfContents } from "./guide/TableOfContents"
 import { ProsCons } from "./guide/ProsCons"
 
+// New interactive components (Phase 3)
+import { QuickDecisionQuiz } from "./comparison/QuickDecisionQuiz"
+import { AccordionFAQ, Accordion } from "./guide/AccordionFAQ"
+import { TLDRBox, QuickAnswer } from "./guide/TLDRBox"
+import { ToolUpsellCard } from "./guide/ToolUpsellCard"
+import { GuideUpsellSection } from "./guide/GuideUpsellSection"
+
 // HTML element overrides
 function H1(props: any) {
   return <h1 className="text-3xl font-bold mb-6" {...props} />
@@ -93,6 +100,15 @@ export const mdxComponents = {
   QuickStatsBar,
   TableOfContents,
   ProsCons,
+
+  // Interactive components (Phase 3)
+  QuickDecisionQuiz,
+  AccordionFAQ,
+  Accordion,
+  TLDRBox,
+  QuickAnswer,
+  ToolUpsellCard,
+  GuideUpsellSection,
 
   h1: H1,
   h2: H2,

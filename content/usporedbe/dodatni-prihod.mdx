@@ -10,666 +10,300 @@ decisionContext: side-income
 
 # Imam posao, želim dodatni prihod
 
-Već ste zaposleni i želite zaraditi dodatni prihod legalno i bez komplikacija? Ova stranica detaljno uspoređuje sve opcije dostupne za zaposlene osobe u Hrvatskoj u 2025. godini.
+<TLDRBox>
+**Brzi odgovor za zaposlene u 2025:**
 
-## Vaša situacija
+- **10.000-60.000 EUR/god dodatno?** → Paušalni obrt (96% neto, samo 137 EUR/god doprinosi)
+- **Povremeni projekti do 10.000 EUR?** → Ugovor o djelu (0 registracije, naručitelj plaća doprinose)
+- **Kreativni rad (pisanje, predavanja)?** → Autorski ugovor (specifičan za intelektualni rad)
 
-Želite:
-- Dodatni prihod uz redovno zaposlenje
-- Raditi u slobodno vrijeme bez sukoba s poslodavcem
-- Minimizirati doprinose (jer ih već plaća poslodavac)
-- Jednostavno i legalno poslovanje
-- Optimizirati porezno opterećenje
+Već plaćate doprinose kroz plaću — dodatne aktivnosti su zato porezno povoljnije!
+</TLDRBox>
 
-<PDVCallout type="info">
-  **Ključna prednost zaposlenih:** Vaš poslodavac već plaća MIO i HZZO doprinose na vašu plaću. To znači da kroz dodatne aktivnosti plaćate znatno manje doprinosa nego da započinjete samostalno poslovanje.
-</PDVCallout>
+<QuickDecisionQuiz
+  title="Koja opcija je za vas?"
+  questions={[
+    {
+      id: "income",
+      question: "Koliki dodatni prihod očekujete godišnje?",
+      options: [
+        { label: "Do 10.000 EUR", value: "low", points: { ugovor: 3, pausalni: 1, autorski: 1 } },
+        { label: "10.000 - 30.000 EUR", value: "mid", points: { pausalni: 3, ugovor: 1, autorski: 1 } },
+        { label: "30.000 - 60.000 EUR", value: "high", points: { pausalni: 3, ugovor: 0, autorski: 1 } },
+      ],
+    },
+    {
+      id: "frequency",
+      question: "Koliko često ćete raditi dodatno?",
+      options: [
+        { label: "Povremeno (par projekata godišnje)", value: "occasional", points: { ugovor: 3, autorski: 2, pausalni: 0 } },
+        { label: "Redovito (svaki mjesec)", value: "regular", points: { pausalni: 3, autorski: 1, ugovor: 0 } },
+        { label: "Sezonski (npr. ljeto)", value: "seasonal", points: { ugovor: 2, pausalni: 1, autorski: 1 } },
+      ],
+    },
+    {
+      id: "type",
+      question: "Kakav posao planirate raditi?",
+      options: [
+        { label: "Usluge (programiranje, dizajn, konzalting)", value: "services", points: { pausalni: 3, ugovor: 2, autorski: 0 } },
+        { label: "Kreativni rad (pisanje, predavanja, umjetnost)", value: "creative", points: { autorski: 3, pausalni: 1, ugovor: 1 } },
+        { label: "Razni povremeni poslovi", value: "misc", points: { ugovor: 3, pausalni: 1, autorski: 0 } },
+      ],
+    },
+  ]}
+  results={[
+    {
+      key: "pausalni",
+      title: "Paušalni obrt",
+      description: "Najbolji omjer jednostavnosti i uštede. Minimalni doprinosi (samo HOK ~137 EUR/god), profesionalan dojam.",
+      color: "bg-green-500",
+      link: "/vodic/pausalni-obrt",
+    },
+    {
+      key: "ugovor",
+      title: "Ugovor o djelu",
+      description: "Najjednostavnija opcija bez registracije. Idealno za povremene projekte i testiranje tržišta.",
+      color: "bg-blue-500",
+      link: "/vodic/ugovor-djelo",
+    },
+    {
+      key: "autorski",
+      title: "Autorski ugovor",
+      description: "Specifično za kreativni i intelektualni rad. Bez registracije, naručitelj plaća doprinose.",
+      color: "bg-purple-500",
+      link: "/vodic/autorski-honorar",
+    },
+  ]}
+/>
 
-## Brza usporedba svih opcija
+## Brza usporedba
 
 <ComparisonTable>
   <ComparisonRow label="Najprikladnije za">
     <ComparisonCell type="pausalni">Redovite dodatne usluge</ComparisonCell>
-    <ComparisonCell type="generic">Povremene projekte i jednokratne poslove</ComparisonCell>
-    <ComparisonCell type="generic">Kreativni rad, pisanje, predavanja</ComparisonCell>
+    <ComparisonCell type="generic">Povremene projekte</ComparisonCell>
+    <ComparisonCell type="generic">Kreativni rad</ComparisonCell>
   </ComparisonRow>
 
-  <ComparisonRow label="Maksimalni godišnji prihod">
+  <ComparisonRow label="Max. godišnji prihod">
     <ComparisonCell type="pausalni">60.000 EUR</ComparisonCell>
-    <ComparisonCell type="generic">Neograničen (ali često do 34.560 EUR praksa)</ComparisonCell>
+    <ComparisonCell type="generic">Neograničen</ComparisonCell>
     <ComparisonCell type="generic">Neograničen</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Doprinosi mjesečno">
-    <ComparisonCell type="pausalni" isPositive>Samo HOK (~11 EUR/mj)*</ComparisonCell>
+    <ComparisonCell type="pausalni" isPositive>Samo HOK (~11 EUR)*</ComparisonCell>
     <ComparisonCell type="generic" isPositive>0 EUR (plaća naručitelj)</ComparisonCell>
     <ComparisonCell type="generic" isPositive>0 EUR (plaća naručitelj)</ComparisonCell>
   </ComparisonRow>
 
-  <ComparisonRow label="Porezno opterećenje">
-    <ComparisonCell type="pausalni">12% porezna osnovica + prirez</ComparisonCell>
-    <ComparisonCell type="generic">20-30% + prirez (ovisno o ukupnom dohotku)</ComparisonCell>
-    <ComparisonCell type="generic">25-40% + prirez (ovisno o ukupnom dohotku)</ComparisonCell>
+  <ComparisonRow label="Neto od prihoda">
+    <ComparisonCell type="pausalni" isPositive>~96%</ComparisonCell>
+    <ComparisonCell type="generic">~86%</ComparisonCell>
+    <ComparisonCell type="generic">~65-70%</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Registracija">
-    <ComparisonCell type="pausalni">Da, obrt (1-3 dana)</ComparisonCell>
+    <ComparisonCell type="pausalni">Da (~100 EUR, 1-3 dana)</ComparisonCell>
     <ComparisonCell type="generic" isPositive>Ne (samo OIB)</ComparisonCell>
     <ComparisonCell type="generic" isPositive>Ne (samo OIB)</ComparisonCell>
   </ComparisonRow>
 
-  <ComparisonRow label="Potrebno knjigovodstvo">
-    <ComparisonCell type="pausalni" isPositive>Ne</ComparisonCell>
-    <ComparisonCell type="generic" isPositive>Ne</ComparisonCell>
-    <ComparisonCell type="generic" isPositive>Ne</ComparisonCell>
-  </ComparisonRow>
-
-  <ComparisonRow label="Fiskalizacija računa">
+  <ComparisonRow label="Fiskalizacija">
     <ComparisonCell type="pausalni" isNegative>Da (obavezno)</ComparisonCell>
     <ComparisonCell type="generic" isPositive>Ne</ComparisonCell>
     <ComparisonCell type="generic" isPositive>Ne</ComparisonCell>
   </ComparisonRow>
 
-  <ComparisonRow label="Odgovornost poslodavcu">
+  <ComparisonRow label="Odobrenje poslodavca">
     <ComparisonCell type="pausalni">Može tražiti obavijest</ComparisonCell>
-    <ComparisonCell type="generic">Treba odobrenje poslodavca</ComparisonCell>
+    <ComparisonCell type="generic" isNegative>Treba pisana suglasnost</ComparisonCell>
     <ComparisonCell type="generic">Može tražiti obavijest</ComparisonCell>
-  </ComparisonRow>
-
-  <ComparisonRow label="Kontinuitet">
-    <ComparisonCell type="pausalni" isPositive>Stalno, dugoročno</ComparisonCell>
-    <ComparisonCell type="generic" isNegative>Privremeno, povremeno</ComparisonCell>
-    <ComparisonCell type="generic">Povremeno do redovito</ComparisonCell>
-  </ComparisonRow>
-
-  <ComparisonRow label="Fleksibilnost">
-    <ComparisonCell type="pausalni">28 dozvoljenih djelatnosti</ComparisonCell>
-    <ComparisonCell type="generic">Bilo koji posao</ComparisonCell>
-    <ComparisonCell type="generic">Samo kreativni/intelektualni rad</ComparisonCell>
-  </ComparisonRow>
-
-  <ComparisonRow label="Administrativna složenost">
-    <ComparisonCell type="pausalni">Niska (nakon registracije)</ComparisonCell>
-    <ComparisonCell type="generic" isPositive>Vrlo niska</ComparisonCell>
-    <ComparisonCell type="generic" isPositive>Niska</ComparisonCell>
-  </ComparisonRow>
-
-  <ComparisonRow label="Troškovi osnivanja">
-    <ComparisonCell type="pausalni">~100 EUR</ComparisonCell>
-    <ComparisonCell type="generic" isPositive>0 EUR</ComparisonCell>
-    <ComparisonCell type="generic" isPositive>0 EUR</ComparisonCell>
   </ComparisonRow>
 </ComparisonTable>
 
-<PDVCallout type="warning">
-  *Kod paušalnog obrta uz zaposlenje: Ako je vaša plaća viša od paušalne osnovice (719,20 EUR), plaćate samo HOK članarinu (~137 EUR/godišnje). Ako zaradite malo, ovo je vrlo povoljan sustav.
-</PDVCallout>
-
-## Ključna pitanja prije odabira
-
-### 1. Što kaže vaš ugovor o radu?
-
-**Provjerite klauzule o:**
-- **Zabrani konkurencije:** Možete li raditi u istoj djelatnosti?
-- **Sukobu interesa:** Možete li raditi s konkurentima poslodavca?
-- **Obvezi obavještavanja:** Morate li prijaviti dodatne aktivnosti?
-- **Radnom vremenu:** Je li dopušteno raditi u slobodno vrijeme?
-
-<PDVCallout type="warning">
-  Većina ugovora sadrži klauzule o zabrani konkurencije. Ako planirate raditi u istoj ili sličnoj djelatnosti, **obavezno se konzultirajte s poslodavcem** prije nego počnete.
-</PDVCallout>
-
-### 2. Kako doprinosi funkcioniraju kada ste zaposleni?
-
-**Osnovni princip:** Ne plaćate doprinose dvaput!
-
-**Paušalni obrt uz posao:**
-- Poslodavac plaća doprinose na plaću (MIO, HZZO)
-- Kroz obrt: Samo razlika ako je paušalna osnovica (719,20 EUR) viša od plaće
-- **Većina ljudi:** Plaća samo HOK članarinu (~11 EUR/mjesečno)
-
-**Ugovor o djelu:**
-- Naručitelj plaća **sve doprinose** za mirovinsko (20%)
-- Vi ne plaćate doprinose
-- **Zdravstveno:** Pokriveno kroz redovno zaposlenje
-
-**Autorski ugovor:**
-- Naručitelj plaća mirovinsko osiguranje (20%)
-- Vi ne plaćate doprinose dodatno
-- **Zdravstveno:** Pokriveno kroz redovno zaposlenje
-
-### 3. Godišnji porezni obračun
-
-**Paušalni obrt:**
-- Porezna osnovica (12% prihoda) se **zbraja s plaćom**
-- Oporezuje se zajedno po progresivnim stopama (20-30%)
-- Može vas gurnuti u viši porezni razred
-
-**Ugovor o djelu:**
-- Prihod se **zbraja s plaćom**
-- Može odbiti normativne troškove (30%)
-- Zajedno se oporezuje po progresivnim stopama
-
-**Autorski ugovor:**
-- Prihod se **zbraja s plaćom**
-- Porez se obračunava na mjesečnoj razini (25-40%)
-- Godišnji obračun uključuje sve dohotke
-
 <PDVCallout type="info">
-  Svi ovi oblici doprinose ukupnom godišnjem dohotku. Ako ukupno zaradite više, možete prijeći u viši porezni razred (30% umjesto 20%).
+  **Ključna prednost zaposlenih:** Vaš poslodavac već plaća MIO i HZZO doprinose. Zato kroz dodatne aktivnosti plaćate znatno manje nego da započinjete samostalno!
 </PDVCallout>
 
-## Najbolje za...
+## Praktični primjeri
 
-### Paušalni obrt uz zaposlenje - Za redovite dodatne usluge
+<Accordion title="📊 Primjer: Programer s 15.000 EUR dodatnog prihoda">
+**Plaća:** 1.400 EUR/mj (16.800 EUR/god)
 
-**Idealan ako:**
-- Želite dugotrajno i redovito pružati usluge
-- Očekujete godišnji prihod 10.000-60.000 EUR
-- Radite u jednoj od 28 dozvoljenih djelatnosti
-- Želite profesionalni dojam prema klijentima
-- Planirate izdavati račune redovito
-- Ne želite složenu administraciju
+| Opcija | Doprinosi | Porez | Neto | % od prihoda |
+|--------|-----------|-------|------|--------------|
+| **Paušalni obrt** | 137 EUR/god | ~400 EUR | **14.463 EUR** | **96.4%** |
+| Ugovor o djelu | 0 (naručitelj 3.000) | ~2.100 EUR | 12.900 EUR | 86% |
+| Autorski ugovor | 0 (naručitelj 3.000) | ~4.500 EUR | 10.500 EUR | 70% |
 
-**Primjeri idealnih situacija:**
-- Programer koji vikendom radi freelance projekte
-- Dizajner s redovitim klijentima
-- Fotograf za eventualne događaje
-- Trener/instruktor koji drži poduke
-- Konzultant u svojoj struci
-- Web developer s nekoliko stalnih klijenata
+**Zaključak:** Paušalni obrt štedi **3.963 EUR godišnje** u odnosu na autorski!
+</Accordion>
 
-**Prednosti:**
-- Jednostavna administracija (bez knjigovodstva)
-- Minimalni doprinosi (samo HOK ~137 EUR/god)
-- Profesionalan dojam (imate obrt)
-- Predvidivi troškovi
-- Lako planiranje financija
+<Accordion title="📊 Primjer: Dizajner s 8.000 EUR povremenog rada">
+**Plaća:** 1.100 EUR/mj (13.200 EUR/god)
 
-**Nedostaci:**
-- Trošak osnivanja (~100 EUR)
-- Limit 60.000 EUR godišnje
-- Obavezna fiskalizacija računa
-- Samo 28 dozvoljenih djelatnosti
-- Porezna osnovica se zbraja s plaćom
+| Opcija | Ukupni troškovi | Neto | % od prihoda |
+|--------|-----------------|------|--------------|
+| **Paušalni obrt** | 337 EUR | **7.663 EUR** | **95.8%** |
+| Ugovor o djelu | 1.100 EUR | 6.900 EUR | 86.3% |
 
-### Ugovor o djelu - Za povremene projekte
+**Zaključak:** Za povremeni rad, ugovor o djelu je prihvatljiv ako ne želite registraciju.
+</Accordion>
 
-**Idealan ako:**
-- Radite povremeno, ne redovito
-- Radite na jednokratnim projektima
-- Imate samo 1-2 naručitelja godišnje
-- Želite potpunu jednostavnost bez registracija
-- Prihod je do ~30.000 EUR godišnje
-- Ne želite stalno poslovanje
+<Accordion title="📊 Primjer: Predavač s 20.000 EUR godišnje">
+**Plaća:** 1.600 EUR/mj (19.200 EUR/god)
 
-**Primjeri idealnih situacija:**
-- Povremeni projekti za poznate klijente
-- Jednokratna konzultacija ili analiza
-- Sezonski rad (npr. turistička sezona)
-- Pomoć prijateljevoj tvrtki s projektom
-- Kratkoročni angažman
-- Prijelazno rješenje dok testirate tržište
+| Opcija | Ukupni troškovi | Neto | % od prihoda |
+|--------|-----------------|------|--------------|
+| **Paušalni obrt** | 687 EUR | **19.313 EUR** | **96.6%** |
+| Autorski ugovor | ~7.000 EUR | 13.000 EUR | 65% |
 
-**Prednosti:**
-- Nema registracije (samo OIB)
-- Nema troškova osnivanja
-- Jednostavna administracija
-- Naručitelj plaća sve doprinose
-- Nema fiskalizacije
-- Idealno za testiranje
+**Zaključak:** Za redovita predavanja, paušalni obrt štedi **6.313 EUR godišnje**!
+</Accordion>
 
-**Nedostaci:**
-- Često ograničeno na 34.560 EUR/god (praksa)
-- Nije za dugoročno poslovanje
-- Potrebno odobrenje poslodavca (po Zakonu o radu)
-- Manje profesionalan dojam
-- Oporezivanje može biti veće (pun iznos, manje odbitaka)
-- Ne možete raditi za mnogo različitih naručitelja
+## Prije nego počnete
 
 <PDVCallout type="warning">
-  **Ugovor o djelu ima ograničenje:** Prema Zakonu o radu, zaposlenik **mora tražiti odobrenje poslodavca** za ugovor o djelu. Ako radite bez odobrenja, poslodavac može to smatrati povredom radne obveze.
+**Provjerite ugovor o radu!** Većina ugovora sadrži klauzule o:
+- **Zabrani konkurencije** — Možete li raditi u istoj djelatnosti?
+- **Sukobu interesa** — Možete li raditi s konkurentima poslodavca?
+- **Obvezi obavještavanja** — Morate li prijaviti dodatne aktivnosti?
+
+Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o radu, Čl. 106).
 </PDVCallout>
 
-### Autorski ugovor (honorar) - Za kreativni rad
+<Accordion title="🔍 Detalji o doprinosima za zaposlene">
+**Paušalni obrt uz posao:**
+- Poslodavac već plaća doprinose na plaću
+- Kroz obrt plaćate samo razliku ako je paušalna osnovica (719,20 EUR) viša od plaće
+- **Većina ljudi:** Plaća samo HOK članarinu (~137 EUR/god)
 
-**Idealan ako:**
-- Radite kreativni ili intelektualni rad
-- Pišete članke, knjige, skripte
-- Stvarate umjetnička djela ili dizajne
-- Držite predavanja ili seminare
-- Stvarate sadržaj za medije
-- Radite na vlasničkim pravima
+**Ugovor o djelu i autorski:**
+- Naručitelj plaća MIO (20%) umjesto vas
+- Zdravstveno je pokriveno kroz redovno zaposlenje
+- Vi ne plaćate doprinose dodatno
+</Accordion>
 
-**Primjeri idealnih situacija:**
-- Pisac članaka ili blogova
-- Predavač na fakultetu/tečajevima
-- Umjetnik/glazbenik
-- Scenarist ili autor
-- Dizajner koji prodaje prava na dizajne
-- Fotograf koji licencira fotografije
-- Influencer s branded sadržajem
-
-**Prednosti:**
-- Nema registracije potrebne
-- Naručitelj plaća doprinose
-- Primjenjivo za kreativni rad
-- Relativno jednostavna administracija
-- Može biti vrlo povezan s vašom strukom
-- Ne treba odobrenje poslodavca (osim sukoba interesa)
-
-**Nedostaci:**
-- Viši porez na razini (25-40%)
-- Samo za specifične vrste rada
-- Ne možete prodavati proizvode ili opće usluge
-- Manje odbitaka od ugovora o djelu
-- Zbraja se s plaćom u godišnjem obračunu
-
-## Praktični primjeri s kalkulacijama
-
-### Primjer 1: Programer s 15.000 EUR dodatnog prihoda godišnje
-
-**Plaća kod poslodavca:** 1.400 EUR mjesečno (16.800 EUR/god)
-
-#### Opcija A: Paušalni obrt
-
-```
-Prihod: 15.000 EUR/god
-Doprinosi: 137 EUR/god (samo HOK)
-Porezna osnovica: 15.000 × 12% = 1.800 EUR
-
-Godišnji obračun:
-- Plaća: 16.800 EUR
-- Porezna osnovica obrta: 1.800 EUR
-- Ukupno: 18.600 EUR (stopa 20% + prirez)
-- Dodatni porez: ~400 EUR
-
-Ukupni troškovi: 137 + 400 = 537 EUR
-Neto dodatni prihod: 14.463 EUR (96.4%)
-```
-
-#### Opcija B: Ugovor o djelu
-
-```
-Prihod: 15.000 EUR/god
-Doprinosi: 0 EUR (plaća naručitelj 3.000 EUR)
-Normativni troškovi: 30% = 4.500 EUR
-Oporeziva osnovica: 10.500 EUR
-
-Godišnji obračun:
-- Plaća: 16.800 EUR
-- Prihod UoD: 10.500 EUR
-- Ukupno: 27.300 EUR (stopa 20% + prirez)
-- Dodatni porez: ~2.100 EUR
-
-Neto dodatni prihod: 12.900 EUR (86%)
-```
-
-#### Opcija C: Autorski ugovor
-
-```
-Prihod: 15.000 EUR/god
-Doprinosi: 0 EUR (plaća naručitelj 3.000 EUR)
-Porez: 25% (1.250/mj × 12)
-Prirez: ~15-18%
-
-Ukupni porezi: ~4.500 EUR
-Neto dodatni prihod: 10.500 EUR (70%)
-```
-
-**Zaključak za programera:** **Paušalni obrt je najisplativiji** uz minimalnu administraciju.
-
----
-
-### Primjer 2: Dizajner s 8.000 EUR godišnje (povremeni rad)
-
-**Plaća kod poslodavca:** 1.100 EUR mjesečno (13.200 EUR/god)
-
-#### Opcija A: Paušalni obrt
-
-```
-Prihod: 8.000 EUR/god
-Doprinosi: 137 EUR/god
-Porezna osnovica: 960 EUR
-Dodatni porez: ~200 EUR
-
-Ukupni troškovi: 337 EUR
-Neto: 7.663 EUR (95.8%)
-```
-
-#### Opcija B: Ugovor o djelu
-
-```
-Prihod: 8.000 EUR/god
-Doprinosi: 0 EUR (plaća naručitelj 1.600 EUR)
-Normativni troškovi: 2.400 EUR
-Oporeziva: 5.600 EUR
-Dodatni porez: ~1.100 EUR
-
-Neto: 6.900 EUR (86.3%)
-```
-
-**Zaključak:** Za manje iznose, **paušalni je bolji**, ali **ugovor o djelu** je prihvatljiv ako je povremeni rad i ne želite osnivati obrt.
-
----
-
-### Primjer 3: Predavač/trener s 20.000 EUR godišnje
-
-**Plaća kod poslodavca:** 1.600 EUR mjesečno (19.200 EUR/god)
-
-#### Opcija A: Paušalni obrt
-
-```
-Prihod: 20.000 EUR/god
-Doprinosi: 137 EUR
-Porezna osnovica: 2.400 EUR
-
-Ukupan dohodak: 21.600 EUR
-Dodatni porez: ~550 EUR
-
-Ukupni troškovi: 687 EUR
-Neto: 19.313 EUR (96.6%)
-```
-
-#### Opcija B: Autorski ugovor (predavanja)
-
-```
-Prihod: 20.000 EUR/god
-Doprinosi: 0 EUR (plaća organizator)
-Porez i prirez: ~7.000 EUR (35%)
-
-Neto: 13.000 EUR (65%)
-```
-
-**Zaključak:** Za redovite predavače, **paušalni obrt je daleko isplativiji**. Autorski ugovor je dobar samo za povremene gostujuće predavačke angažmane.
-
-## Kako doprinosi funkcioniraju - Detaljna analiza
-
-### Paušalni obrt uz zaposlenje
-
-**Osnovica za doprinose:** 719,20 EUR (fiksno)
-
-**Kako se računa:**
-1. Poslodavac plaća doprinose na vašu plaću (MIO + HZZO)
-2. Morate platiti doprinose na **razliku** ako je paušalna osnovica viša
-
-**Primjer 1: Plaća 1.500 EUR**
-- Plaća: 1.500 EUR
-- Paušalna osnovica: 719,20 EUR
-- **Razlika:** Nema (plaća je viša)
-- **Doprinosi kroz obrt:** 0 EUR
-- **Samo HOK:** 137 EUR/god
-
-**Primjer 2: Plaća 600 EUR (part-time)**
-- Plaća: 600 EUR
-- Paušalna osnovica: 719,20 EUR
-- **Razlika:** 119,20 EUR
-- **Doprinosi na razliku:** ~38 EUR/mjesečno
-- **+ HOK:** 11 EUR/mjesečno
-- **Ukupno:** ~49 EUR/mjesečno
-
-<PDVCallout type="tip">
-  Većina zaposlenih ima plaću višu od 719,20 EUR, što znači da plaćaju **samo HOK članarinu** (~137 EUR godišnje) za paušalni obrt. To je izuzetno povoljno!
-</PDVCallout>
-
-### Ugovor o djelu
-
-**Doprinosi plaća naručitelj:**
-- **MIO (mirovinsko):** 20% bruto iznosa
-- **HZZO (zdravstveno):** 0% (pokriveno kroz redovno zaposlenje)
-
-**Primjer:**
-- Ugovoreni iznos: 5.000 EUR
-- MIO (20%): 1.000 EUR (plaća naručitelj)
-- **Vi dobijete:** 5.000 EUR
-- **Trošak naručitelju:** 6.000 EUR
-
-**Porez:**
-- Primite 5.000 EUR
-- Odbitak (30% normativni): 1.500 EUR
-- Oporeziva osnovica: 3.500 EUR
-- Porez: ~700-1.050 EUR (20-30% + prirez)
-- **Neto:** 4.000-4.300 EUR
-
-### Autorski ugovor
-
-**Doprinosi plaća naručitelj:**
-- **MIO (mirovinsko):** 20% bruto iznosa
-- **HZZO (zdravstveno):** 0% (pokriveno kroz redovno zaposlenje)
-
-**Porez na mjesečnoj razini:**
-- **Do 1.200 EUR:** 25%
-- **Iznad 1.200 EUR:** 35-40%
-- **+ Prirez:** 10-18%
-
-**Primjer:**
-- Honorar: 3.000 EUR
-- MIO (20%): 600 EUR (plaća naručitelj)
-- **Vi dobijete:** 3.000 EUR
-- Porez (35%): 1.050 EUR
-- Prirez (15%): 450 EUR
-- **Neto:** 1.500 EUR (50%)
-
-<PDVCallout type="warning">
-  Autorski ugovor ima **najslabije porezno tretiranje** od svih opcija jer se oporezuje po višim stopama bez većih odbitaka.
-</PDVCallout>
-
-## Što poslodavac mora znati
-
-### Obveze prema poslodavcu
-
-**Paušalni obrt:**
-- Zakonski **niste dužni obavijestiti** poslodavca
-- **ALI:** Provjerite ugovor o radu za klauzule
-- Preporučljivo je biti transparentan
-- Poslodavac može zabraniti rad u konkurentskoj djelatnosti
-
-**Ugovor o djelu:**
-- **Zakonski trebate odobrenje poslodavca** (Zakon o radu, Čl. 106)
-- Poslodavac može odbiti ako postoji sukob interesa
-- Treba pisana suglasnost
-- Poslodavac može ukinuti suglasnost
-
-**Autorski ugovor:**
-- **Ne treba izričito odobrenje** ako nema sukoba interesa
-- Provjerite ugovor o radu za klauzule o intelektualnom vlasništvu
-- Kreativni rad često spada pod "poslovna tajna" ako radite u istoj branši
-
-### Što poslodavac može zabraniti?
-
+<Accordion title="📋 Što poslodavac može i ne može zabraniti">
 **Može zabraniti:**
 - Rad s konkurentima
 - Rad u istoj djelatnosti
 - Korištenje poslovnih kontakata
-- Rad koji koristi njihove resurse
 - Rad koji utječe na radni učinak
 
 **Ne može zabraniti:**
 - Rad u različitoj djelatnosti
-- Rad u slobodno vrijeme (izvan radnog vremena)
+- Rad u slobodno vrijeme
 - Legalno samostalno poslovanje bez sukoba interesa
 
-<PDVCallout type="warning">
-  **IT sektor posebno:** Mnogi ugovori u IT-u sadrže "klauzule o intelektualnom vlasništvu" - sve što napravite dok ste zaposleni pripada poslodavcu. Pažljivo provjerite prije nego počnete freelance programiranje!
-</PDVCallout>
+**IT sektor:** Pažnja na klauzule o intelektualnom vlasništvu — sve što napravite dok ste zaposleni može pripadati poslodavcu!
+</Accordion>
 
-## Prelazak s jednog oblika na drugi
+## Kada prijeći na drugu opciju?
 
-### S ugovora o djelu na paušalni obrt
+| Situacija | Preporuka |
+|-----------|-----------|
+| Prihod naraste preko 15.000 EUR/god | S ugovora o djelu → Paušalni obrt |
+| Prihod padne ispod 10.000 EUR/god | S paušalnog → Ugovor o djelu |
+| Rad postane manje kreativan | S autorskog → Paušalni obrt |
+| Prihod prelazi 60.000 EUR/god | S paušalnog → Obrt na dohodak ili j.d.o.o. |
 
-**Kada preći:**
-- Rad postaje redovit (više od 3-4 naručitelja godišnje)
-- Prihod prelazi 15.000 EUR godišnje
-- Želite profesionalniji dojam
-- Želite dugoročno poslovanje
+<AccordionFAQ
+  title="Često postavljana pitanja"
+  items={[
+    {
+      question: "Mora li moj poslodavac znati da imam dodatni prihod?",
+      answer: "Za paušalni obrt i autorski — zakonski niste dužni obavijestiti, ALI provjerite ugovor o radu. Za ugovor o djelu — DA, trebate pisanu suglasnost poslodavca (Zakon o radu). Transparentnost je uvijek preporučljiva."
+    },
+    {
+      question: "Hoću li platiti doprinose dvaput?",
+      answer: "NE! Doprinosi se ne plaćaju dvaput. Kod paušalnog obrta plaćate samo razliku (većinom samo HOK ~137 EUR/god). Kod ugovora o djelu i autorskog — sve plaća naručitelj, vi ne plaćate ništa dodatno."
+    },
+    {
+      question: "Mogu li sakriti dodatni prihod od poslodavca?",
+      answer: "NE i ne bi trebali. Porezna prijava uključuje sve dohotke, poslodavac vidi godišnji obračun poreza, kršenje ugovora o radu može dovesti do otkaza. Budite transparentni!"
+    },
+    {
+      question: "Što ako dodatni prihod naraste preko 60.000 EUR?",
+      answer: "Kod paušalnog obrta morate prijeći na obrt na dohodak ili j.d.o.o. u roku 8 dana. Ulazite u PDV sustav. Kod ugovora o djelu/autorskog nema limita, ali postaje nepraktično — bolje osnovati obrt."
+    },
+    {
+      question: "Utječe li dodatni prihod na bolovanje i godišnji?",
+      answer: "NE utječe na prava iz radnog odnosa (godišnji, bolovanje, otpremnine). ALI — ne možete raditi na dodatnim poslovima tijekom bolovanja (zloupotreba) niti koristiti godišnji za rad na drugim projektima ako je to zabranjeno ugovorom."
+    },
+    {
+      question: "Mogu li kombinirati više oblika (npr. paušal + autorski)?",
+      answer: "Tehnički DA, ali nije preporučljivo zbog administrativne složenosti. Paušalni + autorski može imati smisla ako imate različite vrste poslova (usluge vs. kreativni rad). Najbolje je odabrati jedan oblik za većinu posla."
+    },
+    {
+      question: "Koliki je optimalni iznos za svaki oblik?",
+      answer: "Ugovor o djelu: do 10.000 EUR/god (povremeni rad). Paušalni obrt: 10.000-60.000 EUR/god (idealan raspon). Autorski: do 20.000 EUR/god za kreativni rad. Iznad toga razmislite o drugim opcijama."
+    },
+  ]}
+/>
 
-**Postupak:**
-1. Registrirajte obrt (~100 EUR, 1-3 dana)
-2. Pričekajte OIB obrta
-3. Počnite izdavati račune preko obrta
-4. Više ne radite preko ugovora o djelu
+## Zaključak
 
-### S paušalnog obrta natrag na ugovor o djelu
+<ProsCons
+  title="Paušalni obrt"
+  pros={[
+    "Najviši neto (96%+)",
+    "Minimalni doprinosi (samo HOK)",
+    "Profesionalan dojam",
+    "Predvidivi troškovi",
+  ]}
+  cons={[
+    "Trošak osnivanja (~100 EUR)",
+    "Limit 60.000 EUR/god",
+    "Obavezna fiskalizacija",
+  ]}
+/>
 
-**Kada preći:**
-- Prihodi padnu ispod 10.000 EUR godišnje
-- Posao postane vrlo povremeni
-- Želite smanjiti administraciju
-- Imate samo 1-2 klijenta
+<ProsCons
+  title="Ugovor o djelu"
+  pros={[
+    "Nema registracije",
+    "Nema troškova osnivanja",
+    "Naručitelj plaća doprinose",
+    "Idealno za testiranje",
+  ]}
+  cons={[
+    "Treba odobrenje poslodavca",
+    "Manje profesionalan dojam",
+    "Viši porez nego paušalni",
+  ]}
+/>
 
-**Postupak:**
-1. Zatvorite paušalni obrt (jednostavno)
-2. Počnite raditi na ugovor o djelu
-3. Tražite odobrenje poslodavca
+<ProsCons
+  title="Autorski ugovor"
+  pros={[
+    "Nema registracije",
+    "Naručitelj plaća doprinose",
+    "Specifično za kreativni rad",
+  ]}
+  cons={[
+    "Najviši porez (25-40%)",
+    "Samo za kreativni rad",
+    "Najniži neto od svih opcija",
+  ]}
+/>
 
-### S autorskog na paušalni ili ugovor o djelu
-
-**Kada preći:**
-- Rad postaje manje kreativni (više usluga nego autorskih djela)
-- Želite bolje porezno tretiranje
-- Prihodi su veći od 20.000 EUR godišnje
-
-**Postupak:**
-- Jednostavno promijenite oblik rada
-- Autorski može i dalje postojati paralelno za kreativni rad
-- Paušalni obrt za usluge
-
-## Često postavljana pitanja (FAQ)
-
-### Mora li moj poslodavac znati da imam dodatni prihod?
-
-**Paušalni obrt i autorski:**
-- Zakonski niste dužni obavijestiti, **ali** provjerite ugovor o radu
-- Ako radite u drugoj djelatnosti, često nije problem
-- Transparentnost je uvijek preporučljiva
-
-**Ugovor o djelu:**
-- **Da, trebate pisanu suglasnost poslodavca** (Zakon o radu)
-- Poslodavac može odbiti ako postoji sukob interesa
-
-### Hoću li platiti doprinose dvaput?
-
-**Ne!** Doprinosi se ne plaćaju dvaput:
-
-**Paušalni obrt:**
-- Plaćate samo razliku (ako je osnovica viša od plaće)
-- Većinom samo HOK ~137 EUR/godišnje
-
-**Ugovor o djelu i autorski:**
-- Sve plaća naručitelj
-- Vi ne plaćate ništa dodatno
-
-### Mogu li sakriti dodatni prihod od poslodavca?
-
-**Ne i ne bi trebali:**
-- Porezna prijava uključuje sve dohotke
-- Poslodavac vidi godišnji obračun poreza
-- Kršenje ugovora o radu može dovesti do otkaza
-- Zakonski rizik (ugovor o djelu bez odobrenja)
-
-<PDVCallout type="warning">
-  Nemojte pokušavati sakriti dodatni prihod. To može dovesti do otkaza i pravnih problema. Radije budite transparentni i dogovorite se s poslodavcem.
-</PDVCallout>
-
-### Što ako moj dodatni prihod naraste preko 60.000 EUR?
-
-**Paušalni obrt:**
-- Morate prijeći na obrt na dohodak ili j.d.o.o.
-- Prijava u roku 8 dana od prelaska praga
-- Ulazak u PDV sustav
-
-**Ugovor o djelu / Autorski:**
-- Nema limita, ali postaje nepraktično
-- Bolje je osnovati obrt ili d.o.o.
-
-### Kako se oporezuje dodatni prihod uz plaću?
-
-**Paušalni obrt:**
-- Porezna osnovica (12%) se zbraja s plaćom
-- Oporezuje se zajednički po progresivnim stopama (20-30%)
-
-**Ugovor o djelu:**
-- Zbraja se s plaćom nakon odbitka normativnih troškova (30%)
-- Progresivne stope (20-30%)
-
-**Autorski:**
-- Porez se obračunava mjesečno (25-40%)
-- Godišnji obračun zbraja sve dohotke
-
-### Mogu li kombinirati više oblika (npr. paušal + ugovor o djelu)?
-
-**Tehnički da, ali:**
-- Ne preporučuje se (administrativno kompleksno)
-- Paušalni + ugovor o djelu: Rijetko ima smisla
-- Paušalni + autorski: Može ako imate različite vrste poslova (usluge vs. kreativni rad)
-
-**Najbolje:**
-- Odaberite jedan oblik koji najbolje odgovara većini vašeg posla
-
-### Utječe li dodatni prihod na moja prava kod poslodavca (bolovanje, godišnji)?
-
-**Ne utječe na:**
-- Godišnji odmor
-- Bolovanje
-- Otpremnine
-- Prava iz radnog odnosa
-
-**ALI:**
-- Ne možete raditi na dodatnim poslovima tijekom bolovanja (zloupotreba)
-- Ne možete koristiti godišnji za rad na drugim projektima ako je to zabranjeno ugovorom
-
-### Koliki je optimalni iznos za svaki oblik?
-
-**Ugovor o djelu:**
-- **Do 10.000 EUR/god:** Odlično za povremeni rad
-- **10.000-30.000 EUR:** Prelazna zona - razmotriti paušal
-- **Preko 30.000 EUR:** Prebacite se na paušalni obrt
-
-**Paušalni obrt:**
-- **10.000-60.000 EUR/god:** Idealan raspon
-- **Ispod 10.000 EUR:** Možda previše administracije
-- **Preko 60.000 EUR:** Morate na obrt na dohodak ili d.o.o.
-
-**Autorski:**
-- **Do 20.000 EUR/god:** Prihvatljiv za kreativni rad
-- **Preko 20.000 EUR:** Razmislite o paušalnom obrtu (bolji porezi)
-
-## Zaključak i preporuke
-
-### Za povremeni dodatni rad (< 10.000 EUR/god):
-**Ugovor o djelu** je najjednostavniji - nema registracije, minimalna administracija.
-
-### Za redovite dodatne usluge (10.000-60.000 EUR/god):
-**Paušalni obrt** pruža najbolji balans - minimalni doprinosi (samo HOK), predvidivi troškovi, profesionalan dojam.
-
-### Za kreativni i intelektualni rad:
-**Autorski ugovor** ako ste predavač, pisac ili umjetnik - specifičan za kreativne djelatnosti.
-
-### Za veće prihode (> 60.000 EUR/god):
-Prelazite granice ovih oblika - razmislite o **obrtu na dohodak** ili **j.d.o.o.** Pogledajte [detaljnu usporedbu](/usporedbe/pocinjem-solo).
-
-## Povezani vodiči i usporedbe
-
-### Detaljni vodiči:
-- [Paušalni obrt - Kompletan vodič](/vodiči/pausalni-obrt)
-- [Ugovor o djelu - Vodič za zaposlene](/vodiči/ugovor-djelo)
-- [Autorski honorar - Kako funkcionira](/vodiči/autorski-honorar)
-
-### Druge usporedbe:
-- [Želim početi sam/a - Usporedba svih opcija](/usporedbe/pocinjem-solo)
-- [Prelazim 60.000 EUR - PDV i prelazak](/usporedbe/preko-praga)
-
-## Sljedeći koraci
-
-1. **Provjerite ugovor o radu** - Potvrdite da nema zabrana
-2. **Procijenite količinu posla** - Koliko prihoda očekujete?
-3. **Razgovarajte s poslodavcem** - Transparentnost je ključna
-4. **Odaberite oblik** - Na temelju gornje analize
-5. **Započnite** - Registrirajte se ili potražite prvog klijenta
-6. **Pratite financije** - Vodite evidenciju za godišnji obračun
-
-Trebate dodatnu pomoć? [Kontaktirajte nas](/kontakt) ili pročitajte [detaljne vodiče](/vodiči) za svaki oblik poslovanja.
+<GuideUpsellSection
+  title="Automatizirajte evidenciju dodatnog prihoda"
+  description="FiskAI prati vaše račune, troškove i priprema sve za godišnju prijavu — bez fascikla."
+  features={[
+    "Automatska fiskalizacija računa",
+    "Praćenje prihoda po klijentima",
+    "Podsjetnici za porezne rokove",
+  ]}
+/>
 
 ---
 
-*Zadnje ažurirano: Prosinac 2025. Svi podaci su informativne prirode. Za točne informacije o vašoj specifičnoj situaciji konzultirajte se s ovlaštenim knjigovođom ili poreznim savjetnikom.*
+**Povezano:**
+- [Paušalni obrt — Kompletan vodič](/vodic/pausalni-obrt)
+- [Želim početi sam/a — Usporedba svih opcija](/usporedba/pocinjem-solo)
+- [Prelazim 60.000 EUR — PDV i prelazak](/usporedba/preko-praga)
+
+*Zadnje ažurirano: Prosinac 2025. Svi podaci su informativne prirode.*

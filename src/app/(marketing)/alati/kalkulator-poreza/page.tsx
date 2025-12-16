@@ -1,6 +1,7 @@
 import { TaxCalculator } from "@/components/knowledge-hub/calculators/TaxCalculator"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { Calculator, ArrowRight, FileText } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Kalkulator paušalnog poreza 2025 | FiskAI",
@@ -54,6 +55,39 @@ export default function TaxCalculatorPage() {
           </li>
         </ul>
       </div>
+
+      {/* Upsell Section */}
+      <section className="mt-8 rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-green-600">
+            <Calculator className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-green-900">Neka FiskAI računa umjesto vas</h3>
+            <p className="mt-1 text-sm text-green-700">
+              Automatski izračun poreza na temelju stvarnih prihoda. Generirane uplatnice spremne za
+              plaćanje.
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-green-800">
+              <li className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-green-600" /> Kvartalni izvještaji
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Automatski izračun po poreznim razredima
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Podsjetnici za uplate
+              </li>
+            </ul>
+            <Link
+              href="/register"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700"
+            >
+              Automatiziraj porez <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
