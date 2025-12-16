@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     console.log(`  - Total fetched: ${fetchResult.totalFetched}`)
     console.log(`  - New items inserted: ${fetchResult.totalInserted}`)
     console.log(`  - Duplicates skipped: ${fetchResult.totalSkipped}`)
-    console.log(`  - Errors: ${fetchResult.totalErrors}`)
+    console.log(`  - Errors: ${fetchResult.errors.length}`)
     console.log("-".repeat(60) + "\n")
 
     // Step 2: Process pending items with AI (limit 10 per run)
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     const pendingItems = await drizzleDb
       .select()
       .from(newsItems)
-      .where(eq(newsItems.processed, false))
+      .where(eq(newsItems.status, "pending"))
       .limit(10)
 
     console.log(`Found ${pendingItems.length} pending items to process\n`)
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
 
     for (const item of pendingItems) {
       try {
-        console.log(`  Processing: ${item.title.substring(0, 60)}...`)
+        console.log(`  Processing: ${item.originalTitle.substring(0, 60)}...`)
 
         // Use AI to summarize and categorize
-        const aiResult = await summarizeNews(item.content || "", item.title)
+        const aiResult = await summarizeNews(item.originalContent || "", item.originalTitle)
 
         // Update item with AI results
         await drizzleDb
@@ -73,15 +73,15 @@ export async function GET(request: NextRequest) {
           .set({
             summaryHr: aiResult.summaryHr,
             categories: aiResult.categories,
-            relevanceScore: aiResult.relevanceScore,
+            relevanceScore: String(aiResult.relevanceScore),
             processedAt: new Date(),
-            processed: true,
+            status: "processed",
             updatedAt: new Date(),
           })
           .where(eq(newsItems.id, item.id))
 
         processedCount++
-        console.log(`    Processed (relevance: ${aiResult.relevanceScore.toFixed(2)})`)
+        console.log(`    Processed (relevance: ${aiResult.relevanceScore})`)
 
         // Add a small delay to avoid rate limiting
         if (processedCount < pendingItems.length) {
@@ -113,8 +113,7 @@ export async function GET(request: NextRequest) {
         total: fetchResult.totalFetched,
         inserted: fetchResult.totalInserted,
         skipped: fetchResult.totalSkipped,
-        errors: fetchResult.totalErrors,
-        sources: fetchResult.sourceResults,
+        errors: fetchResult.errors,
       },
       processed: {
         total: processedCount,

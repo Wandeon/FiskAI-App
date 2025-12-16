@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const news = await drizzleDb
       .select()
       .from(newsItems)
-      .where(eq(newsItems.processed, true))
+      .where(eq(newsItems.status, "processed"))
       .orderBy(desc(newsItems.publishedAt))
       .limit(3)
 
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const updatedAtResult = await drizzleDb
       .select({ updatedAt: sql<Date>`MAX(${newsItems.updatedAt})` })
       .from(newsItems)
-      .where(eq(newsItems.processed, true))
+      .where(eq(newsItems.status, "processed"))
 
     const updatedAt = updatedAtResult[0]?.updatedAt || new Date()
 

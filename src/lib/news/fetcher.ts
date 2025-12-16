@@ -60,11 +60,12 @@ export async function fetchFromRSS(source: NewsSource): Promise<NewNewsItem[]> {
 
       items.push({
         sourceId: source.id,
-        title: item.title,
-        content: content.substring(0, 10000), // Limit content length
-        url: item.link,
+        originalTitle: item.title,
+        originalContent: content.substring(0, 10000), // Limit content length
+        sourceUrl: item.link,
         publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
-        processed: false,
+        fetchedAt: new Date(),
+        status: "pending",
       })
     }
 
@@ -114,7 +115,7 @@ export async function saveNewsItems(
       const existing = await drizzleDb
         .select()
         .from(newsItems)
-        .where(eq(newsItems.url, item.url))
+        .where(eq(newsItems.sourceUrl, item.sourceUrl))
         .limit(1)
 
       if (existing.length > 0) {
@@ -163,11 +164,11 @@ export async function updateSourceLastFetched(
 export async function processUnprocessedNews(
   limit: number = 10
 ): Promise<{ processed: number; failed: number }> {
-  // Get unprocessed items
+  // Get pending items
   const unprocessed = await drizzleDb
     .select()
     .from(newsItems)
-    .where(eq(newsItems.processed, false))
+    .where(eq(newsItems.status, "pending"))
     .limit(limit)
 
   let processed = 0
@@ -176,7 +177,7 @@ export async function processUnprocessedNews(
   for (const item of unprocessed) {
     try {
       // Summarize with AI
-      const summary = await summarizeNews(item.content || "", item.title)
+      const summary = await summarizeNews(item.originalContent || "", item.originalTitle)
 
       // Update the item
       await drizzleDb
@@ -184,8 +185,8 @@ export async function processUnprocessedNews(
         .set({
           summaryHr: summary.summaryHr,
           categories: summary.categories,
-          relevanceScore: summary.relevanceScore,
-          processed: true,
+          relevanceScore: String(summary.relevanceScore),
+          status: "processed",
           processedAt: new Date(),
           updatedAt: new Date(),
         })

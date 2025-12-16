@@ -38,18 +38,20 @@ export const newsItems = pgTable(
     sourceId: varchar("source_id", { length: 100 })
       .notNull()
       .references(() => newsSources.id, { onDelete: "cascade" }),
-    title: varchar("title", { length: 500 }).notNull(),
-    content: text("content"),
-    url: varchar("url", { length: 1000 }).notNull(),
+    sourceUrl: varchar("source_url", { length: 1000 }).notNull(),
+    originalTitle: varchar("original_title", { length: 500 }).notNull(),
+    originalContent: text("original_content"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }),
 
     // AI-generated fields
     summaryHr: text("summary_hr"), // Croatian summary
+    summaryEn: text("summary_en"), // English summary
     categories: jsonb("categories").default([]), // ['tax', 'vat', 'compliance', etc.]
-    relevanceScore: integer("relevance_score"), // 0-100
+    relevanceScore: varchar("relevance_score", { length: 10 }), // numeric string
 
     // Metadata
-    processed: boolean("processed").default(false).notNull(),
+    status: varchar("status", { length: 20 }).default("pending").notNull(),
     processedAt: timestamp("processed_at", { withTimezone: true }),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -58,8 +60,8 @@ export const newsItems = pgTable(
   (table) => [
     index("idx_news_items_source").on(table.sourceId),
     index("idx_news_items_published").on(table.publishedAt),
-    index("idx_news_items_processed").on(table.processed),
-    index("idx_news_items_url").on(table.url),
+    index("idx_news_items_status").on(table.status),
+    index("idx_news_items_url").on(table.sourceUrl),
   ]
 )
 

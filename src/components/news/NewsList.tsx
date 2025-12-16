@@ -7,12 +7,12 @@ import { cn } from "@/lib/utils"
 
 interface NewsItem {
   id: string
-  title: string
-  summaryHr: string
+  originalTitle: string
+  summaryHr: string | null
   categories: string[]
   publishedAt: string
-  url: string
-  relevanceScore: number
+  sourceUrl: string
+  relevanceScore: string | null
 }
 
 const categoryFilters = [
@@ -85,12 +85,12 @@ export function NewsList() {
           {news.map((item) => (
             <NewsCard
               key={item.id}
-              title={item.title}
+              title={item.originalTitle}
               summary={item.summaryHr || "Sažetak u pripremi..."}
-              categories={item.categories as string[]}
+              categories={(item.categories as string[]) || []}
               publishedAt={new Date(item.publishedAt)}
-              sourceUrl={item.url}
-              relevanceScore={item.relevanceScore}
+              sourceUrl={item.sourceUrl}
+              relevanceScore={item.relevanceScore ? Number(item.relevanceScore) : undefined}
             />
           ))}
         </div>

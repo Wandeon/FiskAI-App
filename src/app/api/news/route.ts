@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic"
  * Query parameters:
  * - limit: number of results (default: 10, max: 50)
  * - category: filter by category (e.g., 'tax', 'vat', 'regulatory')
- * - processed: filter by processed status (default: true)
+ * - status: filter by status (default: 'processed')
  */
 export async function GET(request: NextRequest) {
   try {
@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
     // Parse and validate parameters
     const limit = Math.min(parseInt(searchParams.get("limit") || "10", 10), 50)
     const category = searchParams.get("category") || undefined
-    const processed = searchParams.get("processed") !== "false" // Default to true
+    const status = searchParams.get("status") || "processed"
 
     // Build query conditions
-    const conditions = [eq(newsItems.processed, processed)]
+    const conditions = [eq(newsItems.status, status)]
 
     // Add category filter if provided
     if (category) {
