@@ -58,6 +58,7 @@
     "bcryptjs": "^3.0.3",
     "bwip-js": "^4.8.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "decimal.js": "^10.6.0",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",
