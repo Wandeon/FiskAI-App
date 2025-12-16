@@ -1,6 +1,15 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calculator, Scale, Calendar, CreditCard, BarChart3, ArrowRight } from "lucide-react"
+import {
+  Calculator,
+  Scale,
+  Calendar,
+  CreditCard,
+  BarChart3,
+  ArrowRight,
+  Shield,
+  FileText,
+} from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -39,6 +48,18 @@ const tools = [
     title: "Kalendar rokova",
     description: "Podsjetnik za važne rokove prijava i uplata",
     icon: Calendar,
+  },
+  {
+    slug: "oib-validator",
+    title: "OIB Validator",
+    description: "Provjerite valjanost OIB-a (Osobni identifikacijski broj)",
+    icon: Shield,
+  },
+  {
+    slug: "e-racun",
+    title: "E-Račun Generator",
+    description: "Generirajte UBL 2.1 XML e-račune prema hrvatskim standardima",
+    icon: FileText,
   },
 ]
 
