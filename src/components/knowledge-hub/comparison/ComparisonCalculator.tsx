@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { calculatePausalAnnualCosts, calculateJdooCosts } from "@/lib/knowledge-hub/calculations"
 import { INCOME_TAX_BRACKETS, MONTHLY_CONTRIBUTIONS, HOK } from "@/lib/knowledge-hub/constants"
 import { cn } from "@/lib/utils"
+import { useAnimatedNumber } from "@/hooks/use-animated-number"
 
 interface CalculatorConfig {
   businessTypes?: Array<"pausalni" | "obrt-dohodak" | "jdoo" | "doo" | "freelancer">
@@ -164,6 +165,11 @@ export function ComparisonCalculator({
       maximumFractionDigits: 0,
     }).format(amount)
 
+  function AnimatedAmount({ value, className }: { value: number; className?: string }) {
+    const animated = useAnimatedNumber(value, { durationMs: 520 })
+    return <span className={cn("font-mono", className)}>{formatCurrency(animated)}</span>
+  }
+
   return (
     <div className="bg-white border rounded-lg p-4 sm:p-6">
       {/* Revenue Input */}
@@ -183,7 +189,7 @@ export function ComparisonCalculator({
             style={{ minHeight: "44px" }}
           />
           <div className="w-full sm:w-32 text-center sm:text-right font-mono text-lg bg-gray-50 sm:bg-transparent p-2 sm:p-0 rounded">
-            {formatCurrency(revenue)}
+            <AnimatedAmount value={revenue} className="text-lg" />
           </div>
         </div>
       </div>
@@ -215,7 +221,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
                 >
-                  {formatCurrency(r.contributions)}
+                  <AnimatedAmount value={r.contributions} />
                 </td>
               ))}
             </tr>
@@ -226,7 +232,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
                 >
-                  {formatCurrency(r.tax)}
+                  <AnimatedAmount value={r.tax} />
                 </td>
               ))}
             </tr>
@@ -237,7 +243,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
                 >
-                  {formatCurrency(r.bookkeeping)}
+                  <AnimatedAmount value={r.bookkeeping} />
                 </td>
               ))}
             </tr>
@@ -248,7 +254,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
                 >
-                  {formatCurrency(r.other)}
+                  <AnimatedAmount value={r.other} />
                 </td>
               ))}
             </tr>
@@ -259,7 +265,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
                 >
-                  {formatCurrency(r.total)}
+                  <AnimatedAmount value={r.total} />
                 </td>
               ))}
             </tr>
@@ -270,7 +276,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn("p-2 text-center", r.isRecommended && "bg-green-100")}
                 >
-                  {formatCurrency(r.netIncome)}
+                  <AnimatedAmount value={r.netIncome} />
                 </td>
               ))}
             </tr>
@@ -300,27 +306,39 @@ export function ComparisonCalculator({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center min-h-[44px] py-1">
                 <span className="text-gray-600">Doprinosi</span>
-                <span className="font-medium">{formatCurrency(r.contributions)}</span>
+                <span className="font-medium">
+                  <AnimatedAmount value={r.contributions} />
+                </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-1">
                 <span className="text-gray-600">Porez</span>
-                <span className="font-medium">{formatCurrency(r.tax)}</span>
+                <span className="font-medium">
+                  <AnimatedAmount value={r.tax} />
+                </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-1">
                 <span className="text-gray-600">Knjigovodstvo</span>
-                <span className="font-medium">{formatCurrency(r.bookkeeping)}</span>
+                <span className="font-medium">
+                  <AnimatedAmount value={r.bookkeeping} />
+                </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-1">
                 <span className="text-gray-600">Ostalo</span>
-                <span className="font-medium">{formatCurrency(r.other)}</span>
+                <span className="font-medium">
+                  <AnimatedAmount value={r.other} />
+                </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-2 border-t-2 border-gray-300 font-semibold mt-2">
                 <span>UKUPNO GODIŠNJE</span>
-                <span>{formatCurrency(r.total)}</span>
+                <span>
+                  <AnimatedAmount value={r.total} />
+                </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-2 bg-green-100 -mx-4 px-4 -mb-4 rounded-b font-semibold text-green-700">
                 <span>NETO OSTATAK</span>
-                <span>{formatCurrency(r.netIncome)}</span>
+                <span>
+                  <AnimatedAmount value={r.netIncome} />
+                </span>
               </div>
             </div>
           </div>

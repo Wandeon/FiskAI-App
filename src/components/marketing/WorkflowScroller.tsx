@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CheckCircle2, FileText, ScanText, BadgeCheck, Download } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { DemoExport, DemoInvoice, DemoPayments, DemoScan } from "@/components/marketing/MiniDemos"
 
 type WorkflowStep = {
   title: string
@@ -50,39 +52,40 @@ const DEFAULT_STEPS: WorkflowStep[] = [
 ]
 
 function PreviewFrame({ activeIndex }: { activeIndex: number }) {
+  const reduce = useReducedMotion()
   const previews = useMemo(
     () => [
       {
+        kind: "invoice" as const,
         icon: FileText,
         kicker: "Računi",
         title: "Novi račun",
-        lines: ["Kupac: ACME d.o.o.", "Iznos: 1.250,00 €", "Rok: 15 dana"],
-        cta: "Pošalji PDF",
       },
       {
+        kind: "scan" as const,
         icon: ScanText,
         kicker: "Troškovi",
         title: "OCR rezultat",
-        lines: ["Dobavljač: Konzum", "Iznos: 23,49 €", "Kategorija: Ured"],
-        cta: "Potvrdi unos",
       },
       {
+        kind: "payments" as const,
         icon: BadgeCheck,
         kicker: "Plaćanja",
         title: "Statusi računa",
-        lines: ["#2025-041 • Poslano", "#2025-042 • Dospijeva", "#2025-043 • Plaćeno"],
-        cta: "Označi plaćeno",
       },
       {
+        kind: "export" as const,
         icon: Download,
         kicker: "Izvoz",
         title: "Paket za knjigovođu",
-        lines: ["CSV (računi + troškovi)", "PDF prilozi", "Pregled po mjesecima"],
-        cta: "Preuzmi ZIP",
       },
     ],
     []
   )
+
+  const preview = previews[Math.min(previews.length - 1, Math.max(0, activeIndex))]
+  const Icon = preview.icon
+  const shellTransition = reduce ? { duration: 0 } : { duration: 0.35, ease: [0.16, 1, 0.3, 1] }
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-card">
@@ -103,57 +106,38 @@ function PreviewFrame({ activeIndex }: { activeIndex: number }) {
         </div>
 
         <div className="relative mt-5 h-[260px]">
-          {previews.map((preview, index) => {
-            const Icon = preview.icon
-            const isActive = index === activeIndex
-            return (
-              <div
-                key={preview.kicker}
-                className={cn(
-                  "absolute inset-0 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-all duration-300",
-                  isActive
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-2 pointer-events-none"
-                )}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 h-10 w-10 rounded-xl bg-blue-600/10 text-blue-700 flex items-center justify-center">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-blue-700">{preview.kicker}</p>
-                      <p className="text-sm font-semibold">{preview.title}</p>
-                    </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={preview.kind}
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={reduce ? undefined : { opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -10 }}
+              transition={shellTransition}
+              className="absolute inset-0 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 h-10 w-10 rounded-xl bg-blue-600/10 text-blue-700 flex items-center justify-center">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-secondary)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
-                    trenutni korak
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {preview.lines.map((line) => (
-                    <div
-                      key={line}
-                      className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-2"
-                    >
-                      <p className="text-xs text-[var(--muted)]">{line}</p>
-                      <span className="h-2 w-2 rounded-full bg-blue-600/70" />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="h-2 w-28 overflow-hidden rounded-full bg-[var(--border-light)]">
-                    <div className="h-full w-2/3 rounded-full bg-blue-600 transition-all duration-300" />
-                  </div>
-                  <div className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white">
-                    {preview.cta}
+                  <div>
+                    <p className="text-xs font-semibold text-blue-700">{preview.kicker}</p>
+                    <p className="text-sm font-semibold">{preview.title}</p>
                   </div>
                 </div>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--surface-secondary)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
+                  demo
+                </span>
               </div>
-            )
-          })}
+
+              <div className="mt-4">
+                {preview.kind === "invoice" && <DemoInvoice reduce={!!reduce} />}
+                {preview.kind === "scan" && <DemoScan reduce={!!reduce} />}
+                {preview.kind === "payments" && <DemoPayments reduce={!!reduce} />}
+                {preview.kind === "export" && <DemoExport reduce={!!reduce} />}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

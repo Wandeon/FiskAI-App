@@ -14,6 +14,47 @@ interface ComparisonPageContentProps {
   searchParams: { [key: string]: string | undefined }
 }
 
+function inferHighlightedColumn({
+  comparisonSlug,
+  compareIds,
+  searchParams,
+}: {
+  comparisonSlug: string
+  compareIds: string[]
+  searchParams: { [key: string]: string | undefined }
+}): string | undefined {
+  const manual =
+    searchParams.preporuka ??
+    searchParams.highlight ??
+    searchParams.recommend ??
+    searchParams.preporuceno
+
+  if (manual && compareIds.includes(manual)) return manual
+
+  if (comparisonSlug === "pocinjem-solo") {
+    const prihod = searchParams.prihod
+    const djelatnost = searchParams.djelatnost
+
+    if (djelatnost === "it" && compareIds.includes("freelancer")) return "freelancer"
+    if (prihod === "low") {
+      return compareIds.find((id) => id === "pausalni" || id.startsWith("pausalni-"))
+    }
+    if (prihod === "medium" && compareIds.includes("obrt-dohodak")) return "obrt-dohodak"
+  }
+
+  if (comparisonSlug === "firma") {
+    const tip = searchParams.tip
+    if (tip === "viseclano" && compareIds.includes("doo")) return "doo"
+  }
+
+  if (comparisonSlug === "dodatni-prihod") {
+    const djelatnost = searchParams.djelatnost
+    if (djelatnost === "kreativa" && compareIds.includes("autorski")) return "autorski"
+  }
+
+  return undefined
+}
+
 function mapCompareToGuideSlug(compareId: string): string | null {
   if (compareId === "pausalni" || compareId.startsWith("pausalni-")) return "pausalni-obrt"
   if (compareId === "obrt-dohodak") return "obrt-dohodak"
@@ -22,7 +63,7 @@ function mapCompareToGuideSlug(compareId: string): string | null {
   return null
 }
 
-export function ComparisonPageContent({ comparison }: ComparisonPageContentProps) {
+export function ComparisonPageContent({ comparison, searchParams }: ComparisonPageContentProps) {
   const { frontmatter, content } = comparison
   const guideSlugs = Array.from(
     new Set(frontmatter.compares.map(mapCompareToGuideSlug).filter((s): s is string => !!s))
@@ -32,7 +73,11 @@ export function ComparisonPageContent({ comparison }: ComparisonPageContentProps
     (id) => !mapCompareToGuideSlug(id)
   ).length
 
-  const highlightedColumn: string | undefined = undefined
+  const highlightedColumn = inferHighlightedColumn({
+    comparisonSlug: comparison.slug,
+    compareIds: frontmatter.compares,
+    searchParams,
+  })
   const ComparisonTableWithColumns = (props: ComponentProps<typeof ComparisonTable>) => (
     <ComparisonTable
       {...props}

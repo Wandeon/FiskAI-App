@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { getPausalTaxBracket } from "@/lib/knowledge-hub/constants"
 import { calculatePausalAnnualCosts, formatEUR } from "@/lib/knowledge-hub/calculations"
 import { useAnimatedNumber } from "@/hooks/use-animated-number"
+import { BreakdownBars } from "@/components/knowledge-hub/charts/BreakdownBars"
 
 interface Props {
   embedded?: boolean
@@ -77,6 +78,16 @@ export function TaxCalculator({ embedded = true }: Props) {
             <span className="font-mono text-lg">{formatEUR(animatedTotal)}</span>
           </div>
         </div>
+
+        <BreakdownBars
+          className="pt-2"
+          formatValue={formatEUR}
+          items={[
+            { label: "Porez", value: costs.tax, colorClassName: "bg-blue-600" },
+            { label: "Doprinosi", value: costs.contributions, colorClassName: "bg-indigo-600" },
+            { label: "HOK", value: costs.hok, colorClassName: "bg-emerald-600" },
+          ]}
+        />
         <p className="text-xs text-[var(--muted)]">
           Porezni razred: {formatEUR(bracket.min)} – {formatEUR(bracket.max)}
         </p>

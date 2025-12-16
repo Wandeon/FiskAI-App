@@ -1,7 +1,15 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Children, isValidElement, useEffect, useMemo, useState, type ReactNode } from "react"
+import {
+  Children,
+  isValidElement,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react"
 import { ComparisonCell } from "./ComparisonCell"
 
 interface ComparisonColumn {
@@ -58,6 +66,7 @@ export function ComparisonTable({
   highlightedColumn,
   children,
 }: ComparisonTableProps) {
+  const tableDomId = `comparison-table-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`
   const [showScrollHint, setShowScrollHint] = useState(true)
   const compareKey = (compareIds ?? []).join("|")
 
@@ -119,14 +128,28 @@ export function ComparisonTable({
   useEffect(() => {
     const firstId = columnsToUse[0]?.id
     if (!firstId) return
-    setActiveId((current) => (columnsToUse.some((c) => c.id === current) ? current : firstId))
-  }, [columnsKey, columnsToUse])
+    const preferred =
+      highlightedColumn && columnsToUse.some((c) => c.id === highlightedColumn)
+        ? highlightedColumn
+        : firstId
+
+    setActiveId((current) => {
+      if (!current) return preferred
+      if (!columnsToUse.some((c) => c.id === current)) return preferred
+      if (current === firstId && preferred !== firstId) return preferred
+      return current
+    })
+  }, [columnsKey, columnsToUse, highlightedColumn])
 
   const activeIndex = Math.max(
     0,
     columnsToUse.findIndex((c) => c.id === activeId)
   )
   const activeColumn = columnsToUse[activeIndex]
+  const highlightIndex =
+    highlightedColumn && columnsToUse.length > 0
+      ? columnsToUse.findIndex((c) => c.id === highlightedColumn)
+      : -1
 
   // If children are provided, render them directly in a table structure
   if (children) {
@@ -134,7 +157,13 @@ export function ComparisonTable({
       <div className="my-6">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full border-collapse">
+          {highlightIndex >= 0 && (
+            <style>{`
+              #${tableDomId} tbody tr td:nth-child(${highlightIndex + 2}) { background-color: rgba(59,130,246,0.06); }
+              #${tableDomId} tbody tr:hover td:nth-child(${highlightIndex + 2}) { background-color: rgba(59,130,246,0.10); }
+            `}</style>
+          )}
+          <table id={tableDomId} className="w-full border-collapse">
             {columnsToUse.length > 0 && (
               <thead>
                 <tr>

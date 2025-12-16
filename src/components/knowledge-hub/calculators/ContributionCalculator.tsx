@@ -1,12 +1,27 @@
 // src/components/knowledge-hub/calculators/ContributionCalculator.tsx
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateContributions, formatEUR } from "@/lib/knowledge-hub/calculations"
 import { PAYMENT_IBANS, PAYMENT_MODEL } from "@/lib/knowledge-hub/constants"
+import { useAnimatedNumber } from "@/hooks/use-animated-number"
+import { BreakdownBars } from "@/components/knowledge-hub/charts/BreakdownBars"
+import { cn } from "@/lib/utils"
 
 interface Props {
   embedded?: boolean
+}
+
+function AnimatedCurrency({ value, className }: { value: number; className?: string }) {
+  const [target, setTarget] = useState(0)
+
+  useEffect(() => {
+    setTarget(value)
+  }, [value])
+
+  const animated = useAnimatedNumber(target, { durationMs: 520 })
+  return <span className={cn("font-mono font-bold", className)}>{formatEUR(animated)}</span>
 }
 
 export function ContributionCalculator({ embedded = true }: Props) {
@@ -20,27 +35,36 @@ export function ContributionCalculator({ embedded = true }: Props) {
             <p className="font-medium">MIO I. stup (mirovinsko)</p>
             <p className="text-sm text-[var(--muted)]">15% od osnovice</p>
           </div>
-          <p className="font-mono font-bold">{formatEUR(breakdown.mioI)}</p>
+          <AnimatedCurrency value={breakdown.mioI} />
         </div>
         <div className="flex justify-between items-center py-2 border-b border-[var(--border)]">
           <div>
             <p className="font-medium">MIO II. stup (kapitalizirano)</p>
             <p className="text-sm text-[var(--muted)]">5% od osnovice</p>
           </div>
-          <p className="font-mono font-bold">{formatEUR(breakdown.mioII)}</p>
+          <AnimatedCurrency value={breakdown.mioII} />
         </div>
         <div className="flex justify-between items-center py-2 border-b border-[var(--border)]">
           <div>
             <p className="font-medium">HZZO (zdravstveno)</p>
             <p className="text-sm text-[var(--muted)]">16,5% od osnovice</p>
           </div>
-          <p className="font-mono font-bold">{formatEUR(breakdown.hzzo)}</p>
+          <AnimatedCurrency value={breakdown.hzzo} />
         </div>
         <div className="flex justify-between items-center py-2 bg-[var(--surface-secondary)] px-3 rounded-lg border border-[var(--border)]">
           <p className="font-bold">Ukupno mjesečno</p>
-          <p className="font-mono font-bold text-lg">{formatEUR(breakdown.total)}</p>
+          <AnimatedCurrency value={breakdown.total} className="text-lg" />
         </div>
       </div>
+
+      <BreakdownBars
+        formatValue={formatEUR}
+        items={[
+          { label: "MIO I.", value: breakdown.mioI, colorClassName: "bg-blue-600" },
+          { label: "MIO II.", value: breakdown.mioII, colorClassName: "bg-indigo-600" },
+          { label: "HZZO", value: breakdown.hzzo, colorClassName: "bg-emerald-600" },
+        ]}
+      />
       <p className="text-sm text-[var(--muted)]">
         Osnovica za izračun: {formatEUR(breakdown.base)} (minimalna osnovica 2025.)
       </p>

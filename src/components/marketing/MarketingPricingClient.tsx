@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { CheckCircle2, Shield, Users, FileText, Zap, Globe } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { useAnimatedNumber } from "@/hooks/use-animated-number"
 import { cn } from "@/lib/utils"
 import { Reveal } from "@/components/motion/Reveal"
@@ -47,6 +47,7 @@ function AnimatedPrice({ value, className }: { value: number; className?: string
 }
 
 export function MarketingPricingClient() {
+  const reduceMotion = useReducedMotion()
   const [billing, setBilling] = useState<Billing>("monthly")
 
   const plans: Plan[] = useMemo(
@@ -209,7 +210,7 @@ export function MarketingPricingClient() {
             return (
               <motion.div
                 key={plan.id}
-                whileHover={{ scale: 1.015, y: -2 }}
+                whileHover={reduceMotion ? undefined : { scale: 1.015, y: -2 }}
                 transition={{ type: "spring", stiffness: 320, damping: 26 }}
                 className={cn(
                   cardBase,
