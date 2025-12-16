@@ -19,6 +19,7 @@ import { VariantTabs, TabPanel } from "./guide/VariantTabs"
 import { PDVCallout } from "./guide/PDVCallout"
 import { QuickStatsBar } from "./guide/QuickStatsBar"
 import { TableOfContents } from "./guide/TableOfContents"
+import { ProsCons } from "./guide/ProsCons"
 
 // HTML element overrides
 function H1(props: any) {
@@ -91,6 +92,7 @@ export const mdxComponents = {
   PDVCallout,
   QuickStatsBar,
   TableOfContents,
+  ProsCons,
 
   h1: H1,
   h2: H2,
