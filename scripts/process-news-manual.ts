@@ -4,9 +4,9 @@
 import { drizzleDb } from "../src/lib/db/drizzle"
 import { newsItems, newsPosts, newsPostSources, newsCategories } from "../src/lib/db/schema"
 import { eq, and, gte, isNull, sql } from "drizzle-orm"
-import { classifyNewsItem } from "../src/lib/news/pipeline/classifier"
+import { classifyNewsItem, type ClassificationResult } from "../src/lib/news/pipeline/classifier"
 import { writeArticle } from "../src/lib/news/pipeline/writer"
-import { reviewArticle } from "../src/lib/news/pipeline/reviewer"
+import { reviewArticle, needsRewrite } from "../src/lib/news/pipeline/reviewer"
 import { rewriteArticle } from "../src/lib/news/pipeline/rewriter"
 import { assembleDigest } from "../src/lib/news/pipeline/digest-assembler"
 
@@ -75,8 +75,14 @@ async function main() {
   console.log("PASS 1: Classifying and Writing Articles")
   console.log("-".repeat(60))
 
-  const highImpactItems: typeof pendingItems = []
-  const mediumImpactItems: typeof pendingItems = []
+  const highImpactItems: Array<{
+    item: (typeof pendingItems)[0]
+    classification: ClassificationResult
+  }> = []
+  const mediumImpactItems: Array<{
+    item: (typeof pendingItems)[0]
+    classification: ClassificationResult
+  }> = []
 
   for (let i = 0; i < pendingItems.length; i++) {
     const item = pendingItems[i]
@@ -93,6 +99,12 @@ async function main() {
       } as any)
 
       console.log(`  → Impact: ${classification.impact.toUpperCase()}`)
+      console.log(
+        `  → Category: ${classification.suggestedCategory}${classification.suggestedSubcategory ? ` / ${classification.suggestedSubcategory}` : ""}`
+      )
+      if (classification.keyDates?.length) {
+        console.log(`  → Key dates: ${classification.keyDates.join(", ")}`)
+      }
       stats.classified++
 
       // Update item with classification
@@ -107,10 +119,10 @@ async function main() {
 
       if (classification.impact === "high") {
         stats.highImpact++
-        highImpactItems.push(item)
+        highImpactItems.push({ item, classification })
       } else if (classification.impact === "medium") {
         stats.mediumImpact++
-        mediumImpactItems.push(item)
+        mediumImpactItems.push({ item, classification })
       } else {
         stats.lowImpact++
       }
@@ -131,10 +143,15 @@ async function main() {
   // Generate articles for high-impact items
   console.log(`\nGenerating articles for ${highImpactItems.length} high-impact items...`)
 
-  const draftPosts: { id: string; title: string; content: string }[] = []
+  const draftPosts: {
+    id: string
+    title: string
+    content: string
+    source: { title: string; content: string; url: string }
+  }[] = []
 
   for (let i = 0; i < highImpactItems.length; i++) {
-    const item = highImpactItems[i]
+    const { item, classification } = highImpactItems[i]
     console.log(
       `\n[${i + 1}/${highImpactItems.length}] Writing: ${item.originalTitle.substring(0, 40)}...`
     )
@@ -151,8 +168,8 @@ async function main() {
         "high"
       )
 
-      // Find best category match
-      const categoryId = "porezi" // Default, could be smarter
+      // Use AI-suggested category instead of hardcoded
+      const categoryId = classification.suggestedCategory || "poslovanje"
 
       // Create draft post
       const slug = generateSlug(article.title) + "-" + Date.now().toString(36)
@@ -177,6 +194,13 @@ async function main() {
               content: article.content,
               excerpt: article.excerpt,
             },
+            classification: {
+              timestamp: new Date().toISOString(),
+              suggestedCategory: classification.suggestedCategory,
+              suggestedSubcategory: classification.suggestedSubcategory,
+              keyDates: classification.keyDates,
+              keyNumbers: classification.keyNumbers,
+            },
           },
         })
         .returning()
@@ -193,9 +217,19 @@ async function main() {
         .set({ assignedToPostId: newPost.id })
         .where(eq(newsItems.id, item.id))
 
-      draftPosts.push({ id: newPost.id, title: article.title, content: article.content })
+      // Store source data for review pass
+      draftPosts.push({
+        id: newPost.id,
+        title: article.title,
+        content: article.content,
+        source: {
+          title: item.originalTitle,
+          content: item.originalContent || "",
+          url: item.sourceUrl,
+        },
+      })
       stats.postsCreated++
-      console.log(`  ✓ Created draft post: ${slug}`)
+      console.log(`  ✓ Created draft post: ${slug} (category: ${categoryId})`)
 
       await sleep(DELAY_BETWEEN_ITEMS)
     } catch (error) {
@@ -218,6 +252,7 @@ async function main() {
     content: string
     score: number
     feedback: any
+    source: { title: string; content: string; url: string }
   }[] = []
 
   for (let i = 0; i < draftPosts.length; i++) {
@@ -225,14 +260,21 @@ async function main() {
     console.log(`\n[${i + 1}/${draftPosts.length}] Reviewing: ${post.title.substring(0, 40)}...`)
 
     try {
-      const review = await reviewArticle({ title: post.title, content: post.content })
+      // Pass source content for fact-checking
+      const review = await reviewArticle({ title: post.title, content: post.content }, post.source)
 
       console.log(`  → Score: ${review.score}/10`)
+      if (review.factual_issues && review.factual_issues.length > 0) {
+        console.log(`  ⚠ Factual issues: ${review.factual_issues.length}`)
+        review.factual_issues.forEach((issue, idx) => {
+          console.log(`    ${idx + 1}. ${issue.substring(0, 60)}...`)
+        })
+      }
       if (review.problems.length > 0) {
         console.log(`  → Problems: ${review.problems.join(", ").substring(0, 60)}...`)
       }
 
-      // Update post with review
+      // Update post with review (including factual issues)
       await drizzleDb
         .update(newsPosts)
         .set({
@@ -241,6 +283,7 @@ async function main() {
             review: {
               timestamp: new Date().toISOString(),
               score: review.score,
+              factual_issues: review.factual_issues,
               problems: review.problems,
               suggestions: review.suggestions,
               rewrite_focus: review.rewrite_focus,
@@ -250,7 +293,7 @@ async function main() {
         })
         .where(eq(newsPosts.id, post.id))
 
-      reviewedPosts.push({ ...post, score: review.score, feedback: review })
+      reviewedPosts.push({ ...post, score: review.score, feedback: review, source: post.source })
       stats.postsReviewed++
 
       await sleep(DELAY_BETWEEN_ITEMS)
@@ -283,18 +326,28 @@ async function main() {
       let finalContent = post.content
       let finalExcerpt = ""
 
-      // Rewrite if score < 7
-      if (post.score < 7) {
-        console.log(`  → Rewriting (score was ${post.score})...`)
+      // Rewrite if score < 7 OR has factual issues
+      const shouldRewrite = needsRewrite(post.feedback)
+      if (shouldRewrite) {
+        const reason =
+          post.feedback.factual_issues?.length > 0
+            ? `factual issues: ${post.feedback.factual_issues.length}`
+            : `score: ${post.score}`
+        console.log(`  → Rewriting (${reason})...`)
+
+        // Pass source content for fact-checking during rewrite
         const rewritten = await rewriteArticle(
           { title: post.title, content: post.content },
-          post.feedback
+          post.feedback,
+          post.source
         )
         finalTitle = rewritten.title
         finalContent = rewritten.content
         finalExcerpt = rewritten.excerpt
         stats.postsRewritten++
         await sleep(DELAY_BETWEEN_ITEMS)
+      } else {
+        console.log(`  ✓ No rewrite needed (score: ${post.score}, no factual issues)`)
       }
 
       // Generate excerpt if not present
@@ -349,7 +402,7 @@ async function main() {
     try {
       // Generate summaries for medium items
       const digestItems = []
-      for (const item of mediumImpactItems.slice(0, 10)) {
+      for (const { item, classification } of mediumImpactItems.slice(0, 10)) {
         // Limit to 10 for digest
         try {
           const summary = await writeArticle(
@@ -367,7 +420,7 @@ async function main() {
             title: item.originalTitle,
             summary: summary.content,
             sourceUrl: item.sourceUrl,
-            category: "porezi",
+            category: classification.suggestedCategory || "poslovanje",
           })
           await sleep(1000)
         } catch (e) {
@@ -380,6 +433,14 @@ async function main() {
 
         const digestSlug = `dnevni-pregled-${new Date().toISOString().split("T")[0]}`
 
+        // Determine most common category for digest
+        const categoryCounts = new Map<string, number>()
+        for (const item of digestItems) {
+          categoryCounts.set(item.category, (categoryCounts.get(item.category) || 0) + 1)
+        }
+        const digestCategory =
+          Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "poslovanje"
+
         const [digestPost] = await drizzleDb
           .insert(newsPosts)
           .values({
@@ -388,7 +449,7 @@ async function main() {
             title: digest.title,
             content: digest.content,
             excerpt: `Pregled ${digestItems.length} vijesti iz ${new Date().toLocaleDateString("hr")}`,
-            categoryId: "porezi",
+            categoryId: digestCategory,
             impactLevel: "medium",
             status: "published",
             publishedAt: publishTime,
@@ -399,7 +460,7 @@ async function main() {
           .returning()
 
         // Link items to digest
-        for (const item of mediumImpactItems.slice(0, 10)) {
+        for (const { item } of mediumImpactItems.slice(0, 10)) {
           await drizzleDb
             .insert(newsPostSources)
             .values({
@@ -414,7 +475,7 @@ async function main() {
             .where(eq(newsItems.id, item.id))
         }
 
-        console.log(`  ✓ Created digest: ${digestSlug}`)
+        console.log(`  ✓ Created digest: ${digestSlug} (category: ${digestCategory})`)
       }
     } catch (error) {
       console.error(`  ✗ Error creating digest: ${error}`)
