@@ -9,12 +9,15 @@ import { callDeepSeekJSON } from "./deepseek-client"
 export interface ClassificationResult {
   impact: "high" | "medium" | "low"
   reasoning: string
-  suggestedCategory?: string
+  suggestedCategory: string // Required now
+  suggestedSubcategory?: string
+  keyDates?: string[] // Extract any dates/deadlines mentioned
+  keyNumbers?: string[] // Extract any amounts/percentages mentioned
 }
 
 const CLASSIFICATION_PROMPT = `Ti si urednik FiskAI portala za hrvatske poduzetnike i računovođe.
 
-Procijeni ovu vijest prema UTJECAJU na poslovanje:
+## ZADATAK 1: PROCIJENI UTJECAJ
 
 VISOK UTJECAJ (individual post):
 - Nova zakonska obveza
@@ -34,33 +37,82 @@ NIZAK UTJECAJ (skip):
 - Previše općenito
 - Zabava, sport, politika bez poslovnog konteksta
 
-Vijest: {title}
+## ZADATAK 2: PREDLOŽI KATEGORIJU
+
+Glavne kategorije:
+- porezi (PDV, porez na dobit, porez na dohodak, doprinosi)
+- propisi (zakoni, pravilnici, rokovi)
+- poslovanje (financije, računovodstvo, upravljanje)
+
+Potkategorije:
+- porezi: pdv, porez-na-dobit, porez-na-dohodak, doprinosi
+- propisi: zakoni, pravilnici, rokovi
+- poslovanje: financije, racunovodstvo, upravljanje
+
+## ZADATAK 3: IZVUCI KLJUČNE PODATKE
+
+Pronađi i izvuci:
+- Sve datume i rokove (npr. "1. siječnja 2025", "do kraja godine")
+- Sve brojeve i iznose (npr. "20%", "10.000 EUR", "3 mjeseca")
+
+## VIJEST ZA ANALIZU:
+Naslov: {title}
+
 {content}
 
-Odgovori JSON: {"impact": "high|medium|low", "reasoning": "..."}`
+Odgovori ISKLJUČIVO u JSON formatu:
+{
+  "impact": "high" | "medium" | "low",
+  "reasoning": "kratko obrazloženje odluke",
+  "suggestedCategory": "porezi" | "propisi" | "poslovanje",
+  "suggestedSubcategory": "pdv" | "porez-na-dobit" | ... (ako je primjenjivo),
+  "keyDates": ["datum1", "datum2"],
+  "keyNumbers": ["broj1", "broj2"]
+}`
 
 /**
- * Classify a news item by impact level
+ * Classify a news item by impact level and suggest category
  */
 export async function classifyNewsItem(item: NewsItem): Promise<ClassificationResult> {
+  const content = item.originalContent || item.summaryHr || ""
   const prompt = CLASSIFICATION_PROMPT.replace("{title}", item.originalTitle).replace(
     "{content}",
-    item.originalContent || item.summaryHr || ""
+    content.substring(0, 3000) // Limit content length
   )
 
   try {
     const result = await callDeepSeekJSON<ClassificationResult>(prompt, {
-      temperature: 0.3, // Lower temperature for more consistent classification
-      maxTokens: 500,
+      temperature: 0.3,
+      maxTokens: 800,
     })
 
-    // Validate response
+    // Validate impact
     if (!["high", "medium", "low"].includes(result.impact)) {
       throw new Error(`Invalid impact level: ${result.impact}`)
     }
 
+    // Validate reasoning
     if (!result.reasoning || result.reasoning.length < 10) {
       throw new Error("Classification reasoning too short or missing")
+    }
+
+    // Default category if missing
+    if (!result.suggestedCategory) {
+      result.suggestedCategory = "poslovanje"
+    }
+
+    // Validate category
+    const validCategories = ["porezi", "propisi", "poslovanje"]
+    if (!validCategories.includes(result.suggestedCategory)) {
+      result.suggestedCategory = "poslovanje"
+    }
+
+    // Ensure arrays exist
+    if (!Array.isArray(result.keyDates)) {
+      result.keyDates = []
+    }
+    if (!Array.isArray(result.keyNumbers)) {
+      result.keyNumbers = []
     }
 
     return result
@@ -78,15 +130,12 @@ export async function classifyNewsItems(
 ): Promise<Map<string, ClassificationResult>> {
   const results = new Map<string, ClassificationResult>()
 
-  // Process items sequentially to avoid rate limits
-  // Can be optimized later with concurrency control
   for (const item of items) {
     try {
       const classification = await classifyNewsItem(item)
       results.set(item.id, classification)
     } catch (error) {
       console.error(`Failed to classify item ${item.id}:`, error)
-      // Continue with other items
     }
   }
 

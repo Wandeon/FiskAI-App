@@ -1,6 +1,6 @@
 /**
  * AI Pipeline - Pass 3: Rewrite
- * Incorporate review feedback and polish articles
+ * Incorporate review feedback, fix factual errors, and polish articles
  */
 
 import type { ReviewFeedback } from "./reviewer"
@@ -14,53 +14,91 @@ export interface RewriteResult {
 
 const REWRITE_PROMPT = `Prepiši ovaj članak uzimajući u obzir feedback recenzenta.
 
-ORIGINALNI ČLANAK:
+## IZVORNI MATERIJAL (koristi za ispravljanje činjenica):
+{source_title}
+{source_content}
+Izvor: {source_url}
+
+## ORIGINALNI ČLANAK:
 Naslov: {original_title}
 
 {original_content}
 
-FEEDBACK RECENZENTA:
+## FEEDBACK RECENZENTA:
 Ocjena: {score}/10
-Problemi:
+
+### ČINJENIČNE GREŠKE (OBAVEZNO ISPRAVI!):
+{factual_issues}
+
+### Ostali problemi:
 {problems}
 
-Sugestije:
+### Sugestije:
 {suggestions}
 
-Fokus prepravke: {rewrite_focus}
+### Fokus prepravke:
+{rewrite_focus}
 
-Zadržaj dobre dijelove, popravi probleme, implementiraj sugestije.
+## UPUTE ZA PREPRAVLJANJE:
+1. PRVO ispravi SVE činjenične greške koristeći izvorni materijal
+2. NE IZMIŠLJAJ podatke koji nisu u izvoru
+3. Ako nešto nije u izvoru, NEMOJ to uključiti u članak
+4. Popravi strukturalne i stilske probleme
+5. Zadrži dobre dijelove originalnog članka
 
 Format odgovora:
-NASLOV: [novi naslov ako je potrebno]
+NASLOV: [ispravljeni naslov]
 EXCERPT: [kratak opis u 1-2 rečenice]
 SADRŽAJ:
 [prepravljeni članak u markdown formatu]`
 
 /**
- * Rewrite article based on review feedback
+ * Rewrite article based on review feedback with source verification
  */
 export async function rewriteArticle(
   draft: { title: string; content: string },
-  feedback: ReviewFeedback
+  feedback: ReviewFeedback,
+  source?: {
+    title: string
+    content: string
+    url: string
+  }
 ): Promise<RewriteResult> {
-  const problemsList = feedback.problems.map((p, i) => `${i + 1}. ${p}`).join("\n")
-  const suggestionsList = feedback.suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n")
+  const factualIssuesList =
+    feedback.factual_issues && feedback.factual_issues.length > 0
+      ? feedback.factual_issues.map((f, i) => `${i + 1}. ${f}`).join("\n")
+      : "Nema činjeničnih grešaka"
+
+  const problemsList =
+    feedback.problems.length > 0
+      ? feedback.problems.map((p, i) => `${i + 1}. ${p}`).join("\n")
+      : "Nema značajnih problema"
+
+  const suggestionsList =
+    feedback.suggestions.length > 0
+      ? feedback.suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n")
+      : "Nema dodatnih sugestija"
 
   const prompt = REWRITE_PROMPT.replace("{original_title}", draft.title)
     .replace("{original_content}", draft.content)
     .replace("{score}", feedback.score.toString())
-    .replace("{problems}", problemsList || "Nema značajnih problema")
-    .replace("{suggestions}", suggestionsList || "Nema dodatnih sugestija")
+    .replace("{factual_issues}", factualIssuesList)
+    .replace("{problems}", problemsList)
+    .replace("{suggestions}", suggestionsList)
     .replace("{rewrite_focus}", feedback.rewrite_focus)
+    .replace("{source_title}", source?.title || "N/A")
+    .replace(
+      "{source_content}",
+      source?.content?.substring(0, 2000) || "Izvorni sadržaj nije dostupan"
+    )
+    .replace("{source_url}", source?.url || "N/A")
 
   try {
     const response = await callDeepSeek(prompt, {
-      temperature: 0.7,
-      maxTokens: 2000,
+      temperature: 0.5, // Lower for more accurate factual corrections
+      maxTokens: 2500,
     })
 
-    // Parse the rewritten article
     const rewritten = parseRewriteResponse(response)
 
     // Validate
@@ -119,25 +157,24 @@ function parseRewriteResponse(response: string): RewriteResult {
 }
 
 /**
- * Rewrite multiple articles in batch
+ * Rewrite multiple articles in batch with sources
  */
 export async function rewriteArticles(
   articles: Array<{
     id: string
     draft: { title: string; content: string }
     feedback: ReviewFeedback
+    source?: { title: string; content: string; url: string }
   }>
 ): Promise<Map<string, RewriteResult>> {
   const results = new Map<string, RewriteResult>()
 
-  // Process articles sequentially to avoid rate limits
   for (const article of articles) {
     try {
-      const rewritten = await rewriteArticle(article.draft, article.feedback)
+      const rewritten = await rewriteArticle(article.draft, article.feedback, article.source)
       results.set(article.id, rewritten)
     } catch (error) {
       console.error(`Failed to rewrite article ${article.id}:`, error)
-      // Continue with other articles
     }
   }
 
