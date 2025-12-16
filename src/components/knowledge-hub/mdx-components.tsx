@@ -5,6 +5,17 @@ import { ContributionCalculator } from "./calculators/ContributionCalculator"
 import { TaxCalculator } from "./calculators/TaxCalculator"
 import { PaymentSlipGenerator } from "./calculators/PaymentSlipGenerator"
 
+// Comparison components (Phase 1)
+import { ComparisonTable } from "./comparison/ComparisonTable"
+import { ComparisonCalculator } from "./comparison/ComparisonCalculator"
+import { RecommendationCard } from "./comparison/RecommendationCard"
+
+// Guide components (Phase 2)
+import { VariantTabs, TabPanel } from "./guide/VariantTabs"
+import { PDVCallout } from "./guide/PDVCallout"
+import { QuickStatsBar } from "./guide/QuickStatsBar"
+import { TableOfContents } from "./guide/TableOfContents"
+
 // HTML element overrides
 function H1(props: any) {
   return <h1 className="text-3xl font-bold mb-6" {...props} />
@@ -42,6 +53,19 @@ export const mdxComponents = {
   ContributionCalculator,
   TaxCalculator,
   PaymentSlipGenerator,
+
+  // Comparison components
+  ComparisonTable,
+  ComparisonCalculator,
+  RecommendationCard,
+
+  // Guide components
+  VariantTabs,
+  TabPanel,
+  PDVCallout,
+  QuickStatsBar,
+  TableOfContents,
+
   h1: H1,
   h2: H2,
   h3: H3,
