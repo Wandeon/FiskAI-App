@@ -2,7 +2,15 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { FileText, TrendingUp, Calendar, Calculator, ArrowRight, Zap } from "lucide-react"
+import {
+  FileText,
+  TrendingUp,
+  Calendar,
+  Calculator,
+  ArrowRight,
+  Zap,
+  FileSpreadsheet,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ToolCard {
@@ -57,6 +65,16 @@ const tools: ToolCard[] = [
     color: "text-purple-400",
     bgGlow: "group-hover:shadow-purple-500/20",
   },
+  {
+    id: "posd",
+    icon: FileSpreadsheet,
+    title: "PO-SD",
+    subtitle: "Iz izvoda",
+    description: "Učitaj XML iz banke",
+    href: "/alati/posd-kalkulator",
+    color: "text-rose-400",
+    bgGlow: "group-hover:shadow-rose-500/20",
+  },
 ]
 
 interface QuickAccessToolbarProps {
@@ -67,7 +85,7 @@ interface QuickAccessToolbarProps {
 export function QuickAccessToolbar({ className, variant = "horizontal" }: QuickAccessToolbarProps) {
   if (variant === "grid") {
     return (
-      <div className={cn("grid grid-cols-2 gap-3 lg:grid-cols-4", className)}>
+      <div className={cn("grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5", className)}>
         {tools.map((tool, index) => (
           <ToolCardItem key={tool.id} tool={tool} index={index} />
         ))}
@@ -88,7 +106,7 @@ export function QuickAccessToolbar({ className, variant = "horizontal" }: QuickA
           Brzi pristup
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
         {tools.map((tool, index) => (
           <ToolCardItem key={tool.id} tool={tool} index={index} />
         ))}

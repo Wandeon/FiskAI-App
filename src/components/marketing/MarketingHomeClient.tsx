@@ -10,6 +10,7 @@ import { CountUp } from "@/components/marketing/CountUp"
 import { Fiskalizacija2Wizard } from "@/components/marketing/Fiskalizacija2Wizard"
 import { CountdownTimer } from "@/components/marketing/CountdownTimer"
 import { QuickAccessToolbar } from "@/components/marketing/QuickAccessToolbar"
+import { SwitchProviderCTA } from "@/components/marketing/SwitchProviderCTA"
 import {
   ArrowRight,
   Briefcase,
@@ -432,8 +433,14 @@ export function MarketingHomeClient() {
             </p>
           </Reveal>
 
-          <Stagger className="grid gap-6 md:grid-cols-3">
+          <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
+              {
+                href: "/alati/posd-kalkulator",
+                title: "PO-SD Kalkulator",
+                description: "Učitaj XML izvod iz banke i izračunaj primitke za PO-SD.",
+                icon: FileText,
+              },
               {
                 href: "/alati/pdv-kalkulator",
                 title: "PDV prag (60.000€)",
@@ -644,6 +651,9 @@ export function MarketingHomeClient() {
           </div>
         </div>
       </section>
+
+      {/* Floating Switch Provider CTA */}
+      <SwitchProviderCTA />
     </div>
   )
 }
