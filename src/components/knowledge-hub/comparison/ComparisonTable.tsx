@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
+import { useState, useEffect, ReactNode } from "react"
 
 interface ComparisonColumn {
   id: string
@@ -12,16 +12,22 @@ interface ComparisonColumn {
 interface ComparisonRow {
   label: string
   tooltip?: string
-  values: Record<string, string | React.ReactNode>
+  values: Record<string, string | ReactNode>
 }
 
 interface ComparisonTableProps {
-  columns: ComparisonColumn[]
-  rows: ComparisonRow[]
+  columns?: ComparisonColumn[]
+  rows?: ComparisonRow[]
   highlightedColumn?: string // from URL params
+  children?: ReactNode
 }
 
-export function ComparisonTable({ columns, rows, highlightedColumn }: ComparisonTableProps) {
+export function ComparisonTable({
+  columns,
+  rows,
+  highlightedColumn,
+  children,
+}: ComparisonTableProps) {
   const [showScrollHint, setShowScrollHint] = useState(true)
 
   useEffect(() => {
@@ -35,6 +41,39 @@ export function ComparisonTable({ columns, rows, highlightedColumn }: Comparison
       return () => scrollContainer.removeEventListener("scroll", handleScroll)
     }
   }, [])
+
+  // If children are provided, render them directly in a table structure
+  if (children) {
+    return (
+      <div className="my-6">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full border-collapse">
+            <tbody>{children}</tbody>
+          </table>
+        </div>
+
+        {/* Mobile Table */}
+        <div
+          className="md:hidden overflow-x-auto -mx-4 px-4"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <table className="w-full border-collapse min-w-max">
+            <tbody>{children}</tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  // Original prop-based approach for backwards compatibility
+  if (!columns || !rows) {
+    return (
+      <div className="text-red-500">
+        ComparisonTable requires either children or columns/rows props
+      </div>
+    )
+  }
 
   return (
     <div>

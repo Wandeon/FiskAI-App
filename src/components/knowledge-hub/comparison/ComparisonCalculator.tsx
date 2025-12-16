@@ -6,7 +6,8 @@ import { INCOME_TAX_BRACKETS, MONTHLY_CONTRIBUTIONS, HOK } from "@/lib/knowledge
 import { cn } from "@/lib/utils"
 
 interface CalculatorConfig {
-  businessTypes: Array<"pausalni" | "obrt-dohodak" | "jdoo">
+  businessTypes?: Array<"pausalni" | "obrt-dohodak" | "jdoo" | "doo" | "freelancer">
+  types?: Array<"pausalni" | "obrt-dohodak" | "jdoo" | "doo" | "freelancer">
   defaultRevenue?: number
 }
 
@@ -45,11 +46,21 @@ function calculateObrtDohodakCosts(revenue: number, expenses: number) {
   }
 }
 
-export function ComparisonCalculator({ businessTypes, defaultRevenue = 35000 }: CalculatorConfig) {
+export function ComparisonCalculator({
+  businessTypes,
+  types,
+  defaultRevenue = 35000,
+}: CalculatorConfig) {
   const [revenue, setRevenue] = useState(defaultRevenue)
 
+  // Support both prop names, memoized to avoid dependency issues
+  const businessTypeList = useMemo(
+    () => businessTypes || types || ["pausalni", "obrt-dohodak", "jdoo"],
+    [businessTypes, types]
+  )
+
   const results = useMemo((): CostBreakdown[] => {
-    return businessTypes.map((type) => {
+    return businessTypeList.map((type) => {
       switch (type) {
         case "pausalni": {
           const costs = calculatePausalAnnualCosts(revenue)
@@ -98,11 +109,53 @@ export function ComparisonCalculator({ businessTypes, defaultRevenue = 35000 }: 
             isRecommended: revenue > 60000,
           }
         }
+        case "doo": {
+          const costs = calculateJdooCosts(revenue, false) // same as jdoo
+          const bookkeeping = 1500
+          const total = costs.yearlyContributions + costs.yearlyTax + bookkeeping
+          return {
+            type: "doo",
+            label: "D.O.O.",
+            contributions: costs.yearlyContributions,
+            tax: costs.yearlyTax,
+            bookkeeping: bookkeeping,
+            other: 0,
+            total: total,
+            netIncome: revenue - total,
+            isRecommended: false,
+          }
+        }
+        case "freelancer": {
+          // Freelancer is similar to paušalni but with different tax treatment
+          const costs = calculatePausalAnnualCosts(revenue)
+          return {
+            type: "freelancer",
+            label: "Freelancer",
+            contributions: costs.contributions,
+            tax: costs.tax,
+            bookkeeping: 0,
+            other: costs.hok,
+            total: costs.total,
+            netIncome: revenue - costs.total,
+            isRecommended: false,
+          }
+        }
         default:
-          throw new Error(`Unknown business type: ${type}`)
+          // Return a default for unknown types instead of throwing
+          return {
+            type: String(type),
+            label: String(type),
+            contributions: 0,
+            tax: 0,
+            bookkeeping: 0,
+            other: 0,
+            total: 0,
+            netIncome: revenue,
+            isRecommended: false,
+          }
       }
     })
-  }, [revenue, businessTypes])
+  }, [revenue, businessTypeList])
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("hr-HR", {

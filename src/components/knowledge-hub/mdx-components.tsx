@@ -9,6 +9,8 @@ import { PaymentSlipGenerator } from "./calculators/PaymentSlipGenerator"
 import { ComparisonTable } from "./comparison/ComparisonTable"
 import { ComparisonCalculator } from "./comparison/ComparisonCalculator"
 import { RecommendationCard } from "./comparison/RecommendationCard"
+import { ComparisonCell } from "./comparison/ComparisonCell"
+import { ComparisonRow } from "./comparison/ComparisonRow"
 
 // Guide components (Phase 2)
 import { VariantTabs, TabPanel } from "./guide/VariantTabs"
@@ -58,6 +60,8 @@ export const mdxComponents = {
   ComparisonTable,
   ComparisonCalculator,
   RecommendationCard,
+  ComparisonCell,
+  ComparisonRow,
 
   // Guide components
   VariantTabs,
