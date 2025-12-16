@@ -21,6 +21,9 @@ export type Stage =
   | "onboarding"
   | "dashboard"
 
+// Lifecycle stages for adaptive UX - "Where are you in your business journey?"
+export type LifecycleStage = "planning" | "starting" | "running" | "panicking"
+
 export interface WizardAnswers {
   hasEmployees?: boolean
   expectedRevenue?: string
@@ -35,6 +38,7 @@ interface VisitorState {
   persona: Persona | null
   businessType: BusinessType
   stage: Stage
+  lifecycleStage: LifecycleStage
   wizardAnswers: WizardAnswers
   recommendedType: BusinessType
 
@@ -42,6 +46,7 @@ interface VisitorState {
   setPersona: (persona: Persona) => void
   setBusinessType: (type: BusinessType) => void
   setStage: (stage: Stage) => void
+  setLifecycleStage: (stage: LifecycleStage) => void
   saveWizardAnswers: (answers: Partial<WizardAnswers>) => void
   setRecommendedType: (type: BusinessType) => void
   reset: () => void
@@ -51,6 +56,7 @@ const initialState = {
   persona: null,
   businessType: null,
   stage: "landing" as Stage,
+  lifecycleStage: "planning" as LifecycleStage,
   wizardAnswers: {},
   recommendedType: null,
 }
@@ -65,6 +71,8 @@ export const useVisitorStore = create<VisitorState>()(
       setBusinessType: (type) => set({ businessType: type }),
 
       setStage: (stage) => set({ stage }),
+
+      setLifecycleStage: (lifecycleStage) => set({ lifecycleStage }),
 
       saveWizardAnswers: (answers) =>
         set((state) => ({

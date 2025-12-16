@@ -5,6 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ComplianceTrafficLight } from "./ComplianceTrafficLight"
+import { LifecycleSelector } from "./LifecycleSelector"
 
 type NavItem = { href: string; label: string }
 
@@ -98,6 +100,8 @@ export function MarketingHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <LifecycleSelector className="hidden lg:flex" />
+          <ComplianceTrafficLight className="hidden sm:block" />
           <LinkButton href="/login" variant="outline">
             Prijava
           </LinkButton>

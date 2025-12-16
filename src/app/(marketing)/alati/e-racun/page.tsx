@@ -1,103 +1,187 @@
 "use client"
 
-import { useState } from "react"
-import { FileText, Download, Copy, AlertTriangle, CheckCircle, Info } from "lucide-react"
-import { generateUBLInvoice, validateInvoice } from "@/lib/einvoice"
-import type { EInvoice } from "@/lib/einvoice"
+import { useState, useCallback } from "react"
+import {
+  FileText,
+  Download,
+  Copy,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  Rocket,
+  Plus,
+  Trash2,
+  FileCode,
+  FileType,
+} from "lucide-react"
+import { generateUBLInvoice, validateInvoice, validateOIB } from "@/lib/einvoice"
+import type { EInvoice, InvoiceLine, TaxCategory } from "@/lib/einvoice"
+import { cn } from "@/lib/utils"
 
-// Sample invoice data for demo
-const SAMPLE_INVOICE: EInvoice = {
-  invoiceNumber: "2025-DEMO-001",
-  issueDate: "2025-01-15",
-  dueDate: "2025-02-14",
-  currencyCode: "EUR",
-  seller: {
-    name: "Demo d.o.o.",
-    oib: "12345678901",
-    address: {
-      streetName: "Ilica 123",
-      city: "Zagreb",
-      postalCode: "10000",
-      country: "HR",
-    },
-    vatNumber: "HR12345678901",
-  },
-  buyer: {
-    name: "Kupac d.o.o.",
-    oib: "98765432109",
-    address: {
-      streetName: "Vukovarska 45",
-      city: "Split",
-      postalCode: "21000",
-      country: "HR",
-    },
-    vatNumber: "HR98765432109",
-  },
-  lines: [
-    {
-      id: "1",
-      description: "Web development usluge",
-      quantity: 10,
-      unitCode: "C62",
-      unitPrice: 500.0,
-      taxCategory: {
-        code: "S",
-        percent: 25,
-        taxScheme: "VAT",
-      },
-      lineTotal: 5000.0,
-    },
-    {
-      id: "2",
-      description: "Hosting i održavanje",
-      quantity: 1,
-      unitCode: "C62",
-      unitPrice: 300.0,
-      taxCategory: {
-        code: "S",
-        percent: 25,
-        taxScheme: "VAT",
-      },
-      lineTotal: 300.0,
-    },
-  ],
-  taxTotal: {
-    taxAmount: 1325.0,
-    taxSubtotals: [
-      {
-        taxableAmount: 5300.0,
-        taxAmount: 1325.0,
-        taxCategory: {
-          code: "S",
-          percent: 25,
-          taxScheme: "VAT",
-        },
-      },
-    ],
-  },
-  legalMonetaryTotal: {
-    lineExtensionAmount: 5300.0,
-    taxExclusiveAmount: 5300.0,
-    taxInclusiveAmount: 6625.0,
-    payableAmount: 6625.0,
-  },
+const DEFAULT_TAX_CATEGORY: TaxCategory = {
+  code: "S",
+  percent: 25,
+  taxScheme: "VAT",
+}
+
+const initialLine: InvoiceLine = {
+  id: "1",
+  description: "",
+  quantity: 1,
+  unitCode: "C62",
+  unitPrice: 0,
+  taxCategory: DEFAULT_TAX_CATEGORY,
+  lineTotal: 0,
 }
 
 export default function ERacunGeneratorPage() {
+  // Form state
+  const [invoiceNumber, setInvoiceNumber] = useState("")
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0])
+  const [dueDate, setDueDate] = useState(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  )
+
+  // Seller
+  const [sellerName, setSellerName] = useState("")
+  const [sellerOIB, setSellerOIB] = useState("")
+  const [sellerAddress, setSellerAddress] = useState("")
+  const [sellerCity, setSellerCity] = useState("")
+  const [sellerPostal, setSellerPostal] = useState("")
+
+  // Buyer
+  const [buyerName, setBuyerName] = useState("")
+  const [buyerOIB, setBuyerOIB] = useState("")
+  const [buyerAddress, setBuyerAddress] = useState("")
+  const [buyerCity, setBuyerCity] = useState("")
+  const [buyerPostal, setBuyerPostal] = useState("")
+
+  // Lines
+  const [lines, setLines] = useState<InvoiceLine[]>([{ ...initialLine }])
+
+  // Output
   const [xmlOutput, setXmlOutput] = useState<string>("")
   const [validationResult, setValidationResult] = useState<{
     valid: boolean
     errors: Array<{ field: string; message: string; code?: string }>
   } | null>(null)
   const [copySuccess, setCopySuccess] = useState(false)
+  const [oibErrors, setOibErrors] = useState<{ seller?: string; buyer?: string }>({})
+
+  // Calculate totals
+  const calculateTotals = useCallback(() => {
+    const lineExtension = lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0)
+    const taxAmount = lineExtension * 0.25 // 25% PDV
+    return {
+      lineExtension,
+      taxAmount,
+      total: lineExtension + taxAmount,
+    }
+  }, [lines])
+
+  const totals = calculateTotals()
+
+  const addLine = () => {
+    setLines([
+      ...lines,
+      {
+        ...initialLine,
+        id: String(lines.length + 1),
+      },
+    ])
+  }
+
+  const removeLine = (index: number) => {
+    if (lines.length > 1) {
+      setLines(lines.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateLine = (index: number, field: keyof InvoiceLine, value: string | number) => {
+    const updated = [...lines]
+    if (field === "quantity" || field === "unitPrice") {
+      const numVal = typeof value === "string" ? parseFloat(value) || 0 : value
+      updated[index] = {
+        ...updated[index],
+        [field]: numVal,
+        lineTotal:
+          field === "quantity"
+            ? numVal * updated[index].unitPrice
+            : updated[index].quantity * numVal,
+      }
+    } else {
+      updated[index] = { ...updated[index], [field]: value }
+    }
+    setLines(updated)
+  }
+
+  const validateOIBField = (oib: string, field: "seller" | "buyer") => {
+    if (!oib) {
+      setOibErrors((prev) => ({ ...prev, [field]: undefined }))
+      return
+    }
+    const isValid = validateOIB(oib)
+    setOibErrors((prev) => ({
+      ...prev,
+      [field]: isValid ? undefined : "Neispravan OIB (provjera kontrolne znamenke)",
+    }))
+  }
+
+  const buildInvoice = (): EInvoice => ({
+    invoiceNumber,
+    issueDate,
+    dueDate,
+    currencyCode: "EUR",
+    seller: {
+      name: sellerName,
+      oib: sellerOIB,
+      address: {
+        streetName: sellerAddress,
+        city: sellerCity,
+        postalCode: sellerPostal,
+        country: "HR",
+      },
+      vatNumber: `HR${sellerOIB}`,
+    },
+    buyer: {
+      name: buyerName,
+      oib: buyerOIB,
+      address: {
+        streetName: buyerAddress,
+        city: buyerCity,
+        postalCode: buyerPostal,
+        country: "HR",
+      },
+      vatNumber: buyerOIB ? `HR${buyerOIB}` : undefined,
+    },
+    lines: lines.map((l, i) => ({
+      ...l,
+      id: String(i + 1),
+      lineTotal: l.quantity * l.unitPrice,
+    })),
+    taxTotal: {
+      taxAmount: totals.taxAmount,
+      taxSubtotals: [
+        {
+          taxableAmount: totals.lineExtension,
+          taxAmount: totals.taxAmount,
+          taxCategory: DEFAULT_TAX_CATEGORY,
+        },
+      ],
+    },
+    legalMonetaryTotal: {
+      lineExtensionAmount: totals.lineExtension,
+      taxExclusiveAmount: totals.lineExtension,
+      taxInclusiveAmount: totals.total,
+      payableAmount: totals.total,
+    },
+  })
 
   const handleGenerate = () => {
-    // Validate first
-    const validation = validateInvoice(SAMPLE_INVOICE)
+    const invoice = buildInvoice()
+    const validation = validateInvoice(invoice)
     setValidationResult(validation)
-
-    // Generate XML even if there are validation errors (for demo purposes)
-    const xml = generateUBLInvoice(SAMPLE_INVOICE, { prettyPrint: true })
+    const xml = generateUBLInvoice(invoice, { prettyPrint: true })
     setXmlOutput(xml)
   }
 
@@ -111,12 +195,12 @@ export default function ERacunGeneratorPage() {
     }
   }
 
-  const handleDownload = () => {
+  const handleDownloadXML = () => {
     const blob = new Blob([xmlOutput], { type: "application/xml" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${SAMPLE_INVOICE.invoiceNumber}.xml`
+    a.download = `${invoiceNumber || "racun"}.xml`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -125,198 +209,380 @@ export default function ERacunGeneratorPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 mb-4">
-            <FileText className="w-8 h-8 text-white" />
+      <div className="mx-auto max-w-6xl">
+        {/* Header with 2026 urgency */}
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500">
+            <FileText className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold mb-3" style={{ color: "var(--foreground)" }}>
-            E-Račun Generator
+          <h1 className="mb-3 text-3xl font-bold" style={{ color: "var(--foreground)" }}>
+            2026-Ready E-Račun Generator
           </h1>
           <p className="text-lg" style={{ color: "var(--muted)" }}>
-            Generirajte UBL 2.1 XML e-račune prema hrvatskim standardima
+            Generiraj UBL 2.1 XML e-račune spremne za FINA sustav
           </p>
         </div>
 
-        {/* Disclaimer */}
-        <div className="rounded-lg border p-4 mb-6 bg-yellow-50 border-yellow-200">
+        {/* 2026 Warning Banner */}
+        <div className="mb-6 rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <Rocket className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
             <div className="text-sm">
-              <p className="font-semibold text-yellow-900 mb-1">Demo verzija</p>
-              <p className="text-yellow-800">
-                Ovo je demonstracijska verzija s unaprijed definiranim podacima. Za kreiranje pravih
-                e-računa s vašim podacima, registrirajte se na FiskAI platformu.
+              <p className="mb-1 font-bold text-red-900">
+                Od 1. siječnja 2026. e-računi su OBVEZNI za B2B transakcije
+              </p>
+              <p className="text-red-800">
+                PDF računi više neće biti prihvaćeni. Ovaj alat generira pravilan UBL 2.1 XML format
+                koji će zahtijevati FINA.{" "}
+                <a href="/register" className="font-medium underline">
+                  Registriraj se za automatsko slanje →
+                </a>
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Invoice Data */}
-          <div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left Column - Form */}
+          <div className="space-y-4">
+            {/* Basic Info */}
             <div
-              className="rounded-lg border p-6 mb-6"
-              style={{
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-              }}
+              className="rounded-lg border p-5"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
-              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--foreground)" }}>
-                Podaci računa (demo)
+              <h2 className="mb-4 font-semibold" style={{ color: "var(--foreground)" }}>
+                Osnovni podaci
               </h2>
-
-              <div className="space-y-4 text-sm">
-                {/* Basic info */}
+              <div className="grid gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="font-medium mb-1" style={{ color: "var(--foreground)" }}>
-                    Osnovni podaci
-                  </p>
-                  <div className="space-y-1" style={{ color: "var(--muted)" }}>
-                    <p>Broj računa: {SAMPLE_INVOICE.invoiceNumber}</p>
-                    <p>Datum izdavanja: {SAMPLE_INVOICE.issueDate}</p>
-                    <p>Datum dospijeća: {SAMPLE_INVOICE.dueDate}</p>
-                    <p>Valuta: {SAMPLE_INVOICE.currencyCode}</p>
+                  <label className="mb-1 block text-xs font-medium">Broj računa *</label>
+                  <input
+                    type="text"
+                    value={invoiceNumber}
+                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                    placeholder="2025-001"
+                    className="w-full rounded border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Datum izdavanja</label>
+                  <input
+                    type="date"
+                    value={issueDate}
+                    onChange={(e) => setIssueDate(e.target.value)}
+                    className="w-full rounded border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Datum dospijeća</label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full rounded border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Seller */}
+            <div
+              className="rounded-lg border p-5"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <h2 className="mb-4 font-semibold" style={{ color: "var(--foreground)" }}>
+                Prodavatelj (vi)
+              </h2>
+              <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Naziv *</label>
+                    <input
+                      type="text"
+                      value={sellerName}
+                      onChange={(e) => setSellerName(e.target.value)}
+                      placeholder="Vaša firma d.o.o."
+                      className="w-full rounded border px-3 py-2 text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">OIB *</label>
+                    <input
+                      type="text"
+                      value={sellerOIB}
+                      onChange={(e) => {
+                        setSellerOIB(e.target.value)
+                        validateOIBField(e.target.value, "seller")
+                      }}
+                      placeholder="12345678901"
+                      maxLength={11}
+                      className={cn(
+                        "w-full rounded border px-3 py-2 text-sm",
+                        oibErrors.seller && "border-red-500"
+                      )}
+                      style={{ background: "var(--surface)" }}
+                    />
+                    {oibErrors.seller && (
+                      <p className="mt-1 text-xs text-red-600">{oibErrors.seller}</p>
+                    )}
                   </div>
                 </div>
-
-                {/* Seller */}
                 <div>
-                  <p className="font-medium mb-1" style={{ color: "var(--foreground)" }}>
-                    Prodavatelj
-                  </p>
-                  <div className="space-y-1" style={{ color: "var(--muted)" }}>
-                    <p>{SAMPLE_INVOICE.seller.name}</p>
-                    <p>OIB: {SAMPLE_INVOICE.seller.oib}</p>
-                    <p>{SAMPLE_INVOICE.seller.address.streetName}</p>
-                    <p>
-                      {SAMPLE_INVOICE.seller.address.postalCode}{" "}
-                      {SAMPLE_INVOICE.seller.address.city}
-                    </p>
-                  </div>
+                  <label className="mb-1 block text-xs font-medium">Adresa</label>
+                  <input
+                    type="text"
+                    value={sellerAddress}
+                    onChange={(e) => setSellerAddress(e.target.value)}
+                    placeholder="Ulica i kućni broj"
+                    className="w-full rounded border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
                 </div>
-
-                {/* Buyer */}
-                <div>
-                  <p className="font-medium mb-1" style={{ color: "var(--foreground)" }}>
-                    Kupac
-                  </p>
-                  <div className="space-y-1" style={{ color: "var(--muted)" }}>
-                    <p>{SAMPLE_INVOICE.buyer.name}</p>
-                    <p>OIB: {SAMPLE_INVOICE.buyer.oib}</p>
-                    <p>{SAMPLE_INVOICE.buyer.address.streetName}</p>
-                    <p>
-                      {SAMPLE_INVOICE.buyer.address.postalCode} {SAMPLE_INVOICE.buyer.address.city}
-                    </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Poštanski broj</label>
+                    <input
+                      type="text"
+                      value={sellerPostal}
+                      onChange={(e) => setSellerPostal(e.target.value)}
+                      placeholder="10000"
+                      className="w-full rounded border px-3 py-2 text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                    />
                   </div>
-                </div>
-
-                {/* Lines */}
-                <div>
-                  <p className="font-medium mb-2" style={{ color: "var(--foreground)" }}>
-                    Stavke računa
-                  </p>
-                  <div className="space-y-2">
-                    {SAMPLE_INVOICE.lines.map((line) => (
-                      <div
-                        key={line.id}
-                        className="p-3 rounded border"
-                        style={{
-                          background: "var(--muted)",
-                          borderColor: "var(--border)",
-                        }}
-                      >
-                        <p className="font-medium" style={{ color: "var(--foreground)" }}>
-                          {line.description}
-                        </p>
-                        <p className="text-sm" style={{ color: "var(--muted)" }}>
-                          {line.quantity} × {line.unitPrice.toFixed(2)} EUR ={" "}
-                          {line.lineTotal.toFixed(2)} EUR
-                        </p>
-                        <p className="text-sm" style={{ color: "var(--muted)" }}>
-                          PDV: {line.taxCategory.percent}%
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Totals */}
-                <div
-                  className="p-4 rounded border"
-                  style={{
-                    background: "var(--muted)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <p className="font-medium mb-2" style={{ color: "var(--foreground)" }}>
-                    Ukupno
-                  </p>
-                  <div className="space-y-1 text-sm" style={{ color: "var(--muted)" }}>
-                    <div className="flex justify-between">
-                      <span>Osnovica:</span>
-                      <span>
-                        {SAMPLE_INVOICE.legalMonetaryTotal.taxExclusiveAmount.toFixed(2)} EUR
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>PDV:</span>
-                      <span>{SAMPLE_INVOICE.taxTotal.taxAmount.toFixed(2)} EUR</span>
-                    </div>
-                    <div
-                      className="flex justify-between font-semibold pt-2 border-t"
-                      style={{ borderColor: "var(--border)" }}
-                    >
-                      <span style={{ color: "var(--foreground)" }}>Za platiti:</span>
-                      <span style={{ color: "var(--foreground)" }}>
-                        {SAMPLE_INVOICE.legalMonetaryTotal.payableAmount.toFixed(2)} EUR
-                      </span>
-                    </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Grad</label>
+                    <input
+                      type="text"
+                      value={sellerCity}
+                      onChange={(e) => setSellerCity(e.target.value)}
+                      placeholder="Zagreb"
+                      className="w-full rounded border px-3 py-2 text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                    />
                   </div>
                 </div>
               </div>
-
-              <button
-                onClick={handleGenerate}
-                className="w-full mt-6 px-6 py-3 rounded-md font-medium transition-colors"
-                style={{
-                  background: "var(--foreground)",
-                  color: "var(--surface)",
-                }}
-              >
-                Generiraj XML
-              </button>
             </div>
+
+            {/* Buyer */}
+            <div
+              className="rounded-lg border p-5"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <h2 className="mb-4 font-semibold" style={{ color: "var(--foreground)" }}>
+                Kupac
+              </h2>
+              <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Naziv *</label>
+                    <input
+                      type="text"
+                      value={buyerName}
+                      onChange={(e) => setBuyerName(e.target.value)}
+                      placeholder="Kupac d.o.o."
+                      className="w-full rounded border px-3 py-2 text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">OIB</label>
+                    <input
+                      type="text"
+                      value={buyerOIB}
+                      onChange={(e) => {
+                        setBuyerOIB(e.target.value)
+                        validateOIBField(e.target.value, "buyer")
+                      }}
+                      placeholder="98765432109"
+                      maxLength={11}
+                      className={cn(
+                        "w-full rounded border px-3 py-2 text-sm",
+                        oibErrors.buyer && "border-red-500"
+                      )}
+                      style={{ background: "var(--surface)" }}
+                    />
+                    {oibErrors.buyer && (
+                      <p className="mt-1 text-xs text-red-600">{oibErrors.buyer}</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium">Adresa</label>
+                  <input
+                    type="text"
+                    value={buyerAddress}
+                    onChange={(e) => setBuyerAddress(e.target.value)}
+                    placeholder="Ulica i kućni broj"
+                    className="w-full rounded border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Poštanski broj</label>
+                    <input
+                      type="text"
+                      value={buyerPostal}
+                      onChange={(e) => setBuyerPostal(e.target.value)}
+                      placeholder="21000"
+                      className="w-full rounded border px-3 py-2 text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Grad</label>
+                    <input
+                      type="text"
+                      value={buyerCity}
+                      onChange={(e) => setBuyerCity(e.target.value)}
+                      placeholder="Split"
+                      className="w-full rounded border px-3 py-2 text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Lines */}
+            <div
+              className="rounded-lg border p-5"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-semibold" style={{ color: "var(--foreground)" }}>
+                  Stavke računa
+                </h2>
+                <button
+                  onClick={addLine}
+                  className="flex items-center gap-1 rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                >
+                  <Plus className="h-3 w-3" /> Dodaj
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {lines.map((line, index) => (
+                  <div
+                    key={index}
+                    className="grid gap-2 rounded border p-3"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <input
+                        type="text"
+                        value={line.description}
+                        onChange={(e) => updateLine(index, "description", e.target.value)}
+                        placeholder="Opis usluge/proizvoda"
+                        className="flex-1 rounded border px-2 py-1.5 text-sm"
+                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      />
+                      {lines.length > 1 && (
+                        <button
+                          onClick={() => removeLine(index)}
+                          className="ml-2 p-1 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="mb-1 block text-xs text-gray-500">Količina</label>
+                        <input
+                          type="number"
+                          value={line.quantity}
+                          onChange={(e) => updateLine(index, "quantity", e.target.value)}
+                          min={1}
+                          className="w-full rounded border px-2 py-1.5 text-sm"
+                          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-gray-500">Cijena (EUR)</label>
+                        <input
+                          type="number"
+                          value={line.unitPrice}
+                          onChange={(e) => updateLine(index, "unitPrice", e.target.value)}
+                          min={0}
+                          step={0.01}
+                          className="w-full rounded border px-2 py-1.5 text-sm"
+                          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-gray-500">Ukupno</label>
+                        <div className="rounded bg-gray-100 px-2 py-1.5 text-sm font-medium">
+                          {(line.quantity * line.unitPrice).toFixed(2)} EUR
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div
+                className="mt-4 space-y-1 border-t pt-3 text-sm"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <div className="flex justify-between">
+                  <span style={{ color: "var(--muted)" }}>Osnovica:</span>
+                  <span>{totals.lineExtension.toFixed(2)} EUR</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: "var(--muted)" }}>PDV (25%):</span>
+                  <span>{totals.taxAmount.toFixed(2)} EUR</span>
+                </div>
+                <div
+                  className="flex justify-between border-t pt-2 font-bold"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  <span>UKUPNO:</span>
+                  <span>{totals.total.toFixed(2)} EUR</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <button
+              onClick={handleGenerate}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              <FileCode className="h-5 w-5" />
+              Generiraj UBL 2.1 XML
+            </button>
           </div>
 
-          {/* Right Column - XML Output and Validation */}
-          <div className="space-y-6">
-            {/* Validation Results */}
+          {/* Right Column - Output */}
+          <div className="space-y-4">
+            {/* Validation */}
             {validationResult && (
               <div
-                className="rounded-lg border p-6"
-                style={{
-                  background: "var(--surface)",
-                  borderColor: "var(--border)",
-                }}
+                className="rounded-lg border p-5"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
               >
-                <h3 className="text-lg font-semibold mb-3" style={{ color: "var(--foreground)" }}>
+                <h3 className="mb-3 font-semibold" style={{ color: "var(--foreground)" }}>
                   Validacija
                 </h3>
-
                 {validationResult.valid ? (
-                  <div className="flex items-start gap-3 p-3 rounded bg-green-50 border border-green-200">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 rounded border border-green-200 bg-green-50 p-3">
+                    <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                     <div>
-                      <p className="font-semibold text-green-900">Račun je valjan</p>
-                      <p className="text-sm text-green-700">Sve provjere su prošle uspješno</p>
+                      <p className="font-semibold text-green-900">Račun je valjan!</p>
+                      <p className="text-sm text-green-700">Spreman za FINA sustav e-računa</p>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="flex items-start gap-3 p-3 rounded bg-red-50 border border-red-200">
-                      <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-3 rounded border border-red-200 bg-red-50 p-3">
+                      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
                       <div>
                         <p className="font-semibold text-red-900">Pronađene greške</p>
                         <p className="text-sm text-red-700">
@@ -324,18 +590,11 @@ export default function ERacunGeneratorPage() {
                         </p>
                       </div>
                     </div>
-
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {validationResult.errors.map((error, index) => (
-                        <div
-                          key={index}
-                          className="p-3 rounded text-sm bg-red-50 border border-red-100"
-                        >
-                          <p className="font-medium text-red-900">{error.field}</p>
-                          <p className="text-red-700">{error.message}</p>
-                          {error.code && (
-                            <p className="text-xs text-red-600 mt-1">Kod: {error.code}</p>
-                          )}
+                    <div className="max-h-40 space-y-1 overflow-y-auto">
+                      {validationResult.errors.map((e, i) => (
+                        <div key={i} className="rounded bg-red-50 p-2 text-xs">
+                          <span className="font-medium text-red-900">{e.field}:</span>{" "}
+                          <span className="text-red-700">{e.message}</span>
                         </div>
                       ))}
                     </div>
@@ -344,102 +603,91 @@ export default function ERacunGeneratorPage() {
               </div>
             )}
 
-            {/* XML Preview */}
+            {/* XML Output */}
             {xmlOutput && (
               <div
                 className="rounded-lg border"
-                style={{
-                  background: "var(--surface)",
-                  borderColor: "var(--border)",
-                }}
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
               >
                 <div
-                  className="p-4 border-b flex items-center justify-between"
+                  className="flex items-center justify-between border-b p-4"
                   style={{ borderColor: "var(--border)" }}
                 >
-                  <h3 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                    XML Preview
+                  <h3 className="font-semibold" style={{ color: "var(--foreground)" }}>
+                    UBL 2.1 XML
                   </h3>
                   <div className="flex gap-2">
                     <button
                       onClick={handleCopy}
-                      className="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-                      style={{
-                        background: "var(--muted)",
-                        color: "var(--foreground)",
-                      }}
+                      className="flex items-center gap-1 rounded border px-2 py-1.5 text-xs font-medium transition-colors hover:bg-gray-100"
+                      style={{ borderColor: "var(--border)" }}
                     >
-                      <Copy className="w-4 h-4" />
+                      <Copy className="h-3 w-3" />
                       {copySuccess ? "Kopirano!" : "Kopiraj"}
                     </button>
                     <button
-                      onClick={handleDownload}
-                      className="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-                      style={{
-                        background: "var(--foreground)",
-                        color: "var(--surface)",
-                      }}
+                      onClick={handleDownloadXML}
+                      className="flex items-center gap-1 rounded bg-green-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-green-700"
                     >
-                      <Download className="w-4 h-4" />
-                      Preuzmi
+                      <FileCode className="h-3 w-3" />
+                      XML
                     </button>
                   </div>
                 </div>
-
                 <div className="p-4">
-                  <pre
-                    className="text-xs overflow-x-auto p-4 rounded"
-                    style={{
-                      background: "var(--muted)",
-                      color: "var(--foreground)",
-                    }}
-                  >
+                  <pre className="max-h-96 overflow-auto rounded bg-gray-900 p-4 text-xs text-green-400">
                     <code>{xmlOutput}</code>
                   </pre>
                 </div>
               </div>
             )}
 
+            {/* Upsell */}
+            <div className="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5">
+              <div className="flex items-start gap-3">
+                <Rocket className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+                <div>
+                  <p className="mb-2 font-bold text-blue-900">Želiš automatski slati e-račune?</p>
+                  <p className="mb-3 text-sm text-blue-800">
+                    FiskAI automatski generira, validira i šalje e-račune putem FINA sustava. Spremi
+                    podatke kupaca, prati plaćanja, i budi 100% usklađen.
+                  </p>
+                  <a
+                    href="/register"
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    Započni besplatno <span>→</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
             {/* Info */}
             {!xmlOutput && (
               <div
-                className="rounded-lg border p-6"
-                style={{
-                  background: "var(--surface)",
-                  borderColor: "var(--border)",
-                }}
+                className="rounded-lg border p-5"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <Info className="w-5 h-5 flex-shrink-0" style={{ color: "var(--muted)" }} />
+                <div className="mb-3 flex items-start gap-3">
+                  <Info className="h-5 w-5 flex-shrink-0" style={{ color: "var(--muted)" }} />
                   <h3 className="font-semibold" style={{ color: "var(--foreground)" }}>
-                    O UBL 2.1 XML formatu
+                    Zašto UBL 2.1 XML?
                   </h3>
                 </div>
-
-                <div className="space-y-3 text-sm" style={{ color: "var(--muted)" }}>
+                <div className="space-y-2 text-sm" style={{ color: "var(--muted)" }}>
                   <p>
-                    UBL (Universal Business Language) je međunarodni standard za elektroničke
-                    poslovne dokumente. UBL 2.1 je verzija koja se koristi u Hrvatskoj za
-                    e-računanje.
+                    <strong>UBL 2.1</strong> (Universal Business Language) je međunarodni standard
+                    koji Hrvatska koristi za e-račune od 2026.
                   </p>
-
-                  <div>
-                    <p className="font-medium mb-1" style={{ color: "var(--foreground)" }}>
-                      Generiran XML sadrži:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Metapodatke o računu (broj, datum, valuta)</li>
-                      <li>Podatke o prodavatelju i kupcu</li>
-                      <li>Stavke računa s količinama i cijenama</li>
-                      <li>Izračune poreza (PDV)</li>
-                      <li>Ukupne iznose</li>
-                    </ul>
-                  </div>
-
-                  <p className="text-xs">
-                    <strong>Napomena:</strong> Za potpunu validaciju i slanje e-računa prema sustavu
-                    e-Računa Ministarstva financija potrebna je dodatna integracija i digitalni
-                    certifikat.
+                  <ul className="ml-4 list-disc space-y-1">
+                    <li>Strukturirani podaci umjesto PDF-a</li>
+                    <li>Automatska obrada kod primatelja</li>
+                    <li>Validacija prema EN 16931 normi</li>
+                    <li>Kompatibilnost s EU Peppol mrežom</li>
+                  </ul>
+                  <p className="mt-3 rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+                    <strong>Napomena:</strong> Ovaj alat radi 100% u pregledniku. Vaši podaci se NE
+                    šalju na server.
                   </p>
                 </div>
               </div>

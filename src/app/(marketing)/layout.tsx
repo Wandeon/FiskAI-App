@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { MarketingHeader } from "@/components/marketing/MarketingHeader"
 import { MarketingAnalyticsInit } from "@/components/marketing/marketing-analytics-init"
+import { ComplianceProgressBar } from "@/components/marketing/ComplianceProgressBar"
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -23,7 +24,8 @@ export default function MarketingLayout({
       <MarketingHeader />
       <MarketingAnalyticsInit />
 
-      <div>{children}</div>
+      <div className="pb-16">{children}</div>
+      <ComplianceProgressBar />
 
       <footer className="border-t border-[var(--border)] bg-[var(--surface)]">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-4 md:px-6">
