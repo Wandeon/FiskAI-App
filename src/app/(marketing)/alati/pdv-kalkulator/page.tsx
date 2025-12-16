@@ -2,12 +2,28 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { PDVThresholdCalculator } from "@/components/knowledge-hub/calculators/PDVThresholdCalculator"
 import { TrendingUp, ArrowRight, Bell } from "lucide-react"
+import { FAQ } from "@/components/content/FAQ"
 
 export const metadata: Metadata = {
   title: "PDV Kalkulator - Kada prelazim prag? | FiskAI",
   description:
     "Izračunajte koliko ste blizu PDV praga od 60.000€ i što se mijenja kada ga prijeđete.",
 }
+
+const faq = [
+  {
+    q: "Kako izračunati PDV iz bruto iznosa?",
+    a: "Podijelite bruto iznos s 1.25 (za 25% PDV) da dobijete neto, zatim oduzmite neto od bruto za iznos PDV-a.",
+  },
+  {
+    q: "Kada se koristi 13% PDV?",
+    a: "Stopa od 13% primjenjuje se na ugostiteljske usluge, novine, vodu i neke prehrambene proizvode.",
+  },
+  {
+    q: "Što ako pogriješim u obračunu PDV-a?",
+    a: "Ispravak se radi putem R-1 ili R-2 računa, ovisno o vrsti pogreške i razdoblju.",
+  },
+]
 
 export default function PDVCalculatorPage() {
   return (
@@ -95,6 +111,8 @@ export default function PDVCalculatorPage() {
           </div>
         </div>
       </section>
+
+      <FAQ items={faq} />
     </div>
   )
 }

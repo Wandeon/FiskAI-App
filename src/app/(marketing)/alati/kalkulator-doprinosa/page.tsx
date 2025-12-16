@@ -2,12 +2,28 @@ import { ContributionCalculator } from "@/components/knowledge-hub/calculators/C
 import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowRight, Rocket } from "lucide-react"
+import { FAQ } from "@/components/content/FAQ"
 
 export const metadata: Metadata = {
   title: "Kalkulator doprinosa 2025 | FiskAI",
   description:
     "Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u 2025. godini.",
 }
+
+const faq = [
+  {
+    q: "Koliki su doprinosi za paušalce?",
+    a: "MIO 20% i ZO 16.5% na minimalnu osnovicu (560,40 EUR = 204,79 EUR mjesečno).",
+  },
+  {
+    q: "Što je minimalna osnovica za doprinose?",
+    a: "560,40 EUR mjesečno (35% prosječne plaće za 2025.).",
+  },
+  {
+    q: "Do kada se plaćaju doprinosi?",
+    a: "Do 15. u mjesecu za prethodni mjesec.",
+  },
+]
 
 export default function ContributionCalculatorPage() {
   return (
@@ -83,6 +99,8 @@ export default function ContributionCalculatorPage() {
           </div>
         </div>
       </div>
+
+      <FAQ items={faq} />
     </div>
   )
 }

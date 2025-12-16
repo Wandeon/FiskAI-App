@@ -3,11 +3,27 @@ import Link from "next/link"
 import { PaymentSlipGenerator } from "@/components/knowledge-hub/calculators/PaymentSlipGenerator"
 import { PAYMENT_IBANS, PAYMENT_MODEL } from "@/lib/knowledge-hub/constants"
 import { Rocket, ArrowRight, Save } from "lucide-react"
+import { FAQ } from "@/components/content/FAQ"
 
 export const metadata: Metadata = {
   title: "Generator Uplatnica | FiskAI",
   description: "Generirajte Hub3 uplatnice za plaćanje doprinosa, poreza i prireza.",
 }
+
+const faq = [
+  {
+    q: "Koji je poziv na broj za porez?",
+    a: "Model HR68 s OIB-om obveznika i šifrom vrste prihoda (npr. 1820 za porez na dohodak).",
+  },
+  {
+    q: "Na koji račun uplatiti doprinose?",
+    a: "MIO I. stup: HR1210010051863000160, ZO: HR1210010051863000177.",
+  },
+  {
+    q: "Kako generirati poziv na broj?",
+    a: "OIB + šifra djelatnosti + oznaka razdoblja (format ovisi o vrsti uplate).",
+  },
+]
 
 export default function PaymentSlipsPage() {
   return (
@@ -97,6 +113,8 @@ export default function PaymentSlipsPage() {
           </div>
         </div>
       </section>
+
+      <FAQ items={faq} />
     </div>
   )
 }

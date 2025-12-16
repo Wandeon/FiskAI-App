@@ -24,6 +24,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Reveal } from "@/components/motion/Reveal"
 import { cn } from "@/lib/utils"
+import { FAQ } from "@/components/content/FAQ"
 import {
   parseBankXML,
   filterIncomeTransactions,
@@ -39,6 +40,21 @@ import {
 } from "@/lib/posd/posd-calculator"
 
 type Step = "upload" | "review" | "results"
+
+const faq = [
+  {
+    q: "Što je PO-SD obrazac?",
+    a: "Kvartalni obrazac kojim paušalni obrtnici prijavljuju primitke Poreznoj upravi.",
+  },
+  {
+    q: "Koji je rok za predaju PO-SD?",
+    a: "Do 20. u mjesecu nakon završetka kvartala (npr. 20. travnja za Q1).",
+  },
+  {
+    q: "Što ako propustim rok?",
+    a: "Kazna za nepravovremenu predaju je 200-2.000 EUR.",
+  },
+]
 
 const supportedBanks = [
   { name: "Erste Bank", format: "camt.053" },
@@ -794,6 +810,8 @@ export function POSDCalculatorClient() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <FAQ items={faq} />
     </div>
   )
 }

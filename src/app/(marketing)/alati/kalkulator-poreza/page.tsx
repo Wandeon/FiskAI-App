@@ -2,12 +2,28 @@ import { TaxCalculator } from "@/components/knowledge-hub/calculators/TaxCalcula
 import Link from "next/link"
 import type { Metadata } from "next"
 import { Calculator, ArrowRight, FileText } from "lucide-react"
+import { FAQ } from "@/components/content/FAQ"
 
 export const metadata: Metadata = {
   title: "Kalkulator paušalnog poreza 2025 | FiskAI",
   description:
     "Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za 2025.",
 }
+
+const faq = [
+  {
+    q: "Koliko iznosi porez na dohodak?",
+    a: "20% do 50.400 EUR godišnje, 30% iznad tog iznosa (2025.).",
+  },
+  {
+    q: "Što je osobni odbitak?",
+    a: "Neoporezivi dio dohotka - 560 EUR mjesečno (osnovna olakšica).",
+  },
+  {
+    q: "Kako se računa prirez?",
+    a: "Postotak od poreza na dohodak, ovisi o mjestu prebivališta (npr. Zagreb 18%).",
+  },
+]
 
 export default function TaxCalculatorPage() {
   return (
@@ -88,6 +104,8 @@ export default function TaxCalculatorPage() {
           </div>
         </div>
       </section>
+
+      <FAQ items={faq} />
     </div>
   )
 }

@@ -2,11 +2,27 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { DeadlineCalendar } from "@/components/knowledge-hub/tools/DeadlineCalendar"
 import { Bell, ArrowRight, Calendar } from "lucide-react"
+import { FAQ } from "@/components/content/FAQ"
 
 export const metadata: Metadata = {
   title: "Kalendar Rokova 2025 | FiskAI",
   description: "Svi važni porezni rokovi za 2025. godinu na jednom mjestu.",
 }
+
+const faq = [
+  {
+    q: "Kada je rok za PO-SD za Q4?",
+    a: "20. siječnja sljedeće godine.",
+  },
+  {
+    q: "Kada se plaća doprinosi za paušalce?",
+    a: "Do 15. u mjesecu za prethodni mjesec.",
+  },
+  {
+    q: "Koji su godišnji porezni rokovi?",
+    a: "DOH do 28. veljače, godišnji PO-SD do 15. siječnja, PDV-K do 20. siječnja.",
+  },
+]
 
 export default function CalendarPage() {
   return (
@@ -64,6 +80,8 @@ export default function CalendarPage() {
           </div>
         </div>
       </section>
+
+      <FAQ items={faq} />
     </div>
   )
 }

@@ -4,6 +4,22 @@ import { useState } from "react"
 import Link from "next/link"
 import { Shield, CheckCircle, XCircle, Info, FileText, ArrowRight } from "lucide-react"
 import { validateOIB } from "@/lib/einvoice/validators"
+import { FAQ } from "@/components/content/FAQ"
+
+const faq = [
+  {
+    q: "Što je OIB?",
+    a: "Osobni identifikacijski broj - 11-znamenkasti broj za identifikaciju fizičkih i pravnih osoba u RH.",
+  },
+  {
+    q: "Kako provjeriti valjanost OIB-a?",
+    a: "OIB koristi ISO 7064 (MOD 11, 10) algoritam za validaciju kontrolne znamenke.",
+  },
+  {
+    q: "Gdje se koristi OIB?",
+    a: "Na računima, poreznim prijavama, ugovorima, te za prijavu u sustav ePorezna.",
+  },
+]
 
 export default function OIBValidatorPage() {
   const [oib, setOib] = useState("")
@@ -218,6 +234,8 @@ export default function OIBValidatorPage() {
             </div>
           </div>
         </div>
+
+        <FAQ items={faq} />
       </div>
     </div>
   )

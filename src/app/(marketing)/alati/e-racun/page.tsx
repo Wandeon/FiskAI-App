@@ -17,6 +17,22 @@ import {
 import { generateUBLInvoice, validateInvoice, validateOIB } from "@/lib/einvoice"
 import type { EInvoice, InvoiceLine, TaxCategory } from "@/lib/einvoice"
 import { cn } from "@/lib/utils"
+import { FAQ } from "@/components/content/FAQ"
+
+const faq = [
+  {
+    q: "Što je e-račun?",
+    a: "Elektronički račun u strukturiranom formatu (UBL 2.1) koji se razmjenjuje putem PEPPOL mreže.",
+  },
+  {
+    q: "Tko mora izdavati e-račune?",
+    a: "Od 1.1.2026. svi PDV obveznici za B2B/B2G, od 1.1.2027. svi poduzetnici.",
+  },
+  {
+    q: "Što je PEPPOL?",
+    a: "Pan-europska mreža za razmjenu e-dokumenata između poslovnih subjekata.",
+  },
+]
 
 const DEFAULT_TAX_CATEGORY: TaxCategory = {
   code: "S",
@@ -694,6 +710,8 @@ export default function ERacunGeneratorPage() {
             )}
           </div>
         </div>
+
+        <FAQ items={faq} />
       </div>
     </div>
   )
