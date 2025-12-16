@@ -102,3 +102,50 @@ export interface ComparisonResult {
   isRecommended: boolean
   recommendationReason?: string
 }
+
+// New types for content strategy implementation
+
+export interface Source {
+  name: string
+  url: string
+}
+
+export interface FAQItem {
+  q: string
+  a: string
+}
+
+// Extended frontmatter for all content types
+export interface ContentFrontmatter {
+  title: string
+  description: string
+  lastUpdated: string
+  lastReviewed?: string
+  reviewer?: string
+  sources?: Source[]
+  faq?: FAQItem[]
+  keywords?: string[]
+}
+
+// Glossary-specific frontmatter
+export interface GlossaryFrontmatter extends ContentFrontmatter {
+  term: string
+  shortDefinition: string
+  relatedTerms?: string[]
+  appearsIn?: string[] // forms/contexts where term appears
+  triggerConditions?: string[] // when user must care about this
+}
+
+// How-To specific frontmatter
+export interface HowToFrontmatter extends ContentFrontmatter {
+  totalTime?: string // ISO 8601 duration, e.g., "PT15M"
+  difficulty?: "easy" | "medium" | "hard"
+  prerequisites?: string[]
+  tools?: string[] // required tools/accounts
+}
+
+// Hub page frontmatter
+export interface HubFrontmatter extends ContentFrontmatter {
+  hubType: "fiskalizacija" | "pdv" | "obrt" | "doo"
+  childPages?: string[] // slugs of related pages
+}
