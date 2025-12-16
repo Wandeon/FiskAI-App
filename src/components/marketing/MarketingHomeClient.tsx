@@ -1,14 +1,17 @@
 "use client"
 
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Reveal } from "@/components/motion/Reveal"
 import { Stagger, StaggerItem } from "@/components/motion/Stagger"
 import { PlexusBackground } from "@/components/marketing/PlexusBackground"
 import { CountUp } from "@/components/marketing/CountUp"
+import { Fiskalizacija2Wizard } from "@/components/marketing/Fiskalizacija2Wizard"
+import { CountdownTimer } from "@/components/marketing/CountdownTimer"
+import { QuickAccessToolbar } from "@/components/marketing/QuickAccessToolbar"
 import {
   ArrowRight,
-  BookOpen,
   Briefcase,
   Building2,
   Calendar,
@@ -22,114 +25,200 @@ import {
   Shield,
   Sparkles,
   TrendingUp,
+  Zap,
 } from "lucide-react"
 
 export function MarketingHomeClient() {
   return (
     <div>
-      <section className="relative overflow-hidden surface-gradient">
-        <PlexusBackground className="opacity-55" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_circle_at_20%_30%,rgba(255,255,255,0.16),transparent_55%),radial-gradient(700px_circle_at_80%_10%,rgba(255,255,255,0.10),transparent_50%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-20">
-          <div className="grid gap-10 md:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] md:items-center">
-            <Stagger className="space-y-6">
+      {/* COCKPIT HERO SECTION */}
+      <section className="relative min-h-[90vh] overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+        {/* Animated background effects */}
+        <PlexusBackground className="opacity-40" />
+
+        {/* Multiple glow orbs for cockpit effect */}
+        <div className="pointer-events-none absolute inset-0">
+          <motion.div
+            className="absolute left-[10%] top-[20%] h-[500px] w-[500px] rounded-full bg-blue-500/20 blur-[120px]"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.2, 0.3, 0.2],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute right-[5%] top-[10%] h-[400px] w-[400px] rounded-full bg-indigo-500/15 blur-[100px]"
+            animate={{
+              scale: [1.2, 1, 1.2],
+              opacity: [0.15, 0.25, 0.15],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute bottom-[10%] left-[30%] h-[300px] w-[300px] rounded-full bg-cyan-500/10 blur-[80px]"
+            animate={{
+              x: [0, 50, 0],
+              opacity: [0.1, 0.2, 0.1],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+
+        {/* Grid overlay for tech feel */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: "50px 50px",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
+          <div className="grid gap-12 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+            {/* LEFT: Hero Content */}
+            <Stagger className="space-y-8">
+              {/* Tech credibility badge */}
               <StaggerItem>
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 ring-1 ring-white/15">
-                  <Sparkles className="h-4 w-4" />
-                  AI-first računovodstvo za Hrvatsku
-                </div>
+                <motion.div
+                  className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 backdrop-blur-sm"
+                  whileHover={{ scale: 1.02, borderColor: "rgba(34, 211, 238, 0.5)" }}
+                >
+                  <Zap className="h-4 w-4" />
+                  Jedno od tehnološki najnaprednijih financijskih rješenja u Hrvatskoj
+                </motion.div>
               </StaggerItem>
+
+              {/* Main headline - REBELLIOUS */}
               <StaggerItem>
-                <h1 className="text-display text-4xl font-semibold md:text-5xl text-balance">
-                  AI-first računovodstvo koje ostaje u vašim rukama.
+                <h1 className="text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl">
+                  <span className="block">Dok drugi kompliciraju,</span>
+                  <motion.span
+                    className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent"
+                    animate={{
+                      backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                    }}
+                    transition={{
+                      duration: 5,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    style={{ backgroundSize: "200% 200%" }}
+                  >
+                    mi pojednostavljujemo.
+                  </motion.span>
                 </h1>
               </StaggerItem>
+
+              {/* Subheadline */}
               <StaggerItem>
-                <p className="max-w-xl text-base/7 text-white/85">
-                  FiskAI pomaže izdavati račune, skupljati troškove i pripremati podatke za
-                  knjigovođu — bez slanja mailova i bez &quot;donosim fascikl&quot;.
+                <p className="max-w-xl text-lg text-white/70 md:text-xl">
+                  U svijetu loših softvera i komplicirane birokracije, FiskAI donosi mir.
+                  <span className="text-white/90">
+                    {" "}
+                    Bez &quot;donosim fascikl&quot;. Bez mailova knjigovođi.
+                  </span>
                 </p>
               </StaggerItem>
+
+              {/* CTAs */}
               <StaggerItem>
-                <div className="mobile-stack">
-                  <Link
-                    href="/register"
-                    className="btn-press inline-flex min-h-[44px] items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-blue-700 hover:bg-white/95"
-                  >
-                    Započni besplatno <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="btn-press inline-flex min-h-[44px] items-center justify-center rounded-md border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white hover:bg-white/15"
-                  >
-                    Zatraži demo
-                  </Link>
+                <div className="flex flex-wrap gap-4">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      href="/register"
+                      className="group inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all hover:shadow-xl hover:shadow-cyan-500/30"
+                    >
+                      Započni besplatno
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      href="/contact"
+                      className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/30"
+                    >
+                      Zatraži demo
+                    </Link>
+                  </motion.div>
                 </div>
               </StaggerItem>
-              <StaggerItem>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/85">
-                  <span className="inline-flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> Hrvatski UI i terminologija
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> Fokus na fiskalizaciju / e-račune
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> AI za ubrzanje unosa troškova
-                  </span>
-                </div>
-              </StaggerItem>
-            </Stagger>
 
-            <Stagger className="space-y-4">
+              {/* Feature badges */}
               <StaggerItem>
-                <Card className="border-white/15 bg-white/10 text-white shadow-none">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Što je &quot;uspjeh&quot; u 10 minuta?
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm text-white/85">
-                    <div className="flex items-start gap-3">
-                      <FileText className="mt-0.5 h-4 w-4" />
-                      <p>Kreirajte tvrtku, kupca i prvi račun.</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <ScanText className="mt-0.5 h-4 w-4" />
-                      <p>Skenirajte prvi račun/trošak i spremite ga.</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Sparkles className="mt-0.5 h-4 w-4" />
-                      <p>Dobijte prijedloge kategorija i provjerite ih.</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </StaggerItem>
-
-              <StaggerItem>
-                <Card className="border-white/15 bg-white/10 text-white shadow-none">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Transparentno: FiskAI je u beta fazi</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm text-white/85">
-                    Fokus je na brzom “time-to-value” za male tvrtke, uz postepeno proširenje na
-                    punu ERP funkcionalnost.
-                    <div className="mt-3">
-                      <Link
-                        href="/features"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-white underline underline-offset-4"
+                <div className="flex flex-wrap gap-4 pt-4">
+                  {[
+                    { icon: Shield, text: "GDPR usklađeno" },
+                    { icon: Sparkles, text: "AI za ubrzanje unosa" },
+                    { icon: FileText, text: "E-računi spremni" },
+                  ].map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <motion.div
+                        key={item.text}
+                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
+                        whileHover={{
+                          borderColor: "rgba(255,255,255,0.25)",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        }}
                       >
-                        Pogledaj mogućnosti <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+                        <Icon className="h-4 w-4 text-cyan-400" />
+                        {item.text}
+                      </motion.div>
+                    )
+                  })}
+                </div>
               </StaggerItem>
             </Stagger>
+
+            {/* RIGHT: Fiskalizacija 2.0 Panel */}
+            <div className="space-y-4 lg:pt-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Fiskalizacija2Wizard variant="compact" />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <CountdownTimer variant="compact" />
+              </motion.div>
+            </div>
           </div>
+
+          {/* Quick Access Toolbar */}
+          <motion.div
+            className="mt-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <QuickAccessToolbar />
+          </motion.div>
         </div>
+
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
       </section>
 
+      {/* FEATURE CARDS */}
       <Reveal asChild>
         <section className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <Stagger className="grid gap-6 md:grid-cols-3">
@@ -448,7 +537,7 @@ export function MarketingHomeClient() {
                       <p className="text-xs text-[var(--muted)]">{t.role}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--muted)] italic mb-4">“{t.quote}”</p>
+                  <p className="text-sm text-[var(--muted)] italic mb-4">&quot;{t.quote}&quot;</p>
                   <div className="flex items-center gap-1" aria-label="Ocjena 5 od 5">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <svg
@@ -505,6 +594,7 @@ export function MarketingHomeClient() {
         </div>
       </section>
 
+      {/* Paušalni obrt section */}
       <section className="bg-[var(--surface)]">
         <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
@@ -514,7 +604,7 @@ export function MarketingHomeClient() {
               </h2>
               <p className="text-sm text-[var(--muted)]">
                 Cilj je da najjednostavniji korisnici dobiju sve što im treba: izdavanje računa,
-                evidenciju troškova i “paket za knjigovođu” bez ručnog rada.
+                evidenciju troškova i &quot;paket za knjigovođu&quot; bez ručnog rada.
               </p>
               <div className="pt-2">
                 <Link
