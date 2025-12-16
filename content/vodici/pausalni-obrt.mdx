@@ -1,119 +1,199 @@
 ---
-title: "Paušalni obrt - Kompletan vodič za 2025."
-description: "Sve što trebate znati o paušalnom obrtu u Hrvatskoj: porezni razredi, doprinosi, registracija i obveze."
-businessType: "pausalni-obrt"
-lastUpdated: "2025-01-15"
-keywords: ["paušalni obrt", "otvaranje obrta", "paušalni porez 2025", "doprinosi obrtnika"]
-requiresFiscalization: true
-requiresVAT: false
-maxRevenue: 60000
+title: Paušalni obrt
+description: Kompletan vodič za paušalne obrtnike u 2025. godini
+lastUpdated: 2025-01-01
 ---
 
-# Paušalni obrt - Kompletan vodič za 2025.
-
-<PersonalizedSection />
+<QuickStatsBar
+  title="Paušalni obrt"
+  stats={[
+    { label: "Max prihod", value: "60.000€" },
+    { label: "Doprinosi", value: "262€/mj" },
+    { label: "Porez", value: "~10%" },
+    { label: "PDV", value: "Ne" },
+  ]}
+/>
 
 ## Brzi pregled
 
-| Stavka | Vrijednost |
-|--------|------------|
-| Tko može otvoriti | Fizička osoba, bez partnera |
-| Godišnji limit prihoda | 60.000 EUR |
-| PDV obveza | Ne (do 60.000 EUR) |
-| Fiskalizacija | Obavezna za gotovinski promet |
-| Doprinosi | 262,51 EUR mjesečno |
-| HOK članarina | 34,20 EUR kvartalno |
+Paušalni obrt je najjednostavniji oblik poslovanja u Hrvatskoj. Idealan je za početnike s očekivanim prihodima do 60.000€ godišnje.
 
-## Detaljni troškovi
+**Ključne prednosti:**
+- Minimalna administracija
+- Fiksni mjesečni doprinosi
+- Bez obveze vođenja knjiga
+- Jednostavna prijava poreza
 
 <ContributionCalculator />
 
-### Paušalni porez 2025.
+## Tko može otvoriti paušalni obrt?
 
-Porez ovisi o visini godišnjeg primitka:
+### Možete ako:
+- Očekujete godišnji prihod do 60.000€
+- Bavite se dozvoljenomom djelatnošću
+- Nemate zabranu poslovanja
 
-| Godišnji primitak (EUR) | Kvartalni porez (EUR) |
-|------------------------|----------------------|
-| do 11.300 | 50,85 |
-| 11.300 - 15.300 | 68,85 |
-| 15.300 - 19.900 | 89,55 |
-| 19.900 - 30.600 | 137,70 |
-| 30.600 - 40.000 | 180,00 |
-| 40.000 - 50.000 | 225,00 |
-| 50.000 - 60.000 | 270,00 |
+### Ne možete ako:
+- Već imate PDV registraciju
+- Djelatnost je isključena iz paušala (npr. odvjetnici, liječnici)
+- Već vodite obrt na dohodak
+
+## Troškovi i porezi
 
 <TaxCalculator />
 
-## Pravila i ograničenja
+### Mjesečni doprinosi (2025.)
+- **MIO I. stup:** 153,70€
+- **MIO II. stup:** 47,03€ (ako ste u II. stupu)
+- **HZZO:** 61,27€
+- **Ukupno:** ~262€ mjesečno
 
-### Tko NE MOŽE biti paušalist
+### Porez na dohodak
+- Porezna osnovica: 12% od prihoda
+- Stopa: 20% (do 50.400€) ili 30% (iznad)
+- Efektivna stopa: ~10% od ukupnog prihoda
 
-- Osobe koje obavljaju djelatnost u supoduzetništvu
-- Osobe koje su u prethodnoj godini prešle limit od 60.000 EUR
-- Obveznici PDV-a (ali možete postati obveznik ako želite)
+## Varijante
 
-### Gotovinski promet
+<VariantTabs
+  tabs={[
+    { id: "osnovni", label: "Osnovni" },
+    { id: "uz-zaposlenje", label: "Uz zaposlenje" },
+    { id: "umirovljenik", label: "Umirovljenik" },
+    { id: "student", label: "Student" },
+  ]}
+>
+  <TabPanel>
+    ### Paušalni obrt kao primarni izvor prihoda
 
-Ako primate gotovinu, **fiskalizacija je obavezna**. To uključuje:
-- Fiskalni uređaj ili softver
-- Registraciju u sustavu Porezne uprave
-- Izdavanje fiskalnih računa
+    Ako paušalni obrt otvarate kao glavni izvor prihoda, plaćate pune doprinose:
 
-### B2B plaćanja gotovinom
+    - MIO I. stup: 153,70€/mj
+    - MIO II. stup: 47,03€/mj
+    - HZZO: 61,27€/mj
 
-Maksimalno **700 EUR po transakciji** za plaćanja drugim poslovnim subjektima.
+    **Ukupno:** ~262€ mjesečno fiksno, neovisno o prihodu.
+  </TabPanel>
 
-## Postupak registracije
+  <TabPanel>
+    ### Paušalni obrt uz zaposlenje
 
-1. **Odabir djelatnosti** - NKD šifra iz Nacionalne klasifikacije
-2. **e-Obrt** - Online prijava na gov.hr
-3. **Dokumenti** - Osobna iskaznica, IBAN, adresa prostora
-4. **Čekanje** - Rješenje u roku 8 dana
-5. **Prijava doprinosa** - Automatski putem sustava
+    Ako ste zaposleni kod drugog poslodavca, doprinosi se umanjuju jer ih već plaća vaš poslodavac.
 
-## Obveze tijekom poslovanja
+    <PDVCallout type="info">
+      Vaš poslodavac već plaća MIO i HZZO na vašu plaću. Kroz obrt plaćate
+      samo razliku ako je paušalna osnovica viša od vaše plaće.
+    </PDVCallout>
 
-### Mjesečno
-- Plaćanje doprinosa do 15. u mjesecu (262,51 EUR)
-- Vođenje evidencije primitaka
+    **Što to znači:**
+    - Često plaćate samo HOK članarinu (~34€/kvartal)
+    - Porez na dohodak se i dalje plaća
+    - Jednostavnije je nego samostalni obrt
+  </TabPanel>
 
-### Kvartalno
-- Plaćanje poreza do zadnjeg dana u kvartalu
-- Plaćanje HOK članarine (34,20 EUR)
+  <TabPanel>
+    ### Paušalni obrt za umirovljenike
+
+    Kao umirovljenik možete imati paušalni obrt uz mirovinu:
+
+    - Mirovina se ne umanjuje
+    - Doprinosi se plaćaju u punom iznosu
+    - Porez na dohodak normalno
+
+    <PDVCallout type="tip">
+      Umirovljenici često biraju paušal jer je jednostavan i ne utječe na mirovinu.
+    </PDVCallout>
+  </TabPanel>
+
+  <TabPanel>
+    ### Paušalni obrt za studente
+
+    Studenti mogu otvoriti paušalni obrt:
+
+    - Zadržavate studentska prava do određenog prihoda
+    - Plaćate pune doprinose
+    - Možete koristiti studentske ugovore paralelno
+
+    **Napomena:** Provjerite s fakultetom kakvi su uvjeti za zadržavanje studentskog statusa.
+  </TabPanel>
+</VariantTabs>
+
+## Registracija korak-po-korak
+
+1. **Pripremite dokumentaciju**
+   - Osobna iskaznica
+   - OIB
+   - Potvrda o nekažnjavanju (automatski se provjerava)
+
+2. **Odaberite način prijave**
+   - Online preko e-Građani (preporučeno)
+   - Osobno u HITRO.HR uredu
+   - Preko javnog bilježnika
+
+3. **Izaberite djelatnost**
+   - NKD šifra djelatnosti
+   - Provjerite je li dozvoljena za paušal
+
+4. **Pričekajte rješenje**
+   - Obično 1-3 radna dana
+   - Dobivate OIB obrta i rješenje
+
+## Obveze
+
+### Mjesečne
+- Uplata doprinosa do 15. u mjesecu
+- Izdavanje računa klijentima
+
+### Kvartalne
+- HOK članarina (~34€)
 
 ### Godišnje
-- PO-SD obrazac do 15. siječnja
-- Evidencija o prometu
+- PO-SD obrazac do 28. veljače
+- Pregled prihoda za prethodnu godinu
 
-## Plaćanja i IBAN-ovi
+## PDV i vi
 
-<PaymentSlipGenerator />
+<PDVCallout type="warning" threshold={60000}>
+  Ako vaš prihod prijeđe 60.000€, automatski postajete PDV obveznik
+  od 1. sljedećeg mjeseca.
+</PDVCallout>
 
-### IBAN-ovi za uplate
+### Kada postajete obveznik?
+- Prag: 60.000€ godišnje (od 2025.)
+- Automatski od 1. sljedećeg mjeseca po prelasku
 
-| Namjena | IBAN | Model |
-|---------|------|-------|
-| MIO I. stup | HR1210010051863000160 | HR68 |
-| MIO II. stup | HR8724070001007120013 | HR68 |
-| HZZO | HR6510010051550100001 | HR68 |
-| HOK | HR1223400091100106237 | HR68 |
+### Što se mijenja?
+- Morate obračunavati 25% PDV na račune
+- Možete odbiti ulazni PDV
+- Mjesečne/kvartalne PDV prijave
 
-## FAQ
+<PDVCallout type="tip" context="voluntary">
+  Ako imate značajne ulazne troškove (oprema, softver), razmislite o
+  dobrovoljnom ulasku u PDV jer možete odbiti ulazni PDV.
+</PDVCallout>
 
-<FAQ question="Mogu li imati paušalni obrt uz zaposlenje?">
-Da! Ako ste zaposleni kod drugog poslodavca, možete otvoriti paušalni obrt kao dodatnu djelatnost. Doprinosi se i dalje plaćaju u punom iznosu.
-</FAQ>
+## Česta pitanja
 
-<FAQ question="Što ako prijeđem 60.000 EUR?">
-Morate prijeći na obrt na dohodak i postati PDV obveznik. Prijelaz se radi od 1. siječnja sljedeće godine.
-</FAQ>
+<FAQ items={[
+  {
+    question: "Mogu li imati paušalni obrt uz posao?",
+    answer: "Da, možete. Doprinosi se umanjuju jer ih već plaća vaš poslodavac. Često plaćate samo HOK članarinu i porez na dohodak."
+  },
+  {
+    question: "Što ako prijeđem 60.000€?",
+    answer: "Automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca. Morate početi obračunavati PDV na račune i podnositi PDV prijave."
+  },
+  {
+    question: "Koliko iznose doprinosi za 2025.?",
+    answer: "Ukupno oko 262€ mjesečno: MIO I. stup 153,70€, MIO II. stup 47,03€ (ako ste u II. stupu), HZZO 61,27€."
+  },
+  {
+    question: "Trebam li voditi knjige?",
+    answer: "Ne, paušalisti ne vode poslovne knjige. Dovoljno je čuvati izdane račune i evidenciju prihoda."
+  },
+]} />
 
-<FAQ question="Trebam li knjigovođu?">
-Za paušalni obrt nije obavezan. Dovoljno je voditi evidenciju primitaka (KPR obrazac) koji možete voditi sami.
-</FAQ>
+## Povezane usporedbe
 
----
-
-*Zadnje ažurirano: 15. siječnja 2025.*
-
-Imate ispravak? [Prijavite grešku](/kontakt?tip=ispravak&stranica=pausalni-obrt)
+- [Paušalni vs Obrt na dohodak vs J.D.O.O.](/usporedba/pocinjem-solo)
+- [Dodatni prihod uz posao](/usporedba/dodatni-prihod)
