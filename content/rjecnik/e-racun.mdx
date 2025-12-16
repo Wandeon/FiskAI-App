@@ -1,0 +1,104 @@
+---
+title: e-Račun (Elektronički račun)
+term: e-Račun
+shortDefinition: Elektronički račun u strukturiranom UBL formatu, obvezan od 2026. godine u sklopu Fiskalizacije 2.0.
+description: Što je e-račun, razlika od PDF računa, UBL format, obveze od 2026.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - fiskalizacija
+  - ubl
+  - peppol
+  - informacijski-posrednik
+appearsIn:
+  - Fiskalizacija 2.0
+  - B2B transakcije od 2026
+sources:
+  - name: Zakon o fiskalizaciji (NN 89/25)
+    url: https://narodne-novine.nn.hr/
+  - name: e-Račun portal
+    url: https://e-racun.hr/
+faq:
+  - q: Je li PDF račun e-račun?
+    a: Ne. e-Račun je strukturirani XML dokument (UBL format), ne PDF.
+  - q: Kada postaje obvezan e-račun?
+    a: Od 1. siječnja 2026. za PDV obveznike, od 1. siječnja 2027. za sve.
+keywords:
+  - e-račun hrvatska
+  - elektronički račun
+  - ubl račun
+  - fiskalizacija 2.0
+---
+
+## Što je e-račun?
+
+**e-Račun (elektronički račun)** je račun u **strukturiranom XML formatu** (UBL) koji omogućava:
+- Automatsku obradu
+- Izravnu razmjenu između sustava
+- Fiskalizaciju u realnom vremenu
+
+**e-Račun ≠ PDF račun**
+- PDF: nestrukturirani dokument (slika)
+- e-Račun: strukturirani podaci (XML)
+
+## Fiskalizacija 2.0 - Obvezni rokovi
+
+| Datum | Obveza |
+|-------|--------|
+| **1.9.2025.** | Početak testne faze |
+| **31.12.2025.** | Rok za registraciju posrednika |
+| **1.1.2026.** | e-Račun obvezan za **PDV obveznike** |
+| **1.1.2027.** | e-Račun obvezan za **sve** |
+
+## UBL format
+
+**UBL (Universal Business Language)** je međunarodni XML standard za poslovne dokumente.
+
+**Struktura e-računa:**
+```xml
+<Invoice>
+  <ID>2025-001</ID>
+  <IssueDate>2025-12-16</IssueDate>
+  <InvoiceAmount>1250.00</InvoiceAmount>
+  <TaxAmount>250.00</TaxAmount>
+  ...
+</Invoice>
+```
+
+Ljudi ne čitaju UBL - čita ga softver.
+
+## PEPPOL mreža
+
+e-Računi se šalju putem **PEPPOL** mreže:
+- Sigurna razmjena između poduzetnika
+- Automatska dostava Poreznoj upravi
+- Međunarodni standard (cijela EU)
+
+## Informacijski posrednik
+
+Za slanje e-računa potreban je **informacijski posrednik:**
+
+**Opcije:**
+1. **MIKROeRAČUN** - besplatna državna aplikacija (za paušalce)
+2. **Privatni posrednici** - FiskAI, Pantheon, MS Dynamics, itd.
+
+Posrednik **mora biti registriran** kod Porezne (do 31.12.2025.).
+
+## Primanje e-računa
+
+Poduzetnici će **primati e-račune** od dobavljača:
+- Automatski u sustavu
+- Pregled na e-Račun portalu
+- Integracija s knjigovodstvom
+
+## Što se mijenja za poduzetnike?
+
+**Prije (2025.):**
+- PDF računi putem e-maila
+- Fiskalizacija samo POS računa
+- Ručni unos u knjigovodstvo
+
+**Od 2026. (Fiskalizacija 2.0):**
+- e-Računi (UBL) putem PEPPOL-a
+- Fiskalizacija svih računa
+- Automatska obrada
+- Registracija posrednika

@@ -1,0 +1,198 @@
+---
+title: Predujam
+term: Predujam
+shortDefinition: Avansna uplata dijela cijene prije isporuke robe ili usluge. U poreznom smislu,  predujam se oporezuje PDV-om u trenutku primitka.
+description: Što je predujam, kako se oporezuje PDV na predujam, izdavanje računa za predujam.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - akontacija
+  - pdv
+  - e-racun
+  - fiskalizacija
+appearsIn:
+  - Avansni računi
+  - PDV obračun
+  - Ugovori s predujmom
+sources:
+  - name: Zakon o PDV-u
+    url: https://www.zakon.hr/z/86/Zakon-o-porezu-na-dodanu-vrijednost
+faq:
+  - q: Mora li se platiti PDV na predujam?
+    a: Da. PDV se obračunava i plaća u trenutku primitka predujma, ne tek pri konačnoj isporuci.
+  - q: Kako izdati račun za predujam?
+    a: Izdaje se avansni račun s oznakom "Predujam" i iskazanim PDV-om. Pri konačnom računu, predujam se odbit.
+  - q: Što ako kupac ne plati ostatak nakon predujma?
+    a: Ako posao ne bude izvršen, predujam se vraća kupcu zajedno s PDV-om. Prodavač može zatražiti povrat PDV-a od Porezne uprave.
+keywords:
+  - predujam
+  - avans
+  - pdv na predujam
+  - avansni račun
+---
+
+## Što je predujam?
+
+**Predujam** (ili **avans**) je dio cijene koji kupac plaća unaprijed, prije isporuke robe ili izvršenja usluge. Predujam služi kao:
+- Garancija da će posao biti izvršen
+- Početno financiranje projekta
+- Dokaz ozbiljnosti kupca
+
+**Primjer:**
+- Cijena projekta: 10.000 EUR + PDV
+- Predujam: 30% = 3.000 EUR + PDV
+- Ostatak pri isporuci: 7.000 EUR + PDV
+
+## Predujam vs Akontacija
+
+| Predujam | Akontacija |
+|----------|------------|
+| Plaćanje kupca prodavatelju | Plaćanje poreza državi |
+| Dio buduće cijene | Dio buduće porezne obveze |
+| U poslovnim transakcijama | U poreznom sustavu |
+
+## PDV na predujam
+
+**Ključno pravilo:** PDV na predujam se **obračunava i plaća odmah** nakon primitka, ne čeka se konačna isporuka.
+
+### Primjer:
+
+**1. Ožujak 2025. - Primitak predujma**
+- Ugovorena cijena: 10.000 EUR + PDV (25%) = 12.500 EUR
+- Predujam (30%): 3.000 EUR + 750 EUR PDV = **3.750 EUR**
+- **Izdaje se avansni račun**
+- PDV 750 EUR se prijavljuje u ožujskoj PDV prijavi
+
+**2. Lipanj 2025. - Konačna isporuka**
+- Ukupna cijena: 10.000 EUR + 2.500 EUR PDV
+- Minus plaćeni predujam: -3.000 EUR - 750 EUR PDV
+- **Za naplatu: 7.000 EUR + 1.750 EUR PDV = 8.750 EUR**
+- **Izdaje se konačni račun** s prikazanim predujmom
+
+### Ukupan PDV obračun:
+- Ožujak (predujam): 750 EUR
+- Lipanj (ostatak): 1.750 EUR
+- **Ukupno: 2.500 EUR** (25% od 10.000 EUR)
+
+## Izdavanje računa za predujam
+
+### Avansni račun (predračun)
+
+**Obvezni elementi:**
+1. **Oznaka "Avansni račun" ili "Predračun"**
+2. Broj računa
+3. Datum izdavanja
+4. OIB prodavatelja i kupca
+5. **Opis:** "Predujam za..." (opis projekta/proizvoda)
+6. Osnovica (iznos bez PDV-a)
+7. PDV iznos i stopa
+8. **Ukupan iznos s PDV-om**
+9. JIR broj (fiskalizacija)
+
+**Primjer avansnog računa:**
+```
+AVANSNI RAČUN BR. 2025/001-A
+
+Prodavatelj: IT dizajn d.o.o.
+OIB: 12345678901
+
+Kupac: Marketing Plus d.o.o.
+OIB: 98765432109
+
+Opis: Predujam 30% za izradu web stranice
+
+Osnovica: 3.000,00 EUR
+PDV (25%): 750,00 EUR
+Ukupno: 3.750,00 EUR
+
+JIR: 12345678-1234-1234-1234-123456789012
+ZKI: abc123...
+```
+
+### Konačni račun
+
+Pri isporuci izdaje se konačni račun koji prikazuje:
+1. **Ukupnu cijenu** projekta
+2. **Odbitak plaćenog predujma**
+3. **Iznos za naplatu** (ostatak)
+
+**Primjer konačnog računa:**
+```
+RAČUN BR. 2025/456
+
+Opis: Izrada web stranice
+
+Osnovica: 10.000,00 EUR
+PDV (25%): 2.500,00 EUR
+Ukupno: 12.500,00 EUR
+
+MINUS plaćeni predujam (Račun 2025/001-A):
+Osnovica: -3.000,00 EUR
+PDV: -750,00 EUR
+Ukupno predujam: -3.750,00 EUR
+
+ZA NAPLATU: 8.750,00 EUR
+```
+
+## Predujam bez PDV-a?
+
+Ako transakcija **nije predmet PDV-a**, predujam se može platiti bez PDV-a:
+- Izvoz izvan EU
+- Usluge oslobođene PDV-a
+- Prodavatelj nije PDV obveznik
+
+## Povrat predujma
+
+Ako posao nije izvršen i predujam se vraća:
+
+1. **Prodavatelj vraća** puni iznos (s PDV-om) kupcu
+2. **Izdaje se storno račun** ili povratnica
+3. **PDV se ispravlja** u PDV prijavi mjeseca povrata
+4. Prodavatelj može zatražiti **povrat PDV-a** od Porezne uprave
+
+**Primjer:**
+- Kupac platio predujam: 3.750 EUR (3.000 + PDV 750)
+- Projekt otkazan u travnju
+- Prodavatelj vraća: 3.750 EUR
+- U travanjskoj PDV prijavi: **umanjuje izlazni PDV za 750 EUR**
+
+## Predujam u računovodstvu
+
+### Prodavatelj (primitak predujma):
+**Knjigovodstveni zapis:**
+- DUGUJE: Banka 3.750 EUR
+- POTRAŽUJE: Obveze prema kupcima (predujam) 3.000 EUR
+- POTRAŽUJE: Izlazni PDV 750 EUR
+
+### Kupac (plaćanje predujma):
+**Knjigovodstveni zapis:**
+- DUGUJE: Plaćeni predujmi 3.000 EUR
+- DUGUJE: Pretporez (ulazni PDV) 750 EUR
+- POTRAŽUJE: Banka 3.750 EUR
+
+## Višestruki predujmi
+
+Moguće je dogovoriti **više predujama:**
+- 1. predujam pri potpisivanju ugovora (30%)
+- 2. predujam pri dostavi prototipa (30%)
+- Ostatak pri konačnoj isporuci (40%)
+
+**Za svaki predujam:**
+- Izdaje se zaseban avansni račun
+- Obračunava se PDV
+- Prijavljuje u PDV prijavu tog mjeseca
+
+## Predujam u građevinarstvu
+
+U građevinarstvu su predujmi česti:
+- Početni predujam: 10-30%
+- Situacijske isplate tijekom gradnje
+- Konačan obračun pri dovršetku
+
+PDV se obračunava na **svaku situaciju** (privremeni račun), ne samo na konačni račun.
+
+## Predujam i Fiskalizacija 2.0
+
+Od 2026. godine:
+- **Avansni računi** moraju biti e-računi (UBL format)
+- Šalju se putem PEPPOL mreže
+- Automatsko povezivanje predujma s konačnim računom

@@ -1,0 +1,59 @@
+---
+title: JIR (Jedinstveni identifikator računa)
+term: JIR
+shortDefinition: Jedinstveni broj koji Porezna uprava dodjeljuje svakom fiskaliziranom računu kao potvrdu prijave.
+description: Što je JIR, kako se dobiva, obveza ispisivanja na računu.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - zki
+  - fiskalizacija
+  - e-racun
+appearsIn:
+  - Fiskalizirani računi
+  - QR kod na računu
+sources:
+  - name: Porezna uprava - Fiskalizacija
+    url: https://www.porezna-uprava.hr/fiskalizacija
+faq:
+  - q: Mora li JIR biti na računu?
+    a: Da. JIR je obvezan element fiskaliziranog računa. Bez JIR-a račun nije valjan.
+  - q: Što ako ne dobijem JIR odmah?
+    a: Postoji procedura naknadne fiskalizacije - račun se može izdati offline, a JIR dodati naknadno (u roku od 48 sati).
+keywords:
+  - jir broj
+  - jedinstveni identifikator računa
+  - fiskalizacija
+---
+
+## Što je JIR?
+
+**JIR (Jedinstveni identifikator računa)** je broj koji Porezna uprava dodjeljuje svakom fiskaliziranom računu kao potvrdu da je račun uspješno prijavljen.
+
+## Kako se dobiva JIR?
+
+**Proces:**
+1. Izdavatelj šalje račun Poreznoj (s ZKI kodom)
+2. Porezna provjerava podatke
+3. Ako je sve OK, vraća **JIR** (u 1-2 sekunde)
+4. JIR se ispisuje na račun (obično kao QR kod)
+5. Račun se daje kupcu
+
+**JIR format:** UUID struktura
+**Primjer:** `12345678-1234-1234-1234-123456789012`
+
+## Obveza ispisivanja JIR-a
+
+JIR **mora biti vidljiv** na računu:
+- Ispisan kao tekst ili
+- U QR kodu na računu
+
+**Kupac može provjeriti račun:**
+Skeniranjem QR koda ili unosom JIR-a na portalu Porezne uprave.
+
+## Naknadno fiskaliziranje
+
+Ako nema interneta:
+1. Izdaj račun **bez JIR-a** (offline)
+2. Oznaka "**NAKNADNO FISKALIZIRANJE**" na računu
+3. Fiskaliziraj u roku od **48 sati**
+4. Dodaj JIR naknadno

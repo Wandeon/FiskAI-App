@@ -1,0 +1,93 @@
+---
+title: OIB (Osobni identifikacijski broj)
+term: OIB
+shortDefinition: Jedinstveni 11-znamenkasti broj za identifikaciju svih građana i pravnih osoba u Republici Hrvatskoj.
+description: Što je OIB, kako ga dobiti, gdje se koristi i zašto je bitan za poslovanje u Hrvatskoj.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - mio
+  - hzzo
+  - joppd
+  - sudski-registar
+  - obrtni-registar
+appearsIn:
+  - Svi porezni obrasci
+  - Računi i ugovori
+  - Otvaranje poslovnog računa
+  - Registracija tvrtke/obrta
+sources:
+  - name: Zakon o OIB-u (NN 60/08)
+    url: https://www.zakon.hr/z/180/Zakon-o-osobnom-identifikacijskom-broju
+  - name: Porezna uprava - OIB
+    url: https://www.porezna-uprava.hr/HR_OIB/Stranice/default.aspx
+faq:
+  - q: Kako dobiti OIB?
+    a: Građani RH dobivaju OIB automatski pri rođenju. Tvrtke i obrti dobivaju OIB prilikom registracije u FINA-i ili sudskom registru.
+  - q: Može li se OIB promijeniti?
+    a: Ne. OIB je trajan i dodjeljuje se jednom u životu. Ostaje isti čak i ako se promijeni oblik poslovanja.
+  - q: Trebam li OIB stranog klijenta za račun?
+    a: Za klijente iz EU koristite VAT broj. Za klijente izvan EU-a često nije potreban, ali provjerite specifične zahtjeve za vašu djelatnost.
+keywords:
+  - oib broj
+  - osobni identifikacijski broj
+  - oib provjera
+  - oib tvrtke
+---
+
+## Što je OIB?
+
+OIB (Osobni identifikacijski broj) je jedinstveni 11-znamenkasti broj koji služi za identifikaciju fizičkih i pravnih osoba u Republici Hrvatskoj. Uveden je 2009. godine kako bi zamijenio različite identifikacijske brojeve (JMBG, MBS, itd.) i postao jedinstveni identifikator u svim javnim sustavima.
+
+OIB se koristi u:
+- Poreznom sustavu
+- Zdravstvenom sustavu (HZZO)
+- Mirovinskom sustavu (HZMO)
+- Bankarstvu
+- Svim poslovnim transakcijama
+
+## Struktura OIB-a
+
+OIB se sastoji od **11 znamenki** bez razmaka ili specijalnih znakova. Primjer: `12345678901`
+
+Posljednja znamenka je **kontrolna znamenka** izračunata algoritmom ISO 7064 MOD 11-10, što omogućava provjeru valjanosti OIB-a.
+
+## OIB za poduzetnike
+
+### Fizičke osobe (obrtnici)
+
+Obrtnik koristi svoj **osobni OIB** dobiven pri rođenju. Ne dobiva se poseban poslovni OIB. Isti broj koristi se za:
+- Privatne transakcije
+- Poslovanje kroz obrt
+- Porezne obveze
+
+### Pravne osobe (d.o.o., j.d.o.o.)
+
+Pravne osobe dobivaju **novi OIB** prilikom registracije u sudskom registru. Ovaj OIB je različit od OIB-a vlasnika/osnivača.
+
+## Provjera valjanosti OIB-a
+
+OIB možete provjeriti na:
+- [Službeni portal Porezne uprave](https://www.porezna-uprava.hr/HR_OIB/Stranice/Provjera-OIB.aspx)
+- Kroz API u poslovnim aplikacijama
+
+Provjera validira:
+- Ispravnost kontrolne znamenke
+- Aktivnost subjekta
+- Tip subjekta (fizička/pravna osoba)
+
+## OIB na računima
+
+Svaki račun u Hrvatskoj mora sadržavati:
+- **OIB izdavatelja** (obvezno)
+- **OIB primatelja** (obvezno za pravne osobe, preporučeno za fizičke)
+
+Iznimka: Računi fizičkim osobama u maloprodaji (bon) ne moraju sadržavati OIB kupca.
+
+## OIB i GDPR
+
+OIB je osobni podatak prema GDPR-u. Obrada OIB-a dozvoljena je kada:
+- Postoji zakonska obveza (npr. izdavanje računa)
+- Potreban je za izvršenje ugovora
+- Postoji legitimni interes
+
+Ne smije se javno objavljivati bez osnove.

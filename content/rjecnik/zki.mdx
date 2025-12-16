@@ -1,0 +1,49 @@
+---
+title: ZKI (Zaštitni kod izdavatelja)
+term: ZKI
+shortDefinition: Kriptografski potpis računa koji izdavatelj generira prije slanja Poreznoj upravi, osigurava autentičnost fiskaliziranog računa.
+description: Što je ZKI, kako se generira, uloga u fiskalizaciji.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - jir
+  - fiskalizacija
+  - e-racun
+appearsIn:
+  - Fiskalizirani računi
+  - Zahtjev za fiskalizaciju
+sources:
+  - name: Porezna uprava - Fiskalizacija
+    url: https://www.porezna-uprava.hr/fiskalizacija
+faq:
+  - q: Što je ZKI kod?
+    a: ZKI je kriptografski potpis računa koji izdavatelj kreira koristeći svoj certifikat prije slanja računa Poreznoj.
+keywords:
+  - zki kod
+  - zaštitni kod izdavatelja
+  - fiskalizacija
+---
+
+## Što je ZKI?
+
+**ZKI (Zaštitni kod izdavatelja)** je kriptografski potpis računa koji osigurava:
+- Autentičnost računa
+- Da račun nije promijenjen nakon izdavanja
+- Identifikaciju izdavatelja
+
+## Kako se generira?
+
+1. Izdavatelj priprema podatke računa
+2. Koristi **CIS certifikat** za potpisivanje
+3. Generira **32-znamenkasti ZKI kod**
+4. Šalje ZKI + podatke Poreznoj
+5. Porezna vraća **JIR**
+
+**ZKI kod primjer:** `1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p`
+
+## Gdje se pojavljuje ZKI?
+
+- **Na računu** (obično ispod ukupnog iznosa)
+- **U QR kodu** na računu
+- U bazi podataka fiskalizacije
+
+ZKI omogućava Poreznoj da provjeri da li je račun originalan i da li je izdavatelj autentičan.

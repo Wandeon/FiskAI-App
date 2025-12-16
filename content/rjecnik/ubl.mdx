@@ -1,0 +1,85 @@
+---
+title: UBL (Universal Business Language)
+term: UBL
+shortDefinition: Međunarodni XML standard za elektroničke poslovne dokumente, obvezan format za e-račune u Hrvatskoj od 2026. godine.
+description: Što je UBL, struktura, implementacija za Fiskalizaciju 2.0.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - e-racun
+  - peppol
+  - fiskalizacija
+appearsIn:
+  - e-Računi
+  - Elektronička razmjena dokumenata
+sources:
+  - name: OASIS UBL standard
+    url: https://www.oasis-open.org/committees/ubl/
+  - name: e-Račun portal
+    url: https://e-racun.hr/
+faq:
+  - q: Zašto UBL, a ne neki drugi format?
+    a: UBL je međunarodni standard usvojen u cijeloj EU. Omogućava interoperabilnost između država i sustava.
+keywords:
+  - ubl format
+  - xml račun
+  - universal business language
+---
+
+## Što je UBL?
+
+**UBL (Universal Business Language)** je međunarodni **XML standard** za elektroničke poslovne dokumente razvijen od OASIS konzorcija.
+
+UBL pokriva:
+- Račune (Invoice)
+- Predračune (Order)
+- Otpremnice (DespatchAdvice)
+- I druge poslovne dokumente
+
+## Struktura UBL računa
+
+**UBL Invoice** sadrži strukturirane podatke:
+- Osnovni podaci (broj, datum, valuta)
+- Izdavatelj (OIB, naziv, adresa)
+- Kupac (OIB, naziv, adresa)
+- Stavke (opis, količina, cijena, PDV)
+- Ukupni iznosi
+- Način plaćanja
+
+**Primjer (pojednostavljeno):**
+```xml
+<Invoice>
+  <ID>2025-001</ID>
+  <IssueDate>2025-12-16</IssueDate>
+  <AccountingSupplierParty>
+    <Party>
+      <PartyName>Moja tvrtka d.o.o.</PartyName>
+      <PartyTaxScheme>
+        <CompanyID>12345678901</CompanyID>
+      </PartyTaxScheme>
+    </Party>
+  </AccountingSupplierParty>
+  ...
+</Invoice>
+```
+
+## UBL vs PDF
+
+| | UBL | PDF |
+|---|-----|-----|
+| Format | Strukturirani XML | Nestrukturirani dokument |
+| Čitljivost | Strojno čitljiv | Ljudima čitljiv |
+| Automatizacija | Potpuna | Nemoguća |
+| Obrada | Automatska | Ručna |
+
+## Implementacija UBL-a
+
+Poduzetnici ne moraju znati XML:
+- **Informacijski posrednici** generiraju UBL automatski
+- Unos podataka kao i dosad (broj, stavke, iznos)
+- Softver kreira UBL u pozadini
+
+**Primjer workflow:**
+1. Unesete račun u FiskAI (ili drugo)
+2. Aplikacija generira UBL XML
+3. Šalje putem PEPPOL-a
+4. Kupac prima UBL (automatski unos u njegovo knjigovodstvo)

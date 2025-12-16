@@ -1,0 +1,181 @@
+---
+title: Porezna osnovica
+term: Porezna osnovica
+shortDefinition: Iznos na koji se primjenjuje porezna stopa za izračun poreza. Za plaće je to bruto plaća minus doprinosi minus osobni odbitak.
+description: Što je porezna osnovica, kako se izračunava za različite vrste prihoda u 2025. godini.
+lastUpdated: 2025-12-16
+relatedTerms:
+  - dohodak
+  - osobni-odbitak
+  - stopa-poreza
+  - pdv
+  - porezna-prijava
+appearsIn:
+  - Obračun plaća
+  - PDV obračun
+  - Porez na dobit
+  - Godišnji DOH obrazac
+sources:
+  - name: Zakon o porezu na dohodak
+    url: https://www.zakon.hr/z/85/Zakon-o-porezu-na-dohodak
+  - name: Zakon o PDV-u
+    url: https://www.zakon.hr/z/86/Zakon-o-porezu-na-dodanu-vrijednost
+faq:
+  - q: Kako se izračunava porezna osnovica za plaću?
+    a: Bruto plaća minus doprinosi (MIO + HZZO) minus osobni odbitak = porezna osnovica.
+  - q: Što je PDV osnovica?
+    a: Iznos bez PDV-a na koji se primjenjuje stopa PDV-a. Za račun od 100 EUR + PDV, osnovica je 100 EUR.
+  - q: Može li porezna osnovica biti negativna?
+    a: Za plaće - ne. Ako je izračun negativan, osnovica je 0 i nema poreza.
+keywords:
+  - porezna osnovica
+  - izračun porezne osnovice
+  - osnovica za porez
+  - pdv osnovica
+---
+
+## Što je porezna osnovica?
+
+**Porezna osnovica** je iznos na koji se primjenjuje porezna stopa za izračun poreza. Osnovica se razlikuje ovisno o vrsti poreza.
+
+**Formula:**
+Porez = Porezna osnovica × Stopa poreza
+
+## Porezna osnovica za plaću
+
+### Formula:
+**Porezna osnovica = Bruto plaća - Doprinosi - Osobni odbitak**
+
+### Primjer:
+**Bruto plaća:** 2.000 EUR
+
+1. **Doprinosi (32%):** 640 EUR
+   - MIO (20%): 400 EUR
+   - Zdravstvo (16,5%): 330 EUR
+2. **Nakon doprinosa:** 2.000 - 640 = 1.360 EUR
+3. **Osobni odbitak:** 560 EUR
+4. **Porezna osnovica:** 1.360 - 560 = **800 EUR**
+5. **Porez (20%):** 800 × 0,20 = **160 EUR**
+
+### Nulta osnovica
+
+Ako je bruto plaća niska, porezna osnovica može biti **0**:
+
+**Bruto plaća:** 800 EUR
+- Doprinosi (32%): 256 EUR
+- Nakon doprinosa: 544 EUR
+- Osobni odbitak: 560 EUR
+- **Porezna osnovica: 0 EUR** (544 - 560 = negativno, ali minimum je 0)
+- **Porez: 0 EUR**
+
+## PDV osnovica
+
+Za PDV, **osnovica je iznos bez PDV-a.**
+
+### Primjer 1: Dodavanje PDV-a na cijenu
+
+**Prodajna cijena bez PDV-a:** 100 EUR
+- **PDV osnovica:** 100 EUR
+- PDV (25%): 100 × 0,25 = 25 EUR
+- **Ukupna cijena s PDV-om:** 125 EUR
+
+### Primjer 2: Izračun osnovice iz cijene s PDV-om
+
+**Cijena s PDV-om:** 125 EUR
+- **Formula:** Osnovica = Cijena s PDV / (1 + stopa)
+- Osnovica = 125 / 1,25 = **100 EUR**
+- PDV = 125 - 100 = **25 EUR**
+
+## Porezna osnovica za dobit (d.o.o.)
+
+Za pravne osobe:
+
+**Porezna osnovica = Prihodi - Priznati rashodi ± Porezne korekcije**
+
+### Priznati rashodi:
+- Troškovi materijala
+- Plaće zaposlenika
+- Zakup
+- Marketing
+- Amortizacija
+
+### Nepriznati rashodi (dodaju se natrag):
+- Privatne troškove
+- Kazne
+- Troškovi iznad limita
+
+**Primjer:**
+- Prihodi: 500.000 EUR
+- Rashodi u knjigama: 400.000 EUR
+- Nepriznati rashodi: 10.000 EUR
+- **Porezna osnovica:** 500.000 - 400.000 + 10.000 = **110.000 EUR**
+- Porez na dobit (10%): **11.000 EUR**
+
+## Osnovica za doprinose
+
+### MIO i HZZO doprinosi
+
+Doprinosi se plaćają na **bruto plaću** (ne na oporeziva osnovicu):
+
+**Bruto plaća:** 1.500 EUR
+- **Osnovica za doprinose:** 1.500 EUR
+- MIO (20%): 1.500 × 0,20 = 300 EUR
+- HZZO (16,5%): 1.500 × 0,165 = 247,50 EUR
+
+### Minimalna osnovica
+
+Postoji **minimalna osnovica** ispod koje se ne mogu prijaviti doprinosi:
+
+**2025:** 682 EUR mjesečno
+
+To znači da čak i ako je plaća 500 EUR, doprinosi se računaju na 682 EUR.
+
+## Osnovica za honorare (ugovor o djelu)
+
+**Vrsta primitka 011 (puni honorar):**
+- Osnovica = bruto iznos
+- Plaća se sve (porez + doprinosi)
+
+**Vrsta primitka 041 (autorska prava):**
+- Paušalni troškovi 50%
+- **Osnovica = 50% bruto iznosa**
+- Niže obveze
+
+**Primjer:**
+Honorar: 1.000 EUR
+
+**Puni honorar (011):**
+- Osnovica: 1.000 EUR
+- Doprinosi + porez: ~50%
+- Neto: ~500 EUR
+
+**Autorska prava (041):**
+- Osnovica: 500 EUR (paušal 50%)
+- Doprinosi + porez: ~35-40%
+- Neto: ~600-650 EUR
+
+## Osnovica kod paušalnog obrta
+
+Paušalac nema stvarnu poreznu osnovicu. Umjesto toga koristi:
+
+**Paušalni prihod** = fiksni iznos određen Pravilnikom
+- Ne ovisi o stvarnom prihodu
+- Porez = Paušalni prihod × 12%
+
+**Primjer:**
+- Stvarni prihod: 50.000 EUR godišnje
+- Paušalni prihod (pravilnik): 12.000 EUR
+- **Porez:** 12.000 × 12% = 1.440 EUR (godišnje)
+
+## Povećanje osnovice (grossing-up)
+
+Ponekad poslodavac plaća "**neto neto**" - sav porez i doprinose plaća poslodavac.
+
+**Zadatak:** Izračunaj bruto za neto 2.000 EUR
+
+Ovo zahtijeva **grossing-up** (obrnuti izračun):
+- Bruto ≈ 3.200 EUR
+- Doprinosi + porez: 1.200 EUR
+- **Neto: 2.000 EUR**
+
+Grossing-up formula je kompleksna zbog osobnog odbitka.
