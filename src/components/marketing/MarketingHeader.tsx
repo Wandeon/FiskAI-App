@@ -15,6 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/alati", label: "Alati" },
   { href: "/pricing", label: "Cijene" },
   { href: "/baza-znanja", label: "Baza znanja" },
+  { href: "/vijesti", label: "Vijesti" },
   { href: "/security", label: "Sigurnost" },
   { href: "/contact", label: "Kontakt" },
 ]

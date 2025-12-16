@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { hr } from "date-fns/locale"
-import { cn } from "@/lib/utils"
 
 interface NewsCardProps {
   title: string
