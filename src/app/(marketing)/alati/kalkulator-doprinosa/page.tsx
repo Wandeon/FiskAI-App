@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowRight, Rocket } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 export const metadata: Metadata = {
   title: "Kalkulator doprinosa 2025 | FiskAI",
@@ -26,8 +27,19 @@ const faq = [
 ]
 
 export default function ContributionCalculatorPage() {
+  const webAppSchema = generateWebApplicationSchema({
+    name: "Kalkulator Doprinosa",
+    description:
+      "Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u 2025. godini.",
+    url: "https://fisk.ai/alati/kalkulator-doprinosa",
+  })
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 md:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <nav className="mb-6 text-sm text-[var(--muted)]">
         <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
           Baza znanja

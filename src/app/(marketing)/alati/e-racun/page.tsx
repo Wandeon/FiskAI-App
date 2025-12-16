@@ -18,6 +18,7 @@ import { generateUBLInvoice, validateInvoice, validateOIB } from "@/lib/einvoice
 import type { EInvoice, InvoiceLine, TaxCategory } from "@/lib/einvoice"
 import { cn } from "@/lib/utils"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 const faq = [
   {
@@ -51,6 +52,13 @@ const initialLine: InvoiceLine = {
 }
 
 export default function ERacunGeneratorPage() {
+  const webAppSchema = generateWebApplicationSchema({
+    name: "E-Račun Generator",
+    description:
+      "Generiraj UBL 2.1 XML e-račune spremne za FINA sustav. 2026-ready format za B2B transakcije.",
+    url: "https://fisk.ai/alati/e-racun",
+  })
+
   // Form state
   const [invoiceNumber, setInvoiceNumber] = useState("")
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0])
@@ -225,6 +233,10 @@ export default function ERacunGeneratorPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <div className="mx-auto max-w-6xl">
         {/* Header with 2026 urgency */}
         <div className="mb-8 text-center">

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Shield, CheckCircle, XCircle, Info, FileText, ArrowRight } from "lucide-react"
 import { validateOIB } from "@/lib/einvoice/validators"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 const faq = [
   {
@@ -25,6 +26,12 @@ export default function OIBValidatorPage() {
   const [oib, setOib] = useState("")
   const [result, setResult] = useState<"valid" | "invalid" | null>(null)
   const [hasValidated, setHasValidated] = useState(false)
+
+  const webAppSchema = generateWebApplicationSchema({
+    name: "OIB Validator",
+    description: "Provjerite valjanost hrvatskog OIB-a (Osobni identifikacijski broj)",
+    url: "https://fisk.ai/alati/oib-validator",
+  })
 
   const handleValidate = () => {
     if (!oib.trim()) {
@@ -56,6 +63,10 @@ export default function OIBValidatorPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

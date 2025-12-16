@@ -3,6 +3,7 @@ import Link from "next/link"
 import { DeadlineCalendar } from "@/components/knowledge-hub/tools/DeadlineCalendar"
 import { Bell, ArrowRight, Calendar } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 export const metadata: Metadata = {
   title: "Kalendar Rokova 2025 | FiskAI",
@@ -25,8 +26,18 @@ const faq = [
 ]
 
 export default function CalendarPage() {
+  const webAppSchema = generateWebApplicationSchema({
+    name: "Porezni Kalendar",
+    description: "Svi važni porezni rokovi za 2025. godinu na jednom mjestu.",
+    url: "https://fisk.ai/alati/kalendar",
+  })
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-14 md:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <nav className="mb-6 text-sm text-[var(--muted)]">
         <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
           Baza znanja

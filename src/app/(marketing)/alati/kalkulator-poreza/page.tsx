@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { Calculator, ArrowRight, FileText } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 export const metadata: Metadata = {
   title: "Kalkulator paušalnog poreza 2025 | FiskAI",
@@ -26,8 +27,19 @@ const faq = [
 ]
 
 export default function TaxCalculatorPage() {
+  const webAppSchema = generateWebApplicationSchema({
+    name: "Kalkulator Poreza",
+    description:
+      "Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za 2025.",
+    url: "https://fisk.ai/alati/kalkulator-poreza",
+  })
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 md:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <nav className="mb-6 text-sm text-[var(--muted)]">
         <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
           Baza znanja

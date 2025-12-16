@@ -3,6 +3,7 @@ import Link from "next/link"
 import { PDVThresholdCalculator } from "@/components/knowledge-hub/calculators/PDVThresholdCalculator"
 import { TrendingUp, ArrowRight, Bell } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 export const metadata: Metadata = {
   title: "PDV Kalkulator - Kada prelazim prag? | FiskAI",
@@ -26,8 +27,19 @@ const faq = [
 ]
 
 export default function PDVCalculatorPage() {
+  const webAppSchema = generateWebApplicationSchema({
+    name: "PDV Kalkulator",
+    description:
+      "Izračunajte koliko ste blizu PDV praga od 60.000€ i što se mijenja kada ga prijeđete.",
+    url: "https://fisk.ai/alati/pdv-kalkulator",
+  })
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 md:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <nav className="mb-6 text-sm text-[var(--muted)]">
         <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
           Baza znanja

@@ -4,6 +4,7 @@ import { PaymentSlipGenerator } from "@/components/knowledge-hub/calculators/Pay
 import { PAYMENT_IBANS, PAYMENT_MODEL } from "@/lib/knowledge-hub/constants"
 import { Rocket, ArrowRight, Save } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
+import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
 export const metadata: Metadata = {
   title: "Generator Uplatnica | FiskAI",
@@ -26,8 +27,18 @@ const faq = [
 ]
 
 export default function PaymentSlipsPage() {
+  const webAppSchema = generateWebApplicationSchema({
+    name: "Generator Uplatnica",
+    description: "Generirajte Hub3 uplatnice za plaćanje doprinosa, poreza i prireza.",
+    url: "https://fisk.ai/alati/uplatnice",
+  })
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 md:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
+      />
       <nav className="mb-6 text-sm text-[var(--muted)]">
         <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
           Baza znanja
