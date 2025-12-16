@@ -4,6 +4,7 @@
 import { drizzleDb } from "../src/lib/db/drizzle"
 import { newsSources } from "../src/lib/db/schema"
 import { newsSources as sourceData } from "../src/lib/news/sources"
+import { eq } from "drizzle-orm"
 
 async function seedNewsSources() {
   console.log("🌱 Seeding news sources...")
@@ -27,7 +28,7 @@ async function seedNewsSources() {
               ...source,
               updatedAt: new Date(),
             })
-            .where((table: any) => table.id.equals(source.id))
+            .where(eq(newsSources.id, source.id))
 
           updated++
           console.log(`↻ Updated: ${source.name}`)

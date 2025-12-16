@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     const pendingItems = await drizzleDb
       .select()
       .from(newsItems)
-      .where(eq(newsItems.status, "pending"))
+      .where(eq(newsItems.processed, false))
       .limit(10)
 
     console.log(`Found ${pendingItems.length} pending items to process\n`)
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
 
     for (const item of pendingItems) {
       try {
-        console.log(`  Processing: ${item.originalTitle.substring(0, 60)}...`)
+        console.log(`  Processing: ${item.title.substring(0, 60)}...`)
 
         // Use AI to summarize and categorize
-        const aiResult = await summarizeNews(item.originalContent || "", item.originalTitle)
+        const aiResult = await summarizeNews(item.content || "", item.title)
 
         // Update item with AI results
         await drizzleDb
@@ -73,9 +73,9 @@ export async function GET(request: NextRequest) {
           .set({
             summaryHr: aiResult.summaryHr,
             categories: aiResult.categories,
-            relevanceScore: aiResult.relevanceScore.toString(),
+            relevanceScore: aiResult.relevanceScore,
             processedAt: new Date(),
-            status: "processed",
+            processed: true,
             updatedAt: new Date(),
           })
           .where(eq(newsItems.id, item.id))
