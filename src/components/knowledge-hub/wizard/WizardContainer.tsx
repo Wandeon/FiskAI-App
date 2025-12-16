@@ -5,11 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  WIZARD_QUESTIONS,
-  getRecommendedBusinessType,
-  buildPersonalizationParams,
-} from "@/lib/knowledge-hub/wizard-logic"
+import { WIZARD_QUESTIONS, getWizardResult } from "@/lib/knowledge-hub/wizard-logic"
 import { WizardAnswer } from "@/lib/knowledge-hub/types"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
@@ -18,6 +14,7 @@ export function WizardContainer() {
   const [currentQuestionId, setCurrentQuestionId] = useState("employment")
   const [answers, setAnswers] = useState<WizardAnswer[]>([])
   const [selectedValue, setSelectedValue] = useState<string | null>(null)
+  const [questionHistory, setQuestionHistory] = useState<string[]>(["employment"])
 
   const currentQuestion = WIZARD_QUESTIONS[currentQuestionId]
 
@@ -30,30 +27,41 @@ export function WizardContainer() {
     ]
     setAnswers(newAnswers)
 
-    const nextId = currentQuestion.nextQuestion(selectedValue)
+    const nextId = currentQuestion.nextQuestion(selectedValue, newAnswers)
 
     if (nextId) {
       setCurrentQuestionId(nextId)
+      setQuestionHistory([...questionHistory, nextId])
       setSelectedValue(null)
     } else {
-      // Wizard complete - navigate to recommended guide
-      const businessType = getRecommendedBusinessType(newAnswers)
-      const params = buildPersonalizationParams(newAnswers)
-      router.push(`/vodic/${businessType}?${params.toString()}`)
+      // Wizard complete - navigate to result page
+      const result = getWizardResult(newAnswers)
+      const url = result.params ? `${result.path}?${result.params.toString()}` : result.path
+      router.push(url)
     }
   }
 
   const handleBack = () => {
-    const questionOrder = ["employment", "intent", "revenue", "cash", "activity"]
-    const currentIndex = questionOrder.indexOf(currentQuestionId)
-    if (currentIndex > 0) {
-      setCurrentQuestionId(questionOrder[currentIndex - 1])
-      const prevAnswer = answers.find((a) => a.questionId === questionOrder[currentIndex - 1])
-      setSelectedValue(prevAnswer?.value || null)
-    }
+    if (questionHistory.length <= 1) return
+
+    // Remove current question from history
+    const newHistory = questionHistory.slice(0, -1)
+    const previousQuestionId = newHistory[newHistory.length - 1]
+
+    setQuestionHistory(newHistory)
+    setCurrentQuestionId(previousQuestionId)
+
+    // Restore previous answer
+    const prevAnswer = answers.find((a) => a.questionId === previousQuestionId)
+    setSelectedValue(prevAnswer?.value || null)
+
+    // Remove answers for questions after the one we're going back to
+    setAnswers(answers.filter((a) => a.questionId !== currentQuestionId))
   }
 
-  const progress = (answers.length / 5) * 100
+  // Calculate progress based on maximum possible questions (4)
+  const maxQuestions = 4
+  const progress = (answers.length / maxQuestions) * 100
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -89,11 +97,7 @@ export function WizardContainer() {
           </div>
 
           <div className="flex justify-between mt-8">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-              disabled={currentQuestionId === "employment"}
-            >
+            <Button variant="ghost" onClick={handleBack} disabled={questionHistory.length <= 1}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Natrag
             </Button>
