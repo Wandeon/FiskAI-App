@@ -1,6 +1,7 @@
 import { ContributionCalculator } from "@/components/knowledge-hub/calculators/ContributionCalculator"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { ArrowRight, Rocket } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Kalkulator doprinosa 2025 | FiskAI",
@@ -50,6 +51,37 @@ export default function ContributionCalculatorPage() {
             </Link>
           </li>
         </ul>
+      </div>
+
+      {/* FiskAI Upsell */}
+      <div className="mt-8 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
+            <Rocket className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-slate-900">Automatski izračun s FiskAI</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Zaboravi na ručne kalkulacije. FiskAI automatski izračunava doprinose, generira
+              uplatnice i podsjeća te na rokove.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Započni besplatno
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/features"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Saznaj više
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
