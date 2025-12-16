@@ -20,6 +20,7 @@
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:seed-news": "tsx scripts/seed-news-sources.ts",
+    "db:seed-news-categories": "tsx scripts/seed-news-categories.ts",
     "db:seed-deadlines": "tsx scripts/seed-deadlines.ts",
     "postinstall": "prisma generate",
     "prepare": "husky",

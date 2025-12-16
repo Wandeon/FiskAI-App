@@ -1,6 +1,12 @@
 import { Metadata } from "next"
-import { NewsList } from "@/components/news/NewsList"
-import { Newspaper } from "lucide-react"
+import { drizzleDb } from "@/lib/db/drizzle"
+import { newsPosts, newsCategories } from "@/lib/db/schema"
+import { eq, desc, and, lte, isNull } from "drizzle-orm"
+import { HeroSection } from "@/components/news/HeroSection"
+import { CategorySection } from "@/components/news/CategorySection"
+import { DigestBanner } from "@/components/news/DigestBanner"
+import { Search, TrendingUp, Calendar } from "lucide-react"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Porezne Vijesti | FiskAI",
@@ -9,24 +15,238 @@ export const metadata: Metadata = {
   keywords: ["porezne vijesti", "porezna uprava", "narodne novine", "FINA", "hrvatska"],
 }
 
-export default function VijestiPage() {
+export const dynamic = "force-dynamic"
+
+interface PostWithCategory {
+  id: string
+  slug: string
+  title: string
+  excerpt: string | null
+  categoryName: string | null
+  categorySlug: string | null
+  publishedAt: Date | null
+  featuredImageUrl: string | null
+  featuredImageSource: string | null
+  impactLevel: string | null
+}
+
+async function getFeaturedPosts(): Promise<PostWithCategory[]> {
+  const posts = await drizzleDb
+    .select({
+      id: newsPosts.id,
+      slug: newsPosts.slug,
+      title: newsPosts.title,
+      excerpt: newsPosts.excerpt,
+      categoryName: newsCategories.nameHr,
+      categorySlug: newsCategories.slug,
+      publishedAt: newsPosts.publishedAt,
+      featuredImageUrl: newsPosts.featuredImageUrl,
+      featuredImageSource: newsPosts.featuredImageSource,
+      impactLevel: newsPosts.impactLevel,
+    })
+    .from(newsPosts)
+    .leftJoin(newsCategories, eq(newsPosts.categoryId, newsCategories.id))
+    .where(
+      and(
+        eq(newsPosts.status, "published"),
+        eq(newsPosts.type, "individual"),
+        lte(newsPosts.publishedAt, new Date())
+      )
+    )
+    .orderBy(desc(newsPosts.publishedAt))
+    .limit(4)
+
+  return posts as PostWithCategory[]
+}
+
+async function getPostsByCategory(categorySlug: string): Promise<PostWithCategory[]> {
+  // First get the category
+  const category = await drizzleDb
+    .select()
+    .from(newsCategories)
+    .where(eq(newsCategories.slug, categorySlug))
+    .limit(1)
+
+  if (category.length === 0) return []
+
+  const posts = await drizzleDb
+    .select({
+      id: newsPosts.id,
+      slug: newsPosts.slug,
+      title: newsPosts.title,
+      excerpt: newsPosts.excerpt,
+      categoryName: newsCategories.nameHr,
+      categorySlug: newsCategories.slug,
+      publishedAt: newsPosts.publishedAt,
+      featuredImageUrl: newsPosts.featuredImageUrl,
+      featuredImageSource: newsPosts.featuredImageSource,
+      impactLevel: newsPosts.impactLevel,
+    })
+    .from(newsPosts)
+    .leftJoin(newsCategories, eq(newsPosts.categoryId, newsCategories.id))
+    .where(
+      and(
+        eq(newsPosts.status, "published"),
+        eq(newsPosts.type, "individual"),
+        eq(newsPosts.categoryId, category[0].id),
+        lte(newsPosts.publishedAt, new Date())
+      )
+    )
+    .orderBy(desc(newsPosts.publishedAt))
+    .limit(3)
+
+  return posts as PostWithCategory[]
+}
+
+async function getTodaysDigest() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  const digest = await drizzleDb
+    .select({
+      id: newsPosts.id,
+      slug: newsPosts.slug,
+      title: newsPosts.title,
+      publishedAt: newsPosts.publishedAt,
+    })
+    .from(newsPosts)
+    .where(
+      and(
+        eq(newsPosts.status, "published"),
+        eq(newsPosts.type, "digest"),
+        lte(newsPosts.publishedAt, new Date())
+      )
+    )
+    .orderBy(desc(newsPosts.publishedAt))
+    .limit(1)
+
+  return digest[0] || null
+}
+
+async function getMainCategories() {
+  const categories = await drizzleDb
+    .select({
+      id: newsCategories.id,
+      slug: newsCategories.slug,
+      nameHr: newsCategories.nameHr,
+      icon: newsCategories.icon,
+    })
+    .from(newsCategories)
+    .where(isNull(newsCategories.parentId))
+    .orderBy(newsCategories.sortOrder)
+
+  return categories
+}
+
+export default async function VijestiPage() {
+  const [featuredPosts, mainCategories, todaysDigest] = await Promise.all([
+    getFeaturedPosts(),
+    getMainCategories(),
+    getTodaysDigest(),
+  ])
+
+  // Get posts by main categories
+  const categoriesWithPosts = await Promise.all(
+    mainCategories.slice(0, 3).map(async (category) => ({
+      category,
+      posts: await getPostsByCategory(category.slug),
+    }))
+  )
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
+    <div className="mx-auto max-w-7xl px-4 py-12">
       {/* Header */}
       <div className="mb-12 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
-          <Newspaper className="h-4 w-4" />
-          Automatizirano praćenje izvora
-        </div>
-        <h1 className="mb-4 text-4xl font-bold text-white">Porezne Vijesti</h1>
+        <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">Porezne Vijesti</h1>
         <p className="mx-auto max-w-2xl text-lg text-white/60">
           Pratimo Poreznu upravu, Narodne novine, FINA-u i HGK. AI automatski filtrira i sažima
           vijesti relevantne za hrvatske poduzetnike.
         </p>
       </div>
 
-      {/* News List */}
-      <NewsList />
+      {/* Hero Section */}
+      {featuredPosts.length >= 4 && (
+        <HeroSection featuredPost={featuredPosts[0]} secondaryPosts={featuredPosts.slice(1, 4)} />
+      )}
+
+      {/* Category Navigation Bar */}
+      <div className="mb-8 flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
+        <Link
+          href="/vijesti"
+          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+        >
+          Sve
+        </Link>
+        {mainCategories.map((category) => (
+          <Link
+            key={category.id}
+            href={`/vijesti/kategorija/${category.slug}`}
+            className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+          >
+            {category.nameHr}
+          </Link>
+        ))}
+        <div className="ml-auto">
+          <button className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white">
+            <Search className="h-4 w-4" />
+            Pretraži
+          </button>
+        </div>
+      </div>
+
+      {/* Daily Digest Banner */}
+      {todaysDigest && (
+        <DigestBanner
+          date={todaysDigest.publishedAt || new Date()}
+          itemCount={5}
+          slug={todaysDigest.slug}
+        />
+      )}
+
+      {/* Category Sections */}
+      {categoriesWithPosts.map(({ category, posts }) => (
+        <CategorySection
+          key={category.id}
+          categoryName={category.nameHr}
+          categorySlug={category.slug}
+          posts={posts}
+          icon={category.icon ? <span>{category.icon}</span> : undefined}
+        />
+      ))}
+
+      {/* Sidebar Content (could be moved to a 2-column layout) */}
+      <aside className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Popular Posts */}
+        <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-white">Popularno</h3>
+          </div>
+          <p className="text-sm text-white/50">Uskoro...</p>
+        </div>
+
+        {/* Upcoming Deadlines */}
+        <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-white">Nadolazeći rokovi</h3>
+          </div>
+          <p className="text-sm text-white/50">Uskoro...</p>
+        </div>
+
+        {/* Newsletter */}
+        <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+          <h3 className="mb-2 text-lg font-semibold text-white">Newsletter</h3>
+          <p className="mb-4 text-sm text-white/60">
+            Primajte najvažnije vijesti direktno na email
+          </p>
+          <button className="w-full rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600">
+            Pretplati se
+          </button>
+        </div>
+      </aside>
 
       {/* Sources Footer */}
       <div className="mt-12 rounded-xl border border-white/10 bg-white/5 p-6">

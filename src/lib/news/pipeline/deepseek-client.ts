@@ -1,0 +1,171 @@
+/**
+ * DeepSeek API Client
+ * Reusable helper for calling DeepSeek chat completion API
+ */
+
+interface DeepSeekMessage {
+  role: "system" | "user" | "assistant"
+  content: string
+}
+
+interface DeepSeekRequest {
+  model: string
+  messages: DeepSeekMessage[]
+  temperature?: number
+  max_tokens?: number
+  response_format?: { type: "json_object" }
+}
+
+interface DeepSeekResponse {
+  id: string
+  choices: Array<{
+    index: number
+    message: {
+      role: string
+      content: string
+    }
+    finish_reason: string
+  }>
+  usage: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+export class DeepSeekError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public responseBody?: any
+  ) {
+    super(message)
+    this.name = "DeepSeekError"
+  }
+}
+
+/**
+ * Call DeepSeek API with automatic retry logic
+ */
+export async function callDeepSeek(
+  prompt: string,
+  options: {
+    systemPrompt?: string
+    temperature?: number
+    maxTokens?: number
+    jsonMode?: boolean
+    retries?: number
+  } = {}
+): Promise<string> {
+  const {
+    systemPrompt,
+    temperature = 0.7,
+    maxTokens = 4000,
+    jsonMode = false,
+    retries = 3,
+  } = options
+
+  const apiKey = process.env.DEEPSEEK_API_KEY
+  if (!apiKey) {
+    throw new DeepSeekError("DEEPSEEK_API_KEY environment variable is not set")
+  }
+
+  const model = process.env.DEEPSEEK_MODEL || "deepseek-chat"
+
+  const messages: DeepSeekMessage[] = []
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt })
+  }
+  messages.push({ role: "user", content: prompt })
+
+  const requestBody: DeepSeekRequest = {
+    model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  }
+
+  if (jsonMode) {
+    requestBody.response_format = { type: "json_object" }
+  }
+
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (!response.ok) {
+        const errorBody = await response.text()
+        throw new DeepSeekError(
+          `DeepSeek API error: ${response.status} ${response.statusText}`,
+          response.status,
+          errorBody
+        )
+      }
+
+      const data: DeepSeekResponse = await response.json()
+
+      if (!data.choices || data.choices.length === 0) {
+        throw new DeepSeekError("DeepSeek API returned no choices")
+      }
+
+      const content = data.choices[0].message.content
+      return content
+    } catch (error) {
+      lastError = error as Error
+
+      // Don't retry on authentication errors
+      if (error instanceof DeepSeekError && error.statusCode === 401) {
+        throw error
+      }
+
+      // Wait before retry (exponential backoff)
+      if (attempt < retries - 1) {
+        const delay = Math.pow(2, attempt) * 1000 // 1s, 2s, 4s
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  throw new DeepSeekError(
+    `DeepSeek API failed after ${retries} attempts: ${lastError?.message}`,
+    undefined,
+    lastError
+  )
+}
+
+/**
+ * Call DeepSeek and parse JSON response
+ */
+export async function callDeepSeekJSON<T>(
+  prompt: string,
+  options: {
+    systemPrompt?: string
+    temperature?: number
+    maxTokens?: number
+    retries?: number
+  } = {}
+): Promise<T> {
+  const response = await callDeepSeek(prompt, {
+    ...options,
+    jsonMode: true,
+  })
+
+  try {
+    return JSON.parse(response) as T
+  } catch (error) {
+    throw new DeepSeekError(
+      `Failed to parse DeepSeek JSON response: ${(error as Error).message}`,
+      undefined,
+      response
+    )
+  }
+}
