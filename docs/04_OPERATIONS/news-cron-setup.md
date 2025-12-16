@@ -177,7 +177,7 @@ After deploying the application:
 2. **Seed news sources:**
 
    ```bash
-   npm run seed:news-sources
+   npm run db:seed-news
    ```
 
 3. **Set up cron job** in Coolify (as described above)
