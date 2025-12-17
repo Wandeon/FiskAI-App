@@ -22,6 +22,9 @@ export interface DigestContent {
   content: string // Full markdown content
 }
 
+const NEWS_DIGEST_SYSTEM_PROMPT =
+  "Ti si urednik FiskAI portala. Pišeš kratko, jasno i bez floskula. Ne izmišljaš činjenice."
+
 const DIGEST_INTRO_PROMPT = `Napiši uvodni paragraf za današnji dnevni pregled vijesti FiskAI portala.
 
 VIJESTI ZA DANAS:
@@ -117,6 +120,7 @@ async function groupItemsByTheme(
   const prompt = DIGEST_GROUPING_PROMPT.replace("{news_list}", newsList)
 
   const response = await callDeepSeek(prompt, {
+    systemPrompt: NEWS_DIGEST_SYSTEM_PROMPT,
     temperature: 0.5,
     maxTokens: 1000,
     jsonMode: true,
@@ -186,7 +190,8 @@ async function generateDigestIntro(
   const prompt = DIGEST_INTRO_PROMPT.replace("{news_list}", newsList)
 
   const intro = await callDeepSeek(prompt, {
-    temperature: 0.7,
+    systemPrompt: NEWS_DIGEST_SYSTEM_PROMPT,
+    temperature: 0.4,
     maxTokens: 300,
   })
 

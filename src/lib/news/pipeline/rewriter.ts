@@ -12,6 +12,9 @@ export interface RewriteResult {
   excerpt: string
 }
 
+const NEWS_REWRITER_SYSTEM_PROMPT =
+  "Ti si urednik FiskAI portala. Prepravljaš tekst da bude činjenično točan, jasan i praktičan. Ne izmišljaš informacije; ako nešto nije u izvoru, izostavi ili napiši da izvor ne navodi."
+
 const REWRITE_PROMPT = `Prepiši ovaj članak uzimajući u obzir feedback recenzenta.
 
 ## IZVORNI MATERIJAL (koristi za ispravljanje činjenica):
@@ -43,8 +46,9 @@ Ocjena: {score}/10
 1. PRVO ispravi SVE činjenične greške koristeći izvorni materijal
 2. NE IZMIŠLJAJ podatke koji nisu u izvoru
 3. Ako nešto nije u izvoru, NEMOJ to uključiti u članak
-4. Popravi strukturalne i stilske probleme
+4. Popravi strukturalne i stilske probleme (kratke rečenice, bez floskula)
 5. Zadrži dobre dijelove originalnog članka
+6. Zadrži strukturu s TL;DR i jasnim koracima kad je primjenjivo
 
 Format odgovora:
 NASLOV: [ispravljeni naslov]
@@ -95,7 +99,8 @@ export async function rewriteArticle(
 
   try {
     const response = await callDeepSeek(prompt, {
-      temperature: 0.5, // Lower for more accurate factual corrections
+      systemPrompt: NEWS_REWRITER_SYSTEM_PROMPT,
+      temperature: 0.35, // Lower for more accurate factual corrections
       maxTokens: 2500,
     })
 

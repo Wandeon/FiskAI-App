@@ -11,8 +11,8 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
-import { newsPosts } from "@/lib/db/schema"
-import { reviewArticle, type ReviewFeedback } from "@/lib/news/pipeline"
+import { newsItems, newsPosts, newsPostSources } from "@/lib/db/schema"
+import { needsRewrite, reviewArticle, type ReviewFeedback } from "@/lib/news/pipeline"
 import { eq } from "drizzle-orm"
 
 export const dynamic = "force-dynamic"
@@ -84,11 +84,33 @@ export async function GET(request: NextRequest) {
       try {
         console.log(`[CRON 2] Reviewing: ${post.title}`)
 
-        // Call reviewer
-        const feedback = await reviewArticle({
-          title: post.title,
-          content: post.content,
-        })
+        const sourceRows = await drizzleDb
+          .select({
+            title: newsItems.originalTitle,
+            content: newsItems.originalContent,
+            url: newsItems.sourceUrl,
+          })
+          .from(newsPostSources)
+          .innerJoin(newsItems, eq(newsPostSources.newsItemId, newsItems.id))
+          .where(eq(newsPostSources.postId, post.id))
+          .limit(1)
+
+        const source = sourceRows[0]
+          ? {
+              title: sourceRows[0].title,
+              content: sourceRows[0].content || "",
+              url: sourceRows[0].url,
+            }
+          : undefined
+
+        // Call reviewer (with source when available for fact-checking)
+        const feedback = await reviewArticle(
+          {
+            title: post.title,
+            content: post.content,
+          },
+          source
+        )
 
         totalScore += feedback.score
 
@@ -108,6 +130,7 @@ export async function GET(request: NextRequest) {
               review: {
                 timestamp: new Date().toISOString(),
                 score: feedback.score,
+                factual_issues: feedback.factual_issues,
                 problems: feedback.problems,
                 suggestions: feedback.suggestions,
                 rewrite_focus: feedback.rewrite_focus,
@@ -117,8 +140,8 @@ export async function GET(request: NextRequest) {
           })
           .where(eq(newsPosts.id, post.id))
 
-        const needsRewrite = feedback.score < 7
-        if (needsRewrite) {
+        const requiresRewrite = needsRewrite(feedback)
+        if (requiresRewrite) {
           result.summary.needsRewrite++
         }
 
@@ -126,7 +149,7 @@ export async function GET(request: NextRequest) {
           postId: post.id,
           title: post.title,
           score: feedback.score,
-          needsRewrite,
+          needsRewrite: requiresRewrite,
         })
 
         result.summary.reviewed++

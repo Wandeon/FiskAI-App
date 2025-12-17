@@ -12,20 +12,30 @@ export interface ArticleContent {
   excerpt: string
 }
 
+const NEWS_WRITER_SYSTEM_PROMPT =
+  "Ti si urednik FiskAI portala za hrvatske poduzetnike i računovođe. Pišeš jasno, konkretno i bez floskula. Ne izmišljaš činjenice i nikad ne nagađaš."
+
 const WRITING_PROMPT_HIGH_IMPACT = `Napiši članak za FiskAI portal o ovoj vijesti.
 
 PRAVILA:
-1. NE koristi uvijek iste sekcije - struktura ovisi o sadržaju
-2. NE počinji sa "U današnjem dinamičnom poslovnom okruženju..."
-3. NE koristi fraze: "ključno je napomenuti", "važno je istaknuti", "u konačnici"
-4. BUDI konkretan - brojke, datumi, iznosi
-5. AKO ima rok - stavi ga prominentno
-6. AKO zahtijeva akciju - objasni točno što napraviti
-7. AKO je samo informativno - nemoj izmišljati akcije
+1. Koristi ISKLJUČIVO informacije iz izvora ispod. Ako nešto nije u izvoru, napiši: "Izvor ne navodi …"
+2. Bez generičkih uvoda i fraza ("ključno je", "važno je napomenuti", "u konačnici").
+3. Budi konkretan: brojevi, datumi, iznosi, pragovi i rokovi (ako postoje).
+4. Ako postoji ROK ili OBVEZA, istakni ga odmah i napiši točno što napraviti.
+5. Ne piši pravne savjete izvan izvora; fokus je na praktičnim koracima.
+6. Ne spominji da si AI. Ne koristi HTML — samo Markdown.
+
+STRUKTURA (zadrži redoslijed, ali prilagodi duljinu):
+- **TL;DR** (3 kratke stavke)
+- **Što se promijenilo**
+- **Koga se tiče**
+- **Rokovi** (samo ako postoje; datume podebljaj)
+- **Što trebate napraviti** (checklista 3–7 koraka)
+- **Kako FiskAI pomaže** (1–2 rečenice + 2 konkretne bullet stavke, bez prodajnog tona)
 
 Ton: Profesionalan ali pristupačan. Kao da kolega računovođa objašnjava.
 
-Duljina: 400-600 riječi, ovisno o kompleksnosti.
+Duljina: 350-550 riječi, ovisno o kompleksnosti.
 
 Vijest: {title}
 {content}
@@ -44,6 +54,7 @@ PRAVILA:
 - Konkretno i točno
 - Bez generičkih fraza
 - Fokus na ključne informacije
+- Ne izmišljaj činjenice; drži se izvora
 
 Vijest: {title}
 {content}
@@ -72,7 +83,8 @@ export async function writeArticle(
 
   try {
     const response = await callDeepSeek(filledPrompt, {
-      temperature: 0.7,
+      systemPrompt: NEWS_WRITER_SYSTEM_PROMPT,
+      temperature: impact === "high" ? 0.4 : 0.2,
       maxTokens: impact === "high" ? 2000 : 500,
     })
 

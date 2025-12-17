@@ -23,6 +23,7 @@
     "db:seed-news": "tsx scripts/seed-news-sources.ts",
     "db:seed-news-categories": "tsx scripts/seed-news-categories.ts",
     "db:seed-deadlines": "tsx scripts/seed-deadlines.ts",
+    "db:rewrite-news": "tsx scripts/rewrite-news-posts.ts",
     "postinstall": "prisma generate",
     "prepare": "husky",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",

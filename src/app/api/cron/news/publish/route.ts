@@ -17,6 +17,7 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsItems, newsPostSources } from "@/lib/db/schema"
 import {
   rewriteArticle,
+  needsRewrite,
   assembleDigest,
   type ReviewFeedback,
   type RewriteResult,
@@ -140,14 +141,34 @@ export async function GET(request: NextRequest) {
 
         const reviewData = aiPasses.review as ReviewFeedback | undefined
 
-        // Check if rewrite is needed (score < 7)
-        if (reviewData && reviewData.score < 7) {
+        const sourceRows = await drizzleDb
+          .select({
+            title: newsItems.originalTitle,
+            content: newsItems.originalContent,
+            url: newsItems.sourceUrl,
+          })
+          .from(newsPostSources)
+          .innerJoin(newsItems, eq(newsPostSources.newsItemId, newsItems.id))
+          .where(eq(newsPostSources.postId, post.id))
+          .limit(1)
+
+        const source = sourceRows[0]
+          ? {
+              title: sourceRows[0].title,
+              content: sourceRows[0].content || "",
+              url: sourceRows[0].url,
+            }
+          : undefined
+
+        // Check if rewrite is needed (low score or factual issues)
+        if (reviewData && needsRewrite(reviewData)) {
           try {
             console.log(`[CRON 3] Rewriting post (score ${reviewData.score}/10): ${post.title}`)
 
             const rewritten = await rewriteArticle(
               { title: post.title, content: post.content },
-              reviewData
+              reviewData,
+              source
             )
 
             finalTitle = rewritten.title

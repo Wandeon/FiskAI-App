@@ -3,6 +3,8 @@
  * Reusable helper for calling DeepSeek chat completion API
  */
 
+import OpenAI from "openai"
+
 interface DeepSeekMessage {
   role: "system" | "user" | "assistant"
   content: string
@@ -44,6 +46,83 @@ export class DeepSeekError extends Error {
   }
 }
 
+type NewsAiProvider = "deepseek" | "openai"
+
+function resolveProvider(): NewsAiProvider {
+  const explicit = (process.env.NEWS_AI_PROVIDER || process.env.AI_PROVIDER || "").toLowerCase()
+  if (explicit === "openai") return "openai"
+  if (explicit === "deepseek") return "deepseek"
+
+  if (process.env.DEEPSEEK_API_KEY) return "deepseek"
+  if (process.env.OPENAI_API_KEY) return "openai"
+
+  // Default to DeepSeek to keep existing behaviour (and throw a clear error if key is missing).
+  return "deepseek"
+}
+
+async function callOpenAI(
+  prompt: string,
+  options: {
+    systemPrompt?: string
+    temperature?: number
+    maxTokens?: number
+    jsonMode?: boolean
+    retries?: number
+  }
+): Promise<string> {
+  const {
+    systemPrompt,
+    temperature = 0.4,
+    maxTokens = 2000,
+    jsonMode = false,
+    retries = 3,
+  } = options
+
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new DeepSeekError("OPENAI_API_KEY environment variable is not set")
+  }
+
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini"
+  const openai = new OpenAI({ apiKey })
+
+  const messages: Array<{ role: "system" | "user"; content: string }> = []
+  if (systemPrompt) messages.push({ role: "system", content: systemPrompt })
+  messages.push({ role: "user", content: prompt })
+
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await openai.chat.completions.create({
+        model,
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+        response_format: jsonMode ? { type: "json_object" } : undefined,
+      })
+
+      const content = response.choices[0]?.message?.content
+      if (!content) throw new DeepSeekError("OpenAI returned no content")
+      return content
+    } catch (error) {
+      lastError = error as Error
+
+      // Wait before retry (exponential backoff)
+      if (attempt < retries - 1) {
+        const delay = Math.pow(2, attempt) * 1000 // 1s, 2s, 4s
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  throw new DeepSeekError(
+    `OpenAI API failed after ${retries} attempts: ${lastError?.message}`,
+    undefined,
+    lastError
+  )
+}
+
 /**
  * Call DeepSeek API with automatic retry logic
  */
@@ -64,6 +143,11 @@ export async function callDeepSeek(
     jsonMode = false,
     retries = 3,
   } = options
+
+  const provider = resolveProvider()
+  if (provider === "openai") {
+    return callOpenAI(prompt, { systemPrompt, temperature, maxTokens, jsonMode, retries })
+  }
 
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {

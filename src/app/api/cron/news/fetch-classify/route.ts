@@ -200,6 +200,7 @@ export async function GET(request: NextRequest) {
                 title: article.title,
                 content: article.content,
                 excerpt: article.excerpt,
+                categoryId: classification.suggestedCategory || "poslovanje",
                 impactLevel: "high",
                 status: "draft",
                 aiPasses: {

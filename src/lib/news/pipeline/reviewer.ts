@@ -13,6 +13,9 @@ export interface ReviewFeedback {
   factual_issues: string[] // NEW: specific factual problems found
 }
 
+const NEWS_REVIEWER_SYSTEM_PROMPT =
+  "Ti si strogi urednik FiskAI portala. Prioritet je činjenična točnost, jasnoća i korisnost za hrvatske poduzetnike. Ne toleriraš generičan sadržaj."
+
 const REVIEW_PROMPT = `Ti si STROGI urednik FiskAI portala. Tvoj posao je osigurati kvalitetu i TOČNOST članaka.
 
 ## IZVORNI MATERIJAL (koristi za provjeru činjenica):
@@ -44,6 +47,7 @@ Naslov: {title}
 - Ako ima ROK - je li istaknut na početku?
 - Ako zahtijeva AKCIJU - je li jasno što napraviti?
 - Može li čitatelj razumjeti bez prethodnog znanja?
+- Ima li jasni TL;DR i checklistu koraka (ako je primjenjivo)?
 
 ### 4. DULJINA
 - Je li predugačko za sadržaj koji nudi?
@@ -92,6 +96,7 @@ export async function reviewArticle(
 
   try {
     const feedback = await callDeepSeekJSON<ReviewFeedback>(prompt, {
+      systemPrompt: NEWS_REVIEWER_SYSTEM_PROMPT,
       temperature: 0.6, // Slightly higher for more varied scoring
       maxTokens: 1500,
     })
