@@ -1,18 +1,21 @@
 // src/lib/article-agent/llm/ollama-client.ts
+// Ollama Cloud API client with API key authentication
 
 export interface OllamaConfig {
   endpoint: string
   model: string
   embedModel: string
   embedDims: number
+  apiKey?: string
 }
 
 export function getOllamaConfig(): OllamaConfig {
   return {
-    endpoint: process.env.OLLAMA_ENDPOINT || "http://localhost:11434",
+    endpoint: process.env.OLLAMA_ENDPOINT || "https://ollama.com",
     model: process.env.OLLAMA_MODEL || "llama3.1",
     embedModel: process.env.OLLAMA_EMBED_MODEL || "nomic-embed-text",
     embedDims: parseInt(process.env.OLLAMA_EMBED_DIMS || "768"),
+    apiKey: process.env.OLLAMA_API_KEY,
   }
 }
 
@@ -27,6 +30,14 @@ export class OllamaError extends Error {
   }
 }
 
+function getHeaders(config: OllamaConfig): HeadersInit {
+  const headers: HeadersInit = { "Content-Type": "application/json" }
+  if (config.apiKey) {
+    headers["Authorization"] = `Bearer ${config.apiKey}`
+  }
+  return headers
+}
+
 export async function callOllama(
   prompt: string,
   options: {
@@ -39,17 +50,27 @@ export async function callOllama(
   const config = getOllamaConfig()
   const { systemPrompt, temperature = 0.7, maxTokens = 4000, retries = 3 } = options
 
+  if (!config.apiKey) {
+    throw new OllamaError("OLLAMA_API_KEY environment variable is not set")
+  }
+
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const response = await fetch(`${config.endpoint}/api/generate`, {
+      // Use chat API for Ollama Cloud
+      const messages = []
+      if (systemPrompt) {
+        messages.push({ role: "system", content: systemPrompt })
+      }
+      messages.push({ role: "user", content: prompt })
+
+      const response = await fetch(`${config.endpoint}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(config),
         body: JSON.stringify({
           model: config.model,
-          prompt,
-          system: systemPrompt,
+          messages,
           stream: false,
           options: {
             temperature,
@@ -68,7 +89,7 @@ export async function callOllama(
       }
 
       const data = await response.json()
-      return data.response
+      return data.message?.content || ""
     } catch (error) {
       lastError = error as Error
 
@@ -101,17 +122,26 @@ export async function callOllamaJSON<T>(
   const config = getOllamaConfig()
   const { systemPrompt, temperature = 0.3, retries = 3 } = options
 
+  if (!config.apiKey) {
+    throw new OllamaError("OLLAMA_API_KEY environment variable is not set")
+  }
+
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const response = await fetch(`${config.endpoint}/api/generate`, {
+      const messages = []
+      if (systemPrompt) {
+        messages.push({ role: "system", content: systemPrompt })
+      }
+      messages.push({ role: "user", content: prompt })
+
+      const response = await fetch(`${config.endpoint}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(config),
         body: JSON.stringify({
           model: config.model,
-          prompt,
-          system: systemPrompt,
+          messages,
           stream: false,
           format: "json",
           options: {
@@ -125,7 +155,7 @@ export async function callOllamaJSON<T>(
       }
 
       const data = await response.json()
-      return JSON.parse(data.response) as T
+      return JSON.parse(data.message?.content || "{}") as T
     } catch (error) {
       lastError = error as Error
 
