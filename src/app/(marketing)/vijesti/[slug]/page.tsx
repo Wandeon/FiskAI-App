@@ -4,11 +4,12 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories, newsPostSources, newsItems } from "@/lib/db/schema"
 import { eq, and, lte, desc } from "drizzle-orm"
 import { ImageWithAttribution } from "@/components/news/ImageWithAttribution"
+import { NewsMarkdown } from "@/components/news/NewsMarkdown"
 import { PostCard } from "@/components/news/PostCard"
 import { format } from "date-fns"
 import { hr } from "date-fns/locale"
 import Link from "next/link"
-import { ExternalLink, Calendar, Tag } from "lucide-react"
+import { ExternalLink, Calendar } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
@@ -206,23 +207,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         )}
 
         {/* Content */}
-        <div className="prose prose-invert max-w-none">
-          <div
-            className="text-white/90 leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: post.content
-                .replace(/^### /gm, '<h3 class="text-2xl font-bold text-white mt-8 mb-4">')
-                .replace(/^## /gm, '<h2 class="text-3xl font-bold text-white mt-10 mb-6">')
-                .replace(/^# /gm, '<h1 class="text-4xl font-bold text-white mt-12 mb-6">')
-                .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
-                .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
-                .replace(/\n\n/g, '</p><p class="mb-4">')
-                .replace(/^(.+)$/gm, '<p class="mb-4">$1</p>')
-                .replace(/- (.+)/g, '<li class="ml-4">$1</li>')
-                .replace(/(<li.*<\/li>)/s, '<ul class="list-disc ml-6 mb-4">$1</ul>'),
-            }}
-          />
-        </div>
+        <NewsMarkdown content={post.content} />
 
         {/* Source Attribution */}
         {post.sources && post.sources.length > 0 && (

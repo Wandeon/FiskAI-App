@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/primitives/button"
 import { Badge } from "@/components/ui/primitives/badge"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { GradientButton } from "@/components/ui/patterns/GradientButton"
-import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 
 export const metadata: Metadata = {
@@ -162,124 +161,122 @@ export default async function VijestiPage() {
   )
 
   return (
-    <SectionBackground variant="dark" showOrbs showGrid>
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-12">
-        {/* Header */}
-        <FadeIn>
-          <div className="mb-12 text-center">
-            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">Porezne Vijesti</h1>
-            <p className="mx-auto max-w-2xl text-lg text-white/60">
-              Pratimo Poreznu upravu, Narodne novine, FINA-u i HGK. AI automatski filtrira i sažima
-              vijesti relevantne za hrvatske poduzetnike.
-            </p>
-          </div>
-        </FadeIn>
+    <div className="mx-auto max-w-7xl px-4 py-12">
+      {/* Header */}
+      <FadeIn>
+        <div className="mb-12 text-center">
+          <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">Porezne Vijesti</h1>
+          <p className="mx-auto max-w-2xl text-lg text-white/60">
+            Pratimo Poreznu upravu, Narodne novine, FINA-u i HGK. AI automatski filtrira i sažima
+            vijesti relevantne za hrvatske poduzetnike.
+          </p>
+        </div>
+      </FadeIn>
 
-        {/* Hero Section */}
-        {featuredPosts.length >= 4 && (
-          <HeroSection featuredPost={featuredPosts[0]} secondaryPosts={featuredPosts.slice(1, 4)} />
-        )}
+      {/* Hero Section */}
+      {featuredPosts.length >= 4 && (
+        <HeroSection featuredPost={featuredPosts[0]} secondaryPosts={featuredPosts.slice(1, 4)} />
+      )}
 
-        {/* Category Navigation Bar */}
-        <FadeIn delay={0.1}>
-          <GlassCard hover={false} padding="sm" className="mb-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <Link href="/vijesti">
-                <Button variant="primary" size="sm">
-                  Sve
+      {/* Category Navigation Bar */}
+      <FadeIn delay={0.1}>
+        <GlassCard hover={false} padding="sm" className="mb-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/vijesti">
+              <Button variant="primary" size="sm">
+                Sve
+              </Button>
+            </Link>
+            {mainCategories.map((category) => (
+              <Link key={category.id} href={`/vijesti/kategorija/${category.slug}`}>
+                <Button variant="ghost" size="sm">
+                  {category.nameHr}
                 </Button>
               </Link>
-              {mainCategories.map((category) => (
-                <Link key={category.id} href={`/vijesti/kategorija/${category.slug}`}>
-                  <Button variant="ghost" size="sm">
-                    {category.nameHr}
-                  </Button>
-                </Link>
-              ))}
-              <div className="ml-auto">
-                <Button variant="secondary" size="sm">
-                  <Search className="h-4 w-4" />
-                  Pretraži
-                </Button>
-              </div>
+            ))}
+            <div className="ml-auto">
+              <Button variant="secondary" size="sm">
+                <Search className="h-4 w-4" />
+                Pretraži
+              </Button>
             </div>
+          </div>
+        </GlassCard>
+      </FadeIn>
+
+      {/* Daily Digest Banner */}
+      {todaysDigest && (
+        <DigestBanner
+          date={todaysDigest.publishedAt || new Date()}
+          itemCount={5}
+          slug={todaysDigest.slug}
+        />
+      )}
+
+      {/* Category Sections */}
+      {categoriesWithPosts.map(({ category, posts }) => (
+        <CategorySection
+          key={category.id}
+          categoryName={category.nameHr}
+          categorySlug={category.slug}
+          posts={posts}
+          icon={category.icon ? <span>{category.icon}</span> : undefined}
+        />
+      ))}
+
+      {/* Sidebar Content (could be moved to a 2-column layout) */}
+      <aside className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Popular Posts */}
+        <FadeIn delay={0.2}>
+          <GlassCard hover>
+            <div className="mb-4 flex items-center gap-2">
+              <Badge variant="tech" size="sm">
+                <TrendingUp className="h-4 w-4" />
+              </Badge>
+              <h3 className="text-lg font-semibold text-white">Popularno</h3>
+            </div>
+            <p className="text-sm text-white/50">Uskoro...</p>
           </GlassCard>
         </FadeIn>
 
-        {/* Daily Digest Banner */}
-        {todaysDigest && (
-          <DigestBanner
-            date={todaysDigest.publishedAt || new Date()}
-            itemCount={5}
-            slug={todaysDigest.slug}
-          />
-        )}
+        {/* Upcoming Deadlines */}
+        <FadeIn delay={0.3}>
+          <GlassCard hover>
+            <div className="mb-4 flex items-center gap-2">
+              <Badge variant="tech" size="sm">
+                <Calendar className="h-4 w-4" />
+              </Badge>
+              <h3 className="text-lg font-semibold text-white">Nadolazeći rokovi</h3>
+            </div>
+            <p className="text-sm text-white/50">Uskoro...</p>
+          </GlassCard>
+        </FadeIn>
 
-        {/* Category Sections */}
-        {categoriesWithPosts.map(({ category, posts }) => (
-          <CategorySection
-            key={category.id}
-            categoryName={category.nameHr}
-            categorySlug={category.slug}
-            posts={posts}
-            icon={category.icon ? <span>{category.icon}</span> : undefined}
-          />
-        ))}
+        {/* Newsletter */}
+        <FadeIn delay={0.4}>
+          <GlassCard hover>
+            <h3 className="mb-2 text-lg font-semibold text-white">Newsletter</h3>
+            <p className="mb-4 text-sm text-white/60">
+              Primajte najvažnije vijesti direktno na email
+            </p>
+            <GradientButton size="sm" className="w-full">
+              Pretplati se
+            </GradientButton>
+          </GlassCard>
+        </FadeIn>
+      </aside>
 
-        {/* Sidebar Content (could be moved to a 2-column layout) */}
-        <aside className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Popular Posts */}
-          <FadeIn delay={0.2}>
-            <GlassCard hover>
-              <div className="mb-4 flex items-center gap-2">
-                <Badge variant="tech" size="sm">
-                  <TrendingUp className="h-4 w-4" />
-                </Badge>
-                <h3 className="text-lg font-semibold text-white">Popularno</h3>
-              </div>
-              <p className="text-sm text-white/50">Uskoro...</p>
-            </GlassCard>
-          </FadeIn>
-
-          {/* Upcoming Deadlines */}
-          <FadeIn delay={0.3}>
-            <GlassCard hover>
-              <div className="mb-4 flex items-center gap-2">
-                <Badge variant="tech" size="sm">
-                  <Calendar className="h-4 w-4" />
-                </Badge>
-                <h3 className="text-lg font-semibold text-white">Nadolazeći rokovi</h3>
-              </div>
-              <p className="text-sm text-white/50">Uskoro...</p>
-            </GlassCard>
-          </FadeIn>
-
-          {/* Newsletter */}
-          <FadeIn delay={0.4}>
-            <GlassCard hover>
-              <h3 className="mb-2 text-lg font-semibold text-white">Newsletter</h3>
-              <p className="mb-4 text-sm text-white/60">
-                Primajte najvažnije vijesti direktno na email
-              </p>
-              <GradientButton size="sm" className="w-full">
-                Pretplati se
-              </GradientButton>
-            </GlassCard>
-          </FadeIn>
-        </aside>
-
-        {/* Sources Footer */}
-        <GlassCard hover={false} className="mt-12">
-          <h2 className="mb-4 text-lg font-semibold text-white">Izvori vijesti</h2>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-            <SourceCard name="Porezna uprava" url="https://www.porezna-uprava.hr" />
-            <SourceCard name="Narodne novine" url="https://narodne-novine.nn.hr" />
-            <SourceCard name="FINA" url="https://www.fina.hr" />
-            <SourceCard name="HGK" url="https://www.hgk.hr" />
-          </div>
-        </GlassCard>
-      </div>
-    </SectionBackground>
+      {/* Sources Footer */}
+      <GlassCard hover={false} className="mt-12">
+        <h2 className="mb-4 text-lg font-semibold text-white">Izvori vijesti</h2>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <SourceCard name="Porezna uprava" url="https://www.porezna-uprava.hr" />
+          <SourceCard name="Narodne novine" url="https://narodne-novine.nn.hr" />
+          <SourceCard name="FINA" url="https://www.fina.hr" />
+          <SourceCard name="HGK" url="https://www.hgk.hr" />
+        </div>
+      </GlassCard>
+    </div>
   )
 }
 
