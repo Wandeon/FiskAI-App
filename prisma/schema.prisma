@@ -1104,3 +1104,145 @@ model AIUsage {
   @@index([companyId, createdAt])
   @@index([companyId, operation])
 }
+
+enum ArticleType {
+  NEWS
+  GUIDE
+  HOWTO
+  GLOSSARY
+  COMPARISON
+}
+
+enum ArticleStatus {
+  SYNTHESIZING
+  PLANNING
+  DRAFTING
+  VERIFYING
+  NEEDS_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+model ArticleJob {
+  id     String        @id @default(cuid())
+  type   ArticleType
+  status ArticleStatus @default(SYNTHESIZING)
+
+  sourceUrls String[]
+  topic      String?
+
+  currentIteration Int @default(0)
+  maxIterations    Int @default(3)
+
+  factSheetId     String? @unique
+  finalContentMdx String?
+  finalSlug       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  factSheet FactSheet?
+  drafts    ArticleDraft[]
+
+  @@index([status])
+  @@index([type])
+}
+
+model FactSheet {
+  id    String @id @default(cuid())
+  jobId String @unique
+
+  topic       String
+  keyEntities Json
+
+  createdAt DateTime @default(now())
+
+  job          ArticleJob?   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  claims       Claim[]
+  sourceChunks SourceChunk[]
+}
+
+model Claim {
+  id          String @id @default(cuid())
+  factSheetId String
+
+  statement     String
+  quote         String?
+  sourceUrl     String
+  sourceChunkId String?
+
+  confidence Float
+  category   String?
+
+  factSheet     FactSheet           @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
+  sourceChunk   SourceChunk?        @relation(fields: [sourceChunkId], references: [id])
+  verifications ClaimVerification[]
+
+  @@index([factSheetId])
+}
+
+model SourceChunk {
+  id          String @id @default(cuid())
+  factSheetId String
+
+  sourceUrl String
+  content   String
+  // embedding vector(768) added via raw SQL migration
+
+  fetchedAt DateTime @default(now())
+
+  factSheet FactSheet @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
+  claims    Claim[]
+
+  @@index([factSheetId])
+}
+
+model ArticleDraft {
+  id        String @id @default(cuid())
+  jobId     String
+  iteration Int
+
+  contentMdx String
+
+  createdAt DateTime @default(now())
+
+  job        ArticleJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  paragraphs DraftParagraph[]
+
+  @@unique([jobId, iteration])
+}
+
+model DraftParagraph {
+  id      String @id @default(cuid())
+  draftId String
+
+  index    Int
+  content  String
+  isLocked Boolean @default(false)
+
+  confidence         Float?
+  supportingClaimIds String[]
+
+  draft         ArticleDraft        @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  verifications ClaimVerification[]
+
+  @@unique([draftId, index])
+}
+
+model ClaimVerification {
+  id          String @id @default(cuid())
+  paragraphId String
+  claimId     String
+
+  similarityScore Float
+  isSupporting    Boolean
+
+  createdAt DateTime @default(now())
+
+  paragraph DraftParagraph @relation(fields: [paragraphId], references: [id], onDelete: Cascade)
+  claim     Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@unique([paragraphId, claimId])
+}
