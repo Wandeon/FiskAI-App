@@ -6,6 +6,7 @@ import { eq, and, lte, desc, or, sql } from "drizzle-orm"
 import { PostCard } from "@/components/news/PostCard"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -30,7 +31,24 @@ async function getCategory(slug: string) {
     .where(eq(newsCategories.slug, slug))
     .limit(1)
 
-  return result[0] || null
+  const category = result[0] || null
+
+  // If this is a subcategory, get parent info
+  let parent = null
+  if (category?.parentId) {
+    const parentResult = await drizzleDb
+      .select({
+        id: newsCategories.id,
+        slug: newsCategories.slug,
+        nameHr: newsCategories.nameHr,
+      })
+      .from(newsCategories)
+      .where(eq(newsCategories.id, category.parentId))
+      .limit(1)
+    parent = parentResult[0] || null
+  }
+
+  return { category, parent }
 }
 
 async function getSubcategories(categoryId: string) {
@@ -46,6 +64,21 @@ async function getSubcategories(categoryId: string) {
     .orderBy(newsCategories.sortOrder)
 
   return subcategories
+}
+
+async function getSiblingCategories(parentId: string, currentId: string) {
+  const siblings = await drizzleDb
+    .select({
+      id: newsCategories.id,
+      slug: newsCategories.slug,
+      nameHr: newsCategories.nameHr,
+      icon: newsCategories.icon,
+    })
+    .from(newsCategories)
+    .where(eq(newsCategories.parentId, parentId))
+    .orderBy(newsCategories.sortOrder)
+
+  return siblings
 }
 
 async function getCategoryPosts(categoryId: string, subcategoryIds: string[], page: number) {
@@ -101,7 +134,7 @@ async function getCategoryPosts(categoryId: string, subcategoryIds: string[], pa
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const category = await getCategory(params.slug)
+  const { category } = await getCategory(params.slug)
 
   if (!category) {
     return {
@@ -116,7 +149,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
-  const category = await getCategory(params.slug)
+  const { category, parent } = await getCategory(params.slug)
 
   if (!category) {
     notFound()
@@ -124,6 +157,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const subcategories = await getSubcategories(category.id)
   const page = parseInt(searchParams.page || "1", 10)
+
+  // Get siblings if this is a subcategory
+  const siblings = parent ? await getSiblingCategories(parent.id, category.id) : []
 
   const { posts, totalCount } = await getCategoryPosts(
     category.id,
@@ -140,6 +176,14 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         <Link href="/vijesti" className="hover:text-white">
           Vijesti
         </Link>
+        {parent && (
+          <>
+            <span className="mx-2">/</span>
+            <Link href={`/vijesti/kategorija/${parent.slug}`} className="hover:text-white">
+              {parent.nameHr}
+            </Link>
+          </>
+        )}
         <span className="mx-2">/</span>
         <span className="text-white">{category.nameHr}</span>
       </nav>
@@ -152,12 +196,12 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         </div>
       </div>
 
-      {/* Subcategory Tabs */}
+      {/* Subcategory Tabs (for parent categories) */}
       {subcategories.length > 0 && (
         <div className="mb-8 flex flex-wrap gap-2">
           <Link
             href={`/vijesti/kategorija/${category.slug}`}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+            className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-600"
           >
             Sve
           </Link>
@@ -168,6 +212,32 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
             >
               {subcategory.nameHr}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Sibling Tabs (for subcategories showing siblings + parent link) */}
+      {parent && siblings.length > 0 && (
+        <div className="mb-8 flex flex-wrap gap-2">
+          <Link
+            href={`/vijesti/kategorija/${parent.slug}`}
+            className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+          >
+            ← {parent.nameHr}
+          </Link>
+          {siblings.map((sibling) => (
+            <Link
+              key={sibling.id}
+              href={`/vijesti/kategorija/${sibling.slug}`}
+              className={cn(
+                "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                sibling.id === category.id
+                  ? "bg-cyan-500 text-white"
+                  : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              )}
+            >
+              {sibling.nameHr}
             </Link>
           ))}
         </div>
