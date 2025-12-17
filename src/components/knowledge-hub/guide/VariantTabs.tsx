@@ -66,7 +66,7 @@ export function VariantTabs({ tabs, defaultTab, children }: VariantTabsProps) {
         role="tablist"
         aria-label="Varijante"
         onKeyDown={handleKeyDown}
-        className="flex border-b mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide"
+        className="scrollbar-hide mb-6 flex overflow-x-auto border-b border-[var(--border)] -mx-4 px-4 sm:mx-0 sm:px-0"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {tabs.map((tab, index) => (
@@ -82,10 +82,10 @@ export function VariantTabs({ tabs, defaultTab, children }: VariantTabsProps) {
             aria-controls={`${tabsId}-panel-${tab.id}`}
             onClick={() => handleTabChange(tab.id)}
             className={cn(
-              "relative px-4 sm:px-6 py-3 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30",
+              "relative flex min-h-[44px] items-center whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 sm:px-6",
               activeTab === tab.id
-                ? "text-blue-700"
-                : "text-gray-500 hover:text-gray-700 active:bg-gray-50"
+                ? "text-[var(--foreground)]"
+                : "text-[var(--muted)] hover:text-[var(--foreground)] active:bg-[var(--surface-secondary)]"
             )}
           >
             {activeTab === tab.id && (

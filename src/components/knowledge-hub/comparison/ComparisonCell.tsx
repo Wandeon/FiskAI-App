@@ -13,12 +13,12 @@ interface ComparisonCellProps {
 }
 
 const typeColors: Record<string, string> = {
-  pausalni: "bg-green-50 border-green-200",
-  "obrt-dohodak": "bg-blue-50 border-blue-200",
-  jdoo: "bg-purple-50 border-purple-200",
-  doo: "bg-indigo-50 border-indigo-200",
-  freelancer: "bg-orange-50 border-orange-200",
-  generic: "bg-gray-50 border-gray-200",
+  pausalni: "border-emerald-500/20 bg-emerald-500/10",
+  "obrt-dohodak": "border-blue-500/20 bg-blue-500/10",
+  jdoo: "border-purple-500/20 bg-purple-500/10",
+  doo: "border-indigo-500/20 bg-indigo-500/10",
+  freelancer: "border-orange-500/20 bg-orange-500/10",
+  generic: "border-[var(--border)] bg-[var(--surface-secondary)]",
 }
 
 export function ComparisonCell({
@@ -32,10 +32,10 @@ export function ComparisonCell({
   const pill = (
     <span
       className={cn(
-        "inline-flex max-w-full items-start gap-1 rounded px-2 py-1 text-sm",
+        "inline-flex max-w-full items-start gap-1 rounded border px-2 py-1 text-sm text-[var(--foreground)]",
         typeColors[type] || typeColors.generic,
-        isPositive && "text-green-700 font-medium",
-        isNegative && "text-red-700 font-medium"
+        isPositive && "font-medium text-emerald-700 dark:text-emerald-300",
+        isNegative && "font-medium text-rose-700 dark:text-rose-300"
       )}
     >
       {isPositive && <span aria-hidden>✓</span>}

@@ -76,12 +76,20 @@ function Table(props: any) {
 
 function Th(props: any) {
   return (
-    <th className="border border-gray-300 bg-gray-50 px-4 py-2 text-left font-medium" {...props} />
+    <th
+      className="border border-[var(--border)] bg-[var(--surface-secondary)] px-4 py-2 text-left font-medium text-[var(--foreground)]"
+      {...props}
+    />
   )
 }
 
 function Td(props: any) {
-  return <td className="border border-gray-300 px-4 py-2" {...props} />
+  return (
+    <td
+      className="border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[var(--foreground)]"
+      {...props}
+    />
+  )
 }
 
 export const mdxComponents = {

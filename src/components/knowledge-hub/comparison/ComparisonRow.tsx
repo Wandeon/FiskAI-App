@@ -10,11 +10,11 @@ interface ComparisonRowProps {
 
 export function ComparisonRow({ label, tooltip, children }: ComparisonRowProps) {
   return (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="sticky left-0 z-20 bg-gray-50 p-3 font-medium text-gray-700 shadow-[2px_0_4px_rgba(0,0,0,0.06)]">
+    <tr className="border-b border-[var(--border)] hover:bg-[var(--surface-secondary)]/40">
+      <td className="sticky left-0 z-20 bg-[var(--surface-secondary)] p-3 font-medium text-[var(--foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.06)]">
         {label}
         {tooltip && (
-          <span className="ml-1 text-gray-400 cursor-help text-xs" title={tooltip}>
+          <span className="ml-1 cursor-help text-xs text-[var(--muted)]" title={tooltip}>
             ?
           </span>
         )}

@@ -28,12 +28,12 @@ function StatsContent({
     <div className="max-w-6xl mx-auto px-4 py-3 md:px-6">
       {/* Desktop/Tablet View */}
       <div className="hidden sm:flex items-center justify-between flex-wrap gap-2">
-        {showTitle && <span className="font-semibold text-gray-900 mr-4">{title}</span>}
+        {showTitle && <span className="mr-4 font-semibold text-[var(--foreground)]">{title}</span>}
         <div className="flex flex-wrap gap-4 md:gap-6">
           {stats.map((stat, idx) => (
             <div key={idx} className="flex items-center gap-2 text-sm" title={stat.tooltip}>
-              <span className="text-gray-500">{stat.label}:</span>
-              <span className="font-medium text-gray-900">{stat.value}</span>
+              <span className="text-[var(--muted)]">{stat.label}:</span>
+              <span className="font-medium text-[var(--foreground)]">{stat.value}</span>
             </div>
           ))}
         </div>
@@ -41,16 +41,18 @@ function StatsContent({
 
       {/* Mobile View - 2x2 Grid */}
       <div className="sm:hidden">
-        {showTitle && <div className="font-semibold text-gray-900 mb-3 text-sm">{title}</div>}
+        {showTitle && (
+          <div className="mb-3 text-sm font-semibold text-[var(--foreground)]">{title}</div>
+        )}
         <div className="grid grid-cols-2 gap-3">
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="flex flex-col gap-1 bg-white sm:bg-transparent p-3 sm:p-0 rounded border sm:border-0 min-h-[44px] justify-center"
+              className="flex min-h-[44px] flex-col justify-center gap-1 rounded border border-[var(--border)] bg-[var(--surface)] p-3 sm:border-0 sm:bg-transparent sm:p-0"
               title={stat.tooltip}
             >
-              <span className="text-xs text-gray-500">{stat.label}</span>
-              <span className="font-medium text-gray-900 text-sm">{stat.value}</span>
+              <span className="text-xs text-[var(--muted)]">{stat.label}</span>
+              <span className="text-sm font-medium text-[var(--foreground)]">{stat.value}</span>
             </div>
           ))}
         </div>
@@ -74,7 +76,7 @@ export function QuickStatsBar({ stats, title }: QuickStatsBarProps) {
 
   return (
     <div className="not-prose">
-      <div className="relative bg-gray-50 border-y border-gray-200">
+      <div className="relative border-y border-[var(--border)] bg-[var(--surface)]">
         <StatsContent stats={stats} title={title} showTitle={false} />
       </div>
 

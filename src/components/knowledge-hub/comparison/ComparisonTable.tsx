@@ -154,9 +154,9 @@ export function ComparisonTable({
   // If children are provided, render them directly in a table structure
   if (children) {
     return (
-      <div className="my-6">
+      <div className="not-prose my-6">
         {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-card">
           {highlightIndex >= 0 && (
             <style>{`
               #${tableDomId} tbody tr td:nth-child(${highlightIndex + 2}) { background-color: rgba(59,130,246,0.06); }
@@ -167,20 +167,22 @@ export function ComparisonTable({
             {columnsToUse.length > 0 && (
               <thead>
                 <tr>
-                  <th className="sticky top-0 left-0 z-30 min-w-[180px] bg-gray-50 border-b p-3 text-left font-medium">
+                  <th className="sticky top-0 left-0 z-30 min-w-[180px] border-b border-[var(--border)] bg-[var(--surface-secondary)] p-3 text-left font-semibold text-[var(--foreground)]">
                     Usporedba
                   </th>
                   {columnsToUse.map((col) => (
                     <th
                       key={col.id}
                       className={cn(
-                        "sticky top-0 z-20 min-w-[180px] border-b p-3 text-center font-medium bg-gray-50",
-                        col.id === highlightedColumn && "bg-blue-50 text-blue-900"
+                        "sticky top-0 z-20 min-w-[180px] border-b border-[var(--border)] bg-[var(--surface-secondary)] p-3 text-center font-semibold text-[var(--foreground)]",
+                        col.id === highlightedColumn && "bg-[rgba(59,130,246,0.12)]"
                       )}
                     >
                       {col.name}
                       {col.id === highlightedColumn && (
-                        <span className="block text-xs text-blue-600 font-normal">Preporučeno</span>
+                        <span className="block text-xs font-normal text-[var(--accent)]">
+                          Preporučeno
+                        </span>
                       )}
                     </th>
                   ))}
@@ -207,8 +209,8 @@ export function ComparisonTable({
                   className={cn(
                     "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
                     selected
-                      ? "border-blue-200 bg-blue-50 text-blue-700"
-                      : "border-[var(--border)] bg-white text-[var(--muted)]"
+                      ? "border-[rgba(59,130,246,0.25)] bg-[rgba(59,130,246,0.12)] text-[var(--foreground)]"
+                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]"
                   )}
                 >
                   {col.name}
@@ -217,7 +219,7 @@ export function ComparisonTable({
             })}
           </div>
 
-          <div className="mt-4 rounded-2xl border border-[var(--border)] bg-white p-4">
+          <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-card">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold text-[var(--muted)]">Odabrana opcija</p>
@@ -239,10 +241,13 @@ export function ComparisonTable({
                     key={row.label}
                     className="flex items-start justify-between gap-3 border-b border-[var(--border-light)] pb-3 last:border-b-0 last:pb-0"
                   >
-                    <dt className="max-w-[52%] text-xs font-medium text-gray-600">
+                    <dt className="max-w-[52%] text-xs font-medium text-[var(--muted)]">
                       <span>{row.label}</span>
                       {row.tooltip && (
-                        <span className="ml-1 text-gray-400 cursor-help" title={row.tooltip}>
+                        <span
+                          className="ml-1 cursor-help text-[var(--muted)]/70"
+                          title={row.tooltip}
+                        >
                           ⓘ
                         </span>
                       )}
@@ -277,26 +282,30 @@ export function ComparisonTable({
   }
 
   return (
-    <div>
+    <div className="not-prose">
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-card">
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="p-3 text-left bg-gray-50 border-b font-medium">Usporedba</th>
+              <th className="border-b border-[var(--border)] bg-[var(--surface-secondary)] p-3 text-left font-semibold text-[var(--foreground)]">
+                Usporedba
+              </th>
               {columns.map((col) => (
                 <th
                   key={col.id}
                   className={cn(
-                    "p-3 text-center border-b font-medium",
+                    "border-b border-[var(--border)] p-3 text-center font-semibold text-[var(--foreground)]",
                     col.highlighted || col.id === highlightedColumn
-                      ? "bg-blue-50 text-blue-900"
-                      : "bg-gray-50"
+                      ? "bg-[rgba(59,130,246,0.12)]"
+                      : "bg-[var(--surface-secondary)]"
                   )}
                 >
                   {col.name}
                   {(col.highlighted || col.id === highlightedColumn) && (
-                    <span className="block text-xs text-blue-600 font-normal">Preporučeno</span>
+                    <span className="block text-xs font-normal text-[var(--accent)]">
+                      Preporučeno
+                    </span>
                   )}
                 </th>
               ))}
@@ -304,11 +313,14 @@ export function ComparisonTable({
           </thead>
           <tbody>
             {rows.map((row, idx) => (
-              <tr key={idx} className="border-b hover:bg-gray-50">
-                <td className="p-3 font-medium text-gray-700">
+              <tr
+                key={idx}
+                className="border-b border-[var(--border)] hover:bg-[var(--surface-secondary)]/40"
+              >
+                <td className="p-3 font-medium text-[var(--foreground)]">
                   {row.label}
                   {row.tooltip && (
-                    <span className="ml-1 text-gray-400 cursor-help" title={row.tooltip}>
+                    <span className="ml-1 cursor-help text-[var(--muted)]" title={row.tooltip}>
                       ⓘ
                     </span>
                   )}
@@ -318,7 +330,8 @@ export function ComparisonTable({
                     key={col.id}
                     className={cn(
                       "p-3 text-center",
-                      (col.highlighted || col.id === highlightedColumn) && "bg-blue-50/50"
+                      (col.highlighted || col.id === highlightedColumn) &&
+                        "bg-[rgba(59,130,246,0.06)]"
                     )}
                   >
                     {row.values[col.id]}
@@ -334,8 +347,8 @@ export function ComparisonTable({
       <div className="md:hidden relative">
         {/* Scroll hint indicator */}
         {showScrollHint && (
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none z-10 flex items-center justify-end pr-2">
-            <span className="text-gray-400 text-xs animate-pulse">→</span>
+          <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 flex w-12 items-center justify-end bg-gradient-to-l from-[var(--surface)] to-transparent pr-2">
+            <span className="animate-pulse text-xs text-[var(--muted)]">→</span>
           </div>
         )}
 
@@ -347,22 +360,22 @@ export function ComparisonTable({
           <table className="w-full border-collapse min-w-max">
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 p-3 text-left bg-gray-50 border-b font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)] min-w-[120px]">
+                <th className="sticky left-0 z-20 min-w-[120px] border-b border-[var(--border)] bg-[var(--surface-secondary)] p-3 text-left font-semibold text-[var(--foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.1)]">
                   Usporedba
                 </th>
                 {columns.map((col) => (
                   <th
                     key={col.id}
                     className={cn(
-                      "p-3 text-center border-b font-medium min-w-[140px]",
+                      "min-w-[140px] border-b border-[var(--border)] p-3 text-center font-semibold text-[var(--foreground)]",
                       col.highlighted || col.id === highlightedColumn
-                        ? "bg-blue-50 text-blue-900"
-                        : "bg-gray-50"
+                        ? "bg-[rgba(59,130,246,0.12)]"
+                        : "bg-[var(--surface-secondary)]"
                     )}
                   >
                     <div className="whitespace-nowrap">{col.name}</div>
                     {(col.highlighted || col.id === highlightedColumn) && (
-                      <span className="block text-xs text-blue-600 font-normal mt-1">
+                      <span className="mt-1 block text-xs font-normal text-[var(--accent)]">
                         Preporučeno
                       </span>
                     )}
@@ -373,11 +386,14 @@ export function ComparisonTable({
             <tbody>
               {rows.map((row, idx) => (
                 <tr key={idx} className="border-b">
-                  <td className="sticky left-0 z-10 p-3 font-medium text-gray-700 bg-white border-r shadow-[2px_0_4px_rgba(0,0,0,0.05)] min-h-[44px]">
+                  <td className="sticky left-0 z-10 min-h-[44px] border-r border-[var(--border)] bg-[var(--surface)] p-3 font-medium text-[var(--foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center gap-1">
                       <span className="text-sm">{row.label}</span>
                       {row.tooltip && (
-                        <span className="text-gray-400 cursor-help text-xs" title={row.tooltip}>
+                        <span
+                          className="cursor-help text-xs text-[var(--muted)]"
+                          title={row.tooltip}
+                        >
                           ⓘ
                         </span>
                       )}
@@ -388,7 +404,8 @@ export function ComparisonTable({
                       key={col.id}
                       className={cn(
                         "p-3 text-center text-sm min-h-[44px]",
-                        (col.highlighted || col.id === highlightedColumn) && "bg-blue-50/50"
+                        (col.highlighted || col.id === highlightedColumn) &&
+                          "bg-[rgba(59,130,246,0.06)]"
                       )}
                     >
                       {row.values[col.id]}
@@ -402,7 +419,9 @@ export function ComparisonTable({
 
         {/* Swipe hint text */}
         {showScrollHint && (
-          <div className="text-center mt-2 text-xs text-gray-400">Povucite za više opcija</div>
+          <div className="mt-2 text-center text-xs text-[var(--muted)]">
+            Povucite za više opcija
+          </div>
         )}
       </div>
     </div>
