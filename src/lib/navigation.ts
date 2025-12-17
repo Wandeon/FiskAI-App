@@ -10,6 +10,7 @@ import {
   LifeBuoy,
   KeyRound,
   ShoppingCart,
+  Bot,
   type LucideIcon,
 } from "lucide-react"
 
@@ -65,6 +66,7 @@ export const navigation: NavSection[] = [
     items: [
       { name: "Kontakti", href: "/contacts", icon: Users },
       { name: "Proizvodi", href: "/products", icon: Package },
+      { name: "Article Agent", href: "/article-agent", icon: Bot },
     ],
   },
   {
