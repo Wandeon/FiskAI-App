@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories } from "@/lib/db/schema/news"
-import { eq, desc, and, sql, lte } from "drizzle-orm"
+import { eq, desc, and, sql, lte, or, ilike } from "drizzle-orm"
 
 export const dynamic = "force-dynamic"
 
@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic"
  * - type: filter by type ('individual' | 'digest')
  * - limit: number of results (default: 20, max: 50)
  * - offset: pagination offset (default: 0)
+ * - q: search query (min 2 characters, searches title and excerpt)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0", 10)
     const categorySlug = searchParams.get("category") || undefined
     const type = searchParams.get("type") || undefined
+    const query = searchParams.get("q")?.trim() || undefined
 
     // Build query conditions - only published posts
     const conditions = [eq(newsPosts.status, "published"), lte(newsPosts.publishedAt, new Date())]
@@ -32,6 +34,14 @@ export async function GET(request: NextRequest) {
     // Add type filter if provided
     if (type === "individual" || type === "digest") {
       conditions.push(eq(newsPosts.type, type))
+    }
+
+    // Add search filter if provided
+    if (query && query.length >= 2) {
+      const searchPattern = `%${query}%`
+      conditions.push(
+        or(ilike(newsPosts.title, searchPattern), ilike(newsPosts.excerpt, searchPattern))!
+      )
     }
 
     // Add category filter if provided
@@ -92,6 +102,7 @@ export async function GET(request: NextRequest) {
       count,
       limit,
       offset,
+      query: query || null,
     })
   } catch (error) {
     console.error("Error fetching posts:", error)
