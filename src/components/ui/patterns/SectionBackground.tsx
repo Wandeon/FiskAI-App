@@ -38,7 +38,11 @@ export function SectionBackground({
   return (
     <section
       {...props}
-      className={cn("dark relative overflow-hidden", variantStyles[resolvedVariant], className)}
+      className={cn(
+        "dark relative overflow-hidden text-[var(--foreground)]",
+        variantStyles[resolvedVariant],
+        className
+      )}
     >
       {resolvedVariant === "mesh" && (
         <div
