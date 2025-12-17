@@ -22,6 +22,20 @@
       "when": 1765990922523,
       "tag": "0002_news_system_alignment",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765991000000,
+      "tag": "0003_add_pgvector",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765991100000,
+      "tag": "0004_add_source_chunk_embedding",
+      "breakpoints": true
     }
   ]
 }
