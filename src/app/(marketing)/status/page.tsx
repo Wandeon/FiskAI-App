@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "System status and health information for FiskAI platform.",
 }
 
+// Force dynamic rendering - this page needs database access
+export const dynamic = "force-dynamic"
+
 export default async function StatusPage() {
   let health: Awaited<ReturnType<typeof getDetailedHealth>> | null = null
   let error: string | null = null

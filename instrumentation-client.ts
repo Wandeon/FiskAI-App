@@ -1,8 +1,11 @@
 // This file configures the initialization of Sentry on the client.
-// The config you add here will be used whenever a users loads a page in their browser.
+// For Turbopack compatibility, this replaces sentry.client.config.ts
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs"
+
+// Instrument client-side router transitions
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
