@@ -2,10 +2,12 @@ import { Metadata } from "next"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories, newsPostSources } from "@/lib/db/schema"
 import { eq, desc, and, lte, isNull, sql } from "drizzle-orm"
+import { format } from "date-fns"
+import { hr } from "date-fns/locale"
 import { HeroSection } from "@/components/news/HeroSection"
 import { CategorySection } from "@/components/news/CategorySection"
 import { DigestBanner } from "@/components/news/DigestBanner"
-import { Search, TrendingUp, Calendar } from "lucide-react"
+import { TrendingUp, Calendar, ArrowRight, Mail } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/primitives/button"
 import { Badge } from "@/components/ui/primitives/badge"
@@ -13,6 +15,7 @@ import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { GradientButton } from "@/components/ui/patterns/GradientButton"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 import { NewsSearch } from "@/components/news/NewsSearch"
+import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
 
 export const metadata: Metadata = {
   title: "Porezne Vijesti | FiskAI",
@@ -61,6 +64,37 @@ async function getFeaturedPosts(): Promise<PostWithCategory[]> {
     )
     .orderBy(desc(newsPosts.publishedAt))
     .limit(4)
+
+  return posts as PostWithCategory[]
+}
+
+async function getPopularPosts(limit = 5): Promise<PostWithCategory[]> {
+  const impactOrder = sql<number>`CASE ${newsPosts.impactLevel} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 ELSE 3 END`
+
+  const posts = await drizzleDb
+    .select({
+      id: newsPosts.id,
+      slug: newsPosts.slug,
+      title: newsPosts.title,
+      excerpt: newsPosts.excerpt,
+      categoryName: newsCategories.nameHr,
+      categorySlug: newsCategories.slug,
+      publishedAt: newsPosts.publishedAt,
+      featuredImageUrl: newsPosts.featuredImageUrl,
+      featuredImageSource: newsPosts.featuredImageSource,
+      impactLevel: newsPosts.impactLevel,
+    })
+    .from(newsPosts)
+    .leftJoin(newsCategories, eq(newsPosts.categoryId, newsCategories.id))
+    .where(
+      and(
+        eq(newsPosts.status, "published"),
+        eq(newsPosts.type, "individual"),
+        lte(newsPosts.publishedAt, new Date())
+      )
+    )
+    .orderBy(impactOrder, desc(newsPosts.publishedAt))
+    .limit(limit)
 
   return posts as PostWithCategory[]
 }
@@ -157,11 +191,14 @@ interface PageProps {
 }
 
 export default async function VijestiPage({ searchParams }: PageProps) {
-  const [featuredPosts, mainCategories, todaysDigest] = await Promise.all([
-    getFeaturedPosts(),
-    getMainCategories(),
-    getTodaysDigest(),
-  ])
+  const [featuredPosts, mainCategories, todaysDigest, popularPosts, upcomingDeadlines] =
+    await Promise.all([
+      getFeaturedPosts(),
+      getMainCategories(),
+      getTodaysDigest(),
+      getPopularPosts(),
+      getUpcomingDeadlines(45, undefined, 4),
+    ])
 
   // Get posts by main categories
   const categoriesWithPosts = await Promise.all(
@@ -243,7 +280,36 @@ export default async function VijestiPage({ searchParams }: PageProps) {
               </Badge>
               <h3 className="text-lg font-semibold text-white">Popularno</h3>
             </div>
-            <p className="text-sm text-white/50">Uskoro...</p>
+            {popularPosts.length > 0 ? (
+              <ul className="space-y-3">
+                {popularPosts.map((post) => (
+                  <li key={post.id}>
+                    <Link
+                      href={`/vijesti/${post.slug}`}
+                      className="block rounded-lg px-2 py-1 transition-colors hover:bg-white/5"
+                    >
+                      <p className="text-sm font-medium text-white line-clamp-2">{post.title}</p>
+                      <p className="mt-1 text-xs text-white/50">
+                        {post.categoryName ?? "Vijesti"}
+                        {post.publishedAt
+                          ? ` • ${format(post.publishedAt, "d. MMM", { locale: hr })}`
+                          : ""}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-white/50">Nema dovoljno podataka još.</p>
+            )}
+            <div className="mt-4">
+              <Link
+                href="/vijesti"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+              >
+                Sve vijesti <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </GlassCard>
         </FadeIn>
 
@@ -256,19 +322,45 @@ export default async function VijestiPage({ searchParams }: PageProps) {
               </Badge>
               <h3 className="text-lg font-semibold text-white">Nadolazeći rokovi</h3>
             </div>
-            <p className="text-sm text-white/50">Uskoro...</p>
+            {upcomingDeadlines.length > 0 ? (
+              <ul className="space-y-3">
+                {upcomingDeadlines.map((deadline) => (
+                  <li key={deadline.id} className="rounded-lg bg-white/5 px-3 py-2">
+                    <p className="text-sm font-medium text-white line-clamp-2">{deadline.title}</p>
+                    <p className="mt-1 text-xs text-white/50">
+                      {format(new Date(deadline.deadlineDate), "d. MMM", { locale: hr })}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-white/50">Nema rokova u sljedećih 45 dana.</p>
+            )}
+            <div className="mt-4">
+              <Link
+                href="/alati/kalendar"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+              >
+                Otvori kalendar <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </GlassCard>
         </FadeIn>
 
-        {/* Newsletter */}
+        {/* Newsletter / Digest Upsell */}
         <FadeIn delay={0.4}>
           <GlassCard hover>
-            <h3 className="mb-2 text-lg font-semibold text-white">Newsletter</h3>
+            <div className="mb-3 flex items-center gap-2">
+              <Badge variant="tech" size="sm">
+                <Mail className="h-4 w-4" />
+              </Badge>
+              <h3 className="text-lg font-semibold text-white">Tjedni pregled</h3>
+            </div>
             <p className="mb-4 text-sm text-white/60">
-              Primajte najvažnije vijesti direktno na email
+              Aktivirajte personalizirani digest i podsjetnike za rokove — bez spam-a, samo bitno.
             </p>
-            <GradientButton size="sm" className="w-full">
-              Pretplati se
+            <GradientButton href="/register" size="sm" showArrow className="w-full">
+              Aktiviraj besplatno
             </GradientButton>
           </GlassCard>
         </FadeIn>
