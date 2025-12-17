@@ -165,6 +165,15 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                       Zatraži demo
                     </Link>
                   </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      href="/alati"
+                      className="group inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-3.5 text-base font-semibold text-cyan-200 backdrop-blur-sm transition-all hover:bg-cyan-500/15 hover:border-cyan-400/50"
+                    >
+                      Istraži alate
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </motion.div>
                 </div>
               </StaggerItem>
 
@@ -235,54 +244,60 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
         <section className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <Stagger className="grid gap-6 md:grid-cols-3">
             <StaggerItem>
-              <Card className="card card-hover group">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      Računi i e-računi
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-[var(--muted)]">
-                  Izdavanje, slanje i praćenje računa uz jasan status i audit trag.
-                </CardContent>
-              </Card>
+              <Link href="/features" className="group block">
+                <Card className="card card-hover transition-transform group-hover:-translate-y-0.5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        Računi i e-računi
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-[var(--muted)]">
+                    Izdavanje, slanje i praćenje računa uz jasan status i audit trag.
+                  </CardContent>
+                </Card>
+              </Link>
             </StaggerItem>
 
             <StaggerItem>
-              <Card className="card card-hover group">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2">
-                      <ScanText className="h-5 w-5 text-blue-600" />
-                      Troškovi + skeniranje
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-[var(--muted)]">
-                  Slikajte račun, izvucite podatke i potvrdite unos u par klikova.
-                </CardContent>
-              </Card>
+              <Link href="/features" className="group block">
+                <Card className="card card-hover transition-transform group-hover:-translate-y-0.5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2">
+                        <ScanText className="h-5 w-5 text-blue-600" />
+                        Troškovi + skeniranje
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-[var(--muted)]">
+                    Slikajte račun, izvucite podatke i potvrdite unos u par klikova.
+                  </CardContent>
+                </Card>
+              </Link>
             </StaggerItem>
 
             <StaggerItem>
-              <Card className="card card-hover group">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-blue-600" />
-                      Sigurnost i kontrola
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-[var(--muted)]">
-                  Podaci pripadaju klijentu: izvoz, audit log i jasna pravila obrade.
-                </CardContent>
-              </Card>
+              <Link href="/features" className="group block">
+                <Card className="card card-hover transition-transform group-hover:-translate-y-0.5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-blue-600" />
+                        Sigurnost i kontrola
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-[var(--muted)]">
+                    Podaci pripadaju klijentu: izvoz, audit log i jasna pravila obrade.
+                  </CardContent>
+                </Card>
+              </Link>
             </StaggerItem>
           </Stagger>
         </section>
