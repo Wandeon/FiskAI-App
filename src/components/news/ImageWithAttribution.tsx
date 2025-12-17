@@ -6,7 +6,7 @@ interface ImageWithAttributionProps {
   source?: string | null
   alt: string
   className?: string
-  categorySlug?: string
+  categorySlug?: string | null
 }
 
 // Category-specific placeholder images

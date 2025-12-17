@@ -8,9 +8,9 @@ interface PostCardProps {
   slug: string
   title: string
   excerpt?: string | null
-  categoryName?: string
-  categorySlug?: string
-  publishedAt: Date
+  categoryName?: string | null
+  categorySlug?: string | null
+  publishedAt: Date | null
   featuredImageUrl?: string | null
   featuredImageSource?: string | null
   impactLevel?: string | null
@@ -85,9 +85,11 @@ export function PostCard({
           {excerpt && <p className="mb-3 line-clamp-3 text-sm text-white/70">{excerpt}</p>}
 
           {/* Published Date */}
-          <time dateTime={publishedAt.toISOString()} className="text-xs text-white/50">
-            {formatDistanceToNow(publishedAt, { addSuffix: true, locale: hr })}
-          </time>
+          {publishedAt && (
+            <time dateTime={publishedAt.toISOString()} className="text-xs text-white/50">
+              {formatDistanceToNow(publishedAt, { addSuffix: true, locale: hr })}
+            </time>
+          )}
         </div>
       </article>
     </Link>
