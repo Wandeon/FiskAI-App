@@ -14,24 +14,16 @@ export const VALIDATION_SOURCES: Record<string, ValidationSource[]> = {
   // ===========================================================================
   contributions: [
     {
-      id: "hzzo-doprinosi",
-      url: "https://www.hzzo.hr/obveznici-placanja-doprinosa/",
+      id: "porezna-doprinosi",
+      url: "https://www.porezna-uprava.hr/HR_porezni_sustav/Stranice/doprinosi.aspx",
       dataPoints: [
+        "CONTRIBUTIONS.rates.MIO_I.rate",
+        "CONTRIBUTIONS.rates.MIO_II.rate",
         "CONTRIBUTIONS.rates.HZZO.rate",
         "CONTRIBUTIONS.base.minimum",
         "CONTRIBUTIONS.base.maximum",
       ],
       priority: 1,
-    },
-    {
-      id: "porezna-doprinosi",
-      url: "https://www.porezna-uprava.hr/HR_publikacije/Prirucnici_brosure/Doprinosi_167.pdf",
-      dataPoints: [
-        "CONTRIBUTIONS.rates.MIO_I.rate",
-        "CONTRIBUTIONS.rates.MIO_II.rate",
-        "CONTRIBUTIONS.rates.HZZO.rate",
-      ],
-      priority: 2,
     },
     {
       id: "regos-mio",
@@ -97,23 +89,19 @@ export const VALIDATION_SOURCES: Record<string, ValidationSource[]> = {
 
   // ===========================================================================
   // CHAMBER FEES
+  // Note: HOK and HGK sites have restructured, direct fee pages not available
+  // Chamber fees change infrequently and are verified manually
   // ===========================================================================
   chamberFees: [
     {
-      id: "hok-clanarina",
-      url: "https://www.hok.hr/obveze-i-prava-obrtnika/placanje-clanarine",
+      id: "hok-obveze",
+      url: "https://www.hok.hr/gospodarstvo-i-savjetovanje/poslovne-knjige-i-obveze-obrtnika",
       dataPoints: [
         "CHAMBER_FEES.hok.monthly",
         "CHAMBER_FEES.hok.quarterly",
         "CHAMBER_FEES.hok.annual",
       ],
-      priority: 1,
-    },
-    {
-      id: "hgk-clanarina",
-      url: "https://www.hgk.hr/clanarina",
-      dataPoints: ["HGK_FEES.categories"],
-      priority: 2,
+      priority: 3, // Lower priority - fee info may not be on this page
     },
   ],
 

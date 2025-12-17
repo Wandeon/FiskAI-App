@@ -3,6 +3,11 @@
 import type { ValidationResult, ValidationSource } from "../types"
 import { getValueByPath } from "../utils/get-value"
 import { getAllSources, getPrimarySources } from "./sources"
+import {
+  formatDataPointsForPrompt,
+  getDataPointDescription,
+  type DataPointDescription,
+} from "./data-point-descriptions"
 
 // Ollama Cloud configuration (matches project-wide pattern from ollama-client.ts)
 const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || "https://ollama.com"
@@ -80,31 +85,37 @@ async function extractValuesWithOllama(
     extractedText: string
   }>
 > {
-  const prompt = `Analiziraj sljedeći tekst s hrvatske državne web stranice i izvuci fiskalne podatke.
+  // Build detailed descriptions for each data point
+  const dataPointDescriptions = formatDataPointsForPrompt(dataPoints)
 
-Tražim sljedeće vrijednosti:
-${dataPoints.map((dp) => `- ${dp}`).join("\n")}
+  // Create explicit list of exact IDs to return
+  const idList = dataPoints.map((dp, i) => `"${dp}"`).join(", ")
 
-TEKST:
-${text.slice(0, 6000)}
+  const prompt = `Izvuci fiskalne vrijednosti iz teksta. Za svaku traženu stavku vrati JSON s TOČNIM ID-em.
 
-Vrati ISKLJUČIVO JSON u ovom formatu (bez dodatnog teksta):
+## TRAŽENE STAVKE (koristi TOČNO ove ID-eve)
+
+${dataPointDescriptions}
+
+## TEKST
+
+${text.slice(0, 8000)}
+
+## FORMAT ODGOVORA
+
+Vrati JSON array s objektima za SVAKU traženu stavku:
 {
   "values": [
-    {
-      "dataPoint": "naziv točke podatka",
-      "value": brojčana_vrijednost_ili_null,
-      "confidence": 0.0_do_1.0,
-      "extractedText": "relevantan tekst iz dokumenta"
-    }
+    {"dataPoint": "CONTRIBUTIONS.rates.MIO_I.rate", "value": 0.15, "confidence": 1.0, "extractedText": "doprinos za MIO I. stup iznosi 15%"},
+    {"dataPoint": "TAX_RATES.income.brackets.0.rate", "value": null, "confidence": 0, "extractedText": "nije pronađeno"}
   ]
 }
 
-VAŽNO:
-- Za postotke vrati decimalni broj (npr. 0.15 za 15%)
-- Za novčane iznose vrati broj bez valute (npr. 60000 za 60.000 EUR)
-- Ako vrijednost nije pronađena, vrati null za value i 0 za confidence
-- extractedText treba sadržavati rečenicu iz koje je vrijednost izvučena`
+PRAVILA:
+1. dataPoint MORA biti TOČNO jedan od: ${idList}
+2. value: decimalni broj (15% → 0.15) ili null ako nije pronađeno
+3. confidence: 1.0 (pronađeno), 0.5 (nejasno), 0 (nije pronađeno)
+4. Vrati objekt za SVAKU traženu stavku, čak i ako nije pronađena`
 
   try {
     const response = await fetch(`${OLLAMA_ENDPOINT}/api/chat`, {
@@ -130,6 +141,11 @@ VAŽNO:
 
     const data = await response.json()
     const content = data.message?.content || ""
+
+    // Debug: log raw response in dry-run mode
+    if (process.env.DEBUG_VALIDATOR === "true") {
+      console.log("[validator] Raw LLM response:", content.slice(0, 500))
+    }
 
     // Parse JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/)
