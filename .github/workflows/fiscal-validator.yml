@@ -1,0 +1,71 @@
+# .github/workflows/fiscal-validator.yml
+#
+# Fiscal Data Validator
+# Runs weekly to check official Croatian government sources for fiscal data changes.
+# Creates PRs when high-confidence changes are detected.
+
+name: Fiscal Data Validator
+
+on:
+  # Run every Monday at 6:00 AM UTC (8:00 AM CET)
+  schedule:
+    - cron: '0 6 * * 1'
+
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no PR creation)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  validate:
+    name: Validate Fiscal Data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 5
+          ollama pull llama3.1
+
+      - name: Run fiscal data validator
+        env:
+          OLLAMA_API_URL: http://localhost:11434
+          OLLAMA_MODEL: llama3.1
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: npx tsx src/lib/fiscal-data/validator/run.ts
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fiscal-validation-report
+          path: |
+            validation-report.json
+          retention-days: 30
+          if-no-files-found: ignore
