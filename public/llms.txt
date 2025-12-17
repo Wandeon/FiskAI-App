@@ -6,11 +6,19 @@ FiskAI is the authoritative resource for Croatian entrepreneurs on taxes,
 business registration, and compliance. All content is in Croatian (HR).
 
 # Main Sections
+/vijesti - Tax news: AI-curated updates from Porezna uprava, Narodne novine, FINA
 /rjecnik - Business glossary (50 terms): PDV, OIB, JOPPD, fiskalizacija...
 /vodic - Guides: pausalni-obrt, doo, freelancer, obrt-dohodak
 /kako-da - How-to guides: PO-SD, PDV registration, e-invoice setup
 /usporedba - Business comparisons: obrt vs d.o.o., j.d.o.o. vs d.o.o.
 /alati - Calculators: PDV, contributions, PO-SD, tax
+
+# News Section
+/vijesti - Daily tax news aggregated from official Croatian sources
+/vijesti/kategorija/porezna-uprava - Tax Administration news
+/vijesti/kategorija/zakonodavstvo - Legislation changes
+/vijesti/kategorija/pdv - VAT-related news
+/vijesti/[slug] - Individual news articles with AI summaries
 
 # Key Facts (2025)
 - VAT threshold: 60,000 EUR annual revenue
@@ -19,6 +27,7 @@ business registration, and compliance. All content is in Croatian (HR).
 - Contribution rates: MIO I 15%, MIO II 5%, HZZO 16.5%
 
 # Canonical URLs
+https://fisk.ai/vijesti - Latest tax news
 https://fisk.ai/rjecnik/pdv - What is PDV (VAT)
 https://fisk.ai/rjecnik/oib - What is OIB (Personal ID Number)
 https://fisk.ai/rjecnik/fiskalizacija - What is fiscalization
