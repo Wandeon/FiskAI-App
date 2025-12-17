@@ -48,9 +48,12 @@ export const GET = withApiLogging(async () => {
 
     checks.app = {
       status: heapPercent < 95 ? "up" : "degraded",
+      latencyMs: 0,
+      message: `heap ${heapPercent}%`,
     }
 
-    if (heapPercent >= 95) {
+    // Avoid flapping container healthchecks: treat high heap usage as degraded unless truly critical.
+    if (heapPercent >= 99) {
       overallStatus = "unhealthy"
     }
   } catch (error) {
