@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { ProductGrid } from "./components/product-grid"
 import { Cart } from "./components/cart"
 import { PaymentBar } from "./components/payment-bar"
@@ -94,11 +94,48 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
     setSaleResult(null)
   }
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      // F1 = Cash payment
+      if (e.key === "F1" && cartItems.length > 0 && !showCashModal && !showCardModal && !saleResult) {
+        e.preventDefault()
+        setShowCashModal(true)
+      }
+      // F2 = Card payment
+      if (e.key === "F2" && cartItems.length > 0 && terminalReaderId && !showCashModal && !showCardModal && !saleResult) {
+        e.preventDefault()
+        setShowCardModal(true)
+      }
+      // Escape = Close modals
+      if (e.key === "Escape") {
+        setShowCashModal(false)
+        setShowCardModal(false)
+        setSaleResult(null)
+      }
+      // Ctrl+Delete = Clear cart
+      if (e.key === "Delete" && e.ctrlKey && !showCashModal && !showCardModal) {
+        e.preventDefault()
+        clearCart()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [cartItems.length, terminalReaderId, showCashModal, showCardModal, saleResult, clearCart])
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
       <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold">Blagajna</h1>
+        <div>
+          <h1 className="text-xl font-bold">Blagajna</h1>
+          <p className="text-xs text-gray-400">F1 Gotovina • F2 Kartica • Ctrl+Del Očisti</p>
+        </div>
         <div className="flex items-center gap-2">
           {terminalReaderId ? (
             <span className="text-xs text-green-600">● Terminal povezan</span>
