@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { calculatePausalAnnualCosts, calculateJdooCosts } from "@/lib/knowledge-hub/calculations"
 import { INCOME_TAX_BRACKETS, MONTHLY_CONTRIBUTIONS, HOK } from "@/lib/knowledge-hub/constants"
+import { THRESHOLDS } from "@/lib/fiscal-data"
 import { cn } from "@/lib/utils"
 import { useAnimatedNumber } from "@/hooks/use-animated-number"
 
@@ -74,7 +75,7 @@ export function ComparisonCalculator({
             other: costs.hok,
             total: costs.total,
             netIncome: revenue - costs.total,
-            isRecommended: revenue <= 40000,
+            isRecommended: revenue <= (THRESHOLDS.pausalni.previousValue ?? 40000),
           }
         }
         case "obrt-dohodak": {
@@ -91,7 +92,9 @@ export function ComparisonCalculator({
             other: hok,
             total: total,
             netIncome: revenue - total,
-            isRecommended: revenue > 40000 && revenue <= 60000,
+            isRecommended:
+              revenue > (THRESHOLDS.pausalni.previousValue ?? 40000) &&
+              revenue <= THRESHOLDS.pausalni.value,
           }
         }
         case "jdoo": {
@@ -107,7 +110,7 @@ export function ComparisonCalculator({
             other: 0,
             total: total,
             netIncome: revenue - total,
-            isRecommended: revenue > 60000,
+            isRecommended: revenue > THRESHOLDS.pausalni.value,
           }
         }
         case "doo": {
