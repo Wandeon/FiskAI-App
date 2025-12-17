@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { Rocket, ArrowRight, Sparkles } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface ToolUpsellCardProps {
   title?: string
@@ -25,10 +24,10 @@ export function ToolUpsellCard({
 }: ToolUpsellCardProps) {
   if (variant === "inline") {
     return (
-      <div className="my-4 flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+      <div className="my-4 flex items-center justify-between gap-4 rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
         <div className="flex items-center gap-3">
-          <Sparkles className="h-5 w-5 text-blue-600" />
-          <p className="text-sm text-blue-900">
+          <Sparkles className="h-5 w-5 text-blue-400" />
+          <p className="text-sm text-white">
             <strong>Želiš ovo automatizirati?</strong> FiskAI to radi za tebe.
           </p>
         </div>
@@ -44,17 +43,17 @@ export function ToolUpsellCard({
 
   if (variant === "compact") {
     return (
-      <div className="my-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+      <div className="my-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 p-4">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600">
             <Rocket className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-blue-900">{title}</h4>
-            <p className="mt-1 text-sm text-blue-700">{description}</p>
+            <h4 className="font-semibold text-white">{title}</h4>
+            <p className="mt-1 text-sm text-white/70">{description}</p>
             <Link
               href={ctaLink}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300"
             >
               {ctaText} <ArrowRight className="h-4 w-4" />
             </Link>

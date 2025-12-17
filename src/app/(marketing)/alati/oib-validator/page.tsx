@@ -75,27 +75,15 @@ export default function OIBValidatorPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold mb-3" style={{ color: "var(--foreground)" }}>
-              OIB Validator
-            </h1>
+            <h1 className="text-3xl font-bold mb-3 text-white">OIB Validator</h1>
             <p className="text-lg text-white/60">
               Provjerite valjanost hrvatskog OIB-a (Osobni identifikacijski broj)
             </p>
           </div>
 
           {/* Validator Card */}
-          <div
-            className="rounded-lg border p-8 mb-6"
-            style={{
-              background: "var(--surface)",
-              borderColor: "var(--border)",
-            }}
-          >
-            <label
-              htmlFor="oib-input"
-              className="block text-sm font-medium mb-2"
-              style={{ color: "var(--foreground)" }}
-            >
+          <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-8 mb-6">
+            <label htmlFor="oib-input" className="block text-sm font-medium mb-2 text-white/90">
               Unesite OIB (11 znamenki)
             </label>
 
@@ -107,22 +95,13 @@ export default function OIBValidatorPage() {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="12345678901"
-                className="flex-1 px-4 py-3 rounded-md border font-mono text-lg"
-                style={{
-                  background: "var(--surface)",
-                  borderColor: "var(--border)",
-                  color: "var(--foreground)",
-                }}
+                className="flex-1 px-4 py-3 rounded-md border border-white/20 bg-white/5 font-mono text-lg text-white placeholder:text-white/40"
                 maxLength={11}
               />
               <button
                 onClick={handleValidate}
                 disabled={oib.length !== 11}
-                className="px-6 py-3 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  background: oib.length === 11 ? "var(--foreground)" : "var(--muted)",
-                  color: oib.length === 11 ? "var(--surface)" : "var(--foreground)",
-                }}
+                className="px-6 py-3 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-600 text-white hover:bg-cyan-700 disabled:bg-white/10"
               >
                 Provjeri
               </button>
@@ -167,9 +146,7 @@ export default function OIBValidatorPage() {
           <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
             <div className="flex items-start gap-3 mb-3">
               <Info className="w-5 h-5 flex-shrink-0 text-white/60" />
-              <h3 className="font-semibold text-white/90" style={{ color: "var(--foreground)" }}>
-                O OIB-u
-              </h3>
+              <h3 className="font-semibold text-white/90">O OIB-u</h3>
             </div>
 
             <div className="space-y-3 text-sm text-white/60">
@@ -200,20 +177,20 @@ export default function OIBValidatorPage() {
           </div>
 
           {/* Upsell Section */}
-          <div className="mt-6 rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-6">
+          <div className="mt-6 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 p-6 backdrop-blur-sm">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-600">
-                <FileText className="h-6 w-6 text-white" />
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-500/20">
+                <FileText className="h-6 w-6 text-cyan-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white/90">
+                <h3 className="text-lg font-semibold text-cyan-300">
                   Automatska validacija na računu
                 </h3>
-                <p className="mt-1 text-sm text-white/60">
+                <p className="mt-1 text-sm text-cyan-200/80">
                   FiskAI automatski validira OIB kupca i prodavača kod svakog računa. Nema više
                   grešaka koje vraća Porezna.
                 </p>
-                <ul className="mt-3 space-y-1 text-sm text-white/70">
+                <ul className="mt-3 space-y-1 text-sm text-cyan-200/70">
                   <li className="flex items-center gap-2">
                     <span className="text-cyan-400">✓</span> Automatska provjera pri unosu
                   </li>
@@ -226,7 +203,7 @@ export default function OIBValidatorPage() {
                 </ul>
                 <Link
                   href="/register"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-cyan-700"
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-cyan-600 transition-colors"
                 >
                   Isprobaj FiskAI <ArrowRight className="h-4 w-4" />
                 </Link>

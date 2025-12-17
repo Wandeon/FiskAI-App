@@ -11,20 +11,29 @@ interface PDVCalloutProps {
   children: React.ReactNode
 }
 
-const calloutStyles: Record<CalloutType, { bg: string; border: string; icon: LucideIcon }> = {
+const calloutStyles: Record<
+  CalloutType,
+  { bg: string; border: string; iconBg: string; iconColor: string; icon: LucideIcon }
+> = {
   warning: {
-    bg: "bg-amber-50",
-    border: "border-amber-200",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    iconBg: "bg-amber-500/20",
+    iconColor: "text-amber-400",
     icon: AlertTriangle,
   },
   info: {
-    bg: "bg-blue-50",
-    border: "border-blue-200",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    iconBg: "bg-blue-500/20",
+    iconColor: "text-blue-400",
     icon: Lightbulb,
   },
   tip: {
-    bg: "bg-green-50",
-    border: "border-green-200",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    iconBg: "bg-emerald-500/20",
+    iconColor: "text-emerald-400",
     icon: PiggyBank,
   },
 }
@@ -38,16 +47,17 @@ export function PDVCallout({ type, threshold, children }: PDVCalloutProps) {
       <div className="flex gap-3">
         <div
           className={cn(
-            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border bg-white/70",
-            styles.border
+            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl",
+            styles.iconBg,
+            styles.iconColor
           )}
           aria-hidden="true"
         >
-          <Icon className="h-5 w-5 text-gray-700" />
+          <Icon className="h-5 w-5" />
         </div>
-        <div className="text-sm">
+        <div className="text-sm text-white/90">
           {threshold && (
-            <strong className="block mb-1">
+            <strong className="block mb-1 text-white">
               PDV prag: {threshold.toLocaleString("hr-HR")} EUR
             </strong>
           )}

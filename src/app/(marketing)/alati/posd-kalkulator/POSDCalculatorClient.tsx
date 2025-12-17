@@ -269,7 +269,7 @@ export function POSDCalculatorClient() {
                     <p className="mb-2 text-lg font-medium text-slate-900">
                       Povuci i ispusti XML izvod
                     </p>
-                    <p className="mb-4 text-sm text-slate-500">ili</p>
+                    <p className="mb-4 text-sm text-white/60">ili</p>
                     <label className="cursor-pointer rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800">
                       Odaberi datoteku
                       <input
@@ -376,24 +376,24 @@ export function POSDCalculatorClient() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="rounded-lg bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">Banka</p>
-                      <p className="font-medium text-slate-900">{statement.bankName}</p>
+                    <div className="rounded-lg bg-white/5 p-3">
+                      <p className="text-xs text-white/60">Banka</p>
+                      <p className="font-medium text-white">{statement.bankName}</p>
                     </div>
-                    <div className="rounded-lg bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">IBAN</p>
-                      <p className="font-mono text-sm text-slate-900">{statement.accountIBAN}</p>
+                    <div className="rounded-lg bg-white/5 p-3">
+                      <p className="text-xs text-white/60">IBAN</p>
+                      <p className="font-mono text-sm text-white">{statement.accountIBAN}</p>
                     </div>
-                    <div className="rounded-lg bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">Period</p>
-                      <p className="font-medium text-slate-900">
+                    <div className="rounded-lg bg-white/5 p-3">
+                      <p className="text-xs text-white/60">Period</p>
+                      <p className="font-medium text-white">
                         {statement.periodStart.toLocaleDateString("hr-HR")} —{" "}
                         {statement.periodEnd.toLocaleDateString("hr-HR")}
                       </p>
                     </div>
-                    <div className="rounded-lg bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">Ukupno transakcija</p>
-                      <p className="font-medium text-slate-900">{statement.transactions.length}</p>
+                    <div className="rounded-lg bg-white/5 p-3">
+                      <p className="text-xs text-white/60">Ukupno transakcija</p>
+                      <p className="font-medium text-white">{statement.transactions.length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -407,13 +407,13 @@ export function POSDCalculatorClient() {
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                      <label className="mb-1 block text-sm font-medium text-white/80">
                         Općina (za prirez)
                       </label>
                       <select
                         value={municipality}
                         onChange={(e) => setMunicipality(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
                       >
                         <option value="zagreb">Zagreb (18%)</option>
                         <option value="split">Split (15%)</option>
@@ -425,7 +425,7 @@ export function POSDCalculatorClient() {
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                      <label className="mb-1 block text-sm font-medium text-white/80">
                         II. mirovinski stup
                       </label>
                       <div className="flex gap-3">
@@ -467,7 +467,7 @@ export function POSDCalculatorClient() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="mb-4 text-sm text-slate-500">
+                  <p className="mb-4 text-sm text-white/60">
                     Označite samo primitke koji su dio vašeg paušalnog obrta. Isključite privatne
                     uplate, povrate i sl.
                   </p>
@@ -519,14 +519,14 @@ export function POSDCalculatorClient() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={handleReset}
-                  className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white hover:bg-white/10"
                 >
                   Poništi
                 </button>
                 <button
                   onClick={handleCalculate}
                   disabled={incomeTransactions.length === 0}
-                  className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:bg-white/10 disabled:cursor-not-allowed"
                 >
                   Izračunaj PO-SD
                 </button>
@@ -621,40 +621,48 @@ export function POSDCalculatorClient() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex justify-between border-b border-slate-100 pb-2">
-                      <span className="text-slate-600">Ukupni primitci</span>
-                      <span className="font-medium">{formatCurrency(result.totalIncome)}</span>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/70">Ukupni primitci</span>
+                      <span className="font-medium text-white">
+                        {formatCurrency(result.totalIncome)}
+                      </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-100 pb-2">
-                      <span className="text-slate-600">- Normativni rashodi (30%)</span>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/70">- Normativni rashodi (30%)</span>
                       <span className="font-medium text-slate-500">
                         -{formatCurrency(result.normativeExpenses)}
                       </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-100 pb-2">
-                      <span className="text-slate-600">= Porezna osnovica</span>
-                      <span className="font-medium">{formatCurrency(result.taxBase)}</span>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/70">= Porezna osnovica</span>
+                      <span className="font-medium text-white">
+                        {formatCurrency(result.taxBase)}
+                      </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-100 pb-2">
-                      <span className="text-slate-600">Porez na dohodak (12%)</span>
-                      <span className="font-medium">{formatCurrency(result.incomeTax)}</span>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/70">Porez na dohodak (12%)</span>
+                      <span className="font-medium text-white">
+                        {formatCurrency(result.incomeTax)}
+                      </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-100 pb-2">
-                      <span className="text-slate-600">Prirez</span>
-                      <span className="font-medium">{formatCurrency(result.surtax)}</span>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/70">Prirez</span>
+                      <span className="font-medium text-white">
+                        {formatCurrency(result.surtax)}
+                      </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-2 pt-2">
+                    <div className="flex justify-between border-b border-white/20 pb-2 pt-2">
                       <span className="font-medium text-slate-900">Ukupno porez + prirez</span>
                       <span className="font-bold text-slate-900">
                         {formatCurrency(result.totalTax)}
                       </span>
                     </div>
                     <div className="flex justify-between border-b border-slate-100 pb-2 pt-4">
-                      <span className="text-slate-600">
+                      <span className="text-white/70">
                         Doprinosi (godišnje, {formatCurrency(result.monthlyContributions)}
                         /mj)
                       </span>
-                      <span className="font-medium">
+                      <span className="font-medium text-white">
                         {formatCurrency(result.yearlyContributions)}
                       </span>
                     </div>
@@ -666,7 +674,7 @@ export function POSDCalculatorClient() {
                         {formatCurrency(result.totalObligations)}
                       </span>
                     </div>
-                    <div className="flex justify-between border-t border-slate-200 pt-3">
+                    <div className="flex justify-between border-t border-white/20 pt-3">
                       <span className="font-bold text-slate-900">Neto nakon obveza</span>
                       <span className="font-bold text-green-600">
                         {formatCurrency(result.netAfterTax)}
@@ -714,7 +722,7 @@ export function POSDCalculatorClient() {
                         1
                       </span>
                       <div>
-                        <p className="font-medium text-slate-900">Prijavi se na ePorezna</p>
+                        <p className="font-medium text-white">Prijavi se na ePorezna</p>
                         <p className="text-sm text-slate-500">
                           <a
                             href="https://e-porezna.porezna-uprava.hr"
@@ -732,7 +740,7 @@ export function POSDCalculatorClient() {
                         2
                       </span>
                       <div>
-                        <p className="font-medium text-slate-900">
+                        <p className="font-medium text-white">
                           Odaberi &quot;Predaja obrazaca&quot; → &quot;PO-SD&quot;
                         </p>
                       </div>
@@ -742,7 +750,7 @@ export function POSDCalculatorClient() {
                         3
                       </span>
                       <div>
-                        <p className="font-medium text-slate-900">
+                        <p className="font-medium text-white">
                           Unesi primitke po kvartalima iz izračuna iznad
                         </p>
                       </div>
@@ -752,7 +760,7 @@ export function POSDCalculatorClient() {
                         4
                       </span>
                       <div>
-                        <p className="font-medium text-slate-900">Potpiši i pošalji</p>
+                        <p className="font-medium text-white">Potpiši i pošalji</p>
                         <p className="text-sm text-slate-500">
                           Rok: {deadlineInfo.deadline.toLocaleDateString("hr-HR")}
                         </p>
@@ -766,7 +774,7 @@ export function POSDCalculatorClient() {
               <div className="flex flex-wrap justify-between gap-4">
                 <button
                   onClick={handleReset}
-                  className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white hover:bg-white/10"
                 >
                   ← Novi izračun
                 </button>

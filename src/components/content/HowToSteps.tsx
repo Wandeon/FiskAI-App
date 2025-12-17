@@ -1,4 +1,3 @@
-import { CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { JsonLd } from "@/components/seo/JsonLd"
@@ -24,21 +23,21 @@ export function HowToSteps({ title, description, steps, totalTime, className }: 
       <JsonLd schemas={[generateHowToSchema(title, description, steps, totalTime)]} />
       <div className={cn("my-8", className)}>
         {totalTime && (
-          <p className="mb-4 text-sm text-slate-500">
+          <p className="mb-4 text-sm text-white/70">
             Potrebno vrijeme: {formatDuration(totalTime)}
           </p>
         )}
         <ol className="space-y-6">
           {steps.map((step, index) => (
             <li key={index} className="relative pl-10">
-              <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+              <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500 text-sm font-bold text-white">
                 {index + 1}
               </div>
               <div>
-                <h3 className="mb-1 font-semibold text-slate-900">{step.name}</h3>
-                <p className="text-slate-600">{step.text}</p>
+                <h3 className="mb-1 font-semibold text-white">{step.name}</h3>
+                <p className="text-white/90">{step.text}</p>
                 {step.image && (
-                  <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
+                  <div className="mt-3 overflow-hidden rounded-lg border border-white/20">
                     <Image
                       src={step.image}
                       alt={step.name}

@@ -134,9 +134,9 @@ export function WizardContainer() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Progress bar */}
-      <div className="h-2 overflow-hidden rounded-full bg-gray-200 mb-8">
+      <div className="h-2 overflow-hidden rounded-full bg-white/10 mb-8">
         <motion.div
-          className="h-2 rounded-full bg-blue-600"
+          className="h-2 rounded-full bg-cyan-500"
           animate={{ width: `${progress}%` }}
           transition={reduce ? { duration: 0 } : { duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         />
@@ -166,10 +166,10 @@ export function WizardContainer() {
                       disabled={isThinking}
                       className={cn(
                         "w-full rounded-xl border p-4 text-left transition-all",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-600/30",
+                        "focus:outline-none focus:ring-2 focus:ring-cyan-500/30",
                         selected
-                          ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/60"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+                          ? "border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/40"
+                          : "border-white/10 hover:border-white/20 hover:bg-white/5",
                         isThinking && "opacity-70 cursor-not-allowed"
                       )}
                     >
@@ -178,16 +178,16 @@ export function WizardContainer() {
                           className={cn(
                             "mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border",
                             selected
-                              ? "border-blue-200 bg-white text-blue-700"
-                              : "border-gray-200 bg-white text-gray-600"
+                              ? "border-cyan-400/30 bg-white/10 text-cyan-400"
+                              : "border-white/10 bg-white/5 text-white/70"
                           )}
                         >
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium">{option.label}</p>
+                          <p className="font-medium text-white">{option.label}</p>
                           {option.description && (
-                            <p className="mt-1 text-sm text-gray-500">{option.description}</p>
+                            <p className="mt-1 text-sm text-white/70">{option.description}</p>
                           )}
                         </div>
                       </div>

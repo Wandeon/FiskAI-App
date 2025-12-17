@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, HelpCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface FAQItem {
   question: string
@@ -28,20 +27,20 @@ function AccordionItem({
   index: number
 }) {
   return (
-    <div className="border-b border-gray-200 last:border-b-0">
+    <div className="border-b border-white/10 last:border-b-0">
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-blue-600"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-cyan-400"
         aria-expanded={isOpen}
         aria-controls={`faq-answer-${index}`}
       >
-        <span className="text-sm font-medium text-gray-900">{item.question}</span>
+        <span className="text-sm font-medium text-white">{item.question}</span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
           className="flex-shrink-0"
         >
-          <ChevronDown className="h-5 w-5 text-gray-500" />
+          <ChevronDown className="h-5 w-5 text-white/70" />
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -54,7 +53,7 @@ function AccordionItem({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="pb-4 text-sm text-gray-600">{item.answer}</div>
+            <div className="pb-4 text-sm text-white/70">{item.answer}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -82,11 +81,11 @@ export function AccordionFAQ({
   }
 
   return (
-    <div className="my-6 rounded-xl border border-gray-200 bg-white">
-      <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-4">
-        <HelpCircle className="h-5 w-5 text-blue-600" />
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+    <div className="my-6 rounded-xl border border-white/10 bg-white/5">
+      <div className="flex items-center gap-2 border-b border-white/10 px-6 py-4">
+        <HelpCircle className="h-5 w-5 text-cyan-400" />
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/70">
           {items.length} pitanja
         </span>
       </div>
@@ -110,15 +109,15 @@ export function Accordion({ children, title }: { children: React.ReactNode; titl
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="my-4 rounded-lg border border-gray-200 bg-white">
+    <div className="my-4 rounded-lg border border-white/10 bg-white/5">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+        className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-white/10"
         aria-expanded={isOpen}
       >
-        <span className="text-sm font-medium text-gray-900">{title}</span>
+        <span className="text-sm font-medium text-white">{title}</span>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown className="h-5 w-5 text-gray-500" />
+          <ChevronDown className="h-5 w-5 text-white/70" />
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -130,7 +129,7 @@ export function Accordion({ children, title }: { children: React.ReactNode; titl
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-gray-200 px-4 py-3 text-sm text-gray-600">
+            <div className="border-t border-white/10 px-4 py-3 text-sm text-white/70">
               {children}
             </div>
           </motion.div>

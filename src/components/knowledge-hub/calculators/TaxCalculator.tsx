@@ -28,7 +28,7 @@ export function TaxCalculator({ embedded = true }: Props) {
   const content = (
     <div className="space-y-4">
       <div className="grid gap-3">
-        <label className="text-sm font-medium">Očekivani godišnji prihod</label>
+        <label className="text-sm font-medium text-white">Očekivani godišnji prihod</label>
         <input
           type="range"
           min={0}
@@ -36,7 +36,7 @@ export function TaxCalculator({ embedded = true }: Props) {
           step={100}
           value={revenue}
           onChange={(e) => setRevenue(Number(e.target.value))}
-          className="w-full accent-blue-600"
+          className="w-full accent-cyan-400"
         />
         <div className="flex items-center gap-3">
           <Input
@@ -49,33 +49,33 @@ export function TaxCalculator({ embedded = true }: Props) {
             }}
             min={0}
             max={60000}
-            className="font-mono"
+            className="font-mono bg-slate-800 border-white/20 text-white placeholder:text-white/40"
           />
-          <span className="text-xs text-[var(--muted)] whitespace-nowrap">max 60.000€</span>
+          <span className="text-xs text-white/50 whitespace-nowrap">max 60.000€</span>
         </div>
-        <p className="text-xs text-[var(--muted)]">
+        <p className="text-xs text-white/70">
           Paušalni obrt ima limit od 60.000€ godišnjeg prihoda.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3">
-        <h4 className="font-semibold">Godišnji troškovi (procjena)</h4>
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+        <h4 className="font-semibold text-white">Godišnji troškovi (procjena)</h4>
         <div className="grid gap-2 text-sm">
           <div className="flex justify-between gap-3">
-            <span className="text-[var(--muted)]">Kvartalni porez (×4)</span>
-            <span className="font-mono">{formatEUR(animatedTax)}</span>
+            <span className="text-white/70">Kvartalni porez (×4)</span>
+            <span className="font-mono text-white">{formatEUR(animatedTax)}</span>
           </div>
           <div className="flex justify-between gap-3">
-            <span className="text-[var(--muted)]">Doprinosi (mjesečno × 12)</span>
-            <span className="font-mono">{formatEUR(animatedContributions)}</span>
+            <span className="text-white/70">Doprinosi (mjesečno × 12)</span>
+            <span className="font-mono text-white">{formatEUR(animatedContributions)}</span>
           </div>
           <div className="flex justify-between gap-3">
-            <span className="text-[var(--muted)]">HOK članarina (kvartalno × 4)</span>
-            <span className="font-mono">{formatEUR(animatedHok)}</span>
+            <span className="text-white/70">HOK članarina (kvartalno × 4)</span>
+            <span className="font-mono text-white">{formatEUR(animatedHok)}</span>
           </div>
-          <div className="flex justify-between gap-3 font-semibold pt-2 border-t border-[var(--border)]">
-            <span>Ukupno godišnje</span>
-            <span className="font-mono text-lg">{formatEUR(animatedTotal)}</span>
+          <div className="flex justify-between gap-3 font-semibold pt-2 border-t border-white/20">
+            <span className="text-white">Ukupno godišnje</span>
+            <span className="font-mono text-lg text-white">{formatEUR(animatedTotal)}</span>
           </div>
         </div>
 
@@ -83,22 +83,22 @@ export function TaxCalculator({ embedded = true }: Props) {
           className="pt-2"
           formatValue={formatEUR}
           items={[
-            { label: "Porez", value: costs.tax, colorClassName: "bg-blue-600" },
-            { label: "Doprinosi", value: costs.contributions, colorClassName: "bg-indigo-600" },
-            { label: "HOK", value: costs.hok, colorClassName: "bg-emerald-600" },
+            { label: "Porez", value: costs.tax, colorClassName: "bg-cyan-500" },
+            { label: "Doprinosi", value: costs.contributions, colorClassName: "bg-blue-500" },
+            { label: "HOK", value: costs.hok, colorClassName: "bg-emerald-500" },
           ]}
         />
-        <p className="text-xs text-[var(--muted)]">
+        <p className="text-xs text-white/70">
           Porezni razred: {formatEUR(bracket.min)} – {formatEUR(bracket.max)}
         </p>
       </div>
 
       {revenue >= 55000 && (
-        <div className="rounded-xl border border-warning-100 bg-warning-50 p-3 text-sm text-warning-700">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
           Blizu ste limita 60.000€. Ako očekujete rast, otvorite{" "}
           <Link
             href="/usporedba/preko-praga"
-            className="font-semibold underline underline-offset-4"
+            className="font-semibold underline underline-offset-4 text-amber-200"
           >
             što kada prijeđem prag
           </Link>

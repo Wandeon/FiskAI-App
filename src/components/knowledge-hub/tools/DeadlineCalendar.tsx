@@ -132,7 +132,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "all"
               ? "border-blue-600 bg-blue-600 text-white"
-              : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-secondary)]"
+              : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
           )}
         >
           Svi rokovi
@@ -144,7 +144,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "pausalni"
               ? "border-blue-600 bg-blue-600 text-white"
-              : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-secondary)]"
+              : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
           )}
         >
           Paušalni obrt
@@ -156,7 +156,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "doo"
               ? "border-blue-600 bg-blue-600 text-white"
-              : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-secondary)]"
+              : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
           )}
         >
           D.O.O.
@@ -168,28 +168,28 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         <button
           type="button"
           onClick={() => setSelectedMonth((m) => Math.max(0, m - 1))}
-          className="btn-press inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 hover:bg-[var(--surface-secondary)]"
+          className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 p-2 hover:bg-white/10 text-white"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <h2 className="text-display text-2xl font-semibold">
+        <h2 className="text-display text-2xl font-semibold text-white">
           {monthNames[selectedMonth]} {year}
         </h2>
         <button
           type="button"
           onClick={() => setSelectedMonth((m) => Math.min(11, m + 1))}
-          className="btn-press inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 hover:bg-[var(--surface-secondary)]"
+          className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 p-2 hover:bg-white/10 text-white"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* Calendar grid */}
-      <div className="rounded-2xl border border-[var(--border)] overflow-hidden bg-[var(--surface)]">
+      <div className="rounded-2xl border border-white/20 overflow-hidden bg-slate-800/80">
         {/* Day headers */}
-        <div className="grid grid-cols-7 bg-[var(--surface-secondary)]">
+        <div className="grid grid-cols-7 bg-white/10">
           {["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"].map((day) => (
-            <div key={day} className="p-2 text-center text-sm font-semibold text-[var(--muted)]">
+            <div key={day} className="p-2 text-center text-sm font-semibold text-white/70">
               {day}
             </div>
           ))}
@@ -199,10 +199,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         <div className="grid grid-cols-7">
           {/* Empty cells for days before month starts */}
           {Array.from({ length: firstDay }, (_, i) => (
-            <div
-              key={`empty-${i}`}
-              className="p-2 border-t border-[var(--border)] bg-[var(--surface-secondary)]"
-            />
+            <div key={`empty-${i}`} className="p-2 border-t border-white/10 bg-white/5" />
           ))}
 
           {/* Month days */}
@@ -216,11 +213,13 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
               <div
                 key={day}
                 className={cn(
-                  "p-2 border-t border-[var(--border)] min-h-[84px]",
-                  isToday && "bg-blue-600/10"
+                  "p-2 border-t border-white/10 min-h-[84px]",
+                  isToday && "bg-blue-500/20"
                 )}
               >
-                <span className={cn("text-sm", isToday && "font-bold text-blue-700")}>{day}</span>
+                <span className={cn("text-sm text-white/90", isToday && "font-bold text-cyan-400")}>
+                  {day}
+                </span>
                 <div className="mt-1 space-y-1">
                   {dayDeadlines.map((deadline, idx) => (
                     <button
@@ -247,22 +246,22 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         <div className="card p-4">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-semibold">{selectedDeadline.title}</h3>
-              <p className="text-sm text-[var(--muted)]">{selectedDeadline.date}</p>
+              <h3 className="font-semibold text-white">{selectedDeadline.title}</h3>
+              <p className="text-sm text-white/70">{selectedDeadline.date}</p>
             </div>
             <button
               type="button"
               onClick={() => setSelectedDeadline(null)}
-              className="btn-press inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 hover:bg-[var(--surface-secondary)]"
+              className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 p-2 hover:bg-white/10 text-white"
               aria-label="Zatvori detalje"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-2 text-sm">{selectedDeadline.description}</p>
+          <p className="mt-2 text-sm text-white/90">{selectedDeadline.description}</p>
           <div className="mt-2">
-            <span className="text-xs text-[var(--muted)]">Primjenjuje se na: </span>
-            <span className="text-xs">{selectedDeadline.applies.join(", ")}</span>
+            <span className="text-xs text-white/70">Primjenjuje se na: </span>
+            <span className="text-xs text-white/90">{selectedDeadline.applies.join(", ")}</span>
           </div>
         </div>
       )}
@@ -272,7 +271,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         {Object.entries(typeColors).map(([type, color]) => (
           <div key={type} className="flex items-center gap-2">
             <span className={cn("w-3 h-3 rounded", color)} />
-            <span className="capitalize text-[var(--muted)]">{type}</span>
+            <span className="capitalize text-white/70">{type}</span>
           </div>
         ))}
       </div>

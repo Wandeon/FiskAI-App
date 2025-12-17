@@ -68,7 +68,7 @@ function H3(props: any) {
 
 function Table(props: any) {
   return (
-    <div className="overflow-x-auto my-4">
+    <div className="overflow-x-auto my-4 rounded-lg border border-white/10">
       <table className="min-w-full border-collapse" {...props} />
     </div>
   )
@@ -77,19 +77,14 @@ function Table(props: any) {
 function Th(props: any) {
   return (
     <th
-      className="border border-[var(--border)] bg-[var(--surface-secondary)] px-4 py-2 text-left font-medium text-[var(--foreground)]"
+      className="border-b border-white/10 bg-slate-800/80 px-4 py-2 text-left font-medium text-white"
       {...props}
     />
   )
 }
 
 function Td(props: any) {
-  return (
-    <td
-      className="border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[var(--foreground)]"
-      {...props}
-    />
-  )
+  return <td className="border-b border-white/10 bg-white/5 px-4 py-2 text-white/90" {...props} />
 }
 
 export const mdxComponents = {

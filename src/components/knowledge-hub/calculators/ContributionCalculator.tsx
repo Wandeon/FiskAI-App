@@ -21,7 +21,9 @@ function AnimatedCurrency({ value, className }: { value: number; className?: str
   }, [value])
 
   const animated = useAnimatedNumber(target, { durationMs: 520 })
-  return <span className={cn("font-mono font-bold", className)}>{formatEUR(animated)}</span>
+  return (
+    <span className={cn("font-mono font-bold text-white", className)}>{formatEUR(animated)}</span>
+  )
 }
 
 export function ContributionCalculator({ embedded = true }: Props) {
@@ -30,29 +32,29 @@ export function ContributionCalculator({ embedded = true }: Props) {
   const content = (
     <div className="space-y-4">
       <div className="grid gap-3">
-        <div className="flex justify-between items-center py-2 border-b border-[var(--border)]">
+        <div className="flex justify-between items-center py-2 border-b border-white/10">
           <div>
-            <p className="font-medium">MIO I. stup (mirovinsko)</p>
-            <p className="text-sm text-[var(--muted)]">15% od osnovice</p>
+            <p className="font-medium text-white">MIO I. stup (mirovinsko)</p>
+            <p className="text-sm text-white/70">15% od osnovice</p>
           </div>
           <AnimatedCurrency value={breakdown.mioI} />
         </div>
-        <div className="flex justify-between items-center py-2 border-b border-[var(--border)]">
+        <div className="flex justify-between items-center py-2 border-b border-white/10">
           <div>
-            <p className="font-medium">MIO II. stup (kapitalizirano)</p>
-            <p className="text-sm text-[var(--muted)]">5% od osnovice</p>
+            <p className="font-medium text-white">MIO II. stup (kapitalizirano)</p>
+            <p className="text-sm text-white/70">5% od osnovice</p>
           </div>
           <AnimatedCurrency value={breakdown.mioII} />
         </div>
-        <div className="flex justify-between items-center py-2 border-b border-[var(--border)]">
+        <div className="flex justify-between items-center py-2 border-b border-white/10">
           <div>
-            <p className="font-medium">HZZO (zdravstveno)</p>
-            <p className="text-sm text-[var(--muted)]">16,5% od osnovice</p>
+            <p className="font-medium text-white">HZZO (zdravstveno)</p>
+            <p className="text-sm text-white/70">16,5% od osnovice</p>
           </div>
           <AnimatedCurrency value={breakdown.hzzo} />
         </div>
-        <div className="flex justify-between items-center py-2 bg-[var(--surface-secondary)] px-3 rounded-lg border border-[var(--border)]">
-          <p className="font-bold">Ukupno mjesečno</p>
+        <div className="flex justify-between items-center py-2 bg-white/10 px-3 rounded-lg border border-white/20">
+          <p className="font-bold text-white">Ukupno mjesečno</p>
           <AnimatedCurrency value={breakdown.total} className="text-lg" />
         </div>
       </div>
@@ -60,33 +62,33 @@ export function ContributionCalculator({ embedded = true }: Props) {
       <BreakdownBars
         formatValue={formatEUR}
         items={[
-          { label: "MIO I.", value: breakdown.mioI, colorClassName: "bg-blue-600" },
-          { label: "MIO II.", value: breakdown.mioII, colorClassName: "bg-indigo-600" },
-          { label: "HZZO", value: breakdown.hzzo, colorClassName: "bg-emerald-600" },
+          { label: "MIO I.", value: breakdown.mioI, colorClassName: "bg-cyan-500" },
+          { label: "MIO II.", value: breakdown.mioII, colorClassName: "bg-blue-500" },
+          { label: "HZZO", value: breakdown.hzzo, colorClassName: "bg-emerald-500" },
         ]}
       />
-      <p className="text-sm text-[var(--muted)]">
+      <p className="text-sm text-white/70">
         Osnovica za izračun: {formatEUR(breakdown.base)} (minimalna osnovica 2025.)
       </p>
 
-      <details className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <summary className="cursor-pointer text-sm font-semibold">
+      <details className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-white">
           IBAN-ovi za uplatu (HUB3)
         </summary>
         <div className="mt-3 space-y-2 text-sm">
           <div className="flex items-start justify-between gap-3">
-            <span className="text-[var(--muted)]">MIO I. stup (državni proračun)</span>
-            <span className="font-mono">{PAYMENT_IBANS.STATE_BUDGET}</span>
+            <span className="text-white/70">MIO I. stup (državni proračun)</span>
+            <span className="font-mono text-white">{PAYMENT_IBANS.STATE_BUDGET}</span>
           </div>
           <div className="flex items-start justify-between gap-3">
-            <span className="text-[var(--muted)]">MIO II. stup</span>
-            <span className="font-mono">{PAYMENT_IBANS.MIO_II}</span>
+            <span className="text-white/70">MIO II. stup</span>
+            <span className="font-mono text-white">{PAYMENT_IBANS.MIO_II}</span>
           </div>
           <div className="flex items-start justify-between gap-3">
-            <span className="text-[var(--muted)]">HZZO</span>
-            <span className="font-mono">{PAYMENT_IBANS.HZZO}</span>
+            <span className="text-white/70">HZZO</span>
+            <span className="font-mono text-white">{PAYMENT_IBANS.HZZO}</span>
           </div>
-          <p className="pt-2 text-xs text-[var(--muted)]">Model: {PAYMENT_MODEL}</p>
+          <p className="pt-2 text-xs text-white/50">Model: {PAYMENT_MODEL}</p>
         </div>
       </details>
     </div>

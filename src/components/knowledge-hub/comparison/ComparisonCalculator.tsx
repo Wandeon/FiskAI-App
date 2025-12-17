@@ -171,10 +171,10 @@ export function ComparisonCalculator({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-4 sm:p-6">
+    <div className="bg-slate-800/80 border border-white/20 rounded-lg p-4 sm:p-6">
       {/* Revenue Input */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white/90 mb-2">
           Očekivani godišnji prihod
         </label>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -188,7 +188,7 @@ export function ComparisonCalculator({
             className="flex-1 h-11 sm:h-auto"
             style={{ minHeight: "44px" }}
           />
-          <div className="w-full sm:w-32 text-center sm:text-right font-mono text-lg bg-gray-50 sm:bg-transparent p-2 sm:p-0 rounded">
+          <div className="w-full sm:w-32 text-center sm:text-right font-mono text-lg bg-white/5 sm:bg-transparent p-2 sm:p-0 rounded text-white">
             <AnimatedAmount value={revenue} className="text-lg" />
           </div>
         </div>
@@ -198,83 +198,101 @@ export function ComparisonCalculator({
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b">
-              <th className="p-2 text-left"></th>
+            <tr className="border-b border-white/20">
+              <th className="p-2 text-left text-white"></th>
               {results.map((r) => (
                 <th
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-50")}
+                  className={cn(
+                    "p-2 text-center text-white",
+                    r.isRecommended && "bg-emerald-500/20"
+                  )}
                 >
                   {r.label}
                   {r.isRecommended && (
-                    <span className="block text-xs text-green-600">✓ Preporučeno</span>
+                    <span className="block text-xs text-emerald-400">✓ Preporučeno</span>
                   )}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b">
-              <td className="p-2 text-gray-600">Doprinosi</td>
+            <tr className="border-b border-white/10">
+              <td className="p-2 text-white/70">Doprinosi</td>
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
+                  className={cn(
+                    "p-2 text-center text-white",
+                    r.isRecommended && "bg-emerald-500/10"
+                  )}
                 >
                   <AnimatedAmount value={r.contributions} />
                 </td>
               ))}
             </tr>
-            <tr className="border-b">
-              <td className="p-2 text-gray-600">Porez</td>
+            <tr className="border-b border-white/10">
+              <td className="p-2 text-white/70">Porez</td>
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
+                  className={cn(
+                    "p-2 text-center text-white",
+                    r.isRecommended && "bg-emerald-500/10"
+                  )}
                 >
                   <AnimatedAmount value={r.tax} />
                 </td>
               ))}
             </tr>
-            <tr className="border-b">
-              <td className="p-2 text-gray-600">Knjigovodstvo</td>
+            <tr className="border-b border-white/10">
+              <td className="p-2 text-white/70">Knjigovodstvo</td>
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
+                  className={cn(
+                    "p-2 text-center text-white",
+                    r.isRecommended && "bg-emerald-500/10"
+                  )}
                 >
                   <AnimatedAmount value={r.bookkeeping} />
                 </td>
               ))}
             </tr>
-            <tr className="border-b">
-              <td className="p-2 text-gray-600">Ostalo</td>
+            <tr className="border-b border-white/10">
+              <td className="p-2 text-white/70">Ostalo</td>
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
+                  className={cn(
+                    "p-2 text-center text-white",
+                    r.isRecommended && "bg-emerald-500/10"
+                  )}
                 >
                   <AnimatedAmount value={r.other} />
                 </td>
               ))}
             </tr>
-            <tr className="border-b-2 border-gray-300 font-semibold">
-              <td className="p-2">UKUPNO GODIŠNJE</td>
+            <tr className="border-b-2 border-white/20 font-semibold">
+              <td className="p-2 text-white">UKUPNO GODIŠNJE</td>
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-50/50")}
+                  className={cn(
+                    "p-2 text-center text-white",
+                    r.isRecommended && "bg-emerald-500/10"
+                  )}
                 >
                   <AnimatedAmount value={r.total} />
                 </td>
               ))}
             </tr>
-            <tr className="font-semibold text-green-700">
+            <tr className="font-semibold text-emerald-400">
               <td className="p-2">NETO OSTATAK</td>
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-green-100")}
+                  className={cn("p-2 text-center", r.isRecommended && "bg-emerald-500/20")}
                 >
                   <AnimatedAmount value={r.netIncome} />
                 </td>
@@ -291,13 +309,15 @@ export function ComparisonCalculator({
             key={r.type}
             className={cn(
               "border rounded-lg p-4",
-              r.isRecommended ? "border-green-500 bg-green-50" : "border-gray-200"
+              r.isRecommended
+                ? "border-emerald-500 bg-emerald-500/10"
+                : "border-white/20 bg-white/5"
             )}
           >
-            <div className="flex items-center justify-between mb-3 pb-3 border-b">
-              <h3 className="font-semibold text-base">{r.label}</h3>
+            <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/20">
+              <h3 className="font-semibold text-base text-white">{r.label}</h3>
               {r.isRecommended && (
-                <span className="text-xs px-2 py-1 bg-green-600 text-white rounded">
+                <span className="text-xs px-2 py-1 bg-emerald-500 text-white rounded">
                   ✓ Preporučeno
                 </span>
               )}
@@ -305,36 +325,36 @@ export function ComparisonCalculator({
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center min-h-[44px] py-1">
-                <span className="text-gray-600">Doprinosi</span>
-                <span className="font-medium">
+                <span className="text-white/70">Doprinosi</span>
+                <span className="font-medium text-white">
                   <AnimatedAmount value={r.contributions} />
                 </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-1">
-                <span className="text-gray-600">Porez</span>
-                <span className="font-medium">
+                <span className="text-white/70">Porez</span>
+                <span className="font-medium text-white">
                   <AnimatedAmount value={r.tax} />
                 </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-1">
-                <span className="text-gray-600">Knjigovodstvo</span>
-                <span className="font-medium">
+                <span className="text-white/70">Knjigovodstvo</span>
+                <span className="font-medium text-white">
                   <AnimatedAmount value={r.bookkeeping} />
                 </span>
               </div>
               <div className="flex justify-between items-center min-h-[44px] py-1">
-                <span className="text-gray-600">Ostalo</span>
-                <span className="font-medium">
+                <span className="text-white/70">Ostalo</span>
+                <span className="font-medium text-white">
                   <AnimatedAmount value={r.other} />
                 </span>
               </div>
-              <div className="flex justify-between items-center min-h-[44px] py-2 border-t-2 border-gray-300 font-semibold mt-2">
+              <div className="flex justify-between items-center min-h-[44px] py-2 border-t-2 border-white/20 font-semibold mt-2 text-white">
                 <span>UKUPNO GODIŠNJE</span>
                 <span>
                   <AnimatedAmount value={r.total} />
                 </span>
               </div>
-              <div className="flex justify-between items-center min-h-[44px] py-2 bg-green-100 -mx-4 px-4 -mb-4 rounded-b font-semibold text-green-700">
+              <div className="flex justify-between items-center min-h-[44px] py-2 bg-emerald-500/20 -mx-4 px-4 -mb-4 rounded-b font-semibold text-emerald-400">
                 <span>NETO OSTATAK</span>
                 <span>
                   <AnimatedAmount value={r.netIncome} />
@@ -346,7 +366,7 @@ export function ComparisonCalculator({
       </div>
 
       {/* Disclaimer */}
-      <p className="mt-4 text-xs text-gray-500">
+      <p className="mt-4 text-xs text-white/50">
         * Procjene za 2025. Stvarni iznosi ovise o prirezima, dodatnim troškovima i specifičnoj
         situaciji.
       </p>

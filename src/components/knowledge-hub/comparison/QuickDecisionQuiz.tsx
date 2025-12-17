@@ -83,16 +83,16 @@ export function QuickDecisionQuiz({
   const progress = ((currentQuestion + (showResult ? 1 : 0)) / questions.length) * 100
 
   return (
-    <div className="my-6 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
+    <div className="my-6 rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-blue-600" />
-        <h3 className="text-lg font-semibold text-blue-900">{title}</h3>
+        <Sparkles className="h-5 w-5 text-cyan-400" />
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-6 h-2 overflow-hidden rounded-full bg-blue-100">
+      <div className="mb-6 h-2 overflow-hidden rounded-full bg-white/10">
         <motion.div
-          className="h-full bg-blue-600"
+          className="h-full bg-cyan-400"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.3 }}
@@ -108,10 +108,10 @@ export function QuickDecisionQuiz({
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
           >
-            <p className="mb-4 text-sm text-blue-700">
+            <p className="mb-4 text-sm text-cyan-400">
               Pitanje {currentQuestion + 1} od {questions.length}
             </p>
-            <p className="mb-4 text-base font-medium text-gray-900">
+            <p className="mb-4 text-base font-medium text-white">
               {questions[currentQuestion].question}
             </p>
             <div className="grid gap-2">
@@ -122,14 +122,14 @@ export function QuickDecisionQuiz({
                     handleAnswer(questions[currentQuestion].id, option.value, option.points)
                   }
                   className={cn(
-                    "flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-all",
+                    "flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-all text-white",
                     answers[questions[currentQuestion].id] === option.value
-                      ? "border-blue-500 bg-blue-100"
-                      : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                      ? "border-cyan-400 bg-cyan-500/20"
+                      : "border-white/20 bg-white/5 hover:border-cyan-400/50 hover:bg-cyan-500/10"
                   )}
                 >
                   <span>{option.label}</span>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                  <ChevronRight className="h-4 w-4 text-white/50" />
                 </button>
               ))}
             </div>
@@ -153,14 +153,12 @@ export function QuickDecisionQuiz({
                   >
                     <CheckCircle2 className="h-8 w-8 text-white" />
                   </div>
-                  <h4 className="mb-2 text-xl font-bold text-gray-900">
-                    Preporučamo: {winner.title}
-                  </h4>
-                  <p className="mb-4 text-sm text-gray-600">{winner.description}</p>
+                  <h4 className="mb-2 text-xl font-bold text-white">Preporučamo: {winner.title}</h4>
+                  <p className="mb-4 text-sm text-white/70">{winner.description}</p>
                   {winner.link && (
                     <a
                       href={winner.link}
-                      className="mb-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                      className="mb-4 inline-block rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-600"
                     >
                       Saznaj više o {winner.title}
                     </a>
@@ -170,7 +168,7 @@ export function QuickDecisionQuiz({
             })()}
             <button
               onClick={reset}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+              className="mt-4 inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300"
             >
               <RotateCcw className="h-4 w-4" />
               Ponovi kviz

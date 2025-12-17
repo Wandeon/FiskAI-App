@@ -57,12 +57,12 @@ export function BreakdownBars({
           <div key={item.label} className="space-y-1.5">
             <div className="flex items-start justify-between gap-3 text-sm">
               <div className="min-w-0">
-                <p className="font-medium">{item.label}</p>
-                {item.hint && <p className="text-xs text-[var(--muted)]">{item.hint}</p>}
+                <p className="font-medium text-white">{item.label}</p>
+                {item.hint && <p className="text-xs text-white/70">{item.hint}</p>}
               </div>
               <CountTo value={item.value} formatValue={formatValue} durationMs={520} />
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-[var(--border-light)]">
+            <div className="h-2 overflow-hidden rounded-full bg-white/10">
               <motion.div
                 className={cn("h-full rounded-full", item.colorClassName ?? "bg-blue-600")}
                 initial={reduce ? false : { width: 0 }}

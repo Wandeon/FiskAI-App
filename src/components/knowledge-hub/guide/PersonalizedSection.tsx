@@ -21,38 +21,40 @@ export function PersonalizedSection() {
   const bracket = getPausalTaxBracket(annualRevenue)
 
   return (
-    <Card className="mb-8 border-blue-200 bg-blue-50">
+    <Card className="mb-8 border-blue-500/20 bg-blue-500/10">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/70 text-blue-700">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400">
             <Target className="h-5 w-5" />
           </span>
-          Vaš personalizirani pregled
+          <span className="text-white">Vaš personalizirani pregled</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 mb-4">Na temelju vaših odgovora iz čarobnjaka:</p>
+        <p className="text-sm text-white/70 mb-4">Na temelju vaših odgovora iz čarobnjaka:</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="bg-white p-4 rounded-lg">
-            <p className="text-sm text-gray-500">Očekivani godišnji prihod</p>
-            <p className="text-xl font-bold">{formatEUR(annualRevenue)}</p>
+          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+            <p className="text-sm text-white/70">Očekivani godišnji prihod</p>
+            <p className="text-xl font-bold text-white">{formatEUR(annualRevenue)}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg">
-            <p className="text-sm text-gray-500">Kvartalni porez</p>
-            <p className="text-xl font-bold">{formatEUR(bracket.quarterlyTax)}</p>
+          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+            <p className="text-sm text-white/70">Kvartalni porez</p>
+            <p className="text-xl font-bold text-white">{formatEUR(bracket.quarterlyTax)}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg">
-            <p className="text-sm text-gray-500">Mjesečni doprinosi</p>
-            <p className="text-xl font-bold">{formatEUR(costs.contributions)}</p>
+          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+            <p className="text-sm text-white/70">Mjesečni doprinosi</p>
+            <p className="text-xl font-bold text-white">{formatEUR(costs.contributions)}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg">
-            <p className="text-sm text-gray-500">Fiskalizacija</p>
-            <p className="text-xl font-bold">{gotovina === "da" ? "Potrebna" : "Nije potrebna"}</p>
+          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+            <p className="text-sm text-white/70">Fiskalizacija</p>
+            <p className="text-xl font-bold text-white">
+              {gotovina === "da" ? "Potrebna" : "Nije potrebna"}
+            </p>
           </div>
         </div>
         {zaposlenje === "da" && (
-          <div className="mt-4 flex gap-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-gray-700">
-            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/70 text-yellow-700">
+          <div className="mt-4 flex gap-3 rounded border border-yellow-500/20 bg-yellow-500/10 p-3 text-sm text-white/90">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-yellow-500/20 text-yellow-400">
               <Lightbulb className="h-4 w-4" />
             </span>
             <p className="m-0">

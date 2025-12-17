@@ -25,16 +25,16 @@ export function GuideUpsellSection({
   if (position === "top") {
     // Subtle banner at the top
     return (
-      <div className="not-prose mb-8 flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+      <div className="not-prose mb-8 flex items-center justify-between rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
         <div className="flex items-center gap-3">
-          <Zap className="h-5 w-5 text-blue-600" />
-          <span className="text-sm text-blue-900">
+          <Zap className="h-5 w-5 text-blue-400" />
+          <span className="text-sm text-white">
             <strong>Pro tip:</strong> {description}
           </span>
         </div>
         <Link
           href={href}
-          className="flex-shrink-0 text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="flex-shrink-0 text-sm font-medium text-blue-400 hover:text-blue-300"
         >
           {cta} →
         </Link>
@@ -45,13 +45,13 @@ export function GuideUpsellSection({
   if (position === "sidebar") {
     // Sticky sidebar card
     return (
-      <div className="not-prose rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h4 className="mb-2 font-semibold text-gray-900">{title}</h4>
-        <p className="mb-4 text-sm text-gray-600">{description}</p>
+      <div className="not-prose rounded-xl border border-white/10 bg-white/5 p-5 shadow-sm">
+        <h4 className="mb-2 font-semibold text-white">{title}</h4>
+        <p className="mb-4 text-sm text-white/70">{description}</p>
         <ul className="mb-4 space-y-2">
           {features.slice(0, 3).map((feature, i) => (
-            <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <li key={i} className="flex items-center gap-2 text-sm text-white/90">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
               {feature}
             </li>
           ))}

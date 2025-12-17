@@ -148,7 +148,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
   const content = (
     <div className="space-y-4">
       <div>
-        <label className="text-sm font-medium mb-1 block">Vaš OIB</label>
+        <label className="text-sm font-medium mb-1 block text-white">Vaš OIB</label>
         <Input
           type="text"
           value={oib}
@@ -159,13 +159,13 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
           }}
           placeholder="12345678901"
           maxLength={11}
-          className="font-mono"
+          className="font-mono bg-slate-800 border-white/20 text-white placeholder:text-white/40"
           error={oibError}
         />
       </div>
 
       <div>
-        <label className="text-sm font-medium mb-1 block">Vrsta uplate</label>
+        <label className="text-sm font-medium mb-1 block text-white">Vrsta uplate</label>
         <div className="grid gap-2 sm:grid-cols-2">
           {PAYMENT_OPTIONS.map((option) => (
             <button
@@ -180,18 +180,20 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               className={cn(
                 "p-3 rounded-xl border text-left transition-colors",
                 selectedPayment === option.value
-                  ? "border-blue-200 bg-blue-50"
-                  : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-secondary)]"
+                  ? "border-cyan-400/50 bg-cyan-500/20"
+                  : "border-white/10 bg-white/5 hover:bg-white/10"
               )}
             >
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600/10 text-blue-700">
+                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-400">
                   <option.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-semibold">{option.label}</p>
-                  <p className="text-xs text-[var(--muted)]">{option.description}</p>
-                  <p className="mt-1 text-sm font-medium">{option.amount.toFixed(2)} EUR</p>
+                  <p className="font-semibold text-white">{option.label}</p>
+                  <p className="text-xs text-white/70">{option.description}</p>
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {option.amount.toFixed(2)} EUR
+                  </p>
                 </div>
               </div>
             </button>
@@ -201,7 +203,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="text-sm font-medium mb-1 block">Iznos (EUR)</label>
+          <label className="text-sm font-medium mb-1 block text-white">Iznos (EUR)</label>
           <Input
             type="number"
             inputMode="decimal"
@@ -213,22 +215,30 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
             }}
             min={0}
             step={0.01}
+            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
           />
-          <p className="mt-1 text-xs text-[var(--muted)]">
+          <p className="mt-1 text-xs text-white/70">
             Predloženo prema 2025. iznosima. Možete prilagoditi prije generiranja.
           </p>
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-1 block">Poziv na broj</label>
-          <Input type="text" value={reference} readOnly className="font-mono" />
-          <p className="mt-1 text-xs text-[var(--muted)]">Format: OIB-GGGGMM</p>
+          <label className="text-sm font-medium mb-1 block text-white">Poziv na broj</label>
+          <Input
+            type="text"
+            value={reference}
+            readOnly
+            className="font-mono bg-slate-800/50 border-white/20 text-white"
+          />
+          <p className="mt-1 text-xs text-white/70">Format: OIB-GGGGMM</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="md:col-span-1">
-          <label className="text-sm font-medium mb-1 block">Ime / naziv (opcionalno)</label>
+          <label className="text-sm font-medium mb-1 block text-white">
+            Ime / naziv (opcionalno)
+          </label>
           <Input
             type="text"
             value={payerName}
@@ -238,10 +248,11 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               setPayerName(e.target.value)
             }}
             placeholder="Npr. Ivan Horvat / Obrt Horvat"
+            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
           />
         </div>
         <div className="md:col-span-1">
-          <label className="text-sm font-medium mb-1 block">Adresa (opcionalno)</label>
+          <label className="text-sm font-medium mb-1 block text-white">Adresa (opcionalno)</label>
           <Input
             type="text"
             value={payerAddress}
@@ -251,10 +262,11 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               setPayerAddress(e.target.value)
             }}
             placeholder="Npr. Radnička cesta 80"
+            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
           />
         </div>
         <div className="md:col-span-1">
-          <label className="text-sm font-medium mb-1 block">Mjesto (opcionalno)</label>
+          <label className="text-sm font-medium mb-1 block text-white">Mjesto (opcionalno)</label>
           <Input
             type="text"
             value={payerCity}
@@ -264,35 +276,36 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               setPayerCity(e.target.value)
             }}
             placeholder="Npr. 10000 Zagreb"
+            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
           />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <h4 className="text-sm font-semibold">Podaci za uplatu</h4>
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <h4 className="text-sm font-semibold text-white">Podaci za uplatu</h4>
         <div className="mt-3 grid gap-2 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[var(--muted)]">Primatelj IBAN</span>
-            <span className="font-mono">{selected.iban}</span>
+            <span className="text-white/70">Primatelj IBAN</span>
+            <span className="font-mono text-white">{selected.iban}</span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[var(--muted)]">Model</span>
-            <span className="font-mono">{PAYMENT_MODEL}</span>
+            <span className="text-white/70">Model</span>
+            <span className="font-mono text-white">{PAYMENT_MODEL}</span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[var(--muted)]">Poziv na broj</span>
-            <span className="font-mono">{reference || "—"}</span>
+            <span className="text-white/70">Poziv na broj</span>
+            <span className="font-mono text-white">{reference || "—"}</span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[var(--muted)]">Iznos</span>
-            <span className="font-mono">
+            <span className="text-white/70">Iznos</span>
+            <span className="font-mono text-white">
               {Number.isFinite(amount) ? `${amount.toFixed(2)} EUR` : "—"}
             </span>
           </div>
         </div>
 
         {barcodeError && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mt-4 rounded-lg border border-rose-400/30 bg-rose-500/10 p-3 text-sm text-rose-300">
             {barcodeError}
           </div>
         )}
@@ -322,8 +335,8 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
       </div>
 
       {barcodeDataUrl && (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-          <h4 className="text-sm font-semibold">Barkod (PDF417)</h4>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <h4 className="text-sm font-semibold text-white">Barkod (PDF417)</h4>
           <div className="mt-4 flex flex-col items-center gap-4">
             <Image
               src={barcodeDataUrl}
@@ -331,17 +344,17 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               width={1040}
               height={320}
               unoptimized
-              className="h-auto w-full max-w-[520px] rounded-lg border border-[var(--border)] bg-white p-3"
+              className="h-auto w-full max-w-[520px] rounded-lg border border-white/20 bg-slate-900 p-3"
             />
             <a
               href={barcodeDataUrl}
               download={`hub3-${selectedPayment}-${oib}.png`}
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 min-h-[44px] md:min-h-0"
+              className="inline-flex items-center justify-center rounded-md bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 min-h-[44px] md:min-h-0"
             >
               Preuzmi PNG
             </a>
-            <p className="text-xs text-[var(--muted)] text-center">
-              U mobilnom bankarstvu otvorite “Skeniraj barkod” i usmjerite kameru na kod.
+            <p className="text-xs text-white/70 text-center">
+              U mobilnom bankarstvu otvorite &quot;Skeniraj barkod&quot; i usmjerite kameru na kod.
             </p>
           </div>
         </div>

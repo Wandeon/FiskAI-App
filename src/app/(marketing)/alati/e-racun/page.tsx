@@ -272,60 +272,55 @@ export default function ERacunGeneratorPage() {
             {/* Left Column - Form */}
             <div className="space-y-4">
               {/* Basic Info */}
-              <div
-                className="rounded-lg border p-5"
-                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-              >
-                <h2 className="mb-4 font-semibold" style={{ color: "var(--foreground)" }}>
-                  Osnovni podaci
-                </h2>
+              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                <h2 className="mb-4 font-semibold text-white">Osnovni podaci</h2>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div>
-                    <label className="mb-1 block text-xs font-medium">Broj računa *</label>
+                    <label className="mb-1 block text-xs font-medium text-white/80">
+                      Broj računa *
+                    </label>
                     <input
                       type="text"
                       value={invoiceNumber}
                       onChange={(e) => setInvoiceNumber(e.target.value)}
                       placeholder="2025-001"
-                      className="w-full rounded border px-3 py-2 text-sm"
-                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium">Datum izdavanja</label>
+                    <label className="mb-1 block text-xs font-medium text-white/80">
+                      Datum izdavanja
+                    </label>
                     <input
                       type="date"
                       value={issueDate}
                       onChange={(e) => setIssueDate(e.target.value)}
-                      className="w-full rounded border px-3 py-2 text-sm"
-                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium">Datum dospijeća</label>
+                    <label className="mb-1 block text-xs font-medium text-white/80">
+                      Datum dospijeća
+                    </label>
                     <input
                       type="date"
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
-                      className="w-full rounded border px-3 py-2 text-sm"
-                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Seller */}
-              <div
-                className="rounded-lg border p-5"
-                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-              >
-                <h2 className="mb-4 font-semibold" style={{ color: "var(--foreground)" }}>
-                  Prodavatelj (vi)
-                </h2>
+              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                <h2 className="mb-4 font-semibold text-white">Prodavatelj (vi)</h2>
                 <div className="grid gap-3">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Naziv *</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">
+                        Naziv *
+                      </label>
                       <input
                         type="text"
                         value={sellerName}
@@ -336,7 +331,7 @@ export default function ERacunGeneratorPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium">OIB *</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">OIB *</label>
                       <input
                         type="text"
                         value={sellerOIB}
@@ -364,13 +359,14 @@ export default function ERacunGeneratorPage() {
                       value={sellerAddress}
                       onChange={(e) => setSellerAddress(e.target.value)}
                       placeholder="Ulica i kućni broj"
-                      className="w-full rounded border px-3 py-2 text-sm"
-                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
                     />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Poštanski broj</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">
+                        Poštanski broj
+                      </label>
                       <input
                         type="text"
                         value={sellerPostal}
@@ -381,7 +377,7 @@ export default function ERacunGeneratorPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Grad</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">Grad</label>
                       <input
                         type="text"
                         value={sellerCity}
@@ -396,17 +392,14 @@ export default function ERacunGeneratorPage() {
               </div>
 
               {/* Buyer */}
-              <div
-                className="rounded-lg border p-5"
-                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-              >
-                <h2 className="mb-4 font-semibold" style={{ color: "var(--foreground)" }}>
-                  Kupac
-                </h2>
+              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                <h2 className="mb-4 font-semibold text-white">Kupac</h2>
                 <div className="grid gap-3">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Naziv *</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">
+                        Naziv *
+                      </label>
                       <input
                         type="text"
                         value={buyerName}
@@ -417,7 +410,7 @@ export default function ERacunGeneratorPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium">OIB</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">OIB</label>
                       <input
                         type="text"
                         value={buyerOIB}
@@ -445,13 +438,14 @@ export default function ERacunGeneratorPage() {
                       value={buyerAddress}
                       onChange={(e) => setBuyerAddress(e.target.value)}
                       placeholder="Ulica i kućni broj"
-                      className="w-full rounded border px-3 py-2 text-sm"
-                      style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
                     />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Poštanski broj</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">
+                        Poštanski broj
+                      </label>
                       <input
                         type="text"
                         value={buyerPostal}
@@ -462,7 +456,7 @@ export default function ERacunGeneratorPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Grad</label>
+                      <label className="mb-1 block text-xs font-medium text-white/80">Grad</label>
                       <input
                         type="text"
                         value={buyerCity}
@@ -477,14 +471,9 @@ export default function ERacunGeneratorPage() {
               </div>
 
               {/* Lines */}
-              <div
-                className="rounded-lg border p-5"
-                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-              >
+              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="font-semibold" style={{ color: "var(--foreground)" }}>
-                    Stavke računa
-                  </h2>
+                  <h2 className="font-semibold text-white">Stavke računa</h2>
                   <button
                     onClick={addLine}
                     className="flex items-center gap-1 rounded bg-cyan-600 px-2 py-1 text-xs font-medium text-white hover:bg-cyan-700"
@@ -497,8 +486,7 @@ export default function ERacunGeneratorPage() {
                   {lines.map((line, index) => (
                     <div
                       key={index}
-                      className="grid gap-2 rounded border p-3"
-                      style={{ borderColor: "var(--border)" }}
+                      className="grid gap-2 rounded border border-white/20 bg-white/5 p-3"
                     >
                       <div className="flex items-start justify-between">
                         <input
@@ -506,8 +494,7 @@ export default function ERacunGeneratorPage() {
                           value={line.description}
                           onChange={(e) => updateLine(index, "description", e.target.value)}
                           placeholder="Opis usluge/proizvoda"
-                          className="flex-1 rounded border px-2 py-1.5 text-sm"
-                          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                          className="flex-1 rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-white placeholder:text-white/40"
                         />
                         {lines.length > 1 && (
                           <button
@@ -520,31 +507,29 @@ export default function ERacunGeneratorPage() {
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <label className="mb-1 block text-xs text-gray-500">Količina</label>
+                          <label className="mb-1 block text-xs text-white/60">Količina</label>
                           <input
                             type="number"
                             value={line.quantity}
                             onChange={(e) => updateLine(index, "quantity", e.target.value)}
                             min={1}
-                            className="w-full rounded border px-2 py-1.5 text-sm"
-                            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                            className="w-full rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-white"
                           />
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs text-gray-500">Cijena (EUR)</label>
+                          <label className="mb-1 block text-xs text-white/60">Cijena (EUR)</label>
                           <input
                             type="number"
                             value={line.unitPrice}
                             onChange={(e) => updateLine(index, "unitPrice", e.target.value)}
                             min={0}
                             step={0.01}
-                            className="w-full rounded border px-2 py-1.5 text-sm"
-                            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                            className="w-full rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-white"
                           />
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs text-gray-500">Ukupno</label>
-                          <div className="rounded bg-gray-100 px-2 py-1.5 text-sm font-medium">
+                          <label className="mb-1 block text-xs text-white/60">Ukupno</label>
+                          <div className="rounded bg-white/10 px-2 py-1.5 text-sm font-medium text-white">
                             {(line.quantity * line.unitPrice).toFixed(2)} EUR
                           </div>
                         </div>
@@ -554,22 +539,16 @@ export default function ERacunGeneratorPage() {
                 </div>
 
                 {/* Totals */}
-                <div
-                  className="mt-4 space-y-1 border-t pt-3 text-sm"
-                  style={{ borderColor: "var(--border)" }}
-                >
+                <div className="mt-4 space-y-1 border-t border-white/10 pt-3 text-sm text-white">
                   <div className="flex justify-between">
-                    <span style={{ color: "var(--muted)" }}>Osnovica:</span>
+                    <span className="text-white/60">Osnovica:</span>
                     <span>{totals.lineExtension.toFixed(2)} EUR</span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: "var(--muted)" }}>PDV (25%):</span>
+                    <span className="text-white/60">PDV (25%):</span>
                     <span>{totals.taxAmount.toFixed(2)} EUR</span>
                   </div>
-                  <div
-                    className="flex justify-between border-t pt-2 font-bold"
-                    style={{ borderColor: "var(--border)" }}
-                  >
+                  <div className="flex justify-between border-t border-white/10 pt-2 font-bold">
                     <span>UKUPNO:</span>
                     <span>{totals.total.toFixed(2)} EUR</span>
                   </div>
@@ -590,13 +569,8 @@ export default function ERacunGeneratorPage() {
             <div className="space-y-4">
               {/* Validation */}
               {validationResult && (
-                <div
-                  className="rounded-lg border p-5"
-                  style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-                >
-                  <h3 className="mb-3 font-semibold" style={{ color: "var(--foreground)" }}>
-                    Validacija
-                  </h3>
+                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                  <h3 className="mb-3 font-semibold text-white">Validacija</h3>
                   {validationResult.valid ? (
                     <div className="flex items-start gap-3 rounded border border-green-200 bg-green-50 p-3">
                       <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
@@ -631,22 +605,13 @@ export default function ERacunGeneratorPage() {
 
               {/* XML Output */}
               {xmlOutput && (
-                <div
-                  className="rounded-lg border"
-                  style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-                >
-                  <div
-                    className="flex items-center justify-between border-b p-4"
-                    style={{ borderColor: "var(--border)" }}
-                  >
-                    <h3 className="font-semibold" style={{ color: "var(--foreground)" }}>
-                      UBL 2.1 XML
-                    </h3>
+                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm">
+                  <div className="flex items-center justify-between border-b border-white/10 p-4">
+                    <h3 className="font-semibold text-white">UBL 2.1 XML</h3>
                     <div className="flex gap-2">
                       <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1 rounded border px-2 py-1.5 text-xs font-medium transition-colors hover:bg-gray-100"
-                        style={{ borderColor: "var(--border)" }}
+                        className="flex items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10"
                       >
                         <Copy className="h-3 w-3" />
                         {copySuccess ? "Kopirano!" : "Kopiraj"}
@@ -690,17 +655,12 @@ export default function ERacunGeneratorPage() {
 
               {/* Info */}
               {!xmlOutput && (
-                <div
-                  className="rounded-lg border p-5"
-                  style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-                >
+                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
                   <div className="mb-3 flex items-start gap-3">
-                    <Info className="h-5 w-5 flex-shrink-0" style={{ color: "var(--muted)" }} />
-                    <h3 className="font-semibold" style={{ color: "var(--foreground)" }}>
-                      Zašto UBL 2.1 XML?
-                    </h3>
+                    <Info className="h-5 w-5 flex-shrink-0 text-white/60" />
+                    <h3 className="font-semibold text-white">Zašto UBL 2.1 XML?</h3>
                   </div>
-                  <div className="space-y-2 text-sm" style={{ color: "var(--muted)" }}>
+                  <div className="space-y-2 text-sm text-white/70">
                     <p>
                       <strong>UBL 2.1</strong> (Universal Business Language) je međunarodni standard
                       koji Hrvatska koristi za e-račune od 2026.

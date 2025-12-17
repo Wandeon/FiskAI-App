@@ -9,19 +9,19 @@ interface TLDRBoxProps {
 
 const variantStyles = {
   default: {
-    container: "border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50",
-    icon: "bg-purple-100 text-purple-600",
-    title: "text-purple-900",
+    container: "border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-indigo-500/10",
+    icon: "bg-purple-500/20 text-purple-400",
+    title: "text-purple-300",
   },
   success: {
-    container: "border-green-200 bg-gradient-to-br from-green-50 to-emerald-50",
-    icon: "bg-green-100 text-green-600",
-    title: "text-green-900",
+    container: "border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-green-500/10",
+    icon: "bg-emerald-500/20 text-emerald-400",
+    title: "text-emerald-300",
   },
   warning: {
-    container: "border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50",
-    icon: "bg-amber-100 text-amber-600",
-    title: "text-amber-900",
+    container: "border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/10",
+    icon: "bg-amber-500/20 text-amber-400",
+    title: "text-amber-300",
   },
 }
 
@@ -45,7 +45,7 @@ export function TLDRBox({
         </div>
         <div className="flex-1">
           <h3 className={cn("mb-2 text-base font-semibold", styles.title)}>{title}</h3>
-          <div className="text-sm text-gray-700 [&>p]:mb-2 [&>ul]:mb-0 [&>ul]:ml-4 [&>ul]:list-disc [&>ul>li]:mb-1">
+          <div className="text-sm text-white/90 [&>p]:mb-2 [&>ul]:mb-0 [&>ul]:ml-4 [&>ul]:list-disc [&>ul>li]:mb-1">
             {children}
           </div>
         </div>
@@ -57,8 +57,8 @@ export function TLDRBox({
 // Simpler inline version for use within content
 export function QuickAnswer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 rounded-lg border-l-4 border-purple-500 bg-purple-50 p-4">
-      <p className="text-sm font-medium text-purple-900">
+    <div className="my-4 rounded-lg border-l-4 border-purple-500 bg-purple-500/10 p-4">
+      <p className="text-sm font-medium text-white">
         <span className="mr-2">⚡</span>
         {children}
       </p>

@@ -28,12 +28,12 @@ function StatsContent({
     <div className="max-w-6xl mx-auto px-4 py-3 md:px-6">
       {/* Desktop/Tablet View */}
       <div className="hidden sm:flex items-center justify-between flex-wrap gap-2">
-        {showTitle && <span className="mr-4 font-semibold text-[var(--foreground)]">{title}</span>}
+        {showTitle && <span className="mr-4 font-semibold text-white">{title}</span>}
         <div className="flex flex-wrap gap-4 md:gap-6">
           {stats.map((stat, idx) => (
             <div key={idx} className="flex items-center gap-2 text-sm" title={stat.tooltip}>
-              <span className="text-[var(--muted)]">{stat.label}:</span>
-              <span className="font-medium text-[var(--foreground)]">{stat.value}</span>
+              <span className="text-white/70">{stat.label}:</span>
+              <span className="font-medium text-white">{stat.value}</span>
             </div>
           ))}
         </div>
@@ -41,18 +41,16 @@ function StatsContent({
 
       {/* Mobile View - 2x2 Grid */}
       <div className="sm:hidden">
-        {showTitle && (
-          <div className="mb-3 text-sm font-semibold text-[var(--foreground)]">{title}</div>
-        )}
+        {showTitle && <div className="mb-3 text-sm font-semibold text-white">{title}</div>}
         <div className="grid grid-cols-2 gap-3">
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="flex min-h-[44px] flex-col justify-center gap-1 rounded border border-[var(--border)] bg-[var(--surface)] p-3 sm:border-0 sm:bg-transparent sm:p-0"
+              className="flex min-h-[44px] flex-col justify-center gap-1 rounded border border-white/10 bg-white/5 p-3 sm:border-0 sm:bg-transparent sm:p-0"
               title={stat.tooltip}
             >
-              <span className="text-xs text-[var(--muted)]">{stat.label}</span>
-              <span className="text-sm font-medium text-[var(--foreground)]">{stat.value}</span>
+              <span className="text-xs text-white/70">{stat.label}</span>
+              <span className="text-sm font-medium text-white">{stat.value}</span>
             </div>
           ))}
         </div>
@@ -76,7 +74,7 @@ export function QuickStatsBar({ stats, title }: QuickStatsBarProps) {
 
   return (
     <div className="not-prose">
-      <div className="relative border-y border-[var(--border)] bg-[var(--surface)]">
+      <div className="relative border-y border-white/10 bg-white/5">
         <StatsContent stats={stats} title={title} showTitle={false} />
       </div>
 
@@ -89,7 +87,7 @@ export function QuickStatsBar({ stats, title }: QuickStatsBarProps) {
             exit={reduce ? undefined : { opacity: 0, y: -10 }}
             transition={reduce ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
-              "fixed left-0 right-0 z-30 border-b border-[var(--border)] bg-[var(--glass-surface)] backdrop-blur shadow-sm",
+              "fixed left-0 right-0 z-30 border-b border-white/10 bg-slate-800/80 backdrop-blur shadow-sm",
               "top-[var(--header-height)]"
             )}
           >

@@ -12,13 +12,14 @@ interface ComparisonCellProps {
   children: ReactNode
 }
 
+// Colors optimized for dark section backgrounds
 const typeColors: Record<string, string> = {
-  pausalni: "border-emerald-500/20 bg-emerald-500/10",
-  "obrt-dohodak": "border-blue-500/20 bg-blue-500/10",
-  jdoo: "border-purple-500/20 bg-purple-500/10",
-  doo: "border-indigo-500/20 bg-indigo-500/10",
-  freelancer: "border-orange-500/20 bg-orange-500/10",
-  generic: "border-[var(--border)] bg-[var(--surface-secondary)]",
+  pausalni: "border-emerald-400/30 bg-emerald-500/15",
+  "obrt-dohodak": "border-blue-400/30 bg-blue-500/15",
+  jdoo: "border-purple-400/30 bg-purple-500/15",
+  doo: "border-indigo-400/30 bg-indigo-500/15",
+  freelancer: "border-orange-400/30 bg-orange-500/15",
+  generic: "border-white/10 bg-white/5",
 }
 
 export function ComparisonCell({
@@ -32,10 +33,10 @@ export function ComparisonCell({
   const pill = (
     <span
       className={cn(
-        "inline-flex max-w-full items-start gap-1 rounded border px-2 py-1 text-sm text-[var(--foreground)]",
+        "inline-flex max-w-full items-start gap-1 rounded border px-2 py-1 text-sm text-white/90",
         typeColors[type] || typeColors.generic,
-        isPositive && "font-medium text-emerald-700 dark:text-emerald-300",
-        isNegative && "font-medium text-rose-700 dark:text-rose-300"
+        isPositive && "font-medium text-emerald-300",
+        isNegative && "font-medium text-rose-300"
       )}
     >
       {isPositive && <span aria-hidden>✓</span>}
