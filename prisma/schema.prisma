@@ -91,8 +91,8 @@ model Company {
   deviceCode              String    @default("1")
 
   // Stripe Terminal fields for POS
-  stripeTerminalLocationId  String?   // Stripe location for reader
-  stripeTerminalReaderId    String?   // Connected reader ID
+  stripeTerminalLocationId String? // Stripe location for reader
+  stripeTerminalReaderId   String? // Connected reader ID
 
   // Billing/Subscription fields
   stripeCustomerId               String?   @unique

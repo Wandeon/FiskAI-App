@@ -7,6 +7,7 @@ import { canCreateInvoice } from "@/lib/billing/stripe"
 import { Prisma, PaymentMethod } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import type { ProcessPosSaleInput, ProcessPosSaleResult } from "@/types/pos"
+import { fiscalizePosSale } from "@/lib/fiscal/pos-fiscalize"
 
 const Decimal = Prisma.Decimal
 
@@ -96,8 +97,36 @@ export async function processPosSale(input: ProcessPosSaleInput): Promise<Proces
         include: { lines: true },
       })
 
-      // TODO: Fiscalize in Task 1.5
-      // TODO: Generate PDF URL
+      // Fiscalize the invoice
+      const fiscalResult = await fiscalizePosSale({
+        invoice: {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          issueDate: invoice.issueDate,
+          totalAmount: Number(invoice.totalAmount),
+          paymentMethod: input.paymentMethod,
+        },
+        company: {
+          id: company.id,
+          oib: company.oib,
+          fiscalEnabled: company.fiscalEnabled,
+          premisesCode: premises.code.toString(),
+          deviceCode: device.code.toString(),
+        },
+      })
+
+      // Update invoice with fiscal data
+      if (fiscalResult.success) {
+        await db.eInvoice.update({
+          where: { id: invoice.id },
+          data: {
+            zki: fiscalResult.zki,
+            jir: fiscalResult.jir,
+            fiscalizedAt: fiscalResult.jir ? new Date() : null,
+            status: fiscalResult.jir ? "FISCALIZED" : "PENDING_FISCALIZATION",
+          },
+        })
+      }
 
       revalidatePath("/invoices")
       revalidatePath("/pos")
@@ -109,6 +138,8 @@ export async function processPosSale(input: ProcessPosSaleInput): Promise<Proces
           invoiceNumber: invoice.invoiceNumber,
           totalAmount: Number(invoice.totalAmount),
         },
+        jir: fiscalResult.jir,
+        zki: fiscalResult.zki,
         pdfUrl: `/api/invoices/${invoice.id}/pdf`,
       }
     })
