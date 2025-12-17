@@ -45,10 +45,18 @@ async function getPosts() {
 export default async function AdminNewsPage() {
   const [statusCounts, posts] = await Promise.all([getStatusCounts(), getPosts()])
   const cronConfigured = Boolean(process.env.CRON_SECRET)
-  const aiConfigured = Boolean(process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY)
+  const aiConfigured = Boolean(
+    process.env.OLLAMA_API_KEY || process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY
+  )
   const aiProvider =
     (process.env.NEWS_AI_PROVIDER || process.env.AI_PROVIDER || "").toLowerCase() ||
-    (process.env.DEEPSEEK_API_KEY ? "deepseek" : process.env.OPENAI_API_KEY ? "openai" : "")
+    (process.env.OLLAMA_API_KEY
+      ? "ollama"
+      : process.env.DEEPSEEK_API_KEY
+        ? "deepseek"
+        : process.env.OPENAI_API_KEY
+          ? "openai"
+          : "")
 
   return (
     <div className="space-y-6">

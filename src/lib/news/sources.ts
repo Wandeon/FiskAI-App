@@ -49,32 +49,32 @@ export const newsSources: NewNewsSource[] = [
     isActive: false,
     fetchIntervalHours: 12,
   },
-  // Original sources - kept inactive until feeds are fixed
+  // Official sources - using web scraping (no RSS available)
   {
     id: "porezna-uprava",
     name: "Porezna uprava Republike Hrvatske",
-    url: "https://www.porezna-uprava.hr",
-    feedType: "rss",
-    feedUrl: "https://www.porezna-uprava.hr/rss/HR_porezna_rss.xml",
-    isActive: false, // Feed has invalid XML
+    url: "https://porezna-uprava.gov.hr",
+    feedType: "scrape",
+    scrapeSelector: ".news.box-border",
+    isActive: true,
     fetchIntervalHours: 12,
   },
   {
     id: "narodne-novine",
-    name: "Narodne novine - Sluzbeni glasnik",
+    name: "Narodne novine - Službeni glasnik",
     url: "https://narodne-novine.nn.hr",
-    feedType: "rss",
-    feedUrl: "https://narodne-novine.nn.hr/rss.aspx",
-    isActive: false, // Returns 404
+    feedType: "scrape",
+    scrapeSelector: ".document-item",
+    isActive: true,
     fetchIntervalHours: 6,
   },
   {
     id: "hgk",
     name: "Hrvatska gospodarska komora (HGK)",
     url: "https://www.hgk.hr",
-    feedType: "rss",
-    feedUrl: "https://www.hgk.hr/rss",
-    isActive: false, // Atom format not supported
+    feedType: "scrape",
+    scrapeSelector: ".news-card",
+    isActive: true,
     fetchIntervalHours: 24,
   },
   {
@@ -82,8 +82,8 @@ export const newsSources: NewNewsSource[] = [
     name: "FINA - Financijska agencija",
     url: "https://www.fina.hr",
     feedType: "scrape",
-    scrapeSelector: ".news-list .news-item",
-    isActive: false, // Web scraping not implemented
+    scrapeSelector: ".news-item",
+    isActive: true,
     fetchIntervalHours: 24,
   },
 ]

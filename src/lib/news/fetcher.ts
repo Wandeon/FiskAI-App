@@ -78,13 +78,116 @@ export async function fetchFromRSS(source: NewsSource): Promise<NewNewsItem[]> {
 
 /**
  * Fetch news from a web page using scraping
- * Note: This is a placeholder - actual implementation would need a web scraping library
  */
 export async function fetchFromScrape(source: NewsSource): Promise<NewNewsItem[]> {
-  console.warn(
-    `Web scraping not fully implemented for source: ${source.id}. Use RSS feeds instead.`
-  )
-  return []
+  const { JSDOM } = await import("jsdom")
+
+  const scrapeConfigs: Record<
+    string,
+    {
+      newsUrl: string
+      itemSelector: string
+      titleSelector: string
+      linkSelector: string
+      dateSelector?: string
+      contentSelector?: string
+    }
+  > = {
+    "porezna-uprava": {
+      newsUrl: "https://porezna-uprava.gov.hr/novosti/33",
+      itemSelector: ".news.box-border",
+      titleSelector: ".link_vijest",
+      linkSelector: ".link_vijest",
+      dateSelector: ".datum_vijest",
+    },
+    fina: {
+      newsUrl: "https://www.fina.hr/novosti",
+      itemSelector: ".news-item, article",
+      titleSelector: "h3 a, .title a",
+      linkSelector: "h3 a, .title a",
+      dateSelector: ".date, time",
+    },
+    hgk: {
+      newsUrl: "https://www.hgk.hr/vijesti",
+      itemSelector: ".news-card, .vijest-item",
+      titleSelector: "h3, .title",
+      linkSelector: "a",
+      dateSelector: ".date, time",
+    },
+    "narodne-novine": {
+      newsUrl: "https://narodne-novine.nn.hr/clanci/sluzbeni/",
+      itemSelector: ".document-item, .nn-item, tr",
+      titleSelector: "a",
+      linkSelector: "a",
+      dateSelector: ".date, td:first-child",
+    },
+  }
+
+  const config = scrapeConfigs[source.id]
+  if (!config) {
+    console.warn(`No scrape config for source: ${source.id}`)
+    return []
+  }
+
+  try {
+    const response = await fetch(config.newsUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; FiskAI/1.0; +https://erp.metrica.hr)",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const html = await response.text()
+    const dom = new JSDOM(html)
+    const doc = dom.window.document
+
+    const items: NewNewsItem[] = []
+    const newsElements = doc.querySelectorAll(config.itemSelector)
+
+    for (const el of Array.from(newsElements).slice(0, 20)) {
+      const titleEl = el.querySelector(config.titleSelector)
+      const linkEl = el.querySelector(config.linkSelector) as HTMLAnchorElement
+      const dateEl = config.dateSelector ? el.querySelector(config.dateSelector) : null
+
+      const title = titleEl?.textContent?.trim()
+      let link = linkEl?.href || linkEl?.getAttribute("href")
+
+      if (!title || !link) continue
+
+      // Make relative URLs absolute
+      if (link.startsWith("/")) {
+        const baseUrl = new URL(config.newsUrl)
+        link = `${baseUrl.origin}${link}`
+      }
+
+      const dateText = dateEl?.textContent?.trim()
+      let publishedAt = new Date()
+      if (dateText) {
+        const parsed = new Date(dateText)
+        if (!isNaN(parsed.getTime())) {
+          publishedAt = parsed
+        }
+      }
+
+      items.push({
+        sourceId: source.id,
+        originalTitle: title,
+        originalContent: "",
+        sourceUrl: link,
+        publishedAt,
+        fetchedAt: new Date(),
+        status: "pending",
+      })
+    }
+
+    return items
+  } catch (error) {
+    console.error(`Error scraping ${source.id}:`, error)
+    return []
+  }
 }
 
 /**
