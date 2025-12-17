@@ -6,6 +6,7 @@ import { getGuideBySlug } from "@/lib/knowledge-hub/mdx"
 import { mdxComponents } from "@/components/knowledge-hub/mdx-components"
 import { TableOfContents } from "@/components/knowledge-hub/guide/TableOfContents"
 import { slugifyHeading } from "@/lib/knowledge-hub/slugify"
+import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import type { Metadata } from "next"
 
 interface Props {
@@ -164,30 +165,32 @@ export default async function GuidePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
-        <nav className="mb-6 text-sm text-[var(--muted)]">
-          <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
-            Baza znanja
-          </Link>{" "}
-          <span className="px-2">/</span>
-          <Link href="/vodic" className="hover:text-[var(--foreground)]">
-            Vodiči
-          </Link>{" "}
-          <span className="px-2">/</span>
-          <span className="text-[var(--foreground)]">{guide.frontmatter.title}</span>
-        </nav>
+      <SectionBackground variant="dark" showOrbs={true} showGrid={true}>
+        <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
+          <nav className="mb-6 text-sm text-white/60">
+            <Link href="/baza-znanja" className="hover:text-white/90">
+              Baza znanja
+            </Link>{" "}
+            <span className="px-2">/</span>
+            <Link href="/vodic" className="hover:text-white/90">
+              Vodiči
+            </Link>{" "}
+            <span className="px-2">/</span>
+            <span className="text-white/90">{guide.frontmatter.title}</span>
+          </nav>
 
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
-          <article className="prose prose-slate prose-lg max-w-none">
-            <MDXRemote source={guide.content} components={mdxComponents} />
-          </article>
-          {tocItems.length > 0 && (
-            <aside aria-label="Sadržaj">
-              <TableOfContents items={tocItems} />
-            </aside>
-          )}
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
+            <article className="prose prose-slate prose-lg max-w-none">
+              <MDXRemote source={guide.content} components={mdxComponents} />
+            </article>
+            {tocItems.length > 0 && (
+              <aside aria-label="Sadržaj">
+                <TableOfContents items={tocItems} />
+              </aside>
+            )}
+          </div>
         </div>
-      </div>
+      </SectionBackground>
     </>
   )
 }

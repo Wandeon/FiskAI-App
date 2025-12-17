@@ -14,7 +14,9 @@ import {
   Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { GlassCard } from "@/components/ui/patterns/GlassCard"
+import { HoverScale } from "@/components/ui/motion/HoverScale"
+import { Button } from "@/components/ui/primitives/button"
 import { Reveal } from "@/components/motion/Reveal"
 
 type GuideListItem = {
@@ -84,47 +86,43 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
     <div className="mt-10">
       {featured && group === "Sve" && query.trim().length === 0 && (
         <Reveal className="mb-10">
-          <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 md:p-8">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_circle_at_0%_0%,rgba(59,130,246,0.16),transparent_60%),radial-gradient(700px_circle_at_100%_20%,rgba(99,102,241,0.12),transparent_55%)]" />
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 md:p-8">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_circle_at_0%_0%,rgba(6,182,212,0.16),transparent_60%),radial-gradient(700px_circle_at_100%_20%,rgba(99,102,241,0.12),transparent_55%)]" />
             <div className="relative grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-center">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-blue-600/10 px-3 py-1 text-xs font-semibold text-blue-700">
+                <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
                   <Sparkles className="h-4 w-4" />
                   Preporučeni početak
                 </div>
-                <h2 className="mt-3 text-2xl font-semibold md:text-3xl">{featured.title}</h2>
-                <p className="mt-2 text-sm text-[var(--muted)] md:text-base">
-                  {featured.description}
-                </p>
+                <h2 className="mt-3 text-2xl font-semibold text-white/90 md:text-3xl">
+                  {featured.title}
+                </h2>
+                <p className="mt-2 text-sm text-white/60 md:text-base">{featured.description}</p>
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href={`/vodic/${featured.slug}`}
-                    className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-                  >
-                    Otvori vodič <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/wizard"
-                    className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold transition-colors hover:bg-[var(--surface-secondary)]"
-                  >
-                    Nisam siguran/na — pokreni čarobnjak
-                  </Link>
+                  <Button asChild variant="primary" size="default">
+                    <Link href={`/vodic/${featured.slug}`}>
+                      Otvori vodič <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="default">
+                    <Link href="/wizard">Nisam siguran/na — pokreni čarobnjak</Link>
+                  </Button>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[var(--border)] bg-white/70 p-5 backdrop-blur">
-                <p className="text-sm font-semibold">Kako koristiti bazu znanja</p>
-                <ul className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                <p className="text-sm font-semibold text-white/90">Kako koristiti bazu znanja</p>
+                <ul className="mt-3 space-y-2 text-sm text-white/60">
                   <li className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600" />
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-500" />
                     Krenite s vodičem, zatim otvorite usporedbe.
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600" />
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-500" />
                     Koristite kalkulatore za brzu procjenu.
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600" />
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-500" />
                     Spremite link i vratite se kasnije.
                   </li>
                 </ul>
@@ -134,15 +132,15 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
         </Reveal>
       )}
 
-      <div className="mb-8 grid gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 md:grid-cols-[1fr_auto] md:items-center">
+      <div className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 md:grid-cols-[1fr_auto] md:items-center">
         <label className="relative">
           <span className="sr-only">Pretraži vodiče</span>
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Pretraži vodiče (npr. paušalni, d.o.o., freelancer)…"
-            className="h-11 w-full rounded-xl border border-[var(--border)] bg-white pl-10 pr-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-blue-600/30"
+            className="h-11 w-full rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm pl-10 pr-3 text-sm text-white/90 placeholder:text-white/40 outline-none transition-shadow focus:ring-2 focus:ring-cyan-500/30"
           />
         </label>
 
@@ -155,8 +153,8 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
               className={cn(
                 "rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
                 group === filter.id
-                  ? "border-blue-200 bg-blue-50 text-blue-700"
-                  : "border-[var(--border)] bg-white text-[var(--muted)] hover:bg-[var(--surface-secondary)]"
+                  ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-400"
+                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
               )}
             >
               {filter.label}
@@ -166,10 +164,10 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center">
-          <p className="text-sm font-semibold">Nema rezultata</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Pokušajte s drugim pojmom ili vratite filter na “Sve”.
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center">
+          <p className="text-sm font-semibold text-white/90">Nema rezultata</p>
+          <p className="mt-2 text-sm text-white/60">
+            Pokušajte s drugim pojmom ili vratite filter na &quot;Sve&quot;.
           </p>
         </div>
       ) : (
@@ -187,24 +185,22 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
                   transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <Link href={`/vodic/${guide.slug}`} className="group block h-full">
-                    <Card className="card card-hover h-full">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-3">
+                    <HoverScale className="h-full">
+                      <GlassCard hover={false} className="h-full p-6">
+                        <div className="flex items-start justify-between gap-3 mb-4">
                           <div>
-                            <CardTitle className="text-lg">{guide.title}</CardTitle>
+                            <h3 className="text-lg font-semibold text-white/90">{guide.title}</h3>
                           </div>
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10 text-blue-700 transition-transform group-hover:scale-105">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 transition-transform group-hover:scale-105">
                             <Icon className="h-5 w-5" />
                           </div>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="mb-4 text-sm text-[var(--muted)]">{guide.description}</p>
-                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 transition-all group-hover:gap-3 group-hover:underline">
+                        <p className="mb-4 text-sm text-white/60">{guide.description}</p>
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 transition-all group-hover:gap-3 group-hover:underline">
                           Otvori vodič <ArrowRight className="h-4 w-4" />
                         </span>
-                      </CardContent>
-                    </Card>
+                      </GlassCard>
+                    </HoverScale>
                   </Link>
                 </motion.div>
               )

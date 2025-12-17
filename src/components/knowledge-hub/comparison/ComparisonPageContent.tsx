@@ -7,6 +7,9 @@ import { mdxComponents } from "@/components/knowledge-hub/mdx-components"
 import { ComparisonTable } from "./ComparisonTable"
 import { ComparisonCalculator } from "./ComparisonCalculator"
 import { RecommendationCard } from "./RecommendationCard"
+import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { GlassCard } from "@/components/ui/patterns/GlassCard"
+import { HoverScale } from "@/components/ui/motion/HoverScale"
 import type { ComponentProps } from "react"
 
 interface ComparisonPageContentProps {
@@ -87,72 +90,81 @@ export function ComparisonPageContent({ comparison, searchParams }: ComparisonPa
   )
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
-      {/* Breadcrumb */}
-      <nav className="text-sm text-[var(--muted)] mb-6">
-        <Link href="/" className="hover:text-[var(--foreground)]">
-          Početna
-        </Link>
-        <span className="px-2">/</span>
-        <Link href="/baza-znanja" className="hover:text-[var(--foreground)]">
-          Baza znanja
-        </Link>
-        <span className="px-2">/</span>
-        <span className="text-[var(--foreground)]">{frontmatter.title}</span>
-      </nav>
+    <SectionBackground>
+      <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
+        {/* Breadcrumb */}
+        <nav className="text-sm text-white/60 mb-6">
+          <Link href="/" className="hover:text-white/90">
+            Početna
+          </Link>
+          <span className="px-2">/</span>
+          <Link href="/baza-znanja" className="hover:text-white/90">
+            Baza znanja
+          </Link>
+          <span className="px-2">/</span>
+          <span className="text-white/90">{frontmatter.title}</span>
+        </nav>
 
-      {/* Hero */}
-      <header className="mb-8">
-        <h1 className="text-display text-4xl font-semibold md:text-5xl">{frontmatter.title}</h1>
-        <p className="mt-4 text-lg text-[var(--muted)]">{frontmatter.description}</p>
-      </header>
+        {/* Hero */}
+        <header className="mb-8">
+          <h1 className="text-display text-4xl font-semibold md:text-5xl">{frontmatter.title}</h1>
+          <p className="mt-4 text-lg text-white/60">{frontmatter.description}</p>
+        </header>
 
-      {/* MDX Content (includes ComparisonTable, Calculator, etc.) */}
-      <article className="prose prose-slate max-w-none">
-        <MDXRemote
-          source={content}
-          components={{
-            ...mdxComponents,
-            ComparisonTable: ComparisonTableWithColumns,
-            ComparisonCalculator,
-            RecommendationCard,
-          }}
-        />
-      </article>
+        {/* MDX Content (includes ComparisonTable, Calculator, etc.) */}
+        <article className="prose prose-slate max-w-none">
+          <MDXRemote
+            source={content}
+            components={{
+              ...mdxComponents,
+              ComparisonTable: ComparisonTableWithColumns,
+              ComparisonCalculator,
+              RecommendationCard,
+            }}
+          />
+        </article>
 
-      {/* Deep-dive links */}
-      <section className="mt-12 border-t pt-8">
-        <h2 className="text-xl font-semibold mb-4">Saznajte više</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {guides.map((guide) => (
-            <Link
-              key={guide!.slug}
-              href={`/vodic/${guide!.slug}`}
-              className="block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:bg-[var(--surface-secondary)]"
-            >
-              <span className="font-medium">{guide!.frontmatter.title}</span>
-              <span className="block text-sm text-[var(--muted)]">
-                {guide!.frontmatter.description}
-              </span>
-              <span className="mt-2 block text-sm font-semibold text-blue-700">Otvori vodič →</span>
-            </Link>
-          ))}
-          {missingDeepDiveCount > 0 && (
-            <Link
-              href="/wizard"
-              className="block rounded-xl border border-blue-200 bg-blue-50 p-4 transition-colors hover:bg-blue-100"
-            >
-              <span className="font-medium">Ne možete naći svoj slučaj?</span>
-              <span className="block text-sm text-[var(--muted)]">
-                Pokrenite čarobnjak i dobijte personaliziranu preporuku.
-              </span>
-              <span className="mt-2 block text-sm font-semibold text-blue-700">
-                Pokreni čarobnjak →
-              </span>
-            </Link>
-          )}
-        </div>
-      </section>
-    </div>
+        {/* Deep-dive links */}
+        <section className="mt-12 border-t border-white/10 pt-8">
+          <h2 className="text-xl font-semibold mb-4">Saznajte više</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {guides.map((guide) => (
+              <HoverScale key={guide!.slug}>
+                <Link href={`/vodic/${guide!.slug}`} className="block h-full">
+                  <GlassCard className="h-full p-4">
+                    <span className="font-medium">{guide!.frontmatter.title}</span>
+                    <span className="block text-sm text-white/60">
+                      {guide!.frontmatter.description}
+                    </span>
+                    <span className="mt-2 block text-sm font-semibold text-cyan-400">
+                      Otvori vodič →
+                    </span>
+                  </GlassCard>
+                </Link>
+              </HoverScale>
+            ))}
+            {missingDeepDiveCount > 0 && (
+              <HoverScale>
+                <Link href="/wizard" className="block h-full">
+                  <GlassCard
+                    className="h-full p-4"
+                    border="cyan-500/30"
+                    background="from-cyan-500/10 to-blue-500/10"
+                  >
+                    <span className="font-medium">Ne možete naći svoj slučaj?</span>
+                    <span className="block text-sm text-white/60">
+                      Pokrenite čarobnjak i dobijte personaliziranu preporuku.
+                    </span>
+                    <span className="mt-2 block text-sm font-semibold text-cyan-400">
+                      Pokreni čarobnjak →
+                    </span>
+                  </GlassCard>
+                </Link>
+              </HoverScale>
+            )}
+          </div>
+        </section>
+      </div>
+    </SectionBackground>
   )
 }
