@@ -9,6 +9,7 @@ import {
   UserCog,
   LifeBuoy,
   KeyRound,
+  ShoppingCart,
   type LucideIcon,
 } from "lucide-react"
 
@@ -34,6 +35,7 @@ export const navigation: NavSection[] = [
   {
     title: "Financije",
     items: [
+      { name: "Blagajna", href: "/pos", icon: ShoppingCart },
       {
         name: "Dokumenti",
         href: "/documents",
