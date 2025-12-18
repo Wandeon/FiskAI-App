@@ -55,3 +55,6 @@ uploads/
 
 # Git worktrees
 .worktrees/
+
+# Generated search index
+public/search-index.json
