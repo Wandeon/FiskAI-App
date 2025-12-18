@@ -1,7 +1,7 @@
 import { drizzleDb } from "@/lib/db/drizzle"
 import { paymentObligation, OBLIGATION_STATUS } from "@/lib/db/schema/pausalni"
 import { DOPRINOSI_2025, PDV_CONFIG } from "./constants"
-import { eq, and, gte, lte } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 
 /**
  * Bank transaction interface - matches the structure from bank sync
