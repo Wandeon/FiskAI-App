@@ -37,7 +37,7 @@ export default async function ArticleAgentPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg border">
+      <div className="bg-[var(--surface)] rounded-lg border">
         <table className="w-full">
           <thead className="border-b bg-muted/50">
             <tr>

@@ -86,8 +86,8 @@ export function GuidanceSettingsClient({ initialPreferences }: Props) {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Postavke pomoći</h1>
-        <p className="text-white/60 mt-1">
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">Postavke pomoći</h1>
+        <p className="text-[var(--muted)] mt-1">
           Prilagodite razinu pomoći i vodiča prema vašem iskustvu
         </p>
       </div>
@@ -114,7 +114,7 @@ export function GuidanceSettingsClient({ initialPreferences }: Props) {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">Email obavijesti</h3>
-            <p className="text-sm text-white/60">Primajte preglede zadataka na email</p>
+            <p className="text-sm text-white/70">Primajte preglede zadataka na email</p>
           </div>
         </div>
 
@@ -131,12 +131,12 @@ export function GuidanceSettingsClient({ initialPreferences }: Props) {
                 "w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all",
                 preferences?.emailDigest === option.value
                   ? "bg-brand-500/20 border border-brand-500/30"
-                  : "bg-white/5 border border-white/10 hover:bg-white/10"
+                  : "bg-[var(--surface)]/50 border border-[var(--border)] hover:bg-[var(--surface)]"
               )}
             >
               <div className="text-left">
-                <div className="font-medium text-white">{option.label}</div>
-                <div className="text-sm text-white/60">{option.description}</div>
+                <div className="font-medium text-[var(--foreground)]">{option.label}</div>
+                <div className="text-sm text-[var(--muted)]">{option.description}</div>
               </div>
               {preferences?.emailDigest === option.value && (
                 <Check className="h-5 w-5 text-brand-400" />

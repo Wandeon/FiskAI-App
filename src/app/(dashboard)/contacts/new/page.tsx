@@ -140,7 +140,7 @@ export default function NewContactPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
-        <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
           <section className="grid gap-4 p-6 md:grid-cols-2">
             <div className="md:col-span-2 flex items-start justify-between">
               <div>

@@ -69,7 +69,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       </div>
 
       {/* Status Timeline */}
-      <div className="bg-white rounded-lg border p-6 mb-6">
+      <div className="bg-[var(--surface)] rounded-lg border p-6 mb-6">
         <h2 className="font-medium mb-4">Status</h2>
         <div className="flex items-center gap-4">
           <StatusStep
@@ -96,7 +96,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       </div>
 
       {/* Source URLs */}
-      <div className="bg-white rounded-lg border p-6 mb-6">
+      <div className="bg-[var(--surface)] rounded-lg border p-6 mb-6">
         <h2 className="font-medium mb-4">Izvori ({job.sourceUrls.length})</h2>
         <ul className="space-y-2">
           {job.sourceUrls.map((url, i) => (
@@ -116,7 +116,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
       {/* Draft Preview */}
       {latestDraft && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-[var(--surface)] rounded-lg border p-6">
           <h2 className="font-medium mb-4">Nacrt (iteracija {latestDraft.iteration})</h2>
           <div className="prose prose-sm max-w-none">
             <pre className="whitespace-pre-wrap text-sm">{latestDraft.contentMdx}</pre>

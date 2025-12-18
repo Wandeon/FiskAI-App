@@ -55,7 +55,7 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
       </div>
 
       {devices.length === 0 && !isAdding ? (
-        <div className="rounded-lg border border-dashed border-gray-300 p-4 text-center">
+        <div className="rounded-lg border border-dashed border-[var(--border)] p-4 text-center">
           <p className="text-sm text-gray-500">
             Nema naplatnih uređaja. Svaki poslovni prostor treba barem jedan naplatni uređaj za
             izdavanje računa.
@@ -75,7 +75,7 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
               className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded"
             >
               <div className="flex items-center gap-3">
-                <span className="font-mono text-sm bg-white px-2 py-0.5 rounded border">
+                <span className="font-mono text-sm bg-[var(--surface)] px-2 py-0.5 rounded border">
                   {device.code}
                 </span>
                 <span className="text-sm">{device.name}</span>

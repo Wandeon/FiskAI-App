@@ -192,7 +192,7 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
       ? "border-green-300 bg-green-50"
       : status === "error"
         ? "border-red-200 bg-red-50"
-        : "border-dashed border-gray-300 bg-gradient-to-r from-indigo-50 via-white to-sky-50"
+        : "border-dashed border-[var(--border)] bg-gradient-to-r from-indigo-50 via-[var(--surface)] to-sky-50"
 
   const last = lastByAccount[accountId]
   const lastLabel = last?.sequenceNumber
@@ -234,7 +234,7 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
           e.stopPropagation()
         }}
         onDrop={onDrop}
-        className={`relative rounded-xl border ${borderColor} p-6 transition bg-white shadow-sm`}
+        className={`relative rounded-xl border ${borderColor} p-6 transition bg-[var(--surface)] shadow-sm`}
       >
         <input
           ref={inputRef}
@@ -351,7 +351,7 @@ function ProgressBar({
   const percent = ((activeIndex + (step === "done" ? 0 : 0.5)) / (steps.length - 1)) * 100
 
   return (
-    <div className="mt-4 space-y-2 rounded-lg border bg-white/70 p-3 shadow-sm">
+    <div className="mt-4 space-y-2 rounded-lg border bg-[var(--surface)]/70 p-3 shadow-sm">
       <div className="flex items-center justify-between text-[11px] text-gray-600 mb-1">
         {steps.map((s, idx) => (
           <span key={s} className={idx <= activeIndex ? "font-semibold text-gray-900" : ""}>

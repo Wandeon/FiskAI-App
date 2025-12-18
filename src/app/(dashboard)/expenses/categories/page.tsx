@@ -60,7 +60,7 @@ export default async function ExpenseCategoriesPage() {
                   className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm bg-white px-2 py-0.5 rounded border">
+                    <span className="font-mono text-sm bg-[var(--surface)] px-2 py-0.5 rounded border">
                       {cat.code}
                     </span>
                     <span>{cat.name}</span>
@@ -97,7 +97,7 @@ export default async function ExpenseCategoriesPage() {
                   className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded opacity-75"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm bg-white px-2 py-0.5 rounded border">
+                    <span className="font-mono text-sm bg-[var(--surface)] px-2 py-0.5 rounded border">
                       {cat.code}
                     </span>
                     <span>{cat.name}</span>

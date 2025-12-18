@@ -26,9 +26,7 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
     setCartItems((items) => {
       const existing = items.find((i) => i.productId === product.id)
       if (existing) {
-        return items.map((i) =>
-          i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i
-        )
+        return items.map((i) => (i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i))
       }
       return [
         ...items,
@@ -64,9 +62,7 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
     if (quantity <= 0) {
       setCartItems((items) => items.filter((i) => i.id !== id))
     } else {
-      setCartItems((items) =>
-        items.map((i) => (i.id === id ? { ...i, quantity } : i))
-      )
+      setCartItems((items) => items.map((i) => (i.id === id ? { ...i, quantity } : i)))
     }
   }, [])
 
@@ -102,12 +98,25 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
       }
 
       // F1 = Cash payment
-      if (e.key === "F1" && cartItems.length > 0 && !showCashModal && !showCardModal && !saleResult) {
+      if (
+        e.key === "F1" &&
+        cartItems.length > 0 &&
+        !showCashModal &&
+        !showCardModal &&
+        !saleResult
+      ) {
         e.preventDefault()
         setShowCashModal(true)
       }
       // F2 = Card payment
-      if (e.key === "F2" && cartItems.length > 0 && terminalReaderId && !showCashModal && !showCardModal && !saleResult) {
+      if (
+        e.key === "F2" &&
+        cartItems.length > 0 &&
+        terminalReaderId &&
+        !showCashModal &&
+        !showCardModal &&
+        !saleResult
+      ) {
         e.preventDefault()
         setShowCardModal(true)
       }
@@ -131,16 +140,16 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
+      <header className="bg-[var(--surface)] border-b border-[var(--border)] px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Blagajna</h1>
-          <p className="text-xs text-gray-400">F1 Gotovina • F2 Kartica • Ctrl+Del Očisti</p>
+          <p className="text-xs text-[var(--muted)]">F1 Gotovina • F2 Kartica • Ctrl+Del Očisti</p>
         </div>
         <div className="flex items-center gap-2">
           {terminalReaderId ? (
             <span className="text-xs text-green-600">● Terminal povezan</span>
           ) : (
-            <span className="text-xs text-gray-400">● Nema terminala</span>
+            <span className="text-xs text-[var(--muted)]">● Nema terminala</span>
           )}
         </div>
       </header>
@@ -157,12 +166,8 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
         </div>
 
         {/* Cart */}
-        <div className="w-96 bg-white border-l flex flex-col">
-          <Cart
-            items={cartItems}
-            onUpdateQuantity={updateQuantity}
-            onRemove={removeItem}
-          />
+        <div className="w-96 bg-[var(--surface)] border-l border-[var(--border)] flex flex-col">
+          <Cart items={cartItems} onUpdateQuantity={updateQuantity} onRemove={removeItem} />
         </div>
       </div>
 

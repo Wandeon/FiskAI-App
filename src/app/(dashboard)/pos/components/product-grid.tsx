@@ -20,9 +20,7 @@ export function ProductGrid({ products, onProductClick, onCustomItem }: Props) {
     if (!search.trim()) return products
     const q = search.toLowerCase()
     return products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.sku?.toLowerCase().includes(q)
+      (p) => p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q)
     )
   }, [products, search])
 
@@ -50,7 +48,7 @@ export function ProductGrid({ products, onProductClick, onCustomItem }: Props) {
 
       {/* Product Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center text-gray-500 py-12">
+        <div className="text-center text-[var(--muted)] py-12">
           {search ? "Nema rezultata" : "Nema proizvoda"}
         </div>
       ) : (
@@ -59,18 +57,14 @@ export function ProductGrid({ products, onProductClick, onCustomItem }: Props) {
             <button
               key={product.id}
               onClick={() => onProductClick(product)}
-              className="p-4 bg-white rounded-lg border hover:border-blue-500 hover:shadow-md transition-all text-left"
+              className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:border-blue-500 hover:shadow-md transition-all text-left"
             >
               <div className="font-medium truncate">{product.name}</div>
-              {product.sku && (
-                <div className="text-xs text-gray-400">{product.sku}</div>
-              )}
+              {product.sku && <div className="text-xs text-[var(--muted)]">{product.sku}</div>}
               <div className="mt-2 text-lg font-bold text-blue-600">
                 {formatPrice(product.price)}
               </div>
-              <div className="text-xs text-gray-500">
-                PDV {product.vatRate}%
-              </div>
+              <div className="text-xs text-[var(--muted)]">PDV {product.vatRate}%</div>
             </button>
           ))}
         </div>

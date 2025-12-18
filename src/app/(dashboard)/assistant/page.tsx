@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight, Search, Notebook } from "lucide-react"
 export default function AssistantPage() {
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-700">
             <Sparkles className="h-5 w-5" />
@@ -24,7 +24,7 @@ export default function AssistantPage() {
               </Link>
               <Link
                 href="/contacts"
-                className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 font-medium transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 min-h-[44px] md:min-h-0"
+                className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 font-medium transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 min-h-[44px] md:min-h-0"
               >
                 <ArrowRight className="mr-2 h-4 w-4" /> Pregled kontakata
               </Link>
@@ -34,7 +34,7 @@ export default function AssistantPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-2">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-2">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
             <Search className="h-4 w-4 text-gray-500" />
             Command palette (⌘K / Ctrl+K)
@@ -44,7 +44,7 @@ export default function AssistantPage() {
             miša.
           </p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-2">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm space-y-2">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
             <Notebook className="h-4 w-4 text-gray-500" />
             Vodiči i podrška

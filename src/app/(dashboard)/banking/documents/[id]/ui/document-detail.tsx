@@ -75,7 +75,7 @@ export function DocumentDetail({ job, statement }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div className="bg-slate-50 border-r h-[80vh]">
-        <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border-b bg-white">
+        <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border-b bg-[var(--surface)]">
           <Eye className="h-4 w-4" />
           Izvorni dokument
         </div>
