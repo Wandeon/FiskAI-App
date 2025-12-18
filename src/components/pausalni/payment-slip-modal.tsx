@@ -42,6 +42,7 @@ export function PaymentSlipModal({ obligation, onClose }: Props) {
 
   useEffect(() => {
     fetchPaymentSlip()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [obligation])
 
   async function fetchPaymentSlip() {
@@ -147,6 +148,7 @@ Opis: ${slip.description}`
           {/* Barcode */}
           {barcode && (
             <div className="border border-[var(--border)] rounded-lg p-4 bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={barcode} alt="HUB-3A Barcode" className="w-full h-auto" />
               <p className="text-center text-xs text-[var(--muted)] mt-2">
                 Skenirajte s mBanking aplikacijom
