@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import { Save, Loader2 } from "lucide-react"
+import { Save, Loader2, Mail, Check } from "lucide-react"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { CompetenceSelector } from "@/components/guidance"
 import { Button } from "@/components/ui/primitives/button"
@@ -12,6 +12,8 @@ import {
   type GuidanceCategory,
   LEVEL_DESCRIPTIONS,
 } from "@/lib/guidance/constants"
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface Props {
   initialPreferences: UserGuidancePreferences
@@ -39,6 +41,23 @@ export function GuidanceSettingsClient({ initialPreferences }: Props) {
       }))
     }
     setSaved(false)
+  }
+
+  const handleEmailDigestChange = async (value: "daily" | "weekly" | "none") => {
+    try {
+      const res = await fetch("/api/guidance/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailDigest: value }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setPreferences(data.preferences)
+        toast.success("Postavke spremljene")
+      }
+    } catch (error) {
+      toast.error("Greška pri spremanju")
+    }
   }
 
   const handleSave = async () => {
@@ -87,47 +106,43 @@ export function GuidanceSettingsClient({ initialPreferences }: Props) {
         />
       </GlassCard>
 
-      <GlassCard hover={false} padding="lg">
-        <h2 className="text-lg font-semibold text-white mb-4">Obavijesti</h2>
-
-        <div className="space-y-4">
+      {/* Email Digest Settings */}
+      <GlassCard>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/10">
+            <Mail className="h-5 w-5 text-brand-400" />
+          </div>
           <div>
-            <label className="text-sm font-medium text-white/80">Email podsjetnici</label>
-            <select
-              value={preferences.emailDigest || "weekly"}
-              onChange={(e) => {
-                setPreferences((prev) => ({ ...prev, emailDigest: e.target.value }))
-                setSaved(false)
-              }}
-              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-white"
-            >
-              <option value="daily">Dnevno</option>
-              <option value="weekly">Tjedno</option>
-              <option value="none">Isključeno</option>
-            </select>
+            <h3 className="text-lg font-semibold text-white">Email obavijesti</h3>
+            <p className="text-sm text-white/60">Primajte preglede zadataka na email</p>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-medium text-white/80">Push obavijesti</label>
-              <p className="text-xs text-white/50">Primaj obavijesti u pregledniku</p>
-            </div>
+        <div className="space-y-3">
+          {[
+            { value: "daily", label: "Dnevno", description: "Svaki dan u 8:00" },
+            { value: "weekly", label: "Tjedno", description: "Svaki ponedjeljak u 8:00" },
+            { value: "none", label: "Nikada", description: "Ne šalji email obavijesti" },
+          ].map((option) => (
             <button
-              onClick={() => {
-                setPreferences((prev) => ({ ...prev, pushEnabled: !prev.pushEnabled }))
-                setSaved(false)
-              }}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                preferences.pushEnabled ? "bg-cyan-500" : "bg-white/20"
-              }`}
+              key={option.value}
+              onClick={() => handleEmailDigestChange(option.value as "daily" | "weekly" | "none")}
+              className={cn(
+                "w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all",
+                preferences?.emailDigest === option.value
+                  ? "bg-brand-500/20 border border-brand-500/30"
+                  : "bg-white/5 border border-white/10 hover:bg-white/10"
+              )}
             >
-              <span
-                className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                  preferences.pushEnabled ? "translate-x-6" : ""
-                }`}
-              />
+              <div className="text-left">
+                <div className="font-medium text-white">{option.label}</div>
+                <div className="text-sm text-white/60">{option.description}</div>
+              </div>
+              {preferences?.emailDigest === option.value && (
+                <Check className="h-5 w-5 text-brand-400" />
+              )}
             </button>
-          </div>
+          ))}
         </div>
       </GlassCard>
 
