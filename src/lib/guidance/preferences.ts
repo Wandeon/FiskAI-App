@@ -11,7 +11,7 @@ import {
 import { eq } from "drizzle-orm"
 
 export { COMPETENCE_LEVELS, GUIDANCE_CATEGORIES }
-export type { CompetenceLevel, GuidanceCategory }
+export type { CompetenceLevel, GuidanceCategory, UserGuidancePreferences }
 
 /**
  * Get user's guidance preferences, creating defaults if not exists
