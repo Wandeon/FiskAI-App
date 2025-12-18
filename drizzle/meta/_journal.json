@@ -43,6 +43,13 @@
       "when": 1734545000000,
       "tag": "0005_add_pausalni_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766062084913,
+      "tag": "0006_stale_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,5 @@
 export * from "./deadlines"
+export * from "./guidance"
 export * from "./news"
 export * from "./newsletter"
 export * from "./pausalni"
