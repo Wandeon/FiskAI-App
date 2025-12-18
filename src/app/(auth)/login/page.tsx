@@ -2,22 +2,23 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema, LoginInput } from "@/lib/validations"
-import { login, loginWithPasskey } from "@/app/actions/auth"
+import { login, loginWithPasskey, resendVerificationEmail } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { startAuthentication } from "@simplewebauthn/browser"
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser"
-import { Chrome, KeyRound } from "lucide-react"
+import { Chrome, KeyRound, Mail, CheckCircle, RefreshCw, Loader2 } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { getProviders, signIn } from "next-auth/react"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [passkeyLoading, setPasskeyLoading] = useState(false)
@@ -25,6 +26,17 @@ export default function LoginPage() {
   const [showPasskeyEmail, setShowPasskeyEmail] = useState(false)
   const [passkeyEmail, setPasskeyEmail] = useState("")
   const [googleAvailable, setGoogleAvailable] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
+  const [justVerified, setJustVerified] = useState(false)
+
+  useEffect(() => {
+    // Check if user just verified their email
+    if (searchParams.get("verified") === "true") {
+      setJustVerified(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     setIsPasskeySupported(
@@ -55,12 +67,34 @@ export default function LoginPage() {
   async function onSubmit(data: LoginInput) {
     setLoading(true)
     setError(null)
+    setUnverifiedEmail(null)
+    setResent(false)
+    setJustVerified(false)
 
     const result = await login(data)
 
     if (result?.error) {
-      setError(result.error)
+      if (result.error === "email_not_verified" && result.email) {
+        setUnverifiedEmail(result.email)
+        setError(null)
+      } else {
+        setError(result.error)
+      }
       setLoading(false)
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!unverifiedEmail || resending) return
+
+    setResending(true)
+    const result = await resendVerificationEmail(unverifiedEmail)
+    setResending(false)
+
+    if (result?.success) {
+      setResent(true)
+    } else if (result?.error === "rate_limited") {
+      setError("Previše pokušaja. Molimo pričekajte prije ponovnog slanja.")
     }
   }
 
@@ -180,6 +214,63 @@ export default function LoginPage() {
             ) : (
               <>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  {justVerified && (
+                    <div
+                      role="alert"
+                      className="animate-slide-down rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700 flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>Email potvrđen! Sada se možete prijaviti.</span>
+                    </div>
+                  )}
+
+                  {unverifiedEmail && (
+                    <div
+                      role="alert"
+                      className="animate-slide-down rounded-md bg-amber-50 border border-amber-200 p-4 text-sm"
+                    >
+                      <div className="flex items-start gap-3">
+                        <Mail className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="space-y-2 flex-1">
+                          <p className="text-amber-800 font-medium">
+                            Molimo potvrdite svoju email adresu
+                          </p>
+                          <p className="text-amber-700">
+                            Poslali smo vam link za potvrdu na {unverifiedEmail}. Provjerite inbox i
+                            spam folder.
+                          </p>
+                          {resent ? (
+                            <div className="flex items-center gap-2 text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Novi link je poslan!</span>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={handleResendVerification}
+                              disabled={resending}
+                              className="mt-1"
+                            >
+                              {resending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                  Slanje...
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="mr-2 h-3 w-3" />
+                                  Pošalji ponovno
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {error && (
                     <div
                       role="alert"

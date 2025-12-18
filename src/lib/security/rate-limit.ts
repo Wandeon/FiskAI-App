@@ -21,6 +21,11 @@ export const RATE_LIMITS = {
     window: 15 * 60 * 1000,
     blockDuration: 60 * 60 * 1000,
   },
+  EMAIL_VERIFICATION: {
+    attempts: 3, // 3 resend attempts
+    window: 60 * 60 * 1000, // 1 hour
+    blockDuration: 60 * 60 * 1000, // 1 hour block
+  },
   API_CALLS: {
     attempts: 100,
     window: 15 * 60 * 1000, // 15 minutes

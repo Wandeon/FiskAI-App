@@ -28,7 +28,7 @@ export async function register(formData: z.infer<typeof registerSchema>) {
 
   const passwordHash = await bcrypt.hash(password, 10)
 
-  await db.user.create({
+  const user = await db.user.create({
     data: {
       name,
       email,
@@ -36,26 +36,49 @@ export async function register(formData: z.infer<typeof registerSchema>) {
     },
   })
 
-  // Send welcome email
+  // Generate verification token
   try {
-    const loginUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/login`
+    const crypto = await import("crypto")
+    const tokenBytes = crypto.randomBytes(32)
+    const token = tokenBytes.toString("hex")
+
+    // Token expires in 24 hours
+    const expires = new Date()
+    expires.setHours(expires.getHours() + 24)
+
+    // Delete any existing verification tokens for this email
+    await db.verificationToken.deleteMany({
+      where: { identifier: email },
+    })
+
+    // Create verification token
+    await db.verificationToken.create({
+      data: {
+        identifier: email,
+        token,
+        expires,
+      },
+    })
+
+    // Send verification email
+    const verifyLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
     const { sendEmail } = await import("@/lib/email")
-    const { WelcomeEmail } = await import("@/lib/email/templates/welcome-email")
+    const { VerificationEmail } = await import("@/lib/email/templates/verification-email")
 
     await sendEmail({
       to: email,
-      subject: "Dobrodošli u FiskAI!",
-      react: WelcomeEmail({
+      subject: "Potvrdite svoju email adresu - FiskAI",
+      react: VerificationEmail({
+        verifyLink,
         userName: name,
-        loginUrl,
       }),
     })
   } catch (emailError) {
-    // Don't fail registration if email fails
-    console.error("Failed to send welcome email:", emailError)
+    // Don't fail registration if email fails, but log it
+    console.error("Failed to send verification email:", emailError)
   }
 
-  return { success: "Account created! Please log in." }
+  return { success: true, email }
 }
 
 export async function login(formData: z.infer<typeof loginSchema>) {
@@ -74,6 +97,25 @@ export async function login(formData: z.infer<typeof loginSchema>) {
   if (!rateLimitResult.allowed) {
     // Don't reveal that account exists or rate limit status
     return { error: "Invalid credentials" }
+  }
+
+  // Check if user exists and verify password before checking email verification
+  const user = await db.user.findUnique({
+    where: { email },
+  })
+
+  if (!user || !user.passwordHash) {
+    return { error: "Invalid credentials" }
+  }
+
+  const passwordMatch = await bcrypt.compare(password, user.passwordHash)
+  if (!passwordMatch) {
+    return { error: "Invalid credentials" }
+  }
+
+  // Check if email is verified
+  if (!user.emailVerified) {
+    return { error: "email_not_verified", email: user.email }
   }
 
   try {
@@ -235,5 +277,131 @@ export async function loginWithPasskey(userId: string) {
       return { error: "Greška pri prijavi" }
     }
     throw error
+  }
+}
+
+export async function verifyEmail(token: string) {
+  try {
+    // Find the verification token
+    const verificationToken = await db.verificationToken.findUnique({
+      where: { token },
+    })
+
+    if (!verificationToken) {
+      return { error: "invalid_token" }
+    }
+
+    // Check if token is expired
+    if (new Date() > verificationToken.expires) {
+      // Delete expired token
+      await db.verificationToken.delete({
+        where: { token },
+      })
+      return { error: "token_expired", email: verificationToken.identifier }
+    }
+
+    // Find the user by email (identifier)
+    const user = await db.user.findUnique({
+      where: { email: verificationToken.identifier },
+    })
+
+    if (!user) {
+      return { error: "user_not_found" }
+    }
+
+    // Check if already verified
+    if (user.emailVerified) {
+      // Delete the token since it's no longer needed
+      await db.verificationToken.delete({
+        where: { token },
+      })
+      return { success: true, alreadyVerified: true }
+    }
+
+    // Update user's emailVerified field
+    await db.user.update({
+      where: { id: user.id },
+      data: { emailVerified: new Date() },
+    })
+
+    // Delete the used token
+    await db.verificationToken.delete({
+      where: { token },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Email verification error:", error)
+    return { error: "verification_failed" }
+  }
+}
+
+export async function resendVerificationEmail(email: string) {
+  // Rate limiting for verification email resend
+  const identifier = `email_verification_${email.toLowerCase()}`
+  const rateLimitResult = checkRateLimit(identifier, "EMAIL_VERIFICATION")
+
+  if (!rateLimitResult.allowed) {
+    return { error: "rate_limited" }
+  }
+
+  try {
+    // Find the user
+    const user = await db.user.findUnique({
+      where: { email },
+    })
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return { success: true }
+    }
+
+    // If already verified, return success (don't reveal verification status)
+    if (user.emailVerified) {
+      return { success: true }
+    }
+
+    // Generate new verification token
+    const crypto = await import("crypto")
+    const tokenBytes = crypto.randomBytes(32)
+    const token = tokenBytes.toString("hex")
+
+    // Token expires in 24 hours
+    const expires = new Date()
+    expires.setHours(expires.getHours() + 24)
+
+    // Delete any existing verification tokens for this email
+    await db.verificationToken.deleteMany({
+      where: { identifier: email },
+    })
+
+    // Create new verification token
+    await db.verificationToken.create({
+      data: {
+        identifier: email,
+        token,
+        expires,
+      },
+    })
+
+    // Send verification email
+    const verifyLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
+    const { sendEmail } = await import("@/lib/email")
+    const { VerificationEmail } = await import("@/lib/email/templates/verification-email")
+
+    await sendEmail({
+      to: email,
+      subject: "Potvrdite svoju email adresu - FiskAI",
+      react: VerificationEmail({
+        verifyLink,
+        userName: user.name || undefined,
+      }),
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Resend verification email error:", error)
+    // Return success to prevent information leakage
+    return { success: true }
   }
 }

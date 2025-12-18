@@ -46,8 +46,8 @@ export default function RegisterPage() {
     if (result?.error) {
       setError(result.error)
       setLoading(false)
-    } else if (result?.success) {
-      router.push("/login?registered=true")
+    } else if (result?.success && result?.email) {
+      router.push(`/check-email?email=${encodeURIComponent(result.email)}`)
     }
   }
 

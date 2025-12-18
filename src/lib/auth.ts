@@ -87,6 +87,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       : []),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      // Auto-verify email for OAuth providers (Google, etc.)
+      if (account?.provider && account.provider !== "credentials") {
+        if (user.id) {
+          // Check if user exists and needs verification
+          const existingUser = await db.user.findUnique({
+            where: { id: user.id },
+            select: { emailVerified: true },
+          })
+          if (existingUser && !existingUser.emailVerified) {
+            await db.user.update({
+              where: { id: user.id },
+              data: { emailVerified: new Date() },
+            })
+          }
+        }
+      }
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
@@ -101,9 +120,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account }) {
       // Log successful sign in for audit purposes
-      console.log(`User ${user.email} signed in successfully`)
+      console.log(`User ${user.email} signed in via ${account?.provider || "credentials"}`)
     },
     async signOut({ token, session }) {
       // Log sign out for audit purposes
