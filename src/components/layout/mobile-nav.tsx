@@ -7,6 +7,33 @@ import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { navigation, isNavItemActive } from "@/lib/navigation"
 import { CommandPalette } from "@/components/ui/command-palette"
+import { VisibleNavItem } from "@/lib/visibility"
+import type { ElementId } from "@/lib/visibility/elements"
+
+// Map navigation paths to visibility element IDs
+function getNavElementId(href: string): ElementId | null {
+  const pathToElementId: Record<string, ElementId> = {
+    "/dashboard": "nav:dashboard",
+    "/invoices": "nav:invoices",
+    "/e-invoices": "nav:e-invoices",
+    "/contacts": "nav:contacts",
+    "/customers": "nav:customers",
+    "/products": "nav:products",
+    "/expenses": "nav:expenses",
+    "/documents": "nav:documents",
+    "/import": "nav:import",
+    "/vat": "nav:vat",
+    "/pausalni": "nav:pausalni",
+    "/reports": "nav:reports",
+    "/doprinosi": "nav:doprinosi",
+    "/corporate-tax": "nav:corporate-tax",
+    "/banking": "nav:bank",
+    "/pos": "nav:pos",
+    "/settings": "nav:settings",
+    "/checklist": "nav:checklist",
+  }
+  return pathToElementId[href] || null
+}
 
 interface MobileNavProps {
   companyName?: string
@@ -96,7 +123,44 @@ export function MobileNav({ companyName, userName }: MobileNavProps) {
                 {section.items.map((item) => {
                   const isActive = isNavItemActive(item, pathname)
                   const Icon = item.icon
+                  const elementId = getNavElementId(item.href)
 
+                  // Use VisibleNavItem if we have an element ID, otherwise fallback to Link
+                  if (elementId) {
+                    return (
+                      <div key={item.href} className="relative">
+                        <VisibleNavItem
+                          id={elementId}
+                          href={item.href}
+                          icon={
+                            <Icon
+                              className={cn(
+                                "h-5 w-5",
+                                isActive
+                                  ? "text-brand-600 dark:text-brand-400"
+                                  : "text-[var(--muted)]"
+                              )}
+                            />
+                          }
+                          label={item.name}
+                          isActive={isActive}
+                          className={cn(
+                            "text-sm font-medium py-2.5",
+                            isActive
+                              ? "bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400"
+                              : ""
+                          )}
+                        />
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="absolute right-3 top-3 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900 dark:text-brand-300">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  }
+
+                  // Fallback for items without element IDs
                   return (
                     <Link
                       key={item.href}
