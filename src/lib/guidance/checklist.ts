@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/schema/guidance"
 import { eq, and, or, gte, lte, notInArray, sql } from "drizzle-orm"
 import { OBLIGATION_LABELS } from "@/lib/pausalni/constants"
+import { getAllPatternInsights } from "./patterns"
 
 // Re-export constants from schema for convenience
 export { CHECKLIST_ITEM_TYPES }
@@ -472,6 +473,37 @@ export async function getChecklist(params: GetChecklistParams): Promise<{
     ...onboardingItems,
     ...seasonalItems,
   ]
+
+  // Add smart suggestions from pattern detection
+  try {
+    const patterns = await getAllPatternInsights(companyId)
+
+    for (const pattern of patterns) {
+      const reference = `pattern-${pattern.type}-${Date.now()}`
+      if (excludeRefs.has(reference)) continue
+
+      allItems.push({
+        id: `pattern-${pattern.type}-${Date.now()}`,
+        category: pattern.type === "invoice_reminder" ? "fakturiranje" : "financije",
+        type: CHECKLIST_ITEM_TYPES.SUGGESTION,
+        title: pattern.title,
+        description: pattern.description,
+        urgency: pattern.confidence >= 80 ? URGENCY_LEVELS.UPCOMING : URGENCY_LEVELS.OPTIONAL,
+        action: pattern.suggestedAction
+          ? {
+              type: ACTION_TYPES.LINK,
+              href: pattern.suggestedAction.href,
+            }
+          : {
+              type: ACTION_TYPES.LINK,
+              href: "/dashboard",
+            },
+        reference,
+      })
+    }
+  } catch (error) {
+    console.error("Failed to get pattern insights:", error)
+  }
 
   // Sort by urgency (critical first), then by due date
   const urgencyOrder = {
