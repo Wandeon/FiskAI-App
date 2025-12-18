@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Grid3X3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PortalNavigation } from "./PortalNavigation"
+import { CommandPalette } from "@/components/ui/command-palette"
 
 const NAV_LINKS = [
   { href: "/alati", label: "Alati" },
@@ -31,18 +32,7 @@ export function MarketingHeader() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Keyboard shortcut for portal (Cmd/Ctrl + K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault()
-        setPortalOpen((prev) => !prev)
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  // Note: ⌘K is handled by CommandPalette component
 
   return (
     <>
@@ -113,6 +103,9 @@ export function MarketingHeader() {
 
             {/* Actions */}
             <div className="flex items-center gap-3">
+              {/* Search - CommandPalette */}
+              <CommandPalette />
+
               {/* Istraži button - Desktop */}
               <motion.button
                 onClick={() => setPortalOpen(true)}
@@ -149,9 +142,6 @@ export function MarketingHeader() {
 
                 <Grid3X3 className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
                 <span>Istraži</span>
-                <kbd className="ml-1 hidden rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/50 lg:inline-block">
-                  ⌘K
-                </kbd>
               </motion.button>
 
               {/* Mobile menu button */}
