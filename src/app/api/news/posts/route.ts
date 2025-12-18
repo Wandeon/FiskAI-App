@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
-import { newsPosts, newsCategories } from "@/lib/db/schema/news"
-import { eq, desc, and, sql, lte, or, ilike } from "drizzle-orm"
+import { newsPosts, newsCategories, newsItems, newsSources } from "@/lib/db/schema/news"
+import { eq, desc, and, sql, lte, or, ilike, isNotNull } from "drizzle-orm"
 
 export const dynamic = "force-dynamic"
 
@@ -16,6 +16,7 @@ export const dynamic = "force-dynamic"
  * - limit: number of results (default: 20, max: 50)
  * - offset: pagination offset (default: 0)
  * - q: search query (min 2 characters, searches title and excerpt)
+ * - includeItems: if "true", also search newsItems table (source items)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
     const categorySlug = searchParams.get("category") || undefined
     const type = searchParams.get("type") || undefined
     const query = searchParams.get("q")?.trim() || undefined
+    const includeItems = searchParams.get("includeItems") === "true"
 
     // Build query conditions - only published posts
     const conditions = [eq(newsPosts.status, "published"), lte(newsPosts.publishedAt, new Date())]
@@ -59,6 +61,7 @@ export async function GET(request: NextRequest) {
         // Category not found, return empty result
         return NextResponse.json({
           posts: [],
+          items: [],
           count: 0,
           limit,
           offset,
@@ -95,11 +98,65 @@ export async function GET(request: NextRequest) {
       .from(newsPosts)
       .where(and(...conditions))
 
-    const count = Number(countResult[0]?.count || 0)
+    const postCount = Number(countResult[0]?.count || 0)
+
+    // Also search newsItems if includeItems is true and we have a search query
+    let items: any[] = []
+    let itemCount = 0
+
+    if (includeItems && query && query.length >= 2) {
+      const searchPattern = `%${query}%`
+
+      const itemResults = await drizzleDb
+        .select({
+          id: newsItems.id,
+          sourceUrl: newsItems.sourceUrl,
+          title: newsItems.originalTitle,
+          summaryHr: newsItems.summaryHr,
+          publishedAt: newsItems.publishedAt,
+          impactLevel: newsItems.impactLevel,
+          sourceName: newsSources.name,
+        })
+        .from(newsItems)
+        .leftJoin(newsSources, eq(newsItems.sourceId, newsSources.id))
+        .where(
+          and(
+            isNotNull(newsItems.publishedAt),
+            lte(newsItems.publishedAt, new Date()),
+            or(
+              ilike(newsItems.originalTitle, searchPattern),
+              ilike(newsItems.summaryHr, searchPattern)
+            )
+          )
+        )
+        .orderBy(desc(newsItems.publishedAt))
+        .limit(limit)
+
+      items = itemResults
+
+      const itemCountResult = await drizzleDb
+        .select({ count: sql<number>`count(*)` })
+        .from(newsItems)
+        .where(
+          and(
+            isNotNull(newsItems.publishedAt),
+            lte(newsItems.publishedAt, new Date()),
+            or(
+              ilike(newsItems.originalTitle, searchPattern),
+              ilike(newsItems.summaryHr, searchPattern)
+            )
+          )
+        )
+
+      itemCount = Number(itemCountResult[0]?.count || 0)
+    }
 
     return NextResponse.json({
       posts,
-      count,
+      items: includeItems ? items : undefined,
+      count: postCount,
+      itemCount: includeItems ? itemCount : undefined,
+      totalCount: postCount + itemCount,
       limit,
       offset,
       query: query || null,

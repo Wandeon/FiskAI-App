@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -141,14 +141,20 @@ const RESURSI = [
 ]
 
 export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
-  const searchInputRef = useRef<HTMLInputElement>(null)
-
-  // Focus search on open
-  useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 100)
-    }
-  }, [isOpen])
+  // Open CommandPalette and close this portal
+  const openSearch = () => {
+    onClose()
+    // Dispatch ⌘K event to open CommandPalette
+    setTimeout(() => {
+      const event = new KeyboardEvent("keydown", {
+        key: "k",
+        metaKey: true,
+        ctrlKey: true,
+        bubbles: true,
+      })
+      window.dispatchEvent(event)
+    }, 100) // Small delay to let portal close first
+  }
 
   // Close on Escape
   useEffect(() => {
@@ -211,16 +217,17 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                   <X className="h-4 w-4" />
                   Zatvori
                 </button>
-                {/* Search */}
-                <div className="relative hidden md:block">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Pretraži... ⌘K"
-                    className="w-64 rounded-lg border border-white/10 bg-white/5 py-2 pl-10 pr-4 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/30 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
-                  />
-                </div>
+                {/* Search - opens CommandPalette */}
+                <button
+                  onClick={openSearch}
+                  className="relative hidden items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/60 transition-colors hover:border-cyan-400/30 hover:bg-white/10 hover:text-white md:flex"
+                >
+                  <Search className="h-4 w-4" />
+                  <span>Pretraži...</span>
+                  <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/50">
+                    ⌘K
+                  </span>
+                </button>
                 <div className="w-20" /> {/* Spacer for balance */}
               </div>
 
@@ -397,15 +404,14 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
 
                 {/* Mobile layout */}
                 <div className="px-4 py-6 md:hidden">
-                  {/* Mobile search */}
-                  <div className="relative mb-6">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                    <input
-                      type="text"
-                      placeholder="Pretraži..."
-                      className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/40 focus:border-cyan-400/30 focus:outline-none"
-                    />
-                  </div>
+                  {/* Mobile search - opens CommandPalette */}
+                  <button
+                    onClick={openSearch}
+                    className="mb-6 flex w-full items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60 transition-colors hover:border-cyan-400/30 hover:bg-white/10"
+                  >
+                    <Search className="h-4 w-4" />
+                    <span className="flex-1 text-left">Pretraži...</span>
+                  </button>
 
                   {/* Mobile accordions */}
                   <div className="space-y-3">

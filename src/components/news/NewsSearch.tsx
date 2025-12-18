@@ -2,11 +2,13 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, X, Loader2 } from "lucide-react"
+import { Search, X, Loader2, ExternalLink } from "lucide-react"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { Button } from "@/components/ui/primitives/button"
 import { PostCard } from "./PostCard"
 import { useDebouncedCallback } from "use-debounce"
+import { format } from "date-fns"
+import { hr } from "date-fns/locale"
 
 interface SearchResult {
   id: string
@@ -21,6 +23,16 @@ interface SearchResult {
   impactLevel: string | null
 }
 
+interface SourceItem {
+  id: string
+  sourceUrl: string
+  title: string
+  summaryHr: string | null
+  publishedAt: string | null
+  impactLevel: string | null
+  sourceName: string | null
+}
+
 interface NewsSearchProps {
   initialQuery?: string
 }
@@ -32,12 +44,14 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
   const [isOpen, setIsOpen] = useState(!!initialQuery)
   const [query, setQuery] = useState(initialQuery)
   const [results, setResults] = useState<SearchResult[]>([])
+  const [items, setItems] = useState<SourceItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
 
   const performSearch = useDebouncedCallback(async (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setResults([])
+      setItems([])
       setTotalCount(0)
       return
     }
@@ -48,11 +62,13 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
         q: searchQuery,
         type: "individual",
         limit: "10",
+        includeItems: "true",
       })
       const res = await fetch(`/api/news/posts?${params}`)
       const data = await res.json()
       setResults(data.posts || [])
-      setTotalCount(data.count || 0)
+      setItems(data.items || [])
+      setTotalCount(data.totalCount || 0)
     } catch (error) {
       console.error("Search error:", error)
     } finally {
@@ -74,6 +90,7 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
     setIsOpen(false)
     setQuery("")
     setResults([])
+    setItems([])
     // Remove query param from URL
     const params = new URLSearchParams(searchParams.toString())
     params.delete("q")
@@ -141,22 +158,65 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
             )}
           </p>
 
+          {/* Published posts */}
           {results.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {results.map((post) => (
-                <PostCard
-                  key={post.id}
-                  slug={post.slug}
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  categoryName={post.categoryName || undefined}
-                  categorySlug={post.categorySlug || undefined}
-                  publishedAt={post.publishedAt ? new Date(post.publishedAt) : new Date()}
-                  featuredImageUrl={post.featuredImageUrl}
-                  featuredImageSource={post.featuredImageSource}
-                  impactLevel={post.impactLevel}
-                />
-              ))}
+            <div className="mb-8">
+              <h3 className="mb-4 text-sm font-semibold text-white/80">Objavljeni članci</h3>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {results.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    slug={post.slug}
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    categoryName={post.categoryName || undefined}
+                    categorySlug={post.categorySlug || undefined}
+                    publishedAt={post.publishedAt ? new Date(post.publishedAt) : new Date()}
+                    featuredImageUrl={post.featuredImageUrl}
+                    featuredImageSource={post.featuredImageSource}
+                    impactLevel={post.impactLevel}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Source items */}
+          {items.length > 0 && (
+            <div>
+              <h3 className="mb-4 text-sm font-semibold text-white/80">Iz izvora</h3>
+              <GlassCard hover={false} padding="sm">
+                <ul className="divide-y divide-white/10">
+                  {items.map((item) => (
+                    <li key={item.id}>
+                      <a
+                        href={item.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-white/5"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-white line-clamp-2 group-hover:text-cyan-300">
+                            {item.title}
+                          </p>
+                          {item.summaryHr && (
+                            <p className="mt-1 text-sm text-white/60 line-clamp-2">
+                              {item.summaryHr}
+                            </p>
+                          )}
+                          <p className="mt-1 text-xs text-white/50">
+                            {item.sourceName ?? "Izvor"}
+                            {item.publishedAt
+                              ? ` • ${format(new Date(item.publishedAt), "d. MMM yyyy", { locale: hr })}`
+                              : ""}
+                          </p>
+                        </div>
+                        <ExternalLink className="mt-1 h-4 w-4 flex-shrink-0 text-white/30 group-hover:text-cyan-400" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
             </div>
           )}
         </div>
