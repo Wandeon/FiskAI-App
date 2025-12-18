@@ -3,6 +3,7 @@ import type { NotificationItem, NotificationType } from "@/types/notifications"
 import type { AuditAction, Company } from "@prisma/client"
 import { SupportTicketStatus } from "@prisma/client"
 import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
+import { getChecklistItems } from "@/lib/guidance/checklist"
 
 type NotificationCenterContext = {
   userId: string
@@ -67,6 +68,7 @@ export async function getNotificationCenterFeed({
       unassignedTicketCount,
       overdueExpenseCount,
       upcomingDeadlines,
+      checklistItems,
     ] = await Promise.all([
       db.eInvoice.count({
         where: { companyId: company.id, status: "DRAFT" },
@@ -162,6 +164,7 @@ export async function getNotificationCenterFeed({
         },
       }),
       getUpcomingDeadlines(14, undefined, 5), // Next 14 days deadlines
+      getChecklistItems(company.id),
     ])
 
     const alerts: NotificationItem[] = []
@@ -268,13 +271,13 @@ export async function getNotificationCenterFeed({
 
     // Deadline notifications
     const deadlineAlerts: NotificationItem[] = upcomingDeadlines
-      .filter(d => {
+      .filter((d) => {
         const daysLeft = Math.ceil(
           (new Date(d.deadlineDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
         )
         return daysLeft <= 7 // Only show deadlines within 7 days
       })
-      .map(deadline => {
+      .map((deadline) => {
         const daysLeft = Math.ceil(
           (new Date(deadline.deadlineDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
         )
@@ -282,17 +285,45 @@ export async function getNotificationCenterFeed({
 
         return {
           id: `deadline-${deadline.id}`,
-          type: isUrgent ? "warning" as NotificationType : "info" as NotificationType,
+          type: isUrgent ? ("warning" as NotificationType) : ("info" as NotificationType),
           title: deadline.title,
-          description: daysLeft <= 0
-            ? "Rok je prošao!"
-            : daysLeft === 1
-              ? "Rok je sutra!"
-              : `Rok za ${daysLeft} dana`,
+          description:
+            daysLeft <= 0
+              ? "Rok je prošao!"
+              : daysLeft === 1
+                ? "Rok je sutra!"
+                : `Rok za ${daysLeft} dana`,
           timestamp: new Date(deadline.deadlineDate).toLocaleDateString("hr-HR"),
           action: { label: "Kalendar", href: "/alati/kalendar" },
         }
       })
+
+    // Add checklist deadlines to notifications
+    const checklistAlerts: NotificationItem[] = []
+    try {
+      const urgentItems = checklistItems.filter(
+        (item) =>
+          !item.completedAt &&
+          !item.dismissedAt &&
+          (item.urgency === "critical" || item.urgency === "soon")
+      )
+
+      for (const item of urgentItems.slice(0, 3)) {
+        const isOverdue = item.urgency === "critical"
+        checklistAlerts.push({
+          id: `checklist-${item.id}`,
+          type: isOverdue ? "warning" : "info",
+          title: item.title,
+          description: item.description,
+          timestamp: item.dueDate ? formatRelativeDate(new Date(item.dueDate)) : undefined,
+          action: item.action?.href
+            ? { label: "Otvori", href: item.action.href }
+            : { label: "Pogledaj", href: "/checklist" },
+        })
+      }
+    } catch (error) {
+      console.error("Failed to fetch checklist for notifications:", error)
+    }
 
     const invoiceNotifications: NotificationItem[] = recentInvoices.map((invoice) => {
       const amount = Number(invoice.totalAmount || 0)
@@ -344,6 +375,7 @@ export async function getNotificationCenterFeed({
 
     const items = [
       ...deadlineAlerts, // Add deadline alerts first (high priority)
+      ...checklistAlerts, // Add checklist alerts (high priority)
       ...alerts,
       ...ticketNotifications,
       ...invoiceNotifications,
@@ -409,6 +441,16 @@ function formatRelativeTime(date: Date) {
   }
   const days = Math.floor(hours / 24)
   return `prije ${days} d`
+}
+
+function formatRelativeDate(date: Date): string {
+  const now = new Date()
+  const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) return `${Math.abs(diffDays)} dana kasni`
+  if (diffDays === 0) return "Danas"
+  if (diffDays === 1) return "Sutra"
+  return `Za ${diffDays} dana`
 }
 
 function extractEntityName(changes: unknown): string | undefined {
