@@ -241,6 +241,7 @@ export default async function DashboardPage() {
           <HeroBanner
             userName={firstName}
             companyName={company.name}
+            legalForm={company.legalForm}
             draftInvoices={draftInvoices}
             providerConfigured={!!company.eInvoiceProvider}
             contactCount={contactCount}

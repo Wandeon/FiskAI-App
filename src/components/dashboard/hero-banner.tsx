@@ -5,6 +5,7 @@ import { Sparkles, ShieldCheck, Clock, ArrowRight, Users } from "lucide-react"
 interface HeroBannerProps {
   userName: string
   companyName: string
+  legalForm: string | null
   draftInvoices: number
   providerConfigured: boolean
   contactCount: number
@@ -17,6 +18,7 @@ const buttonBaseStyles =
 export function HeroBanner({
   userName,
   companyName,
+  legalForm,
   draftInvoices,
   providerConfigured,
   contactCount,
