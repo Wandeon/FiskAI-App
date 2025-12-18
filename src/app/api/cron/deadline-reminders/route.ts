@@ -4,8 +4,6 @@ import { db } from "@/lib/db"
 import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 // Vercel cron or external cron calls this endpoint
 export async function GET(request: Request) {
   // Verify cron secret
@@ -13,6 +11,12 @@ export async function GET(request: Request) {
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  // Initialize Resend inside handler to avoid build-time errors
+  if (!process.env.RESEND_API_KEY) {
+    return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 })
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY)
 
   try {
     // Get all companies with paušalni obrt
