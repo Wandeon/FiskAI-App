@@ -2,8 +2,9 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { LegalForm } from "@/lib/capabilities"
+import type { CompetenceLevel } from "@/lib/visibility/rules"
 
-export type OnboardingStep = 1 | 2 | 3
+export type OnboardingStep = 1 | 2 | 3 | 4
 
 export interface OnboardingData {
   // Step 1: Basic Info
@@ -11,13 +12,16 @@ export interface OnboardingData {
   oib: string
   legalForm: LegalForm
 
-  // Step 2: Address
+  // Step 2: Competence Level
+  competence: CompetenceLevel
+
+  // Step 3: Address
   address: string
   postalCode: string
   city: string
   country: string
 
-  // Step 3: Contact & Tax
+  // Step 4: Contact & Tax
   email: string
   phone: string
   iban: string
@@ -63,13 +67,15 @@ export const useOnboardingStore = create<OnboardingState>()(
           case 1:
             return !!(data.name?.trim() && data.oib?.match(/^\d{11}$/) && data.legalForm)
           case 2:
+            return !!data.competence
+          case 3:
             return !!(
               data.address?.trim() &&
               data.postalCode?.trim() &&
               data.city?.trim() &&
               data.country?.trim()
             )
-          case 3:
+          case 4:
             return !!(data.email?.includes("@") && data.iban?.trim())
           default:
             return false

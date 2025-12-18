@@ -9,8 +9,8 @@ export function StepAddress() {
   const { data, updateData, setStep, isStepValid } = useOnboardingStore()
 
   const handleNext = () => {
-    if (isStepValid(2)) {
-      setStep(3)
+    if (isStepValid(3)) {
+      setStep(4)
     }
   }
 
@@ -78,10 +78,10 @@ export function StepAddress() {
       </div>
 
       <div className="flex justify-between">
-        <Button variant="outline" onClick={() => setStep(1)}>
+        <Button variant="outline" onClick={() => setStep(2)}>
           Natrag
         </Button>
-        <Button onClick={handleNext} disabled={!isStepValid(2)}>
+        <Button onClick={handleNext} disabled={!isStepValid(3)}>
           Dalje
         </Button>
       </div>

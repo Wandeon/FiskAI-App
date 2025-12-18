@@ -7,6 +7,7 @@ import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { createCompany } from "@/app/actions/company"
+import { saveCompetenceLevel } from "@/app/actions/guidance"
 import { toast } from "@/lib/toast"
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 
@@ -17,7 +18,7 @@ export function StepContactTax() {
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = () => {
-    if (!isStepValid(3)) return
+    if (!isStepValid(4)) return
 
     startTransition(async () => {
       setError(null)
@@ -43,9 +44,14 @@ export function StepContactTax() {
         setError(result.error)
         toast.error("Greška", result.error)
       } else {
+        // Save competence level to guidance preferences
+        if (data.competence) {
+          await saveCompetenceLevel(data.competence)
+        }
+
         reset() // Clear stored wizard data
         toast.success("Tvrtka kreirana!", "Možete početi s radom")
-        trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED)
+        trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED, { competence: data.competence })
         router.push("/dashboard")
       }
     })
@@ -127,10 +133,10 @@ export function StepContactTax() {
       </div>
 
       <div className="flex justify-between">
-        <Button variant="outline" onClick={() => setStep(2)} disabled={isPending}>
+        <Button variant="outline" onClick={() => setStep(3)} disabled={isPending}>
           Natrag
         </Button>
-        <Button onClick={handleSubmit} disabled={!isStepValid(3) || isPending}>
+        <Button onClick={handleSubmit} disabled={!isStepValid(4) || isPending}>
           {isPending ? "Spremanje..." : "Završi postavljanje"}
         </Button>
       </div>

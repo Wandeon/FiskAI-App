@@ -6,8 +6,9 @@ import { OnboardingStep } from "@/lib/stores/onboarding-store"
 
 const steps = [
   { number: 1, title: "Osnovni podaci" },
-  { number: 2, title: "Adresa" },
-  { number: 3, title: "Kontakt i porez" },
+  { number: 2, title: "Razina iskustva" },
+  { number: 3, title: "Adresa" },
+  { number: 4, title: "Kontakt i porez" },
 ] as const
 
 interface StepIndicatorProps {
