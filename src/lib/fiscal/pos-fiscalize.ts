@@ -3,6 +3,8 @@ import { db } from "@/lib/db"
 import { executeFiscalRequest } from "./fiscal-pipeline"
 import { FiscalRequestStatus, FiscalRequestMessageType } from "@prisma/client"
 
+const FORCE_DEMO_MODE = process.env.FISCAL_DEMO_MODE === "true"
+
 export interface PosFiscalInput {
   invoice: {
     id: string
@@ -54,11 +56,25 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
   const zki = calculateZKI(zkiInput)
 
   // Check if real fiscalization is enabled
-  if (!company.fiscalEnabled) {
+  // Demo mode if: explicitly disabled, or FISCAL_DEMO_MODE env is set
+  if (!company.fiscalEnabled || FORCE_DEMO_MODE) {
     // Demo mode - return mock JIR
+    const demoJir = `DEMO-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
+    // Still update invoice with demo data for testing
+    await db.eInvoice.update({
+      where: { id: invoice.id },
+      data: {
+        zki,
+        jir: demoJir,
+        fiscalStatus: "FISCALIZED",
+        fiscalizedAt: new Date(),
+      },
+    })
+
     return {
       success: true,
-      jir: `DEMO-${Date.now()}`,
+      jir: demoJir,
       zki,
     }
   }
