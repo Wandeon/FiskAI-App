@@ -30,7 +30,6 @@ function getNavElementId(href: string): ElementId | null {
     "/banking": "nav:bank",
     "/pos": "nav:pos",
     "/settings": "nav:settings",
-    "/checklist": "nav:checklist",
   }
   return pathToElementId[href] || null
 }
