@@ -132,7 +132,7 @@ export function CountdownTimer({
 
         {showLink && (
           <Link
-            href="/fiskalizacija-2"
+            href="/fiskalizacija"
             className={cn(
               "flex items-center justify-center gap-1 text-xs font-medium transition-colors",
               styles.text,
@@ -189,7 +189,7 @@ export function CountdownTimer({
 
       {showLink && (
         <Link
-          href="/fiskalizacija-2"
+          href="/fiskalizacija"
           className={cn(
             "flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition-all",
             "bg-white/10 text-white hover:bg-white/20"
