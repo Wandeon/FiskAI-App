@@ -9,6 +9,7 @@ import { DataTable, Column } from "@/components/ui/data-table"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { redirect } from "next/navigation"
 import { FileText } from "lucide-react"
+import { VisibleButton } from "@/lib/visibility"
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Nacrt",
@@ -153,9 +154,11 @@ export default async function EInvoicesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">E-Računi</h1>
-        <Link href="/e-invoices/new">
-          <Button>Novi E-Račun</Button>
-        </Link>
+        <VisibleButton id="action:create-invoice" asChild>
+          <Link href="/e-invoices/new">
+            <Button>Novi E-Račun</Button>
+          </Link>
+        </VisibleButton>
       </div>
 
       {/* Stats Cards */}
@@ -196,9 +199,11 @@ export default async function EInvoicesPage() {
                 title="Nemate još nijedan e-račun"
                 description="E-računi omogućuju brzu i sigurnu razmjenu dokumenata s kupcima. Kreirajte račun, fiskalizirajte ga i pošaljite u par klikova."
                 action={
-                  <Link href="/e-invoices/new">
-                    <Button>Kreiraj prvi e-račun</Button>
-                  </Link>
+                  <VisibleButton id="action:create-invoice" asChild>
+                    <Link href="/e-invoices/new">
+                      <Button>Kreiraj prvi e-račun</Button>
+                    </Link>
+                  </VisibleButton>
                 }
               />
             </div>

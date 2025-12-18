@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { ContactType } from "@prisma/client"
 import { CommandPalette } from "@/components/ui/command-palette"
+import { VisibleButton } from "@/lib/visibility"
 
 interface PageProps {
   searchParams: Promise<{
@@ -56,12 +57,14 @@ async function ContactList({
         }
         action={
           !search && type === "ALL" ? (
-            <Link href="/contacts/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Dodaj kontakt
-              </Button>
-            </Link>
+            <VisibleButton id="action:create-contact" asChild>
+              <Link href="/contacts/new">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Dodaj kontakt
+                </Button>
+              </Link>
+            </VisibleButton>
           ) : undefined
         }
       />
@@ -121,12 +124,14 @@ export default async function ContactsPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Kontakti</h1>
           <p className="text-sm text-[var(--muted)] mt-1">Upravljajte kupcima i dobavljačima</p>
         </div>
-        <Link href="/contacts/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Novi kontakt
-          </Button>
-        </Link>
+        <VisibleButton id="action:create-contact" asChild>
+          <Link href="/contacts/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Novi kontakt
+            </Button>
+          </Link>
+        </VisibleButton>
       </div>
 
       {/* Quick actions */}

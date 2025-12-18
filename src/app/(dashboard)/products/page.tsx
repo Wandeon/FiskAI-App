@@ -11,6 +11,7 @@ import { ProductCsvImport } from "@/components/products/product-csv-import"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { redirect } from "next/navigation"
 import { Package } from "lucide-react"
+import { VisibleButton } from "@/lib/visibility"
 
 export default async function ProductsPage() {
   const user = await requireAuth()
@@ -52,9 +53,11 @@ export default async function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Proizvodi i usluge</h1>
-        <Link href="/products/new">
-          <Button>Novi proizvod</Button>
-        </Link>
+        <VisibleButton id="action:create-product" asChild>
+          <Link href="/products/new">
+            <Button>Novi proizvod</Button>
+          </Link>
+        </VisibleButton>
       </div>
 
       {products.length === 0 ? (
@@ -65,9 +68,11 @@ export default async function ProductsPage() {
               title="Nemate još nijednog proizvoda"
               description="Proizvodi i usluge su temelj vaših računa. Dodajte ih ručno ili uvezite iz CSV datoteke."
               action={
-                <Link href="/products/new">
-                  <Button>Dodaj prvi proizvod</Button>
-                </Link>
+                <VisibleButton id="action:create-product" asChild>
+                  <Link href="/products/new">
+                    <Button>Dodaj prvi proizvod</Button>
+                  </Link>
+                </VisibleButton>
               }
             />
           </CardContent>
