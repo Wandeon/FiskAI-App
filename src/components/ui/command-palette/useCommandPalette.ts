@@ -1,5 +1,7 @@
 // src/components/ui/command-palette/useCommandPalette.ts
 
+"use client"
+
 import { useState, useCallback, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
