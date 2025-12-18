@@ -15,6 +15,7 @@ import { InsightsCard } from "@/components/dashboard/insights-card"
 import { PausalniStatusCard } from "@/components/dashboard/pausalni-status-card"
 import { DeadlineCountdownCard } from "@/components/dashboard/deadline-countdown-card"
 import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
+import { ChecklistWidget } from "@/components/guidance"
 
 const Decimal = Prisma.Decimal
 
@@ -289,6 +290,7 @@ export default async function DashboardPage() {
             providerConfigured={!!company.eInvoiceProvider}
             contactCount={contactCount}
           />
+          {company.legalForm === "OBRT_PAUSAL" && <ChecklistWidget />}
           <TodayActionsCard alerts={alerts} stats={statHighlights} tasks={upcomingTasks} />
           <RevenueTrendCard data={revenueTrendData} />
         </div>

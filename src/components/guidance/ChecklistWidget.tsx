@@ -6,7 +6,7 @@ import Link from "next/link"
 import { ClipboardList, ChevronRight, Loader2 } from "lucide-react"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { ChecklistItem } from "./ChecklistItem"
-import type { ChecklistItem as ChecklistItemType } from "@/lib/guidance"
+import type { ChecklistItem as ChecklistItemType } from "@/lib/guidance/types"
 
 interface ChecklistWidgetProps {
   initialItems?: ChecklistItemType[]

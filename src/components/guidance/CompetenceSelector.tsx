@@ -11,7 +11,7 @@ import {
   CATEGORY_LABELS,
   type CompetenceLevel,
   type GuidanceCategory,
-} from "@/lib/guidance"
+} from "@/lib/guidance/constants"
 
 interface CompetenceSelectorProps {
   levels: {

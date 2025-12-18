@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Check, X, Clock, ChevronRight, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/primitives/button"
-import type { ChecklistItem as ChecklistItemType } from "@/lib/guidance"
+import type { ChecklistItem as ChecklistItemType } from "@/lib/guidance/types"
 
 interface ChecklistItemProps {
   item: ChecklistItemType

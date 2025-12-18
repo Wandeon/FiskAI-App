@@ -6,8 +6,9 @@ import { ClipboardList, Filter, CheckCircle2 } from "lucide-react"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { ChecklistItem, CompetenceSelector } from "@/components/guidance"
 import { Button } from "@/components/ui/primitives/button"
-import type { ChecklistItem as ChecklistItemType, UserGuidancePreferences } from "@/lib/guidance"
-import { CATEGORY_LABELS, type GuidanceCategory } from "@/lib/guidance"
+import type { ChecklistItem as ChecklistItemType } from "@/lib/guidance/types"
+import type { UserGuidancePreferences } from "@/lib/db/schema/guidance"
+import { CATEGORY_LABELS, type GuidanceCategory } from "@/lib/guidance/constants"
 
 interface Props {
   initialItems: ChecklistItemType[]
