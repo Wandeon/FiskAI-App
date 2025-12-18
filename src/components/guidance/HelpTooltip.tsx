@@ -1,0 +1,92 @@
+// src/components/guidance/HelpTooltip.tsx
+"use client"
+
+import { useState, type ReactNode } from "react"
+import { HelpCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface HelpTooltipProps {
+  content: string
+  title?: string
+  category?: "fakturiranje" | "financije" | "eu"
+  position?: "top" | "bottom" | "left" | "right"
+  className?: string
+  children?: ReactNode
+  forceShow?: boolean // Override visibility check
+}
+
+export function HelpTooltip({
+  content,
+  title,
+  category = "fakturiranje",
+  position = "top",
+  className,
+  children,
+  forceShow = false,
+}: HelpTooltipProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  // Position classes
+  const positionClasses = {
+    top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
+    bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
+    left: "right-full top-1/2 -translate-y-1/2 mr-2",
+    right: "left-full top-1/2 -translate-y-1/2 ml-2",
+  }
+
+  const arrowClasses = {
+    top: "-bottom-1.5 left-1/2 -translate-x-1/2 rotate-45 border-b border-r",
+    bottom: "-top-1.5 left-1/2 -translate-x-1/2 rotate-45 border-t border-l",
+    left: "-right-1.5 top-1/2 -translate-y-1/2 rotate-45 border-t border-r",
+    right: "-left-1.5 top-1/2 -translate-y-1/2 rotate-45 border-b border-l",
+  }
+
+  return (
+    <span className={cn("relative inline-flex items-center gap-1", className)}>
+      {children}
+      <button
+        type="button"
+        className="inline-flex text-white/40 hover:text-white/70 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-1 rounded-full transition-colors"
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => setIsOpen(false)}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={`Pomoć: ${title || content.substring(0, 30)}`}
+        aria-expanded={isOpen}
+      >
+        <HelpCircle className="h-4 w-4" />
+      </button>
+
+      {isOpen && (
+        <div
+          role="tooltip"
+          className={cn(
+            "absolute z-50 w-64 rounded-lg border border-white/10 bg-slate-800 p-3 shadow-xl",
+            positionClasses[position]
+          )}
+        >
+          {title && <div className="font-semibold text-sm text-white mb-1">{title}</div>}
+          <div className="text-xs text-white/70 leading-relaxed">{content}</div>
+          <div
+            className={cn("absolute h-3 w-3 border-white/10 bg-slate-800", arrowClasses[position])}
+          />
+        </div>
+      )}
+    </span>
+  )
+}
+
+// Wrapper that respects guidance level
+interface ConditionalHelpTooltipProps extends HelpTooltipProps {
+  showForLevels?: ("beginner" | "average" | "pro")[]
+}
+
+export function ConditionalHelpTooltip({
+  showForLevels = ["beginner"],
+  ...props
+}: ConditionalHelpTooltipProps) {
+  // For now, always show - context will be integrated in Task 3.4
+  // This allows components to use it without context being set up yet
+  return <HelpTooltip {...props} />
+}

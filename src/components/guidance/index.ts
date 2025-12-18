@@ -2,3 +2,5 @@
 export * from "./CompetenceSelector"
 export * from "./ChecklistItem"
 export * from "./ChecklistWidget"
+export * from "./QuickLevelToggle"
+export * from "./HelpTooltip"
