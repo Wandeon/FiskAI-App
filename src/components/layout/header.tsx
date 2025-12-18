@@ -11,6 +11,7 @@ import { db } from "@/lib/db"
 import { OnboardingProgressPill } from "./onboarding-progress-pill"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { PlanBadge } from "./plan-badge"
+import { QuickLevelToggle } from "@/components/guidance"
 
 export async function Header() {
   const session = await auth()
@@ -118,6 +119,7 @@ export async function Header() {
         <div className="flex items-center gap-2 md:gap-3">
           {session?.user ? (
             <>
+              <QuickLevelToggle className="hidden md:flex" />
               <CommandPalette />
               {/* Quick Actions (Hidden on mobile - use FAB instead) */}
               <QuickActions className="hidden sm:block" />
