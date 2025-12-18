@@ -1,0 +1,356 @@
+import { drizzleDb } from "@/lib/db/drizzle"
+import { euVendor } from "@/lib/db/schema/pausalni"
+
+export const EU_VENDOR_SEED_DATA = [
+  // Advertising (EU - Ireland)
+  {
+    namePattern: "GOOGLE.*IRELAND",
+    displayName: "Google Ireland",
+    countryCode: "IE",
+    vendorType: "ADVERTISING",
+    isEu: true,
+  },
+  {
+    namePattern: "META.*IRELAND",
+    displayName: "Meta Platforms Ireland",
+    countryCode: "IE",
+    vendorType: "ADVERTISING",
+    isEu: true,
+  },
+  {
+    namePattern: "FACEBOOK.*IRELAND",
+    displayName: "Facebook Ireland",
+    countryCode: "IE",
+    vendorType: "ADVERTISING",
+    isEu: true,
+  },
+  {
+    namePattern: "LINKEDIN.*IRELAND",
+    displayName: "LinkedIn Ireland",
+    countryCode: "IE",
+    vendorType: "ADVERTISING",
+    isEu: true,
+  },
+  {
+    namePattern: "TWITTER.*IRELAND",
+    displayName: "Twitter Ireland",
+    countryCode: "IE",
+    vendorType: "ADVERTISING",
+    isEu: true,
+  },
+  {
+    namePattern: "TIKTOK.*IRELAND",
+    displayName: "TikTok Ireland",
+    countryCode: "IE",
+    vendorType: "ADVERTISING",
+    isEu: true,
+  },
+
+  // Payment Processing (EU)
+  {
+    namePattern: "STRIPE.*EUROPE",
+    displayName: "Stripe Payments Europe",
+    countryCode: "IE",
+    vendorType: "PAYMENT_PROCESSING",
+    isEu: true,
+  },
+  {
+    namePattern: "PAYPAL.*EUROPE",
+    displayName: "PayPal Europe",
+    countryCode: "LU",
+    vendorType: "PAYMENT_PROCESSING",
+    isEu: true,
+  },
+  {
+    namePattern: "ADYEN",
+    displayName: "Adyen",
+    countryCode: "NL",
+    vendorType: "PAYMENT_PROCESSING",
+    isEu: true,
+  },
+
+  // Cloud/Hosting (EU)
+  {
+    namePattern: "AMAZON.*EMEA",
+    displayName: "Amazon Web Services EMEA",
+    countryCode: "LU",
+    vendorType: "HOSTING",
+    isEu: true,
+  },
+  {
+    namePattern: "AWS.*EMEA",
+    displayName: "AWS EMEA",
+    countryCode: "LU",
+    vendorType: "HOSTING",
+    isEu: true,
+  },
+  {
+    namePattern: "HETZNER",
+    displayName: "Hetzner Online",
+    countryCode: "DE",
+    vendorType: "HOSTING",
+    isEu: true,
+  },
+  { namePattern: "OVH", displayName: "OVH", countryCode: "FR", vendorType: "HOSTING", isEu: true },
+  {
+    namePattern: "SCALEWAY",
+    displayName: "Scaleway",
+    countryCode: "FR",
+    vendorType: "HOSTING",
+    isEu: true,
+  },
+  {
+    namePattern: "CONTABO",
+    displayName: "Contabo",
+    countryCode: "DE",
+    vendorType: "HOSTING",
+    isEu: true,
+  },
+
+  // Software/SaaS (EU)
+  {
+    namePattern: "MICROSOFT.*IRELAND",
+    displayName: "Microsoft Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "ATLASSIAN.*B\\.?V",
+    displayName: "Atlassian B.V.",
+    countryCode: "NL",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "SPOTIFY",
+    displayName: "Spotify AB",
+    countryCode: "SE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "NOTION.*IRELAND",
+    displayName: "Notion Labs Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "SLACK.*IRELAND",
+    displayName: "Slack Technologies Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "ZOOM.*IRELAND",
+    displayName: "Zoom Video Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "DROPBOX.*IRELAND",
+    displayName: "Dropbox Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "HUBSPOT.*IRELAND",
+    displayName: "HubSpot Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "MAILCHIMP.*IRELAND",
+    displayName: "Mailchimp Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "INTERCOM.*IRELAND",
+    displayName: "Intercom Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "TYPEFORM",
+    displayName: "Typeform",
+    countryCode: "ES",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "MIRO",
+    displayName: "Miro",
+    countryCode: "NL",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+
+  // Design (EU)
+  {
+    namePattern: "ADOBE.*IRELAND",
+    displayName: "Adobe Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+  {
+    namePattern: "SHUTTERSTOCK.*IRELAND",
+    displayName: "Shutterstock Ireland",
+    countryCode: "IE",
+    vendorType: "SOFTWARE",
+    isEu: true,
+  },
+
+  // Non-EU (Important to exclude from PDV reporting!)
+  {
+    namePattern: "CANVA.*PTY",
+    displayName: "Canva Pty Ltd",
+    countryCode: "AU",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "FIGMA",
+    displayName: "Figma Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "DIGITALOCEAN",
+    displayName: "DigitalOcean LLC",
+    countryCode: "US",
+    vendorType: "HOSTING",
+    isEu: false,
+  },
+  {
+    namePattern: "VERCEL",
+    displayName: "Vercel Inc",
+    countryCode: "US",
+    vendorType: "HOSTING",
+    isEu: false,
+  },
+  {
+    namePattern: "NETLIFY",
+    displayName: "Netlify Inc",
+    countryCode: "US",
+    vendorType: "HOSTING",
+    isEu: false,
+  },
+  {
+    namePattern: "HEROKU",
+    displayName: "Heroku Inc",
+    countryCode: "US",
+    vendorType: "HOSTING",
+    isEu: false,
+  },
+  {
+    namePattern: "OPENAI",
+    displayName: "OpenAI",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "ANTHROPIC",
+    displayName: "Anthropic",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "GITHUB",
+    displayName: "GitHub Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "GITLAB.*INC",
+    displayName: "GitLab Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "CLOUDFLARE",
+    displayName: "Cloudflare Inc",
+    countryCode: "US",
+    vendorType: "HOSTING",
+    isEu: false,
+  },
+  {
+    namePattern: "TWILIO",
+    displayName: "Twilio Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "SENDGRID",
+    displayName: "SendGrid Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "ZAPIER",
+    displayName: "Zapier Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "AIRTABLE",
+    displayName: "Airtable Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "MONDAY\\.COM",
+    displayName: "Monday.com",
+    countryCode: "IL",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "ASANA",
+    displayName: "Asana Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+  {
+    namePattern: "TRELLO",
+    displayName: "Trello Inc",
+    countryCode: "US",
+    vendorType: "SOFTWARE",
+    isEu: false,
+  },
+]
+
+export async function seedEuVendors() {
+  console.log("Seeding EU vendors...")
+
+  for (const vendor of EU_VENDOR_SEED_DATA) {
+    await drizzleDb
+      .insert(euVendor)
+      .values({
+        ...vendor,
+        confidenceScore: 100,
+        isSystem: true,
+      })
+      .onConflictDoNothing()
+  }
+
+  console.log(`Seeded ${EU_VENDOR_SEED_DATA.length} EU vendors`)
+}
