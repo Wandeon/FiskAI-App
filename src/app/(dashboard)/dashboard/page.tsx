@@ -16,6 +16,7 @@ import { PausalniStatusCard } from "@/components/dashboard/pausalni-status-card"
 import { DeadlineCountdownCard } from "@/components/dashboard/deadline-countdown-card"
 import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
 import { ChecklistWidget, InsightsWidget } from "@/components/guidance"
+import { Visible } from "@/lib/visibility"
 
 const Decimal = Prisma.Decimal
 
@@ -282,48 +283,76 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         <div className="space-y-6">
-          <HeroBanner
-            userName={firstName}
-            companyName={company.name}
-            legalForm={company.legalForm}
-            draftInvoices={draftInvoices}
-            providerConfigured={!!company.eInvoiceProvider}
-            contactCount={contactCount}
-          />
-          {company.legalForm === "OBRT_PAUSAL" && <ChecklistWidget />}
-          {company.legalForm === "OBRT_PAUSAL" && <InsightsWidget />}
-          <TodayActionsCard alerts={alerts} stats={statHighlights} tasks={upcomingTasks} />
-          <RevenueTrendCard data={revenueTrendData} />
+          <Visible id="card:hero-banner">
+            <HeroBanner
+              userName={firstName}
+              companyName={company.name}
+              legalForm={company.legalForm}
+              draftInvoices={draftInvoices}
+              providerConfigured={!!company.eInvoiceProvider}
+              contactCount={contactCount}
+            />
+          </Visible>
+          {company.legalForm === "OBRT_PAUSAL" && (
+            <Visible id="card:checklist-widget">
+              <ChecklistWidget />
+            </Visible>
+          )}
+          {company.legalForm === "OBRT_PAUSAL" && (
+            <Visible id="card:insights-widget">
+              <InsightsWidget />
+            </Visible>
+          )}
+          <Visible id="card:today-actions">
+            <TodayActionsCard alerts={alerts} stats={statHighlights} tasks={upcomingTasks} />
+          </Visible>
+          <Visible id="card:revenue-trend">
+            <RevenueTrendCard data={revenueTrendData} />
+          </Visible>
         </div>
         <div className="space-y-6">
-          <FiscalizationStatus
-            isVatPayer={company.isVatPayer}
-            eInvoiceProvider={company.eInvoiceProvider}
-            oib={company.oib}
-            vatNumber={company.vatNumber}
-          />
-          {company.legalForm === "OBRT_PAUSAL" && (
-            <PausalniStatusCard
-              ytdRevenue={Number(ytdRevenue._sum.totalAmount || 0)}
-              vatThreshold={60000}
-              nextDeadline={nextDeadline}
-              quarterlyIncome={{ q1: 0, q2: 0, q3: 0, q4: 0 }}
+          <Visible id="card:fiscalization-status">
+            <FiscalizationStatus
+              isVatPayer={company.isVatPayer}
+              eInvoiceProvider={company.eInvoiceProvider}
+              oib={company.oib}
+              vatNumber={company.vatNumber}
             />
+          </Visible>
+          {company.legalForm === "OBRT_PAUSAL" && (
+            <Visible id="card:pausalni-status">
+              <PausalniStatusCard
+                ytdRevenue={Number(ytdRevenue._sum.totalAmount || 0)}
+                vatThreshold={60000}
+                nextDeadline={nextDeadline}
+                quarterlyIncome={{ q1: 0, q2: 0, q3: 0, q4: 0 }}
+              />
+            </Visible>
           )}
-          <DeadlineCountdownCard deadlines={upcomingDeadlines} businessType={businessType} />
-          <VatOverviewCard
-            paidVat={vatPaid}
-            pendingVat={vatPending}
-            isVatPayer={company.isVatPayer}
-          />
-          <InvoiceFunnelCard stages={funnelStages} />
-          <InsightsCard
-            companyName={company.name}
-            isVatPayer={company.isVatPayer}
-            contactCount={contactCount}
-            productCount={productCount}
-          />
-          <RecentActivity invoices={recentInvoices} />
+          <Visible id="card:deadline-countdown">
+            <DeadlineCountdownCard deadlines={upcomingDeadlines} businessType={businessType} />
+          </Visible>
+          <Visible id="card:vat-overview">
+            <VatOverviewCard
+              paidVat={vatPaid}
+              pendingVat={vatPending}
+              isVatPayer={company.isVatPayer}
+            />
+          </Visible>
+          <Visible id="card:invoice-funnel">
+            <InvoiceFunnelCard stages={funnelStages} />
+          </Visible>
+          <Visible id="card:insights">
+            <InsightsCard
+              companyName={company.name}
+              isVatPayer={company.isVatPayer}
+              contactCount={contactCount}
+              productCount={productCount}
+            />
+          </Visible>
+          <Visible id="card:recent-activity">
+            <RecentActivity invoices={recentInvoices} />
+          </Visible>
           <ActionCards />
         </div>
       </div>
