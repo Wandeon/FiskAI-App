@@ -11,6 +11,7 @@ import {
   KeyRound,
   ShoppingCart,
   Bot,
+  Calculator,
   type LucideIcon,
 } from "lucide-react"
 
@@ -51,7 +52,16 @@ export const navigation: NavSection[] = [
         ],
       },
       { name: "Banka", href: "/banking", icon: Building2, module: "banking" },
-      { name: "Izvještaji", href: "/reports", icon: BarChart3, module: "reports" },
+      {
+        name: "Izvještaji",
+        href: "/reports",
+        icon: BarChart3,
+        module: "reports",
+        children: [
+          { name: "Svi izvještaji", href: "/reports" },
+          { name: "PO-SD izvještaj", href: "/reports/pausalni-obrt" },
+        ],
+      },
     ],
   },
   {
