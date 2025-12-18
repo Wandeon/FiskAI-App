@@ -1,5 +1,7 @@
 import { calculateZKI, validateZKIInput } from "@/lib/e-invoice/zki"
 import { db } from "@/lib/db"
+import { executeFiscalRequest } from "./fiscal-pipeline"
+import { FiscalRequestStatus, FiscalRequestMessageType } from "@prisma/client"
 
 export interface PosFiscalInput {
   invoice: {
@@ -79,12 +81,69 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
     }
   }
 
-  // TODO: Call real FINA API via existing fiscal-pipeline.ts
-  // For now, return demo response
-  return {
-    success: true,
-    jir: `DEMO-${Date.now()}`,
-    zki,
+  // Real fiscalization - create fiscal request and execute
+  try {
+    // Create fiscal request record
+    const fiscalRequest = await db.fiscalRequest.create({
+      data: {
+        companyId: company.id,
+        invoiceId: invoice.id,
+        certificateId: certificate.id,
+        messageType: "RACUN" as FiscalRequestMessageType,
+        status: "PROCESSING" as FiscalRequestStatus,
+        attemptCount: 1,
+        lastAttemptAt: new Date(),
+      },
+    })
+
+    // Execute fiscalization
+    const result = await executeFiscalRequest(fiscalRequest)
+
+    // Update request with result
+    await db.fiscalRequest.update({
+      where: { id: fiscalRequest.id },
+      data: {
+        status: result.success ? "COMPLETED" : "FAILED",
+        jir: result.jir,
+        zki: result.zki || zki,
+        responseXml: result.responseXml,
+        errorCode: result.errorCode,
+        errorMessage: result.errorMessage,
+      },
+    })
+
+    // Update invoice with JIR
+    if (result.success && result.jir) {
+      await db.eInvoice.update({
+        where: { id: invoice.id },
+        data: {
+          jir: result.jir,
+          zki: result.zki || zki,
+          fiscalStatus: "FISCALIZED",
+          fiscalizedAt: new Date(),
+        },
+      })
+    }
+
+    return {
+      success: result.success,
+      jir: result.jir,
+      zki: result.zki || zki,
+      error: result.errorMessage,
+    }
+  } catch (error: any) {
+    console.error("POS fiscalization error:", error)
+
+    // Queue for retry if it's a temporary failure
+    if (error?.poreznaCode !== "p001" && error?.poreznaCode !== "p002") {
+      await queueFiscalRetry(invoice.id)
+    }
+
+    return {
+      success: false,
+      zki,
+      error: error?.message || "Greška kod fiskalizacije",
+    }
   }
 }
 
