@@ -12,22 +12,50 @@ let fuseInstance: Fuse<SearchEntry> | null = null
 export async function loadSearchIndex(): Promise<SearchIndex> {
   if (searchIndex) return searchIndex
 
-  const response = await fetch("/search-index.json")
-  searchIndex = await response.json()
+  try {
+    const response = await fetch("/search-index.json")
 
-  // Initialize Fuse with loaded entries
-  fuseInstance = new Fuse(searchIndex!.entries, {
-    keys: [
-      { name: "title", weight: 2 },
-      { name: "description", weight: 1 },
-      { name: "keywords", weight: 1.5 },
-    ],
-    threshold: 0.3,
-    includeScore: true,
-    includeMatches: true,
-  })
+    if (!response.ok) {
+      throw new Error(`Failed to load search index: ${response.status} ${response.statusText}`)
+    }
 
-  return searchIndex!
+    const data = await response.json()
+
+    if (!data || !Array.isArray(data.entries)) {
+      throw new Error("Invalid search index format")
+    }
+
+    searchIndex = data
+
+    // Initialize Fuse with loaded entries
+    fuseInstance = new Fuse(searchIndex.entries, {
+      keys: [
+        { name: "title", weight: 2 },
+        { name: "description", weight: 1 },
+        { name: "keywords", weight: 1.5 },
+      ],
+      threshold: 0.3,
+      includeScore: true,
+      includeMatches: true,
+    })
+
+    return searchIndex
+  } catch (error) {
+    console.error("Error loading search index:", error)
+    // Return empty index as fallback
+    searchIndex = { entries: [] }
+    fuseInstance = new Fuse([], {
+      keys: [
+        { name: "title", weight: 2 },
+        { name: "description", weight: 1 },
+        { name: "keywords", weight: 1.5 },
+      ],
+      threshold: 0.3,
+      includeScore: true,
+      includeMatches: true,
+    })
+    return searchIndex
+  }
 }
 
 export function search(query: string): SearchEntry[] {

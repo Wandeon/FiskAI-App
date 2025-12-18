@@ -105,6 +105,9 @@ export function CommandPalette({ className, triggerType = "button" }: CommandPal
               className="fixed left-1/2 top-[15%] z-[101] w-[95vw] max-w-xl -translate-x-1/2"
             >
               <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Command palette"
                 className="overflow-hidden rounded-2xl bg-slate-900 shadow-2xl ring-1 ring-white/10"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -116,6 +119,7 @@ export function CommandPalette({ className, triggerType = "button" }: CommandPal
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Pretražite alate, vodiče, akcije..."
+                    aria-label="Pretražite alate, vodiče, akcije"
                     className="h-14 w-full bg-transparent pl-12 pr-4 text-base text-white placeholder:text-white/40 focus:outline-none"
                   />
                   <div className="absolute right-4 flex items-center gap-2">

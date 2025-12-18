@@ -61,6 +61,8 @@ export const CommandItem = forwardRef<HTMLButtonElement, CommandItemProps>(
     return (
       <motion.button
         ref={ref}
+        role="option"
+        aria-selected={isSelected}
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.02, duration: 0.15 }}

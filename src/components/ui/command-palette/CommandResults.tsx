@@ -60,7 +60,12 @@ export function CommandResults({
     let globalIndex = 0
 
     return (
-      <div ref={containerRef} className="max-h-[400px] overflow-y-auto px-2 py-2">
+      <div
+        ref={containerRef}
+        role="listbox"
+        aria-label="Search results"
+        className="max-h-[400px] overflow-y-auto px-2 py-2"
+      >
         {/* Recent searches */}
         {recentSearches.length > 0 && (
           <div className="mb-4">
@@ -139,7 +144,12 @@ export function CommandResults({
   let globalIndex = 0
 
   return (
-    <div ref={containerRef} className="max-h-[400px] overflow-y-auto px-2 py-2">
+    <div
+      ref={containerRef}
+      role="listbox"
+      aria-label="Search results"
+      className="max-h-[400px] overflow-y-auto px-2 py-2"
+    >
       <AnimatePresence mode="popLayout">
         {Array.from(results.entries()).map(([type, entries]) => (
           <motion.div
