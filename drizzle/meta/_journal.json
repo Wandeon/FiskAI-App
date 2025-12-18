@@ -50,6 +50,13 @@
       "when": 1766062084913,
       "tag": "0006_stale_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1766085707779,
+      "tag": "0007_blushing_purple_man",
+      "breakpoints": true
     }
   ]
 }
