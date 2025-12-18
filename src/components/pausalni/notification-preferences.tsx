@@ -113,9 +113,29 @@ export function NotificationPreferences({ className }: NotificationPreferencesPr
 
   async function handleGoogleCalendarConnect() {
     try {
-      // TODO: Implement Google Calendar OAuth flow
-      console.log("Google Calendar connection not yet implemented")
-      alert("Google Calendar integracija dolazi uskoro!")
+      // Check if Google Calendar sync is available via existing Gmail connection
+      const res = await fetch("/api/pausalni/calendar/google/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          setCalendarPrefs((prev) => ({ ...prev, googleCalendarConnected: true }))
+          setSaveStatus("success")
+          setTimeout(() => setSaveStatus("idle"), 2000)
+        } else {
+          // Show specific error message
+          console.warn("Calendar sync:", data.message || data.errors?.join(", "))
+          setSaveStatus("error")
+        }
+      } else {
+        const data = await res.json().catch(() => ({}))
+        // If Gmail is not connected, show info message
+        console.warn("Calendar sync not available:", data.error || "Unknown error")
+        setSaveStatus("error")
+      }
     } catch (error) {
       console.error("Failed to connect Google Calendar:", error)
       setSaveStatus("error")

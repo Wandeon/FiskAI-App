@@ -8,6 +8,23 @@ import { Button } from "@/components/ui/button"
 import { OibInput } from "@/components/ui/oib-input"
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 import { toast } from "@/lib/toast"
+import type { LegalForm } from "@/lib/capabilities"
+
+const LEGAL_FORM_OPTIONS: { value: LegalForm; label: string; description: string }[] = [
+  { value: "OBRT_PAUSAL", label: "Paušalni obrt", description: "Do 60.000 € godišnje, bez PDV-a" },
+  {
+    value: "OBRT_REAL",
+    label: "Obrt (stvarni dohodak)",
+    description: "Stvarni prihodi i troškovi",
+  },
+  { value: "OBRT_VAT", label: "Obrt u sustavu PDV-a", description: "Obrt s PDV obvezom" },
+  {
+    value: "JDOO",
+    label: "j.d.o.o.",
+    description: "Jednostavno društvo s ograničenom odgovornošću",
+  },
+  { value: "DOO", label: "d.o.o.", description: "Društvo s ograničenom odgovornošću" },
+]
 
 export function StepBasicInfo() {
   const { data, updateData, setStep, isStepValid } = useOnboardingStore()
@@ -78,6 +95,35 @@ export function StepBasicInfo() {
             placeholder="Moja Tvrtka d.o.o."
             className="mt-1"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Pravni oblik *</label>
+          <div className="space-y-2">
+            {LEGAL_FORM_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
+                  data.legalForm === option.value
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="legalForm"
+                  value={option.value}
+                  checked={data.legalForm === option.value}
+                  onChange={(e) => updateData({ legalForm: e.target.value as LegalForm })}
+                  className="mt-0.5 mr-3"
+                />
+                <div>
+                  <span className="font-medium text-gray-900">{option.label}</span>
+                  <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 

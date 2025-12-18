@@ -21,6 +21,7 @@ interface InvoiceFormProps {
     vatRate: number | { toNumber(): number }
     unit: string
   }>
+  isPausalni?: boolean
 }
 
 interface LineItem {
@@ -31,19 +32,24 @@ interface LineItem {
   vatRate: number
 }
 
-export function InvoiceForm({ type, contacts, products }: InvoiceFormProps) {
+export function InvoiceForm({ type, contacts, products, isPausalni = false }: InvoiceFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [buyerId, setBuyerId] = useState("")
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0])
   const [dueDate, setDueDate] = useState("")
   const [notes, setNotes] = useState("")
+  // Paušalni obrt uses 0% VAT always
+  const defaultVatRate = isPausalni ? 0 : 25
   const [lines, setLines] = useState<LineItem[]>([
-    { description: "", quantity: 1, unit: "C62", unitPrice: 0, vatRate: 25 },
+    { description: "", quantity: 1, unit: "C62", unitPrice: 0, vatRate: defaultVatRate },
   ])
 
   function addLine() {
-    setLines([...lines, { description: "", quantity: 1, unit: "C62", unitPrice: 0, vatRate: 25 }])
+    setLines([
+      ...lines,
+      { description: "", quantity: 1, unit: "C62", unitPrice: 0, vatRate: defaultVatRate },
+    ])
   }
 
   function removeLine(index: number) {
@@ -62,7 +68,12 @@ export function InvoiceForm({ type, contacts, products }: InvoiceFormProps) {
     if (!product) return
 
     const price = typeof product.price === "number" ? product.price : Number(product.price)
-    const vatRate = typeof product.vatRate === "number" ? product.vatRate : Number(product.vatRate)
+    // Force 0% VAT for paušalni obrt
+    const vatRate = isPausalni
+      ? 0
+      : typeof product.vatRate === "number"
+        ? product.vatRate
+        : Number(product.vatRate)
 
     setLines([
       ...lines,
@@ -263,14 +274,22 @@ export function InvoiceForm({ type, contacts, products }: InvoiceFormProps) {
                   </td>
                   <td className="py-2 pr-2">
                     <select
-                      value={line.vatRate}
+                      value={isPausalni ? 0 : line.vatRate}
                       onChange={(e) => updateLine(index, "vatRate", parseFloat(e.target.value))}
-                      className="w-full rounded-md border-gray-300 text-sm"
+                      className="w-full rounded-md border-gray-300 text-sm disabled:bg-gray-100"
+                      disabled={isPausalni}
+                      title={isPausalni ? "Paušalni obrt ne obračunava PDV" : undefined}
                     >
-                      <option value="25">25%</option>
-                      <option value="13">13%</option>
-                      <option value="5">5%</option>
-                      <option value="0">0%</option>
+                      {isPausalni ? (
+                        <option value="0">0% (paušalni)</option>
+                      ) : (
+                        <>
+                          <option value="25">25%</option>
+                          <option value="13">13%</option>
+                          <option value="5">5%</option>
+                          <option value="0">0%</option>
+                        </>
+                      )}
                     </select>
                   </td>
                   <td className="py-2 text-right font-mono">
@@ -317,6 +336,16 @@ export function InvoiceForm({ type, contacts, products }: InvoiceFormProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Paušalni VAT notice */}
+      {isPausalni && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Paušalni obrt:</strong> Kao paušalni obrtnik niste u sustavu PDV-a i ne
+            obračunavate PDV na račune. Svi iznosi su prikazani bez PDV-a.
+          </p>
+        </div>
+      )}
 
       {/* Notes */}
       <Card>

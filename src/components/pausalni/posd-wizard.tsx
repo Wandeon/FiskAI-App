@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,6 +13,7 @@ import {
   Printer,
   Info,
   AlertCircle,
+  Loader2,
 } from "lucide-react"
 import { formatCurrency } from "@/lib/format"
 
@@ -25,6 +26,14 @@ interface YearSummary {
   expenseBracket: number
   calculatedExpenses: number
   netIncome: number
+}
+
+interface IncomeSummary {
+  year: number
+  totalIncome: number
+  invoiceCount: number
+  monthlyBreakdown: { month: number; income: number; count: number }[]
+  hasData: boolean
 }
 
 // Expense brackets for paušalni obrt (based on Croatian tax law)
@@ -40,11 +49,59 @@ export function PosdWizard({ companyId }: Props) {
   const [yearSummary, setYearSummary] = useState<YearSummary | null>(null)
   const [selectedBracket, setSelectedBracket] = useState<number>(25)
   const [year, setYear] = useState(new Date().getFullYear() - 1)
+  const [incomeSummary, setIncomeSummary] = useState<IncomeSummary | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch income summary on mount and when year changes
+  useEffect(() => {
+    async function fetchIncomeSummary() {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await fetch(`/api/pausalni/income-summary?year=${year}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch income summary")
+        }
+        const data = await response.json()
+        setIncomeSummary(data)
+      } catch (err) {
+        console.error("Error fetching income:", err)
+        setError("Greška pri dohvaćanju podataka o prihodima")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchIncomeSummary()
+  }, [year])
 
   // Step 1: Income Summary
   function renderIncomeSummary() {
-    // In a real implementation, this would fetch actual income data
-    const mockIncome = 48500.0
+    // Show loading state
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-3 text-muted-foreground">Učitavanje podataka...</span>
+        </div>
+      )
+    }
+
+    // Show error state
+    if (error) {
+      return (
+        <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4">
+          <p className="text-red-600">{error}</p>
+          <Button variant="outline" onClick={() => setYear(year)} className="mt-3">
+            Pokušaj ponovno
+          </Button>
+        </div>
+      )
+    }
+
+    // Use real income data or fall back to 0
+    const totalIncome = incomeSummary?.totalIncome ?? 0
+    const hasData = incomeSummary?.hasData ?? false
 
     return (
       <div className="space-y-6">
@@ -67,35 +124,63 @@ export function PosdWizard({ companyId }: Props) {
             <CardTitle className="text-lg">Pregled prihoda za {year}. godinu</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {!hasData && (
+              <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 mb-4">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">
+                      Nema evidentiranih računa
+                    </p>
+                    <p className="text-amber-800 dark:text-amber-300">
+                      Za {year}. godinu nema evidentiranih računa u sustavu. Možete nastaviti s
+                      ručnim unosom prihoda ili prvo unesite račune u sustav.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-lg bg-muted/50 p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Ukupan godišnji prihod</p>
-                  <p className="text-3xl font-bold">{formatCurrency(mockIncome)}</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Ukupan godišnji prihod
+                    {hasData && incomeSummary && (
+                      <span className="ml-2 text-xs">({incomeSummary.invoiceCount} računa)</span>
+                    )}
+                  </p>
+                  <p className="text-3xl font-bold">{formatCurrency(totalIncome)}</p>
                 </div>
                 <FileText className="h-12 w-12 text-muted-foreground" />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Detalji po mjesecima:</p>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                {Array.from({ length: 12 }, (_, i) => {
-                  const monthIncome = mockIncome / 12
-                  return (
+            {hasData && incomeSummary && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Detalji po mjesecima:</p>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  {incomeSummary.monthlyBreakdown.map((month, i) => (
                     <div
                       key={i}
                       className="rounded border border-border bg-surface-secondary p-2 text-center"
                     >
                       <p className="text-xs text-muted-foreground mb-1">
-                        {new Date(year, i).toLocaleDateString("hr-HR", { month: "short" })}
+                        {new Date(year, month.month - 1).toLocaleDateString("hr-HR", {
+                          month: "short",
+                        })}
                       </p>
-                      <p className="font-medium">{formatCurrency(monthIncome)}</p>
+                      <p className="font-medium">{formatCurrency(month.income)}</p>
+                      {month.count > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {month.count} {month.count === 1 ? "račun" : "računa"}
+                        </p>
+                      )}
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
               <div className="flex gap-3">
@@ -103,9 +188,9 @@ export function PosdWizard({ companyId }: Props) {
                 <div className="text-sm">
                   <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">Napomena</p>
                   <p className="text-amber-800 dark:text-amber-300">
-                    Ako ne vodite evidenciju prihoda, procjenite ukupan prihod na temelju izdanih
-                    računa i primitaka. Budite realni - prema ovom prihodu će se odrediti vaši
-                    doprinosi.
+                    {hasData
+                      ? "Prikazani su prihodi temeljem računa evidentiranih u sustavu. Provjerite je li sve ispravno prije nastavka."
+                      : "Ako ne vodite evidenciju prihoda, procjenite ukupan prihod na temelju izdanih računa i primitaka. Budite realni - prema ovom prihodu će se odrediti vaši doprinosi."}
                   </p>
                 </div>
               </div>
@@ -117,10 +202,10 @@ export function PosdWizard({ companyId }: Props) {
           <Button
             onClick={() => {
               setYearSummary({
-                totalIncome: mockIncome,
+                totalIncome: totalIncome,
                 expenseBracket: selectedBracket,
-                calculatedExpenses: mockIncome * (selectedBracket / 100),
-                netIncome: mockIncome * (1 - selectedBracket / 100),
+                calculatedExpenses: totalIncome * (selectedBracket / 100),
+                netIncome: totalIncome * (1 - selectedBracket / 100),
               })
               setCurrentStep(2)
             }}

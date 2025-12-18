@@ -22,6 +22,9 @@ export function StepContactTax() {
     startTransition(async () => {
       setError(null)
 
+      // Paušalni obrt cannot be VAT payer
+      const isVatPayer = data.legalForm === "OBRT_PAUSAL" ? false : data.isVatPayer || false
+
       const result = await createCompany({
         name: data.name!,
         oib: data.oib!,
@@ -32,7 +35,8 @@ export function StepContactTax() {
         email: data.email!,
         phone: data.phone || "",
         iban: data.iban!,
-        isVatPayer: data.isVatPayer || false,
+        isVatPayer,
+        legalForm: data.legalForm,
       })
 
       if (result?.error) {
@@ -97,18 +101,29 @@ export function StepContactTax() {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <input
-            id="isVatPayer"
-            type="checkbox"
-            checked={data.isVatPayer || false}
-            onChange={(e) => updateData({ isVatPayer: e.target.checked })}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <label htmlFor="isVatPayer" className="text-sm text-gray-700">
-            Tvrtka je obveznik PDV-a
-          </label>
-        </div>
+        {/* Hide VAT checkbox for paušalni obrt - they cannot be VAT payers */}
+        {data.legalForm !== "OBRT_PAUSAL" && (
+          <div className="flex items-center gap-3">
+            <input
+              id="isVatPayer"
+              type="checkbox"
+              checked={data.isVatPayer || false}
+              onChange={(e) => updateData({ isVatPayer: e.target.checked })}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="isVatPayer" className="text-sm text-gray-700">
+              Tvrtka je obveznik PDV-a
+            </label>
+          </div>
+        )}
+
+        {data.legalForm === "OBRT_PAUSAL" && (
+          <div className="rounded-md bg-blue-50 border border-blue-100 p-3">
+            <p className="text-sm text-blue-800">
+              <strong>Paušalni obrt</strong> nije u sustavu PDV-a i ne obračunava PDV na račune.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-between">

@@ -15,6 +15,7 @@ export const companySchema = z.object({
   phone: z.string().optional(),
   iban: z.string().optional(),
   isVatPayer: z.boolean().default(false),
+  legalForm: z.enum(["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"]).optional(),
 })
 
 export const companySettingsSchema = z.object({

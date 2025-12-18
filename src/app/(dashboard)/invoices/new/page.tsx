@@ -57,7 +57,12 @@ export default async function NewInvoicePage({
         </Link>
       </div>
 
-      <InvoiceForm type={type} contacts={contacts} products={products} />
+      <InvoiceForm
+        type={type}
+        contacts={contacts}
+        products={products}
+        isPausalni={company.legalForm === "OBRT_PAUSAL"}
+      />
     </div>
   )
 }

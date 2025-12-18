@@ -1,6 +1,7 @@
 // src/lib/stores/onboarding-store.ts
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import type { LegalForm } from "@/lib/capabilities"
 
 export type OnboardingStep = 1 | 2 | 3
 
@@ -8,6 +9,7 @@ export interface OnboardingData {
   // Step 1: Basic Info
   name: string
   oib: string
+  legalForm: LegalForm
 
   // Step 2: Address
   address: string
@@ -59,7 +61,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         const { data } = get()
         switch (step) {
           case 1:
-            return !!(data.name?.trim() && data.oib?.match(/^\d{11}$/))
+            return !!(data.name?.trim() && data.oib?.match(/^\d{11}$/) && data.legalForm)
           case 2:
             return !!(
               data.address?.trim() &&

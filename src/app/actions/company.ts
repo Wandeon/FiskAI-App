@@ -2,6 +2,8 @@
 
 import { z } from "zod"
 import { db } from "@/lib/db"
+import { drizzleDb } from "@/lib/db/drizzle"
+import { pausalniProfile } from "@/lib/db/schema/pausalni"
 import { requireAuth } from "@/lib/auth-utils"
 import { companySchema, companySettingsSchema, planSettingsSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
@@ -29,10 +31,11 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
   }
 
   // Create company and link to user as owner
-  await db.company.create({
+  const company = await db.company.create({
     data: {
       ...data,
       vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
+      legalForm: data.legalForm || "DOO",
       users: {
         create: {
           userId: user.id!,
@@ -42,6 +45,16 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
       },
     },
   })
+
+  // If paušalni obrt, automatically create the paušalni profile
+  if (data.legalForm === "OBRT_PAUSAL") {
+    await drizzleDb.insert(pausalniProfile).values({
+      companyId: company.id,
+      hasPdvId: false,
+      euActive: false,
+      tourismActivity: false,
+    })
+  }
 
   revalidatePath("/dashboard")
   redirect("/dashboard")
