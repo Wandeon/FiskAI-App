@@ -158,6 +158,13 @@ export function useCommandPalette(): UseCommandPaletteReturn {
         return
       }
 
+      // ⌘G / Ctrl+G to cycle guidance level
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "g") {
+        e.preventDefault()
+        window.dispatchEvent(new CustomEvent("toggle-guidance-level"))
+        return
+      }
+
       if (!isOpen) return
 
       // Escape to close

@@ -71,6 +71,18 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
   const CurrentIcon = levelIcons[currentLevel]
   const levels = Object.values(COMPETENCE_LEVELS) as CompetenceLevel[]
 
+  // Listen for keyboard shortcut (Cmd+G) to cycle levels
+  useEffect(() => {
+    const handleToggle = () => {
+      const currentIndex = levels.indexOf(currentLevel)
+      const nextIndex = (currentIndex + 1) % levels.length
+      handleSetLevel(levels[nextIndex])
+    }
+
+    window.addEventListener("toggle-guidance-level", handleToggle)
+    return () => window.removeEventListener("toggle-guidance-level", handleToggle)
+  }, [currentLevel, levels])
+
   if (variant === "buttons") {
     return (
       <div className={cn("flex gap-1", className)}>
