@@ -1,4 +1,4 @@
-CREATE TABLE "checklist_interactions" (
+CREATE TABLE IF NOT EXISTS "checklist_interactions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"company_id" uuid NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "checklist_interactions" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "user_guidance_preferences" (
+CREATE TABLE IF NOT EXISTS "user_guidance_preferences" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"level_fakturiranje" varchar(20) DEFAULT 'beginner' NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE "user_guidance_preferences" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "news_categories" (
+CREATE TABLE IF NOT EXISTS "news_categories" (
 	"id" varchar(50) PRIMARY KEY NOT NULL,
 	"slug" varchar(100) NOT NULL,
 	"name_hr" varchar(200) NOT NULL,
@@ -34,13 +34,13 @@ CREATE TABLE "news_categories" (
 	CONSTRAINT "news_categories_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "news_post_sources" (
+CREATE TABLE IF NOT EXISTS "news_post_sources" (
 	"post_id" uuid NOT NULL,
 	"news_item_id" uuid NOT NULL,
 	CONSTRAINT "news_post_sources_post_id_news_item_id_pk" PRIMARY KEY("post_id","news_item_id")
 );
 --> statement-breakpoint
-CREATE TABLE "news_posts" (
+CREATE TABLE IF NOT EXISTS "news_posts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"slug" varchar(300) NOT NULL,
 	"type" varchar(20) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE "news_posts" (
 	CONSTRAINT "news_posts_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "news_tags" (
+CREATE TABLE IF NOT EXISTS "news_tags" (
 	"id" varchar(50) PRIMARY KEY NOT NULL,
 	"slug" varchar(100) NOT NULL,
 	"name_hr" varchar(200) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE "news_tags" (
 	CONSTRAINT "news_tags_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "newsletter_subscriptions" (
+CREATE TABLE IF NOT EXISTS "newsletter_subscriptions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" varchar(255) NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE "newsletter_subscriptions" (
 	CONSTRAINT "newsletter_subscriptions_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "eu_transaction" (
+CREATE TABLE IF NOT EXISTS "eu_transaction" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"company_id" uuid NOT NULL,
 	"bank_transaction_id" uuid,
@@ -103,7 +103,7 @@ CREATE TABLE "eu_transaction" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "eu_vendor" (
+CREATE TABLE IF NOT EXISTS "eu_vendor" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name_pattern" varchar(255) NOT NULL,
 	"display_name" varchar(255) NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE "eu_vendor" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "generated_form" (
+CREATE TABLE IF NOT EXISTS "generated_form" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"company_id" uuid NOT NULL,
 	"form_type" varchar(20) NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE "generated_form" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "notification_preference" (
+CREATE TABLE IF NOT EXISTS "notification_preference" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"channel" varchar(20) NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE "notification_preference" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "pausalni_profile" (
+CREATE TABLE IF NOT EXISTS "pausalni_profile" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"company_id" uuid NOT NULL,
 	"has_pdv_id" boolean DEFAULT false,
@@ -158,7 +158,7 @@ CREATE TABLE "pausalni_profile" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "payment_obligation" (
+CREATE TABLE IF NOT EXISTS "payment_obligation" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"company_id" uuid NOT NULL,
 	"obligation_type" varchar(50) NOT NULL,
@@ -194,32 +194,32 @@ ALTER TABLE "news_categories" ADD CONSTRAINT "news_categories_parent_id_news_cat
 ALTER TABLE "news_post_sources" ADD CONSTRAINT "news_post_sources_post_id_news_posts_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."news_posts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "news_post_sources" ADD CONSTRAINT "news_post_sources_news_item_id_news_items_id_fk" FOREIGN KEY ("news_item_id") REFERENCES "public"."news_items"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "news_posts" ADD CONSTRAINT "news_posts_category_id_news_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."news_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "checklist_interactions_user_company_idx" ON "checklist_interactions" USING btree ("user_id","company_id");--> statement-breakpoint
-CREATE INDEX "checklist_interactions_reference_idx" ON "checklist_interactions" USING btree ("item_reference");--> statement-breakpoint
-CREATE INDEX "user_guidance_preferences_user_idx" ON "user_guidance_preferences" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "idx_news_categories_slug" ON "news_categories" USING btree ("slug");--> statement-breakpoint
-CREATE INDEX "idx_news_categories_parent" ON "news_categories" USING btree ("parent_id");--> statement-breakpoint
-CREATE INDEX "idx_news_post_sources_post" ON "news_post_sources" USING btree ("post_id");--> statement-breakpoint
-CREATE INDEX "idx_news_post_sources_item" ON "news_post_sources" USING btree ("news_item_id");--> statement-breakpoint
-CREATE INDEX "idx_news_posts_slug" ON "news_posts" USING btree ("slug");--> statement-breakpoint
-CREATE INDEX "idx_news_posts_status" ON "news_posts" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "idx_news_posts_published" ON "news_posts" USING btree ("published_at");--> statement-breakpoint
-CREATE INDEX "idx_news_posts_category" ON "news_posts" USING btree ("category_id");--> statement-breakpoint
-CREATE INDEX "idx_news_posts_type" ON "news_posts" USING btree ("type");--> statement-breakpoint
-CREATE INDEX "idx_news_posts_impact" ON "news_posts" USING btree ("impact_level");--> statement-breakpoint
-CREATE INDEX "idx_news_tags_slug" ON "news_tags" USING btree ("slug");--> statement-breakpoint
-CREATE INDEX "idx_newsletter_email" ON "newsletter_subscriptions" USING btree ("email");--> statement-breakpoint
-CREATE INDEX "idx_newsletter_active" ON "newsletter_subscriptions" USING btree ("is_active");--> statement-breakpoint
-CREATE INDEX "eu_transaction_reporting_idx" ON "eu_transaction" USING btree ("company_id","reporting_year","reporting_month");--> statement-breakpoint
-CREATE INDEX "eu_vendor_pattern_idx" ON "eu_vendor" USING btree ("name_pattern");--> statement-breakpoint
-CREATE INDEX "pausalni_profile_company_idx" ON "pausalni_profile" USING btree ("company_id");--> statement-breakpoint
-CREATE INDEX "payment_obligation_company_status_idx" ON "payment_obligation" USING btree ("company_id","status");--> statement-breakpoint
-CREATE INDEX "payment_obligation_due_date_idx" ON "payment_obligation" USING btree ("due_date");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "checklist_interactions_user_company_idx" ON "checklist_interactions" USING btree ("user_id","company_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "checklist_interactions_reference_idx" ON "checklist_interactions" USING btree ("item_reference");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "user_guidance_preferences_user_idx" ON "user_guidance_preferences" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_categories_slug" ON "news_categories" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_categories_parent" ON "news_categories" USING btree ("parent_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_post_sources_post" ON "news_post_sources" USING btree ("post_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_post_sources_item" ON "news_post_sources" USING btree ("news_item_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_posts_slug" ON "news_posts" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_posts_status" ON "news_posts" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_posts_published" ON "news_posts" USING btree ("published_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_posts_category" ON "news_posts" USING btree ("category_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_posts_type" ON "news_posts" USING btree ("type");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_posts_impact" ON "news_posts" USING btree ("impact_level");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_tags_slug" ON "news_tags" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_newsletter_email" ON "newsletter_subscriptions" USING btree ("email");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_newsletter_active" ON "newsletter_subscriptions" USING btree ("is_active");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "eu_transaction_reporting_idx" ON "eu_transaction" USING btree ("company_id","reporting_year","reporting_month");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "eu_vendor_pattern_idx" ON "eu_vendor" USING btree ("name_pattern");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "pausalni_profile_company_idx" ON "pausalni_profile" USING btree ("company_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "payment_obligation_company_status_idx" ON "payment_obligation" USING btree ("company_id","status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "payment_obligation_due_date_idx" ON "payment_obligation" USING btree ("due_date");--> statement-breakpoint
 ALTER TABLE "news_items" ADD CONSTRAINT "news_items_assigned_to_post_id_news_posts_id_fk" FOREIGN KEY ("assigned_to_post_id") REFERENCES "public"."news_posts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "idx_news_items_status" ON "news_items" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "idx_news_items_impact" ON "news_items" USING btree ("impact_level");--> statement-breakpoint
-CREATE INDEX "idx_news_items_assigned" ON "news_items" USING btree ("assigned_to_post_id");--> statement-breakpoint
-CREATE INDEX "idx_news_items_url" ON "news_items" USING btree ("source_url");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_items_status" ON "news_items" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_items_impact" ON "news_items" USING btree ("impact_level");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_items_assigned" ON "news_items" USING btree ("assigned_to_post_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_news_items_url" ON "news_items" USING btree ("source_url");--> statement-breakpoint
 ALTER TABLE "news_items" DROP COLUMN "title";--> statement-breakpoint
 ALTER TABLE "news_items" DROP COLUMN "content";--> statement-breakpoint
 ALTER TABLE "news_items" DROP COLUMN "url";--> statement-breakpoint
