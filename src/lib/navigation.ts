@@ -43,7 +43,7 @@ export const navigation: NavSection[] = [
         name: "Dokumenti",
         href: "/documents",
         icon: FileText,
-        module: "invoicing", // Primary module for basic docs
+        // Always-on core module
         children: [
           { name: "Svi dokumenti", href: "/documents" },
           { name: "Računi", href: "/documents?category=invoice" },
@@ -82,8 +82,8 @@ export const navigation: NavSection[] = [
   {
     title: "Podaci",
     items: [
-      { name: "Kontakti", href: "/contacts", icon: Users, module: "contacts" },
-      { name: "Proizvodi", href: "/products", icon: Package, module: "products" },
+      { name: "Kontakti", href: "/contacts", icon: Users },
+      { name: "Proizvodi", href: "/products", icon: Package },
       { name: "Article Agent", href: "/article-agent", icon: Bot, module: "ai-assistant" },
     ],
   },

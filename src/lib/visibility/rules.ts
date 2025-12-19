@@ -21,38 +21,22 @@ export const COMPETENCE_LABELS: Record<CompetenceLevel, string> = {
 // ============================================================================
 
 export type ProgressionStage =
-  | "onboarding" // Not yet completed onboarding
-  | "needs-customer" // Onboarding done, no contacts
-  | "needs-product" // Has contacts, no products
-  | "needs-invoice" // Has products, no invoices
-  | "needs-statements" // Has invoices, no bank data
-  | "complete" // Fully activated
+  | "setup" // Stage 0: Onboarding/Setup
+  | "active" // Stage 1: Operational (1+ invoice or statement)
+  | "strategic" // Stage 2: Maintenance/Strategic (10+ invoices or VAT)
 
-export const STAGE_ORDER: ProgressionStage[] = [
-  "onboarding",
-  "needs-customer",
-  "needs-product",
-  "needs-invoice",
-  "needs-statements",
-  "complete",
-]
+export const STAGE_ORDER: ProgressionStage[] = ["setup", "active", "strategic"]
 
 export const STAGE_LABELS: Record<ProgressionStage, string> = {
-  onboarding: "Registracija",
-  "needs-customer": "Prvi kupac",
-  "needs-product": "Prvi proizvod",
-  "needs-invoice": "Prva faktura",
-  "needs-statements": "Bankovni izvodi",
-  complete: "Sve otključano",
+  setup: "Postavljanje",
+  active: "Operativno",
+  strategic: "Strateški",
 }
 
 export const STAGE_ICONS: Record<ProgressionStage, string> = {
-  onboarding: "📝",
-  "needs-customer": "👤",
-  "needs-product": "📦",
-  "needs-invoice": "🧾",
-  "needs-statements": "🏦",
-  complete: "🎉",
+  setup: "📝",
+  active: "🚀",
+  strategic: "📈",
 }
 
 // ============================================================================
@@ -133,60 +117,24 @@ export const PROGRESSION_LOCKED: Record<
     unlockHint: string
   }
 > = {
-  onboarding: {
-    // Everything except basic nav is locked during onboarding
+  setup: {
     locked: [
-      "action:create-invoice",
-      "action:create-contact",
-      "action:create-product",
-      "action:import-statements",
-      "action:export-data",
       "card:invoice-funnel",
       "card:revenue-trend",
       "card:recent-activity",
-      "nav:reports",
-      "page:reports",
-    ],
-    unlockHint: "Dovršite registraciju",
-  },
-  "needs-customer": {
-    locked: [
-      "action:create-product",
-      "action:create-invoice",
-      "card:invoice-funnel",
-      "card:revenue-trend",
-      "card:recent-activity",
-      "nav:reports",
-      "page:reports",
-    ],
-    unlockHint: "Dodajte prvog kupca",
-  },
-  "needs-product": {
-    locked: [
-      "action:create-invoice",
-      "card:invoice-funnel",
-      "card:revenue-trend",
-      "card:recent-activity",
-      "nav:reports",
-      "page:reports",
-    ],
-    unlockHint: "Dodajte prvi proizvod ili uslugu",
-  },
-  "needs-invoice": {
-    locked: [
-      "card:revenue-trend",
-      "card:recent-activity",
+      "card:insights",
+      "card:advanced-insights",
       "nav:reports",
       "page:reports",
       "action:export-data",
     ],
-    unlockHint: "Kreirajte prvu fakturu",
+    unlockHint: "Dovršite postavljanje i izradite prvi račun",
   },
-  "needs-statements": {
-    locked: ["card:doprinosi", "card:cash-flow", "card:advanced-insights"],
-    unlockHint: "Uvezite bankovne izvode",
+  active: {
+    locked: ["card:insights", "card:advanced-insights"],
+    unlockHint: "Prikupite više podataka za dublje uvide",
   },
-  complete: {
+  strategic: {
     locked: [],
     unlockHint: "",
   },
@@ -198,9 +146,9 @@ export const PROGRESSION_LOCKED: Record<
 
 // Which stage each competence level starts at (bypasses earlier stages)
 export const COMPETENCE_STARTING_STAGE: Record<CompetenceLevel, ProgressionStage> = {
-  beginner: "needs-customer", // Must go through all steps after onboarding
-  average: "needs-invoice", // Skips customer/product steps
-  pro: "complete", // Everything unlocked immediately
+  beginner: "setup",
+  average: "active",
+  pro: "strategic",
 }
 
 // Elements hidden based on competence (complexity reduction for beginners)
@@ -223,13 +171,17 @@ export function calculateActualStage(counts: {
   invoices: number
   statements: number
   hasCompletedOnboarding: boolean
+  isVatPayer?: boolean
 }): ProgressionStage {
-  if (!counts.hasCompletedOnboarding) return "onboarding"
-  if (counts.contacts === 0) return "needs-customer"
-  if (counts.products === 0) return "needs-product"
-  if (counts.invoices === 0) return "needs-invoice"
-  if (counts.statements === 0) return "needs-statements"
-  return "complete"
+  if (!counts.hasCompletedOnboarding) return "setup"
+
+  // Strategic if 10+ invoices or VAT registered
+  if (counts.invoices >= 10 || counts.isVatPayer) return "strategic"
+
+  // Active if at least one invoice or bank statement
+  if (counts.invoices > 0 || counts.statements > 0) return "active"
+
+  return "setup"
 }
 
 /**

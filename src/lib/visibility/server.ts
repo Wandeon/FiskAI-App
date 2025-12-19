@@ -59,6 +59,7 @@ export async function getVisibilityData(
       where: { id: companyId },
       select: {
         legalForm: true,
+        isVatPayer: true,
         oib: true,
         address: true,
         city: true,
@@ -99,6 +100,7 @@ export async function getVisibilityData(
   const actualStage = calculateActualStage({
     ...counts,
     hasCompletedOnboarding,
+    isVatPayer: company.isVatPayer,
   })
 
   const effectiveStage = getEffectiveStage(actualStage, competence)
@@ -117,19 +119,10 @@ export async function getVisibilityData(
  * Map existing guidance competence levels to visibility competence levels
  */
 function mapCompetenceLevel(level: string): CompetenceLevel {
-  switch (level) {
-    case COMPETENCE_LEVELS.BEGINNER:
-    case "beginner":
-      return "beginner"
-    case COMPETENCE_LEVELS.AVERAGE:
-    case "average":
-      return "average"
-    case COMPETENCE_LEVELS.PRO:
-    case "pro":
-      return "pro"
-    default:
-      return "beginner"
-  }
+  const normalized = level.toLowerCase()
+  if (normalized.includes("pro") || normalized.includes("expert")) return "pro"
+  if (normalized.includes("average") || normalized.includes("intermediate")) return "average"
+  return "beginner"
 }
 
 // ============================================================================

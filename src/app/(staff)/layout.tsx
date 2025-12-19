@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { StaffSidebar } from "@/components/staff/sidebar"
 import { StaffHeader } from "@/components/staff/header"
-import { StaffClientProvider } from "@/contexts/staff-client-context"
+import { StaffClientProvider } from "@/components/staff/staff-client-provider"
 
 export default async function StaffLayout({ children }: { children: ReactNode }) {
   const session = await auth()
@@ -12,10 +12,10 @@ export default async function StaffLayout({ children }: { children: ReactNode })
     redirect("/login")
   }
 
-  // TODO: Check systemRole when implemented in Phase 1
-  // if (user.systemRole !== 'STAFF' && user.systemRole !== 'ADMIN') {
-  //   redirect('/')
-  // }
+  // Check for STAFF or ADMIN role
+  if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
+    redirect("/dashboard")
+  }
 
   return (
     <StaffClientProvider>
@@ -27,9 +27,7 @@ export default async function StaffLayout({ children }: { children: ReactNode })
           <StaffHeader />
 
           {/* Main content area */}
-          <main className="flex-1 overflow-auto p-6">
-            {children}
-          </main>
+          <main className="flex-1 overflow-auto p-6">{children}</main>
         </div>
       </div>
     </StaffClientProvider>

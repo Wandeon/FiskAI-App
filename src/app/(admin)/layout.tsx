@@ -11,10 +11,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect("/login")
   }
 
-  // TODO: Check systemRole when implemented in Phase 1
-  // if (user.systemRole !== 'ADMIN') {
-  //   redirect('/')
-  // }
+  if (session.user.systemRole !== "ADMIN") {
+    redirect("/")
+  }
 
   return (
     <div className="flex h-screen bg-[var(--background)]">
@@ -26,9 +25,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
         {/* Main content area */}
         <main className="flex-1 overflow-auto p-6">
-          <div className="mx-auto w-full max-w-6xl">
-            {children}
-          </div>
+          <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
       </div>
     </div>
