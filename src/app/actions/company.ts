@@ -45,7 +45,10 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
             ...data,
             vatNumber: data.isVatPayer ? `HR${data.oib}` : existingCompany.vatNumber,
             legalForm: data.legalForm || existingCompany.legalForm || "DOO",
-            entitlements: existingCompany.entitlements || DEFAULT_ENTITLEMENTS,
+            entitlements:
+              existingCompany.entitlements && (existingCompany.entitlements as any[]).length > 0
+                ? existingCompany.entitlements
+                : DEFAULT_ENTITLEMENTS,
           },
         })
 

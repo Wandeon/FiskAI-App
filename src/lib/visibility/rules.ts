@@ -21,20 +21,23 @@ export const COMPETENCE_LABELS: Record<CompetenceLevel, string> = {
 // ============================================================================
 
 export type ProgressionStage =
-  | "setup" // Stage 0: Onboarding/Setup
-  | "active" // Stage 1: Operational (1+ invoice or statement)
-  | "strategic" // Stage 2: Maintenance/Strategic (10+ invoices or VAT)
+  | "onboarding" // Stage 0: Currently in the 4-step wizard
+  | "setup" // Stage 1: Profile done, ready for 1st invoice/data
+  | "active" // Stage 2: Operational (1+ invoice or statement)
+  | "strategic" // Stage 3: Maintenance/Strategic (10+ invoices or VAT)
 
-export const STAGE_ORDER: ProgressionStage[] = ["setup", "active", "strategic"]
+export const STAGE_ORDER: ProgressionStage[] = ["onboarding", "setup", "active", "strategic"]
 
 export const STAGE_LABELS: Record<ProgressionStage, string> = {
+  onboarding: "Registracija",
   setup: "Postavljanje",
   active: "Operativno",
   strategic: "Strateški",
 }
 
 export const STAGE_ICONS: Record<ProgressionStage, string> = {
-  setup: "📝",
+  onboarding: "📝",
+  setup: "⚙️",
   active: "🚀",
   strategic: "📈",
 }
@@ -117,7 +120,25 @@ export const PROGRESSION_LOCKED: Record<
     unlockHint: string
   }
 > = {
+  onboarding: {
+    locked: [
+      "action:create-invoice",
+      "action:create-contact",
+      "action:create-product",
+      "action:import-statements",
+      "action:export-data",
+      "card:invoice-funnel",
+      "card:revenue-trend",
+      "card:recent-activity",
+      "card:insights",
+      "card:advanced-insights",
+      "nav:reports",
+      "page:reports",
+    ],
+    unlockHint: "Dovršite registraciju tvrtke",
+  },
   setup: {
+    // Basic actions are UNLOCKED in setup
     locked: [
       "card:invoice-funnel",
       "card:revenue-trend",
@@ -128,7 +149,7 @@ export const PROGRESSION_LOCKED: Record<
       "page:reports",
       "action:export-data",
     ],
-    unlockHint: "Dovršite postavljanje i izradite prvi račun",
+    unlockHint: "Izradite prvi račun ili uvezite podatke",
   },
   active: {
     locked: ["card:insights", "card:advanced-insights"],
@@ -146,9 +167,9 @@ export const PROGRESSION_LOCKED: Record<
 
 // Which stage each competence level starts at (bypasses earlier stages)
 export const COMPETENCE_STARTING_STAGE: Record<CompetenceLevel, ProgressionStage> = {
-  beginner: "setup",
-  average: "active",
-  pro: "strategic",
+  beginner: "onboarding",
+  average: "setup",
+  pro: "active",
 }
 
 // Elements hidden based on competence (complexity reduction for beginners)
@@ -173,7 +194,7 @@ export function calculateActualStage(counts: {
   hasCompletedOnboarding: boolean
   isVatPayer?: boolean
 }): ProgressionStage {
-  if (!counts.hasCompletedOnboarding) return "setup"
+  if (!counts.hasCompletedOnboarding) return "onboarding"
 
   // Strategic if 10+ invoices or VAT registered
   if (counts.invoices >= 10 || counts.isVatPayer) return "strategic"
@@ -181,6 +202,7 @@ export function calculateActualStage(counts: {
   // Active if at least one invoice or bank statement
   if (counts.invoices > 0 || counts.statements > 0) return "active"
 
+  // Otherwise, we are in setup (profile done, but no transactions)
   return "setup"
 }
 
