@@ -27,47 +27,90 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
     // Check if OIB already exists
     const existingCompany = await db.company.findUnique({
       where: { oib: data.oib },
+      include: { users: true },
     })
+
+    let companyId: string
 
     if (existingCompany) {
-      return { error: "Tvrtka s ovim OIB-om već postoji" }
-    }
+      // SECURITY: Check if user already has access or if company is orphaned
+      const userMembership = existingCompany.users.find((u) => u.userId === user.id)
+      const isOrphaned = existingCompany.users.length === 0
 
-    // Create company and link to user as owner
-    const company = await db.company.create({
-      data: {
-        ...data,
-        vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
-        legalForm: data.legalForm || "DOO",
-        entitlements: DEFAULT_ENTITLEMENTS, // Ensure default modules are active
-        users: {
-          create: {
-            userId: user.id!,
-            role: "OWNER",
-            isDefault: true,
+      if (userMembership || isOrphaned) {
+        // Safe to update
+        const updated = await db.company.update({
+          where: { id: existingCompany.id },
+          data: {
+            ...data,
+            vatNumber: data.isVatPayer ? `HR${data.oib}` : existingCompany.vatNumber,
+            legalForm: data.legalForm || existingCompany.legalForm || "DOO",
+            entitlements: existingCompany.entitlements || DEFAULT_ENTITLEMENTS,
+          },
+        })
+
+        companyId = updated.id
+
+        // Link user if not already linked
+        if (!userMembership) {
+          await db.companyUser.create({
+            data: {
+              userId: user.id!,
+              companyId: updated.id,
+              role: "OWNER",
+              isDefault: true,
+            },
+          })
+        }
+      } else {
+        return {
+          error:
+            "Tvrtka s ovim OIB-om je već registrirana. Ako ste zaposlenik, zamolite administratora za pozivnicu.",
+        }
+      }
+    } else {
+      // Create new company and link to user as owner
+      const newCompany = await db.company.create({
+        data: {
+          ...data,
+          vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
+          legalForm: data.legalForm || "DOO",
+          entitlements: DEFAULT_ENTITLEMENTS,
+          users: {
+            create: {
+              userId: user.id!,
+              role: "OWNER",
+              isDefault: true,
+            },
           },
         },
-      },
-    })
+      })
+      companyId = newCompany.id
+    }
 
-    // If paušalni obrt, automatically create the paušalni profile
+    // Ensure paušalni profile exists if applicable
     if (data.legalForm === "OBRT_PAUSAL") {
       try {
-        await drizzleDb.insert(pausalniProfile).values({
-          companyId: company.id,
-          hasPdvId: false,
-          euActive: false,
-          tourismActivity: false,
+        // We use a raw query or check with drizzle to see if profile exists to avoid duplicates
+        const existingProfile = await drizzleDb.query.pausalniProfile.findFirst({
+          where: (fields, { eq }) => eq(fields.companyId, companyId),
         })
+
+        if (!existingProfile) {
+          await drizzleDb.insert(pausalniProfile).values({
+            companyId: companyId,
+            hasPdvId: false,
+            euActive: false,
+            tourismActivity: false,
+          })
+        }
       } catch (drizzleError) {
-        console.error("[Onboarding] Failed to create paušalni profile:", drizzleError)
-        // We don't fail the whole onboarding if just the profile fails,
-        // but we log it for support to fix.
+        console.error("[Onboarding] Profile sync failed:", drizzleError)
       }
     }
 
     revalidatePath("/dashboard")
-    return { success: true, companyId: company.id }
+    return { success: true, companyId }
   } catch (error: any) {
     console.error("[Onboarding] createCompany failed:", error)
     return { error: "Došlo je do greške pri kreiranju tvrtke. Molimo pokušajte ponovno." }
