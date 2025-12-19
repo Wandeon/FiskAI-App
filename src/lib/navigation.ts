@@ -13,6 +13,7 @@ import {
   Calculator,
   type LucideIcon,
 } from "lucide-react"
+import { ModuleKey } from "@/lib/modules/definitions"
 
 export interface NavItem {
   name: string
@@ -20,7 +21,7 @@ export interface NavItem {
   icon: LucideIcon
   badge?: number
   children?: { name: string; href: string }[]
-  module?: "invoicing" | "eInvoicing" | "expenses" | "banking" | "reports" | "settings"
+  module?: ModuleKey
   showFor?: string[] // Legal forms that should see this item (e.g., ["OBRT_PAUSAL"])
 }
 
@@ -37,12 +38,12 @@ export const navigation: NavSection[] = [
   {
     title: "Financije",
     items: [
-      { name: "Blagajna", href: "/pos", icon: ShoppingCart },
+      { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos" },
       {
         name: "Dokumenti",
         href: "/documents",
         icon: FileText,
-        module: "invoicing",
+        module: "invoicing", // Primary module for basic docs
         children: [
           { name: "Svi dokumenti", href: "/documents" },
           { name: "Računi", href: "/documents?category=invoice" },
@@ -56,13 +57,14 @@ export const navigation: NavSection[] = [
         name: "Paušalni Hub",
         href: "/pausalni",
         icon: Calculator,
+        module: "pausalni",
         showFor: ["OBRT_PAUSAL"],
       },
       {
         name: "Izvještaji",
         href: "/reports",
         icon: BarChart3,
-        module: "reports",
+        module: "reports-basic",
         children: [
           { name: "Svi izvještaji", href: "/reports" },
           { name: "PO-SD izvještaj", href: "/reports/pausalni-obrt" },
@@ -80,14 +82,14 @@ export const navigation: NavSection[] = [
   {
     title: "Podaci",
     items: [
-      { name: "Kontakti", href: "/contacts", icon: Users },
-      { name: "Proizvodi", href: "/products", icon: Package },
-      { name: "Article Agent", href: "/article-agent", icon: Bot },
+      { name: "Kontakti", href: "/contacts", icon: Users, module: "contacts" },
+      { name: "Proizvodi", href: "/products", icon: Package, module: "products" },
+      { name: "Article Agent", href: "/article-agent", icon: Bot, module: "ai-assistant" },
     ],
   },
   {
     title: "Sustav",
-    items: [{ name: "Postavke", href: "/settings", icon: Settings, module: "settings" }],
+    items: [{ name: "Postavke", href: "/settings", icon: Settings }],
   },
 ]
 

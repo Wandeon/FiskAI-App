@@ -10,6 +10,7 @@ import { navigation, isNavItemActive } from "@/lib/navigation"
 import { ChecklistMiniView } from "@/components/guidance"
 import { VisibleNavItem } from "@/lib/visibility"
 import type { ElementId } from "@/lib/visibility/elements"
+import type { ModuleKey } from "@/lib/modules/definitions"
 
 // Map navigation paths to visibility element IDs
 function getNavElementId(href: string): ElementId | null {
@@ -47,12 +48,16 @@ interface SidebarProps {
     eInvoiceProvider?: string | null
     isVatPayer: boolean
     legalForm?: string | null
+    entitlements?: string[] // Raw string array from DB
   }
 }
 
 export function Sidebar({ defaultCollapsed = false, user, company }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed)
   const pathname = usePathname()
+
+  // Cast raw DB entitlements to known module keys
+  const entitlements = (company?.entitlements || []) as ModuleKey[]
 
   return (
     <aside
@@ -132,11 +137,17 @@ export function Sidebar({ defaultCollapsed = false, user, company }: SidebarProp
               <div className="space-y-1">
                 {section.items
                   .filter((item) => {
-                    // Filter items based on showFor property (legacy filtering)
-                    // VisibleNavItem will handle modern visibility rules
-                    if (!item.showFor) return true
-                    if (!company?.legalForm) return false
-                    return item.showFor.includes(company.legalForm)
+                    // 1. Check Module Entitlement (Database Truth)
+                    if (item.module && company && !entitlements.includes(item.module)) {
+                      return false
+                    }
+
+                    // 2. Check Legal Form (Legacy/Visibility)
+                    if (item.showFor && company?.legalForm) {
+                      if (!item.showFor.includes(company.legalForm)) return false
+                    }
+
+                    return true
                   })
                   .map((item) => {
                     const isActive = isNavItemActive(item, pathname)

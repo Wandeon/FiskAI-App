@@ -1,7 +1,8 @@
 import type { Company } from "@prisma/client"
+import { MODULE_KEYS, ModuleKey } from "./modules/definitions"
 
 export type LegalForm = "OBRT_PAUSAL" | "OBRT_REAL" | "OBRT_VAT" | "JDOO" | "DOO"
-export type ModuleKey = "invoicing" | "eInvoicing" | "expenses" | "banking" | "reports" | "settings"
+export type { ModuleKey }
 
 export interface Capabilities {
   legalForm: LegalForm
@@ -25,11 +26,13 @@ type PartialCompany = Pick<Company, "isVatPayer"> & {
 
 const defaultEntitlements: ModuleKey[] = [
   "invoicing",
-  "eInvoicing",
+  "e-invoicing",
   "expenses",
   "banking",
-  "reports",
-  "settings",
+  "reports-basic",
+  "documents",
+  "contacts",
+  "products",
 ]
 
 export function deriveCapabilities(company: PartialCompany | null): Capabilities {
@@ -38,13 +41,10 @@ export function deriveCapabilities(company: PartialCompany | null): Capabilities
   const featureFlags = (company?.featureFlags as Record<string, boolean>) || {}
   const isVatPayer = !!company?.isVatPayer
 
-  const modules: Record<ModuleKey, { enabled: boolean; reason?: string }> = {
-    invoicing: { enabled: entitlements.includes("invoicing") },
-    eInvoicing: { enabled: entitlements.includes("eInvoicing") },
-    expenses: { enabled: entitlements.includes("expenses") },
-    banking: { enabled: entitlements.includes("banking") },
-    reports: { enabled: entitlements.includes("reports") },
-    settings: { enabled: entitlements.includes("settings") },
+  // Create visibility map for all known modules
+  const modules = {} as Record<ModuleKey, { enabled: boolean; reason?: string }>
+  for (const key of MODULE_KEYS) {
+    modules[key] = { enabled: entitlements.includes(key) }
   }
 
   const requireVatFields =
