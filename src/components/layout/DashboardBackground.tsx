@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useMemo } from "react"
+import { useState, useEffect } from "react"
 
 // Calmer, professional palette for dashboard
 const dashboardColors = [
@@ -11,21 +11,24 @@ const dashboardColors = [
   "#6366f1", // Indigo 500
 ]
 
-// Generate random orb configurations
-function generateOrbs(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    size: 400 + Math.random() * 400, // Large, soft blobs
-    x: Math.random() * 100, // % position
-    y: Math.random() * 100,
-    duration: 40 + Math.random() * 20, // Very slow (40-60s)
-    delay: Math.random() * -40,
-  }))
-}
+// Fixed orb configurations to avoid hydration mismatch
+// These are deterministic values that won't differ between server and client
+const fixedOrbs = [
+  { id: 0, size: 520, x: 15, y: 25, duration: 45, delay: -10 },
+  { id: 1, size: 680, x: 75, y: 60, duration: 52, delay: -25 },
+  { id: 2, size: 450, x: 40, y: 80, duration: 48, delay: -15 },
+  { id: 3, size: 600, x: 85, y: 15, duration: 55, delay: -30 },
+]
 
 export function DashboardBackground() {
-  // Generate orbs once on mount
-  const orbs = useMemo(() => generateOrbs(4), []) // Fewer orbs for less distraction
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Use fixed orbs to avoid hydration mismatch
+  const orbs = fixedOrbs
 
   return (
     <div

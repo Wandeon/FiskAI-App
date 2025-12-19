@@ -2,7 +2,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { OnboardingStep } from "@/lib/stores/onboarding-store"
+import { OnboardingStep, useOnboardingStore } from "@/lib/stores/onboarding-store"
 
 const steps = [
   { number: 1, title: "Osnovni podaci" },
@@ -17,6 +17,24 @@ interface StepIndicatorProps {
 }
 
 export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) {
+  const setStep = useOnboardingStore((s) => s.setStep)
+
+  const handleStepClick = (stepNumber: number) => {
+    // Allow navigating to any step that:
+    // 1. Is before the current step (going back)
+    // 2. Is the current step
+    // 3. Is a completed step
+    // 4. Is the next step if current step is valid
+    const canNavigate =
+      stepNumber <= currentStep ||
+      isStepValid(stepNumber as OnboardingStep) ||
+      (stepNumber === currentStep + 1 && isStepValid(currentStep))
+
+    if (canNavigate) {
+      setStep(stepNumber as OnboardingStep)
+    }
+  }
+
   return (
     <nav aria-label="Napredak" className="mb-8">
       <ol className="flex items-center justify-center gap-2">
@@ -24,16 +42,25 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
           const isActive = step.number === currentStep
           const isPast = step.number < currentStep
           const isCompleted = isPast || isStepValid(step.number as OnboardingStep)
+          const canClick =
+            step.number <= currentStep ||
+            isCompleted ||
+            (step.number === currentStep + 1 && isStepValid(currentStep))
 
           return (
             <li key={step.number} className="flex items-center">
               <div className="flex flex-col items-center">
-                <div
+                <button
+                  type="button"
+                  onClick={() => handleStepClick(step.number)}
+                  disabled={!canClick}
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors",
                     isActive && "border-blue-600 bg-blue-600 text-white",
                     isPast && "border-green-600 bg-green-600 text-white",
-                    !isActive && !isPast && "border-gray-300 bg-white text-gray-500"
+                    !isActive && !isPast && "border-gray-300 bg-white text-gray-500",
+                    canClick && !isActive && "cursor-pointer hover:border-blue-400",
+                    !canClick && "cursor-not-allowed opacity-50"
                   )}
                   aria-current={isActive ? "step" : undefined}
                 >
@@ -48,7 +75,7 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                   ) : (
                     step.number
                   )}
-                </div>
+                </button>
                 <span
                   className={cn(
                     "mt-2 text-xs font-medium",

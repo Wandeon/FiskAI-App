@@ -31,10 +31,12 @@ export interface OnboardingData {
 interface OnboardingState {
   currentStep: OnboardingStep
   data: Partial<OnboardingData>
+  isHydrated: boolean
   setStep: (step: OnboardingStep) => void
   updateData: (data: Partial<OnboardingData>) => void
   reset: () => void
   isStepValid: (step: OnboardingStep) => boolean
+  hydrate: (serverData: Partial<OnboardingData>, startStep?: OnboardingStep) => void
 }
 
 const initialData: Partial<OnboardingData> = {
@@ -47,6 +49,7 @@ export const useOnboardingStore = create<OnboardingState>()(
     (set, get) => ({
       currentStep: 1,
       data: initialData,
+      isHydrated: false,
 
       setStep: (step) => set({ currentStep: step }),
 
@@ -59,6 +62,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         set({
           currentStep: 1,
           data: initialData,
+          isHydrated: false,
         }),
 
       isStepValid: (step) => {
@@ -81,10 +85,29 @@ export const useOnboardingStore = create<OnboardingState>()(
             return false
         }
       },
+
+      hydrate: (serverData, startStep) => {
+        const { isHydrated } = get()
+        // Only hydrate once per page load
+        if (isHydrated) return
+
+        // Merge server data with defaults (server data takes precedence)
+        const mergedData = {
+          ...initialData,
+          ...serverData,
+        }
+
+        set({
+          data: mergedData,
+          currentStep: startStep || 1,
+          isHydrated: true,
+        })
+      },
     }),
     {
       name: "fiskai-onboarding",
       partialize: (state) => ({
+        // Don't persist isHydrated - we want to re-hydrate on each page load
         currentStep: state.currentStep,
         data: state.data,
       }),
