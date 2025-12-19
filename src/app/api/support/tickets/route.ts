@@ -2,12 +2,13 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
-import { SupportTicketPriority, SupportTicketStatus } from "@prisma/client"
+import { SupportTicketPriority, SupportTicketStatus, TicketCategory } from "@prisma/client"
 
 const createSchema = z.object({
   title: z.string().min(3, "Naslov je prekratak"),
   body: z.string().optional(),
   priority: z.nativeEnum(SupportTicketPriority).optional(),
+  category: z.nativeEnum(TicketCategory).optional(),
 })
 
 export async function GET(request: Request) {
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
       title: data.title.trim(),
       body: data.body?.trim() || null,
       priority: data.priority || SupportTicketPriority.NORMAL,
+      category: data.category || TicketCategory.GENERAL,
     },
   })
 
