@@ -26,6 +26,16 @@ export const RATE_LIMITS = {
     window: 60 * 60 * 1000, // 1 hour
     blockDuration: 60 * 60 * 1000, // 1 hour block
   },
+  OTP_SEND: {
+    attempts: 3, // 3 codes per email per hour
+    window: 60 * 60 * 1000, // 1 hour
+    blockDuration: 60 * 60 * 1000, // 1 hour block
+  },
+  OTP_VERIFY: {
+    attempts: 5, // 5 attempts per code
+    window: 10 * 60 * 1000, // 10 minutes (code lifetime)
+    blockDuration: 30 * 60 * 1000, // 30 minute lockout
+  },
   API_CALLS: {
     attempts: 100,
     window: 15 * 60 * 1000, // 15 minutes
