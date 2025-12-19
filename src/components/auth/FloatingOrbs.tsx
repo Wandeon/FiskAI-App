@@ -32,11 +32,11 @@ const stateColors: Record<AuthState, string[]> = {
 function generateOrbs(count: number) {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    size: 200 + Math.random() * 300, // 200-500px
+    size: 300 + Math.random() * 400, // 300-700px (larger for smoother look)
     x: Math.random() * 100, // % position
     y: Math.random() * 100,
-    duration: 20 + Math.random() * 20, // 20-40s animation
-    delay: Math.random() * -20, // stagger start
+    duration: 25 + Math.random() * 25, // 25-50s animation (slower for smoother)
+    delay: Math.random() * -25, // stagger start
   }))
 }
 
@@ -57,13 +57,14 @@ export function FloatingOrbs({ state, className }: FloatingOrbsProps) {
       {orbs.map((orb, index) => (
         <motion.div
           key={orb.id}
-          className="absolute rounded-full blur-3xl"
+          className="absolute rounded-full"
           style={{
             width: orb.size,
             height: orb.size,
             left: `${orb.x}%`,
             top: `${orb.y}%`,
             transform: "translate(-50%, -50%)",
+            filter: "blur(100px)",
           }}
           animate={{
             x: [0, 100, -50, 80, 0],
@@ -82,16 +83,8 @@ export function FloatingOrbs({ state, className }: FloatingOrbsProps) {
         />
       ))}
 
-      {/* Noise texture overlay for depth */}
-      <div
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Vignette effect */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/50" />
+      {/* Soft vignette effect */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.3)_100%)]" />
     </div>
   )
 }
