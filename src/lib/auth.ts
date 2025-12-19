@@ -14,6 +14,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/login",
     verifyRequest: "/auth/verify-request", // for password reset
   },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.fiskai.eu' : undefined,
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -106,15 +120,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
+        // Fetch the full user from the database to get systemRole
+        const dbUser = await db.user.findUnique({
+          where: { id: user.id },
+          select: { systemRole: true },
+        })
+        token.systemRole = dbUser?.systemRole || "USER"
+      }
+      // On session update, refresh the role
+      if (trigger === "update" && token.id) {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id as string },
+          select: { systemRole: true },
+        })
+        token.systemRole = dbUser?.systemRole || "USER"
       }
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string
+        session.user.systemRole = (token.systemRole as "USER" | "STAFF" | "ADMIN") || "USER"
       }
       return session
     },
