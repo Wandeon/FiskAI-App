@@ -45,9 +45,9 @@ export async function getCurrentCompany(userId: string) {
           premisesCode: true,
           deviceCode: true,
           featureFlags: true,
+          entitlements: true,
           createdAt: true,
           updatedAt: true,
-          // Note: entitlements String[] excluded - causes pg adapter bug
         },
       },
     },
@@ -79,6 +79,7 @@ export async function getCurrentCompany(userId: string) {
             premisesCode: true,
             deviceCode: true,
             featureFlags: true,
+            entitlements: true,
             createdAt: true,
             updatedAt: true,
           },

@@ -37,7 +37,13 @@ const defaultEntitlements: ModuleKey[] = [
 
 export function deriveCapabilities(company: PartialCompany | null): Capabilities {
   const legalForm = (company?.legalForm as LegalForm) || "DOO"
-  const entitlements = (company?.entitlements as ModuleKey[]) || defaultEntitlements
+
+  // Handle Prisma's Json type safely
+  let entitlements = defaultEntitlements
+  if (Array.isArray(company?.entitlements)) {
+    entitlements = company.entitlements as ModuleKey[]
+  }
+
   const featureFlags = (company?.featureFlags as Record<string, boolean>) || {}
   const isVatPayer = !!company?.isVatPayer
 

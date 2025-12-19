@@ -31,67 +31,43 @@ export function StepContactTax({ isExistingCompany = false }: StepContactTaxProp
       // Paušalni obrt cannot be VAT payer
       const isVatPayer = data.legalForm === "OBRT_PAUSAL" ? false : data.isVatPayer || false
 
-      if (isExistingCompany) {
-        // Update existing company
-        const result = await saveOnboardingData({
-          name: data.name!,
-          oib: data.oib!,
-          legalForm: data.legalForm!,
-          competence: data.competence,
-          address: data.address!,
-          postalCode: data.postalCode!,
-          city: data.city!,
-          country: data.country!,
-          email: data.email!,
-          phone: data.phone || undefined,
-          iban: data.iban!,
-          isVatPayer,
-        })
+      const result = await createCompany({
+        name: data.name!,
+        oib: data.oib!,
+        address: data.address!,
+        postalCode: data.postalCode!,
+        city: data.city!,
+        country: data.country!,
+        email: data.email!,
+        phone: data.phone || "",
+        iban: data.iban!,
+        isVatPayer,
+        legalForm: data.legalForm,
+      })
 
-        if ("error" in result && result.error) {
-          setError(result.error)
-          toast.error("Greška", result.error)
-        } else {
-          // Save competence level to guidance preferences
-          if (data.competence) {
+      if (result.error) {
+        setError(result.error)
+        toast.error("Greška", result.error)
+      } else if (result.success) {
+        // Save competence level to guidance preferences
+        if (data.competence) {
+          try {
             await saveCompetenceLevel(data.competence)
+          } catch (e) {
+            console.error("Failed to save competence level:", e)
           }
-
-          reset() // Clear stored wizard data
-          toast.success("Podaci ažurirani!", "Postavljanje dovršeno")
-          trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED, { competence: data.competence })
-          router.push("/dashboard")
         }
-      } else {
-        // Create new company
-        const result = await createCompany({
-          name: data.name!,
-          oib: data.oib!,
-          address: data.address!,
-          postalCode: data.postalCode!,
-          city: data.city!,
-          country: data.country!,
-          email: data.email!,
-          phone: data.phone || "",
-          iban: data.iban!,
-          isVatPayer,
-          legalForm: data.legalForm,
-        })
 
-        if (result?.error) {
-          setError(result.error)
-          toast.error("Greška", result.error)
-        } else {
-          // Save competence level to guidance preferences
-          if (data.competence) {
-            await saveCompetenceLevel(data.competence)
-          }
+        // Finalize analytics and store
+        trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED, { competence: data.competence })
+        toast.success("Tvrtka kreirana!", "Možete početi s radom")
 
+        // Wait a tiny bit for the toast to be seen
+        setTimeout(() => {
           reset() // Clear stored wizard data
-          toast.success("Tvrtka kreirana!", "Možete početi s radom")
-          trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED, { competence: data.competence })
           router.push("/dashboard")
-        }
+          router.refresh()
+        }, 500)
       }
     })
   }

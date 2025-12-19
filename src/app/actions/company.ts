@@ -10,54 +10,68 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { encryptSecret } from "@/lib/secrets"
 
+import { DEFAULT_ENTITLEMENTS } from "@/lib/modules/definitions"
+
 export async function createCompany(formData: z.input<typeof companySchema>) {
   const user = await requireAuth()
 
   const validatedFields = companySchema.safeParse(formData)
 
   if (!validatedFields.success) {
-    return { error: "Invalid fields", details: validatedFields.error.flatten() }
+    return { error: "Neispravni podaci", details: validatedFields.error.flatten() }
   }
 
   const data = validatedFields.data
 
-  // Check if OIB already exists
-  const existingCompany = await db.company.findUnique({
-    where: { oib: data.oib },
-  })
+  try {
+    // Check if OIB already exists
+    const existingCompany = await db.company.findUnique({
+      where: { oib: data.oib },
+    })
 
-  if (existingCompany) {
-    return { error: "A company with this OIB already exists" }
-  }
+    if (existingCompany) {
+      return { error: "Tvrtka s ovim OIB-om već postoji" }
+    }
 
-  // Create company and link to user as owner
-  const company = await db.company.create({
-    data: {
-      ...data,
-      vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
-      legalForm: data.legalForm || "DOO",
-      users: {
-        create: {
-          userId: user.id!,
-          role: "OWNER",
-          isDefault: true,
+    // Create company and link to user as owner
+    const company = await db.company.create({
+      data: {
+        ...data,
+        vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
+        legalForm: data.legalForm || "DOO",
+        entitlements: DEFAULT_ENTITLEMENTS, // Ensure default modules are active
+        users: {
+          create: {
+            userId: user.id!,
+            role: "OWNER",
+            isDefault: true,
+          },
         },
       },
-    },
-  })
-
-  // If paušalni obrt, automatically create the paušalni profile
-  if (data.legalForm === "OBRT_PAUSAL") {
-    await drizzleDb.insert(pausalniProfile).values({
-      companyId: company.id,
-      hasPdvId: false,
-      euActive: false,
-      tourismActivity: false,
     })
-  }
 
-  revalidatePath("/dashboard")
-  redirect("/dashboard")
+    // If paušalni obrt, automatically create the paušalni profile
+    if (data.legalForm === "OBRT_PAUSAL") {
+      try {
+        await drizzleDb.insert(pausalniProfile).values({
+          companyId: company.id,
+          hasPdvId: false,
+          euActive: false,
+          tourismActivity: false,
+        })
+      } catch (drizzleError) {
+        console.error("[Onboarding] Failed to create paušalni profile:", drizzleError)
+        // We don't fail the whole onboarding if just the profile fails,
+        // but we log it for support to fix.
+      }
+    }
+
+    revalidatePath("/dashboard")
+    return { success: true, companyId: company.id }
+  } catch (error: any) {
+    console.error("[Onboarding] createCompany failed:", error)
+    return { error: "Došlo je do greške pri kreiranju tvrtke. Molimo pokušajte ponovno." }
+  }
 }
 
 export async function updateCompany(companyId: string, formData: z.input<typeof companySchema>) {

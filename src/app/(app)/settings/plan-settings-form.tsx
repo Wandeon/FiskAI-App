@@ -15,23 +15,29 @@ const legalForms = [
   { value: "DOO", label: "d.o.o." },
 ] as const
 
-const modules: { key: ModuleKey; label: string }[] = [
-  { key: "invoicing", label: "Dokumenti" },
-  { key: "eInvoicing", label: "E-Računi" },
-  { key: "expenses", label: "Troškovi" },
-  { key: "banking", label: "Banka" },
-  { key: "reports", label: "Izvještaji" },
-  { key: "settings", label: "Postavke" },
-]
+import { MODULES, MODULE_KEYS } from "@/lib/modules/definitions"
+
+const legalForms = [
+  { value: "OBRT_PAUSAL", label: "Obrt (paušal)" },
+  { value: "OBRT_REAL", label: "Obrt (realno)" },
+  { value: "OBRT_VAT", label: "Obrt (PDV)" },
+  { value: "JDOO", label: "j.d.o.o." },
+  { value: "DOO", label: "d.o.o." },
+] as const
 
 export function PlanSettingsForm({ company }: { company: Company }) {
   const [legalForm, setLegalForm] = useState<LegalForm>((company.legalForm as LegalForm) || "DOO")
   const [isVatPayer, setIsVatPayer] = useState<boolean>(company.isVatPayer)
-  const [entitlements, setEntitlements] = useState<ModuleKey[]>(
-    Array.isArray(company.entitlements)
-      ? (company.entitlements as ModuleKey[])
-      : ["invoicing", "eInvoicing", "expenses", "reports", "settings"]
-  )
+
+  // Initialize entitlements from DB, handling Json type and ensuring valid keys
+  const [entitlements, setEntitlements] = useState<ModuleKey[]>(() => {
+    if (Array.isArray(company.entitlements)) {
+      return company.entitlements as ModuleKey[]
+    }
+    // Default set if null or invalid
+    return ["invoicing", "e-invoicing", "expenses", "reports-basic", "documents"]
+  })
+
   const [isPending, startTransition] = useTransition()
 
   const toggleEntitlement = (key: ModuleKey) => {
@@ -96,20 +102,21 @@ export function PlanSettingsForm({ company }: { company: Company }) {
           Aktivirajte module dostupne ovom klijentu.
         </p>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {modules.map((mod) => {
-            const checked = entitlements.includes(mod.key)
+          {MODULE_KEYS.map((key) => {
+            const mod = MODULES[key]
+            const checked = entitlements.includes(key)
             return (
               <label
-                key={mod.key}
+                key={key}
                 className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)]/60 px-3 py-2 text-sm"
               >
                 <input
                   type="checkbox"
                   checked={checked}
-                  onChange={() => toggleEntitlement(mod.key)}
+                  onChange={() => toggleEntitlement(key)}
                   className="h-4 w-4 rounded border-[var(--border)] text-brand-600 focus:ring-brand-500"
                 />
-                <span className="font-medium text-[var(--foreground)]">{mod.label}</span>
+                <span className="font-medium text-[var(--foreground)]">{mod.name}</span>
               </label>
             )
           })}

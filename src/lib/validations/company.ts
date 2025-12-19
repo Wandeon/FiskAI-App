@@ -27,7 +27,26 @@ export const planSettingsSchema = z.object({
   legalForm: z.enum(["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"]),
   isVatPayer: z.boolean().default(false),
   entitlements: z
-    .array(z.enum(["invoicing", "eInvoicing", "expenses", "banking", "reports", "settings"]))
+    .array(
+      z.enum([
+        "invoicing",
+        "e-invoicing",
+        "fiscalization",
+        "contacts",
+        "products",
+        "expenses",
+        "banking",
+        "reconciliation",
+        "reports-basic",
+        "reports-advanced",
+        "pausalni",
+        "vat",
+        "corporate-tax",
+        "pos",
+        "documents",
+        "ai-assistant",
+      ])
+    )
     .min(1),
 })
 

@@ -12,20 +12,18 @@ model User {
   name                String?
   emailVerified       DateTime?
   image               String?
-  systemRole          SystemRole           @default(USER)
   passwordHash        String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  systemRole          SystemRole           @default(USER)
   accounts            Account[]
   companies           CompanyUser[]
   passwordResetTokens PasswordResetToken[]
   sessions            Session[]
-  webAuthnCredentials WebAuthnCredential[]
+  assignmentsMade     StaffAssignment[]    @relation("AssignmentsMade")
+  staffAssignments    StaffAssignment[]    @relation("StaffAssignments")
   verificationCodes   VerificationCode[]
-
-  // Staff assignment relations
-  staffAssignments    StaffAssignment[] @relation("StaffAssignments")
-  assignmentsMade     StaffAssignment[] @relation("AssignmentsMade")
+  webAuthnCredentials WebAuthnCredential[]
 }
 
 model Account {
@@ -77,12 +75,6 @@ model VerificationCode {
   @@index([expiresAt])
 }
 
-enum VerificationCodeType {
-  EMAIL_VERIFY
-  PASSWORD_RESET
-  LOGIN_VERIFY
-}
-
 model PasswordResetToken {
   id        String   @id @default(cuid())
   token     String   @unique
@@ -93,72 +85,67 @@ model PasswordResetToken {
 }
 
 model Company {
-  id                      String    @id @default(cuid())
-  name                    String
-  oib                     String    @unique
-  vatNumber               String?
-  address                 String
-  city                    String
-  postalCode              String
-  country                 String    @default("HR")
-  email                   String?
-  phone                   String?
-  iban                    String?
-  isVatPayer              Boolean   @default(false)
-  eInvoiceProvider        String?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  eInvoiceApiKeyEncrypted String?
-  legalForm               String?
-  entitlements            String[]  @default(["invoicing", "e-invoicing", "contacts", "products", "expenses", "reports-basic", "documents"])
-  featureFlags            Json?
-  fiscalEnabled           Boolean   @default(false)
-  fiscalEnvironment       FiscalEnv @default(PROD)
-  premisesCode            String    @default("1")
-  deviceCode              String    @default("1")
-
-  // Stripe Terminal fields for POS
-  stripeTerminalLocationId String? // Stripe location for reader
-  stripeTerminalReaderId   String? // Connected reader ID
-
-  // Billing/Subscription fields
-  stripeCustomerId               String?   @unique
-  stripeSubscriptionId           String?   @unique
-  subscriptionStatus             String?   @default("trialing")
-  subscriptionPlan               String?   @default("pausalni")
+  id                             String               @id @default(cuid())
+  name                           String
+  oib                            String               @unique
+  vatNumber                      String?
+  address                        String
+  city                           String
+  postalCode                     String
+  country                        String               @default("HR")
+  email                          String?
+  phone                          String?
+  iban                           String?
+  isVatPayer                     Boolean              @default(false)
+  eInvoiceProvider               String?
+  createdAt                      DateTime             @default(now())
+  updatedAt                      DateTime             @updatedAt
+  eInvoiceApiKeyEncrypted        String?
+  legalForm                      String?
+  entitlements                   Json?
+  featureFlags                   Json?
+  deviceCode                     String               @default("1")
+  fiscalEnabled                  Boolean              @default(false)
+  fiscalEnvironment              FiscalEnv            @default(PROD)
+  premisesCode                   String               @default("1")
+  stripeCustomerId               String?              @unique
+  stripeSubscriptionId           String?              @unique
+  subscriptionStatus             String?              @default("trialing")
+  subscriptionPlan               String?              @default("pausalni")
+  trialEndsAt                    DateTime?
   subscriptionCurrentPeriodStart DateTime?
   subscriptionCurrentPeriodEnd   DateTime?
-  invoiceLimit                   Int       @default(50)
-  userLimit                      Int       @default(1)
-  trialEndsAt                    DateTime?
-
-  auditLogs             AuditLog[]
-  bankAccounts          BankAccount[]
-  businessPremises      BusinessPremises[]
-  users                 CompanyUser[]
-  contacts              Contact[]
-  eInvoices             EInvoice[]
-  expenses              Expense[]
-  expenseCategories     ExpenseCategory[]
-  importJobs            ImportJob[]
-  invoiceSequences      InvoiceSequence[]
-  paymentDevices        PaymentDevice[]
-  products              Product[]
-  recurringExpenses     RecurringExpense[]
-  savedReports          SavedReport[]
-  statements            Statement[]
-  statementPages        StatementPage[]
-  supportTickets        SupportTicket[]
-  statementTransactions Transaction[]
-  bankConnections       BankConnection[]
-  potentialDuplicates   PotentialDuplicate[]
-  emailConnections      EmailConnection[]
-  emailImportRules      EmailImportRule[]
-  emailAttachments      EmailAttachment[]
-  fiscalCertificates    FiscalCertificate[]
-  fiscalRequests        FiscalRequest[]
-  aiUsage               AIUsage[]
-  assignedStaff         StaffAssignment[] @relation("AssignedStaff")
+  invoiceLimit                   Int                  @default(50)
+  userLimit                      Int                  @default(1)
+  stripeTerminalLocationId       String?
+  stripeTerminalReaderId         String?
+  aiUsage                        AIUsage[]
+  auditLogs                      AuditLog[]
+  bankAccounts                   BankAccount[]
+  bankConnections                BankConnection[]
+  businessPremises               BusinessPremises[]
+  users                          CompanyUser[]
+  contacts                       Contact[]
+  eInvoices                      EInvoice[]
+  emailAttachments               EmailAttachment[]
+  emailConnections               EmailConnection[]
+  emailImportRules               EmailImportRule[]
+  expenses                       Expense[]
+  expenseCategories              ExpenseCategory[]
+  fiscalCertificates             FiscalCertificate[]
+  fiscalRequests                 FiscalRequest[]
+  importJobs                     ImportJob[]
+  invoiceSequences               InvoiceSequence[]
+  paymentDevices                 PaymentDevice[]
+  potentialDuplicates            PotentialDuplicate[]
+  products                       Product[]
+  recurringExpenses              RecurringExpense[]
+  savedReports                   SavedReport[]
+  assignedStaff                  StaffAssignment[]    @relation("AssignedStaff")
+  statements                     Statement[]
+  statementPages                 StatementPage[]
+  supportTickets                 SupportTicket[]
+  statementTransactions          Transaction[]
 }
 
 model CompanyUser {
@@ -178,16 +165,15 @@ model CompanyUser {
 }
 
 model StaffAssignment {
-  id          String   @id @default(cuid())
-  staffId     String
-  companyId   String
-  assignedAt  DateTime @default(now())
-  assignedBy  String
-  notes       String?
-
-  staff       User     @relation("StaffAssignments", fields: [staffId], references: [id], onDelete: Cascade)
-  company     Company  @relation("AssignedStaff", fields: [companyId], references: [id], onDelete: Cascade)
-  assigner    User     @relation("AssignmentsMade", fields: [assignedBy], references: [id])
+  id         String   @id @default(cuid())
+  staffId    String
+  companyId  String
+  assignedAt DateTime @default(now())
+  assignedBy String
+  notes      String?
+  assigner   User     @relation("AssignmentsMade", fields: [assignedBy], references: [id])
+  company    Company  @relation("AssignedStaff", fields: [companyId], references: [id], onDelete: Cascade)
+  staff      User     @relation("StaffAssignments", fields: [staffId], references: [id], onDelete: Cascade)
 
   @@unique([staffId, companyId])
   @@index([staffId])
@@ -256,8 +242,6 @@ model EInvoice {
   jir               String?
   zki               String?
   fiscalizedAt      DateTime?
-  fiscalStatus      String?
-  operatorOib       String?
   ublXml            String?
   providerRef       String?
   providerStatus    String?
@@ -268,13 +252,6 @@ model EInvoice {
   updatedAt         DateTime          @updatedAt
   sentAt            DateTime?
   receivedAt        DateTime?
-  // Email tracking (via Resend webhooks)
-  emailMessageId    String?
-  emailDeliveredAt  DateTime?
-  emailOpenedAt     DateTime?
-  emailClickedAt    DateTime?
-  emailBouncedAt    DateTime?
-  emailBounceReason String?
   type              InvoiceType       @default(E_INVOICE)
   internalReference String?
   notes             String?
@@ -282,21 +259,27 @@ model EInvoice {
   paidAt            DateTime?
   bankAccount       String?
   includeBarcode    Boolean           @default(true)
-  paymentMethod     PaymentMethod? // Required for fiscalization: CASH/CARD must be fiscalized
-  // Vendor payment details (for inbound invoices)
-  vendorIban        String?
-  vendorBankName    String?
-  paymentReference  String? // poziv na broj primatelja
-  paymentModel      String? // HR00, HR01, etc.
-  // Source document link
   importJobId       String?           @unique
+  paymentModel      String?
+  paymentReference  String?
+  vendorBankName    String?
+  vendorIban        String?
+  fiscalStatus      String?
+  operatorOib       String?
+  paymentMethod     PaymentMethod?
+  emailMessageId    String?
+  emailDeliveredAt  DateTime?
+  emailOpenedAt     DateTime?
+  emailClickedAt    DateTime?
+  emailBouncedAt    DateTime?
+  emailBounceReason String?
   bankTransactions  BankTransaction[]
   buyer             Contact?          @relation("EInvoiceBuyer", fields: [buyerId], references: [id])
   company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   convertedFrom     EInvoice?         @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
   convertedTo       EInvoice[]        @relation("InvoiceConversion")
-  seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id])
   importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
+  seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id])
   lines             EInvoiceLine[]
   fiscalRequests    FiscalRequest[]
 
@@ -479,30 +462,27 @@ model SavedReport {
 }
 
 model BankAccount {
-  id             String    @id @default(cuid())
-  companyId      String
-  name           String
-  iban           String
-  bankName       String
-  currency       String    @default("EUR")
-  currentBalance Decimal   @db.Decimal(12, 2)
-  lastSyncAt     DateTime?
-  isDefault      Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  // Bank Sync fields
+  id                    String            @id @default(cuid())
+  companyId             String
+  name                  String
+  iban                  String
+  bankName              String
+  currency              String            @default("EUR")
+  currentBalance        Decimal           @db.Decimal(12, 2)
+  lastSyncAt            DateTime?
+  isDefault             Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  connectionExpiresAt   DateTime?
+  connectionStatus      ConnectionStatus  @default(MANUAL)
   syncProvider          SyncProvider?
   syncProviderAccountId String?
-  connectionStatus      ConnectionStatus @default(MANUAL)
-  connectionExpiresAt   DateTime?
-
-  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  imports      BankImport[]
-  transactions BankTransaction[]
-  importJobs   ImportJob[]
-  statements   Statement[]
-  connection   BankConnection?
+  company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection            BankConnection?
+  imports               BankImport[]
+  transactions          BankTransaction[]
+  importJobs            ImportJob[]
+  statements            Statement[]
 
   @@unique([companyId, iban])
   @@index([companyId])
@@ -510,31 +490,28 @@ model BankAccount {
 }
 
 model BankTransaction {
-  id               String      @id @default(cuid())
+  id               String            @id @default(cuid())
   companyId        String
   bankAccountId    String
   date             DateTime
   description      String
-  amount           Decimal     @db.Decimal(12, 2)
-  balance          Decimal     @db.Decimal(12, 2)
+  amount           Decimal           @db.Decimal(12, 2)
+  balance          Decimal           @db.Decimal(12, 2)
   reference        String?
   counterpartyName String?
   counterpartyIban String?
   matchedInvoiceId String?
   matchedExpenseId String?
-  matchStatus      MatchStatus @default(UNMATCHED)
+  matchStatus      MatchStatus       @default(UNMATCHED)
   matchedAt        DateTime?
   matchedBy        String?
-  createdAt        DateTime    @default(now())
+  createdAt        DateTime          @default(now())
   confidenceScore  Int?
-
-  // Bank Sync fields
-  externalId String?
-  source     TransactionSource @default(MANUAL)
-
-  bankAccount    BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  matchedExpense Expense?    @relation(fields: [matchedExpenseId], references: [id])
-  matchedInvoice EInvoice?   @relation(fields: [matchedInvoiceId], references: [id])
+  externalId       String?
+  source           TransactionSource @default(MANUAL)
+  bankAccount      BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  matchedExpense   Expense?          @relation(fields: [matchedExpenseId], references: [id])
+  matchedInvoice   EInvoice?         @relation(fields: [matchedInvoiceId], references: [id])
 
   @@index([companyId])
   @@index([bankAccountId])
@@ -544,25 +521,21 @@ model BankTransaction {
 }
 
 model BankConnection {
-  id            String @id @default(cuid())
-  companyId     String
-  bankAccountId String @unique
-
+  id                   String           @id @default(cuid())
+  companyId            String
+  bankAccountId        String           @unique
   provider             SyncProvider
   providerConnectionId String
   institutionId        String
   institutionName      String
-
-  status       ConnectionStatus @default(MANUAL)
-  authorizedAt DateTime?
-  expiresAt    DateTime?
-  lastError    String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  status               ConnectionStatus @default(MANUAL)
+  authorizedAt         DateTime?
+  expiresAt            DateTime?
+  lastError            String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  bankAccount          BankAccount      @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company              Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([status])
@@ -570,50 +543,41 @@ model BankConnection {
 }
 
 model PotentialDuplicate {
-  id        String @id @default(cuid())
-  companyId String
-
-  transactionAId String
-  transactionBId String
-
+  id              String               @id @default(cuid())
+  companyId       String
+  transactionAId  String
+  transactionBId  String
   similarityScore Float
   reason          String
-
-  status     DuplicateStatus      @default(PENDING)
-  resolvedAt DateTime?
-  resolvedBy String?
-  resolution DuplicateResolution?
-
-  createdAt DateTime @default(now())
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status          DuplicateStatus      @default(PENDING)
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolution      DuplicateResolution?
+  createdAt       DateTime             @default(now())
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([status])
 }
 
 model EmailConnection {
-  id           String                @id @default(cuid())
-  companyId    String
-  provider     EmailProvider
-  emailAddress String
-  status       EmailConnectionStatus @default(CONNECTED)
-
+  id              String                @id @default(cuid())
+  companyId       String
+  provider        EmailProvider
+  emailAddress    String
+  status          EmailConnectionStatus @default(CONNECTED)
   accessTokenEnc  String?
   refreshTokenEnc String
   tokenExpiresAt  DateTime?
   scopes          String[]
-
-  lastSyncAt DateTime?
-  syncCursor String?
-  lastError  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  importRules EmailImportRule[]
-  attachments EmailAttachment[]
+  lastSyncAt      DateTime?
+  syncCursor      String?
+  lastError       String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  attachments     EmailAttachment[]
+  company         Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importRules     EmailImportRule[]
 
   @@unique([companyId, emailAddress])
   @@index([companyId])
@@ -621,52 +585,44 @@ model EmailConnection {
 }
 
 model EmailImportRule {
-  id           String @id @default(cuid())
-  connectionId String
-  companyId    String
-
+  id               String          @id @default(cuid())
+  connectionId     String
+  companyId        String
   senderEmail      String?
   senderDomain     String?
   subjectContains  String?
   filenameContains String?
-
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  connection EmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection       EmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
 
   @@index([connectionId])
   @@index([companyId])
 }
 
 model EmailAttachment {
-  id           String @id @default(cuid())
-  companyId    String
-  connectionId String
-
+  id                   String           @id @default(cuid())
+  companyId            String
+  connectionId         String
   providerMessageId    String
   providerAttachmentId String?
   contentHash          String
-
-  receivedAt  DateTime
-  senderEmail String
-  subject     String
-  filename    String
-  mimeType    String
-  sizeBytes   Int
-
-  r2Key       String
-  status      AttachmentStatus @default(PENDING)
-  importJobId String?          @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  connection EmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  importJob  ImportJob?      @relation(fields: [importJobId], references: [id])
+  receivedAt           DateTime
+  senderEmail          String
+  subject              String
+  filename             String
+  mimeType             String
+  sizeBytes            Int
+  r2Key                String
+  status               AttachmentStatus @default(PENDING)
+  importJobId          String?          @unique
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  company              Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection           EmailConnection  @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  importJob            ImportJob?       @relation(fields: [importJobId], references: [id])
 
   @@unique([connectionId, contentHash])
   @@index([companyId])
@@ -698,19 +654,19 @@ model ImportJob {
   originalName    String
   storagePath     String
   status          JobStatus        @default(PENDING)
-  documentType    DocumentType?
-  extractedData   Json?
   tierUsed        TierType?
   failureReason   String?
   pagesProcessed  Int              @default(0)
   pagesFailed     Int              @default(0)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  documentType    DocumentType?
+  extractedData   Json?
+  invoice         EInvoice?
+  emailAttachment EmailAttachment?
   bankAccount     BankAccount?     @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
   company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   statement       Statement?
-  invoice         EInvoice?
-  emailAttachment EmailAttachment?
 
   @@index([companyId])
   @@index([bankAccountId])
@@ -796,11 +752,11 @@ model SupportTicket {
   assignedToId String?
   title        String
   body         String?
-  category     TicketCategory         @default(GENERAL)
   status       SupportTicketStatus    @default(OPEN)
   priority     SupportTicketPriority  @default(NORMAL)
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
+  category     TicketCategory         @default(GENERAL)
   company      Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
   messages     SupportTicketMessage[]
 
@@ -833,6 +789,482 @@ model WebAuthnCredential {
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model FiscalCertificate {
+  id               String          @id @default(cuid())
+  companyId        String
+  environment      FiscalEnv
+  provider         String          @default("DIRECT")
+  certSubject      String
+  certSerial       String
+  certNotBefore    DateTime
+  certNotAfter     DateTime
+  oibExtracted     String
+  certSha256       String
+  encryptedP12     String
+  encryptedDataKey String
+  status           CertStatus      @default(PENDING)
+  lastUsedAt       DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalRequests   FiscalRequest[]
+
+  @@unique([companyId, environment])
+  @@index([companyId])
+  @@index([status])
+}
+
+model FiscalRequest {
+  id             String            @id @default(cuid())
+  companyId      String
+  certificateId  String
+  invoiceId      String?
+  messageType    FiscalMessageType
+  status         FiscalStatus      @default(QUEUED)
+  attemptCount   Int               @default(0)
+  maxAttempts    Int               @default(5)
+  nextRetryAt    DateTime          @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  jir            String?
+  zki            String?
+  errorCode      String?
+  errorMessage   String?
+  lastHttpStatus Int?
+  requestXml     String?
+  signedXml      String?
+  responseXml    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  certificate    FiscalCertificate @relation(fields: [certificateId], references: [id])
+  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoice        EInvoice?         @relation(fields: [invoiceId], references: [id])
+
+  @@unique([companyId, invoiceId, messageType])
+  @@index([status, nextRetryAt])
+  @@index([companyId])
+  @@index([invoiceId])
+}
+
+model AIFeedback {
+  id         String   @id @default(cuid())
+  companyId  String
+  userId     String
+  entityType String
+  entityId   String
+  operation  String
+  feedback   String
+  correction Json?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([operation])
+}
+
+model AIUsage {
+  id         String   @id @default(cuid())
+  companyId  String
+  operation  String
+  tokensUsed Int?
+  costCents  Int?
+  model      String?
+  success    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([companyId, operation])
+}
+
+model ArticleJob {
+  id               String         @id @default(cuid())
+  type             ArticleType
+  status           ArticleStatus  @default(SYNTHESIZING)
+  sourceUrls       String[]
+  topic            String?
+  currentIteration Int            @default(0)
+  maxIterations    Int            @default(3)
+  factSheetId      String?        @unique
+  finalContentMdx  String?
+  finalSlug        String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  publishedAt      DateTime?
+  drafts           ArticleDraft[]
+  factSheet        FactSheet?
+
+  @@index([status])
+  @@index([type])
+}
+
+model FactSheet {
+  id           String        @id @default(cuid())
+  jobId        String        @unique
+  topic        String
+  keyEntities  Json
+  createdAt    DateTime      @default(now())
+  claims       Claim[]
+  job          ArticleJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sourceChunks SourceChunk[]
+}
+
+model Claim {
+  id            String              @id @default(cuid())
+  factSheetId   String
+  statement     String
+  quote         String?
+  sourceUrl     String
+  sourceChunkId String?
+  confidence    Float
+  category      String?
+  factSheet     FactSheet           @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
+  sourceChunk   SourceChunk?        @relation(fields: [sourceChunkId], references: [id])
+  verifications ClaimVerification[]
+
+  @@index([factSheetId])
+}
+
+model SourceChunk {
+  id          String    @id @default(cuid())
+  factSheetId String
+  sourceUrl   String
+  content     String
+  fetchedAt   DateTime  @default(now())
+  claims      Claim[]
+  factSheet   FactSheet @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
+
+  @@index([factSheetId])
+}
+
+model ArticleDraft {
+  id         String           @id @default(cuid())
+  jobId      String
+  iteration  Int
+  contentMdx String
+  createdAt  DateTime         @default(now())
+  job        ArticleJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  paragraphs DraftParagraph[]
+
+  @@unique([jobId, iteration])
+}
+
+model DraftParagraph {
+  id                 String              @id @default(cuid())
+  draftId            String
+  index              Int
+  content            String
+  isLocked           Boolean             @default(false)
+  confidence         Float?
+  supportingClaimIds String[]
+  verifications      ClaimVerification[]
+  draft              ArticleDraft        @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@unique([draftId, index])
+}
+
+model ClaimVerification {
+  id              String         @id @default(cuid())
+  paragraphId     String
+  claimId         String
+  similarityScore Float
+  isSupporting    Boolean
+  createdAt       DateTime       @default(now())
+  claim           Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  paragraph       DraftParagraph @relation(fields: [paragraphId], references: [id], onDelete: Cascade)
+
+  @@unique([paragraphId, claimId])
+}
+
+model checklist_interactions {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String
+  company_id     String
+  item_type      String    @db.VarChar(50)
+  item_reference String    @db.VarChar(100)
+  action         String    @db.VarChar(20)
+  snoozed_until  DateTime? @db.Timestamp(6)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([item_reference], map: "checklist_interactions_reference_idx")
+  @@index([user_id, company_id], map: "checklist_interactions_user_company_idx")
+}
+
+model compliance_deadlines {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String    @db.VarChar(200)
+  description    String?
+  deadline_date  DateTime  @db.Date
+  deadline_type  String    @db.VarChar(50)
+  applies_to     Json      @default("[\"all\"]")
+  recurrence     String?   @db.VarChar(20)
+  recurrence_day Int?
+  source_url     String?   @db.VarChar(500)
+  source_name    String?   @db.VarChar(100)
+  severity       String?   @default("normal") @db.VarChar(20)
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([deadline_date], map: "idx_deadlines_date")
+  @@index([deadline_type], map: "idx_deadlines_type")
+}
+
+model eu_transaction {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id           String
+  bank_transaction_id  String?   @db.Uuid
+  direction            String    @db.VarChar(20)
+  counterparty_name    String?   @db.VarChar(255)
+  counterparty_country String?   @db.VarChar(2)
+  counterparty_vat_id  String?   @db.VarChar(20)
+  transaction_date     DateTime  @db.Date
+  amount               Decimal   @db.Decimal(10, 2)
+  currency             String?   @default("EUR") @db.VarChar(3)
+  pdv_rate             Decimal?  @default(25.00) @db.Decimal(4, 2)
+  pdv_amount           Decimal?  @db.Decimal(10, 2)
+  reporting_month      Int
+  reporting_year       Int
+  vendor_id            String?   @db.Uuid
+  detection_method     String?   @db.VarChar(20)
+  confidence_score     Int?
+  user_confirmed       Boolean?  @default(false)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([company_id, reporting_year, reporting_month], map: "eu_transaction_reporting_idx")
+}
+
+model eu_vendor {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name_pattern     String    @db.VarChar(255)
+  display_name     String    @db.VarChar(255)
+  country_code     String    @db.VarChar(2)
+  vendor_type      String    @db.VarChar(50)
+  is_eu            Boolean?  @default(true)
+  confidence_score Int?      @default(100)
+  is_system        Boolean?  @default(true)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([name_pattern], map: "eu_vendor_pattern_idx")
+}
+
+model generated_form {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id           String
+  form_type            String    @db.VarChar(20)
+  period_month         Int?
+  period_year          Int
+  format               String    @db.VarChar(10)
+  file_path            String?   @db.VarChar(500)
+  file_hash            String?   @db.VarChar(64)
+  form_data            Json?
+  submitted_to_porezna Boolean?  @default(false)
+  submitted_at         DateTime? @db.Timestamp(6)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model news_categories {
+  id                    String            @id @db.VarChar(50)
+  slug                  String            @unique @db.VarChar(100)
+  name_hr               String            @db.VarChar(200)
+  parent_id             String?           @db.VarChar(50)
+  icon                  String?           @db.VarChar(50)
+  color                 String?           @db.VarChar(20)
+  sort_order            Int?              @default(0)
+  created_at            DateTime?         @default(now()) @db.Timestamptz(6)
+  news_categories       news_categories?  @relation("news_categoriesTonews_categories", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_news_categories news_categories[] @relation("news_categoriesTonews_categories")
+  news_posts            news_posts[]
+
+  @@index([parent_id], map: "idx_news_categories_parent")
+  @@index([slug], map: "idx_news_categories_slug")
+}
+
+model news_items {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source_id           String              @db.VarChar(100)
+  original_title      String              @db.VarChar(500)
+  original_content    String?
+  source_url          String              @db.VarChar(1000)
+  published_at        DateTime?           @db.Timestamptz(6)
+  summary_hr          String?
+  categories          Json?               @default("[]")
+  relevance_score     String?             @db.VarChar(10)
+  processed_at        DateTime?           @db.Timestamptz(6)
+  created_at          DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?           @default(now()) @db.Timestamptz(6)
+  fetched_at          DateTime?           @db.Timestamptz(6)
+  summary_en          String?
+  impact_level        String?             @db.VarChar(20)
+  assigned_to_post_id String?             @db.Uuid
+  image_url           String?             @db.VarChar(1000)
+  image_source        String?             @db.VarChar(200)
+  status              String              @default("pending") @db.VarChar(20)
+  news_posts          news_posts?         @relation(fields: [assigned_to_post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "news_items_assigned_to_post_id_news_posts_id_fk")
+  news_sources        news_sources        @relation(fields: [source_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "news_items_source_id_news_sources_id_fk")
+  news_post_sources   news_post_sources[]
+
+  @@index([assigned_to_post_id], map: "idx_news_items_assigned")
+  @@index([impact_level], map: "idx_news_items_impact")
+  @@index([published_at], map: "idx_news_items_published")
+  @@index([source_id], map: "idx_news_items_source")
+  @@index([status], map: "idx_news_items_status")
+  @@index([source_url], map: "idx_news_items_url")
+}
+
+model news_post_sources {
+  post_id      String     @db.Uuid
+  news_item_id String     @db.Uuid
+  news_items   news_items @relation(fields: [news_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  news_posts   news_posts @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([post_id, news_item_id])
+  @@index([news_item_id], map: "idx_news_post_sources_item")
+  @@index([post_id], map: "idx_news_post_sources_post")
+}
+
+model news_posts {
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                   String              @unique @db.VarChar(300)
+  type                   String              @db.VarChar(20)
+  title                  String              @db.VarChar(500)
+  content                String
+  excerpt                String?             @db.VarChar(500)
+  featured_image_url     String?             @db.VarChar(1000)
+  featured_image_source  String?             @db.VarChar(200)
+  featured_image_caption String?             @db.VarChar(500)
+  category_id            String?             @db.VarChar(50)
+  tags                   Json?               @default("[]")
+  impact_level           String?             @db.VarChar(20)
+  ai_passes              Json?               @default("{}")
+  status                 String              @default("draft") @db.VarChar(20)
+  published_at           DateTime?           @db.Timestamptz(6)
+  created_at             DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?           @default(now()) @db.Timestamptz(6)
+  news_items             news_items[]
+  news_post_sources      news_post_sources[]
+  news_categories        news_categories?    @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([category_id], map: "idx_news_posts_category")
+  @@index([impact_level], map: "idx_news_posts_impact")
+  @@index([published_at], map: "idx_news_posts_published")
+  @@index([slug], map: "idx_news_posts_slug")
+  @@index([status], map: "idx_news_posts_status")
+  @@index([type], map: "idx_news_posts_type")
+}
+
+model news_sources {
+  id                   String       @id @db.VarChar(100)
+  name                 String       @db.VarChar(200)
+  url                  String       @db.VarChar(500)
+  feed_type            String       @db.VarChar(20)
+  feed_url             String?      @db.VarChar(500)
+  scrape_selector      String?
+  is_active            Boolean      @default(true)
+  fetch_interval_hours Int          @default(24)
+  last_fetched_at      DateTime?    @db.Timestamptz(6)
+  created_at           DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?    @default(now()) @db.Timestamptz(6)
+  news_items           news_items[]
+
+  @@index([is_active], map: "idx_news_sources_active")
+}
+
+model news_tags {
+  id         String    @id @db.VarChar(50)
+  slug       String    @unique @db.VarChar(100)
+  name_hr    String    @db.VarChar(200)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([slug], map: "idx_news_tags_slug")
+}
+
+model newsletter_subscriptions {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String    @unique @db.VarChar(255)
+  is_active       Boolean   @default(true)
+  source          String?   @default("vijesti_sidebar") @db.VarChar(100)
+  confirmed_at    DateTime? @db.Timestamptz(6)
+  unsubscribed_at DateTime? @db.Timestamptz(6)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([is_active], map: "idx_newsletter_active")
+  @@index([email], map: "idx_newsletter_email")
+}
+
+model notification_preference {
+  id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                   String
+  channel                   String    @db.VarChar(20)
+  enabled                   Boolean?  @default(true)
+  remind_7_days             Boolean?  @default(true)
+  remind_3_days             Boolean?  @default(true)
+  remind_1_day              Boolean?  @default(true)
+  remind_day_of             Boolean?  @default(true)
+  google_calendar_connected Boolean?  @default(false)
+  google_calendar_id        String?   @db.VarChar(255)
+  created_at                DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model pausalni_profile {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id       String
+  has_pdv_id       Boolean?  @default(false)
+  pdv_id           String?   @db.VarChar(20)
+  pdv_id_since     DateTime? @db.Date
+  eu_active        Boolean?  @default(false)
+  hok_member_since DateTime? @db.Date
+  tourism_activity Boolean?  @default(false)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([company_id], map: "pausalni_profile_company_idx")
+}
+
+model payment_obligation {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id             String
+  obligation_type        String    @db.VarChar(50)
+  period_month           Int
+  period_year            Int
+  amount                 Decimal   @db.Decimal(10, 2)
+  due_date               DateTime  @db.Date
+  status                 String    @default("PENDING") @db.VarChar(20)
+  paid_date              DateTime? @db.Date
+  paid_amount            Decimal?  @db.Decimal(10, 2)
+  matched_transaction_id String?   @db.Uuid
+  match_type             String?   @db.VarChar(20)
+  notes                  String?
+  created_at             DateTime? @default(now()) @db.Timestamp(6)
+  updated_at             DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([company_id, status], map: "payment_obligation_company_status_idx")
+  @@index([due_date])
+}
+
+model user_guidance_preferences {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String
+  level_fakturiranje String    @default("beginner") @db.VarChar(20)
+  level_financije    String    @default("beginner") @db.VarChar(20)
+  level_eu           String    @default("beginner") @db.VarChar(20)
+  global_level       String?   @db.VarChar(20)
+  email_digest       String?   @default("weekly") @db.VarChar(20)
+  push_enabled       Boolean?  @default(true)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([user_id], map: "user_guidance_preferences_user_idx")
+}
+
+enum VerificationCodeType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  LOGIN_VERIFY
+}
+
 enum Role {
   OWNER
   ADMIN
@@ -842,16 +1274,16 @@ enum Role {
 }
 
 enum SystemRole {
-  USER   // Regular clients
-  STAFF  // Internal accountants
-  ADMIN  // Platform owner
+  USER
+  STAFF
+  ADMIN
 }
 
 enum TicketCategory {
-  TECHNICAL   // Routes to admin
-  BILLING     // Routes to admin
-  ACCOUNTING  // Routes to assigned staff
-  GENERAL     // Routes to admin (default)
+  TECHNICAL
+  BILLING
+  ACCOUNTING
+  GENERAL
 }
 
 enum ContactType {
@@ -950,12 +1382,12 @@ enum ImportFormat {
 enum JobStatus {
   PENDING
   PROCESSING
-  READY_FOR_REVIEW
-  CONFIRMED
-  REJECTED
   VERIFIED
   NEEDS_REVIEW
   FAILED
+  READY_FOR_REVIEW
+  CONFIRMED
+  REJECTED
 }
 
 enum TierType {
@@ -1069,101 +1501,6 @@ enum FiscalMessageType {
   PROVJERA
 }
 
-model FiscalCertificate {
-  id               String     @id @default(cuid())
-  companyId        String
-  environment      FiscalEnv
-  provider         String     @default("DIRECT")
-  certSubject      String
-  certSerial       String
-  certNotBefore    DateTime
-  certNotAfter     DateTime
-  oibExtracted     String
-  certSha256       String
-  encryptedP12     String     @db.Text
-  encryptedDataKey String
-  status           CertStatus @default(PENDING)
-  lastUsedAt       DateTime?
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-
-  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  fiscalRequests FiscalRequest[]
-
-  @@unique([companyId, environment])
-  @@index([companyId])
-  @@index([status])
-}
-
-model FiscalRequest {
-  id             String            @id @default(cuid())
-  companyId      String
-  certificateId  String
-  invoiceId      String?
-  messageType    FiscalMessageType
-  status         FiscalStatus      @default(QUEUED)
-  attemptCount   Int               @default(0)
-  maxAttempts    Int               @default(5)
-  nextRetryAt    DateTime          @default(now())
-  lockedAt       DateTime?
-  lockedBy       String?
-  jir            String?
-  zki            String?
-  errorCode      String?
-  errorMessage   String?
-  lastHttpStatus Int?
-  requestXml     String?           @db.Text
-  signedXml      String?           @db.Text
-  responseXml    String?           @db.Text
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  certificate FiscalCertificate @relation(fields: [certificateId], references: [id])
-  invoice     EInvoice?         @relation(fields: [invoiceId], references: [id])
-
-  @@unique([companyId, invoiceId, messageType])
-  @@index([status, nextRetryAt])
-  @@index([companyId])
-  @@index([invoiceId])
-}
-
-model AIFeedback {
-  id        String @id @default(cuid())
-  companyId String
-  userId    String
-
-  entityType String // "expense", "invoice", etc.
-  entityId   String
-  operation  String // "ocr_receipt", "category_suggestion", "ocr_invoice"
-
-  feedback   String // "correct", "incorrect", "partial"
-  correction Json? // What the correct value should be
-  notes      String?
-
-  createdAt DateTime @default(now())
-
-  @@index([companyId])
-  @@index([entityType, entityId])
-  @@index([operation])
-}
-
-model AIUsage {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  operation  String // e.g., "ocr_receipt", "extract_receipt", "extract_invoice", "categorize_expense"
-  tokensUsed Int?
-  costCents  Int? // Cost in cents (EUR)
-  model      String? // e.g., "gpt-4o", "gpt-4o-mini"
-  success    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-
-  @@index([companyId, createdAt])
-  @@index([companyId, operation])
-}
-
 enum ArticleType {
   NEWS
   GUIDE
@@ -1181,127 +1518,4 @@ enum ArticleStatus {
   APPROVED
   PUBLISHED
   REJECTED
-}
-
-model ArticleJob {
-  id     String        @id @default(cuid())
-  type   ArticleType
-  status ArticleStatus @default(SYNTHESIZING)
-
-  sourceUrls String[]
-  topic      String?
-
-  currentIteration Int @default(0)
-  maxIterations    Int @default(3)
-
-  factSheetId     String? @unique
-  finalContentMdx String?
-  finalSlug       String?
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  publishedAt DateTime?
-
-  factSheet FactSheet?
-  drafts    ArticleDraft[]
-
-  @@index([status])
-  @@index([type])
-}
-
-model FactSheet {
-  id    String @id @default(cuid())
-  jobId String @unique
-
-  topic       String
-  keyEntities Json
-
-  createdAt DateTime @default(now())
-
-  job          ArticleJob?   @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  claims       Claim[]
-  sourceChunks SourceChunk[]
-}
-
-model Claim {
-  id          String @id @default(cuid())
-  factSheetId String
-
-  statement     String
-  quote         String?
-  sourceUrl     String
-  sourceChunkId String?
-
-  confidence Float
-  category   String?
-
-  factSheet     FactSheet           @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
-  sourceChunk   SourceChunk?        @relation(fields: [sourceChunkId], references: [id])
-  verifications ClaimVerification[]
-
-  @@index([factSheetId])
-}
-
-model SourceChunk {
-  id          String @id @default(cuid())
-  factSheetId String
-
-  sourceUrl String
-  content   String
-  // embedding vector(768) added via raw SQL migration
-
-  fetchedAt DateTime @default(now())
-
-  factSheet FactSheet @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
-  claims    Claim[]
-
-  @@index([factSheetId])
-}
-
-model ArticleDraft {
-  id        String @id @default(cuid())
-  jobId     String
-  iteration Int
-
-  contentMdx String
-
-  createdAt DateTime @default(now())
-
-  job        ArticleJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  paragraphs DraftParagraph[]
-
-  @@unique([jobId, iteration])
-}
-
-model DraftParagraph {
-  id      String @id @default(cuid())
-  draftId String
-
-  index    Int
-  content  String
-  isLocked Boolean @default(false)
-
-  confidence         Float?
-  supportingClaimIds String[]
-
-  draft         ArticleDraft        @relation(fields: [draftId], references: [id], onDelete: Cascade)
-  verifications ClaimVerification[]
-
-  @@unique([draftId, index])
-}
-
-model ClaimVerification {
-  id          String @id @default(cuid())
-  paragraphId String
-  claimId     String
-
-  similarityScore Float
-  isSupporting    Boolean
-
-  createdAt DateTime @default(now())
-
-  paragraph DraftParagraph @relation(fields: [paragraphId], references: [id], onDelete: Cascade)
-  claim     Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
-
-  @@unique([paragraphId, claimId])
 }
