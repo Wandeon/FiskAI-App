@@ -21,6 +21,10 @@ model User {
   passwordResetTokens PasswordResetToken[]
   sessions            Session[]
   webAuthnCredentials WebAuthnCredential[]
+
+  // Staff assignment relations
+  staffAssignments    StaffAssignment[] @relation("StaffAssignments")
+  assignmentsMade     StaffAssignment[] @relation("AssignmentsMade")
 }
 
 model Account {
@@ -132,6 +136,7 @@ model Company {
   fiscalCertificates    FiscalCertificate[]
   fiscalRequests        FiscalRequest[]
   aiUsage               AIUsage[]
+  assignedStaff         StaffAssignment[] @relation("AssignedStaff")
 }
 
 model CompanyUser {
@@ -147,6 +152,23 @@ model CompanyUser {
 
   @@unique([userId, companyId])
   @@index([userId])
+  @@index([companyId])
+}
+
+model StaffAssignment {
+  id          String   @id @default(cuid())
+  staffId     String
+  companyId   String
+  assignedAt  DateTime @default(now())
+  assignedBy  String
+  notes       String?
+
+  staff       User     @relation("StaffAssignments", fields: [staffId], references: [id], onDelete: Cascade)
+  company     Company  @relation("AssignedStaff", fields: [companyId], references: [id], onDelete: Cascade)
+  assigner    User     @relation("AssignmentsMade", fields: [assignedBy], references: [id])
+
+  @@unique([staffId, companyId])
+  @@index([staffId])
   @@index([companyId])
 }
 
