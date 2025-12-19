@@ -1,6 +1,6 @@
 # Admin Route Group
 
-This route group contains the admin portal pages that will be accessible at the root domain when the user accesses via the `admin.fiskai.eu` subdomain.
+This route group contains the admin portal pages that will be accessible at the root domain when the user accesses via the `admin.fiskai.hr` subdomain.
 
 ## Implementation Status
 

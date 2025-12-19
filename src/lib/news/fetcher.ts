@@ -132,7 +132,7 @@ export async function fetchFromScrape(source: NewsSource): Promise<NewNewsItem[]
   try {
     const response = await fetch(config.newsUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; FiskAI/1.0; +https://fiskai.eu)",
+        "User-Agent": "Mozilla/5.0 (compatible; FiskAI/1.0; +https://fiskai.hr)",
       },
     })
 

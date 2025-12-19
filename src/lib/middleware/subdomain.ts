@@ -19,7 +19,7 @@ export function getSubdomain(host: string): Subdomain {
   // Extract subdomain from hostname
   const parts = hostname.split(".")
 
-  // Expected format: subdomain.fiskai.eu or fiskai.eu
+  // Expected format: subdomain.fiskai.hr or fiskai.hr
   if (parts.length >= 3) {
     const subdomain = parts[0]
     if (subdomain in SUBDOMAIN_MAP) {

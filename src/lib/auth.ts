@@ -16,15 +16,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production'
-        ? '__Secure-next-auth.session-token'
-        : 'next-auth.session-token',
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.fiskai.eu' : undefined,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".fiskai.hr" : undefined,
       },
     },
   },
@@ -141,9 +142,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const callbackUrl = new URL(url, baseUrl)
 
       // If redirecting to login or auth pages, allow it
-      if (callbackUrl.pathname.startsWith('/login') ||
-          callbackUrl.pathname.startsWith('/register') ||
-          callbackUrl.pathname.startsWith('/auth')) {
+      if (
+        callbackUrl.pathname.startsWith("/login") ||
+        callbackUrl.pathname.startsWith("/register") ||
+        callbackUrl.pathname.startsWith("/auth")
+      ) {
         return url
       }
 

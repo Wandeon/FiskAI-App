@@ -36,9 +36,9 @@ export function OTPCodeEmail({ code, userName, type = "verify" }: OTPCodeEmailPr
   }
 
   const descriptions = {
-    verify: "Unesite kod ispod na fiskai.eu za dovršetak registracije.",
-    login: "Unesite kod ispod na fiskai.eu za prijavu.",
-    reset: "Unesite kod ispod na fiskai.eu za resetiranje lozinke.",
+    verify: "Unesite kod ispod na fiskai.hr za dovršetak registracije.",
+    login: "Unesite kod ispod na fiskai.hr za prijavu.",
+    reset: "Unesite kod ispod na fiskai.hr za resetiranje lozinke.",
   }
 
   return (
@@ -81,7 +81,7 @@ export function OTPCodeEmail({ code, userName, type = "verify" }: OTPCodeEmailPr
           <Section style={footer}>
             <Text style={footerText}>
               Niste zatražili ovaj kod?{" "}
-              <Link href="https://fiskai.eu/kontakt" style={footerLink}>
+              <Link href="https://fiskai.hr/kontakt" style={footerLink}>
                 Javite nam se
               </Link>
             </Text>

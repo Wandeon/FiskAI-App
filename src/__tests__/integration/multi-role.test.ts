@@ -71,23 +71,23 @@ describe("Multi-Role Architecture Integration", () => {
 
   describe("Subdomain Detection", () => {
     it("detects admin subdomain", () => {
-      expect(getSubdomain("admin.fiskai.eu")).toBe("admin")
-      expect(getSubdomain("admin.fiskai.eu:3000")).toBe("admin")
+      expect(getSubdomain("admin.fiskai.hr")).toBe("admin")
+      expect(getSubdomain("admin.fiskai.hr:3000")).toBe("admin")
     })
 
     it("detects staff subdomain", () => {
-      expect(getSubdomain("staff.fiskai.eu")).toBe("staff")
-      expect(getSubdomain("staff.fiskai.eu:3000")).toBe("staff")
+      expect(getSubdomain("staff.fiskai.hr")).toBe("staff")
+      expect(getSubdomain("staff.fiskai.hr:3000")).toBe("staff")
     })
 
     it("detects app subdomain", () => {
-      expect(getSubdomain("app.fiskai.eu")).toBe("app")
-      expect(getSubdomain("app.fiskai.eu:3000")).toBe("app")
+      expect(getSubdomain("app.fiskai.hr")).toBe("app")
+      expect(getSubdomain("app.fiskai.hr:3000")).toBe("app")
     })
 
     it("defaults to marketing for root domain", () => {
-      expect(getSubdomain("fiskai.eu")).toBe("marketing")
-      expect(getSubdomain("www.fiskai.eu")).toBe("marketing")
+      expect(getSubdomain("fiskai.hr")).toBe("marketing")
+      expect(getSubdomain("www.fiskai.hr")).toBe("marketing")
     })
 
     it("defaults to app for localhost", () => {

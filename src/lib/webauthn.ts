@@ -11,9 +11,9 @@ import type {
 } from "@simplewebauthn/server"
 
 // Environment configuration
-const RP_ID = process.env.WEBAUTHN_RP_ID || "fiskai.eu"
+const RP_ID = process.env.WEBAUTHN_RP_ID || "fiskai.hr"
 const RP_NAME = process.env.WEBAUTHN_RP_NAME || "FiskAI"
-const ORIGIN = process.env.NEXTAUTH_URL || "https://fiskai.eu"
+const ORIGIN = process.env.NEXTAUTH_URL || "https://fiskai.hr"
 
 // Challenge storage with TTL (5 minutes)
 interface ChallengeData {

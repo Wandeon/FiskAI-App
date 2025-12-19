@@ -2,14 +2,15 @@
 
 ## Domains & Architecture
 
-**Domain:** `fiskai.eu` (Cloudflare-managed)
+**Domain:** `fiskai.hr` (Cloudflare-managed, primary)
+**Legacy:** `fiskai.eu` (redirects to fiskai.hr)
 
 | Portal       | URL               | Audience             | Purpose                 |
 | ------------ | ----------------- | -------------------- | ----------------------- |
-| Marketing    | `fiskai.eu`       | Public               | Landing, guides, auth   |
-| Client App   | `app.fiskai.eu`   | Clients              | Business dashboard      |
-| Staff Portal | `staff.fiskai.eu` | Internal accountants | Multi-client workspace  |
-| Admin Portal | `admin.fiskai.eu` | Platform owner       | Tenant/staff management |
+| Marketing    | `fiskai.hr`       | Public               | Landing, guides, auth   |
+| Client App   | `app.fiskai.hr`   | Clients              | Business dashboard      |
+| Staff Portal | `staff.fiskai.hr` | Internal accountants | Multi-client workspace  |
+| Admin Portal | `admin.fiskai.hr` | Platform owner       | Tenant/staff management |
 
 **SystemRole Enum:** `USER` | `STAFF` | `ADMIN` (separate from per-company roles)
 
@@ -101,8 +102,8 @@ Since Cloudflare proxies traffic, Let's Encrypt HTTP-01 challenge fails.
 Key variables configured:
 
 - `DATABASE_URL` - PostgreSQL connection
-- `NEXTAUTH_URL` - https://fiskai.eu
+- `NEXTAUTH_URL` - https://fiskai.hr
 - `NEXTAUTH_SECRET` - Auth encryption key
-- `NEXT_PUBLIC_APP_URL` - https://fiskai.eu
+- `NEXT_PUBLIC_APP_URL` - https://fiskai.hr
 - `RESEND_API_KEY` - Email service
-- `RESEND_FROM_EMAIL` - FiskAI <noreply@send.fiskai.eu>
+- `RESEND_FROM_EMAIL` - FiskAI <noreply@fiskai.hr>
