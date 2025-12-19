@@ -1,22 +1,12 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 import { logger } from "./lib/logger"
-
-// Protected routes that should check visibility on the server side
-// These paths correspond to page:* element IDs in the visibility system
-const PROTECTED_ROUTES = ["/vat", "/reports", "/pos", "/doprinosi", "/corporate-tax", "/bank"]
-
-// Public routes that don't require authentication
-const PUBLIC_ROUTES = [
-  "/",
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-  "/auth/verify-request",
-  "/auth/error",
-]
+import {
+  getSubdomainFromRequest,
+  getRedirectUrlForSystemRole,
+  canAccessSubdomain,
+} from "@/lib/middleware/subdomain"
 
 // Routes to skip (API, static assets, etc.)
 function shouldSkipRoute(pathname: string): boolean {
@@ -44,34 +34,91 @@ export async function middleware(request: NextRequest) {
     "Incoming request"
   )
 
-  // Skip route protection for public routes and static assets
-  if (shouldSkipRoute(pathname) || PUBLIC_ROUTES.includes(pathname)) {
+  // Skip static files and API routes
+  if (shouldSkipRoute(pathname)) {
     const response = NextResponse.next()
     response.headers.set("x-request-id", requestId)
     response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
     return response
   }
 
-  // Check if this is a protected route
-  // The actual visibility check will happen in the page component using
-  // server-side utilities (checkRouteAccess) since middleware runs in Edge runtime
-  // and cannot access database/Prisma. This just marks the route for the page to check.
-  if (PROTECTED_ROUTES.includes(pathname)) {
-    // Add a header to indicate this route needs visibility checking
+  // Detect subdomain
+  const subdomain = getSubdomainFromRequest(request)
+
+  // Marketing subdomain - allow all traffic
+  if (subdomain === "marketing") {
     const response = NextResponse.next()
     response.headers.set("x-request-id", requestId)
-    response.headers.set("x-visibility-protected", "true")
+    response.headers.set("x-subdomain", subdomain)
     response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
     return response
   }
 
-  // Create response with request ID header
+  // Protected subdomains require authentication
+  const token = await getToken({ req: request })
+
+  if (!token) {
+    // Redirect to login on marketing subdomain
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.hostname = request.nextUrl.hostname.replace(/^(app|staff|admin)\./, "")
+    loginUrl.searchParams.set("callbackUrl", request.url)
+
+    logger.info(
+      {
+        requestId,
+        subdomain,
+        pathname,
+      },
+      "Redirecting unauthenticated user to login"
+    )
+
+    const response = NextResponse.redirect(loginUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
+  // Check subdomain access based on user's system role
+  const systemRole = (token.systemRole as string) || "USER"
+
+  if (!canAccessSubdomain(systemRole, subdomain)) {
+    // Redirect to correct subdomain for user's role
+    const redirectUrl = getRedirectUrlForSystemRole(
+      systemRole as "USER" | "STAFF" | "ADMIN",
+      request.url
+    )
+
+    logger.info(
+      {
+        requestId,
+        systemRole,
+        currentSubdomain: subdomain,
+        redirectUrl,
+      },
+      "Redirecting user to correct subdomain for their role"
+    )
+
+    const response = NextResponse.redirect(redirectUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
+  // Add subdomain to headers for route group selection
   const response = NextResponse.next()
   response.headers.set("x-request-id", requestId)
+  response.headers.set("x-subdomain", subdomain)
+  response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
 
-  // Calculate duration (note: this is middleware duration, not full request)
-  const durationMs = Date.now() - startTime
-  response.headers.set("x-response-time", `${durationMs}ms`)
+  logger.info(
+    {
+      requestId,
+      subdomain,
+      systemRole,
+      pathname,
+    },
+    "Request allowed"
+  )
 
   return response
 }

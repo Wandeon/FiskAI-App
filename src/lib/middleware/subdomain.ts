@@ -74,3 +74,18 @@ export function getRedirectUrlForSystemRole(
       return `${url.protocol}//app.${baseDomain}`
   }
 }
+
+export function canAccessSubdomain(systemRole: string, subdomain: string): boolean {
+  switch (subdomain) {
+    case "admin":
+      return systemRole === "ADMIN"
+    case "staff":
+      return systemRole === "STAFF" || systemRole === "ADMIN"
+    case "app":
+      return true // All roles can access app
+    case "marketing":
+      return true // Public
+    default:
+      return false
+  }
+}
