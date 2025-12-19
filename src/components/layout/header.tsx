@@ -12,6 +12,7 @@ import { OnboardingProgressPill } from "./onboarding-progress-pill"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { PlanBadge } from "./plan-badge"
 import { QuickLevelToggle } from "@/components/guidance"
+import { FiskAILogo } from "@/components/ui/LogoSymbol"
 
 export async function Header() {
   const session = await auth()
@@ -77,12 +78,10 @@ export async function Header() {
       <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Left Section */}
         <div className="flex items-center gap-3 md:gap-4 pl-12 md:pl-0">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white font-bold">
-              F
-            </div>
+          <Link href="/dashboard" className="flex items-center gap-2 group">
+            <FiskAILogo className="h-8 w-8 text-cyan-500 transition-all duration-300 group-hover:brightness-110" />
             <span className="hidden sm:inline text-lg font-bold text-[var(--foreground)]">
-              FiskAI
+              Fisk<span className="text-cyan-500">AI</span>
             </span>
           </Link>
 

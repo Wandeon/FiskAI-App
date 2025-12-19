@@ -8,6 +8,7 @@ import { ArrowRight, Grid3X3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PortalNavigation } from "./PortalNavigation"
 import { CommandPalette } from "@/components/ui/command-palette"
+import { Logo } from "@/components/ui/Logo"
 
 const NAV_LINKS = [
   { href: "/alati", label: "Alati" },
@@ -50,11 +51,8 @@ export function MarketingHeader() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="text-lg font-bold tracking-tight text-white">FiskAI</span>
-              <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/70">
-                beta
-              </span>
+            <Link href="/">
+              <Logo size="sm" variant="white" />
             </Link>
 
             {/* Desktop nav */}

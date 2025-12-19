@@ -8,6 +8,9 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "FiskAI",
   description: "AI-powered e-invoicing platform",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 }
 
 export default function RootLayout({

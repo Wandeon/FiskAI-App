@@ -56,11 +56,11 @@ export async function POST(request: Request) {
     }
 
     // Hash the new password and update
-    const passwordHash = await bcrypt.hash(newPassword, 12)
+    const hashedPassword = await bcrypt.hash(newPassword, 12)
 
     await db.user.update({
       where: { id: user.id },
-      data: { password: passwordHash },
+      data: { passwordHash: hashedPassword },
     })
 
     // Delete the used verification code
