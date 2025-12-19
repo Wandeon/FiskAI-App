@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { logger } from "./lib/logger"
 import {
-  getSubdomainFromRequest,
+  getSubdomain,
   getRedirectUrlForSystemRole,
   canAccessSubdomain,
 } from "@/lib/middleware/subdomain"
@@ -18,6 +18,21 @@ function shouldSkipRoute(pathname: string): boolean {
   )
 }
 
+// Get the real host from forwarded headers (for reverse proxy setups)
+function getRealHost(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host
+  )
+}
+
+// Build external URL from forwarded headers
+function getExternalUrl(request: NextRequest): URL {
+  const proto = request.headers.get("x-forwarded-proto") || "https"
+  const host = getRealHost(request)
+  const url = new URL(request.nextUrl.pathname + request.nextUrl.search, `${proto}://${host}`)
+  return url
+}
+
 export async function middleware(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID()
   const startTime = Date.now()
@@ -29,6 +44,7 @@ export async function middleware(request: NextRequest) {
       requestId,
       method: request.method,
       path: pathname,
+      host: getRealHost(request),
       userAgent: request.headers.get("user-agent")?.slice(0, 100),
     },
     "Incoming request"
@@ -42,8 +58,9 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Detect subdomain
-  const subdomain = getSubdomainFromRequest(request)
+  // Detect subdomain using real host
+  const realHost = getRealHost(request)
+  const subdomain = getSubdomain(realHost)
 
   // Marketing subdomain - allow all traffic
   if (subdomain === "marketing") {
@@ -59,9 +76,10 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     // Redirect to login on marketing subdomain
-    const loginUrl = new URL("/login", request.url)
-    loginUrl.hostname = request.nextUrl.hostname.replace(/^(app|staff|admin)\./, "")
-    loginUrl.searchParams.set("callbackUrl", request.url)
+    const externalUrl = getExternalUrl(request)
+    const loginUrl = new URL("/login", externalUrl)
+    loginUrl.hostname = externalUrl.hostname.replace(/^(app|staff|admin)\./, "")
+    loginUrl.searchParams.set("callbackUrl", externalUrl.toString())
 
     logger.info(
       {
@@ -83,9 +101,10 @@ export async function middleware(request: NextRequest) {
 
   if (!canAccessSubdomain(systemRole, subdomain)) {
     // Redirect to correct subdomain for user's role
+    const externalUrl = getExternalUrl(request)
     const redirectUrl = getRedirectUrlForSystemRole(
       systemRole as "USER" | "STAFF" | "ADMIN",
-      request.url
+      externalUrl.toString()
     )
 
     logger.info(
@@ -108,22 +127,22 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone()
 
   // Map subdomain to route group
-  let routeGroup = ''
+  let routeGroup = ""
   switch (subdomain) {
-    case 'admin':
-      routeGroup = '/(admin)'
+    case "admin":
+      routeGroup = "/(admin)"
       break
-    case 'staff':
-      routeGroup = '/(staff)'
+    case "staff":
+      routeGroup = "/(staff)"
       break
-    case 'app':
-      routeGroup = '/(app)'
+    case "app":
+      routeGroup = "/(app)"
       break
-    case 'marketing':
-      routeGroup = '/(marketing)'
+    case "marketing":
+      routeGroup = "/(marketing)"
       break
     default:
-      routeGroup = '/(app)'
+      routeGroup = "/(app)"
   }
 
   // Don't rewrite if already in the correct route group

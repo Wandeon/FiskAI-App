@@ -163,7 +163,7 @@ function generateReminderEmailHtml(
         const slipType = ob.obligationType.replace("DOPRINOSI_", "")
         paymentSlipLink = `
           <br>
-          <a href="https://erp.metrica.hr/pausalni/obligations?slip=${ob.id}"
+          <a href="https://app.fiskai.eu/pausalni/obligations?slip=${ob.id}"
              style="color: #0891b2; font-size: 12px; text-decoration: none;">
             📄 Generiraj uplatnicu
           </a>
@@ -240,7 +240,7 @@ function generateReminderEmailHtml(
         </div>
 
         <p style="text-align: center; margin: 30px 0;">
-          <a href="https://erp.metrica.hr/pausalni/obligations"
+          <a href="https://app.fiskai.eu/pausalni/obligations"
              style="display: inline-block; padding: 14px 28px; background: #0891b2; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
             Pregled svih obveza
           </a>
