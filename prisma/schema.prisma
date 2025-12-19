@@ -774,6 +774,7 @@ model SupportTicket {
   assignedToId String?
   title        String
   body         String?
+  category     TicketCategory         @default(GENERAL)
   status       SupportTicketStatus    @default(OPEN)
   priority     SupportTicketPriority  @default(NORMAL)
   createdAt    DateTime               @default(now())
@@ -822,6 +823,13 @@ enum SystemRole {
   USER   // Regular clients
   STAFF  // Internal accountants
   ADMIN  // Platform owner
+}
+
+enum TicketCategory {
+  TECHNICAL   // Routes to admin
+  BILLING     // Routes to admin
+  ACCOUNTING  // Routes to assigned staff
+  GENERAL     // Routes to admin (default)
 }
 
 enum ContactType {
