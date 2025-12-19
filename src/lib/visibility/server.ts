@@ -61,6 +61,9 @@ export async function getVisibilityData(
         legalForm: true,
         oib: true,
         address: true,
+        city: true,
+        iban: true,
+        email: true,
       },
     }),
     db.contact.count({ where: { companyId } }),
@@ -81,8 +84,10 @@ export async function getVisibilityData(
   // Use globalLevel if set, otherwise default to "beginner"
   const competence = mapCompetenceLevel(preferences.globalLevel || COMPETENCE_LEVELS.BEGINNER)
 
-  // Check if onboarding is complete (has OIB and address)
-  const hasCompletedOnboarding = Boolean(company.oib && company.address)
+  // Check if onboarding is complete (has all critical fields from the 4-step flow)
+  const hasCompletedOnboarding = Boolean(
+    company.oib && company.address && company.city && company.iban && company.email
+  )
 
   const counts = {
     contacts,

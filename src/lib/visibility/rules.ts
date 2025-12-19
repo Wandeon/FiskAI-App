@@ -78,6 +78,8 @@ export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
     "page:vat",
     // Not paušalni
     "card:pausalni-status",
+    "card:checklist-widget",
+    "card:insights-widget",
     // No corporate tax
     "card:corporate-tax",
     "nav:corporate-tax",
@@ -86,6 +88,8 @@ export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
   OBRT_VAT: [
     // Not paušalni
     "card:pausalni-status",
+    "card:checklist-widget",
+    "card:insights-widget",
     // No corporate tax
     "card:corporate-tax",
     "nav:corporate-tax",
@@ -94,6 +98,8 @@ export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
   JDOO: [
     // Not paušalni
     "card:pausalni-status",
+    "card:checklist-widget",
+    "card:insights-widget",
     // No doprinosi (employees have different system)
     "card:doprinosi",
     "nav:doprinosi",
@@ -104,6 +110,8 @@ export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
   DOO: [
     // Not paušalni
     "card:pausalni-status",
+    "card:checklist-widget",
+    "card:insights-widget",
     // No doprinosi
     "card:doprinosi",
     "nav:doprinosi",

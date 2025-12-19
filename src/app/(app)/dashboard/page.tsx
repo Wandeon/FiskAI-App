@@ -293,16 +293,15 @@ export default async function DashboardPage() {
               contactCount={contactCount}
             />
           </Visible>
-          {company.legalForm === "OBRT_PAUSAL" && (
-            <Visible id="card:checklist-widget">
-              <ChecklistWidget />
-            </Visible>
-          )}
-          {company.legalForm === "OBRT_PAUSAL" && (
-            <Visible id="card:insights-widget">
-              <InsightsWidget />
-            </Visible>
-          )}
+
+          <Visible id="card:checklist-widget">
+            <ChecklistWidget />
+          </Visible>
+
+          <Visible id="card:insights-widget">
+            <InsightsWidget />
+          </Visible>
+
           <Visible id="card:today-actions">
             <TodayActionsCard alerts={alerts} stats={statHighlights} tasks={upcomingTasks} />
           </Visible>
@@ -319,16 +318,16 @@ export default async function DashboardPage() {
               vatNumber={company.vatNumber}
             />
           </Visible>
-          {company.legalForm === "OBRT_PAUSAL" && (
-            <Visible id="card:pausalni-status">
-              <PausalniStatusCard
-                ytdRevenue={Number(ytdRevenue._sum.totalAmount || 0)}
-                vatThreshold={60000}
-                nextDeadline={nextDeadline}
-                quarterlyIncome={{ q1: 0, q2: 0, q3: 0, q4: 0 }}
-              />
-            </Visible>
-          )}
+
+          <Visible id="card:pausalni-status">
+            <PausalniStatusCard
+              ytdRevenue={Number(ytdRevenue._sum.totalAmount || 0)}
+              vatThreshold={60000}
+              nextDeadline={nextDeadline}
+              quarterlyIncome={{ q1: 0, q2: 0, q3: 0, q4: 0 }}
+            />
+          </Visible>
+
           <Visible id="card:deadline-countdown">
             <DeadlineCountdownCard deadlines={upcomingDeadlines} businessType={businessType} />
           </Visible>
