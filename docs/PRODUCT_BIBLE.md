@@ -58,6 +58,7 @@ Throughout this document:
 - [Appendix B: File Locations](#appendix-b-file-locations)
 - [Appendix 1: Strategic Technical Specification (Gaps + Proof)](#appendix-1-strategic-technical-specification-gaps--proof)
 - [Appendix 2: Improvement Ledger (Audit + Fixes)](#appendix-2-improvement-ledger-audit--fixes)
+- [Document History](#document-history)
 
 ---
 
@@ -1689,6 +1690,8 @@ if (result.status === "succeeded") {
 
 > **Data Source:** All values in this section are derived from `/src/lib/fiscal-data/`. Changes to tax rates, thresholds, or deadlines should be made in code, then this document updated to match.
 >
+> **Action Required:** Code update needed - `/src/lib/fiscal-data/data/thresholds.ts` still shows 464.53 EUR for asset capitalization; legal value for 2025 is 665.00 EUR.
+>
 > **Last Verified:** 2025-01-15
 > **Verification Schedule:** Monthly review against official sources
 
@@ -1739,8 +1742,6 @@ Base rate: 12% (excluding municipal surtax)
 | 5    | 30,600.01 - 40,000.00 | 6,000.00       | 180.00              |
 | 6    | 40,000.01 - 50,000.00 | 7,500.00       | 225.00              |
 | 7    | 50,000.01 - 60,000.00 | 9,000.00       | 270.00              |
-
-_Source: Porezna Uprava, effective 2025-01-01_
 
 _Source: `/src/lib/fiscal-data/data/tax-rates.ts`, verified against Porezna Uprava_
 
