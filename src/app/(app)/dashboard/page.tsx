@@ -22,6 +22,8 @@ import { ContextualHelpBanner } from "@/components/tutorials/contextual-help-ban
 import { getTrackForLegalForm } from "@/lib/tutorials/tracks"
 import { getTutorialProgress } from "@/lib/tutorials/progress"
 import { getActiveTriggersForContext } from "@/lib/tutorials/triggers"
+import { ComplianceStatusCard } from "@/components/dashboard/compliance-status-card"
+import { getCertificateStatus, getFiscalizationStats } from "@/lib/compliance/data"
 
 const Decimal = Prisma.Decimal
 
@@ -125,6 +127,11 @@ export default async function DashboardPage() {
     yearlyRevenue: Number(ytdRevenue._sum.totalAmount || 0),
     hasFiscalCert: !!company.fiscalEnabled,
   })
+
+  // Get compliance status for fiscalization-enabled companies
+  const [certificateStatus, fiscalizationStats] = company.fiscalEnabled
+    ? await Promise.all([getCertificateStatus(company.id), getFiscalizationStats(company.id)])
+    : [null, null]
 
   // Map legalForm to businessType for deadlines
   const businessTypeMap: Record<string, string> = {
@@ -348,6 +355,12 @@ export default async function DashboardPage() {
               vatNumber={company.vatNumber}
             />
           </Visible>
+
+          {certificateStatus && fiscalizationStats && (
+            <Visible id="card:compliance-status">
+              <ComplianceStatusCard certificate={certificateStatus} stats={fiscalizationStats} />
+            </Visible>
+          )}
 
           <Visible id="card:pausalni-status">
             <PausalniStatusCard

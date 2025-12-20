@@ -1,0 +1,61 @@
+"use client"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Shield, ArrowRight } from "lucide-react"
+import Link from "next/link"
+import type { CertificateStatus, FiscalizationStats } from "@/lib/compliance/data"
+
+interface ComplianceStatusCardProps {
+  certificate: CertificateStatus
+  stats: FiscalizationStats
+}
+
+export function ComplianceStatusCard({ certificate, stats }: ComplianceStatusCardProps) {
+  const isHealthy = certificate.status === "active" && stats.successRate >= 95
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">Fiskalizacija</CardTitle>
+        <Shield className={`h-4 w-4 ${isHealthy ? "text-green-600" : "text-amber-500"}`} />
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Certifikat</span>
+          <Badge variant={certificate.status === "active" ? "default" : "destructive"}>
+            {certificate.status === "active"
+              ? "Aktivan"
+              : certificate.status === "expiring"
+                ? `${certificate.daysRemaining}d`
+                : certificate.status === "expired"
+                  ? "Istekao"
+                  : "Nedostaje"}
+          </Badge>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Danas</span>
+          <span className="text-sm font-medium">{stats.todayCount} računa</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Uspješnost</span>
+          <span
+            className={`text-sm font-medium ${stats.successRate >= 95 ? "text-green-600" : "text-amber-600"}`}
+          >
+            {stats.successRate.toFixed(1)}%
+          </span>
+        </div>
+
+        <Button variant="ghost" size="sm" className="w-full justify-between" asChild>
+          <Link href="/compliance">
+            Detalji
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
