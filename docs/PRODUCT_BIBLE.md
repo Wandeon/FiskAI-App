@@ -2,8 +2,8 @@
 
 ## The Complete System Truth
 
-**Version:** 4.0.0
-**Date:** 2025-12-19
+**Version:** 4.1.0
+**Date:** 2025-12-20
 **Status:** Canonical - Single Source of Truth
 **Scope:** Every flow, every button, every permission, every scenario
 
@@ -26,10 +26,15 @@
 13. [Monetization & Pricing](#13-monetization--pricing)
 14. [Implementation Status Matrix](#14-implementation-status-matrix)
 15. [Data Models](#15-data-models)
-16. [API Reference](#16-api-reference)
+16. [API Reference (Legacy)](#16-api-reference)
+17. [Complete API Reference](#17-complete-api-reference)
 
 ---
 
+**Appendixes:**
+
+- [Appendix A: Glossary](#appendix-a-glossary)
+- [Appendix B: File Locations](#appendix-b-file-locations)
 - [Appendix 1: Strategic Technical Specification (Gaps + Proof)](#appendix-1-strategic-technical-specification-gaps--proof)
 - [Appendix 2: Improvement Ledger (Audit + Fixes)](#appendix-2-improvement-ledger-audit--fixes)
 
@@ -52,6 +57,7 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 | **Experience-Clean**       | No empty states without clear "Step 1" CTA                          | Users should never feel lost or abandoned                 |
 | **One Truth**              | Single module registry, single key system, single visibility engine | No conflicting logic paths                                |
 | **Progressive Disclosure** | Show complexity only when user is ready                             | Don't overwhelm beginners                                 |
+| **Document Integrity**     | SHA-256 hashing + audit logging for all documents                   | 11-year archive must prove documents unaltered            |
 
 ### 1.3 The Three Portals
 
@@ -69,18 +75,19 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 
 ### 2.1 Tech Stack
 
-| Layer      | Technology               | Purpose                                  |
-| ---------- | ------------------------ | ---------------------------------------- |
-| Framework  | Next.js 15 App Router    | Server components, streaming, routing    |
-| Database   | PostgreSQL 16 + Prisma 7 | Data persistence, multi-tenant isolation |
-| Auth       | NextAuth v5 (Auth.js)    | Session management, OAuth, Passkeys      |
-| Styling    | Tailwind CSS + CVA       | Design system, component variants        |
-| Validation | Zod                      | Schema validation everywhere             |
-| Email      | Resend                   | Transactional email                      |
-| Storage    | Cloudflare R2            | Encrypted document archive               |
-| Payments   | Stripe                   | Subscriptions, Terminal                  |
-| Banking    | Gocardless/SaltEdge      | PSD2 bank connections                    |
-| Fiscal     | FINA CIS                 | Croatian fiscalization                   |
+| Layer      | Technology               | Purpose                                |
+| ---------- | ------------------------ | -------------------------------------- |
+| Framework  | Next.js 15 App Router    | Server components, streaming, routing  |
+| Database   | PostgreSQL 16 + Prisma 7 | Primary data persistence, multi-tenant |
+| Database   | Drizzle ORM              | Guidance, news, paušalni tables        |
+| Auth       | NextAuth v5 (Auth.js)    | Session management, OAuth, Passkeys    |
+| Styling    | Tailwind CSS + CVA       | Design system, component variants      |
+| Validation | Zod                      | Schema validation everywhere           |
+| Email      | Resend                   | Transactional email                    |
+| Storage    | Cloudflare R2            | Encrypted document archive             |
+| Payments   | Stripe                   | Subscriptions, Terminal                |
+| Banking    | Gocardless/SaltEdge      | PSD2 bank connections                  |
+| Fiscal     | FINA CIS                 | Croatian fiscalization                 |
 
 ### 2.2 Directory Structure
 
@@ -106,7 +113,10 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 │   ├── rbac.ts          # Permission matrix
 │   ├── fiscal-data/     # Tax rates, thresholds, deadlines
 │   ├── pausalni/        # Paušalni obrt logic
-│   └── e-invoice/       # UBL/XML generation
+│   ├── e-invoice/       # UBL/XML generation
+│   └── db/
+│       ├── drizzle.ts   # Drizzle client
+│       └── schema/      # Drizzle table definitions
 └── content/             # MDX guides & tools
 ```
 
@@ -545,6 +555,129 @@ if (roleHasPermission(userRole, 'invoice:delete')) {
 }
 ```
 
+### 6.4 Audit Logging & Document Integrity
+
+Every significant action is logged for compliance and debugging.
+
+**Logged Actions:**
+
+| Action      | What's Recorded                           |
+| ----------- | ----------------------------------------- |
+| `CREATE`    | Entity type, ID, user, timestamp, company |
+| `UPDATE`    | Fields changed, old/new values            |
+| `DELETE`    | Soft-delete flag, reason if provided      |
+| `VIEW`      | Sensitive data access (financial reports) |
+| `EXPORT`    | What was exported, format, recipient      |
+| `LOGIN`     | Success/failure, IP, device               |
+| `FISCALIZE` | Invoice ID, JIR/ZKI, CIS response         |
+
+**Implementation:**
+
+```typescript
+// Prisma middleware enforces logging
+prisma.$use(async (params, next) => {
+  if (["create", "update", "delete"].includes(params.action)) {
+    const result = await next(params)
+
+    await createAuditLog({
+      action: params.action.toUpperCase(),
+      model: params.model,
+      entityId: params.args.where?.id || result?.id,
+      userId: getCurrentUserId(),
+      companyId: getCurrentCompanyId(),
+      changes: params.args.data,
+      timestamp: new Date(),
+    })
+
+    return result
+  }
+  return next(params)
+})
+```
+
+**Document Integrity:**
+
+Every uploaded or generated document is hashed to ensure it cannot be altered.
+
+```typescript
+// Document integrity record
+interface DocumentIntegrity {
+  documentId: string
+  sha256Hash: string // Hash of document content
+  fileSize: number // File size in bytes
+  mimeType: string // application/pdf, image/jpeg, etc.
+  createdAt: DateTime // Upload/generation timestamp
+  createdBy: string // User ID
+  verifiedAt?: DateTime // Last integrity check
+  merkleRoot?: string // Periodic Merkle tree root for batch verification
+  storageUrl: string // Cloudflare R2 location
+}
+
+// On document upload
+async function storeDocument(file: File, companyId: string) {
+  const buffer = await file.arrayBuffer()
+  const hash = crypto.subtle.digest("SHA-256", buffer)
+  const hashHex = Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+
+  // Upload to R2
+  const url = await uploadToR2(buffer, `${companyId}/${hashHex}`)
+
+  // Store integrity record
+  await db.documentIntegrity.create({
+    data: {
+      documentId: generateId(),
+      sha256Hash: hashHex,
+      fileSize: buffer.byteLength,
+      mimeType: file.type,
+      createdBy: userId,
+      storageUrl: url,
+    },
+  })
+
+  return { url, hash: hashHex }
+}
+
+// Verification (periodic cron job)
+async function verifyDocumentIntegrity(documentId: string) {
+  const record = await db.documentIntegrity.findUnique({ where: { documentId } })
+  const file = await fetchFromR2(record.storageUrl)
+  const currentHash = await calculateSHA256(file)
+
+  if (currentHash !== record.sha256Hash) {
+    await alertAdmins({
+      severity: "CRITICAL",
+      message: `Document integrity violation: ${documentId}`,
+      expected: record.sha256Hash,
+      actual: currentHash,
+    })
+    return false
+  }
+
+  await db.documentIntegrity.update({
+    where: { documentId },
+    data: { verifiedAt: new Date() },
+  })
+
+  return true
+}
+```
+
+**Retention Policy:**
+
+- **11 years** - Croatian legal requirement for tax documents
+- **After 11 years:** Documents archived to cold storage, integrity records retained
+- **Audit logs:** Retained indefinitely (compressed after 2 years)
+
+**Compliance Features:**
+
+- Immutable audit trail (append-only)
+- No backdated entries
+- No deletion of audit logs (soft-delete only for GDPR)
+- Periodic integrity verification via cron
+- Merkle tree for batch verification efficiency
+
 ---
 
 ## 7. Visibility & Feature Gating
@@ -937,6 +1070,167 @@ Every list/table has an empty state:
 - Warning: "Blizu ste limita od 60.000 EUR"
 - Info: "Novi izvještaj je dostupan"
 
+### 9.6 Notification System
+
+FiskAI has a comprehensive notification system for deadlines, warnings, and updates.
+
+#### Notification Types
+
+| Type       | Icon          | Channel        | Example                  |
+| ---------- | ------------- | -------------- | ------------------------ |
+| `deadline` | Calendar      | In-app + Email | "MIO I due in 3 days"    |
+| `warning`  | AlertTriangle | In-app + Email | "85% of VAT threshold"   |
+| `success`  | CheckCircle   | In-app only    | "Invoice #123 paid"      |
+| `info`     | Info          | In-app only    | "New feature available"  |
+| `system`   | Bell          | In-app only    | "Maintenance scheduled"  |
+| `payment`  | CreditCard    | In-app + Email | "Payment obligation due" |
+
+#### Delivery Channels
+
+| Channel  | Trigger                                      | Configuration               |
+| -------- | -------------------------------------------- | --------------------------- |
+| In-App   | Immediate                                    | Always enabled              |
+| Email    | Batched (daily digest) or immediate (urgent) | User preferences            |
+| Push     | Future                                       | Not implemented             |
+| Calendar | Export/sync                                  | Google Calendar integration |
+
+#### User Preferences
+
+```typescript
+interface NotificationPreference {
+  userId: string
+  channel: "EMAIL" | "PUSH" | "CALENDAR"
+  enabled: boolean
+
+  // Email reminders
+  remind7Days: boolean // 7 days before deadline
+  remind3Days: boolean // 3 days before deadline
+  remind1Day: boolean // 1 day before deadline
+  remindDayOf: boolean // Day of deadline
+
+  // Calendar integration
+  googleCalendarConnected: boolean
+  googleCalendarId: string
+
+  // Digest frequency
+  emailDigest: "daily" | "weekly" | "never"
+  urgentEmail: boolean // Immediate for Level 2 warnings
+
+  categories: {
+    deadlines: boolean
+    payments: boolean
+    invoices: boolean
+    system: boolean
+  }
+}
+```
+
+**Implementation:**
+
+```typescript
+// Create notification
+await db.notification.create({
+  data: {
+    userId: user.id,
+    type: "deadline",
+    priority: "medium",
+    title: "MIO I doprinosi uskoro dospijevaju",
+    message: "Rok: 15. siječnja 2025 (za 3 dana)",
+    actionUrl: "/pausalni/obligations",
+    metadata: { obligationId: "xxx" },
+  },
+})
+
+// Send email if preferences allow
+const prefs = await getUserNotificationPreferences(user.id)
+if (prefs.categories.deadlines && prefs.remind3Days) {
+  await sendEmail({
+    to: user.email,
+    template: "deadline-reminder",
+    data: { deadline, daysRemaining: 3 },
+  })
+}
+```
+
+### 9.7 Email Integration
+
+FiskAI can connect to user email accounts to auto-import expense receipts.
+
+#### Supported Providers
+
+| Provider      | OAuth            | Status     |
+| ------------- | ---------------- | ---------- |
+| Gmail         | Google OAuth 2.0 | Production |
+| Microsoft 365 | Microsoft OAuth  | Production |
+| Other IMAP    | Not supported    | -          |
+
+#### Import Flow
+
+```
+1. User connects email via OAuth (/email/connect)
+2. System creates EmailConnection record
+3. Cron job (15min) fetches new emails (/api/cron/email-sync)
+4. Filter by import rules:
+   - Sender whitelist (e.g., "faktura@*")
+   - Subject patterns (e.g., "Račun*")
+   - Attachment types (PDF, images)
+5. Matching attachments → Import queue
+6. AI extraction (The Clerk agent)
+7. User review and confirm
+```
+
+#### Import Rules
+
+```typescript
+interface EmailImportRule {
+  id: string
+  connectionId: string
+  senderPattern: string // "invoices@*" or "*@supplier.hr"
+  subjectPattern?: string // "Invoice*" or "Račun*"
+  attachmentTypes: string[] // ["pdf", "jpg", "png"]
+  targetCategory?: string // Auto-assign expense category
+  autoConfirm: boolean // Skip review for trusted senders
+}
+```
+
+**Example Rules:**
+
+```typescript
+// Auto-import from accounting firm
+{
+  senderPattern: "*@racunovodstvo.hr",
+  subjectPattern: null,
+  attachmentTypes: ["pdf"],
+  targetCategory: "professional-services",
+  autoConfirm: false
+}
+
+// Auto-import utility bills
+{
+  senderPattern: "noreply@hep.hr",
+  subjectPattern: "Račun za*",
+  attachmentTypes: ["pdf"],
+  targetCategory: "utilities",
+  autoConfirm: true  // High confidence vendor
+}
+```
+
+**API Endpoints:**
+
+- `POST /api/email/connect` - Start OAuth flow
+- `GET /api/email/callback` - OAuth callback
+- `POST /api/email/[connectionId]/disconnect` - Remove connection
+- `GET/POST /api/email/rules` - Manage import rules
+- `PUT/DELETE /api/email/rules/[id]` - Update/delete rule
+
+**Security:**
+
+- OAuth tokens stored encrypted
+- Read-only access to email
+- Only attachments are downloaded, not email content
+- User can disconnect at any time
+- No access to sent emails
+
 ---
 
 ## 10. Complete User Flows
@@ -1077,6 +1371,155 @@ Annual PO-SD Submission:
 9. If payable: Generate payment slip
 ```
 
+### 10.6 Fiscal Certificate Management
+
+Required for businesses accepting cash/card payments (fiscalization).
+
+#### Certificate Upload Flow
+
+```
+1. Navigate to /settings/fiscal
+2. Click "Upload Certificate"
+3. Select .p12 file from FINA
+4. Enter certificate password
+5. System validates:
+   - File format (PKCS#12)
+   - Certificate not expired
+   - OIB matches company
+   - Certificate issuer is FINA
+6. Store encrypted in database
+7. Mark company as fiscal-enabled
+8. Display certificate details (valid from/to, OIB)
+```
+
+#### Certificate Lifecycle
+
+| Status     | Meaning                 | Action                               |
+| ---------- | ----------------------- | ------------------------------------ |
+| `PENDING`  | Uploaded, not validated | Validate password                    |
+| `ACTIVE`   | Ready for fiscalization | None                                 |
+| `EXPIRING` | <30 days to expiry      | Show renewal warning                 |
+| `EXPIRED`  | Cannot fiscalize        | Block cash invoices, upload new cert |
+| `REVOKED`  | Manually invalidated    | Upload new cert                      |
+
+#### Multi-Premises Support
+
+```typescript
+interface BusinessPremises {
+  id: string
+  companyId: string
+  label: string // "Glavni ured", "Poslovnica 2"
+  address: string
+  city: string
+  postalCode: string
+  posDeviceId?: string // Linked POS terminal
+  isDefault: boolean
+  fiscalEnabled: boolean
+}
+```
+
+Each premises can have its own fiscal device numbering. When creating a cash invoice, the user selects which premises issued it.
+
+**Server Actions:**
+
+- `uploadCertificate(file, password)` - Upload and validate cert
+- `validateCertificate(certId)` - Check if still valid
+- `deleteCertificate(certId)` - Remove cert (requires confirmation)
+
+### 10.7 POS Terminal Operations
+
+For retail businesses with Stripe Terminal (in-person card payments).
+
+#### Terminal Setup Flow
+
+```
+1. Order Stripe Terminal reader (BBPOS WisePOS E)
+2. Navigate to /pos/setup
+3. Click "Pair Reader"
+4. System generates connection token via /api/terminal/connection-token
+5. Reader displays pairing code
+6. Enter code in FiskAI
+7. Reader linked to premises
+8. Test transaction (1.00 EUR)
+9. Terminal ready
+```
+
+#### Transaction Flow
+
+```
+1. Navigate to /pos
+2. Create new sale
+3. Add items (from Products catalog)
+   - Select product
+   - Set quantity
+   - Adjust price if needed
+4. Calculate total (with VAT)
+5. Select payment method:
+   - Cash → Skip to step 7
+   - Card → Continue to step 6
+6. If card:
+   - Send to reader via /api/terminal/payment-intent
+   - Customer taps/inserts card
+   - Wait for authorization (3-30 seconds)
+   - If declined: Show error, retry or select different method
+   - If approved: Continue to step 7
+7. Fiscalize invoice to CIS
+8. Generate JIR/ZKI
+9. Print/email receipt
+10. Update inventory (if enabled)
+11. Record payment in cash book
+```
+
+#### Terminal Statuses
+
+| Status     | Meaning                | Action                    |
+| ---------- | ---------------------- | ------------------------- |
+| `ONLINE`   | Ready for transactions | None                      |
+| `OFFLINE`  | Network issue          | Check internet connection |
+| `BUSY`     | Processing transaction | Wait for completion       |
+| `UPDATING` | Firmware update        | Wait 5-10 minutes         |
+| `ERROR`    | Hardware issue         | Contact support           |
+
+**Implementation:**
+
+```typescript
+// Create payment intent
+const paymentIntent = await stripe.paymentIntents.create({
+  amount: total * 100, // cents
+  currency: "eur",
+  payment_method_types: ["card_present"],
+  capture_method: "automatic",
+})
+
+// Send to terminal
+const result = await stripe.terminal.readers.processPaymentIntent(readerId, {
+  payment_intent: paymentIntent.id,
+})
+
+if (result.action_required) {
+  // Customer needs to take action (insert chip, etc.)
+  await waitForCustomerAction(result)
+}
+
+if (result.status === "succeeded") {
+  // Payment successful, fiscalize
+  await fiscalizeInvoice(invoiceId)
+}
+```
+
+**Refunds:**
+
+- Same-day refunds: Void transaction (no fiscal needed)
+- Next-day refunds: Create fiscalized refund invoice (Storno)
+- Partial refunds: Create credit note
+
+**Hardware:**
+
+- Recommended: BBPOS WisePOS E (299 EUR)
+- Alternative: Stripe Reader M2 (59 EUR, mobile only)
+- Connection: WiFi or Ethernet
+- Receipt printer: Built-in thermal printer
+
 ---
 
 ## 11. Tax & Regulatory Data
@@ -1207,6 +1650,183 @@ Minimum base: 719.2 EUR/month
 | Raiffeisen CSV | .csv      | ✅     | Pre-configured mapping |
 | PBZ Export     | .csv      | ⚠️ WIP | Parser in development  |
 | MT940          | .sta      | ❌     | Not yet implemented    |
+
+### 12.4 Proactive AI Agents
+
+FiskAI uses AI agents that **act proactively**, not just respond to queries.
+
+#### Agent: The Watchdog (Regulatory Guardian)
+
+**Trigger:** Daily cron job + every invoice creation
+
+**Purpose:** Monitor revenue limits and warn before thresholds are breached
+
+**Algorithm:**
+
+```typescript
+1. current_revenue = Sum(Invoices.total) WHERE year = current
+2. proximity = current_revenue / 60000  // 2025 threshold for paušalni
+3. If proximity > 0.85 → Level 1 Warning (Dashboard Banner)
+4. If proximity > 0.95 → Level 2 Emergency (Email to User + Accountant)
+5. Action: Display link to "Prijelaz na D.O.O." guide
+```
+
+**UI Components:**
+
+- `card:pausalni-status` - Shows limit progress bar
+- `card:insights-widget` - Displays proactive warnings
+
+**Implementation:**
+
+```typescript
+// Runs in /api/cron/deadline-reminders
+const revenue = await getYearlyRevenue(companyId)
+const threshold = 60000 // EUR
+const percentage = (revenue / threshold) * 100
+
+if (percentage > 95) {
+  await sendEmail({
+    template: "threshold-emergency",
+    to: [user.email, accountant?.email],
+    data: { revenue, threshold, percentage },
+  })
+  await createNotification({
+    type: "warning",
+    priority: "high",
+    message: "HITNO: Približavate se limitu paušalnog obrta",
+  })
+} else if (percentage > 85) {
+  await createNotification({
+    type: "warning",
+    priority: "medium",
+    message: `Ostvarili ste ${percentage.toFixed(0)}% paušalnog limita`,
+  })
+}
+```
+
+#### Agent: The Clerk (OCR & Categorization)
+
+**Trigger:** Document upload to Expense Vault
+
+**Purpose:** Extract invoice data and auto-categorize expenses
+
+**Algorithm:**
+
+```typescript
+1. Input: JPEG/PNG/PDF from expense upload
+2. Extract: Use Claude-3-Haiku via /api/ai/extract for text extraction
+3. Parse: Date, Amount, Vendor OIB, VAT amount, Line items
+4. Lookup: Check vendor OIB against Contact database
+5. If unknown vendor: Search official register (OIB API) → auto-create Contact
+6. Categorize: Match description to expense categories using AI
+7. VAT check: Verify deductibility via VIES if vendor has VAT ID
+8. If amount > 665 EUR: Suggest asset capitalization
+```
+
+**Confidence Thresholds:**
+
+- **High (>0.9):** Auto-fill fields, minimal review required
+- **Medium (0.7-0.9):** Auto-fill with "Please verify" prompt
+- **Low (<0.7):** Manual entry required, show extracted text
+
+**Implementation:**
+
+```typescript
+// /api/ai/extract
+const extraction = await claude.extract(imageBuffer, {
+  fields: ["vendor", "date", "total", "oib", "items"],
+  language: "hr",
+})
+
+if (extraction.confidence > 0.9) {
+  // Auto-create expense draft
+  await createExpense({
+    vendorId: await findOrCreateVendor(extraction.oib),
+    amount: extraction.total,
+    date: extraction.date,
+    category: await suggestCategory(extraction.items),
+    needsReview: false,
+  })
+} else {
+  // Queue for manual review
+  await createImportJob({
+    status: "NEEDS_REVIEW",
+    extractedData: extraction,
+    confidence: extraction.confidence,
+  })
+}
+```
+
+#### Agent: The Matcher (Bank Reconciliation)
+
+**Trigger:** Bank transaction import (daily PSD2 sync or manual upload)
+
+**Purpose:** Auto-match bank transactions to invoices
+
+**Algorithm:**
+
+```typescript
+1. Input: BankTransaction row from sync
+2. Extract: pozivNaBroj (payment reference number) from description
+3. Match strategies (in order):
+   a. Exact match: transaction.pozivNaBroj === invoice.invoiceNumber
+   b. Fuzzy match: transaction.amount === invoice.total (±0.05 EUR tolerance)
+   c. Vendor match: transaction.counterparty contains invoice.customer.name
+4. If match confidence > 0.9: Auto-mark invoice as PAID
+5. Else: Add to reconciliation queue for manual review
+6. Create reconciliation record with match confidence
+```
+
+**Match Statuses:**
+
+- `UNMATCHED` - New transaction, no invoice found
+- `AUTO_MATCHED` - High confidence (>0.9), pending confirmation
+- `MANUAL_MATCHED` - User-confirmed match
+- `IGNORED` - User marked as non-invoice (e.g., expense, transfer)
+
+**Implementation:**
+
+```typescript
+// /api/banking/reconciliation/match
+async function autoMatchTransaction(transaction: BankTransaction) {
+  // Strategy 1: Reference number match
+  if (transaction.reference) {
+    const invoice = await findInvoiceByNumber(transaction.reference)
+    if (invoice && Math.abs(invoice.total - transaction.amount) < 0.05) {
+      return { invoice, confidence: 0.95, method: "reference" }
+    }
+  }
+
+  // Strategy 2: Amount + date proximity
+  const candidates = await findInvoicesByAmount(transaction.amount, 0.05)
+  for (const invoice of candidates) {
+    const daysDiff = Math.abs(differenceInDays(transaction.date, invoice.issueDate))
+    if (daysDiff <= 30) {
+      return { invoice, confidence: 0.75, method: "amount-date" }
+    }
+  }
+
+  // Strategy 3: Vendor name fuzzy match
+  const vendorMatch = await fuzzyMatchVendor(transaction.counterparty)
+  if (vendorMatch.confidence > 0.8) {
+    const invoice = await findRecentInvoice(vendorMatch.vendorId)
+    return { invoice, confidence: 0.7, method: "vendor" }
+  }
+
+  return { invoice: null, confidence: 0, method: "none" }
+}
+```
+
+**UI Flow:**
+
+1. User imports bank statement
+2. System auto-matches transactions
+3. Dashboard shows:
+   - Green: X auto-matched (ready to confirm)
+   - Yellow: Y suggestions (manual review)
+   - Red: Z unmatched (action needed)
+4. User reviews suggestions, confirms or rejects
+5. Confirmed matches update invoice status to PAID
 
 ---
 
@@ -1404,7 +2024,104 @@ model EInvoiceLine {
 }
 ```
 
-### 15.3 Missing Models (To Be Implemented)
+### 15.3 Drizzle ORM Models
+
+These tables are managed by Drizzle (not Prisma) for performance-critical or newer features.
+
+**Location:** `/src/lib/db/schema/`
+
+| Schema File     | Tables                                                                                                               | Purpose                                |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `guidance.ts`   | `user_guidance_preferences`, `checklist_interactions`                                                                | User competence levels, setup progress |
+| `pausalni.ts`   | `pausalni_profile`, `eu_vendor`, `eu_transaction`, `payment_obligation`, `generated_form`, `notification_preference` | Paušalni compliance hub                |
+| `news.ts`       | `news_sources`, `news_items`, `news_posts`, `news_categories`, `news_tags`, `news_post_sources`                      | News aggregation system                |
+| `newsletter.ts` | `newsletter_subscriptions`                                                                                           | Newsletter subscribers                 |
+| `deadlines.ts`  | `compliance_deadlines`                                                                                               | Generated tax deadlines                |
+
+**Example Schema:**
+
+```typescript
+// src/lib/db/schema/guidance.ts
+export const userGuidancePreferences = pgTable("user_guidance_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull(),
+
+  // Competence levels per category (beginner, average, pro)
+  levelFakturiranje: varchar("level_fakturiranje", { length: 20 }).default("beginner"),
+  levelFinancije: varchar("level_financije", { length: 20 }).default("beginner"),
+  levelEu: varchar("level_eu", { length: 20 }).default("beginner"),
+
+  // Global quick-set
+  globalLevel: varchar("global_level", { length: 20 }),
+
+  // Notification preferences
+  emailDigest: varchar("email_digest", { length: 20 }).default("weekly"),
+  pushEnabled: boolean("push_enabled").default(true),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+```
+
+**Paušalni Profile Schema:**
+
+```typescript
+// src/lib/db/schema/pausalni.ts
+export const pausalniProfile = pgTable("pausalni_profile", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: text("company_id").notNull(),
+  hasPdvId: boolean("has_pdv_id").default(false),
+  pdvId: varchar("pdv_id", { length: 20 }), // HR12345678901
+  pdvIdSince: date("pdv_id_since"),
+  euActive: boolean("eu_active").default(false),
+  hokMemberSince: date("hok_member_since"),
+  tourismActivity: boolean("tourism_activity").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+export const paymentObligation = pgTable("payment_obligation", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: text("company_id").notNull(),
+  obligationType: varchar("obligation_type", { length: 50 }).notNull(),
+  periodMonth: integer("period_month").notNull(),
+  periodYear: integer("period_year").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  dueDate: date("due_date").notNull(),
+  status: varchar("status", { length: 20 }).default("PENDING"),
+  paidDate: date("paid_date"),
+  paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+})
+```
+
+**News System Schema:**
+
+```typescript
+// src/lib/db/schema/news.ts
+export const newsPosts = pgTable("news_posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: varchar("slug", { length: 300 }).notNull().unique(),
+  type: varchar("type", { length: 20 }).notNull(), // 'individual' | 'digest'
+  title: varchar("title", { length: 500 }).notNull(),
+  content: text("content").notNull(), // markdown
+  excerpt: varchar("excerpt", { length: 500 }),
+  categoryId: varchar("category_id", { length: 50 }),
+  tags: jsonb("tags").default([]),
+  impactLevel: varchar("impact_level", { length: 20 }), // 'high' | 'medium' | 'low'
+  status: varchar("status", { length: 20 }).default("draft"), // 'draft' | 'reviewing' | 'published'
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+})
+```
+
+**Why Both Prisma and Drizzle?**
+
+- **Prisma:** Core business entities (invoices, companies, users) - mature, stable schema
+- **Drizzle:** New features and performance-critical tables - faster queries, better PostgreSQL support
+- **Migration path:** Gradual migration from Prisma to Drizzle for all tables (planned)
+
+### 15.4 Missing Models (To Be Implemented)
 
 ```prisma
 // KPI - Income/Expense Book (for Obrt Dohodak)
@@ -1532,40 +2249,356 @@ GET    /api/pausalni/calendar       Tax calendar
 
 ---
 
+## 17. Complete API Reference
+
+### 17.1 Authentication & Authorization
+
+| Endpoint                        | Method | Purpose                       |
+| ------------------------------- | ------ | ----------------------------- |
+| `/api/auth/[...nextauth]`       | ALL    | NextAuth.js handler           |
+| `/api/auth/check-email`         | POST   | Check email availability      |
+| `/api/auth/register`            | POST   | User registration             |
+| `/api/auth/send-code`           | POST   | Send verification code        |
+| `/api/auth/verify-code`         | POST   | Verify authentication code    |
+| `/api/auth/reset-password`      | POST   | Password reset                |
+| `/api/webauthn/register/start`  | POST   | Start passkey registration    |
+| `/api/webauthn/register/finish` | POST   | Complete passkey registration |
+| `/api/webauthn/login/start`     | POST   | Start passkey login           |
+| `/api/webauthn/login/finish`    | POST   | Complete passkey login        |
+| `/api/webauthn/passkeys`        | GET    | List user passkeys            |
+| `/api/webauthn/passkeys/[id]`   | DELETE | Remove passkey                |
+| `/api/admin/auth`               | POST   | Admin authentication          |
+
+### 17.2 Banking & Reconciliation
+
+| Endpoint                               | Method | Purpose                      |
+| -------------------------------------- | ------ | ---------------------------- |
+| `/api/bank/connect`                    | POST   | Initiate PSD2 connection     |
+| `/api/bank/disconnect`                 | POST   | Remove bank connection       |
+| `/api/bank/callback`                   | GET    | OAuth callback handler       |
+| `/api/banking/import/upload`           | POST   | Upload bank statement        |
+| `/api/banking/import/process`          | POST   | Process uploaded statement   |
+| `/api/banking/import/jobs/[id]`        | GET    | Get import job status        |
+| `/api/banking/import/jobs/[id]/file`   | GET    | Retrieve original file       |
+| `/api/banking/import/jobs/[id]/status` | GET    | Check processing status      |
+| `/api/banking/reconciliation`          | GET    | List unmatched transactions  |
+| `/api/banking/reconciliation/match`    | POST   | Match transaction to invoice |
+
+### 17.3 E-Invoicing & Fiscalization
+
+| Endpoint                  | Method | Purpose                         |
+| ------------------------- | ------ | ------------------------------- |
+| `/api/e-invoices/inbox`   | GET    | List received e-invoices        |
+| `/api/e-invoices/receive` | POST   | Webhook for incoming e-invoices |
+| `/api/invoices/[id]/pdf`  | GET    | Generate invoice PDF            |
+| `/api/compliance/en16931` | POST   | Validate EN 16931 compliance    |
+| `/api/sandbox/e-invoice`  | POST   | Test e-invoice endpoint         |
+
+### 17.4 Billing & Subscriptions
+
+| Endpoint                | Method | Purpose                        |
+| ----------------------- | ------ | ------------------------------ |
+| `/api/billing/checkout` | POST   | Create Stripe checkout session |
+| `/api/billing/portal`   | POST   | Open Stripe customer portal    |
+| `/api/billing/webhook`  | POST   | Handle Stripe webhooks         |
+
+### 17.5 Paušalni Features
+
+| Endpoint                                     | Method  | Purpose                     |
+| -------------------------------------------- | ------- | --------------------------- |
+| `/api/pausalni/profile`                      | GET/PUT | Get/update paušalni profile |
+| `/api/pausalni/preferences`                  | PUT     | Update display preferences  |
+| `/api/pausalni/obligations`                  | GET     | List payment obligations    |
+| `/api/pausalni/obligations/[id]/mark-paid`   | POST    | Mark obligation as paid     |
+| `/api/pausalni/income-summary`               | GET     | Get income summary          |
+| `/api/pausalni/eu-transactions`              | GET     | List EU transactions        |
+| `/api/pausalni/eu-transactions/[id]/confirm` | POST    | Confirm EU transaction      |
+| `/api/pausalni/forms`                        | POST    | Generate tax forms          |
+| `/api/pausalni/forms/[id]/download`          | GET     | Download generated form     |
+| `/api/pausalni/payment-slip`                 | POST    | Generate Hub3 payment slip  |
+| `/api/pausalni/calendar/export`              | GET     | Export deadline calendar    |
+| `/api/pausalni/calendar/google/sync`         | POST    | Sync to Google Calendar     |
+
+### 17.6 AI Features
+
+| Endpoint                   | Method | Purpose                     |
+| -------------------------- | ------ | --------------------------- |
+| `/api/ai/extract`          | POST   | Extract data from document  |
+| `/api/ai/feedback`         | POST   | Submit extraction feedback  |
+| `/api/ai/suggest-category` | POST   | Get category suggestion     |
+| `/api/ai/usage`            | GET    | Get AI usage stats          |
+| `/api/assistant/chat`      | POST   | AI assistant chat interface |
+
+### 17.7 Email Integration
+
+| Endpoint                               | Method     | Purpose                |
+| -------------------------------------- | ---------- | ---------------------- |
+| `/api/email/connect`                   | POST       | Start email OAuth flow |
+| `/api/email/callback`                  | GET        | OAuth callback         |
+| `/api/email/[connectionId]/disconnect` | POST       | Disconnect email       |
+| `/api/email/rules`                     | GET/POST   | Manage import rules    |
+| `/api/email/rules/[id]`                | PUT/DELETE | Update/delete rule     |
+
+### 17.8 Document Import
+
+| Endpoint                        | Method | Purpose                  |
+| ------------------------------- | ------ | ------------------------ |
+| `/api/import/upload`            | POST   | Upload document          |
+| `/api/import/process`           | POST   | Process document with AI |
+| `/api/import/jobs/[id]`         | GET    | Get job details          |
+| `/api/import/jobs/[id]/type`    | PUT    | Set document type        |
+| `/api/import/jobs/[id]/file`    | GET    | Retrieve file            |
+| `/api/import/jobs/[id]/confirm` | POST   | Confirm import           |
+| `/api/import/jobs/[id]/reject`  | POST   | Reject import            |
+| `/api/receipts/upload`          | POST   | Upload receipt           |
+| `/api/receipts/view`            | GET    | View receipt             |
+
+### 17.9 Support & Ticketing
+
+| Endpoint                             | Method   | Purpose                   |
+| ------------------------------------ | -------- | ------------------------- |
+| `/api/support/tickets`               | GET/POST | List/create tickets       |
+| `/api/support/tickets/[id]/status`   | PUT      | Update ticket status      |
+| `/api/support/tickets/[id]/messages` | GET/POST | Ticket messages           |
+| `/api/support/tickets/summary`       | GET      | Support dashboard summary |
+| `/api/admin/support/dashboard`       | GET      | Admin support view        |
+
+### 17.10 Guidance & Notifications
+
+| Endpoint                    | Method | Purpose                  |
+| --------------------------- | ------ | ------------------------ |
+| `/api/guidance/preferences` | PUT    | Update guidance settings |
+| `/api/guidance/checklist`   | GET    | Get setup checklist      |
+| `/api/guidance/insights`    | GET    | Get contextual insights  |
+| `/api/notifications`        | GET    | List notifications       |
+| `/api/notifications/read`   | POST   | Mark as read             |
+| `/api/deadlines`            | GET    | List deadlines           |
+| `/api/deadlines/upcoming`   | GET    | Upcoming deadlines       |
+
+### 17.11 Cron Jobs
+
+| Endpoint                        | Trigger | Purpose                  |
+| ------------------------------- | ------- | ------------------------ |
+| `/api/cron/bank-sync`           | Daily   | Sync PSD2 transactions   |
+| `/api/cron/fiscal-processor`    | Hourly  | Process fiscal queue     |
+| `/api/cron/fiscal-retry`        | 6h      | Retry failed fiscal      |
+| `/api/cron/deadline-reminders`  | Daily   | Send deadline emails     |
+| `/api/cron/email-sync`          | 15min   | Import email attachments |
+| `/api/cron/fetch-news`          | 4h      | Fetch news feeds         |
+| `/api/cron/news/fetch-classify` | 4h      | Fetch and classify news  |
+| `/api/cron/news/publish`        | Daily   | Publish news posts       |
+| `/api/cron/news/review`         | Daily   | Review news items        |
+| `/api/cron/checklist-digest`    | Daily   | Send guidance digests    |
+
+### 17.12 News System
+
+| Endpoint                               | Method     | Purpose               |
+| -------------------------------------- | ---------- | --------------------- |
+| `/api/news`                            | GET        | List news posts       |
+| `/api/news/latest`                     | GET        | Latest news           |
+| `/api/news/categories`                 | GET        | News categories       |
+| `/api/news/posts`                      | GET        | List posts            |
+| `/api/news/posts/[slug]`               | GET        | Get post by slug      |
+| `/api/admin/news/posts`                | GET/POST   | Admin news management |
+| `/api/admin/news/posts/[id]`           | PUT/DELETE | Update/delete post    |
+| `/api/admin/news/posts/[id]/reprocess` | POST       | Reprocess with AI     |
+| `/api/admin/news/cron/trigger`         | POST       | Manually trigger cron |
+
+### 17.13 Staff Portal
+
+| Endpoint                            | Method     | Purpose                  |
+| ----------------------------------- | ---------- | ------------------------ |
+| `/api/staff/clients`                | GET        | List assigned clients    |
+| `/api/staff/clients/[companyId]`    | GET        | Get client details       |
+| `/api/admin/staff-assignments`      | GET/POST   | Manage staff assignments |
+| `/api/admin/staff-assignments/[id]` | PUT/DELETE | Update/delete assignment |
+
+### 17.14 Admin Features
+
+| Endpoint                                 | Method | Purpose           |
+| ---------------------------------------- | ------ | ----------------- |
+| `/api/admin/companies/[companyId]/audit` | GET    | Company audit log |
+
+### 17.15 Reports & Exports
+
+| Endpoint                         | Method | Purpose                          |
+| -------------------------------- | ------ | -------------------------------- |
+| `/api/reports/kpr`               | GET    | KPR report (Income/Expense book) |
+| `/api/reports/kpr/excel`         | GET    | KPR Excel export                 |
+| `/api/reports/kpr/pdf`           | GET    | KPR PDF export                   |
+| `/api/reports/vat-threshold`     | GET    | VAT threshold monitoring         |
+| `/api/reports/accountant-export` | GET    | Accountant export                |
+| `/api/exports/company`           | GET    | Full company data export         |
+| `/api/exports/expenses`          | GET    | Expense export                   |
+| `/api/exports/invoices`          | GET    | Invoice export                   |
+| `/api/exports/season-pack`       | GET    | Seasonal compliance pack         |
+
+### 17.16 POS & Terminal
+
+| Endpoint                         | Method | Purpose                 |
+| -------------------------------- | ------ | ----------------------- |
+| `/api/terminal/connection-token` | POST   | Generate terminal token |
+| `/api/terminal/payment-intent`   | POST   | Create payment intent   |
+| `/api/terminal/reader-status`    | GET    | Check reader status     |
+
+### 17.17 Products & Inventory
+
+| Endpoint               | Method | Purpose              |
+| ---------------------- | ------ | -------------------- |
+| `/api/products/import` | POST   | Bulk import products |
+
+### 17.18 Knowledge Hub
+
+| Endpoint                  | Method | Purpose                |
+| ------------------------- | ------ | ---------------------- |
+| `/api/knowledge-hub/hub3` | GET    | Hub3 payment slip info |
+
+### 17.19 Utilities
+
+| Endpoint               | Method | Purpose               |
+| ---------------------- | ------ | --------------------- |
+| `/api/health`          | GET    | Basic health check    |
+| `/api/health/ready`    | GET    | Readiness probe       |
+| `/api/status`          | GET    | Service status        |
+| `/api/metrics`         | GET    | System metrics        |
+| `/api/oib/lookup`      | GET    | OIB validation/lookup |
+| `/api/capabilities`    | GET    | API capabilities      |
+| `/api/webhooks/resend` | POST   | Email service webhook |
+
+**Total API Routes:** 119 endpoints
+
+### 17.20 Server Actions
+
+FiskAI uses Next.js Server Actions for most CRUD operations. These are NOT REST endpoints but TypeScript functions called directly from client components.
+
+**Location:** `/src/app/actions/`
+
+| File                        | Purpose                   | Key Functions                                                    |
+| --------------------------- | ------------------------- | ---------------------------------------------------------------- |
+| `auth.ts`                   | Authentication            | `signIn`, `signOut`, `signUp`                                    |
+| `company.ts`                | Company management        | `createCompany`, `updateCompany`, `switchCompany`                |
+| `company-switch.ts`         | Company context switching | `switchActiveCompany`                                            |
+| `contact.ts`                | Contact CRUD              | `createContact`, `updateContact`, `deleteContact`                |
+| `contact-list.ts`           | Contact list management   | `getContacts`, `searchContacts`                                  |
+| `product.ts`                | Product management        | `createProduct`, `updateProduct`, `deleteProduct`                |
+| `invoice.ts`                | Invoice operations        | `createInvoice`, `updateInvoice`, `deleteInvoice`, `sendInvoice` |
+| `expense.ts`                | Expense tracking          | `createExpense`, `updateExpense`, `deleteExpense`                |
+| `expense-reconciliation.ts` | Bank matching             | `matchExpense`, `unmatchExpense`, `suggestMatches`               |
+| `banking.ts`                | Bank accounts             | `addBankAccount`, `removeBankAccount`, `syncTransactions`        |
+| `premises.ts`               | Business premises         | `createPremises`, `updatePremises`, `setPrimaryPremises`         |
+| `terminal.ts`               | POS terminals             | `registerTerminal`, `pairReader`, `unpairReader`                 |
+| `pos.ts`                    | Point of sale             | `createPOSTransaction`, `voidTransaction`                        |
+| `fiscalize.ts`              | Fiscalization             | `fiscalizeInvoice`, `retryFiscalization`, `getFiscalStatus`      |
+| `fiscal-certificate.ts`     | Certificates              | `uploadCertificate`, `validateCertificate`, `deleteCertificate`  |
+| `support-ticket.ts`         | Support                   | `createTicket`, `addMessage`, `updateTicketStatus`               |
+| `onboarding.ts`             | Wizard                    | `saveOnboardingStep`, `completeOnboarding`, `skipOnboarding`     |
+| `guidance.ts`               | Preferences               | `updateGuidanceLevel`, `dismissTip`, `saveCompetenceLevel`       |
+| `newsletter.ts`             | Newsletter                | `subscribe`, `unsubscribe`, `updatePreferences`                  |
+| `article-agent.ts`          | AI articles               | `generateArticle`, `publishArticle`, `reviewArticle`             |
+
+**Usage Pattern:**
+
+```typescript
+// In client component
+"use client"
+import { createInvoice } from "@/app/actions/invoice"
+
+async function handleSubmit(data: InvoiceData) {
+  const result = await createInvoice(data)
+  if (result.error) {
+    toast.error(result.error)
+  } else {
+    router.push(`/invoices/${result.id}`)
+  }
+}
+```
+
+**Why Server Actions over REST?**
+
+1. Type safety - Full TypeScript types from server to client
+2. No API boilerplate - Direct function calls
+3. Automatic revalidation - Next.js cache updates
+4. Better DX - Single codebase for frontend and backend logic
+
+---
+
 ## Appendix A: Glossary
 
-| Term  | Croatian                                     | Meaning                      |
-| ----- | -------------------------------------------- | ---------------------------- |
-| OIB   | Osobni identifikacijski broj                 | 11-digit tax ID              |
-| PDV   | Porez na dodanu vrijednost                   | VAT                          |
-| MIO   | Mirovinsko osiguranje                        | Pension insurance            |
-| HZZO  | Hrvatski zavod za zdravstveno osiguranje     | Health insurance             |
-| JIR   | Jedinstveni identifikator računa             | Fiscal receipt ID            |
-| ZKI   | Zaštitni kod izdavatelja                     | Issuer security code         |
-| KPR   | Knjiga prometa                               | Daily sales log (paušalni)   |
-| KPI   | Knjiga primitaka i izdataka                  | Income/expense book          |
-| PO-SD | Prijava poreza na dohodak - pojednostavljena | Simplified income tax return |
-| URA   | Ulazni računi                                | Incoming invoices            |
-| IRA   | Izlazni računi                               | Outgoing invoices            |
-| HOK   | Hrvatska obrtnička komora                    | Croatian Chamber of Trades   |
-| FINA  | Financijska agencija                         | Financial Agency             |
-| CIS   | Centralni informacijski sustav               | Central Information System   |
+| Term          | Croatian                                     | Meaning                       |
+| ------------- | -------------------------------------------- | ----------------------------- |
+| OIB           | Osobni identifikacijski broj                 | 11-digit tax ID               |
+| PDV           | Porez na dodanu vrijednost                   | VAT                           |
+| MIO           | Mirovinsko osiguranje                        | Pension insurance             |
+| HZZO          | Hrvatski zavod za zdravstveno osiguranje     | Health insurance              |
+| JIR           | Jedinstveni identifikator računa             | Fiscal receipt ID             |
+| ZKI           | Zaštitni kod izdavatelja                     | Issuer security code          |
+| KPR           | Knjiga prometa                               | Daily sales log (paušalni)    |
+| KPI           | Knjiga primitaka i izdataka                  | Income/expense book           |
+| PO-SD         | Prijava poreza na dohodak - pojednostavljena | Simplified income tax return  |
+| URA           | Ulazni računi                                | Incoming invoices             |
+| IRA           | Izlazni računi                               | Outgoing invoices             |
+| HOK           | Hrvatska obrtnička komora                    | Croatian Chamber of Trades    |
+| FINA          | Financijska agencija                         | Financial Agency              |
+| CIS           | Centralni informacijski sustav               | Central Information System    |
+| EN16931       | European e-invoicing standard                | XML schema for B2G invoices   |
+| UBL           | Universal Business Language                  | XML format for e-invoices     |
+| CAMT.053      | Cash Management message                      | ISO 20022 bank statement XML  |
+| Hub3          | Croatian payment slip standard               | 2D barcode for payments       |
+| R1/R2         | Invoice types                                | R1=standard, R2=cash register |
+| VIES          | VAT Information Exchange System              | EU VAT number validation      |
+| SEPA          | Single Euro Payments Area                    | EU bank transfer standard     |
+| PSD2          | Payment Services Directive 2                 | Open banking regulation       |
+| Poziv na broj | Payment reference number                     | Links payment to invoice      |
+| Prirez        | Municipal surtax                             | Added to income tax           |
+| JOPPD         | Jedinstveni Obrazac Poreza i Prihoda         | Payroll reporting form        |
+| Putni nalog   | Travel order                                 | Tax-free expense claim        |
+| Dnevnica      | Per diem                                     | Daily travel allowance        |
 
 ---
 
 ## Appendix B: File Locations
 
-| Purpose              | Path                              |
-| -------------------- | --------------------------------- |
-| Module definitions   | `/src/lib/modules/definitions.ts` |
-| Visibility rules     | `/src/lib/visibility/rules.ts`    |
-| RBAC permissions     | `/src/lib/rbac.ts`                |
-| Tax data             | `/src/lib/fiscal-data/`           |
-| Paušalni logic       | `/src/lib/pausalni/`              |
-| E-invoice generation | `/src/lib/e-invoice/`             |
-| Dashboard widgets    | `/src/components/dashboard/`      |
-| Onboarding steps     | `/src/components/onboarding/`     |
-| Guidance system      | `/src/components/guidance/`       |
+| Purpose                | Path                                           |
+| ---------------------- | ---------------------------------------------- |
+| **Core Configuration** |                                                |
+| Module definitions     | `/src/lib/modules/definitions.ts`              |
+| Visibility rules       | `/src/lib/visibility/rules.ts`                 |
+| Visibility elements    | `/src/lib/visibility/elements.ts`              |
+| Visibility context     | `/src/lib/visibility/context.tsx`              |
+| RBAC permissions       | `/src/lib/rbac.ts`                             |
+| Capabilities           | `/src/lib/capabilities.ts`                     |
+| Navigation registry    | `/src/lib/navigation.ts`                       |
+| **Fiscal Data**        |                                                |
+| Tax thresholds         | `/src/lib/fiscal-data/data/thresholds.ts`      |
+| Tax rates              | `/src/lib/fiscal-data/data/tax-rates.ts`       |
+| Contributions          | `/src/lib/fiscal-data/data/contributions.ts`   |
+| Deadlines              | `/src/lib/fiscal-data/data/deadlines.ts`       |
+| Payment details        | `/src/lib/fiscal-data/data/payment-details.ts` |
+| **Feature Modules**    |                                                |
+| Paušalni logic         | `/src/lib/pausalni/`                           |
+| E-invoice generation   | `/src/lib/e-invoice/`                          |
+| Bank sync              | `/src/lib/bank-sync/`                          |
+| Banking import         | `/src/lib/banking/`                            |
+| Guidance system        | `/src/lib/guidance/`                           |
+| **Database**           |                                                |
+| Prisma schema          | `/prisma/schema.prisma`                        |
+| Drizzle client         | `/src/lib/db/drizzle.ts`                       |
+| Drizzle schemas        | `/src/lib/db/schema/`                          |
+| **UI Components**      |                                                |
+| Dashboard widgets      | `/src/components/dashboard/`                   |
+| Onboarding steps       | `/src/components/onboarding/`                  |
+| Guidance components    | `/src/components/guidance/`                    |
+| Layout components      | `/src/components/layout/`                      |
+| Admin components       | `/src/components/admin/`                       |
+| Staff components       | `/src/components/staff/`                       |
+| **Server Logic**       |                                                |
+| Server actions         | `/src/app/actions/`                            |
+| API routes             | `/src/app/api/`                                |
+| Cron jobs              | `/src/app/api/cron/`                           |
+| **Content**            |                                                |
+| MDX guides             | `/content/vodici/`                             |
+| MDX comparisons        | `/content/usporedbe/`                          |
+| Implementation plans   | `/docs/plans/`                                 |
 
 ---
 
