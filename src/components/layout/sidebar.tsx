@@ -31,6 +31,7 @@ function getNavElementId(href: string): ElementId | null {
     "/corporate-tax": "nav:corporate-tax",
     "/banking": "nav:bank",
     "/pos": "nav:pos",
+    "/compliance": "nav:compliance",
     "/settings": "nav:settings",
   }
   return pathToElementId[href] || null

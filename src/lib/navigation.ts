@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Bot,
   Calculator,
+  Shield,
   type LucideIcon,
 } from "lucide-react"
 import { ModuleKey } from "@/lib/modules/definitions"
@@ -89,7 +90,15 @@ export const navigation: NavSection[] = [
   },
   {
     title: "Sustav",
-    items: [{ name: "Postavke", href: "/settings", icon: Settings }],
+    items: [
+      {
+        name: "Usklađenost",
+        href: "/compliance",
+        icon: Shield,
+        showFor: ["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "DOO", "JDOO"],
+      },
+      { name: "Postavke", href: "/settings", icon: Settings },
+    ],
   },
 ]
 
