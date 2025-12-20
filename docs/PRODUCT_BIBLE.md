@@ -261,18 +261,30 @@ STAGE 3: STRATEGIC (10+ invoices OR VAT)
 
 **Petra's Portal (`staff.fiskai.hr`):**
 
+**Current Implementation:**
+
 ```
 Staff Dashboard
-├── Assigned Clients List (company cards)
-├── Pending Actions (deadlines across all clients)
-├── Quick Export (bulk KPR, URA/IRA, PDV)
-└── Client Switcher (jump into client context)
-
-Per-Client View (same as client app, but with accountant role)
-├── Can: Read all, Export reports
-├── Cannot: Change billing, Invite users
-└── Special: "Mark as Reviewed" button
+├── Dashboard (overview of assigned clients)
+├── Clients (list with status indicators)
+├── Calendar (shared deadlines view)
+├── Tasks (assigned work items)
+├── Tickets (support tickets from clients)
+└── Documents (cross-client document access)
 ```
+
+**Per-Client Context:**
+
+- Click client → enters client context
+- Same UI as client app
+- Role: ACCOUNTANT (read + export)
+- Special: "Pregledano" (Reviewed) button
+
+**Planned Features (not yet implemented):**
+
+- Pending Actions aggregate view
+- Bulk export across clients
+- Quick deadline overview
 
 ---
 
@@ -284,15 +296,27 @@ Per-Client View (same as client app, but with accountant role)
 | **Portal**       | `admin.fiskai.hr` |
 | **Capabilities** | Everything        |
 
-**Admin Portal Features:**
+**Admin Portal (`admin.fiskai.hr`):**
 
-| Section | Purpose                                      |
-| ------- | -------------------------------------------- |
-| Tenants | List all companies, view status, impersonate |
-| Staff   | Manage accountant assignments                |
-| News    | Create/edit platform announcements           |
-| Support | View/respond to support tickets              |
-| Metrics | Platform health, usage stats                 |
+**Current Implementation:**
+
+```
+Admin Dashboard
+├── Dashboard (platform metrics - partial)
+├── Tenants (company management)
+├── Staff (staff user management)
+├── Subscriptions (Stripe subscription management)
+├── Services (feature flag management)
+├── Support (ticket management)
+└── Audit Log (system-wide activity)
+```
+
+**Planned Features:**
+
+- News management (create/edit announcements)
+- Full metrics dashboard
+- Support ticket escalation
+- Tenant impersonation
 
 ---
 
@@ -449,18 +473,29 @@ Stored in `Company.entitlements[]` as kebab-case strings:
 
 ```typescript
 // src/lib/modules/definitions.ts
-export const MODULES = {
+interface ModuleDefinition {
+  key: ModuleKey
+  name: string // Croatian display name
+  description: string // Croatian description
+  routes: string[] // Protected route patterns
+  navItems: string[] // Nav item identifiers (not objects)
+  defaultEnabled: boolean
+}
+
+export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   invoicing: {
     key: "invoicing",
-    name: "Fakturiranje",
-    description: "Izrada i slanje računa",
+    name: "Invoicing",
+    description: "Create and manage invoices, quotes, proformas",
     routes: ["/invoices", "/invoices/new", "/invoices/[id]"],
-    navItems: [{ label: "Računi", href: "/invoices", icon: FileText }],
-    requiredFor: ["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"],
+    navItems: ["invoices"], // References nav registry
+    defaultEnabled: true,
   },
-  // ... all 16 modules
+  // ... 15 more modules
 }
 ```
+
+**Note:** The `navItems` array contains identifiers that map to the navigation registry in `/src/lib/navigation.ts`, not full nav item objects. The `requiredFor` field shown in earlier versions does not exist in the current implementation.
 
 ### 5.3 Entitlement Checking
 
@@ -712,20 +747,78 @@ average  → Normal UI
 pro      → Show everything, minimal hand-holding
 ```
 
-### 7.2 Element Visibility Rules
+### 7.2 Element Visibility Registry
 
-| Element ID                  | Legal Form  | Stage     | Competence | Module        |
-| --------------------------- | ----------- | --------- | ---------- | ------------- |
-| `card:hero-banner`          | All         | setup+    | All        | Core          |
-| `card:checklist-widget`     | All         | setup     | beginner   | Guidance      |
-| `card:recent-activity`      | All         | active+   | average+   | Core          |
-| `card:revenue-trend`        | All         | active+   | average+   | invoicing     |
-| `card:invoice-funnel`       | All         | active+   | average+   | invoicing     |
-| `card:pausalni-status`      | OBRT_PAUSAL | setup+    | All        | pausalni      |
-| `card:vat-overview`         | VAT payers  | active+   | average+   | vat           |
-| `card:fiscalization-status` | Cash payers | setup+    | All        | fiscalization |
-| `card:insights-widget`      | All         | strategic | All        | ai-assistant  |
-| `card:corporate-tax`        | DOO/JDOO    | strategic | pro        | corporate-tax |
+**Complete list from `/src/lib/visibility/elements.ts`:**
+
+#### Dashboard Cards
+
+| Element ID                  | Legal Form  | Stage     | Competence | Purpose          |
+| --------------------------- | ----------- | --------- | ---------- | ---------------- |
+| `card:hero-banner`          | All         | setup+    | All        | Welcome message  |
+| `card:checklist-widget`     | All         | setup     | beginner   | Setup guide      |
+| `card:recent-activity`      | All         | active+   | average+   | Recent actions   |
+| `card:revenue-trend`        | All         | active+   | average+   | Revenue chart    |
+| `card:invoice-funnel`       | All         | active+   | average+   | Invoice pipeline |
+| `card:pausalni-status`      | OBRT_PAUSAL | setup+    | All        | Limit tracker    |
+| `card:vat-overview`         | VAT payers  | active+   | average+   | VAT summary      |
+| `card:fiscalization-status` | Cash payers | setup+    | All        | Fiscal status    |
+| `card:insights-widget`      | All         | strategic | All        | AI insights      |
+| `card:corporate-tax`        | DOO/JDOO    | strategic | pro        | Corp tax         |
+| `card:doprinosi`            | OBRT\_\*    | setup+    | All        | Contributions    |
+| `card:cash-flow`            | All         | active+   | average+   | Cash flow        |
+| `card:posd-reminder`        | OBRT_PAUSAL | active+   | All        | Annual form      |
+| `card:deadline-countdown`   | All         | setup+    | All        | Next deadline    |
+| `card:today-actions`        | All         | setup+    | All        | Action items     |
+| `card:advanced-insights`    | All         | strategic | pro        | Deep analytics   |
+| `card:insights`             | All         | active+   | average+   | Basic insights   |
+
+#### Navigation Items
+
+| Element ID          | Purpose         |
+| ------------------- | --------------- |
+| `nav:dashboard`     | Dashboard       |
+| `nav:invoices`      | Invoice list    |
+| `nav:e-invoices`    | E-invoice list  |
+| `nav:contacts`      | Contacts        |
+| `nav:customers`     | Customers       |
+| `nav:products`      | Products        |
+| `nav:expenses`      | Expenses        |
+| `nav:documents`     | Documents       |
+| `nav:import`        | Import          |
+| `nav:banking`       | Bank accounts   |
+| `nav:pos`           | Point of sale   |
+| `nav:pausalni`      | Paušalni hub    |
+| `nav:vat`           | VAT management  |
+| `nav:reports`       | Reports section |
+| `nav:doprinosi`     | Contributions   |
+| `nav:corporate-tax` | Corporate tax   |
+| `nav:settings`      | Settings        |
+| `nav:api-settings`  | API settings    |
+| `nav:checklist`     | Checklist       |
+
+#### Actions
+
+| Element ID                 | Purpose           |
+| -------------------------- | ----------------- |
+| `action:create-invoice`    | New invoice       |
+| `action:create-contact`    | New contact       |
+| `action:create-product`    | New product       |
+| `action:create-expense`    | New expense       |
+| `action:import-statements` | Import statements |
+| `action:export-data`       | Export data       |
+
+#### Pages
+
+| Element ID           | Purpose       |
+| -------------------- | ------------- |
+| `page:vat`           | VAT dashboard |
+| `page:pausalni`      | Paušalni hub  |
+| `page:pos`           | POS interface |
+| `page:reports`       | Reports       |
+| `page:corporate-tax` | Corp tax      |
+| `page:doprinosi`     | Contributions |
+| `page:bank`          | Banking       |
 
 ### 7.3 Visibility Component Usage
 
@@ -734,12 +827,33 @@ pro      → Show everything, minimal hand-holding
 <Visible id="card:pausalni-status">
   <PausalniStatusCard />
 </Visible>
-
-// The component internally checks:
-// 1. Is legalForm === "OBRT_PAUSAL"?
-// 2. Is stage >= "setup"?
-// 3. Is module "pausalni" in entitlements?
 ```
+
+**What Visibility Checks:**
+
+1. ✅ Legal form (`legalForm`) - e.g., hide VAT widgets for paušalni
+2. ✅ Progression stage (`stage`) - e.g., hide charts until first invoice
+3. ✅ Competence level (`competence`) - e.g., hide advanced for beginners
+4. ❌ **Does NOT check entitlements**
+
+**Entitlements Are Checked Separately:**
+
+- Sidebar: Direct array check in `sidebar.tsx`
+- Pages: Route protection middleware
+- Components: Manual `entitlements.includes()` checks
+
+```tsx
+// Combining visibility + entitlements
+<Visible id="card:ai-insights">
+  {entitlements.includes("ai-assistant") && <AIInsightsCard />}
+</Visible>
+```
+
+**Why Separate?**
+
+- Visibility = "Should this user type see this?"
+- Entitlements = "Has this company paid for this?"
+- A paušalni user shouldn't see VAT widgets even if they somehow have the `vat` entitlement.
 
 ---
 
@@ -914,42 +1028,70 @@ const hasCompletedOnboarding = Boolean(
 
 #### Sidebar (`sidebar.tsx`)
 
-**Sections:**
+**Navigation Sections (from `/src/lib/navigation.ts`):**
 
-1. User Card (expanded view only)
-2. Checklist Mini-View (if beginner + setup stage)
-3. Navigation Groups:
+1. **Pregled** (Overview)
    - Dashboard
-   - Invoicing (Računi, E-Računi)
-   - Accounting (PDV, Paušalni, Doprinosi, Porez)
-   - Operations (Kontakti, Proizvodi, Troškovi, Dokumenti, Import)
-   - Banking (Računi, Transakcije, Sravnjenje)
-   - POS
-   - Izvještaji
-   - Postavke
-   - Podrška
+
+2. **Financije** (Finance)
+   - Blagajna (POS) - `module: pos`
+   - Dokumenti (Documents) - with category filters
+   - Bankarstvo (Banking) - `module: banking`
+   - Paušalni Hub - `module: pausalni`
+   - Izvještaji (Reports)
+
+3. **Suradnja** (Collaboration)
+   - Računovođa (Accountant workspace)
+   - Podrška (Support)
+
+4. **Podaci** (Data)
+   - Kontakti (Contacts)
+   - Proizvodi (Products)
+   - Article Agent - `module: ai-assistant` (STAFF only)
+
+5. **Sustav** (System)
+   - Postavke (Settings)
 
 **Module Gating:**
 
-- Each nav item checks `moduleAccess.canAccessRoute(href)`
-- Hidden items don't show (no "locked" state in nav)
+```typescript
+// src/components/layout/sidebar.tsx:139-151
+if (item.module && company && !entitlements.includes(item.module)) {
+  return false // Hidden from navigation
+}
+```
 
-#### Bottom Navigation (Mobile)
+**Visibility Integration:**
 
-| Element   | Icon     | Action              |
-| --------- | -------- | ------------------- |
-| Dashboard | Home     | Navigate            |
-| Invoices  | FileText | Navigate            |
-| Add (+)   | Plus     | Opens action drawer |
-| Banking   | Building | Navigate            |
-| More      | Menu     | Opens full nav      |
+- Each nav item can have a `visibilityId` for stage/competence gating
+- Items not in entitlements are hidden (not locked)
 
-**Action Drawer:**
+#### Mobile Navigation (`mobile-nav.tsx`)
 
-- E-Račun → /e-invoices/new
-- Račun → /invoices/new
-- Kontakt → /contacts/new
-- Trošak → /expenses/new
+**Implementation:** Slide-out drawer + Command Palette FAB
+
+**Hamburger Menu (☰):**
+
+- Opens full navigation drawer from left
+- Same structure as desktop sidebar
+- Gestures: Swipe right to open, left to close
+
+**Command Palette FAB (+):**
+
+- Fixed position button (bottom-right)
+- Opens command palette overlay
+- Keyboard shortcut: Not available on mobile
+
+**Quick Actions in Command Palette:**
+| Action | Command | Route |
+|--------|---------|-------|
+| New E-Invoice | "e-račun" | `/e-invoices/new` |
+| New Invoice | "račun" | `/invoices/new` |
+| New Contact | "kontakt" | `/contacts/new` |
+| New Expense | "trošak" | `/expenses/new` |
+| Search | "traži" | Opens search |
+
+**Note:** The bottom navigation bar design from earlier mockups was replaced with the command palette approach for more flexibility.
 
 ### 9.2 Form Components
 
@@ -1991,36 +2133,76 @@ model CompanyUser {
 
 ### 15.2 Invoice Model
 
+**From `/prisma/schema.prisma`:**
+
 ```prisma
 model EInvoice {
-  id          String         @id
-  companyId   String
-  contactId   String
-  number      String
-  type        InvoiceType    // INVOICE, E_INVOICE, QUOTE, PROFORMA, CREDIT_NOTE
-  status      InvoiceStatus  // DRAFT, PENDING_FISCALIZATION, FISCALIZED, SENT, DELIVERED, ACCEPTED, REJECTED
-  direction   Direction      // OUTBOUND, INBOUND
-  issueDate   DateTime
-  dueDate     DateTime
-  subtotal    Decimal
-  vatTotal    Decimal
-  total       Decimal
-  jir         String?        // Fiscal JIR
-  zki         String?        // Fiscal ZKI
-  ublXml      String?        // UBL XML content
-  lines       EInvoiceLine[]
+  id                String            @id @default(cuid())
+  companyId         String
+  direction         EInvoiceDirection // OUTBOUND, INBOUND
+  sellerId          String?
+  buyerId           String?
+  invoiceNumber     String
+  issueDate         DateTime
+  dueDate           DateTime?
+  currency          String            @default("EUR")
+  buyerReference    String?
+  netAmount         Decimal           @db.Decimal(10, 2)
+  vatAmount         Decimal           @db.Decimal(10, 2)
+  totalAmount       Decimal           @db.Decimal(10, 2)
+  status            EInvoiceStatus    @default(DRAFT)
+  jir               String?
+  zki               String?
+  fiscalizedAt      DateTime?
+  ublXml            String?
+  providerRef       String?
+  providerStatus    String?
+  providerError     String?
+  archivedAt        DateTime?
+  archiveRef        String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  sentAt            DateTime?
+  receivedAt        DateTime?
+  type              InvoiceType       @default(E_INVOICE)
+  internalReference String?
+  notes             String?
+  convertedFromId   String?
+  paidAt            DateTime?
+  bankAccount       String?
+  includeBarcode    Boolean           @default(true)
+  importJobId       String?           @unique
+  paymentModel      String?
+  paymentReference  String?
+  vendorBankName    String?
+  vendorIban        String?
+  fiscalStatus      String?
 }
 
-model EInvoiceLine {
-  id          String   @id
-  invoiceId   String
-  description String
-  quantity    Decimal
-  unit        String
-  unitPrice   Decimal
-  vatRate     Decimal
-  vatAmount   Decimal
-  lineTotal   Decimal
+enum EInvoiceDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum EInvoiceStatus {
+  DRAFT
+  PENDING_FISCALIZATION
+  FISCALIZED
+  SENT
+  DELIVERED
+  ACCEPTED
+  REJECTED
+  ARCHIVED
+  ERROR
+}
+
+enum InvoiceType {
+  INVOICE
+  E_INVOICE
+  QUOTE
+  PROFORMA
+  CREDIT_NOTE
+  DEBIT_NOTE
 }
 ```
 
