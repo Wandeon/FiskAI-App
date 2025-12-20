@@ -11,6 +11,7 @@
     "test": "node --import tsx --test src/lib/__tests__/*.test.ts src/lib/e-invoice/__tests__/*.test.ts",
     "test:tenant": "node --import tsx --test src/lib/__tests__/tenant-isolation.test.ts",
     "test:knowledge-hub": "node --import tsx --test src/lib/knowledge-hub/__tests__/*.test.ts",
+    "audit:marketing": "tsx scripts/marketing-content-audit/run-audit.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
