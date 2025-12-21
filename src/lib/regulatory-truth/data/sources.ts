@@ -216,6 +216,28 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
     priority: "medium",
     domains: ["pdv", "pausalni"],
   },
+
+  // ==========================================================================
+  // PRIORITY 11: Additional Legal Sources
+  // ==========================================================================
+  {
+    slug: "narodne-novine-doprinosi",
+    name: "Narodne novine - Zakon o doprinosima",
+    url: "https://narodne-novine.nn.hr/clanci/sluzbeni/2018_12_106_2088.html",
+    hierarchy: 2, // Zakon
+    fetchIntervalHours: 168, // Weekly
+    priority: "high",
+    domains: ["doprinosi"],
+  },
+  {
+    slug: "porezna-prirez",
+    name: "Porezna uprava - Prirez porezu na dohodak",
+    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/prirez_porezu_na_dohodak.aspx",
+    hierarchy: 5,
+    fetchIntervalHours: 24,
+    priority: "medium",
+    domains: ["porez_dohodak", "pausalni"],
+  },
 ]
 
 /**
