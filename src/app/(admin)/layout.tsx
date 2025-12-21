@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { AdminSidebar } from "@/components/admin/sidebar"
-import { AdminHeader } from "@/components/admin/header"
+import { AdminHeaderWrapper } from "@/components/admin/admin-header-wrapper"
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await auth()
@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader />
+        <AdminHeaderWrapper />
 
         {/* Main content area */}
         <main className="flex-1 overflow-auto p-6">
