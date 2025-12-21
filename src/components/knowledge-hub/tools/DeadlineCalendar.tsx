@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { PaymentSlipModal } from "@/components/pausalni/payment-slip-modal"
+import { DEADLINES, ADDITIONAL_DEADLINES } from "@/lib/fiscal-data"
 
 interface Deadline {
   date: string // YYYY-MM-DD
@@ -20,60 +21,72 @@ interface Deadline {
   status?: string
 }
 
-const DEADLINES_2025: Deadline[] = [
-  // Monthly - Contributions (every 15th)
-  ...Array.from({ length: 12 }, (_, i) => ({
-    date: `2025-${String(i + 1).padStart(2, "0")}-15`,
-    title: "Doprinosi",
-    type: "doprinosi" as const,
-    description: "Rok za uplatu mjesečnih doprinosa MIO i HZZO",
-    applies: ["pausalni", "obrt-dohodak"],
-  })),
+function toIsoDate(year: number, dateString: string) {
+  const [day, month] = dateString.split(".").map(Number)
+  const paddedMonth = String(month).padStart(2, "0")
+  const paddedDay = String(day).padStart(2, "0")
+  return `${year}-${paddedMonth}-${paddedDay}`
+}
+
+function buildStaticDeadlines(year: number): Deadline[] {
+  const deadlines: Deadline[] = []
+
+  // Monthly contributions
+  const contributionDay = DEADLINES.contributions.monthly.dates[0]
+  for (let month = 1; month <= 12; month += 1) {
+    const dateString = `${contributionDay}.${String(month).padStart(2, "0")}`
+    deadlines.push({
+      date: toIsoDate(year, dateString),
+      title: DEADLINES.contributions.monthly.name,
+      type: "doprinosi",
+      description: DEADLINES.contributions.monthly.description,
+      applies: ["pausalni", "obrt-dohodak"],
+    })
+  }
+
   // Quarterly PDV
-  {
-    date: "2025-01-20",
-    title: "PDV Q4/2024",
-    type: "pdv",
-    description: "PDV prijava za Q4 2024",
-    applies: ["pdv-obveznik"],
-  },
-  {
-    date: "2025-04-20",
-    title: "PDV Q1/2025",
-    type: "pdv",
-    description: "PDV prijava za Q1 2025",
-    applies: ["pdv-obveznik"],
-  },
-  {
-    date: "2025-07-20",
-    title: "PDV Q2/2025",
-    type: "pdv",
-    description: "PDV prijava za Q2 2025",
-    applies: ["pdv-obveznik"],
-  },
-  {
-    date: "2025-10-20",
-    title: "PDV Q3/2025",
-    type: "pdv",
-    description: "PDV prijava za Q3 2025",
-    applies: ["pdv-obveznik"],
-  },
-  // Annual
-  {
-    date: "2025-02-28",
-    title: "Godišnja prijava",
+  for (const dateString of ADDITIONAL_DEADLINES.pdv.quarterly.dates) {
+    const [, month] = dateString.split(".").map(Number)
+    const pdvMeta =
+      month === 1
+        ? { quarter: 4, yearOffset: -1 }
+        : month === 4
+          ? { quarter: 1, yearOffset: 0 }
+          : month === 7
+            ? { quarter: 2, yearOffset: 0 }
+            : month === 10
+              ? { quarter: 3, yearOffset: 0 }
+              : { quarter: Math.ceil(month / 3), yearOffset: 0 }
+
+    const labelYear = year + pdvMeta.yearOffset
+    deadlines.push({
+      date: toIsoDate(year, dateString),
+      title: `PDV Q${pdvMeta.quarter}/${labelYear}`,
+      type: "pdv",
+      description: `PDV prijava za Q${pdvMeta.quarter} ${labelYear}`,
+      applies: ["pdv-obveznik"],
+    })
+  }
+
+  // Annual filing
+  deadlines.push({
+    date: toIsoDate(year, DEADLINES.annualFiling.dohodak.dates[0]),
+    title: DEADLINES.annualFiling.dohodak.name,
     type: "dohodak",
-    description: "Rok za godišnju prijavu poreza na dohodak",
+    description: DEADLINES.annualFiling.dohodak.description,
     applies: ["pausalni", "obrt-dohodak"],
-  },
-  {
-    date: "2025-04-30",
-    title: "Prijava poreza na dobit",
+  })
+
+  deadlines.push({
+    date: toIsoDate(year, DEADLINES.annualFiling.dobit.dates[0]),
+    title: DEADLINES.annualFiling.dobit.name,
     type: "porez",
-    description: "Rok za prijavu poreza na dobit",
+    description: DEADLINES.annualFiling.dobit.description,
     applies: ["doo", "jdoo"],
-  },
-]
+  })
+
+  return deadlines
+}
 
 const typeColors = {
   doprinosi: "bg-blue-600",
@@ -102,6 +115,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
   const [filter, setFilter] = useState<string>("all")
   const [obligations, setObligations] = useState<Deadline[]>([])
   const [showPaymentSlip, setShowPaymentSlip] = useState(false)
+  const staticDeadlines = useMemo(() => buildStaticDeadlines(year), [year])
 
   const monthNames = [
     "Siječanj",
@@ -174,8 +188,8 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
   }, [year])
 
   const getDeadlinesForMonth = (month: number) => {
-    // Combine hardcoded deadlines with database obligations
-    const allDeadlines = [...DEADLINES_2025, ...obligations]
+    // Combine static deadlines with database obligations
+    const allDeadlines = [...staticDeadlines, ...obligations]
 
     return allDeadlines.filter((d) => {
       const deadlineMonth = parseInt(d.date.split("-")[1]) - 1

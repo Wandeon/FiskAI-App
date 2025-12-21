@@ -50,6 +50,9 @@ const initialLine: InvoiceLine = {
   lineTotal: 0,
 }
 
+const textInputClassName =
+  "w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+
 export default function ERacunGeneratorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "E-Račun Generator",
@@ -326,8 +329,7 @@ export default function ERacunGeneratorPage() {
                         value={sellerName}
                         onChange={(e) => setSellerName(e.target.value)}
                         placeholder="Vaša firma d.o.o."
-                        className="w-full rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        className={textInputClassName}
                       />
                     </div>
                     <div>
@@ -342,10 +344,9 @@ export default function ERacunGeneratorPage() {
                         placeholder="12345678901"
                         maxLength={11}
                         className={cn(
-                          "w-full rounded border px-3 py-2 text-sm",
+                          textInputClassName,
                           oibErrors.seller && "border-red-500"
                         )}
-                        style={{ background: "var(--surface)" }}
                       />
                       {oibErrors.seller && (
                         <p className="mt-1 text-xs text-red-600">{oibErrors.seller}</p>
@@ -372,8 +373,7 @@ export default function ERacunGeneratorPage() {
                         value={sellerPostal}
                         onChange={(e) => setSellerPostal(e.target.value)}
                         placeholder="10000"
-                        className="w-full rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        className={textInputClassName}
                       />
                     </div>
                     <div>
@@ -383,8 +383,7 @@ export default function ERacunGeneratorPage() {
                         value={sellerCity}
                         onChange={(e) => setSellerCity(e.target.value)}
                         placeholder="Zagreb"
-                        className="w-full rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        className={textInputClassName}
                       />
                     </div>
                   </div>
@@ -405,8 +404,7 @@ export default function ERacunGeneratorPage() {
                         value={buyerName}
                         onChange={(e) => setBuyerName(e.target.value)}
                         placeholder="Kupac d.o.o."
-                        className="w-full rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        className={textInputClassName}
                       />
                     </div>
                     <div>
@@ -421,10 +419,9 @@ export default function ERacunGeneratorPage() {
                         placeholder="98765432109"
                         maxLength={11}
                         className={cn(
-                          "w-full rounded border px-3 py-2 text-sm",
+                          textInputClassName,
                           oibErrors.buyer && "border-red-500"
                         )}
-                        style={{ background: "var(--surface)" }}
                       />
                       {oibErrors.buyer && (
                         <p className="mt-1 text-xs text-red-600">{oibErrors.buyer}</p>
@@ -451,8 +448,7 @@ export default function ERacunGeneratorPage() {
                         value={buyerPostal}
                         onChange={(e) => setBuyerPostal(e.target.value)}
                         placeholder="21000"
-                        className="w-full rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        className={textInputClassName}
                       />
                     </div>
                     <div>
@@ -462,8 +458,7 @@ export default function ERacunGeneratorPage() {
                         value={buyerCity}
                         onChange={(e) => setBuyerCity(e.target.value)}
                         placeholder="Split"
-                        className="w-full rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        className={textInputClassName}
                       />
                     </div>
                   </div>

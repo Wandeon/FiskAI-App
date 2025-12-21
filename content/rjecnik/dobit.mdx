@@ -1,7 +1,7 @@
 ---
 title: Dobit
 term: Dobit
-shortDefinition: Pozitivan financijski rezultat pravne osobe (d.o.o., j.d.o.o.) nakon oduzimanja svih rashoda od prihoda. Oporezuje se porezom na dobit po stopi 10% ili 18%.
+shortDefinition: Pozitivan financijski rezultat pravne osobe (d.o.o., j.d.o.o.) nakon oduzimanja svih rashoda od prihoda. Oporezuje se porezom na dobit po nižoj ili višoj stopi.
 description: Što je dobit, kako se obračunava, stope poreza na dobit u Hrvatskoj za 2025. godinu.
 lastUpdated: 2025-12-16
 relatedTerms:
@@ -21,7 +21,7 @@ sources:
     url: https://www.porezna-uprava.hr/
 faq:
   - q: Kolika je stopa poreza na dobit u Hrvatskoj 2025?
-    a: Postoje dvije stope - 10% za prihod do 1.000.000 EUR godišnje i 18% za prihod iznad tog iznosa.
+    a: Postoje dvije stope - niža za prihod do zakonskog praga i viša za prihod iznad tog iznosa.
   - q: Tko plaća porez na dobit?
     a: Pravne osobe - d.o.o., j.d.o.o., dionička društva. Obrtnici ne plaćaju porez na dobit nego porez na dohodak.
   - q: Kada se plaća porez na dobit?
@@ -58,8 +58,8 @@ Porez na dobit plaćaju **pravne osobe:**
 
 | Godišnji prihod | Stopa poreza |
 |-----------------|--------------|
-| Do 1.000.000 EUR | **10%** |
-| Iznad 1.000.000 EUR | **18%** |
+| Do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> | **<FiscalPercentage path="TAX_RATES.corporate.small.rate" />** |
+| Iznad <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> | **<FiscalPercentage path="TAX_RATES.corporate.large.rate" />** |
 
 **Hrvatska ima jedne od najnižih stopa poreza na dobit u EU.**
 
@@ -94,7 +94,7 @@ Većina d.o.o. koristi kalendarsku godinu radi jednostavnosti.
 ### Rok predaje:
 **30. travnja sljedeće godine**
 
-Primjer: Za 2024. godinu → rok do **30. travnja 2025.**
+Primjer: Za prethodnu godinu → rok do **30. travnja sljedeće godine**
 
 ### Sadržaj PD obrasca:
 - Ukupni prihodi
@@ -113,8 +113,8 @@ Tijekom godine, tvrtke plaćają **akontaciju** (predujam) poreza na dobit:
 Akontacija se obračunava na temelju **prošlogodišnje obveze.**
 
 ### Primjer:
-- Porez na dobit 2024: 12.000 EUR
-- Akontacija 2025: 12.000 / 4 = **3.000 EUR kvartalno**
+- Porez na dobit prethodne godine: 12.000 EUR
+- Akontacija tekuće godine: 12.000 / 4 = **3.000 EUR kvartalno**
 
 Konačan obračun vrši se nakon zatvaranja godine. Razlika se doplati ili vrati.
 
@@ -140,11 +140,11 @@ Ako je tvrtka imala **gubitak** u prethodnim godinama, može ga koristiti za sma
 - Svake godine može se iskoristiti dio gubitka
 
 **Primjer:**
-- Gubitak 2023: -50.000 EUR
-- Dobit 2024: 30.000 EUR
+- Gubitak 2023: -45.000 EUR
+- Dobit prethodne godine: 30.000 EUR
 - Oporeziva osnovica: 30.000 - 30.000 = **0 EUR**
 - Porez: **0 EUR**
-- Preostali gubitak: 50.000 - 30.000 = 20.000 EUR (prenosi se u 2025.)
+- Preostali gubitak: 45.000 - 30.000 = 15.000 EUR (prenosi se u 2025.)
 
 ## Dividenda
 
@@ -162,12 +162,7 @@ Na isplatu dividende vlasnicima plaća se dodatnih **10% poreza** (konačni pore
 - **Ukupno:** 19% - 26,2%
 
 **Primjer:**
-- Dobit prije poreza: 100.000 EUR
-- Porez na dobit (10%): -10.000 EUR
-- Neto dobit: 90.000 EUR
-- Isplata dividende: 90.000 EUR
-- Porez na dividendu (10%): -9.000 EUR
-- **Neto primljena dividenda: 81.000 EUR**
+Iznos poreza na dividendu obračunava se prema važećoj stopi na isplaćenu neto dobit.
 
 ## Porezne olakšice
 

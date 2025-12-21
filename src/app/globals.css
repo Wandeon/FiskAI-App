@@ -175,6 +175,31 @@ body {
     line-height: var(--line-height-snug);
   }
 
+  /* Raise contrast on marketing pages for low-opacity white text */
+  .marketing-surface .text-white\/30 {
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  .marketing-surface .text-white\/40 {
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  .marketing-surface .text-white\/50 {
+    color: rgb(255 255 255 / 0.88);
+  }
+
+  .marketing-surface .text-white\/60 {
+    color: rgb(255 255 255 / 0.9);
+  }
+
+  .marketing-surface .text-white\/70 {
+    color: rgb(255 255 255 / 0.94);
+  }
+
+  .marketing-surface .text-white\/80 {
+    color: rgb(255 255 255 / 0.97);
+  }
+
   .text-subtle {
     color: var(--muted);
   }

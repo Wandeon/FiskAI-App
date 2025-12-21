@@ -1,7 +1,7 @@
 ---
 title: PDV (Porez na dodanu vrijednost)
 term: PDV
-shortDefinition: Porez na dodanu vrijednost - neizravni potrošački porez koji se obračunava na većinu dobara i usluga u Hrvatskoj po stopama od 25%, 13% ili 5%.
+shortDefinition: Porez na dodanu vrijednost - neizravni potrošački porez koji se obračunava na većinu dobara i usluga u Hrvatskoj po važećim stopama.
 description: Kompletni vodič za PDV u Hrvatskoj. Stope, prag ulaska, obveze i rokovi za 2025. godinu.
 lastUpdated: 2025-12-16
 relatedTerms:
@@ -22,9 +22,9 @@ sources:
     url: https://www.porezna-uprava.hr/Stranice/pdv.aspx
 faq:
   - q: Tko mora biti u sustavu PDV-a?
-    a: Obvezni su poduzetnici s godišnjim prihodom iznad 60.000 EUR, kao i oni koji dobrovoljno uđu u sustav.
+    a: Obvezni su poduzetnici s godišnjim prihodom iznad propisanog praga, kao i oni koji dobrovoljno uđu u sustav.
   - q: Koje su stope PDV-a u Hrvatskoj za 2025?
-    a: Opća stopa 25%, snižena 13% (turizam, hrana), super-snižena 5% (knjige, lijekovi, medicinska pomagala).
+    a: Opća stopa te snižene stope za odabrane djelatnosti i proizvode. Aktualne vrijednosti vidi u tablici ispod.
   - q: Kada se predaje PDV prijava?
     a: Mjesečno do 20. u mjesecu (prihod iznad 500.000 EUR) ili kvartalno do 20. (prihod ispod 500.000 EUR).
 keywords:
@@ -45,14 +45,14 @@ Sustav PDV-a funkcionira po principu odbitka: poduzetnik obračunava PDV na prod
 
 | Stopa | Primjena                                           | Primjer                    |
 |-------|---------------------------------------------------|----------------------------|
-| 25%   | Opća stopa - većina dobara i usluga               | IT usluge, savjetovanje    |
-| 13%   | Snižena stopa - turizam, hrana                    | Hoteli, restorani          |
-| 5%    | Super-snižena stopa - osnovna dobra               | Knjige, lijekovi           |
+| <FiscalPercentage path="TAX_RATES.vat.standard.rate" />   | Opća stopa - većina dobara i usluga               | IT usluge, savjetovanje    |
+| <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" />   | Snižena stopa - turizam, hrana                    | Hoteli, restorani          |
+| <FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" />    | Super-snižena stopa - osnovna dobra               | Knjige, lijekovi           |
 | 0%    | Nulta stopa - izvoz                               | Izvoz u treće zemlje       |
 
 ## Prag za ulazak u sustav PDV-a
 
-**Obvezni prag:** 60.000 EUR godišnjeg prihoda
+**Obvezni prag:** <FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnjeg prihoda
 
 Kada poduzetnik prijeđe ovaj prag, dužan je prijaviti se u sustav PDV-a najkasnije do 10. u sljedećem mjesecu. PDV obveznik postaje od prvog dana sljedećeg mjeseca.
 
@@ -66,7 +66,7 @@ Kada poduzetnik prijeđe ovaj prag, dužan je prijaviti se u sustav PDV-a najkas
    - Mjesečno (prihod > 500.000 EUR godišnje)
    - Kvartalno (prihod < 500.000 EUR godišnje)
 4. **Godišnji obračun PDV-a** (KPR obrazac)
-5. **Fiskalizacija svih računa** (od 2013. godine)
+5. **Fiskalizacija svih računa** (od uvođenja fiskalizacije)
 
 ## PDV i Fiskalizacija 2.0
 

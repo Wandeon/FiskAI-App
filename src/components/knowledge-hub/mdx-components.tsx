@@ -32,6 +32,13 @@ import { GuideUpsellSection } from "./guide/GuideUpsellSection"
 import { HowToSteps } from "@/components/content/HowToSteps"
 import { Sources } from "@/components/content/Sources"
 import { GlossaryCard } from "@/components/content/GlossaryCard"
+import {
+  FiscalValue,
+  FiscalCurrency,
+  FiscalPercentage,
+  FiscalTable,
+  LastVerified,
+} from "@/components/fiscal"
 
 // HTML element overrides
 function H1(props: any) {
@@ -122,6 +129,11 @@ export const mdxComponents = {
   HowToSteps,
   Sources,
   GlossaryCard,
+  FiscalValue,
+  FiscalCurrency,
+  FiscalPercentage,
+  FiscalTable,
+  LastVerified,
 
   h1: H1,
   h2: H2,

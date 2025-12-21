@@ -21,7 +21,7 @@ sources:
     url: https://www.porezna-uprava.hr/
 faq:
   - q: Koje su stope poreza na dohodak u Hrvatskoj 2025?
-    a: Postoje dvije stope - 20% za dohodak do 50.400 EUR godišnje i 30% za dohodak iznad tog iznosa.
+    a: Postoje dvije stope - niža do zakonskog praga i viša iznad njega. Aktualne vrijednosti prikazane su u tablici ispod.
   - q: Što je DOH obrazac?
     a: Godišnja porezna prijava dohotka koju određene kategorije poreznih obveznika predaju do 28. veljače sljedeće godine.
   - q: Tko mora predati DOH obrazac?
@@ -78,18 +78,15 @@ Zakon o porezu na dohodak razlikuje **7 vrsta dohotka:**
 
 | Godišnji dohodak | Stopa | Mjesečna granica |
 |------------------|-------|------------------|
-| Do 50.400 EUR | 20% | Do 4.200 EUR |
-| Iznad 50.400 EUR | 30% | Iznad 4.200 EUR |
+| Do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> | <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> | Do 4.200 EUR |
+| Iznad <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> | <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> | Iznad 4.200 EUR |
 
 **Primjer progresivnog oporezivanja:**
-- Godišnji dohodak: 60.000 EUR
-- Na prvih 50.400 EUR: 50.400 × 20% = 10.080 EUR
-- Na preostalih 9.600 EUR: 9.600 × 30% = 2.880 EUR
-- **Ukupan porez: 12.960 EUR**
+Oporezivanje je progresivno — dohodak se dijeli po razredima, a iznos iznad praga oporezuje se višom stopom. Za konkretan izračun koristi kalkulator poreza.
 
 ## Osobni odbitak
 
-**Osnovni osobni odbitak 2025:** 560 EUR mjesečno (6.720 EUR godišnje)
+**Osnovni osobni odbitak 2025:** <FiscalCurrency path="TAX_RATES.income.personalAllowance" decimals={0} /> mjesečno (godišnje = ×12)
 
 Osobni odbitak **smanjuje poreznu osnovicu** prije obračuna poreza.
 
@@ -99,12 +96,7 @@ Osobni odbitak **smanjuje poreznu osnovicu** prije obračuna poreza.
 - Uzdržavani član obitelji: +330 EUR
 
 **Primjer s odbitkom:**
-Bruto plaća: 2.000 EUR
-- Doprinosi (32%): -640 EUR
-- Osnovica prije odbitka: 1.360 EUR
-- Osobni odbitak: -560 EUR
-- **Oporeziva osnovica: 800 EUR**
-- Porez (20%): **160 EUR**
+Osobni odbitak smanjuje osnovicu prije obračuna poreza. To u praksi znači manji porez na dohodak za isti bruto iznos.
 
 ## Prirez na dohodak
 
@@ -158,7 +150,7 @@ Određeni primici **ne podliježu porezu:**
 - Prijevoz na posao i s posla
 - Prigodna darovanja (do 1.000 EUR)
 - Božićnica i uskrsnica (do 3.000 HRK)
-- Jubilarne nagrade (do 7.500 HRK)
+- Jubilarne nagrade (do propisanog limita)
 
 ## Inozemni dohodak
 

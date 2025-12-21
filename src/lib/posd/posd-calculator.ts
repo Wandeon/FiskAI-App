@@ -7,30 +7,36 @@
  * Tax is calculated on gross income based on thresholds.
  */
 
+import {
+  ADDITIONAL_DEADLINES,
+  CONTRIBUTIONS,
+  TAX_RATES,
+  THRESHOLDS,
+  formatCurrency as formatFiscalCurrency,
+  getAveragePrirezRate,
+  searchByCityName,
+} from "@/lib/fiscal-data"
 import { BankTransaction, calculateQuarterlyTotals } from "./bank-xml-parser"
 
-// 2024/2025 Tax brackets for paušalni obrt
-export const TAX_BRACKETS_2024 = [
-  { min: 0, max: 12750, rate: 0.12, baseContribution: 262.0 }, // ~1062 EUR/month
-  { min: 12750.01, max: 17500, rate: 0.12, baseContribution: 262.0 },
-  { min: 17500.01, max: 25000, rate: 0.12, baseContribution: 262.0 },
-  { min: 25000.01, max: 40000, rate: 0.12, baseContribution: 262.0 },
-  { min: 40000.01, max: 60000, rate: 0.12, baseContribution: 262.0 },
-] as const
+const VAT_THRESHOLD = THRESHOLDS.pdv.value
+const NORMATIVE_EXPENSE_RATE = TAX_RATES.pausal.normativeExpenseRate
+const PAUSAL_TAX_RATE = TAX_RATES.pausal.rate
+const DEFAULT_PRIREZ_RATE = getAveragePrirezRate()
 
-// Monthly contribution rates for 2024
-export const MONTHLY_CONTRIBUTIONS = {
-  healthInsurance: 132.73, // Zdravstveno
-  pensionPillar1: 92.68, // MIO I stup
-  pensionPillar2: 36.59, // MIO II stup (if enrolled)
-  total: 262.0, // Total without pillar 2: 225.41 EUR
+const CITY_RATE_LOOKUP: Record<string, string> = {
+  zagreb: "Zagreb",
+  split: "Split",
+  rijeka: "Rijeka",
+  osijek: "Osijek",
+  zadar: "Zadar",
 }
 
-// VAT threshold
-export const VAT_THRESHOLD = 60000 // EUR
-
-// Normative expense rates
-export const NORMATIVE_EXPENSE_RATE = 0.3 // 30% for most activities
+function resolvePrirezRate(cityKey: string) {
+  const cityName = CITY_RATE_LOOKUP[cityKey]
+  if (!cityName) return DEFAULT_PRIREZ_RATE
+  const match = searchByCityName(cityName)[0]
+  return match?.prirezRate ?? DEFAULT_PRIREZ_RATE
+}
 
 export interface POSDInput {
   year: number
@@ -129,7 +135,7 @@ export function calculatePOSD(input: POSDInput): POSDResult {
 
   if (totalIncome > VAT_THRESHOLD) {
     warnings.push(
-      `⚠️ Prešli ste PDV prag od ${VAT_THRESHOLD.toLocaleString("hr-HR")} EUR! Morate se registrirati za PDV.`
+      `⚠️ Prešli ste PDV prag od ${formatFiscalCurrency(VAT_THRESHOLD)}! Morate se registrirati za PDV.`
     )
   } else if (isNearVATThreshold) {
     warnings.push(
@@ -144,7 +150,7 @@ export function calculatePOSD(input: POSDInput): POSDResult {
   const taxBase = totalIncome - normativeExpenses
 
   // Income tax (12%)
-  const incomeTax = taxBase * 0.12
+  const incomeTax = taxBase * PAUSAL_TAX_RATE
 
   // Surtax (prirez) - applied on income tax
   const surtax = incomeTax * municipalityRate
@@ -154,18 +160,18 @@ export function calculatePOSD(input: POSDInput): POSDResult {
 
   // Contributions (monthly, multiply by 12 for yearly)
   const monthlyContributions = hasSecondPensionPillar
-    ? MONTHLY_CONTRIBUTIONS.total
-    : MONTHLY_CONTRIBUTIONS.healthInsurance + MONTHLY_CONTRIBUTIONS.pensionPillar1
+    ? CONTRIBUTIONS.monthly.total
+    : CONTRIBUTIONS.monthly.hzzo + CONTRIBUTIONS.monthly.mioI
 
   const yearlyContributions = monthlyContributions * 12
 
   // Health insurance (yearly)
-  const healthInsurance = MONTHLY_CONTRIBUTIONS.healthInsurance * 12
+  const healthInsurance = CONTRIBUTIONS.monthly.hzzo * 12
 
   // Pension (yearly)
   const pension = hasSecondPensionPillar
-    ? (MONTHLY_CONTRIBUTIONS.pensionPillar1 + MONTHLY_CONTRIBUTIONS.pensionPillar2) * 12
-    : MONTHLY_CONTRIBUTIONS.pensionPillar1 * 12
+    ? (CONTRIBUTIONS.monthly.mioI + CONTRIBUTIONS.monthly.mioII) * 12
+    : CONTRIBUTIONS.monthly.mioI * 12
 
   // Total obligations
   const totalObligations = totalTax + yearlyContributions
@@ -201,53 +207,32 @@ export function calculatePOSD(input: POSDInput): POSDResult {
   }
 }
 
-/**
- * Format currency for display
- */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("hr-HR", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
+export const formatCurrency = formatFiscalCurrency
 
 /**
  * Get municipality surtax rate
  */
 export const MUNICIPALITY_RATES: Record<string, number> = {
-  zagreb: 0.18,
-  split: 0.15,
-  rijeka: 0.15,
-  osijek: 0.13,
-  zadar: 0.12,
-  slavonskibrod: 0.12,
-  pula: 0.12,
-  karlovac: 0.12,
-  sisak: 0.1,
-  varazdin: 0.1,
-  sesvete: 0.18, // Part of Zagreb
-  other: 0.1, // Default for smaller municipalities
-  none: 0, // No surtax
+  zagreb: resolvePrirezRate("zagreb"),
+  split: resolvePrirezRate("split"),
+  rijeka: resolvePrirezRate("rijeka"),
+  osijek: resolvePrirezRate("osijek"),
+  zadar: resolvePrirezRate("zadar"),
+  other: DEFAULT_PRIREZ_RATE,
+  none: 0,
 }
 
 /**
  * Get deadline for PO-SD submission
  */
 export function getPOSDDeadline(year: number, quarter: 1 | 2 | 3 | 4): Date {
-  // PO-SD is submitted quarterly by the 20th of the month following the quarter
-  const deadlines: Record<number, [number, number]> = {
-    1: [3, 20], // Q1 -> April 20
-    2: [6, 20], // Q2 -> July 20
-    3: [9, 20], // Q3 -> October 20
-    4: [0, 20], // Q4 -> January 20 of NEXT year
-  }
-
-  const [month, day] = deadlines[quarter]
+  const dates = ADDITIONAL_DEADLINES.posdQuarterly.dates
+  const quarterIndexMap: Record<1 | 2 | 3 | 4, number> = { 1: 1, 2: 2, 3: 3, 4: 0 }
+  const dateString = dates[quarterIndexMap[quarter]] ?? dates[0]
+  const [day, month] = dateString.split(".").map(Number)
   const deadlineYear = quarter === 4 ? year + 1 : year
 
-  return new Date(deadlineYear, month, day)
+  return new Date(deadlineYear, month - 1, day)
 }
 
 /**

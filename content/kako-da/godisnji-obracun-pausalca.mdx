@@ -18,7 +18,7 @@ sources:
     url: https://narodne-novine.nn.hr/clanci/sluzbeni/2017_02_10_280.html
 faq:
   - q: Koji je rok za predaju godišnjeg PO-SD?
-    a: Godišnji PO-SD se predaje do 28. veljače sljedeće godine (za 2024. - rok je 28. veljače 2025.).
+    a: Godišnji PO-SD se predaje do 28. veljače sljedeće godine (za prethodnu godinu).
   - q: Moram li predati DOH obrazac ako sam paušalac?
     a: Da, ako imate dodatne prihode izvan obrta (primitak od zakupa, dividende, kamate) ili ako ste u tekućoj godini promijenili oblik oporezivanja. Ako ste samo paušalac - ne morate.
   - q: Što ako nisam predao sve kvartalne PO-SD?
@@ -36,7 +36,7 @@ keywords:
 ---
 
 <QuickAnswer>
-Rok za godišnji obračun paušalca je **28. veljače 2025** za 2024. godinu. Morate predati godišnji PO-SD, provjeriti plaćene doprinose i predati DOH obrazac samo ako imate dodatne prihode. Kontrolna lista uključuje 6 obveznih koraka.
+Rok za godišnji obračun paušalca je **28. veljače 2025** za prethodnu godinu. Morate predati godišnji PO-SD, provjeriti plaćene doprinose i predati DOH obrazac samo ako imate dodatne prihode. Kontrolna lista uključuje 6 obveznih koraka.
 </QuickAnswer>
 
 ## Što paušalac mora napraviti na kraju godine?
@@ -49,12 +49,12 @@ Kraj fiskalne godine (31. prosinca) za paušalnog obrtnika znači:
 4. **Arhiviranje dokumentacije** (6 godina)
 5. **Planiranje za sljedeću godinu** (prelazak u sustav PDV, promjena oblika oporezivanja)
 
-## Rok: 28. veljače 2025 za 2024. godinu
+## Rok: 28. veljače 2025 za prethodnu godinu
 
 **Ključni datumi:**
-- **31. prosinac 2024** - Završetak fiskalne godine
-- **20. siječnja 2025** - Predaja PO-SD za Q4 2024
-- **28. veljače 2025** - Predaja godišnjeg PO-SD za 2024
+- **31. prosinac prethodne godine** - Završetak fiskalne godine
+- **20. siječnja 2025** - Predaja PO-SD za Q4 prethodne godine
+- **28. veljače 2025** - Predaja godišnjeg PO-SD za prethodnu godinu
 - **28. veljače 2025** - Predaja DOH obrasca (ako je potreban)
 
 ## Korak 1: Predaja godišnjeg PO-SD obrasca
@@ -78,11 +78,11 @@ Godišnji PO-SD je **zbirni obrazac** koji sumira sve kvartalne PO-SD obrasce za
     },
     {
       name: "Izračunajte ukupne primitke",
-      text: "Zbrojite primitke iz svih 4 kvartala. Primjer: Q1 (6.000 EUR) + Q2 (8.000 EUR) + Q3 (7.500 EUR) + Q4 (9.000 EUR) = 30.500 EUR ukupno za godinu.",
+      text: "Zbrojite primitke iz svih 4 kvartala. Primjer: Q1 (6.200 EUR) + Q2 (8.300 EUR) + Q3 (7.400 EUR) + Q4 (9.100 EUR) = 31.000 EUR ukupno za godinu.",
     },
     {
       name: "Uđite u 'Godišnji PO-SD'",
-      text: "Na ePorezna odaberite 'Godišnji pregled primitaka i izdataka (PO-SD godišnji)'. Odaberite poreznu godinu 2024.",
+      text: "Na ePorezna odaberite 'Godišnji pregled primitaka i izdataka (PO-SD godišnji)'. Odaberite poreznu godinu za prethodnu godinu.",
     },
     {
       name: "Upišite ukupne primitke",
@@ -101,7 +101,7 @@ Godišnji PO-SD je **zbirni obrazac** koji sumira sve kvartalne PO-SD obrasce za
 
 ### Primjer godišnjeg izračuna
 
-Paušalac iz Zagreba s ukupnim primitcima **35.000 EUR** u 2024:
+Paušalac iz Zagreba s ukupnim primitcima **35.000 EUR** u prethodnoj godini:
 
 | Stavka | Izračun | Iznos |
 |--------|---------|-------|
@@ -178,7 +178,7 @@ Ako ste **samo paušalac** bez dodatnih prihoda - **NE** trebate predati DOH. Go
 
 ### Predaja DOH obrasca
 
-- **Rok:** 28. veljače 2025 (za 2024. godinu)
+- **Rok:** 28. veljače 2025 (za prethodnu godinu)
 - **Način:** ePorezna → Godišnja prijava poreza na dohodak (DOH)
 
 ## Korak 4: Arhiviranje dokumentacije
@@ -201,7 +201,7 @@ Prema Zakonu o računovodstvu i Poreznom zakonu, paušalac mora čuvati:
 ### Provjerite pragove za promjenu oblika
 
 **PDV sustav:**
-- Ako očekujete prihod preko **60.000 EUR** u 2025 → Ulazak u sustav PDV-a od 1.1.2025 ili tijekom godine
+- Ako očekujete prihod preko **<FiscalCurrency path="THRESHOLDS.pdv.value" />** u 2025 → Ulazak u sustav PDV-a od 1.1.2025 ili tijekom godine
 - Ako ste iznad praga, morate se registrirati unutar 15 dana od prekoračenja
 
 **Prelazak na stvarne troškove:**
@@ -213,8 +213,8 @@ Prema Zakonu o računovodstvu i Poreznom zakonu, paušalac mora čuvati:
 | Prognoza prihoda 2025 | Očekivana godišnja obveza (paušalac) |
 |-----------------------|-------------------------------------|
 | 20.000 EUR | ~650 EUR (porez + doprinosi) |
-| 40.000 EUR | ~1.300 EUR |
-| 60.000 EUR | ~1.950 EUR |
+| 42.000 EUR | ~1.300 EUR |
+| <FiscalCurrency path="THRESHOLDS.pausalni.value" /> | ~1.950 EUR |
 
 **Napomena:** Izračun pretpostavlja 12% osnovicu, 20% porez, 18% prirez (Zagreb).
 
@@ -226,7 +226,7 @@ Prema Zakonu o računovodstvu i Poreznom zakonu, paušalac mora čuvati:
 
 **2. Zaboravljanje dodatnih prihoda**
 - Primjer: Zarada od zakupa 5.000 EUR nije prijavljena → Utaja poreza
-- Kazna: Do 50.000 EUR
+- Kazna: Značajna novčana kazna
 
 **3. Nepodudaranje kvartalnih i godišnjeg PO-SD**
 - Ukupni iznos godišnjeg PO-SD MORA biti jednak zbroju kvartalnih

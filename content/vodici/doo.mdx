@@ -419,7 +419,7 @@ Ako planirate odmah biti PDV obveznik ili ćete prijeći prag (60.000€):
 
 ## PDV i d.o.o.
 
-<PDVCallout type="warning" threshold={60000}>
+<PDVCallout type="warning" thresholdPath="THRESHOLDS.pdv.value">
   D.O.O. postaje PDV obveznik kada prihod prijeđe 60.000€ godišnje.
   Obveza počinje prvog dana sljedećeg mjeseca nakon prelaska praga.
 </PDVCallout>
@@ -513,7 +513,7 @@ Ako planirate odmah biti PDV obveznik ili ćete prijeći prag (60.000€):
 - **Ukupno troškovi: ~17.000€**
 - **Neto za vlasnika: ~33.000€**
 
-<TaxCalculator defaultEntityType="doo" defaultRevenue={50000} />
+<TaxCalculator defaultEntityType="doo" />
 
 ### Primjer 3: D.O.O. višečlani, 100.000€ prihoda
 

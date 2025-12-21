@@ -5,21 +5,30 @@ import { ArrowRight, Rocket } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { CONTRIBUTIONS, formatCurrency, formatPercentage } from "@/lib/fiscal-data"
+
+const contributionsYear = CONTRIBUTIONS.year
+const contributionBaseLabel = formatCurrency(CONTRIBUTIONS.base.minimum, { decimals: 2 })
+const mioRateLabel = formatPercentage(
+  CONTRIBUTIONS.rates.MIO_I.rate + CONTRIBUTIONS.rates.MIO_II.rate
+)
+const hzzoRateLabel = formatPercentage(CONTRIBUTIONS.rates.HZZO.rate, { decimals: 1 })
+const totalMonthlyLabel = formatCurrency(CONTRIBUTIONS.monthly.total, { decimals: 2 })
 
 export const metadata: Metadata = {
-  title: "Kalkulator doprinosa 2025 | FiskAI",
+  title: `Kalkulator doprinosa ${contributionsYear} | FiskAI`,
   description:
-    "Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u 2025. godini.",
+    `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
 }
 
 const faq = [
   {
     q: "Koliki su doprinosi za paušalce?",
-    a: "MIO 20% i ZO 16.5% na minimalnu osnovicu (560,40 EUR = 204,79 EUR mjesečno).",
+    a: `MIO ${mioRateLabel} i ZO ${hzzoRateLabel} na minimalnu osnovicu (${contributionBaseLabel} = ${totalMonthlyLabel} mjesečno).`,
   },
   {
     q: "Što je minimalna osnovica za doprinose?",
-    a: "560,40 EUR mjesečno (35% prosječne plaće za 2025.).",
+    a: `${contributionBaseLabel} mjesečno (minimalna osnovica za ${contributionsYear}.).`,
   },
   {
     q: "Do kada se plaćaju doprinosi?",
@@ -31,7 +40,7 @@ export default function ContributionCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "Kalkulator Doprinosa",
     description:
-      "Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u 2025. godini.",
+      `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
     url: "https://fisk.ai/alati/kalkulator-doprinosa",
   })
 
@@ -53,10 +62,12 @@ export default function ContributionCalculatorPage() {
           <span className="text-white/60">/</span> <span className="text-white/90">Doprinosi</span>
         </nav>
 
-        <h1 className="text-display text-4xl font-semibold">Kalkulator doprinosa 2025.</h1>
+        <h1 className="text-display text-4xl font-semibold">
+          Kalkulator doprinosa {contributionsYear}.
+        </h1>
         <p className="mt-4 text-white/60">
-          Mjesečni doprinosi za paušalne obrtnike. Iznosi vrijede za 2025. godinu i temelje se na
-          minimalnoj osnovici od 719,20 EUR.
+          Mjesečni doprinosi za paušalne obrtnike. Iznosi vrijede za {contributionsYear}. godinu i
+          temelje se na minimalnoj osnovici od {contributionBaseLabel}.
         </p>
 
         <div className="mt-8">

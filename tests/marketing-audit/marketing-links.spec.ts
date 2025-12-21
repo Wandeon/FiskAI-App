@@ -7,6 +7,7 @@ import { buildRouteInventory } from "../../src/lib/marketing-audit/route-invento
 
 const skipSchemes = ["mailto:", "tel:", "javascript:"]
 const skipExtensions = [".pdf", ".zip", ".rar"]
+const INTERNAL_HOSTS = new Set(["fiskai.hr", "www.fiskai.hr", "fisk.ai", "www.fisk.ai"])
 
 const AUTH_ROUTES = new Set([
   "/login",
@@ -103,6 +104,7 @@ test("marketing routes and links respond", async ({ page, request }) => {
   const baseUrl = config.targetBaseUrl.endsWith("/")
     ? config.targetBaseUrl
     : `${config.targetBaseUrl}/`
+  const baseHost = new URL(baseUrl).hostname
   const globalVisitedLinks = new Set<string>()
 
   for (const route of routes) {
@@ -129,10 +131,18 @@ test("marketing routes and links respond", async ({ page, request }) => {
 
       visitedLinks.add(normalized)
       globalVisitedLinks.add(normalized)
+      const targetHost = new URL(normalized).hostname
+      const isInternal = INTERNAL_HOSTS.has(targetHost) || targetHost === baseHost
       try {
         const linkResponse = await request.get(normalized, {
           failOnStatusCode: false,
-          timeout: 10000,
+          timeout: isInternal ? 10000 : 20000,
+          headers: isInternal
+            ? undefined
+            : {
+                "Accept-Encoding": "identity",
+                "User-Agent": "FiskAI-Marketing-Audit/1.0",
+              },
         })
         const status = linkResponse.status()
 

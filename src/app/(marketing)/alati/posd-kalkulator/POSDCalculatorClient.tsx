@@ -38,23 +38,9 @@ import {
   getDaysUntilDeadline,
   type POSDResult,
 } from "@/lib/posd/posd-calculator"
+import { TAX_RATES, THRESHOLDS, formatPercentage } from "@/lib/fiscal-data"
 
 type Step = "upload" | "review" | "results"
-
-const faq = [
-  {
-    q: "Što je PO-SD obrazac?",
-    a: "Kvartalni obrazac kojim paušalni obrtnici prijavljuju primitke Poreznoj upravi.",
-  },
-  {
-    q: "Koji je rok za predaju PO-SD?",
-    a: "Do 20. u mjesecu nakon završetka kvartala (npr. 20. travnja za Q1).",
-  },
-  {
-    q: "Što ako propustim rok?",
-    a: "Kazna za nepravovremenu predaju je 200-2.000 EUR.",
-  },
-]
 
 const supportedBanks = [
   { name: "Erste Bank", format: "camt.053" },
@@ -77,6 +63,38 @@ export function POSDCalculatorClient() {
 
   // Deadline info
   const deadlineInfo = getDaysUntilDeadline()
+  const normativeExpenseRateLabel = formatPercentage(TAX_RATES.pausal.normativeExpenseRate)
+  const pausalRateLabel = formatPercentage(TAX_RATES.pausal.rate)
+  const vatThresholdLabel = formatCurrency(THRESHOLDS.pdv.value)
+  const posdDeadlineExample = deadlineInfo.deadline.toLocaleDateString("hr-HR", {
+    day: "numeric",
+    month: "long",
+  })
+
+  const faq = [
+    {
+      q: "Što je PO-SD obrazac?",
+      a: "Kvartalni obrazac kojim paušalni obrtnici prijavljuju primitke Poreznoj upravi.",
+    },
+    {
+      q: "Koji je rok za predaju PO-SD?",
+      a: `Do ${posdDeadlineExample} za zadnji obračunski kvartal.`,
+    },
+    {
+      q: "Što ako propustim rok?",
+      a: "Kazne ovise o prekršaju i mogu biti značajne, stoga je važno predati obrazac na vrijeme.",
+    },
+  ]
+
+  const municipalityOptions = [
+    { value: "zagreb", label: "Zagreb", rate: MUNICIPALITY_RATES.zagreb },
+    { value: "split", label: "Split", rate: MUNICIPALITY_RATES.split },
+    { value: "rijeka", label: "Rijeka", rate: MUNICIPALITY_RATES.rijeka },
+    { value: "osijek", label: "Osijek", rate: MUNICIPALITY_RATES.osijek },
+    { value: "zadar", label: "Zadar", rate: MUNICIPALITY_RATES.zadar },
+    { value: "other", label: "Ostalo", rate: MUNICIPALITY_RATES.other },
+    { value: "none", label: "Bez prireza", rate: MUNICIPALITY_RATES.none },
+  ]
 
   const handleFileDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -415,13 +433,11 @@ export function POSDCalculatorClient() {
                         onChange={(e) => setMunicipality(e.target.value)}
                         className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
                       >
-                        <option value="zagreb">Zagreb (18%)</option>
-                        <option value="split">Split (15%)</option>
-                        <option value="rijeka">Rijeka (15%)</option>
-                        <option value="osijek">Osijek (13%)</option>
-                        <option value="zadar">Zadar (12%)</option>
-                        <option value="other">Ostalo (10%)</option>
-                        <option value="none">Bez prireza (0%)</option>
+                        {municipalityOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label} ({formatPercentage(option.rate)})
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -568,7 +584,9 @@ export function POSDCalculatorClient() {
                 </Card>
                 <Card className="border-blue-200 bg-blue-50">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-blue-700">Normativni rashodi (30%)</p>
+                    <p className="text-sm text-blue-700">
+                      Normativni rashodi ({normativeExpenseRateLabel})
+                    </p>
                     <p className="text-2xl font-bold text-blue-800">
                       {formatCurrency(result.normativeExpenses)}
                     </p>
@@ -629,7 +647,9 @@ export function POSDCalculatorClient() {
                       </span>
                     </div>
                     <div className="flex justify-between border-b border-white/10 pb-2">
-                      <span className="text-white/70">- Normativni rashodi (30%)</span>
+                      <span className="text-white/70">
+                        - Normativni rashodi ({normativeExpenseRateLabel})
+                      </span>
                       <span className="font-medium text-white/60">
                         -{formatCurrency(result.normativeExpenses)}
                       </span>
@@ -641,7 +661,7 @@ export function POSDCalculatorClient() {
                       </span>
                     </div>
                     <div className="flex justify-between border-b border-white/10 pb-2">
-                      <span className="text-white/70">Porez na dohodak (12%)</span>
+                      <span className="text-white/70">Porez na dohodak ({pausalRateLabel})</span>
                       <span className="font-medium text-white">
                         {formatCurrency(result.incomeTax)}
                       </span>
@@ -692,7 +712,8 @@ export function POSDCalculatorClient() {
                     <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
                     <div>
                       <p className="font-medium text-amber-800">
-                        Blizu PDV praga ({result.vatThresholdPercentage.toFixed(1)}% od 60.000 EUR)
+                        Blizu PDV praga ({result.vatThresholdPercentage.toFixed(1)}% od{" "}
+                        {vatThresholdLabel})
                       </p>
                       <p className="mt-1 text-sm text-amber-700">
                         Pratite prihode pažljivo. Ako prijeđete prag, morate se registrirati za PDV.

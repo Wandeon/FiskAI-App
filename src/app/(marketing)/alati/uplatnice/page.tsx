@@ -6,28 +6,37 @@ import { ArrowRight, Save } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { POZIV_NA_BROJ_CODES } from "@/lib/fiscal-data"
 
 export const metadata: Metadata = {
   title: "Generator Uplatnica | FiskAI",
   description: "Generirajte Hub3 uplatnice za plaćanje doprinosa, poreza i prireza.",
 }
 
-const faq = [
-  {
-    q: "Koji je poziv na broj za porez?",
-    a: "Model HR68 s OIB-om obveznika i šifrom vrste prihoda (npr. 1820 za porez na dohodak).",
-  },
-  {
-    q: "Na koji račun uplatiti doprinose?",
-    a: "MIO I. stup: HR1210010051863000160, ZO: HR1210010051863000177.",
-  },
-  {
-    q: "Kako generirati poziv na broj?",
-    a: "OIB + šifra djelatnosti + oznaka razdoblja (format ovisi o vrsti uplate).",
-  },
-]
-
 export default function PaymentSlipsPage() {
+  const incomeCodeExample = Object.keys(POZIV_NA_BROJ_CODES.incomeTypes)[0]
+  const incomeCodeLabel = incomeCodeExample
+    ? POZIV_NA_BROJ_CODES.incomeTypes[incomeCodeExample]
+    : undefined
+
+  const faq = [
+    {
+      q: "Koji je poziv na broj za porez?",
+      a: `Model ${PAYMENT_MODEL} s OIB-om obveznika i šifrom vrste prihoda${
+        incomeCodeExample && incomeCodeLabel
+          ? ` (npr. ${incomeCodeExample} za ${incomeCodeLabel.toLowerCase()})`
+          : "."
+      }`,
+    },
+    {
+      q: "Na koji račun uplatiti doprinose?",
+      a: `MIO I. stup: ${PAYMENT_IBANS.STATE_BUDGET}, ZO: ${PAYMENT_IBANS.HZZO}.`,
+    },
+    {
+      q: "Kako generirati poziv na broj?",
+      a: "OIB + šifra djelatnosti + oznaka razdoblja (format ovisi o vrsti uplate).",
+    },
+  ]
   const webAppSchema = generateWebApplicationSchema({
     name: "Generator Uplatnica",
     description: "Generirajte Hub3 uplatnice za plaćanje doprinosa, poreza i prireza.",

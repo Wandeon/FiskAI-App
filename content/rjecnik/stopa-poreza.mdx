@@ -1,7 +1,7 @@
 ---
 title: Stopa poreza
 term: Stopa poreza
-shortDefinition: Postotak koji se primjenjuje na poreznu osnovicu za izračun poreza. Hrvatska ima progresivne stope na dohodak (20%/30%) i fiksnu stopu na dobit (10%/18%).
+shortDefinition: Postotak koji se primjenjuje na poreznu osnovicu za izračun poreza. Hrvatska ima progresivne stope na dohodak i dvije stope poreza na dobit.
 description: Pregled svih poreznih stopa u Hrvatskoj za 2025 - dohodak, dobit, PDV, dividende.
 lastUpdated: 2025-12-16
 relatedTerms:
@@ -18,7 +18,7 @@ sources:
     url: https://www.zakon.hr/z/85/Zakon-o-porezu-na-dohodak
 faq:
   - q: Koje su stope poreza na dohodak u 2025?
-    a: 20% do 50.400 EUR godišnje, 30% iznad tog iznosa.
+    a: Niža stopa vrijedi do zakonskog praga, viša stopa iznad njega. Aktualne iznose vidi u tablici ispod.
 keywords:
   - stopa poreza
   - porezne stope hrvatska
@@ -29,29 +29,29 @@ keywords:
 
 | Godišnji dohodak | Stopa |
 |------------------|-------|
-| Do 50.400 EUR | 20% |
-| Iznad 50.400 EUR | 30% |
+| Do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> | <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> |
+| Iznad <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> | <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> |
 
 ## Stope poreza na dobit 2025.
 
 | Godišnji prihod | Stopa |
 |-----------------|-------|
-| Do 1.000.000 EUR | 10% |
-| Iznad 1.000.000 EUR | 18% |
+| Do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> | <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> |
+| Iznad <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> | <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> |
 
 ## Stope PDV-a
 
 | Tip | Stopa |
 |-----|-------|
-| Opća | 25% |
-| Snižena | 13% |
-| Super-snižena | 5% |
+| Opća | <FiscalPercentage path="TAX_RATES.vat.standard.rate" /> |
+| Snižena | <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" /> |
+| Super-snižena | <FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" /> |
 | Izvoz | 0% |
 
 ## Ostale porezne stope
 
-- **Dividende:** 10% (konačni porez)
-- **Kamate:** 10% (konačni porez)
-- **Kapitalni dobici:** 10%
-- **Najamnina:** 12% (paušalni) ili 20-30% (stvarni troškovi)
-- **Dobitci na sreću:** 10-15%
+- **Dividende:** konačni porez prema važećoj stopi
+- **Kamate:** konačni porez prema važećoj stopi
+- **Kapitalni dobici:** konačni porez prema važećoj stopi
+- **Najamnina:** stopa ovisi o načinu oporezivanja (paušalno ili stvarni troškovi)
+- **Dobitci na sreću:** posebne stope prema vrsti dobitka

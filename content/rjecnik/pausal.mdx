@@ -21,9 +21,9 @@ sources:
     url: https://www.porezna-uprava.hr/
 faq:
   - q: Tko može biti paušalac?
-    a: Obrtnici s godišnjim prihodom do 300.000 EUR, bez zaposlenih (može samo pripravnik), u odobrenim djelatnostima.
+    a: Obrtnici s godišnjim prihodom do paušalnog praga, bez zaposlenih (može samo pripravnik), u odobrenim djelatnostima.
   - q: Koliko se plaća kao paušalac?
-    a: Paušalni porez ovisi o djelatnosti i lokaciji - prosječno 150-400 EUR mjesečno (porez + doprinosi).
+    a: Paušalni porez ovisi o djelatnosti i lokaciji. Najbrže je provjeriti iznos u kalkulatoru.
   - q: Treba li paušalac voditi knjigovodstvo?
     a: Ne. Paušalac samo evidencira primitke (ne rashode) i predaje kvartalni PO-SD obrazac.
 keywords:
@@ -36,7 +36,7 @@ keywords:
 ## Što je paušal?
 
 **Paušalno oporezivanje** je pojednostavljen sustav oporezivanja za male obrtnike. Umjesto složenog knjigovodstva i obračuna stvarne dobiti, paušalac plaća:
-- **Fiksni paušalni porez** (12% od paušalnog prihoda)
+- **Fiksni paušalni porez** (<FiscalPercentage path="TAX_RATES.pausal.rate" /> od paušalnog prihoda)
 - **Doprinose** na minimalnu osnovicu
 
 Paušalni prihod ne ovisi o stvarnom prihodu, već o djelatnosti i lokaciji.
@@ -45,7 +45,7 @@ Paušalni prihod ne ovisi o stvarnom prihodu, već o djelatnosti i lokaciji.
 
 ### Uvjeti:
 
-1. **Godišnji prihod < 300.000 EUR**
+1. **Godišnji prihod ispod paušalnog praga (<FiscalCurrency path="THRESHOLDS.pausalni.value" />)**
 2. **Bez zaposlenih** (dozvoljeno: 1 učenik/pripravnik)
 3. **Odobrene djelatnosti** (ne mogu sve)
 4. **Prva godina poslovanja** - može se automatski
@@ -70,37 +70,26 @@ Paušalni obrtnik plaća **dva dijela:**
 
 ### 1. Paušalni porez na dohodak
 
-**Formula:** Paušalni prihod × 12% × (1 + stopa prireza)
+**Formula:** Paušalni prihod × <FiscalPercentage path="TAX_RATES.pausal.rate" /> × (1 + stopa prireza)
 
 **Paušalni prihod** (fiksni iznos) ovisi o:
 - NKD šifri djelatnosti
 - Gradu/općini
 
-**Primjer - Zagreb (18% prirez):**
-- Paušalni prihod za IT usluge: ~12.000 EUR godišnje
-- Porez: 12.000 × 12% = 1.440 EUR
-- Prirez (18%): 1.440 × 0,18 = 259 EUR
-- **Ukupno godišnje:** 1.699 EUR → **142 EUR mjesečno**
+**Primjer:**
+Visina poreza ovisi o poreznom razredu i prirezu. Za precizan izračun koristite kalkulator.
 
 ### 2. Doprinosi na minimalnu osnovicu
 
-**Minimalna osnovica 2025:** 682 EUR mjesečno
+**Minimalna osnovica:** <FiscalCurrency path="CONTRIBUTIONS.base.minimum" />
 
-- MIO (20%): 136,40 EUR
-- Zdravstvo (16,5%): 112,53 EUR
-- **Ukupno doprinosi:** 248,93 EUR mjesečno
+- MIO (<FiscalPercentage path="CONTRIBUTIONS.rates.MIO_I.rate" />)
+- Zdravstvo (<FiscalPercentage path="CONTRIBUTIONS.rates.HZZO.rate" />)
+- **Ukupno doprinosi (s II. stupom):** <FiscalCurrency path="CONTRIBUTIONS.monthly.total" />
 
 ### Ukupan trošak paušalca
 
-**Zagreb, IT usluge:**
-- Paušalni porez: 142 EUR
-- Doprinosi: 249 EUR
-- **Ukupno: ~391 EUR mjesečno**
-
-**Manja općina (0% prirez):**
-- Paušalni porez: 120 EUR
-- Doprinosi: 249 EUR
-- **Ukupno: ~369 EUR mjesečno**
+Ukupan trošak ovisi o razredu, prirezu i doprinosima. Za precizan izračun koristite kalkulator.
 
 ## PO-SD obrazac
 
@@ -122,7 +111,7 @@ Paušalci predaju **PO-SD obrazac kvartalno:**
 
 ### ❌ Nedostaci:
 1. **Plaćanje i bez prihoda** - trošak postoji uvijek
-2. **Limit 300.000 EUR** - iznad se mora preći na dohodak
+2. **Limit <FiscalCurrency path="THRESHOLDS.pausalni.value" />** - iznad se mora preći na dohodak
 3. **Ne mogu svi biti** - ograničene djelatnosti
 4. **Nema odbitka rashoda** - ne računaju se stvarni troškovi
 
@@ -132,9 +121,9 @@ Paušalci predaju **PO-SD obrazac kvartalno:**
 |----------------|--------|---------|
 | Knjigovodstvo | ❌ Ne | ✅ Da |
 | Evidencija rashoda | ❌ Ne | ✅ Da |
-| Limit prihoda | 300.000 EUR | Bez limita |
+| Limit prihoda | <FiscalCurrency path="THRESHOLDS.pausalni.value" /> | Bez limita |
 | Zaposlenici | ❌ Ne (osim pripravnik) | ✅ Da |
-| Porez | Fiksni (12%) | Na dobit (20-30%) |
+| Porez | Fiksni (<FiscalPercentage path="TAX_RATES.pausal.rate" />) | Progresivni (<FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> - <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" />) |
 | Plaćanje | I bez prihoda | Samo na dobit |
 
 ### Kada je isplativiji paušal?
@@ -148,7 +137,7 @@ Paušal je isplativiji ako:
 ### Kada je bolji dohodak?
 
 Dohodak je bolji ako:
-- **Prihod > 300.000 EUR**
+- **Prihod iznad paušalnog praga**
 - **Veliki troškovi** (oprema, prostor, materijal)
 - **Trebaš zaposlenike**
 - **Sezonski posao** (prihodi samo dio godine)
@@ -157,17 +146,17 @@ Dohodak je bolji ako:
 
 Promjena je moguća:
 - **Dobrovoljno:** jednom godišnje (do 15.1. za tekuću godinu)
-- **Prisilno:** ako prijeđeš 300.000 EUR ili zaposliš radnika
+- **Prisilno:** ako prijeđeš paušalni prag ili zaposliš radnika
 
 **Primjer:**
-- U kolovozu prijeđeš 300.000 EUR
+- U kolovozu prijeđeš paušalni prag
 - Od 1. rujna **moraš** prijeći na dohodak
 - Prijavljuješ promjenu u HOK/HGK i Poreznoj
 
 ## Paušal i PDV
 
 Paušalci mogu (ali ne moraju) biti u sustavu PDV-a:
-- Obvezno: ako prihod prijeđe 60.000 EUR
+- Obvezno: ako prihod prijeđe <FiscalCurrency path="THRESHOLDS.pdv.value" />
 - Dobrovoljno: ranije, ako želiš
 
 **Paušal + PDV = moguće**, ali povećava administraciju (mjesečna PDV prijava).
@@ -183,4 +172,4 @@ Fiskalizacija 2.0 (od 2026.):
 ## Glavni vodič
 
 Za detaljne informacije o paušalnom obrtu, pročitajte:
-- [Paušalni obrt - kompletan vodič](/vodici/pausalni-obrt)
+- [Paušalni obrt - kompletan vodič](/vodic/pausalni-obrt)

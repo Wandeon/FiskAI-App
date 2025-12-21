@@ -1,295 +1,295 @@
 version: 1
 pages:
   - route: /about
-    file: /home/admin/FiskAI/src/app/(marketing)/about/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/about/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /ai-data-policy
-    file: /home/admin/FiskAI/src/app/(marketing)/ai-data-policy/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/ai-data-policy/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/e-racun
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/e-racun/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/e-racun/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/kalendar
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/kalendar/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/kalendar/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/kalkulator-doprinosa
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/kalkulator-doprinosa/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/kalkulator-doprinosa/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/kalkulator-poreza
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/kalkulator-poreza/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/kalkulator-poreza/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/oib-validator
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/oib-validator/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/oib-validator/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/pdv-kalkulator
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/pdv-kalkulator/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/pdv-kalkulator/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/posd-kalkulator
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/posd-kalkulator/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/posd-kalkulator/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /alati/uplatnice
-    file: /home/admin/FiskAI/src/app/(marketing)/alati/uplatnice/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/alati/uplatnice/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /baza-znanja
-    file: /home/admin/FiskAI/src/app/(marketing)/baza-znanja/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/baza-znanja/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /check-email
-    file: /home/admin/FiskAI/src/app/(marketing)/check-email/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/check-email/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /contact
-    file: /home/admin/FiskAI/src/app/(marketing)/contact/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/contact/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /cookies
-    file: /home/admin/FiskAI/src/app/(marketing)/cookies/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/cookies/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /dpa
-    file: /home/admin/FiskAI/src/app/(marketing)/dpa/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/dpa/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /features
-    file: /home/admin/FiskAI/src/app/(marketing)/features/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/features/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /fiskalizacija
-    file: /home/admin/FiskAI/src/app/(marketing)/fiskalizacija/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/fiskalizacija/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /for/accountants
-    file: /home/admin/FiskAI/src/app/(marketing)/for/accountants/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/for/accountants/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /for/dooo
-    file: /home/admin/FiskAI/src/app/(marketing)/for/dooo/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/for/dooo/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /for/pausalni-obrt
-    file: /home/admin/FiskAI/src/app/(marketing)/for/pausalni-obrt/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/for/pausalni-obrt/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /forgot-password
-    file: /home/admin/FiskAI/src/app/(marketing)/forgot-password/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/forgot-password/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /izvori
-    file: /home/admin/FiskAI/src/app/(marketing)/izvori/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/izvori/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /kako-da/[slug]
-    file: /home/admin/FiskAI/src/app/(marketing)/kako-da/[slug]/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/kako-da/[slug]/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /kako-da
-    file: /home/admin/FiskAI/src/app/(marketing)/kako-da/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/kako-da/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /login
-    file: /home/admin/FiskAI/src/app/(marketing)/login/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/login/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /metodologija
-    file: /home/admin/FiskAI/src/app/(marketing)/metodologija/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/metodologija/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /
-    file: /home/admin/FiskAI/src/app/(marketing)/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /prelazak
-    file: /home/admin/FiskAI/src/app/(marketing)/prelazak/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/prelazak/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /pricing
-    file: /home/admin/FiskAI/src/app/(marketing)/pricing/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/pricing/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /privacy
-    file: /home/admin/FiskAI/src/app/(marketing)/privacy/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/privacy/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /register
-    file: /home/admin/FiskAI/src/app/(marketing)/register/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/register/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /reset-password
-    file: /home/admin/FiskAI/src/app/(marketing)/reset-password/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/reset-password/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /rjecnik/[pojam]
-    file: /home/admin/FiskAI/src/app/(marketing)/rjecnik/[pojam]/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/rjecnik/[pojam]/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /rjecnik
-    file: /home/admin/FiskAI/src/app/(marketing)/rjecnik/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/rjecnik/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /security
-    file: /home/admin/FiskAI/src/app/(marketing)/security/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/security/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /select-role
-    file: /home/admin/FiskAI/src/app/(marketing)/select-role/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/select-role/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /status
-    file: /home/admin/FiskAI/src/app/(marketing)/status/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/status/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /terms
-    file: /home/admin/FiskAI/src/app/(marketing)/terms/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/terms/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /urednicka-politika
-    file: /home/admin/FiskAI/src/app/(marketing)/urednicka-politika/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/urednicka-politika/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /usporedba/[slug]
-    file: /home/admin/FiskAI/src/app/(marketing)/usporedba/[slug]/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/usporedba/[slug]/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /usporedba
-    file: /home/admin/FiskAI/src/app/(marketing)/usporedba/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/usporedba/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /verify-email
-    file: /home/admin/FiskAI/src/app/(marketing)/verify-email/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/verify-email/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /vijesti/[slug]
-    file: /home/admin/FiskAI/src/app/(marketing)/vijesti/[slug]/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/vijesti/[slug]/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /vijesti/kategorija/[slug]
-    file: /home/admin/FiskAI/src/app/(marketing)/vijesti/kategorija/[slug]/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/vijesti/kategorija/[slug]/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /vijesti
-    file: /home/admin/FiskAI/src/app/(marketing)/vijesti/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/vijesti/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /vodic/[slug]
-    file: /home/admin/FiskAI/src/app/(marketing)/vodic/[slug]/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/vodic/[slug]/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /vodic
-    file: /home/admin/FiskAI/src/app/(marketing)/vodic/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/vodic/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []
     notes: ""
   - route: /wizard
-    file: /home/admin/FiskAI/src/app/(marketing)/wizard/page.tsx
+    file: /home/admin/FiskAI/.worktrees/marketing-content-governance-plan/src/app/(marketing)/wizard/page.tsx
     ctas: []
     dataDependencies: []
     toolChecks: []

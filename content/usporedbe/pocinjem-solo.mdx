@@ -21,9 +21,9 @@ sources:
     url: https://www.hitro.hr/
 faq:
   - q: Što je bolje za početak - obrt ili d.o.o.?
-    a: Za prihode do 60.000 EUR godišnje, paušalni obrt je jednostavniji i jeftiniji (bez vođenja knjiga, fiksni porez ~1.5% prihoda). D.o.o. se isplati kod većih prihoda ili za odvajanje osobne od poslovne imovine.
+    a: Za prihode do paušalnog praga, paušalni obrt je jednostavniji i jeftiniji (bez vođenja knjiga, fiksni porez). D.o.o. se isplati kod većih prihoda ili za odvajanje osobne od poslovne imovine.
   - q: Koliko košta otvaranje obrta vs d.o.o.?
-    a: Obrt košta ~50 EUR (upravna pristojba). D.o.o. zahtijeva minimalno 10 EUR temeljnog kapitala za j.d.o.o. ili 2.500 EUR za klasični d.o.o., plus 300-1.500 EUR troškova osnivanja.
+    a: Obrt ima niže administrativne troškove. D.o.o. zahtijeva temeljni kapital i dodatne troškove osnivanja.
   - q: Mogu li paušalac zaposliti radnika?
     a: Da, ali tada prelazite na vođenje knjiga (obrt na dohodak). Paušalni obrt je predviđen za samostalno poslovanje bez zaposlenih.
 ---
@@ -33,8 +33,8 @@ faq:
 <TLDRBox>
 **Brzi odgovor za 2025:**
 
-- **Prihod do 60.000 EUR + mali troškovi?** → Paušalni obrt (samo 9% ukupni troškovi)
-- **Prihod iznad 60.000 EUR ili veliki troškovi?** → Obrt na dohodak
+- **Prihod do paušalnog praga + mali troškovi?** → Paušalni obrt (najniži ukupni troškovi)
+- **Prihod iznad paušalnog praga ili veliki troškovi?** → Obrt na dohodak
 - **Trebaš zaštitu imovine ili planiraš rasti?** → J.D.O.O.
 - **IT/kreativac s inozemnim klijentima?** → Freelancer
 
@@ -48,18 +48,18 @@ Najčešća greška: previše komplicirati na početku. Počni jednostavno, preb
       id: "income",
       question: "Koliki godišnji prihod očekujete?",
       options: [
-        { label: "Do 30.000 EUR", value: "low", points: { pausalni: 3, freelancer: 2, obrt: 0, jdoo: 0 } },
-        { label: "30.000 - 60.000 EUR", value: "mid", points: { pausalni: 2, obrt: 2, freelancer: 1, jdoo: 1 } },
-        { label: "60.000+ EUR", value: "high", points: { obrt: 3, jdoo: 3, pausalni: 0, freelancer: 1 } },
+        { label: "Ispod paušalnog praga", value: "low", points: { pausalni: 3, freelancer: 2, obrt: 0, jdoo: 0 } },
+        { label: "Oko paušalnog praga", value: "mid", points: { pausalni: 2, obrt: 2, freelancer: 1, jdoo: 1 } },
+        { label: "Iznad paušalnog praga", value: "high", points: { obrt: 3, jdoo: 3, pausalni: 0, freelancer: 1 } },
       ],
     },
     {
       id: "costs",
       question: "Koliki su vaši poslovni troškovi?",
       options: [
-        { label: "Minimalni (pod 20% prihoda)", value: "low", points: { pausalni: 3, freelancer: 2, obrt: 0, jdoo: 0 } },
-        { label: "Umjereni (20-40%)", value: "mid", points: { obrt: 2, freelancer: 2, pausalni: 1, jdoo: 1 } },
-        { label: "Veliki (40%+ - oprema, materijal)", value: "high", points: { obrt: 3, jdoo: 2, pausalni: 0, freelancer: 0 } },
+        { label: "Minimalni (niski troškovi)", value: "low", points: { pausalni: 3, freelancer: 2, obrt: 0, jdoo: 0 } },
+        { label: "Umjereni (stabilni troškovi)", value: "mid", points: { obrt: 2, freelancer: 2, pausalni: 1, jdoo: 1 } },
+        { label: "Veliki (oprema, materijal)", value: "high", points: { obrt: 3, jdoo: 2, pausalni: 0, freelancer: 0 } },
       ],
     },
     {
@@ -99,14 +99,14 @@ Najčešća greška: previše komplicirati na početku. Počni jednostavno, preb
     {
       key: "jdoo",
       title: "J.D.O.O.",
-      description: "Najbolja zaštita osobne imovine. Najniži porez na dobit (10-18%), profesionalan dojam.",
+      description: "Najbolja zaštita osobne imovine. Najniži porez na dobit, profesionalan dojam.",
       color: "bg-purple-500",
-      link: "/vodic/jdoo",
+      link: "/vodic/doo",
     },
     {
       key: "freelancer",
       title: "Freelancer",
-      description: "Idealno za IT i kreativce s inozemnim klijentima. Normativni troškovi 25-50% bez dokaza.",
+      description: "Idealno za IT i kreativce s inozemnim klijentima. Normativni troškovi bez dokazivanja.",
       color: "bg-orange-500",
       link: "/vodic/freelancer",
     },
@@ -117,24 +117,43 @@ Najčešća greška: previše komplicirati na početku. Počni jednostavno, preb
 
 <ComparisonTable>
   <ComparisonRow label="Max. godišnji prihod">
-    <ComparisonCell type="pausalni">60.000 EUR</ComparisonCell>
+    <ComparisonCell type="pausalni">
+      <FiscalCurrency path="THRESHOLDS.pausalni.value" />
+    </ComparisonCell>
     <ComparisonCell type="obrt-dohodak">Neograničen</ComparisonCell>
     <ComparisonCell type="jdoo">Neograničen</ComparisonCell>
     <ComparisonCell type="freelancer">Neograničen</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Mjesečni doprinosi">
-    <ComparisonCell type="pausalni">262 EUR</ComparisonCell>
-    <ComparisonCell type="obrt-dohodak">262 EUR</ComparisonCell>
-    <ComparisonCell type="jdoo">450-500 EUR (plaća)</ComparisonCell>
-    <ComparisonCell type="freelancer">262 EUR</ComparisonCell>
+    <ComparisonCell type="pausalni">
+      <FiscalCurrency path="CONTRIBUTIONS.monthly.total" />
+    </ComparisonCell>
+    <ComparisonCell type="obrt-dohodak">
+      <FiscalCurrency path="CONTRIBUTIONS.monthly.total" />
+    </ComparisonCell>
+    <ComparisonCell type="jdoo">Ovisi o plaći direktora</ComparisonCell>
+    <ComparisonCell type="freelancer">
+      <FiscalCurrency path="CONTRIBUTIONS.monthly.total" />
+    </ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Porezno opterećenje">
-    <ComparisonCell type="pausalni" isPositive>~1.5% prihoda</ComparisonCell>
-    <ComparisonCell type="obrt-dohodak">20-30% dobiti</ComparisonCell>
-    <ComparisonCell type="jdoo">10-18% dobiti</ComparisonCell>
-    <ComparisonCell type="freelancer">20-30% dobiti</ComparisonCell>
+    <ComparisonCell type="pausalni" isPositive>
+      Fiksna stopa (<FiscalPercentage path="TAX_RATES.pausal.rate" />)
+    </ComparisonCell>
+    <ComparisonCell type="obrt-dohodak">
+      <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> -{" "}
+      <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> dobiti
+    </ComparisonCell>
+    <ComparisonCell type="jdoo">
+      <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> -{" "}
+      <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> dobiti
+    </ComparisonCell>
+    <ComparisonCell type="freelancer">
+      <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> -{" "}
+      <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> dobiti
+    </ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Odgovornost imovinom">
@@ -162,7 +181,7 @@ Najčešća greška: previše komplicirati na početku. Počni jednostavno, preb
     <ComparisonCell type="pausalni" isNegative>Ne</ComparisonCell>
     <ComparisonCell type="obrt-dohodak" isPositive>Da, svi</ComparisonCell>
     <ComparisonCell type="jdoo" isPositive>Da, svi</ComparisonCell>
-    <ComparisonCell type="freelancer" isPositive>25-50% normirano</ComparisonCell>
+    <ComparisonCell type="freelancer" isPositive>Normirani troškovi</ComparisonCell>
   </ComparisonRow>
 </ComparisonTable>
 
@@ -172,35 +191,7 @@ Najčešća greška: previše komplicirati na početku. Počni jednostavno, preb
 
 ## Praktični primjeri
 
-<Accordion title="📊 Web developer s 40.000 EUR prihoda">
-| Opcija | Doprinosi | Porez | **Ukupno troškovi** | **Neto** |
-|--------|-----------|-------|---------------------|----------|
-| **Paušalni obrt** | 3.144 EUR | 600 EUR | **3.744 EUR (9%)** | **36.256 EUR** |
-| Freelancer | 3.144 EUR | 6.720 EUR | 9.864 EUR (25%) | 30.136 EUR |
-| Obrt dohodak | 3.144 EUR | 7.680 EUR | 10.824 EUR (27%) | 29.176 EUR |
-
-**Zaključak:** Za IT s minimalnim troškovima, paušalni štedi **6.000+ EUR godišnje**.
-</Accordion>
-
-<Accordion title="📊 Trgovac s 80.000 EUR prihoda i 50.000 EUR troškova">
-Paušalni nije opcija (prešao 60.000 EUR limit).
-
-| Opcija | Dobitak | Porez | **Neto** |
-|--------|---------|-------|----------|
-| **Obrt dohodak** | 30.000 EUR | 7.200 EUR | **19.656 EUR** |
-| J.D.O.O. | 22.800 EUR | 4.742 EUR | **23.458 EUR** |
-
-**Zaključak:** J.D.O.O. neto isplativiji + zaštita osobne imovine.
-</Accordion>
-
-<Accordion title="📊 Frizerski salon s 35.000 EUR prihoda">
-| Opcija | Troškovi posla | Doprinosi + Porez | **Neto** |
-|--------|---------------|-------------------|----------|
-| **Paušalni obrt** | 0 (ne odbija) | 3.669 EUR | **31.331 EUR** |
-| Obrt dohodak | 10.000 EUR | 9.144 EUR | 15.856 EUR |
-
-**Zaključak:** Za uslužne djelatnosti bez velikih troškova, paušalni daleko bolji.
-</Accordion>
+Za konkretne izračune po djelatnosti i prihodima koristite [kalkulator poreza](/alati/kalkulator-poreza) i [kalkulator doprinosa](/alati/kalkulator-doprinosa). Primjeri ovise o vašim stvarnim prihodima, troškovima i mjestu poslovanja.
 
 ## Pregled po industrijama
 
@@ -219,12 +210,12 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
   title="Paušalni obrt"
   pros={[
     "Bez knjigovodstva — najjednostavnije",
-    "Fiksni troškovi (262€ + 1.5% porez)",
-    "Brzo osnivanje (50€, 1-3 dana)",
+    "Fiksni troškovi i predvidivo oporezivanje",
+    "Brzo osnivanje",
     "Idealno za testiranje ideje",
   ]}
   cons={[
-    "Limit 60.000 EUR/god",
+    "Limit prema paušalnom pragu",
     "Samo 28 djelatnosti",
     "Ne možete odbijati troškove",
     "Odgovarate cijelom imovinom",
@@ -241,7 +232,7 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
   ]}
   cons={[
     "Potreban knjigovođa (100-300€/mj)",
-    "Porez 20-30% na dobitak",
+    "Porez je progresivan ovisno o dobiti",
     "Odgovarate cijelom imovinom",
     "Kompleksnije od paušalnog",
   ]}
@@ -251,14 +242,14 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
   title="J.D.O.O."
   pros={[
     "Ograničena odgovornost — zaštita imovine",
-    "Najniži porez (10-18% dobiti)",
+    "Najniži porez na dobit",
     "Profesionalan dojam",
     "Lakše krediti i investicije",
   ]}
   cons={[
-    "Skupo osnivanje (1.500-3.000€)",
-    "Obavezna plaća direktora (450€/mj)",
-    "Skupi knjigovođa (200-500€/mj)",
+    "Skuplje osnivanje",
+    "Obavezna plaća direktora",
+    "Skuplje knjigovodstvo",
     "Više administracije",
   ]}
 />
@@ -268,7 +259,7 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
   pros={[
     "Bez formalnog osnivanja",
     "Odlično za inozemne klijente",
-    "Normativni troškovi 25-50%",
+    "Normativni troškovi bez dokazivanja",
     "Maksimalna fleksibilnost",
   ]}
   cons={[
@@ -281,14 +272,14 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
 
 <Accordion title="🔍 Detaljni kriteriji za izbor">
 **1. Koliki prihod očekujete?**
-- < 30.000 EUR → Paušalni ili freelancer
-- 30-60.000 EUR → Paušalni ili obrt (ovisno o troškovima)
-- 60.000+ EUR → Obrt ili j.d.o.o.
+- Ispod paušalnog praga → Paušalni ili freelancer
+- Oko paušalnog praga → Paušalni ili obrt (ovisno o troškovima)
+- Iznad paušalnog praga → Obrt ili j.d.o.o.
 
 **2. Koliki su poslovni troškovi?**
-- < 20% prihoda → Paušalni ili freelancer
-- 20-40% → Obrt ili freelancer (normativni)
-- 40%+ → Obrt ili j.d.o.o.
+- Niski troškovi → Paušalni ili freelancer
+- Umjereni troškovi → Obrt ili freelancer (normativni)
+- Visoki troškovi → Obrt ili j.d.o.o.
 
 **3. Koliki je rizik poslovanja?**
 - Nizak → Bilo koja opcija
@@ -309,8 +300,8 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
       answer: "Da, ali uključuje zatvaranje starog i otvaranje novog oblika, plus administrativne troškove. Bolje je dobro odabrati na početku, ali promjena je uvijek moguća."
     },
     {
-      question: "Što ako prihod poraste iznad 60.000 EUR na paušalnom?",
-      answer: "Morate prijeći na obrt na dohodak ili j.d.o.o. u roku 8 dana od prelaska limita. Ulazite u PDV sustav."
+      question: "Što ako prihod poraste iznad paušalnog praga?",
+      answer: "Morate prijeći na obrt na dohodak ili j.d.o.o. u propisanom roku nakon prelaska limita. Ulazite u PDV sustav."
     },
     {
       question: "Mogu li imati paušalni obrt i raditi kao freelancer?",
@@ -318,7 +309,7 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
     },
     {
       question: "Trebam li PDV odmah?",
-      answer: "Ne — do 60.000 EUR godišnjeg prihoda niste u sustavu PDV-a, osim ako se dobrovoljno prijavite (što može biti isplativo ako imate velike troškove)."
+      answer: "Ne — do PDV praga niste u sustavu PDV-a, osim ako se dobrovoljno prijavite (što može biti isplativo ako imate velike troškove)."
     },
     {
       question: "Koliko košta knjigovođa?",
@@ -335,9 +326,9 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
 
 | Situacija | Preporuka |
 |-----------|-----------|
-| Početnik s prihodima do 60k EUR | **Paušalni obrt** — najjednostavnije |
+| Početnik s prihodima do paušalnog praga | **Paušalni obrt** — najjednostavnije |
 | IT/kreativac s inozemnim klijentima | **Freelancer** — fleksibilnost + normativni troškovi |
-| Veliki troškovi ili prihodi 60k+ EUR | **Obrt na dohodak** — odbitak svih troškova |
+| Veliki troškovi ili prihodi iznad paušalnog praga | **Obrt na dohodak** — odbitak svih troškova |
 | Potrebna zaštita imovine ili rast | **J.D.O.O.** — ograničena odgovornost |
 
 <GuideUpsellSection
@@ -355,7 +346,7 @@ Paušalni nije opcija (prešao 60.000 EUR limit).
 **Povezani vodiči:**
 - [Paušalni obrt — Kompletan vodič](/vodic/pausalni-obrt)
 - [Obrt na dohodak — Vodič](/vodic/obrt-dohodak)
-- [J.D.O.O. — Osnivanje i vođenje](/vodic/jdoo)
+- [J.D.O.O. — Osnivanje i vođenje](/vodic/doo)
 - [Freelancer — Rad s inozemstvom](/vodic/freelancer)
 
 <FAQ items={frontmatter.faq} />

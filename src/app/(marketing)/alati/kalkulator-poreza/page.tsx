@@ -5,25 +5,36 @@ import { Calculator, ArrowRight, FileText } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { TAX_RATES, formatCurrency, formatPercentage } from "@/lib/fiscal-data"
+
+const pausalYear = TAX_RATES.pausal.year
+const incomeYear = TAX_RATES.income.year
+const lowerIncomeBracket = TAX_RATES.income.brackets[0]
+const upperIncomeBracket = TAX_RATES.income.brackets[1]
+const incomeLimitLabel = formatCurrency(lowerIncomeBracket.max, { decimals: 0 })
+const lowerIncomeRateLabel = formatPercentage(lowerIncomeBracket.rate)
+const upperIncomeRateLabel = formatPercentage(upperIncomeBracket.rate)
+const personalAllowanceLabel = formatCurrency(TAX_RATES.income.personalAllowance, { decimals: 0 })
+const averageSurtaxLabel = formatPercentage(TAX_RATES.income.averageSurtax)
 
 export const metadata: Metadata = {
-  title: "Kalkulator paušalnog poreza 2025 | FiskAI",
+  title: `Kalkulator paušalnog poreza ${pausalYear} | FiskAI`,
   description:
-    "Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za 2025.",
+    `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
 }
 
 const faq = [
   {
     q: "Koliko iznosi porez na dohodak?",
-    a: "20% do 50.400 EUR godišnje, 30% iznad tog iznosa (2025.).",
+    a: `${lowerIncomeRateLabel} do ${incomeLimitLabel} godišnje, ${upperIncomeRateLabel} iznad tog iznosa (${incomeYear}.).`,
   },
   {
     q: "Što je osobni odbitak?",
-    a: "Neoporezivi dio dohotka - 560 EUR mjesečno (osnovna olakšica).",
+    a: `Neoporezivi dio dohotka - ${personalAllowanceLabel} mjesečno (osnovna olakšica).`,
   },
   {
     q: "Kako se računa prirez?",
-    a: "Postotak od poreza na dohodak, ovisi o mjestu prebivališta (npr. Zagreb 18%).",
+    a: `Postotak od poreza na dohodak, ovisi o mjestu prebivališta (prosjek ${averageSurtaxLabel}).`,
   },
 ]
 
@@ -31,7 +42,7 @@ export default function TaxCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "Kalkulator Poreza",
     description:
-      "Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za 2025.",
+      `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
     url: "https://fisk.ai/alati/kalkulator-poreza",
   })
 
@@ -54,7 +65,9 @@ export default function TaxCalculatorPage() {
           <span className="text-white/90">Paušalni porez</span>
         </nav>
 
-        <h1 className="text-display text-4xl font-semibold">Kalkulator paušalnog poreza 2025.</h1>
+        <h1 className="text-display text-4xl font-semibold">
+          Kalkulator paušalnog poreza {pausalYear}.
+        </h1>
         <p className="mt-4 text-white/60">
           Unesite očekivani godišnji prihod i izračunajte ukupne godišnje troškove uključujući
           porez, doprinose i HOK članarinu.

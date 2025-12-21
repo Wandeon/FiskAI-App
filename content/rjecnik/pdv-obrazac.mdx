@@ -36,7 +36,7 @@ keywords:
 
 **Obveznici:**
 - Svi PDV obveznici
-- Poduzetnici u sustavu PDV-a (prihod > 60.000 EUR ili dobrovoljni ulazak)
+- Poduzetnici u sustavu PDV-a (prihod > <FiscalCurrency path="THRESHOLDS.pdv.value" /> ili dobrovoljni ulazak)
 
 **Frekvencija:**
 - **Mjesečno:** Prihod > 500.000 EUR godišnje
@@ -67,7 +67,7 @@ keywords:
 ## Struktura PDV obrasca
 
 **I. Izlazni PDV (prodaja):**
-- Promet po stopama (25%, 13%, 5%, 0%)
+- Promet po stopama (<FiscalPercentage path="TAX_RATES.vat.standard.rate" />, <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" />, <FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" />, 0%)
 - Obračunati PDV
 
 **II. Ulazni PDV (nabava):**
@@ -84,8 +84,8 @@ keywords:
 **IT obrtnik, siječanj 2025.:**
 
 **Prodaja (izlazni PDV):**
-- Usluge: 10.000 EUR + 2.500 EUR PDV (25%)
-- **Izlazni PDV: 2.500 EUR**
+- Usluge: 10.000 EUR + PDV (standardna stopa)
+- **Izlazni PDV: obračun po stopi**
 
 **Nabava (ulazni PDV):**
 - Laptop: 1.200 EUR + 300 EUR PDV
@@ -93,9 +93,9 @@ keywords:
 - **Ulazni PDV: 400 EUR**
 
 **Obračun:**
-- Izlazni PDV: 2.500 EUR
+- Izlazni PDV: zbroj izlaznog PDV-a
 - Ulazni PDV: -400 EUR
-- **Za uplatiti: 2.100 EUR**
+- **Za uplatiti: razlika izlaznog i ulaznog PDV-a**
 
 ## Predaja PDV obrasca
 

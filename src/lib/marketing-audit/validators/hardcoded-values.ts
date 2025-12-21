@@ -66,37 +66,53 @@ export function detectHardcodedValues(
 
   for (const match of text.matchAll(currencyPattern)) {
     const value = normalizeNumber(match[0])
-    hits.push({
-      kind: "currency",
-      match: match[0],
-      value,
-      index: match.index ?? 0,
-      context: buildContext(text, match.index ?? 0, match[0]),
-      reason: "Currency value appears in copy; verify it is sourced from fiscal-data.",
-    })
+    const index = match.index ?? 0
+    const context = buildContext(text, index, match[0])
+    const shouldFlag = canonical ? canonical.has(value) : matchesKeywords(context)
+
+    if (shouldFlag) {
+      hits.push({
+        kind: "currency",
+        match: match[0],
+        value,
+        index,
+        context,
+        reason: "Currency value appears in copy; verify it is sourced from fiscal-data.",
+      })
+    }
   }
 
   for (const match of text.matchAll(percentPattern)) {
     const value = normalizeNumber(match[0])
-    hits.push({
-      kind: "percent",
-      match: match[0],
-      value,
-      index: match.index ?? 0,
-      context: buildContext(text, match.index ?? 0, match[0]),
-      reason: "Percent value appears in copy; verify it is sourced from fiscal-data.",
-    })
+    const index = match.index ?? 0
+    const context = buildContext(text, index, match[0])
+    const shouldFlag = canonical ? canonical.has(value) : matchesKeywords(context)
+
+    if (shouldFlag) {
+      hits.push({
+        kind: "percent",
+        match: match[0],
+        value,
+        index,
+        context,
+        reason: "Percent value appears in copy; verify it is sourced from fiscal-data.",
+      })
+    }
   }
 
   for (const match of text.matchAll(yearPattern)) {
     const value = normalizeNumber(match[0])
-    if (value < currentYear) {
+    const index = match.index ?? 0
+    const context = buildContext(text, index, match[0])
+    const shouldFlag = value < currentYear && matchesKeywords(context)
+
+    if (shouldFlag) {
       hits.push({
         kind: "year",
         match: match[0],
         value,
-        index: match.index ?? 0,
-        context: buildContext(text, match.index ?? 0, match[0]),
+        index,
+        context,
         reason: "Year reference is earlier than current year; verify it is still accurate.",
       })
     }
@@ -106,9 +122,9 @@ export function detectHardcodedValues(
     const value = normalizeNumber(match[0])
     const index = match.index ?? 0
     const context = buildContext(text, index, match[0])
-    const shouldFlag = Boolean(
-      (canonical && canonical.has(value)) || matchesKeywords(context),
-    )
+    const looksLikeYear = value >= 2000 && value <= 2100
+    const shouldFlag =
+      !looksLikeYear && (canonical ? canonical.has(value) : matchesKeywords(context))
 
     if (shouldFlag) {
       hits.push({

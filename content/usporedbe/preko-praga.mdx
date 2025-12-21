@@ -1,6 +1,6 @@
 ---
-title: Prešao/la sam 60.000€ - što sad?
-description: Opcije za paušalce koji su prešli godišnji limit od 60.000€ - prijelaz na obrt na dohodak ili j.d.o.o.
+title: Prešao/la sam paušalni prag - što sad?
+description: Opcije za paušalce koji su prešli godišnji limit paušalnog oporezivanja - prijelaz na obrt na dohodak ili j.d.o.o.
 compares:
   - obrt-dohodak
   - jdoo
@@ -19,21 +19,21 @@ sources:
     url: https://www.zakon.hr/z/546/Zakon-o-trgovačkim-društvima
 faq:
   - q: Što se događa kada paušalac pređe limit prihoda?
-    a: Pri prelasku 60.000 EUR morate prijaviti promjenu Poreznoj u roku 8 dana. Prelazite na obrt na dohodak ili osnivate j.d.o.o. Automatski ulazite u sustav PDV-a od prvog dana sljedećeg mjeseca.
+    a: Pri prelasku paušalnog praga morate prijaviti promjenu Poreznoj u roku 8 dana. Prelazite na obrt na dohodak ili osnivate j.d.o.o. Automatski ulazite u sustav PDV-a od prvog dana sljedećeg mjeseca.
   - q: Kada postaje obvezan ulazak u PDV?
-    a: Obvezno pri prelasku 60.000 EUR godišnjeg prihoda. Prijava u sustav PDV-a se vrši automatski - postajete PDV obveznik od 1. dana sljedećeg mjeseca nakon prelaska praga. Morate obračunavati 25% PDV na fakture.
+    a: Obvezno pri prelasku PDV praga godišnjeg prihoda. Prijava u sustav PDV-a se vrši automatski - postajete PDV obveznik od 1. dana sljedećeg mjeseca nakon prelaska praga. Morate obračunavati PDV na fakture.
   - q: Mogu li se vratiti na paušal?
-    a: Da, ako prihod padne ispod 60.000 EUR. Povratak na paušalni obrt je moguć od sljedeće kalendarske godine uz prijavu Poreznoj upravi. Međutim, većina poslova koji jednom prijeđu prag, nastavljaju rasti.
+    a: Da, ako prihod padne ispod paušalnog praga. Povratak na paušalni obrt je moguć od sljedeće kalendarske godine uz prijavu Poreznoj upravi. Međutim, većina poslova koji jednom prijeđu prag, nastavljaju rasti.
 ---
 
-# Prešao/la sam 60.000€ - što sad?
+# Prešao/la sam paušalni prag - što sad?
 
-Prešli ste godišnji limit od 60.000 EUR prihoda na paušalnom obrtu? To znači da **morate** promijeniti oblik poslovanja. Ovo nije opcija - zakon vas obvezuje na prijelaz na drugi oblik poreznog obveznika.
+Prešli ste godišnji limit od <FiscalCurrency path="THRESHOLDS.pausalni.value" /> prihoda na paušalnom obrtu? To znači da **morate** promijeniti oblik poslovanja. Ovo nije opcija - zakon vas obvezuje na prijelaz na drugi oblik poreznog obveznika.
 
 ## Vaša situacija
 
 - Trenutno poslujete kao paušalni obrtnik
-- Prešli ste ili ćete uskoro prijeći godišnji limit od 60.000 EUR prihoda
+- Prešli ste ili ćete uskoro prijeći godišnji limit od <FiscalCurrency path="THRESHOLDS.pausalni.value" /> prihoda
 - **Imate zakonsku obvezu prijaviti promjenu unutar 8 dana** od prelaska praga
 - Morate odabrati između obrta na dohodak ili j.d.o.o.
 - Automatski ulazite u sustav PDV-a
@@ -41,7 +41,7 @@ Prešli ste godišnji limit od 60.000 EUR prihoda na paušalnom obrtu? To znači
 <PDVCallout type="warning">
 **Važno: Zakonski rok za prijavu je 8 dana!**
 
-Kada prijeđete prag od 60.000 EUR godišnjeg prihoda, imate **samo 8 dana** da prijavite promjenu Poreznoj upravi. Također, automatski ulazite u sustav PDV-a od prvog dana sljedećeg mjeseca nakon prelaska praga. Kasno prijavljivanje može rezultirati kaznama.
+Kada prijeđete prag od <FiscalCurrency path="THRESHOLDS.pausalni.value" /> godišnjeg prihoda, imate **samo 8 dana** da prijavite promjenu Poreznoj upravi. Također, automatski ulazite u sustav PDV-a od prvog dana sljedećeg mjeseca nakon prelaska praga. Kasno prijavljivanje može rezultirati kaznama.
 
 **Što učiniti odmah:**
 1. Kontaktirajte knjigovođu čim znate da ste prešli ili ćete prijeći prag
@@ -146,7 +146,7 @@ Najjednostavniji i najbrži način prijelaza koji zadržava kontinuitet poslovan
 **Koraci prijelaza:**
 
 1. **Dan 1: Kontakt s knjigovođom (odmah)**
-   - Čim znate da ste prešli ili ćete prijeći 60.000 EUR
+   - Čim znate da ste prešli ili ćete prijeći <FiscalCurrency path="THRESHOLDS.pausalni.value" />
    - Knjigovođa će vas voditi kroz proces
    - Pripremite podatke o prihodima
 
@@ -194,7 +194,7 @@ Kompleksniji proces koji uključuje osnivanje nove pravne osobe i zatvaranje obr
    - Angažiranje odvjetnika ili usluge osnivanja
    - Odabir naziva tvrtke (provjera dostupnosti)
    - Priprema osnivačkog akta i dokumentacije
-   - Odluka o temeljnom kapitalu (min. 1 EUR, preporučeno 2.650 EUR)
+   - Odluka o temeljnom kapitalu (min. <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooCapital.value" decimals={0} />, preporučeno više od minimuma)
    - Trošak: 1.500-3.000 EUR
 
 2. **Tjedan 1-2: Registracija j.d.o.o.**
@@ -238,7 +238,7 @@ Kompleksniji proces koji uključuje osnivanje nove pravne osobe i zatvaranje obr
 <RecommendationCard type="obrt-dohodak">
 **Idealan izbor ako:**
 - Želite najbrži i najjednostavniji prijelaz
-- Prihodi su vam 60.000-150.000 EUR godišnje
+- Prihodi su vam od <FiscalCurrency path="THRESHOLDS.pausalni.value" /> do 150.000 EUR godišnje
 - Nemate visoke poslovne rizike
 - Želite zadržati isti OIB i kontinuitet s klijentima
 - Preferirate jednostavnije poslovanje
@@ -279,12 +279,12 @@ Kompleksniji proces koji uključuje osnivanje nove pravne osobe i zatvaranje obr
 
 ## Što se događa s PDV-om?
 
-Bez obzira koju opciju odaberete (obrt na dohodak ili j.d.o.o.), **automatski ulazite u sustav PDV-a** čim prijeđete prag od 60.000 EUR.
+Bez obzira koju opciju odaberete (obrt na dohodak ili j.d.o.o.), **automatski ulazite u sustav PDV-a** čim prijeđete prag od <FiscalCurrency path="THRESHOLDS.pausalni.value" />.
 
 ### PDV obveze nakon prelaska praga
 
 **Od kada ste PDV obveznik:**
-- Od prvog dana sljedećeg mjeseca nakon što ste prešli 60.000 EUR
+- Od prvog dana sljedećeg mjeseca nakon što ste prešli <FiscalCurrency path="THRESHOLDS.pausalni.value" />
 - Primjer: Ako prijeđete prag 15. svibnja, PDV obveznik ste od 1. lipnja
 
 **Što to znači u praksi:**
@@ -329,95 +329,13 @@ Nakon prelaska u PDV sustav:
 
 ## Praktične kalkulacije po scenarijima
 
-Usporedba stvarnih troškova na različitim razinama prihoda.
-
-### Scenarij 1: 70.000 EUR prihoda, 15.000 EUR troškova
-
-**Obrt na dohodak:**
-- Prihodi: 70.000 EUR
-- Troškovi poslovanja: 15.000 EUR
-- Doprinosi (262 × 12): 3.144 EUR
-- Knjigovodstvo (200 × 12): 2.400 EUR
-- Dobitak: 70.000 - 15.000 - 3.144 - 2.400 = 49.456 EUR
-- Porez na dohodak (~24%): 11.869 EUR
-- **NETO zarada: 37.587 EUR (53.7% prihoda)**
-
-**J.D.O.O.:**
-- Prihodi: 70.000 EUR
-- Troškovi poslovanja: 15.000 EUR
-- Plaća direktora (450 × 12): 5.400 EUR
-- Doprinosi na plaću (~30%): 1.620 EUR
-- Knjigovodstvo (300 × 12): 3.600 EUR
-- Dobitak: 70.000 - 15.000 - 5.400 - 1.620 - 3.600 = 44.380 EUR
-- Porez na dobitak (12%): 5.326 EUR
-- Neto dobitak: 39.054 EUR
-- Dividenda (porez 10%): 3.905 EUR
-- **NETO zarada: 35.149 + 5.400 plaća = 40.549 EUR (57.9% prihoda)**
-
-**Razlika:** J.D.O.O. bolji za ~3.000 EUR godišnje + ograničena odgovornost
-
-### Scenarij 2: 100.000 EUR prihoda, 30.000 EUR troškova
-
-**Obrt na dohodak:**
-- Prihodi: 100.000 EUR
-- Troškovi poslovanja: 30.000 EUR
-- Doprinosi: 3.144 EUR
-- Knjigovodstvo: 2.400 EUR
-- Dobitak: 100.000 - 30.000 - 3.144 - 2.400 = 64.456 EUR
-- Porez na dohodak (~30%): 19.337 EUR
-- **NETO zarada: 45.119 EUR (45.1% prihoda)**
-
-**J.D.O.O.:**
-- Prihodi: 100.000 EUR
-- Troškovi poslovanja: 30.000 EUR
-- Plaća direktora (600 × 12): 7.200 EUR
-- Doprinosi: 2.160 EUR
-- Knjigovodstvo (350 × 12): 4.200 EUR
-- Dobitak: 100.000 - 30.000 - 7.200 - 2.160 - 4.200 = 56.440 EUR
-- Porez na dobitak (12%): 6.773 EUR
-- Neto dobitak: 49.667 EUR
-- Dividenda (porez 10%): 4.967 EUR
-- **NETO zarada: 44.700 + 7.200 plaća = 51.900 EUR (51.9% prihoda)**
-
-**Razlika:** J.D.O.O. bolji za ~6.800 EUR godišnje + ograničena odgovornost
-
-### Scenarij 3: 150.000 EUR prihoda, 50.000 EUR troškova
-
-**Obrt na dohodak:**
-- Prihodi: 150.000 EUR
-- Troškovi poslovanja: 50.000 EUR
-- Doprinosi: 3.144 EUR
-- Knjigovodstvo: 3.000 EUR
-- Dobitak: 150.000 - 50.000 - 3.144 - 3.000 = 93.856 EUR
-- Porez na dohodak (~30%): 28.157 EUR
-- **NETO zarada: 65.699 EUR (43.8% prihoda)**
-
-**J.D.O.O.:**
-- Prihodi: 150.000 EUR
-- Troškovi poslovanja: 50.000 EUR
-- Plaća direktora (800 × 12): 9.600 EUR
-- Doprinosi: 2.880 EUR
-- Knjigovodstvo (400 × 12): 4.800 EUR
-- Dobitak: 150.000 - 50.000 - 9.600 - 2.880 - 4.800 = 82.720 EUR
-- Porez na dobitak (18%): 14.890 EUR
-- Neto dobitak: 67.830 EUR
-- Dividenda (porez 10%): 6.783 EUR
-- **NETO zarada: 61.047 + 9.600 plaća = 70.647 EUR (47.1% prihoda)**
-
-**Razlika:** J.D.O.O. bolji za ~5.000 EUR godišnje + ograničena odgovornost
-
-### Zaključak iz kalkulacija
-
-- **Do ~80.000 EUR prihoda:** Razlike su male, obrt na dohodak jednostavniji
-- **80.000-120.000 EUR:** J.D.O.O. počinje biti značajno povoljniji (4.000-7.000 EUR razlike)
-- **Iznad 120.000 EUR:** J.D.O.O. jasno povoljniji zbog nižih poreza na dobitak
-- **Uvijek u j.d.o.o. dobivate:** Zaštitu osobne imovine (neprocjenjivo u rizičnim djelatnostima)
+Za konkretan izračun po prihodima i troškovima koristite interaktivni kalkulator iznad. Rezultati ovise o strukturi troškova, doprinosima i važećim stopama.
 
 ## Česta pitanja
 
 ### Kada točno moram prijeći s paušalnog obrta?
 
-Morate prijaviti promjenu **unutar 8 dana** od kada su vaši prihodi u tekućoj godini prešli 60.000 EUR. Ne čekajte kraj godine - obveza nastaje čim prijeđete prag.
+Morate prijaviti promjenu **unutar 8 dana** od kada su vaši prihodi u tekućoj godini prešli <FiscalCurrency path="THRESHOLDS.pausalni.value" />. Ne čekajte kraj godine - obveza nastaje čim prijeđete prag.
 
 ### Što ako ne prijavim promjenu na vrijeme?
 
@@ -431,18 +349,18 @@ Kasnjena prijava može rezultirati:
 
 ### Mogu li se ikada vratiti na paušalni obrt?
 
-Da, možete se vratiti na paušalni obrt **ako** u sljedećoj godini vaši prihodi budu ispod 60.000 EUR. Međutim:
+Da, možete se vratiti na paušalni obrt **ako** u sljedećoj godini vaši prihodi budu ispod <FiscalCurrency path="THRESHOLDS.pausalni.value" />. Međutim:
 - Morate pričekati početak nove kalendarske godine
 - Morate prijaviti povratak na paušalni sustav
-- Ako ponovno prijeđete 60.000 EUR, opet morate prijeći
+- Ako ponovno prijeđete <FiscalCurrency path="THRESHOLDS.pausalni.value" />, opet morate prijeći
 
 **Realnost:** Većina koja jednom prijeđe prag, rijetko se vraća jer poslovanje obično raste.
 
-### Što ako sam prešao 60.000 EUR, ali većina je izvoz (0% PDV)?
+### Što ako sam prešao paušalni prag, ali većina je izvoz (0% PDV)?
 
-Izvoz se **također računa** u prag od 60.000 EUR, čak i ako je stavka s 0% PDV-a. Što znači:
+Izvoz se **također računa** u prag od <FiscalCurrency path="THRESHOLDS.pausalni.value" />, čak i ako je stavka s 0% PDV-a. Što znači:
 - Prihodi od izvoza se zbrajaju s domaćim prihodima
-- Ako ukupno prijeđete 60.000 EUR, morate prijeći s paušalnog
+- Ako ukupno prijeđete <FiscalCurrency path="THRESHOLDS.pausalni.value" />, morate prijeći s paušalnog
 - Ulazite u PDV sustav neovisno o tome što je izvoz 0% PDV
 
 ### Trebam li novi OIB ako prelazim s obrta na j.d.o.o.?
@@ -492,13 +410,13 @@ Tehnički da, ali **nije preporučljivo** jer:
 
 ### Što ako procijenim da ću prijeći prag krajem godine?
 
-Ako znate da ćete prijeći 60.000 EUR (npr. imate velike projekte u planu):
+Ako znate da ćete prijeći paušalni prag (npr. imate velike projekte u planu):
 1. **Proaktivno prijeđite ranije** - ne čekajte da prijeđete prag
 2. **Planirajte prijelaz u mirnijim mjesecima** (ne usred velikih projekata)
 3. **Informirajte klijente unaprijed** o nadolazećoj promjeni i PDV-u
 4. **Angažirajte knjigovođu mjesec dana prije** da sve bude spremno
 
-**Dobra praksa:** Ako ste na 50.000 EUR u listopadu, prijeđite odmah - ne čekajte prosinac.
+**Dobra praksa:** Ako ste već blizu paušalnog praga u listopadu, prijeđite odmah - ne čekajte prosinac.
 
 ### Koliko košta knjigovođa za obrt vs j.d.o.o.?
 
@@ -518,14 +436,14 @@ Ako znate da ćete prijeći 60.000 EUR (npr. imate velike projekte u planu):
 
 Nakon što odlučite koju opciju odabrati, proučite detaljan vodič za taj oblik poslovanja:
 
-- [Detaljni vodič za obrt na dohodak](/vodiči/obrt-dohodak) - Sve o prijelazu, obvezama i poslovanju
-- [Detaljni vodič za j.d.o.o.](/vodiči/jdoo) - Osnivanje, vođenje i optimizacija j.d.o.o.
-- [PDV vodič za početnike](/vodiči/pdv-sustav) - Sve što trebate znati o PDV-u
-- [Odabir knjigovođe](/vodiči/odabir-knjigovode) - Kako izabrati pravog knjigovođu za vaše potrebe
+- [Detaljni vodič za obrt na dohodak](/vodic/obrt-dohodak) - Sve o prijelazu, obvezama i poslovanju
+- [Detaljni vodič za d.o.o.](/vodic/doo) - Osnivanje, vođenje i optimizacija d.o.o.
+- [PDV vodič za početnike](/kako-da/uci-u-sustav-pdv) - Sve što trebate znati o PDV-u
+- [Odabir knjigovođe](/for/accountants) - Kako izabrati pravog knjigovođu za vaše potrebe
 
 ## Zaključak i preporuke
 
-### Za većinu paušalaca koji prijeđu 60.000 EUR:
+### Za većinu paušalaca koji prijeđu paušalni prag:
 
 **Obrt na dohodak** je najlogičniji prvi korak jer:
 - Najbrža i najjednostavnija tranzicija

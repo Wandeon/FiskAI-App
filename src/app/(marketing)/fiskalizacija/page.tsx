@@ -126,7 +126,7 @@ export default function FiskalizacijaHubPage() {
                 <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-cyan-400" />
               </Link>
               <Link
-                href="/kako-da/izdati-prvi-fiskalizirani-racun"
+                href="/kako-da/registrirati-informacijskog-posrednika"
                 className="group flex items-center justify-between rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 hover:border-cyan-500/20 hover:bg-cyan-500/10 hover:shadow-md"
               >
                 <div>

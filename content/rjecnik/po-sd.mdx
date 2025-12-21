@@ -2,7 +2,7 @@
 title: PO-SD (Pregled primitaka i izdataka)
 term: PO-SD
 shortDefinition: Kvartalni obrazac kojim paušalni obrtnici prijavljuju ukupne primitke i obračunavaju paušalni porez.
-description: Što je PO-SD obrazac, tko ga predaje, rokovi predaje za 2025. godinu.
+description: Što je PO-SD obrazac, tko ga predaje i koji su rokovi predaje.
 lastUpdated: 2025-12-16
 relatedTerms:
   - pausal
@@ -19,11 +19,11 @@ sources:
     url: https://e-porezna.porezna-uprava.hr
 faq:
   - q: Koji je rok za predaju PO-SD obrasca?
-    a: 20. u mjesecu nakon završetka kvartala. Za Q4 2024, rok je 20. siječnja 2025.
+    a: 20. u mjesecu nakon završetka kvartala. Detaljne datume provjerite u kalendaru rokova.
   - q: Što ako nemam primitaka u kvartalu?
     a: I dalje morate predati obrazac s nulom. Paušalni porez se plaća čak i bez primitaka.
   - q: Mogu li ispravi ti pogrešno predani PO-SD?
-    a: Da, putem ePorezna možete predati ispravak do 15. u mjesecu nakon roka.
+    a: Da, putem ePorezna možete predati ispravak u roku nakon isteka roka za predaju.
 keywords:
   - po-sd obrazac
   - paušalna prijava
@@ -44,33 +44,20 @@ keywords:
 - Obrtnici na dohodak (oni predaju DOH)
 - d.o.o. i j.d.o.o. (oni predaju PD)
 
-## Rokovi predaje 2025.
+## Rokovi predaje
 
-| Kvartal | Razdoblje | Rok predaje |
-|---------|-----------|-------------|
-| Q1 2025 | 1.1.-31.3. | **20. travnja 2025.** |
-| Q2 2025 | 1.4.-30.6. | **21. srpnja 2025.** |
-| Q3 2025 | 1.7.-30.9. | **20. listopada 2025.** |
-| Q4 2025 | 1.10.-31.12. | **20. siječnja 2026.** |
-
-**Pravilo:** 20. u mjesecu nakon završetka kvartala.
+**Pravilo:** 20. u mjesecu nakon završetka kvartala. Detaljne datume pronađite u [kalendaru rokova](/alati/kalendar).
 
 ## Što se upisuje?
 
 **Obvezni podaci:**
 1. **Ukupni primitci** za kvartal (svi poslovni primitci)
 2. Paušalni prihod (automatski iz pravilnika)
-3. Obračun paušalnog poreza (12% × paušalni prihod)
+3. Obračun paušalnog poreza (<FiscalPercentage path="TAX_RATES.pausal.rate" /> × paušalni prihod)
 4. Prirez (ako primjenjivo)
 5. Doprinosi na minimalnu osnovicu
 
-**Primjer - IT obrtnik u Zagrebu, Q1 2025:**
-- Stvarni primitci: 15.000 EUR
-- Paušalni prihod (pravilnik): 3.000 EUR (kvartalno)
-- Porez (12%): 360 EUR
-- Prirez Zagreb (18%): 64,80 EUR
-- **Ukupan porez Q1: 424,80 EUR**
-- Doprinosi (3 mjeseca): ~750 EUR
+**Primjer:** Za konkretan izračun koristite [PO-SD kalkulator](/alati/posd-kalkulator).
 
 ## Predaja PO-SD obrasca
 
@@ -87,16 +74,9 @@ keywords:
 6. Potpis i slanje
 7. Spremanje potvrde (PDF)
 
-## Obračun poreza - Primjer
+## Obračun poreza
 
-**Paušalac u Splitu (12% prirez), Q2 2025:**
-- Primitci u kvartalu: 20.000 EUR
-- Paušalni prihod (pravilnik): 3.000 EUR
-- Porez (12%): 3.000 × 0,12 = 360 EUR
-- Prirez Split (12%): 360 × 0,12 = 43,20 EUR
-- **Obveza: 403,20 EUR**
-
-**Plaćanje:** Odmah nakon predaje (najkasnije do 20.)
+Za konkretan izračun poreza i prireza koristite [PO-SD kalkulator](/alati/posd-kalkulator).
 
 ## Godišnji obračun
 
@@ -110,19 +90,19 @@ Za razliku od:
 
 **Ako nemate primitaka u kvartalu:**
 - I dalje morate predati PO-SD
-- Upisujete 0 EUR primitaka
-- **Ali:** Paušalni porez se plaća čak i s 0 primitaka!
+- Upisujete nulu primitaka
+- **Ali:** Paušalni porez se plaća čak i bez primitaka!
 
 **Iznimka:** Ako ste **privremeno obustavili** djelatnost (prijavljeno HOK/HGK), ne plaćate porez.
 
 ## Doprinosi i PO-SD
 
-PO-SD obrazac **ne uključuje doprinose** (MIO, HZZO). Doprinosi se plaćają zasebno:
-- MIO (20%): ~136 EUR mjesečno
-- HZZO (16,5%): ~113 EUR mjesečno
-- **Ukupno: ~249 EUR mjesečno**
+PO-SD obrazac **ne uključuje doprinose** (MIO, HZZO). Doprinosi se plaćaju zasebno:
+- MIO (<FiscalPercentage path="CONTRIBUTIONS.rates.MIO_I.rate" />)
+- HZZO (<FiscalPercentage path="CONTRIBUTIONS.rates.HZZO.rate" />)
+- **Ukupno (s II. stupom):** <FiscalCurrency path="CONTRIBUTIONS.monthly.total" />
 
-Doprinosi se plaćają na minimalnu osnovicu (682 EUR) neovisno o PO-SD-u.
+Doprinosi se plaćaju na minimalnu osnovicu (<FiscalCurrency path="CONTRIBUTIONS.base.minimum" />) neovisno o PO-SD-u.
 
 ## Ispravak PO-SD-a
 
@@ -130,21 +110,19 @@ Doprinosi se plaćają na minimalnu osnovicu (682 EUR) neovisno o PO-SD-u.
 1. Prijavite se na ePorezna
 2. Odaberite "Ispravak PO-SD"
 3. Unesite ispravne podatke
-4. **Rok:** Do 15. u mjesecu nakon roka
-
-**Primjer:** PO-SD za Q1 predan 15.4. → Ispravak moguć do 15.5.
+4. **Rok:** U propisanom roku nakon isteka roka predaje
 
 ## Kazne
 
 **Nepredaja ili kašnjenje:**
-- Kazna: 200-2.000 EUR (fizičke osobe)
+- Kazne su značajne i ovise o prekršaju
 - Zatezna kamata na neplaćeni porez
 
 **Nepotpuna prijava:**
-- Kazna: 200-1.000 EUR
+- Kazne se određuju prema prekršaju
 
 ## Glavni vodič
 
 Za detaljne informacije o paušalnom obrtu i PO-SD obrascu, pročitajte:
-- [Paušalni obrt - kompletan vodič](/vodici/pausalni-obrt)
+- [Paušalni obrt - kompletan vodič](/vodic/pausalni-obrt)
 - [Kako ispuniti PO-SD - korak po korak](/kako-da/ispuniti-po-sd)

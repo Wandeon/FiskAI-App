@@ -49,8 +49,8 @@ Nerezident plaća porez samo na:
 ## Stope poreza za nerezidente
 
 **Plaće i honorari:**
-- 20% (dohodak do 50.400 EUR godišnje)
-- 30% (iznad 50.400 EUR)
+- <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> (dohodak do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> godišnje)
+- <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> (iznad <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />)
 
 **Najamnina:**
 - 12% (paušalno)

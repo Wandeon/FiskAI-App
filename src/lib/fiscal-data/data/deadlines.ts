@@ -116,6 +116,13 @@ export const ADDITIONAL_DEADLINES = {
     frequency: "annual" as const,
   },
 
+  posdQuarterly: {
+    name: "PO-SD obrazac - kvartalno",
+    description: "Rok za kvartalnu predaju PO-SD obrasca",
+    dates: ["20.01", "20.04", "20.07", "20.10"],
+    frequency: "quarterly" as const,
+  },
+
   // Godišnji financijski izvještaji
   financialStatements: {
     name: "Godišnji financijski izvještaji",

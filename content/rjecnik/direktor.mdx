@@ -2,7 +2,7 @@
 title: Direktor
 term: Direktor
 shortDefinition: Osoba koja zastupa i vodi poslovanje d.o.o. ili j.d.o.o., može biti član društva ili vanjska osoba.
-description: Uloga direktora, obveze, plaća i odgovornost u 2025. godini.
+description: Uloga direktora, obveze, plaća i odgovornost.
 lastUpdated: 2025-12-16
 relatedTerms:
   - doo
@@ -20,7 +20,7 @@ faq:
   - q: Može li vlasnik d.o.o. biti i direktor?
     a: Da. Najčešće jedini vlasnik postavlja sam sebe za direktora.
   - q: Mora li direktor imati plaću?
-    a: Da. Direktor mora imati prijavljenu plaću (minimum 682 EUR mjesečno).
+    a: Da. Direktor mora imati prijavljenu minimalnu plaću prema propisanoj osnovici.
   - q: Može li direktor biti stranac?
     a: Da. Nema ograničenja državljanstva za direktora.
 keywords:
@@ -64,16 +64,13 @@ keywords:
 
 Direktor **mora imati prijavljenu plaću:**
 
-**Minimalna bruto plaća:** 682 EUR (minimalna osnovica za doprinose)
+**Minimalna bruto plaća:** <FiscalCurrency path="CONTRIBUTIONS.base.minimum" /> (minimalna osnovica za doprinose)
 
 **Doprinosi na plaću:**
-- MIO (20%): 136,40 EUR
-- HZZO (16,5%): 112,53 EUR
-- Porez (ovisno o visini): 0-200+ EUR
+- MIO (<FiscalPercentage path="CONTRIBUTIONS.rates.MIO_I.rate" />): <FiscalCurrency path="CONTRIBUTIONS.monthly.mioI" />
+- HZZO (<FiscalPercentage path="CONTRIBUTIONS.rates.HZZO.rate" />): <FiscalCurrency path="CONTRIBUTIONS.monthly.hzzo" />
 
-**Neto iz 682 EUR:** ~400-450 EUR
-
-**Prosječna plaća direktora:** 1.000-3.000 EUR bruto
+**Napomena:** Porez ovisi o visini plaće i prirezu.
 
 **Prijava:** Putem **JOPPD obrasca** mjesečno
 
@@ -100,7 +97,7 @@ Direktor odgovara tvrtki za:
 
 **Neizvršni direktor:**
 - Formalista (npr. osnivač)
-- Minimalna plaća (682 EUR)
+- Minimalna plaća (<FiscalCurrency path="CONTRIBUTIONS.base.minimum" />)
 - Stvarno poslovanje obavlja netko drugi
 
 ## Razrješenje direktora
@@ -127,5 +124,5 @@ Uprava može biti **jednočlana** (1 direktor) ili **višečlana** (2+ direktora
 ## Glavni vodič
 
 Za detaljne informacije o ulozi direktora u d.o.o.:
-- [J.D.O.O. i D.O.O. - kompletan vodič](/vodici/doo)
-- [Usporedba: Želim osnovati firmu](/usporedbe/firma)
+- [J.D.O.O. i D.O.O. - kompletan vodič](/vodic/doo)
+- [Usporedba: Želim osnovati firmu](/usporedba/firma)

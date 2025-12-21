@@ -1,8 +1,8 @@
 ---
 title: Osobni odbitak
 term: Osobni odbitak
-shortDefinition: Iznos koji se odbija od porezne osnovice prije obračuna poreza na dohodak, za 2025. osnovni odbitak iznosi 560 EUR mjesečno (6.720 EUR godišnje).
-description: Što je osobni odbitak, koliko iznosi u 2025, povećani odbici za djecu i uzdržavane članove.
+shortDefinition: Iznos koji se odbija od porezne osnovice prije obračuna poreza na dohodak, a određuje se važećim propisima.
+description: Što je osobni odbitak, kako se primjenjuje i kako se povećava za djecu i uzdržavane članove.
 lastUpdated: 2025-12-16
 relatedTerms:
   - dohodak
@@ -20,9 +20,9 @@ sources:
     url: https://www.porezna-uprava.hr/
 faq:
   - q: Koliki je osobni odbitak za 2025?
-    a: Osnovni osobni odbitak za 2025. iznosi 560 EUR mjesečno ili 6.720 EUR godišnje.
+    a: Osnovni osobni odbitak određuje se važećim propisima i prikazan je u nastavku.
   - q: Koliki je odbitak za djecu?
-    a: Za svako uzdržavano dijete osobni odbitak se povećava za 415 EUR mjesečno (4.980 EUR godišnje).
+    a: Osobni odbitak se povećava za uzdržavanu djecu prema propisanim koeficijentima.
   - q: Može li osobni odbitak biti veći od plaće?
     a: Da. Ako je plaća mala, nakon odbitka može ostati 0 porezne osnovice, što znači da se ne plaća porez.
 keywords:
@@ -39,14 +39,14 @@ keywords:
 **Formula:**
 Oporeziva osnovica = Bruto plaća - Doprinosi - Osobni odbitak
 
-## Iznosi osobnog odbitka 2025.
+## Iznosi osobnog odbitka (važeća godina)
 
 ### Osnovni osobni odbitak
 
 | Razdoblje | Iznos |
 |-----------|-------|
-| **Mjesečno** | **560 EUR** |
-| **Godišnje** | **6.720 EUR** |
+| **Mjesečno** | **<FiscalCurrency path="TAX_RATES.income.personalAllowance" decimals={0} />** |
+| **Godišnje** | **Mjesečno × 12** |
 
 ### Povećani odbici
 
@@ -61,38 +61,7 @@ Oporeziva osnovica = Bruto plaća - Doprinosi - Osobni odbitak
 
 ## Primjeri izračuna
 
-### Primjer 1: Samac bez djece
-
-**Bruto plaća:** 1.500 EUR
-- Doprinosi (32%): -480 EUR
-- Nakon doprinosa: 1.020 EUR
-- **Osobni odbitak:** -560 EUR
-- **Porezna osnovica:** 460 EUR
-- Porez (20%): 92 EUR
-- Prirez Zagreb (18%): 16,56 EUR
-- **Neto plaća:** 1.500 - 480 - 92 - 16,56 = **911,44 EUR**
-
-### Primjer 2: Roditelj s dvoje djece
-
-**Bruto plaća:** 1.500 EUR
-- Doprinosi: -480 EUR
-- Nakon doprinosa: 1.020 EUR
-- Osnovni odbitak: 560 EUR
-- **Odbitak za 2 djece:** 2 × 415 = 830 EUR
-- **Ukupan odbitak:** 560 + 830 = 1.390 EUR
-- **Porezna osnovica:** 1.020 - 1.390 = **0 EUR** (negativno → 0)
-- **Porez: 0 EUR**
-- **Neto plaća:** 1.500 - 480 = **1.020 EUR**
-
-### Primjer 3: Niska plaća
-
-**Bruto plaća:** 800 EUR
-- Doprinosi (32%): -256 EUR
-- Nakon doprinosa: 544 EUR
-- Osobni odbitak: -560 EUR
-- **Porezna osnovica:** 0 EUR (544 < 560)
-- **Porez: 0 EUR**
-- **Neto plaća:** 800 - 256 = **544 EUR**
+Primjeri ovise o visini bruto plaće, doprinosima i olakšicama. Za konkretan izračun preporučujemo korištenje kalkulatora ili obračuna kod knjigovođe.
 
 ## Ostvarivanje prava na povećani odbitak
 
@@ -121,28 +90,19 @@ Poslodavac prilagođava obračun u **sljedećem JOPPD-u.**
 ## Godišnji obračun i osobni odbitak
 
 Osobe koje predaju **DOH obrazac** sami izračunavaju godišnji odbitak:
-- Godišnji osnovni: 6.720 EUR
+- Godišnji osnovni: mjesečni odbitak × 12
 - Plus povećanja × 12 mjeseci
 
 Ako su tijekom godine promijenili okolnosti (npr. rođenje djeteta), odbitak se računa proporcionalno.
 
 ## Povijest osobnog odbitka
 
-| Godina | Osnovni (mjesečno) | Dijete (mjesečno) |
-|--------|--------------------|-------------------|
-| 2020 | 400 EUR | 250 EUR |
-| 2021 | 400 EUR | 250 EUR |
-| 2022 | 400 EUR | 250 EUR |
-| 2023 | 560 EUR | 415 EUR |
-| 2024 | 560 EUR | 415 EUR |
-| **2025** | **560 EUR** | **415 EUR** |
-
-Značajno povećanje 2023. godine (40%) kao odgovor na inflaciju.
+Osobni odbitak se mijenja kroz godine, ovisno o propisima i fiskalnim prioritetima. Za aktualni iznos provjerite tablicu iznad i fiskalne podatke.
 
 ## Osobni odbitak i obrtnici
 
 **Obrtnici na dohodak** također koriste osobni odbitak:
-- Godišnji odbitak 6.720 EUR
+- Godišnji odbitak = mjesečni odbitak × 12
 - Odbija se od dobiti u DOH obrascu
 - Plus povećanja za djecu ako primjenjivo
 

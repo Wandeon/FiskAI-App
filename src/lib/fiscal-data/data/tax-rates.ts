@@ -67,6 +67,7 @@ export const TAX_RATES: TaxRatesData = {
 
     rate: 0.12, // 12% - osnovna stopa bez prireza
     maxRevenue: 60000, // EUR - maksimalni godišnji prihod
+    normativeExpenseRate: 0.3, // 30% normativni rashodi
 
     brackets: [
       { min: 0, max: 11300, base: 1695, annualTax: 203.4, quarterlyTax: 50.85 },
@@ -76,6 +77,32 @@ export const TAX_RATES: TaxRatesData = {
       { min: 30600.01, max: 40000, base: 6000, annualTax: 720.0, quarterlyTax: 180.0 },
       { min: 40000.01, max: 50000, base: 7500, annualTax: 900.0, quarterlyTax: 225.0 },
       { min: 50000.01, max: 60000, base: 9000, annualTax: 1080.0, quarterlyTax: 270.0 },
+    ],
+  },
+
+  // ===========================================================================
+  // VAT (PDV) RATES
+  // ===========================================================================
+  vat: {
+    year: 2025,
+    lastVerified: "2025-01-15",
+    source: "https://www.porezna-uprava.hr/HR_porezni_sustav/Stranice/pdv.aspx",
+    standard: {
+      rate: 0.25,
+      label: "Standardna stopa",
+      description: "Opća stopa PDV-a u Hrvatskoj",
+    },
+    reduced: [
+      {
+        rate: 0.13,
+        label: "Snižena stopa",
+        description: "Usluge smještaja, ugostiteljstvo, novine i odabrani proizvodi",
+      },
+      {
+        rate: 0.05,
+        label: "Snižena stopa II",
+        description: "Osnovne namirnice, knjige, lijekovi i medicinski proizvodi",
+      },
     ],
   },
 } as const

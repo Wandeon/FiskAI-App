@@ -101,12 +101,25 @@ export interface PausalTaxData extends FiscalMetadata {
   rate: number
   brackets: PausalTaxBracket[]
   maxRevenue: number
+  normativeExpenseRate: number
+}
+
+export interface VatRate {
+  rate: number
+  label: string
+  description?: string
+}
+
+export interface VatRatesData extends FiscalMetadata {
+  standard: VatRate
+  reduced: VatRate[]
 }
 
 export interface TaxRatesData {
   income: IncomeTaxData
   corporate: CorporateTaxData
   pausal: PausalTaxData
+  vat: VatRatesData
 }
 
 // =============================================================================
@@ -223,7 +236,9 @@ export type FiscalDataPath =
   | `CONTRIBUTIONS.${string}`
   | `TAX_RATES.${string}`
   | `THRESHOLDS.${string}`
+  | `ADDITIONAL_THRESHOLDS.${string}`
   | `DEADLINES.${string}`
+  | `ADDITIONAL_DEADLINES.${string}`
   | `PAYMENT_DETAILS.${string}`
   | `CHAMBER_FEES.${string}`
 

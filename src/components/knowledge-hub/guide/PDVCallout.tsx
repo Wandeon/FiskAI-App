@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { getValueByPath } from "@/lib/fiscal-data"
 import type { LucideIcon } from "lucide-react"
 import { AlertTriangle, Lightbulb, PiggyBank } from "lucide-react"
 
@@ -7,6 +8,7 @@ type CalloutType = "warning" | "info" | "tip"
 interface PDVCalloutProps {
   type: CalloutType
   threshold?: number
+  thresholdPath?: string
   context?: "eu-services" | "voluntary" | "general"
   children: React.ReactNode
 }
@@ -38,9 +40,11 @@ const calloutStyles: Record<
   },
 }
 
-export function PDVCallout({ type, threshold, children }: PDVCalloutProps) {
+export function PDVCallout({ type, threshold, thresholdPath, children }: PDVCalloutProps) {
   const styles = calloutStyles[type]
   const Icon = styles.icon
+  const resolvedThreshold = thresholdPath ? getValueByPath(thresholdPath) : threshold
+  const thresholdValue = typeof resolvedThreshold === "number" ? resolvedThreshold : threshold
 
   return (
     <aside className={cn("my-4 p-4 border rounded-lg", styles.bg, styles.border)} role="note">
@@ -56,9 +60,9 @@ export function PDVCallout({ type, threshold, children }: PDVCalloutProps) {
           <Icon className="h-5 w-5" />
         </div>
         <div className="text-sm text-white/90">
-          {threshold && (
+          {thresholdValue && (
             <strong className="block mb-1 text-white">
-              PDV prag: {threshold.toLocaleString("hr-HR")} EUR
+              PDV prag: {thresholdValue.toLocaleString("hr-HR")} EUR
             </strong>
           )}
           {children}

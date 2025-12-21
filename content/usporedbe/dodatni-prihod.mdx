@@ -22,7 +22,7 @@ faq:
   - q: Mogu li raditi honorarno uz stalni posao?
     a: Da, ali morate prijaviti dodatni prihod Poreznoj. Ukupni doprinosi se zbrajaju - ako ste u stalnom radnom odnosu, većina zaposlenih plaća samo HOK članarinu (~137 EUR godišnje) kroz paušalni obrt, jer poslodavac već pokriva MIO i HZZO.
   - q: Što je bolje - ugovor o djelu ili obrt?
-    a: Za povremene poslove do 10.000 EUR godišnje, ugovor o djelu je jednostavniji (bez registracije). Za redoviti dodatni prihod 10.000-60.000 EUR, paušalni obrt nudi daleko viši neto (96% vs 86%).
+    a: Za povremene poslove do 10.000 EUR godišnje, ugovor o djelu je jednostavniji (bez registracije). Za redoviti dodatni prihod do paušalnog praga, paušalni obrt nudi viši neto.
   - q: Koliki je porez na dodatni prihod?
     a: Paušalni obrt uz posao - samo 1.5% paušalnog poreza (~600 EUR na 40.000 EUR prihoda). Ugovor o djelu - 20% poreza + prirez. Autorski ugovor - 25-40% ukupnog opterećenja. Paušalni obrt je porezno najpovoljniji.
 ---
@@ -32,7 +32,7 @@ faq:
 <TLDRBox>
 **Brzi odgovor za zaposlene u 2025:**
 
-- **10.000-60.000 EUR/god dodatno?** → Paušalni obrt (96% neto, samo 137 EUR/god doprinosi)
+- **10.000 EUR do paušalnog praga?** → Paušalni obrt (96% neto, samo 137 EUR/god doprinosi)
 - **Povremeni projekti do 10.000 EUR?** → Ugovor o djelu (0 registracije, naručitelj plaća doprinose)
 - **Kreativni rad (pisanje, predavanja)?** → Autorski ugovor (specifičan za intelektualni rad)
 
@@ -48,7 +48,7 @@ Već plaćate doprinose kroz plaću — dodatne aktivnosti su zato porezno povol
       options: [
         { label: "Do 10.000 EUR", value: "low", points: { ugovor: 3, pausalni: 1, autorski: 1 } },
         { label: "10.000 - 30.000 EUR", value: "mid", points: { pausalni: 3, ugovor: 1, autorski: 1 } },
-        { label: "30.000 - 60.000 EUR", value: "high", points: { pausalni: 3, ugovor: 0, autorski: 1 } },
+        { label: "30.000 EUR do paušalnog praga", value: "high", points: { pausalni: 3, ugovor: 0, autorski: 1 } },
       ],
     },
     {
@@ -105,7 +105,7 @@ Već plaćate doprinose kroz plaću — dodatne aktivnosti su zato porezno povol
   </ComparisonRow>
 
   <ComparisonRow label="Max. godišnji prihod">
-    <ComparisonCell type="pausalni">60.000 EUR</ComparisonCell>
+    <ComparisonCell type="pausalni"><FiscalCurrency path="THRESHOLDS.pausalni.value" /></ComparisonCell>
     <ComparisonCell type="generic">Neograničen</ComparisonCell>
     <ComparisonCell type="generic">Neograničen</ComparisonCell>
   </ComparisonRow>
@@ -195,7 +195,7 @@ Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o rad
 <Accordion title="🔍 Detalji o doprinosima za zaposlene">
 **Paušalni obrt uz posao:**
 - Poslodavac već plaća doprinose na plaću
-- Kroz obrt plaćate samo razliku ako je paušalna osnovica (719,20 EUR) viša od plaće
+- Kroz obrt plaćate samo razliku ako je paušalna osnovica (<FiscalCurrency path="CONTRIBUTIONS.base.minimum" />) viša od plaće
 - **Većina ljudi:** Plaća samo HOK članarinu (~137 EUR/god)
 
 **Ugovor o djelu i autorski:**
@@ -226,7 +226,7 @@ Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o rad
 | Prihod naraste preko 15.000 EUR/god | S ugovora o djelu → Paušalni obrt |
 | Prihod padne ispod 10.000 EUR/god | S paušalnog → Ugovor o djelu |
 | Rad postane manje kreativan | S autorskog → Paušalni obrt |
-| Prihod prelazi 60.000 EUR/god | S paušalnog → Obrt na dohodak ili j.d.o.o. |
+| Prihod prelazi paušalni prag | S paušalnog → Obrt na dohodak ili j.d.o.o. |
 
 <AccordionFAQ
   title="Često postavljana pitanja"
@@ -244,7 +244,7 @@ Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o rad
       answer: "NE i ne bi trebali. Porezna prijava uključuje sve dohotke, poslodavac vidi godišnji obračun poreza, kršenje ugovora o radu može dovesti do otkaza. Budite transparentni!"
     },
     {
-      question: "Što ako dodatni prihod naraste preko 60.000 EUR?",
+      question: "Što ako dodatni prihod naraste preko paušalnog praga?",
       answer: "Kod paušalnog obrta morate prijeći na obrt na dohodak ili j.d.o.o. u roku 8 dana. Ulazite u PDV sustav. Kod ugovora o djelu/autorskog nema limita, ali postaje nepraktično — bolje osnovati obrt."
     },
     {
@@ -257,7 +257,7 @@ Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o rad
     },
     {
       question: "Koliki je optimalni iznos za svaki oblik?",
-      answer: "Ugovor o djelu: do 10.000 EUR/god (povremeni rad). Paušalni obrt: 10.000-60.000 EUR/god (idealan raspon). Autorski: do 20.000 EUR/god za kreativni rad. Iznad toga razmislite o drugim opcijama."
+      answer: "Ugovor o djelu: do 10.000 EUR/god (povremeni rad). Paušalni obrt: do paušalnog praga (idealan raspon). Autorski: do 20.000 EUR/god za kreativni rad. Iznad toga razmislite o drugim opcijama."
     },
   ]}
 />
@@ -274,7 +274,7 @@ Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o rad
   ]}
   cons={[
     "Trošak osnivanja (~100 EUR)",
-    "Limit 60.000 EUR/god",
+    "Limit paušalnog praga",
     "Obavezna fiskalizacija",
   ]}
 />
@@ -323,7 +323,7 @@ Za ugovor o djelu **zakonski trebate pisanu suglasnost poslodavca** (Zakon o rad
 **Povezano:**
 - [Paušalni obrt — Kompletan vodič](/vodic/pausalni-obrt)
 - [Želim početi sam/a — Usporedba svih opcija](/usporedba/pocinjem-solo)
-- [Prelazim 60.000 EUR — PDV i prelazak](/usporedba/preko-praga)
+- [Prelazim paušalni prag — PDV i prelazak](/usporedba/preko-praga)
 
 <FAQ items={frontmatter.faq} />
 

@@ -5,21 +5,29 @@ import { TrendingUp, ArrowRight, Bell } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { THRESHOLDS, TAX_RATES, formatCurrency, formatPercentage } from "@/lib/fiscal-data"
+
+const pdvThresholdLabel = formatCurrency(THRESHOLDS.pdv.value, { decimals: 0 })
+const pdvThresholdYear = THRESHOLDS.pdv.effectiveFrom
+  ? new Date(THRESHOLDS.pdv.effectiveFrom).getFullYear()
+  : new Date().getFullYear()
+const vatStandardRate = formatPercentage(TAX_RATES.vat.standard.rate)
+const vatReducedRate = formatPercentage(TAX_RATES.vat.reduced[0]?.rate ?? 0.13)
 
 export const metadata: Metadata = {
   title: "PDV Kalkulator - Kada prelazim prag? | FiskAI",
   description:
-    "Izračunajte koliko ste blizu PDV praga od 60.000€ i što se mijenja kada ga prijeđete.",
+    `Izračunajte koliko ste blizu PDV praga od ${pdvThresholdLabel} i što se mijenja kada ga prijeđete.`,
 }
 
 const faq = [
   {
     q: "Kako izračunati PDV iz bruto iznosa?",
-    a: "Podijelite bruto iznos s 1.25 (za 25% PDV) da dobijete neto, zatim oduzmite neto od bruto za iznos PDV-a.",
+    a: `Podijelite bruto iznos s 1.25 (za ${vatStandardRate} PDV) da dobijete neto, zatim oduzmite neto od bruto za iznos PDV-a.`,
   },
   {
     q: "Kada se koristi 13% PDV?",
-    a: "Stopa od 13% primjenjuje se na ugostiteljske usluge, novine, vodu i neke prehrambene proizvode.",
+    a: `Stopa od ${vatReducedRate} primjenjuje se na ugostiteljske usluge, novine, vodu i neke prehrambene proizvode.`,
   },
   {
     q: "Što ako pogriješim u obračunu PDV-a?",
@@ -31,7 +39,7 @@ export default function PDVCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "PDV Kalkulator",
     description:
-      "Izračunajte koliko ste blizu PDV praga od 60.000€ i što se mijenja kada ga prijeđete.",
+      `Izračunajte koliko ste blizu PDV praga od ${pdvThresholdLabel} i što se mijenja kada ga prijeđete.`,
     url: "https://fisk.ai/alati/pdv-kalkulator",
   })
 
@@ -54,7 +62,9 @@ export default function PDVCalculatorPage() {
         </nav>
 
         <header>
-          <h1 className="text-display text-4xl font-semibold">PDV kalkulator (60.000€)</h1>
+          <h1 className="text-display text-4xl font-semibold">
+            PDV kalkulator ({pdvThresholdLabel})
+          </h1>
           <p className="mt-4 text-white/60">
             Provjerite koliko ste blizu praga i kad postajete PDV obveznik. Kalkulator koristi
             trenutni prihod (YTD), mjesečni prosjek i preostale mjesece do kraja godine.
@@ -68,9 +78,9 @@ export default function PDVCalculatorPage() {
         <section className="mt-12 prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-cyan-400 prose-strong:text-white">
           <h2>Što je PDV prag?</h2>
           <p>
-            Od 2025. godine, PDV prag u Hrvatskoj iznosi <strong>60.000 EUR</strong> godišnje. Kada
-            vaš prihod prijeđe ovaj iznos, automatski postajete PDV obveznik od prvog dana sljedećeg
-            mjeseca.
+            Od {pdvThresholdYear}. godine, PDV prag u Hrvatskoj iznosi{" "}
+            <strong>{pdvThresholdLabel}</strong> godišnje. Kada vaš prihod prijeđe ovaj iznos,
+            automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca.
           </p>
 
           <h2>Što se mijenja kada postanete PDV obveznik?</h2>

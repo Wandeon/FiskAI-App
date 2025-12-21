@@ -19,7 +19,7 @@ sources:
     url: https://www.hitro.hr/
 faq:
   - q: Koja je razlika između j.d.o.o. i d.o.o.?
-    a: J.d.o.o. ima temeljni kapital od 10 EUR (vs 2.500 EUR za d.o.o.), osniva se online bez javnog bilježnika, ali može imati samo 1 fizičku osobu kao osnivača. D.o.o. nudi potpunu fleksibilnost - više osnivača, prilagodljiv ugovor, pravne osobe kao osnivači.
+    a: J.d.o.o. ima niži temeljni kapital i tipski akt osnivanja, ali može imati samo jednu fizičku osobu kao osnivača. D.o.o. nudi potpunu fleksibilnost - više osnivača, prilagodljiv ugovor, pravne osobe kao osnivači.
   - q: Kada se isplati prijeći s obrta na d.o.o.?
     a: Kod godišnjeg prihoda iznad 100.000 EUR, rizičnih djelatnosti gdje trebate zaštitu imovine, ili kada planirate zapošljavati više od 3 ljudi. Porezne uštede kod 100.000+ EUR mogu biti 5.000-10.000 EUR godišnje.
   - q: Tko vodi knjige u d.o.o.?
@@ -28,7 +28,7 @@ faq:
 
 # Želim osnovati firmu
 
-Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o.](/vodici/doo)) u Hrvatskoj? Odličan izbor za zaštitu osobne imovine i ozbiljniji profesionalni dojam. Sada trebate odlučiti: **[J.D.O.O.](/rjecnik/jdoo) (Jednostavno d.o.o.)** ili **klasični D.O.O.**
+Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o.](/vodic/doo)) u Hrvatskoj? Odličan izbor za zaštitu osobne imovine i ozbiljniji profesionalni dojam. Sada trebate odlučiti: **[J.D.O.O.](/rjecnik/jdoo) (Jednostavno d.o.o.)** ili **klasični D.O.O.**
 
 ## Vaša situacija
 
@@ -43,8 +43,8 @@ Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o
 
 <ComparisonTable>
   <ComparisonRow label="Temeljni kapital">
-    <ComparisonCell type="jdoo">1-2.650 EUR ([temeljni kapital](/rjecnik/temeljni-kapital))</ComparisonCell>
-    <ComparisonCell type="doo">Min. 2.500 EUR ([temeljni kapital](/rjecnik/temeljni-kapital))</ComparisonCell>
+    <ComparisonCell type="jdoo"><FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooCapital.value" decimals={0} /> minimalno ([temeljni kapital](/rjecnik/temeljni-kapital))</ComparisonCell>
+    <ComparisonCell type="doo"><FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" decimals={0} /> minimalno ([temeljni kapital](/rjecnik/temeljni-kapital))</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Troškovi osnivanja">
@@ -73,8 +73,8 @@ Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o
   </ComparisonRow>
 
   <ComparisonRow label="Porez na dobit">
-    <ComparisonCell type="jdoo">10% do 60.000 EUR, 18% iznad</ComparisonCell>
-    <ComparisonCell type="doo">10% do 60.000 EUR, 18% iznad</ComparisonCell>
+    <ComparisonCell type="jdoo"><FiscalPercentage path="TAX_RATES.corporate.small.rate" /> do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" />, <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> iznad</ComparisonCell>
+    <ComparisonCell type="doo"><FiscalPercentage path="TAX_RATES.corporate.small.rate" /> do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" />, <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> iznad</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Porez na dividende">
@@ -83,8 +83,8 @@ Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o
   </ComparisonRow>
 
   <ComparisonRow label="Minimalna plaća direktora">
-    <ComparisonCell type="jdoo">560 EUR bruto ([direktor](/rjecnik/direktor))</ComparisonCell>
-    <ComparisonCell type="doo">560 EUR bruto ([direktor](/rjecnik/direktor))</ComparisonCell>
+    <ComparisonCell type="jdoo">Minimalna osnovica prema propisima ([direktor](/rjecnik/direktor))</ComparisonCell>
+    <ComparisonCell type="doo">Minimalna osnovica prema propisima ([direktor](/rjecnik/direktor))</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Mjesečno knjigovodstvo">
@@ -138,8 +138,8 @@ Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o
   </ComparisonRow>
 
   <ComparisonRow label="PDV prag">
-    <ComparisonCell type="jdoo">60.000 EUR godišnje</ComparisonCell>
-    <ComparisonCell type="doo">60.000 EUR godišnje</ComparisonCell>
+    <ComparisonCell type="jdoo"><FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnje</ComparisonCell>
+    <ComparisonCell type="doo"><FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnje</ComparisonCell>
   </ComparisonRow>
 
   <ComparisonRow label="Godišnja skupština">
@@ -172,7 +172,7 @@ Odlučili ste da želite osnovati društvo s ograničenom odgovornošću ([d.o.o
 - Ne trebate pravnu osobu kao osnivača
 
 **Primjeri idealnih situacija:**
-- Solo freelanceri koji prelaze 60.000 EUR i žele zaštitu imovine
+- Solo freelanceri koji prelaze paušalni prag i žele zaštitu imovine
 - Mali IT studiji i softverske firme (1-2 osobe)
 - Kreativne agencije bez partnera
 - Online poslovi i e-commerce
@@ -270,7 +270,7 @@ Možete započeti s J.D.O.O.-om i kasnije ga transformirati u klasični D.O.O. (
 **D.O.O. (800-1.500 EUR):**
 - Javni bilježnik (ovjera): 200-400 EUR
 - Sudski upis: ~200 EUR
-- Temeljni kapital: min. 2.500 EUR (ostaje na računu)
+- Temeljni kapital: min. <FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" decimals={0} /> (ostaje na računu)
 - Društveni ugovor (pravna pomoć): 200-400 EUR
 - Ostale naknade: ~100-200 EUR
 - Partnerski ugovor (ako više članova): 200-500 EUR dodatno
@@ -378,8 +378,8 @@ Možete započeti s J.D.O.O.-om i kasnije ga transformirati u klasični D.O.O. (
 **J.D.O.O. i D.O.O. - Identično:**
 
 **Porez na dobit:**
-- 10% na dobit do 60.000 EUR godišnje
-- 18% na dobit iznad 60.000 EUR godišnje
+- <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> na dobit do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> godišnje
+- <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> na dobit iznad <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> godišnje
 - Najniži porezi na dobit u Hrvatskoj
 
 **Porez na dividende:**
@@ -387,7 +387,7 @@ Možete započeti s J.D.O.O.-om i kasnije ga transformirati u klasični D.O.O. (
 - Može se optimizirati kombinacijom plaće i dividendi
 
 **Porez i doprinosi na plaću direktora:**
-- Bruto plaća: 560 EUR (minimum)
+- Bruto plaća: minimalna osnovica prema propisima
 - Doprinosi poslodavca: ~30%
 - Porez na dohodak direktora: ~25% (ovisno o stopama)
 - Trošak za društvo: ~740 EUR
@@ -415,7 +415,7 @@ Možete započeti s J.D.O.O.-om i kasnije ga transformirati u klasični D.O.O. (
 - Godišnji financijski izvještaji: 300-500 EUR
 - Godišnja porezna prijava: uključeno u knjigovodstvo
 - Objavljivanje u Narodnim novinama (ako obavezno): ~200 EUR
-- **Ukupno: 500-700 EUR godišnje**
+- **Ukupno: nekoliko stotina eura godišnje**
 
 **D.O.O.:**
 - Godišnji financijski izvještaji: 400-600 EUR
@@ -447,204 +447,7 @@ Možete započeti s J.D.O.O.-om i kasnije ga transformirati u klasični D.O.O. (
 
 ## Praktični primjeri
 
-### Primjer 1: Web developer freelancer (60.000 EUR godišnji prihod)
-
-**Situacija:**
-- Samostalni developer
-- Inozemni klijenti (EU i SAD)
-- Minimalni troškovi (~5.000 EUR godišnje)
-- Želi zaštitu imovine jer prelazi 60.000 EUR
-
-**Najbolji izbor: J.D.O.O.**
-
-**Razlog:**
-- Brzo osnivanje (3 dana)
-- Niski troškovi (350 EUR)
-- Ne treba partnere
-- Standardni ugovor je dovoljan
-- Može odmah poslovati
-
-**Godišnji troškovi:**
-- Plaća direktora: 740 × 12 = 8.880 EUR
-- Knjigovodstvo: 300 × 12 = 3.600 EUR
-- Godišnji izvještaji: 400 EUR
-- Ukupno: 12.880 EUR fiksno
-
-**Dobitak:** 60.000 - 5.000 - 8.880 - 3.600 - 400 = 42.120 EUR
-**Porez na dobit (10%):** 4.212 EUR
-**Dividenda:** 37.908 EUR
-**Porez na dividendu (10%):** 3.791 EUR
-**Neto za vlasnika:** 34.117 EUR (plaća) + 8.880 = **42.997 EUR** (71.6% prihoda)
-
-**Zaključak:** J.D.O.O. idealan jer je brz, jeftin i potpuno dovoljan za solo developera.
-
----
-
-### Primjer 2: Tech startup s 2 suosnivača (80.000 EUR prihod, plan za investicije)
-
-**Situacija:**
-- Dva osnivača (50%-50%)
-- SaaS produkt
-- Planiraju tražiti 200.000 EUR investiciju za rast
-- Troškovi: 30.000 EUR godišnje
-
-**Najbolji izbor: D.O.O.**
-
-**Razlog:**
-- Potrebna podjela vlasništva između partnera
-- Partnerski ugovor za zaštitu odnosa
-- Fleksibilnost za ulazak investitora
-- Mogućnost kreiranja različitih klasa dionica
-- Profesionalniji dojam prema investitorima
-
-**Osnivanje:**
-- Trošak: 1.200 EUR (uključujući partnerski ugovor)
-- Vrijeme: 10 dana
-- Temeljni kapital: 2.650 EUR
-
-**Godišnji troškovi:**
-- Plaća 2 direktora: 740 × 2 × 12 = 17.760 EUR
-- Knjigovodstvo: 450 × 12 = 5.400 EUR
-- Godišnji izvještaji: 500 EUR
-- Ukupno: 23.660 EUR fiksno
-
-**Dobitak:** 80.000 - 30.000 - 17.760 - 5.400 - 500 = 26.340 EUR
-**Porez na dobit (10%):** 2.634 EUR
-**Neto dobit:** 23.706 EUR
-
-**Dodatna vrijednost D.O.O.:**
-- Partnerski ugovor sprječava buduće konflikte
-- Spremni za investitore bez transformacije
-- Profesionalniji dojam kod klijenata
-- Mogućnost equity kompenzacije za zaposlenike
-
-**Zaključak:** D.O.O. nužan jer imate partnere i planirate investicije.
-
----
-
-### Primjer 3: Frizerski salon (40.000 EUR prihod, planira lanac salona)
-
-**Situacija:**
-- Vlasnik želi otvoriti lanac od 3-5 salona
-- Trenutno 1 salon, 2 zaposlena
-- Plan za franšizu u budućnosti
-- Troškovi: 15.000 EUR godišnje
-
-**Najbolji izbor: D.O.O. (ali J.D.O.O. OK za start)**
-
-**Strategija:**
-- Započni s J.D.O.O. za prvi salon (brzo i jeftino)
-- Transformiraj u D.O.O. kada otvaraš drugi salon
-- Kreiranje holding strukture za lanac
-
-**Faza 1 - Prvi salon (J.D.O.O.):**
-- Osnivanje: 350 EUR
-- Mjesečni fiksni: 950 EUR
-- Godišnji troškovi: 12.800 EUR
-- Brzo i jeftino započinjanje
-
-**Faza 2 - Širenje (transformacija u D.O.O.):**
-- Trošak transformacije: 400 EUR
-- Mogućnost kreiranja podružnica
-- Fleksibilnost za franšizu
-- Profesionalniji dojam za kredite
-
-**Zaključak:** Počni s J.D.O.O., transformiraj u D.O.O. kada kreće ekspanzija.
-
----
-
-### Primjer 4: Obiteljska tvrtka (otac i sin, 120.000 EUR prihod)
-
-**Situacija:**
-- Otac i sin osnivaju građevinsku tvrtku
-- Podjela: otac 60%, sin 40%
-- Veliki projekti i rizična djelatnost
-- Troškovi: 70.000 EUR godišnje
-
-**Najbolji izbor: D.O.O.**
-
-**Razlog:**
-- Dva osnivača - J.D.O.O. nije opcija
-- Potreban jasno definiran partnerski ugovor
-- Rizična djelatnost - zaštita imovine ključna
-- Profesionalni dojam kod velikih klijenata
-- Jasna podjela odgovornosti između oca i sina
-
-**Osnivanje:**
-- Trošak: 1.400 EUR (s partnerskim ugovorom)
-- Partnerski ugovor definira:
-  - Podjelu vlasništva (60-40)
-  - Što se događa ako jedan želi izaći
-  - Proceduru za neslaganja
-  - Nasljeđivanje udjela
-
-**Godišnji troškovi:**
-- Plaća 2 direktora: 17.760 EUR
-- Knjigovodstvo: 400 × 12 = 4.800 EUR
-- Godišnji izvještaji: 500 EUR
-- Ukupno: 23.060 EUR
-
-**Dobitak:** 120.000 - 70.000 - 17.760 - 4.800 - 500 = 26.940 EUR
-**Porez na dobit (10%):** 2.694 EUR
-**Neto dobit za raspodjelu:** 24.246 EUR
-- Otac (60%): 14.548 EUR
-- Sin (40%): 9.698 EUR
-
-**Zaključak:** D.O.O. obavezan jer imate više osnivača. Partnerski ugovor kritičan za obiteljski mir.
-
----
-
-### Primjer 5: E-commerce shop (200.000 EUR prihod, raste brzo)
-
-**Situacija:**
-- Solo vlasnik
-- Online trgovina koja raste 100% godišnje
-- Plan za internacionalno širenje
-- Troškovi: 120.000 EUR (nabava robe)
-
-**Najbolji izbor: J.D.O.O. sada, ali plan za D.O.O. uskoro**
-
-**Razlog za J.D.O.O. sada:**
-- Brzo osnivanje (već poslujete kao obrt/paušalac)
-- Niži troškovi za početak
-- Ne trebate partnere zasad
-
-**Kada preći na D.O.O.:**
-- Prihod prijeđe 500.000 EUR
-- Trebate značajan kredit za rast
-- Želite dodati partnera/investitora
-- Širenje u inozemstvo zahtijeva holding strukturu
-
-**Godišnji troškovi (J.D.O.O.):**
-- Plaća direktora: 8.880 EUR
-- Knjigovodstvo: 350 × 12 = 4.200 EUR (malo više jer veći promet)
-- Godišnji izvještaji: 500 EUR
-- Ukupno: 13.580 EUR
-
-**Dobitak:** 200.000 - 120.000 - 8.880 - 4.200 - 500 = 66.420 EUR
-**Porez na dobit:**
-- Prvih 60.000 @ 10% = 6.000 EUR
-- Ostalih 6.420 @ 18% = 1.156 EUR
-- Ukupno: 7.156 EUR
-**Neto dobit:** 59.264 EUR
-**Porez na dividendu (10%):** 5.926 EUR
-**Neto za vlasnika:** 53.338 EUR + 8.880 plaća = **62.218 EUR**
-
-**Zaključak:** J.D.O.O. odličan za brzi rast, ali planirajte transformaciju u D.O.O. kada dosegnete ~500k EUR.
-
-## Česta pitanja
-
-### Mogu li promijeniti J.D.O.O. u D.O.O. kasnije?
-
-**Da, možete.** Postupak je relativno jednostavan:
-
-1. Odluka o izmjeni društvenog ugovora
-2. Odlazak kod javnog bilježnika za ovjeru
-3. Upis promjena u sudski registar
-4. **Trošak:** 300-500 EUR
-5. **Trajanje:** 5-10 dana
-
-Vaše društvo nastavlja postojati s istim OIB-om, računom i svim ugovorima - samo se mijenja pravni oblik iz "jednostavnog d.o.o." u "klasični d.o.o."
+Za konkretne izračune koristite interaktivni kalkulator i usporedbe iznad. Primjeri ovise o prihodima, troškovima i strukturi poslovanja.
 
 ---
 
@@ -681,7 +484,7 @@ Ako planirate posjedovati više firmi, morate odabrati D.O.O.
 - Nije umirovljenik s mirovinskom isplatom
 - Nema obrt ili drugu osnovicu osiguranja
 
-**Minimalna plaća:** 560 EUR bruto (740 EUR trošak za društvo, 450 EUR neto)
+**Minimalna plaća:** prema minimalnoj osnovici (vidi [direktor](/rjecnik/direktor))
 
 **Ne mora primati plaću ako:**
 - Zaposlen kod drugog poslodavca
@@ -697,18 +500,7 @@ Ako planirate posjedovati više firmi, morate odabrati D.O.O.
 **Dividende se isplaćuju iz čiste dobiti** nakon poreza na dobit.
 
 **Primjer:**
-- Dobitak prije poreza: 50.000 EUR
-- Porez na dobit (10%): 5.000 EUR
-- Čista dobit: 45.000 EUR
-- **Možete isplatiti bilo koji iznos do 45.000 EUR**
-
-**Porez na dividende:** 10% na isplaćeni iznos
-
-Ako isplatite 40.000 EUR dividende:
-- Porez: 4.000 EUR
-- Neto primite: 36.000 EUR
-
-**Preostala dobit** (5.000 EUR u ovom primjeru) ostaje u društvu kao zadržana dobit.
+Iznos dividende ovisi o neto dobiti nakon poreza na dobit, a preostali dio ostaje kao zadržana dobit.
 
 ---
 
@@ -732,7 +524,7 @@ Ako isplatite 40.000 EUR dividende:
 
 ---
 
-### Što ako prijeđem 60.000 EUR prihoda - što s PDV-om?
+### Što ako prijeđem paušalni prag - što s PDV-om?
 
 **Automatski postajete PDV obveznik** od prvog dana sljedećeg mjeseca nakon prelaska.
 
@@ -814,29 +606,8 @@ Ako isplatite 40.000 EUR dividende:
 
 **Ovisi o visini dohotka**, ali općenito **dividende su povoljnije**:
 
-**Primjer: Želite isplatiti 50.000 EUR**
-
-**Opcija 1: Visoka plaća (50.000 EUR bruto)**
-- Doprinosi poslodavca (30%): 15.000 EUR
-- Trošak za društvo: 65.000 EUR
-- Porez na dohodak direktora (~25%): 12.500 EUR
-- **Neto isplata: ~37.500 EUR**
-- **Efikasnost: 57.7%**
-
-**Opcija 2: Minimalna plaća + dividende**
-- Minimalna plaća: 560 EUR × 12 = 6.720 EUR bruto
-- Doprinosi: 2.016 EUR
-- Trošak za društvo: 8.736 EUR
-- Preostalo za dividende: 65.000 - 8.736 = 56.264 EUR
-- Porez na dobit (10%): 5.626 EUR
-- Čista dobit: 50.638 EUR
-- Porez na dividendu (10%): 5.064 EUR
-- Neto dividenda: 45.574 EUR
-- Neto plaća: ~5.400 EUR
-- **Ukupno neto: 50.974 EUR**
-- **Efikasnost: 78.4%**
-
-**Zaključak: Kombinacija minimalne plaće + dividende je ~20% efikasnija!**
+**Primjer:**
+Iznos i omjer isplate ovise o ukupnoj dobiti, osobnim okolnostima i važećim stopama. U praksi je kombinacija minimalne plaće i dividendi često povoljnija, ali za odluku koristite kalkulator i savjetovanje.
 
 ---
 
@@ -845,7 +616,7 @@ Ako isplatite 40.000 EUR dividende:
 **Ne baš.** Kao direktor i vlasnik, niste "zaposlenik" u klasičnom smislu:
 
 **Što možete:**
-- Biti direktor s plaćom (minimalno 560 EUR bruto)
+- Biti direktor s plaćom (minimalno prema osnovici)
 - Imati ugovor o radu kao zaposlenik na drugoj poziciji (npr. programer)
 - Kombinirati direktorsku i zaposleničku funkciju
 
@@ -864,15 +635,15 @@ Ako isplatite 40.000 EUR dividende:
 
 Još uvijek niste sigurni je li d.o.o. pravi izbor? Usporedite s drugim opcijama:
 
-- [Paušalni vs Obrt vs J.D.O.O. - Za solo poduzetnike](/usporedbe/pocinjem-solo)
-- [Dodatni prihod uz posao - Što odabrati?](/usporedbe/dodatni-prihod)
-- [Prelazim 60.000 EUR - PDV obveza](/usporedbe/preko-praga)
+- [Paušalni vs Obrt vs J.D.O.O. - Za solo poduzetnike](/usporedba/pocinjem-solo)
+- [Dodatni prihod uz posao - Što odabrati?](/usporedba/dodatni-prihod)
+- [Prelazim paušalni prag - PDV obveza](/usporedba/preko-praga)
 
 ### Detaljni vodiči
 
 Spremni za osnivanje? Pročitajte detaljne vodiče:
 
-- [J.D.O.O. i D.O.O. - Kompletan vodič za osnivanje](/vodici/doo)
+- [J.D.O.O. i D.O.O. - Kompletan vodič za osnivanje](/vodic/doo)
 
 ### Povezani pojmovi
 
@@ -924,7 +695,7 @@ Spremni za osnivanje? Pročitajte detaljne vodiče:
 6. **Otvorite poslovni račun:** Nakon upisa u registar
 7. **Počnite poslovati:** Postavite sustav fakturiranja i fiskalizacije
 
-Trebate dodatnu pomoć? [Kontaktirajte nas](/kontakt) ili se [prijavite za newsletter](/newsletter) s mjesečnim savjetima za poduzetnike.
+Trebate dodatnu pomoć? [Kontaktirajte nas](/contact) za savjete i personalizirane preporuke.
 
 <FAQ items={frontmatter.faq} />
 

@@ -91,6 +91,27 @@ export const ADDITIONAL_THRESHOLDS = {
     description: "Maksimalni broj zaposlenih za mikro poduzetnika",
   },
 
+  // Temeljni kapital
+  jdooCapital: {
+    value: 1, // EUR
+    description: "Minimalni temeljni kapital za j.d.o.o.",
+  },
+
+  dooCapital: {
+    value: 2500, // EUR
+    description: "Minimalni temeljni kapital za d.o.o.",
+  },
+
+  ddCapital: {
+    value: 25000, // EUR
+    description: "Minimalni temeljni kapital za d.d.",
+  },
+
+  jdooRevenueLimit: {
+    value: 1000000, // EUR
+    description: "Godišnji prihod iznad kojeg j.d.o.o. prelazi u d.o.o.",
+  },
+
   // R-1 vs R-2 račun
   r1InvoiceThreshold: {
     value: 700, // EUR - B2B gotovina

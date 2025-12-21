@@ -1,8 +1,8 @@
 ---
 title: j.d.o.o. (Jednostavno društvo s ograničenom odgovornošću)
 term: j.d.o.o.
-shortDefinition: Pojednostavljen oblik d.o.o. za male poduzetnike s godišnjim prihodom do 1.000.000 EUR i manjim regulatornim zahtjevima.
-description: Što je j.d.o.o., razlike od d.o.o., kada je isplativo birati j.d.o.o. u 2025.
+shortDefinition: Pojednostavljen oblik d.o.o. za male poduzetnike s godišnjim prihodom do zakonskog limita i manjim regulatornim zahtjevima.
+description: Što je j.d.o.o., razlike od d.o.o., kada je isplativo birati j.d.o.o.
 lastUpdated: 2025-12-16
 relatedTerms:
   - doo
@@ -17,9 +17,9 @@ sources:
     url: https://www.zakon.hr/z/546/Zakon-o-trgova%C4%8Dkim-dru%C5%A1tvima
 faq:
   - q: Koja je razlika između j.d.o.o. i d.o.o.?
-    a: j.d.o.o. ima niži temeljni kapital (1 EUR), jednostavnije izvještavanje, ali limit prihoda 1.000.000 EUR godišnje.
+    a: j.d.o.o. ima niži temeljni kapital i jednostavnije izvještavanje, ali ima limit prihoda.
   - q: Kada moram prijeći s j.d.o.o. na d.o.o.?
-    a: Kada prihod prijeđe 1.000.000 EUR ili ako zaposliš više od 10 radnika.
+    a: Kada prihod prijeđe propisani limit ili ako zaposliš više od 10 radnika.
 keywords:
   - jdoo hrvatska
   - jednostavno društvo
@@ -32,8 +32,8 @@ keywords:
 
 ## Karakteristike j.d.o.o.
 
-- **Temeljni kapital:** Minimum **1 EUR** (simbolično)
-- **Limit prihoda:** Do 1.000.000 EUR godišnje
+- **Temeljni kapital:** Minimum **<FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooCapital.value" />** (simbolično)
+- **Limit prihoda:** Do <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooRevenueLimit.value" /> godišnje
 - **Zaposlenici:** Do 10 radnika
 - **Odgovornost:** Ograničena
 - **Vlasnici:** 1-5 članova
@@ -42,8 +42,8 @@ keywords:
 
 | Karakteristika | j.d.o.o. | d.o.o. |
 |----------------|----------|--------|
-| Temeljni kapital | 1 EUR | 2.500 EUR |
-| Limit prihoda | 1.000.000 EUR | Bez limita |
+| Temeljni kapital | <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooCapital.value" /> | <FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" /> |
+| Limit prihoda | <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooRevenueLimit.value" /> | Bez limita |
 | Broj zaposlenika | Do 10 | Bez limita |
 | Broj članova | 1-5 | 1-50 |
 | Financijski izvještaji | Pojednostavljeni | Puni |
@@ -52,28 +52,28 @@ keywords:
 ## Osnivanje j.d.o.o.
 
 Proces identičan kao za d.o.o., ali:
-- **Temeljni kapital:** Samo 1 EUR (ali može biti i više)
-- **Trošak osnivanja:** ~1.000-1.500 EUR (niži jer nema 2.500 EUR kapitala)
+- **Temeljni kapital:** Minimalni iznos prema zakonu (ali može biti i veći)
+- **Trošak osnivanja:** Ovisi o načinu osnivanja i eventualnim uslugama
 
 ## Prijelaz na d.o.o.
 
 j.d.o.o. **mora prijeći na d.o.o.** ako:
-- Prihod prijeđe 1.000.000 EUR
+- Prihod prijeđe <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooRevenueLimit.value" />
 - Broj zaposlenika prijeđe 10
 - Broj članova prijeđe 5
 
-Prijelaz: **Povećanje temeljnog kapitala** na 2.500 EUR + promjena statusa u registru.
+Prijelaz: **Povećanje temeljnog kapitala** na <FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" /> + promjena statusa u registru.
 
 ## Kada birati j.d.o.o.?
 
 **j.d.o.o. je dobar izbor ako:**
 - Mali startup (1-2 osnivača)
-- Prihod < 1.000.000 EUR
+- Prihod ispod <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooRevenueLimit.value" />
 - Ne treba mnogo zaposlenika
 - Želite uštedjeti na kapitalu
 
 **d.o.o. je bolji ako:**
-- Planirate rast > 1.000.000 EUR
+- Planirate rast iznad <FiscalCurrency path="ADDITIONAL_THRESHOLDS.jdooRevenueLimit.value" />
 - Potrebno > 10 radnika
 - Investitori (preferiraju d.o.o.)
 - Krediti (banke preferiraju d.o.o.)
@@ -81,5 +81,5 @@ Prijelaz: **Povećanje temeljnog kapitala** na 2.500 EUR + promjena statusa u re
 ## Glavni vodič
 
 Za detaljnu usporedbu i vodič za osnivanje, pročitajte:
-- [J.D.O.O. i D.O.O. - kompletan vodič](/vodici/doo)
-- [Usporedba: Želim osnovati firmu](/usporedbe/firma)
+- [J.D.O.O. i D.O.O. - kompletan vodič](/vodic/doo)
+- [Usporedba: Želim osnovati firmu](/usporedba/firma)

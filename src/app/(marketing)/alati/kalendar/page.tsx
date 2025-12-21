@@ -5,31 +5,50 @@ import { Bell, ArrowRight, Calendar } from "lucide-react"
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { DEADLINES, ADDITIONAL_DEADLINES } from "@/lib/fiscal-data"
 
 export const metadata: Metadata = {
-  title: "Kalendar Rokova 2025 | FiskAI",
-  description: "Svi važni porezni rokovi za 2025. godinu na jednom mjestu.",
+  title: `Kalendar Rokova ${DEADLINES.year} | FiskAI`,
+  description: `Svi važni porezni rokovi za ${DEADLINES.year}. godinu na jednom mjestu.`,
 }
+
+const calendarYear = DEADLINES.year
+const formatDayMonth = (dateString: string, year: number) => {
+  const [day, month] = dateString.split(".").map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString("hr-HR", {
+    day: "numeric",
+    month: "long",
+  })
+}
+
+const posdQ4Deadline = formatDayMonth(
+  ADDITIONAL_DEADLINES.posdQuarterly.dates[0],
+  calendarYear + 1
+)
+const contributionsDay = DEADLINES.contributions.monthly.dates[0]
+const dohodakDeadline = formatDayMonth(DEADLINES.annualFiling.dohodak.dates[0], calendarYear)
+const posdAnnualDeadline = formatDayMonth(ADDITIONAL_DEADLINES.posd.dates[0], calendarYear)
+const pdvDeadline = formatDayMonth(ADDITIONAL_DEADLINES.pdv.quarterly.dates[0], calendarYear)
 
 const faq = [
   {
     q: "Kada je rok za PO-SD za Q4?",
-    a: "20. siječnja sljedeće godine.",
+    a: `${posdQ4Deadline} sljedeće godine.`,
   },
   {
-    q: "Kada se plaća doprinosi za paušalce?",
-    a: "Do 15. u mjesecu za prethodni mjesec.",
+    q: "Kada se plaćaju doprinosi za paušalce?",
+    a: `Do ${contributionsDay}. u mjesecu za prethodni mjesec.`,
   },
   {
     q: "Koji su godišnji porezni rokovi?",
-    a: "DOH do 28. veljače, godišnji PO-SD do 15. siječnja, PDV-K do 20. siječnja.",
+    a: `DOH do ${dohodakDeadline}, godišnji PO-SD do ${posdAnnualDeadline}, PDV-K do ${pdvDeadline}.`,
   },
 ]
 
 export default function CalendarPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "Porezni Kalendar",
-    description: "Svi važni porezni rokovi za 2025. godinu na jednom mjestu.",
+    description: `Svi važni porezni rokovi za ${calendarYear}. godinu na jednom mjestu.`,
     url: "https://fisk.ai/alati/kalendar",
   })
 
@@ -52,12 +71,12 @@ export default function CalendarPage() {
         </nav>
 
         <header>
-          <h1 className="text-display text-4xl font-semibold">Kalendar rokova 2025</h1>
+          <h1 className="text-display text-4xl font-semibold">Kalendar rokova {calendarYear}</h1>
           <p className="mt-4 text-white/60">Ne propustite važne rokove za prijave i uplate.</p>
         </header>
 
         <div className="mt-8">
-          <DeadlineCalendar year={2025} />
+          <DeadlineCalendar year={calendarYear} />
         </div>
 
         {/* Upsell Section */}

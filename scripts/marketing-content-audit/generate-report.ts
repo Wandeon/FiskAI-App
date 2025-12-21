@@ -40,7 +40,14 @@ type RouteEntry = {
 type LinkEntry = {
   href: string
   kind: "internal" | "external" | "anchor" | "unknown"
-  status: "static-ok" | "static-missing" | "dynamic-db" | "auth-excluded" | "external"
+  status:
+    | "static-ok"
+    | "static-missing"
+    | "dynamic-db"
+    | "dynamic-template"
+    | "dynamic-api"
+    | "auth-excluded"
+    | "external"
 }
 
 type ButtonEntry = {
@@ -100,6 +107,9 @@ function classifyLink(href: string, knownRoutes: Set<string>) {
   }
 
   const trimmed = href.trim()
+  if (trimmed.includes("${")) {
+    return { kind: "internal", status: "dynamic-template" } as const
+  }
   if (trimmed.startsWith("#")) {
     return { kind: "anchor", status: "external" } as const
   }
@@ -114,6 +124,9 @@ function classifyLink(href: string, knownRoutes: Set<string>) {
       const route = normalizeRoute(url.pathname)
       if (AUTH_ROUTES.has(route)) {
         return { kind: "internal", status: "auth-excluded" } as const
+      }
+      if (route.startsWith("/api/")) {
+        return { kind: "internal", status: "dynamic-api" } as const
       }
       if (knownRoutes.has(route)) {
         return { kind: "internal", status: "static-ok" } as const
@@ -130,6 +143,9 @@ function classifyLink(href: string, knownRoutes: Set<string>) {
     if (route) {
       if (AUTH_ROUTES.has(route)) {
         return { kind: "internal", status: "auth-excluded" } as const
+      }
+      if (route.startsWith("/api/")) {
+        return { kind: "internal", status: "dynamic-api" } as const
       }
       if (knownRoutes.has(route)) {
         return { kind: "internal", status: "static-ok" } as const
@@ -217,7 +233,13 @@ function flattenFrontmatter(data: Record<string, unknown>) {
 
 function collectNumericValues(input: unknown, set: Set<number>) {
   if (typeof input === "number" && Number.isFinite(input)) {
-    set.add(input)
+    if (input !== 0) {
+      set.add(input)
+    }
+    if (input > 0 && input < 1) {
+      const percentValue = Number((input * 100).toFixed(3))
+      set.add(percentValue)
+    }
     return
   }
 
@@ -358,11 +380,14 @@ async function buildAuditPages(
       reason: hit.reason,
     }))
 
-    const languageIssues = detectEnglishLeakage(analysisText).map((issue) => ({
-      kind: issue.kind,
-      matches: issue.matches,
-      ratio: issue.ratio,
-    }))
+    const languageIssues =
+      routeEntry.sourceType === "mdx"
+        ? detectEnglishLeakage(analysisText).map((issue) => ({
+            kind: issue.kind,
+            matches: issue.matches,
+            ratio: issue.ratio,
+          }))
+        : []
 
     const designIssues = detectNonTokenColors(analysisText).map((issue) => ({
       match: issue.match,
@@ -398,6 +423,10 @@ function formatLinkStatus(status: LinkEntry["status"]) {
       return "missing"
     case "dynamic-db":
       return "db"
+    case "dynamic-template":
+      return "dynamic"
+    case "dynamic-api":
+      return "api"
     case "auth-excluded":
       return "auth"
     default:

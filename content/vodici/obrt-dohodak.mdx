@@ -13,11 +13,11 @@ sources:
     url: https://www.hok.hr/
 faq:
   - q: Koja je razlika između obrta na dohodak i paušalnog obrta?
-    a: Obrt na dohodak nema ograničenja prihoda i omogućuje odbijanje stvarnih troškova. Paušal ima limit od 60.000€ i porezna osnovica je 12% prihoda, bez obzira na stvarne troškove.
+    a: Obrt na dohodak nema ograničenja prihoda i omogućuje odbijanje stvarnih troškova. Paušal ima limit prema važećem pragu i porezna osnovica je 12% prihoda, bez obzira na stvarne troškove.
   - q: Koliko košta knjigovodstvo za obrt na dohodak?
     a: Obično 50-100€ mjesečno za osnovnu uslugu. Cijena ovisi o broju računa, kompleksnosti poslovanja i obvezi PDV prijava.
   - q: Kada prijeći sa paušala na obrt na dohodak?
-    a: Kada prihodi prijeđu 60.000€ godišnje ili kada stvarni troškovi prelaze 12% prihoda. Za prihod od 80.000€ s 30.000€ troškova, obrt na dohodak je povoljniji.
+    a: Kada prihodi prijeđu paušalni prag godišnje ili kada stvarni troškovi prelaze 12% prihoda. Za veće prihode s visokim troškovima, obrt na dohodak je povoljniji.
 ---
 
 <QuickStatsBar
@@ -26,7 +26,7 @@ faq:
     { label: "Max prihod", value: "Neograničen" },
     { label: "Doprinosi", value: "262€/mj" },
     { label: "Porez", value: "20-30%" },
-    { label: "PDV", value: "Preko 60k€" },
+    { label: "PDV", value: "Preko PDV praga" },
   ]}
 />
 
@@ -43,7 +43,7 @@ faq:
 ## Tko bi trebao izabrati obrt na dohodak?
 
 ### Idealno za:
-- Prihode iznad 60.000€ godišnje
+- Prihode iznad paušalnog praga godišnje
 - Poslovanje sa značajnim troškovima
 - Potrebu za odbitkom PDV-a
 
@@ -61,8 +61,8 @@ Isti kao paušalni obrt:
 
 ### Porez na dohodak
 - Porezna osnovica: Prihodi - Troškovi
-- **Do 50.400€:** 20% + prirez
-- **Iznad 50.400€:** 30% + prirez
+- **Do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />:** <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> + prirez
+- **Iznad <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />:** <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> + prirez
 
 ### Obveza knjigovodstva
 - Knjiga primitaka i izdataka (KPI)
@@ -106,12 +106,12 @@ Isti kao paušalni obrt:
     ### Kada prijeći na obrt na dobit?
 
     Obrt na dobit (umjesto dohodak) ima smisla kada:
-    - Prihodi prelaze 1.000.000€ godišnje
+    - Prihodi prelaze <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> godišnje
     - Želite reinvestirati profit
     - Planirate značajan rast
 
     <PDVCallout type="tip">
-      Porez na dobit je 10% do 1M€, 18% iznad. Može biti povoljnije
+      Porez na dobit je <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" />, <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> iznad. Može biti povoljnije
       od poreza na dohodak za visoke zarade.
     </PDVCallout>
   </TabPanel>
@@ -119,8 +119,8 @@ Isti kao paušalni obrt:
 
 ## PDV obveza
 
-<PDVCallout type="warning" threshold={60000}>
-  Obrtnici na dohodak postaju PDV obveznici kada prijeđu prag od 60.000€.
+<PDVCallout type="warning" thresholdPath="THRESHOLDS.pdv.value">
+  Obrtnici na dohodak postaju PDV obveznici kada prijeđu prag od <FiscalCurrency path="THRESHOLDS.pdv.value" />.
 </PDVCallout>
 
 ### Prednosti PDV sustava:
@@ -133,7 +133,7 @@ Isti kao paušalni obrt:
 <FAQ items={[
   {
     question: "Koja je razlika između obrta na dohodak i paušala?",
-    answer: "Obrt na dohodak nema ograničenja prihoda i omogućuje odbijanje stvarnih troškova. Paušal je jednostavniji ali ograničen na 60.000€."
+    answer: "Obrt na dohodak nema ograničenja prihoda i omogućuje odbijanje stvarnih troškova. Paušal je jednostavniji ali ograničen na paušalni prag."
   },
   {
     question: "Koliko košta knjigovodstvo?",
@@ -155,7 +155,7 @@ Isti kao paušalni obrt:
 ## Povezane usporedbe
 
 - [Paušalni vs Obrt na dohodak vs J.D.O.O.](/usporedba/pocinjem-solo)
-- [Što kada prijeđem 60.000€](/usporedba/preko-praga)
+- [Što kada prijeđem paušalni prag](/usporedba/preko-praga)
 
 <FAQ items={frontmatter.faq} />
 <Sources

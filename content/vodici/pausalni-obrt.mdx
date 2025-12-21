@@ -13,7 +13,7 @@ sources:
     url: https://www.hok.hr/
 faq:
   - q: Koji je limit prihoda za paušalni obrt 2025.?
-    a: Godišnji prihod do 60.000€. Prelaskom ovog praga automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca.
+    a: Godišnji prihod do paušalnog praga. Prelaskom ovog praga automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca.
   - q: Koliko iznose doprinosi za paušalnog obrtnika?
     a: Ukupno oko 262€ mjesečno fiksno - MIO I. stup 153,70€, MIO II. stup 47,03€ (ako ste u II. stupu), HZZO 61,27€.
   - q: Mogu li paušalci odbijati troškove poslovanja?
@@ -23,7 +23,7 @@ faq:
 <QuickStatsBar
   title="Paušalni obrt"
   stats={[
-    { label: "Max prihod", value: "60.000€" },
+    { label: "Max prihod", value: "Paušalni prag" },
     { label: "Doprinosi", value: "262€/mj" },
     { label: "Porez", value: "~10%" },
     { label: "PDV", value: "Ne" },
@@ -32,7 +32,7 @@ faq:
 
 ## Brzi pregled
 
-[Paušalni obrt](/rjecnik/pausal) je najjednostavniji oblik poslovanja u Hrvatskoj. Idealan je za početnike s očekivanim prihodima do 60.000€ godišnje.
+[Paušalni obrt](/rjecnik/pausal) je najjednostavniji oblik poslovanja u Hrvatskoj. Idealan je za početnike s očekivanim prihodima do paušalnog praga godišnje.
 
 **Ključne prednosti:**
 - Minimalna administracija
@@ -45,7 +45,7 @@ faq:
 ## Tko može otvoriti paušalni obrt?
 
 ### Možete ako:
-- Očekujete godišnji prihod do 60.000€
+- Očekujete godišnji prihod do paušalnog praga
 - Bavite se dozvoljenomom djelatnošću
 - Nemate zabranu poslovanja
 
@@ -66,7 +66,7 @@ faq:
 
 ### Porez na dohodak
 - Porezna osnovica: 12% od prihoda
-- Stopa: 20% (do 50.400€) ili 30% (iznad)
+- Stopa: <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> (do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />) ili <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> (iznad)
 - Efektivna stopa: ~10% od ukupnog prihoda
 
 ## Varijante
@@ -169,13 +169,13 @@ faq:
 
 ## PDV i vi
 
-<PDVCallout type="warning" threshold={60000}>
-  Ako vaš prihod prijeđe 60.000€, automatski postajete PDV obveznik
+<PDVCallout type="warning" thresholdPath="THRESHOLDS.pdv.value">
+  Ako vaš prihod prijeđe <FiscalCurrency path="THRESHOLDS.pdv.value" />, automatski postajete PDV obveznik
   od 1. sljedećeg mjeseca.
 </PDVCallout>
 
 ### Kada postajete obveznik?
-- Prag: 60.000€ godišnje (od 2025.)
+- Prag: <FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnje (od 2025.)
 - Automatski od 1. sljedećeg mjeseca po prelasku
 
 ### Što se mijenja?
@@ -196,7 +196,7 @@ faq:
     answer: "Da, možete. Doprinosi se umanjuju jer ih već plaća vaš poslodavac. Često plaćate samo HOK članarinu i porez na dohodak."
   },
   {
-    question: "Što ako prijeđem 60.000€?",
+    question: "Što ako prijeđem paušalni prag?",
     answer: "Automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca. Morate početi obračunavati PDV na račune i podnositi PDV prijave."
   },
   {

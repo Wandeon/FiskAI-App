@@ -53,9 +53,9 @@ Porez = Porezna osnovica × Stopa poreza
    - MIO (20%): 400 EUR
    - Zdravstvo (16,5%): 330 EUR
 2. **Nakon doprinosa:** 2.000 - 640 = 1.360 EUR
-3. **Osobni odbitak:** 560 EUR
-4. **Porezna osnovica:** 1.360 - 560 = **800 EUR**
-5. **Porez (20%):** 800 × 0,20 = **160 EUR**
+3. **Osobni odbitak:** <FiscalCurrency path="TAX_RATES.income.personalAllowance" decimals={0} />
+4. **Porezna osnovica:** iznos nakon odbitka osobnog odbitka
+5. **Porez (20%):** obračun prema stopi
 
 ### Nulta osnovica
 
@@ -64,8 +64,8 @@ Ako je bruto plaća niska, porezna osnovica može biti **0**:
 **Bruto plaća:** 800 EUR
 - Doprinosi (32%): 256 EUR
 - Nakon doprinosa: 544 EUR
-- Osobni odbitak: 560 EUR
-- **Porezna osnovica: 0 EUR** (544 - 560 = negativno, ali minimum je 0)
+- Osobni odbitak: <FiscalCurrency path="TAX_RATES.income.personalAllowance" decimals={0} />
+- **Porezna osnovica: 0 EUR** (nakon odbitka osobnog odbitka)
 - **Porez: 0 EUR**
 
 ## PDV osnovica
@@ -76,15 +76,15 @@ Za PDV, **osnovica je iznos bez PDV-a.**
 
 **Prodajna cijena bez PDV-a:** 100 EUR
 - **PDV osnovica:** 100 EUR
-- PDV (25%): 100 × 0,25 = 25 EUR
-- **Ukupna cijena s PDV-om:** 125 EUR
+- PDV (standardna stopa): obračun prema stopi
+- **Ukupna cijena s PDV-om:** cijena + PDV
 
 ### Primjer 2: Izračun osnovice iz cijene s PDV-om
 
 **Cijena s PDV-om:** 125 EUR
 - **Formula:** Osnovica = Cijena s PDV / (1 + stopa)
-- Osnovica = 125 / 1,25 = **100 EUR**
-- PDV = 125 - 100 = **25 EUR**
+- Osnovica = Cijena s PDV / (1 + stopa)
+- PDV = Cijena s PDV - osnovica
 
 ## Porezna osnovica za dobit (d.o.o.)
 
@@ -163,7 +163,7 @@ Paušalac nema stvarnu poreznu osnovicu. Umjesto toga koristi:
 - Porez = Paušalni prihod × 12%
 
 **Primjer:**
-- Stvarni prihod: 50.000 EUR godišnje
+- Stvarni prihod: 52.000 EUR godišnje
 - Paušalni prihod (pravilnik): 12.000 EUR
 - **Porez:** 12.000 × 12% = 1.440 EUR (godišnje)
 

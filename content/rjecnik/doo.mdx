@@ -1,7 +1,7 @@
 ---
 title: d.o.o. (Društvo s ograničenom odgovornošću)
 term: d.o.o.
-shortDefinition: Najčešći oblik pravne osobe u Hrvatskoj gdje vlasnici odgovaraju samo do visine uloženog kapitala (minimum 2.500 EUR).
+shortDefinition: Najčešći oblik pravne osobe u Hrvatskoj gdje vlasnici odgovaraju samo do visine uloženog kapitala (propisani minimum).
 description: Što je d.o.o., kako osnovati d.o.o. u 2025, troškovi, obveze i prednosti.
 lastUpdated: 2025-12-16
 relatedTerms:
@@ -19,7 +19,7 @@ sources:
     url: https://www.zakon.hr/z/546/Zakon-o-trgova%C4%8Dkim-dru%C5%A1tvima
 faq:
   - q: Koliko košta osnivanje d.o.o.?
-    a: Temeljni kapital 2.500 EUR + sudska taksa ~400 EUR + notar ~200-500 EUR + ostalo. Ukupno ~3.500-4.000 EUR.
+    a: Trošak uključuje temeljni kapital, sudske pristojbe, javnog bilježnika i administraciju. Ukupni iznos ovisi o načinu osnivanja.
   - q: Mogu li biti jedini vlasnik d.o.o.?
     a: Da. d.o.o. može imati jednog ili više članova (do 50).
 keywords:
@@ -34,7 +34,7 @@ keywords:
 
 ## Karakteristike
 
-- **Temeljni kapital:** Minimum 2.500 EUR (1.000 EUR po vlasniku ako ih je više)
+- **Temeljni kapital:** Minimum <FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" decimals={0} /> (1.000 EUR po vlasniku ako ih je više)
 - **Odgovornost:** Ograničena na ulog
 - **Vlasnici:** 1-50 članova
 - **Porez:** Porez na dobit (10% ili 18%)
@@ -50,7 +50,7 @@ keywords:
 - Imenovanje direktora
 
 **2. Otvaranje privremenog računa**
-- Uplata temeljnog kapitala (2.500 EUR)
+- Uplata temeljnog kapitala (<FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" decimals={0} />)
 - Dobivanje potvrde
 
 **3. Notarska ovjera**
@@ -67,10 +67,10 @@ keywords:
 - Novi OIB tvrtke (različit od OIB-a osnivača)
 
 **6. PDV registracija** (opcionalno)
-- Ako je prihod > 60.000 EUR
+- Ako je prihod > <FiscalCurrency path="THRESHOLDS.pdv.value" />
 
 ### Ukupni troškovi:
-- Temeljni kapital: 2.500 EUR (ostaje u tvrtki)
+- Temeljni kapital: <FiscalCurrency path="ADDITIONAL_THRESHOLDS.dooCapital.value" decimals={0} /> (ostaje u tvrtki)
 - Sudska taksa: ~400 EUR
 - Notar: ~200-500 EUR
 - Ostalo: ~100-200 EUR
@@ -92,7 +92,7 @@ keywords:
 
 Direktor mora imati **prijavljenu plaću:**
 - Minimum: 682 EUR (minimalna osnovica)
-- Prosječno: 1.000-2.500 EUR
+- Prosječno: 1.000-2.600 EUR
 - **Doprinosi:** MIO (20%) + HZZO (16,5%) = 36,5%
 - Plaća se putem JOPPD obrasca
 
@@ -105,12 +105,7 @@ Neto dobit može se:
 **Porez na dividendu:** 10% (konačni)
 
 **Primjer:**
-- Dobit prije poreza: 100.000 EUR
-- Porez na dobit (10%): -10.000 EUR
-- Neto dobit: 90.000 EUR
-- Isplata dividende: 90.000 EUR
-- Porez na dividendu (10%): -9.000 EUR
-- **Neto primljeno: 81.000 EUR**
+Iznos poreza na dividendu ovisi o visini dobiti i važećoj stopi oporezivanja.
 
 ## Godišnje obveze d.o.o.
 
@@ -128,12 +123,12 @@ Neto dobit može se:
 
 ## Godišnji troškovi d.o.o.
 
-- **Knjigovodstvo:** 3.000-6.000 EUR/godišnje
+- **Knjigovodstvo:** 3.000-6.500 EUR/godišnje
 - **Plaća direktora:** min. 12.000 EUR + doprinosi
 - **Godišnji izvještaji:** 500-1.000 EUR
 - **Objava:** ~50-100 EUR
 - **Ostalo:** 500-1.000 EUR
-- **Ukupno: 15.000-25.000 EUR godišnje** (bez poreza na dobit)
+- **Ukupno: 15.000-26.000 EUR godišnje** (bez poreza na dobit)
 
 ## Prednosti d.o.o.
 
@@ -147,7 +142,7 @@ Neto dobit može se:
 
 ❌ **Skuplje osnivanje** (~4.000 EUR)
 ❌ **Složenija administracija** - obvezno knjigovodstvo
-❌ **Veći godišnji troškovi** (15.000-25.000 EUR)
+❌ **Veći godišnji troškovi** (15.000-26.000 EUR)
 ❌ **Dulje osnivanje** (7-14 dana)
 
 ## d.o.o. vs obrt

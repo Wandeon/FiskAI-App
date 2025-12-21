@@ -20,7 +20,7 @@ export default function MarketingLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="min-h-[calc(100vh-var(--header-height))]">
+    <div className="marketing-surface min-h-[calc(100vh-var(--header-height))]">
       <MarketingHeader />
       <MarketingAnalyticsInit />
 
