@@ -10,6 +10,7 @@ import { DashboardBackground } from "@/components/layout/DashboardBackground"
 import { AssistantPopup } from "@/components/assistant/AssistantPopup"
 import { VisibilityProvider } from "@/lib/visibility"
 import { getVisibilityProviderProps } from "@/lib/visibility/server"
+import { DashboardSkipLinks } from "@/components/a11y/skip-link"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await auth()
@@ -38,11 +39,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="flex min-h-screen flex-col relative">
+      <DashboardSkipLinks />
       <DashboardBackground />
       <Header />
       <div className="flex flex-1">
         {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden md:block">
+        <div className="hidden md:block" id="primary-nav">
           <Sidebar
             user={{
               name: session.user.name,
@@ -60,7 +62,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         />
 
         {/* Main Content - add bottom padding for mobile FAB */}
-        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
+        <main id="main-content" className="flex-1 p-4 md:p-6 pb-24 md:pb-6" tabIndex={-1}>
           <div className="mx-auto w-full max-w-6xl">
             {visibilityProps ? (
               <VisibilityProvider {...visibilityProps}>{children}</VisibilityProvider>

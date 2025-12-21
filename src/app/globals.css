@@ -154,6 +154,38 @@ body {
   }
 }
 
+/* Accessibility: Enhanced focus styles for keyboard navigation */
+@layer base {
+  /* Remove default focus outline, we'll use focus-visible instead */
+  *:focus {
+    outline: none;
+  }
+
+  /* Modern focus-visible styles for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Specific focus styles for interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Focus styles for dark backgrounds */
+  .dark *:focus-visible,
+  [class*="slate-"]:focus-visible {
+    outline-color: #60a5fa;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -165,6 +197,36 @@ body {
 }
 
 @layer utilities {
+  /* Screen Reader Only - Visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Not SR Only - Make visible when focused */
+  .not-sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Focus visible only (not on mouse click) */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

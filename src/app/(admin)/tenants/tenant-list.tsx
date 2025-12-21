@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react"
 import type { TenantListResult } from "@/lib/admin/tenant-list"
+import { getSortAriaLabel, getPaginationAriaLabel } from "@/lib/a11y"
 
 const LEGAL_FORMS = [
   { value: "OBRT_PAUSAL", label: "Obrt - Paušal" },
@@ -153,15 +154,19 @@ export function TenantListView({ data }: TenantListViewProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search */}
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex gap-2" role="search">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               <Input
                 type="search"
                 placeholder="Search by company name or OIB..."
                 className="pl-9"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
+                aria-label="Search tenants by company name or OIB"
               />
             </div>
             <Button type="submit" disabled={isPending}>
@@ -172,11 +177,15 @@ export function TenantListView({ data }: TenantListViewProps) {
           {/* Filter dropdowns */}
           <div className="grid gap-4 md:grid-cols-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Legal Form</label>
+              <label htmlFor="filter-legal-form" className="text-sm font-medium mb-2 block">
+                Legal Form
+              </label>
               <select
+                id="filter-legal-form"
                 value={searchParams.get("legalForm") || ""}
                 onChange={(e) => handleFilterChange("legalForm", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                aria-label="Filter by legal form"
               >
                 <option value="">All Legal Forms</option>
                 {LEGAL_FORMS.map((form) => (
@@ -188,11 +197,15 @@ export function TenantListView({ data }: TenantListViewProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Subscription Status</label>
+              <label htmlFor="filter-subscription" className="text-sm font-medium mb-2 block">
+                Subscription Status
+              </label>
               <select
+                id="filter-subscription"
                 value={searchParams.get("subscriptionStatus") || ""}
                 onChange={(e) => handleFilterChange("subscriptionStatus", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                aria-label="Filter by subscription status"
               >
                 <option value="">All Statuses</option>
                 {SUBSCRIPTION_STATUSES.map((status) => (
@@ -204,11 +217,15 @@ export function TenantListView({ data }: TenantListViewProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Flags</label>
+              <label htmlFor="filter-flags" className="text-sm font-medium mb-2 block">
+                Flags
+              </label>
               <select
+                id="filter-flags"
                 value={searchParams.get("flags") || ""}
                 onChange={(e) => handleFilterChange("flags", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                aria-label="Filter by flags"
               >
                 <option value="">All Flags</option>
                 {FLAGS.map((flag) => (
@@ -220,11 +237,15 @@ export function TenantListView({ data }: TenantListViewProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Alerts</label>
+              <label htmlFor="filter-alerts" className="text-sm font-medium mb-2 block">
+                Alerts
+              </label>
               <select
+                id="filter-alerts"
                 value={searchParams.get("hasAlerts") || ""}
                 onChange={(e) => handleFilterChange("hasAlerts", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                aria-label="Filter by alerts"
               >
                 <option value="">All Tenants</option>
                 <option value="true">With Alerts</option>
@@ -239,13 +260,14 @@ export function TenantListView({ data }: TenantListViewProps) {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
+            <Table aria-label="Tenants table">
               <TableHeader>
                 <TableRow>
                   <TableHead>
                     <button
                       onClick={() => handleSort("name")}
-                      className="flex items-center font-medium hover:text-foreground"
+                      className="flex items-center font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                      aria-label={getSortAriaLabel("Company", currentSort, "name", "en")}
                     >
                       Company
                       <SortIcon field="name" />
@@ -256,7 +278,8 @@ export function TenantListView({ data }: TenantListViewProps) {
                   <TableHead>
                     <button
                       onClick={() => handleSort("revenue")}
-                      className="flex items-center font-medium hover:text-foreground"
+                      className="flex items-center font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                      aria-label={getSortAriaLabel("Revenue", currentSort, "revenue", "en")}
                     >
                       Revenue
                       <SortIcon field="revenue" />
@@ -265,7 +288,8 @@ export function TenantListView({ data }: TenantListViewProps) {
                   <TableHead>
                     <button
                       onClick={() => handleSort("lastLogin")}
-                      className="flex items-center font-medium hover:text-foreground"
+                      className="flex items-center font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                      aria-label={getSortAriaLabel("Last Login", currentSort, "lastLogin", "en")}
                     >
                       Last Login
                       <SortIcon field="lastLogin" />
@@ -274,7 +298,8 @@ export function TenantListView({ data }: TenantListViewProps) {
                   <TableHead>
                     <button
                       onClick={() => handleSort("createdAt")}
-                      className="flex items-center font-medium hover:text-foreground"
+                      className="flex items-center font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                      aria-label={getSortAriaLabel("Created", currentSort, "createdAt", "en")}
                     >
                       Created
                       <SortIcon field="createdAt" />
@@ -295,8 +320,17 @@ export function TenantListView({ data }: TenantListViewProps) {
                   data.tenants.map((tenant) => (
                     <TableRow
                       key={tenant.id}
-                      className="cursor-pointer"
+                      className="cursor-pointer focus-within:bg-muted/50"
                       onClick={() => router.push(`/tenants/${tenant.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          router.push(`/tenants/${tenant.id}`)
+                        }
+                      }}
+                      aria-label={`View details for ${tenant.name}`}
                     >
                       <TableCell>
                         <div>
@@ -379,8 +413,12 @@ export function TenantListView({ data }: TenantListViewProps) {
 
       {/* Pagination */}
       {data.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <nav
+          className="flex items-center justify-between"
+          role="navigation"
+          aria-label="Pagination"
+        >
+          <p className="text-sm text-muted-foreground" aria-live="polite">
             Showing {(data.page - 1) * data.pageSize + 1} to{" "}
             {Math.min(data.page * data.pageSize, data.total)} of {data.total} results
           </p>
@@ -390,24 +428,26 @@ export function TenantListView({ data }: TenantListViewProps) {
               size="sm"
               onClick={() => handlePageChange(data.page - 1)}
               disabled={data.page === 1 || isPending}
+              aria-label="Go to previous page"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
+              <ChevronLeft className="h-4 w-4 mr-1" aria-hidden="true" />
               Previous
             </Button>
-            <span className="text-sm">
-              Page {data.page} of {data.totalPages}
+            <span className="text-sm" aria-current="page">
+              {getPaginationAriaLabel(data.page, data.totalPages, "en")}
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(data.page + 1)}
               disabled={data.page >= data.totalPages || isPending}
+              aria-label="Go to next page"
             >
               Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="h-4 w-4 ml-1" aria-hidden="true" />
             </Button>
           </div>
-        </div>
+        </nav>
       )}
     </div>
   )
