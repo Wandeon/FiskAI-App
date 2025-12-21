@@ -24,6 +24,12 @@ npm run audit:marketing
 RUN_PLAYWRIGHT=true npm run audit:marketing
 ```
 
+If Playwright browsers are missing, run:
+
+```bash
+npx playwright install
+```
+
 ## Environment Variables
 - MARKETING_AUDIT_TARGET_URL: Base URL for Playwright (default: https://fiskai.hr)
 - FISKAI_ROOT: Override FiskAI repo path
@@ -33,6 +39,7 @@ RUN_PLAYWRIGHT=true npm run audit:marketing
 ## Outputs
 - docs/marketing-content-registry.yml
 - docs/MARKETING_CONTENT_AUDIT.md
+- audit/marketing-playwright-results.json (when RUN_PLAYWRIGHT=true)
 
 ## Notes
 - The Playwright step is optional and may fail if production has broken links or contrast issues.

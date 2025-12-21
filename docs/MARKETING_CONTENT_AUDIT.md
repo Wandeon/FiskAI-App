@@ -1,6 +1,6 @@
 # Marketing Content Audit
 
-Generated: 2025-12-20T23:37:38.742Z
+Generated: 2025-12-21T08:38:12.380Z
 Target: https://fiskai.hr
 Repos: /home/admin/FiskAI, /home/admin/FiskAI-next
 Scope: Marketing pages only. Auth routes excluded.
@@ -271,7 +271,62 @@ Scope: Marketing pages only. Auth routes excluded.
 | oib-validator | /alati/oib-validator | Confirms OIB validator accepts a known valid checksum. |
 
 ## Dynamic Validation (Playwright)
-Run Playwright to validate CTA navigation, 404s, and contrast. See tests/marketing-audit/*.spec.ts for scripts.
+Results file: audit/marketing-playwright-results.json
+- Total tests: n/a | Passed: 1 | Failed: 1 | Skipped: 0 | Flaky: 0
+- Start time: 2025-12-21T08:31:01.110Z
+- Duration: 348.5s
+- Failures:
+  - Error: Contrast issues on https://fiskai.hr/: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/about: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/ai-data-policy: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/e-racun: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/kalendar: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/kalkulator-doprinosa: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/kalkulator-poreza: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/oib-validator: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/pdv-kalkulator: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/posd-kalkulator: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/alati/uplatnice: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/baza-znanja: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/contact: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/cookies: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/dpa: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/features: color-contrast
+  - Error: Link https://www.porezna-uprava.hr/ request failed on https://fiskai.hr/fiskalizacija: apiRequestContext.get: failed to decompress 'deflate' encoding: Error: incorrect header check
+  - Error: Link https://e-racun.hr/ request failed on https://fiskai.hr/fiskalizacija: apiRequestContext.get: Timeout 10000ms exceeded.
+  - Error: Contrast issues on https://fiskai.hr/fiskalizacija: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/for/accountants: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/for/dooo: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/for/pausalni-obrt: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/izvori: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/kako-da: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/kako-da/godisnji-obracun-pausalca: color-contrast
+  - Error: Link https://fiskai.hr/vodici/pausalni-obrt should respond (found on https://fiskai.hr/kako-da/ispuniti-po-sd).
+  - Error: Link https://www.porezna-uprava.hr/HR_porezni_sustav/Stranice/obrasci.aspx request failed on https://fiskai.hr/kako-da/ispuniti-po-sd: apiRequestContext.get: failed to decompress 'deflate' encoding: Error: incorrect header check
+  - Error: Contrast issues on https://fiskai.hr/kako-da/ispuniti-po-sd: color-contrast
+  - Error: Link https://www.porezna-uprava.hr/fiskalizacija request failed on https://fiskai.hr/kako-da/registrirati-informacijskog-posrednika: apiRequestContext.get: failed to decompress 'deflate' encoding: Error: incorrect header check
+  - Error: Link https://fiskalizacija.gov.hr/ request failed on https://fiskai.hr/kako-da/registrirati-informacijskog-posrednika: apiRequestContext.get: getaddrinfo ENOTFOUND fiskalizacija.gov.hr
+  - Error: Contrast issues on https://fiskai.hr/kako-da/registrirati-informacijskog-posrednika: color-contrast
+  - Error: Link https://fiskai.hr/alati/prag-pdv should respond (found on https://fiskai.hr/kako-da/uci-u-sustav-pdv).
+  - Error: Link https://fiskai.hr/alati/pdv-prijava should respond (found on https://fiskai.hr/kako-da/uci-u-sustav-pdv).
+  - Error: Link https://www.porezna-uprava.hr/HR_porezni_sustav/Stranice/pdv-registracija.aspx request failed on https://fiskai.hr/kako-da/uci-u-sustav-pdv: apiRequestContext.get: failed to decompress 'deflate' encoding: Error: incorrect header check
+  - Error: Contrast issues on https://fiskai.hr/kako-da/uci-u-sustav-pdv: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/metodologija: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/prelazak: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/pricing: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/privacy: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/akontacija: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/direktor: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/dobit: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/doh: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/dohodak: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/doo: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/e-racun: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/fisk-aplikacija: color-contrast
+  - Error: Contrast issues on https://fiskai.hr/rjecnik/fiskalizacija: color-contrast
+  - ... 79 more
 
 ## Page-by-Page Audit
 

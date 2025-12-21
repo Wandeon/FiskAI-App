@@ -60,6 +60,21 @@ type PageAudit = {
   dataDependencies: string[]
 }
 
+type PlaywrightSummary = {
+  stats?: {
+    total?: number
+    expected?: number
+    unexpected?: number
+    flaky?: number
+    skipped?: number
+    startTime?: string
+    duration?: number
+  }
+  failures: string[]
+  parseError?: string
+  sourcePath?: string
+}
+
 function normalizeRoute(input: string) {
   if (!input) return ""
   const trimmed = input.trim()
@@ -395,11 +410,79 @@ function renderList(items: string[], emptyLabel = "None") {
   return items.map((item) => `- ${item}`).join("\n")
 }
 
+function collectPlaywrightFailures(report: unknown): string[] {
+  const failures = new Set<string>()
+  const stack: unknown[] = [report]
+
+  while (stack.length > 0) {
+    const node = stack.pop()
+    if (!node) continue
+
+    if (Array.isArray(node)) {
+      for (const value of node) {
+        stack.push(value)
+      }
+      continue
+    }
+
+    if (typeof node === "object") {
+      const record = node as Record<string, unknown>
+      const errors = record.errors
+
+      if (Array.isArray(errors)) {
+        for (const error of errors) {
+          if (error && typeof error === "object") {
+            const message = (error as { message?: string }).message
+            if (message) {
+              failures.add(message.split("\n")[0])
+            }
+          }
+        }
+      }
+
+      for (const value of Object.values(record)) {
+        stack.push(value)
+      }
+    }
+  }
+
+  return Array.from(failures)
+}
+
+async function loadPlaywrightSummary(): Promise<PlaywrightSummary | null> {
+  const resultsPath = process.env.MARKETING_AUDIT_PLAYWRIGHT_RESULTS
+  if (!resultsPath) return null
+  const cwd = process.cwd()
+  const displayPath = resultsPath.startsWith(cwd)
+    ? path.relative(cwd, resultsPath)
+    : resultsPath
+
+  try {
+    const raw = await fs.readFile(resultsPath, "utf8")
+    const report = JSON.parse(raw) as Record<string, unknown>
+    const stats = report.stats as PlaywrightSummary["stats"] | undefined
+    const failures = collectPlaywrightFailures(report)
+
+    return {
+      stats,
+      failures,
+      sourcePath: displayPath,
+    }
+  } catch (error) {
+    return {
+      failures: [],
+      parseError: error instanceof Error ? error.message : String(error),
+      sourcePath: displayPath,
+    }
+  }
+}
+
 async function generateReport() {
   const { config, routes } = await collectRoutes()
   const fiscalMap = await loadFiscalDataMap()
   const canonicalNumbers = new Set<number>()
   collectNumericValues(fiscalMap, canonicalNumbers)
+  const playwrightSummary = await loadPlaywrightSummary()
 
   const allRoutes = new Set(
     routes.map((route) => {
@@ -474,8 +557,43 @@ async function generateReport() {
   lines.push("")
 
   lines.push("## Dynamic Validation (Playwright)")
-  lines.push(
-    "Run Playwright to validate CTA navigation, 404s, and contrast. See tests/marketing-audit/*.spec.ts for scripts.")
+  if (!playwrightSummary) {
+    lines.push("Playwright validation not run for this report.")
+    lines.push("Run `RUN_PLAYWRIGHT=true npm run audit:marketing` to capture results.")
+  } else if (playwrightSummary.parseError) {
+    lines.push(`Playwright results could not be parsed: ${playwrightSummary.parseError}`)
+    lines.push(`Results file: ${playwrightSummary.sourcePath}`)
+  } else {
+    lines.push(`Results file: ${playwrightSummary.sourcePath}`)
+    if (playwrightSummary.stats) {
+      lines.push(
+        `- Total tests: ${playwrightSummary.stats.total ?? "n/a"} | Passed: ${
+          playwrightSummary.stats.expected ?? "n/a"
+        } | Failed: ${playwrightSummary.stats.unexpected ?? "n/a"} | Skipped: ${
+          playwrightSummary.stats.skipped ?? "n/a"
+        } | Flaky: ${playwrightSummary.stats.flaky ?? "n/a"}`
+      )
+      if (playwrightSummary.stats.startTime) {
+        lines.push(`- Start time: ${playwrightSummary.stats.startTime}`)
+      }
+      if (typeof playwrightSummary.stats.duration === "number") {
+        lines.push(`- Duration: ${(playwrightSummary.stats.duration / 1000).toFixed(1)}s`)
+      }
+    }
+
+    const failures = playwrightSummary.failures.slice(0, 50)
+    if (failures.length === 0) {
+      lines.push("- Failures: None")
+    } else {
+      lines.push("- Failures:")
+      for (const failure of failures) {
+        lines.push(`  - ${failure}`)
+      }
+      if (playwrightSummary.failures.length > failures.length) {
+        lines.push(`  - ... ${playwrightSummary.failures.length - failures.length} more`)
+      }
+    }
+  }
   lines.push("")
 
   lines.push("## Page-by-Page Audit")
