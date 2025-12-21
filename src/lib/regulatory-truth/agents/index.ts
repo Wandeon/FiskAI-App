@@ -2,7 +2,7 @@
 
 export { runAgent, type AgentRunOptions, type AgentRunResult } from "./runner"
 export { runSentinel, type SentinelResult } from "./sentinel"
-export { runExtractor, type ExtractorResult } from "./extractor"
+export { runExtractor, runExtractorBatch, type ExtractorResult } from "./extractor"
 export {
   runComposer,
   runComposerBatch,

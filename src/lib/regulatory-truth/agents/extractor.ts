@@ -95,3 +95,45 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     error: null,
   }
 }
+
+/**
+ * Run extractor on multiple unprocessed evidence records
+ */
+export async function runExtractorBatch(limit: number = 20): Promise<{
+  processed: number
+  failed: number
+  sourcePointerIds: string[]
+  errors: string[]
+}> {
+  // Find evidence without source pointers
+  const unprocessedEvidence = await db.evidence.findMany({
+    where: {
+      sourcePointers: { none: {} },
+    },
+    take: limit,
+    orderBy: { fetchedAt: "asc" },
+  })
+
+  let processed = 0
+  let failed = 0
+  const allPointerIds: string[] = []
+  const errors: string[] = []
+
+  for (const evidence of unprocessedEvidence) {
+    try {
+      const result = await runExtractor(evidence.id)
+      if (result.success) {
+        processed++
+        allPointerIds.push(...result.sourcePointerIds)
+      } else {
+        failed++
+        errors.push(`${evidence.id}: ${result.error}`)
+      }
+    } catch (error) {
+      failed++
+      errors.push(`${evidence.id}: ${error}`)
+    }
+  }
+
+  return { processed, failed, sourcePointerIds: allPointerIds, errors }
+}

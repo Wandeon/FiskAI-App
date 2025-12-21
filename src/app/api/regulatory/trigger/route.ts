@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     }
 
     if (phase === "extraction") {
-      const { runExtractor } = await import("@/lib/regulatory-truth/agents/extractor")
-      const result = await runExtractor(20)
+      const { runExtractorBatch } = await import("@/lib/regulatory-truth/agents/extractor")
+      const result = await runExtractorBatch(20)
 
       return NextResponse.json({
         success: true,
