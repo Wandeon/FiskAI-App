@@ -263,7 +263,7 @@ STAGE 3: STRATEGIC (10+ invoices OR VAT)
 
 | Module         | Required     | Purpose                       |
 | -------------- | ------------ | ----------------------------- |
-| Invoicing      | YES          | Issue invoices                |
+| Invoicing      | YES          | Issue invoices (E-Invoice mandatory 2026) |
 | URA/IRA        | YES          | Invoice registers (mandatory) |
 | PDV Forms      | YES          | VAT reporting (mandatory)     |
 | Asset Registry | YES          | Depreciation affects tax      |
@@ -1690,7 +1690,7 @@ if (result.status === "succeeded") {
 
 > **Data Source:** All values in this section are derived from `/src/lib/fiscal-data/`. Changes to tax rates, thresholds, or deadlines should be made in code, then this document updated to match.
 >
-> **Action Required:** Code update needed - `/src/lib/fiscal-data/data/thresholds.ts` still shows 464.53 EUR for asset capitalization; legal value for 2025 is 665.00 EUR.
+> **Action Required:** Code update needed - `/src/lib/fiscal-data/data/thresholds.ts` still shows 665.00 EUR for asset capitalization; legal value for 2025 is 1,000.00 EUR.
 >
 > **Last Verified:** 2025-01-15
 > **Verification Schedule:** Monthly review against official sources
@@ -1702,7 +1702,7 @@ if (result.status === "succeeded") {
 | VAT Registration     | 60,000 EUR    | Must register for VAT within 8 days           |
 | Paušalni Limit       | 60,000 EUR    | Must switch to real income basis              |
 | Cash B2B Limit       | 700 EUR       | Fines for both parties if exceeded            |
-| Asset Capitalization | 665.00 EUR    | Must depreciate over useful life (2025 value) |
+| Asset Capitalization | 1,000.00 EUR  | Must depreciate over useful life (2025 value) |
 | Small Business       | 1,000,000 EUR | Corporate tax 10% vs 18%                      |
 
 _Source: `/src/lib/fiscal-data/data/thresholds.ts`, verified against Porezna Uprava_
@@ -1712,8 +1712,8 @@ _Source: `/src/lib/fiscal-data/data/thresholds.ts`, verified against Porezna Upr
 **Income Tax (Porez na dohodak):**
 | Bracket | Rate | With Surtax (~18%) |
 |---------|------|-------------------|
-| 0 - 50,400 EUR | 20% | ~23.6% |
-| 50,400+ EUR | 30% | ~35.4% |
+| 0 - 60,000 EUR | 20% | ~23.6% |
+| 60,000+ EUR | 30% | ~35.4% |
 
 **Corporate Tax (Porez na dobit):**
 | Revenue | Rate |
@@ -2825,6 +2825,7 @@ async function handleSubmit(data: InvoiceData) {
 
 | Version | Date       | Author | Changes                          |
 | ------- | ---------- | ------ | -------------------------------- |
+| 4.2.0   | 2025-12-20 | Antigravity | Updated 2025/2026 Tax Thresholds & E-Invoice Mandate |
 | 4.1.0   | 2025-12-20 | Claude | Critical fixes & alignment       |
 | 4.0.0   | 2025-12-19 | Claude | Complete rewrite - unified bible |
 | 3.1.0   | 2025-12-19 | Gemini | V3.1 Expansion                   |
@@ -2837,9 +2838,10 @@ async function handleSubmit(data: InvoiceData) {
 
 - Fixed all 40k thresholds to 60k EUR (paušalni/PDV exit threshold per 2025 Croatian Tax Reform)
 - Corrected competence terminology: "Foundation" and "Growth" (removed outdated "standard"/"expert" references)
-- Updated asset capitalization threshold to 665 EUR (previously 464.53 EUR)
+- Updated asset capitalization threshold to 1,000.00 EUR (previously 665 EUR)
 - Fixed paušalni income tiers to 7-tier structure (0-60k EUR range)
 - Corrected minimal wage to 970 EUR and contribution base to 719.20 EUR
+- Updated Income Tax threshold to 60,000 EUR (previously 50,400 EUR)
 
 **New Sections:**
 
@@ -2899,8 +2901,8 @@ The following mandatory updates must be implemented to keep FiskAI compliant wit
 - **Doc refs**: `PRODUCT_BIBLE.md:1062` `PRODUCT_BIBLE.md:1249` `PRODUCT_BIBLE.md:1381`
   **Issue**: Legacy asset capitalization threshold.
   **Evidence**: Regulation on Amortization (Pravilnik o amortizaciji) 2025.
-  **Proof**: Items are now capitalized at **665.00 EUR** (previously 464.53 EUR).
-  **Fix**: Update `Expense Vault` AI logic to trigger "Asset Suggestion" only if `total >= 665.00`.
+  **Proof**: Items are now capitalized at **1,000.00 EUR** (previously 665.00 EUR).
+  **Fix**: Update `Expense Vault` AI logic to trigger "Asset Suggestion" only if `total >= 1000.00`.
 
 - **Doc refs**: `PRODUCT_BIBLE.md:1094` `PRODUCT_BIBLE.md:1097` `PRODUCT_BIBLE.md:1401`
   **Issue**: Legacy minimal wage and contribution base.
