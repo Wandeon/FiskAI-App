@@ -24,10 +24,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 })
     }
 
-    // Get the rule
+    // Get the rule with existing reviewerNotes
     const rule = await db.regulatoryRule.findUnique({
       where: { id },
-      select: { status: true },
+      select: { status: true, reviewerNotes: true },
     })
 
     if (!rule) {
@@ -38,14 +38,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Rule is not pending review" }, { status: 400 })
     }
 
-    // Update rule to rejected
+    // Update rule to rejected with rejection info in reviewerNotes
     const updatedRule = await db.regulatoryRule.update({
       where: { id },
       data: {
         status: "REJECTED",
-        reviewerNotes: reason,
-        approvedBy: user.id, // Track who rejected it
-        approvedAt: new Date(),
+        reviewerNotes: JSON.stringify({
+          rejectedBy: user.id,
+          rejectedAt: new Date().toISOString(),
+          reason: reason,
+          previousNotes: rule.reviewerNotes,
+        }),
       },
     })
 
