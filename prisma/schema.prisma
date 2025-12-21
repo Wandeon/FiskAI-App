@@ -1593,6 +1593,7 @@ model RegulatorySource {
   updatedAt         DateTime  @updatedAt
 
   evidence          Evidence[]
+  monitoringAlerts  MonitoringAlert[]
 
   @@index([isActive])
   @@index([lastFetchedAt])
@@ -1603,7 +1604,7 @@ model Evidence {
   sourceId        String
   fetchedAt       DateTime @default(now())
   contentHash     String
-  rawContent      String   // Full HTML/PDF text
+  rawContent      String   @db.Text  // Full HTML/PDF text
   contentType     String   @default("html")  // html, pdf, xml
   url             String
   hasChanged      Boolean  @default(false)
@@ -1625,9 +1626,9 @@ model SourcePointer {
   valueType       String   // currency, percentage, date, threshold, text
   extractedValue  String   // Stored as string, parsed by application
   displayValue    String   // Human-readable format
-  exactQuote      String   // Exact text from source
-  contextBefore   String?  // Previous sentence/paragraph
-  contextAfter    String?  // Following sentence/paragraph
+  exactQuote      String   @db.Text  // Exact text from source
+  contextBefore   String?  @db.Text  // Previous sentence/paragraph
+  contextAfter    String?  @db.Text  // Following sentence/paragraph
   selector        String?  // CSS selector or XPath
   confidence      Float    @default(0.8)
   extractionNotes String?
@@ -1647,11 +1648,11 @@ model RegulatoryRule {
   titleHr           String
   titleEn           String?
   riskTier          RiskTier
-  appliesWhen       String     // AppliesWhen DSL expression
+  appliesWhen       String     @db.Text  // AppliesWhen DSL expression
   value             String     // The regulatory value (stored as string)
   valueType         String     // percentage, currency_hrk, currency_eur, count, date, text
-  explanationHr     String?
-  explanationEn     String?
+  explanationHr     String?    @db.Text
+  explanationEn     String?    @db.Text
   effectiveFrom     DateTime
   effectiveUntil    DateTime?
   supersedesId      String?    // Previous rule this supersedes
@@ -1686,8 +1687,8 @@ model RuleRelease {
   releasedAt      DateTime @default(now())
   effectiveFrom   DateTime
   contentHash     String   // SHA-256 of rule content
-  changelogHr     String?
-  changelogEn     String?
+  changelogHr     String?  @db.Text
+  changelogEn     String?  @db.Text
   approvedBy      String[] // List of approver user IDs
   auditTrail      Json?    // { sourceEvidenceCount, sourcePointerCount, reviewCount, humanApprovals }
 
@@ -1729,7 +1730,7 @@ model RegulatoryConflict {
   status            ConflictStatus @default(OPEN)
   itemAId           String
   itemBId           String
-  description       String
+  description       String         @db.Text
   resolution        Json?          // { winningItemId, strategy, rationaleHr, rationaleEn }
   confidence        Float?
   requiresHumanReview Boolean      @default(false)
@@ -1752,7 +1753,7 @@ model MonitoringAlert {
   type                AlertType
   affectedRuleIds     String[]
   sourceId            String?
-  description         String
+  description         String        @db.Text
   autoAction          Json?         // { action, executed, result }
   humanActionRequired Boolean       @default(false)
   acknowledgedBy      String?
@@ -1760,8 +1761,11 @@ model MonitoringAlert {
   resolvedAt          DateTime?
   createdAt           DateTime      @default(now())
 
+  source              RegulatorySource? @relation(fields: [sourceId], references: [id])
+
   @@index([severity])
   @@index([type])
+  @@index([sourceId])
   @@index([createdAt])
   @@index([resolvedAt])
 }
