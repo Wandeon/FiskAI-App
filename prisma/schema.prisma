@@ -1623,6 +1623,15 @@ enum AlertType {
   COVERAGE_GAP
 }
 
+enum GraphEdgeType {
+  AMENDS
+  INTERPRETS
+  REQUIRES
+  EXEMPTS
+  DEPENDS_ON
+  SUPERSEDES
+}
+
 model RegulatorySource {
   id                String    @id @default(cuid())
   slug              String    @unique  // e.g., "porezna-pausalni"
@@ -1788,12 +1797,32 @@ model RegulatoryRule {
   conflictsA        RegulatoryConflict[] @relation("ConflictItemA")
   conflictsB        RegulatoryConflict[] @relation("ConflictItemB")
   agentRuns         AgentRun[]
+  outgoingEdges     GraphEdge[] @relation("EdgeFrom")
+  incomingEdges     GraphEdge[] @relation("EdgeTo")
 
   @@unique([conceptSlug, effectiveFrom])
   @@index([status])
   @@index([riskTier])
   @@index([conceptSlug])
   @@index([effectiveFrom])
+}
+
+model GraphEdge {
+  id         String        @id @default(cuid())
+  fromRuleId String
+  toRuleId   String
+  relation   GraphEdgeType
+  validFrom  DateTime
+  validTo    DateTime?
+  notes      String?
+  createdAt  DateTime      @default(now())
+
+  fromRule   RegulatoryRule @relation("EdgeFrom", fields: [fromRuleId], references: [id], onDelete: Cascade)
+  toRule     RegulatoryRule @relation("EdgeTo", fields: [toRuleId], references: [id], onDelete: Cascade)
+
+  @@unique([fromRuleId, toRuleId, relation])
+  @@index([fromRuleId])
+  @@index([toRuleId])
 }
 
 model RuleRelease {
