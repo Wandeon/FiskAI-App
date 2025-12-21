@@ -174,8 +174,11 @@ export async function runAgent<TInput, TOutput>(
       lastError = error as Error
 
       if (attempt < maxRetries - 1) {
-        // Exponential backoff
-        const delay = Math.pow(2, attempt) * 1000
+        // Exponential backoff with longer delays for rate limiting
+        const isRateLimit = lastError?.message?.includes("429")
+        const baseDelay = isRateLimit ? 30000 : 1000 // 30s for rate limits
+        const delay = Math.pow(2, attempt) * baseDelay
+        console.log(`[runner] Retry ${attempt + 1}/${maxRetries} in ${delay / 1000}s...`)
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
