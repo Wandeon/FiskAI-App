@@ -1,5 +1,6 @@
 // src/lib/regulatory-truth/scheduler/cron.ts
 import { CronJob } from "cron"
+import { Resend } from "resend"
 
 interface SchedulerConfig {
   timezone: string
@@ -28,7 +29,24 @@ async function runOvernightPipeline(): Promise<void> {
     console.log("[scheduler] Overnight pipeline complete")
   } catch (error) {
     console.error("[scheduler] Overnight pipeline failed:", error)
-    // TODO: Send alert notification
+    // Send alert email
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || "FiskAI <noreply@fiskai.hr>",
+        to: process.env.ADMIN_ALERT_EMAIL || "admin@fiskai.hr",
+        subject: "🚨 Regulatory Pipeline Failed",
+        html: `
+          <h2>Overnight Pipeline Failure</h2>
+          <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+          <p><strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}</p>
+          <p><a href="https://admin.fiskai.hr/regulatory">View Dashboard</a></p>
+        `,
+      })
+      console.log("[scheduler] Alert email sent")
+    } catch (emailError) {
+      console.error("[scheduler] Failed to send alert email:", emailError)
+    }
   }
 }
 
