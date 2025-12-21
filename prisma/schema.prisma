@@ -1895,9 +1895,10 @@ model RegulatoryConflict {
   id                String         @id @default(cuid())
   conflictType      ConflictType
   status            ConflictStatus @default(OPEN)
-  itemAId           String
-  itemBId           String
+  itemAId           String?
+  itemBId           String?
   description       String         @db.Text
+  metadata          Json?          // Source-level conflicts store sourcePointerIds here
   resolution        Json?          // { winningItemId, strategy, rationaleHr, rationaleEn }
   confidence        Float?
   requiresHumanReview Boolean      @default(false)
@@ -1906,8 +1907,8 @@ model RegulatoryConflict {
   resolvedAt        DateTime?
   createdAt         DateTime       @default(now())
 
-  itemA             RegulatoryRule @relation("ConflictItemA", fields: [itemAId], references: [id])
-  itemB             RegulatoryRule @relation("ConflictItemB", fields: [itemBId], references: [id])
+  itemA             RegulatoryRule? @relation("ConflictItemA", fields: [itemAId], references: [id])
+  itemB             RegulatoryRule? @relation("ConflictItemB", fields: [itemBId], references: [id])
 
   @@index([status])
   @@index([conflictType])

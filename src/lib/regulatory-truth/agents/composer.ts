@@ -86,14 +86,29 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
 
   // Check if conflicts were detected
   if (result.output.conflicts_detected) {
-    // Conflicts detected - return error for manual resolution
-    // Note: RegulatoryConflict model expects RegulatoryRule IDs, not SourcePointer IDs
-    // Conflicts at this stage should be escalated to Arbiter manually
+    // Create a conflict record for Arbiter to resolve later
+    const conflict = await db.regulatoryConflict.create({
+      data: {
+        conflictType: "SOURCE_CONFLICT",
+        status: "OPEN",
+        description:
+          result.output.conflicts_detected.description ||
+          "Conflicting values detected in source pointers",
+        metadata: {
+          sourcePointerIds: sourcePointerIds,
+          detectedBy: "COMPOSER",
+          conflictDetails: result.output.conflicts_detected,
+        },
+      },
+    })
+
+    console.log(`[composer] Created conflict ${conflict.id} for Arbiter resolution`)
+
     return {
       success: false,
       output: result.output,
       ruleId: null,
-      error: `Conflict detected - escalate to Arbiter: ${result.output.conflicts_detected.description}`,
+      error: `Conflict detected (${conflict.id}) - queued for Arbiter`,
     }
   }
 
