@@ -9,6 +9,7 @@ import {
 } from "../schemas"
 import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
+import { deriveAuthorityLevel } from "../utils/authority"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -115,6 +116,12 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
 
   const draftRule = result.output.draft_rule
 
+  // Derive authority level from sources
+  const sourceSlugs = sourcePointers
+    .filter((sp) => sp.evidence?.source?.slug)
+    .map((sp) => sp.evidence.source.slug)
+  const authorityLevel = deriveAuthorityLevel(sourceSlugs)
+
   // Store the draft rule in database
   const rule = await db.regulatoryRule.create({
     data: {
@@ -122,6 +129,7 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       titleHr: draftRule.title_hr,
       titleEn: draftRule.title_en,
       riskTier: draftRule.risk_tier,
+      authorityLevel,
       appliesWhen: draftRule.applies_when,
       value: String(draftRule.value),
       valueType: draftRule.value_type,
