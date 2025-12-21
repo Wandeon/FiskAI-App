@@ -127,7 +127,7 @@ export async function runAgent<TInput, TOutput>(
           stream: false,
           options: {
             temperature,
-            num_predict: 8192, // Allow longer responses for complex extractions
+            num_predict: 16384, // Allow much longer responses for model's thinking + JSON output
           },
         }),
       })
@@ -137,7 +137,12 @@ export async function runAgent<TInput, TOutput>(
       }
 
       const data = await response.json()
-      const rawContent = data.message?.content || ""
+      // qwen3-next model sometimes puts content in "thinking" field instead of "content"
+      let rawContent = data.message?.content || ""
+      if (!rawContent && data.message?.thinking) {
+        // Extract JSON from thinking field if content is empty
+        rawContent = data.message.thinking
+      }
 
       // Extract JSON from response (handle markdown code blocks, whitespace, etc.)
       let jsonContent = rawContent.trim()
