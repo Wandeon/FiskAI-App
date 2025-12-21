@@ -26,84 +26,57 @@ import { Pool } from "pg"
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 /**
- * Run Sentinel agent on a specific source or all active sources
+ * Run Sentinel agent to discover new regulatory content
  */
 async function main() {
   // Dynamic import after env is loaded
-  const { runSentinel } = await import("../agents/sentinel")
+  const { runSentinel, fetchDiscoveredItems } = await import("../agents/sentinel")
 
   const args = process.argv.slice(2)
-  const sourceSlug = args[0]
+  const priorityArg = args[0] // "CRITICAL", "HIGH", "MEDIUM", "LOW", or undefined for all
 
   const client = await pool.connect()
   try {
-    if (sourceSlug) {
-      // Run on specific source
-      console.log(`[sentinel] Running on source: ${sourceSlug}`)
+    console.log("[sentinel] Running discovery agent...")
 
-      const result = await client.query(
-        `SELECT id, slug, name FROM "RegulatorySource" WHERE slug = $1`,
-        [sourceSlug]
-      )
-
-      if (result.rows.length === 0) {
-        console.error(`[sentinel] Source not found: ${sourceSlug}`)
+    // Validate priority argument
+    let priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | undefined
+    if (priorityArg) {
+      if (!["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(priorityArg)) {
+        console.error(
+          `[sentinel] Invalid priority: ${priorityArg}. Use: CRITICAL, HIGH, MEDIUM, or LOW`
+        )
         process.exit(1)
       }
-
-      const source = result.rows[0]
-      const sentinelResult = await runSentinel(source.id)
-      console.log("[sentinel] Result:", JSON.stringify(sentinelResult, null, 2))
-
-      process.exit(sentinelResult.success ? 0 : 1)
+      priority = priorityArg as "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
+      console.log(`[sentinel] Filtering to ${priority} priority endpoints`)
     } else {
-      // Run on all active sources that need updating
-      console.log("[sentinel] Running on all active sources...")
-
-      const result = await client.query(
-        `SELECT id, slug, name
-         FROM "RegulatorySource"
-         WHERE "isActive" = true
-         ORDER BY COALESCE("lastFetchedAt", '1970-01-01'::timestamp) ASC`
-      )
-
-      const sources = result.rows
-      console.log(`[sentinel] Found ${sources.length} active sources`)
-
-      let success = 0
-      let failed = 0
-      let changed = 0
-
-      for (const source of sources) {
-        console.log(`\n[sentinel] Processing: ${source.slug}`)
-
-        try {
-          const sentinelResult = await runSentinel(source.id)
-
-          if (sentinelResult.success) {
-            success++
-            if (sentinelResult.hasChanged) {
-              changed++
-              console.log(`[sentinel] ✓ ${source.slug} - CHANGED`)
-            } else {
-              console.log(`[sentinel] ✓ ${source.slug} - no change`)
-            }
-          } else {
-            failed++
-            console.log(`[sentinel] ✗ ${source.slug} - ${sentinelResult.error}`)
-          }
-        } catch (error) {
-          failed++
-          console.error(`[sentinel] ✗ ${source.slug} - ${error}`)
-        }
-
-        // Rate limiting - wait 2 seconds between requests
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-      }
-
-      console.log(`\n[sentinel] Complete: ${success} success, ${failed} failed, ${changed} changed`)
-      process.exit(failed > 0 ? 1 : 0)
+      console.log("[sentinel] Processing all active endpoints")
     }
+
+    // Run discovery
+    const result = await runSentinel(priority)
+
+    console.log("\n[sentinel] Discovery Results:")
+    console.log(`  - Success: ${result.success}`)
+    console.log(`  - Endpoints Checked: ${result.endpointsChecked}`)
+    console.log(`  - New Items Discovered: ${result.newItemsDiscovered}`)
+
+    if (result.errors.length > 0) {
+      console.log(`  - Errors: ${result.errors.length}`)
+      result.errors.forEach((err) => console.log(`    - ${err}`))
+    }
+
+    // Fetch discovered items
+    if (result.newItemsDiscovered > 0) {
+      console.log("\n[sentinel] Fetching discovered items...")
+      const fetchResult = await fetchDiscoveredItems(100)
+      console.log(`  - Fetched: ${fetchResult.fetched}`)
+      console.log(`  - Failed: ${fetchResult.failed}`)
+    }
+
+    console.log("\n[sentinel] Complete!")
+    process.exit(result.success ? 0 : 1)
   } finally {
     client.release()
     await pool.end()

@@ -1,128 +1,351 @@
 // src/lib/regulatory-truth/agents/sentinel.ts
-
-import { createHash } from "crypto"
+import { DiscoveryPriority, ScrapeFrequency } from "@prisma/client"
 import { db } from "@/lib/db"
+import { fetchWithRateLimit } from "../utils/rate-limiter"
+import { detectContentChange, hashContent } from "../utils/content-hash"
+import { parseSitemap, filterNNSitemaps, getLatestNNIssueSitemaps } from "../parsers/sitemap-parser"
+import { parseHtmlList, findPaginationLinks } from "../parsers/html-list-parser"
 
-// =============================================================================
-// FETCH HELPERS
-// =============================================================================
-
-async function fetchSourceContent(url: string): Promise<{
-  content: string
-  contentType: "html" | "pdf" | "xml"
-}> {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "FiskAI-Sentinel/1.0 (regulatory monitoring)",
-      Accept: "text/html,application/xhtml+xml,application/xml,application/pdf",
-      "Accept-Language": "hr-HR,hr;q=0.9,en;q=0.8",
-    },
-    signal: AbortSignal.timeout(30000),
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-  }
-
-  const contentTypeHeader = response.headers.get("content-type") || ""
-  let contentType: "html" | "pdf" | "xml" = "html"
-
-  if (contentTypeHeader.includes("pdf")) {
-    contentType = "pdf"
-  } else if (contentTypeHeader.includes("xml")) {
-    contentType = "xml"
-  }
-
-  const text = await response.text()
-
-  // Basic HTML cleanup
-  const content = text
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/\s+/g, " ")
-    .trim()
-
-  return { content, contentType }
+interface SentinelConfig {
+  maxItemsPerRun: number
+  maxPagesPerEndpoint: number
 }
 
-function computeContentHash(content: string): string {
-  return createHash("sha256").update(content).digest("hex")
+const DEFAULT_CONFIG: SentinelConfig = {
+  maxItemsPerRun: 500,
+  maxPagesPerEndpoint: 5,
 }
-
-// =============================================================================
-// SENTINEL AGENT
-// =============================================================================
 
 export interface SentinelResult {
   success: boolean
-  evidenceId: string | null
-  hasChanged: boolean
-  error: string | null
+  endpointsChecked: number
+  newItemsDiscovered: number
+  errors: string[]
 }
 
 /**
- * Run the Sentinel to monitor a regulatory source
- * Note: This is a simplified version that just fetches and stores evidence.
- * The LLM-based analysis is deferred to the Extractor agent.
+ * Check if an endpoint should be scraped based on its frequency.
  */
-export async function runSentinel(sourceId: string): Promise<SentinelResult> {
-  // Get source from database
-  const source = await db.regulatorySource.findUnique({
-    where: { id: sourceId },
-  })
+function shouldScrapeEndpoint(
+  frequency: ScrapeFrequency,
+  lastScrapedAt: Date | null,
+  now: Date
+): boolean {
+  if (!lastScrapedAt) return true
 
-  if (!source) {
-    return {
-      success: false,
-      evidenceId: null,
-      hasChanged: false,
-      error: `Source not found: ${sourceId}`,
+  const hoursSinceScrape = (now.getTime() - lastScrapedAt.getTime()) / (1000 * 60 * 60)
+
+  switch (frequency) {
+    case "EVERY_RUN":
+      return true
+    case "DAILY":
+      return hoursSinceScrape >= 24
+    case "TWICE_WEEKLY":
+      return hoursSinceScrape >= 84 // ~3.5 days
+    case "WEEKLY":
+      return hoursSinceScrape >= 168
+    case "MONTHLY":
+      return hoursSinceScrape >= 720
+    default:
+      return true
+  }
+}
+
+/**
+ * Process a single discovery endpoint.
+ */
+async function processEndpoint(
+  endpoint: {
+    id: string
+    domain: string
+    path: string
+    name: string
+    listingStrategy: string
+    urlPattern: string | null
+    paginationPattern: string | null
+    lastContentHash: string | null
+    metadata: unknown
+  },
+  config: SentinelConfig
+): Promise<{ newItems: number; error?: string }> {
+  const baseUrl = `https://${endpoint.domain}${endpoint.path}`
+  console.log(`[sentinel] Checking: ${baseUrl}`)
+
+  try {
+    const response = await fetchWithRateLimit(baseUrl)
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
+
+    const content = await response.text()
+    const { hasChanged, newHash } = detectContentChange(content, endpoint.lastContentHash)
+
+    // Update endpoint with new hash
+    await db.discoveryEndpoint.update({
+      where: { id: endpoint.id },
+      data: {
+        lastScrapedAt: new Date(),
+        lastContentHash: newHash,
+        consecutiveErrors: 0,
+        lastError: null,
+      },
+    })
+
+    if (!hasChanged && endpoint.lastContentHash) {
+      console.log(`[sentinel] No changes detected for ${endpoint.name}`)
+      return { newItems: 0 }
+    }
+
+    // Parse content based on strategy
+    let discoveredUrls: { url: string; title: string | null; date: string | null }[] = []
+
+    if (endpoint.listingStrategy === "SITEMAP_XML") {
+      const entries = parseSitemap(content)
+
+      // For NN, filter to relevant types and get latest issues
+      if (endpoint.domain === "narodne-novine.nn.hr") {
+        const allowedTypes = (endpoint.metadata as { types?: number[] })?.types || [1, 2]
+        const filtered = filterNNSitemaps(entries, allowedTypes)
+        const latest = getLatestNNIssueSitemaps(filtered, 20)
+        discoveredUrls = latest.map((e) => ({ url: e.url, title: null, date: e.lastmod || null }))
+      } else {
+        discoveredUrls = entries.map((e) => ({ url: e.url, title: null, date: e.lastmod || null }))
+      }
+    } else {
+      // HTML-based parsing
+      const items = parseHtmlList(content, {
+        baseUrl,
+        itemSelector: "article, .news-item, .views-row",
+      })
+      discoveredUrls = items
+
+      // Handle pagination
+      if (endpoint.listingStrategy === "PAGINATION") {
+        const paginationLinks = findPaginationLinks(content, baseUrl, config.maxPagesPerEndpoint)
+
+        for (const pageUrl of paginationLinks) {
+          try {
+            const pageResponse = await fetchWithRateLimit(pageUrl)
+            if (pageResponse.ok) {
+              const pageContent = await pageResponse.text()
+              const pageItems = parseHtmlList(pageContent, {
+                baseUrl: pageUrl,
+                itemSelector: "article, .news-item, .views-row",
+              })
+              discoveredUrls.push(...pageItems)
+            }
+          } catch (error) {
+            console.log(`[sentinel] Failed to fetch page: ${pageUrl}`)
+          }
+        }
+      }
+    }
+
+    // Create DiscoveredItem records for new URLs
+    let newItemCount = 0
+    for (const item of discoveredUrls) {
+      try {
+        await db.discoveredItem.create({
+          data: {
+            endpointId: endpoint.id,
+            url: item.url,
+            title: item.title,
+            publishedAt: item.date ? new Date(item.date) : null,
+            status: "PENDING",
+          },
+        })
+        newItemCount++
+      } catch (error) {
+        // Likely duplicate (unique constraint violation)
+        // This is expected and fine
+      }
+    }
+
+    console.log(`[sentinel] Discovered ${newItemCount} new items from ${endpoint.name}`)
+    return { newItems: newItemCount }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+
+    await db.discoveryEndpoint.update({
+      where: { id: endpoint.id },
+      data: {
+        consecutiveErrors: { increment: 1 },
+        lastError: errorMessage,
+      },
+    })
+
+    return { newItems: 0, error: errorMessage }
+  }
+}
+
+/**
+ * Run the Sentinel agent to discover new content.
+ */
+export async function runSentinel(
+  priority?: DiscoveryPriority,
+  config: Partial<SentinelConfig> = {}
+): Promise<SentinelResult> {
+  const mergedConfig = { ...DEFAULT_CONFIG, ...config }
+  const now = new Date()
+  const result: SentinelResult = {
+    success: true,
+    endpointsChecked: 0,
+    newItemsDiscovered: 0,
+    errors: [],
   }
 
   try {
-    // Fetch the source content
-    const { content, contentType } = await fetchSourceContent(source.url)
-    const contentHash = computeContentHash(content)
-    const hasChanged = source.lastContentHash !== contentHash
-
-    // Store evidence
-    const evidence = await db.evidence.create({
-      data: {
-        sourceId: source.id,
-        contentHash,
-        rawContent: content,
-        contentType,
-        url: source.url,
-        hasChanged,
-        changeSummary: hasChanged ? "Content changed since last fetch" : null,
-      },
-    })
-
-    // Update source last checked
-    await db.regulatorySource.update({
-      where: { id: source.id },
-      data: {
-        lastFetchedAt: new Date(),
-        lastContentHash: contentHash,
-      },
-    })
-
-    return {
-      success: true,
-      evidenceId: evidence.id,
-      hasChanged,
-      error: null,
+    // Get active endpoints, optionally filtered by priority
+    const whereClause: Record<string, unknown> = {
+      isActive: true,
+      consecutiveErrors: { lt: 5 }, // Skip endpoints with too many errors
     }
+    if (priority) {
+      whereClause.priority = priority
+    }
+
+    const endpoints = await db.discoveryEndpoint.findMany({
+      where: whereClause,
+      orderBy: [
+        { priority: "asc" }, // CRITICAL first
+        { lastScrapedAt: "asc" }, // Oldest first
+      ],
+    })
+
+    console.log(`[sentinel] Found ${endpoints.length} active endpoints`)
+
+    for (const endpoint of endpoints) {
+      // Check if we should scrape based on frequency
+      if (!shouldScrapeEndpoint(endpoint.scrapeFrequency, endpoint.lastScrapedAt, now)) {
+        continue
+      }
+
+      result.endpointsChecked++
+      const { newItems, error } = await processEndpoint(endpoint, mergedConfig)
+      result.newItemsDiscovered += newItems
+
+      if (error) {
+        result.errors.push(`${endpoint.name}: ${error}`)
+      }
+
+      // Safety limit
+      if (result.newItemsDiscovered >= mergedConfig.maxItemsPerRun) {
+        console.log(`[sentinel] Reached max items limit (${mergedConfig.maxItemsPerRun})`)
+        break
+      }
+    }
+
+    console.log(
+      `[sentinel] Complete: ${result.endpointsChecked} endpoints, ${result.newItemsDiscovered} new items`
+    )
   } catch (error) {
-    return {
-      success: false,
-      evidenceId: null,
-      hasChanged: false,
-      error: `Sentinel error: ${error}`,
+    result.success = false
+    result.errors.push(error instanceof Error ? error.message : String(error))
+  }
+
+  return result
+}
+
+/**
+ * Fetch content for pending discovered items and create Evidence records.
+ */
+export async function fetchDiscoveredItems(limit: number = 100): Promise<{
+  fetched: number
+  failed: number
+}> {
+  const items = await db.discoveredItem.findMany({
+    where: {
+      status: "PENDING",
+      retryCount: { lt: 3 },
+    },
+    orderBy: { createdAt: "asc" },
+    take: limit,
+    include: { endpoint: true },
+  })
+
+  let fetched = 0
+  let failed = 0
+
+  for (const item of items) {
+    try {
+      console.log(`[sentinel] Fetching: ${item.url}`)
+      const response = await fetchWithRateLimit(item.url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const content = await response.text()
+      const contentHash = hashContent(content)
+
+      // Check if we already have this content
+      const existingEvidence = await db.evidence.findFirst({
+        where: { contentHash },
+      })
+
+      if (existingEvidence) {
+        // Link to existing evidence
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "PROCESSED",
+            processedAt: new Date(),
+            evidenceId: existingEvidence.id,
+            contentHash,
+          },
+        })
+      } else {
+        // Find or create source
+        const source = await db.regulatorySource.findFirst({
+          where: {
+            url: { contains: item.endpoint.domain },
+          },
+        })
+
+        if (source) {
+          // Create new evidence record
+          const evidence = await db.evidence.create({
+            data: {
+              sourceId: source.id,
+              url: item.url,
+              rawContent: content,
+              contentHash,
+              contentType: "html",
+            },
+          })
+
+          await db.discoveredItem.update({
+            where: { id: item.id },
+            data: {
+              status: "FETCHED",
+              processedAt: new Date(),
+              evidenceId: evidence.id,
+              contentHash,
+            },
+          })
+
+          fetched++
+        } else {
+          console.log(`[sentinel] No source found for ${item.endpoint.domain}`)
+          await db.discoveredItem.update({
+            where: { id: item.id },
+            data: { status: "SKIPPED" },
+          })
+        }
+      }
+    } catch (error) {
+      failed++
+      await db.discoveredItem.update({
+        where: { id: item.id },
+        data: {
+          retryCount: { increment: 1 },
+          errorMessage: error instanceof Error ? error.message : String(error),
+          status: item.retryCount >= 2 ? "FAILED" : "PENDING",
+        },
+      })
     }
   }
+
+  console.log(`[sentinel] Fetched: ${fetched}, Failed: ${failed}`)
+  return { fetched, failed }
 }
