@@ -27,31 +27,34 @@ interface SearchParams {
   pageSize?: string
 }
 
-export default async function AdminTenantsPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function AdminTenantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}) {
+  // Await searchParams in Next.js 15
+  const params = await searchParams
+
   // Parse filters from URL params
   const filters: TenantFilters = {
-    legalForm: searchParams.legalForm,
-    subscriptionStatus: searchParams.subscriptionStatus,
-    flags: searchParams.flags,
+    legalForm: params.legalForm,
+    subscriptionStatus: params.subscriptionStatus,
+    flags: params.flags,
     hasAlerts:
-      searchParams.hasAlerts === "true"
-        ? true
-        : searchParams.hasAlerts === "false"
-          ? false
-          : undefined,
-    search: searchParams.search,
+      params.hasAlerts === "true" ? true : params.hasAlerts === "false" ? false : undefined,
+    search: params.search,
   }
 
   // Parse sort from URL params
   const sort: TenantSort = {
-    field: (searchParams.sortField as any) || "createdAt",
-    order: (searchParams.sortOrder as any) || "desc",
+    field: (params.sortField as any) || "createdAt",
+    order: (params.sortOrder as any) || "desc",
   }
 
   // Parse pagination from URL params
   const pagination: TenantPagination = {
-    page: parseInt(searchParams.page || "1", 10),
-    pageSize: parseInt(searchParams.pageSize || "20", 10),
+    page: parseInt(params.page || "1", 10),
+    pageSize: parseInt(params.pageSize || "20", 10),
   }
 
   // Fetch tenant list with caching

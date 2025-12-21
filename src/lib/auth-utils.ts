@@ -17,6 +17,22 @@ export async function requireAuth() {
   return user
 }
 
+export async function requireAdmin() {
+  const user = await requireAuth()
+
+  // Check if user has ADMIN systemRole
+  const dbUser = await db.user.findUnique({
+    where: { id: user.id },
+    select: { systemRole: true },
+  })
+
+  if (dbUser?.systemRole !== "ADMIN") {
+    redirect("/dashboard")
+  }
+
+  return user
+}
+
 export async function getCurrentCompany(userId: string) {
   const companyUser = await db.companyUser.findFirst({
     where: {

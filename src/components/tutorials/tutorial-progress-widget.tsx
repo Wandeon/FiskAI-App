@@ -6,7 +6,7 @@ import { ProgressBar } from "@/components/ui/progress-bar"
 import { CheckCircle, Circle, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import type { TutorialTrack, TutorialProgress } from "@/lib/tutorials/types"
-import { calculateTrackProgress } from "@/lib/tutorials/progress"
+import { calculateTrackProgress } from "@/lib/tutorials/utils"
 import { getProgressAriaLabel } from "@/lib/a11y"
 
 interface TutorialProgressWidgetProps {
