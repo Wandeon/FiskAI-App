@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
     const totalSourcePointers = await db.sourcePointer.count()
     const totalConflicts = await db.regulatoryConflict.count({
       where: {
-        status: { in: ["detected", "investigating"] },
+        status: { in: ["OPEN", "ESCALATED"] },
       },
     })
 
