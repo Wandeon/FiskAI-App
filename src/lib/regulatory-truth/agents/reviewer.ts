@@ -8,6 +8,7 @@ import {
   type ReviewerOutput,
 } from "../schemas"
 import { runAgent } from "./runner"
+import { logAuditEvent } from "../utils/audit-log"
 
 // =============================================================================
 // REVIEWER AGENT
@@ -177,6 +178,23 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       ...(newStatus === "APPROVED" && {
         approvedAt: new Date(),
       }),
+    },
+  })
+
+  // Log audit event for review decision
+  await logAuditEvent({
+    action:
+      newStatus === "APPROVED"
+        ? "RULE_APPROVED"
+        : newStatus === "REJECTED"
+          ? "RULE_REJECTED"
+          : "RULE_CREATED",
+    entityType: "RULE",
+    entityId: rule.id,
+    metadata: {
+      decision: reviewOutput.decision,
+      newStatus,
+      confidence: reviewOutput.computed_confidence,
     },
   })
 

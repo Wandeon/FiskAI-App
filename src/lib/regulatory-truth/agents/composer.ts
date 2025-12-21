@@ -8,6 +8,7 @@ import {
   type ComposerOutput,
 } from "../schemas"
 import { runAgent } from "./runner"
+import { logAuditEvent } from "../utils/audit-log"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -135,6 +136,19 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       sourcePointers: {
         connect: draftRule.source_pointer_ids.map((id) => ({ id })),
       },
+    },
+  })
+
+  // Log audit event for rule creation
+  await logAuditEvent({
+    action: "RULE_CREATED",
+    entityType: "RULE",
+    entityId: rule.id,
+    metadata: {
+      conceptSlug: rule.conceptSlug,
+      riskTier: draftRule.risk_tier,
+      confidence: draftRule.confidence,
+      sourcePointerCount: sourcePointerIds.length,
     },
   })
 

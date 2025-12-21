@@ -9,6 +9,7 @@ import {
 } from "../schemas"
 import { runAgent } from "./runner"
 import { createHash } from "crypto"
+import { logAuditEvent } from "../utils/audit-log"
 
 // =============================================================================
 // RELEASER AGENT
@@ -239,6 +240,28 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
       },
     },
   })
+
+  // Log audit event for release publication
+  await logAuditEvent({
+    action: "RELEASE_PUBLISHED",
+    entityType: "RELEASE",
+    entityId: release.id,
+    metadata: {
+      version: finalVersion,
+      ruleCount: approvedRuleIds.length,
+      contentHash,
+    },
+  })
+
+  // Log audit event for each rule being published
+  for (const ruleId of approvedRuleIds) {
+    await logAuditEvent({
+      action: "RULE_PUBLISHED",
+      entityType: "RULE",
+      entityId: ruleId,
+      metadata: { releaseId: release.id, version: finalVersion },
+    })
+  }
 
   // Update rules status to PUBLISHED
   await db.regulatoryRule.updateMany({

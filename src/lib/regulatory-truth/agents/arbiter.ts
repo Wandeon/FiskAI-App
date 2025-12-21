@@ -10,6 +10,7 @@ import {
 } from "../schemas"
 import { runAgent } from "./runner"
 import type { AuthorityLevel } from "@prisma/client"
+import { logAuditEvent } from "../utils/audit-log"
 
 // =============================================================================
 // ARBITER AGENT
@@ -222,6 +223,18 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
       humanReviewReason:
         arbitration.human_review_reason || (shouldEscalate ? "Escalated by business rules" : null),
       resolvedAt: resolution !== "ESCALATE_TO_HUMAN" ? new Date() : null,
+    },
+  })
+
+  // Log audit event for conflict resolution
+  await logAuditEvent({
+    action: "CONFLICT_RESOLVED",
+    entityType: "CONFLICT",
+    entityId: conflictId,
+    metadata: {
+      resolution,
+      strategy: arbitration.resolution.resolution_strategy,
+      confidence: arbitration.confidence,
     },
   })
 
