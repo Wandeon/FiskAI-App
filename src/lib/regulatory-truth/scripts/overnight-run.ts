@@ -28,7 +28,7 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function main() {
+export async function main() {
   const { runSentinel, fetchDiscoveredItems } = await import("../agents/sentinel")
   const { runExtractor } = await import("../agents/extractor")
   const { runComposer, groupSourcePointersByDomain } = await import("../agents/composer")
