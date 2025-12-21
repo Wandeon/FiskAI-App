@@ -21,6 +21,25 @@ export interface ReviewerResult {
 }
 
 /**
+ * Find existing rules that might conflict with this one
+ */
+async function findConflictingRules(rule: {
+  id: string
+  conceptSlug: string
+  effectiveFrom: Date
+}): Promise<Array<{ id: string; conceptSlug: string }>> {
+  return db.regulatoryRule.findMany({
+    where: {
+      id: { not: rule.id },
+      conceptSlug: rule.conceptSlug,
+      status: { in: ["PUBLISHED", "APPROVED"] },
+      OR: [{ effectiveUntil: null }, { effectiveUntil: { gte: rule.effectiveFrom } }],
+    },
+    select: { id: true, conceptSlug: true },
+  })
+}
+
+/**
  * Run the Reviewer agent to validate a Draft Rule
  */
 export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
@@ -110,7 +129,32 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       break
 
     case "ESCALATE_HUMAN":
+      newStatus = "PENDING_REVIEW"
+      break
+
     case "ESCALATE_ARBITER":
+      // Find potentially conflicting rules
+      const conflictingRules = await findConflictingRules(rule)
+
+      if (conflictingRules.length > 0) {
+        // Create conflict for Arbiter
+        const conflict = await db.regulatoryConflict.create({
+          data: {
+            conflictType: "SCOPE_CONFLICT",
+            status: "OPEN",
+            itemAId: rule.id,
+            itemBId: conflictingRules[0].id,
+            description:
+              reviewOutput.human_review_reason || "Potential conflict detected during review",
+            metadata: {
+              detectedBy: "REVIEWER",
+              allConflictingRuleIds: conflictingRules.map((r) => r.id),
+            },
+          },
+        })
+        console.log(`[reviewer] Created conflict ${conflict.id} for Arbiter`)
+      }
+
       newStatus = "PENDING_REVIEW"
       break
   }
