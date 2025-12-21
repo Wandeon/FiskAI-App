@@ -55,13 +55,31 @@ function calculateNextVersion(
 }
 
 /**
- * Compute deterministic content hash for rules
+ * Compute deterministic content hash for rules including full content
  */
-function computeContentHash(rules: Array<{ id: string; conceptSlug: string }>): string {
+function computeContentHash(
+  rules: Array<{
+    id: string
+    conceptSlug: string
+    appliesWhen: string
+    value: string
+    effectiveFrom: Date
+    effectiveUntil: Date | null
+  }>
+): string {
   // Sort by conceptSlug for deterministic hashing
   const sortedRules = [...rules].sort((a, b) => a.conceptSlug.localeCompare(b.conceptSlug))
-  const content = JSON.stringify(sortedRules)
-  return createHash("sha256").update(content, "utf8").digest("hex")
+
+  // Include all meaningful content in hash
+  const content = sortedRules.map((r) => ({
+    conceptSlug: r.conceptSlug,
+    appliesWhen: r.appliesWhen,
+    value: r.value,
+    effectiveFrom: r.effectiveFrom.toISOString(),
+    effectiveUntil: r.effectiveUntil?.toISOString() || null,
+  }))
+
+  return createHash("sha256").update(JSON.stringify(content), "utf8").digest("hex")
 }
 
 /**
@@ -163,9 +181,16 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
     : expectedVersion
   const finalReleaseType = releaseOutput.release_type || expectedReleaseType
 
-  // Compute content hash
+  // Compute content hash with full rule content
   const contentHash = computeContentHash(
-    rules.map((r) => ({ id: r.id, conceptSlug: r.conceptSlug }))
+    rules.map((r) => ({
+      id: r.id,
+      conceptSlug: r.conceptSlug,
+      appliesWhen: r.appliesWhen,
+      value: r.value,
+      effectiveFrom: r.effectiveFrom,
+      effectiveUntil: r.effectiveUntil,
+    }))
   )
 
   // Count audit trail metrics
