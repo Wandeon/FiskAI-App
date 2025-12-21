@@ -99,8 +99,8 @@ async function main() {
           console.error(`[extractor] ✗ ${error}`)
         }
 
-        // Rate limiting - wait 3 seconds between extractions
-        await new Promise((resolve) => setTimeout(resolve, 3000))
+        // Rate limiting - wait 15 seconds between extractions to avoid Ollama 429
+        await new Promise((resolve) => setTimeout(resolve, 15000))
       }
 
       console.log(

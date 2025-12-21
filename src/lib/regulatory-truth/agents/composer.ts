@@ -1,0 +1,215 @@
+// src/lib/regulatory-truth/agents/composer.ts
+
+import { db } from "@/lib/db"
+import {
+  ComposerInputSchema,
+  ComposerOutputSchema,
+  type ComposerInput,
+  type ComposerOutput,
+} from "../schemas"
+import { runAgent } from "./runner"
+
+// =============================================================================
+// COMPOSER AGENT
+// =============================================================================
+
+export interface ComposerResult {
+  success: boolean
+  output: ComposerOutput | null
+  ruleId: string | null
+  error: string | null
+}
+
+/**
+ * Run the Composer agent to create Draft Rules from SourcePointers
+ */
+export async function runComposer(sourcePointerIds: string[]): Promise<ComposerResult> {
+  if (sourcePointerIds.length === 0) {
+    return {
+      success: false,
+      output: null,
+      ruleId: null,
+      error: "No source pointer IDs provided",
+    }
+  }
+
+  // Get source pointers from database
+  const sourcePointers = await db.sourcePointer.findMany({
+    where: { id: { in: sourcePointerIds } },
+    include: {
+      evidence: {
+        include: {
+          source: true,
+        },
+      },
+    },
+  })
+
+  if (sourcePointers.length === 0) {
+    return {
+      success: false,
+      output: null,
+      ruleId: null,
+      error: `No source pointers found for IDs: ${sourcePointerIds.join(", ")}`,
+    }
+  }
+
+  // Build input for agent
+  const input: ComposerInput = {
+    sourcePointerIds: sourcePointers.map((sp) => sp.id),
+    sourcePointers: sourcePointers.map((sp) => ({
+      id: sp.id,
+      domain: sp.domain,
+      extractedValue: sp.extractedValue,
+      exactQuote: sp.exactQuote,
+      confidence: sp.confidence,
+    })),
+  }
+
+  // Run the agent
+  const result = await runAgent<ComposerInput, ComposerOutput>({
+    agentType: "COMPOSER",
+    input,
+    inputSchema: ComposerInputSchema,
+    outputSchema: ComposerOutputSchema,
+    temperature: 0.1,
+  })
+
+  if (!result.success || !result.output) {
+    return {
+      success: false,
+      output: null,
+      ruleId: null,
+      error: result.error,
+    }
+  }
+
+  // Check if conflicts were detected
+  if (result.output.conflicts_detected) {
+    // Conflicts detected - return error for manual resolution
+    // Note: RegulatoryConflict model expects RegulatoryRule IDs, not SourcePointer IDs
+    // Conflicts at this stage should be escalated to Arbiter manually
+    return {
+      success: false,
+      output: result.output,
+      ruleId: null,
+      error: `Conflict detected - escalate to Arbiter: ${result.output.conflicts_detected.description}`,
+    }
+  }
+
+  const draftRule = result.output.draft_rule
+
+  // Store the draft rule in database
+  const rule = await db.regulatoryRule.create({
+    data: {
+      conceptSlug: draftRule.concept_slug,
+      titleHr: draftRule.title_hr,
+      titleEn: draftRule.title_en,
+      riskTier: draftRule.risk_tier,
+      appliesWhen: draftRule.applies_when,
+      value: String(draftRule.value),
+      valueType: draftRule.value_type,
+      explanationHr: draftRule.explanation_hr,
+      explanationEn: draftRule.explanation_en,
+      effectiveFrom: new Date(draftRule.effective_from),
+      effectiveUntil: draftRule.effective_until ? new Date(draftRule.effective_until) : null,
+      supersedesId: draftRule.supersedes,
+      status: "DRAFT",
+      confidence: draftRule.confidence,
+      composerNotes: draftRule.composer_notes,
+      sourcePointers: {
+        connect: draftRule.source_pointer_ids.map((id) => ({ id })),
+      },
+    },
+  })
+
+  return {
+    success: true,
+    output: result.output,
+    ruleId: rule.id,
+    error: null,
+  }
+}
+
+/**
+ * Group source pointers by domain for coherent rule creation
+ */
+export function groupSourcePointersByDomain(
+  sourcePointers: Array<{ id: string; domain: string }>
+): Record<string, string[]> {
+  const grouped: Record<string, string[]> = {}
+
+  for (const sp of sourcePointers) {
+    if (!grouped[sp.domain]) {
+      grouped[sp.domain] = []
+    }
+    grouped[sp.domain].push(sp.id)
+  }
+
+  return grouped
+}
+
+/**
+ * Run composer on all ungrouped source pointers
+ */
+export async function runComposerBatch(): Promise<{
+  success: number
+  failed: number
+  totalRules: number
+  errors: string[]
+}> {
+  // Find source pointers that are not yet linked to any rule
+  const ungroupedPointers = await db.sourcePointer.findMany({
+    where: {
+      rules: {
+        none: {},
+      },
+    },
+    select: {
+      id: true,
+      domain: true,
+    },
+  })
+
+  if (ungroupedPointers.length === 0) {
+    return { success: 0, failed: 0, totalRules: 0, errors: [] }
+  }
+
+  // Group by domain
+  const grouped = groupSourcePointersByDomain(ungroupedPointers)
+
+  let success = 0
+  let failed = 0
+  let totalRules = 0
+  const errors: string[] = []
+
+  // Process each domain group
+  for (const [domain, pointerIds] of Object.entries(grouped)) {
+    console.log(`[composer] Processing domain: ${domain} (${pointerIds.length} pointers)`)
+
+    try {
+      const result = await runComposer(pointerIds)
+
+      if (result.success && result.ruleId) {
+        success++
+        totalRules++
+        console.log(`[composer] ✓ Created rule: ${result.ruleId}`)
+      } else {
+        failed++
+        const errorMsg = `${domain}: ${result.error}`
+        errors.push(errorMsg)
+        console.log(`[composer] ✗ ${errorMsg}`)
+      }
+    } catch (error) {
+      failed++
+      const errorMsg = `${domain}: ${error}`
+      errors.push(errorMsg)
+      console.error(`[composer] ✗ ${errorMsg}`)
+    }
+
+    // Rate limiting - wait 3 seconds between compositions
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+  }
+
+  return { success, failed, totalRules, errors }
+}

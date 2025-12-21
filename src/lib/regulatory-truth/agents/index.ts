@@ -3,3 +3,11 @@
 export { runAgent, type AgentRunOptions, type AgentRunResult } from "./runner"
 export { runSentinel, type SentinelResult } from "./sentinel"
 export { runExtractor, type ExtractorResult } from "./extractor"
+export {
+  runComposer,
+  runComposerBatch,
+  groupSourcePointersByDomain,
+  type ComposerResult,
+} from "./composer"
+export { runReviewer, type ReviewerResult } from "./reviewer"
+export { runReleaser, type ReleaserResult } from "./releaser"

@@ -123,6 +123,7 @@ export async function runAgent<TInput, TOutput>(
           format: "json",
           options: {
             temperature,
+            num_predict: 8192, // Allow longer responses for complex extractions
           },
         }),
       })
