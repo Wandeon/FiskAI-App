@@ -48,135 +48,7 @@ interface MonitoringResult {
 }
 
 /**
- * Determine which sources need checking based on priority and last fetch time
- */
-async function getSourcesDueForCheck(
-  client: any,
-  priorityFilter?: string
-): Promise<Array<{ id: string; slug: string; name: string; priority: string }>> {
-  // Map fetchIntervalHours to priority tiers
-  // T0 (critical): <= 24 hours
-  // T1 (high): 25-168 hours (weekly)
-  // T2/T3 (medium/low): > 168 hours (monthly)
-
-  let query = `
-    SELECT
-      id,
-      slug,
-      name,
-      "fetchIntervalHours",
-      "lastFetchedAt",
-      CASE
-        WHEN "fetchIntervalHours" <= 24 THEN 'T0'
-        WHEN "fetchIntervalHours" <= 168 THEN 'T1'
-        ELSE 'T2'
-      END as priority
-    FROM "RegulatorySource"
-    WHERE "isActive" = true
-      AND (
-        "lastFetchedAt" IS NULL
-        OR "lastFetchedAt" < NOW() - ("fetchIntervalHours" || ' hours')::INTERVAL
-      )
-  `
-
-  if (priorityFilter) {
-    const intervalMap: Record<string, number> = {
-      T0: 24,
-      T1: 168,
-      T2: 720,
-      T3: 720,
-    }
-    const maxInterval = intervalMap[priorityFilter]
-    if (priorityFilter === "T0") {
-      query += ` AND "fetchIntervalHours" <= 24`
-    } else if (priorityFilter === "T1") {
-      query += ` AND "fetchIntervalHours" > 24 AND "fetchIntervalHours" <= 168`
-    } else {
-      query += ` AND "fetchIntervalHours" > 168`
-    }
-  }
-
-  query += ` ORDER BY
-    CASE
-      WHEN "fetchIntervalHours" <= 24 THEN 1
-      WHEN "fetchIntervalHours" <= 168 THEN 2
-      ELSE 3
-    END,
-    COALESCE("lastFetchedAt", '1970-01-01'::timestamp) ASC
-  `
-
-  const result = await client.query(query)
-  return result.rows
-}
-
-/**
- * Run the monitoring pipeline on a source
- */
-async function monitorSource(
-  sourceId: string,
-  sourceName: string
-): Promise<{
-  success: boolean
-  evidenceId: string | null
-  hasChanged: boolean
-  sourcePointerIds: string[]
-  error: string | null
-}> {
-  // Dynamic imports after env is loaded
-  const { runSentinel } = await import("../agents/sentinel")
-  const { runExtractor } = await import("../agents/extractor")
-
-  // Step 1: Run Sentinel to fetch and detect changes
-  console.log(`[monitor] Checking source: ${sourceName}`)
-  const sentinelResult = await runSentinel(sourceId)
-
-  if (!sentinelResult.success || !sentinelResult.evidenceId) {
-    return {
-      success: false,
-      evidenceId: null,
-      hasChanged: false,
-      sourcePointerIds: [],
-      error: sentinelResult.error,
-    }
-  }
-
-  // Step 2: If content changed, extract data points
-  if (sentinelResult.hasChanged) {
-    console.log(`[monitor] Change detected - extracting data points...`)
-    const extractorResult = await runExtractor(sentinelResult.evidenceId)
-
-    if (extractorResult.success) {
-      console.log(`[monitor] ✓ Extracted ${extractorResult.sourcePointerIds.length} data points`)
-      return {
-        success: true,
-        evidenceId: sentinelResult.evidenceId,
-        hasChanged: true,
-        sourcePointerIds: extractorResult.sourcePointerIds,
-        error: null,
-      }
-    } else {
-      return {
-        success: false,
-        evidenceId: sentinelResult.evidenceId,
-        hasChanged: true,
-        sourcePointerIds: [],
-        error: extractorResult.error,
-      }
-    }
-  } else {
-    console.log(`[monitor] ✓ No changes detected`)
-    return {
-      success: true,
-      evidenceId: sentinelResult.evidenceId,
-      hasChanged: false,
-      sourcePointerIds: [],
-      error: null,
-    }
-  }
-}
-
-/**
- * Continuous monitoring function - checks sources based on priority
+ * Continuous monitoring function - checks endpoints based on priority
  */
 export async function runMonitoring(options?: {
   priorityFilter?: "T0" | "T1" | "T2" | "T3"
@@ -206,106 +78,133 @@ export async function runMonitoring(options?: {
     console.log("Checking all sources due for update")
   }
 
+  // Dynamic imports after env is loaded
+  const { runSentinel, fetchDiscoveredItems } = await import("../agents/sentinel")
+  const { runExtractor } = await import("../agents/extractor")
+
   const client = await pool.connect()
   try {
-    // Get sources that need checking
-    const sources = await getSourcesDueForCheck(client, priorityFilter)
-    const sourcesToCheck = sources.slice(0, maxSources)
+    // Map priority filter to DiscoveryPriority enum
+    let discoveryPriority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | undefined
+    if (priorityFilter === "T0") {
+      discoveryPriority = "CRITICAL"
+    } else if (priorityFilter === "T1") {
+      discoveryPriority = "HIGH"
+    } else if (priorityFilter === "T2") {
+      discoveryPriority = "MEDIUM"
+    } else if (priorityFilter === "T3") {
+      discoveryPriority = "LOW"
+    }
+
+    // Run Sentinel to discover new items
+    console.log(`[monitor] Running discovery for priority: ${discoveryPriority || "ALL"}`)
+    const sentinelResult = await runSentinel(discoveryPriority)
+
+    result.sourcesChecked = sentinelResult.endpointsChecked
+    result.changesDetected = sentinelResult.newItemsDiscovered
+    result.errors.push(...sentinelResult.errors)
 
     console.log(
-      `\nFound ${sources.length} sources due for check (processing ${sourcesToCheck.length})`
+      `[monitor] Discovery: ${sentinelResult.endpointsChecked} endpoints, ${sentinelResult.newItemsDiscovered} new items`
     )
 
-    if (sourcesToCheck.length === 0) {
-      console.log("No sources need checking at this time")
-      return result
+    // Fetch discovered items to create Evidence records
+    if (sentinelResult.newItemsDiscovered > 0) {
+      console.log(`[monitor] Fetching discovered items...`)
+      const fetchResult = await fetchDiscoveredItems(Math.min(maxSources, 100))
+      result.evidenceCollected = fetchResult.fetched
+      console.log(`[monitor] Fetched: ${fetchResult.fetched}, Failed: ${fetchResult.failed}`)
     }
 
-    // Monitor each source
-    for (const source of sourcesToCheck) {
-      try {
-        const monitorResult = await monitorSource(source.id, source.name)
+    // If runPipeline is true and we fetched evidence, run extraction
+    if (runPipeline && result.evidenceCollected > 0) {
+      console.log(`\n[monitor] Running extraction on new evidence...`)
 
-        result.sourcesChecked++
+      // Get unprocessed evidence
+      const unprocessedEvidence = await client.query(
+        `SELECT e.id, s.slug
+         FROM "Evidence" e
+         JOIN "RegulatorySource" s ON e."sourceId" = s.id
+         WHERE NOT EXISTS (
+           SELECT 1 FROM "SourcePointer" sp WHERE sp."evidenceId" = e.id
+         )
+         LIMIT 20`
+      )
 
-        if (monitorResult.success) {
-          if (monitorResult.evidenceId) {
-            result.evidenceCollected++
+      for (const evidence of unprocessedEvidence.rows) {
+        try {
+          const extractResult = await runExtractor(evidence.id)
+          if (extractResult.success) {
+            result.sourcePointersCreated += extractResult.sourcePointerIds.length
+            console.log(
+              `[monitor] ✓ Extracted ${extractResult.sourcePointerIds.length} pointers from ${evidence.slug}`
+            )
+          } else {
+            result.errors.push(`Extract failed for ${evidence.slug}: ${extractResult.error}`)
           }
-          if (monitorResult.hasChanged) {
-            result.changesDetected++
-            result.sourcePointersCreated += monitorResult.sourcePointerIds.length
-          }
-        } else {
-          const msg = `${source.slug}: ${monitorResult.error}`
-          result.errors.push(msg)
-          console.log(`[monitor] ✗ ${msg}`)
+        } catch (error) {
+          result.errors.push(`Extract error for ${evidence.slug}: ${error}`)
         }
-      } catch (error) {
-        const msg = `${source.slug}: ${error}`
-        result.errors.push(msg)
-        console.error(`[monitor] ✗ ${msg}`)
+
+        // Rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 2000))
       }
 
-      // Rate limiting - wait 2 seconds between sources
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-    }
+      // Compose rules if we created pointers
+      if (result.sourcePointersCreated > 0) {
+        try {
+          const { runComposerBatch } = await import("../agents/composer")
+          const { runReviewer } = await import("../agents/reviewer")
 
-    // If changes were detected and runPipeline is true, trigger composition and review
-    if (runPipeline && result.sourcePointersCreated > 0) {
-      console.log(`\n[monitor] Changes detected - running composition and review pipeline...`)
-
-      try {
-        const { runComposerBatch } = await import("../agents/composer")
-        const { runReviewer } = await import("../agents/reviewer")
-
-        // Compose rules
-        console.log(`[monitor] Composing rules from new data points...`)
-        const composerResult = await runComposerBatch()
-        result.rulesCreated = composerResult.totalRules
-        result.errors.push(...composerResult.errors)
-
-        if (composerResult.totalRules > 0) {
-          console.log(`[monitor] ✓ Created ${composerResult.totalRules} draft rules`)
-
-          // Review draft rules
-          console.log(`[monitor] Reviewing draft rules...`)
-          const draftRules = await client.query(
-            `SELECT id, "conceptSlug", "riskTier" FROM "RegulatoryRule"
-             WHERE status = 'DRAFT'
-             ORDER BY "createdAt" DESC
-             LIMIT 20`
+          console.log(
+            `[monitor] Composing rules from ${result.sourcePointersCreated} new pointers...`
           )
+          const composerResult = await runComposerBatch()
+          result.rulesCreated = composerResult.totalRules
+          result.errors.push(...composerResult.errors)
 
-          for (const rule of draftRules.rows) {
-            try {
-              const reviewerResult = await runReviewer(rule.id)
+          if (composerResult.totalRules > 0) {
+            console.log(`[monitor] ✓ Created ${composerResult.totalRules} draft rules`)
 
-              if (reviewerResult.success) {
-                // Check if auto-approved
-                const updatedRule = await client.query(
-                  `SELECT status FROM "RegulatoryRule" WHERE id = $1`,
-                  [rule.id]
-                )
+            // Review draft rules
+            console.log(`[monitor] Reviewing draft rules...`)
+            const draftRules = await client.query(
+              `SELECT id, "conceptSlug", "riskTier" FROM "RegulatoryRule"
+               WHERE status = 'DRAFT'
+               ORDER BY "createdAt" DESC
+               LIMIT 20`
+            )
 
-                if (updatedRule.rows[0]?.status === "APPROVED") {
-                  result.rulesApproved++
-                  console.log(`[monitor] ✓ Rule auto-approved: ${rule.conceptSlug}`)
+            for (const rule of draftRules.rows) {
+              try {
+                const reviewerResult = await runReviewer(rule.id)
+
+                if (reviewerResult.success) {
+                  // Check if auto-approved
+                  const updatedRule = await client.query(
+                    `SELECT status FROM "RegulatoryRule" WHERE id = $1`,
+                    [rule.id]
+                  )
+
+                  if (updatedRule.rows[0]?.status === "APPROVED") {
+                    result.rulesApproved++
+                    console.log(`[monitor] ✓ Rule auto-approved: ${rule.conceptSlug}`)
+                  }
+                } else {
+                  result.errors.push(`Review failed for ${rule.conceptSlug}`)
                 }
-              } else {
-                result.errors.push(`Review failed for ${rule.conceptSlug}`)
+              } catch (error) {
+                result.errors.push(`Review error for ${rule.conceptSlug}: ${error}`)
               }
-            } catch (error) {
-              result.errors.push(`Review error for ${rule.conceptSlug}: ${error}`)
-            }
 
-            // Rate limiting
-            await new Promise((resolve) => setTimeout(resolve, 3000))
+              // Rate limiting
+              await new Promise((resolve) => setTimeout(resolve, 3000))
+            }
           }
+        } catch (error) {
+          result.errors.push(`Pipeline error: ${error}`)
+          console.error(`[monitor] Pipeline error: ${error}`)
         }
-      } catch (error) {
-        result.errors.push(`Pipeline error: ${error}`)
-        console.error(`[monitor] Pipeline error: ${error}`)
       }
     }
   } finally {
