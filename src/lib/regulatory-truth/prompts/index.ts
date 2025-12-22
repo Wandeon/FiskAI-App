@@ -82,6 +82,21 @@ DOMAINS:
 - rokovi: Deadlines, calendars
 - obrasci: Form requirements, field specs
 
+ARTICLE EXTRACTION:
+When extracting values, also identify the legal source:
+- article_number: Look for "članak X", "čl. X", "Article X"
+- paragraph_number: Look for "stavak X", "st. X", "(X)"
+- law_reference: Look for "Zakon o...", "Pravilnik o...", "(NN XX/YY)"
+
+Examples:
+- "Prema članku 38. stavku 1. Zakona o PDV-u (NN 73/13)..."
+  → article_number: "38", paragraph_number: "1", law_reference: "Zakon o PDV-u (NN 73/13)"
+
+- "...sukladno čl. 12a Pravilnika..."
+  → article_number: "12a", law_reference: "Pravilnik"
+
+If article reference is not clear, leave these fields null - DO NOT guess.
+
 OUTPUT FORMAT:
 {
   "evidence_id": "ID of the input evidence",
@@ -96,6 +111,9 @@ OUTPUT FORMAT:
       "context_before": "previous sentence or paragraph",
       "context_after": "following sentence or paragraph",
       "selector": "CSS selector or XPath to locate",
+      "article_number": "article number if identifiable (e.g., '38', '12a')",
+      "paragraph_number": "paragraph number within article if identifiable",
+      "law_reference": "full law citation if identifiable (e.g., 'Zakon o PDV-u (NN 73/13)')",
       "confidence": 0.0-1.0,
       "extraction_notes": "any ambiguity or concerns"
     }
