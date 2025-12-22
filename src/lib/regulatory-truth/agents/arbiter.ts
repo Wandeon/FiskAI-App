@@ -87,6 +87,111 @@ Source Evidence: ${sources}
 }
 
 /**
+ * Handle SOURCE_CONFLICT type - conflicts between source pointers (not rules)
+ * These are created by Composer when conflicting values are detected in source data
+ */
+async function handleSourceConflict(conflict: {
+  id: string
+  description: string
+  metadata: unknown
+}): Promise<ArbiterResult> {
+  const metadata = conflict.metadata as {
+    sourcePointerIds?: string[]
+    conflictingPointerIds?: string[]
+    conflictDetails?: unknown
+  } | null
+
+  if (!metadata?.sourcePointerIds || metadata.sourcePointerIds.length === 0) {
+    return {
+      success: false,
+      output: null,
+      resolution: null,
+      updatedConflictId: null,
+      error: `SOURCE_CONFLICT has no sourcePointerIds in metadata: ${conflict.id}`,
+    }
+  }
+
+  // Fetch the conflicting source pointers
+  const sourcePointers = await db.sourcePointer.findMany({
+    where: { id: { in: metadata.sourcePointerIds } },
+    include: {
+      evidence: {
+        include: { source: true },
+      },
+    },
+  })
+
+  if (sourcePointers.length < 2) {
+    // Not enough pointers to have a conflict - mark as resolved
+    await db.regulatoryConflict.update({
+      where: { id: conflict.id },
+      data: {
+        status: "RESOLVED",
+        resolution: {
+          strategy: "auto_resolved",
+          rationaleHr: "Nedovoljno pokazivača za sukob",
+          rationaleEn: "Insufficient pointers for conflict",
+        },
+        resolvedAt: new Date(),
+      },
+    })
+
+    return {
+      success: true,
+      output: null,
+      resolution: "ESCALATE_TO_HUMAN", // Treated as resolved edge case
+      updatedConflictId: conflict.id,
+      error: null,
+    }
+  }
+
+  // For SOURCE_CONFLICT, we escalate to human review by default
+  // The human reviewer should examine the conflicting source data and decide which to use
+  await db.regulatoryConflict.update({
+    where: { id: conflict.id },
+    data: {
+      status: "ESCALATED",
+      requiresHumanReview: true,
+      humanReviewReason:
+        "SOURCE_CONFLICT detected - conflicting values in source data require human review to determine correct value",
+      resolution: {
+        strategy: "human_review_required",
+        rationaleHr: "Pronađene su proturječne vrijednosti u izvornim podacima",
+        rationaleEn: "Conflicting values found in source data",
+        sourcePointerIds: metadata.sourcePointerIds,
+        pointerSummary: sourcePointers.map((sp) => ({
+          id: sp.id,
+          domain: sp.domain,
+          value: sp.extractedValue,
+          source: sp.evidence?.source?.name,
+          confidence: sp.confidence,
+        })),
+      },
+    },
+  })
+
+  // Log audit event
+  await logAuditEvent({
+    action: "CONFLICT_ESCALATED",
+    entityType: "CONFLICT",
+    entityId: conflict.id,
+    metadata: {
+      conflictType: "SOURCE_CONFLICT",
+      pointerCount: sourcePointers.length,
+      reason: "Conflicting source pointer values require human review",
+    },
+  })
+
+  return {
+    success: true,
+    output: null,
+    resolution: "ESCALATE_TO_HUMAN",
+    updatedConflictId: conflict.id,
+    error: null,
+  }
+}
+
+/**
  * Run the Arbiter agent to resolve a conflict between two rules
  */
 export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
@@ -131,6 +236,11 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
       updatedConflictId: null,
       error: `Conflict not found: ${conflictId}`,
     }
+  }
+
+  // Handle SOURCE_CONFLICT type - these have null itemA/itemB and use metadata.sourcePointerIds
+  if (conflict.conflictType === "SOURCE_CONFLICT") {
+    return handleSourceConflict(conflict)
   }
 
   if (!conflict.itemA || !conflict.itemB) {

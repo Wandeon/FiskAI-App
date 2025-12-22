@@ -88,21 +88,24 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
 
   // Check if conflicts were detected
   if (result.output.conflicts_detected) {
-    // Get first two conflicting source pointers for itemA/itemB
-    const [itemAId, itemBId] = sourcePointerIds.slice(0, 2)
+    // For SOURCE_CONFLICT, we store SourcePointer IDs in metadata only
+    // itemAId/itemBId are FKs to RegulatoryRule, not SourcePointer
+    // Leave them null for SOURCE_CONFLICT type - Arbiter handles via metadata
 
     // Create a conflict record for Arbiter to resolve later
     const conflict = await db.regulatoryConflict.create({
       data: {
         conflictType: "SOURCE_CONFLICT",
         status: "OPEN",
-        itemAId: itemAId || null,
-        itemBId: itemBId || null,
+        // itemAId/itemBId are null for SOURCE_CONFLICT (they reference RegulatoryRule, not SourcePointer)
+        itemAId: null,
+        itemBId: null,
         description:
           result.output.conflicts_detected.description ||
           "Conflicting values detected in source pointers",
         metadata: {
           sourcePointerIds: sourcePointerIds,
+          conflictingPointerIds: sourcePointerIds.slice(0, 2), // First two for easy reference
           detectedBy: "COMPOSER",
           conflictDetails: result.output.conflicts_detected,
         },
@@ -117,8 +120,7 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       metadata: {
         conflictType: "SOURCE_CONFLICT",
         sourcePointerCount: sourcePointerIds.length,
-        itemAId,
-        itemBId,
+        conflictingPointerIds: sourcePointerIds.slice(0, 2),
       },
     })
 
