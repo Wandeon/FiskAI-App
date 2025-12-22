@@ -1957,3 +1957,97 @@ model RegulatoryAuditLog {
   @@index([performedAt])
   @@index([action])
 }
+
+// =============================================================================
+// WATCHDOG SYSTEM - Autonomous Monitoring & Health Checks
+// =============================================================================
+
+enum WatchdogSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum WatchdogHealthStatus {
+  HEALTHY
+  WARNING
+  CRITICAL
+}
+
+enum WatchdogCheckType {
+  STALE_SOURCE
+  SCRAPER_FAILURE
+  QUALITY_DEGRADATION
+  PIPELINE_HEALTH
+  REJECTION_RATE
+}
+
+enum WatchdogAlertType {
+  STALE_SOURCE
+  SCRAPER_FAILURE
+  QUALITY_DEGRADATION
+  PIPELINE_FAILURE
+  PHASE_TIMEOUT
+  HIGH_REJECTION_RATE
+  AUDIT_FAIL
+  AUDIT_PARTIAL
+  SOURCE_SUSPENDED
+}
+
+enum AuditResult {
+  PASS
+  PARTIAL
+  FAIL
+}
+
+model WatchdogHealth {
+  id          String               @id @default(cuid())
+  checkType   WatchdogCheckType
+  entityId    String               // source ID, phase name, etc.
+  status      WatchdogHealthStatus
+  lastChecked DateTime             @default(now())
+  lastHealthy DateTime?
+  metric      Decimal?             @db.Decimal(10, 4)
+  threshold   Decimal?             @db.Decimal(10, 4)
+  message     String?
+
+  @@unique([checkType, entityId])
+  @@index([status])
+  @@index([checkType])
+}
+
+model WatchdogAlert {
+  id              String           @id @default(cuid())
+  severity        WatchdogSeverity
+  type            WatchdogAlertType
+  entityId        String?
+  message         String
+  details         Json?
+  occurredAt      DateTime         @default(now())
+  acknowledgedAt  DateTime?
+  acknowledgedBy  String?
+  resolvedAt      DateTime?
+  notifiedAt      DateTime?
+  occurrenceCount Int              @default(1)
+
+  @@index([severity])
+  @@index([type])
+  @@index([occurredAt])
+  @@index([resolvedAt])
+}
+
+model WatchdogAudit {
+  id           String      @id @default(cuid())
+  runDate      DateTime    @db.Date
+  auditedAt    DateTime    @default(now())
+  rulesAudited Int
+  rulesPassed  Int
+  rulesFailed  Int
+  overallScore Decimal     @db.Decimal(5, 2)
+  result       AuditResult
+  findings     Json
+  alertsRaised String[]
+
+  @@index([runDate])
+  @@index([result])
+}
