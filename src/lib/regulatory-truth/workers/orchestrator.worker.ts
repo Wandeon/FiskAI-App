@@ -7,7 +7,14 @@ import { db } from "@/lib/db"
 import { autoApproveEligibleRules } from "../agents/reviewer"
 
 interface ScheduledJobData {
-  type: "pipeline-run" | "audit" | "digest" | "auto-approve" | "arbiter-sweep" | "release-batch"
+  type:
+    | "pipeline-run"
+    | "audit"
+    | "digest"
+    | "auto-approve"
+    | "arbiter-sweep"
+    | "release-batch"
+    | "confidence-decay"
   runId: string
   triggeredBy?: string
 }
@@ -78,6 +85,16 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
         }
 
         return { success: true, duration: Date.now() - start, data: { approved: approved.length } }
+      }
+
+      case "confidence-decay": {
+        const { applyConfidenceDecay } = await import("../utils/confidence-decay")
+        const result = await applyConfidenceDecay()
+        return {
+          success: true,
+          duration: Date.now() - start,
+          data: { checked: result.checked, decayed: result.decayed },
+        }
       }
 
       default:

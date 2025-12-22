@@ -80,6 +80,21 @@ async function startScheduler(): Promise<void> {
     `[scheduler] Scheduled: Random audit at ${auditHour}:${auditMinute.toString().padStart(2, "0")}`
   )
 
+  // Weekly confidence decay on Sundays at 03:00
+  cron.schedule(
+    "0 3 * * 0",
+    async () => {
+      console.log("[scheduler] Triggering weekly confidence decay")
+      await scheduledQueue.add("scheduled", {
+        type: "confidence-decay",
+        runId: `decay-${Date.now()}`,
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Confidence decay on Sundays at 03:00")
+
   console.log("[scheduler] Scheduler service started")
 }
 
