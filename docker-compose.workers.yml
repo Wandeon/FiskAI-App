@@ -1,0 +1,45 @@
+# docker-compose.workers.yml
+# Extends base docker-compose.yml with worker services
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: fiskai-redis
+    restart: unless-stopped
+    volumes:
+      - fiskai_redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - default
+      - coolify
+    ports:
+      - "6379:6379"
+
+  bull-board:
+    image: deadly0/bull-board
+    container_name: fiskai-bull-board
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BULL_PREFIX=fiskai
+    ports:
+      - "3001:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+
+volumes:
+  fiskai_redis_data:
+
+networks:
+  coolify:
+    external: true
