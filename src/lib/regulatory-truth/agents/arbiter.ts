@@ -27,7 +27,7 @@ export interface ArbiterResult {
 /**
  * Map authority level enum to hierarchy score (lower = higher authority)
  */
-function getAuthorityScore(level: AuthorityLevel): number {
+export function getAuthorityScore(level: AuthorityLevel): number {
   switch (level) {
     case "LAW":
       return 1
@@ -279,7 +279,7 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
 /**
  * Check if conflict should be escalated to human review based on business rules
  */
-function checkEscalationCriteria(
+export function checkEscalationCriteria(
   ruleA: {
     authorityLevel: AuthorityLevel
     riskTier: string

@@ -4,6 +4,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert"
 import type { ArbiterOutput } from "../schemas"
 import { ArbiterOutputSchema } from "../schemas"
+import { getAuthorityScore, checkEscalationCriteria } from "../agents/arbiter"
 
 describe("Arbiter Agent", () => {
   it("should validate arbiter output schema", () => {
@@ -67,8 +68,6 @@ describe("Arbiter Agent", () => {
   })
 
   it("should detect escalation for equal authority levels", () => {
-    const { getAuthorityScore } = getMockFunctions()
-
     const scoreA = getAuthorityScore("LAW")
     const scoreB = getAuthorityScore("LAW")
 
@@ -77,8 +76,6 @@ describe("Arbiter Agent", () => {
   })
 
   it("should order authority levels correctly", () => {
-    const { getAuthorityScore } = getMockFunctions()
-
     const lawScore = getAuthorityScore("LAW")
     const guidanceScore = getAuthorityScore("GUIDANCE")
     const procedureScore = getAuthorityScore("PROCEDURE")
@@ -96,8 +93,6 @@ describe("Arbiter Agent", () => {
   })
 
   it("should detect low confidence escalation", () => {
-    const { checkEscalationCriteria } = getMockFunctions()
-
     const ruleA = {
       authorityLevel: "LAW" as const,
       riskTier: "T1",
@@ -132,8 +127,6 @@ describe("Arbiter Agent", () => {
   })
 
   it("should detect T0 conflict escalation", () => {
-    const { checkEscalationCriteria } = getMockFunctions()
-
     const ruleA = {
       authorityLevel: "LAW" as const,
       riskTier: "T0", // Critical
@@ -167,78 +160,3 @@ describe("Arbiter Agent", () => {
     assert.strictEqual(shouldEscalate, true, "Should escalate for T0 vs T0 conflicts")
   })
 })
-
-// Helper to get mock functions for testing
-function getMockFunctions() {
-  // Mock implementation of authority score
-  function getAuthorityScore(level: "LAW" | "GUIDANCE" | "PROCEDURE" | "PRACTICE"): number {
-    switch (level) {
-      case "LAW":
-        return 1
-      case "GUIDANCE":
-        return 2
-      case "PROCEDURE":
-        return 3
-      case "PRACTICE":
-        return 4
-      default:
-        return 999
-    }
-  }
-
-  // Mock implementation of escalation criteria
-  function checkEscalationCriteria(
-    ruleA: {
-      authorityLevel: "LAW" | "GUIDANCE" | "PROCEDURE" | "PRACTICE"
-      riskTier: string
-      effectiveFrom: Date
-      confidence: number
-    },
-    ruleB: {
-      authorityLevel: "LAW" | "GUIDANCE" | "PROCEDURE" | "PRACTICE"
-      riskTier: string
-      effectiveFrom: Date
-      confidence: number
-    },
-    arbitration: {
-      confidence: number
-      resolution: {
-        resolution_strategy: "hierarchy" | "temporal" | "specificity" | "conservative"
-      }
-    }
-  ): boolean {
-    // Low confidence
-    if (arbitration.confidence < 0.8) {
-      return true
-    }
-
-    // Both T0
-    if (ruleA.riskTier === "T0" && ruleB.riskTier === "T0") {
-      return true
-    }
-
-    // Equal authority with hierarchy strategy
-    const scoreA = getAuthorityScore(ruleA.authorityLevel)
-    const scoreB = getAuthorityScore(ruleB.authorityLevel)
-    if (scoreA === scoreB && arbitration.resolution.resolution_strategy === "hierarchy") {
-      return true
-    }
-
-    // Same effective date with temporal strategy
-    if (
-      ruleA.effectiveFrom.getTime() === ruleB.effectiveFrom.getTime() &&
-      arbitration.resolution.resolution_strategy === "temporal"
-    ) {
-      return true
-    }
-
-    // Low rule confidence
-    if (ruleA.confidence < 0.85 || ruleB.confidence < 0.85) {
-      return true
-    }
-
-    return false
-  }
-
-  return { getAuthorityScore, checkEscalationCriteria }
-}
