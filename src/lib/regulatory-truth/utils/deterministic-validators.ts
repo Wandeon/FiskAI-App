@@ -115,8 +115,19 @@ const VALID_VALUE_TYPES = [
  * Normalize a number for matching: remove formatting like "40.000" → "40000"
  */
 function normalizeNumber(value: string): string[] {
-  const cleaned = value.replace(/[.,\s]/g, "")
-  return [value, cleaned]
+  // Check if it's a decimal number (has exactly one separator followed by digits)
+  const hasDecimal = /^\d+[.,]\d+$/.test(value)
+
+  if (hasDecimal) {
+    // For decimals, provide both comma and period variants
+    const withComma = value.replace(".", ",")
+    const withPeriod = value.replace(",", ".")
+    return [value, withComma, withPeriod]
+  } else {
+    // For integers, remove thousand separators
+    const cleaned = value.replace(/[.,\s]/g, "")
+    return [value, cleaned]
+  }
 }
 
 /**
@@ -177,7 +188,19 @@ export function validateValueInQuote(
   const found = patterns.some((pattern) => {
     const patternLower = pattern.toLowerCase()
     if (/^\d+$/.test(patternLower)) {
-      const numRegex = new RegExp(patternLower.split("").join("[.,\\s]?"), "i")
+      // For numbers with 4+ digits, allow optional thousand separators
+      // For shorter numbers, match exactly without separators
+      let regexPattern: string
+      if (patternLower.length >= 4) {
+        // Add optional separators between digits for formatted numbers like 40000 -> 40.000
+        regexPattern = patternLower.split("").join("[.,\\s]?")
+      } else {
+        // Short numbers must match exactly (no separators between digits)
+        regexPattern = patternLower
+      }
+      // Require non-digit before and after to prevent substring matches
+      // Also prevent matching if followed by separator + digits (e.g., "40" should not match "40.000")
+      const numRegex = new RegExp(`(?:^|[^\\d])${regexPattern}(?![.,\\s]?\\d)`, "i")
       return numRegex.test(quote)
     }
     return quoteLower.includes(patternLower)

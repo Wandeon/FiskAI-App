@@ -141,5 +141,27 @@ describe("deterministic-validators", () => {
       const result = validateValueInQuote("39816.84", "Paušalni obrt ima prag prihoda")
       assert.strictEqual(result.valid, false)
     })
+
+    it("rejects substring matches in larger numbers", () => {
+      // 25 should NOT match in 2025
+      const result = validateValueInQuote("25", "Za 2025. godinu stopa iznosi 13%")
+      assert.strictEqual(result.valid, false)
+    })
+
+    it("requires complete number match not partial", () => {
+      // 40 should NOT match in 40.000
+      const result = validateValueInQuote("40", "prag od 40.000 EUR")
+      assert.strictEqual(result.valid, false)
+    })
+
+    it("handles decimal numbers with comma", () => {
+      const result = validateValueInQuote("25.5", "stopa iznosi 25,5%")
+      assert.strictEqual(result.valid, true)
+    })
+
+    it("handles decimal numbers with period", () => {
+      const result = validateValueInQuote("25.5", "stopa iznosi 25.5%")
+      assert.strictEqual(result.valid, true)
+    })
   })
 })
