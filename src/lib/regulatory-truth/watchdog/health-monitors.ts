@@ -5,6 +5,7 @@ import type { WatchdogHealthStatus, WatchdogCheckType } from "@prisma/client"
 import type { HealthCheckResult } from "./types"
 import { getThreshold } from "./types"
 import { raiseAlert } from "./alerting"
+import { allQueues, checkRedisHealth, deadletterQueue } from "../workers"
 
 /**
  * Update health status in database
@@ -285,4 +286,62 @@ export async function runAllHealthChecks(): Promise<HealthCheckResult[]> {
   console.log(`[health] Complete: ${healthy} healthy, ${warning} warnings, ${critical} critical`)
 
   return results
+}
+
+/**
+ * Check Redis connection health
+ */
+export async function checkRedisConnectionHealth(): Promise<HealthCheckResult> {
+  const healthy = await checkRedisHealth()
+
+  return {
+    checkType: "PIPELINE_HEALTH" as const,
+    status: healthy ? "HEALTHY" : "CRITICAL",
+    message: healthy ? "Redis connected" : "Redis connection failed",
+    metadata: {},
+  }
+}
+
+/**
+ * Check dead letter queue for accumulated failures
+ */
+export async function checkDeadLetterQueueHealth(): Promise<HealthCheckResult> {
+  const counts = await deadletterQueue.getJobCounts("waiting", "failed")
+  const total = counts.waiting + counts.failed
+
+  let status: "HEALTHY" | "WARNING" | "CRITICAL" = "HEALTHY"
+  if (total > 50) status = "CRITICAL"
+  else if (total > 10) status = "WARNING"
+
+  return {
+    checkType: "REJECTION_RATE" as const,
+    status,
+    message: `${total} jobs in dead-letter queue`,
+    metadata: { waiting: counts.waiting, failed: counts.failed },
+  }
+}
+
+/**
+ * Check queue backlogs
+ */
+export async function checkQueueBacklogHealth(): Promise<HealthCheckResult> {
+  const backlogs: Record<string, number> = {}
+  let maxBacklog = 0
+
+  for (const [name, queue] of Object.entries(allQueues)) {
+    const counts = await queue.getJobCounts("waiting")
+    backlogs[name] = counts.waiting
+    maxBacklog = Math.max(maxBacklog, counts.waiting)
+  }
+
+  let status: "HEALTHY" | "WARNING" | "CRITICAL" = "HEALTHY"
+  if (maxBacklog > 100) status = "CRITICAL"
+  else if (maxBacklog > 50) status = "WARNING"
+
+  return {
+    checkType: "PIPELINE_HEALTH" as const,
+    status,
+    message: `Max queue backlog: ${maxBacklog}`,
+    metadata: backlogs,
+  }
 }
