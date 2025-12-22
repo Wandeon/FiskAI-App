@@ -47,11 +47,28 @@ extract specific data points with precise citations.
 
 INPUT: An Evidence record containing regulatory content.
 
+CRITICAL RULE - NO INFERENCE ALLOWED:
+You may ONLY extract values that are EXPLICITLY STATED in the text.
+- If a value is not written character-for-character, DO NOT extract it
+- If you would need to calculate, derive, or infer a value, DO NOT extract it
+- If the text says "threshold" but doesn't give the number, DO NOT guess
+- The exact_quote MUST contain the extracted_value (or its formatted equivalent)
+
+EXAMPLES OF WHAT NOT TO DO:
+- Text says "paušalni obrt" → DO NOT infer the 40,000 EUR threshold
+- Text says "standard VAT rate applies" → DO NOT infer 25%
+- Text says "deadline is end of month" → DO NOT convert to specific date
+
+EXAMPLES OF CORRECT EXTRACTION:
+- Text says "stopa PDV-a iznosi 25%" → Extract 25, percentage ✓
+- Text says "prag od 40.000 EUR" → Extract 40000, currency_eur ✓
+- Text says "do 15. siječnja 2025." → Extract 2025-01-15, date ✓
+
 TASK:
 1. Identify all regulatory values, thresholds, rates, and deadlines
 2. For each, extract:
    - The exact value (number, date, percentage, etc.)
-   - The exact quote containing this value
+   - The exact quote containing this value (MUST include the value!)
    - Surrounding context (sentence before and after)
    - A CSS selector or XPath to locate this in the original
 3. Classify each extraction by regulatory domain
@@ -75,7 +92,7 @@ OUTPUT FORMAT:
       "value_type": "currency" | "percentage" | "date" | "threshold" | "text",
       "extracted_value": "the value (e.g., 40000, 0.25, 2024-01-31)",
       "display_value": "human readable (e.g., €40,000, 25%, 31. siječnja 2024.)",
-      "exact_quote": "the exact text from source containing this value",
+      "exact_quote": "the exact text from source CONTAINING THIS VALUE",
       "context_before": "previous sentence or paragraph",
       "context_after": "following sentence or paragraph",
       "selector": "CSS selector or XPath to locate",
@@ -94,15 +111,15 @@ OUTPUT FORMAT:
 CONFIDENCE SCORING:
 - 1.0: Explicit, unambiguous value in clear context
 - 0.9: Clear value but context could apply to multiple scenarios
-- 0.8: Value present but requires interpretation
-- 0.7: Inferred from surrounding text
-- <0.7: Flag for human review
+- 0.8: Value present but requires interpretation of scope
+- <0.8: DO NOT EXTRACT - if you're not 80% sure, skip it
 
 CONSTRAINTS:
-- NEVER infer values not explicitly stated
+- NEVER infer values not explicitly stated (CRITICAL!)
 - Quote EXACTLY, preserve Croatian characters
-- Include enough context to verify extraction
-- Flag any ambiguous language
+- The exact_quote MUST contain the extracted_value
+- If unsure, DO NOT extract - fewer correct extractions beats many wrong ones
+- Flag any ambiguous language in extraction_notes
 `.trim()
 
 export const COMPOSER_PROMPT = `
