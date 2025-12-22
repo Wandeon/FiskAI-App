@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
 
 /**
  * POST /api/admin/regulatory-truth/rules/[id]/approve
@@ -39,6 +40,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         status: "APPROVED",
         approvedBy: user.id,
         approvedAt: new Date(),
+      },
+    })
+
+    // Log audit event for rule approval
+    await logAuditEvent({
+      action: "RULE_APPROVED",
+      entityType: "RULE",
+      entityId: id,
+      performedBy: user.id,
+      metadata: {
+        riskTier: rule.riskTier,
+        previousStatus: "PENDING_REVIEW",
       },
     })
 

@@ -5,6 +5,7 @@ import { fetchWithRateLimit } from "../utils/rate-limiter"
 import { detectContentChange, hashContent } from "../utils/content-hash"
 import { parseSitemap, filterNNSitemaps, getLatestNNIssueSitemaps } from "../parsers/sitemap-parser"
 import { parseHtmlList, findPaginationLinks } from "../parsers/html-list-parser"
+import { logAuditEvent } from "../utils/audit-log"
 
 interface SentinelConfig {
   maxItemsPerRun: number
@@ -311,6 +312,18 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
               rawContent: content,
               contentHash,
               contentType: "html",
+            },
+          })
+
+          // Log audit event for evidence creation
+          await logAuditEvent({
+            action: "EVIDENCE_FETCHED",
+            entityType: "EVIDENCE",
+            entityId: evidence.id,
+            metadata: {
+              sourceId: source.id,
+              url: item.url,
+              contentHash: contentHash,
             },
           })
 

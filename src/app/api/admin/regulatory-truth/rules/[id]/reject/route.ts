@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
 
 /**
  * POST /api/admin/regulatory-truth/rules/[id]/reject
@@ -49,6 +50,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           reason: reason,
           previousNotes: rule.reviewerNotes,
         }),
+      },
+    })
+
+    // Log audit event for rule rejection
+    await logAuditEvent({
+      action: "RULE_REJECTED",
+      entityType: "RULE",
+      entityId: id,
+      performedBy: user.id,
+      metadata: {
+        reason: reason,
+        previousStatus: rule.status,
       },
     })
 
