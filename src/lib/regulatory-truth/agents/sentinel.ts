@@ -146,18 +146,46 @@ async function processEndpoint(
     let newItemCount = 0
     for (const item of discoveredUrls) {
       try {
-        await db.discoveredItem.create({
-          data: {
+        // Check for existing item with same URL from this endpoint
+        const existingItem = await db.discoveredItem.findFirst({
+          where: {
             endpointId: endpoint.id,
             url: item.url,
-            title: item.title,
-            publishedAt: item.date ? new Date(item.date) : null,
-            status: "PENDING",
           },
+          orderBy: { createdAt: "desc" },
         })
-        newItemCount++
+
+        if (existingItem) {
+          // If item was previously processed, re-queue it for re-fetch to check for content changes
+          if (existingItem.status === "FETCHED" || existingItem.status === "PROCESSED") {
+            await db.discoveredItem.update({
+              where: { id: existingItem.id },
+              data: {
+                status: "PENDING",
+                retryCount: 0,
+                errorMessage: null,
+              },
+            })
+            console.log(`[sentinel] Re-queued ${item.url} for content change check`)
+            newItemCount++
+          } else {
+            console.log(`[sentinel] Item already pending for ${item.url}`)
+          }
+        } else {
+          // Create new discovered item (first time)
+          await db.discoveredItem.create({
+            data: {
+              endpointId: endpoint.id,
+              url: item.url,
+              title: item.title,
+              publishedAt: item.date ? new Date(item.date) : null,
+              status: "PENDING",
+            },
+          })
+          newItemCount++
+        }
       } catch (error) {
-        // Likely duplicate (unique constraint violation)
+        // Likely duplicate (unique constraint violation from race condition)
         // This is expected and fine
       }
     }
@@ -279,7 +307,20 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
       const content = await response.text()
       const contentHash = hashContent(content)
 
-      // Check if we already have this content
+      // Check if content unchanged from previous fetch
+      if (item.contentHash && item.contentHash === contentHash) {
+        console.log(`[sentinel] Content unchanged for ${item.url}`)
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "PROCESSED",
+            processedAt: new Date(),
+          },
+        })
+        continue
+      }
+
+      // Check if we already have this content (from a different URL)
       const existingEvidence = await db.evidence.findFirst({
         where: { contentHash },
       })
