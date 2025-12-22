@@ -135,6 +135,7 @@ function getFieldValue(obj: unknown, path: string): unknown {
 
 /**
  * Compare two values with a given operator.
+ * Supports numbers and strings (for date comparisons using ISO format).
  */
 function compare(
   left: unknown,
@@ -151,13 +152,21 @@ function compare(
     case "neq":
       return left !== right
     case "gt":
-      return typeof left === "number" && typeof right === "number" && left > right
+      if (typeof left === "number" && typeof right === "number") return left > right
+      if (typeof left === "string" && typeof right === "string") return left > right
+      return false
     case "gte":
-      return typeof left === "number" && typeof right === "number" && left >= right
+      if (typeof left === "number" && typeof right === "number") return left >= right
+      if (typeof left === "string" && typeof right === "string") return left >= right
+      return false
     case "lt":
-      return typeof left === "number" && typeof right === "number" && left < right
+      if (typeof left === "number" && typeof right === "number") return left < right
+      if (typeof left === "string" && typeof right === "string") return left < right
+      return false
     case "lte":
-      return typeof left === "number" && typeof right === "number" && left <= right
+      if (typeof left === "number" && typeof right === "number") return left <= right
+      if (typeof left === "string" && typeof right === "string") return left <= right
+      return false
     default:
       return false
   }
