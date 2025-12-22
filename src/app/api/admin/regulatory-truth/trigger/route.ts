@@ -3,11 +3,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { runSentinel } from "@/lib/regulatory-truth/agents/sentinel"
+import { runExtractorBatch } from "@/lib/regulatory-truth/agents/extractor"
+import { runComposerBatch } from "@/lib/regulatory-truth/agents/composer"
+import { runReviewer } from "@/lib/regulatory-truth/agents/reviewer"
+
+type PipelinePhase = "discovery" | "extraction" | "composition" | "review" | "all"
 
 /**
  * POST /api/admin/regulatory-truth/trigger
  *
- * Manually trigger a full regulatory source check
+ * Trigger regulatory pipeline phases
  */
 export async function POST(request: NextRequest) {
   try {
@@ -16,48 +22,89 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Get all active sources
-    const sources = await db.regulatorySource.findMany({
-      where: { isActive: true },
-      select: { id: true, name: true },
-    })
+    const body = await request.json()
+    const phase = (body.phase as PipelinePhase) || "all"
 
-    // In a real implementation, this would:
-    // 1. Queue agent jobs for each source
-    // 2. Trigger the Sentinel agent to check each source
-    // 3. Return job IDs for monitoring
+    const results: Record<string, unknown> = {
+      triggeredBy: user.id,
+      triggeredAt: new Date().toISOString(),
+      phase,
+    }
 
-    // For now, we'll just return a success response
-    // indicating that the trigger was received
+    // Execute requested phase(s)
+    if (phase === "discovery" || phase === "all") {
+      console.log("[trigger] Running discovery phase...")
+      const discoveryResult = await runSentinel()
+      results.discovery = discoveryResult
+    }
 
-    const jobIds: string[] = []
+    if (phase === "extraction" || phase === "all") {
+      console.log("[trigger] Running extraction phase...")
+      const extractionResult = await runExtractorBatch()
+      results.extraction = extractionResult
+    }
 
-    for (const source of sources) {
-      // Create an agent run record (placeholder)
-      const agentRun = await db.agentRun.create({
-        data: {
-          agentType: "SENTINEL",
-          status: "running",
-          input: {
-            sourceId: source.id,
-            sourceName: source.name,
-            triggeredBy: user.id,
-            triggeredAt: new Date().toISOString(),
-          },
+    if (phase === "composition" || phase === "all") {
+      console.log("[trigger] Running composition phase...")
+      const compositionResult = await runComposerBatch()
+      results.composition = compositionResult
+    }
+
+    if (phase === "review" || phase === "all") {
+      console.log("[trigger] Running review phase...")
+
+      // Get pending rules that need review
+      const pendingRules = await db.regulatoryRule.findMany({
+        where: {
+          status: "DRAFT",
+          reviewerNotes: null,
         },
+        select: { id: true },
+        take: 20,
       })
 
-      jobIds.push(agentRun.id)
+      const reviewResults = {
+        processed: 0,
+        approved: 0,
+        rejected: 0,
+        escalated: 0,
+        errors: [] as string[],
+      }
+
+      for (const rule of pendingRules) {
+        try {
+          const reviewResult = await runReviewer(rule.id)
+          if (reviewResult.success) {
+            reviewResults.processed++
+            // Check final status
+            const updatedRule = await db.regulatoryRule.findUnique({
+              where: { id: rule.id },
+              select: { status: true },
+            })
+            if (updatedRule?.status === "APPROVED") reviewResults.approved++
+            else if (updatedRule?.status === "REJECTED") reviewResults.rejected++
+            else if (updatedRule?.status === "PENDING_REVIEW") reviewResults.escalated++
+          } else {
+            reviewResults.errors.push(reviewResult.error || "Unknown error")
+          }
+        } catch (error) {
+          reviewResults.errors.push(error instanceof Error ? error.message : String(error))
+        }
+      }
+
+      results.review = reviewResults
     }
 
     return NextResponse.json({
       success: true,
-      message: `Triggered check for ${sources.length} sources`,
-      jobIds,
-      sources: sources.map((s) => ({ id: s.id, name: s.name })),
+      message: `Pipeline phase '${phase}' completed`,
+      results,
     })
   } catch (error) {
-    console.error("[trigger] Error triggering manual check:", error)
-    return NextResponse.json({ error: "Failed to trigger manual check" }, { status: 500 })
+    console.error("[trigger] Error:", error)
+    return NextResponse.json(
+      { error: "Failed to trigger pipeline", details: String(error) },
+      { status: 500 }
+    )
   }
 }
