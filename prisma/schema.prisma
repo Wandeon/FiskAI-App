@@ -1753,6 +1753,12 @@ model SourcePointer {
   contextBefore   String?  @db.Text  // Previous sentence/paragraph
   contextAfter    String?  @db.Text  // Following sentence/paragraph
   selector        String?  // CSS selector or XPath
+
+  // Article-level anchoring
+  articleNumber   String?  // e.g., "38", "12a"
+  paragraphNumber String?  // e.g., "1", "2"
+  lawReference    String?  // e.g., "Zakon o PDV-u (NN 73/13)"
+
   confidence      Float    @default(0.8)
   extractionNotes String?
   createdAt       DateTime @default(now())
@@ -1764,6 +1770,7 @@ model SourcePointer {
   @@index([evidenceId])
   @@index([domain])
   @@index([confidence])
+  @@index([articleNumber])
 }
 
 model Concept {
