@@ -118,14 +118,45 @@ TASK:
 4. Write a human-readable explanation
 5. Link to all supporting SourcePointers
 
-APPLIES_WHEN DSL REFERENCE:
-- date_range(start, end) - effective date window
-- entity_type(types...) - "pausalni" | "jdoo" | "doo" | "obrt"
-- annual_revenue(op, amount) - "<" | "<=" | ">" | ">=" | "between"
-- activity_code(codes...) - NKD 2007 codes
-- has_employees(bool) - true/false
-- registered_for_vat(bool) - true/false
-- AND(...), OR(...), NOT(...) - combinators
+APPLIES_WHEN DSL FORMAT:
+The appliesWhen field must be a valid JSON predicate. Use these operators:
+
+1. Comparison: { "op": "cmp", "field": "path.to.field", "cmp": "eq"|"neq"|"gt"|"gte"|"lt"|"lte", "value": <value> }
+2. Logical AND: { "op": "and", "args": [<predicate>, <predicate>, ...] }
+3. Logical OR: { "op": "or", "args": [<predicate>, <predicate>, ...] }
+4. Logical NOT: { "op": "not", "arg": <predicate> }
+5. In list: { "op": "in", "field": "path.to.field", "values": [<value1>, <value2>] }
+6. Exists: { "op": "exists", "field": "path.to.field" }
+7. Between: { "op": "between", "field": "path.to.field", "gte": <min>, "lte": <max> }
+8. Always true: { "op": "true" }
+
+FIELD PATHS:
+- entity.type: "OBRT" | "DOO" | "JDOO" | "UDRUGA" | "OTHER"
+- entity.obrtSubtype: "PAUSALNI" | "DOHODAS" | "DOBITAS"
+- entity.vat.status: "IN_VAT" | "OUTSIDE_VAT" | "UNKNOWN"
+- counters.revenueYtd: number
+- txn.kind: "SALE" | "PURCHASE" | "PAYMENT" | "PAYROLL"
+
+EXAMPLE - Pausalni obrt outside VAT:
+{
+  "op": "and",
+  "args": [
+    { "op": "cmp", "field": "entity.type", "cmp": "eq", "value": "OBRT" },
+    { "op": "cmp", "field": "entity.obrtSubtype", "cmp": "eq", "value": "PAUSALNI" },
+    { "op": "cmp", "field": "entity.vat.status", "cmp": "eq", "value": "OUTSIDE_VAT" }
+  ]
+}
+
+EXAMPLE - Revenue threshold:
+{
+  "op": "cmp",
+  "field": "counters.revenueYtd",
+  "cmp": "gt",
+  "value": 39816.84
+}
+
+EXAMPLE - Always applies:
+{ "op": "true" }
 
 RISK TIER CRITERIA:
 - T0 (Critical): Tax rates, legal deadlines, penalties, FINA identifiers
