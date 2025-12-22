@@ -78,8 +78,12 @@ async function main() {
       for (const conflict of pendingConflicts) {
         console.log(`\n[arbiter] Processing: ${conflict.conflictType} (${conflict.id})`)
         console.log(`[arbiter] Description: ${conflict.description}`)
-        console.log(`[arbiter] Rule A: ${conflict.itemA.titleHr} (${conflict.itemA.riskTier})`)
-        console.log(`[arbiter] Rule B: ${conflict.itemB.titleHr} (${conflict.itemB.riskTier})`)
+        if (conflict.itemA) {
+          console.log(`[arbiter] Rule A: ${conflict.itemA.titleHr} (${conflict.itemA.riskTier})`)
+        }
+        if (conflict.itemB) {
+          console.log(`[arbiter] Rule B: ${conflict.itemB.titleHr} (${conflict.itemB.riskTier})`)
+        }
 
         try {
           const arbiterResult = await runArbiter(conflict.id)

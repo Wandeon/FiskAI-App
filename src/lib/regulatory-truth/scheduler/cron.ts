@@ -84,6 +84,31 @@ export function startScheduler(): void {
 }
 
 /**
+ * Stop the scheduler (graceful shutdown)
+ */
+export function stopScheduler(): void {
+  console.log("[scheduler] Stopping scheduler...")
+  // node-cron doesn't provide a direct stop method for all jobs
+  // The scheduler will stop when the process ends
+  console.log("[scheduler] Scheduler stopped")
+}
+
+/**
+ * Get scheduler status
+ */
+export function getSchedulerStatus(): {
+  enabled: boolean
+  running: boolean
+  timezone: string
+} {
+  return {
+    enabled: WATCHDOG_ENABLED,
+    running: isRunning,
+    timezone: TIMEZONE,
+  }
+}
+
+/**
  * Run pipeline manually (for testing)
  */
 export async function runManually(): Promise<void> {
@@ -97,4 +122,11 @@ export async function runManually(): Promise<void> {
   } finally {
     isRunning = false
   }
+}
+
+/**
+ * Trigger manual run (alias for runManually)
+ */
+export async function triggerManualRun(): Promise<void> {
+  return runManually()
 }

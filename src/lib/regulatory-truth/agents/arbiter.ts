@@ -446,8 +446,8 @@ export async function getPendingConflicts(): Promise<
     conflictType: string
     description: string
     createdAt: Date
-    itemA: { id: string; titleHr: string; riskTier: string }
-    itemB: { id: string; titleHr: string; riskTier: string }
+    itemA: { id: string; titleHr: string; riskTier: string } | null
+    itemB: { id: string; titleHr: string; riskTier: string } | null
   }>
 > {
   const conflicts = await db.regulatoryConflict.findMany({

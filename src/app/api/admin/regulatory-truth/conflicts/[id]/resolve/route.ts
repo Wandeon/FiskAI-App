@@ -93,14 +93,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const losingRuleId =
       resolvedWinningRuleId === conflict.itemAId ? conflict.itemBId : conflict.itemAId
 
-    // Optionally deprecate the losing rule
-    await db.regulatoryRule.update({
-      where: { id: losingRuleId },
-      data: {
-        status: "DEPRECATED",
-        reviewerNotes: `Deprecated due to conflict resolution. Conflict ID: ${id}`,
-      },
-    })
+    // Optionally deprecate the losing rule (only if we have a losing rule ID)
+    if (losingRuleId) {
+      await db.regulatoryRule.update({
+        where: { id: losingRuleId },
+        data: {
+          status: "DEPRECATED",
+          reviewerNotes: `Deprecated due to conflict resolution. Conflict ID: ${id}`,
+        },
+      })
+    }
 
     return NextResponse.json({
       success: true,

@@ -45,13 +45,17 @@ export const ExtractorOutputSchema = z.object({
   // Make metadata optional with sensible defaults
   extraction_metadata: z
     .object({
-      total_extractions: z.number().int().min(0).optional().default(0),
-      by_domain: z.record(z.string(), z.number()).optional().default({}),
-      low_confidence_count: z.number().int().min(0).optional().default(0),
-      processing_notes: z.string().optional().default(""),
+      total_extractions: z.number().int().min(0).default(0),
+      by_domain: z.record(z.string(), z.number()).default({}),
+      low_confidence_count: z.number().int().min(0).default(0),
+      processing_notes: z.string().default(""),
     })
-    .optional()
-    .default({}),
+    .default({
+      total_extractions: 0,
+      by_domain: {},
+      low_confidence_count: 0,
+      processing_notes: "",
+    }),
 })
 export type ExtractorOutput = z.infer<typeof ExtractorOutputSchema>
 

@@ -84,7 +84,7 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
         domain: extraction.domain,
         valueType: extraction.value_type,
         extractedValue: String(extraction.extracted_value),
-        displayValue: extraction.display_value,
+        displayValue: extraction.display_value ?? String(extraction.extracted_value),
         exactQuote: extraction.exact_quote,
         contextBefore: extraction.context_before,
         contextAfter: extraction.context_after,

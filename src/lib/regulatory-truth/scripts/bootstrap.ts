@@ -45,7 +45,6 @@ interface BootstrapResult {
 export async function bootstrap(): Promise<BootstrapResult> {
   // Dynamic imports after env is loaded (these modules use db which needs env)
   const { runSentinel } = await import("../agents/sentinel")
-  const { runExtractor } = await import("../agents/extractor")
   const { runComposerBatch } = await import("../agents/composer")
   const { runReviewer } = await import("../agents/reviewer")
   const { runReleaser } = await import("../agents/releaser")
@@ -102,30 +101,33 @@ export async function bootstrap(): Promise<BootstrapResult> {
       console.log(`\n[bootstrap] Processing: ${source.name}`)
 
       try {
-        // Phase 2: Run Sentinel to collect evidence
-        console.log(`[bootstrap] Fetching evidence...`)
+        // Phase 2: Run Sentinel to discover new content (creates Evidence in DB)
+        console.log(`[bootstrap] Running sentinel discovery...`)
         const sentinelResult = await runSentinel(source.id)
 
-        if (sentinelResult.success && sentinelResult.evidenceId) {
-          result.evidenceCollected++
-          console.log(`[bootstrap] ✓ Evidence collected: ${sentinelResult.evidenceId}`)
+        if (sentinelResult.success) {
+          result.evidenceCollected += sentinelResult.newItemsDiscovered
+          console.log(
+            `[bootstrap] ✓ Discovered ${sentinelResult.newItemsDiscovered} items from ${sentinelResult.endpointsChecked} endpoints`
+          )
 
-          // Phase 3: Extract data points
-          console.log(`[bootstrap] Extracting data points...`)
-          const extractorResult = await runExtractor(sentinelResult.evidenceId)
+          // Phase 3: Extract data points from any unprocessed Evidence
+          // Note: Sentinel creates Evidence records that don't have source pointers yet
+          console.log(`[bootstrap] Extracting data points from new evidence...`)
+          const { runExtractorBatch } = await import("../agents/extractor")
+          const extractorResult = await runExtractorBatch(10) // Process up to 10
 
-          if (extractorResult.success) {
+          if (extractorResult.processed > 0) {
             result.sourcePointersCreated += extractorResult.sourcePointerIds.length
             console.log(
-              `[bootstrap] ✓ Extracted ${extractorResult.sourcePointerIds.length} data points`
+              `[bootstrap] ✓ Extracted ${extractorResult.sourcePointerIds.length} data points from ${extractorResult.processed} evidence records`
             )
-          } else {
-            const msg = `Extraction failed for ${source.slug}: ${extractorResult.error}`
-            result.errors.push(msg)
-            console.log(`[bootstrap] ✗ ${msg}`)
+          }
+          if (extractorResult.errors.length > 0) {
+            result.errors.push(...extractorResult.errors)
           }
         } else {
-          const msg = `Sentinel failed for ${source.slug}: ${sentinelResult.error}`
+          const msg = `Sentinel failed for ${source.slug}: ${sentinelResult.errors.join(", ")}`
           result.errors.push(msg)
           console.log(`[bootstrap] ✗ ${msg}`)
         }

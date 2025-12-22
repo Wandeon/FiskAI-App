@@ -1,6 +1,7 @@
 // src/lib/regulatory-truth/utils/audit-log.ts
 
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 
 export type AuditAction =
   | "RULE_CREATED"
@@ -9,10 +10,12 @@ export type AuditAction =
   | "RULE_PUBLISHED"
   | "CONFLICT_CREATED"
   | "CONFLICT_RESOLVED"
+  | "CONFLICT_ESCALATED"
+  | "CONCEPT_CREATED"
   | "RELEASE_PUBLISHED"
   | "EVIDENCE_FETCHED"
 
-export type EntityType = "RULE" | "CONFLICT" | "RELEASE" | "EVIDENCE"
+export type EntityType = "RULE" | "CONFLICT" | "RELEASE" | "EVIDENCE" | "CONCEPT"
 
 interface LogParams {
   action: AuditAction
@@ -33,7 +36,7 @@ export async function logAuditEvent(params: LogParams): Promise<void> {
         entityType: params.entityType,
         entityId: params.entityId,
         performedBy: params.performedBy || "SYSTEM",
-        metadata: params.metadata || null,
+        metadata: (params.metadata as Prisma.InputJsonValue) ?? Prisma.JsonNull,
       },
     })
   } catch (error) {
