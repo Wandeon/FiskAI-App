@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { checkRateLimit, getClientIP } from "@/lib/regulatory-truth/utils/rate-limit"
 
 /**
  * GET /api/rules/search
@@ -15,6 +16,23 @@ import { db } from "@/lib/db"
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check rate limit
+    const ip = getClientIP(request)
+    const rateLimit = checkRateLimit(`search:${ip}`, 60)
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(rateLimit.resetAt),
+          },
+        }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const q = searchParams.get("q") || ""
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100)

@@ -7,6 +7,7 @@ import {
   evaluateAppliesWhen,
   type EvaluationContext,
 } from "@/lib/regulatory-truth/dsl/applies-when"
+import { checkRateLimit, getClientIP } from "@/lib/regulatory-truth/utils/rate-limit"
 
 /**
  * POST /api/rules/evaluate
@@ -16,6 +17,23 @@ import {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit
+    const ip = getClientIP(request)
+    const rateLimit = checkRateLimit(`evaluate:${ip}`, 60)
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(rateLimit.resetAt),
+          },
+        }
+      )
+    }
+
     const body = await request.json()
     const { context } = body as { context: EvaluationContext }
 
