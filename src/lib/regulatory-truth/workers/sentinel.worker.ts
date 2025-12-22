@@ -1,5 +1,6 @@
 // src/lib/regulatory-truth/workers/sentinel.worker.ts
 import { Job } from "bullmq"
+import { DiscoveryPriority } from "@prisma/client"
 import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
 import { extractQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
@@ -9,7 +10,7 @@ import { db } from "@/lib/db"
 interface SentinelJobData {
   runId: string
   sourceId?: string
-  priority?: "CRITICAL" | "HIGH" | "NORMAL"
+  priority?: DiscoveryPriority
 }
 
 async function processSentinelJob(job: Job<SentinelJobData>): Promise<JobResult> {

@@ -56,7 +56,11 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
           await arbiterQueue.add("arbiter", { conflictId: c.id, runId })
         }
 
-        return { success: true, duration: Date.now() - start, data: { conflicts: conflicts.length } }
+        return {
+          success: true,
+          duration: Date.now() - start,
+          data: { conflicts: conflicts.length },
+        }
       }
 
       case "release-batch": {
