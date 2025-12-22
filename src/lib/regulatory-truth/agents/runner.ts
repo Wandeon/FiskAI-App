@@ -9,15 +9,24 @@ import { getAgentPrompt } from "../prompts"
 // OLLAMA CLIENT (reuse existing pattern)
 // =============================================================================
 
-const AGENT_TIMEOUT_MS = parseInt(process.env.AGENT_TIMEOUT_MS || "300000") // 5 minutes
-const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || "https://ollama.com"
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.1"
-const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY
+// Read env vars lazily (at call time) to support dotenv loading after import
+function getAgentTimeoutMs(): number {
+  return parseInt(process.env.AGENT_TIMEOUT_MS || "300000") // 5 minutes
+}
+
+function getOllamaEndpoint(): string {
+  return process.env.OLLAMA_ENDPOINT || "https://ollama.com"
+}
+
+function getOllamaModel(): string {
+  return process.env.OLLAMA_MODEL || "llama3.1"
+}
 
 function getOllamaHeaders(): HeadersInit {
+  const apiKey = process.env.OLLAMA_API_KEY
   const headers: HeadersInit = { "Content-Type": "application/json" }
-  if (OLLAMA_API_KEY) {
-    headers["Authorization"] = `Bearer ${OLLAMA_API_KEY}`
+  if (apiKey) {
+    headers["Authorization"] = `Bearer ${apiKey}`
   }
   return headers
 }
@@ -113,20 +122,28 @@ export async function runAgent<TInput, TOutput>(
 
       // Call Ollama - don't use format:"json" as qwen3-next model returns empty content with it
       const controller = new AbortController()
-      timeoutId = setTimeout(() => controller.abort(), AGENT_TIMEOUT_MS)
+      const timeoutMs = getAgentTimeoutMs()
+      timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
-      const response = await fetch(`${OLLAMA_ENDPOINT}/api/chat`, {
+      const response = await fetch(`${getOllamaEndpoint()}/api/chat`, {
         method: "POST",
         headers: getOllamaHeaders(),
         signal: controller.signal,
         body: JSON.stringify({
-          model: OLLAMA_MODEL,
+          model: getOllamaModel(),
           messages: [
             {
               role: "system",
               content:
                 systemPrompt +
-                "\n\nCRITICAL: Your response must be ONLY valid JSON. No thinking, no explanation, no markdown code blocks, just the raw JSON object.",
+                "\n\n" +
+                "RESPONSE FORMAT REQUIREMENTS:\n" +
+                "1. Your response must be ONLY a valid JSON object\n" +
+                "2. Start your response directly with { - no preamble text\n" +
+                "3. Do NOT wrap in markdown code blocks (no ```json)\n" +
+                "4. Do NOT include any thinking, explanation, or commentary\n" +
+                "5. End your response with } - nothing after\n" +
+                '6. If you cannot extract any data, return: {"extractions": [], "extraction_metadata": {"total_extractions": 0, "processing_notes": "No extractable data found"}}',
             },
             { role: "user", content: userMessage },
           ],
@@ -208,7 +225,7 @@ export async function runAgent<TInput, TOutput>(
 
       // Check if aborted due to timeout
       if (lastError?.name === "AbortError") {
-        lastError = new Error(`Agent timed out after ${AGENT_TIMEOUT_MS}ms`)
+        lastError = new Error(`Agent timed out after ${getAgentTimeoutMs()}ms`)
       }
 
       if (attempt < maxRetries - 1) {

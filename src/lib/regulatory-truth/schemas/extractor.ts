@@ -19,17 +19,17 @@ export type ExtractorInput = z.infer<typeof ExtractorInputSchema>
 // =============================================================================
 
 export const ExtractionItemSchema = z.object({
-  id: z.string(),
+  id: z.string().nullish().default(""),
   domain: DomainSchema,
   value_type: ValueTypeSchema,
   extracted_value: z.union([z.string(), z.number()]),
-  display_value: z.string(),
+  display_value: z.string().nullish().default(""),
   exact_quote: z.string().min(1),
-  context_before: z.string(),
-  context_after: z.string(),
-  selector: z.string(),
+  context_before: z.string().nullish().default(""),
+  context_after: z.string().nullish().default(""),
+  selector: z.string().nullish().default(""),
   confidence: ConfidenceSchema,
-  extraction_notes: z.string(),
+  extraction_notes: z.string().nullish().default(""),
 })
 export type ExtractionItem = z.infer<typeof ExtractionItemSchema>
 
@@ -38,14 +38,20 @@ export type ExtractionItem = z.infer<typeof ExtractionItemSchema>
 // =============================================================================
 
 export const ExtractorOutputSchema = z.object({
-  evidence_id: z.string(),
-  extractions: z.array(ExtractionItemSchema),
-  extraction_metadata: z.object({
-    total_extractions: z.number().int().min(0),
-    by_domain: z.record(z.string(), z.number()),
-    low_confidence_count: z.number().int().min(0),
-    processing_notes: z.string(),
-  }),
+  // Make evidence_id optional - we can fill it from input if missing
+  evidence_id: z.string().optional(),
+  // Extractions array is required but can be empty
+  extractions: z.array(ExtractionItemSchema).default([]),
+  // Make metadata optional with sensible defaults
+  extraction_metadata: z
+    .object({
+      total_extractions: z.number().int().min(0).optional().default(0),
+      by_domain: z.record(z.string(), z.number()).optional().default({}),
+      low_confidence_count: z.number().int().min(0).optional().default(0),
+      processing_notes: z.string().optional().default(""),
+    })
+    .optional()
+    .default({}),
 })
 export type ExtractorOutput = z.infer<typeof ExtractorOutputSchema>
 

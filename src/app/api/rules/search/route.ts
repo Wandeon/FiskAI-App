@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { checkRateLimit, getClientIP } from "@/lib/regulatory-truth/utils/rate-limit"
 
+// Valid enum values for validation
+const VALID_RISK_TIERS = ["T0", "T1", "T2", "T3"] as const
+const VALID_AUTHORITY_LEVELS = ["LAW", "GUIDANCE", "PROCEDURE", "PRACTICE"] as const
+
 /**
  * GET /api/rules/search
  *
@@ -38,6 +42,24 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100)
     const riskTier = searchParams.get("riskTier")
     const authorityLevel = searchParams.get("authorityLevel")
+
+    // Validate enum values
+    if (riskTier && !VALID_RISK_TIERS.includes(riskTier as (typeof VALID_RISK_TIERS)[number])) {
+      return NextResponse.json(
+        { error: `Invalid riskTier. Must be one of: ${VALID_RISK_TIERS.join(", ")}` },
+        { status: 400 }
+      )
+    }
+
+    if (
+      authorityLevel &&
+      !VALID_AUTHORITY_LEVELS.includes(authorityLevel as (typeof VALID_AUTHORITY_LEVELS)[number])
+    ) {
+      return NextResponse.json(
+        { error: `Invalid authorityLevel. Must be one of: ${VALID_AUTHORITY_LEVELS.join(", ")}` },
+        { status: 400 }
+      )
+    }
 
     const where: Record<string, unknown> = {
       status: "PUBLISHED",

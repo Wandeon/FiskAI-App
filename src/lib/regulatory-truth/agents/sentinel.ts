@@ -345,6 +345,9 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
         })
 
         if (source) {
+          // Check if this is a content change (item had previous hash)
+          const isContentChange = !!(item.contentHash && item.contentHash !== contentHash)
+
           // Create new evidence record
           const evidence = await db.evidence.create({
             data: {
@@ -353,6 +356,10 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
               rawContent: content,
               contentHash,
               contentType: "html",
+              hasChanged: isContentChange,
+              changeSummary: isContentChange
+                ? `Content updated from previous version (hash: ${item.contentHash?.slice(0, 8)}...)`
+                : null,
             },
           })
 

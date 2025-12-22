@@ -8,6 +8,7 @@ import {
   type ExtractorOutput,
 } from "../schemas"
 import { runAgent } from "./runner"
+import { cleanContent, getCleaningStats } from "../utils/content-cleaner"
 
 // =============================================================================
 // EXTRACTOR AGENT
@@ -39,10 +40,17 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     }
   }
 
-  // Build input for agent
+  // Clean content to remove navigation noise before passing to LLM
+  const cleanedContent = cleanContent(evidence.rawContent, evidence.url)
+  const stats = getCleaningStats(evidence.rawContent, cleanedContent)
+  console.log(
+    `[extractor] Cleaned content for ${evidence.url}: ${stats.originalLength} → ${stats.cleanedLength} chars (${stats.reductionPercent}% reduction, ${stats.newsItemsFound} news items found)`
+  )
+
+  // Build input for agent with cleaned content
   const input: ExtractorInput = {
     evidenceId: evidence.id,
-    content: evidence.rawContent,
+    content: cleanedContent,
     contentType: evidence.contentType as "html" | "pdf" | "xml",
     sourceUrl: evidence.url,
   }
@@ -119,19 +127,31 @@ export async function runExtractorBatch(limit: number = 20): Promise<{
   const allPointerIds: string[] = []
   const errors: string[] = []
 
-  for (const evidence of unprocessedEvidence) {
+  for (let i = 0; i < unprocessedEvidence.length; i++) {
+    const evidence = unprocessedEvidence[i]
+
+    // Rate limiting: wait 5 seconds between API calls to avoid 429 errors
+    if (i > 0) {
+      console.log(`[extractor] Rate limiting: waiting 5s before next extraction...`)
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+    }
+
     try {
+      console.log(`[extractor] Processing ${i + 1}/${unprocessedEvidence.length}: ${evidence.url}`)
       const result = await runExtractor(evidence.id)
       if (result.success) {
         processed++
         allPointerIds.push(...result.sourcePointerIds)
+        console.log(`[extractor] ✓ Extracted ${result.sourcePointerIds.length} pointers`)
       } else {
         failed++
         errors.push(`${evidence.id}: ${result.error}`)
+        console.log(`[extractor] ✗ Failed: ${result.error?.slice(0, 100)}`)
       }
     } catch (error) {
       failed++
       errors.push(`${evidence.id}: ${error}`)
+      console.log(`[extractor] ✗ Error: ${error}`)
     }
   }
 

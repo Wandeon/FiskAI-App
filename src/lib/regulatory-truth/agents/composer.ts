@@ -140,6 +140,13 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
     .map((sp) => sp.evidence.source.slug)
   const authorityLevel = deriveAuthorityLevel(sourceSlugs)
 
+  // IMPORTANT: Use the actual input source pointer IDs, not the LLM output
+  // The LLM sometimes hallucinates IDs that don't exist in the database
+  const validSourcePointerIds = sourcePointerIds
+  console.log(
+    `[composer] Linking ${validSourcePointerIds.length} source pointers (LLM returned ${draftRule.source_pointer_ids?.length || 0})`
+  )
+
   // Store the draft rule in database
   const rule = await db.regulatoryRule.create({
     data: {
@@ -160,7 +167,7 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       confidence: draftRule.confidence,
       composerNotes: draftRule.composer_notes,
       sourcePointers: {
-        connect: draftRule.source_pointer_ids.map((id) => ({ id })),
+        connect: validSourcePointerIds.map((id) => ({ id })),
       },
     },
   })

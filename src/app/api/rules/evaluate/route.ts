@@ -46,9 +46,15 @@ export async function POST(request: NextRequest) {
       context.asOf = new Date().toISOString()
     }
 
-    // Get all published rules
+    // Get all published rules (with reasonable limit to prevent issues)
+    const MAX_RULES_TO_EVALUATE = 1000
     const allRules = await db.regulatoryRule.findMany({
       where: { status: "PUBLISHED" },
+      take: MAX_RULES_TO_EVALUATE,
+      orderBy: [
+        { authorityLevel: "asc" }, // LAW first
+        { effectiveFrom: "desc" }, // Newest first
+      ],
       select: {
         id: true,
         conceptSlug: true,
@@ -66,6 +72,12 @@ export async function POST(request: NextRequest) {
         confidence: true,
       },
     })
+
+    if (allRules.length >= MAX_RULES_TO_EVALUATE) {
+      console.warn(
+        `[evaluate] Hit max rules limit (${MAX_RULES_TO_EVALUATE}), some rules may not be evaluated`
+      )
+    }
 
     // Filter to currently effective rules
     const asOfDate = new Date(context.asOf)

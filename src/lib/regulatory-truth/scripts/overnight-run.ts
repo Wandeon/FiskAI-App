@@ -35,6 +35,7 @@ export async function main() {
   const { runReviewer } = await import("../agents/reviewer")
   const { runArbiter } = await import("../agents/arbiter")
   const { runReleaser } = await import("../agents/releaser")
+  const { runTier1Fetchers } = await import("../fetchers")
 
   const client = await pool.connect()
 
@@ -43,6 +44,27 @@ export async function main() {
   console.log(`Rate limit delay: ${RATE_LIMIT_DELAY / 1000}s between calls\n`)
 
   try {
+    // Phase -1: Tier 1 Structured Fetchers (100% reliable, no AI)
+    console.log("=== PHASE -1: TIER 1 STRUCTURED DATA ===")
+    console.log("Fetching structured data from official APIs (bypasses AI)...")
+    try {
+      const tier1Result = await runTier1Fetchers()
+      console.log(`[tier1] HNB: ${tier1Result.hnb.ratesCreated} exchange rate rules created`)
+      console.log(`[tier1] NN: ${tier1Result.nn.evidenceCreated} legal metadata records created`)
+      console.log(
+        `[tier1] EUR-Lex: ${tier1Result.eurlex.evidenceCreated} EU legislation records created`
+      )
+      console.log(`[tier1] Total duration: ${tier1Result.durationMs}ms`)
+      if (tier1Result.hnb.error) console.log(`[tier1] HNB warning: ${tier1Result.hnb.error}`)
+      if (tier1Result.nn.error) console.log(`[tier1] NN warning: ${tier1Result.nn.error}`)
+      if (tier1Result.eurlex.error)
+        console.log(`[tier1] EUR-Lex warning: ${tier1Result.eurlex.error}`)
+    } catch (error) {
+      console.error("[tier1] Error in Tier 1 fetchers:", error)
+    }
+    console.log("\n[tier1] Complete")
+    await sleep(RATE_LIMIT_DELAY)
+
     // Phase 0: Discovery (Sentinel)
     console.log("=== PHASE 0: DISCOVERY ===")
 
@@ -167,7 +189,9 @@ export async function main() {
           const result = await runReviewer(rule.id)
           if (result.success) {
             reviewSuccess++
-            console.log(`[review] ✓ Decision: ${result.decision}`)
+            console.log(
+              `[review] ✓ Decision: ${result.output?.review_result?.decision || "completed"}`
+            )
           } else {
             reviewFailed++
             console.log(`[review] ✗ ${result.error}`)
@@ -240,7 +264,9 @@ export async function main() {
       try {
         const result = await runReleaser(approvedRules.rows.map((r) => r.id))
         if (result.success) {
-          console.log(`[release] ✓ Created release: ${result.releaseId} (v${result.version})`)
+          console.log(
+            `[release] ✓ Created release: ${result.releaseId} (v${result.output?.release?.version || "new"})`
+          )
         } else {
           console.log(`[release] ✗ ${result.error}`)
         }
