@@ -113,17 +113,18 @@ export function getLatestNNIssueSitemaps(
  * Parse sitemap index and return all child sitemap URLs
  */
 export function parseSitemapIndex(content: string): string[] {
-  const sitemapUrls: string[] = []
+  const result = parser.parse(content)
 
-  // Match <sitemap><loc>...</loc></sitemap> entries
-  const sitemapRegex = /<sitemap>\s*<loc>([^<]+)<\/loc>/gi
-  let match
+  // Handle sitemapindex (list of sitemaps)
+  if (result.sitemapindex?.sitemap) {
+    const sitemaps = Array.isArray(result.sitemapindex.sitemap)
+      ? result.sitemapindex.sitemap
+      : [result.sitemapindex.sitemap]
 
-  while ((match = sitemapRegex.exec(content)) !== null) {
-    sitemapUrls.push(match[1].trim())
+    return sitemaps.map((s: { loc: string }) => s.loc)
   }
 
-  return sitemapUrls
+  return []
 }
 
 /**
