@@ -19,6 +19,7 @@ interface ScheduledJobData {
     | "arbiter-sweep"
     | "release-batch"
     | "confidence-decay"
+    | "e2e-validation"
   runId: string
   triggeredBy?: string
 }
@@ -98,6 +99,21 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
           success: true,
           duration: Date.now() - start,
           data: { checked: result.checked, decayed: result.decayed },
+        }
+      }
+
+      case "e2e-validation": {
+        const { runLiveE2E } = await import("../e2e/live-runner")
+        const result = await runLiveE2E({ lightRun: false, skipAssistant: false })
+        return {
+          success: result.verdict !== "INVALID",
+          duration: Date.now() - start,
+          data: {
+            verdict: result.verdict,
+            invariantsPass: result.invariants.summary.pass,
+            invariantsFail: result.invariants.summary.fail,
+            artifactsPath: result.artifactsPath,
+          },
         }
       }
 

@@ -99,6 +99,21 @@ async function startScheduler(): Promise<void> {
   )
   console.log("[scheduler] Scheduled: Confidence decay on Sundays at 03:00")
 
+  // Daily E2E validation at 06:00 (runs after pipeline)
+  cron.schedule(
+    "0 6 * * *",
+    async () => {
+      console.log("[scheduler] Triggering daily E2E validation")
+      await scheduledQueue.add("scheduled", {
+        type: "e2e-validation",
+        runId: `e2e-${Date.now()}`,
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: E2E validation at 06:00")
+
   console.log("[scheduler] Scheduler service started")
 }
 
