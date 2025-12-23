@@ -10,6 +10,7 @@ import {
 import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
 import { deriveAuthorityLevel } from "../utils/authority"
+import { validateAppliesWhen } from "../dsl/applies-when"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -135,6 +136,21 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
   }
 
   const draftRule = result.output.draft_rule
+
+  // Validate AppliesWhen DSL before storing
+  const dslValidation = validateAppliesWhen(draftRule.applies_when)
+  if (!dslValidation.valid) {
+    console.warn(
+      `[composer] Invalid AppliesWhen DSL for ${draftRule.concept_slug}: ${dslValidation.error}`
+    )
+    console.warn(`[composer] Replacing with { op: "true" } as fallback`)
+
+    // Replace invalid DSL with safe default
+    draftRule.applies_when = { op: "true" } as any
+
+    // Add note about the fix
+    draftRule.composer_notes = `${draftRule.composer_notes || ""}\n[AUTO-FIX] Original appliesWhen was invalid: ${dslValidation.error}`
+  }
 
   // Derive authority level from sources
   const sourceSlugs = sourcePointers
