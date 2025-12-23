@@ -9,7 +9,7 @@ import {
 } from "../schemas"
 import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
-import { computeReleaseHash, type RuleSnapshot } from "../utils/release-hash"
+import { computeReleaseHash, normalizeDate, type RuleSnapshot } from "../utils/release-hash"
 
 // =============================================================================
 // RELEASER AGENT
@@ -160,8 +160,8 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
     appliesWhen: r.appliesWhen,
     value: r.value,
     valueType: r.valueType,
-    effectiveFrom: r.effectiveFrom?.toISOString().split("T")[0] || null,
-    effectiveUntil: r.effectiveUntil?.toISOString().split("T")[0] || null,
+    effectiveFrom: normalizeDate(r.effectiveFrom),
+    effectiveUntil: normalizeDate(r.effectiveUntil),
   }))
 
   const contentHash = computeReleaseHash(ruleSnapshots)

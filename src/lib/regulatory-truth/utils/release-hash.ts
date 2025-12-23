@@ -1,5 +1,6 @@
 // src/lib/regulatory-truth/utils/release-hash.ts
 import { createHash } from "crypto"
+import type { PrismaClient } from "@prisma/client"
 
 export interface RuleSnapshot {
   conceptSlug: string
@@ -11,6 +12,57 @@ export interface RuleSnapshot {
 }
 
 /**
+ * Normalize date to YYYY-MM-DD format.
+ * Ensures consistent date formatting across hash computation.
+ */
+export function normalizeDate(date: Date | string | null): string | null {
+  if (!date) return null
+
+  if (date instanceof Date) {
+    return date.toISOString().split("T")[0]
+  }
+
+  // If already a string, ensure it's in YYYY-MM-DD format
+  if (typeof date === "string") {
+    // If it's an ISO string, extract the date part
+    if (date.includes("T")) {
+      return date.split("T")[0]
+    }
+    // Assume it's already in correct format
+    return date
+  }
+
+  return null
+}
+
+/**
+ * Recursively sort object keys for deterministic JSON serialization.
+ * Handles nested objects and arrays.
+ */
+function sortKeysRecursively(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(sortKeysRecursively)
+  }
+
+  if (typeof obj === "object") {
+    const sorted: Record<string, unknown> = {}
+    const keys = Object.keys(obj).sort()
+
+    for (const key of keys) {
+      sorted[key] = sortKeysRecursively((obj as Record<string, unknown>)[key])
+    }
+
+    return sorted
+  }
+
+  return obj
+}
+
+/**
  * Compute deterministic hash for a set of rules.
  * CRITICAL: This must match exactly for verification.
  */
@@ -18,18 +70,21 @@ export function computeReleaseHash(rules: RuleSnapshot[]): string {
   // Sort by conceptSlug for determinism
   const sorted = [...rules].sort((a, b) => a.conceptSlug.localeCompare(b.conceptSlug))
 
-  // Create canonical JSON (sorted keys, no whitespace variance)
+  // Create canonical JSON (sorted keys recursively, normalized dates)
   const canonical = sorted.map((r) => ({
     conceptSlug: r.conceptSlug,
     appliesWhen: typeof r.appliesWhen === "string" ? JSON.parse(r.appliesWhen) : r.appliesWhen,
     value: r.value,
     valueType: r.valueType,
-    effectiveFrom: r.effectiveFrom,
-    effectiveUntil: r.effectiveUntil,
+    effectiveFrom: normalizeDate(r.effectiveFrom),
+    effectiveUntil: normalizeDate(r.effectiveUntil),
   }))
 
-  // Stable stringify with sorted keys
-  const json = JSON.stringify(canonical, Object.keys(canonical[0] || {}).sort())
+  // Sort all object keys recursively for deterministic serialization
+  const sortedCanonical = sortKeysRecursively(canonical)
+
+  // Stable stringify with no whitespace
+  const json = JSON.stringify(sortedCanonical)
 
   return createHash("sha256").update(json).digest("hex")
 }
@@ -39,7 +94,7 @@ export function computeReleaseHash(rules: RuleSnapshot[]): string {
  */
 export async function verifyReleaseHash(
   releaseId: string,
-  db: any
+  db: PrismaClient
 ): Promise<{ valid: boolean; stored: string; computed: string; ruleCount: number }> {
   const release = await db.ruleRelease.findUnique({
     where: { id: releaseId },
@@ -59,13 +114,13 @@ export async function verifyReleaseHash(
 
   if (!release) throw new Error(`Release not found: ${releaseId}`)
 
-  const snapshots: RuleSnapshot[] = release.rules.map((r: any) => ({
+  const snapshots: RuleSnapshot[] = release.rules.map((r) => ({
     conceptSlug: r.conceptSlug,
     appliesWhen: r.appliesWhen,
     value: r.value,
     valueType: r.valueType,
-    effectiveFrom: r.effectiveFrom?.toISOString?.()?.split("T")[0] || r.effectiveFrom || null,
-    effectiveUntil: r.effectiveUntil?.toISOString?.()?.split("T")[0] || r.effectiveUntil || null,
+    effectiveFrom: normalizeDate(r.effectiveFrom),
+    effectiveUntil: normalizeDate(r.effectiveUntil),
   }))
 
   const computed = computeReleaseHash(snapshots)
