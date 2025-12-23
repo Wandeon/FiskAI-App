@@ -80,12 +80,18 @@ Examples:
         throw new Error(`Rule ${id} is not in PENDING_REVIEW status (current: ${rule.status})`)
       }
 
+      if (!["T0", "T1"].includes(rule.riskTier)) {
+        throw new Error(
+          `Cannot manually approve ${rule.riskTier} rule via review bundle. Use auto-approval.`
+        )
+      }
+
       if (reject) {
-        // Reject the rule by moving it to DRAFT with reviewer notes
+        // Reject the rule by moving it to REJECTED with reviewer notes
         await db.regulatoryRule.update({
           where: { id },
           data: {
-            status: "DRAFT",
+            status: "REJECTED",
             reviewerNotes: reason || "Rejected during review",
           },
         })
