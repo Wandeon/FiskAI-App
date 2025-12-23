@@ -8,8 +8,8 @@ import {
   type ReleaserOutput,
 } from "../schemas"
 import { runAgent } from "./runner"
-import { createHash } from "crypto"
 import { logAuditEvent } from "../utils/audit-log"
+import { computeReleaseHash, type RuleSnapshot } from "../utils/release-hash"
 
 // =============================================================================
 // RELEASER AGENT
@@ -53,34 +53,6 @@ function calculateNextVersion(
     version: `${major}.${minor}.${patch + 1}`,
     releaseType: "patch",
   }
-}
-
-/**
- * Compute deterministic content hash for rules including full content
- */
-function computeContentHash(
-  rules: Array<{
-    id: string
-    conceptSlug: string
-    appliesWhen: string
-    value: string
-    effectiveFrom: Date
-    effectiveUntil: Date | null
-  }>
-): string {
-  // Sort by conceptSlug for deterministic hashing
-  const sortedRules = [...rules].sort((a, b) => a.conceptSlug.localeCompare(b.conceptSlug))
-
-  // Include all meaningful content in hash
-  const content = sortedRules.map((r) => ({
-    conceptSlug: r.conceptSlug,
-    appliesWhen: r.appliesWhen,
-    value: r.value,
-    effectiveFrom: r.effectiveFrom.toISOString(),
-    effectiveUntil: r.effectiveUntil?.toISOString() || null,
-  }))
-
-  return createHash("sha256").update(JSON.stringify(content), "utf8").digest("hex")
 }
 
 /**
@@ -183,16 +155,16 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
   const finalReleaseType = releaseOutput.release_type || expectedReleaseType
 
   // Compute content hash with full rule content
-  const contentHash = computeContentHash(
-    rules.map((r) => ({
-      id: r.id,
-      conceptSlug: r.conceptSlug,
-      appliesWhen: r.appliesWhen,
-      value: r.value,
-      effectiveFrom: r.effectiveFrom,
-      effectiveUntil: r.effectiveUntil,
-    }))
-  )
+  const ruleSnapshots: RuleSnapshot[] = rules.map((r) => ({
+    conceptSlug: r.conceptSlug,
+    appliesWhen: r.appliesWhen,
+    value: r.value,
+    valueType: r.valueType,
+    effectiveFrom: r.effectiveFrom?.toISOString().split("T")[0] || null,
+    effectiveUntil: r.effectiveUntil?.toISOString().split("T")[0] || null,
+  }))
+
+  const contentHash = computeReleaseHash(ruleSnapshots)
 
   // Count audit trail metrics
   const evidenceIds = new Set<string>()
