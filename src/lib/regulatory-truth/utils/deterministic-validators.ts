@@ -11,31 +11,36 @@ export interface ExtractionValidationResult {
   warnings: string[]
 }
 
-// Percentage must be 0-100
-export function validatePercentage(value: number): ValidationResult {
+// Percentage must be 0-100 by default, or 0-max if specified
+export function validatePercentage(value: number, max: number = 100): ValidationResult {
   if (typeof value !== "number" || isNaN(value)) {
     return { valid: false, error: "Percentage must be a number" }
   }
   if (value < 0) {
     return { valid: false, error: "Percentage cannot be negative" }
   }
-  if (value > 100) {
-    return { valid: false, error: "Percentage cannot exceed 100" }
+  if (value > max) {
+    return { valid: false, error: `Percentage cannot exceed ${max}` }
   }
   return { valid: true }
 }
 
 // Currency must be positive and reasonable
-export function validateCurrency(value: number, currency: "eur" | "hrk"): ValidationResult {
+export function validateCurrency(
+  value: number,
+  currency: "eur" | "hrk",
+  maxAmount?: number
+): ValidationResult {
   if (typeof value !== "number" || isNaN(value)) {
     return { valid: false, error: "Currency amount must be a number" }
   }
   if (value < 0) {
     return { valid: false, error: "Currency amount cannot be negative" }
   }
-  // Max reasonable regulatory amount: 100 billion EUR
-  const maxAmount = currency === "eur" ? 100_000_000_000 : 750_000_000_000
-  if (value > maxAmount) {
+  // Max reasonable regulatory amount: 100 billion EUR (or domain-specific max)
+  const defaultMax = currency === "eur" ? 100_000_000_000 : 750_000_000_000
+  const max = maxAmount !== undefined ? maxAmount : defaultMax
+  if (value > max) {
     return { valid: false, error: `Currency amount ${value} is unrealistic` }
   }
   return { valid: true }
@@ -88,6 +93,87 @@ export function validateNumericRange(value: number, min: number, max: number): V
   return { valid: true }
 }
 
+// Validate interest rate (percentage with domain-specific max)
+export function validateInterestRate(value: number, max: number = 20): ValidationResult {
+  if (typeof value !== "number" || isNaN(value)) {
+    return { valid: false, error: "Interest rate must be a number" }
+  }
+  if (value < 0) {
+    return { valid: false, error: "Interest rate cannot be negative" }
+  }
+  if (value > max) {
+    return { valid: false, error: `Interest rate cannot exceed ${max}%` }
+  }
+  return { valid: true }
+}
+
+// Validate exchange rate (reasonable currency pair range)
+export function validateExchangeRate(
+  value: number,
+  min: number = 0.0001,
+  max: number = 10000
+): ValidationResult {
+  if (typeof value !== "number" || isNaN(value)) {
+    return { valid: false, error: "Exchange rate must be a number" }
+  }
+  if (value <= 0) {
+    return { valid: false, error: "Exchange rate must be positive" }
+  }
+  if (value < min) {
+    return { valid: false, error: `Exchange rate ${value} is unrealistically low (min: ${min})` }
+  }
+  if (value > max) {
+    return { valid: false, error: `Exchange rate ${value} is unrealistically high (max: ${max})` }
+  }
+  return { valid: true }
+}
+
+/**
+ * Domain-aware validator that applies appropriate validation based on domain and value type.
+ * This is a convenience function that wraps the type-specific validators with domain configuration.
+ */
+export function validateByDomain(
+  domain: string,
+  valueType: string,
+  value: number | string
+): ValidationResult {
+  const domainConfig = DOMAIN_RANGES[domain] || {}
+  const numValue = typeof value === "number" ? value : parseFloat(String(value))
+
+  switch (valueType) {
+    case "percentage": {
+      const maxPct = domainConfig.percentageMax || 100
+      return validatePercentage(numValue, maxPct)
+    }
+    case "currency_eur":
+    case "currency": {
+      const maxCurrency = domainConfig.currencyMax
+      return validateCurrency(numValue, "eur", maxCurrency)
+    }
+    case "currency_hrk": {
+      const maxCurrency = domainConfig.currencyMax
+      return validateCurrency(numValue, "hrk", maxCurrency)
+    }
+    case "date": {
+      return validateDate(String(value))
+    }
+    case "count": {
+      return validateNumericRange(numValue, 0, 1_000_000_000)
+    }
+    case "interest_rate": {
+      const maxRate = domainConfig.interestRateMax || 20
+      return validateInterestRate(numValue, maxRate)
+    }
+    case "exchange_rate": {
+      const minRate = domainConfig.exchangeRateMin || 0.0001
+      const maxRate = domainConfig.exchangeRateMax || 10000
+      return validateExchangeRate(numValue, minRate, maxRate)
+    }
+    default:
+      return { valid: false, error: `Unknown value type: ${valueType}` }
+  }
+}
+
 // Known domains for validation
 const VALID_DOMAINS = [
   "pausalni",
@@ -97,7 +183,27 @@ const VALID_DOMAINS = [
   "fiskalizacija",
   "rokovi",
   "obrasci",
+  "interest_rates",
+  "exchange_rates",
 ]
+
+// Domain-specific validation ranges
+interface DomainRanges {
+  percentageMax?: number
+  currencyMax?: number
+  interestRateMax?: number
+  exchangeRateMin?: number
+  exchangeRateMax?: number
+}
+
+const DOMAIN_RANGES: Record<string, DomainRanges> = {
+  pdv: { percentageMax: 30 }, // VAT max 30% (Croatia's highest is 25%, allow margin)
+  doprinosi: { percentageMax: 50 }, // Health insurance, pension contributions max 50%
+  porez_dohodak: { percentageMax: 60 }, // Income tax max 60% (including surtax)
+  pausalni: { currencyMax: 1_000_000 }, // Pausalni threshold max 1M EUR
+  interest_rates: { percentageMax: 20 }, // Interest rates max 20%
+  exchange_rates: { exchangeRateMin: 0.0001, exchangeRateMax: 10000 }, // Currency pair range
+}
 
 // Known value types
 const VALID_VALUE_TYPES = [
@@ -109,6 +215,8 @@ const VALID_VALUE_TYPES = [
   "currency_hrk",
   "currency_eur",
   "count",
+  "interest_rate",
+  "exchange_rate",
 ]
 
 /**
@@ -275,24 +383,30 @@ export function validateExtraction(extraction: {
     errors.push(`Unknown value_type: ${extraction.value_type}`)
   }
 
-  // Type-specific validation
+  // Get domain-specific configuration
+  const domainConfig = DOMAIN_RANGES[extraction.domain] || {}
+
+  // Type-specific validation with domain awareness
   const value = extraction.extracted_value
   const numValue = typeof value === "number" ? value : parseFloat(String(value))
 
   switch (extraction.value_type) {
     case "percentage": {
-      const result = validatePercentage(numValue)
+      const maxPct = domainConfig.percentageMax || 100
+      const result = validatePercentage(numValue, maxPct)
       if (!result.valid) errors.push(result.error!)
       break
     }
     case "currency_eur":
     case "currency": {
-      const result = validateCurrency(numValue, "eur")
+      const maxCurrency = domainConfig.currencyMax
+      const result = validateCurrency(numValue, "eur", maxCurrency)
       if (!result.valid) errors.push(result.error!)
       break
     }
     case "currency_hrk": {
-      const result = validateCurrency(numValue, "hrk")
+      const maxCurrency = domainConfig.currencyMax
+      const result = validateCurrency(numValue, "hrk", maxCurrency)
       if (!result.valid) errors.push(result.error!)
       break
     }
@@ -303,6 +417,19 @@ export function validateExtraction(extraction: {
     }
     case "count": {
       const result = validateNumericRange(numValue, 0, 1_000_000_000)
+      if (!result.valid) errors.push(result.error!)
+      break
+    }
+    case "interest_rate": {
+      const maxRate = domainConfig.interestRateMax || 20
+      const result = validateInterestRate(numValue, maxRate)
+      if (!result.valid) errors.push(result.error!)
+      break
+    }
+    case "exchange_rate": {
+      const minRate = domainConfig.exchangeRateMin || 0.0001
+      const maxRate = domainConfig.exchangeRateMax || 10000
+      const result = validateExchangeRate(numValue, minRate, maxRate)
       if (!result.valid) errors.push(result.error!)
       break
     }
