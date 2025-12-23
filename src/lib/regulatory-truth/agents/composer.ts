@@ -139,8 +139,21 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
 
   const draftRule = result.output.draft_rule
 
+  // Normalize applies_when to object for validation
+  // The schema preprocessor may have stringified it, so we need to parse it back
+  let appliesWhenObj: unknown
+  if (typeof draftRule.applies_when === "string") {
+    try {
+      appliesWhenObj = JSON.parse(draftRule.applies_when)
+    } catch {
+      appliesWhenObj = null
+    }
+  } else {
+    appliesWhenObj = draftRule.applies_when
+  }
+
   // Validate AppliesWhen DSL before storing
-  const dslValidation = validateAppliesWhen(draftRule.applies_when)
+  const dslValidation = validateAppliesWhen(appliesWhenObj)
   if (!dslValidation.valid) {
     console.warn(
       `[composer] Invalid AppliesWhen DSL for ${draftRule.concept_slug}: ${dslValidation.error}`
@@ -148,11 +161,15 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
     console.warn(`[composer] Replacing with { op: "true" } as fallback`)
 
     // Replace invalid DSL with safe default
-    draftRule.applies_when = { op: "true" } as any
+    appliesWhenObj = { op: "true" }
 
     // Add note about the fix
     draftRule.composer_notes = `${draftRule.composer_notes || ""}\n[AUTO-FIX] Original appliesWhen was invalid: ${dslValidation.error}`
   }
+
+  // Serialize appliesWhen to JSON string for database storage
+  const appliesWhenString =
+    typeof appliesWhenObj === "string" ? appliesWhenObj : JSON.stringify(appliesWhenObj)
 
   // Derive authority level from sources
   const sourceSlugs = sourcePointers
@@ -212,7 +229,7 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       titleEn: draftRule.title_en,
       riskTier: draftRule.risk_tier,
       authorityLevel,
-      appliesWhen: draftRule.applies_when,
+      appliesWhen: appliesWhenString,
       value: String(draftRule.value),
       valueType: draftRule.value_type,
       explanationHr: draftRule.explanation_hr,
