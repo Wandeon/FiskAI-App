@@ -1,0 +1,10 @@
+{
+  "phase": "sentinel-light",
+  "success": true,
+  "duration": 22177,
+  "metrics": {
+    "endpointsChecked": 11,
+    "newItems": 0
+  },
+  "errors": []
+}

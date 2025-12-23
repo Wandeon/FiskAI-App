@@ -1,0 +1,38 @@
+{
+  "evidenceFetched": {
+    "new": 41,
+    "changed": 0,
+    "total": 155
+  },
+  "idempotencyDuplicateRate": 0,
+  "extractorParseFailureRate": 0.14285714285714285,
+  "extractorValidationRejectionRate": 0.14285714285714285,
+  "quoteMismatchRate": 0.92,
+  "rulesByStatus": {
+    "draft": 0,
+    "pending": 26,
+    "approved": 0,
+    "published": 1
+  },
+  "rulesByTier": {
+    "t0": 19,
+    "t1": 5,
+    "t2": 4,
+    "t3": 0
+  },
+  "conflicts": {
+    "created": 4,
+    "resolved": 0,
+    "escalated": 1,
+    "unresolvedOver7Days": 0
+  },
+  "releases": {
+    "created": 3,
+    "hashVerified": 3
+  },
+  "assistant": {
+    "citationCompliance": 0,
+    "refusalRate": 0,
+    "errorRate": 0
+  }
+}

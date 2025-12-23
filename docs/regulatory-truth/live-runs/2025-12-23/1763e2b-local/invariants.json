@@ -1,0 +1,103 @@
+{
+  "results": {
+    "INV-1": {
+      "id": "INV-1",
+      "name": "Evidence Immutability",
+      "description": "contentHash matches hashContent(rawContent, contentType)",
+      "status": "PASS",
+      "details": "All 155 evidence records have valid hashes",
+      "metrics": {
+        "valid": 155,
+        "invalid": 0,
+        "total": 155
+      }
+    },
+    "INV-2": {
+      "id": "INV-2",
+      "name": "Rule Traceability",
+      "description": "Every rule must link to SourcePointers with Evidence",
+      "status": "PASS",
+      "details": "All 28 rules have complete citation chains",
+      "metrics": {
+        "valid": 28,
+        "orphan": 0,
+        "total": 28
+      }
+    },
+    "INV-3": {
+      "id": "INV-3",
+      "name": "No Inference Extraction",
+      "description": "Extracted values must appear verbatim in source quotes",
+      "status": "PASS",
+      "details": "46 extractions rejected for NO_QUOTE_MATCH (50 total rejections)",
+      "metrics": {
+        "noQuoteMatchRejections": 46,
+        "totalRejections": 50,
+        "totalPointers": 300
+      }
+    },
+    "INV-4": {
+      "id": "INV-4",
+      "name": "Arbiter Conflict Resolution",
+      "description": "Conflicts cannot be auto-resolved without evidence",
+      "status": "PASS",
+      "details": "0 conflicts auto-resolved without evidence (1 escalated, 0 resolved)",
+      "metrics": {
+        "autoResolvedWithoutEvidence": 0,
+        "escalated": 1,
+        "resolved": 0
+      }
+    },
+    "INV-5": {
+      "id": "INV-5",
+      "name": "Release Hash Determinism",
+      "description": "Same rule content always produces same release hash",
+      "status": "PASS",
+      "details": "All 3 releases have valid deterministic hashes",
+      "metrics": {
+        "valid": 3,
+        "invalid": 0,
+        "total": 3
+      }
+    },
+    "INV-6": {
+      "id": "INV-6",
+      "name": "Assistant Citation Compliance",
+      "description": "AI assistant only cites PUBLISHED rules with evidence",
+      "status": "PASS",
+      "details": "All 1 PUBLISHED rules have source citations",
+      "metrics": {
+        "publishedWithoutSources": 0,
+        "totalPublished": 1
+      }
+    },
+    "INV-7": {
+      "id": "INV-7",
+      "name": "Discovery Idempotency",
+      "description": "Re-running sentinel produces no duplicate discoveries",
+      "status": "PASS",
+      "details": "0 duplicate discoveries (412 total items)",
+      "metrics": {
+        "duplicates": 0,
+        "total": 412
+      }
+    },
+    "INV-8": {
+      "id": "INV-8",
+      "name": "T0/T1 Human Approval Gates",
+      "description": "Critical rules (T0/T1) require human approval, never auto-approved",
+      "status": "PASS",
+      "details": "0 T0/T1 rules auto-approved (0 human-approved, 24 total)",
+      "metrics": {
+        "autoApprovedCritical": 0,
+        "humanApprovedT0T1": 0,
+        "totalT0T1": 24
+      }
+    }
+  },
+  "summary": {
+    "pass": 8,
+    "fail": 0,
+    "partial": 0
+  }
+}

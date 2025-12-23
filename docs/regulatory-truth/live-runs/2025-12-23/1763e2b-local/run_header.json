@@ -1,0 +1,12 @@
+{
+  "commitSha": "1763e2b932304185e83dd36319f23e776cd75ad7",
+  "commitShort": "1763e2b",
+  "containerImage": null,
+  "containerId": null,
+  "dbMigrationHead": "up-to-date",
+  "envFingerprint": "426cf22f9dfd0d3c",
+  "agentCodeExists": true,
+  "timestamp": "2025-12-23T20:30:24.426Z",
+  "isValid": true,
+  "invalidReason": null
+}
