@@ -173,6 +173,27 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       console.warn(
         `[extractor] Rejected extraction for ${extraction.domain}.${extraction.value_type}: ${validation.errors.join(", ")}`
       )
+
+      // Store in dead-letter table for analysis and reprocessing
+      const rejectionType = validation.errors[0]?.includes("percentage")
+        ? "OUT_OF_RANGE"
+        : validation.errors[0]?.includes("currency")
+          ? "INVALID_CURRENCY"
+          : validation.errors[0]?.includes("date")
+            ? "INVALID_DATE"
+            : validation.errors[0]?.includes("not found")
+              ? "NO_QUOTE_MATCH"
+              : "VALIDATION_FAILED"
+
+      await db.extractionRejected.create({
+        data: {
+          evidenceId: evidence.id,
+          rejectionType,
+          rawOutput: extraction as any,
+          errorDetails: validation.errors.join("; "),
+        },
+      })
+
       continue
     }
 

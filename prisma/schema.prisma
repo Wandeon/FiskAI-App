@@ -1736,6 +1736,7 @@ model Evidence {
   source          RegulatorySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   sourcePointers  SourcePointer[]
   agentRuns       AgentRun[]
+  extractionRejected ExtractionRejected[]
 
   @@unique([url, contentHash])
   @@index([sourceId])
@@ -2058,4 +2059,26 @@ model WatchdogAudit {
 
   @@index([runDate])
   @@index([result])
+}
+
+// =============================================================================
+// EXTRACTION REJECTED - Dead Letter Queue
+// =============================================================================
+
+model ExtractionRejected {
+  id            String   @id @default(cuid())
+  evidenceId    String
+  rejectionType String   // e.g., "INVALID_PERCENTAGE", "QUOTE_NOT_IN_EVIDENCE", "INVALID_DATE"
+  rawOutput     Json     // The raw LLM output that failed
+  errorDetails  String   // Specific error message
+  attemptCount  Int      @default(1)
+  lastAttemptAt DateTime @default(now())
+  resolvedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  evidence      Evidence @relation(fields: [evidenceId], references: [id])
+
+  @@index([evidenceId])
+  @@index([rejectionType])
+  @@index([createdAt])
 }
