@@ -3,7 +3,33 @@ import { validateResponse, truncateField, enforceEnforcementMatrix } from "../va
 import { SCHEMA_VERSION, LIMITS, type AssistantResponse } from "../types"
 
 describe("validateResponse", () => {
-  const validResponse: AssistantResponse = {
+  const validResponseWithCitations: AssistantResponse = {
+    schemaVersion: SCHEMA_VERSION,
+    requestId: "req_1",
+    traceId: "trace_1",
+    kind: "ANSWER",
+    topic: "REGULATORY",
+    surface: "MARKETING",
+    createdAt: new Date().toISOString(),
+    headline: "Test headline",
+    directAnswer: "Test answer",
+    citations: {
+      primary: {
+        id: "src_1",
+        title: "Test Law",
+        authority: "LAW",
+        url: "https://example.com/law",
+        quote: "Test quote from the law.",
+        effectiveFrom: "2024-01-01",
+        confidence: 0.95,
+        evidenceId: "ev_123",
+        fetchedAt: "2024-01-01T00:00:00Z",
+      },
+      supporting: [],
+    },
+  }
+
+  const responseWithoutCitations: AssistantResponse = {
     schemaVersion: SCHEMA_VERSION,
     requestId: "req_1",
     traceId: "trace_1",
@@ -15,15 +41,16 @@ describe("validateResponse", () => {
     directAnswer: "Test answer",
   }
 
-  it("passes for valid response", () => {
-    const result = validateResponse(validResponse)
+  it("passes for valid response with complete citations", () => {
+    const result = validateResponse(validResponseWithCitations)
     expect(result.valid).toBe(true)
     expect(result.errors).toHaveLength(0)
   })
 
-  it("fails when REGULATORY answer lacks citations", () => {
-    const result = validateResponse(validResponse)
-    expect(result.warnings).toContain("REGULATORY answer should have citations")
+  it("FAILS when REGULATORY answer lacks citations (fail-closed)", () => {
+    const result = validateResponse(responseWithoutCitations)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain("REGULATORY ANSWER requires citations (fail-closed)")
   })
 })
 

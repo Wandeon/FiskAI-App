@@ -13,6 +13,9 @@ export * from "./citations"
 // Query Engine
 export * from "./query-engine"
 
+// Streaming
+export * from "./streaming"
+
 // Fixtures
 export * from "./fixtures"
 

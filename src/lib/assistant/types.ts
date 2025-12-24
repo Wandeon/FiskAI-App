@@ -84,6 +84,19 @@ export interface SourceCard {
   effectiveFrom: string
   confidence: number
   status?: "ACTIVE" | "SUPERSEDED"
+  // Evidence provenance (required for primary, optional for supporting)
+  evidenceId?: string
+  fetchedAt?: string
+}
+
+/**
+ * Primary SourceCard has stricter requirements.
+ * quote, url, evidenceId, and fetchedAt are all required.
+ */
+export interface PrimarySourceCard extends SourceCard {
+  quote: string
+  evidenceId: string
+  fetchedAt: string
 }
 
 // === CITATION BLOCK ===

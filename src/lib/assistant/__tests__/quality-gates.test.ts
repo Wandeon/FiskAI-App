@@ -10,8 +10,8 @@ import { SCHEMA_VERSION, LIMITS, type AssistantResponse } from "../types"
  * They should run in CI and block deployment if any fail.
  */
 
-describe("Quality Gate: Citation Compliance", () => {
-  it("REGULATORY ANSWER requires citations", () => {
+describe("Quality Gate: Citation Compliance (FAIL-CLOSED)", () => {
+  it("REGULATORY ANSWER without citations is INVALID", () => {
     const response: AssistantResponse = {
       schemaVersion: SCHEMA_VERSION,
       requestId: "req_1",
@@ -26,10 +26,42 @@ describe("Quality Gate: Citation Compliance", () => {
     }
 
     const result = validateResponse(response)
-    expect(result.warnings).toContain("REGULATORY answer should have citations")
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain("REGULATORY ANSWER requires citations (fail-closed)")
   })
 
-  it("REGULATORY ANSWER with citations passes", () => {
+  it("REGULATORY ANSWER without primary.url is INVALID", () => {
+    const response: AssistantResponse = {
+      schemaVersion: SCHEMA_VERSION,
+      requestId: "req_1",
+      traceId: "trace_1",
+      kind: "ANSWER",
+      topic: "REGULATORY",
+      surface: "MARKETING",
+      createdAt: new Date().toISOString(),
+      headline: "Test",
+      directAnswer: "Test",
+      citations: {
+        primary: {
+          id: "src_1",
+          title: "Law",
+          authority: "LAW",
+          url: "", // Empty URL
+          effectiveFrom: "2024-01-01",
+          confidence: 0.95,
+        },
+        supporting: [],
+      },
+    }
+
+    const result = validateResponse(response)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain(
+      "REGULATORY ANSWER requires citations.primary.url (fail-closed)"
+    )
+  })
+
+  it("REGULATORY ANSWER without primary.quote is INVALID", () => {
     const response: AssistantResponse = {
       schemaVersion: SCHEMA_VERSION,
       requestId: "req_1",
@@ -48,6 +80,109 @@ describe("Quality Gate: Citation Compliance", () => {
           url: "https://example.com",
           effectiveFrom: "2024-01-01",
           confidence: 0.95,
+          // Missing quote
+        },
+        supporting: [],
+      },
+    }
+
+    const result = validateResponse(response)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain(
+      "REGULATORY ANSWER requires citations.primary.quote (fail-closed)"
+    )
+  })
+
+  it("REGULATORY ANSWER without primary.evidenceId is INVALID", () => {
+    const response: AssistantResponse = {
+      schemaVersion: SCHEMA_VERSION,
+      requestId: "req_1",
+      traceId: "trace_1",
+      kind: "ANSWER",
+      topic: "REGULATORY",
+      surface: "MARKETING",
+      createdAt: new Date().toISOString(),
+      headline: "Test",
+      directAnswer: "Test",
+      citations: {
+        primary: {
+          id: "src_1",
+          title: "Law",
+          authority: "LAW",
+          url: "https://example.com",
+          quote: "Članak 1.",
+          effectiveFrom: "2024-01-01",
+          confidence: 0.95,
+          // Missing evidenceId
+          fetchedAt: "2024-01-01T00:00:00Z",
+        },
+        supporting: [],
+      },
+    }
+
+    const result = validateResponse(response)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain(
+      "REGULATORY ANSWER requires citations.primary.evidenceId (fail-closed)"
+    )
+  })
+
+  it("REGULATORY ANSWER without primary.fetchedAt is INVALID", () => {
+    const response: AssistantResponse = {
+      schemaVersion: SCHEMA_VERSION,
+      requestId: "req_1",
+      traceId: "trace_1",
+      kind: "ANSWER",
+      topic: "REGULATORY",
+      surface: "MARKETING",
+      createdAt: new Date().toISOString(),
+      headline: "Test",
+      directAnswer: "Test",
+      citations: {
+        primary: {
+          id: "src_1",
+          title: "Law",
+          authority: "LAW",
+          url: "https://example.com",
+          quote: "Članak 1.",
+          effectiveFrom: "2024-01-01",
+          confidence: 0.95,
+          evidenceId: "ev_123",
+          // Missing fetchedAt
+        },
+        supporting: [],
+      },
+    }
+
+    const result = validateResponse(response)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain(
+      "REGULATORY ANSWER requires citations.primary.fetchedAt (fail-closed)"
+    )
+  })
+
+  it("REGULATORY ANSWER with complete citations passes", () => {
+    const response: AssistantResponse = {
+      schemaVersion: SCHEMA_VERSION,
+      requestId: "req_1",
+      traceId: "trace_1",
+      kind: "ANSWER",
+      topic: "REGULATORY",
+      surface: "MARKETING",
+      createdAt: new Date().toISOString(),
+      headline: "Test",
+      directAnswer: "Test",
+      citations: {
+        primary: {
+          id: "src_1",
+          title: "Law",
+          authority: "LAW",
+          url: "https://example.com",
+          quote: "Članak 1. Porezna stopa iznosi 10%.",
+          effectiveFrom: "2024-01-01",
+          confidence: 0.95,
+          evidenceId: "ev_123",
+          fetchedAt: "2024-01-01T00:00:00Z",
         },
         supporting: [],
       },
@@ -55,7 +190,7 @@ describe("Quality Gate: Citation Compliance", () => {
 
     const result = validateResponse(response)
     expect(result.valid).toBe(true)
-    expect(result.warnings).not.toContain("REGULATORY answer should have citations")
+    expect(result.errors).toHaveLength(0)
   })
 
   it("PRODUCT/SUPPORT/OFFTOPIC forbids citations", () => {
@@ -78,17 +213,25 @@ describe("Quality Gate: Citation Compliance", () => {
 })
 
 describe("Quality Gate: Conflict Safety", () => {
-  it("UNRESOLVED_CONFLICT with kind=ANSWER is invalid", () => {
+  it("UNRESOLVED_CONFLICT with kind=ANSWER is INVALID", () => {
     // This combination should NEVER occur
     // An unresolved conflict must be a REFUSAL, not an ANSWER
-    const response: Partial<AssistantResponse> = {
+    const response: AssistantResponse = {
+      schemaVersion: SCHEMA_VERSION,
+      requestId: "req_1",
+      traceId: "trace_1",
       kind: "ANSWER",
+      topic: "REGULATORY",
+      surface: "MARKETING",
+      createdAt: new Date().toISOString(),
+      headline: "Test",
+      directAnswer: "Test",
       refusalReason: "UNRESOLVED_CONFLICT", // Invalid combination
     }
 
-    // This should be caught by validation
-    expect(response.kind).not.toBe("REFUSAL")
-    // In real validation, this would fail
+    const result = validateResponse(response)
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain("ANSWER cannot have refusalReason (invalid state)")
   })
 })
 

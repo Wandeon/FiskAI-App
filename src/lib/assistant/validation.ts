@@ -6,6 +6,15 @@ export interface ValidationResult {
   warnings: string[]
 }
 
+/**
+ * FAIL-CLOSED INVARIANT:
+ * If topic=REGULATORY and kind=ANSWER, then:
+ * - citations.primary MUST exist
+ * - citations.primary.url MUST be non-empty
+ * - citations.primary.quote MUST be non-empty
+ *
+ * Violation → validation.valid = false → API must return REFUSAL
+ */
 export function validateResponse(response: AssistantResponse): ValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
@@ -26,10 +35,16 @@ export function validateResponse(response: AssistantResponse): ValidationResult 
     errors.push(`DirectAnswer exceeds ${LIMITS.directAnswer} chars`)
   }
 
-  // Check enforcement matrix
+  // Check for invalid combinations
+  if (response.kind === "ANSWER" && response.refusalReason) {
+    errors.push("ANSWER cannot have refusalReason (invalid state)")
+  }
+
+  // FAIL-CLOSED ENFORCEMENT: REGULATORY + ANSWER requires valid citations
   const matrix = enforceEnforcementMatrix(response)
-  if (matrix.citationsRequired && !response.citations) {
-    warnings.push("REGULATORY answer should have citations")
+  if (matrix.citationsRequired) {
+    const citationErrors = validateCitationsForRegulatory(response)
+    errors.push(...citationErrors)
   }
   if (matrix.citationsForbidden && response.citations) {
     errors.push("Citations not allowed for this response type")
@@ -40,6 +55,50 @@ export function validateResponse(response: AssistantResponse): ValidationResult 
     errors,
     warnings,
   }
+}
+
+/**
+ * Validates that REGULATORY ANSWER has proper citations.
+ * Returns array of error messages (empty if valid).
+ *
+ * FAIL-CLOSED: Primary citation MUST have:
+ * - url (non-empty)
+ * - quote (non-empty)
+ * - evidenceId (non-empty)
+ * - fetchedAt (non-empty)
+ */
+function validateCitationsForRegulatory(response: AssistantResponse): string[] {
+  const errors: string[] = []
+
+  if (!response.citations) {
+    errors.push("REGULATORY ANSWER requires citations (fail-closed)")
+    return errors
+  }
+
+  if (!response.citations.primary) {
+    errors.push("REGULATORY ANSWER requires citations.primary (fail-closed)")
+    return errors
+  }
+
+  const primary = response.citations.primary
+
+  if (!primary.url || primary.url.trim() === "") {
+    errors.push("REGULATORY ANSWER requires citations.primary.url (fail-closed)")
+  }
+
+  if (!primary.quote || primary.quote.trim() === "") {
+    errors.push("REGULATORY ANSWER requires citations.primary.quote (fail-closed)")
+  }
+
+  if (!primary.evidenceId || primary.evidenceId.trim() === "") {
+    errors.push("REGULATORY ANSWER requires citations.primary.evidenceId (fail-closed)")
+  }
+
+  if (!primary.fetchedAt || primary.fetchedAt.trim() === "") {
+    errors.push("REGULATORY ANSWER requires citations.primary.fetchedAt (fail-closed)")
+  }
+
+  return errors
 }
 
 export function truncateField(value: string, limit: number): string {

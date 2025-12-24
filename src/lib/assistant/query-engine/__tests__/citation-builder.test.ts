@@ -13,8 +13,9 @@ const mockSourcePointer = {
   articleNumber: "82",
   lawReference: "Zakon o porezu na dohodak (NN 115/16)",
   evidence: {
-    id: "e1",
+    id: "ev_123",
     url: "https://narodne-novine.nn.hr/clanci/sluzbeni/2016_12_115_2519.html",
+    fetchedAt: new Date("2024-01-15T10:00:00Z"),
     source: {
       name: "Narodne novine",
       url: "https://narodne-novine.nn.hr",
@@ -57,6 +58,18 @@ describe("buildCitations", () => {
     expect(result?.primary.url).toBe(
       "https://narodne-novine.nn.hr/clanci/sluzbeni/2016_12_115_2519.html"
     )
+  })
+
+  it("includes evidenceId for fail-closed validation", () => {
+    const result = buildCitations([mockRule as RuleCandidate])
+
+    expect(result?.primary.evidenceId).toBe("ev_123")
+  })
+
+  it("includes fetchedAt for fail-closed validation", () => {
+    const result = buildCitations([mockRule as RuleCandidate])
+
+    expect(result?.primary.fetchedAt).toBe("2024-01-15T10:00:00.000Z")
   })
 
   it("builds supporting citations from remaining rules", () => {

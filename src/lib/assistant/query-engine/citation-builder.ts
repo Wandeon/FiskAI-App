@@ -27,14 +27,21 @@ function ruleToSourceCard(rule: RuleCandidate): SourceCard | null {
   const pointer = rule.sourcePointers[0]
   if (!pointer) return null
 
+  // Evidence provenance for fail-closed validation
+  const evidence = pointer.evidence
+  if (!evidence) return null
+
   return {
     id: rule.id,
     title: rule.titleHr,
     authority: rule.authorityLevel as AuthorityLevel,
     reference: pointer.lawReference || undefined,
     quote: pointer.exactQuote,
-    url: pointer.evidence?.url || "",
+    url: evidence.url || "",
     effectiveFrom: rule.effectiveFrom.toISOString().split("T")[0],
     confidence: rule.confidence,
+    // Evidence provenance (required for primary citations)
+    evidenceId: evidence.id,
+    fetchedAt: evidence.fetchedAt?.toISOString() || new Date().toISOString(),
   }
 }
