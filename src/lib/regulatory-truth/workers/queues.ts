@@ -28,6 +28,7 @@ function createQueue(name: string, limiter?: { max: number; duration: number }) 
 // Pipeline queues
 export const sentinelQueue = createQueue("sentinel", { max: 5, duration: 60000 })
 export const extractQueue = createQueue("extract", { max: 10, duration: 60000 })
+export const ocrQueue = createQueue("ocr", { max: 2, duration: 60000 })
 export const composeQueue = createQueue("compose", { max: 5, duration: 60000 })
 export const reviewQueue = createQueue("review", { max: 5, duration: 60000 })
 export const arbiterQueue = createQueue("arbiter", { max: 3, duration: 60000 })
@@ -41,6 +42,7 @@ export const deadletterQueue = createQueue("deadletter")
 export const allQueues = {
   sentinel: sentinelQueue,
   extract: extractQueue,
+  ocr: ocrQueue,
   compose: composeQueue,
   review: reviewQueue,
   arbiter: arbiterQueue,
