@@ -1,7 +1,7 @@
 "use client"
 
 import React, { forwardRef } from "react"
-import type { AssistantResponse } from "@/lib/assistant"
+import type { AssistantResponse } from "@/lib/assistant/client"
 import { ConfidenceBadge } from "./ConfidenceBadge"
 import { cn } from "@/lib/utils"
 

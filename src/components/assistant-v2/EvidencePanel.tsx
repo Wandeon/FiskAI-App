@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import type { CitationBlock, ControllerStatus } from "@/lib/assistant"
+import type { CitationBlock, ControllerStatus } from "@/lib/assistant/client"
 import { SourceCard } from "./SourceCard"
 import { SupportingSources } from "./SupportingSources"
 import { cn } from "@/lib/utils"

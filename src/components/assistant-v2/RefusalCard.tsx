@@ -2,7 +2,7 @@
 
 import React from "react"
 import { AlertCircle, HelpCircle, Database, AlertTriangle } from "lucide-react"
-import type { RefusalReason, RefusalBlock } from "@/lib/assistant"
+import type { RefusalReason, RefusalBlock } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface RefusalCardProps {

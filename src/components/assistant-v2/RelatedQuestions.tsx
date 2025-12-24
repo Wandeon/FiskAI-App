@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { LIMITS } from "@/lib/assistant"
+import { LIMITS } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface RelatedQuestionsProps {

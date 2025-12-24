@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Loader2, AlertCircle } from "lucide-react"
-import type { ClientContextBlock, ControllerStatus } from "@/lib/assistant"
+import type { ClientContextBlock, ControllerStatus } from "@/lib/assistant/client"
 import { DataPointList } from "./DataPointList"
 import { cn } from "@/lib/utils"
 

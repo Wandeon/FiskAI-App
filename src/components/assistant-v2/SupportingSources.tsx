@@ -2,7 +2,7 @@
 
 import React from "react"
 import { ChevronDown } from "lucide-react"
-import type { SourceCard as SourceCardType } from "@/lib/assistant"
+import type { SourceCard as SourceCardType } from "@/lib/assistant/client"
 import { SourceCard } from "./SourceCard"
 import { cn } from "@/lib/utils"
 

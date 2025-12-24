@@ -1,5 +1,5 @@
 import React from "react"
-import type { DataPoint } from "@/lib/assistant"
+import type { DataPoint } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface DataPointListProps {

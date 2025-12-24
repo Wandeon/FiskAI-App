@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, type KeyboardEvent } from "react"
 import { Send } from "lucide-react"
-import type { Surface } from "@/lib/assistant"
+import type { Surface } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface AssistantInputProps {

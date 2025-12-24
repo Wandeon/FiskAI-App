@@ -2,7 +2,7 @@
 
 import React from "react"
 import { AlertCircle, RefreshCw } from "lucide-react"
-import type { AssistantError, ErrorType } from "@/lib/assistant"
+import type { AssistantError, ErrorType } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface ErrorCardProps {

@@ -1,6 +1,6 @@
 import React from "react"
 import { AlertTriangle, CheckCircle, Info } from "lucide-react"
-import type { ConflictBlock } from "@/lib/assistant"
+import type { ConflictBlock } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface ConflictBannerProps {

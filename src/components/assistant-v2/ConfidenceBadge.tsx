@@ -1,5 +1,5 @@
 import React from "react"
-import type { ConfidenceLevel } from "@/lib/assistant"
+import type { ConfidenceLevel } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface ConfidenceBadgeProps {

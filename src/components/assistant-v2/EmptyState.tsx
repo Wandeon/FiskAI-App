@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import type { Surface } from "@/lib/assistant"
+import type { Surface } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 type EmptyStateType = "answer" | "evidence" | "clientData"

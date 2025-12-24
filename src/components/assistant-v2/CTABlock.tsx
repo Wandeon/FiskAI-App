@@ -2,7 +2,7 @@
 
 import React from "react"
 import { X, Calculator, Link2 } from "lucide-react"
-import type { Topic } from "@/lib/assistant"
+import type { Topic } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface CTABlockProps {

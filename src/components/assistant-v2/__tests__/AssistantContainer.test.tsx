@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { AssistantContainer } from "../AssistantContainer"
 
-// Mock the controller hook
-vi.mock("@/lib/assistant", () => ({
+// Mock the controller hook from client module
+vi.mock("@/lib/assistant/client", () => ({
   useAssistantController: vi.fn(() => ({
     state: {
       status: "IDLE",
@@ -43,7 +43,7 @@ describe("AssistantContainer", () => {
   })
 
   it("renders with APP surface (3-column layout)", async () => {
-    const { useAssistantController } = await import("@/lib/assistant")
+    const { useAssistantController } = await import("@/lib/assistant/client")
     vi.mocked(useAssistantController).mockReturnValue({
       state: {
         status: "IDLE",

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
-import type { HistoryItem } from "@/lib/assistant"
+import type { HistoryItem } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface HistoryBarProps {

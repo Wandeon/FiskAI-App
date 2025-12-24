@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import type { AssistantControllerState, Surface } from "@/lib/assistant"
+import type { AssistantControllerState, Surface } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface AnswerSectionProps {

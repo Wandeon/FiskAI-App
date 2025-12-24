@@ -2,7 +2,7 @@
 
 import React from "react"
 import { ExternalLink } from "lucide-react"
-import type { SourceCard as SourceCardType } from "@/lib/assistant"
+import type { SourceCard as SourceCardType } from "@/lib/assistant/client"
 import { AuthorityBadge } from "./AuthorityBadge"
 import { cn } from "@/lib/utils"
 

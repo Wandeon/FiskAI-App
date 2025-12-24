@@ -1,5 +1,5 @@
 import React from "react"
-import type { AuthorityLevel } from "@/lib/assistant"
+import type { AuthorityLevel } from "@/lib/assistant/client"
 import { cn } from "@/lib/utils"
 
 interface AuthorityBadgeProps {

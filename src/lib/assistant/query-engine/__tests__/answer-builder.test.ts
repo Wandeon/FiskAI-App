@@ -38,7 +38,13 @@ describe("buildAnswer", () => {
 
   it("returns REFUSAL with UNRESOLVED_CONFLICT when conflict cannot be resolved", async () => {
     vi.mocked(conceptMatcher.matchConcepts).mockResolvedValue([
-      { conceptId: "c1", slug: "test", nameHr: "Test", score: 0.8, matchedKeywords: ["test"] },
+      {
+        conceptId: "c1",
+        slug: "test-pdv",
+        nameHr: "Test PDV",
+        score: 0.8,
+        matchedKeywords: ["test", "pdv"],
+      },
     ])
     vi.mocked(ruleSelector.selectRules).mockResolvedValue([
       { id: "r1", value: "25", valueType: "percentage" } as any,
@@ -50,7 +56,7 @@ describe("buildAnswer", () => {
       conflictingRules: [],
     })
 
-    const result = await buildAnswer("test query", "MARKETING")
+    const result = await buildAnswer("test pdv query", "MARKETING")
 
     expect(result.kind).toBe("REFUSAL")
     expect(result.refusalReason).toBe("UNRESOLVED_CONFLICT")
@@ -61,9 +67,9 @@ describe("buildAnswer", () => {
       {
         conceptId: "c1",
         slug: "pausalni-prag",
-        nameHr: "Prag",
+        nameHr: "Prag paušalni",
         score: 0.9,
-        matchedKeywords: ["prag"],
+        matchedKeywords: ["prag", "pausalni"],
       },
     ])
     vi.mocked(ruleSelector.selectRules).mockResolvedValue([
@@ -151,7 +157,13 @@ describe("buildAnswer", () => {
 
   it("sets confidence level to HIGH when score >= 0.9", async () => {
     vi.mocked(conceptMatcher.matchConcepts).mockResolvedValue([
-      { conceptId: "c1", slug: "test", nameHr: "Test", score: 0.8, matchedKeywords: ["test"] },
+      {
+        conceptId: "c1",
+        slug: "test-pdv",
+        nameHr: "Test PDV",
+        score: 0.8,
+        matchedKeywords: ["test", "pdv"],
+      },
     ])
     vi.mocked(ruleSelector.selectRules).mockResolvedValue([
       {
@@ -181,7 +193,7 @@ describe("buildAnswer", () => {
       supporting: [],
     })
 
-    const result = await buildAnswer("test", "MARKETING")
+    const result = await buildAnswer("test pdv query", "MARKETING")
 
     expect(result.confidence?.level).toBe("HIGH")
     expect(result.confidence?.score).toBe(0.95)
@@ -192,9 +204,9 @@ describe("buildAnswer", () => {
       {
         conceptId: "c1",
         slug: "pausalni-prag",
-        nameHr: "Prag",
+        nameHr: "Prag paušalni",
         score: 0.9,
-        matchedKeywords: ["pausalni"],
+        matchedKeywords: ["pausalni", "prag"],
       },
     ])
     vi.mocked(ruleSelector.selectRules).mockResolvedValue([
@@ -229,5 +241,109 @@ describe("buildAnswer", () => {
 
     expect(result.relatedQuestions).toBeDefined()
     expect(result.relatedQuestions!.length).toBeGreaterThan(0)
+  })
+
+  // CLIENT DATA DIFFERENTIATION TESTS
+  describe("client data differentiation (APP vs MARKETING)", () => {
+    const setupValidRules = () => {
+      vi.mocked(conceptMatcher.matchConcepts).mockResolvedValue([
+        {
+          conceptId: "c1",
+          slug: "pausalni-prag",
+          nameHr: "Prag paušalni",
+          score: 0.9,
+          matchedKeywords: ["pausalni", "prag"],
+        },
+      ])
+      vi.mocked(ruleSelector.selectRules).mockResolvedValue([
+        {
+          id: "r1",
+          titleHr: "Test",
+          value: "100",
+          valueType: "number",
+          authorityLevel: "LAW",
+          confidence: 0.9,
+          sourcePointers: [{ id: "sp1" }],
+        } as any,
+      ])
+      vi.mocked(conflictDetector.detectConflicts).mockReturnValue({
+        hasConflict: false,
+        canResolve: true,
+        conflictingRules: [],
+      })
+      vi.mocked(citationBuilder.buildCitations).mockReturnValue({
+        primary: {
+          id: "r1",
+          title: "Test",
+          authority: "LAW",
+          url: "http://test.com",
+          effectiveFrom: "2024-01-01",
+          confidence: 0.9,
+        },
+        supporting: [],
+      })
+    }
+
+    it("returns MISSING_CLIENT_DATA for APP surface with personalized query but no companyId", async () => {
+      setupValidRules()
+
+      // "moj prag" contains personalization keyword "moj"
+      const result = await buildAnswer("moj prag za pausalni", "APP")
+
+      expect(result.kind).toBe("REFUSAL")
+      expect(result.refusalReason).toBe("MISSING_CLIENT_DATA")
+      expect(result.clientContext).toBeDefined()
+      expect(result.clientContext?.completeness.status).toBe("NONE")
+      expect(result.clientContext?.missing).toBeDefined()
+      expect(result.clientContext?.missing?.length).toBeGreaterThan(0)
+    })
+
+    it("returns ANSWER with clientContext for APP surface with companyId", async () => {
+      setupValidRules()
+
+      // With companyId provided, should proceed to answer
+      const result = await buildAnswer("moj prag za pausalni", "APP", "company-123")
+
+      expect(result.kind).toBe("ANSWER")
+      expect(result.clientContext).toBeDefined()
+      expect(result.clientContext?.completeness.status).toBe("PARTIAL")
+    })
+
+    it("returns ANSWER without clientContext for MARKETING surface", async () => {
+      setupValidRules()
+
+      // MARKETING surface should not have clientContext
+      const result = await buildAnswer("moj prag za pausalni", "MARKETING")
+
+      expect(result.kind).toBe("ANSWER")
+      expect(result.clientContext).toBeUndefined()
+    })
+
+    it("includes clientContext.status=COMPLETE for APP non-personalized query", async () => {
+      setupValidRules()
+
+      // Query without personalization keywords
+      const result = await buildAnswer("koji je prag za pausalni obrt", "APP")
+
+      expect(result.kind).toBe("ANSWER")
+      expect(result.clientContext).toBeDefined()
+      expect(result.clientContext?.completeness.status).toBe("COMPLETE")
+      expect(result.clientContext?.completeness.score).toBe(1.0)
+    })
+
+    it("detects personalization keywords: 'koliko', 'trebam', 'moram'", async () => {
+      setupValidRules()
+
+      // Test various personalization keywords
+      const queries = ["koliko trebam platiti za PDV", "moram li se prijaviti za PDV"]
+
+      for (const query of queries) {
+        vi.clearAllMocks()
+        setupValidRules()
+        const result = await buildAnswer(query, "APP")
+        expect(result.kind).toBe("REFUSAL")
+        expect(result.refusalReason).toBe("MISSING_CLIENT_DATA")
+      }
+    })
   })
 })
