@@ -1,5 +1,5 @@
 import React from "react"
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { AssistantContainer } from "../AssistantContainer"
 
@@ -28,6 +28,9 @@ vi.mock("@/lib/assistant", () => ({
 }))
 
 describe("AssistantContainer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
   it("renders with MARKETING surface (2-column layout)", () => {
     render(<AssistantContainer surface="MARKETING" />)
 
