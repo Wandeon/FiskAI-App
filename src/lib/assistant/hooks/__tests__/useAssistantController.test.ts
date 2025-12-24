@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect } from "vitest"
-import { renderHook } from "@testing-library/react"
+import { renderHook, act } from "@testing-library/react"
 import { useAssistantController } from "../useAssistantController"
 
 describe("useAssistantController", () => {
@@ -20,5 +20,36 @@ describe("useAssistantController", () => {
   it("provides surface from props", () => {
     const { result } = renderHook(() => useAssistantController({ surface: "APP" }))
     expect(result.current.surface).toBe("APP")
+  })
+
+  describe("submit action", () => {
+    it("transitions to LOADING and sets query", async () => {
+      const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
+
+      await act(async () => {
+        result.current.submit("What is VAT rate?")
+      })
+
+      expect(result.current.state.status).toBe("LOADING")
+      expect(result.current.state.activeQuery).toBe("What is VAT rate?")
+      expect(result.current.state.activeRequestId).toBeTruthy()
+    })
+
+    it("cancels previous request when submitting during LOADING", async () => {
+      const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
+
+      await act(async () => {
+        result.current.submit("First query")
+      })
+
+      const firstRequestId = result.current.state.activeRequestId
+
+      await act(async () => {
+        result.current.submit("Second query")
+      })
+
+      expect(result.current.state.activeRequestId).not.toBe(firstRequestId)
+      expect(result.current.state.activeQuery).toBe("Second query")
+    })
   })
 })

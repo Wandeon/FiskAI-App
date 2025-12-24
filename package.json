@@ -105,6 +105,7 @@
     "lucide-react": "^0.468.0",
     "mammoth": "^1.11.0",
     "mime-types": "^3.0.2",
+    "nanoid": "^5.1.6",
     "next": "^15.5.0",
     "next-auth": "^5.0.0-beta.30",
     "next-mdx-remote": "^5.0.0",
@@ -136,6 +137,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.6",
+    "word-extractor": "^1.0.4",
     "xlsx": "^0.18.5",
     "xml-crypto": "^6.1.2",
     "xml2js": "^0.6.2",
@@ -146,6 +148,7 @@
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.16",
+    "@testing-library/react": "^16.3.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/cron": "^2.0.1",
     "@types/jsdom": "^27.0.0",

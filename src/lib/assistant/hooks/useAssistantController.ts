@@ -1,4 +1,5 @@
-import { useReducer, useCallback } from "react"
+import { useReducer, useCallback, useRef } from "react"
+import { nanoid } from "nanoid"
 import type {
   Surface,
   AssistantControllerState,
@@ -62,10 +63,26 @@ function reducer(state: AssistantControllerState, action: Action): AssistantCont
 
 export function useAssistantController({ surface }: UseAssistantControllerProps) {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const submit = useCallback(async (query: string) => {
+    // Abort any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    const requestId = nanoid()
+    abortControllerRef.current = new AbortController()
+
+    dispatch({ type: "SUBMIT", query, requestId })
+
+    // API call will be added in Task 10
+  }, [])
 
   return {
     state,
     surface,
+    submit,
     dispatch,
   }
 }
