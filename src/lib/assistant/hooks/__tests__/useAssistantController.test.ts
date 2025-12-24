@@ -1,10 +1,13 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { useAssistantController } from "../useAssistantController"
 import { SCHEMA_VERSION, type AssistantResponse } from "../../types"
+
+// Mock fetch at top of file
+global.fetch = vi.fn()
 
 const mockResponse: AssistantResponse = {
   schemaVersion: SCHEMA_VERSION,
@@ -36,6 +39,12 @@ describe("useAssistantController", () => {
   })
 
   describe("submit action", () => {
+    beforeEach(() => {
+      vi.resetAllMocks()
+      // Mock fetch to return a pending promise (never resolves) to stay in LOADING
+      ;(global.fetch as any).mockImplementation(() => new Promise(() => {}))
+    })
+
     it("transitions to LOADING and sets query", async () => {
       const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
 
@@ -197,6 +206,61 @@ describe("useAssistantController", () => {
       })
 
       expect(result.current.state.status).toBe("COMPLETE")
+    })
+  })
+
+  describe("API integration", () => {
+    beforeEach(() => {
+      vi.resetAllMocks()
+    })
+
+    it("calls API on submit and transitions through states", async () => {
+      const mockResponse = {
+        schemaVersion: "1.0.0",
+        requestId: "req_1",
+        traceId: "trace_1",
+        kind: "ANSWER",
+        topic: "REGULATORY",
+        surface: "MARKETING",
+        createdAt: new Date().toISOString(),
+        headline: "VAT is 25%",
+        directAnswer: "Standard rate.",
+      }
+
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      })
+
+      const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
+
+      await act(async () => {
+        await result.current.submit("What is VAT?")
+      })
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/assistant/chat",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ query: "What is VAT?", surface: "MARKETING" }),
+        })
+      )
+
+      expect(result.current.state.status).toBe("COMPLETE")
+      expect(result.current.state.activeAnswer?.headline).toBe("VAT is 25%")
+    })
+
+    it("handles API errors gracefully", async () => {
+      ;(global.fetch as any).mockRejectedValueOnce(new Error("Network error"))
+
+      const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
+
+      await act(async () => {
+        await result.current.submit("test")
+      })
+
+      expect(result.current.state.status).toBe("ERROR")
+      expect(result.current.state.error?.type).toBe("NETWORK_FAILURE")
     })
   })
 })

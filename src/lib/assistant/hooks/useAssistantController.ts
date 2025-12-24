@@ -6,6 +6,7 @@ import type {
   AssistantResponse,
   AssistantError,
   HistoryItem,
+  ErrorType,
 } from "../types"
 
 interface UseAssistantControllerProps {
@@ -146,19 +147,56 @@ export function useAssistantController({ surface }: UseAssistantControllerProps)
   const [state, dispatch] = useReducer(reducer, initialState)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const submit = useCallback(async (query: string) => {
-    // Abort any in-flight request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
+  const submit = useCallback(
+    async (query: string) => {
+      // Abort any in-flight request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
 
-    const requestId = nanoid()
-    abortControllerRef.current = new AbortController()
+      const requestId = nanoid()
+      abortControllerRef.current = new AbortController()
 
-    dispatch({ type: "SUBMIT", query, requestId })
+      dispatch({ type: "SUBMIT", query, requestId })
 
-    // API call will be added in Task 10
-  }, [])
+      try {
+        const response = await fetch("/api/assistant/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, surface }),
+          signal: abortControllerRef.current.signal,
+        })
+
+        if (!response.ok) {
+          const status = response.status
+          let errorType: ErrorType = "SERVER_ERROR"
+
+          if (status >= 400 && status < 500) errorType = "CLIENT_ERROR"
+          if (status === 429) errorType = "RATE_LIMITED"
+
+          throw { type: errorType, message: `HTTP ${status}`, httpStatus: status }
+        }
+
+        const data = (await response.json()) as AssistantResponse
+        dispatch({ type: "COMPLETE", response: data })
+      } catch (error: any) {
+        if (error.name === "AbortError") {
+          // Request was cancelled, don't dispatch error
+          return
+        }
+
+        const assistantError: AssistantError = error.type
+          ? error
+          : {
+              type: "NETWORK_FAILURE" as ErrorType,
+              message: error.message || "Network request failed",
+            }
+
+        dispatch({ type: "ERROR", error: assistantError })
+      }
+    },
+    [surface]
+  )
 
   return {
     state,
