@@ -20,22 +20,24 @@ services:
     ports:
       - "6379:6379"
 
-  bull-board:
-    image: deadly0/bull-board
-    container_name: fiskai-bull-board
-    restart: unless-stopped
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - BULL_PREFIX=fiskai
-    ports:
-      - "3003:3000"
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+  # Bull Board disabled - no ARM64 support
+  # Use scripts/queue-status.ts for monitoring instead
+  # bull-board:
+  #   image: deadly0/bull-board:latest
+  #   container_name: fiskai-bull-board
+  #   restart: unless-stopped
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #     - BULL_PREFIX=fiskai
+  #   ports:
+  #     - "3003:3000"
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - default
+  #     - coolify
 
   # Worker services
   worker-orchestrator:
@@ -44,10 +46,10 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-orchestrator
     restart: unless-stopped
-    command: node dist/lib/regulatory-truth/workers/orchestrator.worker.js
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/orchestrator.worker.ts"]
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
       - WORKER_TYPE=orchestrator
       - WORKER_CONCURRENCY=1
@@ -64,10 +66,10 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-sentinel
     restart: unless-stopped
-    command: node dist/lib/regulatory-truth/workers/sentinel.worker.js
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/sentinel.worker.ts"]
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
       - WORKER_TYPE=sentinel
       - WORKER_CONCURRENCY=1
@@ -84,10 +86,10 @@ services:
       dockerfile: Dockerfile.worker
     # No container_name when using replicas
     restart: unless-stopped
-    command: node dist/lib/regulatory-truth/workers/extractor.worker.js
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/extractor.worker.ts"]
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
@@ -103,16 +105,39 @@ services:
       - default
       - coolify
 
+  worker-ocr:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-ocr
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/ocr.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://fiskai-redis:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - OLLAMA_VISION_MODEL=${OLLAMA_VISION_MODEL:-llama3.2-vision}
+      - WORKER_TYPE=ocr
+      - WORKER_CONCURRENCY=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+
   worker-composer:
     build:
       context: .
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-composer
     restart: unless-stopped
-    command: node dist/lib/regulatory-truth/workers/composer.worker.js
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/composer.worker.ts"]
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
@@ -132,10 +157,10 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-reviewer
     restart: unless-stopped
-    command: node dist/lib/regulatory-truth/workers/reviewer.worker.js
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/reviewer.worker.ts"]
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
@@ -155,12 +180,76 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-scheduler
     restart: unless-stopped
-    command: node dist/lib/regulatory-truth/workers/scheduler.service.js
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/scheduler.service.ts"]
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://fiskai-redis:6379
       - WATCHDOG_TIMEZONE=Europe/Zagreb
       - WORKER_TYPE=scheduler
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+
+  worker-releaser:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-releaser
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/releaser.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://fiskai-redis:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - WORKER_TYPE=releaser
+      - WORKER_CONCURRENCY=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+
+  worker-arbiter:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-arbiter
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/arbiter.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://fiskai-redis:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - WORKER_TYPE=arbiter
+      - WORKER_CONCURRENCY=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+
+  # Layer B: Continuous 24/7 queue draining
+  worker-continuous-drainer:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-continuous-drainer
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/continuous-drainer.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://fiskai-redis:6379
+      # Override DATABASE_URL to use correct hostname (fiskai-db not fiskai-postgres)
+      - DATABASE_URL=postgresql://fiskai:fiskai_secret_2025@fiskai-db:5432/fiskai?schema=public
+      - WORKER_TYPE=continuous-drainer
     depends_on:
       redis:
         condition: service_healthy
