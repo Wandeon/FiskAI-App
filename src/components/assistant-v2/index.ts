@@ -21,4 +21,5 @@ export { ErrorCard } from "./ErrorCard"
 // Phase 6: Evidence & Client Data Panels
 export { AuthorityBadge } from "./AuthorityBadge"
 export { SourceCard } from "./SourceCard"
+export { SupportingSources } from "./SupportingSources"
 export { DataPointList } from "./DataPointList"
