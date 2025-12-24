@@ -124,7 +124,10 @@ export async function isTesseractAvailable(): Promise<boolean> {
 export async function getTesseractLanguages(): Promise<string[]> {
   try {
     const { stdout } = await execAsync("tesseract --list-langs 2>/dev/null")
-    return stdout.split("\n").slice(1).filter((l) => l.trim())
+    return stdout
+      .split("\n")
+      .slice(1)
+      .filter((l) => l.trim())
   } catch {
     return []
   }

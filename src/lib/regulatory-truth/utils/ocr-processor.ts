@@ -41,7 +41,9 @@ async function processPage(imageBuffer: Buffer, pageNum: number): Promise<PageRe
     isGarbageText(tesseractResult.text)
 
   if (!needsVision) {
-    console.log(`[ocr] Page ${pageNum}: Tesseract OK (conf=${tesseractResult.confidence.toFixed(1)}%)`)
+    console.log(
+      `[ocr] Page ${pageNum}: Tesseract OK (conf=${tesseractResult.confidence.toFixed(1)}%)`
+    )
     return {
       pageNum,
       text: tesseractResult.text,
@@ -58,7 +60,9 @@ async function processPage(imageBuffer: Buffer, pageNum: number): Promise<PageRe
     const visionResult = await runVisionOcr(imageBuffer)
 
     if (visionResult.confidence > tesseractResult.confidence) {
-      console.log(`[ocr] Page ${pageNum}: Vision better (conf=${visionResult.confidence.toFixed(1)}%)`)
+      console.log(
+        `[ocr] Page ${pageNum}: Vision better (conf=${visionResult.confidence.toFixed(1)}%)`
+      )
       return {
         pageNum,
         text: visionResult.text,

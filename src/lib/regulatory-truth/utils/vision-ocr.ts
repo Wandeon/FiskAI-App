@@ -58,7 +58,9 @@ export async function runVisionOcr(imageBuffer: Buffer): Promise<VisionOcrResult
     const text = data.message?.content?.trim() || ""
     const confidence = estimateVisionConfidence(text)
 
-    console.log(`[vision-ocr] Extracted ${text.length} chars, confidence: ${confidence.toFixed(1)}%`)
+    console.log(
+      `[vision-ocr] Extracted ${text.length} chars, confidence: ${confidence.toFixed(1)}%`
+    )
 
     return { text, confidence }
   } catch (error) {
