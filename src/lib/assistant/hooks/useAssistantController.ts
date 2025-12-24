@@ -56,6 +56,29 @@ function reducer(state: AssistantControllerState, action: Action): AssistantCont
           clientContext: false,
         },
       }
+
+    case "STREAM_START":
+      return {
+        ...state,
+        status: "STREAMING",
+      }
+
+    case "STREAM_UPDATE": {
+      const currentAnswer = state.activeAnswer || ({} as Partial<AssistantResponse>)
+      const newAnswer = { ...currentAnswer, ...action.data } as AssistantResponse
+
+      return {
+        ...state,
+        activeAnswer: newAnswer,
+        streamProgress: {
+          headline: !!newAnswer.headline || state.streamProgress.headline,
+          directAnswer: !!newAnswer.directAnswer || state.streamProgress.directAnswer,
+          citations: !!newAnswer.citations || state.streamProgress.citations,
+          clientContext: !!newAnswer.clientContext || state.streamProgress.clientContext,
+        },
+      }
+    }
+
     default:
       return state
   }

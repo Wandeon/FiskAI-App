@@ -52,4 +52,36 @@ describe("useAssistantController", () => {
       expect(result.current.state.activeQuery).toBe("Second query")
     })
   })
+
+  describe("streaming updates", () => {
+    it("transitions to STREAMING on first data", () => {
+      const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
+
+      act(() => {
+        result.current.dispatch({ type: "SUBMIT", query: "test", requestId: "req_1" })
+      })
+
+      act(() => {
+        result.current.dispatch({ type: "STREAM_START" })
+      })
+
+      expect(result.current.state.status).toBe("STREAMING")
+    })
+
+    it("updates stream progress as fields arrive", () => {
+      const { result } = renderHook(() => useAssistantController({ surface: "MARKETING" }))
+
+      act(() => {
+        result.current.dispatch({ type: "SUBMIT", query: "test", requestId: "req_1" })
+        result.current.dispatch({ type: "STREAM_START" })
+        result.current.dispatch({
+          type: "STREAM_UPDATE",
+          data: { headline: "VAT rate is 25%" },
+        })
+      })
+
+      expect(result.current.state.streamProgress.headline).toBe(true)
+      expect(result.current.state.activeAnswer?.headline).toBe("VAT rate is 25%")
+    })
+  })
 })
