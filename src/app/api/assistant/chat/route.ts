@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { nanoid } from "nanoid"
-import { SCHEMA_VERSION, type Surface, type AssistantResponse } from "@/lib/assistant/types"
+import { buildAnswer } from "@/lib/assistant/query-engine/answer-builder"
+import { validateResponse } from "@/lib/assistant/validation"
+import type { Surface } from "@/lib/assistant/types"
 
 interface ChatRequest {
   query: string
   surface: Surface
-  tenantId?: string
+  companyId?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as ChatRequest
 
     // Validate request
-    if (!body.query || typeof body.query !== "string") {
+    if (!body.query || typeof body.query !== "string" || body.query.trim().length === 0) {
       return NextResponse.json({ error: "Query is required" }, { status: 400 })
     }
 
@@ -21,21 +22,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid surface" }, { status: 400 })
     }
 
-    const requestId = `req_${nanoid()}`
-    const traceId = `trace_${nanoid()}`
+    // Build answer from rules
+    const response = await buildAnswer(body.query.trim(), body.surface, body.companyId)
 
-    // TODO: Implement actual query processing
-    // For now, return a mock response
-    const response: AssistantResponse = {
-      schemaVersion: SCHEMA_VERSION,
-      requestId,
-      traceId,
-      kind: "ANSWER",
-      topic: "REGULATORY",
-      surface: body.surface,
-      createdAt: new Date().toISOString(),
-      headline: "This is a placeholder response.",
-      directAnswer: "The actual implementation will query the regulatory rules database.",
+    // Validate response before sending
+    const validation = validateResponse(response)
+    if (!validation.valid) {
+      console.error("[Assistant API] Invalid response:", validation.errors)
+      return NextResponse.json(
+        { error: "Response validation failed", details: validation.errors },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json(response)
