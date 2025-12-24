@@ -25,3 +25,7 @@ export { SourceCard } from "./SourceCard"
 export { SupportingSources } from "./SupportingSources"
 export { ClientDataPanel } from "./ClientDataPanel"
 export { DataPointList } from "./DataPointList"
+
+// Phase 8: Marketing CTA
+export { CTABlock } from "./CTABlock"
+export { PersonalizationPanel } from "./PersonalizationPanel"
