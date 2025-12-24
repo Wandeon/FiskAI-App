@@ -79,6 +79,56 @@ function reducer(state: AssistantControllerState, action: Action): AssistantCont
       }
     }
 
+    case "COMPLETE": {
+      const historyItem: HistoryItem = {
+        id: nanoid(),
+        query: state.activeQuery || "",
+        answer: action.response,
+        timestamp: new Date().toISOString(),
+      }
+
+      return {
+        ...state,
+        status: "COMPLETE",
+        activeAnswer: action.response,
+        history: [...state.history, historyItem],
+        retryCount: 0,
+      }
+    }
+
+    case "ERROR":
+      return {
+        ...state,
+        status: "ERROR",
+        error: action.error,
+      }
+
+    case "RESTORE_HISTORY": {
+      const item = state.history[action.index]
+      if (!item) return state
+
+      return {
+        ...state,
+        status: "COMPLETE",
+        activeQuery: item.query,
+        activeAnswer: item.answer,
+      }
+    }
+
+    case "CLEAR_HISTORY":
+      return {
+        ...state,
+        history: [],
+      }
+
+    case "RETRY":
+      return {
+        ...state,
+        status: "LOADING",
+        error: null,
+        retryCount: state.retryCount + 1,
+      }
+
     default:
       return state
   }
