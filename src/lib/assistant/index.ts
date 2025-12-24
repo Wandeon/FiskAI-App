@@ -10,6 +10,9 @@ export * from "./validation"
 // Citations
 export * from "./citations"
 
+// Fixtures
+export * from "./fixtures"
+
 // Hooks
 export { useAssistantController } from "./hooks/useAssistantController"
 export { useFocusManagement } from "./hooks/useFocusManagement"
