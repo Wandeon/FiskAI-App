@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server"
 import { buildAnswer } from "@/lib/assistant/query-engine/answer-builder"
 import { validateResponse } from "@/lib/assistant/validation"
-import type { Surface } from "@/lib/assistant/types"
+import { SCHEMA_VERSION, type Surface, type AssistantResponse } from "@/lib/assistant/types"
+import { nanoid } from "nanoid"
 
 interface ChatRequest {
   query: string
@@ -9,7 +10,27 @@ interface ChatRequest {
   companyId?: string
 }
 
+/**
+ * FAIL-CLOSED STREAMING ROUTE
+ *
+ * CRITICAL INVARIANT: For REGULATORY topics, citations MUST arrive
+ * BEFORE answer content. This prevents users from seeing uncited
+ * regulatory claims.
+ *
+ * Streaming order:
+ * 1. Metadata (kind, topic, surface, requestId)
+ * 2. Citations (REQUIRED for REGULATORY ANSWER - sent BEFORE content)
+ * 3. Content (headline, directAnswer, confidence)
+ * 4. Refusal details (if REFUSAL)
+ * 5. Related questions
+ * 6. Done signal
+ *
+ * If validation fails, we emit a terminal REFUSAL and close the stream.
+ */
 export async function POST(request: NextRequest) {
+  const fallbackRequestId = `req_${nanoid()}`
+  const fallbackTraceId = `trace_${nanoid()}`
+
   const body = (await request.json()) as ChatRequest
 
   // Validate request
@@ -20,24 +41,53 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  // Create readable stream
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        // Build full answer
+        // Build full answer FIRST (we buffer before streaming)
         const response = await buildAnswer(body.query, body.surface, body.companyId)
 
-        // Validate
+        // FAIL-CLOSED: Validate BEFORE streaming anything
         const validation = validateResponse(response)
         if (!validation.valid) {
-          controller.enqueue(encoder.encode(JSON.stringify({ error: "Validation failed" }) + "\n"))
+          // Log structured error for audit trail
+          console.error("[Assistant Streaming] FAIL-CLOSED triggered", {
+            requestId: response.requestId,
+            traceId: response.traceId,
+            errors: validation.errors,
+            query: body.query.substring(0, 100),
+            surface: body.surface,
+          })
+
+          // Emit a valid REFUSAL response as a single chunk
+          const refusalResponse: AssistantResponse = {
+            schemaVersion: SCHEMA_VERSION,
+            requestId: response.requestId || fallbackRequestId,
+            traceId: response.traceId || fallbackTraceId,
+            kind: "REFUSAL",
+            topic: response.topic || "REGULATORY",
+            surface: body.surface,
+            createdAt: new Date().toISOString(),
+            headline: "Nije moguće potvrditi odgovor",
+            directAnswer: "",
+            refusalReason: "NO_CITABLE_RULES",
+            refusal: {
+              message: "Nismo pronašli dovoljno pouzdane izvore za ovaj odgovor.",
+            },
+          }
+
+          controller.enqueue(encoder.encode(JSON.stringify(refusalResponse) + "\n"))
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({ requestId: refusalResponse.requestId, _done: true }) + "\n"
+            )
+          )
           controller.close()
           return
         }
 
-        // Stream in chunks (simulate progressive rendering)
-        // Chunk 1: Schema + tracing
+        // Chunk 1: Metadata (always first)
         controller.enqueue(
           encoder.encode(
             JSON.stringify({
@@ -52,9 +102,23 @@ export async function POST(request: NextRequest) {
           )
         )
 
-        await delay(50) // Small delay for streaming effect
+        await delay(20)
 
-        // Chunk 2: Main content
+        // Chunk 2: Citations BEFORE content (CRITICAL for REGULATORY)
+        // This ensures users never see uncited regulatory claims
+        if (response.citations) {
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                requestId: response.requestId,
+                citations: response.citations,
+              }) + "\n"
+            )
+          )
+          await delay(20)
+        }
+
+        // Chunk 3: Answer content (AFTER citations for REGULATORY)
         controller.enqueue(
           encoder.encode(
             JSON.stringify({
@@ -66,20 +130,7 @@ export async function POST(request: NextRequest) {
           )
         )
 
-        await delay(50)
-
-        // Chunk 3: Citations (if present)
-        if (response.citations) {
-          controller.enqueue(
-            encoder.encode(
-              JSON.stringify({
-                requestId: response.requestId,
-                citations: response.citations,
-              }) + "\n"
-            )
-          )
-          await delay(50)
-        }
+        await delay(20)
 
         // Chunk 4: Refusal details (if present)
         if (response.refusalReason) {
@@ -106,7 +157,7 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        // Final chunk: done signal
+        // Final chunk: done signal (REQUIRED terminal marker)
         controller.enqueue(
           encoder.encode(
             JSON.stringify({
@@ -118,8 +169,33 @@ export async function POST(request: NextRequest) {
 
         controller.close()
       } catch (error) {
-        console.error("Streaming error:", error)
-        controller.enqueue(encoder.encode(JSON.stringify({ error: "Internal error" }) + "\n"))
+        console.error("[Assistant Streaming] Internal error", {
+          requestId: fallbackRequestId,
+          traceId: fallbackTraceId,
+          error: error instanceof Error ? error.message : "Unknown error",
+        })
+
+        // Even on error, emit a valid REFUSAL
+        const errorResponse: AssistantResponse = {
+          schemaVersion: SCHEMA_VERSION,
+          requestId: fallbackRequestId,
+          traceId: fallbackTraceId,
+          kind: "REFUSAL",
+          topic: "REGULATORY",
+          surface: body.surface || "MARKETING",
+          createdAt: new Date().toISOString(),
+          headline: "Došlo je do pogreške",
+          directAnswer: "",
+          refusalReason: "NO_CITABLE_RULES",
+          refusal: {
+            message: "Privremena pogreška sustava. Molimo pokušajte ponovo.",
+          },
+        }
+
+        controller.enqueue(encoder.encode(JSON.stringify(errorResponse) + "\n"))
+        controller.enqueue(
+          encoder.encode(JSON.stringify({ requestId: fallbackRequestId, _done: true }) + "\n")
+        )
         controller.close()
       }
     },
