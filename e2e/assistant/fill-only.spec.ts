@@ -10,7 +10,7 @@ import { test, expect } from "@playwright/test"
 
 test.describe("Fill-Only Behavior", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/assistant")
+    await page.goto("/assistant-demo")
   })
 
   test("clicking initial suggestion fills input but does not submit", async ({ page }) => {
