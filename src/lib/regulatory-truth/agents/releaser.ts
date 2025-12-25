@@ -10,6 +10,7 @@ import {
 import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
 import { computeReleaseHash, normalizeDate, type RuleSnapshot } from "../utils/release-hash"
+import { checkBatchEvidenceStrength } from "../utils/evidence-strength"
 
 // =============================================================================
 // RELEASER AGENT
@@ -127,6 +128,25 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
       releaseId: null,
       publishedRuleIds: [],
       error: `Cannot release ${unapprovedCritical.length} T0/T1 rules without approvedBy: ${unapprovedCritical.map((r) => r.conceptSlug).join(", ")}`,
+    }
+  }
+
+  // HARD GATE: Evidence strength policy
+  // SINGLE_SOURCE rules require LAW authority to publish
+  // MULTI_SOURCE rules can publish regardless of authority
+  const evidenceCheck = await checkBatchEvidenceStrength(approvedRuleIds)
+
+  if (!evidenceCheck.canPublishAll) {
+    console.error(
+      `[releaser] BLOCKED: ${evidenceCheck.blockedRules.length} rules failed evidence strength policy:`,
+      evidenceCheck.blockedRules.map((r) => `${r.conceptSlug}: ${r.reason}`)
+    )
+    return {
+      success: false,
+      output: null,
+      releaseId: null,
+      publishedRuleIds: [],
+      error: `Cannot release ${evidenceCheck.blockedRules.length} rules due to evidence strength policy: ${evidenceCheck.blockedRules.map((r) => `${r.conceptSlug} (${r.reason})`).join("; ")}`,
     }
   }
 

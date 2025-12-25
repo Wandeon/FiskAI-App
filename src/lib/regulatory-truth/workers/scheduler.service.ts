@@ -59,6 +59,21 @@ async function startScheduler(): Promise<void> {
   )
   console.log("[scheduler] Scheduled: Confidence decay on Sundays at 03:00")
 
+  // Daily truth consolidation audit at 04:00 (smoke detector mode)
+  cron.schedule(
+    "0 4 * * *",
+    async () => {
+      console.log("[scheduler] Running daily truth consolidation audit...")
+      await scheduledQueue.add("scheduled", {
+        type: "truth-consolidation-audit",
+        runId: `audit-${Date.now()}`,
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Truth consolidation audit at 04:00")
+
   // Daily E2E validation at 05:00 (before discovery)
   cron.schedule(
     "0 5 * * *",

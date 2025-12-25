@@ -6,10 +6,6 @@ import { extractQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
 import { runSentinel, fetchDiscoveredItems } from "../agents/sentinel"
 import { db } from "@/lib/db"
-import { logWorkerStartup } from "./startup-log"
-
-// Log startup info for build drift detection
-logWorkerStartup("sentinel")
 
 interface SentinelJobData {
   runId: string
@@ -28,26 +24,25 @@ async function processSentinelJob(job: Job<SentinelJobData>): Promise<JobResult>
     // Fetch discovered items
     const fetchResult = await fetchDiscoveredItems(50)
 
-    // Queue extract jobs for new evidence
-    if (fetchResult.fetched > 0) {
-      const newEvidence = await db.evidence.findMany({
-        where: {
-          sourcePointers: { none: {} },
-          fetchedAt: { gte: new Date(Date.now() - 3600000) }, // Last hour
-        },
-        select: { id: true },
-        take: 50,
-      })
+    // Queue extract jobs for unprocessed evidence (no source pointers yet)
+    // Check all unprocessed evidence, not just recently fetched
+    const newEvidence = await db.evidence.findMany({
+      where: {
+        sourcePointers: { none: {} },
+      },
+      select: { id: true },
+      orderBy: { fetchedAt: "desc" },
+      take: 50,
+    })
 
-      if (newEvidence.length > 0) {
-        await extractQueue.addBulk(
-          newEvidence.map((e) => ({
-            name: "extract",
-            data: { evidenceId: e.id, runId, parentJobId: job.id },
-          }))
-        )
-        console.log(`[sentinel] Queued ${newEvidence.length} extract jobs`)
-      }
+    if (newEvidence.length > 0) {
+      await extractQueue.addBulk(
+        newEvidence.map((e) => ({
+          name: "extract",
+          data: { evidenceId: e.id, runId, parentJobId: job.id },
+        }))
+      )
+      console.log(`[sentinel] Queued ${newEvidence.length} extract jobs`)
     }
 
     const duration = Date.now() - start

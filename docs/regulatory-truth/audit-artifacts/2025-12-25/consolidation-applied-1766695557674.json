@@ -1,0 +1,73 @@
+{
+  "timestamp": "2025-12-25T20:45:57.674Z",
+  "mode": "APPLIED",
+  "before": {
+    "rulesByStatus": {
+      "DRAFT": 29,
+      "PENDING_REVIEW": 20,
+      "PUBLISHED": 11,
+      "REJECTED": 51
+    },
+    "totalRules": 111,
+    "totalPointers": 1589,
+    "totalConcepts": 98,
+    "duplicateGroups": 2,
+    "duplicateRulesCount": 2,
+    "testDataPointers": 0,
+    "testDataRules": 0
+  },
+  "after": {
+    "rulesByStatus": {
+      "DRAFT": 27,
+      "PENDING_REVIEW": 20,
+      "PUBLISHED": 11,
+      "REJECTED": 53
+    },
+    "totalRules": 111,
+    "totalPointers": 1589,
+    "totalConcepts": 98,
+    "duplicateGroups": 0,
+    "duplicateRulesCount": 0,
+    "testDataPointers": 0,
+    "testDataRules": 0
+  },
+  "result": {
+    "success": true,
+    "mergedRules": 2,
+    "quarantinedRules": 0,
+    "mergedConcepts": 0,
+    "pointersReassigned": 0,
+    "errorCount": 0,
+    "errors": []
+  },
+  "duplicateGroups": [
+    {
+      "canonicalSlug": "fiskalizacija-2-0-datum",
+      "value": "2026-01-01",
+      "valueType": "date",
+      "ruleCount": 2,
+      "ruleSlugs": ["fiskalizacija-2-0-datum", "fiskalizacija-2-0-start-date"]
+    },
+    {
+      "canonicalSlug": "pdv-upute-porezna-uprava-zadnja-izmjena",
+      "value": "2025-12-23",
+      "valueType": "date",
+      "ruleCount": 2,
+      "ruleSlugs": ["pdv-upute-porezna-uprava-zadnja-izmjena", "pdv-upute-posljednja-izmjena"]
+    }
+  ],
+  "auditLog": [
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlwo95k003d0tmpagfk12o2",
+      "afterId": "cmjg23gga0011j1warhmderru",
+      "reason": "Duplicate 2026-01-01 (date)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlww261003p0tmpqmgyl3wd",
+      "afterId": "cmjlvsag7002b0tmplx96zmpm",
+      "reason": "Duplicate 2025-12-23 (date)"
+    }
+  ]
+}

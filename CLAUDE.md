@@ -148,6 +148,33 @@ npx tsx scripts/queue-status.ts
 docker logs fiskai-worker-ocr --tail 50
 ```
 
+## Development Workflow
+
+**CRITICAL: Never rebuild Docker images for testing code changes!**
+
+Docker builds take 10-15 minutes. Instead:
+
+1. **Test workers locally with npx tsx:**
+
+   ```bash
+   # Run a worker directly (uses .env.local for DATABASE_URL)
+   npx tsx src/lib/regulatory-truth/scripts/run-extractor.ts [evidenceId]
+   npx tsx src/lib/regulatory-truth/scripts/run-sentinel.ts --fetch
+   ```
+
+2. **Test individual agents:**
+
+   ```bash
+   npx tsx src/lib/regulatory-truth/scripts/run-composer.ts [pointerId]
+   npx tsx src/lib/regulatory-truth/scripts/run-reviewer.ts [ruleId]
+   ```
+
+3. **Only rebuild Docker when changes are verified working:**
+   ```bash
+   docker compose -f docker-compose.workers.yml build worker-extractor
+   docker compose -f docker-compose.workers.yml up -d worker-extractor
+   ```
+
 ## Documentation Structure
 
 ```

@@ -1,9 +1,10 @@
 // src/lib/regulatory-truth/utils/conflict-detector.ts
 
 import { db } from "@/lib/db"
+import { CANONICAL_ALIASES, normalizeSlug } from "./concept-resolver"
 
 export interface ConflictSeed {
-  type: "VALUE_MISMATCH" | "DATE_OVERLAP" | "AUTHORITY_SUPERSEDE"
+  type: "VALUE_MISMATCH" | "DATE_OVERLAP" | "AUTHORITY_SUPERSEDE" | "CROSS_SLUG_DUPLICATE"
   existingRuleId: string
   newRuleId: string
   reason: string
@@ -100,7 +101,136 @@ export async function detectStructuralConflicts(newRule: {
     }
   }
 
+  // Check 4: Cross-slug duplicates - same value+valueType but different concept slugs
+  // This catches LLM variations like "vat-standard-rate" vs "pdv-standardna-stopa"
+  const crossSlugDuplicates = await detectCrossSlugDuplicates(newRule)
+  conflicts.push(...crossSlugDuplicates)
+
   return conflicts
+}
+
+/**
+ * Detect potential duplicates across different concept slugs.
+ * Catches LLM naming variations that refer to the same regulatory fact.
+ */
+async function detectCrossSlugDuplicates(newRule: {
+  id: string
+  conceptSlug: string
+  value: string
+  effectiveFrom: Date | null
+}): Promise<ConflictSeed[]> {
+  const conflicts: ConflictSeed[] = []
+
+  // Find all alias slugs that might match this concept
+  const aliasSlugSet = getRelatedSlugs(newRule.conceptSlug)
+
+  if (aliasSlugSet.size === 0) {
+    // No known aliases, check for exact value+valueType matches across ALL slugs
+    const sameValue = await db.regulatoryRule.findMany({
+      where: {
+        id: { not: newRule.id },
+        value: newRule.value,
+        conceptSlug: { not: newRule.conceptSlug },
+        status: { in: ["PUBLISHED", "APPROVED", "PENDING_REVIEW", "DRAFT"] },
+      },
+      select: {
+        id: true,
+        conceptSlug: true,
+        effectiveFrom: true,
+        effectiveUntil: true,
+      },
+    })
+
+    for (const existing of sameValue) {
+      // Check if dates overlap
+      const datesOverlap = checkDateOverlap(
+        existing.effectiveFrom,
+        existing.effectiveUntil,
+        newRule.effectiveFrom,
+        null
+      )
+
+      if (datesOverlap) {
+        conflicts.push({
+          type: "CROSS_SLUG_DUPLICATE",
+          existingRuleId: existing.id,
+          newRuleId: newRule.id,
+          reason: `Potential duplicate: same value "${newRule.value}" with different slugs: "${existing.conceptSlug}" vs "${newRule.conceptSlug}"`,
+        })
+      }
+    }
+  } else {
+    // Check against known alias slugs
+    const aliasArray = Array.from(aliasSlugSet)
+
+    const relatedRules = await db.regulatoryRule.findMany({
+      where: {
+        id: { not: newRule.id },
+        conceptSlug: { in: aliasArray },
+        value: newRule.value,
+        status: { in: ["PUBLISHED", "APPROVED", "PENDING_REVIEW", "DRAFT"] },
+      },
+      select: {
+        id: true,
+        conceptSlug: true,
+        effectiveFrom: true,
+        effectiveUntil: true,
+      },
+    })
+
+    for (const existing of relatedRules) {
+      const datesOverlap = checkDateOverlap(
+        existing.effectiveFrom,
+        existing.effectiveUntil,
+        newRule.effectiveFrom,
+        null
+      )
+
+      if (datesOverlap) {
+        conflicts.push({
+          type: "CROSS_SLUG_DUPLICATE",
+          existingRuleId: existing.id,
+          newRuleId: newRule.id,
+          reason: `Known alias duplicate: "${existing.conceptSlug}" is alias of "${newRule.conceptSlug}" with same value "${newRule.value}"`,
+        })
+      }
+    }
+  }
+
+  return conflicts
+}
+
+/**
+ * Get all related slugs (canonical + aliases) for a given concept slug
+ */
+function getRelatedSlugs(slug: string): Set<string> {
+  const related = new Set<string>()
+  const normalized = normalizeSlug(slug)
+
+  // Check if this slug is a canonical or known alias
+  for (const [canonical, aliases] of Object.entries(CANONICAL_ALIASES)) {
+    const canonicalNorm = normalizeSlug(canonical)
+
+    // If slug matches canonical
+    if (slug === canonical || normalized === canonicalNorm) {
+      related.add(canonical)
+      aliases.forEach((a) => related.add(a))
+    }
+
+    // If slug matches any alias
+    for (const alias of aliases) {
+      if (slug === alias || normalized === normalizeSlug(alias)) {
+        related.add(canonical)
+        aliases.forEach((a) => related.add(a))
+        break
+      }
+    }
+  }
+
+  // Remove self
+  related.delete(slug)
+
+  return related
 }
 
 /**
@@ -154,10 +284,12 @@ export async function seedConflicts(conflicts: ConflictSeed[]): Promise<number> 
     })
 
     if (!existing) {
+      // Map internal conflict types to database enum
+      const conflictType = mapConflictType(conflict.type)
+
       await db.regulatoryConflict.create({
         data: {
-          conflictType:
-            conflict.type === "AUTHORITY_SUPERSEDE" ? "TEMPORAL_CONFLICT" : "SOURCE_CONFLICT",
+          conflictType,
           itemAId: conflict.existingRuleId,
           itemBId: conflict.newRuleId,
           description: conflict.reason,
@@ -175,4 +307,24 @@ export async function seedConflicts(conflicts: ConflictSeed[]): Promise<number> 
   }
 
   return created
+}
+
+/**
+ * Map internal conflict type to database ConflictType enum
+ */
+function mapConflictType(
+  internalType: ConflictSeed["type"]
+): "SOURCE_CONFLICT" | "RULE_CONFLICT" | "TEMPORAL_CONFLICT" {
+  switch (internalType) {
+    case "AUTHORITY_SUPERSEDE":
+      return "TEMPORAL_CONFLICT"
+    case "DATE_OVERLAP":
+      return "TEMPORAL_CONFLICT"
+    case "VALUE_MISMATCH":
+      return "SOURCE_CONFLICT"
+    case "CROSS_SLUG_DUPLICATE":
+      return "RULE_CONFLICT" // Use RULE_CONFLICT for cross-slug duplicates
+    default:
+      return "SOURCE_CONFLICT"
+  }
 }

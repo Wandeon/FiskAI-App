@@ -33,6 +33,7 @@ export const composeQueue = createQueue("compose", { max: 5, duration: 60000 })
 export const reviewQueue = createQueue("review", { max: 5, duration: 60000 })
 export const arbiterQueue = createQueue("arbiter", { max: 3, duration: 60000 })
 export const releaseQueue = createQueue("release", { max: 2, duration: 60000 })
+export const consolidatorQueue = createQueue("consolidator", { max: 1, duration: 300000 }) // 5 min rate limit
 
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
@@ -47,6 +48,7 @@ export const allQueues = {
   review: reviewQueue,
   arbiter: arbiterQueue,
   release: releaseQueue,
+  consolidator: consolidatorQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
 }

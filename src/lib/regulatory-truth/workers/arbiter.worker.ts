@@ -39,9 +39,12 @@ async function processArbiterJob(job: Job<ArbiterJobData>): Promise<JobResult> {
 }
 
 // Create and start worker
+// Lock duration must exceed max job time (agent timeout is 5 min = 300000ms)
 const worker = createWorker<ArbiterJobData>("arbiter", processArbiterJob, {
   name: "arbiter",
   concurrency: 1,
+  lockDuration: 360000, // 6 minutes - exceeds 5 min agent timeout
+  stalledInterval: 60000, // Check for stalled jobs every 60s
 })
 
 setupGracefulShutdown([worker])

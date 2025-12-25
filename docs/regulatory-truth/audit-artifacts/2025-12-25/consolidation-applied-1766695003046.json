@@ -1,0 +1,274 @@
+{
+  "timestamp": "2025-12-25T20:36:43.046Z",
+  "mode": "APPLIED",
+  "before": {
+    "rulesByStatus": {
+      "DRAFT": 69,
+      "PUBLISHED": 12,
+      "REJECTED": 1,
+      "PENDING_REVIEW": 24
+    },
+    "totalRules": 106,
+    "totalPointers": 1469,
+    "totalConcepts": 129,
+    "duplicateGroups": 13,
+    "duplicateRulesCount": 44,
+    "testDataPointers": 8,
+    "testDataRules": 1
+  },
+  "after": {
+    "rulesByStatus": {
+      "DRAFT": 28,
+      "PUBLISHED": 12,
+      "PENDING_REVIEW": 20,
+      "REJECTED": 46
+    },
+    "totalRules": 106,
+    "totalPointers": 1464,
+    "totalConcepts": 102,
+    "duplicateGroups": 0,
+    "duplicateRulesCount": 0,
+    "testDataPointers": 0,
+    "testDataRules": 0
+  },
+  "result": {
+    "success": true,
+    "mergedRules": 44,
+    "quarantinedRules": 1,
+    "mergedConcepts": 32,
+    "pointersReassigned": 38,
+    "errorCount": 0,
+    "errors": []
+  },
+  "duplicateGroups": [
+    {
+      "canonicalSlug": "fiskalizacija-2-0-datum",
+      "value": "2026-01-01",
+      "valueType": "date",
+      "ruleCount": 4,
+      "ruleSlugs": [
+        "regulation-application-date-2026",
+        "fiskalizacija-2-0-primjena",
+        "fiskalizacija-2-0-start-date",
+        "fiskalizacija-2-0-implementation-date"
+      ]
+    },
+    {
+      "canonicalSlug": "nacionalna-naknada-starije-osobe-iznos",
+      "value": "154.50",
+      "valueType": "currency_eur",
+      "ruleCount": 2,
+      "ruleSlugs": [
+        "nacionalna-naknada-starije-osobe-iznos",
+        "nacionalna-naknada-za-starije-osobe-iznos"
+      ]
+    },
+    {
+      "canonicalSlug": "prag-promidzbenih-darova",
+      "value": "22.00",
+      "valueType": "currency_eur",
+      "ruleCount": 10,
+      "ruleSlugs": [
+        "pdv-prag-darovi-potrosaci",
+        "reprezentacija-dar-potrosacu-limit",
+        "representation-gift-threshold",
+        "prag-darova-male-vrijednosti",
+        "promotional-gift-threshold",
+        "promotional-gift-threshold",
+        "small-value-gift-threshold",
+        "reprezentacija-mali-darovi-limit",
+        "promotional-gift-threshold",
+        "promotional-gift-threshold"
+      ]
+    },
+    {
+      "canonicalSlug": "pdv-drzavni-proracun-iban",
+      "value": "HR1210010051863000160",
+      "valueType": "text",
+      "ruleCount": 10,
+      "ruleSlugs": [
+        "pdv-drzavni-proracun-iban",
+        "state-budget-iban-vat",
+        "pdv-drzavni-proracun-iban",
+        "pdv-drzavni-proracun-iban",
+        "pdv-uplatni-racun-proracun",
+        "hr-vat-payment-iban",
+        "vat-payment-iban",
+        "pdv-uplatni-racun-proracuna",
+        "vat-payment-iban",
+        "vat-payment-account-iban"
+      ]
+    },
+    {
+      "canonicalSlug": "pdv-standardna-stopa",
+      "value": "25",
+      "valueType": "percentage",
+      "ruleCount": 5,
+      "ruleSlugs": [
+        "pdv-standardna-stopa",
+        "vat-standard-rate",
+        "pdv-standard-rate",
+        "standard-vat-rate",
+        "vat-rate-standard"
+      ]
+    },
+    {
+      "canonicalSlug": "rok-podnosenja-prosinac-2025",
+      "value": "2025-12-04",
+      "valueType": "date",
+      "ruleCount": 2,
+      "ruleSlugs": ["rok-podnosenja-prosinac-2025", "rok-podnosenja-2025-12-04"]
+    },
+    {
+      "canonicalSlug": "regulatory-deadline-2025-12-04",
+      "value": "2025-12-04",
+      "valueType": "date",
+      "ruleCount": 4,
+      "ruleSlugs": [
+        "regulatory-deadline-2025-12-04",
+        "regulatory-deadline-2025-12-04",
+        "regulatory-deadline-2025-12-04",
+        "deadline-date-2025-12-04"
+      ]
+    },
+    {
+      "canonicalSlug": "eracun-kpd-uskladenost",
+      "value": "2025-10-17",
+      "valueType": "date",
+      "ruleCount": 4,
+      "ruleSlugs": [
+        "eracun-kpd-item-naming-consistency",
+        "eracun-kpd-naming-consistency",
+        "eracun-kpd-item-naming-alignment",
+        "eracun-kpd-naming-alignment"
+      ]
+    },
+    {
+      "canonicalSlug": "stope-pdv-hrvatska",
+      "value": "0%, 5%, 13%, 25%",
+      "valueType": "text",
+      "ruleCount": 4,
+      "ruleSlugs": [
+        "vat-rates-hr",
+        "vat-rates-croatia",
+        "croatian-vat-rates",
+        "croatian-vat-rates-and-payment"
+      ]
+    },
+    {
+      "canonicalSlug": "rok-cuvanja-dokumentacije",
+      "value": "5",
+      "valueType": "count",
+      "ruleCount": 6,
+      "ruleSlugs": [
+        "candidate-data-retention-period",
+        "dokumentacija-natjecaj-rok-cuvanja",
+        "procurement-documentation-retention-period",
+        "procurement-documentation-retention-period",
+        "procurement-documentation-retention-period",
+        "procurement-document-retention-period"
+      ]
+    },
+    {
+      "canonicalSlug": "required-professional-experience-years",
+      "value": "5",
+      "valueType": "count",
+      "ruleCount": 2,
+      "ruleSlugs": ["required-professional-experience-years", "professional-experience-requirement"]
+    },
+    {
+      "canonicalSlug": "standard-working-week-health-insurance",
+      "value": "40",
+      "valueType": "count",
+      "ruleCount": 2,
+      "ruleSlugs": ["standard-working-week-health-insurance", "standard-work-week-hours"]
+    },
+    {
+      "canonicalSlug": "fiksni-tecaj-konverzije-hrk-eur",
+      "value": "7.53450",
+      "valueType": "text",
+      "ruleCount": 2,
+      "ruleSlugs": ["fiksni-tecaj-konverzije-hrk-eur", "eur-hrk-fixed-conversion-rate"]
+    }
+  ],
+  "auditLog": [
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjh8epth000yfgwad1b6jtfg,cmjlsb4bd00050tmpdsitcgz3,cmjlscdnf000f0tmph81ey3iq",
+      "afterId": "cmjg23gga0011j1warhmderru",
+      "reason": "Duplicate 2026-01-01 (date)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjh8cbh0000ofgwa9fhg23y0",
+      "afterId": "cmjhjhz6g000jazwa6oir3gf4",
+      "reason": "Duplicate 154.50 (currency_eur)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjj8c1sx0005jpwaj66cz2cl,cmjlsqalm00230tmpcpipc76v,cmjlssblo002j0tmpbz8vv000,cmjlsvknx002z0tmpacwbls5u,cmjlsyeh5003f0tmph5acg9sa,cmjlt40f7004f0tmpr6d0xwrc,cmjltf4wk005t0tmpbh0vodm0,cmjlttrdn007p0tmp4knhcd4c,cmjlu4qnn008z0tmpx1eakb8w",
+      "afterId": "cmjj8fcsd0009jpwaqv6pot94",
+      "reason": "Duplicate 22.00 (currency_eur)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjltovpi006x0tmpau9d0y87,cmjlsay6900010tmpmh0sptwq,cmjlsc2br00090tmp5b0f14hm,cmjlscs5n000j0tmpg3klpf3m,cmjlsdpys000p0tmp8lbgqy6f,cmjlshizk000z0tmpgcn6e9l2,cmjlskcuk001b0tmp84iiqxmh,cmjlslc7x001h0tmpzog9b7w3,cmjlsmk8n001n0tmp0pzukes9",
+      "afterId": "cmjltjsmw006h0tmp04xhkgv9",
+      "reason": "Duplicate HR1210010051863000160 (text)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlsuxcn002t0tmp3oxcc8ib,cmjlsxbiy00390tmp3f2ofejs,cmjlszjxn003n0tmpltn7wqt0,cmjlsiyqh00150tmp5t6842oy",
+      "afterId": "cmjlspho4001x0tmpx2wdy024",
+      "reason": "Duplicate 25 (percentage)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlssjd7002n0tmpb94ld1gf",
+      "afterId": "cmjlsqn3v00270tmpbi3opfdb",
+      "reason": "Duplicate 2025-12-04 (date)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlt9s6v00550tmp7ufmgypc,cmjltfgsx005x0tmpwrqq6hc1,cmjltlht9006p0tmpzn1ig0ui",
+      "afterId": "cmjlsvrr400330tmpkcspntw6",
+      "reason": "Duplicate 2025-12-04 (date)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlt2o4w00470tmpfrvjxf48,cmjltg15n00610tmp9cq407jk,cmjltnmnj006t0tmpghcqx3cg",
+      "afterId": "cmjlsqwqq002b0tmp14ib5139",
+      "reason": "Duplicate 2025-10-17 (date)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjltehn8005n0tmp3nufkjin,cmjltrelx00790tmp5t5hdlz4,cmjltwbu600870tmpysk5y484",
+      "afterId": "cmjltat19005b0tmp0yk14izz",
+      "reason": "Duplicate 0%, 5%, 13%, 25% (text)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlua88u009p0tmpntgy16hh,cmjlusimf000n0tmp8jlh1oaf,cmjlv3rqj00130tmpd254sv2g,cmjlvds5k001j0tmpjttkvt28,cmjlvnx81001z0tmpb6bia4a1",
+      "afterId": "cmjlu79v6009f0tmpqlajz8yg",
+      "reason": "Duplicate 5 (count)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlvfoo9001p0tmp40twtkip",
+      "afterId": "cmjluurqj000t0tmpmf6787e0",
+      "reason": "Duplicate 5 (count)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlvhb8f001t0tmpyww86gm3",
+      "afterId": "cmjlukm8v000h0tmp8tl8j1kk",
+      "reason": "Duplicate 40 (count)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlw5042002p0tmpbuxni6nz",
+      "afterId": "cmjluwi3j000x0tmpk7ftnxhw",
+      "reason": "Duplicate 7.53450 (text)"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "timestamp": "2025-12-25T20:43:35.218Z",
+  "mode": "APPLIED",
+  "before": {
+    "rulesByStatus": {
+      "DRAFT": 31,
+      "PENDING_REVIEW": 20,
+      "PUBLISHED": 12,
+      "REJECTED": 46
+    },
+    "totalRules": 109,
+    "totalPointers": 1554,
+    "totalConcepts": 105,
+    "duplicateGroups": 4,
+    "duplicateRulesCount": 6,
+    "testDataPointers": 0,
+    "testDataRules": 0
+  },
+  "after": {
+    "rulesByStatus": {
+      "DRAFT": 28,
+      "PENDING_REVIEW": 20,
+      "PUBLISHED": 11,
+      "REJECTED": 51
+    },
+    "totalRules": 110,
+    "totalPointers": 1554,
+    "totalConcepts": 97,
+    "duplicateGroups": 1,
+    "duplicateRulesCount": 1,
+    "testDataPointers": 0,
+    "testDataRules": 0
+  },
+  "result": {
+    "success": false,
+    "mergedRules": 5,
+    "quarantinedRules": 0,
+    "mergedConcepts": 9,
+    "pointersReassigned": 2,
+    "errorCount": 1,
+    "errors": [
+      "\nInvalid `db.regulatoryRule.update()` invocation in\n/home/admin/FiskAI/src/lib/regulatory-truth/utils/consolidator.ts:324:31\n\n  321 }\n  322 \n  323 // Mark duplicate as rejected (consolidated)\n→ 324 await db.regulatoryRule.update(\nUnique constraint failed on the fields: (`\"conceptSlug\"`, `\"effectiveFrom\"`, `status`)"
+    ]
+  },
+  "duplicateGroups": [
+    {
+      "canonicalSlug": "fiskalizacija-2-0-datum",
+      "value": "2026-01-01",
+      "valueType": "date",
+      "ruleCount": 2,
+      "ruleSlugs": ["fiskalizacija-2-0-datum", "fiskalizacija-2-0-start-date"]
+    },
+    {
+      "canonicalSlug": "upravna-pristojba-zalba-rjesenje",
+      "value": "6.64",
+      "valueType": "currency_eur",
+      "ruleCount": 2,
+      "ruleSlugs": ["upravna-pristojba-zalba-rjesenje", "administrative-fee-appeal-decision"]
+    },
+    {
+      "canonicalSlug": "regulatory-deadline-2025-12-04",
+      "value": "2025-12-04",
+      "valueType": "date",
+      "ruleCount": 4,
+      "ruleSlugs": [
+        "rok-podnosenja-prosinac-2025",
+        "regulatory-deadline-2025-12-04",
+        "zakonski-rok-2025-12-04",
+        "rok-obveze-2025-12-04"
+      ]
+    },
+    {
+      "canonicalSlug": "fiksni-tecaj-konverzije-hrk-eur",
+      "value": "7.53450",
+      "valueType": "text",
+      "ruleCount": 2,
+      "ruleSlugs": ["fiksni-tecaj-konverzije-hrk-eur", "fixed-conversion-rate-health-insurance"]
+    }
+  ],
+  "auditLog": [
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjhqehsq0001awwadq0kxis2",
+      "afterId": "cmjjkdlhk002hk6wa4a6aw933",
+      "reason": "Duplicate 6.64 (currency_eur)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlsvrr400330tmpkcspntw6,cmjlu1g7o008p0tmp9vh6uh3e,cmjlu51ok00930tmp7ur6507j",
+      "afterId": "cmjlsqn3v00270tmpbi3opfdb",
+      "reason": "Duplicate 2025-12-04 (date)"
+    },
+    {
+      "action": "MERGE_RULES",
+      "beforeId": "cmjlv7fzm001d0tmp2fo925hg",
+      "afterId": "cmjluwi3j000x0tmpk7ftnxhw",
+      "reason": "Duplicate 7.53450 (text)"
+    }
+  ]
+}

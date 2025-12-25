@@ -60,9 +60,12 @@ async function processReviewJob(job: Job<ReviewJobData>): Promise<JobResult> {
 }
 
 // Create and start worker
+// Lock duration must exceed max job time (agent timeout is 5 min = 300000ms)
 const worker = createWorker<ReviewJobData>("review", processReviewJob, {
   name: "reviewer",
   concurrency: 1,
+  lockDuration: 360000, // 6 minutes - exceeds 5 min agent timeout
+  stalledInterval: 60000, // Check for stalled jobs every 60s
 })
 
 setupGracefulShutdown([worker])

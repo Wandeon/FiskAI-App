@@ -13,6 +13,12 @@ import { deriveAuthorityLevel } from "../utils/authority"
 import { validateAppliesWhen } from "../dsl/applies-when"
 import { detectStructuralConflicts, seedConflicts } from "../utils/conflict-detector"
 import { withSoftFail } from "../utils/soft-fail"
+import {
+  isBlockedDomain,
+  resolveCanonicalConcept,
+  mergePointersToExistingRule,
+} from "../utils/concept-resolver"
+import { computeMeaningSignature } from "../utils/meaning-signature"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -56,6 +62,19 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       output: null,
       ruleId: null,
       error: `No source pointers found for IDs: ${sourcePointerIds.join(", ")}`,
+    }
+  }
+
+  // GUARD: Block test/synthetic domains from creating rules
+  const domains = [...new Set(sourcePointers.map((sp) => sp.domain))]
+  const blockedDomains = domains.filter(isBlockedDomain)
+  if (blockedDomains.length > 0) {
+    console.log(`[composer] Blocked test domains: ${blockedDomains.join(", ")}`)
+    return {
+      success: false,
+      output: null,
+      ruleId: null,
+      error: `Blocked domain(s): ${blockedDomains.join(", ")}. Test data cannot create rules.`,
     }
   }
 
@@ -221,10 +240,68 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
     `[composer] Linking ${validSourcePointerIds.length} source pointers (LLM returned ${draftRule.source_pointer_ids?.length || 0})`
   )
 
+  // DEDUPLICATION: Check if this rule already exists (same value + valueType + time)
+  const resolution = await resolveCanonicalConcept(
+    draftRule.concept_slug,
+    String(draftRule.value),
+    draftRule.value_type,
+    new Date(draftRule.effective_from)
+  )
+
+  if (resolution.shouldMerge && resolution.existingRuleId) {
+    // Merge pointers to existing rule instead of creating duplicate
+    console.log(
+      `[composer] Found existing rule ${resolution.existingRuleId} with same value. Merging pointers.`
+    )
+
+    const mergeResult = await mergePointersToExistingRule(
+      resolution.existingRuleId,
+      validSourcePointerIds
+    )
+
+    await logAuditEvent({
+      action: "RULE_MERGED",
+      entityType: "RULE",
+      entityId: resolution.existingRuleId,
+      metadata: {
+        proposedSlug: draftRule.concept_slug,
+        canonicalSlug: resolution.canonicalSlug,
+        addedPointers: mergeResult.addedPointers,
+        reason: resolution.mergeReason,
+      },
+    })
+
+    return {
+      success: true,
+      output: result.output,
+      ruleId: resolution.existingRuleId,
+      error: null,
+    }
+  }
+
+  // Use canonical slug if different from proposed
+  const finalConceptSlug = resolution.canonicalSlug
+  if (finalConceptSlug !== draftRule.concept_slug) {
+    console.log(
+      `[composer] Resolved concept slug: ${draftRule.concept_slug} -> ${finalConceptSlug}`
+    )
+  }
+
+  // Compute meaning signature for uniqueness enforcement
+  const effectiveFromDate = new Date(draftRule.effective_from)
+  const effectiveUntilDate = draftRule.effective_until ? new Date(draftRule.effective_until) : null
+  const meaningSignature = computeMeaningSignature({
+    conceptSlug: finalConceptSlug,
+    value: String(draftRule.value),
+    valueType: draftRule.value_type,
+    effectiveFrom: effectiveFromDate,
+    effectiveUntil: effectiveUntilDate,
+  })
+
   // Store the draft rule in database
   const rule = await db.regulatoryRule.create({
     data: {
-      conceptSlug: draftRule.concept_slug,
+      conceptSlug: finalConceptSlug,
       titleHr: draftRule.title_hr,
       titleEn: draftRule.title_en,
       riskTier: draftRule.risk_tier,
@@ -234,23 +311,24 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       valueType: draftRule.value_type,
       explanationHr: draftRule.explanation_hr,
       explanationEn: draftRule.explanation_en,
-      effectiveFrom: new Date(draftRule.effective_from),
-      effectiveUntil: draftRule.effective_until ? new Date(draftRule.effective_until) : null,
+      effectiveFrom: effectiveFromDate,
+      effectiveUntil: effectiveUntilDate,
       supersedesId: draftRule.supersedes,
       status: "DRAFT",
       confidence: draftRule.confidence,
       composerNotes: draftRule.composer_notes,
+      meaningSignature,
       sourcePointers: {
         connect: validSourcePointerIds.map((id) => ({ id })),
       },
     },
   })
 
-  // Create or update Concept for this rule
+  // Create or update Concept for this rule (use canonical slug)
   const concept = await db.concept.upsert({
-    where: { slug: draftRule.concept_slug },
+    where: { slug: finalConceptSlug },
     create: {
-      slug: draftRule.concept_slug,
+      slug: finalConceptSlug,
       nameHr: draftRule.title_hr,
       nameEn: draftRule.title_en,
       description: draftRule.explanation_hr,

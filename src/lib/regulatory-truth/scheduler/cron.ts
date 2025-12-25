@@ -2,6 +2,7 @@
 
 import cron from "node-cron"
 import { runWatchdogPipeline, runStandaloneAudit, sendDigest } from "../watchdog/orchestrator"
+import { sendRegulatoryTruthDigest } from "../watchdog/resend-email"
 
 const TIMEZONE = process.env.WATCHDOG_TIMEZONE || "Europe/Zagreb"
 const WATCHDOG_ENABLED = process.env.WATCHDOG_ENABLED === "true"
@@ -40,7 +41,18 @@ export function startScheduler(): void {
   )
   console.log("[scheduler] Scheduled: Main pipeline at 06:00")
 
-  // Daily digest at 08:00
+  // Daily digest via Resend at 07:00 (comprehensive truth health digest)
+  cron.schedule(
+    "0 7 * * *",
+    async () => {
+      console.log("[scheduler] Sending regulatory truth daily digest via Resend...")
+      await sendRegulatoryTruthDigest()
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Regulatory Truth Digest (Resend) at 07:00")
+
+  // Legacy daily digest at 08:00 (SMTP - kept for backwards compatibility)
   cron.schedule(
     "0 8 * * *",
     async () => {
@@ -48,7 +60,7 @@ export function startScheduler(): void {
     },
     { timezone: TIMEZONE }
   )
-  console.log("[scheduler] Scheduled: Daily digest at 08:00")
+  console.log("[scheduler] Scheduled: Legacy digest (SMTP) at 08:00")
 
   // Random audit 1: between 10:00-14:00
   const audit1Hour = 10 + Math.floor(Math.random() * 4)

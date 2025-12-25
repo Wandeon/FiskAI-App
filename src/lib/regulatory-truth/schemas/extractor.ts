@@ -9,7 +9,7 @@ import { DomainSchema, ValueTypeSchema, ConfidenceSchema } from "./common"
 export const ExtractorInputSchema = z.object({
   evidenceId: z.string(),
   content: z.string(),
-  contentType: z.enum(["html", "pdf", "xml"]),
+  contentType: z.enum(["html", "pdf", "xml", "json", "json-ld", "doc", "docx", "xls", "xlsx"]),
   sourceUrl: z.string().url(),
 })
 export type ExtractorInput = z.infer<typeof ExtractorInputSchema>

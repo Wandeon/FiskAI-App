@@ -15,7 +15,7 @@ function getAgentTimeoutMs(): number {
 }
 
 function getOllamaEndpoint(): string {
-  return process.env.OLLAMA_ENDPOINT || "https://ollama.com"
+  return process.env.OLLAMA_ENDPOINT || "https://ollama.com/api"
 }
 
 function getOllamaModel(): string {
@@ -154,7 +154,7 @@ export async function runAgent<TInput, TOutput>(
           stream: false,
           options: {
             temperature,
-            num_predict: 16384, // Allow much longer responses for model's thinking + JSON output
+            num_predict: 16384,
           },
         }),
       })
@@ -165,7 +165,7 @@ export async function runAgent<TInput, TOutput>(
       }
 
       const data = await response.json()
-      // qwen3-next model sometimes puts content in "thinking" field instead of "content"
+      // Ollama format: data.message.content
       let rawContent = data.message?.content || ""
       if (!rawContent && data.message?.thinking) {
         // Extract JSON from thinking field if content is empty

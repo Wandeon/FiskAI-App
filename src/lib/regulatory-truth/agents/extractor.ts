@@ -12,6 +12,7 @@ import { cleanContent, getCleaningStats } from "../utils/content-cleaner"
 import { validateExtraction } from "../utils/deterministic-validators"
 import { withSoftFail } from "../utils/soft-fail"
 import { getExtractableContent } from "../utils/content-provider"
+import { isBlockedDomain } from "../utils/concept-resolver"
 
 // =============================================================================
 // EXTRACTOR AGENT
@@ -113,6 +114,22 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       sourcePointerIds: [],
       error: `Evidence not found: ${evidenceId}`,
     }
+  }
+
+  // GUARD: Skip test domain evidence - should not be processed
+  try {
+    const urlDomain = new URL(evidence.url).hostname
+    if (isBlockedDomain(urlDomain)) {
+      console.log(`[extractor] Skipping test domain evidence: ${urlDomain}`)
+      return {
+        success: false,
+        output: null,
+        sourcePointerIds: [],
+        error: `Blocked test domain: ${urlDomain}`,
+      }
+    }
+  } catch {
+    // If URL parsing fails, continue with extraction
   }
 
   // Get content from artifact or rawContent via content provider

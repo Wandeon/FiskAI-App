@@ -1,10 +1,13 @@
 // src/lib/regulatory-truth/watchdog/alerting.ts
 
 import { db } from "@/lib/db"
-import type { WatchdogSeverity, WatchdogAlertType } from "@prisma/client"
 import type { AlertPayload, AuditReport } from "./types"
 import { sendCriticalAlert as sendSlackCritical, sendAuditResult as sendSlackAudit } from "./slack"
 import { sendCriticalEmail, sendDailyDigest } from "./email"
+import { sendCriticalAlertResend } from "./resend-email"
+
+// Alert deduplication window in minutes (configurable via env, default 60)
+const DEDUP_WINDOW_MINUTES = parseInt(process.env.ALERT_DEDUP_WINDOW_MINUTES || "60", 10)
 
 /**
  * Raise an alert - handles deduplication, storage, and routing
@@ -12,8 +15,8 @@ import { sendCriticalEmail, sendDailyDigest } from "./email"
 export async function raiseAlert(payload: AlertPayload): Promise<string> {
   const { severity, type, entityId, message, details } = payload
 
-  // Check for duplicate in last 24h
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  // Check for duplicate in dedup window (default: 60 minutes)
+  const cutoff = new Date(Date.now() - DEDUP_WINDOW_MINUTES * 60 * 1000)
   const existing = await db.watchdogAlert.findFirst({
     where: {
       type,
@@ -51,7 +54,12 @@ export async function raiseAlert(payload: AlertPayload): Promise<string> {
 
   // Route based on severity
   if (severity === "CRITICAL") {
-    await Promise.all([sendSlackCritical(type, message, details), sendCriticalEmail(alert)])
+    // Send via all channels: Slack, SMTP (legacy), and Resend (primary)
+    await Promise.all([
+      sendSlackCritical(type, message, details),
+      sendCriticalEmail(alert), // Legacy SMTP
+      sendCriticalAlertResend(alert), // Primary Resend
+    ])
     await db.watchdogAlert.update({
       where: { id: alert.id },
       data: { notifiedAt: new Date() },

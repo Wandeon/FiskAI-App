@@ -96,6 +96,8 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - WORKER_TYPE=extractor
       - WORKER_CONCURRENCY=2
+    volumes:
+      - ./src:/app/src:ro
     depends_on:
       redis:
         condition: service_healthy
@@ -247,8 +249,9 @@ services:
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
-      # Override DATABASE_URL to use correct hostname (fiskai-db not fiskai-postgres)
-      - DATABASE_URL=postgresql://fiskai:fiskai_secret_2025@fiskai-db:5432/fiskai?schema=public
+      # DATABASE_URL uses environment variable - set in .env or shell
+      # Format: postgresql://user:password@host:port/database?schema=public
+      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
       - WORKER_TYPE=continuous-drainer
     depends_on:
       redis:

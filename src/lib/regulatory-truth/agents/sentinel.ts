@@ -9,6 +9,7 @@ import { logAuditEvent } from "../utils/audit-log"
 import { detectBinaryType, parseBinaryContent } from "../utils/binary-parser"
 import { ocrQueue, extractQueue } from "../workers/queues"
 import { isScannedPdf } from "../utils/ocr-processor"
+import { isBlockedDomain } from "../utils/concept-resolver"
 
 interface SentinelConfig {
   maxItemsPerRun: number
@@ -138,7 +139,7 @@ async function processEndpoint(
               })
               discoveredUrls.push(...pageItems)
             }
-          } catch (error) {
+          } catch (_error) {
             console.log(`[sentinel] Failed to fetch page: ${pageUrl}`)
           }
         }
@@ -187,7 +188,7 @@ async function processEndpoint(
           })
           newItemCount++
         }
-      } catch (error) {
+      } catch (_error) {
         // Likely duplicate (unique constraint violation from race condition)
         // This is expected and fine
       }
@@ -195,7 +196,7 @@ async function processEndpoint(
 
     console.log(`[sentinel] Discovered ${newItemCount} new items from ${endpoint.name}`)
     return { newItems: newItemCount }
-  } catch (error) {
+  } catch (_error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     await db.discoveryEndpoint.update({
@@ -270,7 +271,7 @@ export async function runSentinel(
     console.log(
       `[sentinel] Complete: ${result.endpointsChecked} endpoints, ${result.newItemsDiscovered} new items`
     )
-  } catch (error) {
+  } catch (_error) {
     result.success = false
     result.errors.push(error instanceof Error ? error.message : String(error))
   }
@@ -300,6 +301,19 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
 
   for (const item of items) {
     try {
+      // GUARD: Skip test/heartbeat domains - they should not enter the pipeline
+      if (isBlockedDomain(item.endpoint.domain)) {
+        console.log(`[sentinel] Skipping test domain: ${item.endpoint.domain}`)
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "SKIPPED",
+            errorMessage: `Blocked test domain: ${item.endpoint.domain}`,
+          },
+        })
+        continue
+      }
+
       console.log(`[sentinel] Fetching: ${item.url}`)
       const response = await fetchWithRateLimit(item.url)
 
@@ -513,6 +527,20 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
           // Check if this is a content change (item had previous hash)
           const isContentChange = !!(item.contentHash && item.contentHash !== contentHash)
 
+          // Derive contentClass from contentType
+          const contentClassMap: Record<string, string> = {
+            html: "HTML",
+            pdf: "PDF_TEXT",
+            doc: "DOC",
+            docx: "DOCX",
+            xls: "XLS",
+            xlsx: "XLSX",
+            json: "JSON",
+            "json-ld": "JSON_LD",
+            xml: "XML",
+          }
+          const derivedContentClass = contentClassMap[contentType] || "HTML"
+
           // Upsert evidence record (prevents duplicates with unique constraint on url+contentHash)
           const evidence = await db.evidence.upsert({
             where: {
@@ -527,6 +555,7 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
               rawContent: content,
               contentHash,
               contentType: contentType,
+              contentClass: derivedContentClass,
               hasChanged: isContentChange,
               changeSummary: isContentChange
                 ? `Content updated from previous version (hash: ${item.contentHash?.slice(0, 8)}...)`
@@ -569,7 +598,7 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
           })
         }
       }
-    } catch (error) {
+    } catch (_error) {
       failed++
       await db.discoveredItem.update({
         where: { id: item.id },

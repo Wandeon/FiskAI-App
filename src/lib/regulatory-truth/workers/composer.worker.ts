@@ -53,9 +53,12 @@ async function processComposeJob(job: Job<ComposeJobData>): Promise<JobResult> {
 }
 
 // Create and start worker
+// Lock duration must exceed max job time (agent timeout is 5 min = 300000ms)
 const worker = createWorker<ComposeJobData>("compose", processComposeJob, {
   name: "composer",
   concurrency: 1,
+  lockDuration: 360000, // 6 minutes - exceeds 5 min agent timeout
+  stalledInterval: 60000, // Check for stalled jobs every 60s
 })
 
 setupGracefulShutdown([worker])

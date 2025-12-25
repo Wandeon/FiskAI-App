@@ -1842,6 +1842,7 @@ model RegulatoryRule {
   reviewerNotes     String?
   approvedBy        String?          // User ID who approved (for T0/T1)
   approvedAt        DateTime?
+  meaningSignature  String?          // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
@@ -1863,6 +1864,53 @@ model RegulatoryRule {
   @@index([riskTier])
   @@index([conceptSlug])
   @@index([effectiveFrom])
+  @@index([meaningSignature])
+}
+
+// Truth health snapshot for monitoring system integrity
+model TruthHealthSnapshot {
+  id                        String   @id @default(cuid())
+  timestamp                 DateTime @default(now())
+
+  // Rule counts by status
+  totalRules                Int
+  publishedRules            Int
+  approvedRules             Int
+  pendingReviewRules        Int
+  draftRules                Int
+  rejectedRules             Int
+
+  // Pointer coverage metrics
+  totalPointers             Int
+  unlinkedPointers          Int      // Pointers not linked to any rule
+  unlinkedPointersRate      Float    // % unlinked (lower = better)
+
+  // Evidence quality
+  rulesWithMultiplePointers Int      // Rules with >1 pointer
+  multiplePointerRate       Float    // % of non-rejected rules with >1 pointer
+  publishedWithTwoPlus      Int      // PUBLISHED rules with >=2 pointers
+  publishedPointerCoverage  Float    // % of PUBLISHED with >=2 pointers
+
+  // Consolidation health
+  duplicateGroupsDetected   Int      // Should always be 0
+  testDataLeakage           Int      // Test domain data in non-quarantine status
+  aliasResolutionsToday     Int      // Composer runs that resolved to canonical
+
+  // Concept health
+  totalConcepts             Int
+  conceptsWithRules         Int
+  orphanedConcepts          Int      // Concepts with no rules
+
+  // Evidence strength metrics
+  multiSourceRules          Int      @default(0)  // Rules with 2+ distinct sources
+  singleSourceRules         Int      @default(0)  // Rules with only 1 source
+  singleSourceCanPublish    Int      @default(0)  // Single-source with LAW tier
+  singleSourceBlocked       Int      @default(0)  // Single-source blocked from publish
+
+  // Alerts triggered
+  alertsTriggered           String[] // List of alert types triggered
+
+  @@index([timestamp])
 }
 
 model GraphEdge {

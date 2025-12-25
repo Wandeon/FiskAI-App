@@ -21,6 +21,7 @@ interface ScheduledJobData {
     | "confidence-decay"
     | "e2e-validation"
     | "health-snapshot"
+    | "truth-consolidation-audit"
   runId: string
   triggeredBy?: string
 }
@@ -147,6 +148,40 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
           success: true,
           duration: Date.now() - start,
           data: snapshot,
+        }
+      }
+
+      case "truth-consolidation-audit": {
+        // Daily smoke detector: run consolidator in dry-run mode and alert on issues
+        const { runConsolidatorHealthCheck, storeTruthHealthSnapshot } =
+          await import("../utils/truth-health")
+
+        // Run consolidator health check (dry-run)
+        const healthCheck = await runConsolidatorHealthCheck()
+
+        // Store truth health snapshot
+        const snapshot = await storeTruthHealthSnapshot()
+
+        // Log alerts for monitoring
+        if (!healthCheck.healthy) {
+          console.warn("[orchestrator] Truth consolidation audit found issues:")
+          for (const alert of healthCheck.alerts) {
+            console.warn(`  - ${alert}`)
+          }
+        } else {
+          console.log("[orchestrator] Truth consolidation audit passed - no issues found")
+        }
+
+        return {
+          success: healthCheck.healthy,
+          duration: Date.now() - start,
+          data: {
+            healthy: healthCheck.healthy,
+            duplicateGroups: healthCheck.duplicateGroups,
+            testDataLeakage: healthCheck.testDataLeakage,
+            snapshotId: snapshot.id,
+            alerts: healthCheck.alerts,
+          },
         }
       }
 
