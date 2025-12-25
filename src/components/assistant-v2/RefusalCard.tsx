@@ -18,6 +18,8 @@ const TITLES: Record<RefusalReason, string> = {
   OUT_OF_SCOPE: "Outside our coverage",
   MISSING_CLIENT_DATA: "More data needed",
   UNRESOLVED_CONFLICT: "Conflicting information",
+  NEEDS_CLARIFICATION: "Please clarify your question",
+  UNSUPPORTED_JURISDICTION: "Unsupported jurisdiction",
 }
 
 const ICONS: Record<RefusalReason, React.ReactNode> = {
@@ -25,6 +27,8 @@ const ICONS: Record<RefusalReason, React.ReactNode> = {
   OUT_OF_SCOPE: <AlertCircle className="w-5 h-5" />,
   MISSING_CLIENT_DATA: <Database className="w-5 h-5" />,
   UNRESOLVED_CONFLICT: <AlertTriangle className="w-5 h-5" />,
+  NEEDS_CLARIFICATION: <HelpCircle className="w-5 h-5" />,
+  UNSUPPORTED_JURISDICTION: <AlertCircle className="w-5 h-5" />,
 }
 
 export function RefusalCard({

@@ -56,9 +56,12 @@ export function AssistantInput({
         rows={2}
         aria-describedby="assistant-input-hint"
         className={cn(
-          "w-full p-3 pr-12 border rounded-lg resize-none",
-          "focus:outline-none focus:ring-2 focus:ring-primary/50",
-          "disabled:opacity-50 disabled:cursor-not-allowed"
+          "w-full p-4 pr-14 rounded-xl resize-none",
+          "bg-background text-foreground border-2 border-border",
+          "placeholder:text-muted-foreground",
+          "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "shadow-sm"
         )}
       />
 
@@ -68,10 +71,11 @@ export function AssistantInput({
         disabled={disabled || !value.trim()}
         aria-label="Send"
         className={cn(
-          "absolute right-2 bottom-2 p-2 rounded-md",
-          "text-primary hover:bg-primary/10",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          "focus:outline-none focus:ring-2 focus:ring-primary/50"
+          "absolute right-3 bottom-3 p-2 rounded-lg",
+          "bg-primary text-primary-foreground",
+          "hover:bg-primary/90 transition-colors",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
+          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         )}
       >
         <Send className="w-5 h-5" />

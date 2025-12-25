@@ -62,10 +62,11 @@ export function SuggestionChips({ suggestions, onSelect, className }: Suggestion
           tabIndex={-1}
           onClick={() => onSelect(suggestion)}
           className={cn(
-            "px-3 py-1.5 text-sm rounded-full border",
-            "hover:bg-muted transition-colors",
+            "px-4 py-2 text-sm rounded-full",
+            "bg-background text-foreground border border-border",
+            "hover:bg-muted hover:border-muted-foreground/30 transition-colors",
             "focus:outline-none",
-            index === activeIndex && "ring-2 ring-primary/50"
+            index === activeIndex && "ring-2 ring-primary ring-offset-2"
           )}
         >
           {truncate(suggestion)}

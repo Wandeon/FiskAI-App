@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 
 export default function MarketingAssistantPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+    <div className="mx-auto max-w-5xl px-4 pt-20 pb-12 md:px-6 md:pt-24">
+      <header className="mb-10 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
           Regulatorni asistent
         </h1>
-        <p className="mt-2 text-white/70">
+        <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
           Svaki odgovor potkrije službenim izvorima. Bez nagađanja.
         </p>
       </header>

@@ -122,7 +122,7 @@ export function AssistantContainer({ surface, companyId, className }: AssistantC
       <div className={cn("grid gap-6", isApp ? "lg:grid-cols-3" : "lg:grid-cols-2")}>
         {/* Answer Column */}
         <div data-testid="answer-column" className="lg:col-span-1">
-          <AnswerSection state={state} surface={surface} />
+          <AnswerSection state={state} surface={surface} onSuggestionClick={handleSubmit} />
         </div>
 
         {/* Evidence Column */}
@@ -149,15 +149,15 @@ export function AssistantContainer({ surface, companyId, className }: AssistantC
           </div>
         )}
 
-        {/* MARKETING: Personalization Preview Placeholder */}
-        {isMarketing && hasAnswer && (
+        {/* MARKETING: Personalization Preview Placeholder - only for successful answers */}
+        {isMarketing && hasAnswer && state.activeAnswer?.kind === "ANSWER" && (
           <div
             data-testid="personalization-preview"
-            className="lg:col-span-2 p-4 border border-dashed rounded-lg bg-muted/20"
+            className="lg:col-span-2 p-4 border border-dashed rounded-lg bg-primary/5"
           >
             <p className="text-sm text-muted-foreground">
-              <strong>Your calculation preview:</strong> Connect your business data to see
-              personalized thresholds and amounts.
+              <strong className="text-foreground">Your calculation preview:</strong> Connect your
+              business data to see personalized thresholds and amounts.
             </p>
           </div>
         )}

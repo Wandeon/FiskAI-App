@@ -12,37 +12,36 @@ import { matchConcepts } from "./concept-matcher"
 import { selectRules } from "./rule-selector"
 import { detectConflicts } from "./conflict-detector"
 import { buildCitations } from "./citation-builder"
+import {
+  interpretQuery,
+  shouldProceedToRetrieval,
+  isJurisdictionValid,
+  INTERPRETATION_CONFIDENCE_THRESHOLD,
+  type Interpretation,
+} from "./query-interpreter"
 
-// Simple topic classification keywords
-const PRODUCT_KEYWORDS = ["fiskai", "prijava", "registracija", "aplikacija", "cijena", "plan"]
-const SUPPORT_KEYWORDS = ["pomoc", "podrska", "greska", "bug", "ne-radi", "problem"]
-
-// Keywords that indicate personalization is needed (Croatian)
-const PERSONALIZATION_KEYWORDS = [
-  // Possessives
-  "moj",
-  "moja",
-  "moje",
-  "moji",
-  "moju",
-  "mojim",
-  "mojoj",
-  // Questions about specific calculations
-  "koliko",
-  "izračunaj",
-  "izracunaj",
-  "obračunaj",
-  "obracunaj",
-  // Specific to user's situation
-  "trebam",
-  "moram",
-  "platiti",
-  "placati",
-  // Thresholds with personal context
-  "prelazim",
-  "prijelaz",
-  "granicu",
-]
+/**
+ * THREE-STAGE FAIL-CLOSED ANSWER BUILDER
+ *
+ * Stage 1: Query Interpretation (interpretQuery)
+ *   - Classifies topic, intent, jurisdiction
+ *   - Detects personalization needs
+ *   - Computes confidence score
+ *   - If confidence < threshold → NEEDS_CLARIFICATION
+ *
+ * Stage 2: Retrieval Gate (matchConcepts + selectRules)
+ *   - Only runs if interpretation passes threshold
+ *   - Strict token matching with minimum score
+ *   - If no matches → NO_CITABLE_RULES
+ *
+ * Stage 3: Answer Eligibility Gate
+ *   - Validates citations exist
+ *   - Checks for unresolved conflicts
+ *   - Validates personalization requirements
+ *   - Only then builds the answer
+ *
+ * INVARIANT: The system REFUSES more often than it answers.
+ */
 
 // Fields that would be used for personalization
 const PERSONALIZATION_FIELDS: Record<string, string[]> = {
@@ -50,69 +49,6 @@ const PERSONALIZATION_FIELDS: Record<string, string[]> = {
   pdv: ["yearlyRevenue", "euTransactions", "vatRegistered"],
   doprinosi: ["businessType", "yearlyIncome", "employeeCount"],
   fiskalizacija: ["businessType", "cashTransactions", "posDevice"],
-}
-
-interface PersonalizationCheck {
-  needed: boolean
-  requiredFields: string[]
-  matchedKeywords: string[]
-}
-
-function classifyTopic(keywords: string[]): Topic {
-  const normalizedKeywords = keywords.map((k) => k.toLowerCase())
-
-  if (PRODUCT_KEYWORDS.some((pk) => normalizedKeywords.includes(pk))) {
-    return "PRODUCT"
-  }
-  if (SUPPORT_KEYWORDS.some((sk) => normalizedKeywords.includes(sk))) {
-    return "SUPPORT"
-  }
-
-  // Default to regulatory for this assistant
-  return "REGULATORY"
-}
-
-/**
- * Detect if query requires client-specific data for personalization.
- * NOTE: This uses the raw query, not extracted keywords, because
- * personalization keywords (moj, koliko, trebam) are filtered as stopwords.
- * Returns the fields that would be needed for a personalized answer.
- */
-function detectPersonalizationNeed(rawQuery: string, conceptSlugs: string[]): PersonalizationCheck {
-  // Tokenize raw query (without stopword removal) for personalization detection
-  const rawTokens = rawQuery
-    .toLowerCase()
-    .replace(/[čćžšđ]/g, (c) =>
-      c === "č" || c === "ć" ? "c" : c === "ž" ? "z" : c === "š" ? "s" : c === "đ" ? "d" : c
-    )
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean)
-
-  // Check for personalization keywords in raw query tokens
-  const matchedKeywords = PERSONALIZATION_KEYWORDS.filter((pk) =>
-    rawTokens.some((t) => t === pk || t.startsWith(pk) || pk.startsWith(t))
-  )
-
-  if (matchedKeywords.length === 0) {
-    return { needed: false, requiredFields: [], matchedKeywords: [] }
-  }
-
-  // Determine required fields based on matched concepts
-  const requiredFields: string[] = []
-  for (const slug of conceptSlugs) {
-    for (const [domain, fields] of Object.entries(PERSONALIZATION_FIELDS)) {
-      if (slug.includes(domain)) {
-        requiredFields.push(...fields)
-      }
-    }
-  }
-
-  return {
-    needed: true,
-    requiredFields: [...new Set(requiredFields)],
-    matchedKeywords,
-  }
 }
 
 export async function buildAnswer(
@@ -133,42 +69,91 @@ export async function buildAnswer(
     createdAt,
   }
 
-  // 1. Extract keywords
-  const keywords = extractKeywords(query)
+  // ============================================
+  // STAGE 1: QUERY INTERPRETATION
+  // ============================================
+  const interpretation = interpretQuery(query, surface)
 
-  // 2. Classify topic
-  const topic = classifyTopic(keywords)
+  // Store interpretation for debugging (in non-production)
+  const debugInfo = {
+    interpretation: {
+      topic: interpretation.topic,
+      intent: interpretation.intent,
+      jurisdiction: interpretation.jurisdiction,
+      confidence: interpretation.confidence,
+      entities: interpretation.entities,
+      personalizationNeeded: interpretation.personalizationNeeded,
+      matchedPatterns: interpretation.matchedPatterns,
+    },
+  }
 
-  // If not regulatory, return refusal (this assistant only handles regulatory)
-  if (topic !== "REGULATORY") {
+  // GATE 1A: Confidence threshold
+  if (interpretation.confidence < INTERPRETATION_CONFIDENCE_THRESHOLD) {
+    return buildClarificationRefusal(baseResponse, interpretation)
+  }
+
+  // GATE 1B: Topic scope check
+  if (interpretation.topic === "PRODUCT") {
     return {
       ...baseResponse,
       kind: "REFUSAL",
-      topic,
-      headline: "Ovo pitanje nije regulatorne prirode",
+      topic: interpretation.topic,
+      headline: "Pitanje o proizvodu",
       directAnswer: "",
       refusalReason: "OUT_OF_SCOPE",
       refusal: {
         message:
-          "Ovaj asistent odgovara samo na regulatorna pitanja o porezima, PDV-u, doprinosima i fiskalizaciji.",
-        relatedTopics: ["porez na dohodak", "PDV", "doprinosi", "fiskalizacija"],
+          "Za pitanja o FiskAI proizvodu, pretplati ili funkcijama, posjetite našu stranicu s cijenama ili kontaktirajte podršku.",
+        redirectOptions: [
+          { label: "Cijene", href: "/pricing", type: "DOCS" },
+          { label: "Kontakt", href: "/contact", type: "CONTACT" },
+        ],
       },
     }
   }
 
-  // 3. Early personalization detection (before concept matching)
-  // Check if the raw query contains personalization keywords
-  const earlyPersonalization = detectPersonalizationNeed(query, [])
+  if (interpretation.topic === "SUPPORT") {
+    return {
+      ...baseResponse,
+      kind: "REFUSAL",
+      topic: interpretation.topic,
+      headline: "Tehnička podrška",
+      directAnswer: "",
+      refusalReason: "OUT_OF_SCOPE",
+      refusal: {
+        message: "Za tehničku podršku ili prijavu problema, kontaktirajte naš tim za podršku.",
+        redirectOptions: [
+          { label: "Podrška", href: "/support", type: "SUPPORT" },
+          { label: "Kontakt", href: "/contact", type: "CONTACT" },
+        ],
+      },
+    }
+  }
 
-  // 3.5. Handle personalization BEFORE concept matching
-  // If personalization is needed, return MISSING_CLIENT_DATA immediately
-  if (earlyPersonalization.needed) {
+  // GATE 1C: Jurisdiction check for regulatory
+  if (interpretation.topic === "REGULATORY" && !isJurisdictionValid(interpretation)) {
+    return {
+      ...baseResponse,
+      kind: "REFUSAL",
+      topic: interpretation.topic,
+      headline: "Nepodržana jurisdikcija",
+      directAnswer: "",
+      refusalReason: "UNSUPPORTED_JURISDICTION" as RefusalReason,
+      refusal: {
+        message:
+          "Ovaj asistent odgovara samo na pitanja o hrvatskim i EU propisima. Za druge jurisdikcije, konzultirajte lokalne stručnjake.",
+        relatedTopics: ["hrvatski porezni sustav", "PDV u Hrvatskoj", "paušalni obrt"],
+      },
+    }
+  }
+
+  // GATE 1D: Personalization check (before retrieval)
+  if (interpretation.personalizationNeeded) {
     if (surface === "MARKETING") {
-      // MARKETING surface: Prompt signup for personalized answers
       return {
         ...baseResponse,
         kind: "REFUSAL",
-        topic,
+        topic: interpretation.topic,
         headline: "Potrebni su podaci o poslovanju",
         directAnswer: "",
         refusalReason: "MISSING_CLIENT_DATA" as RefusalReason,
@@ -179,11 +164,11 @@ export async function buildAnswer(
         },
       }
     } else if (surface === "APP" && !companyId) {
-      // APP surface without company: Prompt to connect data
+      const requiredFields = getRequiredFieldsFromEntities(interpretation.entities)
       return {
         ...baseResponse,
         kind: "REFUSAL",
-        topic,
+        topic: interpretation.topic,
         headline: "Potrebni su podaci o poslovanju",
         directAnswer: "",
         refusalReason: "MISSING_CLIENT_DATA" as RefusalReason,
@@ -197,9 +182,9 @@ export async function buildAnswer(
             status: "NONE",
             score: 0,
           },
-          missing: earlyPersonalization.requiredFields.map((f) => ({
+          missing: requiredFields.map((f) => ({
             label: f,
-            impact: "Required for personalized answer",
+            impact: "Potrebno za personalizirani odgovor",
           })),
         },
       }
@@ -207,55 +192,40 @@ export async function buildAnswer(
     // APP surface with companyId: Continue to try to answer with client context
   }
 
-  // 4. Match concepts
+  // ============================================
+  // STAGE 2: RETRIEVAL GATE
+  // ============================================
+
+  // Extract keywords for concept matching
+  const keywords = extractKeywords(query)
+
+  // Match concepts
   const conceptMatches = await matchConcepts(keywords)
 
   if (conceptMatches.length === 0) {
-    return buildNoCitableRulesRefusal(baseResponse, topic)
+    return buildNoCitableRulesRefusal(baseResponse, interpretation.topic, interpretation)
   }
 
-  // 4.5. Refine personalization detection with concept slugs
+  // Select rules for matched concepts
   const conceptSlugs = conceptMatches.map((c) => c.slug)
-  const personalization = detectPersonalizationNeed(query, conceptSlugs)
-
-  // 3.6. MINIMUM INTENT CHECK: Require ≥2 meaningful tokens for confident ANSWER
-  // Single-token queries are too ambiguous for regulatory advice
-  // EXCEPTION: Skip for personalization queries - they should trigger MISSING_CLIENT_DATA
-  const totalMatchedTokens = new Set(conceptMatches.flatMap((c) => c.matchedKeywords)).size
-  const isLowIntent = keywords.length < 2 || totalMatchedTokens < 2
-
-  if (isLowIntent && !personalization.needed) {
-    // For low-intent non-personalized queries, return REFUSAL asking for clarification
-    return {
-      ...baseResponse,
-      kind: "REFUSAL",
-      topic,
-      headline: "Molimo precizirajte pitanje",
-      directAnswer: "",
-      refusalReason: "NO_CITABLE_RULES" as RefusalReason,
-      refusal: {
-        message:
-          "Vaše pitanje je preopćenito. Molimo navedite više detalja, npr. 'Koja je opća stopa PDV-a u Hrvatskoj?' ili 'Koji je prag za paušalni obrt?'",
-        relatedTopics: ["porez na dohodak", "PDV stope", "paušalni obrt", "fiskalizacija"],
-      },
-    }
-  }
-
-  // 5. Select rules for matched concepts
   const rules = await selectRules(conceptSlugs)
 
   if (rules.length === 0) {
-    return buildNoCitableRulesRefusal(baseResponse, topic)
+    return buildNoCitableRulesRefusal(baseResponse, interpretation.topic, interpretation)
   }
 
-  // 5. Check for conflicts
+  // ============================================
+  // STAGE 3: ANSWER ELIGIBILITY GATE
+  // ============================================
+
+  // GATE 3A: Check for conflicts
   const conflictResult = detectConflicts(rules)
 
   if (conflictResult.hasConflict && !conflictResult.canResolve) {
     return {
       ...baseResponse,
       kind: "REFUSAL",
-      topic,
+      topic: interpretation.topic,
       headline: "Proturječni propisi",
       directAnswer: "",
       refusalReason: "UNRESOLVED_CONFLICT",
@@ -272,35 +242,41 @@ export async function buildAnswer(
     }
   }
 
-  // 6. Build citations
+  // GATE 3B: Build citations (REQUIRED for ANSWER)
   const citations = buildCitations(rules)
 
   if (!citations) {
-    return buildNoCitableRulesRefusal(baseResponse, topic)
+    return buildNoCitableRulesRefusal(baseResponse, interpretation.topic, interpretation)
   }
 
-  // 7. Build answer from primary rule
+  // GATE 3C: Validate primary citation has required fields
+  if (!citations.primary.quote || !citations.primary.url) {
+    return buildNoCitableRulesRefusal(baseResponse, interpretation.topic, interpretation)
+  }
+
+  // ============================================
+  // BUILD ANSWER (only if all gates pass)
+  // ============================================
+
   const primaryRule = rules[0]
 
   // Build client context for APP surface
   let clientContext: ClientContextBlock | undefined
   if (surface === "APP") {
-    if (personalization.needed && companyId) {
-      // In future: fetch actual client data here
-      // For now, indicate what would be used
+    if (interpretation.personalizationNeeded && companyId) {
+      const requiredFields = getRequiredFieldsFromEntities(interpretation.entities)
       clientContext = {
         used: [], // Would be populated from actual client data
         completeness: {
           status: "PARTIAL",
           score: 0.5,
         },
-        missing: personalization.requiredFields.map((f) => ({
+        missing: requiredFields.map((f) => ({
           label: f,
-          impact: "Would improve answer accuracy",
+          impact: "Poboljšalo bi točnost odgovora",
         })),
       }
-    } else if (!personalization.needed) {
-      // No personalization needed for this query
+    } else if (!interpretation.personalizationNeeded) {
       clientContext = {
         used: [],
         completeness: {
@@ -314,7 +290,7 @@ export async function buildAnswer(
   return {
     ...baseResponse,
     kind: "ANSWER",
-    topic,
+    topic: interpretation.topic,
     headline: primaryRule.titleHr,
     directAnswer:
       primaryRule.explanationHr || formatValue(primaryRule.value, primaryRule.valueType),
@@ -329,10 +305,44 @@ export async function buildAnswer(
   }
 }
 
+// === HELPER FUNCTIONS ===
+
+function buildClarificationRefusal(
+  base: Partial<AssistantResponse>,
+  interpretation: Interpretation
+): AssistantResponse {
+  return {
+    ...base,
+    kind: "REFUSAL",
+    topic: interpretation.topic,
+    headline: "Molimo precizirajte pitanje",
+    directAnswer: "",
+    refusalReason: "NEEDS_CLARIFICATION" as RefusalReason,
+    refusal: {
+      message:
+        "Nismo sigurni što točno želite saznati. Molimo odaberite jedno od dolje navedenih pitanja ili preformulirajte upit.",
+      relatedTopics: interpretation.suggestedClarifications || [
+        "Koja je opća stopa PDV-a u Hrvatskoj?",
+        "Koji je prag za paušalni obrt?",
+        "Kako fiskalizirati račun?",
+        "Kada moram u sustav PDV-a?",
+      ],
+    },
+  } as AssistantResponse
+}
+
 function buildNoCitableRulesRefusal(
   base: Partial<AssistantResponse>,
-  topic: Topic
+  topic: Topic,
+  interpretation?: Interpretation
 ): AssistantResponse {
+  const suggestions = interpretation?.suggestedClarifications || [
+    "porez na dohodak",
+    "PDV stope",
+    "paušalni obrt",
+    "fiskalizacija",
+  ]
+
   return {
     ...base,
     kind: "REFUSAL",
@@ -342,9 +352,29 @@ function buildNoCitableRulesRefusal(
     refusalReason: "NO_CITABLE_RULES",
     refusal: {
       message: "Nismo pronašli službene izvore koji odgovaraju na vaše pitanje.",
-      relatedTopics: ["porez na dohodak", "PDV stope", "paušalni obrt", "fiskalizacija"],
+      relatedTopics: suggestions,
     },
   } as AssistantResponse
+}
+
+function getRequiredFieldsFromEntities(entities: string[]): string[] {
+  const requiredFields: string[] = []
+
+  for (const entity of entities) {
+    const entityLower = entity.toLowerCase()
+    for (const [domain, fields] of Object.entries(PERSONALIZATION_FIELDS)) {
+      if (entityLower.includes(domain) || domain.includes(entityLower)) {
+        requiredFields.push(...fields)
+      }
+    }
+  }
+
+  // Default fields if no specific match
+  if (requiredFields.length === 0) {
+    requiredFields.push("yearlyRevenue", "businessType")
+  }
+
+  return [...new Set(requiredFields)]
 }
 
 function formatValue(value: string, valueType: string): string {
@@ -361,7 +391,6 @@ function formatValue(value: string, valueType: string): string {
 }
 
 function generateRelatedQuestions(conceptSlugs: string[]): string[] {
-  // Static related questions based on concept areas
   const questionMap: Record<string, string[]> = {
     pausalni: ["Koji su uvjeti za paušalni obrt?", "Kada prelazim u redovno oporezivanje?"],
     pdv: ["Koje su stope PDV-a?", "Kada moram u sustav PDV-a?"],
@@ -384,3 +413,4 @@ function generateRelatedQuestions(conceptSlugs: string[]): string[] {
 export type { ConceptMatch } from "./concept-matcher"
 export type { RuleCandidate } from "./rule-selector"
 export type { ConflictResult } from "./conflict-detector"
+export type { Interpretation } from "./query-interpreter"

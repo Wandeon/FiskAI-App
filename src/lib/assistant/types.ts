@@ -66,6 +66,8 @@ export type RefusalReason =
   | "OUT_OF_SCOPE"
   | "MISSING_CLIENT_DATA"
   | "UNRESOLVED_CONFLICT"
+  | "NEEDS_CLARIFICATION"
+  | "UNSUPPORTED_JURISDICTION"
 
 // === SURFACE & TOPIC ===
 export type Surface = "MARKETING" | "APP"

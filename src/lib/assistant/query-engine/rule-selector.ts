@@ -31,6 +31,7 @@ export interface RuleCandidate {
     evidence: {
       id: string
       url: string
+      fetchedAt: Date | null
       source: {
         name: string
         url: string
