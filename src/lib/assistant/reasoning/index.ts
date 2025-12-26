@@ -68,6 +68,7 @@ export {
   type SinkMode,
   createAuditSink,
   createSSESink,
+  createMetricsSink,
   sendHeartbeat,
   consumeReasoning,
 } from "./sinks"
@@ -82,3 +83,25 @@ export {
 
 // Compatibility layer (for backward-compatible wrapper)
 export { buildAnswerCompat } from "./compat"
+
+// Feature Flags
+export {
+  isReasoningEnabled,
+  getReasoningMode,
+  isInReasoningBeta,
+  getReasoningModeForUser,
+  type ReasoningMode,
+} from "./feature-flags"
+
+// Shadow Mode
+export { runShadowMode, compareShadowResults } from "./shadow-runner"
+
+// Metrics
+export {
+  getMetrics,
+  createMetricsCollector,
+  resetMetricsSingleton,
+  type ReasoningMetrics,
+  type MetricEvent,
+  type MetricStats,
+} from "./metrics"
