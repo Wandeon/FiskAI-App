@@ -85,6 +85,14 @@ function getDomain(url: string): string {
 }
 
 /**
+ * Check if a URL points to a document (PDF, DOC, etc.) by extension
+ */
+function isDocumentUrl(url: string): boolean {
+  const documentPatterns = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|odt|ods|odp|rtf)$/i
+  return documentPatterns.test(url)
+}
+
+/**
  * Check if a URL should be crawled based on patterns
  */
 function shouldCrawlUrl(
@@ -103,10 +111,13 @@ function shouldCrawlUrl(
     if (excluded) return false
   }
 
-  // Skip common non-content URLs
+  // Skip non-content URLs (images, scripts, styles, archives)
+  // NOTE: Documents (PDF, DOC, etc.) are NOT skipped - they're handled specially
   const skipPatterns = [
-    /\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$/i,
-    /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|tar|gz)$/i, // Binary files (handled separately)
+    /\.(jpg|jpeg|png|gif|svg|webp|ico|bmp|tiff)$/i, // Images
+    /\.(css|js|woff|woff2|ttf|eot|map)$/i, // Web assets
+    /\.(zip|rar|tar|gz|7z|bz2)$/i, // Archives
+    /\.(mp3|mp4|avi|mov|wmv|flv|wav|ogg|webm)$/i, // Media
     /\/(login|logout|register|signup|signin|auth)\//i,
     /[?&](print|download)=/i,
     /#.+$/,
@@ -281,6 +292,20 @@ export async function crawlSite(
     const urlDomain = getDomain(normalizedUrl)
     if (!opts.followExternal && urlDomain !== domain) continue
 
+    // Handle document URLs (PDFs, DOCs, etc.) without fetching
+    // We just record them - the Sentinel's fetchDiscoveredItems will handle the actual download
+    if (isDocumentUrl(normalizedUrl)) {
+      console.log(`[site-crawler] Found document: ${normalizedUrl}`)
+      discoveredUrls.set(normalizedUrl, {
+        url: normalizedUrl,
+        title: null,
+        depth: item.depth,
+        foundOn: item.foundOn,
+      })
+      result.urlsDiscovered++
+      continue // Don't try to crawl the document for links
+    }
+
     console.log(`[site-crawler] Crawling (depth ${item.depth}): ${normalizedUrl}`)
 
     try {
@@ -298,10 +323,18 @@ export async function crawlSite(
 
       const contentType = response.headers.get("content-type") || ""
 
-      // Only process HTML pages
+      // Only process HTML pages for link extraction
       if (!contentType.includes("text/html")) {
-        // Still record non-HTML content URLs (PDFs, etc.)
-        if (contentType.includes("pdf") || contentType.includes("document")) {
+        // Record non-HTML content URLs that we didn't detect by extension
+        // (e.g., URLs without file extensions that return PDF content-type)
+        if (
+          contentType.includes("pdf") ||
+          contentType.includes("document") ||
+          contentType.includes("msword") ||
+          contentType.includes("spreadsheet") ||
+          contentType.includes("presentation")
+        ) {
+          console.log(`[site-crawler] Found document (by content-type): ${normalizedUrl}`)
           discoveredUrls.set(normalizedUrl, {
             url: normalizedUrl,
             title: null,
