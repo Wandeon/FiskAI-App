@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="hr">
+    <html lang="hr" className="dark">
       <body>
         <a href="#glavni-sadrzaj" className="skip-link">
           Preskoči na sadržaj
