@@ -1584,6 +1584,7 @@ enum AgentType {
   RELEASER
   ARBITER
   CONTENT_CLASSIFIER
+  CLAIM_EXTRACTOR
 }
 
 enum RuleStatus {

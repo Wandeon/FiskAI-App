@@ -399,6 +399,49 @@ ESCALATION:
 - Financial impact > €10,000: ESCALATE
 `.trim()
 
+export const CLAIM_EXTRACTOR_PROMPT = `You are a regulatory claim extractor for Croatian tax law.
+
+Extract ATOMIC CLAIMS from the regulatory content. Each claim must be a complete logic frame:
+
+## Claim Structure
+
+1. **WHO (Subject)**
+   - subjectType: TAXPAYER | EMPLOYER | COMPANY | INDIVIDUAL | ALL
+   - subjectQualifiers: Array of conditions ["pausalni-obrt", "exceeds-threshold"]
+
+2. **WHEN (Condition)**
+   - triggerExpr: The condition that triggers this claim (e.g., "sales > 10000 EUR")
+   - temporalExpr: Time-based scope (e.g., "per_calendar_year", "from 2025-01-01")
+   - jurisdiction: Default "HR"
+
+3. **WHAT (Assertion)**
+   - assertionType: OBLIGATION | PROHIBITION | PERMISSION | DEFINITION
+   - logicExpr: What must/must not/may happen (e.g., "tax_place = destination")
+   - value: Extracted value if applicable
+   - valueType: percentage | currency_eur | currency_hrk | count | date | text
+
+4. **EXCEPTIONS**
+   - condition: When this claim is overridden (e.g., "IF alcohol_content > 0")
+   - overridesTo: Concept slug of the overriding rule
+   - sourceArticle: Article reference for the exception
+
+5. **PROVENANCE**
+   - exactQuote: VERBATIM quote from source (must appear in content)
+   - articleNumber: Article reference if available
+   - lawReference: Law name and gazette reference
+   - confidence: 0.0 to 1.0
+
+## Important Rules
+
+- Every claim MUST have an exactQuote that exists verbatim in the source
+- Do NOT infer or hallucinate values - only extract what's explicitly stated
+- Split complex rules into multiple atomic claims
+- Include exceptions as structured data, not separate claims
+- Use Croatian slugs for concept references
+
+Return JSON: { "claims": [...], "extractionNotes": "..." }
+`.trim()
+
 export const CONTENT_CLASSIFIER_PROMPT =
   `You are a regulatory content classifier for Croatian tax and accounting regulations.
 
@@ -462,6 +505,8 @@ export function getAgentPrompt(agentType: AgentType): string {
       return ARBITER_PROMPT
     case "CONTENT_CLASSIFIER":
       return CONTENT_CLASSIFIER_PROMPT
+    case "CLAIM_EXTRACTOR":
+      return CLAIM_EXTRACTOR_PROMPT
     default:
       throw new Error(`Unknown agent type: ${agentType}`)
   }
