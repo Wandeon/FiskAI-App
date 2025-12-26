@@ -7,7 +7,9 @@ import { fetchWithRateLimit } from "../utils/rate-limiter"
 export interface CrawlOptions {
   maxDepth: number // How many link-levels deep to crawl
   maxUrls: number // Maximum URLs to discover
-  delayMs: number // Delay between requests
+  delayMs: number // Base delay between requests (deprecated, use min/max)
+  delayMinMs: number // Minimum delay between requests
+  delayMaxMs: number // Maximum delay between requests
   includePatterns?: RegExp[] // Only include URLs matching these patterns
   excludePatterns?: RegExp[] // Exclude URLs matching these patterns
   followExternal?: boolean // Follow links to other domains (default: false)
@@ -33,15 +35,27 @@ export interface CrawlResult {
 }
 
 const DEFAULT_OPTIONS: CrawlOptions = {
-  maxDepth: 3,
-  maxUrls: 1000,
-  delayMs: 1000,
+  maxDepth: 4, // Increased from 3
+  maxUrls: 2000, // Increased from 1000
+  delayMs: 2000, // Legacy, not used
+  delayMinMs: 2000, // Minimum 2 seconds
+  delayMaxMs: 5000, // Maximum 5 seconds
   followExternal: false,
   respectRobots: true,
 }
 
 /**
- * Sleep helper for rate limiting
+ * Randomized delay to avoid IP bans.
+ * Uses random jitter between min and max to avoid predictable patterns.
+ */
+function randomDelay(minMs: number, maxMs: number): Promise<void> {
+  const delay = minMs + Math.random() * (maxMs - minMs)
+  console.log(`[site-crawler] Waiting ${Math.round(delay)}ms before next request...`)
+  return new Promise((resolve) => setTimeout(resolve, delay))
+}
+
+/**
+ * Sleep helper for rate limiting (legacy)
  */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -309,9 +323,9 @@ export async function crawlSite(
     console.log(`[site-crawler] Crawling (depth ${item.depth}): ${normalizedUrl}`)
 
     try {
-      // Rate limiting
+      // Randomized delay to avoid IP bans
       if (result.urlsCrawled > 0) {
-        await sleep(opts.delayMs)
+        await randomDelay(opts.delayMinMs, opts.delayMaxMs)
       }
 
       const response = await fetchWithRateLimit(normalizedUrl)

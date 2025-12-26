@@ -26,20 +26,34 @@ interface SentinelConfig {
   crawlMaxDepth: number
   crawlMaxUrls: number
   crawlDelayMs: number
+  // Randomized delay range to avoid detection patterns
+  delayMinMs: number
+  delayMaxMs: number
 }
 
 const DEFAULT_CONFIG: SentinelConfig = {
-  maxItemsPerRun: 500,
-  maxPagesPerEndpoint: 5,
-  maxSitemapDepth: 3,
-  sitemapDelayMs: 500,
-  crawlMaxDepth: 3,
-  crawlMaxUrls: 500,
-  crawlDelayMs: 1000,
+  maxItemsPerRun: 5000, // Increased from 500
+  maxPagesPerEndpoint: 20, // Increased from 5
+  maxSitemapDepth: 5, // Increased from 3
+  sitemapDelayMs: 2000, // Base delay, will be randomized
+  crawlMaxDepth: 4, // Increased from 3
+  crawlMaxUrls: 2000, // Increased from 500
+  crawlDelayMs: 2000, // Base delay, will be randomized
+  delayMinMs: 2000, // Minimum 2 seconds
+  delayMaxMs: 5000, // Maximum 5 seconds
 }
 
 /**
- * Helper to add delay between requests
+ * Helper to add randomized delay between requests.
+ * Uses random jitter to avoid predictable patterns that could trigger IP bans.
+ */
+function randomDelay(minMs: number, maxMs: number): Promise<void> {
+  const delay = minMs + Math.random() * (maxMs - minMs)
+  return new Promise((resolve) => setTimeout(resolve, delay))
+}
+
+/**
+ * Helper to add fixed delay between requests (legacy)
  */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -55,7 +69,8 @@ async function scanSitemapRecursively(
   options: {
     maxDepth: number
     currentDepth?: number
-    delayMs: number
+    delayMinMs: number
+    delayMaxMs: number
     allowedNNTypes?: number[]
   }
 ): Promise<{ entries: SitemapEntry[]; sitemapsScanned: number; errors: string[] }> {
@@ -103,7 +118,8 @@ async function scanSitemapRecursively(
 
       // Recursively scan each child sitemap
       for (const childUrl of urlsToScan) {
-        await sleep(options.delayMs)
+        // Randomized delay to avoid IP bans
+        await randomDelay(options.delayMinMs, options.delayMaxMs)
 
         const childResult = await scanSitemapRecursively(childUrl, domain, {
           ...options,
@@ -140,6 +156,56 @@ export interface SentinelResult {
   endpointsChecked: number
   newItemsDiscovered: number
   errors: string[]
+}
+
+/**
+ * Find or create a RegulatorySource for the given domain.
+ * This prevents items from being SKIPPED just because a source wasn't pre-configured.
+ */
+async function findOrCreateSource(domain: string): Promise<{ id: string } | null> {
+  // First, try to find existing source by domain
+  let source = await db.regulatorySource.findFirst({
+    where: {
+      url: { contains: domain },
+    },
+  })
+
+  if (source) {
+    return source
+  }
+
+  // Try without www prefix
+  const domainWithoutWww = domain.replace(/^www\./, "")
+  source = await db.regulatorySource.findFirst({
+    where: {
+      url: { contains: domainWithoutWww },
+    },
+  })
+
+  if (source) {
+    return source
+  }
+
+  // Auto-create a new source for this domain
+  console.log(`[sentinel] Auto-creating RegulatorySource for ${domain}`)
+  try {
+    source = await db.regulatorySource.create({
+      data: {
+        name: `Auto: ${domain}`,
+        shortName: domain.split(".")[0].toUpperCase(),
+        url: `https://${domain}`,
+        sourceType: "GOVERNMENT",
+        jurisdiction: "HR",
+        isActive: true,
+        priority: 3, // Default medium priority
+      },
+    })
+    console.log(`[sentinel] Created RegulatorySource: ${source.id} for ${domain}`)
+    return source
+  } catch (error) {
+    console.error(`[sentinel] Failed to create source for ${domain}:`, error)
+    return null
+  }
 }
 
 /**
@@ -231,7 +297,8 @@ async function processEndpoint(
 
         const scanResult = await scanSitemapRecursively(baseUrl, endpoint.domain, {
           maxDepth: config.maxSitemapDepth,
-          delayMs: config.sitemapDelayMs,
+          delayMinMs: config.delayMinMs,
+          delayMaxMs: config.delayMaxMs,
           allowedNNTypes,
         })
 
@@ -320,6 +387,9 @@ async function processEndpoint(
 
         for (const pageUrl of paginationLinks) {
           try {
+            // Randomized delay between pagination requests to avoid IP bans
+            await randomDelay(config.delayMinMs, config.delayMaxMs)
+
             const pageResponse = await fetchWithRateLimit(pageUrl)
             if (pageResponse.ok) {
               const pageContent = await pageResponse.text()
@@ -340,9 +410,25 @@ async function processEndpoint(
       }
     }
 
+    // Deduplicate discovered URLs before creating items
+    const seenUrls = new Set<string>()
+    const uniqueUrls = discoveredUrls.filter((item) => {
+      if (seenUrls.has(item.url)) {
+        return false
+      }
+      seenUrls.add(item.url)
+      return true
+    })
+
+    if (uniqueUrls.length < discoveredUrls.length) {
+      console.log(
+        `[sentinel] Deduplicated ${discoveredUrls.length - uniqueUrls.length} duplicate URLs`
+      )
+    }
+
     // Create DiscoveredItem records for new URLs
     let newItemCount = 0
-    for (const item of discoveredUrls) {
+    for (const item of uniqueUrls) {
       try {
         // Check for existing item with same URL from this endpoint
         const existingItem = await db.discoveredItem.findFirst({
@@ -422,6 +508,23 @@ export async function runSentinel(
   }
 
   try {
+    // Reset error counts for endpoints that haven't been tried in 24 hours
+    // This allows previously failing endpoints to be retried
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const resetResult = await db.discoveryEndpoint.updateMany({
+      where: {
+        consecutiveErrors: { gte: 5 },
+        lastScrapedAt: { lt: twentyFourHoursAgo },
+      },
+      data: {
+        consecutiveErrors: 0,
+        lastError: null,
+      },
+    })
+    if (resetResult.count > 0) {
+      console.log(`[sentinel] Reset error counts for ${resetResult.count} endpoints`)
+    }
+
     // Get active endpoints, optionally filtered by priority
     const whereClause: Record<string, unknown> = {
       isActive: true,
@@ -533,18 +636,14 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
         const pageCount = (parsed.metadata?.pages as number) || 1
         const isScanned = isScannedPdf(parsed.text, pageCount)
 
-        // Find or create source
-        const source = await db.regulatorySource.findFirst({
-          where: {
-            url: { contains: item.endpoint.domain },
-          },
-        })
+        // Find or create source (auto-creates if not found)
+        const source = await findOrCreateSource(item.endpoint.domain)
 
         if (!source) {
-          console.log(`[sentinel] No source found for ${item.endpoint.domain}`)
+          console.log(`[sentinel] Could not find or create source for ${item.endpoint.domain}`)
           await db.discoveredItem.update({
             where: { id: item.id },
-            data: { status: "SKIPPED" },
+            data: { status: "SKIPPED", errorMessage: "No RegulatorySource available" },
           })
           continue
         }
@@ -710,87 +809,84 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
           },
         })
       } else {
-        // Find or create source
-        const source = await db.regulatorySource.findFirst({
+        // Find or create source (auto-creates if not found)
+        const source = await findOrCreateSource(item.endpoint.domain)
+
+        if (!source) {
+          console.log(`[sentinel] Could not find or create source for ${item.endpoint.domain}`)
+          await db.discoveredItem.update({
+            where: { id: item.id },
+            data: { status: "SKIPPED", errorMessage: "No RegulatorySource available" },
+          })
+          continue
+        }
+
+        // Check if this is a content change (item had previous hash)
+        const isContentChange = !!(item.contentHash && item.contentHash !== contentHash)
+
+        // Derive contentClass from contentType
+        const contentClassMap: Record<string, string> = {
+          html: "HTML",
+          pdf: "PDF_TEXT",
+          doc: "DOC",
+          docx: "DOCX",
+          xls: "XLS",
+          xlsx: "XLSX",
+          json: "JSON",
+          "json-ld": "JSON_LD",
+          xml: "XML",
+        }
+        const derivedContentClass = contentClassMap[contentType] || "HTML"
+
+        // Upsert evidence record (prevents duplicates with unique constraint on url+contentHash)
+        const evidence = await db.evidence.upsert({
           where: {
-            url: { contains: item.endpoint.domain },
+            url_contentHash: {
+              url: item.url,
+              contentHash,
+            },
+          },
+          create: {
+            sourceId: source.id,
+            url: item.url,
+            rawContent: content,
+            contentHash,
+            contentType: contentType,
+            contentClass: derivedContentClass,
+            hasChanged: isContentChange,
+            changeSummary: isContentChange
+              ? `Content updated from previous version (hash: ${item.contentHash?.slice(0, 8)}...)`
+              : null,
+          },
+          update: {
+            // If we re-encounter same content, just update fetchedAt timestamp
+            fetchedAt: new Date(),
           },
         })
 
-        if (source) {
-          // Check if this is a content change (item had previous hash)
-          const isContentChange = !!(item.contentHash && item.contentHash !== contentHash)
+        // Log audit event for evidence creation
+        await logAuditEvent({
+          action: "EVIDENCE_FETCHED",
+          entityType: "EVIDENCE",
+          entityId: evidence.id,
+          metadata: {
+            sourceId: source.id,
+            url: item.url,
+            contentHash: contentHash,
+          },
+        })
 
-          // Derive contentClass from contentType
-          const contentClassMap: Record<string, string> = {
-            html: "HTML",
-            pdf: "PDF_TEXT",
-            doc: "DOC",
-            docx: "DOCX",
-            xls: "XLS",
-            xlsx: "XLSX",
-            json: "JSON",
-            "json-ld": "JSON_LD",
-            xml: "XML",
-          }
-          const derivedContentClass = contentClassMap[contentType] || "HTML"
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "FETCHED",
+            processedAt: new Date(),
+            evidenceId: evidence.id,
+            contentHash,
+          },
+        })
 
-          // Upsert evidence record (prevents duplicates with unique constraint on url+contentHash)
-          const evidence = await db.evidence.upsert({
-            where: {
-              url_contentHash: {
-                url: item.url,
-                contentHash,
-              },
-            },
-            create: {
-              sourceId: source.id,
-              url: item.url,
-              rawContent: content,
-              contentHash,
-              contentType: contentType,
-              contentClass: derivedContentClass,
-              hasChanged: isContentChange,
-              changeSummary: isContentChange
-                ? `Content updated from previous version (hash: ${item.contentHash?.slice(0, 8)}...)`
-                : null,
-            },
-            update: {
-              // If we re-encounter same content, just update fetchedAt timestamp
-              fetchedAt: new Date(),
-            },
-          })
-
-          // Log audit event for evidence creation
-          await logAuditEvent({
-            action: "EVIDENCE_FETCHED",
-            entityType: "EVIDENCE",
-            entityId: evidence.id,
-            metadata: {
-              sourceId: source.id,
-              url: item.url,
-              contentHash: contentHash,
-            },
-          })
-
-          await db.discoveredItem.update({
-            where: { id: item.id },
-            data: {
-              status: "FETCHED",
-              processedAt: new Date(),
-              evidenceId: evidence.id,
-              contentHash,
-            },
-          })
-
-          fetched++
-        } else {
-          console.log(`[sentinel] No source found for ${item.endpoint.domain}`)
-          await db.discoveredItem.update({
-            where: { id: item.id },
-            data: { status: "SKIPPED" },
-          })
-        }
+        fetched++
       }
     } catch (_error) {
       failed++
