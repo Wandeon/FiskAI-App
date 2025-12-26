@@ -37,6 +37,9 @@ export {
   type Citation,
 } from "./types"
 
+// Re-export Surface from assistant types for convenience
+export type { Surface } from "@/lib/assistant/types"
+
 // Validation
 export {
   ReasoningEventSchema,
@@ -50,3 +53,32 @@ export {
 
 // Event Factory
 export { createEventFactory, type EventFactory, type EventEmitOptions } from "./event-factory"
+
+// Pipeline
+export {
+  buildAnswerWithReasoning,
+  type CompanyContext,
+  type ClarificationQuestion,
+  type ClarificationAnswer,
+} from "./pipeline"
+
+// Sinks
+export {
+  type ReasoningSink,
+  type SinkMode,
+  createAuditSink,
+  createSSESink,
+  sendHeartbeat,
+  consumeReasoning,
+} from "./sinks"
+
+// Stages
+export {
+  contextResolutionStage,
+  sourceDiscoveryStage,
+  type ContextResolution,
+  type SourceDiscoveryResult,
+} from "./stages"
+
+// Compatibility layer (for backward-compatible wrapper)
+export { buildAnswerCompat } from "./compat"
