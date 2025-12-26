@@ -2004,6 +2004,40 @@ model ClaimException {
   @@index([claimId])
 }
 
+// ============================================================================
+// SHAPE 2: TAXONOMY (Concept Graph)
+// ============================================================================
+
+model ConceptNode {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  nameHr          String
+  nameEn          String?
+
+  // Taxonomy relations
+  parentId        String?
+  parent          ConceptNode?  @relation("ConceptNodeHierarchy", fields: [parentId], references: [id])
+  children        ConceptNode[] @relation("ConceptNodeHierarchy")
+
+  // Synonyms & hyponyms
+  synonyms        String[]      // ["sok", "juice", "voćni sok"]
+  hyponyms        String[]      // More specific terms
+
+  // Legal categorization
+  legalCategory   String?       // "bezalkoholno piće" (the legal term)
+  vatCategory     String?       // Links to VAT rate concept
+
+  // Search optimization
+  searchTerms     String[]      // All terms that should match this concept
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([legalCategory])
+  @@index([vatCategory])
+  @@index([parentId])
+}
+
 // Truth health snapshot for monitoring system integrity
 model TruthHealthSnapshot {
   id                        String   @id @default(cuid())
