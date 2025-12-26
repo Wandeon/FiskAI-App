@@ -76,9 +76,12 @@ export function parseHtmlList(html: string, config: ListParserConfig): ListItem[
     // Resolve relative URLs
     const url = new URL(href, config.baseUrl).href
 
-    // Skip external links and anchors
+    // Skip external links
     if (!url.includes(new URL(config.baseUrl).hostname)) return
-    if (url.includes("#")) return
+
+    // Skip pure anchor links but allow document URLs with anchors
+    // e.g., skip "#section" but keep "/doc.pdf#page=1"
+    if (href.startsWith("#")) return
 
     // Find title
     let title: string | null = null
@@ -113,6 +116,50 @@ export function parseHtmlList(html: string, config: ListParserConfig): ListItem[
     seen.add(item.url)
     return true
   })
+}
+
+/**
+ * Extract all document links from a page (PDFs, DOCs, etc.)
+ * This finds documents anywhere on the page, not just in list items.
+ */
+export function extractDocumentLinks(html: string, baseUrl: string): ListItem[] {
+  const dom = new JSDOM(html)
+  const document = dom.window.document
+  const items: ListItem[] = []
+  const seen = new Set<string>()
+
+  const documentExtensions = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|odt|ods|odp|rtf)$/i
+  const hostname = new URL(baseUrl).hostname
+
+  // Find all links on the page
+  const allLinks = document.querySelectorAll("a[href]")
+
+  allLinks.forEach((link) => {
+    const href = link.getAttribute("href")
+    if (!href) return
+
+    try {
+      const url = new URL(href, baseUrl).href
+
+      // Skip external links
+      if (!url.includes(hostname)) return
+
+      // Only include document URLs
+      if (!documentExtensions.test(url)) return
+
+      // Deduplicate
+      if (seen.has(url)) return
+      seen.add(url)
+
+      const title = link.textContent?.trim() || null
+
+      items.push({ url, title, date: null })
+    } catch {
+      // Invalid URL
+    }
+  })
+
+  return items
 }
 
 /**
