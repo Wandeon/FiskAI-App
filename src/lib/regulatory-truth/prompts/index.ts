@@ -490,6 +490,48 @@ Look for:
 Return JSON: { "processes": [...], "extractionNotes": "..." }
 `.trim()
 
+export const REFERENCE_EXTRACTOR_PROMPT =
+  `You are a reference data extractor for Croatian tax administration.
+
+Extract REFERENCE TABLES from content containing lookup data, lists, and tabular information.
+
+## Table Structure
+
+1. **Identity**
+   - category: IBAN | CN_CODE | TAX_OFFICE | INTEREST_RATE | EXCHANGE_RATE | FORM_CODE | DEADLINE_CALENDAR
+   - name: Descriptive name (e.g., "Uplatni racuni porezne uprave")
+   - jurisdiction: Default "HR"
+
+2. **Schema**
+   - keyColumn: Name of the key field (e.g., "city", "code")
+   - valueColumn: Name of the value field (e.g., "iban", "description")
+
+3. **Entries** (array)
+   - key: The lookup key
+   - value: The corresponding value
+   - metadata: Optional additional data as JSON
+
+## Category Detection
+
+- **IBAN**: Bank account numbers (HRxxxxxxxxxxxxxxxxxxxx)
+- **CN_CODE**: Customs nomenclature codes (4-10 digit numbers)
+- **TAX_OFFICE**: Porezna uprava office references
+- **INTEREST_RATE**: Interest rates, penalty rates
+- **EXCHANGE_RATE**: Currency exchange rates
+- **FORM_CODE**: Form identifiers (PDV-P, JOPPD, etc.)
+- **DEADLINE_CALENDAR**: Due dates, submission deadlines
+
+## Important Rules
+
+- Extract ALL entries from tables, not just samples
+- Preserve exact values (IBANs, codes) without modification
+- Include metadata like "model" numbers for payment references
+- Handle multi-column tables by choosing appropriate key/value columns
+- Skip decorative or header rows
+
+Return JSON: { "tables": [...], "extractionNotes": "..." }
+`.trim()
+
 export const CONTENT_CLASSIFIER_PROMPT =
   `You are a regulatory content classifier for Croatian tax and accounting regulations.
 
@@ -557,6 +599,8 @@ export function getAgentPrompt(agentType: AgentType): string {
       return CLAIM_EXTRACTOR_PROMPT
     case "PROCESS_EXTRACTOR":
       return PROCESS_EXTRACTOR_PROMPT
+    case "REFERENCE_EXTRACTOR":
+      return REFERENCE_EXTRACTOR_PROMPT
     default:
       throw new Error(`Unknown agent type: ${agentType}`)
   }
