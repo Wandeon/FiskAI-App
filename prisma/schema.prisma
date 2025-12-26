@@ -1558,6 +1558,7 @@ enum ListingStrategy {
   HTML_TABLE
   PAGINATION
   DATE_FILTERED
+  CRAWL // Recursive site crawling to build custom sitemaps
 }
 
 enum DiscoveredItemStatus {

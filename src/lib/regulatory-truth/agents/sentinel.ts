@@ -16,12 +16,16 @@ import { detectBinaryType, parseBinaryContent } from "../utils/binary-parser"
 import { ocrQueue, extractQueue } from "../workers/queues"
 import { isScannedPdf } from "../utils/ocr-processor"
 import { isBlockedDomain } from "../utils/concept-resolver"
+import { crawlSite, CrawlOptions } from "./site-crawler"
 
 interface SentinelConfig {
   maxItemsPerRun: number
   maxPagesPerEndpoint: number
   maxSitemapDepth: number
   sitemapDelayMs: number
+  crawlMaxDepth: number
+  crawlMaxUrls: number
+  crawlDelayMs: number
 }
 
 const DEFAULT_CONFIG: SentinelConfig = {
@@ -29,6 +33,9 @@ const DEFAULT_CONFIG: SentinelConfig = {
   maxPagesPerEndpoint: 5,
   maxSitemapDepth: 3,
   sitemapDelayMs: 500,
+  crawlMaxDepth: 3,
+  crawlMaxUrls: 500,
+  crawlDelayMs: 1000,
 }
 
 /**
@@ -257,6 +264,41 @@ async function processEndpoint(
           date: e.lastmod || null,
         }))
       }
+    } else if (endpoint.listingStrategy === "CRAWL") {
+      // Recursive site crawling to build custom sitemap
+      console.log(`[sentinel] Starting site crawl for ${endpoint.domain}`)
+
+      // Get crawl options from metadata
+      const crawlMeta = endpoint.metadata as {
+        maxDepth?: number
+        maxUrls?: number
+        includePatterns?: string[]
+        excludePatterns?: string[]
+      } | null
+
+      const crawlOptions: Partial<CrawlOptions> = {
+        maxDepth: crawlMeta?.maxDepth ?? config.crawlMaxDepth,
+        maxUrls: crawlMeta?.maxUrls ?? config.crawlMaxUrls,
+        delayMs: config.crawlDelayMs,
+        includePatterns: crawlMeta?.includePatterns?.map((p) => new RegExp(p)),
+        excludePatterns: crawlMeta?.excludePatterns?.map((p) => new RegExp(p)),
+      }
+
+      const crawlResult = await crawlSite(baseUrl, crawlOptions)
+
+      console.log(
+        `[sentinel] Crawl complete: ${crawlResult.urlsCrawled} pages, ${crawlResult.urlsDiscovered} URLs`
+      )
+
+      if (crawlResult.errors.length > 0) {
+        console.warn(`[sentinel] Crawl had ${crawlResult.errors.length} errors`)
+      }
+
+      discoveredUrls = crawlResult.urls.map((u) => ({
+        url: u.url,
+        title: u.title,
+        date: null,
+      }))
     } else {
       // HTML-based parsing
       const items = parseHtmlList(content, {
