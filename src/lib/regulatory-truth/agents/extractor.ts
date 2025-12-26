@@ -13,6 +13,7 @@ import { validateExtraction } from "../utils/deterministic-validators"
 import { withSoftFail } from "../utils/soft-fail"
 import { getExtractableContent } from "../utils/content-provider"
 import { isBlockedDomain } from "../utils/concept-resolver"
+import { generateCoverageReport, saveCoverageReport } from "../quality/coverage-report"
 
 // =============================================================================
 // EXTRACTOR AGENT
@@ -253,6 +254,17 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     console.warn(
       `[extractor] Rejected ${rejectedExtractions.length}/${result.output.extractions.length} extractions`
     )
+  }
+
+  // Generate and save coverage report
+  try {
+    const coverageReport = await generateCoverageReport(evidenceId)
+    await saveCoverageReport(coverageReport)
+    console.log(
+      `[extractor] Coverage: ${(coverageReport.coverageScore * 100).toFixed(0)}% (${coverageReport.isComplete ? "complete" : "incomplete"})`
+    )
+  } catch (coverageError) {
+    console.warn(`[extractor] Failed to generate coverage report: ${coverageError}`)
   }
 
   return {
