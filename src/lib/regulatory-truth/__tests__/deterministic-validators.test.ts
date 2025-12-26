@@ -383,4 +383,53 @@ describe("deterministic-validators", () => {
       assert.strictEqual(result.valid, true)
     })
   })
+
+  describe("validateValueInQuote - edge cases (INV-3 audit)", () => {
+    it("handles space as thousand separator", () => {
+      const result = validateValueInQuote("40000", "prag iznosi 40 000 EUR")
+      assert.strictEqual(result.valid, true)
+    })
+
+    it("handles trailing period on date", () => {
+      const result = validateValueInQuote("2025-01-15", "do 15.01.2025.")
+      assert.strictEqual(result.valid, true)
+    })
+
+    it("handles short date format D.M.YYYY", () => {
+      const result = validateValueInQuote("2025-01-05", "do 5.1.2025")
+      assert.strictEqual(result.valid, true)
+    })
+
+    it("handles JSON exchange rate format", () => {
+      const result = validateValueInQuote("7.53450", '"srednji_tecaj": "7.53450"')
+      assert.strictEqual(result.valid, true)
+    })
+
+    it("handles IBAN as text match", () => {
+      const result = validateValueInQuote(
+        "HR1210010051863000160",
+        "IBAN: HR1210010051863000160"
+      )
+      assert.strictEqual(result.valid, true)
+    })
+
+    it("rejects partial year match", () => {
+      const result = validateValueInQuote("25", "Za 2025. godinu")
+      assert.strictEqual(result.valid, false)
+    })
+
+    it("handles decimal with comma locale", () => {
+      const result = validateValueInQuote("7.5345", "tecaj iznosi 7,5345")
+      assert.strictEqual(result.valid, true)
+    })
+
+    // Known issue: OCR diacritic corruption causes false negatives
+    // This test documents the current behavior (fails) - see HIGH-02 in audit
+    it("fails on OCR diacritic corruption (known issue HIGH-02)", () => {
+      const result = validateValueInQuote("2025-01-15", "do 15. sijecnja 2025.")
+      // Currently fails - diacritics not normalized
+      assert.strictEqual(result.valid, false)
+      assert.ok(result.error?.includes("not found"))
+    })
+  })
 })
