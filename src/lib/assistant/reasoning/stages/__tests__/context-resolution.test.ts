@@ -1,15 +1,18 @@
 // src/lib/assistant/reasoning/stages/__tests__/context-resolution.test.ts
 import { describe, it, expect } from "vitest"
-import { contextResolutionStage } from "../context-resolution"
+import { contextResolutionStage, type ContextResolution } from "../context-resolution"
 import { createEventFactory } from "../../event-factory"
-import type { ContextResolutionPayload } from "../../types"
+import type { ContextResolutionPayload, ReasoningEvent } from "../../types"
 
 describe("contextResolutionStage", () => {
   it("yields started event first", async () => {
     const factory = createEventFactory("req_test")
     const generator = contextResolutionStage(factory, "Koji je prag za PDV?")
 
-    const { value: startedEvent } = await generator.next()
+    const { value: startedEvent } = (await generator.next()) as {
+      value: ReasoningEvent
+      done: boolean
+    }
 
     expect(startedEvent.stage).toBe("CONTEXT_RESOLUTION")
     expect(startedEvent.status).toBe("started")
@@ -21,7 +24,10 @@ describe("contextResolutionStage", () => {
     const generator = contextResolutionStage(factory, "Koji je prag za PDV?")
 
     await generator.next() // started
-    const { value: completeEvent } = await generator.next()
+    const { value: completeEvent } = (await generator.next()) as {
+      value: ReasoningEvent
+      done: boolean
+    }
 
     expect(completeEvent.stage).toBe("CONTEXT_RESOLUTION")
     expect(completeEvent.status).toBe("complete")
@@ -40,7 +46,10 @@ describe("contextResolutionStage", () => {
 
     await generator.next() // started
     await generator.next() // complete
-    const { value: resolution, done } = await generator.next()
+    const { value: resolution, done } = (await generator.next()) as {
+      value: ContextResolution
+      done: boolean
+    }
 
     expect(done).toBe(true)
     expect(resolution).toBeDefined()
@@ -53,7 +62,10 @@ describe("contextResolutionStage", () => {
     const generator = contextResolutionStage(factory, "porez")
 
     await generator.next() // started
-    const { value: completeEvent } = await generator.next()
+    const { value: completeEvent } = (await generator.next()) as {
+      value: ReasoningEvent
+      done: boolean
+    }
     const data = completeEvent.data as ContextResolutionPayload
 
     // Vague queries should flag for clarification

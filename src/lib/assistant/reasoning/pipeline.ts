@@ -3,7 +3,10 @@ import { createEventFactory } from "./event-factory"
 import { contextResolutionStage } from "./stages/context-resolution"
 import { sourceDiscoveryStage } from "./stages/source-discovery"
 import type { ReasoningEvent, TerminalPayload, RefusalPayload, ErrorPayload } from "./types"
-import type { Surface } from "@/lib/assistant/types"
+import type { Surface } from "@/lib/assistant/types" // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { ContextResolution } from "./stages/context-resolution"
+import type { SourceDiscoveryResult } from "./stages/source-discovery"
+import type { ConceptMatch } from "@/lib/assistant/query-engine/concept-matcher"
 import { extractKeywords } from "@/lib/assistant/query-engine/text-utils"
 import { selectRules } from "@/lib/assistant/query-engine/rule-selector"
 import { detectConflicts } from "@/lib/assistant/query-engine/conflict-detector"
@@ -29,7 +32,7 @@ export interface ClarificationAnswer {
 export async function* buildAnswerWithReasoning(
   requestId: string,
   query: string,
-  surface: Surface,
+  _surface: Surface,
   context?: CompanyContext,
   clarificationCallback?: (question: ClarificationQuestion) => Promise<ClarificationAnswer>
 ): AsyncGenerator<ReasoningEvent, TerminalPayload> {
@@ -38,14 +41,11 @@ export async function* buildAnswerWithReasoning(
   try {
     // Stage 1-2: Context Resolution
     const contextGenerator = contextResolutionStage(factory, query, context)
-    let resolution
     for await (const event of contextGenerator) {
       yield event
-      if (event.status === "complete") {
-        resolution = event.data
-      }
     }
-    resolution = await contextGenerator.next().then((r) => r.value)
+    const contextResult = await contextGenerator.next()
+    const resolution = contextResult.value as ContextResolution
 
     // Handle clarification if needed
     if (resolution.requiresClarification && clarificationCallback) {
@@ -69,13 +69,14 @@ export async function* buildAnswerWithReasoning(
     for await (const event of sourcesGenerator) {
       yield event
     }
-    const sourcesResult = await sourcesGenerator.next().then((r) => r.value)
+    const sourcesGeneratorResult = await sourcesGenerator.next()
+    const sourcesResult = sourcesGeneratorResult.value as SourceDiscoveryResult
 
     // If no sources, return REFUSAL
     if (sourcesResult.sources.length === 0) {
       const refusal: RefusalPayload = {
         reason: "NO_CITABLE_RULES",
-        message: "Nismo pronasli sluzbene izvore koji odgovaraju na vase pitanje.",
+        message: "Nismo pronašli službene izvore koji odgovaraju na vaše pitanje.",
         relatedTopics: ["porez na dohodak", "PDV stope", "pausalni obrt"],
       }
 
@@ -95,7 +96,7 @@ export async function* buildAnswerWithReasoning(
       message: "Retrieving applicable rules...",
     })
 
-    const conceptSlugs = sourcesResult.conceptMatches.map((c) => c.slug)
+    const conceptSlugs = sourcesResult.conceptMatches.map((c: ConceptMatch) => c.slug)
     const selectionResult = await selectRules(conceptSlugs)
 
     yield factory.emit({
@@ -111,7 +112,7 @@ export async function* buildAnswerWithReasoning(
     if (selectionResult.rules.length === 0) {
       const refusal: RefusalPayload = {
         reason: "NO_CITABLE_RULES",
-        message: "Nismo pronasli primjenjive propise za vase pitanje.",
+        message: "Nismo pronašli primjenjive propise za vaše pitanje.",
       }
 
       yield factory.emit({
@@ -158,7 +159,7 @@ export async function* buildAnswerWithReasoning(
     if (conflictResult.hasConflict && !conflictResult.canResolve) {
       const refusal: RefusalPayload = {
         reason: "UNRESOLVED_CONFLICT",
-        message: "Pronadjeni su proturjecni propisi.",
+        message: "Pronađeni su proturječni propisi.",
       }
 
       yield factory.emit({
@@ -214,7 +215,7 @@ export async function* buildAnswerWithReasoning(
     if (!citations || !citations.primary.quote) {
       const refusal: RefusalPayload = {
         reason: "NO_CITABLE_RULES",
-        message: "Nismo pronasli dovoljno pouzdane izvore.",
+        message: "Nismo pronašli dovoljno pouzdane izvore.",
       }
 
       yield factory.emit({

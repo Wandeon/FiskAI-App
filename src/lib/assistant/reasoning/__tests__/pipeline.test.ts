@@ -1,7 +1,7 @@
 // src/lib/assistant/reasoning/__tests__/pipeline.test.ts
 import { describe, it, expect, vi } from "vitest"
 import { buildAnswerWithReasoning } from "../pipeline"
-import { isTerminal } from "../types"
+import { isTerminal, type ReasoningEvent, type TerminalPayload } from "../types"
 
 // Mock dependencies
 vi.mock("@/lib/assistant/query-engine/concept-matcher", () => ({
@@ -9,21 +9,22 @@ vi.mock("@/lib/assistant/query-engine/concept-matcher", () => ({
 }))
 
 vi.mock("@/lib/assistant/query-engine/rule-selector", () => ({
-  selectRules: vi
-    .fn()
-    .mockResolvedValue({
-      rules: [],
-      ineligible: [],
-      hasMissingContext: false,
-      missingContextRuleIds: [],
-      asOfDate: new Date().toISOString(),
-    }),
+  selectRules: vi.fn().mockResolvedValue({
+    rules: [],
+    ineligible: [],
+    hasMissingContext: false,
+    missingContextRuleIds: [],
+    asOfDate: new Date().toISOString(),
+  }),
 }))
 
 describe("buildAnswerWithReasoning", () => {
   it("yields CONTEXT_RESOLUTION started as first event", async () => {
     const generator = buildAnswerWithReasoning("req_test", "test query", "APP")
-    const { value: firstEvent } = await generator.next()
+    const { value: firstEvent } = (await generator.next()) as {
+      value: ReasoningEvent
+      done: boolean
+    }
 
     expect(firstEvent.stage).toBe("CONTEXT_RESOLUTION")
     expect(firstEvent.status).toBe("started")
@@ -48,7 +49,7 @@ describe("buildAnswerWithReasoning", () => {
       // consume all events
     }
     // Get the return value
-    const { value, done } = await generator.next()
+    const { value, done } = (await generator.next()) as { value: TerminalPayload; done: boolean }
 
     // When done, value is the return value
     if (done && value) {

@@ -2,21 +2,19 @@
 import { describe, it, expect, vi } from "vitest"
 import { sourceDiscoveryStage } from "../source-discovery"
 import { createEventFactory } from "../../event-factory"
-import type { SourcesPayload } from "../../types"
+import type { SourcesPayload, ReasoningEvent } from "../../types"
 
 // Mock concept matcher
 vi.mock("@/lib/assistant/query-engine/concept-matcher", () => ({
-  matchConcepts: vi
-    .fn()
-    .mockResolvedValue([
-      {
-        conceptId: "c1",
-        slug: "pdv-stopa",
-        nameHr: "PDV stopa",
-        score: 0.9,
-        matchedKeywords: ["pdv", "stopa"],
-      },
-    ]),
+  matchConcepts: vi.fn().mockResolvedValue([
+    {
+      conceptId: "c1",
+      slug: "pdv-stopa",
+      nameHr: "PDV stopa",
+      score: 0.9,
+      matchedKeywords: ["pdv", "stopa"],
+    },
+  ]),
 }))
 
 describe("sourceDiscoveryStage", () => {
@@ -24,7 +22,10 @@ describe("sourceDiscoveryStage", () => {
     const factory = createEventFactory("req_test")
     const generator = sourceDiscoveryStage(factory, ["pdv", "stopa"])
 
-    const { value: startedEvent } = await generator.next()
+    const { value: startedEvent } = (await generator.next()) as {
+      value: ReasoningEvent
+      done: boolean
+    }
 
     expect(startedEvent.stage).toBe("SOURCES")
     expect(startedEvent.status).toBe("started")
@@ -37,7 +38,10 @@ describe("sourceDiscoveryStage", () => {
 
     await generator.next() // started
 
-    const { value: progressEvent } = await generator.next()
+    const { value: progressEvent } = (await generator.next()) as {
+      value: ReasoningEvent
+      done: boolean
+    }
     expect(progressEvent.stage).toBe("SOURCES")
     expect(progressEvent.status).toBe("progress")
     expect(progressEvent.message).toContain("Found:")
@@ -47,7 +51,7 @@ describe("sourceDiscoveryStage", () => {
     const factory = createEventFactory("req_test")
     const generator = sourceDiscoveryStage(factory, ["pdv", "stopa"])
 
-    const events: any[] = []
+    const events: ReasoningEvent[] = []
     for await (const event of generator) {
       events.push(event)
     }
