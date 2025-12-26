@@ -532,6 +532,55 @@ Extract REFERENCE TABLES from content containing lookup data, lists, and tabular
 Return JSON: { "tables": [...], "extractionNotes": "..." }
 `.trim()
 
+export const ASSET_EXTRACTOR_PROMPT =
+  `You are a regulatory document extractor for Croatian tax administration.
+
+Extract REGULATORY ASSETS (forms, templates, instructions) from content.
+
+## Asset Structure
+
+1. **Identity**
+   - formCode: Official form code (e.g., "PDV-P", "JOPPD", "PD")
+   - officialName: Full official name
+   - description: Purpose description
+
+2. **Access**
+   - downloadUrl: Direct link to download (must be absolute URL)
+   - format: PDF | XML | XLS | XLSX | DOC | DOCX | HTML
+   - fileSize: Size in bytes (if available)
+
+3. **Classification**
+   - assetType: FORM | TEMPLATE | GUIDE | INSTRUCTION | REGULATION_TEXT
+   - stepNumber: Which process step uses this (if applicable)
+
+4. **Validity**
+   - validFrom: ISO date when asset became valid
+   - validUntil: ISO date when asset expires (if applicable)
+   - version: Version string if documented
+
+5. **Provenance**
+   - sourceUrl: Page where this asset was found
+
+## Detection Patterns
+
+Look for:
+- Links with .pdf, .xlsx, .doc extensions
+- Form references (Obrazac, Prilog, Uputa)
+- Download buttons or links
+- File size indicators
+- Version numbers
+
+## Important Rules
+
+- Extract absolute URLs, resolve relative URLs to absolute
+- Include ALL downloadable assets, not just forms
+- Capture form codes where documented
+- Include instructions and guides, not just forms
+- Skip decorative images or icons
+
+Return JSON: { "assets": [...], "extractionNotes": "..." }
+`.trim()
+
 export const CONTENT_CLASSIFIER_PROMPT =
   `You are a regulatory content classifier for Croatian tax and accounting regulations.
 
@@ -601,6 +650,8 @@ export function getAgentPrompt(agentType: AgentType): string {
       return PROCESS_EXTRACTOR_PROMPT
     case "REFERENCE_EXTRACTOR":
       return REFERENCE_EXTRACTOR_PROMPT
+    case "ASSET_EXTRACTOR":
+      return ASSET_EXTRACTOR_PROMPT
     default:
       throw new Error(`Unknown agent type: ${agentType}`)
   }
