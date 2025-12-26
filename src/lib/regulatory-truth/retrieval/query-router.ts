@@ -7,20 +7,12 @@ import {
 } from "../schemas/query-intent"
 import { z } from "zod"
 
-// Engines - STUBBED for now (will be implemented in Tasks 2-6)
-// import { runLogicEngine } from "./logic-engine"
+// Engines
+import { runLogicEngine } from "./logic-engine"
 // import { runProcessEngine } from "./process-engine"
 // import { runReferenceEngine } from "./reference-engine"
 // import { runAssetEngine } from "./asset-engine"
 // import { runTemporalEngine } from "./temporal-engine"
-
-// Stub implementations until engines are created
-async function runLogicEngine(
-  query: string,
-  entities: { subjects: string[]; conditions: string[]; products: string[] }
-): Promise<unknown> {
-  return { stub: true, engine: "logic", query, entities }
-}
 
 async function runProcessEngine(
   query: string,
