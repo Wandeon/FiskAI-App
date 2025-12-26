@@ -1820,6 +1820,7 @@ model Evidence {
   atomicClaims    AtomicClaim[]
   processes       RegulatoryProcess[]
   referenceTables ReferenceTable[]
+  assets          RegulatoryAsset[]
 
   @@unique([url, contentHash])
   @@index([sourceId])
@@ -2060,6 +2061,7 @@ model RegulatoryProcess {
 
   // Relations
   steps           ProcessStep[]
+  assets          RegulatoryAsset[]
   evidenceId      String?
   evidence        Evidence?   @relation(fields: [evidenceId], references: [id])
 
@@ -2142,6 +2144,48 @@ model ReferenceEntry {
 
   @@index([tableId, key])
   @@index([tableId])
+}
+
+// ============================================================================
+// SHAPE 6: DOCUMENT (Asset Repository)
+// ============================================================================
+
+model RegulatoryAsset {
+  id              String      @id @default(cuid())
+
+  // Identity
+  formCode        String?     // "PDV-P", "JOPPD"
+  officialName    String
+  description     String?     @db.Text
+
+  // Access
+  downloadUrl     String
+  format          AssetFormat
+  fileSize        Int?
+
+  // Context
+  assetType       AssetType
+  processId       String?
+  process         RegulatoryProcess? @relation(fields: [processId], references: [id])
+  stepNumber      Int?
+
+  // Validity
+  validFrom       DateTime?
+  validUntil      DateTime?
+  version         String?
+
+  // Provenance
+  sourceUrl       String
+  evidenceId      String?
+  evidence        Evidence?   @relation(fields: [evidenceId], references: [id])
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([formCode])
+  @@index([assetType])
+  @@index([processId])
+  @@index([evidenceId])
 }
 
 // Truth health snapshot for monitoring system integrity
