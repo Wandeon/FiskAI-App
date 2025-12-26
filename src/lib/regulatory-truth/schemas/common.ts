@@ -21,6 +21,7 @@ export const AgentTypeSchema = z.enum([
   "REFERENCE_EXTRACTOR",
   "ASSET_EXTRACTOR",
   "TRANSITIONAL_EXTRACTOR",
+  "QUERY_CLASSIFIER",
 ])
 export type AgentType = z.infer<typeof AgentTypeSchema>
 

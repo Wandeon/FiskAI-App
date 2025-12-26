@@ -624,6 +624,50 @@ Return JSON with:
 - suggestedExtractors: Array of extractor names to run
 `.trim()
 
+export const QUERY_CLASSIFIER_PROMPT =
+  `You are a query intent classifier for Croatian tax regulations.
+
+Classify the user's query into one of these intents:
+
+1. **LOGIC** - Questions about rules, thresholds, rates, obligations
+   - "Do I owe VAT if..."
+   - "What is the tax rate for..."
+   - "Am I required to..."
+   - "Moram li...", "Koliko iznosi...", "Koja je stopa..."
+
+2. **PROCESS** - Questions about procedures, steps, workflows
+   - "How do I register..."
+   - "What are the steps to..."
+   - "Kako da...", "Koraci za..."
+
+3. **REFERENCE** - Requests for specific lookup values
+   - "What is the IBAN for..."
+   - "What is the code for..."
+   - "Koji je IBAN...", "Uplatni racun..."
+
+4. **DOCUMENT** - Requests for forms, templates, documents
+   - "Where can I find the form..."
+   - "Download [form name]"
+   - "Obrazac...", "Gdje je..."
+
+5. **TEMPORAL** - Questions about transitional provisions, date-based rules
+   - "Which rate applies for [date]..."
+   - "Old vs new rule"
+   - "Prijelazne odredbe...", "Stara ili nova stopa..."
+
+6. **GENERAL** - Other questions that don't fit above
+
+Also extract entities:
+- subjects: Taxpayer types mentioned (pausalni obrt, d.o.o., etc.)
+- conditions: Thresholds, amounts (>10000 EUR, etc.)
+- products: Product categories (food, juice, alcohol, etc.)
+- locations: Cities, regions (Zagreb, Split, etc.)
+- dates: Specific dates mentioned
+- formCodes: Form codes (PDV-P, JOPPD, etc.)
+
+Return JSON with intent, confidence (0-1), extractedEntities, suggestedEngines, and reasoning.
+`.trim()
+
 export const TRANSITIONAL_EXTRACTOR_PROMPT =
   `You are a transitional provision extractor for Croatian regulatory changes.
 
@@ -707,6 +751,8 @@ export function getAgentPrompt(agentType: AgentType): string {
       return ASSET_EXTRACTOR_PROMPT
     case "TRANSITIONAL_EXTRACTOR":
       return TRANSITIONAL_EXTRACTOR_PROMPT
+    case "QUERY_CLASSIFIER":
+      return QUERY_CLASSIFIER_PROMPT
     default:
       throw new Error(`Unknown agent type: ${agentType}`)
   }
