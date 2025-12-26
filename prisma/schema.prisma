@@ -1818,6 +1818,7 @@ model Evidence {
   extractionRejected ExtractionRejected[]
   artifacts       EvidenceArtifact[]
   atomicClaims    AtomicClaim[]
+  processes       RegulatoryProcess[]
 
   @@unique([url, contentHash])
   @@index([sourceId])
@@ -2036,6 +2037,63 @@ model ConceptNode {
   @@index([legalCategory])
   @@index([vatCategory])
   @@index([parentId])
+}
+
+// ============================================================================
+// SHAPE 4: WORKFLOW (Process Graph)
+// ============================================================================
+
+model RegulatoryProcess {
+  id              String      @id @default(cuid())
+  slug            String      @unique
+  titleHr         String
+  titleEn         String?
+  jurisdiction    String      @default("HR")
+
+  // Process metadata
+  processType     ProcessType
+  estimatedTime   String?     // "3-5 radnih dana"
+
+  // Prerequisites as JSON
+  prerequisites   Json?       // { "requires": ["digital-certificate"] }
+
+  // Relations
+  steps           ProcessStep[]
+  evidenceId      String?
+  evidence        Evidence?   @relation(fields: [evidenceId], references: [id])
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([processType])
+  @@index([jurisdiction])
+  @@index([evidenceId])
+}
+
+model ProcessStep {
+  id              String   @id @default(cuid())
+  processId       String
+  orderNum        Int
+
+  // Step content
+  actionHr        String   @db.Text
+  actionEn        String?  @db.Text
+
+  // Dependencies (by ID for loose coupling)
+  requiresStepIds String[]
+  requiresAssets  String[]
+
+  // Branching
+  onSuccessStepId String?
+  onFailureStepId String?
+  failureAction   String?
+
+  process         RegulatoryProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([processId, orderNum])
+  @@index([processId])
 }
 
 // Truth health snapshot for monitoring system integrity
