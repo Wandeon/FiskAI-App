@@ -25,3 +25,11 @@ export { parseSSEMessage, createSSEConnection, type SSEMessage } from "./sse-par
 
 // Hook
 export { useReasoningStream } from "./useReasoningStream"
+
+// Stage UI Helper
+export {
+  useReasoningStage,
+  getStageLabel,
+  getStageIcon,
+  type StageState,
+} from "./useReasoningStage"
