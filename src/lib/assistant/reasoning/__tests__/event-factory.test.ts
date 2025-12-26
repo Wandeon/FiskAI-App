@@ -81,4 +81,10 @@ describe("EventFactory", () => {
       expect(factory.getSequence()).toBe(1)
     })
   })
+
+  describe("getRequestId", () => {
+    it("returns the requestId passed to factory", () => {
+      expect(factory.getRequestId()).toBe("req_test123")
+    })
+  })
 })
