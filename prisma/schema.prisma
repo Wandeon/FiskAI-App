@@ -2188,3 +2188,31 @@ model SoftFailLog {
   @@index([createdAt])
   @@index([entityType, entityId])
 }
+
+// === REASONING TRACE (Visible Reasoning UX Audit Trail) ===
+model ReasoningTrace {
+  id                  String   @id @default(cuid())
+  requestId           String   @unique
+  events              Json     // Full typed ReasoningEvent[]
+  userContextSnapshot Json     // Frozen at request start
+
+  // Summary columns for fast queries
+  outcome             String   // ANSWER | QUALIFIED_ANSWER | REFUSAL | ERROR
+  domain              String?
+  riskTier            String?
+  confidence          Float?
+  sourceCount         Int?
+  eligibleRuleCount   Int?
+  exclusionCount      Int?
+  conflictCount       Int?
+  refusalReason       String?
+  durationMs          Int?
+
+  createdAt           DateTime @default(now())
+
+  @@index([requestId])
+  @@index([outcome])
+  @@index([riskTier])
+  @@index([createdAt])
+  @@index([confidence])
+}
