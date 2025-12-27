@@ -3,16 +3,12 @@
 
 import { cn } from "@/lib/utils"
 import { AlertTriangle, CheckCircle, XCircle, AlertCircle } from "lucide-react"
-import type {
-  TerminalOutcome,
-  AnswerPayload,
-  ConditionalAnswerPayload,
-  RefusalPayload,
-  ErrorPayload,
-} from "@/lib/assistant/reasoning"
+import type { TerminalOutcome, ErrorPayload } from "@/lib/assistant/reasoning"
 
-// Extended answer payload for UI with additional fields
-interface FinalAnswerPayload extends AnswerPayload {
+// UI-specific payload types (may differ from lib types)
+interface AnswerPayloadUI {
+  answer?: string
+  answerHr: string
   asOfDate?: string
   structured?: {
     obligations?: string[]
@@ -22,17 +18,33 @@ interface FinalAnswerPayload extends AnswerPayload {
   citations?: Array<{ title: string; quote: string; url: string }>
 }
 
-// Extended conditional answer payload for UI
-interface QualifiedAnswerPayload extends Omit<ConditionalAnswerPayload, "branches"> {
+interface QualifiedAnswerPayloadUI {
   answerHr: string
-  conflictWarnings: Array<{
+  conflictWarnings?: Array<{
     description: string
     sourceA: { name: string; says: string }
     sourceB: { name: string; says: string }
     practicalResolution?: string
   }>
-  caveats: string[]
-  citations: Array<{ title: string; quote: string; url: string }>
+  caveats?: string[]
+  citations?: Array<{ title: string; quote: string; url: string }>
+}
+
+interface RefusalPayloadUI {
+  messageHr?: string
+  template?: {
+    messageHr: string
+    nextSteps?: Array<{
+      type: string
+      prompt?: string
+      promptHr?: string
+    }>
+  }
+  nextSteps?: Array<{
+    type: string
+    prompt?: string
+    promptHr?: string
+  }>
 }
 
 interface TerminalAnswerCardProps {
@@ -44,27 +56,29 @@ interface TerminalAnswerCardProps {
 export function TerminalAnswerCard({ outcome, payload, className }: TerminalAnswerCardProps) {
   switch (outcome) {
     case "ANSWER":
-      return <AnswerCard payload={payload as FinalAnswerPayload} className={className} />
+      return <AnswerCard payload={payload as AnswerPayloadUI} className={className} />
     case "CONDITIONAL_ANSWER":
       return (
-        <QualifiedAnswerCard payload={payload as QualifiedAnswerPayload} className={className} />
+        <QualifiedAnswerCard payload={payload as QualifiedAnswerPayloadUI} className={className} />
       )
     case "REFUSAL":
-      return <RefusalCard payload={payload as RefusalPayload} className={className} />
+      return <RefusalCard payload={payload as RefusalPayloadUI} className={className} />
     case "ERROR":
       return <ErrorCard payload={payload as ErrorPayload} className={className} />
   }
 }
 
 // === ANSWER ===
-function AnswerCard({ payload, className }: { payload: FinalAnswerPayload; className?: string }) {
+function AnswerCard({ payload, className }: { payload: AnswerPayloadUI; className?: string }) {
   return (
     <div className={cn("bg-white rounded-xl border border-green-200 overflow-hidden", className)}>
       {/* Header */}
       <div className="px-4 py-3 bg-green-50 border-b border-green-200 flex items-center gap-2">
         <CheckCircle className="w-5 h-5 text-green-600" />
         <span className="font-medium text-green-800">Odgovor</span>
-        <span className="ml-auto text-xs text-gray-500">Na dan: {payload.asOfDate}</span>
+        {payload.asOfDate && (
+          <span className="ml-auto text-xs text-gray-500">Na dan: {payload.asOfDate}</span>
+        )}
       </div>
 
       {/* Answer content */}
@@ -88,9 +102,13 @@ function QualifiedAnswerCard({
   payload,
   className,
 }: {
-  payload: QualifiedAnswerPayload
+  payload: QualifiedAnswerPayloadUI
   className?: string
 }) {
+  const conflictWarnings = payload.conflictWarnings ?? []
+  const caveats = payload.caveats ?? []
+  const citations = payload.citations ?? []
+
   return (
     <div className={cn("bg-white rounded-xl border border-yellow-200 overflow-hidden", className)}>
       {/* Header */}
@@ -100,7 +118,7 @@ function QualifiedAnswerCard({
       </div>
 
       {/* Conflict warnings */}
-      {payload.conflictWarnings.map((warning, i) => (
+      {conflictWarnings.map((warning, i) => (
         <div key={i} className="mx-4 mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm font-medium text-yellow-800">{warning.description}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
@@ -126,25 +144,29 @@ function QualifiedAnswerCard({
         <p className="text-gray-900 leading-relaxed">{payload.answerHr}</p>
 
         {/* Caveats */}
-        {payload.caveats.length > 0 && (
+        {caveats.length > 0 && (
           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Napomene</h4>
             <ul className="space-y-1 text-sm text-gray-600">
-              {payload.caveats.map((caveat, i) => (
+              {caveats.map((caveat, i) => (
                 <li key={i}>• {caveat}</li>
               ))}
             </ul>
           </div>
         )}
 
-        <Citations citations={payload.citations} />
+        {citations.length > 0 && <Citations citations={citations} />}
       </div>
     </div>
   )
 }
 
 // === REFUSAL ===
-function RefusalCard({ payload, className }: { payload: RefusalPayload; className?: string }) {
+function RefusalCard({ payload, className }: { payload: RefusalPayloadUI; className?: string }) {
+  // Handle both flat and nested template structures
+  const messageHr = payload.messageHr ?? payload.template?.messageHr ?? "Nije moguće odgovoriti"
+  const nextSteps = payload.nextSteps ?? payload.template?.nextSteps ?? []
+
   return (
     <div className={cn("bg-white rounded-xl border border-gray-200 overflow-hidden", className)}>
       {/* Header */}
@@ -155,14 +177,14 @@ function RefusalCard({ payload, className }: { payload: RefusalPayload; classNam
 
       {/* Content */}
       <div className="p-4">
-        <p className="text-gray-700">{payload.messageHr}</p>
+        <p className="text-gray-700">{messageHr}</p>
 
         {/* Next steps */}
-        {payload.nextSteps && payload.nextSteps.length > 0 && (
+        {nextSteps.length > 0 && (
           <div className="mt-4">
             <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Sljedeći koraci</h4>
             <div className="flex flex-wrap gap-2">
-              {payload.nextSteps.map((step, i) => (
+              {nextSteps.map((step, i) => (
                 <button
                   key={i}
                   className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-full hover:bg-blue-100 transition-colors"
@@ -205,7 +227,7 @@ function ErrorCard({ payload, className }: { payload: ErrorPayload; className?: 
 
 // === SHARED COMPONENTS ===
 
-function StructuredData({ structured }: { structured: FinalAnswerPayload["structured"] }) {
+function StructuredData({ structured }: { structured: AnswerPayloadUI["structured"] }) {
   if (!structured) return null
 
   return (
