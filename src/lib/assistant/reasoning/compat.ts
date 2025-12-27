@@ -224,10 +224,12 @@ function mapCitations(citations: FinalAnswerPayload["citations"]): CitationBlock
     authority: primary.authority as "LAW" | "REGULATION" | "GUIDANCE" | "PRACTICE",
     quote: primary.quote,
     url: primary.url,
-    effectiveFrom: primary.fetchedAt?.split("T")[0] || new Date().toISOString().split("T")[0],
+    // Use fetchedAt date as effectiveFrom if available, null if not (never fabricate)
+    effectiveFrom: primary.fetchedAt?.split("T")[0] || null,
     confidence: 0.9,
     evidenceId: primary.evidenceId || "",
-    fetchedAt: primary.fetchedAt || new Date().toISOString(),
+    // Only use fetchedAt if actually provided - never fabricate timestamps
+    fetchedAt: primary.fetchedAt || null,
   }
 
   const supporting: SourceCard[] = citations
@@ -239,10 +241,12 @@ function mapCitations(citations: FinalAnswerPayload["citations"]): CitationBlock
       authority: c.authority as "LAW" | "REGULATION" | "GUIDANCE" | "PRACTICE",
       quote: c.quote!,
       url: c.url!,
-      effectiveFrom: c.fetchedAt?.split("T")[0] || new Date().toISOString().split("T")[0],
+      // Use fetchedAt date as effectiveFrom if available, null if not (never fabricate)
+      effectiveFrom: c.fetchedAt?.split("T")[0] || null,
       confidence: 0.8,
       evidenceId: c.evidenceId || "",
-      fetchedAt: c.fetchedAt || new Date().toISOString(),
+      // Only use fetchedAt if actually provided - never fabricate timestamps
+      fetchedAt: c.fetchedAt || null,
     }))
 
   return { primary: primaryCard, supporting }

@@ -19,9 +19,9 @@ export function orderCitations(sources: SourceCard[]): SourceCard[] {
     const rankB = AUTHORITY_RANK[b.authority] ?? 999
     if (rankA !== rankB) return rankA - rankB
 
-    // 2. Effective date (newer first)
-    const dateA = new Date(a.effectiveFrom).getTime()
-    const dateB = new Date(b.effectiveFrom).getTime()
+    // 2. Effective date (newer first, null dates sort last)
+    const dateA = a.effectiveFrom ? new Date(a.effectiveFrom).getTime() : 0
+    const dateB = b.effectiveFrom ? new Date(b.effectiveFrom).getTime() : 0
     if (dateA !== dateB) return dateB - dateA
 
     // 3. Confidence (higher first)

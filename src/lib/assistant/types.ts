@@ -83,12 +83,12 @@ export interface SourceCard {
   quote?: string
   pageNumber?: number
   url: string
-  effectiveFrom: string
+  effectiveFrom: string | null // Date source became effective; null if unknown
   confidence: number
   status?: "ACTIVE" | "SUPERSEDED"
   // Evidence provenance (required for primary, optional for supporting)
   evidenceId?: string
-  fetchedAt?: string
+  fetchedAt?: string | null // When evidence was fetched; null if unknown (never fabricate)
 }
 
 /**

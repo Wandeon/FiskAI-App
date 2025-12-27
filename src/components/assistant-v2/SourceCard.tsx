@@ -90,7 +90,7 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
           )}
         >
           <div className="flex items-center gap-3">
-            <span>Effective: {new Date(effectiveFrom).toLocaleDateString()}</span>
+            <span>Effective: {effectiveFrom ? new Date(effectiveFrom).toLocaleDateString() : "Unknown"}</span>
             <span>Confidence: {Math.round(confidence * 100)}%</span>
           </div>
 
