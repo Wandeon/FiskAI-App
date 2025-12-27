@@ -346,22 +346,26 @@ export function ConflictsView({ conflicts, total, page, pageSize, userId }: Conf
                         Accept Arbiter Resolution
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleOverride(conflict.id, conflict.itemAId)}
-                      disabled={processingId === conflict.id}
-                    >
-                      Choose Rule A
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleOverride(conflict.id, conflict.itemBId)}
-                      disabled={processingId === conflict.id}
-                    >
-                      Choose Rule B
-                    </Button>
+                    {conflict.itemAId && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleOverride(conflict.id, conflict.itemAId!)}
+                        disabled={processingId === conflict.id}
+                      >
+                        Choose Rule A
+                      </Button>
+                    )}
+                    {conflict.itemBId && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleOverride(conflict.id, conflict.itemBId!)}
+                        disabled={processingId === conflict.id}
+                      >
+                        Choose Rule B
+                      </Button>
+                    )}
                   </div>
                 )}
 

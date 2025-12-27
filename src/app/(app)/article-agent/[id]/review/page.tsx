@@ -5,11 +5,12 @@ import { getJobWithVerification } from "@/app/actions/article-agent"
 import { notFound } from "next/navigation"
 import { ReviewClient } from "./review-client"
 
-export default async function ReviewPage({ params }: { params: { id: string } }) {
+export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth()
+  const { id } = await params
 
   try {
-    const { job, draft, factSheet } = await getJobWithVerification(params.id)
+    const { job, draft, factSheet } = await getJobWithVerification(id)
 
     if (!draft) {
       return (

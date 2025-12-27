@@ -50,7 +50,7 @@ export interface ComplianceData {
 
 interface ComplianceDashboardProps {
   data: ComplianceData
-  company: Company
+  company: Pick<Company, "fiscalEnabled" | "fiscalEnvironment">
 }
 
 export function ComplianceDashboard({ data, company }: ComplianceDashboardProps) {

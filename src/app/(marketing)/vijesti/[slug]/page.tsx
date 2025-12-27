@@ -14,7 +14,7 @@ import { ExternalLink, Calendar, CheckCircle2, Wrench, Zap, AlertCircle } from "
 export const dynamic = "force-dynamic"
 
 interface PageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 // Helper function to extract structured data from content
@@ -202,7 +202,8 @@ async function getRelatedPosts(categoryId: string | null, currentPostId: string)
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const post = await getPost(params.slug)
+  const { slug } = await params
+  const post = await getPost(slug)
 
   if (!post) {
     return {
@@ -222,7 +223,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PostDetailPage({ params }: PageProps) {
-  const post = await getPost(params.slug)
+  const { slug } = await params
+  const post = await getPost(slug)
 
   if (!post) {
     notFound()

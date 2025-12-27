@@ -41,7 +41,7 @@ async function getCategories() {
   }))
 }
 
-export default async function PostEditorPage({ params }: { params: { id: string } }) {
+export default async function PostEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const [post, sourceItems, categories] = await Promise.all([
     getPost(id),

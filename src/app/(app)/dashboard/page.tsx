@@ -357,7 +357,7 @@ export default async function DashboardPage() {
           </Visible>
 
           {certificateStatus && fiscalizationStats && (
-            <Visible id="card:compliance-status">
+            <Visible id="card:fiscalization-status">
               <ComplianceStatusCard certificate={certificateStatus} stats={fiscalizationStats} />
             </Visible>
           )}

@@ -7,11 +7,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Eye, FileText } from "lucide-react"
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth()
+  const { id } = await params
 
   const job = await db.articleJob.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       factSheet: {
         include: { claims: true, sourceChunks: true },

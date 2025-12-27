@@ -36,14 +36,31 @@ export default async function SupportPage() {
       status: true,
       priority: true,
       updatedAt: true,
-      assignedTo: { select: { name: true, email: true } },
+      assignedToId: true,
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { createdAt: true, author: { select: { name: true, email: true } } },
+        select: { createdAt: true, authorId: true },
       },
     },
   })
+
+  // Collect all user IDs we need to fetch
+  const assigneeIds = tickets.map((t) => t.assignedToId).filter((id): id is string => id !== null)
+  const authorIds = tickets
+    .flatMap((t) => t.messages.map((m) => m.authorId))
+    .filter((id): id is string => id !== null)
+  const allUserIds = [...new Set([...assigneeIds, ...authorIds])]
+
+  // Fetch all users in one query
+  const users =
+    allUserIds.length > 0
+      ? await db.user.findMany({
+          where: { id: { in: allUserIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : []
+  const userMap = new Map(users.map((u) => [u.id, u]))
 
   return (
     <div className="space-y-6">
@@ -90,12 +107,18 @@ export default async function SupportPage() {
                     <span>Zadnje ažurirano: {ticket.updatedAt.toLocaleString("hr-HR")}</span>
                     <span>
                       Assign:{" "}
-                      {ticket.assignedTo?.name || ticket.assignedTo?.email || "Nije dodijeljeno"}
+                      {ticket.assignedToId
+                        ? userMap.get(ticket.assignedToId)?.name ||
+                          userMap.get(ticket.assignedToId)?.email ||
+                          "—"
+                        : "Nije dodijeljeno"}
                     </span>
-                    {ticket.messages[0] && (
+                    {ticket.messages[0] && ticket.messages[0].authorId && (
                       <span>
                         Zadnja poruka:{" "}
-                        {ticket.messages[0].author?.name || ticket.messages[0].author?.email || "—"}
+                        {userMap.get(ticket.messages[0].authorId)?.name ||
+                          userMap.get(ticket.messages[0].authorId)?.email ||
+                          "—"}
                       </span>
                     )}
                   </div>

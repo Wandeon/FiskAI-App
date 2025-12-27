@@ -16,7 +16,7 @@ import { InvoiceSummary } from "@/components/invoice/invoice-summary"
 import { StepIndicator } from "@/components/invoice/invoice-step-indicator"
 import { LineItemTable, type ProductSuggestion } from "@/components/invoice/line-item-table"
 import { AlertBanner } from "@/components/dashboard/alert-banner"
-import { Contact, Company } from "@prisma/client"
+import { Contact } from "@prisma/client"
 import { InvoicePdfPreview } from "@/components/invoice/invoice-pdf-preview"
 import { renderToStaticMarkup } from "react-dom/server"
 import { toast } from "@/lib/toast"
@@ -41,7 +41,13 @@ type PlainProduct = {
 interface InvoiceFormProps {
   contacts: Contact[]
   products: PlainProduct[]
-  company: Company
+  company: {
+    name: string
+    address: string
+    postalCode: string
+    city: string
+    iban?: string | null
+  }
   capabilities: Capabilities
   nextInvoiceNumber: string
 }

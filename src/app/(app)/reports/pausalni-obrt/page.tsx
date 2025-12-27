@@ -133,19 +133,37 @@ export default async function PausalniObrtReportsPage() {
       ),
 
       // Expense breakdown by category (note: groupBy doesn't support include)
-      db.expense.groupBy({
-        where: {
-          companyId: company.id,
-          date: {
-            gte: new Date(new Date().getFullYear(), 0, 1),
-            lte: new Date(new Date().getFullYear(), 11, 31),
+      (async () => {
+        const breakdown = await db.expense.groupBy({
+          where: {
+            companyId: company.id,
+            date: {
+              gte: new Date(new Date().getFullYear(), 0, 1),
+              lte: new Date(new Date().getFullYear(), 11, 31),
+            },
           },
-        },
-        by: ["categoryId"],
-        _sum: {
-          totalAmount: true,
-        },
-      }),
+          by: ["categoryId"],
+          _sum: {
+            totalAmount: true,
+          },
+        })
+        // Fetch category names
+        const categoryIds = breakdown
+          .map((b) => b.categoryId)
+          .filter((id): id is string => id !== null)
+        const categories =
+          categoryIds.length > 0
+            ? await db.expenseCategory.findMany({
+                where: { id: { in: categoryIds } },
+                select: { id: true, name: true },
+              })
+            : []
+        const categoryMap = new Map(categories.map((c) => [c.id, c.name]))
+        return breakdown.map((b) => ({
+          ...b,
+          categoryName: b.categoryId ? categoryMap.get(b.categoryId) || "Ostalo" : "Ostalo",
+        }))
+      })(),
 
       // Income breakdown by month
       db.eInvoice.groupBy({
@@ -392,7 +410,7 @@ export default async function PausalniObrtReportsPage() {
                       <Receipt className="h-4 w-4 text-amber-600" />
                     </div>
                     <div>
-                      <p className="font-medium">{category.category?.name || "Ostalo"}</p>
+                      <p className="font-medium">{category.categoryName}</p>
                       <p className="text-sm text-muted-foreground">
                         {(category._sum.totalAmount
                           ? Number(category._sum.totalAmount)

@@ -13,7 +13,7 @@ import { revalidatePath } from "next/cache"
 export async function createContact(formData: z.infer<typeof contactSchema>) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithContext(user.id!, async (company) => {
     const validatedFields = contactSchema.safeParse(formData)
 
     if (!validatedFields.success) {
@@ -21,7 +21,10 @@ export async function createContact(formData: z.infer<typeof contactSchema>) {
     }
 
     const contact = await db.contact.create({
-      data: validatedFields.data,
+      data: {
+        ...validatedFields.data,
+        companyId: company.id,
+      },
     })
 
     revalidatePath("/contacts")

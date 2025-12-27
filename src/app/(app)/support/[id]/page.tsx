@@ -13,7 +13,7 @@ import {
 } from "@/components/support/support-status-buttons"
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 const statusLabels: Record<SupportTicketStatus, string> = {
@@ -33,18 +33,45 @@ const priorityLabels: Record<SupportTicketPriority, string> = {
 export default async function SupportDetailPage({ params }: PageProps) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const { id } = await params
 
   const ticket = await db.supportTicket.findFirst({
-    where: { id: params.id, companyId: company.id },
+    where: { id, companyId: company.id },
     include: {
       messages: {
         orderBy: { createdAt: "asc" },
-        include: { author: { select: { name: true, email: true, id: true } } },
       },
-      createdBy: { select: { name: true, email: true } },
-      assignedTo: { select: { name: true, email: true, id: true } },
     },
   })
+
+  // Fetch user data for creator and assignee (no relations in schema)
+  const [createdByUser, assignedToUser] = await Promise.all([
+    ticket?.createdById
+      ? db.user.findUnique({
+          where: { id: ticket.createdById },
+          select: { name: true, email: true },
+        })
+      : null,
+    ticket?.assignedToId
+      ? db.user.findUnique({
+          where: { id: ticket.assignedToId },
+          select: { name: true, email: true, id: true },
+        })
+      : null,
+  ])
+
+  // Fetch authors for messages
+  const authorIds =
+    ticket?.messages.map((m) => m.authorId).filter((id): id is string => id !== null) || []
+  const uniqueAuthorIds = [...new Set(authorIds)]
+  const authors =
+    uniqueAuthorIds.length > 0
+      ? await db.user.findMany({
+          where: { id: { in: uniqueAuthorIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : []
+  const authorMap = new Map(authors.map((a) => [a.id, a]))
 
   if (!ticket) {
     redirect("/support")
@@ -65,16 +92,16 @@ export default async function SupportDetailPage({ params }: PageProps) {
           <Badge variant="secondary">{statusLabels[ticket.status]}</Badge>
           <Badge variant="outline">{priorityLabels[ticket.priority]}</Badge>
           <span className="text-muted-foreground">
-            Kreirao: {ticket.createdBy?.name || ticket.createdBy?.email || "—"}
+            Kreirao: {createdByUser?.name || createdByUser?.email || "—"}
           </span>
           <span className="text-muted-foreground">
-            Dodijeljeno: {ticket.assignedTo?.name || ticket.assignedTo?.email || "Nije dodijeljeno"}
+            Dodijeljeno: {assignedToUser?.name || assignedToUser?.email || "Nije dodijeljeno"}
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
           <AssignSupportTicketButton
             ticketId={ticket.id}
-            currentAssigneeId={ticket.assignedTo?.id || null}
+            currentAssigneeId={assignedToUser?.id || null}
             currentUserId={user.id!}
           />
           {ticket.status === "CLOSED" || ticket.status === "RESOLVED" ? (
@@ -95,18 +122,23 @@ export default async function SupportDetailPage({ params }: PageProps) {
             <p className="text-sm text-muted-foreground">Još nema poruka.</p>
           ) : (
             <div className="space-y-3">
-              {ticket.messages.map((message) => (
-                <div
-                  key={message.id}
-                  className="rounded-xl border border-border bg-muted/40 px-3 py-2"
-                >
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{message.author?.name || message.author?.email || "Nepoznato"}</span>
-                    <span>{message.createdAt.toLocaleString("hr-HR")}</span>
+              {ticket.messages.map((message) => {
+                const author = message.authorId ? authorMap.get(message.authorId) : null
+                return (
+                  <div
+                    key={message.id}
+                    className="rounded-xl border border-border bg-muted/40 px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{author?.name || author?.email || "Nepoznato"}</span>
+                      <span>{message.createdAt.toLocaleString("hr-HR")}</span>
+                    </div>
+                    <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">
+                      {message.body}
+                    </p>
                   </div>
-                  <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{message.body}</p>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
 

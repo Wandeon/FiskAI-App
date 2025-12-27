@@ -74,9 +74,17 @@ export default async function RegulatoryConflictsPage({
     db.regulatoryConflict.count({ where }),
   ])
 
+  // Filter out conflicts where itemA or itemB is null
+  const validConflicts = conflicts.filter(
+    (
+      c
+    ): c is typeof c & { itemA: NonNullable<typeof c.itemA>; itemB: NonNullable<typeof c.itemB> } =>
+      c.itemA !== null && c.itemB !== null
+  )
+
   return (
     <ConflictsView
-      conflicts={conflicts}
+      conflicts={validConflicts}
       total={total}
       page={page}
       pageSize={pageSize}

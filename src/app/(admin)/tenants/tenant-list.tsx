@@ -61,9 +61,9 @@ export function TenantListView({ data }: TenantListViewProps) {
   const [isPending, startTransition] = useTransition()
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "")
 
-  const currentSort = {
+  const currentSort: { field: string; order: "asc" | "desc" } = {
     field: searchParams.get("sortField") || "createdAt",
-    order: searchParams.get("sortOrder") || "desc",
+    order: (searchParams.get("sortOrder") as "asc" | "desc") || "desc",
   }
 
   const updateParams = (updates: Record<string, string | null>) => {

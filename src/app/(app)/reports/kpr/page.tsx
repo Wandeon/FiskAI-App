@@ -13,15 +13,16 @@ function formatCurrency(value: number) {
 
 type SearchParams = { from?: string; to?: string; preset?: string }
 
-export default async function KprPage({ searchParams }: { searchParams?: SearchParams }) {
+export default async function KprPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const resolvedSearchParams = await searchParams
 
   // Handle date presets
   let from: Date | undefined
   let to: Date | undefined
 
-  const preset = searchParams?.preset
+  const preset = resolvedSearchParams?.preset
   const now = new Date()
 
   if (preset === "thisMonth") {
@@ -47,8 +48,8 @@ export default async function KprPage({ searchParams }: { searchParams?: SearchP
     from = new Date(now.getFullYear() - 1, 0, 1)
     to = new Date(now.getFullYear() - 1, 11, 31)
   } else {
-    from = searchParams?.from ? new Date(searchParams.from) : undefined
-    to = searchParams?.to ? new Date(searchParams.to) : undefined
+    from = resolvedSearchParams?.from ? new Date(resolvedSearchParams.from) : undefined
+    to = resolvedSearchParams?.to ? new Date(resolvedSearchParams.to) : undefined
   }
 
   const summary = await fetchKpr(company.id, from, to)

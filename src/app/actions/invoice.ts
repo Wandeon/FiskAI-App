@@ -97,6 +97,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
 
       const invoice = await db.eInvoice.create({
         data: {
+          companyId: company.id,
           type: input.type,
           direction: "OUTBOUND",
           invoiceNumber: numbering.invoiceNumber,
@@ -159,6 +160,7 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
       // Create new invoice from source
       const invoice = await db.eInvoice.create({
         data: {
+          companyId: company.id,
           type: "INVOICE",
           direction: "OUTBOUND",
           invoiceNumber: numbering.invoiceNumber,
@@ -446,6 +448,7 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
 
     const eInvoice = await db.eInvoice.create({
       data: {
+        companyId: company.id,
         direction: "OUTBOUND",
         buyerId,
         invoiceNumber,

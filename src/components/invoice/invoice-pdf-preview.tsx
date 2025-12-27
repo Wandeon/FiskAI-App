@@ -1,8 +1,14 @@
-import { Company, Contact } from "@prisma/client"
+import { Contact } from "@prisma/client"
 import { cn } from "@/lib/utils"
 
 interface InvoicePdfPreviewProps {
-  company: Company
+  company: {
+    name: string
+    address: string
+    postalCode: string
+    city: string
+    iban?: string | null
+  }
   buyer: Contact | null
   invoiceNumber: string
   issueDate?: Date

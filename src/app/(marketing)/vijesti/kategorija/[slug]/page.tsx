@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 interface PageProps {
-  params: { slug: string }
-  searchParams: { page?: string }
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ page?: string }>
 }
 
 const POSTS_PER_PAGE = 12
@@ -134,7 +134,8 @@ async function getCategoryPosts(categoryId: string, subcategoryIds: string[], pa
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { category } = await getCategory(params.slug)
+  const { slug } = await params
+  const { category } = await getCategory(slug)
 
   if (!category) {
     return {
@@ -149,14 +150,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
-  const { category, parent } = await getCategory(params.slug)
+  const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const { category, parent } = await getCategory(slug)
 
   if (!category) {
     notFound()
   }
 
   const subcategories = await getSubcategories(category.id)
-  const page = parseInt(searchParams.page || "1", 10)
+  const page = parseInt(pageParam || "1", 10)
 
   // Get siblings if this is a subcategory
   const siblings = parent ? await getSiblingCategories(parent.id, category.id) : []
@@ -279,7 +282,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             <div className="mt-12 flex items-center justify-center gap-2">
               {page > 1 && (
                 <Link
-                  href={`/vijesti/kategorija/${params.slug}?page=${page - 1}`}
+                  href={`/vijesti/kategorija/${slug}?page=${page - 1}`}
                   className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
                 >
                   Prethodna
@@ -289,7 +292,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                   <Link
                     key={pageNum}
-                    href={`/vijesti/kategorija/${params.slug}?page=${pageNum}`}
+                    href={`/vijesti/kategorija/${slug}?page=${pageNum}`}
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                       pageNum === page
                         ? "bg-blue-500 text-white"
@@ -302,7 +305,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               </div>
               {page < totalPages && (
                 <Link
-                  href={`/vijesti/kategorija/${params.slug}?page=${page + 1}`}
+                  href={`/vijesti/kategorija/${slug}?page=${page + 1}`}
                   className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
                 >
                   Sljedeća

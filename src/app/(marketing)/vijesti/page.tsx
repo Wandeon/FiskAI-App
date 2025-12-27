@@ -258,10 +258,11 @@ async function getMainCategories() {
 }
 
 interface PageProps {
-  searchParams?: { q?: string }
+  searchParams?: Promise<{ q?: string }>
 }
 
 export default async function VijestiPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams
   const [
     featuredPosts,
     mainCategories,
@@ -347,7 +348,7 @@ export default async function VijestiPage({ searchParams }: PageProps) {
               </Link>
             ))}
             <div className="ml-auto flex-1 md:flex-initial md:min-w-[300px]">
-              <NewsSearch initialQuery={searchParams?.q} />
+              <NewsSearch initialQuery={resolvedSearchParams?.q} />
             </div>
           </div>
         </GlassCard>

@@ -255,12 +255,12 @@ function checkDateOverlap(
  * Lower number = higher authority
  */
 function getAuthorityRank(level: string): number {
+  // Must match AuthorityLevel enum in prisma/schema.prisma
   const ranks: Record<string, number> = {
-    LAW: 1,
-    REGULATION: 2,
-    GUIDANCE: 3,
-    PROCEDURE: 4,
-    PRACTICE: 5,
+    LAW: 1, // Legally binding (Narodne novine)
+    GUIDANCE: 2, // Interpretation (Porezna uprava)
+    PROCEDURE: 3, // Technical execution (FINA, HZMO, HZZO)
+    PRACTICE: 4, // What passes inspections
   }
   return ranks[level] || 999
 }
@@ -314,7 +314,8 @@ export async function seedConflicts(conflicts: ConflictSeed[]): Promise<number> 
  */
 function mapConflictType(
   internalType: ConflictSeed["type"]
-): "SOURCE_CONFLICT" | "RULE_CONFLICT" | "TEMPORAL_CONFLICT" {
+): "SOURCE_CONFLICT" | "SCOPE_CONFLICT" | "TEMPORAL_CONFLICT" {
+  // Must match ConflictType enum in prisma/schema.prisma
   switch (internalType) {
     case "AUTHORITY_SUPERSEDE":
       return "TEMPORAL_CONFLICT"
@@ -323,7 +324,7 @@ function mapConflictType(
     case "VALUE_MISMATCH":
       return "SOURCE_CONFLICT"
     case "CROSS_SLUG_DUPLICATE":
-      return "RULE_CONFLICT" // Use RULE_CONFLICT for cross-slug duplicates
+      return "SCOPE_CONFLICT" // Cross-slug duplicates are scope conflicts
     default:
       return "SOURCE_CONFLICT"
   }

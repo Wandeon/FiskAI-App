@@ -69,6 +69,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
 
       const expense = await db.expense.create({
         data: {
+          companyId: company.id,
           categoryId: input.categoryId,
           vendorId: input.vendorId || null,
           description: input.description,
