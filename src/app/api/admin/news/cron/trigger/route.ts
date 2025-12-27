@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-
-const ADMIN_COOKIE = "fiskai_admin_auth"
-
-async function isAdminAuthenticated() {
-  // TODO: Replace with proper auth when available
-  const cookieStore = await cookies()
-  return cookieStore.get(ADMIN_COOKIE)?.value === "authenticated"
-}
+import { getCurrentUser } from "@/lib/auth-utils"
 
 const CRON_ENDPOINTS = {
   "fetch-classify": "/api/cron/news/fetch-classify",
@@ -17,8 +9,8 @@ const CRON_ENDPOINTS = {
 
 export async function POST(request: NextRequest) {
   // Check admin auth
-  const isAuth = await isAdminAuthenticated()
-  if (!isAuth) {
+  const user = await getCurrentUser()
+  if (!user || user.systemRole !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

@@ -2,21 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsPostSources, newsItems } from "@/lib/db/schema/news"
 import { eq } from "drizzle-orm"
-import { cookies } from "next/headers"
+import { getCurrentUser } from "@/lib/auth-utils"
 import { classifyNewsItem, writeArticle, reviewArticle, rewriteArticle } from "@/lib/news/pipeline"
-
-const ADMIN_COOKIE = "fiskai_admin_auth"
-
-async function isAdminAuthenticated() {
-  // TODO: Replace with proper auth when available
-  const cookieStore = await cookies()
-  return cookieStore.get(ADMIN_COOKIE)?.value === "authenticated"
-}
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Check admin auth
-  const isAuth = await isAdminAuthenticated()
-  if (!isAuth) {
+  const user = await getCurrentUser()
+  if (!user || user.systemRole !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
