@@ -78,10 +78,26 @@ describe("Query Router - Intent Detection", () => {
     })
   })
 
+  describe("STRATEGY intent detection", () => {
+    const strategyQueries = [
+      { query: "Trebam li otvoriti obrt ili d.o.o.?", desc: "Croatian 'trebam li'" },
+      { query: "Trebam li se registrirati?", desc: "Croatian 'trebam li' (simple)" },
+      { query: "Sto je bolje - pausalni ili normalni?", desc: "Croatian 'sto je bolje'" },
+      { query: "Koji je bolji izbor za mene?", desc: "Croatian 'koji je bolji'" },
+      { query: "Should I open a d.o.o.?", desc: "English 'should i'" },
+      { query: "Pausalni obrt vs d.o.o.", desc: "Croatian 'vs'" },
+      { query: "Kako odabrati pravi oblik?", desc: "Croatian 'odabrati'" },
+    ]
+
+    it.each(strategyQueries)('should detect STRATEGY intent for: "$query" ($desc)', ({ query }) => {
+      const intent = detectIntentFromPatterns(query)
+      expect(intent).toBe("STRATEGY")
+    })
+  })
+
   describe("LOGIC intent detection", () => {
     const logicQueries = [
       { query: "Moram li plaćati PDV?", desc: "Croatian 'moram li'" },
-      { query: "Trebam li se registrirati?", desc: "Croatian 'trebam li'" },
       { query: "Koliko iznosi stopa za hranu?", desc: "Croatian 'koliko iznosi'" },
       { query: "Koja je stopa za sok?", desc: "Croatian 'koja je stopa'" },
       { query: "Prag za OSS registraciju?", desc: "Croatian 'prag za'" },
@@ -115,19 +131,25 @@ describe("Query Router - Intent Detection", () => {
   describe("Pattern priority", () => {
     it("should prioritize PROCESS over LOGIC when both patterns match", () => {
       // "Kako da" is PROCESS, should match before LOGIC patterns
-      const intent = detectIntentFromPatterns("Kako da izračunam koliko iznosi PDV?")
+      const intent = detectIntentFromPatterns("Kako da izracunam koliko iznosi PDV?")
       expect(intent).toBe("PROCESS")
     })
 
-    it("should prioritize DOCUMENT over LOGIC when form code is present", () => {
-      // PDV-P is DOCUMENT pattern
+    it("should prioritize DOCUMENT over STRATEGY when form code is present", () => {
+      // PDV-P is DOCUMENT pattern, should match before STRATEGY
       const intent = detectIntentFromPatterns("Trebam PDV-P obrazac")
       expect(intent).toBe("DOCUMENT")
     })
 
     it("should detect TEMPORAL before LOGIC for date-based queries", () => {
-      const intent = detectIntentFromPatterns("Od 1.1.2025 moram li plaćati novu stopu?")
+      const intent = detectIntentFromPatterns("Od 1.1.2025 moram li placati novu stopu?")
       expect(intent).toBe("TEMPORAL")
+    })
+
+    it("should detect STRATEGY for comparison queries with 'trebam li'", () => {
+      // "trebam li" is now STRATEGY (comparison/decision queries)
+      const intent = detectIntentFromPatterns("Trebam li pausalni ili normalni PDV?")
+      expect(intent).toBe("STRATEGY")
     })
   })
 })

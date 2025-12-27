@@ -7,6 +7,7 @@ export const QueryIntentSchema = z.enum([
   "REFERENCE", // "What is the IBAN for...", "What is the code for..."
   "DOCUMENT", // "Where can I find the form...", "Download PDV-P"
   "TEMPORAL", // "Which rate applies for June invoice...", "Old vs new rule"
+  "STRATEGY", // "Should I open d.o.o. or obrt?", "Trebam li paušalni?"
   "GENERAL", // General questions, explanations
 ])
 
@@ -27,3 +28,4 @@ export const QueryClassificationSchema = z.object({
 
 export type QueryIntent = z.infer<typeof QueryIntentSchema>
 export type QueryClassification = z.infer<typeof QueryClassificationSchema>
+export type ExtractedEntities = QueryClassification["extractedEntities"]

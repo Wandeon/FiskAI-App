@@ -13,6 +13,7 @@ import { runProcessEngine } from "./process-engine"
 import { runReferenceEngine } from "./reference-engine"
 import { runAssetEngine } from "./asset-engine"
 import { runTemporalEngine } from "./temporal-engine"
+import { runStrategyEngine } from "./strategy-engine"
 
 const RouterInputSchema = z.object({
   query: z.string(),
@@ -101,10 +102,22 @@ export function detectIntentFromPatterns(query: string): QueryIntent | null {
     return "TEMPORAL"
   }
 
+  // STRATEGY patterns (comparison/decision queries)
+  const strategyPatterns = [
+    /trebam\s+li/,
+    /sto\s+je\s+bolje/,
+    /koji\s+je\s+bolji/,
+    /should\s+i/i,
+    /\bvs\.?\b/,
+    /odabrati/,
+  ]
+  if (strategyPatterns.some((p) => p.test(lowerQuery))) {
+    return "STRATEGY"
+  }
+
   // LOGIC patterns (most common, check last)
   const logicPatterns = [
     /moram\s+li/,
-    /trebam\s+li/,
     /koliko\s+iznosi/,
     /koja\s+je\s+stopa/,
     /prag\s+za/,
@@ -131,6 +144,7 @@ function getEngineForIntent(intent: QueryIntent): string {
     REFERENCE: "reference-engine",
     DOCUMENT: "asset-engine",
     TEMPORAL: "temporal-engine",
+    STRATEGY: "strategy-engine",
     GENERAL: "logic-engine",
   }
   return engineMap[intent]
@@ -226,6 +240,10 @@ export async function routeQuery(
 
       case "TEMPORAL":
         response = await runTemporalEngine(query, classification.extractedEntities)
+        break
+
+      case "STRATEGY":
+        response = await runStrategyEngine(query, classification.extractedEntities)
         break
 
       case "GENERAL":
