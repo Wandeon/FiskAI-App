@@ -26,15 +26,15 @@ export function calculateNextScan(
   freshnessRisk: FreshnessRisk,
   config: ScheduleConfig = DEFAULT_CONFIG
 ): Date {
-  const riskFactor = RISK_FACTORS[freshnessRisk]
-  const velocityFactor = Math.max(0.01, changeFrequency)
-  let intervalHours = config.baseIntervalHours / (velocityFactor * riskFactor)
-  intervalHours = Math.max(config.baseIntervalHours, intervalHours)
-  intervalHours = Math.min(config.maxIntervalHours, intervalHours)
-  const jitter = 1 + (Math.random() * 0.2 - 0.1)
-  intervalHours = intervalHours * jitter
+  // Reuse calculateIntervalHours for DRY
+  const intervalHours = calculateIntervalHours(changeFrequency, freshnessRisk, config)
+
+  // Apply jitter using config value
+  const jitter = 1 + (Math.random() * 2 * config.jitterPercent - config.jitterPercent)
+  const jitteredHours = intervalHours * jitter
+
   const nextScan = new Date()
-  nextScan.setTime(nextScan.getTime() + intervalHours * 60 * 60 * 1000)
+  nextScan.setTime(nextScan.getTime() + jitteredHours * 60 * 60 * 1000)
   return nextScan
 }
 
