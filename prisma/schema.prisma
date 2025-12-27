@@ -1569,6 +1569,28 @@ enum DiscoveredItemStatus {
   FAILED
 }
 
+enum NodeType {
+  HUB    // Container page (lists, indexes, sitemaps)
+  LEAF   // Content page (articles, regulations)
+  ASSET  // Binary file (PDF, DOCX, XLS)
+}
+
+enum NodeRole {
+  ARCHIVE      // Historical (/archive/, /2020/)
+  INDEX        // Navigation/pagination
+  NEWS_FEED    // High velocity (/vijesti/, /news/)
+  REGULATION   // Core legal text
+  FORM         // Downloadable forms (/obrasci/)
+  GUIDANCE     // Official guidance (/upute/, /misljenja/)
+}
+
+enum FreshnessRisk {
+  CRITICAL    // VAT rates, deadlines - hours matter
+  HIGH        // New laws, gazette items
+  MEDIUM      // Standard content
+  LOW         // Archives, FAQs
+}
+
 enum RiskTier {
   T0  // Critical: Tax rates, legal deadlines, penalties
   T1  // High: Thresholds, contribution bases
@@ -1795,12 +1817,31 @@ model DiscoveredItem {
   retryCount    Int                  @default(0)
   createdAt     DateTime             @default(now())
 
+  // --- Topology ---
+  nodeType      NodeType   @default(LEAF)
+  nodeRole      NodeRole?
+  parentUrl     String?
+  depth         Int        @default(0)
+
+  // --- Velocity (EWMA: 0.0=static, 1.0=volatile) ---
+  changeFrequency  Float      @default(0.5)
+  lastChangedAt    DateTime?
+  scanCount        Int        @default(0)
+
+  // --- Risk ---
+  freshnessRisk    FreshnessRisk  @default(MEDIUM)
+
+  // --- Scheduling ---
+  nextScanDue      DateTime   @default(now())
+
   endpoint      DiscoveryEndpoint    @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
   @@unique([endpointId, url])
   @@index([status])
   @@index([publishedAt])
   @@index([evidenceId])
+  @@index([nextScanDue, freshnessRisk])  // The "Manifest" query
+  @@index([endpointId, nodeType])        // Grouping queries
 }
 
 model Evidence {
