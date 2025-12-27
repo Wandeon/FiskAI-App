@@ -29,13 +29,32 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL })
  * Run Sentinel agent to discover new regulatory content
  */
 async function main() {
+  const args = process.argv.slice(2)
+
+  // Check for --adaptive flag
+  const useAdaptive = args.includes("--adaptive")
+
+  if (useAdaptive) {
+    console.log("Running in ADAPTIVE mode...")
+    const { runAdaptiveSentinel } = await import("../agents/sentinel")
+    const result = await runAdaptiveSentinel()
+
+    console.log("\n=== Adaptive Sentinel Results ===")
+    console.log(`Success: ${result.success}`)
+    console.log(`Items scanned: ${result.itemsScanned}`)
+    console.log(`Items changed: ${result.itemsChanged}`)
+    console.log(`Errors: ${result.errors}`)
+    console.log(`Endpoints processed: ${result.endpointsProcessed}`)
+
+    await pool.end()
+    process.exit(result.success ? 0 : 1)
+  }
+
   // Dynamic import after env is loaded
   const { runSentinel, fetchDiscoveredItems } = await import("../agents/sentinel")
 
-  const args = process.argv.slice(2)
   const priorityArg = args[0] // "CRITICAL", "HIGH", "MEDIUM", "LOW", or undefined for all
 
-  const client = await pool.connect()
   try {
     console.log("[sentinel] Running discovery agent...")
 
@@ -78,7 +97,6 @@ async function main() {
     console.log("\n[sentinel] Complete!")
     process.exit(result.success ? 0 : 1)
   } finally {
-    client.release()
     await pool.end()
   }
 }
