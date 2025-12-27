@@ -78,10 +78,13 @@ async function fetchDueItems(limit: number = 500): Promise<
     endpoint: { domain: string; id: string }
   }>
 > {
+  // Note: PENDING items are excluded - they need to go through the full
+  // discovery pipeline first (fetch → Evidence creation → extraction).
+  // Adaptive scanning only re-checks items that have already been processed.
   const dueItems = await db.discoveredItem.findMany({
     where: {
       nextScanDue: { lte: new Date() },
-      status: { in: ["PENDING", "FETCHED", "PROCESSED"] },
+      status: { in: ["FETCHED", "PROCESSED"] },
     },
     orderBy: [
       { freshnessRisk: "asc" }, // CRITICAL=first in enum order
