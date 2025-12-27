@@ -83,7 +83,7 @@ export function createMetricsCollector(): ReasoningMetrics {
       // Count outcomes by type
       const outcomeCounts: Record<TerminalOutcome, number> = {
         ANSWER: 0,
-        QUALIFIED_ANSWER: 0,
+        CONDITIONAL_ANSWER: 0,
         REFUSAL: 0,
         ERROR: 0,
       }
@@ -126,7 +126,7 @@ export function createMetricsCollector(): ReasoningMetrics {
       // Calculate high-confidence dispute rate (disputes >= 0.9 confidence / answers)
       const highConfidenceDisputes = disputes.filter((d) => d.confidence >= 0.9)
       const answerOutcomes = outcomes.filter(
-        (o) => o.outcome === "ANSWER" || o.outcome === "QUALIFIED_ANSWER"
+        (o) => o.outcome === "ANSWER" || o.outcome === "CONDITIONAL_ANSWER"
       )
       const highConfidenceDisputeRate =
         answerOutcomes.length > 0 ? highConfidenceDisputes.length / answerOutcomes.length : 0

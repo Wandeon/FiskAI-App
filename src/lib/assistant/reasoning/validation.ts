@@ -1,9 +1,10 @@
 // src/lib/assistant/reasoning/validation.ts
 import { z } from "zod"
-import { SCHEMA_VERSION } from "./types"
+import { REASONING_EVENT_VERSION } from "./types"
 
 // === ENUMS AS ZOD ===
 const ReasoningStageSchema = z.enum([
+  "QUESTION_INTAKE",
   "CONTEXT_RESOLUTION",
   "CLARIFICATION",
   "SOURCES",
@@ -13,7 +14,7 @@ const ReasoningStageSchema = z.enum([
   "ANALYSIS",
   "CONFIDENCE",
   "ANSWER",
-  "QUALIFIED_ANSWER",
+  "CONDITIONAL_ANSWER",
   "REFUSAL",
   "ERROR",
 ])
@@ -136,7 +137,7 @@ const ErrorPayloadSchema = z.object({
 
 // === MAIN EVENT SCHEMA ===
 export const ReasoningEventSchema = z.object({
-  v: z.literal(SCHEMA_VERSION),
+  v: z.literal(REASONING_EVENT_VERSION),
   id: z.string(),
   requestId: z.string(),
   seq: z.number().int().nonnegative(),
@@ -164,7 +165,7 @@ export const ReasoningEventSchema = z.object({
 // === TERMINAL PAYLOAD SCHEMA ===
 export const TerminalPayloadSchema = z.discriminatedUnion("outcome", [
   z.object({ outcome: z.literal("ANSWER") }).merge(FinalAnswerPayloadSchema),
-  z.object({ outcome: z.literal("QUALIFIED_ANSWER") }).merge(QualifiedAnswerPayloadSchema),
+  z.object({ outcome: z.literal("CONDITIONAL_ANSWER") }).merge(QualifiedAnswerPayloadSchema),
   z.object({ outcome: z.literal("REFUSAL") }).merge(RefusalPayloadSchema),
   z.object({ outcome: z.literal("ERROR") }).merge(ErrorPayloadSchema),
 ])

@@ -6,7 +6,6 @@ export {
   type RuleCandidate,
   type RuleSelectionContext,
   type RuleSelectionResult,
-  type ObligationType,
 } from "./rule-selector"
 export {
   checkRuleEligibility,

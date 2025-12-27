@@ -7,6 +7,10 @@ import { BANK_STATEMENT_SYSTEM_PROMPT } from "./prompt"
 import { deepseekJson } from "@/lib/ai/deepseek"
 import { XMLParser } from "fast-xml-parser"
 import Decimal from "decimal.js"
+import OpenAI from "openai"
+
+// Helper to convert null to undefined for Prisma
+const nullToUndefined = <T>(value: T | null): T | undefined => (value === null ? undefined : value)
 
 type ParsedPage = {
   pageNumber: number
@@ -94,7 +98,7 @@ export async function processNextImportJob() {
       const transactions = await db.bankTransaction.count({
         where: {
           companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
+          bankAccountId: nullToUndefined(job.bankAccountId),
           createdAt: {
             gte: new Date(Date.now() - 60 * 1000), // Last minute (this import run)
           },
@@ -103,7 +107,7 @@ export async function processNextImportJob() {
       await db.bankImport.create({
         data: {
           companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
+          bankAccountId: nullToUndefined(job.bankAccountId),
           fileName: job.originalName,
           format: ImportFormat.XML_CAMT053,
           transactionCount: transactions,
@@ -177,7 +181,7 @@ async function handleXml(jobId: string) {
     data: {
       importJobId: jobId,
       companyId: job.companyId,
-      bankAccountId: job.bankAccountId,
+      bankAccountId: nullToUndefined(job.bankAccountId),
       statementDate,
       periodStart,
       periodEnd,
@@ -226,7 +230,7 @@ async function handleXml(jobId: string) {
 
         return {
           companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
+          bankAccountId: nullToUndefined(job.bankAccountId),
           date: new Date(dateStr),
           description: typeof description === "string" ? description : JSON.stringify(description),
           amount: new Prisma.Decimal(Math.abs(amount)),
@@ -279,7 +283,7 @@ async function handlePdf(jobId: string) {
     data: {
       importJobId: jobId,
       companyId: job.companyId,
-      bankAccountId: job.bankAccountId,
+      bankAccountId: nullToUndefined(job.bankAccountId),
       statementDate: statementMeta.statementDate,
       periodStart: statementMeta.periodStart,
       periodEnd: statementMeta.periodEnd,
@@ -355,7 +359,7 @@ async function handlePdf(jobId: string) {
       await db.bankTransaction.createMany({
         data: txnsToStore.map((t) => ({
           companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
+          bankAccountId: nullToUndefined(job.bankAccountId),
           date: new Date(t.date),
           description: t.description || "",
           amount: new Prisma.Decimal(t.amount),

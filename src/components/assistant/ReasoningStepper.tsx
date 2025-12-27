@@ -19,6 +19,7 @@ const STAGE_META: Record<ReasoningStage, { label: string; labelHr: string; icon:
     labelHr: "Provjeravam primjenjivost",
     icon: "✓",
   },
+  CONFLICTS: { label: "Resolving conflicts", labelHr: "Razrješavam konflikte", icon: "⚔️" },
   ANALYSIS: { label: "Analyzing", labelHr: "Analiziram", icon: "🧠" },
   CONFIDENCE: { label: "Computing confidence", labelHr: "Računam pouzdanost", icon: "📊" },
   ANSWER: { label: "Ready", labelHr: "Spremno", icon: "✅" },

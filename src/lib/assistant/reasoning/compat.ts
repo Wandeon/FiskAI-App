@@ -254,17 +254,25 @@ function mapCitations(citations: FinalAnswerPayload["citations"]): CitationBlock
  */
 function mapRefusalReason(reason: string | undefined): LegacyRefusalReason {
   if (!reason) return "OUT_OF_SCOPE"
-  if (reason === "UNSUPPORTED_DOMAIN") {
-    return "OUT_OF_SCOPE"
+  // Map from various reason codes to valid LegacyRefusalReason
+  const reasonMapping: Record<string, LegacyRefusalReason> = {
+    UNSUPPORTED_DOMAIN: "OUT_OF_SCOPE",
+    CANNOT_VERIFY: "NO_CITABLE_RULES",
+    TOO_COMPLEX: "OUT_OF_SCOPE",
+    CONFLICTING_RULES: "UNRESOLVED_CONFLICT",
+    AMBIGUOUS_QUERY: "NEEDS_CLARIFICATION",
+  }
+  if (reason in reasonMapping) {
+    return reasonMapping[reason]
   }
   // Check if it's a valid LegacyRefusalReason
   const validReasons: LegacyRefusalReason[] = [
     "OUT_OF_SCOPE",
-    "CANNOT_VERIFY",
-    "TOO_COMPLEX",
     "NO_CITABLE_RULES",
-    "CONFLICTING_RULES",
-    "AMBIGUOUS_QUERY",
+    "MISSING_CLIENT_DATA",
+    "UNRESOLVED_CONFLICT",
+    "NEEDS_CLARIFICATION",
+    "UNSUPPORTED_JURISDICTION",
   ]
   if (validReasons.includes(reason as LegacyRefusalReason)) {
     return reason as LegacyRefusalReason

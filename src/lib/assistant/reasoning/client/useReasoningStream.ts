@@ -59,7 +59,7 @@ export function useReasoningStream(options: UseReasoningStreamOptions): UseReaso
       if (event.stage === "CONTEXT_RESOLUTION" && event.status === "complete") {
         const data = event.data as ContextResolutionPayload
         if (data?.riskTier) {
-          setRiskTier(data.riskTier)
+          setRiskTier(data.riskTier as RiskTier)
         }
       }
 

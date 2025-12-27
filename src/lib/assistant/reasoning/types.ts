@@ -45,7 +45,7 @@ export const REASONING_STAGES: ReasoningStage[] = [
 /**
  * Risk tier classification
  */
-export type RiskTier = "T1" | "T2" | "T3"
+export type RiskTier = "T0" | "T1" | "T2" | "T3"
 
 /**
  * Event status
@@ -84,7 +84,12 @@ export interface ContextResolutionPayload {
   jurisdiction: string
   riskTier: string
   summary?: string
+  language?: string
+  intent?: string
+  asOfDate?: string
+  entities?: Array<{ type: string; value: string; confidence: number }>
   userContext?: Record<string, unknown>
+  userContextSnapshot?: UserContextSnapshot
   confidence: number
   requiresClarification?: boolean
   suggestedClarifications?: string[]
@@ -287,6 +292,10 @@ export interface UserContext {
  * User context snapshot for audit logging
  */
 export interface UserContextSnapshot {
+  vatStatus?: "registered" | "unregistered" | "unknown"
+  turnoverBand?: string
+  companySize?: "micro" | "small" | "medium" | "large"
+  jurisdiction?: string
   assumedDefaults: string[]
   resolvedContext?: UserContext
 }
@@ -327,4 +336,22 @@ export interface ConflictsPayload {
  */
 export function createEventId(requestId: string, seq: number): string {
   return `${requestId}_${String(seq).padStart(3, "0")}`
+}
+
+/**
+ * Source summary for source discovery stage
+ */
+export interface SourceSummary {
+  id: string
+  name: string
+  authority: string
+  url?: string
+}
+
+/**
+ * Sources stage payload
+ */
+export interface SourcesPayload {
+  summary: string
+  sources: SourceSummary[]
 }

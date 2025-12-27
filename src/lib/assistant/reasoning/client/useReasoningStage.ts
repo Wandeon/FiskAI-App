@@ -56,6 +56,7 @@ export function useReasoningStage(
  */
 export function getStageLabel(stage: ReasoningStage): string {
   const labels: Record<ReasoningStage, string> = {
+    QUESTION_INTAKE: "Prihvat pitanja",
     CONTEXT_RESOLUTION: "Razumijevanje pitanja",
     CLARIFICATION: "Pojasnjenje",
     SOURCES: "Pretrazivanje izvora",
@@ -65,7 +66,7 @@ export function getStageLabel(stage: ReasoningStage): string {
     ANALYSIS: "Analiza",
     CONFIDENCE: "Pouzdanost",
     ANSWER: "Odgovor",
-    QUALIFIED_ANSWER: "Kvalificirani odgovor",
+    CONDITIONAL_ANSWER: "Uvjetni odgovor",
     REFUSAL: "Odbijanje",
     ERROR: "Greska",
   }
@@ -78,6 +79,7 @@ export function getStageLabel(stage: ReasoningStage): string {
  */
 export function getStageIcon(stage: ReasoningStage): string {
   const icons: Record<ReasoningStage, string> = {
+    QUESTION_INTAKE: "[Q]",
     CONTEXT_RESOLUTION: "?",
     CLARIFICATION: "?",
     SOURCES: "[S]",
@@ -87,7 +89,7 @@ export function getStageIcon(stage: ReasoningStage): string {
     ANALYSIS: "[An]",
     CONFIDENCE: "[Co]",
     ANSWER: "[!]",
-    QUALIFIED_ANSWER: "[W]",
+    CONDITIONAL_ANSWER: "[W]",
     REFUSAL: "[X]",
     ERROR: "[E]",
   }

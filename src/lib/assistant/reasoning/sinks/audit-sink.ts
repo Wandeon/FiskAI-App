@@ -7,7 +7,7 @@ import type {
   TerminalOutcome,
   ContextResolutionPayload,
   ApplicabilityPayload,
-  ConflictsPayload,
+  ConflictsStagePayload,
   ConfidencePayload,
   RefusalPayload,
 } from "../types"
@@ -52,7 +52,7 @@ export function createAuditSink(
 
       const contextData = contextEvent?.data as ContextResolutionPayload | undefined
       const applicabilityData = applicabilityEvent?.data as ApplicabilityPayload | undefined
-      const conflictsData = conflictsEvent?.data as ConflictsPayload | undefined
+      const conflictsData = conflictsEvent?.data as ConflictsStagePayload | undefined
       const confidenceData = confidenceEvent?.data as ConfidencePayload | undefined
 
       const outcome = getTerminalOutcome(terminalEvent) as TerminalOutcome
@@ -68,10 +68,10 @@ export function createAuditSink(
             outcome,
             domain: contextData?.domain,
             riskTier: contextData?.riskTier,
-            confidence: confidenceData?.score,
+            confidence: confidenceData?.overallConfidence,
             sourceCount: sourcesEvents.length,
-            eligibleRuleCount: applicabilityData?.eligibleCount,
-            exclusionCount: applicabilityData?.ineligibleCount,
+            eligibleRuleCount: applicabilityData?.eligibleRules,
+            exclusionCount: applicabilityData?.excludedRules,
             conflictCount: conflictsData?.conflictCount,
             refusalReason: refusalData?.reason,
             durationMs: Date.now() - startTime,

@@ -1,18 +1,18 @@
 // src/lib/assistant/reasoning/event-factory.ts
 import {
-  SCHEMA_VERSION,
+  REASONING_EVENT_VERSION,
   type ReasoningEvent,
   type ReasoningStage,
-  type ReasoningStatus,
-  type Severity,
+  type EventStatus,
+  type EventSeverity,
   type StagePayload,
 } from "./types"
 
 export interface EventEmitOptions {
   stage: ReasoningStage
-  status: ReasoningStatus
+  status: EventStatus
   message?: string
-  severity?: Severity
+  severity?: EventSeverity
   progress?: { current: number; total?: number }
   data?: StagePayload
   meta?: Record<string, unknown>
@@ -33,7 +33,7 @@ export function createEventFactory(requestId: string): EventFactory {
       const paddedSeq = String(currentSeq).padStart(3, "0")
 
       return {
-        v: SCHEMA_VERSION,
+        v: REASONING_EVENT_VERSION,
         id: `${requestId}_${paddedSeq}`,
         requestId,
         seq: currentSeq,

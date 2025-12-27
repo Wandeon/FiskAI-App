@@ -28,8 +28,8 @@ export function createMetricsSink(requestId: string, surface: Surface = "APP"): 
       // On CONTEXT_RESOLUTION complete, record the request with risk tier
       if (event.stage === "CONTEXT_RESOLUTION" && event.status === "complete") {
         const data = event.data as ContextResolutionPayload | undefined
-        if (data) {
-          riskTier = data.riskTier
+        if (data?.riskTier) {
+          riskTier = data.riskTier as RiskTier
         }
         if (!requestRecorded) {
           metrics.recordRequest(requestId, surface, riskTier)
