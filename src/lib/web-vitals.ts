@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onFCP, onTTFB, onINP, type Metric } from "web-vitals"
+import { onCLS, onLCP, onFCP, onTTFB, onINP, type Metric } from "web-vitals"
 
 function sendToPostHog(metric: Metric) {
   // PostHog might not be initialized yet, check window
@@ -27,10 +27,11 @@ function sendToPostHog(metric: Metric) {
 }
 
 export function reportWebVitals() {
+  // Core Web Vitals (CLS, LCP, INP) + additional metrics (FCP, TTFB)
+  // Note: FID was deprecated in favor of INP in web-vitals v4+
   onCLS(sendToPostHog)
-  onFID(sendToPostHog)
   onLCP(sendToPostHog)
+  onINP(sendToPostHog)
   onFCP(sendToPostHog)
   onTTFB(sendToPostHog)
-  onINP(sendToPostHog)
 }
