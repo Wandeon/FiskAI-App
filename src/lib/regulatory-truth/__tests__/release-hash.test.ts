@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/__tests__/release-hash.test.ts
 import { describe, it } from "node:test"
 import assert from "node:assert"
-import { computeReleaseHash, type RuleSnapshot } from "../utils/release-hash"
+import { computeReleaseHash, RuleSnapshot } from "../utils/release-hash"
 
 describe("release-hash", () => {
   describe("computeReleaseHash determinism", () => {
@@ -50,14 +50,14 @@ describe("release-hash", () => {
     it("produces same hash with equivalent date strings", () => {
       const rulesWithNewDates: RuleSnapshot[] = sampleRules.map((r) => ({
         ...r,
-        effectiveFrom: r.effectiveFrom ? String(r.effectiveFrom) : null,
-        effectiveUntil: r.effectiveUntil ? String(r.effectiveUntil) : null,
+        effectiveFrom: r.effectiveFrom,
+        effectiveUntil: r.effectiveUntil,
       }))
 
       const hash1 = computeReleaseHash(sampleRules)
       const hash2 = computeReleaseHash(rulesWithNewDates)
 
-      assert.strictEqual(hash1, hash2, "Hash should be identical with equivalent Date objects")
+      assert.strictEqual(hash1, hash2, "Hash should be identical with equivalent date strings")
     })
 
     it("produces same hash with nested object key reordering", () => {

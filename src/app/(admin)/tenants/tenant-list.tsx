@@ -63,7 +63,7 @@ export function TenantListView({ data }: TenantListViewProps) {
 
   const currentSort: { field: string; order: "asc" | "desc" } = {
     field: searchParams.get("sortField") || "createdAt",
-    order: (searchParams.get("sortOrder") as "asc" | "desc") || "desc",
+    order: (searchParams.get("sortOrder") || "desc") as "asc" | "desc",
   }
 
   const updateParams = (updates: Record<string, string | null>) => {

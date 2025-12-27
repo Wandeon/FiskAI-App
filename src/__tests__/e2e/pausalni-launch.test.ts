@@ -184,11 +184,12 @@ describe("Pausalni Launch E2E Tests", () => {
 
     it("validates onboarding flow completion order", () => {
       // Mock company data at different stages
-      const incompleteStep1 = {
-        name: null,
-        oib: null,
-        legalForm: null,
-      }
+      const incompleteStep1: { name: string | null; oib: string | null; legalForm: string | null } =
+        {
+          name: null,
+          oib: null,
+          legalForm: null,
+        }
 
       const incompleteStep2 = {
         name: "Test",

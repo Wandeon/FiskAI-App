@@ -69,7 +69,6 @@ describe("Arbiter E2E", () => {
         conflictType: "SOURCE_CONFLICT",
         status: "OPEN",
         description: `[STRUCTURAL] E2E Test: Rules have overlapping effective dates. LAW (Rule B) may supersede GUIDANCE (Rule A).`,
-        metadata: { detectionMethod: "STRUCTURAL" },
       },
     })
     conflictId = conflict.id
@@ -83,7 +82,7 @@ describe("Arbiter E2E", () => {
           path: ["conflictId"],
           equals: conflictId,
         },
-      } as any,
+      },
     })
 
     // Delete conflict
@@ -127,9 +126,15 @@ describe("Arbiter E2E", () => {
 
       // Verify arbiter rationale exists in agent output
       if (result.output) {
-        const output = result.output as any
-        assert.ok(output.rationale, "Arbiter output should include rationale")
-        assert.ok(output.rationale.length > 10, "Rationale should be substantive, not empty")
+        const output = result.output as { arbitration?: { resolution?: { rationale?: string } } }
+        assert.ok(
+          output.arbitration?.resolution?.rationale,
+          "Arbiter output should include rationale"
+        )
+        assert.ok(
+          (output.arbitration?.resolution?.rationale ?? "").length > 10,
+          "Rationale should be substantive, not empty"
+        )
       }
     })
 
@@ -142,21 +147,21 @@ describe("Arbiter E2E", () => {
             path: ["conflictId"],
             equals: conflictId,
           },
-        } as any,
+        },
         orderBy: { startedAt: "desc" },
       })
 
       assert.ok(agentRun, "AgentRun record should exist for arbiter")
       assert.strictEqual(agentRun.agentType, "ARBITER")
 
-      // AgentRun should be SUCCESS or FAILED (not still running)
+      // AgentRun should be completed or failed (not still running)
       assert.ok(
-        ["SUCCESS", "FAILED"].includes(agentRun.status),
-        `AgentRun status should be SUCCESS or FAILED, got: ${agentRun.status}`
+        ["completed", "failed"].includes(agentRun.status),
+        `AgentRun status should be completed or failed, got: ${agentRun.status}`
       )
 
       // If successful, check timing
-      if (agentRun.status === "SUCCESS") {
+      if (agentRun.status === "completed") {
         assert.ok(agentRun.completedAt, "Successful run should have completedAt")
         const durationMs =
           new Date(agentRun.completedAt).getTime() - new Date(agentRun.startedAt).getTime()
@@ -176,13 +181,21 @@ describe("Arbiter E2E", () => {
       // If resolved, check if the resolution mentions authority
       if (updatedConflict?.status === "RESOLVED" && updatedConflict.resolution) {
         // The resolution should reference the winning rule or authority
-        const resolutionStr = JSON.stringify(updatedConflict.resolution).toLowerCase()
+        const resolutionObj = updatedConflict.resolution as {
+          rationaleEn?: string
+          rationaleHr?: string
+        } | null
+        const resolutionText = (
+          resolutionObj?.rationaleEn ||
+          resolutionObj?.rationaleHr ||
+          ""
+        ).toLowerCase()
         const mentionsAuthority =
-          resolutionStr.includes("law") ||
-          resolutionStr.includes("authority") ||
-          resolutionStr.includes("supersede") ||
-          resolutionStr.includes("higher") ||
-          resolutionStr.includes("zakon") // Croatian for "law"
+          resolutionText.includes("law") ||
+          resolutionText.includes("authority") ||
+          resolutionText.includes("supersede") ||
+          resolutionText.includes("higher") ||
+          resolutionText.includes("zakon") // Croatian for "law"
 
         // This is an informational assertion - log but don't fail
         if (!mentionsAuthority) {

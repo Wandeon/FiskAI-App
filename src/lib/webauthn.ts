@@ -92,12 +92,11 @@ export async function generateWebAuthnRegistrationOptions(
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
-    userID: toBase64UrlId(userId),
     userName,
     userDisplayName,
     attestationType: "none",
     excludeCredentials: existingCredentials.map((cred) => ({
-      id: toBufferFromId(cred.credentialId),
+      id: toBase64UrlId(cred.credentialId),
       type: "public-key" as const,
       transports: cred.transports
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
@@ -138,14 +137,11 @@ export async function verifyWebAuthnRegistration(
     throw new Error("Registration verification failed")
   }
 
-  // In SimpleWebAuthn v9, properties are directly on registrationInfo
-  const { credentialID, credentialPublicKey, counter } = verification.registrationInfo
-
   return {
     verified: true,
-    credentialId: toBase64UrlId(Buffer.from(credentialID)),
-    publicKey: Buffer.from(credentialPublicKey).toString("base64"),
-    counter: BigInt(counter),
+    credentialId: toBase64UrlId(Buffer.from(verification.registrationInfo.credentialID)),
+    publicKey: Buffer.from(verification.registrationInfo.credentialPublicKey).toString("base64"),
+    counter: BigInt(verification.registrationInfo.counter),
     transports: response.response.transports,
   }
 }
@@ -158,7 +154,7 @@ export async function generateWebAuthnAuthenticationOptions(
   const options = await generateAuthenticationOptions({
     rpID: RP_ID,
     allowCredentials: credentials.map((cred) => ({
-      id: toBufferFromId(cred.credentialId),
+      id: toBase64UrlId(cred.credentialId),
       type: "public-key" as const,
       transports: cred.transports
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
@@ -187,10 +183,9 @@ export async function verifyWebAuthnAuthentication(
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
-    // In SimpleWebAuthn v9, this is 'authenticator' not 'credential'
     authenticator: {
-      credentialID: toBufferFromId(credential.credentialId),
-      credentialPublicKey: Buffer.from(credential.publicKey, "base64"),
+      credentialID: new Uint8Array(toBufferFromId(credential.credentialId)),
+      credentialPublicKey: new Uint8Array(Buffer.from(credential.publicKey, "base64")),
       counter: Number(credential.counter),
     },
     requireUserVerification: false,

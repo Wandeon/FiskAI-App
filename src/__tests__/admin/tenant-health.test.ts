@@ -419,10 +419,10 @@ describe("Tenant Health", () => {
       await getTenantDetail("company-123")
 
       const call = vi.mocked(db.company.findUnique).mock.calls[0] as any
-      expect(call[0].include.eInvoices.where.createdAt.gte).toEqual(
+      expect(call?.[0]?.include?.eInvoices?.where?.createdAt?.gte).toEqual(
         new Date(new Date().getFullYear(), 0, 1)
       )
-      expect(call[0].include.eInvoices.where.status).toEqual({ not: "DRAFT" })
+      expect(call?.[0]?.include?.eInvoices?.where?.status).toEqual({ not: "DRAFT" })
     })
 
     it("calculates 30-day activity count", async () => {

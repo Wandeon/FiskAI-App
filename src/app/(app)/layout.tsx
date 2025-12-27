@@ -59,9 +59,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                     eInvoiceProvider: currentCompany.eInvoiceProvider,
                     isVatPayer: currentCompany.isVatPayer,
                     legalForm: currentCompany.legalForm,
-                    entitlements: Array.isArray(currentCompany.entitlements)
-                      ? (currentCompany.entitlements as string[])
-                      : undefined,
+                    entitlements: currentCompany.entitlements as string[] | undefined,
                   }
                 : undefined
             }

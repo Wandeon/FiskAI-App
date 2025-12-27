@@ -102,7 +102,7 @@ export async function detectEuTransaction(tx: BankTransaction): Promise<EuDetect
     vendor: null,
     confidence: 0,
     detectionMethod: "UNKNOWN",
-    requiresUserConfirmation: Boolean(looksLikeForeign),
+    requiresUserConfirmation: !!looksLikeForeign,
   }
 }
 
@@ -141,19 +141,19 @@ export async function processTransactionsForEu(
           companyId,
           bankTransactionId: tx.id,
           direction: "RECEIVED", // We received the service (outgoing payment)
-          counterpartyName: tx.counterpartyName,
-          counterpartyCountry: result.country,
+          counterpartyName: tx.counterpartyName ?? undefined,
+          counterpartyCountry: result.country ?? undefined,
           transactionDate: tx.transactionDate.toISOString(),
           amount: String(Math.abs(tx.amount)),
           pdvRate: String(PDV_CONFIG.rate),
           pdvAmount: String(pdvAmount),
           reportingMonth: txDate.getMonth() + 1,
           reportingYear: txDate.getFullYear(),
-          vendorId: result.vendor?.id,
+          vendorId: result.vendor?.id ?? undefined,
           detectionMethod: result.detectionMethod,
           confidenceScore: result.confidence,
           userConfirmed: false,
-        } as any)
+        })
         .onConflictDoNothing()
 
       detected++

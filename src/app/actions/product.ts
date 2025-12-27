@@ -24,7 +24,7 @@ const productInlineSchema = productSchema.pick({
 export async function createProduct(formData: z.infer<typeof productSchema>) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async (company) => {
+  return requireCompanyWithContext(user.id!, async () => {
     const validatedFields = productSchema.safeParse(formData)
 
     if (!validatedFields.success) {
@@ -34,7 +34,8 @@ export async function createProduct(formData: z.infer<typeof productSchema>) {
     const product = await db.product.create({
       data: {
         ...validatedFields.data,
-        companyId: company.id,
+        description: validatedFields.data.description || null,
+        sku: validatedFields.data.sku || null,
       },
     })
 

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { PrismaClient } from '@prisma/client'
-import { withTenantIsolation, setTenantContext, getTenantContext } from '@/lib/prisma-extensions'
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
+import { PrismaClient } from "@prisma/client"
+import { withTenantIsolation, setTenantContext, getTenantContext } from "@/lib/prisma-extensions"
 
 // Mock Prisma client for testing
 const mockPrisma = {
@@ -40,7 +40,7 @@ const mockPrisma = {
   },
 } as any
 
-describe('Tenant Isolation', () => {
+describe("Tenant Isolation", () => {
   beforeEach(() => {
     // Clear any existing tenant context
     setTenantContext(null)
@@ -51,8 +51,8 @@ describe('Tenant Isolation', () => {
     vi.clearAllMocks()
   })
 
-  it('should add companyId to queries when tenant context is set', () => {
-    const tenantContext = { companyId: 'test-company-id', userId: 'test-user-id' }
+  it("should add companyId to queries when tenant context is set", () => {
+    const tenantContext = { companyId: "test-company-id", userId: "test-user-id" }
     setTenantContext(tenantContext)
 
     const extendedPrisma = withTenantIsolation(mockPrisma as PrismaClient)
@@ -61,8 +61,8 @@ describe('Tenant Isolation', () => {
     expect(getTenantContext()).toEqual(tenantContext)
   })
 
-  it('should protect tenant-sensitive models', () => {
-    const tenantContext = { companyId: 'test-company-id', userId: 'test-user-id' }
+  it("should protect tenant-sensitive models", () => {
+    const tenantContext = { companyId: "test-company-id", userId: "test-user-id" }
     setTenantContext(tenantContext)
 
     const extendedPrisma = withTenantIsolation(mockPrisma as PrismaClient)
@@ -71,10 +71,10 @@ describe('Tenant Isolation', () => {
     expect(mockPrisma.$extends).toHaveBeenCalled()
   })
 
-  it('should not apply tenant filtering to non-tenant models', () => {
+  it("should not apply tenant filtering to non-tenant models", () => {
     // User model, for example, should not be tenant-isolated
     // as users can belong to multiple companies
-    const tenantContext = { companyId: 'test-company-id', userId: 'test-user-id' }
+    const tenantContext = { companyId: "test-company-id", userId: "test-user-id" }
     setTenantContext(tenantContext)
 
     const extendedPrisma = withTenantIsolation(mockPrisma as PrismaClient)

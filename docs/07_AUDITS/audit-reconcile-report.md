@@ -1,17 +1,17 @@
 # Audit Reconciliation Report
 
-**Generated:** 2025-12-25T21:37:35.801Z
+**Generated:** 2025-12-27T15:19:11.502Z
 **Project:** FiskAI Regulatory Truth Layer
 
 ## Summary
 
 | Status             | Count |
 | ------------------ | ----- |
-| ✅ Verified Fixed  | 9     |
-| ⚠️ Requires Action | 0     |
+| ✅ Verified Fixed  | 10    |
+| ⚠️ Requires Action | 3     |
 | 🔵 Acceptable Risk | 1     |
 | ⬜ Not Applicable  | 0     |
-| **Total**          | 10    |
+| **Total**          | 14    |
 
 ---
 
@@ -45,7 +45,7 @@ Arbiter does not queue follow-up work - relies on continuous-drainer to pick up 
 
 ---
 
-### ✅ DSL-001: AppliesWhen DSL silent fallback to {op: true}
+### ✅ DSL-001: AppliesWhen DSL validation uses fail-closed behavior
 
 **Category:** Data Quality
 **Status:** VERIFIED FIXED
@@ -53,7 +53,7 @@ Arbiter does not queue follow-up work - relies on continuous-drainer to pick up 
 **Evidence:**
 
 ```
-Fallback to {op: "true"} exists. Fallback is logged to composer_notes field.
+Fail-closed behavior implemented: rules with invalid AppliesWhen DSL are rejected, not silently broadened. No fallback to { op: true } exists.
 ```
 
 ---
@@ -167,5 +167,67 @@ Route file: ✓ Exists
 GET handler: ✓
 POST handler: ✓
 ```
+
+---
+
+### ⚠️ AUDIT-002: Audit logging in critical CLI scripts (bootstrap, overnight-run, drain-pipeline)
+
+**Category:** Audit Trail
+**Status:** REQUIRES ACTION
+
+**Evidence:**
+
+```
+Scripts WITH audit logging: none
+Scripts WITHOUT audit logging: bootstrap.ts, overnight-run.ts, drain-pipeline.ts
+```
+
+**Recommendation:** Add logAuditEvent calls to: bootstrap.ts, overnight-run.ts, drain-pipeline.ts
+
+---
+
+### ⚠️ BYPASS-001: Grace period bypass in drain-pipeline.ts
+
+**Category:** Security
+**Status:** REQUIRES ACTION
+
+**Evidence:**
+
+```
+drain-pipeline.ts sets AUTO_APPROVE_GRACE_HOURS=0, bypassing the human review grace period
+```
+
+**Recommendation:** Remove AUTO_APPROVE_GRACE_HOURS=0 override or add explicit audit logging when bypassed
+
+---
+
+### ✅ SCOPE-001: AppliesWhen DSL evaluated in assistant rule selection
+
+**Category:** Jurisdiction & Scope
+**Status:** VERIFIED FIXED
+
+**Evidence:**
+
+```
+rule-eligibility.ts exists: ✓
+rule-selector.ts uses checkRuleEligibility: ✓
+Imports from rule-eligibility: ✓
+```
+
+---
+
+### ⚠️ AUDIT-003: Audit logging in admin API routes (trigger, conflict resolve)
+
+**Category:** Audit Trail
+**Status:** REQUIRES ACTION
+
+**Evidence:**
+
+```
+trigger/route.ts: ✗ Missing audit logging
+conflicts/[id]/resolve/route.ts: ✗ Missing audit logging
+```
+
+**Recommendation:** Add logAuditEvent calls to: trigger/route.ts, conflicts/[id]/resolve/route.ts
 
 ---

@@ -2,18 +2,7 @@
 // Daily Review Bundle Generator for T0/T1 rules requiring human review
 
 import { cliDb as db } from "../cli-db"
-import type { RiskTier, Prisma } from "@prisma/client"
-
-// Type for rule with sourcePointers included
-type RuleWithPointers = Prisma.RegulatoryRuleGetPayload<{
-  include: {
-    sourcePointers: {
-      include: {
-        evidence: { select: { url: true } }
-      }
-    }
-  }
-}>
+import { RiskTier } from "@prisma/client"
 
 export interface ReviewItem {
   id: string
@@ -52,12 +41,12 @@ export interface GenerateOptions {
 export async function generateReviewBundle(options?: GenerateOptions): Promise<ReviewBundle> {
   const maxItems = options?.maxItems ?? 20
   const prioritize = options?.prioritize ?? "risk"
-  const riskTiers: RiskTier[] = options?.riskTiers ?? ["T0", "T1"]
+  const riskTiers = options?.riskTiers ?? [RiskTier.T0, RiskTier.T1]
 
   const now = new Date()
 
   // Get pending rules with source information
-  const pendingRules: RuleWithPointers[] = await db.regulatoryRule.findMany({
+  const pendingRules = await db.regulatoryRule.findMany({
     where: {
       status: "PENDING_REVIEW",
       riskTier: { in: riskTiers },
@@ -74,12 +63,11 @@ export async function generateReviewBundle(options?: GenerateOptions): Promise<R
     take: maxItems,
   })
 
-  const items: ReviewItem[] = pendingRules.map((rule: RuleWithPointers) => {
+  const items: ReviewItem[] = pendingRules.map((rule) => {
     const urls = rule.sourcePointers
-      .map((sp) => sp.evidence?.url)
-      .filter((url): url is string => url !== null && url !== undefined)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const domain = (rule.sourcePointers[0] as any)?.domain || "unknown"
+      .map((sp: { evidence?: { url?: string | null } | null }) => sp.evidence?.url)
+      .filter((url: string | null | undefined): url is string => url !== null && url !== undefined)
+    const domain = rule.sourcePointers[0]?.domain || "unknown"
 
     return {
       id: rule.id,
@@ -90,7 +78,7 @@ export async function generateReviewBundle(options?: GenerateOptions): Promise<R
       riskTier: rule.riskTier,
       confidence: rule.confidence,
       sourceCount: rule.sourcePointers.length,
-      quotes: rule.sourcePointers.map((sp) => sp.exactQuote).slice(0, 3),
+      quotes: rule.sourcePointers.map((sp: { exactQuote: string }) => sp.exactQuote).slice(0, 3),
       urls: Array.from(new Set(urls)), // Deduplicate URLs
       waitingHours: (now.getTime() - rule.updatedAt.getTime()) / (1000 * 60 * 60),
       effectiveFrom: rule.effectiveFrom.toISOString().split("T")[0],

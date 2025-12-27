@@ -203,6 +203,7 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
 
       {saleResult && (
         <ReceiptModal
+          isOpen={!!saleResult}
           result={saleResult}
           onNewSale={handleNewSale}
           onClose={() => setSaleResult(null)}

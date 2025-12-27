@@ -1,7 +1,5 @@
 import { db } from "@/lib/db"
 import { Prisma } from "@prisma/client"
-
-// Decimal is now accessed via Prisma namespace
 type Decimal = Prisma.Decimal
 
 export type KprRow = {
@@ -262,8 +260,8 @@ export function kprToCsvLegacy(summary: KprSummary): string {
     .filter((r) => r.type === "INCOME")
     .map((r) =>
       [
-        formatDate(r.paidAt),
-        formatDate(r.issueDate),
+        formatDate(r.paidAt ?? null),
+        formatDate(r.issueDate ?? null),
         r.invoiceNumber || "",
         escapeCsv(r.buyerName || ""),
         (r.netAmount || 0).toFixed(2),
@@ -283,7 +281,7 @@ export function kprToCsvLegacy(summary: KprSummary): string {
   return [header, ...lines, totals].join("\n")
 }
 
-export function posdXml(summary: KprSummary, from?: Date | null, to?: Date | null): string {
+export function posdXml(summary: KprSummary, from?: Date, to?: Date): string {
   const periodFrom = from ? formatDate(from) : ""
   const periodTo = to ? formatDate(to) : ""
   const totalInvoices = summary.rows.length
@@ -310,7 +308,7 @@ function numberFromDecimal(value: Decimal | number | null | undefined): number {
   return Number(value.toString())
 }
 
-function formatDate(date: Date | null | undefined): string {
+function formatDate(date: Date | null): string {
   if (!date) return ""
   return date.toISOString().slice(0, 10)
 }

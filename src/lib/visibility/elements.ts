@@ -16,6 +16,7 @@ export const VISIBILITY_ELEMENTS = {
   "card:deadline-countdown": { type: "card", label: "Rokovi" },
   "card:recent-activity": { type: "card", label: "Nedavna aktivnost" },
   "card:fiscalization-status": { type: "card", label: "Status fiskalizacije" },
+  "card:compliance-status": { type: "card", label: "Status usklađenosti" },
   "card:today-actions": { type: "card", label: "Današnje akcije" },
   "card:hero-banner": { type: "card", label: "Dobrodošlica" },
   "card:checklist-widget": { type: "card", label: "Checklist" },

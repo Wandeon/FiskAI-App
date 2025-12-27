@@ -7,12 +7,13 @@ import { Modal, ModalFooter } from "@/components/ui/modal"
 import type { ProcessPosSaleResult } from "@/types/pos"
 
 interface Props {
+  isOpen: boolean
   result: ProcessPosSaleResult
   onNewSale: () => void
   onClose: () => void
 }
 
-export function ReceiptModal({ result, onNewSale, onClose }: Props) {
+export function ReceiptModal({ isOpen, result, onNewSale, onClose }: Props) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("hr-HR", {
       style: "currency",
@@ -26,7 +27,7 @@ export function ReceiptModal({ result, onNewSale, onClose }: Props) {
   }
 
   return (
-    <Modal isOpen={true} title="Prodaja završena" onClose={onClose}>
+    <Modal isOpen={isOpen} title="Prodaja završena" onClose={onClose}>
       <div className="text-center space-y-6 py-4">
         {/* Success icon */}
         <div className="text-6xl text-green-500">✓</div>

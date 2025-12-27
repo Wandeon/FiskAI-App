@@ -25,10 +25,10 @@ export async function loadSearchIndex(): Promise<SearchIndex> {
       throw new Error("Invalid search index format")
     }
 
-    searchIndex = data
+    searchIndex = data as SearchIndex
 
     // Initialize Fuse with loaded entries
-    fuseInstance = new Fuse(searchIndex!.entries, {
+    fuseInstance = new Fuse(searchIndex.entries, {
       keys: [
         { name: "title", weight: 2 },
         { name: "description", weight: 1 },
@@ -39,14 +39,14 @@ export async function loadSearchIndex(): Promise<SearchIndex> {
       includeMatches: true,
     })
 
-    return searchIndex!
+    return searchIndex
   } catch (error) {
     console.error("Error loading search index:", error)
     // Return empty index as fallback
     const emptyIndex: SearchIndex = {
-      version: "0.0.0",
-      generatedAt: new Date().toISOString(),
       entries: [],
+      version: "0",
+      generatedAt: new Date().toISOString(),
     }
     searchIndex = emptyIndex
     fuseInstance = new Fuse([], {
@@ -59,7 +59,7 @@ export async function loadSearchIndex(): Promise<SearchIndex> {
       includeScore: true,
       includeMatches: true,
     })
-    return emptyIndex
+    return searchIndex
   }
 }
 

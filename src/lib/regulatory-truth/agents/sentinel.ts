@@ -1,7 +1,11 @@
 // src/lib/regulatory-truth/agents/sentinel.ts
 import { DiscoveryPriority, FreshnessRisk, ScrapeFrequency } from "@prisma/client"
 import { db } from "@/lib/db"
-import { fetchWithRateLimit } from "../utils/rate-limiter"
+import {
+  fetchWithRateLimit,
+  getSentinelHealth,
+  type FetchWithRetryOptions,
+} from "../utils/rate-limiter"
 import { detectContentChange, hashContent } from "../utils/content-hash"
 import {
   parseSitemap,
@@ -28,6 +32,67 @@ import {
   calculateNextScan,
 } from "../utils/adaptive-sentinel"
 
+// =============================================================================
+// STRUCTURED LOGGING
+// =============================================================================
+
+interface LogContext {
+  operation: string
+  domain?: string
+  url?: string
+  endpointId?: string
+  itemId?: string
+  attempt?: number
+  duration?: number
+  error?: string
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Structured logger for sentinel operations.
+ * Outputs JSON for production, human-readable for development.
+ */
+function log(level: "info" | "warn" | "error" | "debug", message: string, context?: LogContext) {
+  const timestamp = new Date().toISOString()
+  const isDev = process.env.NODE_ENV !== "production"
+
+  if (isDev) {
+    const prefix = `[sentinel:${context?.operation || "main"}]`
+    const suffix = context?.url ? ` (${context.url})` : ""
+    const errorSuffix = context?.error ? ` - ${context.error}` : ""
+
+    switch (level) {
+      case "error":
+        console.error(`${prefix} ${message}${suffix}${errorSuffix}`)
+        break
+      case "warn":
+        console.warn(`${prefix} ${message}${suffix}`)
+        break
+      case "debug":
+        if (process.env.DEBUG) {
+          console.log(`${prefix} [DEBUG] ${message}${suffix}`)
+        }
+        break
+      default:
+        console.log(`${prefix} ${message}${suffix}`)
+    }
+  } else {
+    // Production: structured JSON logging
+    const logEntry = {
+      timestamp,
+      level,
+      component: "sentinel",
+      message,
+      ...context,
+    }
+    console.log(JSON.stringify(logEntry))
+  }
+}
+
+// =============================================================================
+// CONFIGURATION
+// =============================================================================
+
 interface SentinelConfig {
   maxItemsPerRun: number
   maxPagesPerEndpoint: number
@@ -39,6 +104,11 @@ interface SentinelConfig {
   // Randomized delay range to avoid detection patterns
   delayMinMs: number
   delayMaxMs: number
+  // Reliability settings
+  requestTimeoutMs: number
+  maxRetries: number
+  baseRetryDelayMs: number
+  maxRetryDelayMs: number
 }
 
 const DEFAULT_CONFIG: SentinelConfig = {
@@ -51,6 +121,32 @@ const DEFAULT_CONFIG: SentinelConfig = {
   crawlDelayMs: 2000, // Base delay, will be randomized
   delayMinMs: 2000, // Minimum 2 seconds
   delayMaxMs: 5000, // Maximum 5 seconds
+  // Reliability defaults
+  requestTimeoutMs: 30000, // 30 seconds timeout
+  maxRetries: 3, // 3 retries with exponential backoff
+  baseRetryDelayMs: 1000, // 1 second base delay
+  maxRetryDelayMs: 30000, // 30 seconds max delay
+}
+
+/**
+ * Get fetch options with retry configuration from sentinel config.
+ */
+function getFetchOptions(config: SentinelConfig, context?: LogContext): FetchWithRetryOptions {
+  return {
+    timeoutMs: config.requestTimeoutMs,
+    maxRetries: config.maxRetries,
+    baseRetryDelayMs: config.baseRetryDelayMs,
+    maxRetryDelayMs: config.maxRetryDelayMs,
+    onRetry: (attempt, error, delay) => {
+      log("warn", `Retry attempt ${attempt}`, {
+        operation: context?.operation || "fetch",
+        url: context?.url,
+        attempt,
+        error: error.message,
+        metadata: { delayMs: delay },
+      })
+    },
+  }
 }
 
 /**
@@ -331,6 +427,24 @@ export interface SentinelResult {
   endpointsChecked: number
   newItemsDiscovered: number
   errors: string[]
+  // Health information
+  health?: {
+    domains: Record<
+      string,
+      {
+        isHealthy: boolean
+        successRate: number
+        consecutiveErrors: number
+        isCircuitBroken: boolean
+        lastSuccessAt?: string
+        lastError?: string
+      }
+    >
+    overallHealthy: boolean
+  }
+  // Performance metrics
+  durationMs?: number
+  retriesTotal?: number
 }
 
 /**
@@ -649,16 +763,32 @@ async function processEndpoint(
           })
           newItemCount++
         }
-      } catch (_error) {
+      } catch (duplicateError) {
         // Likely duplicate (unique constraint violation from race condition)
-        // This is expected and fine
+        // This is expected and fine - log at debug level
+        log("debug", "Skipping duplicate item", {
+          operation: "discover",
+          url: item.url,
+          error: duplicateError instanceof Error ? duplicateError.message : String(duplicateError),
+        })
       }
     }
 
-    console.log(`[sentinel] Discovered ${newItemCount} new items from ${endpoint.name}`)
+    log("info", `Discovered ${newItemCount} new items from ${endpoint.name}`, {
+      operation: "discover",
+      endpointId: endpoint.id,
+      metadata: { newItems: newItemCount },
+    })
     return { newItems: newItemCount }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
+
+    log("error", `Endpoint processing failed: ${endpoint.name}`, {
+      operation: "process-endpoint",
+      endpointId: endpoint.id,
+      url: baseUrl,
+      error: errorMessage,
+    })
 
     await db.discoveryEndpoint.update({
       where: { id: endpoint.id },
@@ -679,6 +809,7 @@ export async function runSentinel(
   priority?: DiscoveryPriority,
   config: Partial<SentinelConfig> = {}
 ): Promise<SentinelResult> {
+  const startTime = Date.now()
   const mergedConfig = { ...DEFAULT_CONFIG, ...config }
   const now = new Date()
   const result: SentinelResult = {
@@ -687,6 +818,11 @@ export async function runSentinel(
     newItemsDiscovered: 0,
     errors: [],
   }
+
+  log("info", "Starting Sentinel run", {
+    operation: "run",
+    metadata: { priority: priority || "ALL", config: mergedConfig },
+  })
 
   try {
     // Reset error counts for endpoints that haven't been tried in 24 hours
@@ -703,7 +839,9 @@ export async function runSentinel(
       },
     })
     if (resetResult.count > 0) {
-      console.log(`[sentinel] Reset error counts for ${resetResult.count} endpoints`)
+      log("info", `Reset error counts for ${resetResult.count} endpoints`, {
+        operation: "reset-errors",
+      })
     }
 
     // Get active endpoints, optionally filtered by priority
@@ -723,7 +861,9 @@ export async function runSentinel(
       ],
     })
 
-    console.log(`[sentinel] Found ${endpoints.length} active endpoints`)
+    log("info", `Found ${endpoints.length} active endpoints`, {
+      operation: "find-endpoints",
+    })
 
     for (const endpoint of endpoints) {
       // Check if we should scrape based on frequency
@@ -741,20 +881,53 @@ export async function runSentinel(
 
       // Safety limit
       if (result.newItemsDiscovered >= mergedConfig.maxItemsPerRun) {
-        console.log(`[sentinel] Reached max items limit (${mergedConfig.maxItemsPerRun})`)
+        log("warn", `Reached max items limit (${mergedConfig.maxItemsPerRun})`, {
+          operation: "run",
+        })
         break
       }
     }
 
-    console.log(
-      `[sentinel] Complete: ${result.endpointsChecked} endpoints, ${result.newItemsDiscovered} new items`
+    // Include health status in result
+    result.health = getSentinelHealth()
+    result.durationMs = Date.now() - startTime
+
+    log(
+      "info",
+      `Complete: ${result.endpointsChecked} endpoints, ${result.newItemsDiscovered} new items`,
+      {
+        operation: "run",
+        duration: result.durationMs,
+        metadata: {
+          endpointsChecked: result.endpointsChecked,
+          newItemsDiscovered: result.newItemsDiscovered,
+          errorsCount: result.errors.length,
+          health: result.health.overallHealthy,
+        },
+      }
     )
   } catch (error) {
     result.success = false
-    result.errors.push(error instanceof Error ? error.message : String(error))
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    result.errors.push(errorMessage)
+    result.durationMs = Date.now() - startTime
+
+    log("error", "Sentinel run failed", {
+      operation: "run",
+      error: errorMessage,
+      duration: result.durationMs,
+    })
   }
 
   return result
+}
+
+/**
+ * Get current health status of the Sentinel.
+ * Returns domain-level health information.
+ */
+export function getHealth() {
+  return getSentinelHealth()
 }
 
 /**
@@ -1071,18 +1244,31 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
       }
     } catch (error) {
       failed++
+      const errorMessage = error instanceof Error ? error.message : String(error)
+
+      log("error", `Failed to fetch item`, {
+        operation: "fetch-item",
+        itemId: item.id,
+        url: item.url,
+        error: errorMessage,
+        metadata: { retryCount: item.retryCount + 1 },
+      })
+
       await db.discoveredItem.update({
         where: { id: item.id },
         data: {
           retryCount: { increment: 1 },
-          errorMessage: error instanceof Error ? error.message : String(error),
+          errorMessage: errorMessage,
           status: item.retryCount >= 2 ? "FAILED" : "PENDING",
         },
       })
     }
   }
 
-  console.log(`[sentinel] Fetched: ${fetched}, Failed: ${failed}`)
+  log("info", `Fetch complete: ${fetched} succeeded, ${failed} failed`, {
+    operation: "fetch",
+    metadata: { fetched, failed },
+  })
   return { fetched, failed }
 }
 

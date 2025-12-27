@@ -23,6 +23,7 @@ export const AgentTypeSchema = z.enum([
   "TRANSITIONAL_EXTRACTOR",
   "COMPARISON_EXTRACTOR",
   "QUERY_CLASSIFIER",
+  "COMPARISON_EXTRACTOR",
 ])
 export type AgentType = z.infer<typeof AgentTypeSchema>
 
@@ -43,6 +44,59 @@ export const ConflictTypeSchema = z.enum([
   "INTERPRETATION_CONFLICT",
 ])
 export type ConflictType = z.infer<typeof ConflictTypeSchema>
+
+export const ConflictStatusSchema = z.enum(["OPEN", "RESOLVED", "ESCALATED"])
+export type ConflictStatus = z.infer<typeof ConflictStatusSchema>
+
+// =============================================================================
+// REGULATORY RULE ENUMS (matching Prisma)
+// =============================================================================
+
+export const AuthorityLevelSchema = z.enum(["LAW", "GUIDANCE", "PROCEDURE", "PRACTICE"])
+export type AuthorityLevel = z.infer<typeof AuthorityLevelSchema>
+
+export const AutomationPolicySchema = z.enum(["ALLOW", "CONFIRM", "BLOCK"])
+export type AutomationPolicy = z.infer<typeof AutomationPolicySchema>
+
+export const RuleStabilitySchema = z.enum(["STABLE", "VOLATILE"])
+export type RuleStability = z.infer<typeof RuleStabilitySchema>
+
+export const ObligationTypeSchema = z.enum([
+  "OBLIGATION",
+  "NO_OBLIGATION",
+  "CONDITIONAL",
+  "INFORMATIONAL",
+])
+export type ObligationType = z.infer<typeof ObligationTypeSchema>
+
+export const GraphEdgeTypeSchema = z.enum([
+  "AMENDS",
+  "INTERPRETS",
+  "REQUIRES",
+  "EXEMPTS",
+  "DEPENDS_ON",
+  "SUPERSEDES",
+  "OVERRIDES",
+])
+export type GraphEdgeType = z.infer<typeof GraphEdgeTypeSchema>
+
+// =============================================================================
+// ALERT ENUMS (matching Prisma)
+// =============================================================================
+
+export const AlertSeveritySchema = z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"])
+export type AlertSeverity = z.infer<typeof AlertSeveritySchema>
+
+export const AlertTypeSchema = z.enum([
+  "SOURCE_CHANGED",
+  "SOURCE_UNAVAILABLE",
+  "RULE_SUPERSEDED",
+  "CONFLICT_DETECTED",
+  "DEADLINE_APPROACHING",
+  "CONFIDENCE_DEGRADED",
+  "COVERAGE_GAP",
+])
+export type AlertType = z.infer<typeof AlertTypeSchema>
 
 // =============================================================================
 // DOMAIN TYPES

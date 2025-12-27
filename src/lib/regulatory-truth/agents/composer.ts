@@ -20,6 +20,7 @@ import {
 } from "../utils/concept-resolver"
 import { computeMeaningSignature } from "../utils/meaning-signature"
 import { validateExplanation, createQuoteOnlyExplanation } from "../utils/explanation-validator"
+import { createEdgeWithCycleCheck, CycleDetectedError } from "../graph/cycle-detection"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -390,14 +391,23 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
 
   // Create AMENDS edge if this rule supersedes another
   if (draftRule.supersedes) {
-    await db.graphEdge.create({
-      data: {
+    try {
+      await createEdgeWithCycleCheck({
         fromRuleId: rule.id,
         toRuleId: draftRule.supersedes,
         relation: "AMENDS",
         validFrom: rule.effectiveFrom,
-      },
-    })
+      })
+    } catch (error) {
+      if (error instanceof CycleDetectedError) {
+        console.warn(
+          `[composer] Cycle prevented: AMENDS edge ${rule.id} -> ${draftRule.supersedes} would create a cycle`
+        )
+        // Don't fail rule creation, just skip the edge
+      } else {
+        throw error
+      }
+    }
   }
 
   // Run deterministic conflict detection

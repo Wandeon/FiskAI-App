@@ -158,12 +158,12 @@ export async function queryUnifiedDocuments(
           ...(search
             ? {
                 OR: [
-                  { vendor: { name: { contains: search, mode: "insensitive" as const } } },
-                  { description: { contains: search, mode: "insensitive" as const } },
+                  { vendor: { name: { contains: search, mode: "insensitive" } } },
+                  { description: { contains: search, mode: "insensitive" } },
                 ],
               }
             : {}),
-        } as any,
+        },
         include: { vendor: { select: { name: true } } },
         orderBy: { createdAt: "desc" },
       }),
@@ -202,11 +202,11 @@ export async function queryUnifiedDocuments(
   }))
 
   // Normalize expenses
-  const normalizedExpenses: UnifiedDocument[] = expenses.map((exp: any) => ({
+  const normalizedExpenses: UnifiedDocument[] = expenses.map((exp) => ({
     id: exp.id,
     category: "expense",
     date: exp.date,
-    number: exp.receiptUrl?.slice(0, 30) || exp.description?.slice(0, 30) || "Bez broja",
+    number: exp.description?.slice(0, 30) || "Bez broja",
     counterparty: exp.vendor?.name || null,
     amount: Number(exp.totalAmount),
     currency: exp.currency,

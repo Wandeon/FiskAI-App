@@ -45,23 +45,6 @@ export default async function SupportPage() {
     },
   })
 
-  // Collect all user IDs we need to fetch
-  const assigneeIds = tickets.map((t) => t.assignedToId).filter((id): id is string => id !== null)
-  const authorIds = tickets
-    .flatMap((t) => t.messages.map((m) => m.authorId))
-    .filter((id): id is string => id !== null)
-  const allUserIds = [...new Set([...assigneeIds, ...authorIds])]
-
-  // Fetch all users in one query
-  const users =
-    allUserIds.length > 0
-      ? await db.user.findMany({
-          where: { id: { in: allUserIds } },
-          select: { id: true, name: true, email: true },
-        })
-      : []
-  const userMap = new Map(users.map((u) => [u.id, u]))
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -105,21 +88,9 @@ export default async function SupportPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span>Zadnje ažurirano: {ticket.updatedAt.toLocaleString("hr-HR")}</span>
-                    <span>
-                      Assign:{" "}
-                      {ticket.assignedToId
-                        ? userMap.get(ticket.assignedToId)?.name ||
-                          userMap.get(ticket.assignedToId)?.email ||
-                          "—"
-                        : "Nije dodijeljeno"}
-                    </span>
-                    {ticket.messages[0] && ticket.messages[0].authorId && (
-                      <span>
-                        Zadnja poruka:{" "}
-                        {userMap.get(ticket.messages[0].authorId)?.name ||
-                          userMap.get(ticket.messages[0].authorId)?.email ||
-                          "—"}
-                      </span>
+                    <span>Assign: {ticket.assignedToId || "Nije dodijeljeno"}</span>
+                    {ticket.messages[0] && (
+                      <span>Zadnja poruka: {ticket.messages[0].authorId || "—"}</span>
                     )}
                   </div>
                 </Link>

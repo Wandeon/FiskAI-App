@@ -11,6 +11,8 @@ import {
   validateInterestRate,
   validateExchangeRate,
   validateByDomain,
+  validateAtomicClaim,
+  type AtomicClaimInput,
 } from "../utils/deterministic-validators"
 
 describe("deterministic-validators", () => {
@@ -406,10 +408,7 @@ describe("deterministic-validators", () => {
     })
 
     it("handles IBAN as text match", () => {
-      const result = validateValueInQuote(
-        "HR1210010051863000160",
-        "IBAN: HR1210010051863000160"
-      )
+      const result = validateValueInQuote("HR1210010051863000160", "IBAN: HR1210010051863000160")
       assert.strictEqual(result.valid, true)
     })
 
@@ -423,13 +422,433 @@ describe("deterministic-validators", () => {
       assert.strictEqual(result.valid, true)
     })
 
-    // Known issue: OCR diacritic corruption causes false negatives
-    // This test documents the current behavior (fails) - see HIGH-02 in audit
-    it("fails on OCR diacritic corruption (known issue HIGH-02)", () => {
+    // OCR diacritic corruption - now fixed with normalized patterns
+    it("handles OCR diacritic corruption (HIGH-02 fixed)", () => {
       const result = validateValueInQuote("2025-01-15", "do 15. sijecnja 2025.")
-      // Currently fails - diacritics not normalized
-      assert.strictEqual(result.valid, false)
-      assert.ok(result.error?.includes("not found"))
+      // Now passes - diacritics are normalized
+      assert.strictEqual(result.valid, true)
+    })
+  })
+
+  // =============================================================================
+  // ATOMIC CLAIM VALIDATION TESTS
+  // =============================================================================
+
+  describe("validateAtomicClaim", () => {
+    // Helper to create a valid claim for testing
+    const createValidClaim = (overrides?: Partial<AtomicClaimInput>): AtomicClaimInput => ({
+      subjectType: "TAXPAYER",
+      assertionType: "OBLIGATION",
+      logicExpr: "must_pay_vat = true",
+      exactQuote: "Porezni obveznik mora platiti PDV u iznosu od 25%.",
+      confidence: 0.9,
+      ...overrides,
+    })
+
+    describe("required field validation", () => {
+      it("accepts valid claim with all required fields", () => {
+        const claim = createValidClaim()
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, true)
+        assert.deepStrictEqual(result.errors, [])
+      })
+
+      it("rejects claim with empty subjectType", () => {
+        const claim = createValidClaim({ subjectType: "" as any })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("subjectType")))
+        // Empty string triggers "Missing required" first
+        assert.strictEqual(result.rejectionType, "MISSING_REQUIRED_FIELD")
+      })
+
+      it("rejects claim with undefined subjectType", () => {
+        const claim = createValidClaim()
+        ;(claim as any).subjectType = undefined
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("subjectType")))
+      })
+
+      it("rejects claim missing assertionType", () => {
+        const claim = createValidClaim({ assertionType: "" as any })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("assertionType")))
+      })
+
+      it("rejects claim missing logicExpr", () => {
+        const claim = createValidClaim({ logicExpr: "" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("logicExpr")))
+      })
+
+      it("rejects claim with too short logicExpr", () => {
+        const claim = createValidClaim({ logicExpr: "ab" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("at least 3 characters")))
+      })
+
+      it("rejects claim missing exactQuote", () => {
+        const claim = createValidClaim({ exactQuote: "" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("exactQuote")))
+      })
+
+      it("rejects claim with too short exactQuote", () => {
+        const claim = createValidClaim({ exactQuote: "Short" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("at least 10 characters")))
+      })
+    })
+
+    describe("subjectType validation", () => {
+      it("accepts all valid subject types", () => {
+        const validTypes = ["TAXPAYER", "EMPLOYER", "COMPANY", "INDIVIDUAL", "ALL"]
+        for (const subjectType of validTypes) {
+          const claim = createValidClaim({ subjectType })
+          const result = validateAtomicClaim(claim)
+          assert.strictEqual(result.valid, true, `Should accept ${subjectType}`)
+        }
+      })
+
+      it("rejects invalid subject type", () => {
+        const claim = createValidClaim({ subjectType: "INVALID_TYPE" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("Invalid subjectType")))
+        assert.strictEqual(result.rejectionType, "INVALID_SUBJECT_TYPE")
+      })
+    })
+
+    describe("assertionType validation", () => {
+      it("accepts all valid assertion types", () => {
+        const validTypes = ["OBLIGATION", "PROHIBITION", "PERMISSION", "DEFINITION"]
+        for (const assertionType of validTypes) {
+          const claim = createValidClaim({ assertionType })
+          const result = validateAtomicClaim(claim)
+          assert.strictEqual(result.valid, true, `Should accept ${assertionType}`)
+        }
+      })
+
+      it("rejects invalid assertion type", () => {
+        const claim = createValidClaim({ assertionType: "SUGGESTION" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("Invalid assertionType")))
+        assert.strictEqual(result.rejectionType, "INVALID_ASSERTION_TYPE")
+      })
+    })
+
+    describe("valueType validation", () => {
+      it("accepts all valid value types", () => {
+        const validTypes = [
+          "percentage",
+          "currency",
+          "currency_eur",
+          "currency_hrk",
+          "date",
+          "count",
+          "threshold",
+          "text",
+          "boolean",
+          "rate",
+          "duration",
+          "formula",
+        ]
+        for (const valueType of validTypes) {
+          const claim = createValidClaim({ valueType, value: "test" })
+          const result = validateAtomicClaim(claim)
+          // Only check that valueType itself is valid, value validation may fail
+          const valueTypeErrors = result.errors.filter((e) => e.includes("Invalid valueType"))
+          assert.strictEqual(valueTypeErrors.length, 0, `Should accept valueType ${valueType}`)
+        }
+      })
+
+      it("rejects invalid value type", () => {
+        const claim = createValidClaim({ valueType: "unknown_type", value: "100" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("Invalid valueType")))
+        assert.strictEqual(result.rejectionType, "INVALID_VALUE_TYPE")
+      })
+
+      it("warns when value provided without valueType", () => {
+        const claim = createValidClaim({ value: "100", valueType: undefined })
+        const result = validateAtomicClaim(claim)
+        assert.ok(result.warnings.some((w) => w.includes("without valueType")))
+      })
+    })
+
+    describe("value validation by type", () => {
+      it("validates percentage values", () => {
+        const validClaim = createValidClaim({ valueType: "percentage", value: "25" })
+        assert.strictEqual(validateAtomicClaim(validClaim).valid, true)
+
+        const invalidClaim = createValidClaim({ valueType: "percentage", value: "150" })
+        const result = validateAtomicClaim(invalidClaim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("exceed")))
+      })
+
+      it("validates currency values", () => {
+        const validClaim = createValidClaim({ valueType: "currency_eur", value: "40000" })
+        assert.strictEqual(validateAtomicClaim(validClaim).valid, true)
+
+        const invalidClaim = createValidClaim({ valueType: "currency_eur", value: "-100" })
+        const result = validateAtomicClaim(invalidClaim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("negative")))
+      })
+
+      it("validates date values", () => {
+        const validClaim = createValidClaim({ valueType: "date", value: "2025-01-15" })
+        assert.strictEqual(validateAtomicClaim(validClaim).valid, true)
+
+        const invalidClaim = createValidClaim({ valueType: "date", value: "15/01/2025" })
+        const result = validateAtomicClaim(invalidClaim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("ISO format")))
+      })
+
+      it("validates boolean values", () => {
+        const validValues = ["true", "false", "1", "0", "yes", "no", "da", "ne"]
+        for (const value of validValues) {
+          const claim = createValidClaim({ valueType: "boolean", value })
+          assert.strictEqual(
+            validateAtomicClaim(claim).valid,
+            true,
+            `Should accept boolean value: ${value}`
+          )
+        }
+
+        const invalidClaim = createValidClaim({ valueType: "boolean", value: "maybe" })
+        const result = validateAtomicClaim(invalidClaim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("boolean")))
+      })
+
+      it("validates count values", () => {
+        const validClaim = createValidClaim({ valueType: "count", value: "100" })
+        assert.strictEqual(validateAtomicClaim(validClaim).valid, true)
+
+        const invalidClaim = createValidClaim({ valueType: "count", value: "-5" })
+        const result = validateAtomicClaim(invalidClaim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("negative")))
+      })
+    })
+
+    describe("confidence validation", () => {
+      it("accepts valid confidence 0-1", () => {
+        const claims = [
+          createValidClaim({ confidence: 0 }),
+          createValidClaim({ confidence: 0.5 }),
+          createValidClaim({ confidence: 1 }),
+        ]
+        for (const claim of claims) {
+          assert.strictEqual(
+            validateAtomicClaim(claim).valid,
+            true,
+            `Should accept confidence ${claim.confidence}`
+          )
+        }
+      })
+
+      it("rejects confidence outside 0-1 range", () => {
+        const invalidClaims = [
+          createValidClaim({ confidence: -0.1 }),
+          createValidClaim({ confidence: 1.1 }),
+          createValidClaim({ confidence: 100 }),
+        ]
+        for (const claim of invalidClaims) {
+          const result = validateAtomicClaim(claim)
+          assert.strictEqual(result.valid, false, `Should reject confidence ${claim.confidence}`)
+          assert.ok(result.errors.some((e) => e.includes("between 0 and 1")))
+        }
+      })
+
+      it("warns on low confidence", () => {
+        const claim = createValidClaim({ confidence: 0.3 })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, true)
+        assert.ok(result.warnings.some((w) => w.includes("Very low confidence")))
+      })
+
+      it("rejects non-numeric confidence", () => {
+        const claim = createValidClaim({ confidence: NaN })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("must be a number")))
+        assert.strictEqual(result.rejectionType, "INVALID_CONFIDENCE")
+      })
+    })
+
+    describe("jurisdiction validation", () => {
+      it("accepts known jurisdictions without warnings", () => {
+        const validJurisdictions = ["HR", "EU", "GLOBAL"]
+        for (const jurisdiction of validJurisdictions) {
+          const claim = createValidClaim({ jurisdiction })
+          const result = validateAtomicClaim(claim)
+          assert.strictEqual(result.valid, true)
+          assert.strictEqual(
+            result.warnings.filter((w) => w.includes("jurisdiction")).length,
+            0,
+            `Should not warn for jurisdiction ${jurisdiction}`
+          )
+        }
+      })
+
+      it("warns on unknown jurisdiction", () => {
+        const claim = createValidClaim({ jurisdiction: "US" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, true) // Still valid, just a warning
+        assert.ok(result.warnings.some((w) => w.includes("Unknown jurisdiction")))
+      })
+    })
+
+    describe("evidence anchoring validation", () => {
+      it("validates quote exists in evidence content", () => {
+        const claim = createValidClaim({
+          exactQuote: "PDV stopa iznosi 25%",
+        })
+        const evidenceContent = "Prema zakonu, PDV stopa iznosi 25% za standardne proizvode."
+        const result = validateAtomicClaim(claim, evidenceContent)
+        assert.strictEqual(result.valid, true)
+      })
+
+      it("rejects quote not found in evidence", () => {
+        const claim = createValidClaim({
+          exactQuote: "Completely unrelated quote that does not exist",
+        })
+        const evidenceContent = "This is the actual evidence content about tax rates."
+        const result = validateAtomicClaim(claim, evidenceContent)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("not found in evidence")))
+        assert.strictEqual(result.rejectionType, "INVALID_QUOTE")
+      })
+
+      it("uses fuzzy matching for diacritic differences", () => {
+        const claim = createValidClaim({
+          exactQuote: "Porezna stopa za drustva",
+        })
+        const evidenceContent = "Porezna stopa za društva iznosi 18%."
+        const result = validateAtomicClaim(claim, evidenceContent)
+        assert.strictEqual(result.valid, true)
+      })
+    })
+
+    describe("exception validation", () => {
+      it("accepts valid exceptions", () => {
+        const claim = createValidClaim({
+          exceptions: [
+            {
+              condition: "IF alcohol_content > 0",
+              overridesTo: "vat-reduced-rate",
+              sourceArticle: "Art 38(4)",
+            },
+          ],
+        })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, true)
+      })
+
+      it("rejects exception with missing condition", () => {
+        const claim = createValidClaim({
+          exceptions: [
+            {
+              condition: "",
+              overridesTo: "vat-reduced-rate",
+              sourceArticle: "Art 38(4)",
+            },
+          ],
+        })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("Exception 1") && e.includes("condition")))
+      })
+
+      it("rejects exception with missing overridesTo", () => {
+        const claim = createValidClaim({
+          exceptions: [
+            {
+              condition: "IF alcohol_content > 0",
+              overridesTo: "",
+              sourceArticle: "Art 38(4)",
+            },
+          ],
+        })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("Exception 1") && e.includes("overridesTo")))
+      })
+
+      it("rejects exception with missing sourceArticle", () => {
+        const claim = createValidClaim({
+          exceptions: [
+            {
+              condition: "IF alcohol_content > 0",
+              overridesTo: "vat-reduced-rate",
+              sourceArticle: "",
+            },
+          ],
+        })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(
+          result.errors.some((e) => e.includes("Exception 1") && e.includes("sourceArticle"))
+        )
+      })
+
+      it("validates multiple exceptions", () => {
+        const claim = createValidClaim({
+          exceptions: [
+            {
+              condition: "IF alcohol_content > 0",
+              overridesTo: "vat-reduced-rate",
+              sourceArticle: "Art 38(4)",
+            },
+            {
+              condition: "", // Invalid
+              overridesTo: "vat-zero-rate",
+              sourceArticle: "Art 38(5)",
+            },
+          ],
+        })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.valid, false)
+        assert.ok(result.errors.some((e) => e.includes("Exception 2")))
+      })
+    })
+
+    describe("rejection type classification", () => {
+      it("classifies INVALID_SUBJECT_TYPE correctly", () => {
+        const claim = createValidClaim({ subjectType: "INVALID" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.rejectionType, "INVALID_SUBJECT_TYPE")
+      })
+
+      it("classifies INVALID_ASSERTION_TYPE correctly", () => {
+        const claim = createValidClaim({ subjectType: "TAXPAYER", assertionType: "INVALID" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.rejectionType, "INVALID_ASSERTION_TYPE")
+      })
+
+      it("classifies INVALID_VALUE_TYPE correctly", () => {
+        const claim = createValidClaim({ valueType: "invalid", value: "100" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.rejectionType, "INVALID_VALUE_TYPE")
+      })
+
+      it("classifies MISSING_REQUIRED_FIELD correctly", () => {
+        const claim = createValidClaim({ logicExpr: "" })
+        const result = validateAtomicClaim(claim)
+        assert.strictEqual(result.rejectionType, "MISSING_REQUIRED_FIELD")
+      })
     })
   })
 })

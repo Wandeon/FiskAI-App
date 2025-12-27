@@ -84,8 +84,8 @@ describe("Tenant List", () => {
 
       await getTenantList({ legalForm: "OBRT_PAUSAL" })
 
-      const call = vi.mocked(db.company.findMany).mock.calls[0] as any
-      expect(call[0].where.legalForm).toBe("OBRT_PAUSAL")
+      const call = vi.mocked(db.company.findMany).mock.calls[0]
+      expect(call?.[0]?.where?.legalForm).toBe("OBRT_PAUSAL")
     })
 
     it("filters by subscriptionStatus", async () => {
@@ -94,8 +94,8 @@ describe("Tenant List", () => {
 
       await getTenantList({ subscriptionStatus: "active" })
 
-      const call = vi.mocked(db.company.findMany).mock.calls[0] as any
-      expect(call[0].where.subscriptionStatus).toBe("active")
+      const call = vi.mocked(db.company.findMany).mock.calls[0]
+      expect(call?.[0]?.where?.subscriptionStatus).toBe("active")
     })
 
     it("filters by search (name or OIB)", async () => {
@@ -104,10 +104,10 @@ describe("Tenant List", () => {
 
       await getTenantList({ search: "test" })
 
-      const call = vi.mocked(db.company.findMany).mock.calls[0] as any
-      expect(call[0].where.OR).toBeDefined()
-      expect(call[0].where.OR[0]).toHaveProperty("name")
-      expect(call[0].where.OR[1]).toHaveProperty("oib")
+      const call = vi.mocked(db.company.findMany).mock.calls[0]
+      expect(call?.[0]?.where?.OR).toBeDefined()
+      expect((call?.[0]?.where?.OR as unknown[])?.[0]).toHaveProperty("name")
+      expect((call?.[0]?.where?.OR as unknown[])?.[1]).toHaveProperty("oib")
     })
 
     it("filters by flags", async () => {
@@ -330,9 +330,9 @@ describe("Tenant List", () => {
 
       await getTenantList({}, { field: "createdAt", order: "desc" }, { page: 3, pageSize: 15 })
 
-      const call = vi.mocked(db.company.findMany).mock.calls[0] as any
-      expect(call[0].skip).toBe(30) // (3-1) * 15
-      expect(call[0].take).toBe(15)
+      const call = vi.mocked(db.company.findMany).mock.calls[0]
+      expect(call?.[0]?.skip).toBe(30) // (3-1) * 15
+      expect(call?.[0]?.take).toBe(15)
     })
 
     it("includes required tenant fields", async () => {
@@ -410,10 +410,10 @@ describe("Tenant List", () => {
         search: "test company",
       })
 
-      const call = vi.mocked(db.company.findMany).mock.calls[0] as any
-      expect(call[0].where.legalForm).toBe("OBRT_PAUSAL")
-      expect(call[0].where.subscriptionStatus).toBe("active")
-      expect(call[0].where.OR).toBeDefined()
+      const call = vi.mocked(db.company.findMany).mock.calls[0]
+      expect(call?.[0]?.where?.legalForm).toBe("OBRT_PAUSAL")
+      expect(call?.[0]?.where?.subscriptionStatus).toBe("active")
+      expect(call?.[0]?.where?.OR).toBeDefined()
     })
 
     it("handles companies without owner", async () => {

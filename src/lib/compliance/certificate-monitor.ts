@@ -2,15 +2,7 @@ import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { Html, Head, Body, Container, Text, Link, Hr } from "@react-email/components"
 import React from "react"
-import type { Prisma } from "@prisma/client"
-
-// Type for Company with included relations
-type CompanyWithCertificates = Prisma.CompanyGetPayload<{
-  include: {
-    fiscalCertificates: true
-    users: { include: { user: true } }
-  }
-}>
+import { FiscalEnv } from "@prisma/client"
 
 export interface ExpiringCertificate {
   companyId: string
@@ -33,7 +25,7 @@ export async function findExpiringCertificates(
     where: {
       fiscalCertificates: {
         some: {
-          environment: "PROD",
+          environment: FiscalEnv.PROD,
           status: "ACTIVE",
           certNotAfter: {
             lte: thresholdDate,
@@ -45,7 +37,7 @@ export async function findExpiringCertificates(
     include: {
       fiscalCertificates: {
         where: {
-          environment: "PROD",
+          environment: FiscalEnv.PROD,
           status: "ACTIVE",
         },
         orderBy: {
@@ -60,10 +52,7 @@ export async function findExpiringCertificates(
     },
   })
 
-  // Type assertion to include the relations
-  const companiesWithCerts = companies as CompanyWithCertificates[]
-
-  return companiesWithCerts
+  return companies
     .filter((company) => company.fiscalCertificates.length > 0)
     .map((company) => {
       const cert = company.fiscalCertificates[0]

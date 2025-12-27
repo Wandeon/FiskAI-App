@@ -1,6 +1,8 @@
 // src/lib/regulatory-truth/utils/explanation-validator.ts
 // Validate explanations against source evidence to prevent hallucination
 
+import { normalizeQuotes } from "./quote-normalizer"
+
 export type EvidenceStrength = "SINGLE_SOURCE" | "MULTI_SOURCE"
 
 export interface ValidationResult {
@@ -87,17 +89,21 @@ export function extractNumericValues(text: string): string[] {
 }
 
 /**
- * Check if a value appears in source quotes
+ * Check if a value appears in source quotes.
+ * Normalizes both value and quotes to handle smart quote variants.
  */
 function valueInSources(value: string, sourceQuotes: string[]): boolean {
   const normalizedValue = value.replace(",", ".").replace(/\s/g, "")
 
   for (const quote of sourceQuotes) {
+    // Normalize quote to handle smart quotes that may have been auto-corrected
+    const normalizedQuote = normalizeQuotes(quote)
+
     // Check exact match
-    if (quote.includes(value)) return true
+    if (normalizedQuote.includes(value)) return true
 
     // Check normalized match (comma vs period for decimals)
-    if (quote.replace(",", ".").replace(/\s/g, "").includes(normalizedValue)) {
+    if (normalizedQuote.replace(",", ".").replace(/\s/g, "").includes(normalizedValue)) {
       return true
     }
   }
@@ -106,13 +112,16 @@ function valueInSources(value: string, sourceQuotes: string[]): boolean {
 }
 
 /**
- * Check if modal verb appears in source quotes
+ * Check if modal verb appears in source quotes.
+ * Normalizes quotes to handle smart quote variants.
  */
 function modalVerbInSources(verb: string, sourceQuotes: string[]): boolean {
   const verbLower = verb.toLowerCase()
 
   for (const quote of sourceQuotes) {
-    if (quote.toLowerCase().includes(verbLower)) {
+    // Normalize quote to handle smart quotes that may have been auto-corrected
+    const normalizedQuote = normalizeQuotes(quote)
+    if (normalizedQuote.toLowerCase().includes(verbLower)) {
       return true
     }
   }

@@ -108,25 +108,35 @@ async function runAuditReconciliation(): Promise<AuditItem[]> {
   })
 
   // =============================================================================
-  // 3. APPLIESWHEN DSL SILENT FALLBACK
+  // 3. APPLIESWHEN DSL FAIL-CLOSED BEHAVIOR
   // =============================================================================
   const composerAgent = getFileContent("src/lib/regulatory-truth/agents/composer.ts")
+
+  // PR #89 CRIT fix: The old behavior was to fall back to { op: "true" } when DSL validation failed.
+  // The correct fix is FAIL-CLOSED: reject the rule entirely instead of silently broadening applicability.
   const hasDSLFallback = composerAgent.includes('appliesWhenObj = { op: "true" }')
-  const logsFallback =
-    composerAgent.includes("[AUTO-FIX]") || composerAgent.includes("composer_notes")
+  const hasFailClosedBehavior =
+    composerAgent.includes("FAIL-CLOSED") &&
+    composerAgent.includes("REJECTING rule with invalid AppliesWhen DSL") &&
+    composerAgent.includes("Cannot create rule") &&
+    composerAgent.includes("dslValidation.error")
 
   items.push({
     id: "DSL-001",
     category: "Data Quality",
-    description: "AppliesWhen DSL silent fallback to {op: true}",
-    status: hasDSLFallback && logsFallback ? "VERIFIED_FIXED" : "REQUIRES_ACTION",
-    evidence: hasDSLFallback
-      ? `Fallback to {op: "true"} exists. ${logsFallback ? "Fallback is logged to composer_notes field." : "WARNING: Fallback is NOT logged."}`
-      : "No DSL fallback found in composer",
+    description: "AppliesWhen DSL validation uses fail-closed behavior",
+    status: hasFailClosedBehavior && !hasDSLFallback ? "VERIFIED_FIXED" : "REQUIRES_ACTION",
+    evidence: hasFailClosedBehavior
+      ? `Fail-closed behavior implemented: rules with invalid AppliesWhen DSL are rejected, not silently broadened. ${hasDSLFallback ? "WARNING: Fallback code still present." : "No fallback to { op: true } exists."}`
+      : hasDSLFallback
+        ? `CRITICAL: Fallback to {op: "true"} exists - this silently broadens rule applicability`
+        : "No DSL validation handling found in composer",
     recommendation:
-      hasDSLFallback && !logsFallback
-        ? "Add logging when DSL validation fails and fallback is applied"
-        : undefined,
+      hasFailClosedBehavior && !hasDSLFallback
+        ? undefined
+        : hasDSLFallback
+          ? "Remove fallback to { op: true } and implement fail-closed rejection (see PR #89)"
+          : "Implement AppliesWhen DSL validation with fail-closed behavior",
   })
 
   // =============================================================================
@@ -332,6 +342,130 @@ async function runAuditReconciliation(): Promise<AuditItem[]> {
       healthApiExists && hasGetHandler && hasPostHandler
         ? undefined
         : "Create /api/admin/regulatory-truth/truth-health endpoint",
+  })
+
+  // =============================================================================
+  // 11. AUDIT LOGGING IN CRITICAL CLI SCRIPTS
+  // Ref: 2025-12-26-audit-regulatory-paths.md - Documents 32 scripts without audit logging
+  // =============================================================================
+  const criticalScripts = [
+    "src/lib/regulatory-truth/scripts/bootstrap.ts",
+    "src/lib/regulatory-truth/scripts/overnight-run.ts",
+    "src/lib/regulatory-truth/scripts/drain-pipeline.ts",
+  ]
+
+  const scriptsWithAuditLogging: string[] = []
+  const scriptsWithoutAuditLogging: string[] = []
+
+  for (const script of criticalScripts) {
+    const content = getFileContent(script)
+    if (content.includes("logAuditEvent")) {
+      scriptsWithAuditLogging.push(script.split("/").pop() || script)
+    } else {
+      scriptsWithoutAuditLogging.push(script.split("/").pop() || script)
+    }
+  }
+
+  items.push({
+    id: "AUDIT-002",
+    category: "Audit Trail",
+    description: "Audit logging in critical CLI scripts (bootstrap, overnight-run, drain-pipeline)",
+    status: scriptsWithoutAuditLogging.length === 0 ? "VERIFIED_FIXED" : "REQUIRES_ACTION",
+    evidence: [
+      `Scripts WITH audit logging: ${scriptsWithAuditLogging.length > 0 ? scriptsWithAuditLogging.join(", ") : "none"}`,
+      `Scripts WITHOUT audit logging: ${scriptsWithoutAuditLogging.length > 0 ? scriptsWithoutAuditLogging.join(", ") : "none"}`,
+    ].join("\n"),
+    recommendation:
+      scriptsWithoutAuditLogging.length > 0
+        ? `Add logAuditEvent calls to: ${scriptsWithoutAuditLogging.join(", ")}`
+        : undefined,
+  })
+
+  // =============================================================================
+  // 12. GRACE PERIOD BYPASS DETECTION
+  // Ref: 2025-12-26-audit-regulatory-paths.md (lines 66-71)
+  // =============================================================================
+  const drainPipeline = getFileContent("src/lib/regulatory-truth/scripts/drain-pipeline.ts")
+  const hasGracePeriodBypass =
+    drainPipeline.includes('AUTO_APPROVE_GRACE_HOURS = "0"') ||
+    drainPipeline.includes("AUTO_APPROVE_GRACE_HOURS = '0'") ||
+    drainPipeline.includes("AUTO_APPROVE_GRACE_HOURS=0")
+
+  items.push({
+    id: "BYPASS-001",
+    category: "Security",
+    description: "Grace period bypass in drain-pipeline.ts",
+    status: hasGracePeriodBypass ? "REQUIRES_ACTION" : "VERIFIED_FIXED",
+    evidence: hasGracePeriodBypass
+      ? "drain-pipeline.ts sets AUTO_APPROVE_GRACE_HOURS=0, bypassing the human review grace period"
+      : "No grace period bypass detected",
+    recommendation: hasGracePeriodBypass
+      ? "Remove AUTO_APPROVE_GRACE_HOURS=0 override or add explicit audit logging when bypassed"
+      : undefined,
+  })
+
+  // =============================================================================
+  // 13. APPLIESWHEN EVALUATION IN ASSISTANT
+  // Ref: 2025-12-26-jurisdiction-scope-audit.md - Initially documented as NOT IMPLEMENTED
+  // This check verifies it IS now implemented
+  // =============================================================================
+  const ruleSelectorContent = getFileContent("src/lib/assistant/query-engine/rule-selector.ts")
+  const ruleEligibilityExists = checkFileExists(
+    "src/lib/assistant/query-engine/rule-eligibility.ts"
+  )
+  const usesCheckRuleEligibility = ruleSelectorContent.includes("checkRuleEligibility")
+  const importsAppliesWhen =
+    ruleSelectorContent.includes("rule-eligibility") ||
+    ruleSelectorContent.includes("checkRuleEligibility")
+
+  items.push({
+    id: "SCOPE-001",
+    category: "Jurisdiction & Scope",
+    description: "AppliesWhen DSL evaluated in assistant rule selection",
+    status:
+      ruleEligibilityExists && usesCheckRuleEligibility && importsAppliesWhen
+        ? "VERIFIED_FIXED"
+        : "REQUIRES_ACTION",
+    evidence: [
+      `rule-eligibility.ts exists: ${ruleEligibilityExists ? "✓" : "✗"}`,
+      `rule-selector.ts uses checkRuleEligibility: ${usesCheckRuleEligibility ? "✓" : "✗"}`,
+      `Imports from rule-eligibility: ${importsAppliesWhen ? "✓" : "✗"}`,
+    ].join("\n"),
+    recommendation:
+      ruleEligibilityExists && usesCheckRuleEligibility
+        ? undefined
+        : "Implement AppliesWhen evaluation in assistant using checkRuleEligibility from rule-eligibility.ts",
+  })
+
+  // =============================================================================
+  // 14. ADMIN API AUDIT LOGGING
+  // Ref: 2025-12-26-audit-regulatory-paths.md - 3 admin APIs without audit logging
+  // =============================================================================
+  const triggerRoute = getFileContent("src/app/api/admin/regulatory-truth/trigger/route.ts")
+  const conflictResolveRoute = getFileContent(
+    "src/app/api/admin/regulatory-truth/conflicts/[id]/resolve/route.ts"
+  )
+
+  const triggerHasAudit = triggerRoute.includes("logAuditEvent")
+  const conflictResolveHasAudit = conflictResolveRoute.includes("logAuditEvent")
+
+  const missingAuditAPIs: string[] = []
+  if (!triggerHasAudit) missingAuditAPIs.push("trigger/route.ts")
+  if (!conflictResolveHasAudit) missingAuditAPIs.push("conflicts/[id]/resolve/route.ts")
+
+  items.push({
+    id: "AUDIT-003",
+    category: "Audit Trail",
+    description: "Audit logging in admin API routes (trigger, conflict resolve)",
+    status: missingAuditAPIs.length === 0 ? "VERIFIED_FIXED" : "REQUIRES_ACTION",
+    evidence: [
+      `trigger/route.ts: ${triggerHasAudit ? "✓ Has audit logging" : "✗ Missing audit logging"}`,
+      `conflicts/[id]/resolve/route.ts: ${conflictResolveHasAudit ? "✓ Has audit logging" : "✗ Missing audit logging"}`,
+    ].join("\n"),
+    recommendation:
+      missingAuditAPIs.length > 0
+        ? `Add logAuditEvent calls to: ${missingAuditAPIs.join(", ")}`
+        : undefined,
   })
 
   return items

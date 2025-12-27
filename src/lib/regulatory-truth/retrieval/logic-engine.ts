@@ -2,6 +2,7 @@
 import { db } from "@/lib/db"
 import { expandQueryConcepts } from "../taxonomy/query-expansion"
 import { resolveRulePrecedence } from "../agents/arbiter"
+import { buildTemporalWhereClause, getCurrentEffectiveDate } from "../utils/temporal-filter"
 
 export interface LogicEngineResult {
   success: boolean
@@ -39,11 +40,17 @@ export interface LogicEngineResult {
  * - "Do I owe VAT if I sold 5,000 EUR?"
  * - "What is the VAT rate for juice?"
  * - "Am I required to register if revenue > 10,000 EUR?"
+ *
+ * @param query The user's query
+ * @param entities Extracted entities from query classification
+ * @param asOfDate Optional date for temporal filtering (defaults to current date)
  */
 export async function runLogicEngine(
   query: string,
-  entities: { subjects: string[]; conditions: string[]; products: string[] }
+  entities: { subjects: string[]; conditions: string[]; products: string[] },
+  asOfDate?: Date
 ): Promise<LogicEngineResult> {
+  const effectiveDate = asOfDate ?? getCurrentEffectiveDate()
   const result: LogicEngineResult = {
     success: false,
     answer: {
@@ -136,10 +143,12 @@ export async function runLogicEngine(
 
   // Only query if we have conditions
   if (ruleWhereConditions.length > 0) {
+    // Build temporal filter for rules effective at the query date
+    const temporalFilter = buildTemporalWhereClause(effectiveDate)
+
     const rules = await db.regulatoryRule.findMany({
       where: {
-        OR: ruleWhereConditions,
-        status: "PUBLISHED",
+        AND: [{ OR: ruleWhereConditions }, { status: "PUBLISHED" }, temporalFilter],
       },
       orderBy: [{ confidence: "desc" }],
       take: 10,

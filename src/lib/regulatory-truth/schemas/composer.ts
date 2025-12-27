@@ -1,6 +1,15 @@
 // src/lib/regulatory-truth/schemas/composer.ts
 import { z } from "zod"
-import { RiskTierSchema, ValueTypeSchema, ConfidenceSchema, ISODateSchema } from "./common"
+import {
+  RiskTierSchema,
+  ValueTypeSchema,
+  ConfidenceSchema,
+  ISODateSchema,
+  AuthorityLevelSchema,
+  AutomationPolicySchema,
+  RuleStabilitySchema,
+  ObligationTypeSchema,
+} from "./common"
 
 // =============================================================================
 // COMPOSER INPUT
@@ -65,6 +74,12 @@ export const DraftRuleSchema = z.object({
   title_hr: z.string().min(1),
   title_en: z.string().min(1),
   risk_tier: RiskTierSchema,
+  // Optional fields matching Prisma RegulatoryRule defaults
+  authority_level: AuthorityLevelSchema.optional().default("GUIDANCE"),
+  automation_policy: AutomationPolicySchema.optional().default("CONFIRM"),
+  rule_stability: RuleStabilitySchema.optional().default("STABLE"),
+  obligation_type: ObligationTypeSchema.optional().default("OBLIGATION"),
+  outcome: z.record(z.string(), z.unknown()).nullable().optional(), // Prisma: Json?
   applies_when: appliesWhenSchema, // AppliesWhen DSL expression (string or object auto-stringified)
   value: z.union([z.string(), z.number()]),
   value_type: ValueTypeSchema,

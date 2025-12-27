@@ -495,11 +495,11 @@ export async function generateQuarterlyPOSDSummary(
         (sum, inv) => sum + Number(inv.totalAmount),
         0
       )
-      const quarterlyExpenseTotal = quarterlyExpenseRecords.reduce(
+      const quarterlyExpensesTotal = quarterlyExpenseRecords.reduce(
         (sum, exp) => sum + Number(exp.totalAmount),
         0
       )
-      const quarterlyTaxableIncome = Math.max(0, quarterlyIncome - quarterlyExpenseTotal)
+      const quarterlyTaxableIncome = Math.max(0, quarterlyIncome - quarterlyExpensesTotal)
 
       // Calculate estimated tax for the quarter
       const quarterlyTax = calculateTaxForIncome(quarterlyTaxableIncome)
@@ -513,7 +513,7 @@ export async function generateQuarterlyPOSDSummary(
       quarters.push({
         quarter,
         income: Number(quarterlyIncome.toFixed(2)),
-        expenses: Number(quarterlyExpenseTotal.toFixed(2)),
+        expenses: Number(quarterlyExpensesTotal.toFixed(2)),
         taxableIncome: Number(quarterlyTaxableIncome.toFixed(2)),
         estimatedTax: Number(quarterlyTax.taxAmount.toFixed(2)),
         estimatedSocialContributions: Number(quarterlySocialContrib.toFixed(2)),
@@ -546,15 +546,7 @@ export async function generateQuarterlyPOSDSummary(
     return {
       year,
       company: company
-        ? {
-            oib: company.oib,
-            name: company.name,
-            address: company.address || "",
-            city: company.city || "",
-            postalCode: company.postalCode || "",
-            legalForm: company.legalForm || "",
-            isVatPayer: company.isVatPayer,
-          }
+        ? { ...company, legalForm: company.legalForm || "" }
         : {
             oib: "unknown",
             name: "unknown",

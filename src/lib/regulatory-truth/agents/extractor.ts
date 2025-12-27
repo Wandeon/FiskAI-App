@@ -14,6 +14,7 @@ import { withSoftFail } from "../utils/soft-fail"
 import { getExtractableContent } from "../utils/content-provider"
 import { isBlockedDomain } from "../utils/concept-resolver"
 import { generateCoverageReport, saveCoverageReport } from "../quality/coverage-report"
+import { normalizeQuotes } from "../utils/quote-normalizer"
 
 // =============================================================================
 // EXTRACTOR AGENT
@@ -227,6 +228,16 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       )
     }
 
+    // Normalize quotes before storing to prevent verification failures
+    // from smart quote auto-correction in source content
+    const normalizedQuote = normalizeQuotes(extraction.exact_quote)
+    const normalizedContextBefore = extraction.context_before
+      ? normalizeQuotes(extraction.context_before)
+      : undefined
+    const normalizedContextAfter = extraction.context_after
+      ? normalizeQuotes(extraction.context_after)
+      : undefined
+
     const pointer = await db.sourcePointer.create({
       data: {
         evidenceId: evidence.id,
@@ -234,9 +245,9 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
         valueType: extraction.value_type,
         extractedValue: String(extraction.extracted_value),
         displayValue: extraction.display_value ?? String(extraction.extracted_value),
-        exactQuote: extraction.exact_quote,
-        contextBefore: extraction.context_before,
-        contextAfter: extraction.context_after,
+        exactQuote: normalizedQuote,
+        contextBefore: normalizedContextBefore,
+        contextAfter: normalizedContextAfter,
         selector: extraction.selector,
         // Article anchoring
         articleNumber: extraction.article_number,

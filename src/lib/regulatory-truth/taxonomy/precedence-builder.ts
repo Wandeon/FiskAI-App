@@ -1,5 +1,6 @@
 // src/lib/regulatory-truth/taxonomy/precedence-builder.ts
 import { db } from "@/lib/db"
+import { createEdgeWithCycleCheck, CycleDetectedError } from "../graph/cycle-detection"
 
 export interface PrecedenceEdge {
   fromRuleId: string
@@ -67,17 +68,24 @@ export async function buildOverridesEdges(): Promise<{
       }
 
       // Create OVERRIDES edge: specific rule → general rule
-      await db.graphEdge.create({
-        data: {
+      try {
+        await createEdgeWithCycleCheck({
           fromRuleId: overridingRule.id, // The specific rule
           toRuleId: claim.rule.id, // The general rule being overridden
           relation: "OVERRIDES",
           validFrom: new Date(),
           notes: `From ClaimException: ${exception.condition} (${exception.sourceArticle})`,
-        },
-      })
-
-      created++
+        })
+        created++
+      } catch (error) {
+        if (error instanceof CycleDetectedError) {
+          errors.push(
+            `Cycle prevented: OVERRIDES edge ${overridingRule.id} -> ${claim.rule.id} would create a cycle`
+          )
+        } else {
+          throw error
+        }
+      }
     }
   }
 
