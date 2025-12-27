@@ -123,9 +123,11 @@ export function generateOrganizationSchema() {
     name: "FiskAI",
     legalName: "FiskAI d.o.o.",
     url: "https://fiskai.hr",
+    // Note: Using icon.svg as logo until PNG brand assets are ready
     logo: {
       "@type": "ImageObject",
-      url: "https://fiskai.hr/logo.png",
+      url: "https://fiskai.hr/icon.svg",
+      // SVG doesn't require dimensions, but schema prefers them
       width: 512,
       height: 512,
     },
@@ -271,7 +273,7 @@ export function generateNewsArticleSchema(
       name: "FiskAI",
       logo: {
         "@type": "ImageObject",
-        url: "https://fiskai.hr/logo.png",
+        url: "https://fiskai.hr/icon.svg",
         width: 512,
         height: 512,
       },

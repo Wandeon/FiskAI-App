@@ -52,14 +52,14 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    // TODO: Add PNG favicons and apple-touch-icon when brand assets are ready
+    // { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    // { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    // apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
-  manifest: "/site.webmanifest",
+  // TODO: Add site.webmanifest when PWA support is ready
+  // manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
     locale: "hr_HR",
@@ -69,9 +69,11 @@ export const metadata: Metadata = {
     title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
     description:
       "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća. Automatizirano knjigovodstvo, porezna usklađenost i pametni savjetnik.",
+    // Note: Dynamic OG image is auto-generated from opengraph-image.tsx
+    // Next.js will automatically serve it at /opengraph-image
     images: [
       {
-        url: `${BASE_URL}/og-image.png`,
+        url: `${BASE_URL}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: "FiskAI - AI-powered E-fakturiranje",
@@ -85,7 +87,7 @@ export const metadata: Metadata = {
     title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
     description:
       "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća.",
-    images: [`${BASE_URL}/og-image.png`],
+    images: [`${BASE_URL}/opengraph-image`],
   },
   robots: {
     index: true,
@@ -125,7 +127,7 @@ export default function RootLayout({
       <head>
         {/* Enterprise SEO: Organization, WebSite, and SoftwareApplication schemas */}
         <JsonLd
-          schema={[
+          schemas={[
             generateOrganizationSchema(),
             generateWebSiteSchema(),
             generateSoftwareApplicationSchema(),

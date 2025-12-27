@@ -3,7 +3,7 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories } from "@/lib/db/schema"
 import { eq, and, lte } from "drizzle-orm"
 
-export const runtime = "edge"
+export const runtime = "nodejs" // Need node runtime for drizzle/postgres
 export const alt = "FiskAI Vijesti"
 export const size = {
   width: 1200,

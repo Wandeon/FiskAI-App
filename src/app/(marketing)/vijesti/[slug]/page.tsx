@@ -299,7 +299,7 @@ export default async function PostDetailPage({ params }: PageProps) {
     <>
       {/* Enterprise SEO: NewsArticle and BreadcrumbList schemas */}
       <JsonLd
-        schema={[
+        schemas={[
           generateNewsArticleSchema(
             post.title,
             post.excerpt || "",
