@@ -6,10 +6,17 @@ import { eq, and, lte, desc } from "drizzle-orm"
 import { ImageWithAttribution } from "@/components/news/ImageWithAttribution"
 import { NewsMarkdown } from "@/components/news/NewsMarkdown"
 import { PostCard } from "@/components/news/PostCard"
+import { JsonLd } from "@/components/seo/JsonLd"
+import {
+  generateNewsArticleSchema,
+  generateBreadcrumbSchema,
+} from "@/lib/schema/generators"
 import { format } from "date-fns"
 import { hr } from "date-fns/locale"
 import Link from "next/link"
 import { ExternalLink, Calendar, CheckCircle2, Wrench, Zap, AlertCircle } from "lucide-react"
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 
 export const dynamic = "force-dynamic"
 
@@ -211,10 +218,38 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
+  const url = `${BASE_URL}/vijesti/${slug}`
+
   return {
-    title: `${post.title} | FiskAI Vijesti`,
+    title: post.title,
     description: post.excerpt || undefined,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
+      type: "article",
+      url,
+      title: post.title,
+      description: post.excerpt || undefined,
+      siteName: "FiskAI",
+      locale: "hr_HR",
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.publishedAt?.toISOString(),
+      section: post.categoryName || "Vijesti",
+      tags: post.tags as string[] | undefined,
+      images: post.featuredImageUrl
+        ? [
+            {
+              url: post.featuredImageUrl,
+              width: 1200,
+              height: 630,
+              alt: post.title,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
       title: post.title,
       description: post.excerpt || undefined,
       images: post.featuredImageUrl ? [post.featuredImageUrl] : undefined,
@@ -247,155 +282,185 @@ export default async function PostDetailPage({ params }: PageProps) {
     mainContent = mainContent.replace(/## Povezani alati\s*\n[\s\S]*?(?=\n## |\n#{1,2} |\Z)/i, "")
   }
 
+  // Build structured data for SEO
+  const articleUrl = `${BASE_URL}/vijesti/${slug}`
+  const publishedDate = post.publishedAt?.toISOString() || new Date().toISOString()
+
+  const breadcrumbItems = [
+    { name: "Početna", url: BASE_URL },
+    { name: "Vijesti", url: `${BASE_URL}/vijesti` },
+    ...(post.categoryName
+      ? [{ name: post.categoryName, url: `${BASE_URL}/vijesti/kategorija/${post.categorySlug}` }]
+      : []),
+    { name: post.title, url: articleUrl },
+  ]
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
-      {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-white/60">
-        <Link href="/vijesti" className="hover:text-white">
-          Vijesti
-        </Link>
-        {post.categoryName && (
-          <>
-            <span className="mx-2">/</span>
-            <Link href={`/vijesti/kategorija/${post.categorySlug}`} className="hover:text-white">
+    <>
+      {/* Enterprise SEO: NewsArticle and BreadcrumbList schemas */}
+      <JsonLd
+        schemas={[
+          generateNewsArticleSchema(
+            post.title,
+            post.excerpt || "",
+            publishedDate,
+            publishedDate,
+            articleUrl,
+            post.featuredImageUrl || undefined
+          ),
+          generateBreadcrumbSchema(breadcrumbItems),
+        ]}
+      />
+
+      <div className="mx-auto max-w-4xl px-4 py-12">
+        {/* Breadcrumb */}
+        <nav className="mb-6 text-sm text-white/60">
+          <Link href="/vijesti" className="hover:text-white">
+            Vijesti
+          </Link>
+          {post.categoryName && (
+            <>
+              <span className="mx-2">/</span>
+              <Link href={`/vijesti/kategorija/${post.categorySlug}`} className="hover:text-white">
+                {post.categoryName}
+              </Link>
+            </>
+          )}
+        </nav>
+
+        {/* Article Header */}
+        <article>
+          {/* Category Badge */}
+          {post.categoryName && (
+            <Link
+              href={`/vijesti/kategorija/${post.categorySlug}`}
+              className="mb-4 inline-block rounded-full bg-blue-500/20 px-3 py-1 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30"
+            >
               {post.categoryName}
             </Link>
-          </>
-        )}
-      </nav>
-
-      {/* Article Header */}
-      <article>
-        {/* Category Badge */}
-        {post.categoryName && (
-          <Link
-            href={`/vijesti/kategorija/${post.categorySlug}`}
-            className="mb-4 inline-block rounded-full bg-blue-500/20 px-3 py-1 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30"
-          >
-            {post.categoryName}
-          </Link>
-        )}
-
-        {/* Title */}
-        <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">{post.title}</h1>
-
-        {/* Meta Info */}
-        <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-white/60">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <time dateTime={post.publishedAt?.toISOString()}>
-              {post.publishedAt && format(post.publishedAt, "d. MMMM yyyy.", { locale: hr })}
-            </time>
-          </div>
-          {post.impactLevel && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                post.impactLevel === "high"
-                  ? "bg-red-500/20 text-red-300"
-                  : post.impactLevel === "medium"
-                    ? "bg-yellow-500/20 text-yellow-300"
-                    : "bg-green-500/20 text-green-300"
-              }`}
-            >
-              {post.impactLevel === "high"
-                ? "Visok utjecaj"
-                : post.impactLevel === "medium"
-                  ? "Srednji utjecaj"
-                  : "Nizak utjecaj"}
-            </span>
           )}
-        </div>
 
-        {/* Featured Image */}
-        {post.featuredImageUrl && (
-          <div className="mb-8">
-            <div className="relative aspect-[21/9] overflow-hidden rounded-xl">
-              <ImageWithAttribution
-                src={post.featuredImageUrl}
-                source={post.featuredImageSource}
-                alt={post.title}
-                categorySlug={post.categorySlug || undefined}
-                className="h-full w-full"
-              />
+          {/* Title */}
+          <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">{post.title}</h1>
+
+          {/* Meta Info */}
+          <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-white/60">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <time dateTime={post.publishedAt?.toISOString()}>
+                {post.publishedAt && format(post.publishedAt, "d. MMMM yyyy.", { locale: hr })}
+              </time>
             </div>
-            {post.featuredImageCaption && (
-              <p className="mt-2 text-sm italic text-white/60">{post.featuredImageCaption}</p>
+            {post.impactLevel && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  post.impactLevel === "high"
+                    ? "bg-red-500/20 text-red-300"
+                    : post.impactLevel === "medium"
+                      ? "bg-yellow-500/20 text-yellow-300"
+                      : "bg-green-500/20 text-green-300"
+                }`}
+              >
+                {post.impactLevel === "high"
+                  ? "Visok utjecaj"
+                  : post.impactLevel === "medium"
+                    ? "Srednji utjecaj"
+                    : "Nizak utjecaj"}
+              </span>
             )}
           </div>
-        )}
 
-        {/* TL;DR Section - Prominent at the top */}
-        {sections.tldr && <TLDRSection content={sections.tldr} />}
-
-        {/* Main Content */}
-        <NewsMarkdown content={mainContent.trim()} />
-
-        {/* Action Items Section */}
-        {sections.actionItems && sections.actionItems.length > 0 && (
-          <ActionItemsSection items={sections.actionItems} />
-        )}
-
-        {/* Related Tools Section */}
-        {sections.relatedTools && sections.relatedTools.length > 0 && (
-          <RelatedToolsSection tools={sections.relatedTools} />
-        )}
-
-        {/* Source Attribution - Enhanced */}
-        {post.sources && post.sources.length > 0 && (
-          <div className="my-8 rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-6 shadow-sm">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-500/20">
-                <ExternalLink className="h-5 w-5 text-purple-400" />
+          {/* Featured Image */}
+          {post.featuredImageUrl && (
+            <div className="mb-8">
+              <div className="relative aspect-[21/9] overflow-hidden rounded-xl">
+                <ImageWithAttribution
+                  src={post.featuredImageUrl}
+                  source={post.featuredImageSource}
+                  alt={post.title}
+                  categorySlug={post.categorySlug || undefined}
+                  className="h-full w-full"
+                />
               </div>
-              <div className="flex-1">
-                <h3 className="mb-4 text-lg font-semibold text-purple-300">Izvori</h3>
-                <div className="space-y-3">
-                  {post.sources.map((source, idx) => (
-                    <a
-                      key={idx}
-                      href={source.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-purple-500/30 hover:bg-white/10"
-                    >
-                      <ExternalLink className="h-5 w-5 flex-shrink-0 text-purple-400" />
-                      <div className="flex-1">
-                        <p className="font-medium text-white">{source.originalTitle}</p>
-                        <p className="mt-1 text-sm text-white/60">
-                          {new URL(source.sourceUrl).hostname}
-                        </p>
-                      </div>
-                    </a>
-                  ))}
+              {post.featuredImageCaption && (
+                <p className="mt-2 text-sm italic text-white/60">{post.featuredImageCaption}</p>
+              )}
+            </div>
+          )}
+
+          {/* TL;DR Section - Prominent at the top */}
+          {sections.tldr && <TLDRSection content={sections.tldr} />}
+
+          {/* Main Content */}
+          <NewsMarkdown content={mainContent.trim()} />
+
+          {/* Action Items Section */}
+          {sections.actionItems && sections.actionItems.length > 0 && (
+            <ActionItemsSection items={sections.actionItems} />
+          )}
+
+          {/* Related Tools Section */}
+          {sections.relatedTools && sections.relatedTools.length > 0 && (
+            <RelatedToolsSection tools={sections.relatedTools} />
+          )}
+
+          {/* Source Attribution - Enhanced */}
+          {post.sources && post.sources.length > 0 && (
+            <div className="my-8 rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-500/20">
+                  <ExternalLink className="h-5 w-5 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="mb-4 text-lg font-semibold text-purple-300">Izvori</h3>
+                  <div className="space-y-3">
+                    {post.sources.map((source, idx) => (
+                      <a
+                        key={idx}
+                        href={source.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-purple-500/30 hover:bg-white/10"
+                      >
+                        <ExternalLink className="h-5 w-5 flex-shrink-0 text-purple-400" />
+                        <div className="flex-1">
+                          <p className="font-medium text-white">{source.originalTitle}</p>
+                          <p className="mt-1 text-sm text-white/60">
+                            {new URL(source.sourceUrl).hostname}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </article>
+          )}
+        </article>
 
-      {/* Related Posts */}
-      {relatedPosts.length > 0 && (
-        <section className="mt-16">
-          <h2 className="mb-6 text-2xl font-bold text-white">Srodne vijesti</h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            {relatedPosts.map((relatedPost) => (
-              <PostCard
-                key={relatedPost.id}
-                slug={relatedPost.slug}
-                title={relatedPost.title}
-                excerpt={relatedPost.excerpt}
-                categoryName={relatedPost.categoryName || undefined}
-                categorySlug={relatedPost.categorySlug || undefined}
-                publishedAt={relatedPost.publishedAt || new Date()}
-                featuredImageUrl={relatedPost.featuredImageUrl}
-                featuredImageSource={relatedPost.featuredImageSource}
-                impactLevel={relatedPost.impactLevel}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+        {/* Related Posts */}
+        {relatedPosts.length > 0 && (
+          <section className="mt-16">
+            <h2 className="mb-6 text-2xl font-bold text-white">Srodne vijesti</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              {relatedPosts.map((relatedPost) => (
+                <PostCard
+                  key={relatedPost.id}
+                  slug={relatedPost.slug}
+                  title={relatedPost.title}
+                  excerpt={relatedPost.excerpt}
+                  categoryName={relatedPost.categoryName || undefined}
+                  categorySlug={relatedPost.categorySlug || undefined}
+                  publishedAt={relatedPost.publishedAt || new Date()}
+                  featuredImageUrl={relatedPost.featuredImageUrl}
+                  featuredImageSource={relatedPost.featuredImageSource}
+                  impactLevel={relatedPost.impactLevel}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </>
   )
 }

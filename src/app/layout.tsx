@@ -1,15 +1,119 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Suspense } from "react"
 import { Toaster } from "sonner"
 import { AnalyticsProvider } from "@/components/providers/analytics-provider"
 import { OfflineIndicator } from "@/components/layout/offline-indicator"
+import { JsonLd } from "@/components/seo/JsonLd"
+import {
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+  generateSoftwareApplicationSchema,
+} from "@/lib/schema/generators"
 import "./globals.css"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
+}
+
 export const metadata: Metadata = {
-  title: "FiskAI",
-  description: "AI-powered e-invoicing platform",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
+    template: "%s | FiskAI",
+  },
+  description:
+    "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća. Automatizirano knjigovodstvo, porezna usklađenost i pametni savjetnik.",
+  keywords: [
+    "e-fakturiranje",
+    "fiskalizacija",
+    "e-račun",
+    "AI knjigovodstvo",
+    "fakturiranje hrvatska",
+    "porezna usklađenost",
+    "obrt",
+    "d.o.o.",
+    "paušalni obrt",
+    "računovodstvo",
+  ],
+  authors: [{ name: "FiskAI", url: BASE_URL }],
+  creator: "FiskAI",
+  publisher: "FiskAI",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    // TODO: Add PNG favicons and apple-touch-icon when brand assets are ready
+    // { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    // { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    // apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  // TODO: Add site.webmanifest when PWA support is ready
+  // manifest: "/site.webmanifest",
+  openGraph: {
+    type: "website",
+    locale: "hr_HR",
+    alternateLocale: "en_US",
+    url: BASE_URL,
+    siteName: "FiskAI",
+    title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
+    description:
+      "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća. Automatizirano knjigovodstvo, porezna usklađenost i pametni savjetnik.",
+    // Note: Dynamic OG image is auto-generated from opengraph-image.tsx
+    // Next.js will automatically serve it at /opengraph-image
+    images: [
+      {
+        url: `${BASE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "FiskAI - AI-powered E-fakturiranje",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@fiskai_hr",
+    creator: "@fiskai_hr",
+    title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
+    description:
+      "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća.",
+    images: [`${BASE_URL}/opengraph-image`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: BASE_URL,
+    languages: {
+      "hr-HR": BASE_URL,
+      "en-US": `${BASE_URL}/en`,
+      "x-default": BASE_URL,
+    },
+  },
+  category: "business",
+  verification: {
+    // Add your verification tokens here
+    // google: "your-google-verification-token",
+    // yandex: "your-yandex-verification-token",
+    // bing: "your-bing-verification-token",
   },
 }
 
@@ -20,6 +124,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hr" className="dark">
+      <head>
+        {/* Enterprise SEO: Organization, WebSite, and SoftwareApplication schemas */}
+        <JsonLd
+          schemas={[
+            generateOrganizationSchema(),
+            generateWebSiteSchema(),
+            generateSoftwareApplicationSchema(),
+          ]}
+        />
+      </head>
       <body>
         <a href="#glavni-sadrzaj" className="skip-link">
           Preskoči na sadržaj
