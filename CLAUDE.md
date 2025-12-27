@@ -4,6 +4,33 @@
 >
 > This file provides AI assistants with project context. For full documentation, see [docs/](./docs/).
 
+## ⛔ CRITICAL: Branch Protection Policy
+
+**NEVER push directly to `main` branch. All changes MUST go through Pull Requests.**
+
+This policy exists because:
+
+- Direct pushes bypass code review and can introduce breaking changes
+- PRs provide audit trail and allow rollback
+- CI/CD runs on PR merge, not on every push
+- Multiple developers/agents may be working simultaneously
+
+**AI Agents: When you need to commit changes:**
+
+1. Create a feature branch: `git checkout -b fix/descriptive-name`
+2. Make your commits on the feature branch
+3. Push the branch: `git push -u origin fix/descriptive-name`
+4. Create a PR: `gh pr create --title "..." --body "..."`
+5. Return the PR URL to the user for review
+
+**DO NOT** attempt to bypass this by:
+
+- Disabling the pre-push hook
+- Force pushing
+- Modifying git config
+
+A pre-push hook enforces this locally. Violations will be rejected.
+
 ## Domains & Architecture
 
 **Domain:** `fiskai.hr` (Cloudflare-managed, primary)

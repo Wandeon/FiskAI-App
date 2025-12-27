@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# =============================================================================
+# PRE-PUSH HOOK: Block direct pushes to main branch
+# =============================================================================
+#
+# This hook enforces the branch protection policy documented in CLAUDE.md.
+# All changes to main MUST go through Pull Requests.
+#
+# AI AGENTS: Do NOT disable or bypass this hook. Instead:
+# 1. Create a feature branch
+# 2. Push to the feature branch
+# 3. Create a PR using: gh pr create
+# =============================================================================
+
+protected_branch='main'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+# Read the remote and URL from stdin (provided by git)
+while read local_ref local_sha remote_ref remote_sha
+do
+    # Check if pushing to protected branch
+    if echo "$remote_ref" | grep -q "refs/heads/${protected_branch}$"; then
+        echo ""
+        echo "⛔ BLOCKED: Direct push to '${protected_branch}' is not allowed!"
+        echo ""
+        echo "This repository requires all changes to go through Pull Requests."
+        echo ""
+        echo "To submit your changes:"
+        echo "  1. Create a branch:  git checkout -b fix/your-change-name"
+        echo "  2. Push the branch:  git push -u origin fix/your-change-name"
+        echo "  3. Create a PR:      gh pr create --fill"
+        echo ""
+        echo "See CLAUDE.md for the full branch protection policy."
+        echo ""
+        exit 1
+    fi
+done
+
+exit 0
