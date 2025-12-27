@@ -1,7 +1,44 @@
+#!/usr/bin/env npx tsx
 // scripts/audit-ocr.ts
 // OCR Processing Audit Script
+// Run with: npx tsx scripts/audit-ocr.ts
+// For local development: DATABASE_URL="postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai" npx tsx scripts/audit-ocr.ts
 
 import { db } from "../src/lib/db"
+import { Prisma } from "@prisma/client"
+
+// Handle --help flag
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log(`
+OCR Processing Audit Script
+
+Usage:
+  npx tsx scripts/audit-ocr.ts [options]
+
+Options:
+  -h, --help    Show this help message
+
+Description:
+  This script audits the OCR processing pipeline for regulatory truth evidence.
+  It checks:
+  - OCR queue health (pending scanned PDFs)
+  - Artifact generation rates
+  - Sample OCR artifacts with quality metrics
+  - Failed OCR processing
+  - Overall processing metrics
+
+Environment:
+  DATABASE_URL    PostgreSQL connection string (required)
+
+  For local development with Docker:
+    DATABASE_URL="postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai" npx tsx scripts/audit-ocr.ts
+
+Exit codes:
+  0    All checks passed or only warnings
+  1    One or more checks failed
+`)
+  process.exit(0)
+}
 
 async function auditOcr() {
   console.log("=" + "=".repeat(70))
@@ -28,7 +65,7 @@ async function auditOcr() {
     where: {
       contentClass: "PDF_SCANNED",
       primaryTextArtifactId: null,
-      ocrMetadata: { not: null },
+      ocrMetadata: { not: Prisma.JsonNull },
     },
     select: {
       id: true,
@@ -39,7 +76,13 @@ async function auditOcr() {
   })
   console.log(`Evidence with OCR metadata but no artifact: ${stuckOcr.length}`)
   if (stuckOcr.length > 0) {
-    console.log("Sample stuck IDs:", stuckOcr.slice(0, 5).map((e) => e.id).join(", "))
+    console.log(
+      "Sample stuck IDs:",
+      stuckOcr
+        .slice(0, 5)
+        .map((e) => e.id)
+        .join(", ")
+    )
   }
 
   // 2. ARTIFACT GENERATION
@@ -67,7 +110,9 @@ async function auditOcr() {
   console.log(`\nPDF_SCANNED with OCR_TEXT artifact: ${scannedWithOcr}/${totalScanned}`)
 
   // Check artifact content lengths
-  const artifactLengths = await db.$queryRaw<Array<{ kind: string; avg_len: number; min_len: number; max_len: number }>>`
+  const artifactLengths = await db.$queryRaw<
+    Array<{ kind: string; avg_len: number; min_len: number; max_len: number }>
+  >`
     SELECT
       kind,
       AVG(LENGTH(content))::int as avg_len,
@@ -108,7 +153,9 @@ async function auditOcr() {
       console.log(`OCR metadata:`)
       console.log(`  Method: ${metadata.method || "unknown"}`)
       console.log(`  Pages: ${metadata.pages || "unknown"}`)
-      console.log(`  Avg Confidence: ${typeof metadata.avgConfidence === "number" ? metadata.avgConfidence.toFixed(1) + "%" : "unknown"}`)
+      console.log(
+        `  Avg Confidence: ${typeof metadata.avgConfidence === "number" ? metadata.avgConfidence.toFixed(1) + "%" : "unknown"}`
+      )
       console.log(`  Processing time: ${metadata.processingMs || "unknown"}ms`)
     }
 
@@ -158,7 +205,7 @@ async function auditOcr() {
   const ocrMetrics = await db.evidence.findMany({
     where: {
       contentClass: "PDF_SCANNED",
-      ocrMetadata: { not: null },
+      ocrMetadata: { not: Prisma.JsonNull },
       primaryTextArtifactId: { not: null },
     },
     select: {
@@ -191,7 +238,9 @@ async function auditOcr() {
     console.log(`Avg processing time: ${Math.round(totalTime / ocrMetrics.length)}ms`)
     console.log(`Avg pages per document: ${(totalPages / ocrMetrics.length).toFixed(1)}`)
     console.log(`Avg confidence: ${count > 0 ? (totalConfidence / count).toFixed(1) : "N/A"}%`)
-    console.log(`Vision fallback used: ${visionCount} (${((visionCount / ocrMetrics.length) * 100).toFixed(1)}%)`)
+    console.log(
+      `Vision fallback used: ${visionCount} (${((visionCount / ocrMetrics.length) * 100).toFixed(1)}%)`
+    )
 
     if (totalPages > 0) {
       const avgTimePerPage = totalTime / totalPages
@@ -223,40 +272,80 @@ async function auditOcr() {
   if (pendingScanned === 0) {
     verdicts.push({ check: "OCR Queue Backlog", status: "PASS", note: "No pending items" })
   } else if (pendingScanned < 100) {
-    verdicts.push({ check: "OCR Queue Backlog", status: "PASS", note: `${pendingScanned} items (< 100 threshold)` })
+    verdicts.push({
+      check: "OCR Queue Backlog",
+      status: "PASS",
+      note: `${pendingScanned} items (< 100 threshold)`,
+    })
   } else if (pendingScanned < 500) {
-    verdicts.push({ check: "OCR Queue Backlog", status: "WARN", note: `${pendingScanned} items pending` })
+    verdicts.push({
+      check: "OCR Queue Backlog",
+      status: "WARN",
+      note: `${pendingScanned} items pending`,
+    })
   } else {
-    verdicts.push({ check: "OCR Queue Backlog", status: "FAIL", note: `${pendingScanned} items pending (>500)` })
+    verdicts.push({
+      check: "OCR Queue Backlog",
+      status: "FAIL",
+      note: `${pendingScanned} items pending (>500)`,
+    })
   }
 
   // OCR Failure Rate
   if (failedRate < 5) {
-    verdicts.push({ check: "OCR Failure Rate", status: "PASS", note: `${failedRate.toFixed(1)}% (< 5% threshold)` })
+    verdicts.push({
+      check: "OCR Failure Rate",
+      status: "PASS",
+      note: `${failedRate.toFixed(1)}% (< 5% threshold)`,
+    })
   } else if (failedRate < 10) {
     verdicts.push({ check: "OCR Failure Rate", status: "WARN", note: `${failedRate.toFixed(1)}%` })
   } else {
-    verdicts.push({ check: "OCR Failure Rate", status: "FAIL", note: `${failedRate.toFixed(1)}% (>10%)` })
+    verdicts.push({
+      check: "OCR Failure Rate",
+      status: "FAIL",
+      note: `${failedRate.toFixed(1)}% (>10%)`,
+    })
   }
 
   // Artifact Generation
   if (scannedWithOcr === totalScanned && totalScanned > 0) {
-    verdicts.push({ check: "Artifact Generation", status: "PASS", note: "All PDF_SCANNED have OCR_TEXT" })
+    verdicts.push({
+      check: "Artifact Generation",
+      status: "PASS",
+      note: "All PDF_SCANNED have OCR_TEXT",
+    })
   } else if (ocrRate >= 90) {
-    verdicts.push({ check: "Artifact Generation", status: "PASS", note: `${ocrRate.toFixed(1)}% have artifacts` })
+    verdicts.push({
+      check: "Artifact Generation",
+      status: "PASS",
+      note: `${ocrRate.toFixed(1)}% have artifacts`,
+    })
   } else if (ocrRate >= 70) {
-    verdicts.push({ check: "Artifact Generation", status: "WARN", note: `${ocrRate.toFixed(1)}% have artifacts` })
+    verdicts.push({
+      check: "Artifact Generation",
+      status: "WARN",
+      note: `${ocrRate.toFixed(1)}% have artifacts`,
+    })
   } else if (totalScanned === 0) {
     verdicts.push({ check: "Artifact Generation", status: "PASS", note: "No PDF_SCANNED evidence" })
   } else {
-    verdicts.push({ check: "Artifact Generation", status: "FAIL", note: `Only ${ocrRate.toFixed(1)}% have artifacts` })
+    verdicts.push({
+      check: "Artifact Generation",
+      status: "FAIL",
+      note: `Only ${ocrRate.toFixed(1)}% have artifacts`,
+    })
   }
 
   // Stuck Jobs
   if (stuckOcr.length === 0) {
     verdicts.push({ check: "Stuck Jobs", status: "PASS", note: "No stuck OCR jobs" })
   } else if (stuckOcr.length < 10) {
-    verdicts.push({ check: "Stuck Jobs", status: "WARN", note: `${stuckOcr.length} possibly stuck` })
+    verdicts.push({
+      check: "Stuck Jobs",
+      status: "WARN",
+      note: `${stuckOcr.length} possibly stuck`,
+    })
   } else {
     verdicts.push({ check: "Stuck Jobs", status: "FAIL", note: `${stuckOcr.length} stuck jobs` })
   }
@@ -280,6 +369,27 @@ async function auditOcr() {
   }
 
   await db.$disconnect()
+
+  // Exit with error code if any check failed
+  if (!overallPass) {
+    process.exit(1)
+  }
 }
 
-auditOcr().catch(console.error)
+auditOcr().catch((error) => {
+  if (error.code === "ECONNREFUSED") {
+    console.error("\nDatabase connection failed (ECONNREFUSED)")
+    console.error("This typically means the database server is not accessible.")
+    console.error("\nFor local development, set DATABASE_URL to use localhost:")
+    console.error(
+      '  DATABASE_URL="postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai" npx tsx scripts/audit-ocr.ts'
+    )
+    console.error(
+      "\nCurrent DATABASE_URL points to:",
+      process.env.DATABASE_URL?.replace(/:[^@]+@/, ":****@") || "(not set)"
+    )
+  } else {
+    console.error(error)
+  }
+  process.exit(1)
+})

@@ -39,10 +39,7 @@ export default async function SupportDetailPage({ params }: PageProps) {
     include: {
       messages: {
         orderBy: { createdAt: "asc" },
-        include: { author: { select: { name: true, email: true, id: true } } },
       },
-      createdBy: { select: { name: true, email: true } },
-      assignedTo: { select: { name: true, email: true, id: true } },
     },
   })
 
@@ -64,17 +61,15 @@ export default async function SupportDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <Badge variant="secondary">{statusLabels[ticket.status]}</Badge>
           <Badge variant="outline">{priorityLabels[ticket.priority]}</Badge>
+          <span className="text-muted-foreground">Kreirao: {ticket.createdById || "—"}</span>
           <span className="text-muted-foreground">
-            Kreirao: {ticket.createdBy?.name || ticket.createdBy?.email || "—"}
-          </span>
-          <span className="text-muted-foreground">
-            Dodijeljeno: {ticket.assignedTo?.name || ticket.assignedTo?.email || "Nije dodijeljeno"}
+            Dodijeljeno: {ticket.assignedToId || "Nije dodijeljeno"}
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
           <AssignSupportTicketButton
             ticketId={ticket.id}
-            currentAssigneeId={ticket.assignedTo?.id || null}
+            currentAssigneeId={ticket.assignedToId || null}
             currentUserId={user.id!}
           />
           {ticket.status === "CLOSED" || ticket.status === "RESOLVED" ? (
@@ -101,7 +96,7 @@ export default async function SupportDetailPage({ params }: PageProps) {
                   className="rounded-xl border border-border bg-muted/40 px-3 py-2"
                 >
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{message.author?.name || message.author?.email || "Nepoznato"}</span>
+                    <span>{message.authorId || "Nepoznato"}</span>
                     <span>{message.createdAt.toLocaleString("hr-HR")}</span>
                   </div>
                   <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{message.body}</p>

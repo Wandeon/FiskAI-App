@@ -20,8 +20,18 @@ export async function createContact(formData: z.infer<typeof contactSchema>) {
       return { error: "Invalid fields", details: validatedFields.error.flatten() }
     }
 
+    const data = {
+      ...validatedFields.data,
+      oib: validatedFields.data.oib || null,
+      vatNumber: validatedFields.data.vatNumber || null,
+      address: validatedFields.data.address || null,
+      city: validatedFields.data.city || null,
+      postalCode: validatedFields.data.postalCode || null,
+      email: validatedFields.data.email || null,
+      phone: validatedFields.data.phone || null,
+    }
     const contact = await db.contact.create({
-      data: validatedFields.data,
+      data,
     })
 
     revalidatePath("/contacts")

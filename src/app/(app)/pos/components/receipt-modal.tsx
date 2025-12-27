@@ -7,12 +7,13 @@ import { Modal, ModalFooter } from "@/components/ui/modal"
 import type { ProcessPosSaleResult } from "@/types/pos"
 
 interface Props {
+  isOpen: boolean
   result: ProcessPosSaleResult
   onNewSale: () => void
   onClose: () => void
 }
 
-export function ReceiptModal({ result, onNewSale, onClose }: Props) {
+export function ReceiptModal({ isOpen, result, onNewSale, onClose }: Props) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("hr-HR", {
       style: "currency",
@@ -26,7 +27,7 @@ export function ReceiptModal({ result, onNewSale, onClose }: Props) {
   }
 
   return (
-    <Modal title="Prodaja završena" onClose={onClose}>
+    <Modal isOpen={isOpen} title="Prodaja završena" onClose={onClose}>
       <div className="text-center space-y-6 py-4">
         {/* Success icon */}
         <div className="text-6xl text-green-500">✓</div>
@@ -34,23 +35,17 @@ export function ReceiptModal({ result, onNewSale, onClose }: Props) {
         {/* Invoice info */}
         <div>
           <p className="text-sm text-gray-500">Broj računa</p>
-          <p className="text-xl font-mono font-bold">
-            {result.invoice?.invoiceNumber}
-          </p>
+          <p className="text-xl font-mono font-bold">{result.invoice?.invoiceNumber}</p>
         </div>
 
         <div>
           <p className="text-sm text-gray-500">Ukupno</p>
-          <p className="text-3xl font-bold">
-            {formatPrice(result.invoice?.totalAmount || 0)}
-          </p>
+          <p className="text-3xl font-bold">{formatPrice(result.invoice?.totalAmount || 0)}</p>
         </div>
 
         {/* Fiscalization Status */}
         <div className="bg-muted/50 rounded-lg p-4 text-left space-y-3">
-          <h4 className="text-sm font-medium text-muted-foreground">
-            Status fiskalizacije
-          </h4>
+          <h4 className="text-sm font-medium text-muted-foreground">Status fiskalizacije</h4>
 
           {result.zki && (
             <div className="flex items-center justify-between text-sm">

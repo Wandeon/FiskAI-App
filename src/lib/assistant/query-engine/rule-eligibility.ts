@@ -19,22 +19,44 @@ export interface RuleWithAppliesWhen {
 
 /**
  * Check if a rule's temporal bounds are valid for the given date.
+ *
+ * Boundary semantics:
+ * - effectiveFrom is INCLUSIVE: rule is effective ON the effectiveFrom date
+ * - effectiveUntil is EXCLUSIVE: rule is NOT effective ON the effectiveUntil date
+ *
+ * Formula: effectiveFrom <= asOfDate AND (effectiveUntil IS NULL OR effectiveUntil > asOfDate)
  */
 export function checkTemporalEligibility(
   rule: Pick<RuleWithAppliesWhen, "effectiveFrom" | "effectiveUntil">,
   asOfDate: Date
 ): EligibilityResult {
-  // Rule must have started
-  if (rule.effectiveFrom > asOfDate) {
+  // Normalize dates to start of day for consistent comparison
+  const queryDate = normalizeToStartOfDay(asOfDate)
+  const fromDate = normalizeToStartOfDay(rule.effectiveFrom)
+  const untilDate = rule.effectiveUntil ? normalizeToStartOfDay(rule.effectiveUntil) : null
+
+  // Rule must have started (effectiveFrom <= asOfDate, i.e., fromDate is inclusive)
+  if (fromDate > queryDate) {
     return { eligible: false, reason: "FUTURE" }
   }
 
-  // Rule must not have expired (null = no expiry)
-  if (rule.effectiveUntil && rule.effectiveUntil < asOfDate) {
+  // Rule must not have expired (effectiveUntil > asOfDate, i.e., untilDate is exclusive)
+  // null effectiveUntil means no expiry
+  if (untilDate !== null && untilDate <= queryDate) {
     return { eligible: false, reason: "EXPIRED" }
   }
 
   return { eligible: true }
+}
+
+/**
+ * Normalize a date to the start of day (00:00:00.000) in UTC.
+ * This ensures consistent date comparisons regardless of time components.
+ */
+function normalizeToStartOfDay(date: Date): Date {
+  const normalized = new Date(date)
+  normalized.setUTCHours(0, 0, 0, 0)
+  return normalized
 }
 
 /**

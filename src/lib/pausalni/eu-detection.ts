@@ -73,7 +73,7 @@ export async function detectEuTransaction(tx: BankTransaction): Promise<EuDetect
       if (pattern.test(normalizedName)) {
         const { EU_COUNTRY_NAMES } = await import("./constants")
         return {
-          isEu: vendor.isEu,
+          isEu: vendor.isEu ?? false,
           country: vendor.countryCode,
           countryName: EU_COUNTRY_NAMES[vendor.countryCode] || vendor.countryCode,
           vendor: {
@@ -81,7 +81,7 @@ export async function detectEuTransaction(tx: BankTransaction): Promise<EuDetect
             displayName: vendor.displayName,
             vendorType: vendor.vendorType,
           },
-          confidence: vendor.confidenceScore,
+          confidence: vendor.confidenceScore ?? 0,
           detectionMethod: "VENDOR_DB",
           requiresUserConfirmation: false,
         }
@@ -102,7 +102,7 @@ export async function detectEuTransaction(tx: BankTransaction): Promise<EuDetect
     vendor: null,
     confidence: 0,
     detectionMethod: "UNKNOWN",
-    requiresUserConfirmation: looksLikeForeign,
+    requiresUserConfirmation: !!looksLikeForeign,
   }
 }
 
@@ -141,15 +141,15 @@ export async function processTransactionsForEu(
           companyId,
           bankTransactionId: tx.id,
           direction: "RECEIVED", // We received the service (outgoing payment)
-          counterpartyName: tx.counterpartyName,
-          counterpartyCountry: result.country,
-          transactionDate: tx.transactionDate,
+          counterpartyName: tx.counterpartyName ?? undefined,
+          counterpartyCountry: result.country ?? undefined,
+          transactionDate: tx.transactionDate.toISOString(),
           amount: String(Math.abs(tx.amount)),
           pdvRate: String(PDV_CONFIG.rate),
           pdvAmount: String(pdvAmount),
           reportingMonth: txDate.getMonth() + 1,
           reportingYear: txDate.getFullYear(),
-          vendorId: result.vendor?.id,
+          vendorId: result.vendor?.id ?? undefined,
           detectionMethod: result.detectionMethod,
           confidenceScore: result.confidence,
           userConfirmed: false,

@@ -2,6 +2,7 @@ import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { Html, Head, Body, Container, Text, Link, Hr } from "@react-email/components"
 import React from "react"
+import { FiscalEnv } from "@prisma/client"
 
 export interface ExpiringCertificate {
   companyId: string
@@ -24,7 +25,7 @@ export async function findExpiringCertificates(
     where: {
       fiscalCertificates: {
         some: {
-          environment: "PRODUCTION",
+          environment: FiscalEnv.PROD,
           status: "ACTIVE",
           certNotAfter: {
             lte: thresholdDate,
@@ -36,7 +37,7 @@ export async function findExpiringCertificates(
     include: {
       fiscalCertificates: {
         where: {
-          environment: "PRODUCTION",
+          environment: FiscalEnv.PROD,
           status: "ACTIVE",
         },
         orderBy: {

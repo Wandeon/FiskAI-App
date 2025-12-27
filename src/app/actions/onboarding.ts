@@ -28,6 +28,13 @@ export interface OnboardingData {
   phone: string | null
   iban: string | null
   isVatPayer: boolean
+
+  // Step 5: Paušalni Profile (only for OBRT_PAUSAL, stored in featureFlags)
+  acceptsCash?: boolean
+  hasEmployees?: boolean
+  employedElsewhere?: boolean
+  hasEuVatId?: boolean
+  taxBracket?: string
 }
 
 /**
@@ -59,6 +66,12 @@ export async function getOnboardingData(): Promise<OnboardingData | null> {
     phone: company.phone,
     iban: company.iban,
     isVatPayer: company.isVatPayer,
+    // Paušalni profile fields from featureFlags
+    acceptsCash: featureFlags?.acceptsCash as boolean | undefined,
+    hasEmployees: featureFlags?.hasEmployees as boolean | undefined,
+    employedElsewhere: featureFlags?.employedElsewhere as boolean | undefined,
+    hasEuVatId: featureFlags?.hasEuVatId as boolean | undefined,
+    taxBracket: featureFlags?.taxBracket as string | undefined,
   }
 }
 

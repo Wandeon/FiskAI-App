@@ -392,7 +392,7 @@ export default async function PausalniObrtReportsPage() {
                       <Receipt className="h-4 w-4 text-amber-600" />
                     </div>
                     <div>
-                      <p className="font-medium">{category.category?.name || "Ostalo"}</p>
+                      <p className="font-medium">{category.categoryId || "Ostalo"}</p>
                       <p className="text-sm text-muted-foreground">
                         {(category._sum.totalAmount
                           ? Number(category._sum.totalAmount)

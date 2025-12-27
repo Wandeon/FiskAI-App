@@ -36,11 +36,11 @@ export default async function SupportPage() {
       status: true,
       priority: true,
       updatedAt: true,
-      assignedTo: { select: { name: true, email: true } },
+      assignedToId: true,
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { createdAt: true, author: { select: { name: true, email: true } } },
+        select: { createdAt: true, authorId: true },
       },
     },
   })
@@ -88,15 +88,9 @@ export default async function SupportPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span>Zadnje ažurirano: {ticket.updatedAt.toLocaleString("hr-HR")}</span>
-                    <span>
-                      Assign:{" "}
-                      {ticket.assignedTo?.name || ticket.assignedTo?.email || "Nije dodijeljeno"}
-                    </span>
+                    <span>Assign: {ticket.assignedToId || "Nije dodijeljeno"}</span>
                     {ticket.messages[0] && (
-                      <span>
-                        Zadnja poruka:{" "}
-                        {ticket.messages[0].author?.name || ticket.messages[0].author?.email || "—"}
-                      </span>
+                      <span>Zadnja poruka: {ticket.messages[0].authorId || "—"}</span>
                     )}
                   </div>
                 </Link>

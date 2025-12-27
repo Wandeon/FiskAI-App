@@ -55,7 +55,7 @@ export default async function EInvoicesPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const capabilities = deriveCapabilities(company)
-  if (capabilities.modules.eInvoicing?.enabled === false) {
+  if (capabilities.modules["e-invoicing"]?.enabled === false) {
     redirect("/settings?tab=plan")
   }
 

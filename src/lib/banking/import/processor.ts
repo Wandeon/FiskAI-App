@@ -7,6 +7,7 @@ import { BANK_STATEMENT_SYSTEM_PROMPT } from "./prompt"
 import { deepseekJson } from "@/lib/ai/deepseek"
 import { XMLParser } from "fast-xml-parser"
 import Decimal from "decimal.js"
+import OpenAI from "openai"
 
 type ParsedPage = {
   pageNumber: number
@@ -94,23 +95,25 @@ export async function processNextImportJob() {
       const transactions = await db.bankTransaction.count({
         where: {
           companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
+          bankAccountId: job.bankAccountId ?? undefined,
           createdAt: {
             gte: new Date(Date.now() - 60 * 1000), // Last minute (this import run)
           },
         },
       })
-      await db.bankImport.create({
-        data: {
-          companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
-          fileName: job.originalName,
-          format: ImportFormat.XML_CAMT053,
-          transactionCount: transactions,
-          importedAt: new Date(),
-          importedBy: job.userId,
-        },
-      })
+      if (job.bankAccountId) {
+        await db.bankImport.create({
+          data: {
+            companyId: job.companyId,
+            bankAccountId: job.bankAccountId,
+            fileName: job.originalName,
+            format: ImportFormat.XML_CAMT053,
+            transactionCount: transactions,
+            importedAt: new Date(),
+            importedBy: job.userId,
+          },
+        })
+      }
     }
     return { status: "ok", jobId: job.id }
   } catch (error) {
@@ -132,6 +135,10 @@ export async function processNextImportJob() {
 
 async function handleXml(jobId: string) {
   const job = await db.importJob.findUniqueOrThrow({ where: { id: jobId } })
+  if (!job.bankAccountId) {
+    throw new Error("Bank account ID is required for XML import")
+  }
+  const bankAccountId = job.bankAccountId
   const xmlBuffer = await fs.readFile(job.storagePath, "utf-8")
   const parser = new XMLParser({
     ignoreAttributes: false,
@@ -177,7 +184,7 @@ async function handleXml(jobId: string) {
     data: {
       importJobId: jobId,
       companyId: job.companyId,
-      bankAccountId: job.bankAccountId,
+      bankAccountId,
       statementDate,
       periodStart,
       periodEnd,
@@ -254,6 +261,10 @@ async function handleXml(jobId: string) {
 
 async function handlePdf(jobId: string) {
   const job = await db.importJob.findUniqueOrThrow({ where: { id: jobId } })
+  if (!job.bankAccountId) {
+    throw new Error("Bank account ID is required for PDF import")
+  }
+  const bankAccountId = job.bankAccountId
   const buffer = await fs.readFile(job.storagePath)
   const pdfBase64 = buffer.toString("base64")
 
@@ -279,7 +290,7 @@ async function handlePdf(jobId: string) {
     data: {
       importJobId: jobId,
       companyId: job.companyId,
-      bankAccountId: job.bankAccountId,
+      bankAccountId,
       statementDate: statementMeta.statementDate,
       periodStart: statementMeta.periodStart,
       periodEnd: statementMeta.periodEnd,
@@ -355,15 +366,15 @@ async function handlePdf(jobId: string) {
       await db.bankTransaction.createMany({
         data: txnsToStore.map((t) => ({
           companyId: job.companyId,
-          bankAccountId: job.bankAccountId,
+          bankAccountId,
           date: new Date(t.date),
           description: t.description || "",
           amount: new Prisma.Decimal(t.amount),
           balance: new Prisma.Decimal(0), // Will be calculated later
-          reference: t.reference || null,
-          counterpartyName: t.payee || null,
-          counterpartyIban: t.counterpartyIban || null,
-          matchStatus: "UNMATCHED",
+          reference: t.reference ?? undefined,
+          counterpartyName: t.payee ?? undefined,
+          counterpartyIban: t.counterpartyIban ?? undefined,
+          matchStatus: "UNMATCHED" as const,
           confidenceScore: 0,
         })),
       })

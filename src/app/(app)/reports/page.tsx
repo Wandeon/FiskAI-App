@@ -59,7 +59,7 @@ export default async function ReportsPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const capabilities = deriveCapabilities(company)
-  if (capabilities.modules.reports?.enabled === false) {
+  if (capabilities.modules["reports-basic"]?.enabled === false) {
     redirect("/settings?tab=plan")
   }
 

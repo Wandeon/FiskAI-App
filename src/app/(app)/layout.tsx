@@ -52,7 +52,17 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               email: session.user.email,
               image: session.user.image,
             }}
-            company={currentCompany || undefined}
+            company={
+              currentCompany
+                ? {
+                    name: currentCompany.name,
+                    eInvoiceProvider: currentCompany.eInvoiceProvider,
+                    isVatPayer: currentCompany.isVatPayer,
+                    legalForm: currentCompany.legalForm,
+                    entitlements: currentCompany.entitlements as string[] | undefined,
+                  }
+                : undefined
+            }
           />
         </div>
 

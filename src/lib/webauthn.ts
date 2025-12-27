@@ -8,7 +8,7 @@ import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
-} from "@simplewebauthn/server"
+} from "@simplewebauthn/types"
 
 // Environment configuration
 const RP_ID = process.env.WEBAUTHN_RP_ID || "fiskai.hr"
@@ -97,6 +97,7 @@ export async function generateWebAuthnRegistrationOptions(
     attestationType: "none",
     excludeCredentials: existingCredentials.map((cred) => ({
       id: toBase64UrlId(cred.credentialId),
+      type: "public-key" as const,
       transports: cred.transports
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
@@ -138,9 +139,9 @@ export async function verifyWebAuthnRegistration(
 
   return {
     verified: true,
-    credentialId: toBase64UrlId(verification.registrationInfo.credential.id),
-    publicKey: Buffer.from(verification.registrationInfo.credential.publicKey).toString("base64"),
-    counter: BigInt(verification.registrationInfo.credential.counter),
+    credentialId: toBase64UrlId(Buffer.from(verification.registrationInfo.credentialID)),
+    publicKey: Buffer.from(verification.registrationInfo.credentialPublicKey).toString("base64"),
+    counter: BigInt(verification.registrationInfo.counter),
     transports: response.response.transports,
   }
 }
@@ -154,6 +155,7 @@ export async function generateWebAuthnAuthenticationOptions(
     rpID: RP_ID,
     allowCredentials: credentials.map((cred) => ({
       id: toBase64UrlId(cred.credentialId),
+      type: "public-key" as const,
       transports: cred.transports
         ? (JSON.parse(cred.transports) as AuthenticatorTransportFuture[])
         : undefined,
@@ -181,9 +183,9 @@ export async function verifyWebAuthnAuthentication(
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
-    credential: {
-      id: toBase64UrlId(credential.credentialId),
-      publicKey: Buffer.from(credential.publicKey, "base64"),
+    authenticator: {
+      credentialID: new Uint8Array(toBufferFromId(credential.credentialId)),
+      credentialPublicKey: new Uint8Array(Buffer.from(credential.publicKey, "base64")),
       counter: Number(credential.counter),
     },
     requireUserVerification: false,

@@ -8,14 +8,16 @@ export type AuditAction =
   | "RULE_APPROVED"
   | "RULE_REJECTED"
   | "RULE_PUBLISHED"
+  | "RULE_ROLLBACK"
   | "CONFLICT_CREATED"
   | "CONFLICT_RESOLVED"
   | "CONFLICT_ESCALATED"
   | "CONCEPT_CREATED"
   | "RELEASE_PUBLISHED"
+  | "RELEASE_ROLLED_BACK"
   | "EVIDENCE_FETCHED"
 
-export type EntityType = "RULE" | "CONFLICT" | "RELEASE" | "EVIDENCE" | "CONCEPT"
+export type EntityType = "RULE" | "CONFLICT" | "RELEASE" | "EVIDENCE" | "CONCEPT" | "SYSTEM"
 
 interface LogParams {
   action: AuditAction

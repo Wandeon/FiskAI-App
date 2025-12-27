@@ -1,6 +1,7 @@
 // src/lib/regulatory-truth/agents/releaser.ts
 
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import {
   ReleaserInputSchema,
   ReleaserOutputSchema,
@@ -22,6 +23,35 @@ export interface ReleaserResult {
   releaseId: string | null
   publishedRuleIds: string[]
   error: string | null
+}
+
+// =============================================================================
+// ROLLBACK TYPES
+// =============================================================================
+
+export interface RollbackResult {
+  success: boolean
+  rolledBackRuleIds: string[]
+  targetVersion: string | null
+  previousStatus: Map<string, string>
+  error: string | null
+}
+
+export interface RollbackValidation {
+  canRollback: boolean
+  targetRelease: {
+    id: string
+    version: string
+    releasedAt: Date
+    ruleCount: number
+  } | null
+  previousRelease: {
+    id: string
+    version: string
+    ruleCount: number
+  } | null
+  warnings: string[]
+  errors: string[]
 }
 
 /**
@@ -352,4 +382,312 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
     publishedRuleIds: approvedRuleIds,
     error: null,
   }
+}
+
+// =============================================================================
+// ROLLBACK FUNCTIONS
+// =============================================================================
+
+/**
+ * Validate if a release can be rolled back.
+ * Checks:
+ * - Release exists
+ * - Release is the most recent one (can only rollback latest)
+ * - There is a previous release to rollback to
+ * - Rules in the release are still in PUBLISHED state
+ */
+export async function validateRollback(releaseVersion: string): Promise<RollbackValidation> {
+  const warnings: string[] = []
+  const errors: string[] = []
+
+  // Find the target release
+  const targetRelease = await db.ruleRelease.findUnique({
+    where: { version: releaseVersion },
+    include: {
+      rules: {
+        select: { id: true, conceptSlug: true, status: true },
+      },
+    },
+  })
+
+  if (!targetRelease) {
+    return {
+      canRollback: false,
+      targetRelease: null,
+      previousRelease: null,
+      warnings,
+      errors: [`Release version ${releaseVersion} not found`],
+    }
+  }
+
+  // Check if this is the most recent release
+  const latestRelease = await db.ruleRelease.findFirst({
+    orderBy: { releasedAt: "desc" },
+    select: { id: true, version: true },
+  })
+
+  if (latestRelease?.id !== targetRelease.id) {
+    errors.push(
+      `Can only rollback the most recent release. Latest is ${latestRelease?.version}, but attempting to rollback ${releaseVersion}`
+    )
+  }
+
+  // Find the previous release to rollback to
+  const previousRelease = await db.ruleRelease.findFirst({
+    where: {
+      releasedAt: { lt: targetRelease.releasedAt },
+    },
+    orderBy: { releasedAt: "desc" },
+    include: {
+      rules: {
+        select: { id: true },
+      },
+    },
+  })
+
+  if (!previousRelease) {
+    warnings.push("No previous release found. Rules will be reverted to APPROVED status.")
+  }
+
+  // Check which rules are still in PUBLISHED state
+  const publishedRules = targetRelease.rules.filter((r) => r.status === "PUBLISHED")
+  const nonPublishedRules = targetRelease.rules.filter((r) => r.status !== "PUBLISHED")
+
+  if (nonPublishedRules.length > 0) {
+    warnings.push(
+      `${nonPublishedRules.length} rule(s) are no longer in PUBLISHED state and will be skipped: ${nonPublishedRules.map((r) => r.conceptSlug).join(", ")}`
+    )
+  }
+
+  if (publishedRules.length === 0) {
+    errors.push("No rules in PUBLISHED state to rollback")
+  }
+
+  return {
+    canRollback: errors.length === 0,
+    targetRelease: {
+      id: targetRelease.id,
+      version: targetRelease.version,
+      releasedAt: targetRelease.releasedAt,
+      ruleCount: publishedRules.length,
+    },
+    previousRelease: previousRelease
+      ? {
+          id: previousRelease.id,
+          version: previousRelease.version,
+          ruleCount: previousRelease.rules.length,
+        }
+      : null,
+    warnings,
+    errors,
+  }
+}
+
+/**
+ * Rollback a release to its previous state.
+ *
+ * This operation is atomic - if any part fails, the entire rollback is aborted.
+ *
+ * What happens during rollback:
+ * 1. Rules in the target release are reverted to APPROVED status
+ * 2. The target release record remains but is marked in audit log
+ * 3. Rules that were in a previous release remain PUBLISHED
+ *
+ * @param releaseVersion - The semver version to rollback (e.g., "1.2.0")
+ * @param performedBy - User ID performing the rollback (for audit)
+ * @param dryRun - If true, validate but don't perform the rollback
+ */
+export async function rollbackRelease(
+  releaseVersion: string,
+  performedBy?: string,
+  dryRun = false
+): Promise<RollbackResult> {
+  // First validate the rollback
+  const validation = await validateRollback(releaseVersion)
+
+  if (!validation.canRollback) {
+    return {
+      success: false,
+      rolledBackRuleIds: [],
+      targetVersion: releaseVersion,
+      previousStatus: new Map(),
+      error: validation.errors.join("; "),
+    }
+  }
+
+  if (dryRun) {
+    // For dry run, return what would happen
+    const release = await db.ruleRelease.findUnique({
+      where: { version: releaseVersion },
+      include: {
+        rules: {
+          where: { status: "PUBLISHED" },
+          select: { id: true, status: true },
+        },
+      },
+    })
+
+    const previousStatus = new Map<string, string>()
+    release?.rules.forEach((r) => previousStatus.set(r.id, r.status))
+
+    return {
+      success: true,
+      rolledBackRuleIds: release?.rules.map((r) => r.id) || [],
+      targetVersion: releaseVersion,
+      previousStatus,
+      error: null,
+    }
+  }
+
+  // Perform the rollback in a transaction
+  try {
+    const result = await db.$transaction(
+      async (tx) => {
+        // Get the release with its rules
+        const release = await tx.ruleRelease.findUnique({
+          where: { version: releaseVersion },
+          include: {
+            rules: {
+              where: { status: "PUBLISHED" },
+              select: { id: true, conceptSlug: true, status: true },
+            },
+          },
+        })
+
+        if (!release) {
+          throw new Error(`Release ${releaseVersion} not found`)
+        }
+
+        const rulesToRollback = release.rules
+        const previousStatus = new Map<string, string>()
+        rulesToRollback.forEach((r) => previousStatus.set(r.id, r.status))
+
+        // Get the previous release to check which rules should stay PUBLISHED
+        const previousRelease = await tx.ruleRelease.findFirst({
+          where: {
+            releasedAt: { lt: release.releasedAt },
+          },
+          orderBy: { releasedAt: "desc" },
+          include: {
+            rules: {
+              select: { id: true },
+            },
+          },
+        })
+
+        const previousReleaseRuleIds = new Set(previousRelease?.rules.map((r) => r.id) || [])
+
+        // Determine which rules to revert to APPROVED
+        // (only rules NOT in the previous release)
+        const rulesToRevert = rulesToRollback.filter((r) => !previousReleaseRuleIds.has(r.id))
+        const rulesToKeepPublished = rulesToRollback.filter((r) => previousReleaseRuleIds.has(r.id))
+
+        // Revert rules to APPROVED status
+        if (rulesToRevert.length > 0) {
+          await tx.regulatoryRule.updateMany({
+            where: { id: { in: rulesToRevert.map((r) => r.id) } },
+            data: { status: "APPROVED" },
+          })
+        }
+
+        // Disconnect rules from this release (but don't delete the release record)
+        await tx.ruleRelease.update({
+          where: { id: release.id },
+          data: {
+            rules: {
+              disconnect: rulesToRollback.map((r) => ({ id: r.id })),
+            },
+          },
+        })
+
+        return {
+          releaseId: release.id,
+          version: release.version,
+          rolledBackRuleIds: rulesToRevert.map((r) => r.id),
+          keptPublishedRuleIds: rulesToKeepPublished.map((r) => r.id),
+          previousStatus,
+        }
+      },
+      {
+        timeout: 30000, // 30 second timeout for the transaction
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      }
+    )
+
+    // Log audit events outside the transaction
+    await logAuditEvent({
+      action: "RELEASE_ROLLED_BACK",
+      entityType: "RELEASE",
+      entityId: result.releaseId,
+      performedBy,
+      metadata: {
+        version: result.version,
+        rolledBackRuleCount: result.rolledBackRuleIds.length,
+        keptPublishedCount: result.keptPublishedRuleIds.length,
+        previousReleaseVersion: validation.previousRelease?.version || null,
+      },
+    })
+
+    // Log audit event for each rolled back rule
+    for (const ruleId of result.rolledBackRuleIds) {
+      await logAuditEvent({
+        action: "RULE_ROLLBACK",
+        entityType: "RULE",
+        entityId: ruleId,
+        performedBy,
+        metadata: {
+          fromRelease: result.version,
+          previousStatus: result.previousStatus.get(ruleId),
+          newStatus: "APPROVED",
+        },
+      })
+    }
+
+    return {
+      success: true,
+      rolledBackRuleIds: result.rolledBackRuleIds,
+      targetVersion: result.version,
+      previousStatus: result.previousStatus,
+      error: null,
+    }
+  } catch (error) {
+    console.error("[rollback] Transaction failed:", error)
+    return {
+      success: false,
+      rolledBackRuleIds: [],
+      targetVersion: releaseVersion,
+      previousStatus: new Map(),
+      error: error instanceof Error ? error.message : "Unknown error during rollback",
+    }
+  }
+}
+
+/**
+ * Get the rollback history for a release or rule.
+ */
+export async function getRollbackHistory(
+  entityType: "RELEASE" | "RULE",
+  entityId: string
+): Promise<
+  Array<{
+    action: string
+    performedBy: string | null
+    performedAt: Date
+    metadata: unknown
+  }>
+> {
+  return db.regulatoryAuditLog.findMany({
+    where: {
+      entityType,
+      entityId,
+      action: { in: ["RELEASE_ROLLED_BACK", "RULE_ROLLBACK"] },
+    },
+    orderBy: { performedAt: "desc" },
+    select: {
+      action: true,
+      performedBy: true,
+      performedAt: true,
+      metadata: true,
+    },
+  })
 }

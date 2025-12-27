@@ -240,17 +240,14 @@ export default async function KprPage({ searchParams }: { searchParams?: SearchP
                     CSV izvoz
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  download
-                  href={`data:text/xml;charset=utf-8,${encodeURIComponent(posdXmlString)}`}
-                >
-                  <Link href="#">
+                <Button asChild variant="outline" size="sm">
+                  <a
+                    href={`data:text/xml;charset=utf-8,${encodeURIComponent(posdXmlString)}`}
+                    download="posd-report.xml"
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     PO-SD XML
-                  </Link>
+                  </a>
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">

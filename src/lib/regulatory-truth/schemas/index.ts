@@ -18,3 +18,7 @@ export * from "./process"
 export * from "./reference"
 export * from "./asset"
 export * from "./transitional"
+export * from "./comparison-matrix"
+
+// Query and retrieval schemas
+export * from "./query-intent"

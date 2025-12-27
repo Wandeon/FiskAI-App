@@ -1,7 +1,7 @@
 // src/lib/compliance/en16931-validator.ts
 // EN 16931 compliance validation for e-invoices
 
-import { EInvoice, EInvoiceLine } from "@prisma/client"
+import { EInvoice, EInvoiceLine, Contact, Company, Decimal } from "@prisma/client"
 import { logger } from "@/lib/logger"
 
 export interface ComplianceResult {
@@ -18,6 +18,8 @@ export interface ComplianceResult {
 
 export interface EN16931Invoice extends EInvoice {
   lines: EInvoiceLine[]
+  buyer?: Contact | null
+  company?: Company | null
 }
 
 /**
@@ -56,17 +58,17 @@ export function validateEN16931Compliance(invoice: EN16931Invoice): ComplianceRe
   }
 
   // Check data types and basic rules
-  if (invoice.netAmount && invoice.netAmount < 0) {
+  if (invoice.netAmount && Number(invoice.netAmount) < 0) {
     errors.push("Net amount cannot be negative")
     details.dataTypes = false
   }
 
-  if (invoice.vatAmount && invoice.vatAmount < 0) {
+  if (invoice.vatAmount && Number(invoice.vatAmount) < 0) {
     errors.push("VAT amount cannot be negative")
     details.dataTypes = false
   }
 
-  if (invoice.totalAmount && invoice.totalAmount < 0) {
+  if (invoice.totalAmount && Number(invoice.totalAmount) < 0) {
     errors.push("Total amount cannot be negative")
     details.dataTypes = false
   }
@@ -102,17 +104,17 @@ export function validateEN16931Compliance(invoice: EN16931Invoice): ComplianceRe
         details.requiredFields = false
       }
 
-      if (line.quantity === undefined || line.quantity <= 0) {
+      if (line.quantity === undefined || Number(line.quantity) <= 0) {
         errors.push(`Line ${index + 1}: Quantity must be positive`)
         details.dataTypes = false
       }
 
-      if (line.unitPrice === undefined || line.unitPrice < 0) {
+      if (line.unitPrice === undefined || Number(line.unitPrice) < 0) {
         errors.push(`Line ${index + 1}: Unit price cannot be negative`)
         details.dataTypes = false
       }
 
-      if (line.vatRate === undefined || line.vatRate < 0 || line.vatRate > 100) {
+      if (line.vatRate === undefined || Number(line.vatRate) < 0 || Number(line.vatRate) > 100) {
         errors.push(`Line ${index + 1}: VAT rate must be between 0 and 100`)
         details.dataTypes = false
       }

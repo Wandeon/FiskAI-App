@@ -2,6 +2,7 @@
 import { db } from "@/lib/db"
 import { expandQueryConcepts, type ExpandedQuery } from "../taxonomy/query-expansion"
 import { resolveRulePrecedence } from "../agents/arbiter"
+import { buildTemporalWhereClause, getCurrentEffectiveDate } from "../utils/temporal-filter"
 import type { Prisma } from "@prisma/client"
 
 export interface QueryResult {
@@ -26,11 +27,16 @@ export interface QueryResult {
  * Execute a taxonomy-aware query
  *
  * 1. Expand query using taxonomy (synonyms, hypernyms)
- * 2. Find matching rules
+ * 2. Find matching rules (filtered by temporal effectiveness)
  * 3. Resolve precedence if multiple rules match
  * 4. Return results with winning rule marked
+ *
+ * @param query The user's query
+ * @param asOfDate Optional date for temporal filtering (defaults to current date)
  */
-export async function executeQuery(query: string): Promise<QueryResult> {
+export async function executeQuery(query: string, asOfDate?: Date): Promise<QueryResult> {
+  const effectiveDate = asOfDate ?? getCurrentEffectiveDate()
+
   // Step 1: Expand query
   const expanded = await expandQueryConcepts(query)
 
@@ -53,15 +59,17 @@ export async function executeQuery(query: string): Promise<QueryResult> {
     })
   }
 
-  // Build the where clause
+  // Build temporal filter for rules effective at the query date
+  const temporalFilter = buildTemporalWhereClause(effectiveDate)
+
+  // Build the where clause with temporal filtering
   const whereClause: Prisma.RegulatoryRuleWhereInput =
     orConditions.length > 0
       ? {
-          OR: orConditions,
-          status: "PUBLISHED",
+          AND: [{ OR: orConditions }, { status: "PUBLISHED" }, temporalFilter],
         }
       : {
-          status: "PUBLISHED",
+          AND: [{ status: "PUBLISHED" }, temporalFilter],
         }
 
   const matchingRules = await db.regulatoryRule.findMany({
@@ -104,8 +112,14 @@ export async function executeQuery(query: string): Promise<QueryResult> {
 
 /**
  * Find VAT rate for a product using taxonomy
+ *
+ * @param productTerm The product term to search for
+ * @param asOfDate Optional date for temporal filtering (defaults to current date)
  */
-export async function findVatRate(productTerm: string): Promise<{
+export async function findVatRate(
+  productTerm: string,
+  asOfDate?: Date
+): Promise<{
   rate: string | null
   conceptPath: string[]
   reasoning: string
@@ -122,8 +136,8 @@ export async function findVatRate(productTerm: string): Promise<{
     }
   }
 
-  // Fall back to rule search
-  const result = await executeQuery("pdv stopa " + productTerm)
+  // Fall back to rule search (with temporal filtering)
+  const result = await executeQuery("pdv stopa " + productTerm, asOfDate)
 
   if (result.rules.length > 0) {
     const winning = result.rules.find((r) => r.isWinning)

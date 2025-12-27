@@ -1,26 +1,26 @@
 // src/lib/regulatory-truth/__tests__/release-hash.test.ts
 import { describe, it } from "node:test"
 import assert from "node:assert"
-import { computeReleaseHash } from "../utils/release-hash"
+import { computeReleaseHash, RuleSnapshot } from "../utils/release-hash"
 
 describe("release-hash", () => {
   describe("computeReleaseHash determinism", () => {
-    const sampleRules = [
+    const sampleRules: RuleSnapshot[] = [
       {
         conceptSlug: "pdv-standard-rate",
         appliesWhen: { op: "true" },
-        value: 25,
+        value: "25",
         valueType: "percentage",
-        effectiveFrom: new Date("2025-01-01"),
+        effectiveFrom: "2025-01-01",
         effectiveUntil: null,
       },
       {
         conceptSlug: "pausalni-revenue-threshold",
         appliesWhen: { op: "cmp", field: "year", cmp: "eq", value: "2025" },
-        value: 39816.84,
+        value: "39816.84",
         valueType: "currency",
-        effectiveFrom: new Date("2025-01-01"),
-        effectiveUntil: new Date("2025-12-31"),
+        effectiveFrom: "2025-01-01",
+        effectiveUntil: "2025-12-31",
       },
     ]
 
@@ -47,37 +47,37 @@ describe("release-hash", () => {
       )
     })
 
-    it("produces same hash with equivalent Date objects", () => {
-      const rulesWithNewDates = sampleRules.map((r) => ({
+    it("produces same hash with equivalent date strings", () => {
+      const rulesWithNewDates: RuleSnapshot[] = sampleRules.map((r) => ({
         ...r,
-        effectiveFrom: r.effectiveFrom ? new Date(r.effectiveFrom.getTime()) : null,
-        effectiveUntil: r.effectiveUntil ? new Date(r.effectiveUntil.getTime()) : null,
+        effectiveFrom: r.effectiveFrom,
+        effectiveUntil: r.effectiveUntil,
       }))
 
       const hash1 = computeReleaseHash(sampleRules)
       const hash2 = computeReleaseHash(rulesWithNewDates)
 
-      assert.strictEqual(hash1, hash2, "Hash should be identical with equivalent Date objects")
+      assert.strictEqual(hash1, hash2, "Hash should be identical with equivalent date strings")
     })
 
     it("produces same hash with nested object key reordering", () => {
-      const rulesWithReorderedKeys = [
+      const rulesWithReorderedKeys: RuleSnapshot[] = [
         {
           appliesWhen: { op: "true" }, // keys in different order
           conceptSlug: "pdv-standard-rate",
           valueType: "percentage",
-          value: 25,
+          value: "25",
           effectiveUntil: null,
-          effectiveFrom: new Date("2025-01-01"),
+          effectiveFrom: "2025-01-01",
         },
         {
           // Deeply nested appliesWhen with different key order
           appliesWhen: { value: "2025", cmp: "eq", field: "year", op: "cmp" },
-          value: 39816.84,
+          value: "39816.84",
           conceptSlug: "pausalni-revenue-threshold",
-          effectiveFrom: new Date("2025-01-01"),
+          effectiveFrom: "2025-01-01",
           valueType: "currency",
-          effectiveUntil: new Date("2025-12-31"),
+          effectiveUntil: "2025-12-31",
         },
       ]
 
@@ -92,8 +92,8 @@ describe("release-hash", () => {
     })
 
     it("produces different hash when value changes", () => {
-      const modifiedRules = [
-        { ...sampleRules[0], value: 26 }, // Changed from 25 to 26
+      const modifiedRules: RuleSnapshot[] = [
+        { ...sampleRules[0], value: "26" }, // Changed from 25 to 26
         sampleRules[1],
       ]
 
@@ -104,8 +104,8 @@ describe("release-hash", () => {
     })
 
     it("produces different hash when date changes", () => {
-      const modifiedRules = [
-        { ...sampleRules[0], effectiveFrom: new Date("2025-02-01") }, // Different date
+      const modifiedRules: RuleSnapshot[] = [
+        { ...sampleRules[0], effectiveFrom: "2025-02-01" }, // Different date
         sampleRules[1],
       ]
 
@@ -120,7 +120,7 @@ describe("release-hash", () => {
     })
 
     it("produces different hash when appliesWhen changes", () => {
-      const modifiedRules = [
+      const modifiedRules: RuleSnapshot[] = [
         { ...sampleRules[0], appliesWhen: { op: "false" } }, // Changed condition
         sampleRules[1],
       ]
@@ -142,7 +142,7 @@ describe("release-hash", () => {
     })
 
     it("handles null effectiveUntil consistently", () => {
-      const rulesWithNull = [
+      const rulesWithNull: RuleSnapshot[] = [
         { ...sampleRules[0], effectiveUntil: null },
         { ...sampleRules[1], effectiveUntil: null },
       ]

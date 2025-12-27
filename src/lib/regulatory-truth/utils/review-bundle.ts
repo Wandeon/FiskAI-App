@@ -2,6 +2,7 @@
 // Daily Review Bundle Generator for T0/T1 rules requiring human review
 
 import { cliDb as db } from "../cli-db"
+import { RiskTier } from "@prisma/client"
 
 export interface ReviewItem {
   id: string
@@ -31,7 +32,7 @@ export interface ReviewBundle {
 export interface GenerateOptions {
   maxItems?: number
   prioritize?: "risk" | "age"
-  riskTiers?: string[] // Filter by specific risk tiers
+  riskTiers?: RiskTier[] // Filter by specific risk tiers
 }
 
 /**
@@ -40,7 +41,7 @@ export interface GenerateOptions {
 export async function generateReviewBundle(options?: GenerateOptions): Promise<ReviewBundle> {
   const maxItems = options?.maxItems ?? 20
   const prioritize = options?.prioritize ?? "risk"
-  const riskTiers = options?.riskTiers ?? ["T0", "T1"]
+  const riskTiers = options?.riskTiers ?? [RiskTier.T0, RiskTier.T1]
 
   const now = new Date()
 
@@ -64,8 +65,8 @@ export async function generateReviewBundle(options?: GenerateOptions): Promise<R
 
   const items: ReviewItem[] = pendingRules.map((rule) => {
     const urls = rule.sourcePointers
-      .map((sp) => sp.evidence?.url)
-      .filter((url): url is string => url !== null && url !== undefined)
+      .map((sp: { evidence?: { url?: string | null } | null }) => sp.evidence?.url)
+      .filter((url: string | null | undefined): url is string => url !== null && url !== undefined)
     const domain = rule.sourcePointers[0]?.domain || "unknown"
 
     return {
@@ -77,7 +78,7 @@ export async function generateReviewBundle(options?: GenerateOptions): Promise<R
       riskTier: rule.riskTier,
       confidence: rule.confidence,
       sourceCount: rule.sourcePointers.length,
-      quotes: rule.sourcePointers.map((sp) => sp.exactQuote).slice(0, 3),
+      quotes: rule.sourcePointers.map((sp: { exactQuote: string }) => sp.exactQuote).slice(0, 3),
       urls: Array.from(new Set(urls)), // Deduplicate URLs
       waitingHours: (now.getTime() - rule.updatedAt.getTime()) / (1000 * 60 * 60),
       effectiveFrom: rule.effectiveFrom.toISOString().split("T")[0],

@@ -44,6 +44,18 @@ export {
 // Utilities
 export { rateLimiter, fetchWithRateLimit, DomainRateLimiter } from "./utils/rate-limiter"
 export { hashContent, normalizeContent, detectContentChange } from "./utils/content-hash"
+export {
+  isTemporallyEffective,
+  filterByTemporalEffectiveness,
+  partitionByTemporalEffectiveness,
+  buildTemporalWhereClause,
+  mergeTemporalFilter,
+  normalizeToStartOfDay,
+  getCurrentEffectiveDate,
+  type TemporallyBoundedEntity,
+  type TemporalFilterReason,
+  type TemporalFilterResult,
+} from "./utils/temporal-filter"
 
 // Parsers
 export {
@@ -87,3 +99,12 @@ export {
   getSchedulerStatus,
   triggerManualRun,
 } from "./scheduler/cron"
+
+// Graph - Cycle Detection
+export {
+  wouldCreateCycle,
+  createEdgeWithCycleCheck,
+  validateGraphAcyclicity,
+  findPath,
+  CycleDetectedError,
+} from "./graph/cycle-detection"

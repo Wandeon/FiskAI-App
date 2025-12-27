@@ -5,6 +5,7 @@ import type { AuditResult } from "@prisma/client"
 import type { AuditReport, RuleAuditResult, AuditCheckResult } from "./types"
 import { notifyAuditResult } from "./alerting"
 import { createHash } from "crypto"
+import { normalizeQuotes } from "../utils/quote-normalizer"
 
 /**
  * Hash content for comparison
@@ -121,7 +122,10 @@ async function auditRule(
   const evidence = primaryPointer.evidence
 
   // Check 2: Quote in content (weight 8)
-  const quoteExists = evidence?.rawContent?.includes(primaryPointer.exactQuote) ?? false
+  // Normalize both quote and content to handle smart quote variants
+  const normalizedQuote = normalizeQuotes(primaryPointer.exactQuote)
+  const normalizedContent = evidence?.rawContent ? normalizeQuotes(evidence.rawContent) : ""
+  const quoteExists = normalizedContent.includes(normalizedQuote)
   checks.push({
     name: "quote_in_content",
     passed: quoteExists,
@@ -171,7 +175,8 @@ async function auditRule(
   })
 
   // Check 6: Value extractable (weight 9)
-  const valueInContent = evidence?.rawContent?.includes(String(rule.value)) ?? false
+  // Use normalized content for consistent comparison
+  const valueInContent = normalizedContent.includes(String(rule.value))
   checks.push({
     name: "value_extractable",
     passed: valueInContent,

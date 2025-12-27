@@ -32,7 +32,11 @@ export async function createProduct(formData: z.infer<typeof productSchema>) {
     }
 
     const product = await db.product.create({
-      data: validatedFields.data,
+      data: {
+        ...validatedFields.data,
+        description: validatedFields.data.description || null,
+        sku: validatedFields.data.sku || null,
+      },
     })
 
     revalidatePath("/products")

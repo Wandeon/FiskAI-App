@@ -208,7 +208,7 @@ describe("Admin Alerts", () => {
             name: "Stuck Company",
             createdAt: eightDaysAgo,
           },
-        ]) // stuck (critical)
+        ] as any) // stuck (critical)
         .mockResolvedValueOnce([
           {
             id: "company-pausalni",
@@ -216,7 +216,7 @@ describe("Admin Alerts", () => {
             legalForm: "OBRT_PAUSAL",
             eInvoices: [{ totalAmount: 51000 }], // 85% (warning)
           },
-        ])
+        ] as any)
 
       vi.mocked(db.fiscalCertificate.findMany).mockResolvedValue([
         {
@@ -264,7 +264,7 @@ describe("Admin Alerts", () => {
             name: "Stuck Company",
             createdAt: eightDaysAgo,
           },
-        ])
+        ] as any)
         .mockResolvedValueOnce([
           {
             id: "company-2",
@@ -272,7 +272,7 @@ describe("Admin Alerts", () => {
             legalForm: "OBRT_PAUSAL",
             eInvoices: [{ totalAmount: 57000 }], // 95%
           },
-        ])
+        ] as any)
 
       vi.mocked(db.fiscalCertificate.findMany).mockResolvedValue([
         {
@@ -324,9 +324,9 @@ describe("Admin Alerts", () => {
       await getActiveAlerts()
 
       const call = vi.mocked(db.company.findMany).mock.calls[0]
-      expect(call[0].where.fiscalEnabled).toBe(false)
-      expect(call[0].where.createdAt).toHaveProperty("lte")
-      expect(call[0].where.createdAt.lte).toBeInstanceOf(Date)
+      expect(call?.[0]?.where?.fiscalEnabled).toBe(false)
+      expect(call?.[0]?.where?.createdAt).toHaveProperty("lte")
+      expect((call?.[0]?.where?.createdAt as { lte: Date })?.lte).toBeInstanceOf(Date)
     })
 
     it("queries pausalni companies for limit tracking", async () => {
@@ -336,9 +336,12 @@ describe("Admin Alerts", () => {
       await getActiveAlerts()
 
       const call = vi.mocked(db.company.findMany).mock.calls[1]
-      expect(call[0].where.legalForm).toBe("OBRT_PAUSAL")
-      expect(call[0].include.eInvoices).toBeDefined()
-      expect(call[0].include.eInvoices.where.status).toEqual({ not: "DRAFT" })
+      expect(call?.[0]?.where?.legalForm).toBe("OBRT_PAUSAL")
+      expect((call?.[0]?.include as { eInvoices?: unknown })?.eInvoices).toBeDefined()
+      const eInvoicesInclude = (
+        call?.[0]?.include as { eInvoices?: { where?: { status?: unknown } } }
+      )?.eInvoices
+      expect(eInvoicesInclude?.where?.status).toEqual({ not: "DRAFT" })
     })
 
     it("queries certificates expiring within 30 days", async () => {
@@ -348,8 +351,8 @@ describe("Admin Alerts", () => {
       await getActiveAlerts()
 
       const call = vi.mocked(db.fiscalCertificate.findMany).mock.calls[0]
-      expect(call[0].where.validUntil).toHaveProperty("lte")
-      expect(call[0].where.validUntil).toHaveProperty("gte")
+      expect(call?.[0]?.where?.validUntil).toHaveProperty("lte")
+      expect(call?.[0]?.where?.validUntil).toHaveProperty("gte")
     })
 
     it("returns empty array when no alerts", async () => {
@@ -369,7 +372,7 @@ describe("Admin Alerts", () => {
         .mockResolvedValueOnce([
           { id: "company-1", name: "Company 1", createdAt: eightDaysAgo },
           { id: "company-2", name: "Company 2", createdAt: eightDaysAgo },
-        ])
+        ] as any)
         .mockResolvedValueOnce([])
 
       vi.mocked(db.fiscalCertificate.findMany).mockResolvedValue([])

@@ -184,11 +184,12 @@ describe("Pausalni Launch E2E Tests", () => {
 
     it("validates onboarding flow completion order", () => {
       // Mock company data at different stages
-      const incompleteStep1 = {
-        name: null,
-        oib: null,
-        legalForm: null,
-      }
+      const incompleteStep1: { name: string | null; oib: string | null; legalForm: string | null } =
+        {
+          name: null,
+          oib: null,
+          legalForm: null,
+        }
 
       const incompleteStep2 = {
         name: "Test",
@@ -320,8 +321,8 @@ describe("Pausalni Launch E2E Tests", () => {
         startedAt: new Date(),
       }
 
-      vi.mocked(db.tutorialProgress.findFirst).mockResolvedValue(null)
-      vi.mocked(db.tutorialProgress.create).mockResolvedValue(mockProgress as any)
+      vi.mocked((db as any).tutorialProgress.findFirst).mockResolvedValue(null)
+      vi.mocked((db as any).tutorialProgress.create).mockResolvedValue(mockProgress as any)
 
       expect(mockProgress.trackId).toBe("pausalni-first-week")
       expect(mockProgress.currentDay).toBe(1)
@@ -338,7 +339,7 @@ describe("Pausalni Launch E2E Tests", () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(db.tutorialProgress.findFirst).mockResolvedValue({
+      vi.mocked((db as any).tutorialProgress.findFirst).mockResolvedValue({
         id: "progress-1",
         companyId: "company-1",
         trackId: "pausalni-first-week",
@@ -346,7 +347,7 @@ describe("Pausalni Launch E2E Tests", () => {
         completedTasks: [],
       } as any)
 
-      vi.mocked(db.tutorialProgress.update).mockResolvedValue(mockProgress as any)
+      vi.mocked((db as any).tutorialProgress.update).mockResolvedValue(mockProgress as any)
 
       expect(mockProgress.completedTasks).toContain("task-1")
     })

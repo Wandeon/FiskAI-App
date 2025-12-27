@@ -90,6 +90,7 @@ export async function createSupportTicket(input: CreateSupportTicketInput) {
 
       const ticket = await db.supportTicket.create({
         data: {
+          companyId: company.id,
           createdById: user.id!,
           assignedToId: null, // Initially unassigned
           title: validated.title.trim(),

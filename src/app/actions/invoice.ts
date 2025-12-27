@@ -97,15 +97,16 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
 
       const invoice = await db.eInvoice.create({
         data: {
+          companyId: company.id,
           type: input.type,
           direction: "OUTBOUND",
           invoiceNumber: numbering.invoiceNumber,
           internalReference: numbering.internalReference,
           buyerId: input.buyerId,
           issueDate: input.issueDate,
-          dueDate: input.dueDate,
+          dueDate: input.dueDate ?? null,
           currency: input.currency || "EUR",
-          notes: input.notes,
+          notes: input.notes ?? null,
           netAmount,
           vatAmount,
           totalAmount,
@@ -159,15 +160,16 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
       // Create new invoice from source
       const invoice = await db.eInvoice.create({
         data: {
+          companyId: company.id,
           type: "INVOICE",
           direction: "OUTBOUND",
           invoiceNumber: numbering.invoiceNumber,
           internalReference: numbering.internalReference,
-          buyerId: source.buyerId,
+          buyerId: source.buyerId ?? null,
           issueDate: new Date(),
-          dueDate: source.dueDate,
+          dueDate: source.dueDate ?? null,
           currency: source.currency,
-          notes: source.notes,
+          notes: source.notes ?? null,
           netAmount: source.netAmount,
           vatAmount: source.vatAmount,
           totalAmount: source.totalAmount,
@@ -446,13 +448,14 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
 
     const eInvoice = await db.eInvoice.create({
       data: {
+        companyId,
         direction: "OUTBOUND",
         buyerId,
         invoiceNumber,
         issueDate: invoiceData.issueDate,
-        dueDate: invoiceData.dueDate,
+        dueDate: invoiceData.dueDate ?? null,
         currency: invoiceData.currency,
-        buyerReference: internalReference || invoiceData.buyerReference,
+        buyerReference: internalReference || invoiceData.buyerReference || null,
         bankAccount: invoiceData.bankAccount?.trim() || null,
         includeBarcode: invoiceData.includeBarcode ?? true,
         netAmount,

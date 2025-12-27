@@ -72,16 +72,54 @@ describe("Rule Eligibility Gate", () => {
       expect(result.eligible).toBe(true)
     })
 
-    it("handles boundary conditions correctly", () => {
+    it("handles boundary conditions correctly - effectiveFrom is inclusive", () => {
       const boundaryRule = {
         effectiveFrom: new Date("2025-06-15"),
-        effectiveUntil: new Date("2025-06-15"),
+        effectiveUntil: null,
       }
       const asOfDate = new Date("2025-06-15")
 
-      // Same day should be valid
+      // Rule should be valid ON the effectiveFrom date (inclusive)
       const result = checkTemporalEligibility(boundaryRule, asOfDate)
       expect(result.eligible).toBe(true)
+    })
+
+    it("handles boundary conditions correctly - effectiveUntil is exclusive", () => {
+      const boundaryRule = {
+        effectiveFrom: new Date("2025-06-01"),
+        effectiveUntil: new Date("2025-06-15"),
+      }
+
+      // Day before effectiveUntil should be valid
+      const dayBefore = new Date("2025-06-14")
+      const resultBefore = checkTemporalEligibility(boundaryRule, dayBefore)
+      expect(resultBefore.eligible).toBe(true)
+
+      // ON effectiveUntil date, rule should be EXPIRED (exclusive boundary)
+      const onDay = new Date("2025-06-15")
+      const resultOn = checkTemporalEligibility(boundaryRule, onDay)
+      expect(resultOn.eligible).toBe(false)
+      expect(resultOn).toHaveProperty("reason", "EXPIRED")
+
+      // Day after effectiveUntil should be expired
+      const dayAfter = new Date("2025-06-16")
+      const resultAfter = checkTemporalEligibility(boundaryRule, dayAfter)
+      expect(resultAfter.eligible).toBe(false)
+      expect(resultAfter).toHaveProperty("reason", "EXPIRED")
+    })
+
+    it("handles time component normalization", () => {
+      const rule = {
+        effectiveFrom: new Date("2025-06-15T12:00:00Z"),
+        effectiveUntil: new Date("2025-06-30T18:30:00Z"),
+      }
+
+      // Should work regardless of time of day in query
+      const morningQuery = new Date("2025-06-20T08:00:00Z")
+      const eveningQuery = new Date("2025-06-20T22:00:00Z")
+
+      expect(checkTemporalEligibility(rule, morningQuery).eligible).toBe(true)
+      expect(checkTemporalEligibility(rule, eveningQuery).eligible).toBe(true)
     })
   })
 

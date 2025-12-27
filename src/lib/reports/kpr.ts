@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
-import { Decimal } from "@prisma/client/runtime/library"
+import { Prisma } from "@prisma/client"
+type Decimal = Prisma.Decimal
 
 export type KprRow = {
   date: Date | null
@@ -259,8 +260,8 @@ export function kprToCsvLegacy(summary: KprSummary): string {
     .filter((r) => r.type === "INCOME")
     .map((r) =>
       [
-        formatDate(r.paidAt),
-        formatDate(r.issueDate),
+        formatDate(r.paidAt ?? null),
+        formatDate(r.issueDate ?? null),
         r.invoiceNumber || "",
         escapeCsv(r.buyerName || ""),
         (r.netAmount || 0).toFixed(2),
@@ -284,7 +285,7 @@ export function posdXml(summary: KprSummary, from?: Date, to?: Date): string {
   const periodFrom = from ? formatDate(from) : ""
   const periodTo = to ? formatDate(to) : ""
   const totalInvoices = summary.rows.length
-  const paidGross = summary.totalGross.toFixed(2)
+  const paidGross = (summary.totalGross ?? 0).toFixed(2)
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <POSDReport>
@@ -294,8 +295,8 @@ export function posdXml(summary: KprSummary, from?: Date, to?: Date): string {
   </Period>
   <Totals>
     <InvoiceCount>${totalInvoices}</InvoiceCount>
-    <TotalNet>${summary.totalNet.toFixed(2)}</TotalNet>
-    <TotalVAT>${summary.totalVat.toFixed(2)}</TotalVAT>
+    <TotalNet>${(summary.totalNet ?? 0).toFixed(2)}</TotalNet>
+    <TotalVAT>${(summary.totalVat ?? 0).toFixed(2)}</TotalVAT>
     <TotalGross>${paidGross}</TotalGross>
   </Totals>
 </POSDReport>`

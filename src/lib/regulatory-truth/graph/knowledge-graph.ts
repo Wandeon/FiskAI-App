@@ -4,6 +4,7 @@
 import { db } from "@/lib/db"
 import type { GraphEdgeType } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
+import { createEdgeWithCycleCheck, CycleDetectedError } from "./cycle-detection"
 
 export interface GraphBuildResult {
   conceptsCreated: number
@@ -154,19 +155,21 @@ export async function buildRuleEdges(): Promise<{
 
       if (!existingEdge) {
         try {
-          await db.graphEdge.create({
-            data: {
-              fromRuleId: current.id,
-              toRuleId: previous.id,
-              relation: "SUPERSEDES",
-              validFrom: current.effectiveFrom,
-              notes: `Auto-generated: ${conceptSlug} temporal succession`,
-            },
+          await createEdgeWithCycleCheck({
+            fromRuleId: current.id,
+            toRuleId: previous.id,
+            relation: "SUPERSEDES",
+            validFrom: current.effectiveFrom,
+            notes: `Auto-generated: ${conceptSlug} temporal succession`,
           })
           results.created++
         } catch (error) {
-          // Skip duplicate errors
-          if (!String(error).includes("Unique constraint")) {
+          // Skip duplicate errors and log cycle detection errors
+          if (error instanceof CycleDetectedError) {
+            results.errors.push(
+              `Cycle prevented: SUPERSEDES edge ${current.id} -> ${previous.id} would create a cycle`
+            )
+          } else if (!String(error).includes("Unique constraint")) {
             results.errors.push(`Edge ${current.id} -> ${previous.id}: ${error}`)
           }
         }
@@ -200,18 +203,20 @@ export async function buildRuleEdges(): Promise<{
 
         if (!existingEdge) {
           try {
-            await db.graphEdge.create({
-              data: {
-                fromRuleId: rule.id,
-                toRuleId: depRule.id,
-                relation: "DEPENDS_ON",
-                validFrom: rule.effectiveFrom,
-                notes: `Auto-generated: appliesWhen references ${depSlug}`,
-              },
+            await createEdgeWithCycleCheck({
+              fromRuleId: rule.id,
+              toRuleId: depRule.id,
+              relation: "DEPENDS_ON",
+              validFrom: rule.effectiveFrom,
+              notes: `Auto-generated: appliesWhen references ${depSlug}`,
             })
             results.created++
           } catch (error) {
-            if (!String(error).includes("Unique constraint")) {
+            if (error instanceof CycleDetectedError) {
+              results.errors.push(
+                `Cycle prevented: DEPENDS_ON edge ${rule.id} -> ${depRule.id} would create a cycle`
+              )
+            } else if (!String(error).includes("Unique constraint")) {
               results.errors.push(`Dependency edge ${rule.id} -> ${depRule.id}: ${error}`)
             }
           }
