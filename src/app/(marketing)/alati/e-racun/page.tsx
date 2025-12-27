@@ -12,9 +12,261 @@ import {
   Trash2,
   FileCode,
 } from "lucide-react"
-import { generateUBLInvoice, validateInvoice, validateOIB } from "@/lib/einvoice"
-import type { EInvoice, InvoiceLine, TaxCategory } from "@/lib/einvoice"
 import { cn } from "@/lib/utils"
+
+// ============================================================================
+// Demo Types (inlined for client-side demo page)
+// ============================================================================
+
+type TaxCategoryCode = "S" | "Z" | "E" | "AE" | "K" | "G" | "O" | "L" | "M"
+
+interface Address {
+  streetName: string
+  city: string
+  postalCode: string
+  country: string
+}
+
+interface Party {
+  name: string
+  oib: string
+  address: Address
+  vatNumber?: string
+}
+
+interface TaxCategory {
+  code: TaxCategoryCode
+  percent: number
+  taxScheme?: string
+}
+
+interface TaxSubtotal {
+  taxableAmount: number
+  taxAmount: number
+  taxCategory: TaxCategory
+}
+
+interface TaxTotal {
+  taxAmount: number
+  taxSubtotals: TaxSubtotal[]
+}
+
+interface MonetaryTotal {
+  lineExtensionAmount: number
+  taxExclusiveAmount: number
+  taxInclusiveAmount: number
+  payableAmount: number
+}
+
+interface InvoiceLine {
+  id: string
+  description: string
+  quantity: number
+  unitCode: string
+  unitPrice: number
+  taxCategory: TaxCategory
+  lineTotal: number
+}
+
+interface EInvoice {
+  invoiceNumber: string
+  issueDate: string
+  dueDate: string
+  currencyCode: string
+  seller: Party
+  buyer: Party
+  lines: InvoiceLine[]
+  taxTotal: TaxTotal
+  legalMonetaryTotal: MonetaryTotal
+}
+
+interface ValidationError {
+  field: string
+  message: string
+  code?: string
+}
+
+interface ValidationResult {
+  valid: boolean
+  errors: ValidationError[]
+}
+
+// ============================================================================
+// Demo Validators (inlined for client-side demo page)
+// ============================================================================
+
+/**
+ * Validates Croatian OIB using ISO 7064, MOD 11-10 algorithm
+ */
+function validateOIB(oib: string): boolean {
+  const cleaned = oib.replace(/\s/g, "")
+  if (!/^\d{11}$/.test(cleaned)) return false
+
+  let controlNumber = 10
+  for (let i = 0; i < 10; i++) {
+    controlNumber = (controlNumber + parseInt(cleaned[i])) % 10
+    if (controlNumber === 0) controlNumber = 10
+    controlNumber = (controlNumber * 2) % 11
+  }
+
+  const checkDigit = 11 - controlNumber === 10 ? 0 : 11 - controlNumber
+  return checkDigit === parseInt(cleaned[10])
+}
+
+function validateParty(party: Party, role: "seller" | "buyer"): ValidationError[] {
+  const errors: ValidationError[] = []
+  const prefix = role
+
+  if (!party.name?.trim()) {
+    errors.push({ field: `${prefix}.name`, message: `${role} name is required`, code: "REQUIRED" })
+  }
+  if (!party.oib) {
+    errors.push({ field: `${prefix}.oib`, message: `${role} OIB is required`, code: "REQUIRED" })
+  } else if (!validateOIB(party.oib)) {
+    errors.push({ field: `${prefix}.oib`, message: `Invalid OIB: ${party.oib}`, code: "INVALID_OIB" })
+  }
+
+  return errors
+}
+
+function validateInvoice(invoice: EInvoice): ValidationResult {
+  const errors: ValidationError[] = []
+
+  if (!invoice.invoiceNumber?.trim()) {
+    errors.push({ field: "invoiceNumber", message: "Invoice number is required", code: "REQUIRED" })
+  }
+  if (!invoice.issueDate?.trim()) {
+    errors.push({ field: "issueDate", message: "Issue date is required", code: "REQUIRED" })
+  }
+
+  errors.push(...validateParty(invoice.seller, "seller"))
+  errors.push(...validateParty(invoice.buyer, "buyer"))
+
+  if (!invoice.lines?.length) {
+    errors.push({ field: "lines", message: "At least one invoice line is required", code: "REQUIRED" })
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+
+// ============================================================================
+// Demo UBL Generator (inlined for client-side demo page)
+// ============================================================================
+
+function escapeXML(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+}
+
+function generateUBLInvoice(invoice: EInvoice, options: { prettyPrint?: boolean } = {}): string {
+  const indent = options.prettyPrint ? "  " : ""
+  const currencyCode = invoice.currencyCode
+
+  const generateAddress = (address: Address, ind: string) => `${ind}<cac:PostalAddress>
+${ind}  <cbc:StreetName>${escapeXML(address.streetName)}</cbc:StreetName>
+${ind}  <cbc:CityName>${escapeXML(address.city)}</cbc:CityName>
+${ind}  <cbc:PostalZone>${escapeXML(address.postalCode)}</cbc:PostalZone>
+${ind}  <cac:Country>
+${ind}    <cbc:IdentificationCode>${escapeXML(address.country)}</cbc:IdentificationCode>
+${ind}  </cac:Country>
+${ind}</cac:PostalAddress>`
+
+  const generateParty = (party: Party, role: "supplier" | "customer", ind: string) => {
+    const tag = role === "supplier" ? "AccountingSupplierParty" : "AccountingCustomerParty"
+    let xml = `${ind}<cac:${tag}>
+${ind}  <cac:Party>
+${ind}    <cbc:EndpointID schemeID="HR:OIB">${escapeXML(party.oib)}</cbc:EndpointID>
+${ind}    <cac:PartyName>
+${ind}      <cbc:Name>${escapeXML(party.name)}</cbc:Name>
+${ind}    </cac:PartyName>
+${generateAddress(party.address, ind + "    ")}`
+
+    if (party.vatNumber) {
+      xml += `
+${ind}    <cac:PartyTaxScheme>
+${ind}      <cbc:CompanyID>${escapeXML(party.vatNumber)}</cbc:CompanyID>
+${ind}      <cac:TaxScheme>
+${ind}        <cbc:ID>VAT</cbc:ID>
+${ind}      </cac:TaxScheme>
+${ind}    </cac:PartyTaxScheme>`
+    }
+
+    xml += `
+${ind}    <cac:PartyLegalEntity>
+${ind}      <cbc:RegistrationName>${escapeXML(party.name)}</cbc:RegistrationName>
+${ind}      <cbc:CompanyID schemeID="HR:OIB">${escapeXML(party.oib)}</cbc:CompanyID>
+${ind}    </cac:PartyLegalEntity>
+${ind}  </cac:Party>
+${ind}</cac:${tag}>`
+    return xml
+  }
+
+  const generateLine = (line: InvoiceLine, ind: string) => `${ind}<cac:InvoiceLine>
+${ind}  <cbc:ID>${escapeXML(line.id)}</cbc:ID>
+${ind}  <cbc:InvoicedQuantity unitCode="${escapeXML(line.unitCode)}">${line.quantity.toFixed(2)}</cbc:InvoicedQuantity>
+${ind}  <cbc:LineExtensionAmount currencyID="${currencyCode}">${line.lineTotal.toFixed(2)}</cbc:LineExtensionAmount>
+${ind}  <cac:Item>
+${ind}    <cbc:Description>${escapeXML(line.description)}</cbc:Description>
+${ind}    <cbc:Name>${escapeXML(line.description)}</cbc:Name>
+${ind}    <cac:ClassifiedTaxCategory>
+${ind}      <cbc:ID>${escapeXML(line.taxCategory.code)}</cbc:ID>
+${ind}      <cbc:Percent>${line.taxCategory.percent.toFixed(2)}</cbc:Percent>
+${ind}      <cac:TaxScheme>
+${ind}        <cbc:ID>${escapeXML(line.taxCategory.taxScheme || "VAT")}</cbc:ID>
+${ind}      </cac:TaxScheme>
+${ind}    </cac:ClassifiedTaxCategory>
+${ind}  </cac:Item>
+${ind}  <cac:Price>
+${ind}    <cbc:PriceAmount currencyID="${currencyCode}">${line.unitPrice.toFixed(2)}</cbc:PriceAmount>
+${ind}  </cac:Price>
+${ind}</cac:InvoiceLine>`
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+${indent}<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fina.hr:2.0</cbc:CustomizationID>
+${indent}<cbc:ProfileID>urn:fina.hr:profiles:core:ver2.0</cbc:ProfileID>
+${indent}<cbc:ID>${escapeXML(invoice.invoiceNumber)}</cbc:ID>
+${indent}<cbc:IssueDate>${invoice.issueDate}</cbc:IssueDate>
+${indent}<cbc:DueDate>${invoice.dueDate}</cbc:DueDate>
+${indent}<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+${indent}<cbc:DocumentCurrencyCode>${escapeXML(currencyCode)}</cbc:DocumentCurrencyCode>
+${generateParty(invoice.seller, "supplier", indent)}
+${generateParty(invoice.buyer, "customer", indent)}
+${indent}<cac:TaxTotal>
+${indent}  <cbc:TaxAmount currencyID="${currencyCode}">${invoice.taxTotal.taxAmount.toFixed(2)}</cbc:TaxAmount>
+${invoice.taxTotal.taxSubtotals.map(s => `${indent}  <cac:TaxSubtotal>
+${indent}    <cbc:TaxableAmount currencyID="${currencyCode}">${s.taxableAmount.toFixed(2)}</cbc:TaxableAmount>
+${indent}    <cbc:TaxAmount currencyID="${currencyCode}">${s.taxAmount.toFixed(2)}</cbc:TaxAmount>
+${indent}    <cac:TaxCategory>
+${indent}      <cbc:ID>${escapeXML(s.taxCategory.code)}</cbc:ID>
+${indent}      <cbc:Percent>${s.taxCategory.percent.toFixed(2)}</cbc:Percent>
+${indent}      <cac:TaxScheme>
+${indent}        <cbc:ID>VAT</cbc:ID>
+${indent}      </cac:TaxScheme>
+${indent}    </cac:TaxCategory>
+${indent}  </cac:TaxSubtotal>`).join("\n")}
+${indent}</cac:TaxTotal>
+${indent}<cac:LegalMonetaryTotal>
+${indent}  <cbc:LineExtensionAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
+${indent}  <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.taxExclusiveAmount.toFixed(2)}</cbc:TaxExclusiveAmount>
+${indent}  <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>
+${indent}  <cbc:PayableAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.payableAmount.toFixed(2)}</cbc:PayableAmount>
+${indent}</cac:LegalMonetaryTotal>
+${invoice.lines.map(l => generateLine(l, indent)).join("\n")}
+</Invoice>`
+
+  return xml
+}
+
+// ============================================================================
+// Page Component
+// ============================================================================
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"

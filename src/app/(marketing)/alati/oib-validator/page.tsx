@@ -3,7 +3,24 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Shield, CheckCircle, XCircle, Info, FileText, ArrowRight } from "lucide-react"
-import { validateOIB } from "@/lib/einvoice/validators"
+/**
+ * Validates Croatian OIB (Osobni identifikacijski broj)
+ * using ISO 7064, MOD 11-10 algorithm
+ */
+function validateOIB(oib: string): boolean {
+  const cleaned = oib.replace(/\s/g, "")
+  if (!/^\d{11}$/.test(cleaned)) return false
+
+  let controlNumber = 10
+  for (let i = 0; i < 10; i++) {
+    controlNumber = (controlNumber + parseInt(cleaned[i])) % 10
+    if (controlNumber === 0) controlNumber = 10
+    controlNumber = (controlNumber * 2) % 11
+  }
+
+  const checkDigit = 11 - controlNumber === 10 ? 0 : 11 - controlNumber
+  return checkDigit === parseInt(cleaned[10])
+}
 import { FAQ } from "@/components/content/FAQ"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
