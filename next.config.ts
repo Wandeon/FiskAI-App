@@ -4,6 +4,10 @@ import path from "path"
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Image optimization with modern formats
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   // Silence monorepo root inference issues when multiple lockfiles exist on host
   outputFileTracingRoot: path.join(__dirname),
   eslint: {
