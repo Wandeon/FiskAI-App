@@ -1,41 +1,46 @@
 // src/lib/assistant/reasoning/index.ts
 
 // Types
+export * from "./types"
+
+// Core pipeline
+export { buildAnswerWithReasoning } from "./reasoning-pipeline"
+
+// Decision coverage
 export {
-  SCHEMA_VERSION,
-  REASONING_STAGES,
-  isTerminal,
-  getTerminalOutcome,
-  isNonTerminalStage,
-  type ReasoningStage,
-  type ReasoningStatus,
-  type Severity,
+  calculateDecisionCoverage,
+  inferTopicFromIntent,
+  type DecisionCoverageResult,
+  type ResolvedDimension,
+  type UnresolvedDimension,
+  type ConditionalBranch,
   type TerminalOutcome,
-  type RiskTier,
-  type ReasoningEvent,
-  type BaseReasoningEvent,
-  type StagePayload,
-  type TerminalPayload,
-  type UserContextSnapshot,
-  type ContextResolutionPayload,
-  type ClarificationPayload,
-  type SourcesPayload,
-  type SourceSummary,
-  type RetrievalPayload,
-  type ApplicabilityPayload,
-  type RuleExclusion,
-  type ExclusionCode,
-  type ConflictsPayload,
-  type AnalysisPayload,
-  type ConfidencePayload,
-  type InteractiveDriver,
-  type FinalAnswerPayload,
-  type QualifiedAnswerPayload,
-  type ConflictWarning,
+} from "./decision-coverage"
+
+// Topic dimensions
+export {
+  getTopicDimensions,
+  getAllTopics,
+  isConditionallyRequired,
+  VAT_RATE_DIMENSIONS,
+  OSS_THRESHOLD_DIMENSIONS,
+  PAUSALNI_DIMENSIONS,
+  REGISTRATION_DIMENSIONS,
+  type TopicDimensions,
+  type DimensionRequirement,
+} from "./topic-dimensions"
+
+// Refusal policy
+export {
+  RefusalCode,
+  getRefusalTemplate,
+  buildRefusalPayload,
+  determineRefusalCode,
+  type RefusalTemplate,
   type RefusalPayload,
-  type ErrorPayload,
-  type Citation,
-} from "./types"
+  type RefusalContext,
+  type NextStep,
+} from "./refusal-policy"
 
 // Re-export Surface from assistant types for convenience
 export type { Surface } from "@/lib/assistant/types"
@@ -54,9 +59,9 @@ export {
 // Event Factory
 export { createEventFactory, type EventFactory, type EventEmitOptions } from "./event-factory"
 
-// Pipeline
+// Legacy Pipeline (for backward compatibility)
 export {
-  buildAnswerWithReasoning,
+  buildAnswerWithReasoning as buildAnswerWithReasoningLegacy,
   type CompanyContext,
   type ClarificationQuestion,
   type ClarificationAnswer,
