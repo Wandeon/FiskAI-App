@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { MarketingHeader } from "@/components/marketing/MarketingHeader"
 import { MarketingAnalyticsInit } from "@/components/marketing/marketing-analytics-init"
 import { ComplianceProgressBar } from "@/components/marketing/ComplianceProgressBar"
+import { SpeculationRules } from "@/components/seo/speculation-rules"
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ export default async function MarketingLayout({
     <div className="marketing-surface min-h-[calc(100vh-var(--header-height))]">
       <MarketingHeader isLoggedIn={isLoggedIn} />
       <MarketingAnalyticsInit />
+      <SpeculationRules />
 
       <div className="pb-16">{children}</div>
       <ComplianceProgressBar />

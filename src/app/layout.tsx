@@ -85,8 +85,7 @@ export const metadata: Metadata = {
     site: "@fiskai_hr",
     creator: "@fiskai_hr",
     title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
-    description:
-      "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća.",
+    description: "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća.",
     images: [`${BASE_URL}/opengraph-image`],
   },
   robots: {
@@ -125,6 +124,14 @@ export default function RootLayout({
   return (
     <html lang="hr" className="dark">
       <head>
+        {/* Resource hints: Preconnect to third-party origins for faster connection establishment */}
+        <link rel="preconnect" href="https://eu.posthog.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://o4509363207012352.ingest.de.sentry.io"
+          crossOrigin="anonymous"
+        />
+
         {/* Enterprise SEO: Organization, WebSite, and SoftwareApplication schemas */}
         <JsonLd
           schemas={[
