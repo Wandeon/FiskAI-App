@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import { Suspense } from "react"
 import { Toaster } from "sonner"
 import { AnalyticsProvider } from "@/components/providers/analytics-provider"
@@ -10,6 +11,18 @@ import {
   generateSoftwareApplicationSchema,
 } from "@/lib/schema/generators"
 import "./globals.css"
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  variable: "--font-inter",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains",
+})
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 
@@ -58,8 +71,7 @@ export const metadata: Metadata = {
     // { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     // apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
-  // TODO: Add site.webmanifest when PWA support is ready
-  // manifest: "/site.webmanifest",
+  manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
     locale: "hr_HR",
@@ -85,8 +97,7 @@ export const metadata: Metadata = {
     site: "@fiskai_hr",
     creator: "@fiskai_hr",
     title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
-    description:
-      "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća.",
+    description: "AI-powered platforma za e-fakturiranje i fiskalizaciju za hrvatska poduzeća.",
     images: [`${BASE_URL}/opengraph-image`],
   },
   robots: {
@@ -123,8 +134,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="hr" className="dark">
+    <html lang="hr" className={`${inter.variable} ${jetbrainsMono.variable} dark`}>
       <head>
+        {/* Resource hints: Preconnect to third-party origins for faster connection establishment */}
+        <link rel="preconnect" href="https://eu.posthog.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://o4509363207012352.ingest.de.sentry.io"
+          crossOrigin="anonymous"
+        />
+
         {/* Enterprise SEO: Organization, WebSite, and SoftwareApplication schemas */}
         <JsonLd
           schemas={[

@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { initAnalytics, trackPageView } from "@/lib/analytics"
+import { reportWebVitals } from "@/lib/web-vitals"
+import { registerServiceWorker } from "@/lib/register-sw"
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -10,6 +12,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     initAnalytics()
+    // Report Core Web Vitals after PostHog is initialized
+    reportWebVitals()
+    // Register service worker for offline support
+    registerServiceWorker()
   }, [])
 
   useEffect(() => {
