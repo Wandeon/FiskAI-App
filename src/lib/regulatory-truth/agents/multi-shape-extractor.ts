@@ -5,6 +5,8 @@ import { runProcessExtractor } from "./process-extractor"
 import { runReferenceExtractor } from "./reference-extractor"
 import { runAssetExtractor } from "./asset-extractor"
 import { runTransitionalExtractor } from "./transitional-extractor"
+import { detectComparisonContent, runComparisonExtractor } from "./comparison-extractor"
+import { db } from "@/lib/db"
 import type { ContentClassification } from "../schemas/content-classifier"
 
 export interface MultiShapeExtractionResult {
@@ -17,6 +19,7 @@ export interface MultiShapeExtractionResult {
     assets: string[]
     provisions: string[]
   }
+  comparisonMatrixIds?: string[]
   errors: string[]
 }
 
@@ -122,13 +125,37 @@ export async function runMultiShapeExtraction(
     }
   }
 
+  // Step 4: ComparisonMatrix extraction (runs independently of classification)
+  try {
+    const evidence = await db.evidence.findUnique({
+      where: { id: evidenceId },
+      select: { rawContent: true },
+    })
+
+    if (evidence && detectComparisonContent(evidence.rawContent)) {
+      console.log(`[multi-shape] Running comparison extractor for ${evidenceId}`)
+      const comparisonResult = await runComparisonExtractor(evidenceId)
+      if (comparisonResult.extracted && comparisonResult.matrixId) {
+        result.comparisonMatrixIds = [comparisonResult.matrixId]
+        console.log(`[multi-shape] Extracted comparison matrix: ${comparisonResult.matrixId}`)
+      } else if (comparisonResult.error) {
+        result.errors.push(`comparison-extractor: ${comparisonResult.error}`)
+      }
+    }
+  } catch (error) {
+    result.errors.push(
+      `comparison-extractor: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+
   // Calculate total extractions
   const totalExtracted =
     result.extractedShapes.claims.length +
     result.extractedShapes.processes.length +
     result.extractedShapes.tables.length +
     result.extractedShapes.assets.length +
-    result.extractedShapes.provisions.length
+    result.extractedShapes.provisions.length +
+    (result.comparisonMatrixIds?.length ?? 0)
 
   result.success = totalExtracted > 0 || result.errors.length === 0
 
