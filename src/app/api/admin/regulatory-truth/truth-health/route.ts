@@ -6,12 +6,18 @@ import {
   storeTruthHealthSnapshot,
   runConsolidatorHealthCheck,
 } from "@/lib/regulatory-truth/utils/truth-health"
+import { getCurrentUser } from "@/lib/auth-utils"
 
 /**
  * GET /api/admin/regulatory-truth/truth-health
  * Returns current truth health metrics and recent snapshots
  */
 export async function GET(req: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user || user.systemRole !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const includeHistory = req.nextUrl.searchParams.get("history") === "true"
     const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10")
@@ -45,6 +51,11 @@ export async function GET(req: NextRequest) {
  * Triggers a manual health check and stores a snapshot
  */
 export async function POST(req: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user || user.systemRole !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const action = req.nextUrl.searchParams.get("action") || "snapshot"
 
