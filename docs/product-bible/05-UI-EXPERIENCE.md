@@ -4,6 +4,300 @@
 
 ---
 
+## 7. Design System Architecture
+
+> **Last Audit:** 2025-12-28 | **PRs Reviewed:** #112, #108, #107, #97
+
+FiskAI uses a self-enforcing design system with tokenized colors, typography, spacing, and motion. The system prevents design drift through ESLint rules that block hardcoded colors.
+
+### 7.1 Token Architecture
+
+```
+LAYER 0: PRIMITIVES (primitives.ts)
+└── Raw color values - NEVER import directly in components
+    ├── blue (primary brand)
+    ├── slate (neutrals)
+    ├── emerald (success)
+    ├── amber (warning)
+    ├── red (danger)
+    └── cyan (accent)
+
+LAYER 1: SEMANTIC (semantic/*.ts)
+├── surfaces.ts  - Surface ladder (base, surface-0/1/2, elevated)
+├── text.ts      - Text hierarchy (foreground, secondary, tertiary, muted)
+├── borders.ts   - Border tokens (default, subtle, strong, focus)
+├── interactive.ts - Interactive states (primary, secondary, ghost, danger)
+└── colors.ts    - Status colors (success, warning, danger, info)
+
+LAYER 2: LAYOUT (layout/*.ts)
+├── spacing.ts   - 4px base spacing scale
+├── radius.ts    - Border radius (sm, md, lg, xl, 2xl, full)
+└── elevation.ts - Shadows & z-index (sm, md, lg, xl, focus, card)
+
+LAYER 3: SPECIALIZED
+├── typography.ts - Text styles (display, heading, body, label, code)
+├── motion.ts     - Animation (duration, easing, intent presets)
+└── data-vis.ts   - Chart colors (categorical, sequential, diverging)
+```
+
+### 7.2 Available Tailwind Classes
+
+**Surfaces:**
+| Class | Usage |
+|-------|-------|
+| `bg-base` | Page background |
+| `bg-surface` | Cards (default) |
+| `bg-surface-1` | Nested cards, hover states |
+| `bg-surface-2` | Deeper nesting |
+| `bg-surface-elevated` | Modals, popovers |
+
+**Text Colors:**
+| Class | Usage |
+|-------|-------|
+| `text-foreground` | Primary text |
+| `text-secondary` | Body text, descriptions |
+| `text-tertiary` | Captions, hints |
+| `text-muted` | Disabled text |
+| `text-link` | Links |
+
+**Status Colors:**
+| Status | Background | Text | Border |
+|--------|------------|------|--------|
+| Success | `bg-success-bg` | `text-success-text` | `border-success-border` |
+| Warning | `bg-warning-bg` | `text-warning-text` | `border-warning-border` |
+| Danger | `bg-danger-bg` | `text-danger-text` | `border-danger-border` |
+| Info | `bg-info-bg` | `text-info-text` | `border-info-border` |
+
+**Typography (Pre-composed):**
+| Class | Usage |
+|-------|-------|
+| `text-display-xl/lg/md` | Hero sections, page titles |
+| `text-heading-xl/lg/md/sm` | Section headings |
+| `text-body-lg/md/sm/xs` | Body text |
+| `text-label-lg/md/sm` | Form labels, badges |
+| `text-code-lg/md/sm` | Code blocks |
+
+**Interactive:**
+| Class | Usage |
+|-------|-------|
+| `bg-interactive` | Primary button background |
+| `hover:bg-interactive-hover` | Primary button hover |
+| `border-border-focus` | Focus ring color |
+
+**Chart Colors:**
+| Class | Usage |
+|-------|-------|
+| `text-chart-1` through `text-chart-8` | Data series colors |
+| `text-chart-grid` | Grid lines |
+| `text-chart-axis` | Axis text |
+
+### 7.3 ESLint Enforcement
+
+Hardcoded colors are blocked by the `no-hardcoded-colors` ESLint rule:
+
+| Path                     | Level | Rule                        |
+| ------------------------ | ----- | --------------------------- |
+| `src/app/(app)/**`       | ERROR | Block hardcoded colors      |
+| `src/app/(admin)/**`     | ERROR | Block hardcoded colors      |
+| `src/app/(staff)/**`     | ERROR | Block hardcoded colors      |
+| `src/components/**`      | ERROR | Block hardcoded colors      |
+| `src/app/(marketing)/**` | WARN  | Warn about hardcoded colors |
+
+**Escape Hatch:**
+
+```tsx
+// @design-override: Brand partner XYZ requires exact hex #AB1234
+<div className="bg-[#AB1234]">Partner content</div>
+```
+
+### 7.4 Motion Tokens
+
+**Duration Scale:**
+| Token | Value | Use Case |
+|-------|-------|----------|
+| `instant` | 0ms | No animation |
+| `fast` | 150ms | Quick feedback |
+| `normal` | 200ms | Standard transitions |
+| `slow` | 300ms | State changes |
+| `slower` | 400ms | Complex transitions |
+
+**Easing Functions:**
+| Token | Value | Use Case |
+|-------|-------|----------|
+| `easeOut` | `cubic-bezier(0, 0, 0.2, 1)` | Most common, fast start |
+| `easeIn` | `cubic-bezier(0.4, 0, 1, 1)` | Exit animations |
+| `easeInOut` | `cubic-bezier(0.4, 0, 0.2, 1)` | Expand/collapse |
+| `spring` | `cubic-bezier(0.175, 0.885, 0.32, 1.275)` | Playful, elastic |
+
+**Motion Intent Presets:**
+| Intent | Duration | Easing | Use Case |
+|--------|----------|--------|----------|
+| `entrance` | 200ms | easeOut | Elements appearing |
+| `exit` | 150ms | easeIn | Elements disappearing |
+| `feedback` | 100ms | easeOut | User interaction response |
+| `hover` | 100ms | easeOut | Hover state transitions |
+| `modal` | 300ms | emphasizedIn | Modal/dialog open |
+| `toast` | 200ms | spring | Toast notifications |
+
+**Reduced Motion Support:**
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+}
+```
+
+### 7.5 Data Visualization Tokens
+
+**Categorical Palette (8 colors):**
+| Series | Color | Hex |
+|--------|-------|-----|
+| series1 | Indigo | `#6366f1` |
+| series2 | Violet | `#8b5cf6` |
+| series3 | Pink | `#ec4899` |
+| series4 | Teal | `#14b8a6` |
+| series5 | Orange | `#f97316` |
+| series6 | Lime | `#84cc16` |
+| series7 | Cyan | `#06b6d4` |
+| series8 | Rose | `#f43f5e` |
+
+**Design Note:** Categorical colors intentionally avoid blue (primary) and pure red (danger) to prevent semantic confusion.
+
+### 7.6 Component Architecture
+
+**Primitives (`/src/components/ui/primitives/`):**
+| Component | Variants | Description |
+|-----------|----------|-------------|
+| `Button` | primary, secondary, ghost, destructive, outline | CVA-based button |
+| `Badge` | tech, category, subtle, success, warning, danger | Status badges |
+| `Card` | glass, elevated, gradient, flat | Container variants |
+
+**Patterns (`/src/components/ui/patterns/`):**
+| Component | Description |
+|-----------|-------------|
+| `GradientButton` | Primary CTA with gradient and hover animation |
+| `GlassCard` | Glass morphism card with optional glow |
+| `SectionBackground` | Page section background patterns |
+
+**Motion (`/src/components/ui/motion/`):**
+| Component | Description |
+|-----------|-------------|
+| `FadeIn` | Fade animation on scroll into view |
+| `HoverScale` | Scale animation on hover/tap |
+| `GlowOrb` | Animated background orb effect |
+| `Reveal` | Slide-up reveal on scroll |
+| `Stagger` | Staggered animation for lists |
+
+### 7.7 Living Truth UI Components
+
+Components for displaying regulatory content with confidence metadata.
+
+**Location:** `/src/components/content/`
+
+#### RegulatorySection
+
+Wrapper for regulatory content with confidence indicators and source citations.
+
+```tsx
+interface RegulatorySectionProps {
+  id: string
+  confidence: "high" | "medium" | "low" | "pending"
+  version?: number
+  source?: string
+  sourceRef?: string
+  sourceEvidenceId?: string
+  sourcePointerId?: string
+  derivedConfidence?: ConfidenceLevel
+  derivedReason?: string
+  effectiveFrom?: string
+  asOf?: string
+  hasConflict?: boolean
+  children: ReactNode
+}
+```
+
+**Confidence Badge Styles:**
+| Level | Icon | Colors |
+|-------|------|--------|
+| high | CheckCircle | `bg-success-bg text-success-text` |
+| medium | ExclamationTriangle | `bg-warning-bg text-warning-text` |
+| low | ExclamationTriangle | `bg-danger-bg text-danger-text` |
+| pending | Clock | `bg-surface-1 text-tertiary` |
+
+**Data Attributes (for crawlers/analysis):**
+
+- `data-regulatory-section="true"`
+- `data-confidence-stated`, `data-confidence-derived`, `data-confidence-effective`
+- `data-source-label`, `data-source-ref`, `data-source-evidence-id`
+- `data-effective-from`, `data-as-of`
+- `data-conflict="true|false"`
+
+#### AIAnswerBlock
+
+Complete answer block for AI-generated regulatory content.
+
+```tsx
+interface AIAnswerBlockProps {
+  answerId: string // "pdv-threshold:bluf:v1"
+  version?: number
+  type: "regulatory" | "procedural" | "definitional"
+  confidence: ConfidenceLevel
+  evidenceStrength?: "primary-law" | "secondary" | "guidance" | "mixed"
+  contentType: "guide" | "glossary" | "howto" | "faq"
+  conceptId?: string
+  lastUpdated: string // ISO date
+  asOf?: string
+  bluf: string // Bottom Line Up Front
+  sources?: AIAnswerSource[]
+  children: ReactNode
+}
+```
+
+**Data Attributes (for crawlers/analysis):**
+
+- `data-ai-answer="true"`
+- `data-answer-id`, `data-version`, `data-answer-type`
+- `data-confidence`, `data-evidence-strength`, `data-content-type`
+- `data-concept-id`, `data-last-updated`, `data-as-of`
+
+#### Additional Content Components
+
+| Component      | Description                              |
+| -------------- | ---------------------------------------- |
+| `QuickAnswer`  | Blue callout box for BLUF answers        |
+| `Sources`      | Source citations with dates and reviewer |
+| `FAQ`          | Expandable FAQ accordion                 |
+| `HowToSteps`   | Numbered step-by-step instructions       |
+| `GlossaryCard` | Term definition card                     |
+
+### 7.8 PWA & Performance (PR #112)
+
+**Font Loading:**
+
+- Inter and JetBrains Mono self-hosted via `next/font`
+- Zero CLS (Cumulative Layout Shift)
+- CSS variables: `--font-inter`, `--font-jetbrains`
+
+**Image Optimization:**
+
+- AVIF format support with WebP fallback
+- Lazy loading with blur placeholders
+- Responsive `srcset` generation
+
+**Offline Support:**
+
+- Service worker for offline access
+- `OfflineIndicator` component shows offline status
+- Local storage for draft documents
+
+---
+
 ## 8. Dashboard & Progressive Disclosure
 
 ### 8.1 The Four Stages
@@ -20,12 +314,12 @@
 
 **Wizard Steps:**
 
-| Step            | Fields                      | Validation             |
-| --------------- | --------------------------- | ---------------------- |
-| 1. Basic Info   | Name, OIB, Legal Form       | OIB = 11 digits        |
-| 2. Competence   | Global level, Category levels| At least one selected  |
-| 3. Address      | Street, Postal Code, City   | All required           |
-| 4. Contact & Tax| Email, IBAN, VAT checkbox   | Email valid, IBAN valid|
+| Step             | Fields                        | Validation              |
+| ---------------- | ----------------------------- | ----------------------- |
+| 1. Basic Info    | Name, OIB, Legal Form         | OIB = 11 digits         |
+| 2. Competence    | Global level, Category levels | At least one selected   |
+| 3. Address       | Street, Postal Code, City     | All required            |
+| 4. Contact & Tax | Email, IBAN, VAT checkbox     | Email valid, IBAN valid |
 
 **Completion Logic:**
 
@@ -38,16 +332,16 @@ const hasCompletedOnboarding = Boolean(
 
 **Required Fields for Completion:**
 
-| Field      | Required | Validation     |
-| ---------- | -------- | -------------- |
-| OIB        | ✅       | 11 digits      |
-| Address    | ✅       | Non-empty      |
-| City       | ✅       | Non-empty      |
-| IBAN       | ✅       | Valid format   |
-| Email      | ✅       | Valid email    |
-| Name       | ❌       | Optional       |
-| PostalCode | ❌       | Optional       |
-| LegalForm  | ❌       | Defaults to DOO|
+| Field      | Required | Validation                           |
+| ---------- | -------- | ------------------------------------ |
+| OIB        | ✅       | 11 digits                            |
+| Address    | ✅       | Non-empty                            |
+| City       | ✅       | Non-empty                            |
+| IBAN       | ✅       | Valid format                         |
+| Email      | ✅       | Valid email                          |
+| Name       | ❌       | Optional                             |
+| PostalCode | ❌       | Optional                             |
+| LegalForm  | ❌       | Defaults to DOO                      |
 | Competence | ❌       | Stored in featureFlags, not required |
 
 **Note:** Competence level is collected in wizard Step 2 and stored in `featureFlags.competence`, but is not required for onboarding completion.
@@ -139,20 +433,23 @@ const hasCompletedOnboarding = Boolean(
 
 ### 8.2 Dashboard Element Catalog
 
-| Element         | Component                     | Module        | Competence | Stage     |
-| --------------- | ----------------------------- | ------------- | ---------- | --------- |
-| Hero Banner     | `hero-banner.tsx`             | Core          | All        | setup+    |
-| Setup Checklist | `ChecklistWidget.tsx`         | Guidance      | beginner   | setup     |
-| Recent Activity | `recent-activity.tsx`         | Core          | average+   | active+   |
-| Revenue Trend   | `revenue-trend-card.tsx`      | invoicing     | average+   | active+   |
-| Invoice Funnel  | `invoice-funnel-card.tsx`     | invoicing     | average+   | active+   |
-| Paušalni Status | `pausalni-status-card.tsx`    | pausalni      | All        | setup+    |
-| VAT Overview    | `vat-overview-card.tsx`       | vat           | average+   | active+   |
-| Fiscal Status   | `fiscalization-status.tsx`    | fiscalization | All        | setup+    |
-| AI Insights     | `insights-card.tsx`           | ai-assistant  | All        | strategic |
-| Deadlines       | `deadline-countdown-card.tsx` | Core          | All        | setup+    |
-| Action Cards    | `action-cards.tsx`            | ai-assistant  | All        | active+   |
-| Quick Stats     | `quick-stats.tsx`             | Core          | average+   | active+   |
+| Element           | Component                     | Module        | Competence | Stage     |
+| ----------------- | ----------------------------- | ------------- | ---------- | --------- |
+| Hero Banner       | `hero-banner.tsx`             | Core          | All        | setup+    |
+| Setup Checklist   | `onboarding-checklist.tsx`    | Guidance      | beginner   | setup     |
+| Recent Activity   | `recent-activity.tsx`         | Core          | average+   | active+   |
+| Revenue Trend     | `revenue-trend-card.tsx`      | invoicing     | average+   | active+   |
+| Invoice Funnel    | `invoice-funnel-card.tsx`     | invoicing     | average+   | active+   |
+| Pausalni Status   | `pausalni-status-card.tsx`    | pausalni      | All        | setup+    |
+| VAT Overview      | `vat-overview-card.tsx`       | vat           | average+   | active+   |
+| Fiscal Status     | `fiscalization-status.tsx`    | fiscalization | All        | setup+    |
+| AI Insights       | `insights-card.tsx`           | ai-assistant  | All        | strategic |
+| Deadlines         | `deadline-countdown-card.tsx` | Core          | All        | setup+    |
+| Action Cards      | `action-cards.tsx`            | ai-assistant  | All        | active+   |
+| Quick Stats       | `quick-stats.tsx`             | Core          | average+   | active+   |
+| Today Actions     | `today-actions-card.tsx`      | Core          | All        | active+   |
+| Alert Banner      | `alert-banner.tsx`            | Core          | All        | active+   |
+| Compliance Status | `compliance-status-card.tsx`  | pausalni      | All        | active+   |
 
 ---
 
@@ -233,13 +530,13 @@ if (item.module && company && !entitlements.includes(item.module)) {
 
 **Quick Actions in Command Palette:**
 
-| Action        | Command    | Route             |
-| ------------- | ---------- | ----------------- |
-| New E-Invoice | "e-račun"  | `/e-invoices/new` |
-| New Invoice   | "račun"    | `/invoices/new`   |
-| New Contact   | "kontakt"  | `/contacts/new`   |
-| New Expense   | "trošak"   | `/expenses/new`   |
-| Search        | "traži"    | Opens search      |
+| Action        | Command   | Route             |
+| ------------- | --------- | ----------------- |
+| New E-Invoice | "e-račun" | `/e-invoices/new` |
+| New Invoice   | "račun"   | `/invoices/new`   |
+| New Contact   | "kontakt" | `/contacts/new`   |
+| New Expense   | "trošak"  | `/expenses/new`   |
+| Search        | "traži"   | Opens search      |
 
 **Note:** The bottom navigation bar design from earlier mockups was replaced with the command palette approach for more flexibility.
 
@@ -249,18 +546,18 @@ if (item.module && company && !entitlements.includes(item.module)) {
 
 **Fields:**
 
-| Field           | Type             | Validation        |
-| --------------- | ---------------- | ----------------- |
-| Kupac           | Contact selector | Required          |
-| Datum izdavanja | Date picker      | Required          |
-| Datum dospijeća | Date picker      | > issue date      |
-| Stavke          | Line item table  | Min 1             |
-| └─ Opis         | Text             | Required          |
-| └─ Količina     | Number           | > 0               |
-| └─ Jedinica     | Select           | kom/h/dan/mj      |
-| └─ Cijena       | Decimal          | >= 0              |
-| └─ PDV          | Select           | 25%/13%/5%/0%     |
-| Napomena        | Textarea         | Optional          |
+| Field           | Type             | Validation    |
+| --------------- | ---------------- | ------------- |
+| Kupac           | Contact selector | Required      |
+| Datum izdavanja | Date picker      | Required      |
+| Datum dospijeća | Date picker      | > issue date  |
+| Stavke          | Line item table  | Min 1         |
+| └─ Opis         | Text             | Required      |
+| └─ Količina     | Number           | > 0           |
+| └─ Jedinica     | Select           | kom/h/dan/mj  |
+| └─ Cijena       | Decimal          | >= 0          |
+| └─ PDV          | Select           | 25%/13%/5%/0% |
+| Napomena        | Textarea         | Optional      |
 
 **Paušalni Logic:**
 
@@ -812,3 +1109,186 @@ if (result.status === "succeeded") {
 - Alternative: Stripe Reader M2 (59 EUR, mobile only)
 - Connection: WiFi or Ethernet
 - Receipt printer: Built-in thermal printer
+
+---
+
+## 11. Knowledge Hub Components
+
+Components for interactive guides, comparisons, and calculators in MDX content.
+
+**Location:** `/src/components/knowledge-hub/`
+
+### 11.1 MDX Component Registry
+
+All components available in MDX files via `mdxComponents`:
+
+#### Comparison Components
+
+| Component              | Description                         |
+| ---------------------- | ----------------------------------- |
+| `ComparisonTable`      | Side-by-side comparison table       |
+| `ComparisonCalculator` | Interactive comparison calculator   |
+| `ComparisonRow`        | Table row with comparison data      |
+| `ComparisonCell`       | Cell with check/x/value display     |
+| `RecommendationCard`   | Personalized recommendation display |
+| `QuickDecisionQuiz`    | Interactive quiz to guide decisions |
+
+#### Guide Components
+
+| Component             | Description                         |
+| --------------------- | ----------------------------------- |
+| `VariantTabs`         | Tab panel for content variants      |
+| `TabPanel`            | Individual tab content              |
+| `TableOfContents`     | Auto-generated ToC from headings    |
+| `ProsCons`            | Two-column pros/cons list           |
+| `PDVCallout`          | VAT-specific callout box            |
+| `QuickStatsBar`       | Horizontal stats display            |
+| `TLDRBox`             | Summary box with key takeaways      |
+| `QuickAnswer`         | BLUF answer highlight               |
+| `AccordionFAQ`        | Expandable FAQ section              |
+| `PersonalizedSection` | Content shown based on user profile |
+
+#### Calculator Components
+
+| Component                | Description                      |
+| ------------------------ | -------------------------------- |
+| `ContributionCalculator` | Pausalni contribution calculator |
+| `TaxCalculator`          | Income tax calculator            |
+| `PaymentSlipGenerator`   | Hub3 payment slip generator      |
+| `PDVThresholdCalculator` | VAT threshold calculator         |
+
+#### Fiscal Data Components
+
+| Component          | Description                        |
+| ------------------ | ---------------------------------- |
+| `FiscalValue`      | Display auto-updating fiscal value |
+| `FiscalCurrency`   | Currency formatted fiscal value    |
+| `FiscalPercentage` | Percentage formatted fiscal value  |
+| `FiscalTable`      | Table of fiscal values             |
+| `LastVerified`     | Data verification badge            |
+
+**Example Usage:**
+
+```mdx
+## PDV Threshold
+
+The current VAT threshold is <FiscalCurrency path="THRESHOLDS.pdv.value" />.
+
+<ComparisonTable>
+  <ComparisonRow label="Limit">
+    <ComparisonCell variant="pausalni">60.000 EUR</ComparisonCell>
+    <ComparisonCell variant="doo">Unlimited</ComparisonCell>
+  </ComparisonRow>
+</ComparisonTable>
+
+<QuickDecisionQuiz
+  questions={[
+    { id: "revenue", text: "What's your expected annual revenue?" },
+    { id: "employees", text: "Do you plan to hire employees?" },
+  ]}
+/>
+```
+
+### 11.2 Upsell Components
+
+| Component            | Description                 |
+| -------------------- | --------------------------- |
+| `ToolUpsellCard`     | CTA card for FiskAI tools   |
+| `GuideUpsellSection` | Section with tool promotion |
+
+---
+
+## 12. Accessibility Standards
+
+### 12.1 Focus Management
+
+```css
+/* Modern focus-visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Dark mode focus */
+.dark *:focus-visible {
+  outline-color: #60a5fa;
+}
+```
+
+### 12.2 Touch Targets
+
+```css
+/* Minimum 44x44px touch targets (WCAG 2.5.5) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-target-sm {
+  min-height: 36px;
+  min-width: 36px;
+}
+```
+
+### 12.3 Screen Reader Support
+
+| Utility              | Usage                                         |
+| -------------------- | --------------------------------------------- |
+| `.sr-only`           | Visually hidden, accessible to screen readers |
+| `role="status"`      | Live region for dynamic updates               |
+| `aria-live="polite"` | Announces changes after current speech        |
+
+### 12.4 Skip Links
+
+```html
+<a href="#main" class="skip-link">Skip to main content</a>
+```
+
+### 12.5 Reduced Motion
+
+All animations respect `prefers-reduced-motion`:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+```
+
+---
+
+## 13. Audit Notes & Known Gaps
+
+> **Audit Date:** 2025-12-28
+
+### Components Implemented but Not Previously Documented
+
+1. **Motion Components** - `FadeIn`, `HoverScale`, `Reveal`, `Stagger`, `GlowOrb`
+2. **Pattern Components** - `GradientButton`, `GlassCard`, `SectionBackground`
+3. **Living Truth Components** - `RegulatorySection`, `AIAnswerBlock`
+4. **Fiscal Components** - `FiscalValue`, `FiscalCurrency`, `FiscalPercentage`, `FiscalTable`, `LastVerified`
+5. **Knowledge Hub Components** - All MDX components for guides/comparisons
+
+### Design System Enforcement
+
+The design system now includes:
+
+- ESLint rule `no-hardcoded-colors` blocking raw Tailwind colors
+- CSS variables for all color tokens
+- Dark mode support via `.dark` class
+- Reduced motion support
+
+### Component Naming Discrepancies Fixed
+
+| Old Name              | New Name                   |
+| --------------------- | -------------------------- |
+| `ChecklistWidget.tsx` | `onboarding-checklist.tsx` |
+
+### New Dashboard Components Added to Catalog
+
+- `today-actions-card.tsx`
+- `alert-banner.tsx`
+- `compliance-status-card.tsx`

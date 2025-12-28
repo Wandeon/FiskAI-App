@@ -6,81 +6,269 @@
 
 ## Appendix A: Glossary
 
-| Term          | Croatian                                     | Meaning                       |
-| ------------- | -------------------------------------------- | ----------------------------- |
-| OIB           | Osobni identifikacijski broj                 | 11-digit tax ID               |
-| PDV           | Porez na dodanu vrijednost                   | VAT                           |
-| MIO           | Mirovinsko osiguranje                        | Pension insurance             |
-| HZZO          | Hrvatski zavod za zdravstveno osiguranje     | Health insurance              |
-| JIR           | Jedinstveni identifikator računa             | Fiscal receipt ID             |
-| ZKI           | Zaštitni kod izdavatelja                     | Issuer security code          |
-| KPR           | Knjiga prometa                               | Daily sales log (paušalni)    |
-| KPI           | Knjiga primitaka i izdataka                  | Income/expense book           |
-| PO-SD         | Prijava poreza na dohodak - pojednostavljena | Simplified income tax return  |
-| URA           | Ulazni računi                                | Incoming invoices             |
-| IRA           | Izlazni računi                               | Outgoing invoices             |
-| HOK           | Hrvatska obrtnička komora                    | Croatian Chamber of Trades    |
-| FINA          | Financijska agencija                         | Financial Agency              |
-| CIS           | Centralni informacijski sustav               | Central Information System    |
-| EN16931       | European e-invoicing standard                | XML schema for B2G invoices   |
-| UBL           | Universal Business Language                  | XML format for e-invoices     |
-| CAMT.053      | Cash Management message                      | ISO 20022 bank statement XML  |
-| Hub3          | Croatian payment slip standard               | 2D barcode for payments       |
-| R1/R2         | Invoice types                                | R1=standard, R2=cash register |
-| VIES          | VAT Information Exchange System              | EU VAT number validation      |
-| SEPA          | Single Euro Payments Area                    | EU bank transfer standard     |
-| PSD2          | Payment Services Directive 2                 | Open banking regulation       |
-| Poziv na broj | Payment reference number                     | Links payment to invoice      |
-| Prirez        | Municipal surtax                             | Added to income tax           |
-| JOPPD         | Jedinstveni Obrazac Poreza i Prihoda         | Payroll reporting form        |
-| Putni nalog   | Travel order                                 | Tax-free expense claim        |
-| Dnevnica      | Per diem                                     | Daily travel allowance        |
+| Term                  | Croatian                                     | Meaning                                  |
+| --------------------- | -------------------------------------------- | ---------------------------------------- |
+| OIB                   | Osobni identifikacijski broj                 | 11-digit tax ID                          |
+| PDV                   | Porez na dodanu vrijednost                   | VAT                                      |
+| MIO                   | Mirovinsko osiguranje                        | Pension insurance                        |
+| HZZO                  | Hrvatski zavod za zdravstveno osiguranje     | Health insurance                         |
+| JIR                   | Jedinstveni identifikator računa             | Fiscal receipt ID                        |
+| ZKI                   | Zaštitni kod izdavatelja                     | Issuer security code                     |
+| KPR                   | Knjiga prometa                               | Daily sales log (paušalni)               |
+| KPI                   | Knjiga primitaka i izdataka                  | Income/expense book                      |
+| PO-SD                 | Prijava poreza na dohodak - pojednostavljena | Simplified income tax return             |
+| URA                   | Ulazni računi                                | Incoming invoices                        |
+| IRA                   | Izlazni računi                               | Outgoing invoices                        |
+| HOK                   | Hrvatska obrtnička komora                    | Croatian Chamber of Trades               |
+| FINA                  | Financijska agencija                         | Financial Agency                         |
+| CIS                   | Centralni informacijski sustav               | Central Information System               |
+| EN16931               | European e-invoicing standard                | XML schema for B2G invoices              |
+| UBL                   | Universal Business Language                  | XML format for e-invoices                |
+| CAMT.053              | Cash Management message                      | ISO 20022 bank statement XML             |
+| Hub3                  | Croatian payment slip standard               | 2D barcode for payments                  |
+| R1/R2                 | Invoice types                                | R1=standard, R2=cash register            |
+| VIES                  | VAT Information Exchange System              | EU VAT number validation                 |
+| SEPA                  | Single Euro Payments Area                    | EU bank transfer standard                |
+| PSD2                  | Payment Services Directive 2                 | Open banking regulation                  |
+| Poziv na broj         | Payment reference number                     | Links payment to invoice                 |
+| Prirez                | Municipal surtax                             | Added to income tax                      |
+| JOPPD                 | Jedinstveni Obrazac Poreza i Prihoda         | Payroll reporting form                   |
+| Putni nalog           | Travel order                                 | Tax-free expense claim                   |
+| Dnevnica              | Per diem                                     | Daily travel allowance                   |
+| RTL                   | Regulatory Truth Layer                       | Automated regulatory extraction pipeline |
+| Sentinel              | Discovery agent                              | Scans regulatory sources for new content |
+| Extractor             | Fact extraction agent                        | Extracts atomic facts from evidence      |
+| Composer              | Rule composition agent                       | Aggregates facts into regulatory rules   |
+| Reviewer              | Quality gate agent                           | Validates rule accuracy and citations    |
+| Arbiter               | Conflict resolution agent                    | Resolves conflicting rules               |
+| Releaser              | Publication agent                            | Publishes approved rules to production   |
+| BullMQ                | Job queue library                            | Distributed task queue for workers       |
+| Ollama                | Local LLM inference                          | Self-hosted AI model runner              |
+| OCR                   | Optical Character Recognition                | Text extraction from scanned documents   |
+| Tesseract             | OCR engine                                   | Open-source OCR for Croatian/English     |
+| XAdES                 | XML Advanced Electronic Signatures           | Digital signature standard for XML       |
+| AtomicClaim           | Knowledge shape                              | Logic-based fact with conditions         |
+| ConceptNode           | Taxonomy node                                | Concept with synonyms/hypernyms          |
+| TransitionalProvision | Temporal rule                                | Rules for rate/law transitions           |
+| RegulatoryAsset       | Document/form reference                      | Links to official forms                  |
+| ReferenceTable        | Lookup table                                 | Key-value reference data (IBANs, codes)  |
+| RegulatoryProcess     | Workflow definition                          | Step-by-step procedures                  |
+| GraphEdge             | Precedence relation                          | Lex specialis override mapping           |
 
 ---
 
 ## Appendix B: File Locations
 
-| Purpose                | Path                                           |
-| ---------------------- | ---------------------------------------------- |
-| **Core Configuration** |                                                |
-| Module definitions     | `/src/lib/modules/definitions.ts`              |
-| Visibility rules       | `/src/lib/visibility/rules.ts`                 |
-| Visibility elements    | `/src/lib/visibility/elements.ts`              |
-| Visibility context     | `/src/lib/visibility/context.tsx`              |
-| RBAC permissions       | `/src/lib/rbac.ts`                             |
-| Capabilities           | `/src/lib/capabilities.ts`                     |
-| Navigation registry    | `/src/lib/navigation.ts`                       |
-| **Fiscal Data**        |                                                |
-| Tax thresholds         | `/src/lib/fiscal-data/data/thresholds.ts`      |
-| Tax rates              | `/src/lib/fiscal-data/data/tax-rates.ts`       |
-| Contributions          | `/src/lib/fiscal-data/data/contributions.ts`   |
-| Deadlines              | `/src/lib/fiscal-data/data/deadlines.ts`       |
-| Payment details        | `/src/lib/fiscal-data/data/payment-details.ts` |
-| **Feature Modules**    |                                                |
-| Paušalni logic         | `/src/lib/pausalni/`                           |
-| E-invoice generation   | `/src/lib/e-invoice/`                          |
-| Bank sync              | `/src/lib/bank-sync/`                          |
-| Banking import         | `/src/lib/banking/`                            |
-| Guidance system        | `/src/lib/guidance/`                           |
-| **Database**           |                                                |
-| Prisma schema          | `/prisma/schema.prisma`                        |
-| Drizzle client         | `/src/lib/db/drizzle.ts`                       |
-| Drizzle schemas        | `/src/lib/db/schema/`                          |
-| **UI Components**      |                                                |
-| Dashboard widgets      | `/src/components/dashboard/`                   |
-| Onboarding steps       | `/src/components/onboarding/`                  |
-| Guidance components    | `/src/components/guidance/`                    |
-| Layout components      | `/src/components/layout/`                      |
-| Admin components       | `/src/components/admin/`                       |
-| Staff components       | `/src/components/staff/`                       |
-| **Server Logic**       |                                                |
-| Server actions         | `/src/app/actions/`                            |
-| API routes             | `/src/app/api/`                                |
-| Cron jobs              | `/src/app/api/cron/`                           |
-| **Content**            |                                                |
-| MDX guides             | `/content/vodici/`                             |
-| MDX comparisons        | `/content/usporedbe/`                          |
-| Implementation plans   | `/docs/plans/`                                 |
+| Purpose                    | Path                                                     |
+| -------------------------- | -------------------------------------------------------- |
+| **Core Configuration**     |                                                          |
+| Module definitions         | `/src/lib/modules/definitions.ts`                        |
+| Visibility rules           | `/src/lib/visibility/rules.ts`                           |
+| Visibility elements        | `/src/lib/visibility/elements.ts`                        |
+| Visibility context         | `/src/lib/visibility/context.tsx`                        |
+| RBAC permissions           | `/src/lib/rbac.ts`                                       |
+| Capabilities               | `/src/lib/capabilities.ts`                               |
+| Navigation registry        | `/src/lib/navigation.ts`                                 |
+| **Fiscal Data**            |                                                          |
+| Tax thresholds             | `/src/lib/fiscal-data/data/thresholds.ts`                |
+| Tax rates                  | `/src/lib/fiscal-data/data/tax-rates.ts`                 |
+| Contributions              | `/src/lib/fiscal-data/data/contributions.ts`             |
+| Deadlines                  | `/src/lib/fiscal-data/data/deadlines.ts`                 |
+| Payment details            | `/src/lib/fiscal-data/data/payment-details.ts`           |
+| **Feature Modules**        |                                                          |
+| Paušalni logic             | `/src/lib/pausalni/`                                     |
+| E-invoice generation       | `/src/lib/e-invoice/`                                    |
+| Bank sync                  | `/src/lib/bank-sync/`                                    |
+| Banking import             | `/src/lib/banking/`                                      |
+| Guidance system            | `/src/lib/guidance/`                                     |
+| **Database**               |                                                          |
+| Prisma schema              | `/prisma/schema.prisma`                                  |
+| Drizzle client             | `/src/lib/db/drizzle.ts`                                 |
+| Drizzle schemas            | `/src/lib/db/schema/`                                    |
+| **UI Components**          |                                                          |
+| Dashboard widgets          | `/src/components/dashboard/`                             |
+| Onboarding steps           | `/src/components/onboarding/`                            |
+| Guidance components        | `/src/components/guidance/`                              |
+| Layout components          | `/src/components/layout/`                                |
+| Admin components           | `/src/components/admin/`                                 |
+| Staff components           | `/src/components/staff/`                                 |
+| **Server Logic**           |                                                          |
+| Server actions             | `/src/app/actions/`                                      |
+| API routes                 | `/src/app/api/`                                          |
+| Cron jobs                  | `/src/app/api/cron/`                                     |
+| **Content**                |                                                          |
+| MDX guides                 | `/content/vodici/`                                       |
+| MDX comparisons            | `/content/usporedbe/`                                    |
+| Implementation plans       | `/docs/plans/`                                           |
+| **Regulatory Truth Layer** |                                                          |
+| RTL workers                | `/src/lib/regulatory-truth/workers/`                     |
+| RTL agents                 | `/src/lib/regulatory-truth/agents/`                      |
+| RTL schemas                | `/src/lib/regulatory-truth/schemas/`                     |
+| RTL scripts                | `/src/lib/regulatory-truth/scripts/`                     |
+| RTL fetchers               | `/src/lib/regulatory-truth/fetchers/`                    |
+| RTL watchdog               | `/src/lib/regulatory-truth/watchdog/`                    |
+| RTL e2e tests              | `/src/lib/regulatory-truth/e2e/`                         |
+| **Knowledge Shapes**       |                                                          |
+| Shape extractors           | `/src/lib/regulatory-truth/agents/extractors/`           |
+| Taxonomy engine            | `/src/lib/regulatory-truth/retrieval/taxonomy-engine.ts` |
+| Query router               | `/src/lib/regulatory-truth/retrieval/query-router.ts`    |
+| **AI Assistant**           |                                                          |
+| Assistant types            | `/src/lib/assistant/types.ts`                            |
+| Query engine               | `/src/lib/assistant/query-engine/`                       |
+| Reasoning pipeline         | `/src/lib/assistant/reasoning/`                          |
+| Assistant hooks            | `/src/lib/assistant/hooks/`                              |
+| **Knowledge Hub**          |                                                          |
+| Hub3 barcode               | `/src/lib/knowledge-hub/hub3.ts`                         |
+| Calculations               | `/src/lib/knowledge-hub/calculations.ts`                 |
+| MDX processing             | `/src/lib/knowledge-hub/mdx.ts`                          |
+| **Docker & Workers**       |                                                          |
+| Main Dockerfile            | `/Dockerfile`                                            |
+| Worker Dockerfile          | `/Dockerfile.worker`                                     |
+| Workers compose            | `/docker-compose.workers.yml`                            |
+| Production compose         | `/docker-compose.prod.yml`                               |
+| Development compose        | `/docker-compose.dev.yml`                                |
+| **Audit Reports**          |                                                          |
+| Audit reports              | `/docs/07_AUDITS/`                                       |
+| Audit runs                 | `/docs/07_AUDITS/runs/`                                  |
+
+---
+
+## Appendix C: Package.json Scripts
+
+| Script                    | Description                                   |
+| ------------------------- | --------------------------------------------- |
+| **Development**           |                                               |
+| `dev`                     | Start Next.js development server              |
+| `build`                   | Build production bundle (runs prebuild first) |
+| `start`                   | Start production server                       |
+| `lint`                    | Run ESLint                                    |
+| `format`                  | Format code with Prettier                     |
+| `format:check`            | Check code formatting                         |
+| **Testing**               |                                               |
+| `test`                    | Run unit tests                                |
+| `test:tenant`             | Run tenant isolation tests                    |
+| `test:knowledge-hub`      | Run knowledge hub tests                       |
+| **Database - Prisma**     |                                               |
+| `prisma:generate`         | Generate Prisma client                        |
+| `prisma:push`             | Push schema to database                       |
+| `prisma:migrate`          | Run migrations (production)                   |
+| `prisma:migrate:dev`      | Run migrations (development)                  |
+| `prisma:studio`           | Open Prisma Studio                            |
+| `db:seed`                 | Seed database                                 |
+| **Database - Drizzle**    |                                               |
+| `db:generate`             | Generate Drizzle migrations                   |
+| `db:migrate`              | Run Drizzle migrations                        |
+| `db:push`                 | Push Drizzle schema                           |
+| `db:studio`               | Open Drizzle Studio                           |
+| **Seeding Scripts**       |                                               |
+| `db:seed-news`            | Seed news sources                             |
+| `db:seed-news-categories` | Seed news categories                          |
+| `db:seed-deadlines`       | Seed fiscal deadlines                         |
+| `db:rewrite-news`         | Rewrite news posts with AI                    |
+| **Worker Commands**       |                                               |
+| `worker:sentinel`         | Run Sentinel worker locally                   |
+| `worker:extractor`        | Run Extractor worker locally                  |
+| `worker:composer`         | Run Composer worker locally                   |
+| `worker:reviewer`         | Run Reviewer worker locally                   |
+| `worker:arbiter`          | Run Arbiter worker locally                    |
+| `worker:releaser`         | Run Releaser worker locally                   |
+| `worker:orchestrator`     | Run Orchestrator worker locally               |
+| `worker:scheduler`        | Run Scheduler service locally                 |
+| `bull-board`              | Start Bull Board dashboard                    |
+| **Docker Workers**        |                                               |
+| `workers:start`           | Start all Docker workers                      |
+| `workers:stop`            | Stop all Docker workers                       |
+| `workers:logs`            | View Docker worker logs                       |
+| `workers:status`          | Check Docker worker status                    |
+| **Validation**            |                                               |
+| `validate:routes`         | Validate route definitions                    |
+| `validate:content`        | Validate content schemas                      |
+| **Auditing**              |                                               |
+| `audit:marketing`         | Run marketing content audit                   |
+
+---
+
+## Appendix D: Docker Worker Services
+
+| Service                     | Container Name                     | Description                     |
+| --------------------------- | ---------------------------------- | ------------------------------- |
+| `redis`                     | `fiskai-redis`                     | Redis 7 for BullMQ job queues   |
+| `worker-orchestrator`       | `fiskai-worker-orchestrator`       | Pipeline orchestration          |
+| `worker-sentinel`           | `fiskai-worker-sentinel`           | Discovery/scanning agent        |
+| `worker-extractor`          | (replicas: 2)                      | Fact extraction (2 replicas)    |
+| `worker-ocr`                | `fiskai-worker-ocr`                | OCR processing for scanned PDFs |
+| `worker-composer`           | `fiskai-worker-composer`           | Rule composition                |
+| `worker-reviewer`           | `fiskai-worker-reviewer`           | Quality gate validation         |
+| `worker-scheduler`          | `fiskai-worker-scheduler`          | Cron scheduling service         |
+| `worker-releaser`           | `fiskai-worker-releaser`           | Rule publication                |
+| `worker-arbiter`            | `fiskai-worker-arbiter`            | Conflict resolution             |
+| `worker-continuous-drainer` | `fiskai-worker-continuous-drainer` | 24/7 queue processing           |
+
+**Worker Environment Variables:**
+
+| Variable              | Description                                  |
+| --------------------- | -------------------------------------------- |
+| `REDIS_URL`           | Redis connection URL                         |
+| `DATABASE_URL`        | PostgreSQL connection string                 |
+| `OLLAMA_ENDPOINT`     | Ollama API endpoint                          |
+| `OLLAMA_API_KEY`      | Ollama API key                               |
+| `OLLAMA_MODEL`        | Default LLM model (e.g., llama3.1)           |
+| `OLLAMA_VISION_MODEL` | Vision model for OCR (e.g., llama3.2-vision) |
+| `WORKER_TYPE`         | Worker type identifier                       |
+| `WORKER_CONCURRENCY`  | Concurrent job processing limit              |
+| `WATCHDOG_TIMEZONE`   | Scheduler timezone (Europe/Zagreb)           |
+
+---
+
+## Appendix E: Key Scripts in /scripts/
+
+| Script                                       | Purpose                           |
+| -------------------------------------------- | --------------------------------- |
+| **News & Content**                           |                                   |
+| `seed-news-sources.ts`                       | Seed initial news sources         |
+| `seed-news-categories.ts`                    | Seed news categories              |
+| `seed-deadlines.ts`                          | Seed fiscal deadlines             |
+| `rewrite-news-posts.ts`                      | Rewrite news with AI              |
+| `publish-drafts.ts`                          | Publish draft articles            |
+| `process-news-manual.ts`                     | Manual news processing            |
+| **Search & Validation**                      |                                   |
+| `build-search-index.ts`                      | Build search index for content    |
+| `validate-routes.ts`                         | Validate Next.js routes           |
+| `validate-content.ts`                        | Validate content frontmatter      |
+| **Pipeline & Queue**                         |                                   |
+| `queue-status.ts`                            | Check BullMQ queue status         |
+| `trigger-pipeline.ts`                        | Trigger regulatory pipeline       |
+| `trigger-full-pipeline.ts`                   | Trigger full pipeline run         |
+| `trigger-arbiter.ts`                         | Trigger arbiter for conflicts     |
+| `run-full-pipeline-demo.ts`                  | Demo full pipeline                |
+| **Debugging & Fixes**                        |                                   |
+| `check-db-counts.ts`                         | Check database record counts      |
+| `check-conflicts.ts`                         | Check for rule conflicts          |
+| `check-docs.ts`                              | Check documentation               |
+| `check-container-completeness.ts`            | Verify container setup            |
+| `check-secrets-drift.ts`                     | Check for secrets drift           |
+| `cleanup-duplicate-evidence.ts`              | Remove duplicate evidence records |
+| `fix-applies-when.ts`                        | Fix appliesWhen DSL               |
+| `fix-json-quotes.ts`                         | Fix JSON quote issues             |
+| `diagnose-hashes.ts`                         | Diagnose hash issues              |
+| `debug-matching.ts`                          | Debug matching logic              |
+| **Testing**                                  |                                   |
+| `test-ai.ts`                                 | Test AI integration               |
+| `test-assistant-cli.ts`                      | Test assistant CLI                |
+| `test-pipeline.ts`                           | Test pipeline                     |
+| `test-extract-queue.ts`                      | Test extraction queue             |
+| `test-single-extraction.ts`                  | Test single extraction            |
+| `test-batch-extraction.ts`                   | Test batch extraction             |
+| **Marketing Audit**                          |                                   |
+| `marketing-content-audit/run-audit.ts`       | Run marketing content audit       |
+| `marketing-content-audit/generate-report.ts` | Generate audit report             |
+| `marketing-content-audit/seed-registry.ts`   | Seed audit registry               |
+| **Admin & Ops**                              |                                   |
+| `set-admin-role.ts`                          | Set user admin role               |
+| `rollback-release.ts`                        | Rollback a release                |
+| `audit-ocr.ts`                               | Audit OCR processing              |
+| `audit-reconcile.ts`                         | Reconcile audit findings          |
+| `reasoning-rollback-check.ts`                | Check reasoning rollback          |
 
 ---
 
@@ -442,3 +630,167 @@ Critical missing compliance features for the Croatian market.
   Issue: VAT invoice requirements should be cross-checked against current law for 2025 revisions.
   Evidence: No explicit validator in repo for invoice header text.
   Fix: Verify against official sources and update phrasing if needed.
+
+---
+
+## Appendix F: Changelog (December 2024)
+
+> Major features and changes implemented since December 2024 (PRs #51-#119).
+
+### Regulatory Truth Layer (RTL)
+
+| Date       | PR       | Feature                                                                           |
+| ---------- | -------- | --------------------------------------------------------------------------------- |
+| 2024-12-21 | #85+     | Complete 6-agent pipeline (Sentinel/Extractor/Composer/Reviewer/Arbiter/Releaser) |
+| 2024-12-22 | #86-90   | Watchdog alerting, conflict detection, service architecture                       |
+| 2024-12-23 | #91-94   | P0/P1 fixes, E2E audit, autonomy closure                                          |
+| 2024-12-24 | #95-96   | OCR preprocessing lane, Vision fallback for scanned PDFs                          |
+| 2024-12-25 | #97-99   | Assistant E2E verification, sprint summary                                        |
+| 2024-12-26 | #100-106 | Knowledge Shapes (7 shapes), taxonomy engine, query router                        |
+| 2024-12-27 | #107-112 | Self-enforcing design system, visible reasoning UX                                |
+| 2024-12-27 | #113-115 | Living Truth infrastructure, content bridge                                       |
+| 2024-12-28 | #116-119 | Product Bible restructure, OCR audit improvements                                 |
+
+### AI Assistant
+
+| Date       | PR   | Feature                                                    |
+| ---------- | ---- | ---------------------------------------------------------- |
+| 2024-12-24 | #95  | Premium consultation surface with evidence-first responses |
+| 2024-12-24 | #95  | Fail-closed architecture (refuses rather than hallucinate) |
+| 2024-12-25 | #97  | E2E verification with 20-question audit                    |
+| 2024-12-26 | #100 | Visible reasoning with 7-stage pipeline                    |
+| 2024-12-26 | #100 | Reasoning stepper UI, SSE streaming                        |
+| 2024-12-26 | #100 | Refusal policy system with codes and templates             |
+
+### Knowledge Shapes (Neuro-Symbolic Architecture)
+
+| Shape                 | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| AtomicClaim           | Logic-based facts with WHO/WHEN/WHAT conditions   |
+| ClaimException        | Lex specialis overrides                           |
+| ConceptNode           | Taxonomy with synonyms and hypernyms              |
+| RegulatoryProcess     | Step-by-step workflows                            |
+| ReferenceTable        | Lookup tables (IBANs, codes, rates)               |
+| RegulatoryAsset       | Official forms and documents                      |
+| TransitionalProvision | Temporal rules for rate/law changes               |
+| ComparisonMatrix      | Structured comparisons (e.g., tax regime options) |
+
+### Infrastructure & DevOps
+
+| Date       | Feature                                      |
+| ---------- | -------------------------------------------- |
+| 2024-12-27 | Self-enforcing design system with CVA tokens |
+| 2024-12-27 | Custom ESLint rule for hardcoded colors      |
+| 2024-12-27 | Enterprise-grade SEO infrastructure          |
+| 2024-12-27 | Authority-first performance with caching     |
+| 2024-12-27 | Adaptive Sentinel (topology-aware crawler)   |
+| 2024-12-27 | Branch protection policy with pre-push hooks |
+| 2024-12-28 | Product Bible split into modular chapters    |
+
+### Audits Completed
+
+| Audit                     | Status  | Key Findings                        |
+| ------------------------- | ------- | ----------------------------------- |
+| Security (OWASP A01-A10)  | PASS    | No critical vulnerabilities         |
+| Tenant Isolation          | PASS    | Proper companyId scoping            |
+| EN16931 XML Compliance    | PASS    | Valid e-invoice generation          |
+| ZKI/JIR Fiscalization     | PARTIAL | Sandbox mode only                   |
+| OCR Processing            | PASS    | Tesseract + Vision fallback working |
+| Assistant Query Answering | PASS    | Fail-closed, citation-verified      |
+| Extractor Accuracy        | PASS    | 85%+ extraction confidence          |
+| Composer Rules            | PASS    | Proper aggregation                  |
+| Releaser Publication      | PASS    | PUBLISHED-only enforcement          |
+
+---
+
+## Appendix G: Implementation Plans Index
+
+> Reference to major implementation plans in `/docs/plans/`.
+
+### Core Systems
+
+| Plan                                            | Description                          |
+| ----------------------------------------------- | ------------------------------------ |
+| `2025-12-21-regulatory-truth-implementation.md` | 6-agent RTL pipeline                 |
+| `2024-12-24-assistant-implementation-plan.md`   | AI Assistant with reasoning pipeline |
+| `2025-12-26-knowledge-shapes-design.md`         | 7 Knowledge Shapes architecture      |
+| `2025-12-26-visible-reasoning-ux-design.md`     | Visible reasoning UI                 |
+
+### Feature Modules
+
+| Plan                                            | Description                        |
+| ----------------------------------------------- | ---------------------------------- |
+| `2025-12-18-adaptive-guidance-system-design.md` | Competence-based guidance system   |
+| `2025-12-18-pausalni-compliance-hub-design.md`  | Pausalni obrt compliance dashboard |
+| `2025-12-17-pos-fiskalna-blagajna-design.md`    | POS fiscalization module           |
+| `2024-12-14-bank-sync-implementation.md`        | Bank sync with CAMT.053/CSV import |
+| `2024-12-14-unified-documents-hub.md`           | Universal document management      |
+
+### Infrastructure
+
+| Plan                                             | Description                  |
+| ------------------------------------------------ | ---------------------------- |
+| `2025-12-22-service-architecture-design.md`      | Microservices architecture   |
+| `2025-12-17-design-system-cva.md`                | CVA-based design system      |
+| `2025-12-21-marketing-content-governance.md`     | Content governance framework |
+| `2025-12-20-product-bible-v41-implementation.md` | Product Bible v4.1 alignment |
+
+---
+
+## Appendix H: Environment Variables Reference
+
+> Key environment variables for the FiskAI platform.
+
+### Core Application
+
+| Variable              | Description                               | Required |
+| --------------------- | ----------------------------------------- | -------- |
+| `DATABASE_URL`        | PostgreSQL connection string              | Yes      |
+| `NEXTAUTH_URL`        | Base URL for NextAuth (https://fiskai.hr) | Yes      |
+| `NEXTAUTH_SECRET`     | Auth encryption key                       | Yes      |
+| `NEXT_PUBLIC_APP_URL` | Public app URL                            | Yes      |
+
+### Email & Notifications
+
+| Variable            | Description                      | Required |
+| ------------------- | -------------------------------- | -------- |
+| `RESEND_API_KEY`    | Resend email service API key     | Yes      |
+| `RESEND_FROM_EMAIL` | From address (noreply@fiskai.hr) | Yes      |
+
+### AI & LLM
+
+| Variable              | Description                            | Required |
+| --------------------- | -------------------------------------- | -------- |
+| `OLLAMA_ENDPOINT`     | Ollama API endpoint URL                | For RTL  |
+| `OLLAMA_API_KEY`      | Ollama API key                         | For RTL  |
+| `OLLAMA_MODEL`        | Default LLM model (llama3.1)           | For RTL  |
+| `OLLAMA_VISION_MODEL` | Vision model for OCR (llama3.2-vision) | For OCR  |
+| `OPENAI_API_KEY`      | OpenAI API key (fallback)              | Optional |
+
+### Workers & Queues
+
+| Variable             | Description                        | Required      |
+| -------------------- | ---------------------------------- | ------------- |
+| `REDIS_URL`          | Redis connection URL               | For workers   |
+| `WORKER_TYPE`        | Worker type identifier             | For workers   |
+| `WORKER_CONCURRENCY` | Concurrent job limit               | For workers   |
+| `WATCHDOG_TIMEZONE`  | Scheduler timezone (Europe/Zagreb) | For scheduler |
+
+### Deployment
+
+| Variable            | Description                          | Required   |
+| ------------------- | ------------------------------------ | ---------- |
+| `COOLIFY_API_TOKEN` | Coolify deployment API token         | For deploy |
+| `NODE_ENV`          | Environment (development/production) | Yes        |
+
+### Integrations
+
+| Variable            | Description               | Required    |
+| ------------------- | ------------------------- | ----------- |
+| `STRIPE_SECRET_KEY` | Stripe payment processing | For billing |
+| `SENTRY_DSN`        | Sentry error tracking     | Optional    |
+| `POSTHOG_API_KEY`   | PostHog analytics         | Optional    |
+
+---
+
+[<- Back to Index](./00-INDEX.md)

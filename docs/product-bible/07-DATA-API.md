@@ -251,6 +251,7 @@ These tables are managed by Drizzle (not Prisma) for performance-critical or new
 | `news.ts`       | `news_sources`, `news_items`, `news_posts`, `news_categories`, `news_tags`, `news_post_sources`                      | News aggregation system                |
 | `newsletter.ts` | `newsletter_subscriptions`                                                                                           | Newsletter subscribers                 |
 | `deadlines.ts`  | `compliance_deadlines`                                                                                               | Generated tax deadlines                |
+| `tutorials.ts`  | `tutorial_progress`                                                                                                  | User tutorial tracking                 |
 
 **Example Schema:**
 
@@ -396,18 +397,21 @@ model Payroll {
 
 ### 16.1 Route Groups
 
-| Group      | Base Path           | Purpose              |
-| ---------- | ------------------- | -------------------- |
-| Auth       | `/api/auth/*`       | Authentication       |
-| Billing    | `/api/billing/*`    | Stripe integration   |
-| Invoices   | `/api/invoices/*`   | Invoice CRUD         |
-| E-Invoices | `/api/e-invoices/*` | E-invoice operations |
-| Banking    | `/api/banking/*`    | Bank sync & import   |
-| Expenses   | `/api/expenses/*`   | Expense management   |
-| Reports    | `/api/reports/*`    | Report generation    |
-| Pausalni   | `/api/pausalni/*`   | Paušalni features    |
-| Admin      | `/api/admin/*`      | Platform management  |
-| Cron       | `/api/cron/*`       | Scheduled jobs       |
+| Group      | Base Path           | Purpose                   |
+| ---------- | ------------------- | ------------------------- |
+| Auth       | `/api/auth/*`       | Authentication            |
+| Billing    | `/api/billing/*`    | Stripe integration        |
+| Invoices   | `/api/invoices/*`   | Invoice CRUD              |
+| E-Invoices | `/api/e-invoices/*` | E-invoice operations      |
+| Banking    | `/api/banking/*`    | Bank sync & import        |
+| Expenses   | `/api/expenses/*`   | Expense management        |
+| Reports    | `/api/reports/*`    | Report generation         |
+| Pausalni   | `/api/pausalni/*`   | Paušalni features         |
+| Admin      | `/api/admin/*`      | Platform management       |
+| Cron       | `/api/cron/*`       | Scheduled jobs            |
+| Assistant  | `/api/assistant/*`  | AI chat & reasoning       |
+| Regulatory | `/api/regulatory/*` | Regulatory Truth pipeline |
+| Rules      | `/api/rules/*`      | Rule search & evaluation  |
 
 ### 16.2 Key Endpoints
 
@@ -679,7 +683,7 @@ GET    /api/pausalni/calendar       Tax calendar
 | `/api/capabilities`    | GET    | API capabilities      |
 | `/api/webhooks/resend` | POST   | Email service webhook |
 
-**Total API Routes:** 119 endpoints
+**Total API Routes:** 129 endpoints (see Section 19 for additional Regulatory Truth endpoints)
 
 ### 17.20 Server Actions
 
@@ -733,3 +737,611 @@ async function handleSubmit(data: InvoiceData) {
 2. No API boilerplate - Direct function calls
 3. Automatic revalidation - Next.js cache updates
 4. Better DX - Single codebase for frontend and backend logic
+
+---
+
+## 18. Regulatory Truth Layer Data Models
+
+The Regulatory Truth Layer is a comprehensive system for processing Croatian regulatory content with full audit trail. These models are defined in `/prisma/schema.prisma`.
+
+### 18.1 Source & Discovery Models
+
+```prisma
+model RegulatorySource {
+  id                String    @id @default(cuid())
+  slug              String    @unique  // e.g., "porezna-pausalni"
+  name              String
+  url               String
+  hierarchy         Int       @default(5)  // 1=Ustav, 2=Zakon...
+  fetchIntervalHours Int      @default(24)
+  lastFetchedAt     DateTime?
+  lastContentHash   String?
+  isActive          Boolean   @default(true)
+}
+
+model DiscoveryEndpoint {
+  id                String                @id
+  domain            String                // e.g., "hzzo.hr"
+  path              String                // e.g., "/novosti"
+  endpointType      DiscoveryEndpointType // SITEMAP_INDEX, NEWS_LISTING, etc.
+  priority          DiscoveryPriority     // CRITICAL, HIGH, MEDIUM, LOW
+  scrapeFrequency   ScrapeFrequency       // EVERY_RUN, DAILY, WEEKLY
+  listingStrategy   ListingStrategy       // SITEMAP_XML, HTML_LIST, PAGINATION
+}
+
+model DiscoveredItem {
+  id            String               @id
+  endpointId    String
+  url           String
+  title         String?
+  status        DiscoveredItemStatus // PENDING, FETCHED, PROCESSED
+  // Topology fields (PR #111)
+  nodeType      NodeType             // HUB, LEAF, ASSET
+  nodeRole      NodeRole?            // ARCHIVE, INDEX, NEWS_FEED, REGULATION
+  parentUrl     String?
+  depth         Int                  @default(0)
+  // Velocity fields (PR #111 - EWMA: 0.0=static, 1.0=volatile)
+  changeFrequency  Float             @default(0.5)
+  lastChangedAt    DateTime?
+  scanCount        Int               @default(0)
+  freshnessRisk    FreshnessRisk     // CRITICAL, HIGH, MEDIUM, LOW
+  nextScanDue      DateTime          @default(now())
+}
+```
+
+### 18.2 Evidence & Extraction Models
+
+```prisma
+model Evidence {
+  id              String   @id @default(cuid())
+  sourceId        String
+  fetchedAt       DateTime @default(now())
+  contentHash     String
+  rawContent      String   @db.Text  // Full HTML/PDF text
+  contentType     String   @default("html")
+  url             String
+  hasChanged      Boolean  @default(false)
+  // OCR support fields (PR #119)
+  contentClass            String   @default("HTML")  // HTML, PDF_TEXT, PDF_SCANNED
+  ocrMetadata             Json?
+  primaryTextArtifactId   String?
+}
+
+model EvidenceArtifact {
+  id          String   @id @default(cuid())
+  evidenceId  String
+  kind        String   // PDF_TEXT, OCR_TEXT, OCR_HOCR, HTML_CLEANED, TABLE_JSON
+  content     String   @db.Text
+  contentHash String
+  pageMap     Json?    // Per-page metadata: [{page, confidence, method}]
+}
+
+model SourcePointer {
+  id              String   @id @default(cuid())
+  evidenceId      String
+  domain          String   // pausalni, pdv, doprinosi, fiskalizacija
+  valueType       String   // currency, percentage, date, threshold, text
+  extractedValue  String
+  displayValue    String
+  exactQuote      String   @db.Text
+  contextBefore   String?  @db.Text
+  contextAfter    String?  @db.Text
+  // Article-level anchoring
+  articleNumber   String?
+  paragraphNumber String?
+  lawReference    String?
+  confidence      Float    @default(0.8)
+}
+```
+
+### 18.3 Rule & Concept Models
+
+```prisma
+model Concept {
+  id          String   @id @default(cuid())
+  slug        String   @unique  // e.g., "pausalni-obrt"
+  nameHr      String
+  nameEn      String?
+  aliases     String[] // Alternative names
+  tags        String[] // Categorization tags
+  description String?  @db.Text
+  parentId    String?
+}
+
+model RegulatoryRule {
+  id                String           @id @default(cuid())
+  conceptSlug       String
+  conceptId         String?
+  titleHr           String
+  titleEn           String?
+  riskTier          RiskTier         // T0, T1, T2, T3
+  authorityLevel    AuthorityLevel   // LAW, GUIDANCE, PROCEDURE, PRACTICE
+  automationPolicy  AutomationPolicy // ALLOW, CONFIRM, BLOCK
+  ruleStability     RuleStability    // STABLE, VOLATILE
+  obligationType    ObligationType   // OBLIGATION, NO_OBLIGATION, CONDITIONAL
+  appliesWhen       String           @db.Text  // DSL expression
+  value             String
+  valueType         String
+  effectiveFrom     DateTime
+  effectiveUntil    DateTime?
+  supersedesId      String?
+  status            RuleStatus       // DRAFT, PENDING_REVIEW, APPROVED, PUBLISHED
+  confidence        Float            @default(0.8)
+  meaningSignature  String?          // SHA256 hash for deduplication
+}
+```
+
+### 18.4 Knowledge Shapes (PR #111, PR #115)
+
+**Shape 1: Atomic Claims (Logic Frames)**
+
+```prisma
+model AtomicClaim {
+  id                String        @id
+  // WHO - Subject
+  subjectType       SubjectType   // TAXPAYER, EMPLOYER, COMPANY, INDIVIDUAL, ALL
+  subjectQualifiers String[]
+  // WHEN - Condition
+  triggerExpr       String?       // "sales > 10000 EUR"
+  temporalExpr      String?       // "from 2025-01-01"
+  jurisdiction      String        @default("HR")
+  // WHAT - Assertion
+  assertionType     AssertionType // OBLIGATION, PROHIBITION, PERMISSION, DEFINITION
+  logicExpr         String        // "tax_place = destination"
+  value             String?
+  valueType         String?
+  // Provenance
+  exactQuote        String        @db.Text
+  articleNumber     String?
+  lawReference      String?
+  confidence        Float         @default(0.8)
+}
+
+model ClaimException {
+  id              String   @id
+  claimId         String
+  condition       String   // "IF alcohol_content > 0"
+  overridesTo     String   // concept slug of overriding rule
+  sourceArticle   String   // "Art 38(4)"
+}
+```
+
+**Shape 2: Taxonomy (Concept Graph)**
+
+```prisma
+model ConceptNode {
+  id              String   @id
+  slug            String   @unique
+  nameHr          String
+  nameEn          String?
+  parentId        String?
+  synonyms        String[]      // ["sok", "juice"]
+  hyponyms        String[]
+  legalCategory   String?       // Legal term
+  vatCategory     String?
+  searchTerms     String[]
+}
+```
+
+**Shape 4: Workflow (Process Graph)**
+
+```prisma
+model RegulatoryProcess {
+  id              String      @id
+  slug            String      @unique
+  titleHr         String
+  processType     ProcessType // REGISTRATION, FILING, APPEAL, CLOSURE
+  estimatedTime   String?
+  prerequisites   Json?
+}
+
+model ProcessStep {
+  id              String   @id
+  processId       String
+  orderNum        Int
+  actionHr        String   @db.Text
+  requiresStepIds String[]
+  requiresAssets  String[]
+  onSuccessStepId String?
+  onFailureStepId String?
+}
+```
+
+**Shape 5: Reference (Lookup Tables)**
+
+```prisma
+model ReferenceTable {
+  id              String            @id
+  category        ReferenceCategory // IBAN, CN_CODE, TAX_OFFICE, INTEREST_RATE
+  name            String
+  jurisdiction    String            @default("HR")
+  keyColumn       String
+  valueColumn     String
+}
+
+model ReferenceEntry {
+  id              String   @id
+  tableId         String
+  key             String   // "Split", "6201.11"
+  value           String   // "HR1234...", "Računalne usluge"
+  metadata        Json?
+}
+```
+
+**Shape 6: Document (Asset Repository)**
+
+```prisma
+model RegulatoryAsset {
+  id              String      @id
+  formCode        String?     // "PDV-P", "JOPPD"
+  officialName    String
+  downloadUrl     String
+  format          AssetFormat // PDF, XML, XLS, XLSX, DOC, DOCX, HTML
+  assetType       AssetType   // FORM, TEMPLATE, GUIDE, INSTRUCTION
+  validFrom       DateTime?
+  validUntil      DateTime?
+}
+```
+
+**Shape 7: Temporal (Transitional Provisions)**
+
+```prisma
+model TransitionalProvision {
+  id              String            @id
+  fromRule        String            // concept slug of old rule
+  toRule          String            // concept slug of new rule
+  cutoffDate      DateTime
+  logicExpr       String            // "IF invoice_date < cutoff..."
+  appliesRule     String
+  pattern         TransitionPattern // INVOICE_DATE, DELIVERY_DATE, TAXPAYER_CHOICE
+}
+```
+
+**Shape 8: Comparison Matrix (PR #115)**
+
+```prisma
+model ComparisonMatrix {
+  id          String   @id
+  slug        String   @unique
+  titleHr     String
+  appliesWhen String?  @db.Text  // DSL expression
+  domainTags  String[]           // ["STARTING_BUSINESS", "TAX_REGIME"]
+  options     Json               // ComparisonOption[]
+  criteria    Json               // ComparisonCriterion[]
+  cells       Json               // ComparisonCell[]
+  conclusion  String?  @db.Text
+}
+```
+
+### 18.5 Agent & Pipeline Models
+
+```prisma
+model AgentRun {
+  id              String    @id
+  agentType       AgentType // SENTINEL, EXTRACTOR, COMPOSER, REVIEWER, etc.
+  status          String    // running, completed, failed
+  input           Json
+  output          Json?
+  rawOutput       Json?     // For debugging
+  error           String?
+  tokensUsed      Int?
+  durationMs      Int?
+  confidence      Float?
+}
+
+model RegulatoryConflict {
+  id                String         @id
+  conflictType      ConflictType   // SOURCE_CONFLICT, TEMPORAL_CONFLICT
+  status            ConflictStatus // OPEN, RESOLVED, ESCALATED
+  itemAId           String?
+  itemBId           String?
+  description       String         @db.Text
+  resolution        Json?
+  requiresHumanReview Boolean      @default(false)
+}
+
+model RuleRelease {
+  id              String   @id
+  version         String   @unique // semver: "1.0.0"
+  releaseType     String   // major, minor, patch
+  effectiveFrom   DateTime
+  contentHash     String
+  changelogHr     String?  @db.Text
+  auditTrail      Json?
+}
+```
+
+### 18.6 Monitoring & Health Models
+
+```prisma
+model TruthHealthSnapshot {
+  id                        String   @id
+  timestamp                 DateTime @default(now())
+  totalRules                Int
+  publishedRules            Int
+  unlinkedPointers          Int
+  multiSourceRules          Int      @default(0)
+  singleSourceRules         Int      @default(0)
+  alertsTriggered           String[]
+}
+
+model WatchdogHealth {
+  id          String               @id
+  checkType   WatchdogCheckType    // STALE_SOURCE, DRAINER_PROGRESS, QUEUE_BACKLOG
+  entityId    String
+  status      WatchdogHealthStatus // HEALTHY, WARNING, CRITICAL
+  lastChecked DateTime
+  metric      Decimal?
+  threshold   Decimal?
+}
+
+model WatchdogAlert {
+  id              String           @id
+  severity        WatchdogSeverity // INFO, WARNING, CRITICAL
+  type            WatchdogAlertType
+  message         String
+  occurredAt      DateTime
+  resolvedAt      DateTime?
+}
+
+model ExtractionRejected {
+  id            String   @id
+  evidenceId    String
+  rejectionType String   // INVALID_PERCENTAGE, QUOTE_NOT_IN_EVIDENCE
+  rawOutput     Json
+  errorDetails  String
+  attemptCount  Int      @default(1)
+}
+
+model CoverageReport {
+  id              String   @id
+  evidenceId      String   @unique
+  claimsCount           Int   @default(0)
+  processesCount        Int   @default(0)
+  referenceTablesCount  Int   @default(0)
+  assetsCount           Int   @default(0)
+  coverageScore         Float @default(0)
+  isComplete            Boolean @default(false)
+}
+
+model ReasoningTrace {
+  id                  String   @id
+  requestId           String   @unique
+  events              Json     // Full typed ReasoningEvent[]
+  userContextSnapshot Json
+  outcome             String   // ANSWER, QUALIFIED_ANSWER, REFUSAL, ERROR
+  confidence          Float?
+  durationMs          Int?
+}
+```
+
+---
+
+## 19. Regulatory Truth Layer API Endpoints
+
+### 19.1 Admin Regulatory Truth APIs
+
+| Endpoint                                             | Method | Purpose                           |
+| ---------------------------------------------------- | ------ | --------------------------------- |
+| `/api/admin/regulatory-truth/sources`                | GET    | List regulatory sources           |
+| `/api/admin/regulatory-truth/sources/[id]/toggle`    | POST   | Enable/disable source             |
+| `/api/admin/regulatory-truth/sources/[id]/check`     | POST   | Force check source for updates    |
+| `/api/admin/regulatory-truth/bootstrap`              | POST   | Initialize regulatory sources     |
+| `/api/admin/regulatory-truth/trigger`                | POST   | Manually trigger pipeline         |
+| `/api/admin/regulatory-truth/status`                 | GET    | Pipeline status                   |
+| `/api/admin/regulatory-truth/truth-health`           | GET    | Get truth health metrics          |
+| `/api/admin/regulatory-truth/coverage`               | GET    | Get extraction coverage stats     |
+| `/api/admin/regulatory-truth/revalidation`           | POST   | Trigger rule revalidation         |
+| `/api/admin/regulatory-truth/rules/[id]/approve`     | POST   | Approve rule for publication      |
+| `/api/admin/regulatory-truth/rules/[id]/reject`      | POST   | Reject rule with reason           |
+| `/api/admin/regulatory-truth/rules/check-pointers`   | POST   | Validate source pointer integrity |
+| `/api/admin/regulatory-truth/conflicts/[id]/resolve` | POST   | Resolve conflict manually         |
+| `/api/admin/regulatory-truth/releases/[id]/verify`   | POST   | Verify release integrity          |
+
+### 19.2 Public Regulatory APIs
+
+| Endpoint                  | Method | Purpose                      |
+| ------------------------- | ------ | ---------------------------- |
+| `/api/regulatory/trigger` | POST   | Trigger regulatory pipeline  |
+| `/api/regulatory/status`  | GET    | Get pipeline status          |
+| `/api/regulatory/metrics` | GET    | Get regulatory metrics       |
+| `/api/regulatory/tier1`   | GET    | Get Tier 1 (high-risk) rules |
+| `/api/rules/search`       | GET    | Search regulatory rules      |
+| `/api/rules/evaluate`     | POST   | Evaluate rules against input |
+
+### 19.3 AI Assistant APIs (Extended)
+
+| Endpoint                          | Method | Purpose                   |
+| --------------------------------- | ------ | ------------------------- |
+| `/api/assistant/chat`             | POST   | AI assistant chat         |
+| `/api/assistant/chat/stream`      | POST   | Streaming chat response   |
+| `/api/assistant/chat/reasoning`   | POST   | Chat with reasoning trace |
+| `/api/assistant/reason`           | POST   | Direct reasoning query    |
+| `/api/assistant/reasoning/health` | GET    | Reasoning system health   |
+
+### 19.4 Additional Cron Jobs
+
+| Endpoint                      | Trigger | Purpose                    |
+| ----------------------------- | ------- | -------------------------- |
+| `/api/cron/fiscal-retry`      | 6h      | Retry failed fiscalization |
+| `/api/cron/certificate-check` | Daily   | Check cert expiry          |
+| `/api/cron/weekly-digest`     | Weekly  | Weekly user digest         |
+
+**Updated Total API Routes:** 148 endpoints
+
+---
+
+## 20. Zod Schemas (Regulatory Truth)
+
+Located in `/src/lib/regulatory-truth/schemas/`:
+
+### 20.1 Schema Index
+
+| Schema File             | Purpose                                  |
+| ----------------------- | ---------------------------------------- |
+| `common.ts`             | Shared enums (RiskTier, AgentType, etc.) |
+| `sentinel.ts`           | Sentinel agent input/output              |
+| `extractor.ts`          | Extractor agent with value types         |
+| `composer.ts`           | Draft rule composition with DSL          |
+| `reviewer.ts`           | Review decision schemas                  |
+| `releaser.ts`           | Release packaging schemas                |
+| `arbiter.ts`            | Conflict resolution schemas              |
+| `content-classifier.ts` | Content type classification              |
+| `atomic-claim.ts`       | Logic frame extraction (Shape 1)         |
+| `process.ts`            | Process workflow extraction (Shape 4)    |
+| `reference.ts`          | Lookup table extraction (Shape 5)        |
+| `asset.ts`              | Document asset extraction (Shape 6)      |
+| `transitional.ts`       | Transitional provision (Shape 7)         |
+| `comparison-matrix.ts`  | Comparison matrix extraction (Shape 8)   |
+| `query-intent.ts`       | User query classification                |
+
+### 20.2 Key Type Definitions
+
+```typescript
+// Domain categories
+type Domain =
+  | "pausalni"
+  | "pdv"
+  | "porez_dohodak"
+  | "doprinosi"
+  | "fiskalizacija"
+  | "rokovi"
+  | "obrasci"
+
+// Value types for extracted data
+type ValueType =
+  | "currency"
+  | "percentage"
+  | "date"
+  | "threshold"
+  | "text"
+  | "currency_hrk"
+  | "currency_eur"
+  | "count"
+
+// Risk tiers with confidence thresholds
+const CONFIDENCE_THRESHOLDS = {
+  T0: 0.99, // Critical: Tax rates, legal deadlines
+  T1: 0.95, // High: Thresholds, contribution bases
+  T2: 0.9, // Medium: Procedural requirements
+  T3: 0.85, // Low: UI labels, help text
+}
+```
+
+---
+
+## 21. Knowledge Hub Types
+
+Located in `/src/lib/knowledge-hub/types.ts`:
+
+### 21.1 Changelog Schema (PR #115)
+
+```typescript
+export type ChangelogSeverity = "breaking" | "critical" | "major" | "info"
+
+export interface ChangelogEntry {
+  id: string // Stable slug: "2025-01-15-pdv-threshold"
+  date: string // ISO date
+  severity: ChangelogSeverity
+  summary: string // Human-readable, Croatian
+  affectedSections?: string[] // Links to RegulatorySection ids
+  sourceRef?: string // Canonical reference
+  sourceEvidenceId?: string // Links to Evidence table
+  sourcePending?: boolean // True if evidence not yet linked
+}
+```
+
+### 21.2 Business Type Mappings
+
+```typescript
+export type BusinessType =
+  | "pausalni-obrt"
+  | "pausalni-obrt-uz-zaposlenje"
+  | "pausalni-obrt-umirovljenik"
+  | "obrt-dohodak"
+  | "obrt-dohodak-uz-zaposlenje"
+  | "obrt-dobit"
+  | "jdoo"
+  | "jdoo-uz-zaposlenje"
+  | "doo-jednoclan"
+  | "doo-viseclano"
+  | "doo-direktor-bez-place"
+  | "doo-direktor-s-placom"
+  | "slobodna-profesija"
+  | "opg"
+  | "udruga"
+  | "zadruga"
+  | "sezonski-obrt"
+  | "pausalni-pdv"
+  | "it-freelancer"
+  | "ugostiteljstvo"
+```
+
+---
+
+## 22. Drizzle ORM Models (Extended)
+
+Additional Drizzle tables not previously documented:
+
+| Schema File    | Tables              | Purpose                |
+| -------------- | ------------------- | ---------------------- |
+| `tutorials.ts` | `tutorial_progress` | User tutorial tracking |
+
+```typescript
+// src/lib/db/schema/tutorials.ts
+export const tutorialProgress = pgTable("tutorial_progress", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  companyId: text("company_id").notNull(),
+  trackId: text("track_id").notNull(),
+  completedTasks: jsonb("completed_tasks").$type<string[]>().default([]),
+  currentDay: text("current_day").default("1"),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
+})
+```
+
+---
+
+## 23. EInvoice Model Updates
+
+The EInvoice model has been extended with email tracking fields:
+
+```prisma
+model EInvoice {
+  // ... existing fields ...
+
+  // Email tracking (added)
+  operatorOib       String?
+  paymentMethod     PaymentMethod?
+  emailMessageId    String?
+  emailDeliveredAt  DateTime?
+  emailOpenedAt     DateTime?
+  emailClickedAt    DateTime?
+  emailBouncedAt    DateTime?
+  emailBounceReason String?
+}
+```
+
+---
+
+## 24. Data Flow Architecture
+
+### 24.1 Regulatory Truth Pipeline
+
+```
+Discovery → Sentinel → Evidence → Extractor → SourcePointer
+                                            ↓
+                               Composer → DraftRule → Reviewer
+                                            ↓
+                               Conflict? → Arbiter → Resolution
+                                            ↓
+                                    Releaser → RuleRelease
+```
+
+### 24.2 Key Invariants
+
+1. **Evidence immutability**: `Evidence.rawContent` is never modified
+2. **Source pointer integrity**: Every rule must have at least one SourcePointer
+3. **Fail-closed extraction**: Invalid DSL never defaults to "always true"
+4. **Audit trail**: All rule state changes logged to RegulatoryAuditLog
