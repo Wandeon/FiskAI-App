@@ -8,6 +8,7 @@ import { TableOfContents } from "@/components/knowledge-hub/guide/TableOfContent
 import { slugifyHeading } from "@/lib/knowledge-hub/slugify"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { NextSteps } from "@/components/knowledge-hub/NextSteps"
+import { AIAnswerBlock } from "@/components/content/ai-answer-block"
 import type { Metadata } from "next"
 
 interface Props {
@@ -182,9 +183,20 @@ export default async function GuidePage({ params }: Props) {
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
             <div>
-              <article className="prose prose-invert prose-lg max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-cyan-400 prose-strong:text-white">
-                <MDXRemote source={guide.content} components={mdxComponents} />
-              </article>
+              <AIAnswerBlock
+                answerId={`guide:${slug}:v1`}
+                type="procedural"
+                confidence="high"
+                contentType="guide"
+                lastUpdated={
+                  guide.frontmatter.lastUpdated || new Date().toISOString().split("T")[0]
+                }
+                bluf={guide.frontmatter.description}
+              >
+                <article className="prose prose-invert prose-lg max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-cyan-400 prose-strong:text-white">
+                  <MDXRemote source={guide.content} components={mdxComponents} />
+                </article>
+              </AIAnswerBlock>
 
               <NextSteps
                 tools={[
