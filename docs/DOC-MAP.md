@@ -22,6 +22,7 @@ docs/
 │
 ├── 02_FEATURES/                   # Feature specifications (109 files)
 │   ├── FEATURE_REGISTRY.md        # Master feature list (status granularity PR #124)
+│   ├── COMPONENT_LIBRARY.md       # UI component inventory (PR #131)
 │   └── features/                  # Individual feature specs
 │       └── staff-portal.md        # Staff Portal gap analysis (PR #126)
 │
@@ -215,6 +216,8 @@ These files are accurate and canonical:
 | #126  | `docs/02_FEATURES/features/staff-portal.md`     | Staff Portal gap analysis            |
 | #127  | `docs/03_ARCHITECTURE/AI_ASSISTANT.md`          | AI Assistant architecture            |
 | #128  | `docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md`| RTL consolidated architecture        |
+| #130  | `docs/02_FEATURES/features/staff-portal.md`     | Staff API reference added            |
+| #131  | `docs/02_FEATURES/COMPONENT_LIBRARY.md`         | UI component inventory               |
 
 ---
 

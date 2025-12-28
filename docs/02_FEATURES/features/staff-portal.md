@@ -177,6 +177,77 @@ API calls verify assignment before data access
 
 ---
 
+## API Reference
+
+### GET /api/staff/clients
+
+List all companies assigned to the authenticated staff member.
+
+**Authentication:** Required (STAFF or ADMIN systemRole)
+
+**Request:** No body required
+
+**Response (200):**
+```json
+[
+  {
+    "id": "clxxx...",
+    "name": "Acme d.o.o.",
+    "oib": "12345678901",
+    "entitlements": ["invoicing", "expenses", "banking"],
+    "subscriptionStatus": "active",
+    "assignedAt": "2025-01-15T10:00:00.000Z",
+    "notes": "Primary contact: Ivan"
+  }
+]
+```
+
+**Errors:**
+- `401 Unauthorized` - Not authenticated
+- `403 Forbidden` - User lacks STAFF/ADMIN role
+
+**Source:** `src/app/api/staff/clients/route.ts`
+
+---
+
+### GET /api/staff/clients/[companyId]
+
+Get detailed information for a specific assigned client.
+
+**Authentication:** Required (STAFF or ADMIN systemRole)
+
+**Path Parameters:**
+- `companyId` (string) - Company UUID
+
+**Response (200):**
+```json
+{
+  "id": "clxxx...",
+  "name": "Acme d.o.o.",
+  "oib": "12345678901",
+  "vatNumber": "HR12345678901",
+  "address": "Ilica 1",
+  "city": "Zagreb",
+  "postalCode": "10000",
+  "email": "info@acme.hr",
+  "phone": "+385 1 1234567",
+  "entitlements": ["invoicing", "expenses", "banking"],
+  "subscriptionStatus": "active",
+  "subscriptionPlan": "professional",
+  "legalForm": "DOO",
+  "isVatPayer": true
+}
+```
+
+**Errors:**
+- `401 Unauthorized` - Not authenticated
+- `403 Forbidden` - User lacks STAFF/ADMIN role or not assigned to company
+- `404 Not Found` - Company does not exist
+
+**Source:** `src/app/api/staff/clients/[companyId]/route.ts`
+
+---
+
 ## File References
 
 | File | Purpose |
