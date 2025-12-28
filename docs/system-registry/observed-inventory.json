@@ -1,0 +1,1084 @@
+{
+  "harvestDate": "2025-12-28T12:00:00Z",
+  "harvester": "deterministic-code-scan",
+  "components": [
+    {
+      "componentId": "ui-portal-marketing",
+      "type": "UI",
+      "name": "Marketing Portal",
+      "observedAt": ["src/app/(marketing)/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "subdomain": "fiskai.hr",
+        "routeGroups": 15
+      }
+    },
+    {
+      "componentId": "ui-portal-app",
+      "type": "UI",
+      "name": "Client App Portal",
+      "observedAt": ["src/app/(app)/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "subdomain": "app.fiskai.hr",
+        "routeGroups": 60
+      }
+    },
+    {
+      "componentId": "ui-portal-staff",
+      "type": "UI",
+      "name": "Staff Portal",
+      "observedAt": ["src/app/(staff)/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "subdomain": "staff.fiskai.hr",
+        "routeGroups": 3
+      }
+    },
+    {
+      "componentId": "ui-portal-admin",
+      "type": "UI",
+      "name": "Admin Portal",
+      "observedAt": ["src/app/(admin)/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "subdomain": "admin.fiskai.hr",
+        "routeGroups": 15
+      }
+    },
+    {
+      "componentId": "module-invoicing",
+      "type": "MODULE",
+      "name": "Invoicing",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "invoicing",
+        "defaultEnabled": true,
+        "routes": ["/invoices", "/invoices/new", "/invoices/[id]"]
+      }
+    },
+    {
+      "componentId": "module-e-invoicing",
+      "type": "MODULE",
+      "name": "E-Invoicing",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "e-invoicing",
+        "defaultEnabled": true,
+        "routes": ["/e-invoices", "/e-invoices/new", "/e-invoices/[id]"]
+      }
+    },
+    {
+      "componentId": "module-fiscalization",
+      "type": "MODULE",
+      "name": "Fiscalization",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "fiscalization",
+        "defaultEnabled": false,
+        "routes": ["/settings/fiscalisation", "/settings/premises"]
+      }
+    },
+    {
+      "componentId": "module-contacts",
+      "type": "MODULE",
+      "name": "Contacts",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "contacts",
+        "defaultEnabled": true,
+        "routes": ["/contacts", "/contacts/new", "/contacts/[id]"]
+      }
+    },
+    {
+      "componentId": "module-products",
+      "type": "MODULE",
+      "name": "Products",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "products",
+        "defaultEnabled": true,
+        "routes": ["/products", "/products/new", "/products/[id]"]
+      }
+    },
+    {
+      "componentId": "module-expenses",
+      "type": "MODULE",
+      "name": "Expenses",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "expenses",
+        "defaultEnabled": true,
+        "routes": ["/expenses", "/expenses/new", "/expenses/[id]", "/expenses/categories"]
+      }
+    },
+    {
+      "componentId": "module-banking",
+      "type": "MODULE",
+      "name": "Banking",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "banking",
+        "defaultEnabled": false,
+        "routes": ["/banking", "/banking/accounts", "/banking/transactions", "/banking/import"]
+      }
+    },
+    {
+      "componentId": "module-reconciliation",
+      "type": "MODULE",
+      "name": "Reconciliation",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "reconciliation",
+        "defaultEnabled": false,
+        "routes": ["/banking/reconciliation"]
+      }
+    },
+    {
+      "componentId": "module-reports-basic",
+      "type": "MODULE",
+      "name": "Basic Reports",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "reports-basic",
+        "defaultEnabled": true,
+        "routes": ["/reports", "/reports/aging", "/reports/kpr", "/reports/profit-loss"]
+      }
+    },
+    {
+      "componentId": "module-reports-advanced",
+      "type": "MODULE",
+      "name": "Advanced Reports",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "reports-advanced",
+        "defaultEnabled": false,
+        "routes": ["/reports/vat-threshold", "/reports/export"]
+      }
+    },
+    {
+      "componentId": "module-pausalni",
+      "type": "MODULE",
+      "name": "Paušalni",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "pausalni",
+        "defaultEnabled": false,
+        "routes": ["/pausalni", "/pausalni/forms", "/pausalni/settings", "/pausalni/po-sd"]
+      }
+    },
+    {
+      "componentId": "module-vat",
+      "type": "MODULE",
+      "name": "VAT",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "vat",
+        "defaultEnabled": false,
+        "routes": ["/vat"]
+      }
+    },
+    {
+      "componentId": "module-corporate-tax",
+      "type": "MODULE",
+      "name": "Corporate Tax",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "corporate-tax",
+        "defaultEnabled": false,
+        "routes": ["/corporate-tax"]
+      }
+    },
+    {
+      "componentId": "module-pos",
+      "type": "MODULE",
+      "name": "POS",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "pos",
+        "defaultEnabled": false,
+        "routes": ["/pos"]
+      }
+    },
+    {
+      "componentId": "module-documents",
+      "type": "MODULE",
+      "name": "Documents",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "documents",
+        "defaultEnabled": true,
+        "routes": ["/documents", "/documents/[id]"]
+      }
+    },
+    {
+      "componentId": "module-ai-assistant",
+      "type": "MODULE",
+      "name": "AI Assistant",
+      "observedAt": ["src/lib/modules/definitions.ts"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "key": "ai-assistant",
+        "defaultEnabled": false,
+        "routes": ["/assistant", "/article-agent"]
+      }
+    },
+    {
+      "componentId": "route-group-admin",
+      "type": "ROUTE_GROUP",
+      "name": "Admin API",
+      "observedAt": ["src/app/api/admin/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 25
+      }
+    },
+    {
+      "componentId": "route-group-ai",
+      "type": "ROUTE_GROUP",
+      "name": "AI API",
+      "observedAt": ["src/app/api/ai/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 4
+      }
+    },
+    {
+      "componentId": "route-group-assistant",
+      "type": "ROUTE_GROUP",
+      "name": "Assistant API",
+      "observedAt": ["src/app/api/assistant/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 5
+      }
+    },
+    {
+      "componentId": "route-group-auth",
+      "type": "ROUTE_GROUP",
+      "name": "Auth API",
+      "observedAt": ["src/app/api/auth/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 6
+      }
+    },
+    {
+      "componentId": "route-group-bank",
+      "type": "ROUTE_GROUP",
+      "name": "Bank API",
+      "observedAt": ["src/app/api/bank/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 3
+      }
+    },
+    {
+      "componentId": "route-group-banking",
+      "type": "ROUTE_GROUP",
+      "name": "Banking API",
+      "observedAt": ["src/app/api/banking/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 7
+      }
+    },
+    {
+      "componentId": "route-group-billing",
+      "type": "ROUTE_GROUP",
+      "name": "Billing API",
+      "observedAt": ["src/app/api/billing/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 3
+      }
+    },
+    {
+      "componentId": "route-group-cache",
+      "type": "ROUTE_GROUP",
+      "name": "Cache API",
+      "observedAt": ["src/app/api/cache/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-capabilities",
+      "type": "ROUTE_GROUP",
+      "name": "Capabilities API",
+      "observedAt": ["src/app/api/capabilities/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-compliance",
+      "type": "ROUTE_GROUP",
+      "name": "Compliance API",
+      "observedAt": ["src/app/api/compliance/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-cron",
+      "type": "ROUTE_GROUP",
+      "name": "Cron API",
+      "observedAt": ["src/app/api/cron/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 12
+      }
+    },
+    {
+      "componentId": "route-group-deadlines",
+      "type": "ROUTE_GROUP",
+      "name": "Deadlines API",
+      "observedAt": ["src/app/api/deadlines/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-e-invoices",
+      "type": "ROUTE_GROUP",
+      "name": "E-Invoices API",
+      "observedAt": ["src/app/api/e-invoices/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-email",
+      "type": "ROUTE_GROUP",
+      "name": "Email API",
+      "observedAt": ["src/app/api/email/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 5
+      }
+    },
+    {
+      "componentId": "route-group-exports",
+      "type": "ROUTE_GROUP",
+      "name": "Exports API",
+      "observedAt": ["src/app/api/exports/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 4
+      }
+    },
+    {
+      "componentId": "route-group-guidance",
+      "type": "ROUTE_GROUP",
+      "name": "Guidance API",
+      "observedAt": ["src/app/api/guidance/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 3
+      }
+    },
+    {
+      "componentId": "route-group-health",
+      "type": "ROUTE_GROUP",
+      "name": "Health API",
+      "observedAt": ["src/app/api/health/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-import",
+      "type": "ROUTE_GROUP",
+      "name": "Import API",
+      "observedAt": ["src/app/api/import/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 7
+      }
+    },
+    {
+      "componentId": "route-group-invoices",
+      "type": "ROUTE_GROUP",
+      "name": "Invoices API",
+      "observedAt": ["src/app/api/invoices/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-knowledge-hub",
+      "type": "ROUTE_GROUP",
+      "name": "Knowledge Hub API",
+      "observedAt": ["src/app/api/knowledge-hub/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-metrics",
+      "type": "ROUTE_GROUP",
+      "name": "Metrics API",
+      "observedAt": ["src/app/api/metrics/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-news",
+      "type": "ROUTE_GROUP",
+      "name": "News API",
+      "observedAt": ["src/app/api/news/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 5
+      }
+    },
+    {
+      "componentId": "route-group-notifications",
+      "type": "ROUTE_GROUP",
+      "name": "Notifications API",
+      "observedAt": ["src/app/api/notifications/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-oib",
+      "type": "ROUTE_GROUP",
+      "name": "OIB API",
+      "observedAt": ["src/app/api/oib/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-pausalni",
+      "type": "ROUTE_GROUP",
+      "name": "Pausalni API",
+      "observedAt": ["src/app/api/pausalni/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 12
+      }
+    },
+    {
+      "componentId": "route-group-products",
+      "type": "ROUTE_GROUP",
+      "name": "Products API",
+      "observedAt": ["src/app/api/products/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-receipts",
+      "type": "ROUTE_GROUP",
+      "name": "Receipts API",
+      "observedAt": ["src/app/api/receipts/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-regulatory",
+      "type": "ROUTE_GROUP",
+      "name": "Regulatory API",
+      "observedAt": ["src/app/api/regulatory/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 4
+      }
+    },
+    {
+      "componentId": "route-group-reports",
+      "type": "ROUTE_GROUP",
+      "name": "Reports API",
+      "observedAt": ["src/app/api/reports/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 5
+      }
+    },
+    {
+      "componentId": "route-group-rules",
+      "type": "ROUTE_GROUP",
+      "name": "Rules API",
+      "observedAt": ["src/app/api/rules/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-sandbox",
+      "type": "ROUTE_GROUP",
+      "name": "Sandbox API",
+      "observedAt": ["src/app/api/sandbox/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-staff",
+      "type": "ROUTE_GROUP",
+      "name": "Staff API",
+      "observedAt": ["src/app/api/staff/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 2
+      }
+    },
+    {
+      "componentId": "route-group-status",
+      "type": "ROUTE_GROUP",
+      "name": "Status API",
+      "observedAt": ["src/app/api/status/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "route-group-support",
+      "type": "ROUTE_GROUP",
+      "name": "Support API",
+      "observedAt": ["src/app/api/support/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 4
+      }
+    },
+    {
+      "componentId": "route-group-terminal",
+      "type": "ROUTE_GROUP",
+      "name": "Terminal API",
+      "observedAt": ["src/app/api/terminal/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 3
+      }
+    },
+    {
+      "componentId": "route-group-webauthn",
+      "type": "ROUTE_GROUP",
+      "name": "WebAuthn API",
+      "observedAt": ["src/app/api/webauthn/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 6
+      }
+    },
+    {
+      "componentId": "route-group-webhooks",
+      "type": "ROUTE_GROUP",
+      "name": "Webhooks API",
+      "observedAt": ["src/app/api/webhooks/"],
+      "discoveryMethod": "route-scan",
+      "metadata": {
+        "endpointCount": 1
+      }
+    },
+    {
+      "componentId": "worker-orchestrator",
+      "type": "WORKER",
+      "name": "RTL Orchestrator Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/orchestrator.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-orchestrator",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-sentinel",
+      "type": "WORKER",
+      "name": "RTL Sentinel Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/sentinel.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-sentinel",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-extractor",
+      "type": "WORKER",
+      "name": "RTL Extractor Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/extractor.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "replicas": 2,
+        "concurrency": 2
+      }
+    },
+    {
+      "componentId": "worker-ocr",
+      "type": "WORKER",
+      "name": "RTL OCR Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/ocr.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-ocr",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-composer",
+      "type": "WORKER",
+      "name": "RTL Composer Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/composer.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-composer",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-reviewer",
+      "type": "WORKER",
+      "name": "RTL Reviewer Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/reviewer.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-reviewer",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-scheduler",
+      "type": "WORKER",
+      "name": "RTL Scheduler Service",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/scheduler.service.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-scheduler"
+      }
+    },
+    {
+      "componentId": "worker-releaser",
+      "type": "WORKER",
+      "name": "RTL Releaser Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/releaser.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-releaser",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-arbiter",
+      "type": "WORKER",
+      "name": "RTL Arbiter Worker",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/arbiter.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-arbiter",
+        "concurrency": 1
+      }
+    },
+    {
+      "componentId": "worker-continuous-drainer",
+      "type": "WORKER",
+      "name": "RTL Continuous Drainer",
+      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/continuous-drainer.worker.ts"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "containerName": "fiskai-worker-continuous-drainer"
+      }
+    },
+    {
+      "componentId": "job-fiscal-processor",
+      "type": "JOB",
+      "name": "Fiscal Processor Cron",
+      "observedAt": ["src/app/api/cron/fiscal-processor/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-fetch-news",
+      "type": "JOB",
+      "name": "Fetch News Cron",
+      "observedAt": ["src/app/api/cron/fetch-news/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-checklist-digest",
+      "type": "JOB",
+      "name": "Checklist Digest Cron",
+      "observedAt": ["src/app/api/cron/checklist-digest/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-email-sync",
+      "type": "JOB",
+      "name": "Email Sync Cron",
+      "observedAt": ["src/app/api/cron/email-sync/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-bank-sync",
+      "type": "JOB",
+      "name": "Bank Sync Cron",
+      "observedAt": ["src/app/api/cron/bank-sync/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-deadline-reminders",
+      "type": "JOB",
+      "name": "Deadline Reminders Cron",
+      "observedAt": ["src/app/api/cron/deadline-reminders/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-fiscal-retry",
+      "type": "JOB",
+      "name": "Fiscal Retry Cron",
+      "observedAt": ["src/app/api/cron/fiscal-retry/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-weekly-digest",
+      "type": "JOB",
+      "name": "Weekly Digest Cron",
+      "observedAt": ["src/app/api/cron/weekly-digest/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-news-review",
+      "type": "JOB",
+      "name": "News Review Cron",
+      "observedAt": ["src/app/api/cron/news/review/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-news-fetch-classify",
+      "type": "JOB",
+      "name": "News Fetch & Classify Cron",
+      "observedAt": ["src/app/api/cron/news/fetch-classify/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-news-publish",
+      "type": "JOB",
+      "name": "News Publish Cron",
+      "observedAt": ["src/app/api/cron/news/publish/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "job-certificate-check",
+      "type": "JOB",
+      "name": "Certificate Check Cron",
+      "observedAt": ["src/app/api/cron/certificate-check/route.ts"],
+      "discoveryMethod": "cron-route"
+    },
+    {
+      "componentId": "queue-sentinel",
+      "type": "QUEUE",
+      "name": "Sentinel Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 5, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-extract",
+      "type": "QUEUE",
+      "name": "Extract Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 10, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-ocr",
+      "type": "QUEUE",
+      "name": "OCR Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 2, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-compose",
+      "type": "QUEUE",
+      "name": "Compose Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 5, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-review",
+      "type": "QUEUE",
+      "name": "Review Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 5, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-arbiter",
+      "type": "QUEUE",
+      "name": "Arbiter Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 3, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-release",
+      "type": "QUEUE",
+      "name": "Release Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 2, "duration": 60000 }
+      }
+    },
+    {
+      "componentId": "queue-consolidator",
+      "type": "QUEUE",
+      "name": "Consolidator Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "rateLimiter": { "max": 1, "duration": 300000 }
+      }
+    },
+    {
+      "componentId": "queue-scheduled",
+      "type": "QUEUE",
+      "name": "Scheduled Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference"
+    },
+    {
+      "componentId": "queue-deadletter",
+      "type": "QUEUE",
+      "name": "Deadletter Queue",
+      "observedAt": ["src/lib/regulatory-truth/workers/queues.ts"],
+      "discoveryMethod": "code-reference"
+    },
+    {
+      "componentId": "store-postgresql",
+      "type": "STORE",
+      "name": "PostgreSQL Database",
+      "observedAt": ["prisma/schema.prisma", "docker-compose.yml"],
+      "discoveryMethod": "config-reference",
+      "metadata": {
+        "container": "fiskai-db",
+        "modelCount": 82
+      }
+    },
+    {
+      "componentId": "store-redis",
+      "type": "STORE",
+      "name": "Redis Cache & Queue Backend",
+      "observedAt": ["docker-compose.workers.yml"],
+      "discoveryMethod": "compose-service",
+      "metadata": {
+        "container": "fiskai-redis",
+        "maxMemory": "512mb"
+      }
+    },
+    {
+      "componentId": "store-r2",
+      "type": "STORE",
+      "name": "Cloudflare R2 Object Storage",
+      "observedAt": ["src/lib/r2-client.ts", ".env.example"],
+      "discoveryMethod": "env-usage",
+      "metadata": {
+        "bucket": "fiskai-documents"
+      }
+    },
+    {
+      "componentId": "integration-resend",
+      "type": "INTEGRATION",
+      "name": "Resend Email Service",
+      "observedAt": ["src/lib/email/", ".env.example"],
+      "discoveryMethod": "env-usage",
+      "metadata": {
+        "purpose": "transactional-email"
+      }
+    },
+    {
+      "componentId": "integration-stripe",
+      "type": "INTEGRATION",
+      "name": "Stripe Payment & Terminal",
+      "observedAt": ["src/lib/stripe/", ".env.example"],
+      "discoveryMethod": "env-usage",
+      "metadata": {
+        "features": ["billing", "terminal", "webhooks"]
+      }
+    },
+    {
+      "componentId": "integration-gocardless",
+      "type": "INTEGRATION",
+      "name": "GoCardless Open Banking",
+      "observedAt": [".env.example"],
+      "discoveryMethod": "env-usage",
+      "metadata": {
+        "purpose": "bank-account-data"
+      }
+    },
+    {
+      "componentId": "integration-fina-cis",
+      "type": "INTEGRATION",
+      "name": "FINA CIS Fiscalization",
+      "observedAt": ["src/lib/fiscal/porezna-client.ts"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "purpose": "fiscalization"
+      }
+    },
+    {
+      "componentId": "integration-ollama",
+      "type": "INTEGRATION",
+      "name": "Ollama LLM Service",
+      "observedAt": ["docker-compose.workers.yml"],
+      "discoveryMethod": "env-usage",
+      "metadata": {
+        "purpose": "llm-inference",
+        "models": ["extraction", "vision"]
+      }
+    },
+    {
+      "componentId": "integration-turnstile",
+      "type": "INTEGRATION",
+      "name": "Cloudflare Turnstile",
+      "observedAt": ["src/components/forms/turnstile-widget.tsx"],
+      "discoveryMethod": "code-reference",
+      "metadata": {
+        "purpose": "bot-protection"
+      }
+    },
+    {
+      "componentId": "lib-regulatory-truth",
+      "type": "LIB",
+      "name": "Regulatory Truth Layer",
+      "observedAt": ["src/lib/regulatory-truth/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "subdirectories": 22
+      }
+    },
+    {
+      "componentId": "lib-assistant",
+      "type": "LIB",
+      "name": "AI Assistant Engine",
+      "observedAt": ["src/lib/assistant/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "files": 90
+      }
+    },
+    {
+      "componentId": "lib-auth",
+      "type": "LIB",
+      "name": "Authentication Library",
+      "observedAt": ["src/lib/auth/"],
+      "discoveryMethod": "directory-exists"
+    },
+    {
+      "componentId": "lib-guidance",
+      "type": "LIB",
+      "name": "Guidance System",
+      "observedAt": ["src/lib/guidance/"],
+      "discoveryMethod": "directory-exists",
+      "metadata": {
+        "files": 9
+      }
+    },
+    {
+      "componentId": "lib-modules",
+      "type": "LIB",
+      "name": "Module System",
+      "observedAt": ["src/lib/modules/"],
+      "discoveryMethod": "directory-exists"
+    },
+    {
+      "componentId": "lib-visibility",
+      "type": "LIB",
+      "name": "Visibility System",
+      "observedAt": ["src/lib/visibility/"],
+      "discoveryMethod": "directory-exists"
+    },
+    {
+      "componentId": "lib-fiscal",
+      "type": "LIB",
+      "name": "Fiscalization Library",
+      "observedAt": ["src/lib/fiscal/"],
+      "discoveryMethod": "directory-exists"
+    },
+    {
+      "componentId": "lib-billing",
+      "type": "LIB",
+      "name": "Billing Library",
+      "observedAt": ["src/lib/billing/"],
+      "discoveryMethod": "directory-exists"
+    },
+    {
+      "componentId": "lib-cache",
+      "type": "LIB",
+      "name": "Cache Library",
+      "observedAt": ["src/lib/cache/"],
+      "discoveryMethod": "directory-exists"
+    },
+    {
+      "componentId": "lib-middleware",
+      "type": "LIB",
+      "name": "Middleware (Subdomain Routing)",
+      "observedAt": ["src/lib/middleware/"],
+      "discoveryMethod": "directory-exists"
+    }
+  ],
+  "summary": {
+    "totalComponents": 110,
+    "byType": {
+      "UI": 4,
+      "MODULE": 16,
+      "ROUTE_GROUP": 37,
+      "WORKER": 10,
+      "JOB": 12,
+      "QUEUE": 10,
+      "STORE": 3,
+      "INTEGRATION": 6,
+      "LIB": 12
+    }
+  }
+}

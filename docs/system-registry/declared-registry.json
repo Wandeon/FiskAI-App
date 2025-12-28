@@ -1,0 +1,532 @@
+{
+  "registryDate": "2025-12-28T12:00:00Z",
+  "source": "docs/STATUS.md + docs/02_FEATURES/FEATURE_REGISTRY.md + src/lib/modules/definitions.ts",
+  "components": [
+    {
+      "componentId": "ui-portal-marketing",
+      "type": "UI",
+      "name": "Marketing Portal",
+      "status": "STABLE",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": "docs/product-bible/05-UI-EXPERIENCE.md",
+      "codeRef": "src/app/(marketing)/",
+      "dependencies": []
+    },
+    {
+      "componentId": "ui-portal-app",
+      "type": "UI",
+      "name": "Client App Portal",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/product-bible/05-UI-EXPERIENCE.md",
+      "codeRef": "src/app/(app)/",
+      "dependencies": [
+        { "componentId": "lib-auth", "type": "SECURITY" },
+        { "componentId": "lib-modules", "type": "HARD" },
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "ui-portal-staff",
+      "type": "UI",
+      "name": "Staff Portal",
+      "status": "BETA",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/staff-portal.md",
+      "codeRef": "src/app/(staff)/",
+      "dependencies": [
+        { "componentId": "lib-auth", "type": "SECURITY" },
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "ui-portal-admin",
+      "type": "UI",
+      "name": "Admin Portal",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/app/(admin)/",
+      "dependencies": [
+        { "componentId": "lib-auth", "type": "SECURITY" },
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-invoicing",
+      "type": "MODULE",
+      "name": "Invoicing",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/invoicing-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" },
+        { "componentId": "module-contacts", "type": "SOFT" },
+        { "componentId": "module-products", "type": "SOFT" }
+      ]
+    },
+    {
+      "componentId": "module-e-invoicing",
+      "type": "MODULE",
+      "name": "E-Invoicing",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/e-invoicing-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "module-invoicing", "type": "HARD" },
+        { "componentId": "store-r2", "type": "SOFT" }
+      ]
+    },
+    {
+      "componentId": "module-fiscalization",
+      "type": "MODULE",
+      "name": "Fiscalization",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/fiscal-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "integration-fina-cis", "type": "HARD" },
+        { "componentId": "lib-fiscal", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-contacts",
+      "type": "MODULE",
+      "name": "Contacts",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/contacts-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-products",
+      "type": "MODULE",
+      "name": "Products",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/products-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-expenses",
+      "type": "MODULE",
+      "name": "Expenses",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/expenses-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" },
+        { "componentId": "store-r2", "type": "SOFT" }
+      ]
+    },
+    {
+      "componentId": "module-banking",
+      "type": "MODULE",
+      "name": "Banking",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/banking-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "integration-gocardless", "type": "HARD" },
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-reconciliation",
+      "type": "MODULE",
+      "name": "Reconciliation",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/banking-reconciliation.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "module-banking", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-reports-basic",
+      "type": "MODULE",
+      "name": "Basic Reports",
+      "status": "STABLE",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/reports-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-reports-advanced",
+      "type": "MODULE",
+      "name": "Advanced Reports",
+      "status": "STABLE",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/reports-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "module-reports-basic", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-pausalni",
+      "type": "MODULE",
+      "name": "Paušalni",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/02_FEATURES/features/pausalni-*.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-vat",
+      "type": "MODULE",
+      "name": "VAT",
+      "status": "BETA",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-corporate-tax",
+      "type": "MODULE",
+      "name": "Corporate Tax",
+      "status": "DEPRECATED",
+      "criticality": "LOW",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": []
+    },
+    {
+      "componentId": "module-pos",
+      "type": "MODULE",
+      "name": "POS",
+      "status": "BETA",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "integration-stripe", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-documents",
+      "type": "MODULE",
+      "name": "Documents",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "store-r2", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "module-ai-assistant",
+      "type": "MODULE",
+      "name": "AI Assistant",
+      "status": "STABLE",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": "docs/03_ARCHITECTURE/AI_ASSISTANT.md",
+      "codeRef": "src/lib/modules/definitions.ts",
+      "dependencies": [
+        { "componentId": "lib-assistant", "type": "HARD" },
+        { "componentId": "lib-regulatory-truth", "type": "SOFT" }
+      ]
+    },
+    {
+      "componentId": "lib-regulatory-truth",
+      "type": "LIB",
+      "name": "Regulatory Truth Layer",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/",
+      "dependencies": [
+        { "componentId": "store-postgresql", "type": "HARD" },
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "integration-ollama", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "lib-assistant",
+      "type": "LIB",
+      "name": "AI Assistant Engine",
+      "status": "STABLE",
+      "criticality": "MEDIUM",
+      "owner": null,
+      "docsRef": "docs/03_ARCHITECTURE/AI_ASSISTANT.md",
+      "codeRef": "src/lib/assistant/",
+      "dependencies": [
+        { "componentId": "lib-regulatory-truth", "type": "DATA" }
+      ]
+    },
+    {
+      "componentId": "lib-guidance",
+      "type": "LIB",
+      "name": "Guidance System",
+      "status": "STABLE",
+      "criticality": "LOW",
+      "owner": null,
+      "docsRef": "docs/product-bible/09-GUIDANCE-SYSTEM.md",
+      "codeRef": "src/lib/guidance/",
+      "dependencies": []
+    },
+    {
+      "componentId": "lib-visibility",
+      "type": "LIB",
+      "name": "Visibility System",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/product-bible/04-ACCESS-CONTROL.md",
+      "codeRef": "src/lib/visibility/",
+      "dependencies": []
+    },
+    {
+      "componentId": "worker-orchestrator",
+      "type": "WORKER",
+      "name": "RTL Orchestrator Worker",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/orchestrator.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "lib-regulatory-truth", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-sentinel",
+      "type": "WORKER",
+      "name": "RTL Sentinel Worker",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/sentinel.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-sentinel", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-extractor",
+      "type": "WORKER",
+      "name": "RTL Extractor Worker",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/extractor.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-extract", "type": "HARD" },
+        { "componentId": "integration-ollama", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-ocr",
+      "type": "WORKER",
+      "name": "RTL OCR Worker",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/ocr.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-ocr", "type": "HARD" },
+        { "componentId": "integration-ollama", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-composer",
+      "type": "WORKER",
+      "name": "RTL Composer Worker",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/composer.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-compose", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-reviewer",
+      "type": "WORKER",
+      "name": "RTL Reviewer Worker",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/reviewer.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-review", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-releaser",
+      "type": "WORKER",
+      "name": "RTL Releaser Worker",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/releaser.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-release", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "worker-arbiter",
+      "type": "WORKER",
+      "name": "RTL Arbiter Worker",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": "docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md",
+      "codeRef": "src/lib/regulatory-truth/workers/arbiter.worker.ts",
+      "dependencies": [
+        { "componentId": "store-redis", "type": "HARD" },
+        { "componentId": "queue-arbiter", "type": "HARD" }
+      ]
+    },
+    {
+      "componentId": "store-postgresql",
+      "type": "STORE",
+      "name": "PostgreSQL Database",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "prisma/schema.prisma",
+      "dependencies": []
+    },
+    {
+      "componentId": "store-redis",
+      "type": "STORE",
+      "name": "Redis Cache & Queue Backend",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "docker-compose.workers.yml",
+      "dependencies": []
+    },
+    {
+      "componentId": "store-r2",
+      "type": "STORE",
+      "name": "Cloudflare R2 Object Storage",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/r2-client.ts",
+      "dependencies": []
+    },
+    {
+      "componentId": "integration-resend",
+      "type": "INTEGRATION",
+      "name": "Resend Email Service",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/email/",
+      "dependencies": []
+    },
+    {
+      "componentId": "integration-stripe",
+      "type": "INTEGRATION",
+      "name": "Stripe Payment & Terminal",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": "src/lib/stripe/",
+      "dependencies": []
+    },
+    {
+      "componentId": "integration-gocardless",
+      "type": "INTEGRATION",
+      "name": "GoCardless Open Banking",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": null,
+      "dependencies": []
+    },
+    {
+      "componentId": "integration-fina-cis",
+      "type": "INTEGRATION",
+      "name": "FINA CIS Fiscalization",
+      "status": "STABLE",
+      "criticality": "CRITICAL",
+      "owner": null,
+      "docsRef": "docs/FISCALIZATION.md",
+      "codeRef": "src/lib/fiscal/",
+      "dependencies": []
+    },
+    {
+      "componentId": "integration-ollama",
+      "type": "INTEGRATION",
+      "name": "Ollama LLM Service",
+      "status": "STABLE",
+      "criticality": "HIGH",
+      "owner": null,
+      "docsRef": null,
+      "codeRef": null,
+      "dependencies": []
+    }
+  ],
+  "summary": {
+    "totalDeclared": 40,
+    "withOwner": 0,
+    "withDocsRef": 23,
+    "withCodeRef": 37,
+    "withDependencies": 25
+  }
+}

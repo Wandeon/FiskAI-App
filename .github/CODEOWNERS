@@ -1,0 +1,79 @@
+# CODEOWNERS - GitHub Code Owners
+#
+# This file defines who must approve PRs that touch certain paths.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Format: path @user-or-team
+# Teams should be @org/team-name (e.g., @fiskai/platform)
+
+# =============================================================================
+# SYSTEM REGISTRY - GOVERNANCE PROTECTION
+# =============================================================================
+#
+# These files control what can be excluded, ignored, or bypassed in the
+# System Registry. Changes require Security + Platform approval to prevent
+# governance bypass attacks.
+#
+# CRITICAL: Do not weaken these rules without explicit security review.
+
+# Core governance and schema (defines exclusions, owners, types)
+src/lib/system-registry/governance.ts    @fiskai/platform @fiskai/security
+src/lib/system-registry/schema.ts        @fiskai/platform @fiskai/security
+
+# Drift computation (enforcement logic)
+src/lib/system-registry/compute-drift.ts @fiskai/platform @fiskai/security
+
+# All harvesters (what gets observed)
+# CRITICAL: Harvester changes can hide systems and make drift look clean.
+# Requires same approval as governance to prevent bypass via observation manipulation.
+src/lib/system-registry/harvesters/      @fiskai/platform @fiskai/security
+
+# Declarations (what's registered)
+src/lib/system-registry/declarations.ts   @fiskai/platform @fiskai/security
+src/lib/system-registry/declarations/    @fiskai/platform @fiskai/security
+
+# CI scripts (enforcement entry points)
+# Controls how drift is computed and reported - part of security boundary.
+src/lib/system-registry/scripts/         @fiskai/platform @fiskai/security
+
+# Registry enforcement entry points
+package.json                             @fiskai/platform @fiskai/security
+.github/workflows/registry-check.yml     @fiskai/platform @fiskai/security
+
+# =============================================================================
+# SECURITY-SENSITIVE AREAS
+# =============================================================================
+
+# Authentication and authorization
+src/lib/auth/                             @fiskai/security
+src/lib/security/                         @fiskai/security
+src/app/api/auth/                         @fiskai/security
+
+# Billing and payments
+src/lib/billing/                          @fiskai/billing
+src/lib/stripe/                           @fiskai/billing
+
+# Regulatory compliance
+src/lib/compliance/                       @fiskai/rtl
+src/lib/fiscal/                           @fiskai/rtl
+src/lib/regulatory-truth/                 @fiskai/rtl
+
+# =============================================================================
+# DATABASE AND DATA
+# =============================================================================
+
+# Schema changes require data team review
+prisma/                                   @fiskai/data
+src/lib/db/                               @fiskai/data
+
+# =============================================================================
+# INFRASTRUCTURE
+# =============================================================================
+
+# CI/CD and deployment
+.github/                                  @fiskai/platform
+docker-compose*.yml                       @fiskai/platform
+Dockerfile*                               @fiskai/platform
+
+# This file itself requires platform + security approval
+.github/CODEOWNERS                        @fiskai/platform @fiskai/security

@@ -44,7 +44,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "validate:routes": "tsx scripts/validate-routes.ts",
-    "validate:content": "tsx scripts/validate-content.ts"
+    "validate:content": "tsx scripts/validate-content.ts",
+    "registry:check": "npx tsx src/lib/system-registry/scripts/registry-check.ts",
+    "registry:harvest": "npx tsx src/lib/system-registry/harvesters/index.ts"
   },
   "lint-staged": {
     "src/app/(app)/**/*.{ts,tsx}": [
@@ -123,6 +125,7 @@
     "gray-matter": "^4.0.3",
     "ics": "^3.8.1",
     "ioredis": "^5.8.2",
+    "js-yaml": "^4.1.1",
     "jsdom": "^27.3.0",
     "lucide-react": "^0.468.0",
     "mammoth": "^1.11.0",
@@ -178,6 +181,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cron": "^2.0.1",
     "@types/jest-axe": "^3.5.9",
+    "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^20.19.27",
     "@types/node-cron": "^3.0.11",

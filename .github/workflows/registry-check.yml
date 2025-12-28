@@ -1,0 +1,201 @@
+name: System Registry Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: registry-check-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  registry-check:
+    name: Registry Compliance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for base/head diff in blast radius
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run registry check
+        run: npm run registry:check -- --write-report
+
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: docs/system-registry/drift-report-ci.md
+          retention-days: 30
+
+      - name: Compute Blast Radius
+        id: blast-radius
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+          # Progressive enforcement rollout:
+          # - Sprint 0-1: 'warn' (comment + neutral check)
+          # - Sprint 2+: Change to 'fail' to block CRITICAL PRs
+          BLAST_RADIUS_ENFORCEMENT_MODE: warn
+        run: |
+          npx tsx src/lib/system-registry/scripts/blast-radius.ts \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA" \
+            --output-format pr-comment \
+            --write-comment
+        continue-on-error: true
+
+      - name: Upload blast radius report
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: blast-radius-report
+          path: docs/system-registry/blast-radius-comment.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Post Blast Radius PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Marker to identify our comment for upsert
+            const COMMENT_MARKER = '<!-- system-registry-blast-radius -->';
+
+            // Read blast radius output
+            let commentBody = '';
+            try {
+              const outputPath = 'docs/system-registry/blast-radius-comment.json';
+              const raw = fs.readFileSync(outputPath, 'utf8');
+              const data = JSON.parse(raw);
+
+              // Extract the markdown content
+              commentBody = data.content || data;
+
+              // Truncate if too long (GitHub comment limit is ~65536)
+              if (commentBody.length > 60000) {
+                commentBody = commentBody.substring(0, 60000) + '\n\n... (truncated)';
+              }
+            } catch (e) {
+              console.log('Could not read blast radius output:', e.message);
+              commentBody = '## Blast Radius Analysis\n\nFailed to compute blast radius. See workflow logs for details.';
+            }
+
+            // Prepend marker for identification
+            const fullBody = `${COMMENT_MARKER}\n${commentBody}`;
+
+            // Find existing comment by marker
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(c => c.body.includes(COMMENT_MARKER));
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: fullBody,
+              });
+              console.log(`Updated existing comment: ${existingComment.id}`);
+            } else {
+              // Create new comment
+              const { data: newComment } = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+              console.log(`Created new comment: ${newComment.id}`);
+            }
+
+      - name: Report Blast Radius Check Status
+        if: github.event_name == 'pull_request'
+        env:
+          BLAST_OUTCOME: ${{ steps.blast-radius.outcome }}
+        run: |
+          if [ "$BLAST_OUTCOME" == "failure" ]; then
+            echo "::warning::Blast radius check completed with warnings"
+          fi
+
+          echo "## Blast Radius Analysis" >> $GITHUB_STEP_SUMMARY
+          if [ -f "docs/system-registry/blast-radius-comment.json" ]; then
+            SCORE=$(jq -r '.metadata.score // .blastScore.score // "unknown"' docs/system-registry/blast-radius-comment.json 2>/dev/null || echo "parse-error")
+            echo "Score: $SCORE" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No blast radius report generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR (Drift Failure)
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Marker to identify our drift comment
+            const COMMENT_MARKER = '<!-- system-registry-drift-check -->';
+
+            let report = '';
+            try {
+              report = fs.readFileSync('docs/system-registry/drift-report-ci.md', 'utf8');
+            } catch (e) {
+              report = 'Failed to read drift report';
+            }
+
+            // Truncate if too long
+            if (report.length > 60000) {
+              report = report.substring(0, 60000) + '\n\n... (truncated)';
+            }
+
+            const body = `${COMMENT_MARKER}\n## System Registry Check Failed\n\n<details>\n<summary>Drift Report</summary>\n\n${report}\n\n</details>\n\n**Action Required:** Please declare any new components in \`src/lib/system-registry/declarations.ts\``;
+
+            // Find existing comment by marker
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(c => c.body.includes(COMMENT_MARKER));
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
