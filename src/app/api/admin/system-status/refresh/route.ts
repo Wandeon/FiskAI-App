@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       // In a real implementation, we would enqueue to a background worker here
       // For now, we'll start the job but not wait for it
       // Task 6 will implement the actual worker
-      processRefreshAsync(job.id, user.id, timeoutSeconds).catch((error) => {
+      processRefreshAsync(job.id, user.id, timeoutSeconds, DEDUPE_KEY).catch((error) => {
         console.error("[system-status-refresh] Async job error:", error)
       })
 
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       if (error instanceof Error && error.message === "SYNC_TIMEOUT") {
         // Switch to async mode
         // In real implementation, we'd enqueue to a background worker
-        processRefreshAsync(job.id, user.id, ASYNC_TIMEOUT_SECONDS).catch((err) => {
+        processRefreshAsync(job.id, user.id, ASYNC_TIMEOUT_SECONDS, DEDUPE_KEY).catch((err) => {
           console.error("[system-status-refresh] Async fallback error:", err)
         })
 
@@ -227,7 +227,8 @@ export async function POST(request: NextRequest) {
 async function processRefreshAsync(
   jobId: string,
   userId: string,
-  timeoutSeconds: number
+  timeoutSeconds: number,
+  lockKey: string
 ): Promise<void> {
   try {
     await updateRefreshJob(jobId, {
@@ -258,8 +259,6 @@ async function processRefreshAsync(
       finishedAt: new Date(),
       snapshotId: savedSnapshot.id,
     })
-
-    await releaseRefreshLock("system-status-refresh")
   } catch (error) {
     console.error("[system-status-refresh] Async processing error:", error)
     await updateRefreshJob(jobId, {
@@ -267,6 +266,8 @@ async function processRefreshAsync(
       finishedAt: new Date(),
       error: error instanceof Error ? error.message : String(error),
     })
-    await releaseRefreshLock("system-status-refresh")
+  } finally {
+    // Always release lock, even if saveSnapshot, saveEvents, or updateRefreshJob fail
+    await releaseRefreshLock(lockKey)
   }
 }

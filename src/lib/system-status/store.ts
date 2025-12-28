@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import type { SystemStatusEventInput } from "./diff"
 import type {
   SystemStatusEventType,
@@ -186,27 +187,25 @@ interface AcquireLockInput {
 /**
  * Try to acquire a refresh lock.
  * Returns true if lock was acquired, false if already locked.
+ *
+ * Uses atomic operations to avoid TOCTOU race conditions:
+ * 1. First, delete any expired locks (safe, idempotent)
+ * 2. Then attempt to create the new lock
+ * 3. If unique constraint violation, another process holds the lock
  */
 export async function acquireRefreshLock(input: AcquireLockInput): Promise<boolean> {
   try {
-    // Check for existing valid lock
-    const existingLock = await db.systemRegistryRefreshLock.findUnique({
-      where: { lockKey: input.lockKey },
+    // First, atomically delete any expired lock for this key
+    // This is safe because expired locks are no longer valid
+    await db.systemRegistryRefreshLock.deleteMany({
+      where: {
+        lockKey: input.lockKey,
+        lockedUntil: { lt: new Date() },
+      },
     })
 
-    if (existingLock && existingLock.lockedUntil > new Date()) {
-      // Lock exists and hasn't expired
-      return false
-    }
-
-    // Delete expired lock if exists
-    if (existingLock) {
-      await db.systemRegistryRefreshLock.delete({
-        where: { lockKey: input.lockKey },
-      })
-    }
-
-    // Create new lock
+    // Now try to create the new lock
+    // If a valid (non-expired) lock exists, this will fail with unique constraint violation
     await db.systemRegistryRefreshLock.create({
       data: {
         lockKey: input.lockKey,
@@ -219,9 +218,13 @@ export async function acquireRefreshLock(input: AcquireLockInput): Promise<boole
 
     return true
   } catch (error) {
-    // Unique constraint violation means another process got the lock
-    console.error("[acquireRefreshLock] Error:", error)
-    return false
+    // If unique constraint violation (P2002), lock is held by another process
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return false
+    }
+    // For any other error, log and re-throw
+    console.error("[acquireRefreshLock] Unexpected error:", error)
+    throw error
   }
 }
 
