@@ -17,6 +17,7 @@ import {
   Newspaper,
   ChevronLeft,
   ChevronRight,
+  Activity,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ const navigation = [
   { name: "Tenants", href: "/tenants", icon: Building2 },
   { name: "Staff", href: "/staff", icon: Users },
   { name: "Alerts", href: "/alerts", icon: AlertTriangle },
+  { name: "System Status", href: "/system-status", icon: Activity },
   { name: "Digest Preview", href: "/digest", icon: Mail },
   { name: "News", href: "/news", icon: Newspaper },
   { name: "Subscriptions", href: "/subscriptions", icon: CreditCard },

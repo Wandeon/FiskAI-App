@@ -39,6 +39,18 @@ export const consolidatorQueue = createQueue("consolidator", { max: 1, duration:
 export const scheduledQueue = createQueue("scheduled")
 export const deadletterQueue = createQueue("deadletter")
 
+// System status queue (used by human-control-layer)
+// Custom job options: 2 attempts (1 initial + 1 retry for transient errors)
+export const systemStatusQueue = new Queue("system-status", {
+  connection: redis,
+  prefix: PREFIX,
+  defaultJobOptions: {
+    attempts: 2, // Allow 1 retry for transient errors
+    removeOnComplete: { age: RETENTION_MS },
+    removeOnFail: false, // Keep for inspection
+  },
+})
+
 // All queues for health checks
 export const allQueues = {
   sentinel: sentinelQueue,
@@ -51,6 +63,7 @@ export const allQueues = {
   consolidator: consolidatorQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
+  "system-status": systemStatusQueue,
 }
 
 // Queue events for monitoring

@@ -2555,6 +2555,49 @@ enum SourcePointerMatchType {
   PENDING_VERIFICATION   // Quote not yet checked against evidence
 }
 
+// ============================================================================
+// SYSTEM STATUS (Human Control Layer)
+// ============================================================================
+
+enum SystemStatusHeadline {
+  OK
+  ATTENTION
+  ACTION_REQUIRED
+}
+
+enum SystemStatusRefreshStatus {
+  SUCCESS
+  FAILED
+}
+
+enum SystemStatusRefreshQuality {
+  FULL
+  DEGRADED
+}
+
+enum SystemStatusEventType {
+  NEW_CRITICAL
+  CRITICAL_RESOLVED
+  OWNER_CHANGED
+  NEW_OBSERVED
+  DECLARED_MISSING
+  UNKNOWN_INTEGRATION
+  REFRESH_FAILED
+  REFRESH_DEGRADED
+}
+
+enum SystemStatusJobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum SystemStatusJobMode {
+  SYNC
+  ASYNC
+}
+
 model WatchdogHealth {
   id          String               @id @default(cuid())
   checkType   WatchdogCheckType
@@ -2750,4 +2793,78 @@ model ComparisonMatrix {
 
   @@index([domainTags])
   @@index([evidenceId])
+}
+
+// ============================================================================
+// SYSTEM STATUS MODELS (Human Control Layer)
+// ============================================================================
+
+model SystemRegistryStatusSnapshot {
+  id                   String                      @id @default(cuid())
+  headlineStatus       SystemStatusHeadline
+  refreshQuality       SystemStatusRefreshQuality
+  criticalCount        Int
+  highCount            Int
+  mediumCount          Int
+  lowCount             Int
+  observedCount        Int
+  declaredCount        Int
+  newDriftSinceDays    Int
+  lastRefreshStartedAt DateTime?
+  lastRefreshEndedAt   DateTime?
+  lastRefreshStatus    SystemStatusRefreshStatus?
+  lastRefreshError     String?
+  topItems             Json
+  createdAt            DateTime                    @default(now())
+
+  @@index([createdAt])
+}
+
+model SystemRegistryStatusPointer {
+  id        String   @id @default(cuid())
+  currentId String
+  updatedAt DateTime @updatedAt
+}
+
+model SystemRegistryStatusEvent {
+  id                String                  @id @default(cuid())
+  eventType         SystemStatusEventType
+  severity          String
+  message           String
+  nextAction        String
+  componentId       String?
+  owner             String?
+  link              String?
+  requestedByUserId String?
+  createdAt         DateTime                @default(now())
+
+  @@index([createdAt])
+  @@index([eventType])
+}
+
+model SystemRegistryRefreshJob {
+  id                String                @id @default(cuid())
+  status            SystemStatusJobStatus
+  mode              SystemStatusJobMode
+  dedupeKey         String
+  lockKey           String
+  requestedByUserId String
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  timeoutSeconds    Int
+  error             String?
+  snapshotId        String?
+  createdAt         DateTime              @default(now())
+
+  @@index([dedupeKey])
+  @@index([status])
+}
+
+model SystemRegistryRefreshLock {
+  id                String   @id @default(cuid())
+  lockKey           String   @unique
+  lockedUntil       DateTime
+  startedAt         DateTime
+  requestedByUserId String
+  jobId             String
 }
