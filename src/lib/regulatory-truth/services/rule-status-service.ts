@@ -18,6 +18,15 @@ import {
   type ProvenanceValidationResult,
 } from "../utils/quote-in-evidence"
 
+/**
+ * Prisma transaction client type - compatible with both full client and tx client.
+ * Use this when a function needs to accept either db or tx from $transaction.
+ */
+type PrismaTransactionClient = Omit<
+  typeof db,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>
+
 export interface RuleStatusResult {
   ruleId: string
   success: boolean
@@ -55,14 +64,16 @@ export interface RevertRulesResult {
  *
  * @param ruleId - Rule to validate
  * @param riskTier - Risk tier for policy enforcement (T0/T1 require exact, T2/T3 allow normalized)
+ * @param prismaClient - Optional Prisma client (pass tx for transaction atomicity)
  * @returns Validation result with per-pointer details
  */
 async function validateRuleProvenance(
   ruleId: string,
-  riskTier: string
+  riskTier: string,
+  prismaClient: PrismaTransactionClient = db
 ): Promise<RuleProvenanceResult> {
   // Load rule with all source pointers and their evidence
-  const rule = await db.regulatoryRule.findUnique({
+  const rule = await prismaClient.regulatoryRule.findUnique({
     where: { id: ruleId },
     include: {
       sourcePointers: {
@@ -159,15 +170,30 @@ async function validateRuleProvenance(
     }
 
     // Persist offsets and matchType to SourcePointer
-    // This happens even if validation fails - we record what we found
+    // ALWAYS record what we found, including NOT_FOUND failures
+    // This ensures NOT_FOUND is distinguished from PENDING_VERIFICATION
+    // NOTE: Uses prismaClient (may be tx) for transaction atomicity
+    const matchTypeEnum = matchTypeToEnum(validationResult.matchResult.matchType)
     if (validationResult.matchResult.found) {
-      const matchTypeEnum = matchTypeToEnum(validationResult.matchResult.matchType)
-      await db.sourcePointer.update({
+      // Quote found - persist offsets and matchType
+      await prismaClient.sourcePointer.update({
         where: { id: pointer.id },
         data: {
           startOffset: validationResult.matchResult.start,
           endOffset: validationResult.matchResult.end,
           matchType: matchTypeEnum,
+        },
+      })
+    } else {
+      // Quote NOT found - persist NOT_FOUND status (no offsets)
+      // This is CRITICAL: without this, NOT_FOUND looks like PENDING_VERIFICATION
+      await prismaClient.sourcePointer.update({
+        where: { id: pointer.id },
+        data: {
+          matchType: matchTypeEnum, // Will be "NOT_FOUND"
+          // Explicitly clear offsets to signal broken provenance
+          startOffset: null,
+          endOffset: null,
         },
       })
     }
@@ -291,7 +317,8 @@ export async function publishRules(
               // ========================================
               // HARD GATE: PROVENANCE VALIDATION
               // ========================================
-              const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier)
+              // Pass tx for transaction atomicity - provenance writes must be part of tx
+              const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier, tx)
               if (!provenanceResult.valid) {
                 const errorMsg = formatProvenanceErrors(provenanceResult)
                 results.push({
@@ -598,18 +625,19 @@ export async function approveRule(
         // ========================================
         // HARD GATE: AUTO-APPROVAL ALLOWLIST
         // ========================================
-        // If auto-approve is requested, enforce the allowlist policy
-        if (isAutoApproveRequest) {
-          if (!options?.sourceSlug) {
-            return {
-              ruleId,
-              success: false,
-              previousStatus: existing.status,
-              newStatus: "APPROVED",
-              error: "Auto-approval requires sourceSlug for allowlist check",
-            }
-          }
-
+        // There are TWO types of auto-approval:
+        //
+        // 1. STRUCTURED SOURCE auto-approval (sourceSlug provided):
+        //    Rules from machine-parseable sources (HNB API, etc.)
+        //    MUST pass allowlist check in isAutoApprovalAllowed()
+        //
+        // 2. GRACE PERIOD auto-approval (no sourceSlug):
+        //    Rules that have been PENDING_REVIEW for 24h+ and weren't rejected
+        //    Already passed queue gate, so allowlist check is skipped
+        //    But T0/T1 are still blocked (enforced in autoApproveEligibleRules)
+        //
+        if (isAutoApproveRequest && options?.sourceSlug) {
+          // Structured source auto-approval - enforce allowlist
           const allowlistCheck = isAutoApprovalAllowed(
             {
               conceptSlug: existing.conceptSlug,
@@ -630,6 +658,8 @@ export async function approveRule(
             }
           }
         }
+        // Note: If isAutoApproveRequest && !sourceSlug, this is grace-period auto-approve
+        // We allow it through but audit will show autoApprove=true for transparency
 
         // ========================================
         // HARD GATE: PROVENANCE VALIDATION
