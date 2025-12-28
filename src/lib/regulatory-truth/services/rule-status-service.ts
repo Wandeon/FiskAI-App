@@ -7,7 +7,8 @@
 // 4. Audit trail is complete
 // 5. PROVENANCE VALIDATION: Every quote must exist in evidence
 
-import { db, runWithRegulatoryContext } from "@/lib/db"
+import { db, runWithRegulatoryContext, getRegulatoryContext } from "@/lib/db"
+import { isAutoApprovalAllowed } from "../policy/auto-approval-policy"
 import { Prisma } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
 import {
@@ -539,99 +540,155 @@ export async function revertRulesToApproved(
  * Approve a rule (PENDING_REVIEW → APPROVED).
  *
  * VALIDATES PROVENANCE before approving.
+ * If autoApprove is requested, also validates against allowlist policy.
  *
  * @param ruleId - The rule ID to approve
- * @param approvedBy - User ID who approved
- * @param source - The source of approval (e.g., "reviewer", "manual")
+ * @param approvedBy - User ID who approved (or pipeline ID for auto-approve)
+ * @param source - The source of approval (e.g., "reviewer", "manual", "hnb-pipeline")
+ * @param options - Optional: sourceSlug for auto-approval allowlist check
  */
 export async function approveRule(
   ruleId: string,
   approvedBy: string,
-  source: string
+  source: string,
+  options?: {
+    /** Source slug for allowlist matching (required if autoApprove=true in context) */
+    sourceSlug?: string
+  }
 ): Promise<RuleStatusResult> {
-  return runWithRegulatoryContext({ source, actorUserId: approvedBy }, async () => {
-    try {
-      const existing = await db.regulatoryRule.findUnique({
-        where: { id: ruleId },
-        select: { status: true, conceptSlug: true, riskTier: true },
-      })
+  // Get context to check if auto-approve is requested
+  const ctx = getRegulatoryContext()
+  const isAutoApproveRequest = ctx?.autoApprove === true
 
-      if (!existing) {
+  return runWithRegulatoryContext(
+    { source, actorUserId: approvedBy, autoApprove: isAutoApproveRequest },
+    async () => {
+      try {
+        const existing = await db.regulatoryRule.findUnique({
+          where: { id: ruleId },
+          select: {
+            status: true,
+            conceptSlug: true,
+            riskTier: true,
+            authorityLevel: true,
+            confidence: true,
+          },
+        })
+
+        if (!existing) {
+          return {
+            ruleId,
+            success: false,
+            previousStatus: "UNKNOWN",
+            newStatus: "APPROVED",
+            error: "Rule not found",
+          }
+        }
+
+        if (existing.status !== "PENDING_REVIEW") {
+          return {
+            ruleId,
+            success: false,
+            previousStatus: existing.status,
+            newStatus: "APPROVED",
+            error: `Rule must be PENDING_REVIEW to approve, was ${existing.status}`,
+          }
+        }
+
+        // ========================================
+        // HARD GATE: AUTO-APPROVAL ALLOWLIST
+        // ========================================
+        // If auto-approve is requested, enforce the allowlist policy
+        if (isAutoApproveRequest) {
+          if (!options?.sourceSlug) {
+            return {
+              ruleId,
+              success: false,
+              previousStatus: existing.status,
+              newStatus: "APPROVED",
+              error: "Auto-approval requires sourceSlug for allowlist check",
+            }
+          }
+
+          const allowlistCheck = isAutoApprovalAllowed(
+            {
+              conceptSlug: existing.conceptSlug,
+              riskTier: existing.riskTier,
+              authorityLevel: existing.authorityLevel,
+              confidence: existing.confidence,
+            },
+            options.sourceSlug
+          )
+
+          if (!allowlistCheck.allowed) {
+            return {
+              ruleId,
+              success: false,
+              previousStatus: existing.status,
+              newStatus: "APPROVED",
+              error: `Auto-approval denied: ${allowlistCheck.reason}`,
+            }
+          }
+        }
+
+        // ========================================
+        // HARD GATE: PROVENANCE VALIDATION
+        // ========================================
+        const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier)
+        if (!provenanceResult.valid) {
+          const errorMsg = formatProvenanceErrors(provenanceResult)
+          return {
+            ruleId,
+            success: false,
+            previousStatus: existing.status,
+            newStatus: "APPROVED",
+            error: errorMsg,
+            provenanceResult,
+          }
+        }
+
+        await db.regulatoryRule.update({
+          where: { id: ruleId },
+          data: {
+            status: "APPROVED",
+            approvedBy,
+            approvedAt: new Date(),
+          },
+        })
+
+        await logAuditEvent({
+          action: "RULE_APPROVED",
+          entityType: "RULE",
+          entityId: ruleId,
+          performedBy: approvedBy,
+          metadata: {
+            previousStatus: existing.status,
+            source,
+            provenanceValidated: true,
+            matchTypes: provenanceResult.pointerResults.map((p) => p.matchResult.matchType),
+            isAutoApprove: isAutoApproveRequest,
+          },
+        })
+
+        return {
+          ruleId,
+          success: true,
+          previousStatus: existing.status,
+          newStatus: "APPROVED",
+          provenanceResult,
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         return {
           ruleId,
           success: false,
           previousStatus: "UNKNOWN",
           newStatus: "APPROVED",
-          error: "Rule not found",
+          error: errorMessage,
         }
-      }
-
-      if (existing.status !== "PENDING_REVIEW") {
-        return {
-          ruleId,
-          success: false,
-          previousStatus: existing.status,
-          newStatus: "APPROVED",
-          error: `Rule must be PENDING_REVIEW to approve, was ${existing.status}`,
-        }
-      }
-
-      // ========================================
-      // HARD GATE: PROVENANCE VALIDATION
-      // ========================================
-      const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier)
-      if (!provenanceResult.valid) {
-        const errorMsg = formatProvenanceErrors(provenanceResult)
-        return {
-          ruleId,
-          success: false,
-          previousStatus: existing.status,
-          newStatus: "APPROVED",
-          error: errorMsg,
-          provenanceResult,
-        }
-      }
-
-      await db.regulatoryRule.update({
-        where: { id: ruleId },
-        data: {
-          status: "APPROVED",
-          approvedBy,
-          approvedAt: new Date(),
-        },
-      })
-
-      await logAuditEvent({
-        action: "RULE_APPROVED",
-        entityType: "RULE",
-        entityId: ruleId,
-        performedBy: approvedBy,
-        metadata: {
-          previousStatus: existing.status,
-          source,
-          provenanceValidated: true,
-          matchTypes: provenanceResult.pointerResults.map((p) => p.matchResult.matchType),
-        },
-      })
-
-      return {
-        ruleId,
-        success: true,
-        previousStatus: existing.status,
-        newStatus: "APPROVED",
-        provenanceResult,
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      return {
-        ruleId,
-        success: false,
-        previousStatus: "UNKNOWN",
-        newStatus: "APPROVED",
-        error: errorMessage,
       }
     }
-  })
+  )
 }
 
 // Re-export provenance types for consumers

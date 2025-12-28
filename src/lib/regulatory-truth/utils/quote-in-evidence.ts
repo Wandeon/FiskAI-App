@@ -296,3 +296,45 @@ export function isMatchTypeAcceptableForTier(
     reason: "Normalized match accepted for T2/T3 (logged for audit)",
   }
 }
+
+/**
+ * Verify that stored offsets satisfy the invariant for EXACT matches.
+ *
+ * INVARIANTS (from schema):
+ * - endOffset = startOffset + exactQuote.length
+ * - rawContent.slice(startOffset, endOffset) === exactQuote
+ *
+ * Use this to validate stored pointers before trusting them.
+ *
+ * @param rawContent - Evidence.rawContent (UTF-16 string)
+ * @param exactQuote - SourcePointer.exactQuote
+ * @param startOffset - SourcePointer.startOffset (UTF-16 code unit index)
+ * @param endOffset - SourcePointer.endOffset (UTF-16 code unit index)
+ * @returns true if invariants hold
+ */
+export function verifyOffsetInvariant(
+  rawContent: string,
+  exactQuote: string,
+  startOffset: number,
+  endOffset: number
+): { valid: boolean; error?: string } {
+  // Invariant 1: endOffset = startOffset + exactQuote.length
+  const expectedEnd = startOffset + exactQuote.length
+  if (endOffset !== expectedEnd) {
+    return {
+      valid: false,
+      error: `Offset invariant violation: endOffset (${endOffset}) !== startOffset (${startOffset}) + quote.length (${exactQuote.length}) = ${expectedEnd}`,
+    }
+  }
+
+  // Invariant 2: rawContent.slice(startOffset, endOffset) === exactQuote
+  const sliced = rawContent.slice(startOffset, endOffset)
+  if (sliced !== exactQuote) {
+    return {
+      valid: false,
+      error: `Offset invariant violation: rawContent.slice(${startOffset}, ${endOffset}) !== exactQuote. Got: "${sliced.slice(0, 50)}..."`,
+    }
+  }
+
+  return { valid: true }
+}

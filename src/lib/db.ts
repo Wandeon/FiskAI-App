@@ -27,4 +27,8 @@ export {
   RegulatoryRuleStatusTransitionError,
   RegulatoryRuleUpdateManyStatusNotAllowedError,
 } from "./prisma-extensions"
-export type { TenantContext, RegulatoryTransitionContext } from "./prisma-extensions"
+export type {
+  TenantContext,
+  RegulatoryTransitionContext,
+  RegulatorySystemAction,
+} from "./prisma-extensions"

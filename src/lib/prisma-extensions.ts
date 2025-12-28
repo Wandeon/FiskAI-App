@@ -17,11 +17,42 @@ const tenantContextStore = new AsyncLocalStorage<TenantContext>()
 // Context for regulatory status transitions.
 // Stored in AsyncLocalStorage so Prisma extensions can enforce transition rules
 // without threading extra params through every call.
+//
+// POLICY ENFORCEMENT:
+// - `autoApprove`: Must pass allowlist check in rule-status-service.ts
+// - `systemAction`: Explicit downgrade actions (quarantine, etc.)
+// - Normal transitions follow ALLOWED_STATUS_TRANSITIONS map
+//
+// CRITICAL: bypassApproval is DEPRECATED. Use systemAction instead.
+// bypassApproval only allows DOWNGRADES, never approve/publish.
+
+/** System actions that allow specific non-standard transitions */
+export type RegulatorySystemAction =
+  | "QUARANTINE_DOWNGRADE" // APPROVED/PUBLISHED → PENDING_REVIEW
+  | "ROLLBACK" // PUBLISHED → APPROVED
 
 export type RegulatoryTransitionContext = {
+  /** Audit trail: who/what is performing this action */
   source?: string
-  bypassApproval?: boolean
+  /** User ID for audit trail (if human-initiated) */
   actorUserId?: string
+  /**
+   * DEPRECATED: Use systemAction instead.
+   * Only allows downgrades (→ PENDING_REVIEW) and rollbacks.
+   * NEVER allows approve or publish.
+   */
+  bypassApproval?: boolean
+  /**
+   * Request auto-approval via pipeline.
+   * Requires passing allowlist check in rule-status-service.ts.
+   * Does NOT bypass provenance validation.
+   */
+  autoApprove?: boolean
+  /**
+   * Explicit system action for non-standard transitions.
+   * More restrictive than bypassApproval - only allows specific transitions.
+   */
+  systemAction?: RegulatorySystemAction
 }
 
 const regulatoryContextStore = new AsyncLocalStorage<RegulatoryTransitionContext>()
@@ -226,7 +257,11 @@ function getRequestedRuleStatus(data: unknown): string | null {
 function validateStatusTransitionInternal(
   currentStatus: string,
   newStatus: string,
-  context?: { source?: string; bypassApproval?: boolean }
+  context?: {
+    source?: string
+    bypassApproval?: boolean
+    systemAction?: RegulatorySystemAction
+  }
 ): { allowed: boolean; error?: string } {
   // Same status = no transition, always allowed
   if (currentStatus === newStatus) {
@@ -236,29 +271,65 @@ function validateStatusTransitionInternal(
   // Check if transition is in allowed list
   const allowedTargets = ALLOWED_STATUS_TRANSITIONS[currentStatus] ?? []
   if (!allowedTargets.includes(newStatus)) {
-    // Check for bypass exception
-    if (context?.bypassApproval && context?.source) {
-      // Even with bypass, we only allow skipping PENDING_REVIEW → APPROVED
-      // NEVER allow skipping APPROVED → PUBLISHED
-      if (currentStatus === "DRAFT" && newStatus === "APPROVED") {
-        return { allowed: true }
-      }
-      if (currentStatus === "PENDING_REVIEW" && newStatus === "PUBLISHED") {
-        // Must still go through APPROVED
+    // ========================================
+    // SYSTEM ACTIONS (preferred over bypassApproval)
+    // ========================================
+    if (context?.systemAction && context?.source) {
+      // QUARANTINE_DOWNGRADE: Only allows → PENDING_REVIEW
+      if (context.systemAction === "QUARANTINE_DOWNGRADE") {
+        if (newStatus === "PENDING_REVIEW") {
+          if (currentStatus === "APPROVED" || currentStatus === "PUBLISHED") {
+            return { allowed: true }
+          }
+        }
         return {
           allowed: false,
-          error: `Cannot bypass APPROVED state. Transition ${currentStatus} → APPROVED first.`,
+          error: `QUARANTINE_DOWNGRADE only allows APPROVED/PUBLISHED → PENDING_REVIEW`,
         }
       }
-      // Allow rollback: PUBLISHED → APPROVED (only with bypass + source containing "rollback")
-      if (currentStatus === "PUBLISHED" && newStatus === "APPROVED") {
-        if (context.source.toLowerCase().includes("rollback")) {
+
+      // ROLLBACK: Only allows PUBLISHED → APPROVED
+      if (context.systemAction === "ROLLBACK") {
+        if (currentStatus === "PUBLISHED" && newStatus === "APPROVED") {
           return { allowed: true }
         }
-        // Deny if source doesn't indicate rollback
         return {
           allowed: false,
-          error: `PUBLISHED → APPROVED requires rollback context. Use revertRulesToApproved().`,
+          error: `ROLLBACK only allows PUBLISHED → APPROVED`,
+        }
+      }
+    }
+
+    // ========================================
+    // DEPRECATED: bypassApproval
+    // Only allows DOWNGRADES (→ PENDING_REVIEW) and rollbacks
+    // NEVER allows approve or publish
+    // ========================================
+    if (context?.bypassApproval && context?.source) {
+      // BLOCK: bypassApproval NEVER allows approval transitions
+      if (newStatus === "APPROVED") {
+        // Exception: rollback (PUBLISHED → APPROVED) still allowed for backward compat
+        if (currentStatus === "PUBLISHED" && context.source.toLowerCase().includes("rollback")) {
+          return { allowed: true }
+        }
+        return {
+          allowed: false,
+          error: `bypassApproval cannot be used for approval. Use autoApprove with allowlist.`,
+        }
+      }
+
+      // BLOCK: bypassApproval NEVER allows publish
+      if (newStatus === "PUBLISHED") {
+        return {
+          allowed: false,
+          error: `bypassApproval cannot be used for publishing. Publishing requires normal approval flow.`,
+        }
+      }
+
+      // ALLOW: Downgrades to PENDING_REVIEW (quarantine use case)
+      if (newStatus === "PENDING_REVIEW") {
+        if (currentStatus === "APPROVED" || currentStatus === "PUBLISHED") {
+          return { allowed: true }
         }
       }
     }
@@ -448,6 +519,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
               const transition = validateStatusTransitionInternal(existing.status, newStatus, {
                 source: ctx?.source,
                 bypassApproval: ctx?.bypassApproval,
+                systemAction: ctx?.systemAction,
               })
 
               if (!transition.allowed) {

@@ -1953,8 +1953,12 @@ model SourcePointer {
   createdAt       DateTime @default(now())
   deletedAt       DateTime?
 
-  // Byte-level anchoring (provenance validation)
-  // Start/end offsets into Evidence.rawContent where exactQuote was found
+  // Provenance anchoring: UTF-16 code unit indices into Evidence.rawContent
+  // These are JavaScript String.indexOf() return values, NOT byte offsets.
+  // Use to slice exactQuote from rawContent: rawContent.slice(startOffset, endOffset)
+  //
+  // INVARIANT: endOffset = startOffset + exactQuote.length (for EXACT matches)
+  // INVARIANT: rawContent.slice(startOffset, endOffset) === exactQuote (for EXACT matches)
   startOffset     Int?
   endOffset       Int?
   matchType       SourcePointerMatchType?  @default(PENDING_VERIFICATION)
