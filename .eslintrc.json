@@ -18,37 +18,26 @@
         "zones": [
           {
             "target": "components/ui/**/*",
-            "from": "components/patterns/**/*",
-            "message": "Primitives cannot import from patterns. Use tokens or lib/utils only."
-          },
-          {
-            "target": "components/ui/**/*",
-            "from": "components/sections/**/*",
-            "message": "Primitives cannot import from sections."
-          },
-          {
-            "target": "components/ui/**/*",
-            "from": "components/templates/**/*",
-            "message": "Primitives cannot import from templates."
+            "from": [
+              "components/patterns/**/*",
+              "components/sections/**/*",
+              "components/templates/**/*"
+            ],
+            "message": "Primitives cannot import upward. Use tokens or lib/utils only."
           },
           {
             "target": "components/patterns/**/*",
-            "from": "components/sections/**/*",
-            "message": "Patterns cannot import from sections."
-          },
-          {
-            "target": "components/patterns/**/*",
-            "from": "components/templates/**/*",
-            "message": "Patterns cannot import from templates."
+            "from": ["components/sections/**/*", "components/templates/**/*"],
+            "message": "Patterns cannot import upward (sections or templates)."
           },
           {
             "target": "components/sections/**/*",
-            "from": "components/templates/**/*",
-            "message": "Sections cannot import from templates."
+            "from": ["components/templates/**/*"],
+            "message": "Sections cannot import upward (templates)."
           },
           {
             "target": "components/**/*",
-            "from": "app/**/*",
+            "from": ["app/**/*"],
             "message": "Components cannot import from app routes. Move shared code to lib/ or components/."
           }
         ]
