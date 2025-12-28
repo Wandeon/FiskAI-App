@@ -1,5 +1,25 @@
 // src/lib/knowledge-hub/types.ts
 
+// Changelog types for Living Truth Infrastructure
+export type ChangelogSeverity = "breaking" | "critical" | "major" | "info"
+
+export interface ChangelogEntry {
+  id: string // Stable slug: "2025-01-15-pdv-threshold"
+  date: string // ISO date
+  severity: ChangelogSeverity
+  summary: string // Human-readable, Croatian
+  affectedSections?: string[] // Links to RegulatorySection ids
+  sourceRef?: string // Canonical reference
+  sourceEvidenceId?: string // Links to Evidence table
+  sourcePending?: boolean // True if evidence not yet linked
+}
+
+// Validation result type
+export interface ValidationResult {
+  valid: boolean
+  errors: string[]
+}
+
 export type BusinessType =
   | "pausalni-obrt"
   | "pausalni-obrt-uz-zaposlenje"
@@ -31,6 +51,7 @@ export interface GuideFrontmatter {
   requiresFiscalization: boolean
   requiresVAT: boolean
   maxRevenue?: number
+  changelog?: ChangelogEntry[]
 }
 
 export interface WizardAnswer {

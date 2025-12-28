@@ -43,7 +43,8 @@
     "prepare": "husky",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "validate:routes": "tsx scripts/validate-routes.ts"
+    "validate:routes": "tsx scripts/validate-routes.ts",
+    "validate:content": "tsx scripts/validate-content.ts"
   },
   "lint-staged": {
     "src/app/(app)/**/*.{ts,tsx}": [

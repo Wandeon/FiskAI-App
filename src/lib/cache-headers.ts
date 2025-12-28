@@ -2,6 +2,8 @@ export const CACHE_TAGS = {
   KB_GUIDES: "kb_guides",
   KB_GLOSSARY: "kb_glossary",
   KB_FAQ: "kb_faq",
+  KB_HOWTO: "kb_howto",
+  KB_COMPARISONS: "kb_comparisons",
   KB_NEWS: "kb_news",
   MARKETING: "marketing",
   KB_ALL: "kb_all",
@@ -24,6 +26,8 @@ export function getCacheHeaders(pathname: string): Record<string, string> | null
   else if (pathname.startsWith("/pojmovnik/") || pathname.startsWith("/glossary/"))
     tag = CACHE_TAGS.KB_GLOSSARY
   else if (pathname.startsWith("/faq/")) tag = CACHE_TAGS.KB_FAQ
+  else if (pathname.startsWith("/kako-da/")) tag = CACHE_TAGS.KB_HOWTO
+  else if (pathname.startsWith("/usporedba/")) tag = CACHE_TAGS.KB_COMPARISONS
   else if (pathname.startsWith("/vijesti/")) tag = CACHE_TAGS.KB_NEWS
 
   return {

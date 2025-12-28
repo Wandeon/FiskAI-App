@@ -1,7 +1,19 @@
 // src/lib/regulatory-truth/watchdog/slack.ts
 
-import type { WatchdogSeverity, AuditResult } from "@prisma/client"
 import type { AuditReport } from "./types"
+
+export interface ContentAlert {
+  conceptId: string
+  affectedGuides: string[]
+  changesDetected: number
+  severity: "critical" | "major" | "info"
+  evidenceIds: string[]
+  summary: string
+  deepLinks: {
+    evidence: string[]
+    guides: string[]
+  }
+}
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL
 const SLACK_CHANNEL = process.env.SLACK_CHANNEL || "#fiskai-alerts"
@@ -144,6 +156,49 @@ export async function sendAuditResult(report: AuditReport): Promise<boolean> {
     type: "context",
     elements: [{ type: "mrkdwn", text: "<https://fiskai.hr/admin/watchdog/audits|View Details>" }],
   })
+
+  return sendSlackMessage({ blocks })
+}
+
+/**
+ * Send a content alert to Slack for Sentinel-detected changes
+ */
+export async function sendContentAlert(alert: ContentAlert): Promise<boolean> {
+  const emoji = alert.severity === "critical" ? "🚨" : alert.severity === "major" ? "⚠️" : "ℹ️"
+  const origin = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `${emoji} Sentinel Alert: ${alert.conceptId}`,
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      fields: [
+        { type: "mrkdwn", text: `*Severity:*\n${alert.severity}` },
+        { type: "mrkdwn", text: `*Changes:*\n${alert.changesDetected}` },
+      ],
+    },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: `*Summary:*\n${alert.summary}` },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Affected Guides:*\n${alert.affectedGuides.map((g) => `• <${origin}/vodic/${g}|${g}>`).join("\n")}`,
+      },
+    },
+    {
+      type: "context",
+      elements: [{ type: "mrkdwn", text: `<${origin}/admin/regulatory|Open Dashboard>` }],
+    },
+  ]
 
   return sendSlackMessage({ blocks })
 }

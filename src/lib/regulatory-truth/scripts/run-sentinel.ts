@@ -21,9 +21,32 @@ try {
 }
 
 import { Pool } from "pg"
+import { runContentBridge } from "./content-bridge"
 
 // Create pool for direct SQL
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+
+/**
+ * Helper function to trigger content bridge if needed
+ */
+async function triggerContentBridgeIfNeeded(
+  changeCount: number,
+  changeType: string
+): Promise<void> {
+  if (changeCount === 0) return
+
+  console.log(`\n[sentinel] ${changeType} detected, triggering content bridge...`)
+  try {
+    const bridgeResult = await runContentBridge()
+    console.log(`[sentinel] Content bridge: ${bridgeResult.alertCount} alerts sent`)
+  } catch (error) {
+    console.error(
+      "[sentinel] Content bridge failed:",
+      error instanceof Error ? error.message : error
+    )
+    // Don't fail the overall sentinel run if bridge fails
+  }
+}
 
 /**
  * Run Sentinel agent to discover new regulatory content
@@ -45,6 +68,9 @@ async function main() {
     console.log(`Items changed: ${result.itemsChanged}`)
     console.log(`Errors: ${result.errors}`)
     console.log(`Endpoints processed: ${result.endpointsProcessed}`)
+
+    // Trigger content bridge if changes detected
+    await triggerContentBridgeIfNeeded(result.itemsChanged, "Changes")
 
     await pool.end()
     process.exit(result.success ? 0 : 1)
@@ -93,6 +119,9 @@ async function main() {
       console.log(`  - Fetched: ${fetchResult.fetched}`)
       console.log(`  - Failed: ${fetchResult.failed}`)
     }
+
+    // Trigger content bridge if new items discovered
+    await triggerContentBridgeIfNeeded(result.newItemsDiscovered, "New items")
 
     console.log("\n[sentinel] Complete!")
     process.exit(result.success ? 0 : 1)
