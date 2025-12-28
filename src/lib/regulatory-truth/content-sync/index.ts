@@ -71,3 +71,16 @@ export {
   createChangelogEntry,
   patchFrontmatter,
 } from "./patcher"
+
+// Repository adapter
+export type {
+  ContentRepoAdapter,
+  CreatePRParams,
+  GeneratePRBodyParams,
+} from "./repo-adapter"
+export {
+  GitContentRepoAdapter,
+  generateBranchName,
+  generatePRTitle,
+  generatePRBody,
+} from "./repo-adapter"
