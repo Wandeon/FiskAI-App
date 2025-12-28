@@ -2,8 +2,8 @@
 
 ## The Complete System Truth
 
-**Version:** 4.1.0
-**Date:** 2025-12-20
+**Version:** 4.2.1
+**Date:** 2025-12-28
 **Status:** Canonical - Single Source of Truth
 **Scope:** Every flow, every button, every permission, every scenario
 
@@ -28,6 +28,7 @@ Throughout this document:
 | Core Architecture | 4.1.0         | Current      | ✅ Aligned |
 | Module System     | 4.1.0         | Current      | ✅ Aligned |
 | Visibility System | 4.1.0         | Current      | ✅ Aligned |
+| Guidance System   | 4.2.1         | Current      | ✅ Aligned |
 | Pricing Tiers     | 4.1.0         | Stripe       | ⚠️ Partial |
 | Staff Portal      | 4.1.0         | Current      | ⚠️ Partial |
 | Admin Portal      | 4.1.0         | Current      | ⚠️ Partial |
@@ -81,12 +82,23 @@ Throughout this document:
    - Appendix 1: Strategic Technical Specification
    - Appendix 2: Improvement Ledger
 
+9. **[Guidance System](./09-GUIDANCE-SYSTEM.md)** *(New)*
+   - System Purpose & Architecture
+   - Preference Model (Competence Levels, Categories)
+   - Help Density Configuration
+   - Checklist System (Aggregation, Urgency, Interactions)
+   - Pattern Insights (AI-Powered Suggestions)
+   - Relationship with Visibility System
+   - API Reference
+   - UI Component Inventory
+
 ---
 
 ## Document History
 
 | Version | Date       | Author      | Changes                                              |
 | ------- | ---------- | ----------- | ---------------------------------------------------- |
+| 4.2.1   | 2025-12-28 | Claude      | Added Chapter 9: Guidance System specification       |
 | 4.2.0   | 2025-12-20 | Antigravity | Updated 2025/2026 Tax Thresholds & E-Invoice Mandate |
 | 4.1.0   | 2025-12-20 | Claude      | Critical fixes & alignment                           |
 | 4.0.0   | 2025-12-19 | Claude      | Complete rewrite - unified bible                     |
