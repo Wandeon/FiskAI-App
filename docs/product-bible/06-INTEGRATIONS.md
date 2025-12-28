@@ -4,9 +4,9 @@
 
 ---
 
-> **Last Audit:** 2025-12-28
+> **Last Audit:** 2025-12-29
 > **Auditor:** Claude Code
-> **Status:** Updated with PR #111 (Adaptive Sentinel), PR #115 (Living Truth Infrastructure)
+> **Status:** Updated with PR #140 (RTL Content Sync), PR #142 (System Status HCL)
 
 ---
 
@@ -300,7 +300,31 @@ const status = await getTier1Status()
 // Returns: { hnb: { available, lastRate }, nn: { available, latestIssue }, eurlex: { available } }
 ```
 
-### 12.11 AI Providers
+### 12.11 RTL Content Sync (PR #140)
+
+**Location:** `/src/lib/regulatory-truth/content-sync/`
+
+Synchronizes regulatory rule changes to MDX content files.
+
+| Component            | Purpose                            | Location                    |
+| -------------------- | ---------------------------------- | --------------------------- |
+| Content Sync Worker  | BullMQ worker for sync jobs        | `workers/content-sync.ts`   |
+| Concept Registry     | Maps RTL concepts to content files | `concept-registry.ts`       |
+| Frontmatter Patcher  | Updates MDX frontmatter            | `frontmatter-patcher.ts`    |
+| Releaser Integration | Event emission on rule publication | `agents/releaser/events.ts` |
+
+```typescript
+// Concept registry maps regulatory concepts to content
+const registry = {
+  "pausalni-limit": ["vodici/pausalni-obrt.mdx"],
+  "pdv-threshold": ["vodici/pdv-obveznik.mdx", "usporedbe/pausalni-vs-doo.mdx"],
+}
+
+// Worker processes sync jobs on rule release
+await contentSyncQueue.add("sync", { ruleId, conceptId, changes })
+```
+
+### 12.12 AI Providers
 
 **Location:** `/src/lib/ai/`
 
@@ -318,7 +342,7 @@ const result = await deepseekJson({
 })
 ```
 
-### 12.12 FINA Fiscalization
+### 12.13 FINA Fiscalization
 
 **Location:** `/src/lib/fiscal/`
 
@@ -345,7 +369,7 @@ const response = await submitToPorezna(signedXml, "TEST")
 // Returns: { success, jir?, zki?, errorCode?, errorMessage? }
 ```
 
-### 12.13 OIB/VAT Lookup
+### 12.14 OIB/VAT Lookup
 
 **Location:** `/src/lib/oib-lookup.ts`
 
@@ -364,7 +388,7 @@ const results = await searchCompanies("Primjer d.o.o.")
 // Returns: { success, results: [{ name, oib, mbs, address }] }
 ```
 
-### 12.14 Cron Jobs
+### 12.15 Cron Jobs
 
 | Endpoint                       | Schedule    | Purpose                    |
 | ------------------------------ | ----------- | -------------------------- |
@@ -377,7 +401,7 @@ const results = await searchCompanies("Primjer d.o.o.")
 | `/api/cron/checklist-digest`   | Weekly      | User digest emails         |
 | `/api/cron/certificate-check`  | Daily       | Cert expiration check      |
 
-### 12.15 Proactive AI Agents
+### 12.16 Proactive AI Agents
 
 FiskAI uses AI agents that **act proactively**, not just respond to queries.
 
@@ -552,6 +576,7 @@ SUDSKI_REGISTAR_CLIENT_SECRET=...
 
 ## Changelog
 
+- **2025-12-29:** Added RTL Content Sync integration (PR #140)
 - **2025-12-28:** Major audit - added 15+ undocumented integrations
   - Cloudflare (R2, CDN purge, Turnstile)
   - Sentry error tracking

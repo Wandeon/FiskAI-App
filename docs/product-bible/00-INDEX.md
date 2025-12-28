@@ -2,8 +2,8 @@
 
 ## The Complete System Truth
 
-**Version:** 4.2.1
-**Date:** 2025-12-28
+**Version:** 4.3.0
+**Date:** 2025-12-29
 **Status:** Canonical - Single Source of Truth
 **Scope:** Every flow, every button, every permission, every scenario
 
@@ -82,7 +82,7 @@ Throughout this document:
    - Appendix 1: Strategic Technical Specification
    - Appendix 2: Improvement Ledger
 
-9. **[Guidance System](./09-GUIDANCE-SYSTEM.md)** *(New)*
+9. **[Guidance System](./09-GUIDANCE-SYSTEM.md)** _(New)_
    - System Purpose & Architecture
    - Preference Model (Competence Levels, Categories)
    - Help Density Configuration
@@ -98,6 +98,7 @@ Throughout this document:
 
 | Version | Date       | Author      | Changes                                              |
 | ------- | ---------- | ----------- | ---------------------------------------------------- |
+| 4.3.0   | 2025-12-29 | Claude      | System Registry, RTL Content Sync, HCL updates       |
 | 4.2.1   | 2025-12-28 | Claude      | Added Chapter 9: Guidance System specification       |
 | 4.2.0   | 2025-12-20 | Antigravity | Updated 2025/2026 Tax Thresholds & E-Invoice Mandate |
 | 4.1.0   | 2025-12-20 | Claude      | Critical fixes & alignment                           |
@@ -105,6 +106,50 @@ Throughout this document:
 | 3.1.0   | 2025-12-19 | Gemini      | V3.1 Expansion                                       |
 | 2.0.0   | 2025-12-19 | Codex       | V2 Rewrite                                           |
 | 1.0.0   | 2025-12-19 | Gemini      | Initial draft                                        |
+
+### v4.3.0 Changes
+
+**System Registry (16 commits):**
+
+- Blast radius computation for PRs
+- CI enforcement via GitHub workflows
+- Operational metadata on CRITICAL components
+- Progressive enforcement rollout
+
+**RTL Content Sync (PR #140):**
+
+- BullMQ worker for content synchronization
+- Concept registry for RTL-to-content mapping
+- Frontmatter patcher for MDX files
+- Event emission integration in Releaser
+
+**System Status Human Control Layer (PR #142):**
+
+- Admin page for system status monitoring
+- Refresh API and pipeline
+- Diff rules and snapshot store
+- Event retention cleanup cron
+- Dead letter queue handling
+
+**Regulatory Status Gate Enforcement (PR #138):**
+
+- Prisma extensions for status transitions
+- Fetcher lifecycle and provenance validation
+- Architectural hardening
+
+**Component Architecture Layers (PR #139):**
+
+- patterns/, sections/, templates/ directories
+- ESLint import boundaries
+- MarketingPageTemplate and components
+
+**Authority-First Performance (PR #131):**
+
+- AIAnswerBlock wiring to content pages
+- Web vitals route_group tagging
+- Performance SLO definitions
+
+---
 
 ### v4.1.0 Changes
 
