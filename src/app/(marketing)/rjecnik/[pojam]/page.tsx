@@ -75,6 +75,8 @@ export default async function GlossaryTermPage({ params }: Props) {
             Svi pojmovi
           </Link>
 
+          <h1 className="text-3xl font-bold text-white mb-6 md:text-4xl">{frontmatter.term}</h1>
+
           <AIAnswerBlock
             answerId={`glossary:${pojam}:v1`}
             type="definitional"
@@ -82,13 +84,6 @@ export default async function GlossaryTermPage({ params }: Props) {
             contentType="glossary"
             lastUpdated={frontmatter.lastUpdated || new Date().toISOString().split("T")[0]}
             bluf={frontmatter.shortDefinition}
-            sources={frontmatter.sources?.map(
-              (source: { name: string; url?: string }, idx: number) => ({
-                ref: `src-${idx + 1}`,
-                label: source.name,
-                url: source.url,
-              })
-            )}
           >
             {/* Extended definition content */}
             {frontmatter.appearsIn && frontmatter.appearsIn.length > 0 && (

@@ -3,10 +3,21 @@ import { onCLS, onLCP, onFCP, onTTFB, onINP, type Metric } from "web-vitals"
 
 type RouteGroup = "marketing" | "kb" | "app" | "staff" | "admin" | "other"
 
+/**
+ * Determines route group from hostname (subdomain) and pathname.
+ * Production uses subdomains: app.fiskai.hr, staff.fiskai.hr, admin.fiskai.hr
+ * Marketing site at fiskai.hr uses pathname-based detection.
+ */
 function getRouteGroup(pathname: string): RouteGroup {
-  if (pathname.startsWith("/app")) return "app"
-  if (pathname.startsWith("/staff")) return "staff"
-  if (pathname.startsWith("/admin")) return "admin"
+  // Check hostname for subdomain-based routing (production)
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname
+    if (hostname.startsWith("app.")) return "app"
+    if (hostname.startsWith("staff.")) return "staff"
+    if (hostname.startsWith("admin.")) return "admin"
+  }
+
+  // Pathname-based detection for marketing site (fiskai.hr)
   if (
     pathname.startsWith("/vodic") ||
     pathname.startsWith("/rjecnik") ||
@@ -62,6 +73,16 @@ function sendToPostHog(metric: Metric, pathname: string) {
   }
 }
 
+/**
+ * Reports Core Web Vitals to PostHog.
+ *
+ * Design decision: The pathname is captured once when reportWebVitals is called
+ * (typically on initial mount). This is intentional - CWV metrics like LCP and CLS
+ * measure the initial page load experience. SPA navigations don't trigger new
+ * CWV measurements, so binding to the initial pathname is correct. If you need
+ * per-navigation metrics, you would need to re-initialize the web-vitals library
+ * on each route change.
+ */
 export function reportWebVitals(pathname: string) {
   const sendMetric = (metric: Metric) => sendToPostHog(metric, pathname)
 

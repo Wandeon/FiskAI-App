@@ -42,15 +42,6 @@ export default async function HowToPage({ params }: Props) {
   const { frontmatter, content } = howto
   const url = `https://fisk.ai/kako-da/${slug}`
 
-  // Map sources for AIAnswerBlock
-  const aiSources = frontmatter.sources?.map(
-    (source: { name: string; url?: string }, idx: number) => ({
-      ref: `src-${idx + 1}`,
-      label: source.name,
-      url: source.url,
-    })
-  )
-
   const breadcrumbs = [
     { name: "Baza znanja", url: "https://fisk.ai/baza-znanja" },
     { name: "Kako da...", url: "https://fisk.ai/kako-da" },
@@ -110,7 +101,6 @@ export default async function HowToPage({ params }: Props) {
             contentType="howto"
             lastUpdated={frontmatter.lastUpdated || new Date().toISOString().split("T")[0]}
             bluf={frontmatter.description}
-            sources={aiSources}
           >
             <article className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-cyan-400 prose-strong:text-white prose-code:text-cyan-300 prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10">
               <MDXRemote source={content} components={mdxComponents} />
