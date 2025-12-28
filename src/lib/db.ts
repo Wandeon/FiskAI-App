@@ -18,5 +18,13 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { db }
-export { setTenantContext, getTenantContext, runWithTenant } from "./prisma-extensions"
-export type { TenantContext } from "./prisma-extensions"
+export {
+  setTenantContext,
+  getTenantContext,
+  runWithTenant,
+  runWithRegulatoryContext,
+  getRegulatoryContext,
+  RegulatoryRuleStatusTransitionError,
+  RegulatoryRuleUpdateManyStatusNotAllowedError,
+} from "./prisma-extensions"
+export type { TenantContext, RegulatoryTransitionContext } from "./prisma-extensions"

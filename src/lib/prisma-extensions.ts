@@ -1,5 +1,5 @@
 // src/lib/prisma-extensions.ts
-import { PrismaClient, AuditAction } from "@prisma/client"
+import { PrismaClient, AuditAction, Prisma } from "@prisma/client"
 import { AsyncLocalStorage } from "node:async_hooks"
 
 // Context for current request
@@ -10,6 +10,31 @@ export type TenantContext = {
 
 // AsyncLocalStorage for request-scoped tenant context (thread-safe)
 const tenantContextStore = new AsyncLocalStorage<TenantContext>()
+
+// ============================================
+// REGULATORY STATUS TRANSITION CONTEXT
+// ============================================
+// Context for regulatory status transitions.
+// Stored in AsyncLocalStorage so Prisma extensions can enforce transition rules
+// without threading extra params through every call.
+
+export type RegulatoryTransitionContext = {
+  source?: string
+  bypassApproval?: boolean
+  actorUserId?: string
+}
+
+const regulatoryContextStore = new AsyncLocalStorage<RegulatoryTransitionContext>()
+
+/** Get current regulatory transition context (if any). */
+export function getRegulatoryContext(): RegulatoryTransitionContext | null {
+  return regulatoryContextStore.getStore() ?? null
+}
+
+/** Run a function within a regulatory transition context. */
+export function runWithRegulatoryContext<T>(context: RegulatoryTransitionContext, fn: () => T): T {
+  return regulatoryContextStore.run(context, fn)
+}
 
 /**
  * Sets the tenant context for the current async context.
@@ -100,7 +125,6 @@ type AuditedModel = (typeof AUDITED_MODELS)[number]
 // Once created, it MUST NOT be modified to preserve audit integrity.
 
 const EVIDENCE_IMMUTABLE_FIELDS = ["rawContent", "contentHash", "fetchedAt"] as const
-type ImmutableField = (typeof EVIDENCE_IMMUTABLE_FIELDS)[number]
 
 /**
  * Error thrown when attempting to modify immutable evidence fields.
@@ -124,6 +148,129 @@ function checkEvidenceImmutability(data: Record<string, unknown>): void {
       throw new EvidenceImmutabilityError(field)
     }
   }
+}
+
+// ============================================
+// REGULATORY RULE STATUS TRANSITION PROTECTION
+// ============================================
+// RegulatoryRule.status transitions must go through proper gates.
+// Direct status updates bypass provenance validation, tier checks, and audit.
+
+/**
+ * Allowed status transitions for RegulatoryRule.
+ * This is the source of truth for what transitions are legal.
+ *
+ * Valid paths:
+ *   DRAFT → PENDING_REVIEW (submit for review)
+ *   PENDING_REVIEW → APPROVED (human/auto approval)
+ *   PENDING_REVIEW → REJECTED (rejection)
+ *   PENDING_REVIEW → DRAFT (send back for edits)
+ *   APPROVED → PUBLISHED (release)
+ *   APPROVED → PENDING_REVIEW (revoke approval, rare)
+ *   PUBLISHED → DEPRECATED (superseded)
+ *   REJECTED → DRAFT (retry)
+ *
+ * FORBIDDEN (shortcuts that bypass gates):
+ *   DRAFT → APPROVED (must go through PENDING_REVIEW)
+ *   DRAFT → PUBLISHED (must go through PENDING_REVIEW → APPROVED)
+ *   PENDING_REVIEW → PUBLISHED (must be APPROVED first)
+ */
+const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ["PENDING_REVIEW"],
+  PENDING_REVIEW: ["APPROVED", "REJECTED", "DRAFT"],
+  APPROVED: ["PUBLISHED", "PENDING_REVIEW"],
+  PUBLISHED: ["DEPRECATED"],
+  DEPRECATED: [], // Terminal state
+  REJECTED: ["DRAFT"],
+}
+
+/**
+ * Error thrown when attempting forbidden status transitions on RegulatoryRule.
+ */
+export class RegulatoryRuleStatusTransitionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "RegulatoryRuleStatusTransitionError"
+  }
+}
+
+/**
+ * Error thrown when attempting to use updateMany to change RegulatoryRule.status.
+ * updateMany is forbidden for status transitions because it bypasses per-rule validation.
+ */
+export class RegulatoryRuleUpdateManyStatusNotAllowedError extends Error {
+  constructor() {
+    super(
+      "Cannot update RegulatoryRule.status using updateMany. " +
+        "Use the rule status service (approve/publish) so per-rule gates are enforced."
+    )
+    this.name = "RegulatoryRuleUpdateManyStatusNotAllowedError"
+  }
+}
+
+/**
+ * Safely extract status from update data if present.
+ */
+function getRequestedRuleStatus(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null
+  const d = data as Record<string, unknown>
+  const s = d.status
+  if (typeof s !== "string") return null
+  return s
+}
+
+/**
+ * Validate status transitions for RegulatoryRule.
+ * Returns allowed: true if transition is valid.
+ */
+function validateStatusTransitionInternal(
+  currentStatus: string,
+  newStatus: string,
+  context?: { source?: string; bypassApproval?: boolean }
+): { allowed: boolean; error?: string } {
+  // Same status = no transition, always allowed
+  if (currentStatus === newStatus) {
+    return { allowed: true }
+  }
+
+  // Check if transition is in allowed list
+  const allowedTargets = ALLOWED_STATUS_TRANSITIONS[currentStatus] ?? []
+  if (!allowedTargets.includes(newStatus)) {
+    // Check for bypass exception
+    if (context?.bypassApproval && context?.source) {
+      // Even with bypass, we only allow skipping PENDING_REVIEW → APPROVED
+      // NEVER allow skipping APPROVED → PUBLISHED
+      if (currentStatus === "DRAFT" && newStatus === "APPROVED") {
+        return { allowed: true }
+      }
+      if (currentStatus === "PENDING_REVIEW" && newStatus === "PUBLISHED") {
+        // Must still go through APPROVED
+        return {
+          allowed: false,
+          error: `Cannot bypass APPROVED state. Transition ${currentStatus} → APPROVED first.`,
+        }
+      }
+    }
+
+    return {
+      allowed: false,
+      error:
+        `Illegal status transition: ${currentStatus} → ${newStatus}. ` +
+        `Allowed transitions from ${currentStatus}: [${allowedTargets.join(", ") || "none"}].`,
+    }
+  }
+
+  // PUBLISHED requires explicit source context (no silent publishes)
+  if (newStatus === "PUBLISHED") {
+    if (!context?.source) {
+      return {
+        allowed: false,
+        error: "Publishing requires explicit source context. Use runWithRegulatoryContext().",
+      }
+    }
+  }
+
+  return { allowed: true }
 }
 
 // Audit queue to avoid blocking main operations
@@ -269,6 +416,37 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          // REGULATORY RULE STATUS TRANSITIONS: enforce allowed transitions (hard backstop)
+          if (model === "RegulatoryRule") {
+            const newStatus = getRequestedRuleStatus(args.data)
+
+            if (newStatus) {
+              // We must load the current status to validate the transition.
+              const existing = await prismaBase.regulatoryRule.findUnique({
+                where: args.where as Prisma.RegulatoryRuleWhereUniqueInput,
+                select: { status: true },
+              })
+
+              if (!existing) {
+                throw new RegulatoryRuleStatusTransitionError(
+                  "Cannot transition RegulatoryRule status: rule not found."
+                )
+              }
+
+              const ctx = getRegulatoryContext()
+              const transition = validateStatusTransitionInternal(existing.status, newStatus, {
+                source: ctx?.source,
+                bypassApproval: ctx?.bypassApproval,
+              })
+
+              if (!transition.allowed) {
+                throw new RegulatoryRuleStatusTransitionError(
+                  transition.error ?? "RegulatoryRule status transition not allowed."
+                )
+              }
+            }
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -319,7 +497,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
               args.data = args.data.map((item: Record<string, unknown>) => ({
                 ...item,
                 companyId: context.companyId,
-              })) as any
+              })) as typeof args.data
             } else {
               args.data = {
                 ...args.data,
@@ -333,6 +511,15 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields
           if (model === "Evidence" && args.data && typeof args.data === "object") {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
+          }
+
+          // REGULATORY RULE: forbid updateMany for status transitions
+          // updateMany bypasses per-rule validation (conflicts, provenance, tier checks)
+          if (model === "RegulatoryRule") {
+            const newStatus = getRequestedRuleStatus(args.data)
+            if (newStatus) {
+              throw new RegulatoryRuleUpdateManyStatusNotAllowedError()
+            }
           }
 
           const context = getTenantContext()
