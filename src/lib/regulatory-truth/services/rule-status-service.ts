@@ -5,10 +5,17 @@
 // 2. Per-rule validation occurs
 // 3. Transaction atomicity is maintained
 // 4. Audit trail is complete
+// 5. PROVENANCE VALIDATION: Every quote must exist in evidence
 
 import { db, runWithRegulatoryContext } from "@/lib/db"
 import { Prisma } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
+import {
+  validateQuoteInEvidence,
+  isMatchTypeAcceptableForTier,
+  type RuleProvenanceResult,
+  type ProvenanceValidationResult,
+} from "../utils/quote-in-evidence"
 
 export interface RuleStatusResult {
   ruleId: string
@@ -16,6 +23,8 @@ export interface RuleStatusResult {
   previousStatus: string
   newStatus: string
   error?: string
+  /** Provenance validation details (if validation was performed) */
+  provenanceResult?: RuleProvenanceResult
 }
 
 export interface PublishRulesResult {
@@ -35,13 +44,135 @@ export interface RevertRulesResult {
 }
 
 /**
+ * HARD GATE: Validate provenance for a rule.
+ *
+ * Checks that every SourcePointer.exactQuote exists in its Evidence.rawContent.
+ * This is the choke point that prevents fabricated or mis-anchored quotes.
+ *
+ * @param ruleId - Rule to validate
+ * @param riskTier - Risk tier for policy enforcement (T0/T1 require exact, T2/T3 allow normalized)
+ * @returns Validation result with per-pointer details
+ */
+async function validateRuleProvenance(
+  ruleId: string,
+  riskTier: string
+): Promise<RuleProvenanceResult> {
+  // Load rule with all source pointers and their evidence
+  const rule = await db.regulatoryRule.findUnique({
+    where: { id: ruleId },
+    include: {
+      sourcePointers: {
+        include: {
+          evidence: {
+            select: {
+              id: true,
+              rawContent: true,
+              contentHash: true,
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!rule) {
+    return {
+      ruleId,
+      valid: false,
+      pointerResults: [],
+      failures: [
+        {
+          valid: false,
+          pointerId: "N/A",
+          evidenceId: "N/A",
+          matchResult: { found: false, matchType: "not_found" },
+          error: `Rule ${ruleId} not found`,
+        },
+      ],
+    }
+  }
+
+  // INVARIANT: Must have at least one source pointer
+  if (rule.sourcePointers.length === 0) {
+    return {
+      ruleId,
+      valid: false,
+      pointerResults: [],
+      failures: [
+        {
+          valid: false,
+          pointerId: "N/A",
+          evidenceId: "N/A",
+          matchResult: { found: false, matchType: "not_found" },
+          error: `Rule ${ruleId} has no source pointers - cannot verify provenance`,
+        },
+      ],
+    }
+  }
+
+  const pointerResults: ProvenanceValidationResult[] = []
+  const failures: ProvenanceValidationResult[] = []
+
+  for (const pointer of rule.sourcePointers) {
+    // Validate quote exists in evidence
+    const validationResult = validateQuoteInEvidence(
+      pointer.id,
+      pointer.evidenceId,
+      pointer.exactQuote,
+      pointer.evidence.rawContent,
+      pointer.evidence.contentHash ?? undefined
+    )
+
+    // Apply tier-based policy
+    if (validationResult.valid) {
+      const policyCheck = isMatchTypeAcceptableForTier(
+        validationResult.matchResult.matchType,
+        riskTier
+      )
+
+      if (!policyCheck.acceptable) {
+        validationResult.valid = false
+        validationResult.error = policyCheck.reason
+      }
+    }
+
+    pointerResults.push(validationResult)
+    if (!validationResult.valid) {
+      failures.push(validationResult)
+    }
+  }
+
+  return {
+    ruleId,
+    valid: failures.length === 0,
+    pointerResults,
+    failures,
+  }
+}
+
+/**
+ * Format provenance failures into actionable error message.
+ */
+function formatProvenanceErrors(result: RuleProvenanceResult): string {
+  if (result.failures.length === 0) return ""
+
+  const errorLines = result.failures.map((f) => {
+    const preview = f.matchResult.debug?.quotePreview || "N/A"
+    return `- Pointer ${f.pointerId}: ${f.error} (quote: "${preview}...")`
+  })
+
+  return `Provenance validation failed for rule ${result.ruleId}:\n${errorLines.join("\n")}`
+}
+
+/**
  * Publish rules to PUBLISHED status within a transaction.
  *
  * This is the ONLY correct path to publish rules. It:
  * 1. Wraps all updates in a transaction (atomic)
- * 2. Sets regulatory context with source="releaser"
- * 3. Updates each rule individually so Prisma extension validates each
- * 4. Records per-rule audit events
+ * 2. Sets regulatory context with source
+ * 3. VALIDATES PROVENANCE for every rule (HARD GATE)
+ * 4. Updates each rule individually so Prisma extension validates each
+ * 5. Records per-rule audit events
  *
  * @param ruleIds - Array of rule IDs to publish (must be in APPROVED status)
  * @param source - The agent/service requesting publication (e.g., "releaser", "hnb-fetcher")
@@ -73,10 +204,10 @@ export async function publishRules(
         async (tx) => {
           for (const ruleId of ruleIds) {
             try {
-              // First get current status
+              // First get current status and risk tier
               const existing = await tx.regulatoryRule.findUnique({
                 where: { id: ruleId },
-                select: { status: true, conceptSlug: true },
+                select: { status: true, conceptSlug: true, riskTier: true },
               })
 
               if (!existing) {
@@ -105,6 +236,25 @@ export async function publishRules(
                 continue
               }
 
+              // ========================================
+              // HARD GATE: PROVENANCE VALIDATION
+              // ========================================
+              const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier)
+              if (!provenanceResult.valid) {
+                const errorMsg = formatProvenanceErrors(provenanceResult)
+                results.push({
+                  ruleId,
+                  success: false,
+                  previousStatus: existing.status,
+                  newStatus: "PUBLISHED",
+                  error: errorMsg,
+                  provenanceResult,
+                })
+                errors.push(errorMsg)
+                // Abort transaction - provenance failure is fatal
+                throw new Error(`Provenance validation failed for ${existing.conceptSlug}`)
+              }
+
               // Update status - Prisma extension will validate transition
               await tx.regulatoryRule.update({
                 where: { id: ruleId },
@@ -116,6 +266,7 @@ export async function publishRules(
                 success: true,
                 previousStatus: existing.status,
                 newStatus: "PUBLISHED",
+                provenanceResult,
               })
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : String(error)
@@ -155,6 +306,8 @@ export async function publishRules(
             newStatus: result.newStatus,
             source,
             method: "publishRules",
+            provenanceValidated: true,
+            matchTypes: result.provenanceResult?.pointerResults.map((p) => p.matchResult.matchType),
           },
         })
       }
@@ -191,8 +344,10 @@ export async function publishRules(
  * 4. Records per-rule audit events
  *
  * Note: This transition (PUBLISHED → APPROVED) is NOT in the normal allowed
- * transitions. We handle it specially for rollback by going to DEPRECATED
- * first conceptually, but practically we need to support reverting.
+ * transitions. We handle it specially for rollback.
+ *
+ * NOTE: Rollback does NOT re-validate provenance because the rule was already
+ * published with valid provenance. We're just reverting the status.
  *
  * @param ruleIds - Array of rule IDs to revert
  * @param source - The source of the revert (e.g., "rollback", "manual")
@@ -332,6 +487,8 @@ export async function revertRulesToApproved(
 /**
  * Approve a rule (PENDING_REVIEW → APPROVED).
  *
+ * VALIDATES PROVENANCE before approving.
+ *
  * @param ruleId - The rule ID to approve
  * @param approvedBy - User ID who approved
  * @param source - The source of approval (e.g., "reviewer", "manual")
@@ -345,7 +502,7 @@ export async function approveRule(
     try {
       const existing = await db.regulatoryRule.findUnique({
         where: { id: ruleId },
-        select: { status: true, conceptSlug: true },
+        select: { status: true, conceptSlug: true, riskTier: true },
       })
 
       if (!existing) {
@@ -368,6 +525,22 @@ export async function approveRule(
         }
       }
 
+      // ========================================
+      // HARD GATE: PROVENANCE VALIDATION
+      // ========================================
+      const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier)
+      if (!provenanceResult.valid) {
+        const errorMsg = formatProvenanceErrors(provenanceResult)
+        return {
+          ruleId,
+          success: false,
+          previousStatus: existing.status,
+          newStatus: "APPROVED",
+          error: errorMsg,
+          provenanceResult,
+        }
+      }
+
       await db.regulatoryRule.update({
         where: { id: ruleId },
         data: {
@@ -385,6 +558,8 @@ export async function approveRule(
         metadata: {
           previousStatus: existing.status,
           source,
+          provenanceValidated: true,
+          matchTypes: provenanceResult.pointerResults.map((p) => p.matchResult.matchType),
         },
       })
 
@@ -393,6 +568,7 @@ export async function approveRule(
         success: true,
         previousStatus: existing.status,
         newStatus: "APPROVED",
+        provenanceResult,
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
@@ -406,3 +582,6 @@ export async function approveRule(
     }
   })
 }
+
+// Re-export provenance types for consumers
+export type { RuleProvenanceResult, ProvenanceValidationResult }
