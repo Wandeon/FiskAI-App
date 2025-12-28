@@ -39,6 +39,34 @@ export interface ComponentDependency {
   type: DependencyType
 }
 
+/**
+ * Health check configuration for runtime monitoring.
+ * At least one of endpoint or command must be provided.
+ */
+export interface HealthCheck {
+  /** HTTP path for health check, e.g., "/health" */
+  endpoint?: string
+  /** Shell command for health check, e.g., "pg_isready" */
+  command?: string
+  /** Check interval, e.g., "30s" */
+  interval?: string
+}
+
+/**
+ * Service Level Objectives for monitoring and alerting.
+ * At least one metric must be provided.
+ */
+export interface SLO {
+  /** Availability target, e.g., "99.9%" */
+  availability?: string
+  /** 50th percentile latency, e.g., "100ms" */
+  latencyP50?: string
+  /** 99th percentile latency, e.g., "500ms" */
+  latencyP99?: string
+  /** Error budget, e.g., "0.1%" */
+  errorBudget?: string
+}
+
 export interface SystemComponent {
   /** Stable identifier. Pattern: {type}-{name-kebab}. NEVER changes after creation. */
   componentId: string
@@ -106,6 +134,26 @@ export interface SystemComponent {
 
   /** Free-form metadata for type-specific info */
   metadata?: Record<string, unknown>
+
+  // Operational metadata for runtime monitoring
+
+  /**
+   * Health check configuration.
+   * If provided, at least endpoint or command must be specified.
+   */
+  healthCheck?: HealthCheck
+
+  /**
+   * Service Level Objectives.
+   * If provided, at least one metric must be specified.
+   */
+  slo?: SLO
+
+  /** Alert channel for incidents, e.g., "#ops-critical" */
+  alertChannel?: string
+
+  /** Path to runbook documentation, e.g., "docs/runbooks/auth.md" */
+  runbook?: string
 }
 
 /**
@@ -264,3 +312,144 @@ export const CRITICAL_QUEUES = [
   "queue-extract",
   "queue-compose",
 ]
+
+// =============================================================================
+// OPERATIONAL METADATA VALIDATION
+// =============================================================================
+
+export interface OperationalMetadataValidationResult {
+  valid: boolean
+  errors: string[]
+}
+
+/**
+ * Validate a HealthCheck object.
+ * If healthCheck is provided, at least endpoint or command must be specified.
+ */
+export function validateHealthCheck(
+  healthCheck: HealthCheck | undefined
+): OperationalMetadataValidationResult {
+  if (!healthCheck) {
+    return { valid: true, errors: [] }
+  }
+
+  const errors: string[] = []
+
+  // At least endpoint or command must be provided
+  if (!healthCheck.endpoint && !healthCheck.command) {
+    errors.push("healthCheck must have at least endpoint or command specified")
+  }
+
+  // If endpoint is provided, it must be non-empty
+  if (healthCheck.endpoint !== undefined && healthCheck.endpoint.trim() === "") {
+    errors.push("healthCheck.endpoint must be non-empty if provided")
+  }
+
+  // If command is provided, it must be non-empty
+  if (healthCheck.command !== undefined && healthCheck.command.trim() === "") {
+    errors.push("healthCheck.command must be non-empty if provided")
+  }
+
+  // If interval is provided, it must be non-empty
+  if (healthCheck.interval !== undefined && healthCheck.interval.trim() === "") {
+    errors.push("healthCheck.interval must be non-empty if provided")
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+
+/**
+ * Validate an SLO object.
+ * If slo is provided, at least one metric must be specified.
+ */
+export function validateSLO(slo: SLO | undefined): OperationalMetadataValidationResult {
+  if (!slo) {
+    return { valid: true, errors: [] }
+  }
+
+  const errors: string[] = []
+
+  // At least one metric must be provided
+  const hasMetric =
+    slo.availability !== undefined ||
+    slo.latencyP50 !== undefined ||
+    slo.latencyP99 !== undefined ||
+    slo.errorBudget !== undefined
+
+  if (!hasMetric) {
+    errors.push("slo must have at least one metric specified")
+  }
+
+  // If provided, metrics must be non-empty strings
+  if (slo.availability !== undefined && slo.availability.trim() === "") {
+    errors.push("slo.availability must be non-empty if provided")
+  }
+  if (slo.latencyP50 !== undefined && slo.latencyP50.trim() === "") {
+    errors.push("slo.latencyP50 must be non-empty if provided")
+  }
+  if (slo.latencyP99 !== undefined && slo.latencyP99.trim() === "") {
+    errors.push("slo.latencyP99 must be non-empty if provided")
+  }
+  if (slo.errorBudget !== undefined && slo.errorBudget.trim() === "") {
+    errors.push("slo.errorBudget must be non-empty if provided")
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+
+/**
+ * Validate alertChannel field.
+ * If provided, must be a non-empty string.
+ */
+export function validateAlertChannel(
+  alertChannel: string | undefined
+): OperationalMetadataValidationResult {
+  if (alertChannel === undefined) {
+    return { valid: true, errors: [] }
+  }
+
+  if (alertChannel.trim() === "") {
+    return { valid: false, errors: ["alertChannel must be non-empty if provided"] }
+  }
+
+  return { valid: true, errors: [] }
+}
+
+/**
+ * Validate runbook field.
+ * If provided, must be a non-empty string.
+ */
+export function validateRunbook(runbook: string | undefined): OperationalMetadataValidationResult {
+  if (runbook === undefined) {
+    return { valid: true, errors: [] }
+  }
+
+  if (runbook.trim() === "") {
+    return { valid: false, errors: ["runbook must be non-empty if provided"] }
+  }
+
+  return { valid: true, errors: [] }
+}
+
+/**
+ * Validate all operational metadata fields on a component.
+ */
+export function validateOperationalMetadata(
+  component: Pick<SystemComponent, "healthCheck" | "slo" | "alertChannel" | "runbook">
+): OperationalMetadataValidationResult {
+  const allErrors: string[] = []
+
+  const healthCheckResult = validateHealthCheck(component.healthCheck)
+  allErrors.push(...healthCheckResult.errors)
+
+  const sloResult = validateSLO(component.slo)
+  allErrors.push(...sloResult.errors)
+
+  const alertChannelResult = validateAlertChannel(component.alertChannel)
+  allErrors.push(...alertChannelResult.errors)
+
+  const runbookResult = validateRunbook(component.runbook)
+  allErrors.push(...runbookResult.errors)
+
+  return { valid: allErrors.length === 0, errors: allErrors }
+}
