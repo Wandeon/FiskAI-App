@@ -402,16 +402,18 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
 
     // Determine change type based on whether this rule supersedes another
     // If supersedesId exists, it's an update; otherwise it's a create
-    // Note: REPEALED status would indicate a repeal, but that's handled separately
+    // Note: DEPRECATED status indicates a repeal (rule no longer in effect)
     const changeType =
-      rule.status === "REPEALED" ? "repeal" : rule.supersedesId ? "update" : "create"
+      rule.status === "DEPRECATED" ? "repeal" : rule.supersedesId ? "update" : "create"
 
     // Get domain from the first source pointer (they should all be the same domain)
     const rtlDomain = rule.sourcePointers[0]?.domain ?? "pausalni"
     const contentDomain = mapRtlDomainToContentDomain(rtlDomain)
 
     // Find primary source URL from the first source pointer with a law reference
-    const primarySourceUrl = rule.sourcePointers.find((sp) => sp.lawReference)?.lawReference
+    // Convert null to undefined to match ContentSyncEventV1 type
+    const primarySourceUrl =
+      rule.sourcePointers.find((sp) => sp.lawReference)?.lawReference ?? undefined
 
     // Get previous value if this rule supersedes another
     let previousValue: string | undefined
