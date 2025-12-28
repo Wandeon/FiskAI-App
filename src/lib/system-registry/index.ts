@@ -79,12 +79,14 @@ export {
   computeDrift,
   enforceRules,
   formatDriftMarkdown,
+  applyValidationRules,
 } from "./compute-drift"
 
 export type {
   DriftResult,
   EnforcementResult,
   EnforcementFailure,
+  ValidationRuleResult,
 } from "./compute-drift"
 
 // Dependency graph exports

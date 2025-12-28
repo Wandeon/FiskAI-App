@@ -495,12 +495,103 @@ export function computeDrift(
 }
 
 /**
+ * Validation rule result for component-level checks.
+ */
+export interface ValidationRuleResult {
+  componentId: string
+  type: ComponentType
+  rule: string
+  message: string
+  action: "FAIL" | "WARN"
+}
+
+/**
+ * Applies validation rules to declared components.
+ * These are component-level checks that go beyond drift detection.
+ *
+ * Rules:
+ * - critical-needs-health: CRITICAL components should define healthCheck (WARN)
+ * - service-needs-slo: WORKER/INTEGRATION should define SLO targets (WARN)
+ * - slo-needs-alert: Components with SLO must have alertChannel (FAIL)
+ * - runbook-exists: Runbook paths must exist on disk (WARN)
+ */
+export function applyValidationRules(
+  declared: SystemComponent[],
+  projectRoot: string = process.cwd()
+): ValidationRuleResult[] {
+  const results: ValidationRuleResult[] = []
+
+  for (const component of declared) {
+    // Rule: critical-needs-health (WARN)
+    // CRITICAL components should define healthCheck
+    if (component.criticality === "CRITICAL" && !component.healthCheck) {
+      results.push({
+        componentId: component.componentId,
+        type: component.type,
+        rule: "critical-needs-health",
+        message: "CRITICAL component should define healthCheck",
+        action: "WARN",
+      })
+    }
+
+    // Rule: service-needs-slo (WARN)
+    // WORKER and INTEGRATION types should define SLO targets
+    if (
+      (component.type === "WORKER" || component.type === "INTEGRATION") &&
+      !component.slo
+    ) {
+      results.push({
+        componentId: component.componentId,
+        type: component.type,
+        rule: "service-needs-slo",
+        message: "Service component should define SLO targets",
+        action: "WARN",
+      })
+    }
+
+    // Rule: slo-needs-alert (FAIL)
+    // Components with SLO must have alertChannel
+    if (component.slo && !component.alertChannel) {
+      results.push({
+        componentId: component.componentId,
+        type: component.type,
+        rule: "slo-needs-alert",
+        message: "Component with SLO must have alertChannel",
+        action: "FAIL",
+      })
+    }
+
+    // Rule: runbook-exists (WARN)
+    // Runbook paths must exist on disk
+    if (component.runbook) {
+      const runbookPath = join(projectRoot, component.runbook)
+      if (!existsSync(runbookPath)) {
+        results.push({
+          componentId: component.componentId,
+          type: component.type,
+          rule: "runbook-exists",
+          message: "Runbook path does not exist",
+          action: "WARN",
+        })
+      }
+    }
+  }
+
+  // Sort for deterministic output
+  results.sort((a, b) => a.componentId.localeCompare(b.componentId))
+
+  return results
+}
+
+/**
  * Enforces rules against drift results.
  * Returns pass/fail status for CI gates.
  */
 export function enforceRules(
   driftResult: DriftResult,
-  rules: EnforcementRule[] = DEFAULT_ENFORCEMENT_RULES
+  rules: EnforcementRule[] = DEFAULT_ENFORCEMENT_RULES,
+  declared: SystemComponent[] = [],
+  projectRoot: string = process.cwd()
 ): EnforcementResult {
   const failures: EnforcementFailure[] = []
   const warnings: EnforcementFailure[] = []
@@ -632,6 +723,25 @@ export function enforceRules(
         } else {
           warnings.push(failure)
         }
+      }
+    }
+  }
+
+  // Apply validation rules to declared components
+  if (declared.length > 0) {
+    const validationResults = applyValidationRules(declared, projectRoot)
+    for (const result of validationResults) {
+      const failure: EnforcementFailure = {
+        componentId: result.componentId,
+        type: result.type,
+        rule: result.rule,
+        message: result.message,
+      }
+
+      if (result.action === "FAIL") {
+        failures.push(failure)
+      } else {
+        warnings.push(failure)
       }
     }
   }
