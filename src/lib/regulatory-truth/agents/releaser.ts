@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/releaser.ts
 
-import { db } from "@/lib/db"
+import { db, runWithRegulatoryContext } from "@/lib/db"
 import { Prisma } from "@prisma/client"
 import {
   ReleaserInputSchema,
@@ -12,6 +12,7 @@ import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
 import { computeReleaseHash, normalizeDate, type RuleSnapshot } from "../utils/release-hash"
 import { checkBatchEvidenceStrength } from "../utils/evidence-strength"
+import { publishRules } from "../services/rule-status-service"
 
 // =============================================================================
 // RELEASER AGENT
@@ -369,11 +370,19 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
     })
   }
 
-  // Update rules status to PUBLISHED
-  await db.regulatoryRule.updateMany({
-    where: { id: { in: approvedRuleIds } },
-    data: { status: "PUBLISHED" },
-  })
+  // Update rules status to PUBLISHED via domain service
+  // This uses transaction + per-rule validation + proper context
+  const publishResult = await publishRules(approvedRuleIds, "releaser")
+  if (!publishResult.success) {
+    console.error("[releaser] Failed to publish rules:", publishResult.errors)
+    return {
+      success: false,
+      output: null,
+      releaseId: release.id,
+      publishedRuleIds: [],
+      error: `Failed to publish rules: ${publishResult.errors.join("; ")}`,
+    }
+  }
 
   return {
     success: true,
@@ -540,79 +549,90 @@ export async function rollbackRelease(
   }
 
   // Perform the rollback in a transaction
+  // Wrap in regulatory context to allow PUBLISHED → APPROVED transition
   try {
-    const result = await db.$transaction(
-      async (tx) => {
-        // Get the release with its rules
-        const release = await tx.ruleRelease.findUnique({
-          where: { version: releaseVersion },
-          include: {
-            rules: {
-              where: { status: "PUBLISHED" },
-              select: { id: true, conceptSlug: true, status: true },
-            },
+    const result = await runWithRegulatoryContext(
+      { source: "rollback", bypassApproval: true, actorUserId: performedBy },
+      () =>
+        db.$transaction(
+          async (tx) => {
+            // Get the release with its rules
+            const release = await tx.ruleRelease.findUnique({
+              where: { version: releaseVersion },
+              include: {
+                rules: {
+                  where: { status: "PUBLISHED" },
+                  select: { id: true, conceptSlug: true, status: true },
+                },
+              },
+            })
+
+            if (!release) {
+              throw new Error(`Release ${releaseVersion} not found`)
+            }
+
+            const rulesToRollback = release.rules
+            const previousStatus = new Map<string, string>()
+            rulesToRollback.forEach((r) => previousStatus.set(r.id, r.status))
+
+            // Get the previous release to check which rules should stay PUBLISHED
+            const previousRelease = await tx.ruleRelease.findFirst({
+              where: {
+                releasedAt: { lt: release.releasedAt },
+              },
+              orderBy: { releasedAt: "desc" },
+              include: {
+                rules: {
+                  select: { id: true },
+                },
+              },
+            })
+
+            const previousReleaseRuleIds = new Set(previousRelease?.rules.map((r) => r.id) || [])
+
+            // Determine which rules to revert to APPROVED
+            // (only rules NOT in the previous release)
+            const rulesToRevert = rulesToRollback.filter((r) => !previousReleaseRuleIds.has(r.id))
+            const rulesToKeepPublished = rulesToRollback.filter((r) =>
+              previousReleaseRuleIds.has(r.id)
+            )
+
+            // Revert rules to APPROVED status via domain service
+            // Note: We're already in a transaction, so we use individual updates
+            // The service handles context + validation
+            if (rulesToRevert.length > 0) {
+              for (const rule of rulesToRevert) {
+                await tx.regulatoryRule.update({
+                  where: { id: rule.id },
+                  data: { status: "APPROVED" },
+                })
+              }
+            }
+
+            // Disconnect rules from this release (but don't delete the release record)
+            await tx.ruleRelease.update({
+              where: { id: release.id },
+              data: {
+                rules: {
+                  disconnect: rulesToRollback.map((r) => ({ id: r.id })),
+                },
+              },
+            })
+
+            return {
+              releaseId: release.id,
+              version: release.version,
+              rolledBackRuleIds: rulesToRevert.map((r) => r.id),
+              keptPublishedRuleIds: rulesToKeepPublished.map((r) => r.id),
+              previousStatus,
+            }
           },
-        })
-
-        if (!release) {
-          throw new Error(`Release ${releaseVersion} not found`)
-        }
-
-        const rulesToRollback = release.rules
-        const previousStatus = new Map<string, string>()
-        rulesToRollback.forEach((r) => previousStatus.set(r.id, r.status))
-
-        // Get the previous release to check which rules should stay PUBLISHED
-        const previousRelease = await tx.ruleRelease.findFirst({
-          where: {
-            releasedAt: { lt: release.releasedAt },
-          },
-          orderBy: { releasedAt: "desc" },
-          include: {
-            rules: {
-              select: { id: true },
-            },
-          },
-        })
-
-        const previousReleaseRuleIds = new Set(previousRelease?.rules.map((r) => r.id) || [])
-
-        // Determine which rules to revert to APPROVED
-        // (only rules NOT in the previous release)
-        const rulesToRevert = rulesToRollback.filter((r) => !previousReleaseRuleIds.has(r.id))
-        const rulesToKeepPublished = rulesToRollback.filter((r) => previousReleaseRuleIds.has(r.id))
-
-        // Revert rules to APPROVED status
-        if (rulesToRevert.length > 0) {
-          await tx.regulatoryRule.updateMany({
-            where: { id: { in: rulesToRevert.map((r) => r.id) } },
-            data: { status: "APPROVED" },
-          })
-        }
-
-        // Disconnect rules from this release (but don't delete the release record)
-        await tx.ruleRelease.update({
-          where: { id: release.id },
-          data: {
-            rules: {
-              disconnect: rulesToRollback.map((r) => ({ id: r.id })),
-            },
-          },
-        })
-
-        return {
-          releaseId: release.id,
-          version: release.version,
-          rolledBackRuleIds: rulesToRevert.map((r) => r.id),
-          keptPublishedRuleIds: rulesToKeepPublished.map((r) => r.id),
-          previousStatus,
-        }
-      },
-      {
-        timeout: 30000, // 30 second timeout for the transaction
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      }
-    )
+          {
+            timeout: 30000, // 30 second timeout for the transaction
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          }
+        )
+    ) // Close runWithRegulatoryContext
 
     // Log audit events outside the transaction
     await logAuditEvent({

@@ -250,6 +250,17 @@ function validateStatusTransitionInternal(
           error: `Cannot bypass APPROVED state. Transition ${currentStatus} → APPROVED first.`,
         }
       }
+      // Allow rollback: PUBLISHED → APPROVED (only with bypass + source containing "rollback")
+      if (currentStatus === "PUBLISHED" && newStatus === "APPROVED") {
+        if (context.source.toLowerCase().includes("rollback")) {
+          return { allowed: true }
+        }
+        // Deny if source doesn't indicate rollback
+        return {
+          allowed: false,
+          error: `PUBLISHED → APPROVED requires rollback context. Use revertRulesToApproved().`,
+        }
+      }
     }
 
     return {

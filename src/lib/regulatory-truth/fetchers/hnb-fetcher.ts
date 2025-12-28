@@ -3,7 +3,7 @@
 // API: https://api.hnb.hr/tecajn-eur/v3
 // 100% reliable structured data - bypasses AI extraction entirely
 
-import { db } from "@/lib/db"
+import { db, runWithRegulatoryContext } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { logAuditEvent } from "../utils/audit-log"
 
@@ -195,10 +195,13 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
 
       // Use unified publish gate for Tier 0 auto-publishing
       // This ensures all publish paths are audited and validated
-      await db.regulatoryRule.update({
-        where: { id: rule.id },
-        data: { status: "PUBLISHED" },
-      })
+      // Must use regulatory context to allow APPROVED → PUBLISHED transition
+      await runWithRegulatoryContext({ source: "hnb-fetcher", bypassApproval: false }, () =>
+        db.regulatoryRule.update({
+          where: { id: rule.id },
+          data: { status: "PUBLISHED" },
+        })
+      )
 
       // Log audit event with full provenance
       await logAuditEvent({

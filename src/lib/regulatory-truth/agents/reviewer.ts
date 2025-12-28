@@ -9,6 +9,7 @@ import {
 } from "../schemas"
 import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
+import { approveRule } from "../services/rule-status-service"
 
 // =============================================================================
 // REVIEWER AGENT
@@ -113,29 +114,23 @@ export async function autoApproveEligibleRules(): Promise<{
         continue
       }
 
+      // Use approveRule service for proper context and audit trail
+      const approveResult = await approveRule(rule.id, "AUTO_APPROVE_SYSTEM", "auto-approve")
+      if (!approveResult.success) {
+        console.log(`[auto-approve] FAILED: ${rule.conceptSlug} - ${approveResult.error}`)
+        results.errors.push(`${rule.id}: ${approveResult.error}`)
+        continue
+      }
+
+      // Update reviewer notes separately (service handles status + audit)
       await db.regulatoryRule.update({
         where: { id: rule.id },
         data: {
-          status: "APPROVED",
-          approvedAt: new Date(),
-          approvedBy: "AUTO_APPROVE_SYSTEM",
           reviewerNotes: JSON.stringify({
             auto_approved: true,
             reason: `Grace period (${gracePeriodHours}h) elapsed with confidence ${rule.confidence}`,
             approved_at: new Date().toISOString(),
           }),
-        },
-      })
-
-      await logAuditEvent({
-        action: "RULE_APPROVED",
-        entityType: "RULE",
-        entityId: rule.id,
-        metadata: {
-          auto_approved: true,
-          confidence: rule.confidence,
-          grace_period_hours: gracePeriodHours,
-          risk_tier: rule.riskTier,
         },
       })
 
