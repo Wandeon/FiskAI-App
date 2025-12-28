@@ -33,3 +33,14 @@ export {
   type EmitEventParams,
   type EmitEventResult,
 } from "./emit-event"
+
+// Concept registry
+export type { ConceptMapping } from "./concept-registry"
+export {
+  CONCEPT_REGISTRY,
+  getConceptMapping,
+  resolveContentPaths,
+  getAllConceptIds,
+  getConceptsForFile,
+  getConceptsForTool,
+} from "./concept-registry"
