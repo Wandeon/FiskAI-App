@@ -25,3 +25,11 @@ export {
   determineSeverity,
   buildEventSignature,
 } from "./event-id"
+
+// Event emitter
+export {
+  emitContentSyncEvent,
+  MissingPointersError,
+  type EmitEventParams,
+  type EmitEventResult,
+} from "./emit-event"
