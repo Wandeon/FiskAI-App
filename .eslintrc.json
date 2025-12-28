@@ -1,9 +1,46 @@
 {
   "root": true,
   "extends": ["next/core-web-vitals", "next/typescript"],
-  "plugins": ["fisk-design-system"],
+  "plugins": ["fisk-design-system", "import"],
   "rules": {
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-explicit-any": "warn",
+    "import/no-restricted-paths": [
+      "error",
+      {
+        "zones": [
+          {
+            "target": "./src/components/ui/**/*",
+            "from": "./src/components/patterns/**/*",
+            "message": "Primitives cannot import from patterns. Use tokens or lib/utils only."
+          },
+          {
+            "target": "./src/components/ui/**/*",
+            "from": "./src/components/sections/**/*",
+            "message": "Primitives cannot import from sections."
+          },
+          {
+            "target": "./src/components/ui/**/*",
+            "from": "./src/components/templates/**/*",
+            "message": "Primitives cannot import from templates."
+          },
+          {
+            "target": "./src/components/patterns/**/*",
+            "from": "./src/components/sections/**/*",
+            "message": "Patterns cannot import from sections."
+          },
+          {
+            "target": "./src/components/patterns/**/*",
+            "from": "./src/components/templates/**/*",
+            "message": "Patterns cannot import from templates."
+          },
+          {
+            "target": "./src/components/sections/**/*",
+            "from": "./src/components/templates/**/*",
+            "message": "Sections cannot import from templates."
+          }
+        ]
+      }
+    ]
   },
   "overrides": [
     {
