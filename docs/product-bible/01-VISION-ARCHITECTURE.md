@@ -2,9 +2,9 @@
 
 [← Back to Index](./00-INDEX.md)
 
-> **Last Audit:** 2025-12-28 | **Auditor:** Claude Opus 4.5
+> **Last Audit:** 2025-12-29 | **Auditor:** Claude Opus 4.5
 >
-> This chapter has been updated to reflect current implementation status across all merged PRs through #119.
+> This chapter has been updated to reflect current implementation status across all merged PRs through #142.
 
 ---
 
@@ -27,6 +27,7 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 | **Progressive Disclosure** | Visibility system with competence levels + progression stages          | Implemented | Don't overwhelm beginners                                 |
 | **Document Integrity**     | SHA-256 hashing + audit logging + Evidence immutability protection     | Implemented | 11-year archive must prove documents unaltered            |
 | **Evidence Immutability**  | Prisma extensions block Evidence.rawContent modification post-creation | Implemented | Regulatory chain integrity (PR #115)                      |
+| **System Registry**        | Component criticality tracking with blast radius + CI enforcement      | Implemented | Governance of CRITICAL components (PR #138)               |
 
 ### 1.3 The Three Portals
 
@@ -378,13 +379,17 @@ LAYER 3: SPECIALIZED
 
 ### 10.2 Implemented but Not Documented (Now Added)
 
-| Feature                          | PR   | Notes                          |
-| -------------------------------- | ---- | ------------------------------ |
-| Design System Token Architecture | #107 | Self-enforcing with ESLint     |
-| Adaptive Sentinel                | #111 | Topology-aware crawler         |
-| Living Truth Infrastructure      | #115 | Evidence immutability          |
-| OCR Temporal Filtering           | #119 | Cycle detection                |
-| Authority-First Design           | #117 | Full performance specification |
+| Feature                          | PR   | Notes                               |
+| -------------------------------- | ---- | ----------------------------------- |
+| Design System Token Architecture | #107 | Self-enforcing with ESLint          |
+| Adaptive Sentinel                | #111 | Topology-aware crawler              |
+| Living Truth Infrastructure      | #115 | Evidence immutability               |
+| OCR Temporal Filtering           | #119 | Cycle detection                     |
+| Authority-First Design           | #117 | Full performance specification      |
+| System Registry                  | #138 | Blast radius, CI enforcement        |
+| Component Architecture Layers    | #139 | patterns/, sections/, templates/    |
+| RTL Content Sync                 | #140 | BullMQ worker, concept registry     |
+| System Status HCL                | #142 | Admin monitoring, dead letter queue |
 
 ### 10.3 Known Technical Debt
 
@@ -397,6 +402,7 @@ LAYER 3: SPECIALIZED
 
 | Date       | Change                                    | PR/Commit |
 | ---------- | ----------------------------------------- | --------- |
+| 2025-12-29 | Added System Registry, RTL Content Sync   | #138-#142 |
 | 2025-12-28 | Staff Portal status corrected to Partial  | Audit     |
 | 2025-12-28 | Full chapter audit and update             | Audit     |
 | 2025-12-27 | Authority-First Performance design merged | #117      |
