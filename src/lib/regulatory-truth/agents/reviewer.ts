@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/reviewer.ts
 
-import { db } from "@/lib/db"
+import { db, runWithRegulatoryContext } from "@/lib/db"
 import {
   ReviewerInputSchema,
   ReviewerOutputSchema,
@@ -50,6 +50,14 @@ async function findConflictingRules(rule: {
  *
  * This provides a grace period for lower-risk rules while ensuring
  * T0/T1 rules always require explicit human approval.
+ *
+ * POLICY NOTE: This is DIFFERENT from structured-source auto-approval:
+ * - Structured sources (HNB, etc.) → require allowlist match via isAutoApprovalAllowed()
+ * - Grace period auto-approval → does NOT require allowlist because rules already
+ *   passed the PENDING_REVIEW queue gate and weren't rejected by humans
+ *
+ * We set autoApprove=true in context for audit purposes, but don't pass sourceSlug
+ * because this isn't a structured source flow.
  */
 export async function autoApproveEligibleRules(): Promise<{
   approved: number
@@ -114,8 +122,13 @@ export async function autoApproveEligibleRules(): Promise<{
         continue
       }
 
-      // Use approveRule service for proper context and audit trail
-      const approveResult = await approveRule(rule.id, "AUTO_APPROVE_SYSTEM", "auto-approve")
+      // Use approveRule service with proper context for audit trail
+      // Note: autoApprove=true marks this as automated, but we don't pass sourceSlug
+      // because grace-period auto-approve is not a structured-source flow
+      const approveResult = await runWithRegulatoryContext(
+        { source: "grace-period-auto-approve", autoApprove: true },
+        () => approveRule(rule.id, "AUTO_APPROVE_SYSTEM", "grace-period-auto-approve")
+      )
       if (!approveResult.success) {
         console.log(`[auto-approve] FAILED: ${rule.conceptSlug} - ${approveResult.error}`)
         results.errors.push(`${rule.id}: ${approveResult.error}`)

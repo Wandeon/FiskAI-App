@@ -241,13 +241,28 @@ export class RegulatoryRuleUpdateManyStatusNotAllowedError extends Error {
 
 /**
  * Safely extract status from update data if present.
+ *
+ * Handles both direct assignment and Prisma set syntax:
+ * - { status: "APPROVED" }           -> "APPROVED"
+ * - { status: { set: "APPROVED" } }  -> "APPROVED"
+ *
+ * CRITICAL: Both forms must be caught to prevent bypass.
  */
 function getRequestedRuleStatus(data: unknown): string | null {
   if (!data || typeof data !== "object") return null
   const d = data as Record<string, unknown>
   const s = d.status
-  if (typeof s !== "string") return null
-  return s
+
+  // Direct string assignment: { status: "APPROVED" }
+  if (typeof s === "string") return s
+
+  // Prisma set syntax: { status: { set: "APPROVED" } }
+  if (s && typeof s === "object") {
+    const setObj = s as Record<string, unknown>
+    if (typeof setObj.set === "string") return setObj.set
+  }
+
+  return null
 }
 
 /**
