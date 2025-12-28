@@ -37,6 +37,9 @@ See `/src/lib/regulatory-truth/data/sources.ts` for complete source registry.
 | j.d.o.o.       | `JDOO`        | 1 EUR       | Corporate     | Double-entry | YES      |
 | d.o.o.         | `DOO`         | 2,500 EUR   | Corporate     | Double-entry | YES      |
 
+> **Double-entry Accounting:** JDOO and DOO require a General Ledger with Chart of Accounts based on the RRiF kontni plan.
+> See [GL Engine Spec](../plans/2025-01-GL-ENGINE-SPEC.md) for implementation plan including Prisma schema, posting service, and migration strategy.
+
 ### 4.2 Module Requirements by Legal Form
 
 | Module               | OBRT_PAUSAL | OBRT_REAL  | OBRT_VAT   | JDOO       | DOO        |

@@ -104,6 +104,10 @@
 
 **Tier 3 (Full D.O.O.):**
 
+> **Prerequisite:** General Ledger Engine required for double-entry accounting.
+> See [GL Engine Spec](../plans/2025-01-GL-ENGINE-SPEC.md) for implementation plan.
+
+- [ ] General Ledger Engine (Chart of Accounts, Journal Entries, Posting)
 - [ ] Complete PDV forms
 - [ ] Enhanced URA/IRA
 - [ ] Corporate tax calculation
