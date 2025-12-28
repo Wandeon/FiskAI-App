@@ -33,8 +33,11 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 | Portal           | URL               | SystemRole | Purpose                           | Status      |
 | ---------------- | ----------------- | ---------- | --------------------------------- | ----------- |
 | **Client App**   | `app.fiskai.hr`   | `USER`     | Business owner's cockpit          | Implemented |
-| **Staff Portal** | `staff.fiskai.hr` | `STAFF`    | Accountant multi-client workspace | Implemented |
+| **Staff Portal** | `staff.fiskai.hr` | `STAFF`    | Accountant multi-client workspace | Partial     |
 | **Admin Portal** | `admin.fiskai.hr` | `ADMIN`    | Platform management               | Implemented |
+
+> **Staff Portal Note:** Basic dashboard and client list only. Multi-client workspace features pending.
+> See [docs/02_FEATURES/features/staff-portal.md](../02_FEATURES/features/staff-portal.md) for detailed gap analysis.
 
 **Marketing Site:** `fiskai.hr` (public, no auth required)
 
@@ -394,6 +397,7 @@ LAYER 3: SPECIALIZED
 
 | Date       | Change                                    | PR/Commit |
 | ---------- | ----------------------------------------- | --------- |
+| 2025-12-28 | Staff Portal status corrected to Partial  | Audit     |
 | 2025-12-28 | Full chapter audit and update             | Audit     |
 | 2025-12-27 | Authority-First Performance design merged | #117      |
 | 2025-12-26 | Living Truth Infrastructure merged        | #115      |
