@@ -1360,6 +1360,10 @@ enum AuditAction {
   RELEASE_PUBLISHED
   RELEASE_ROLLED_BACK
   RELEASE_HASH_REPAIRED
+
+  // Regulatory Truth Layer - Status Transitions & Pipeline
+  RULE_STATUS_CHANGED
+  PIPELINE_STAGE_COMPLETE
 }
 
 enum ExpenseStatus {

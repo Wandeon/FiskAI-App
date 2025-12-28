@@ -13,7 +13,7 @@ import {
 } from "@/components/support/support-status-buttons"
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 const statusLabels: Record<SupportTicketStatus, string> = {
@@ -31,11 +31,12 @@ const priorityLabels: Record<SupportTicketPriority, string> = {
 }
 
 export default async function SupportDetailPage({ params }: PageProps) {
+  const { id } = await params
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
   const ticket = await db.supportTicket.findFirst({
-    where: { id: params.id, companyId: company.id },
+    where: { id, companyId: company.id },
     include: {
       messages: {
         orderBy: { createdAt: "asc" },

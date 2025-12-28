@@ -9,6 +9,7 @@
 // The actual allowlist is in policy/auto-approval-policy.ts (single source of truth).
 
 import { db, runWithRegulatoryContext } from "@/lib/db"
+import { RiskTier, AuthorityLevel } from "@prisma/client"
 import { approveRule, publishRules } from "../services/rule-status-service"
 import { logAuditEvent } from "../utils/audit-log"
 import { isAutoApprovalAllowed } from "../policy/auto-approval-policy"
@@ -288,12 +289,12 @@ function checkAutoApprovalEligibility(
   }
 
   // Gate 2: Delegate to policy module (single source of truth)
-  // Cast to Prisma enums - this will fail at runtime if values don't match
+  // The database values should match Prisma enums exactly
   const policyCheck = isAutoApprovalAllowed(
     {
       conceptSlug: rule.conceptSlug,
-      riskTier: rule.riskTier as "T0" | "T1" | "T2" | "T3",
-      authorityLevel: rule.authorityLevel as "LAW" | "GUIDANCE" | "PROCEDURE" | "PRACTICE",
+      riskTier: rule.riskTier as RiskTier,
+      authorityLevel: rule.authorityLevel as AuthorityLevel,
       confidence: rule.confidence,
     },
     sourceSlug

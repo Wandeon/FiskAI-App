@@ -67,6 +67,10 @@ const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   RELEASE_PUBLISHED: "Izdanje objavljeno",
   RELEASE_ROLLED_BACK: "Izdanje vraćeno",
   RELEASE_HASH_REPAIRED: "Hash izdanja popravljen",
+
+  // Regulatory Truth Layer - Status Transitions & Pipeline
+  RULE_STATUS_CHANGED: "Status pravila promijenjen",
+  PIPELINE_STAGE_COMPLETE: "Faza cjevovoda završena",
 }
 
 const ENTITY_LABELS: Record<string, string> = {

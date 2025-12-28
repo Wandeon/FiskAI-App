@@ -5,7 +5,14 @@ import { Prisma, AuditAction } from "@prisma/client"
 
 export type { AuditAction }
 
-export type EntityType = "RULE" | "CONFLICT" | "RELEASE" | "EVIDENCE" | "CONCEPT" | "SYSTEM"
+export type EntityType =
+  | "RULE"
+  | "CONFLICT"
+  | "RELEASE"
+  | "EVIDENCE"
+  | "CONCEPT"
+  | "SYSTEM"
+  | "PIPELINE"
 
 interface LogParams {
   action: AuditAction
