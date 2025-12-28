@@ -29,7 +29,6 @@ export {
 // Event emitter
 export {
   emitContentSyncEvent,
-  MissingPointersError,
   type EmitEventParams,
   type EmitEventResult,
 } from "./emit-event"
@@ -44,3 +43,21 @@ export {
   getConceptsForFile,
   getConceptsForTool,
 } from "./concept-registry"
+
+// Errors
+export type { ClassifiedError } from "./errors"
+export {
+  ContentSyncError,
+  // PERMANENT errors
+  UnmappedConceptError,
+  InvalidPayloadError,
+  MissingPointersError,
+  ContentNotFoundError,
+  FrontmatterParseError,
+  PatchConflictError,
+  // TRANSIENT errors
+  RepoWriteFailedError,
+  DbWriteFailedError,
+  // Classification
+  classifyError,
+} from "./errors"

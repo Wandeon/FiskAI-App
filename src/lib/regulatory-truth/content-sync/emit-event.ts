@@ -15,6 +15,7 @@ import {
   generateEventId,
   determineSeverity,
 } from "./event-id"
+import { MissingPointersError } from "./errors"
 import type {
   ContentDomain,
   ContentSyncEventV1,
@@ -22,20 +23,8 @@ import type {
   ValueType,
 } from "./types"
 
-// =============================================================================
-// Error Classes
-// =============================================================================
-
-/**
- * Thrown when an event is emitted without any source pointer IDs.
- * Every content sync event must be traceable to source evidence.
- */
-export class MissingPointersError extends Error {
-  constructor(public ruleId: string) {
-    super(`Event has no sourcePointerIds for rule: ${ruleId}`)
-    this.name = "MissingPointersError"
-  }
-}
+// Re-export for backwards compatibility
+export { MissingPointersError } from "./errors"
 
 // =============================================================================
 // Types
