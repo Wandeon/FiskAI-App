@@ -87,6 +87,18 @@ export type {
   EnforcementFailure,
 } from "./compute-drift"
 
+// Dependency graph exports
+export {
+  buildGraph,
+  reverseReachable,
+  MAX_NODES,
+} from "./dependency-graph"
+
+export type {
+  DependencyGraph,
+  ReverseReachableResult,
+} from "./dependency-graph"
+
 // Utility: Get component by ID
 export function getComponent(componentId: string) {
   const { DECLARED_COMPONENTS } = require("./declarations")
