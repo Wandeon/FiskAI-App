@@ -61,3 +61,13 @@ export {
   // Classification
   classifyError,
 } from "./errors"
+
+// Frontmatter patcher
+export type { ChangelogEntry, RtlFrontmatter, MdxReadResult } from "./patcher"
+export {
+  readMdxFrontmatter,
+  writeMdxFile,
+  generateChangelogSummary,
+  createChangelogEntry,
+  patchFrontmatter,
+} from "./patcher"
