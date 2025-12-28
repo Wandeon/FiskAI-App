@@ -8,7 +8,9 @@ export type {
   AIAnswerBlockProps,
   AIAnswerSource,
   AnswerType,
-  Jurisdiction,
+  ConfidenceLevel,
+  EvidenceStrength,
+  ContentType,
 } from "./ai-answer-block"
 export { RegulatorySection } from "./RegulatorySection"
-export type { RegulatorySectionProps, ConfidenceLevel } from "./RegulatorySection"
+export type { RegulatorySectionProps } from "./RegulatorySection"
