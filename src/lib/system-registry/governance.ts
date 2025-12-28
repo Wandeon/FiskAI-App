@@ -727,3 +727,262 @@ export const INTERNAL_LIB_POLICY = {
   requiresDocsRef: false,
   maxDependentsForInternal: 0, // Future: internal libs should not be depended on by product libs
 } as const
+
+// =============================================================================
+// OPERATIONAL METADATA PATTERNS
+// =============================================================================
+
+/**
+ * OPERATIONAL METADATA PATTERNS
+ *
+ * This section documents the conventions and best practices for operational
+ * metadata fields in component declarations. These fields enable runtime
+ * monitoring, alerting, and incident response.
+ *
+ * -----------------------------------------------------------------------------
+ * healthCheck
+ * -----------------------------------------------------------------------------
+ *
+ * Health checks verify component availability at runtime.
+ *
+ * For HTTP services (ROUTE_GROUP, UI):
+ *   Use `endpoint` - a path relative to the service root
+ *
+ *   @example
+ *   healthCheck: {
+ *     endpoint: "/health",
+ *     interval: "30s"
+ *   }
+ *
+ *   @example
+ *   healthCheck: {
+ *     endpoint: "/api/v1/status",
+ *     interval: "1m"
+ *   }
+ *
+ * For CLI tools, workers, and background processes:
+ *   Use `command` - a shell command that exits 0 on success
+ *
+ *   @example Worker health check
+ *   healthCheck: {
+ *     command: "pgrep -f worker-extractor",
+ *     interval: "30s"
+ *   }
+ *
+ *   @example Database health check
+ *   healthCheck: {
+ *     command: "pg_isready -h localhost -p 5432",
+ *     interval: "10s"
+ *   }
+ *
+ *   @example Redis health check
+ *   healthCheck: {
+ *     command: "redis-cli ping",
+ *     interval: "15s"
+ *   }
+ *
+ *   @example Queue depth check
+ *   healthCheck: {
+ *     command: "npx tsx scripts/check-queue-depth.ts --max 1000",
+ *     interval: "5m"
+ *   }
+ *
+ * Interval format:
+ *   - Defaults to "30s" if omitted
+ *   - Use suffixes: "s" (seconds), "m" (minutes), "h" (hours)
+ *   - Examples: "10s", "30s", "1m", "5m", "1h"
+ *   - CRITICAL components: recommend "30s" or less
+ *   - HIGH components: recommend "1m" or less
+ *   - MEDIUM/LOW: "5m" is acceptable
+ *
+ * -----------------------------------------------------------------------------
+ * slo (Service Level Objectives)
+ * -----------------------------------------------------------------------------
+ *
+ * SLOs define operational targets for monitoring and alerting.
+ *
+ * availability:
+ *   Target uptime percentage. Used for alerting when availability drops.
+ *
+ *   @example CRITICAL service
+ *   slo: {
+ *     availability: "99.9%"    // Max 8.76 hours downtime/year
+ *   }
+ *
+ *   @example HIGH service
+ *   slo: {
+ *     availability: "99.5%"    // Max 43.8 hours downtime/year
+ *   }
+ *
+ *   @example MEDIUM service
+ *   slo: {
+ *     availability: "99%"      // Max 87.6 hours downtime/year
+ *   }
+ *
+ * latencyP99:
+ *   99th percentile response time target. Most requests should be faster.
+ *
+ *   @example User-facing API
+ *   slo: {
+ *     latencyP99: "200ms"
+ *   }
+ *
+ *   @example Background processing
+ *   slo: {
+ *     latencyP99: "5s"
+ *   }
+ *
+ *   @example Batch job
+ *   slo: {
+ *     latencyP99: "30s"
+ *   }
+ *
+ * latencyP50:
+ *   Median response time. Use for tracking typical performance.
+ *
+ *   @example
+ *   slo: {
+ *     latencyP50: "50ms",
+ *     latencyP99: "200ms"
+ *   }
+ *
+ * errorBudget:
+ *   Monthly error allowance. Alerts fire when budget exhausted.
+ *
+ *   @example Tight error budget for CRITICAL
+ *   slo: {
+ *     availability: "99.9%",
+ *     errorBudget: "0.1%"      // 43 minutes/month
+ *   }
+ *
+ *   @example Standard error budget
+ *   slo: {
+ *     availability: "99.5%",
+ *     errorBudget: "0.5%"      // 3.6 hours/month
+ *   }
+ *
+ * Combined example:
+ *
+ *   @example Complete SLO for payment processing
+ *   slo: {
+ *     availability: "99.95%",
+ *     latencyP50: "100ms",
+ *     latencyP99: "500ms",
+ *     errorBudget: "0.05%"
+ *   }
+ *
+ * -----------------------------------------------------------------------------
+ * alertChannel
+ * -----------------------------------------------------------------------------
+ *
+ * Where to send alerts when SLOs are breached or health checks fail.
+ *
+ * Slack channels (most common):
+ *   Use "#channel-name" format
+ *
+ *   @example
+ *   alertChannel: "#ops-critical"
+ *
+ *   @example
+ *   alertChannel: "#team-backend-alerts"
+ *
+ *   @example
+ *   alertChannel: "#rtl-pipeline-alerts"
+ *
+ * PagerDuty integration:
+ *   Use "pagerduty:service-name" format for on-call escalation
+ *
+ *   @example
+ *   alertChannel: "pagerduty:payment-processing"
+ *
+ *   @example
+ *   alertChannel: "pagerduty:infrastructure-oncall"
+ *
+ * Multiple channels (future enhancement):
+ *   Currently single channel only. For multi-channel alerting,
+ *   configure at the monitoring system level.
+ *
+ * Channel naming conventions:
+ *   - #ops-critical      - 24/7 monitored, pages on-call
+ *   - #ops-high          - Business hours response
+ *   - #team-{name}-alerts - Team-specific alerts
+ *   - pagerduty:{service} - Direct escalation to PagerDuty
+ *
+ * -----------------------------------------------------------------------------
+ * runbook
+ * -----------------------------------------------------------------------------
+ *
+ * Path to incident response documentation.
+ *
+ * Format:
+ *   - Path relative to project root
+ *   - Must point to existing file (validation warns if missing)
+ *   - Typically markdown files in docs/runbooks/
+ *
+ *   @example
+ *   runbook: "docs/runbooks/auth-service.md"
+ *
+ *   @example
+ *   runbook: "docs/04_OPERATIONS/worker-extractor.md"
+ *
+ *   @example
+ *   runbook: "docs/runbooks/payment-processing.md"
+ *
+ * Runbook content guidelines:
+ *   - Symptoms: How to identify the issue
+ *   - Impact: What breaks when this fails
+ *   - Triage: Initial diagnostic steps
+ *   - Remediation: How to fix common issues
+ *   - Escalation: Who to contact if stuck
+ *   - Post-incident: Cleanup and verification steps
+ *
+ * -----------------------------------------------------------------------------
+ * COMPONENT TYPE RECOMMENDATIONS
+ * -----------------------------------------------------------------------------
+ *
+ * WORKER / JOB:
+ *   - healthCheck.command (process check or queue depth)
+ *   - slo.availability (uptime target)
+ *   - alertChannel (ops channel or pagerduty for CRITICAL)
+ *   - runbook (worker-specific troubleshooting)
+ *
+ * ROUTE_GROUP:
+ *   - healthCheck.endpoint (HTTP health endpoint)
+ *   - slo.latencyP99 (response time target)
+ *   - slo.availability (uptime target)
+ *   - alertChannel (team-specific channel)
+ *
+ * STORE:
+ *   - healthCheck.command (database connectivity check)
+ *   - slo.availability (typically highest - 99.99%)
+ *   - alertChannel (ops-critical or pagerduty)
+ *   - runbook (backup/restore procedures)
+ *
+ * QUEUE:
+ *   - healthCheck.command (queue depth check)
+ *   - slo.latencyP99 (processing time target)
+ *   - alertChannel (pipeline alerts channel)
+ *
+ * INTEGRATION:
+ *   - healthCheck.endpoint or command (connectivity test)
+ *   - slo.availability (dependent on external service)
+ *   - runbook (vendor contact info, fallback procedures)
+ *
+ * -----------------------------------------------------------------------------
+ * CRITICALITY-BASED REQUIREMENTS (Future Enforcement)
+ * -----------------------------------------------------------------------------
+ *
+ * CRITICAL components (Sprint +4):
+ *   - MUST have healthCheck
+ *   - MUST have slo with availability
+ *   - MUST have alertChannel
+ *   - MUST have runbook
+ *
+ * HIGH components (Sprint +6):
+ *   - SHOULD have healthCheck
+ *   - SHOULD have slo
+ *   - SHOULD have alertChannel
+ *
+ * MEDIUM/LOW components:
+ *   - Optional but recommended for production components
+ */
