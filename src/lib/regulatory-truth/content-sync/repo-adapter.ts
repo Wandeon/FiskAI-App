@@ -31,7 +31,7 @@ export interface CreatePRParams {
  * Interface for content repository operations.
  */
 export interface ContentRepoAdapter {
-  /** Create a new git branch from the current HEAD */
+  /** Create or checkout a git branch (idempotent for retries) */
   createBranch(branchName: string): void
   /** Stage files for commit */
   stageFiles(files: string[]): void
@@ -43,6 +43,12 @@ export interface ContentRepoAdapter {
   createPR(params: CreatePRParams): string
   /** Get the name of the current branch */
   getCurrentBranch(): string
+  /** Check if a local branch exists */
+  branchExists(branchName: string): boolean
+  /** Reset working tree to clean state (discard uncommitted changes) */
+  resetWorkingTree(): void
+  /** Return to main branch and optionally delete a feature branch */
+  cleanup(branchName?: string): void
 }
 
 // =============================================================================
@@ -77,8 +83,54 @@ export class GitContentRepoAdapter implements ContentRepoAdapter {
     }
   }
 
+  /**
+   * Create a new branch or checkout existing one (idempotent for retries).
+   * If the branch already exists (e.g., from a previous failed attempt),
+   * checks it out instead of failing.
+   */
   createBranch(branchName: string): void {
-    this.exec(`git checkout -b "${branchName}"`, `createBranch(${branchName})`)
+    if (this.branchExists(branchName)) {
+      // Branch exists from prior attempt - reset and checkout
+      this.resetWorkingTree()
+      this.exec(`git checkout "${branchName}"`, `checkoutBranch(${branchName})`)
+    } else {
+      this.exec(`git checkout -b "${branchName}"`, `createBranch(${branchName})`)
+    }
+  }
+
+  branchExists(branchName: string): boolean {
+    try {
+      // git rev-parse exits 0 if ref exists, non-zero otherwise
+      execSync(`git rev-parse --verify "refs/heads/${branchName}"`, {
+        cwd: this.repoRoot,
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  resetWorkingTree(): void {
+    // Discard all uncommitted changes
+    this.exec("git checkout -- .", "resetWorkingTree")
+    this.exec("git clean -fd", "cleanUntracked")
+  }
+
+  cleanup(branchName?: string): void {
+    // First reset any uncommitted changes
+    this.resetWorkingTree()
+    // Return to main
+    this.exec("git checkout main", "checkoutMain")
+    // Delete the feature branch if specified
+    if (branchName) {
+      try {
+        this.exec(`git branch -D "${branchName}"`, `deleteBranch(${branchName})`)
+      } catch {
+        // Branch may not exist, ignore
+      }
+    }
   }
 
   stageFiles(files: string[]): void {

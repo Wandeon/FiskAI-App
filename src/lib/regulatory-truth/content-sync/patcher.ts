@@ -14,6 +14,7 @@ import type { EventSeverity, ChangeType, ContentSyncEventV1 } from "./types"
 import {
   ContentNotFoundError,
   FrontmatterParseError,
+  InvalidPayloadError,
   PatchConflictError,
 } from "./errors"
 
@@ -212,6 +213,15 @@ export async function patchFrontmatter(
 ): Promise<string> {
   // Read and parse existing file
   const { data, content } = await readMdxFrontmatter(filePath)
+
+  // Validate changelog type - must be array or undefined
+  // If present but not an array, this is a malformed file (PERMANENT error)
+  if (data.changelog !== undefined && !Array.isArray(data.changelog)) {
+    throw new InvalidPayloadError(
+      `changelog in ${filePath} is not an array (got ${typeof data.changelog})`,
+      data.changelog
+    )
+  }
 
   // Check for duplicate eventId (idempotency)
   const existingChangelog = (data.changelog ?? []) as ChangelogEntry[]

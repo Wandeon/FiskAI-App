@@ -74,19 +74,21 @@ const JOB_OPTIONS = {
 }
 
 /**
- * Content directory (relative to repo root).
- * Set via CONTENT_DIR env var or defaults to "content".
- */
-const CONTENT_DIR = path.join(
-  process.cwd(),
-  process.env.CONTENT_DIR ?? "content"
-)
-
-/**
  * Repository root directory.
  * Set via REPO_ROOT env var or defaults to current working directory.
  */
 const REPO_ROOT = process.env.REPO_ROOT ?? process.cwd()
+
+/**
+ * Content directory (relative to REPO_ROOT, not cwd).
+ * Set via CONTENT_DIR env var or defaults to "content".
+ *
+ * If CONTENT_DIR is absolute, uses it directly.
+ * If relative, resolves against REPO_ROOT.
+ */
+const CONTENT_DIR = path.isAbsolute(process.env.CONTENT_DIR ?? "")
+  ? process.env.CONTENT_DIR!
+  : path.join(REPO_ROOT, process.env.CONTENT_DIR ?? "content")
 
 // =============================================================================
 // Database Operations
@@ -243,6 +245,10 @@ async function processContentSyncJob(
 
   const payload = event.payload as ContentSyncEventV1
 
+  // Create repo adapter early for cleanup on failure
+  const repoAdapter = new GitContentRepoAdapter(REPO_ROOT)
+  let branchName: string | undefined
+
   try {
     // Look up concept mapping
     const mapping = getConceptMapping(event.conceptId)
@@ -256,8 +262,7 @@ async function processContentSyncJob(
     const skippedFiles: string[] = []
 
     // Transaction B: File operations
-    const repoAdapter = new GitContentRepoAdapter(REPO_ROOT)
-    const branchName = generateBranchName(eventId, event.conceptId)
+    branchName = generateBranchName(eventId, event.conceptId)
 
     // Create branch for changes
     repoAdapter.createBranch(branchName)
@@ -350,6 +355,15 @@ async function processContentSyncJob(
         duration: Date.now() - start,
       }
     } else {
+      // Clean up git state before retry (reset working tree, return to main)
+      try {
+        repoAdapter.cleanup(branchName)
+        console.log(`[content-sync] Cleaned up git state for retry`)
+      } catch (cleanupErr) {
+        console.error(`[content-sync] Cleanup failed:`, cleanupErr)
+        // Continue with retry anyway
+      }
+
       // Mark failed for retry
       await markFailed(eventId, classification.message)
       console.error(

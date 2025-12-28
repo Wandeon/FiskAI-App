@@ -425,11 +425,20 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
       previousValue = supersededRule?.value
     }
 
+    // Determine conceptId - warn if falling back to slug (may not be in registry)
+    const effectiveConceptId = rule.conceptId ?? rule.conceptSlug
+    if (!rule.conceptId) {
+      console.warn(
+        `[releaser] Rule ${rule.id} has no conceptId, falling back to conceptSlug "${rule.conceptSlug}". ` +
+          `Event may be dead-lettered if slug is not in concept registry.`
+      )
+    }
+
     try {
       await emitContentSyncEvent({
         type: "RULE_RELEASED",
         ruleId: rule.id,
-        conceptId: rule.conceptId ?? rule.conceptSlug, // Fall back to conceptSlug if no conceptId
+        conceptId: effectiveConceptId,
         domain: contentDomain,
         effectiveFrom: rule.effectiveFrom,
         changeType: changeType as "create" | "update" | "repeal",
