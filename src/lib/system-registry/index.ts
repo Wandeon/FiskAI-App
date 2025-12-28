@@ -115,6 +115,31 @@ export { exportRegistry, EXPORT_FORMATS, DEFAULT_OUTPUT_DIR, getDefaultOutputPat
 
 export type { ExportFormat, ExportOptions, ExportResult, FormatHandler } from "./export"
 
+// Drift history exports
+export {
+  exportDriftHistory,
+  exportDriftHistoryJsonl,
+  readDriftHistory,
+  writeDriftHistory,
+  appendDriftHistoryEntry,
+  appendDriftHistoryEntries,
+  parseDriftHistoryLine,
+  formatDriftHistoryLine,
+  filterDriftHistory,
+  calculateDriftHistorySummary,
+  driftEntryToHistoryEntry,
+  captureDriftToHistory,
+  DEFAULT_HISTORY_FILE,
+} from "./exporters"
+
+export type {
+  DriftHistoryEntry,
+  DriftHistoryExport,
+  DriftHistoryExportOptions,
+  DriftHistorySummary,
+  Severity,
+} from "./exporters"
+
 // Utility: Get component by ID
 export function getComponent(componentId: string) {
   const { DECLARED_COMPONENTS } = require("./declarations")

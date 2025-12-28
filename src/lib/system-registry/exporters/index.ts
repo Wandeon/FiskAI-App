@@ -6,8 +6,37 @@
  */
 
 export { exportCsv } from "./csv"
-export { exportRegulatoryPack } from "./regulatory-pack"
-export { exportDriftHistory } from "./drift-history"
+export {
+  exportRegulatoryPack,
+  exportRegulatoryPackZip,
+  exportRegulatoryPackZipStream,
+} from "./regulatory-pack"
+export {
+  exportDriftHistory,
+  exportDriftHistoryJsonl,
+  readDriftHistory,
+  writeDriftHistory,
+  appendDriftHistoryEntry,
+  appendDriftHistoryEntries,
+  parseDriftHistoryLine,
+  formatDriftHistoryLine,
+  filterDriftHistory,
+  calculateDriftHistorySummary,
+  driftEntryToHistoryEntry,
+  captureDriftToHistory,
+  DEFAULT_HISTORY_FILE,
+} from "./drift-history"
 export type { CsvExportOptions } from "./csv"
-export type { RegulatoryPackExportOptions } from "./regulatory-pack"
-export type { DriftHistoryExportOptions } from "./drift-history"
+export type {
+  RegulatoryPackExportOptions,
+  RegulatoryPackManifest,
+  RegulatoryPack,
+  GovernanceConfig,
+} from "./regulatory-pack"
+export type {
+  DriftHistoryExportOptions,
+  DriftHistoryEntry,
+  DriftHistoryExport,
+  DriftHistorySummary,
+  Severity,
+} from "./drift-history"
