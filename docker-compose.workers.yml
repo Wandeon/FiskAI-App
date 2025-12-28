@@ -260,6 +260,36 @@ services:
       - default
       - coolify
 
+  # Content Sync: Patches MDX frontmatter with RTL rule changes
+  worker-content-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-content-sync
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/content-sync.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://fiskai-redis:6379
+      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - WORKER_TYPE=content-sync
+      - WORKER_CONCURRENCY=1
+      # GitHub token for PR creation
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      # Mount content directory for patching (read-write)
+      - ./content:/app/content:rw
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
 volumes:
   fiskai_redis_data:
 
