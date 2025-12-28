@@ -35,6 +35,10 @@ export const arbiterQueue = createQueue("arbiter", { max: 3, duration: 60000 })
 export const releaseQueue = createQueue("release", { max: 2, duration: 60000 })
 export const consolidatorQueue = createQueue("consolidator", { max: 1, duration: 300000 }) // 5 min rate limit
 
+// Content sync queue - processes MDX patching jobs
+// Lower rate limit since it involves git operations
+export const contentSyncQueue = createQueue("content-sync", { max: 2, duration: 60000 })
+
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
 export const deadletterQueue = createQueue("deadletter")
@@ -61,6 +65,7 @@ export const allQueues = {
   arbiter: arbiterQueue,
   release: releaseQueue,
   consolidator: consolidatorQueue,
+  contentSync: contentSyncQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
   "system-status": systemStatusQueue,

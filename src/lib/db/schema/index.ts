@@ -1,3 +1,4 @@
+export * from "./content-sync"
 export * from "./deadlines"
 export * from "./guidance"
 export * from "./news"

@@ -2,7 +2,10 @@
 import { glob } from "glob"
 import matter from "gray-matter"
 import { readFileSync } from "fs"
-import { validateChangelog } from "../src/lib/knowledge-hub/validate-frontmatter"
+import {
+  validateChangelog,
+  validateRtlFrontmatter,
+} from "../src/lib/knowledge-hub/validate-frontmatter"
 
 async function validateContent() {
   console.log("[validate-content] Scanning MDX files...")
@@ -10,6 +13,7 @@ async function validateContent() {
   const mdxFiles = await glob("content/**/*.mdx")
   let errorCount = 0
   let changelogsValidated = 0
+  let rtlSectionsValidated = 0
 
   for (const file of mdxFiles) {
     let content: string
@@ -24,6 +28,7 @@ async function validateContent() {
     }
 
     const { data } = matter(content)
+    const fileErrors: string[] = []
 
     // Validate changelog if present and is an array
     if (Array.isArray(data.changelog) && data.changelog.length > 0) {
@@ -31,23 +36,42 @@ async function validateContent() {
       try {
         const result = validateChangelog(data.changelog)
         if (!result.valid) {
-          console.error(`\n❌ ${file}:`)
-          for (const error of result.errors) {
-            console.error(`   - ${error}`)
-          }
-          errorCount++
+          fileErrors.push(...result.errors)
         }
       } catch (error) {
-        console.error(
-          `❌ Validation error in ${file}: ${error instanceof Error ? error.message : String(error)}`
+        fileErrors.push(
+          `Validation error: ${error instanceof Error ? error.message : String(error)}`
         )
-        errorCount++
       }
+    }
+
+    // Validate RTL frontmatter if present
+    if (data.rtl) {
+      rtlSectionsValidated++
+      try {
+        const result = validateRtlFrontmatter(data.rtl)
+        if (!result.valid) {
+          fileErrors.push(...result.errors)
+        }
+      } catch (error) {
+        fileErrors.push(
+          `RTL validation error: ${error instanceof Error ? error.message : String(error)}`
+        )
+      }
+    }
+
+    // Report file errors
+    if (fileErrors.length > 0) {
+      console.error(`\n❌ ${file}:`)
+      for (const error of fileErrors) {
+        console.error(`   - ${error}`)
+      }
+      errorCount++
     }
   }
 
   console.log(
-    `\n[validate-content] Checked ${mdxFiles.length} files, ${changelogsValidated} with changelogs, ${errorCount} errors`
+    `\n[validate-content] Checked ${mdxFiles.length} files, ${changelogsValidated} with changelogs, ${rtlSectionsValidated} with RTL sections, ${errorCount} errors`
   )
 
   if (errorCount > 0) {

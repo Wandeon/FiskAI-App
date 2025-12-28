@@ -1,9 +1,11 @@
 // src/lib/knowledge-hub/types.ts
 
 // Changelog types for Living Truth Infrastructure
-export type ChangelogSeverity = "breaking" | "critical" | "major" | "info"
+export type ChangelogSeverity = "breaking" | "critical" | "major" | "minor" | "info"
+export type ChangeType = "create" | "update" | "repeal"
 
-export interface ChangelogEntry {
+// Legacy changelog entry (manual)
+export interface LegacyChangelogEntry {
   id: string // Stable slug: "2025-01-15-pdv-threshold"
   date: string // ISO date
   severity: ChangelogSeverity
@@ -12,6 +14,37 @@ export interface ChangelogEntry {
   sourceRef?: string // Canonical reference
   sourceEvidenceId?: string // Links to Evidence table
   sourcePending?: boolean // True if evidence not yet linked
+}
+
+// RTL-generated changelog entry (automated)
+export interface RtlChangelogEntry {
+  eventId: string // RTL event ID (sha256)
+  date: string // ISO date
+  severity: ChangelogSeverity
+  changeType: ChangeType
+  summary: string
+  effectiveFrom: string // ISO date
+  sourcePointerIds: string[] // RTL source pointer IDs
+  primarySourceUrl?: string
+  confidenceLevel: number // 0-100
+}
+
+// Combined type - supports both legacy and RTL entries
+export type ChangelogEntry = LegacyChangelogEntry | RtlChangelogEntry
+
+// Type guards
+export function isRtlChangelogEntry(entry: ChangelogEntry): entry is RtlChangelogEntry {
+  return "eventId" in entry && "sourcePointerIds" in entry
+}
+
+export function isLegacyChangelogEntry(entry: ChangelogEntry): entry is LegacyChangelogEntry {
+  return "id" in entry && !("eventId" in entry)
+}
+
+// RTL frontmatter section
+export interface RtlFrontmatter {
+  conceptId: string
+  ruleId: string
 }
 
 // Validation result type
