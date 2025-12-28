@@ -1953,6 +1953,12 @@ model SourcePointer {
   createdAt       DateTime @default(now())
   deletedAt       DateTime?
 
+  // Byte-level anchoring (provenance validation)
+  // Start/end offsets into Evidence.rawContent where exactQuote was found
+  startOffset     Int?
+  endOffset       Int?
+  matchType       SourcePointerMatchType?  @default(NOT_VERIFIED)
+
   evidence        Evidence @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
   rules           RegulatoryRule[] @relation("RuleSourcePointers")
 
@@ -1960,6 +1966,7 @@ model SourcePointer {
   @@index([domain])
   @@index([confidence])
   @@index([articleNumber])
+  @@index([matchType])
 }
 
 model Concept {
@@ -2531,6 +2538,12 @@ enum AuditResult {
   PASS
   PARTIAL
   FAIL
+}
+
+enum SourcePointerMatchType {
+  EXACT         // Quote found exactly as stored
+  NORMALIZED    // Quote found after whitespace/unicode normalization
+  NOT_VERIFIED  // Quote not yet verified against evidence
 }
 
 model WatchdogHealth {

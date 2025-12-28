@@ -49,6 +49,9 @@ export interface RevertRulesResult {
  * Checks that every SourcePointer.exactQuote exists in its Evidence.rawContent.
  * This is the choke point that prevents fabricated or mis-anchored quotes.
  *
+ * Side effect: Updates SourcePointer with offsets and matchType if found.
+ * This ensures we persist the byte-level anchoring for audit and UI display.
+ *
  * @param ruleId - Rule to validate
  * @param riskTier - Risk tier for policy enforcement (T0/T1 require exact, T2/T3 allow normalized)
  * @returns Validation result with per-pointer details
@@ -136,6 +139,20 @@ async function validateRuleProvenance(
       }
     }
 
+    // Persist offsets and matchType to SourcePointer
+    // This happens even if validation fails - we record what we found
+    if (validationResult.matchResult.found) {
+      const matchTypeEnum = matchTypeToEnum(validationResult.matchResult.matchType)
+      await db.sourcePointer.update({
+        where: { id: pointer.id },
+        data: {
+          startOffset: validationResult.matchResult.start,
+          endOffset: validationResult.matchResult.end,
+          matchType: matchTypeEnum,
+        },
+      })
+    }
+
     pointerResults.push(validationResult)
     if (!validationResult.valid) {
       failures.push(validationResult)
@@ -147,6 +164,22 @@ async function validateRuleProvenance(
     valid: failures.length === 0,
     pointerResults,
     failures,
+  }
+}
+
+/**
+ * Convert internal match type to Prisma enum.
+ */
+function matchTypeToEnum(
+  matchType: "exact" | "normalized" | "not_found"
+): "EXACT" | "NORMALIZED" | "NOT_VERIFIED" {
+  switch (matchType) {
+    case "exact":
+      return "EXACT"
+    case "normalized":
+      return "NORMALIZED"
+    case "not_found":
+      return "NOT_VERIFIED"
   }
 }
 

@@ -2,8 +2,13 @@
 // Tier 1 Structured Fetcher: HNB (Croatian National Bank) Exchange Rates
 // API: https://api.hnb.hr/tecajn-eur/v3
 // 100% reliable structured data - bypasses AI extraction entirely
+//
+// LIFECYCLE INVARIANT:
+// Fetchers create DRAFT rules only. Approval and publication happen
+// through the pipeline stage, which calls the domain service.
+// This ensures all status transitions go through the same choke point.
 
-import { db, runWithRegulatoryContext } from "@/lib/db"
+import { db } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { logAuditEvent } from "../utils/audit-log"
 
@@ -26,6 +31,8 @@ export interface HNBFetchResult {
   date: string
   ratesCount: number
   rulesCreated: number
+  /** Rule IDs created - for pipeline processing */
+  ruleIds: string[]
   error?: string
 }
 
@@ -60,11 +67,16 @@ function parseHRDecimal(value: string): number {
 }
 
 /**
- * Create regulatory rules directly from HNB data
- * Bypasses AI extraction - 100% reliable structured data
+ * Create regulatory rules as DRAFT from HNB data.
+ *
+ * LIFECYCLE: This function creates DRAFT rules only.
+ * Approval and publication must go through the pipeline stage.
+ *
+ * Returns rule IDs for downstream processing.
  */
 export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchResult> {
   const dateStr = date.toISOString().split("T")[0]
+  const ruleIds: string[] = []
 
   try {
     // Fetch rates
@@ -76,6 +88,7 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
         date: dateStr,
         ratesCount: 0,
         rulesCreated: 0,
+        ruleIds: [],
         error: "No rates available for this date",
       }
     }
@@ -128,7 +141,13 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
         },
       })
 
-      // Create SourcePointer
+      // Create SourcePointer with exact quote from structured data
+      // IMPORTANT: exactQuote MUST exist verbatim in rawContent for provenance validation
+      // For JSON evidence, we quote the actual JSON key-value pair
+      const exactQuote = `"srednji_tecaj":"${rate.srednji_tecaj}"`
+      const quoteStart = rawContent.indexOf(exactQuote)
+      const quoteEnd = quoteStart !== -1 ? quoteStart + exactQuote.length : undefined
+
       const sourcePointer = await db.sourcePointer.create({
         data: {
           evidenceId: evidence.id,
@@ -136,8 +155,12 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
           valueType: "decimal",
           extractedValue: rate.srednji_tecaj,
           displayValue: `${rate.srednji_tecaj} ${rate.valuta}/EUR`,
-          exactQuote: `EUR/${rate.valuta} = ${rate.srednji_tecaj}`,
+          exactQuote,
           confidence: 1.0, // Tier 1: 100% confidence
+          // Set offsets at creation time for Tier 1 structured data
+          startOffset: quoteStart !== -1 ? quoteStart : null,
+          endOffset: quoteEnd,
+          matchType: quoteStart !== -1 ? "EXACT" : "NOT_VERIFIED",
         },
       })
 
@@ -154,7 +177,8 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
         update: {},
       })
 
-      // Create RegulatoryRule
+      // Create RegulatoryRule as DRAFT
+      // LIFECYCLE INVARIANT: Fetchers create DRAFT only
       const effectiveDate = new Date(rate.datum_primjene)
       const nextDay = new Date(effectiveDate)
       nextDay.setDate(nextDay.getDate() + 1)
@@ -167,7 +191,7 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
           titleEn: `Exchange Rate EUR/${rate.valuta} for ${rate.datum_primjene}`,
           riskTier: "T0", // Lowest risk - official rates
           authorityLevel: "LAW", // Official central bank rates
-          automationPolicy: "ALLOW", // Tier 1: auto-allow
+          automationPolicy: "ALLOW", // Eligible for auto-approval
           appliesWhen: JSON.stringify({
             and: [
               { eq: ["currency_from", "EUR"] },
@@ -183,52 +207,41 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
           effectiveFrom: effectiveDate,
           effectiveUntil: nextDay, // Daily rates
           confidence: 1.0,
-          // INVARIANT: Use APPROVED status, then publish via unified gate
-          status: "APPROVED",
-          approvedAt: new Date(),
-          approvedBy: "AUTO_HNB_FETCHER",
+          // DRAFT status - pipeline will approve and publish
+          status: "DRAFT",
           sourcePointers: {
             connect: [{ id: sourcePointer.id }],
           },
         },
       })
 
-      // Use unified publish gate for Tier 0 auto-publishing
-      // This ensures all publish paths are audited and validated
-      // Must use regulatory context to allow APPROVED → PUBLISHED transition
-      await runWithRegulatoryContext({ source: "hnb-fetcher", bypassApproval: false }, () =>
-        db.regulatoryRule.update({
-          where: { id: rule.id },
-          data: { status: "PUBLISHED" },
-        })
-      )
-
-      // Log audit event with full provenance
+      // Log audit event for rule creation
       await logAuditEvent({
-        action: "RULE_AUTO_PUBLISHED",
+        action: "RULE_CREATED",
         entityType: "RULE",
         entityId: rule.id,
         metadata: {
           source: "hnb-fetcher",
-          tier: 0, // T0 = lowest risk
+          tier: "T0",
           currency: rate.valuta,
           date: dateStr,
-          automatedCreation: true,
-          bypassedHumanReview: true,
-          reason: "Official HNB exchange rate - Tier 0 data",
+          status: "DRAFT",
+          awaitingPipeline: true,
         },
       })
 
+      ruleIds.push(rule.id)
       rulesCreated++
     }
 
-    console.log(`[hnb-fetcher] Created ${rulesCreated} rules for ${dateStr}`)
+    console.log(`[hnb-fetcher] Created ${rulesCreated} DRAFT rules for ${dateStr}`)
 
     return {
       success: true,
       date: dateStr,
       ratesCount: rates.length,
       rulesCreated,
+      ruleIds,
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
@@ -238,19 +251,21 @@ export async function createHNBRules(date: Date = new Date()): Promise<HNBFetchR
       date: dateStr,
       ratesCount: 0,
       rulesCreated: 0,
+      ruleIds: [],
       error: errorMsg,
     }
   }
 }
 
 /**
- * Fetch historical rates for a date range
+ * Fetch historical rates for a date range.
+ * Returns all created rule IDs for pipeline processing.
  */
 export async function fetchHNBHistoricalRates(
   startDate: Date,
   endDate: Date
-): Promise<{ total: number; created: number; errors: string[] }> {
-  const results = { total: 0, created: 0, errors: [] as string[] }
+): Promise<{ total: number; created: number; ruleIds: string[]; errors: string[] }> {
+  const results = { total: 0, created: 0, ruleIds: [] as string[], errors: [] as string[] }
   const current = new Date(startDate)
 
   while (current <= endDate) {
@@ -258,6 +273,7 @@ export async function fetchHNBHistoricalRates(
       const result = await createHNBRules(current)
       results.total += result.ratesCount
       results.created += result.rulesCreated
+      results.ruleIds.push(...result.ruleIds)
       if (result.error) {
         results.errors.push(`${current.toISOString().split("T")[0]}: ${result.error}`)
       }
