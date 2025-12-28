@@ -1,12 +1,13 @@
 // instrumentation.ts
-// Next.js instrumentation file for Sentry integration
+// Next.js instrumentation file for Sentry integration and server startup tasks
 // https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
 
 import * as Sentry from "@sentry/nextjs"
 
 export async function register() {
-  // Server-side Sentry initialization (Node.js runtime)
+  // Server-side initialization (Node.js runtime)
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    // Initialize Sentry
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
 
@@ -48,6 +49,17 @@ export async function register() {
         "NEXT_REDIRECT",
       ],
     })
+
+    // Start regulatory truth scheduler
+    if (process.env.REGULATORY_CRON_ENABLED === "true") {
+      try {
+        const { startScheduler } = await import("@/lib/regulatory-truth/scheduler/cron")
+        startScheduler()
+        console.log("[instrumentation] Regulatory truth scheduler started")
+      } catch (error) {
+        console.error("[instrumentation] Failed to start scheduler:", error)
+      }
+    }
   }
 
   // Edge runtime Sentry initialization (middleware, edge routes)

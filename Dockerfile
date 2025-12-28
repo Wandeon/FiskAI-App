@@ -16,6 +16,9 @@ COPY package.json package-lock.json* ./
 # Copy Prisma schema (needed for postinstall prisma generate)
 COPY prisma ./prisma
 
+# Disable Husky in Docker builds (no .git directory available)
+ENV HUSKY=0
+
 # Install dependencies (using legacy-peer-deps for openai package compatibility)
 RUN npm ci --legacy-peer-deps
 
