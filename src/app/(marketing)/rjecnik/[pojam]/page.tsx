@@ -37,11 +37,11 @@ export default async function GlossaryTermPage({ params }: Props) {
   if (!term) notFound()
 
   const { frontmatter } = term
-  const url = `https://fisk.ai/rjecnik/${pojam}`
+  const url = `https://fiskai.hr/rjecnik/${pojam}`
 
   const breadcrumbs = [
-    { name: "Baza znanja", url: "https://fisk.ai/baza-znanja" },
-    { name: "Rječnik", url: "https://fisk.ai/rjecnik" },
+    { name: "Baza znanja", url: "https://fiskai.hr/baza-znanja" },
+    { name: "Rječnik", url: "https://fiskai.hr/rjecnik" },
     { name: frontmatter.term, url },
   ]
 

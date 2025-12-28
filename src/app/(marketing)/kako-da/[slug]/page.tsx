@@ -40,11 +40,11 @@ export default async function HowToPage({ params }: Props) {
   if (!howto) notFound()
 
   const { frontmatter, content } = howto
-  const url = `https://fisk.ai/kako-da/${slug}`
+  const url = `https://fiskai.hr/kako-da/${slug}`
 
   const breadcrumbs = [
-    { name: "Baza znanja", url: "https://fisk.ai/baza-znanja" },
-    { name: "Kako da...", url: "https://fisk.ai/kako-da" },
+    { name: "Baza znanja", url: "https://fiskai.hr/baza-znanja" },
+    { name: "Kako da...", url: "https://fiskai.hr/kako-da" },
     { name: frontmatter.title, url },
   ]
 
