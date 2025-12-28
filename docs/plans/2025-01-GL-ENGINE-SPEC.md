@@ -339,6 +339,7 @@ model OpenItem {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  @@unique([companyId, sourceType, sourceId])  // Prevent duplicate open items
   @@index([companyId, itemType, status])
   @@index([contactId])
   @@index([dueDate])
@@ -361,10 +362,12 @@ model Settlement {
 
   // Link to posting
   postingBatchId String?
+  postingBatch   PostingBatch? @relation(fields: [postingBatchId], references: [id])
 
   createdAt     DateTime @default(now())
 
   @@index([openItemId])
+  @@index([postingBatchId])
 }
 
 enum OpenItemType {
@@ -422,6 +425,7 @@ interface PostingRequest {
   lines: PostingLine[]
   reference?: string
   dimensions?: Record<string, string>
+  reversesEntryId?: string // For reversal entries
 }
 
 interface PostingLine {
@@ -574,13 +578,26 @@ function computeSourceHash(request: PostingRequest): string {
     sourceType: request.sourceType,
     sourceId: request.sourceId,
     eventType: request.eventType,
+    // Stable sort: by accountCode, then by normalized amounts
+    // Use toFixed(2) for deterministic decimal formatting
     lines: request.lines
-      .map((l) => ({
+      .map((l, idx) => ({
         accountCode: l.accountCode,
-        debit: l.debit.toString(),
-        credit: l.credit.toString(),
+        debit: new Decimal(l.debit).toFixed(2), // Normalize to 2 decimal places
+        credit: new Decimal(l.credit).toFixed(2), // Normalize to 2 decimal places
+        _sortKey: idx, // Preserve original order for same-account lines
       }))
-      .sort((a, b) => a.accountCode.localeCompare(b.accountCode)),
+      .sort((a, b) => {
+        const codeCompare = a.accountCode.localeCompare(b.accountCode)
+        if (codeCompare !== 0) return codeCompare
+        // Same account: sort by debit desc, then credit desc, then original index
+        const debitCompare = b.debit.localeCompare(a.debit)
+        if (debitCompare !== 0) return debitCompare
+        const creditCompare = b.credit.localeCompare(a.credit)
+        if (creditCompare !== 0) return creditCompare
+        return a._sortKey - b._sortKey
+      })
+      .map(({ accountCode, debit, credit }) => ({ accountCode, debit, credit })), // Remove _sortKey
   }
 
   return crypto.createHash("sha256").update(JSON.stringify(canonical)).digest("hex")
@@ -600,7 +617,7 @@ function computeSourceHash(request: PostingRequest): string {
 | `PAID`           | Bank match confirmed | 1000 Bank             | 1200 Receivables | Clears open item    |
 | `PARTIALLY_PAID` | Partial bank match   | 1000 Bank             | 1200 Receivables | Partial settlement  |
 | `CREDIT_NOTE`    | Credit note issued   | 7500 Revenue          | 1200 Receivables | Reverses original   |
-| `WRITE_OFF`      | Bad debt recognized  | 7890 Bad Debt Expense | 1200 Receivables | Requires approval   |
+| `WRITE_OFF`      | Bad debt recognized  | 4890 Bad Debt Expense | 1200 Receivables | Requires approval   |
 
 ### 5.2 Expense Lifecycle
 
@@ -805,6 +822,14 @@ const RRiF_TEMPLATE: GLAccountTemplate[] = [
     statementType: "PROFIT_LOSS",
     lockLevel: "TEMPLATE",
   },
+  {
+    code: "4890",
+    name: "Otpis potraživanja",
+    rriFClass: 4,
+    normalBalance: "DEBIT",
+    statementType: "PROFIT_LOSS",
+    lockLevel: "TEMPLATE",
+  },
 
   // Class 7: Revenue
   {
@@ -831,15 +856,6 @@ const RRiF_TEMPLATE: GLAccountTemplate[] = [
     statementType: "PROFIT_LOSS",
     lockLevel: "TEMPLATE",
   },
-  {
-    code: "7890",
-    name: "Otpis potraživanja",
-    rriFClass: 7,
-    normalBalance: "DEBIT",
-    statementType: "PROFIT_LOSS",
-    lockLevel: "TEMPLATE",
-  },
-
   // Class 8: P&L Summary (year-end)
   {
     code: "8000",
@@ -1023,7 +1039,7 @@ function getReportVisibility(company: Company): ReportVisibility {
 SELECT
   a.code,
   a.name,
-  a.rriF_class,
+  a."rriFClass",
   SUM(jl.debit) as total_debit,
   SUM(jl.credit) as total_credit,
   SUM(jl.debit) - SUM(jl.credit) as balance
@@ -1033,7 +1049,7 @@ JOIN "GLAccount" a ON jl."accountId" = a.id
 WHERE je."companyId" = $1
   AND je.status = 'POSTED'
   AND je."entryDate" BETWEEN $2 AND $3
-GROUP BY a.id, a.code, a.name, a.rriF_class
+GROUP BY a.id, a.code, a.name, a."rriFClass"
 ORDER BY a.code
 ```
 
@@ -1216,22 +1232,30 @@ if (company.accountingMode === "ACCRUAL" && action === "view_kpr") {
 When correcting a posted entry:
 
 ```typescript
-async function reverseEntry(entryId: string, reason: string): Promise<JournalEntry> {
+async function reverseEntry(entryId: string, reason: string): Promise<PostingResult> {
   const original = await db.journalEntry.findUnique({
     where: { id: entryId },
-    include: { lines: true },
+    include: {
+      lines: {
+        include: { account: true }, // Include account to get code
+      },
+    },
   })
+
+  if (!original) {
+    throw new Error("Entry not found")
+  }
 
   if (original.status !== "POSTED") {
     throw new Error("Can only reverse posted entries")
   }
 
   // Create reversing entry with flipped debits/credits
-  const reversingLines = original.lines.map((line) => ({
-    accountId: line.accountId,
+  // Use accountCode (not accountId) to match PostingLine interface
+  const reversingLines: PostingLine[] = original.lines.map((line) => ({
+    accountCode: line.account.code, // Use code, not id
     debit: line.credit, // Flip
     credit: line.debit, // Flip
-    lineNumber: line.lineNumber,
     description: `Storno: ${line.description}`,
   }))
 
@@ -1243,7 +1267,7 @@ async function reverseEntry(entryId: string, reason: string): Promise<JournalEnt
     entryDate: new Date(),
     description: `Storno stavke ${original.entryNumber}: ${reason}`,
     lines: reversingLines,
-    reversesEntryId: original.id,
+    reversesEntryId: original.id, // Now accepted by PostingRequest
   })
 }
 ```
