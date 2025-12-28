@@ -99,6 +99,11 @@ export type {
   ReverseReachableResult,
 } from "./dependency-graph"
 
+// Blast radius exports
+export { computeDirectImpact } from "./blast-radius"
+
+export type { DirectImpact, MatchType } from "./blast-radius"
+
 // Utility: Get component by ID
 export function getComponent(componentId: string) {
   const { DECLARED_COMPONENTS } = require("./declarations")
