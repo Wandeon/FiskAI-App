@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { getGlossaryBySlug, getGlossarySlugs } from "@/lib/knowledge-hub/mdx"
-import { GlossaryCard } from "@/components/content/GlossaryCard"
+import { AIAnswerBlock } from "@/components/content/ai-answer-block"
 import { FAQ } from "@/components/content/FAQ"
 import { Sources } from "@/components/content/Sources"
 import { JsonLd } from "@/components/seo/JsonLd"
@@ -75,24 +75,50 @@ export default async function GlossaryTermPage({ params }: Props) {
             Svi pojmovi
           </Link>
 
-          <GlossaryCard
-            term={frontmatter.term}
-            definition={frontmatter.shortDefinition}
-            relatedTerms={frontmatter.relatedTerms}
-          />
+          <AIAnswerBlock
+            answerId={`glossary:${pojam}:v1`}
+            type="definitional"
+            confidence="high"
+            contentType="glossary"
+            lastUpdated={frontmatter.lastUpdated || new Date().toISOString().split("T")[0]}
+            bluf={frontmatter.shortDefinition}
+            sources={frontmatter.sources?.map(
+              (source: { name: string; url?: string }, idx: number) => ({
+                ref: `src-${idx + 1}`,
+                label: source.name,
+                url: source.url,
+              })
+            )}
+          >
+            {/* Extended definition content */}
+            {frontmatter.appearsIn && frontmatter.appearsIn.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-semibold">Gdje se pojavljuje</h3>
+                <ul className="list-inside list-disc space-y-1 mt-2">
+                  {frontmatter.appearsIn.map((item: string, i: number) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          {/* Extended content from MDX would go here */}
-
-          {frontmatter.appearsIn && frontmatter.appearsIn.length > 0 && (
-            <div className="mt-8 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6">
-              <h3 className="mb-3 font-semibold text-white">Gdje se pojavljuje</h3>
-              <ul className="list-inside list-disc space-y-1 text-white/60">
-                {frontmatter.appearsIn.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {frontmatter.relatedTerms && frontmatter.relatedTerms.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-semibold">Povezani pojmovi</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {frontmatter.relatedTerms.map((related: string, i: number) => (
+                    <Link
+                      key={i}
+                      href={`/rjecnik/${related}`}
+                      className="rounded-full bg-white/10 px-3 py-1 text-sm hover:bg-white/20"
+                    >
+                      {related}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </AIAnswerBlock>
 
           {frontmatter.faq && <FAQ items={frontmatter.faq} />}
 
