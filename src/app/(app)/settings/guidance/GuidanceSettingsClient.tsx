@@ -7,13 +7,15 @@ import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { CompetenceSelector } from "@/components/guidance"
 import { Button } from "@/components/ui/button"
 import type { UserGuidancePreferences } from "@/lib/db/schema/guidance"
-import {
-  type CompetenceLevel,
-  type GuidanceCategory,
-  LEVEL_DESCRIPTIONS,
-} from "@/lib/guidance/constants"
+import { type CompetenceLevel, type GuidanceCategory } from "@/lib/guidance/constants"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+
+const categoryToKey: Record<GuidanceCategory, keyof UserGuidancePreferences> = {
+  fakturiranje: "levelFakturiranje",
+  financije: "levelFinancije",
+  eu: "levelEu",
+}
 
 interface Props {
   initialPreferences: UserGuidancePreferences
@@ -37,7 +39,7 @@ export function GuidanceSettingsClient({ initialPreferences }: Props) {
       setPreferences((prev) => ({
         ...prev,
         globalLevel: null,
-        [`level${category.charAt(0).toUpperCase() + category.slice(1)}`]: level,
+        [categoryToKey[category]]: level,
       }))
     }
     setSaved(false)
