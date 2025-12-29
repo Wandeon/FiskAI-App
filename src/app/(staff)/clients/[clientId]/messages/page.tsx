@@ -28,7 +28,18 @@ async function getClientMessages(companyId: string) {
  }),
  ])
 
- return { company, tickets }
+ // Transform Date objects to ISO strings for client component
+ const serializedTickets = tickets.map((ticket) => ({
+  ...ticket,
+  createdAt: ticket.createdAt.toISOString(),
+  updatedAt: ticket.updatedAt.toISOString(),
+  messages: ticket.messages.map((message) => ({
+   ...message,
+   createdAt: message.createdAt.toISOString(),
+  })),
+ }))
+
+ return { company, tickets: serializedTickets }
 }
 
 export default async function ClientMessagesPage({ params }: PageProps) {
