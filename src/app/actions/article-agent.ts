@@ -3,6 +3,7 @@
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { createArticleJob, runArticleJob } from "@/lib/article-agent/orchestrator"
+import { publishArticle } from "@/lib/article-agent/steps/publish"
 import { requireAuth } from "@/lib/auth-utils"
 import type { ArticleType } from "@prisma/client"
 
@@ -211,6 +212,59 @@ export async function approveJob(jobId: string): Promise<ActionResult> {
   } catch (error) {
     console.error("Failed to approve job:", error)
     return { success: false, error: "Failed to approve job" }
+  }
+}
+
+/**
+ * Publish an approved job
+ *
+ * For NEWS type: Creates entry in news_posts table
+ * For other types: Creates MDX file in appropriate content directory
+ */
+export async function publishJob(
+  jobId: string
+): Promise<
+  ActionResult<{
+    slug: string
+    publishedAt: string
+    destination: string
+  }>
+> {
+  try {
+    await requireAuth()
+
+    const job = await db.articleJob.findUnique({
+      where: { id: jobId },
+    })
+
+    if (!job) {
+      return { success: false, error: "Job not found" }
+    }
+
+    if (job.status !== "APPROVED") {
+      return { success: false, error: "Job must be approved before publishing" }
+    }
+
+    const result = await publishArticle(job)
+
+    revalidatePath("/article-agent")
+    revalidatePath(`/article-agent/${jobId}`)
+    revalidatePath("/vijesti")
+
+    return {
+      success: true,
+      data: {
+        slug: result.slug,
+        publishedAt: result.publishedAt.toISOString(),
+        destination: result.destination,
+      },
+    }
+  } catch (error) {
+    console.error("Failed to publish job:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to publish job",
+    }
   }
 }
 
