@@ -124,7 +124,37 @@ export type {
   ValidationResult,
   FiscalDataPath,
   FormatType,
+  FiscalDataAuditEntry,
+  FiscalDataVersionEntry,
 } from "./types"
+
+// =============================================================================
+// RTL INTEGRATION EXPORTS
+// =============================================================================
+
+export {
+  // Data point mappings
+  FISCAL_DATA_POINT_MAPPINGS,
+  getRTLDomainForDataPoint,
+  getConceptIdForDataPoint,
+  getDataPointsForDomain,
+  getRTLSourcesForDataPoint,
+  getPriorityRTLSources,
+  // RTL verification
+  verifyAgainstRTL,
+  // Content sync events
+  createContentSyncEvent,
+  // Audit trail
+  createAuditEntry,
+  // Notifications
+  createChangeNotification,
+} from "./validator/rtl-bridge"
+
+export type {
+  FiscalDataPointMapping,
+  RTLVerificationResult,
+  FiscalChangeNotification,
+} from "./validator/rtl-bridge"
 
 // =============================================================================
 // METADATA

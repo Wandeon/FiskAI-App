@@ -229,6 +229,61 @@ export interface ValidationResult {
 }
 
 // =============================================================================
+// RTL INTEGRATION TYPES
+// =============================================================================
+
+/**
+ * Audit trail entry for tracking fiscal data changes
+ */
+export interface FiscalDataAuditEntry {
+  /** Unique ID for this audit entry */
+  id: string
+  /** Timestamp of the change detection */
+  timestamp: string
+  /** Data point that changed */
+  dataPoint: string
+  /** Previous value */
+  previousValue: string | number | null
+  /** New value detected */
+  newValue: string | number | null
+  /** Confidence level (0-1) */
+  confidence: number
+  /** Source URL where change was detected */
+  sourceUrl: string
+  /** RTL source pointer IDs backing this change */
+  sourcePointerIds: string[]
+  /** RTL evidence IDs */
+  evidenceIds: string[]
+  /** Who/what initiated the change */
+  changedBy: "rtl-automated" | "manual-review" | "api-update"
+  /** Status of the change */
+  status: "pending" | "approved" | "rejected" | "applied"
+  /** Notes or rejection reason */
+  notes?: string
+}
+
+/**
+ * Version history entry for fiscal data
+ */
+export interface FiscalDataVersionEntry {
+  /** Version identifier (e.g., "2025.1") */
+  version: string
+  /** ISO timestamp when this version was applied */
+  appliedAt: string
+  /** Data points changed in this version */
+  changes: Array<{
+    dataPoint: string
+    previousValue: string | number | null
+    newValue: string | number
+    auditEntryId: string
+  }>
+  /** Who approved this version */
+  approvedBy: string
+  /** RTL evidence backing this version */
+  evidenceIds: string[]
+}
+
+// =============================================================================
 // UTILITY TYPES
 // =============================================================================
 
