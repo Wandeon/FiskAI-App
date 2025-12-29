@@ -19,7 +19,11 @@ const QUEUES = [
   "arbiter",
   "release",
   "scheduled",
+  "deadletter", // DLQ for permanently failed jobs
 ]
+
+// DLQ configuration (mirrors queues.ts)
+const DLQ_THRESHOLD = parseInt(process.env.DLQ_ALERT_THRESHOLD || "10")
 
 interface QueueStats {
   name: string
@@ -75,32 +79,46 @@ async function getDbStats() {
 }
 
 async function main() {
-  console.log("\n╔══════════════════════════════════════════════════════════════╗")
-  console.log("║              FiskAI Queue & Pipeline Status                   ║")
-  console.log("╚══════════════════════════════════════════════════════════════╝")
+  console.log("\n==================================================================")
+  console.log("              FiskAI Queue & Pipeline Status                   ")
+  console.log("==================================================================")
   console.log(`\nTimestamp: ${new Date().toISOString()}`)
 
   // Queue stats
-  console.log("\n┌─────────────────────────────────────────────────────────────┐")
-  console.log("│                    Queue Statistics                          │")
-  console.log("├──────────┬─────────┬────────┬───────────┬────────┬──────────┤")
-  console.log("│ Queue    │ Waiting │ Active │ Completed │ Failed │ Delayed  │")
-  console.log("├──────────┼─────────┼────────┼───────────┼────────┼──────────┤")
+  console.log("\n------------------------------------------------------------------")
+  console.log("                    Queue Statistics                          ")
+  console.log("------------------------------------------------------------------")
+  console.log("Queue       | Waiting | Active | Completed | Failed | Delayed")
+  console.log("------------|---------|--------|-----------|--------|--------")
 
+  let dlqTotal = 0
   for (const queue of QUEUES) {
     const stats = await getQueueStats(queue)
+    const isDLQ = queue === "deadletter"
+
+    // Track DLQ total for alert check
+    if (isDLQ) {
+      dlqTotal = stats.waiting + stats.active
+    }
+
     console.log(
-      `│ ${stats.name.padEnd(8)} │ ${String(stats.waiting).padStart(7)} │ ${String(stats.active).padStart(6)} │ ${String(stats.completed).padStart(9)} │ ${String(stats.failed).padStart(6)} │ ${String(stats.delayed).padStart(8)} │`
+      `${stats.name.padEnd(11)} | ${String(stats.waiting).padStart(7)} | ${String(stats.active).padStart(6)} | ${String(stats.completed).padStart(9)} | ${String(stats.failed).padStart(6)} | ${String(stats.delayed).padStart(6)}`
     )
   }
-  console.log("└──────────┴─────────┴────────┴───────────┴────────┴──────────┘")
+
+  // DLQ Alert
+  if (dlqTotal >= DLQ_THRESHOLD) {
+    console.log("\n!! DLQ ALERT: Dead letter queue depth exceeds threshold!")
+    console.log(`   Current: ${dlqTotal} jobs, Threshold: ${DLQ_THRESHOLD}`)
+    console.log("   Run: npx tsx scripts/dlq-inspect.ts for details")
+  }
 
   // Database stats
   const dbStats = await getDbStats()
 
-  console.log("\n┌─────────────────────────────────────────────────────────────┐")
-  console.log("│                   Database Statistics                        │")
-  console.log("└─────────────────────────────────────────────────────────────┘")
+  console.log("\n------------------------------------------------------------------")
+  console.log("                   Database Statistics                        ")
+  console.log("------------------------------------------------------------------")
 
   console.log("\nDiscovered Items:")
   for (const [status, count] of Object.entries(dbStats.discoveredItems)) {
@@ -125,12 +143,13 @@ async function main() {
 
   const published = dbStats.rules["PUBLISHED"] || 0
 
-  console.log("\n┌─────────────────────────────────────────────────────────────┐")
-  console.log("│                    Pipeline Health                           │")
-  console.log("└─────────────────────────────────────────────────────────────┘")
+  console.log("\n------------------------------------------------------------------")
+  console.log("                    Pipeline Health                           ")
+  console.log("------------------------------------------------------------------")
   console.log(`  Total backlog: ${totalPending}`)
   console.log(`  Published rules: ${published}`)
-  console.log(`  Saturation: ${totalPending === 0 ? "✓ SATURATED" : "○ PROCESSING"}`)
+  console.log(`  Dead letter queue: ${dlqTotal} ${dlqTotal >= DLQ_THRESHOLD ? "(ALERT)" : ""}`)
+  console.log(`  Saturation: ${totalPending === 0 ? "SATURATED" : "PROCESSING"}`)
 
   await connection.quit()
   await db.$disconnect()

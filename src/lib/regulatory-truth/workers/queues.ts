@@ -1,18 +1,30 @@
 // src/lib/regulatory-truth/workers/queues.ts
-import { Queue, QueueEvents } from "bullmq"
+import { Queue, QueueEvents, JobsOptions } from "bullmq"
 import { redis } from "./redis"
 
 const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
 const RETENTION_MS = parseInt(process.env.JOB_RETENTION_HOURS || "24") * 60 * 60 * 1000
 
-const defaultJobOptions = {
+// DLQ configuration
+export const DLQ_THRESHOLD = parseInt(process.env.DLQ_ALERT_THRESHOLD || "10")
+export const DLQ_RETENTION_DAYS = parseInt(process.env.DLQ_RETENTION_DAYS || "30")
+const DLQ_RETENTION_MS = DLQ_RETENTION_DAYS * 24 * 60 * 60 * 1000
+
+const defaultJobOptions: JobsOptions = {
   attempts: 3,
   backoff: {
     type: "exponential" as const,
     delay: 10000, // 10s, 20s, 40s
   },
   removeOnComplete: { age: RETENTION_MS },
-  removeOnFail: false, // Keep for inspection
+  removeOnFail: false, // Keep temporarily for DLQ processing
+}
+
+// DLQ job options - longer retention for analysis
+const dlqJobOptions: JobsOptions = {
+  attempts: 1, // DLQ jobs don't retry automatically
+  removeOnComplete: { age: DLQ_RETENTION_MS },
+  removeOnFail: false, // Keep failed DLQ jobs for inspection
 }
 
 // Queue factory
@@ -53,7 +65,13 @@ export const embeddingQueue = createQueue("embedding", { max: 10, duration: 6000
 
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
-export const deadletterQueue = createQueue("deadletter")
+
+// Dead Letter Queue with custom retention for permanently failed jobs
+export const deadletterQueue = new Queue("deadletter", {
+  connection: redis,
+  prefix: PREFIX,
+  defaultJobOptions: dlqJobOptions,
+})
 
 // System status queue (used by human-control-layer)
 // Custom job options: 2 attempts (1 initial + 1 retry for transient errors)
@@ -89,4 +107,17 @@ export const allQueues = {
 // Queue events for monitoring
 export function createQueueEvents(queueName: string): QueueEvents {
   return new QueueEvents(queueName, { connection: redis, prefix: PREFIX })
+}
+
+// DLQ job data structure
+export interface DeadLetterJobData {
+  originalQueue: string
+  originalJobId: string | undefined
+  originalJobName: string
+  originalJobData: unknown
+  error: string
+  stackTrace?: string
+  attemptsMade: number
+  failedAt: string
+  firstFailedAt?: string
 }

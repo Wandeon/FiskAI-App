@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/workers/base.ts
 import { Worker, Job } from "bullmq"
 import { createWorkerConnection, closeRedis } from "./redis"
-import { deadletterQueue } from "./queues"
+import { deadletterQueue, DLQ_THRESHOLD, type DeadLetterJobData } from "./queues"
 
 const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
 
@@ -20,6 +20,67 @@ export interface JobResult {
 }
 
 export type JobProcessor<T> = (job: Job<T>) => Promise<JobResult>
+
+/**
+ * Moves a permanently failed job to the Dead Letter Queue.
+ * This removes the job from the main queue to prevent memory accumulation.
+ */
+async function moveToDeadLetterQueue<T>(
+  job: Job<T>,
+  error: Error,
+  queueName: string,
+  workerName: string
+): Promise<void> {
+  const dlqData: DeadLetterJobData = {
+    originalQueue: queueName,
+    originalJobId: job.id,
+    originalJobName: job.name,
+    originalJobData: job.data,
+    error: error.message,
+    stackTrace: error.stack,
+    attemptsMade: job.attemptsMade,
+    failedAt: new Date().toISOString(),
+    firstFailedAt: job.processedOn ? new Date(job.processedOn).toISOString() : undefined,
+  }
+
+  // Add to DLQ with metadata for analysis
+  await deadletterQueue.add("dead-letter", dlqData, {
+    jobId: `dlq-${queueName}-${job.id}-${Date.now()}`,
+  })
+
+  // Remove from main queue to prevent memory pressure
+  try {
+    await job.remove()
+    console.log(`[${workerName}] Job ${job.id} moved to DLQ and removed from ${queueName}`)
+  } catch (removeError) {
+    // Job may have already been removed or cleaned up
+    console.warn(`[${workerName}] Could not remove job ${job.id} from ${queueName}:`, removeError)
+  }
+
+  // Check DLQ depth and alert if threshold exceeded
+  await checkDLQThreshold(workerName)
+}
+
+/**
+ * Checks if DLQ depth exceeds threshold and logs an alert.
+ * In production, this could integrate with monitoring systems (e.g., Slack, PagerDuty).
+ */
+async function checkDLQThreshold(workerName: string): Promise<void> {
+  try {
+    const dlqCounts = await deadletterQueue.getJobCounts("waiting", "active", "delayed")
+    const totalDLQJobs = dlqCounts.waiting + dlqCounts.active + dlqCounts.delayed
+
+    if (totalDLQJobs >= DLQ_THRESHOLD) {
+      console.error(
+        `[${workerName}] DLQ ALERT: Dead letter queue depth (${totalDLQJobs}) ` +
+          `exceeds threshold (${DLQ_THRESHOLD}). Investigation required!`
+      )
+      // Future: Integrate with alerting system (Slack, PagerDuty, etc.)
+    }
+  } catch (error) {
+    console.warn(`[${workerName}] Could not check DLQ depth:`, error)
+  }
+}
 
 export function createWorker<T>(
   queueName: string,
@@ -54,19 +115,10 @@ export function createWorker<T>(
     }
   )
 
-  // Error handling
+  // Handle permanently failed jobs (all retries exhausted)
   worker.on("failed", async (job, err) => {
     if (job && job.attemptsMade >= (job.opts.attempts || 3)) {
-      // Move to dead letter queue
-      await deadletterQueue.add("failed", {
-        originalQueue: queueName,
-        jobId: job.id,
-        jobName: job.name,
-        jobData: job.data,
-        error: err.message,
-        failedAt: new Date().toISOString(),
-      })
-      console.log(`[${options.name}] Job ${job.id} moved to dead-letter queue`)
+      await moveToDeadLetterQueue(job, err, queueName, options.name)
     }
   })
 

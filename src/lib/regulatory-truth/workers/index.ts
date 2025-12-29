@@ -23,6 +23,10 @@ export {
   deadletterQueue,
   allQueues,
   createQueueEvents,
+  // DLQ configuration exports
+  DLQ_THRESHOLD,
+  DLQ_RETENTION_DAYS,
+  type DeadLetterJobData,
 } from "./queues"
 export { createWorker, setupGracefulShutdown, type JobResult, type JobProcessor } from "./base"
 
@@ -30,3 +34,14 @@ export { createWorker, setupGracefulShutdown, type JobResult, type JobProcessor 
 export { getDomainDelay, getDomainLimiter, llmLimiter } from "./rate-limiter"
 export { createCircuitBreaker, getCircuitBreakerStatus } from "./circuit-breaker"
 export { registry, jobsProcessed, jobDuration, queueDepth, activeJobs, getMetrics } from "./metrics"
+
+// DLQ utilities for monitoring and replay
+export {
+  getDLQStats,
+  getDLQJobs,
+  replayDLQJob,
+  replayDLQByQueue,
+  purgeDLQOldJobs,
+  getDLQErrorSummary,
+  type DLQStats,
+} from "./dlq-utils"
