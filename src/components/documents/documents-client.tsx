@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CompactDropzone } from "./compact-dropzone"
 import { ReportsSidebar } from "./reports-sidebar"
 import { ImportJobState } from "@/components/import/processing-card"
@@ -30,6 +31,7 @@ export function DocumentsClient({
   initialJobs = [],
   children,
 }: DocumentsClientProps) {
+  const router = useRouter()
   const [jobs, setJobs] = useState<ImportJobState[]>(initialJobs)
   const [selectedAccountId, setSelectedAccountId] = useState<string>(bankAccounts[0]?.id || "")
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -214,11 +216,11 @@ export function DocumentsClient({
         )
         setModalJob(null)
         setModalData(null)
-        // Refresh the page to show new documents
-        window.location.reload()
+        // Soft refresh to re-fetch RSC data without full page reload
+        router.refresh()
       }
     },
-    [selectedAccountId]
+    [selectedAccountId, router]
   )
 
   const handleReject = useCallback(async (jobId: string) => {
