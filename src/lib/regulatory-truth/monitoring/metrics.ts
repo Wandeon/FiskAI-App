@@ -526,6 +526,62 @@ export async function getRecentContentSyncEvents(limit: number = 20): Promise<
   }))
 }
 
+/**
+ * Get pending PRs awaiting human review.
+ * Returns DONE events with PR URLs, sorted by age (oldest first).
+ */
+export async function getPendingContentSyncPRs(limit: number = 50): Promise<
+  Array<{
+    eventId: string
+    type: string
+    ruleId: string
+    conceptId: string
+    domain: string
+    prUrl: string
+    prCreatedAt: Date
+    ageInDays: number
+    isStale: boolean
+  }>
+> {
+  const events = await drizzleDb
+    .select({
+      eventId: contentSyncEvents.eventId,
+      type: contentSyncEvents.type,
+      ruleId: contentSyncEvents.ruleId,
+      conceptId: contentSyncEvents.conceptId,
+      domain: contentSyncEvents.domain,
+      prUrl: contentSyncEvents.prUrl,
+      prCreatedAt: contentSyncEvents.prCreatedAt,
+    })
+    .from(contentSyncEvents)
+    .where(
+      sql`${contentSyncEvents.status} = 'DONE' AND ${contentSyncEvents.prUrl} IS NOT NULL`
+    )
+    .orderBy(sql`${contentSyncEvents.prCreatedAt} ASC`)
+    .limit(limit)
+
+  const now = new Date()
+  return events
+    .filter((e): e is typeof e & { prUrl: string; prCreatedAt: Date } =>
+      e.prUrl !== null && e.prCreatedAt !== null
+    )
+    .map((e) => {
+      const ageInMs = now.getTime() - e.prCreatedAt.getTime()
+      const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24))
+      return {
+        eventId: e.eventId,
+        type: e.type,
+        ruleId: e.ruleId,
+        conceptId: e.conceptId,
+        domain: e.domain,
+        prUrl: e.prUrl,
+        prCreatedAt: e.prCreatedAt,
+        ageInDays,
+        isStale: ageInDays > 7,
+      }
+    })
+}
+
 // =============================================================================
 // Combined Content Pipeline Health
 // =============================================================================
@@ -542,6 +598,8 @@ export interface ContentPipelineHealth {
     pendingEvents: number
     processingEvents: number
     deadLettered: number
+    pendingPRs: number
+    stalePRs: number
   }
   overallStatus: "healthy" | "degraded" | "unhealthy"
 }
@@ -550,9 +608,10 @@ export interface ContentPipelineHealth {
  * Get overall content pipeline health status.
  */
 export async function getContentPipelineHealth(): Promise<ContentPipelineHealth> {
-  const [articleMetrics, syncMetrics] = await Promise.all([
+  const [articleMetrics, syncMetrics, pendingPRs] = await Promise.all([
     collectArticleAgentMetrics(),
     collectContentSyncMetrics(),
+    getPendingContentSyncPRs(),
   ])
 
   // Determine Article Agent health
@@ -571,11 +630,14 @@ export async function getContentPipelineHealth(): Promise<ContentPipelineHealth>
     articleStatus = "degraded"
   }
 
-  // Determine Content Sync health
+  // Count stale PRs
+  const stalePRs = pendingPRs.filter((pr) => pr.isStale).length
+
+  // Determine Content Sync health (now including PR review status)
   let syncStatus: "healthy" | "degraded" | "unhealthy" = "healthy"
-  if (syncMetrics.deadLettered > 10 || syncMetrics.failed > 20) {
+  if (syncMetrics.deadLettered > 10 || syncMetrics.failed > 20 || stalePRs > 10) {
     syncStatus = "unhealthy"
-  } else if (syncMetrics.deadLettered > 3 || syncMetrics.failed > 5) {
+  } else if (syncMetrics.deadLettered > 3 || syncMetrics.failed > 5 || stalePRs > 3) {
     syncStatus = "degraded"
   }
 
@@ -599,6 +661,8 @@ export async function getContentPipelineHealth(): Promise<ContentPipelineHealth>
       pendingEvents: syncMetrics.pending + syncMetrics.enqueued,
       processingEvents: syncMetrics.processing,
       deadLettered: syncMetrics.deadLettered,
+      pendingPRs: pendingPRs.length,
+      stalePRs,
     },
     overallStatus,
   }

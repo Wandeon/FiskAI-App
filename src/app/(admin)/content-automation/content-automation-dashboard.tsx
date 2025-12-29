@@ -13,6 +13,8 @@ import {
   TrendingUp,
   BarChart3,
   Inbox,
+  GitPullRequest,
+  ExternalLink,
 } from "lucide-react"
 import type {
   ArticleAgentMetrics,
@@ -47,6 +49,17 @@ interface ContentAutomationDashboardProps {
     deadLetterReason: string | null
   }>
   health: ContentPipelineHealth
+  pendingPRs: Array<{
+    eventId: string
+    type: string
+    ruleId: string
+    conceptId: string
+    domain: string
+    prUrl: string
+    prCreatedAt: Date
+    ageInDays: number
+    isStale: boolean
+  }>
 }
 
 const STATUS_CONFIG: Record<
@@ -103,9 +116,13 @@ export function ContentAutomationDashboard({
   recentJobs,
   recentEvents,
   health,
+  pendingPRs,
 }: ContentAutomationDashboardProps) {
   const overallConfig = STATUS_CONFIG[health.overallStatus]
   const OverallIcon = overallConfig.icon
+
+  // Count stale PRs (older than 7 days)
+  const stalePRCount = pendingPRs.filter((pr) => pr.isStale).length
 
   return (
     <div className="space-y-6">
@@ -178,7 +195,13 @@ export function ContentAutomationDashboard({
                   </Badge>
                   <span className="text-muted-foreground">
                     {health.contentSync.pendingEvents} pending,{" "}
-                    {health.contentSync.deadLettered} dead-lettered
+                    {health.contentSync.pendingPRs} PRs
+                    {health.contentSync.stalePRs > 0 && (
+                      <span className="text-red-600">
+                        {" "}
+                        ({health.contentSync.stalePRs} stale)
+                      </span>
+                    )}
                   </span>
                 </div>
               </div>
@@ -571,6 +594,99 @@ export function ContentAutomationDashboard({
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Human Review Dashboard - Pending PRs */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <GitPullRequest className="h-5 w-5" />
+            Pending PRs - Human Review Required
+          </h2>
+          <div className="flex items-center gap-2">
+            <Badge variant={stalePRCount > 0 ? "warning" : "success"}>
+              {pendingPRs.length} Total
+            </Badge>
+            {stalePRCount > 0 && (
+              <Badge variant="danger">{stalePRCount} Stale (&gt;7 days)</Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Pending PRs Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Content Sync PRs Awaiting Merge
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pendingPRs.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                No pending PRs - all content is up to date!
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pendingPRs.map((pr) => (
+                  <div
+                    key={pr.eventId}
+                    className={`flex items-center justify-between border-b pb-2 last:border-0 last:pb-0 ${
+                      pr.isStale ? "bg-red-50 p-2 rounded" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={pr.isStale ? "danger" : "info"}>
+                          {pr.ageInDays} {pr.ageInDays === 1 ? "day" : "days"} old
+                        </Badge>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">
+                          {pr.conceptId}{" "}
+                          <span className="text-muted-foreground font-normal">
+                            ({pr.type})
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Domain: {pr.domain} | Created:{" "}
+                          {new Date(pr.prCreatedAt).toLocaleString("hr-HR")}
+                        </div>
+                      </div>
+                    </div>
+                    <a
+                      href={pr.prUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      Review PR
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Stale PR Warning */}
+        {stalePRCount > 0 && (
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center gap-2 text-red-700">
+                <AlertCircle className="h-4 w-4" />
+                Action Required: Stale PRs Detected
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-red-700">
+                {stalePRCount} {stalePRCount === 1 ? "PR has" : "PRs have"} been waiting for over 7
+                days. Regulatory updates may not be reaching content promptly. Please review and
+                merge these PRs to keep content up to date.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

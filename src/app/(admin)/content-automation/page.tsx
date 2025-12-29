@@ -7,18 +7,21 @@ import {
   getRecentArticleJobs,
   getRecentContentSyncEvents,
   getContentPipelineHealth,
+  getPendingContentSyncPRs,
 } from "@/lib/regulatory-truth/monitoring/metrics"
 
 export const dynamic = "force-dynamic"
 
 export default async function ContentAutomationPage() {
-  const [articleMetrics, syncMetrics, recentJobs, recentEvents, health] = await Promise.all([
-    collectArticleAgentMetrics(),
-    collectContentSyncMetrics(),
-    getRecentArticleJobs(10),
-    getRecentContentSyncEvents(10),
-    getContentPipelineHealth(),
-  ])
+  const [articleMetrics, syncMetrics, recentJobs, recentEvents, health, pendingPRs] =
+    await Promise.all([
+      collectArticleAgentMetrics(),
+      collectContentSyncMetrics(),
+      getRecentArticleJobs(10),
+      getRecentContentSyncEvents(10),
+      getContentPipelineHealth(),
+      getPendingContentSyncPRs(50),
+    ])
 
   return (
     <Suspense
@@ -34,6 +37,7 @@ export default async function ContentAutomationPage() {
         recentJobs={recentJobs}
         recentEvents={recentEvents}
         health={health}
+        pendingPRs={pendingPRs}
       />
     </Suspense>
   )

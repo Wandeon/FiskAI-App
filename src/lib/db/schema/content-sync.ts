@@ -82,6 +82,10 @@ export const contentSyncEvents = pgTable(
     lastError: text("last_error"),
     lastErrorAt: timestamp("last_error_at", { withTimezone: true }),
 
+    // PR tracking
+    prUrl: text("pr_url"),
+    prCreatedAt: timestamp("pr_created_at", { withTimezone: true }),
+
     // Event payload (rule snapshot, pointers, etc.)
     payload: jsonb("payload").notNull(),
 
