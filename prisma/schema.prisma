@@ -862,24 +862,26 @@ model WebAuthnCredential {
 }
 
 model FiscalCertificate {
-  id               String          @id @default(cuid())
-  companyId        String
-  environment      FiscalEnv
-  provider         String          @default("DIRECT")
-  certSubject      String
-  certSerial       String
-  certNotBefore    DateTime
-  certNotAfter     DateTime
-  oibExtracted     String
-  certSha256       String
-  encryptedP12     String
-  encryptedDataKey String
-  status           CertStatus      @default(PENDING)
-  lastUsedAt       DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  fiscalRequests   FiscalRequest[]
+  id                        String          @id @default(cuid())
+  companyId                 String
+  environment               FiscalEnv
+  provider                  String          @default("DIRECT")
+  certSubject               String
+  certSerial                String
+  certNotBefore             DateTime
+  certNotAfter              DateTime
+  oibExtracted              String
+  certSha256                String
+  encryptedP12              String
+  encryptedDataKey          String
+  status                    CertStatus      @default(PENDING)
+  lastUsedAt                DateTime?
+  lastExpiryNotificationAt  DateTime?       // When last expiry notification was sent
+  lastExpiryNotificationDay Int?            // Days remaining when notification was sent (30, 14, 7, 1)
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  company                   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalRequests            FiscalRequest[]
 
   @@unique([companyId, environment])
   @@index([companyId])

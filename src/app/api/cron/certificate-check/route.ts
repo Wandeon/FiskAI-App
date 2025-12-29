@@ -2,8 +2,20 @@ import { NextResponse } from "next/server"
 import {
   findExpiringCertificates,
   sendCertificateExpiryNotification,
+  shouldSendNotification,
+  updateNotificationTracking,
+  NOTIFICATION_INTERVALS,
 } from "@/lib/compliance/certificate-monitor"
 
+/**
+ * Certificate Expiry Check Cron Job
+ *
+ * Runs daily to check for expiring FINA certificates and send notifications
+ * at standard intervals: 30, 14, 7, and 1 day(s) before expiry.
+ *
+ * Notifications are tracked to prevent duplicates - only one notification
+ * per interval is sent.
+ */
 export async function GET(request: Request) {
   // Verify cron secret
   const authHeader = request.headers.get("authorization")
@@ -12,29 +24,65 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Find all certificates expiring within 30 days
     const expiringCerts = await findExpiringCertificates(30)
 
     // Track notifications sent
-    const notificationsSent = []
+    const notificationsSent: Array<{
+      companyId: string
+      daysRemaining: number
+      notificationDay: number
+    }> = []
 
-    // Send notifications for certificates expiring in <30 days
+    // Track skipped notifications (already sent for this interval)
+    const skipped: Array<{
+      companyId: string
+      daysRemaining: number
+      reason: string
+    }> = []
+
+    // Process each certificate
     for (const cert of expiringCerts) {
-      // Send weekly reminders for 30-8 days remaining
-      if (cert.daysRemaining <= 30 && cert.daysRemaining > 7 && cert.daysRemaining % 7 === 0) {
-        await sendCertificateExpiryNotification(cert)
-        notificationsSent.push({
+      // Skip if no valid email
+      if (!cert.ownerEmail) {
+        skipped.push({
           companyId: cert.companyId,
           daysRemaining: cert.daysRemaining,
-          type: "weekly",
+          reason: "no_owner_email",
         })
+        continue
       }
-      // Send daily reminders in final week
-      if (cert.daysRemaining <= 7) {
+
+      // Check if notification should be sent based on interval tracking
+      const notificationDay = shouldSendNotification(cert.daysRemaining, cert.lastNotificationDay)
+
+      if (notificationDay === null) {
+        skipped.push({
+          companyId: cert.companyId,
+          daysRemaining: cert.daysRemaining,
+          reason: `already_notified_at_${cert.lastNotificationDay}_days`,
+        })
+        continue
+      }
+
+      try {
+        // Send the notification email
         await sendCertificateExpiryNotification(cert)
+
+        // Update tracking to prevent duplicate notifications
+        await updateNotificationTracking(cert.certificateId, notificationDay)
+
         notificationsSent.push({
           companyId: cert.companyId,
           daysRemaining: cert.daysRemaining,
-          type: "daily",
+          notificationDay,
+        })
+      } catch (emailError) {
+        console.error(`Failed to send notification for ${cert.companyId}:`, emailError)
+        skipped.push({
+          companyId: cert.companyId,
+          daysRemaining: cert.daysRemaining,
+          reason: "email_send_failed",
         })
       }
     }
@@ -44,6 +92,9 @@ export async function GET(request: Request) {
       checked: expiringCerts.length,
       notified: notificationsSent.length,
       notifications: notificationsSent,
+      skipped: skipped.length,
+      skippedDetails: skipped,
+      intervals: NOTIFICATION_INTERVALS,
     })
   } catch (error) {
     console.error("Certificate check error:", error)
