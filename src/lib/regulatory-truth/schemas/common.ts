@@ -23,7 +23,7 @@ export const AgentTypeSchema = z.enum([
   "TRANSITIONAL_EXTRACTOR",
   "COMPARISON_EXTRACTOR",
   "QUERY_CLASSIFIER",
-  "COMPARISON_EXTRACTOR",
+  "EXEMPTION_EXTRACTOR",
 ])
 export type AgentType = z.infer<typeof AgentTypeSchema>
 
@@ -110,6 +110,8 @@ export const DomainSchema = z.enum([
   "fiskalizacija",
   "rokovi",
   "obrasci",
+  "exemptions",
+  "references",
 ])
 export type Domain = z.infer<typeof DomainSchema>
 
@@ -122,6 +124,8 @@ export const ValueTypeSchema = z.enum([
   "currency_hrk",
   "currency_eur",
   "count",
+  "cross_reference",
+  "exemption_condition",
 ])
 export type ValueType = z.infer<typeof ValueTypeSchema>
 

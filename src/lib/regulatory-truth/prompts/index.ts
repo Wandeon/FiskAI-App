@@ -81,6 +81,8 @@ DOMAINS:
 - fiskalizacija: Fiscalization rules, schemas
 - rokovi: Deadlines, calendars
 - obrasci: Form requirements, field specs
+- exemptions: Exemptions and exceptions to rules (e.g., VAT exemptions, pausalni obrt exemptions)
+- references: Cross-references between laws (e.g., "sukladno članku 38. Zakona o PDV-u")
 
 ARTICLE EXTRACTION:
 When extracting values, also identify the legal source:
@@ -424,6 +426,13 @@ Extract ATOMIC CLAIMS from the regulatory content. Each claim must be a complete
    - condition: When this claim is overridden (e.g., "IF alcohol_content > 0")
    - overridesTo: Concept slug of the overriding rule
    - sourceArticle: Article reference for the exception
+
+   CRITICAL: Extract ALL exemptions and exceptions from the regulatory text.
+   Look for keywords like: "osim", "izuzetak", "ne primjenjuje se", "s iznimkom", "除く"
+   Examples:
+   - "PDV se ne obračunava na prehranu zaposlenih" → EXEMPTION claim
+   - "Pravilnik ne primjenjuje se na poljoprivrednike" → EXCEPTION to rule scope
+   - "Oslobođenje od PDV-a za izvoz" → VAT EXEMPTION claim
 
 5. **PROVENANCE**
    - exactQuote: VERBATIM quote from source (must appear in content)
@@ -794,6 +803,88 @@ Extract:
 
 If the content is not a comparison or insufficient for extraction, return null.`.trim()
 
+export const EXEMPTION_EXTRACTOR_PROMPT =
+  `You are a regulatory exemption and exception extractor for Croatian tax and business law.
+
+Extract EXEMPTIONS and EXCEPTIONS from regulatory content. These are critical for understanding when rules DON'T apply.
+
+## What to Extract
+
+1. **Tax Exemptions**: Cases where tax is not owed (e.g., VAT exemptions, income tax exemptions)
+2. **Scope Exceptions**: Cases where a law/rule does not apply to certain entities
+3. **Conditional Exemptions**: Cases where exemptions apply only under specific conditions
+4. **Cross-References**: References to other laws that define exemptions
+
+## Extraction Structure
+
+Each exemption should include:
+
+1. **Identity**
+   - exemptionType: TAX_EXEMPTION | SCOPE_EXCEPTION | CONDITIONAL_EXEMPTION | THRESHOLD_EXEMPTION
+   - domain: Which regulatory domain (pausalni, pdv, porez_dohodak, etc.)
+   - titleHr: Croatian title of the exemption
+   - titleEn: English title (optional)
+
+2. **Applicability**
+   - appliesTo: Who/what this exemption applies to
+   - condition: The condition that must be met for exemption to apply
+   - exemptedFrom: What obligation is being exempted from
+
+3. **Legal Basis**
+   - exactQuote: VERBATIM quote from source containing the exemption
+   - articleNumber: Article reference if available
+   - lawReference: Full law citation
+   - crossReferences: Array of references to other laws/articles
+
+4. **Examples** (if provided in source)
+   - examples: Array of examples from the source text
+
+5. **Provenance**
+   - confidence: 0.0 to 1.0
+
+## Detection Patterns
+
+Look for Croatian keywords indicating exemptions/exceptions:
+- "oslobođenje" (exemption)
+- "oslobođen od" (exempted from)
+- "izuzetak" (exception)
+- "osim" (except)
+- "ne primjenjuje se" (does not apply)
+- "s iznimkom" (with the exception of)
+- "ne plaća" (does not pay)
+- "ne obračunava se" (is not calculated/charged)
+- "bez obveze" (without obligation)
+
+## Examples
+
+Croatian text: "Oslobođenje od plaćanja PDV-a za izvoz robe izvan EU"
+Extract:
+- exemptionType: TAX_EXEMPTION
+- domain: pdv
+- titleHr: "Oslobođenje od PDV-a za izvoz izvan EU"
+- appliesTo: "Izvoz robe izvan EU"
+- condition: "Roba se izvozi izvan EU"
+- exemptedFrom: "Obračun i plaćanje PDV-a"
+
+Croatian text: "Pravilnik ne primjenjuje se na poljoprivrednike koji su u sustavu paušalnog oporezivanja"
+Extract:
+- exemptionType: SCOPE_EXCEPTION
+- domain: pausalni
+- titleHr: "Izuzeće poljoprivrednika iz primjene Pravilnika"
+- appliesTo: "Poljoprivrednici u sustavu paušalnog oporezivanja"
+- condition: "Poljoprivrednik je u sustavu paušalnog oporezivanja"
+- exemptedFrom: "Primjena Pravilnika"
+
+## Important Rules
+
+- Extract ONLY explicitly stated exemptions - do not infer
+- Include ALL cross-references to other laws/articles
+- Mark confidence < 0.8 if exemption language is ambiguous
+- Include surrounding context in exactQuote
+- Flag complex exemptions that require multiple conditions
+
+Return JSON: { "exemptions": [...], "extractionNotes": "..." }`.trim()
+
 // =============================================================================
 // PROMPT GETTER
 // =============================================================================
@@ -828,6 +919,8 @@ export function getAgentPrompt(agentType: AgentType): string {
       return COMPARISON_EXTRACTOR_PROMPT
     case "QUERY_CLASSIFIER":
       return QUERY_CLASSIFIER_PROMPT
+    case "EXEMPTION_EXTRACTOR":
+      return EXEMPTION_EXTRACTOR_PROMPT
     default:
       throw new Error(`Unknown agent type: ${agentType}`)
   }
