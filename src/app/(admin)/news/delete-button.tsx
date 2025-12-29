@@ -14,13 +14,13 @@ export function DeleteButton({ postId, postTitle }: DeleteButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   async function handleDelete() {
-    if (\!confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
       return
     }
     setIsDeleting(true)
     try {
       const response = await fetch("/api/admin/news/posts/" + postId, { method: "DELETE" })
-      if (\!response.ok) {
+      if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || "Failed to delete post")
       }
