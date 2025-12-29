@@ -10,6 +10,7 @@ import {
 import { runAgent } from "./runner"
 import { logAuditEvent } from "../utils/audit-log"
 import { approveRule } from "../services/rule-status-service"
+import { requestRuleReview } from "../services/human-review-service"
 
 // =============================================================================
 // REVIEWER AGENT
@@ -249,6 +250,12 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       // NEVER auto-approve T0/T1 - always require human review
       if (rule.riskTier === "T0" || rule.riskTier === "T1") {
         newStatus = "PENDING_REVIEW"
+        // Create centralized human review request (Issue #884)
+        await requestRuleReview(rule.id, {
+          riskTier: rule.riskTier,
+          confidence: reviewOutput.computed_confidence,
+          reviewerNotes: reviewOutput.reviewer_notes,
+        })
         console.log(
           `[reviewer] ${rule.riskTier} rule ${rule.conceptSlug} requires human approval (never auto-approved)`
         )
@@ -269,6 +276,12 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
 
     case "ESCALATE_HUMAN":
       newStatus = "PENDING_REVIEW"
+      // Create centralized human review request (Issue #884)
+      await requestRuleReview(rule.id, {
+        riskTier: rule.riskTier,
+        confidence: reviewOutput.computed_confidence,
+        reviewerNotes: reviewOutput.human_review_reason || reviewOutput.reviewer_notes,
+      })
       break
 
     case "ESCALATE_ARBITER":

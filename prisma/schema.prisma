@@ -2637,6 +2637,47 @@ model RegulatoryAuditLog {
 }
 
 // =============================================================================
+// HUMAN REVIEW QUEUE - Centralized review management (Issue #884)
+// =============================================================================
+
+enum HumanReviewPriority {
+  CRITICAL
+  HIGH
+  NORMAL
+  LOW
+}
+
+enum HumanReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+model HumanReviewQueue {
+  id          String              @id @default(cuid())
+  entityType  String              // EVIDENCE, RULE, CONFLICT, SOURCE_POINTER
+  entityId    String
+  reason      String              // HumanReviewReason enum value
+  priority    HumanReviewPriority @default(NORMAL)
+  status      HumanReviewStatus   @default(PENDING)
+  context     Json?               // Additional context for the reviewer
+  requestedBy String              // Source of the request (e.g., "ocr-worker", "arbiter")
+  requestedAt DateTime            @default(now())
+  slaDeadline DateTime            // When review should be completed by
+  assignedTo  String?             // User ID assigned to review
+  completedAt DateTime?
+  completedBy String?             // User ID who completed the review
+  resolution  Json?               // Resolution details
+
+  @@index([status])
+  @@index([priority])
+  @@index([entityType, entityId])
+  @@index([slaDeadline])
+  @@index([requestedAt])
+}
+
+// =============================================================================
 // WATCHDOG SYSTEM - Autonomous Monitoring & Health Checks
 // =============================================================================
 
