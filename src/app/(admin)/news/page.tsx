@@ -247,9 +247,6 @@ function CronJob({ time, name, job }: { time: string; name: string; job: string 
             Run Now
           </button>
         </form>
-        <button className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--surface-secondary)]">
-          Skip
-        </button>
       </div>
     </div>
   )
