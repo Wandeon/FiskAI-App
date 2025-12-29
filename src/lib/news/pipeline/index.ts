@@ -66,6 +66,19 @@ export {
   type StalenessCheckSummary,
 } from "./staleness-checker"
 
+// Pipeline Coordination (cron job dependencies)
+export {
+  checkAndStartStage,
+  completeStage,
+  failStage,
+  isStageRunning,
+  didStageComplete,
+  getPipelineStatus,
+  type PipelineStage,
+  type PipelineStatus,
+  type PipelineCheckResult,
+} from "./coordinator"
+
 /**
  * Full pipeline orchestration example:
  *

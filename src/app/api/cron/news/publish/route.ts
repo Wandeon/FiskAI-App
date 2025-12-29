@@ -20,9 +20,11 @@ import {
   needsRewrite,
   assembleDigest,
   recordNewsPostError,
+  checkAndStartStage,
+  completeStage,
+  failStage,
   MAX_PROCESSING_ATTEMPTS,
   type ReviewFeedback,
-  type RewriteResult,
 } from "@/lib/news/pipeline"
 import { generateUniqueSlug } from "@/lib/news/slug"
 import { eq, and, isNull, lt, sql } from "drizzle-orm"
@@ -96,6 +98,8 @@ export async function GET(request: NextRequest) {
     errors: [],
   }
 
+  let pipelineRunId: string | undefined
+
   try {
     // 1. Verify authorization
     const authHeader = request.headers.get("authorization")
@@ -105,6 +109,18 @@ export async function GET(request: NextRequest) {
       console.error("[CRON 3] Unauthorized request")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    // 1.5. Check pipeline coordination (publish depends on review)
+    const pipelineCheck = await checkAndStartStage("publish")
+    if (!pipelineCheck.canProceed) {
+      console.log(`[CRON 3] Cannot proceed: ${pipelineCheck.reason}`)
+      return NextResponse.json({
+        success: false,
+        error: "Pipeline stage blocked",
+        reason: pipelineCheck.reason,
+      }, { status: 409 })
+    }
+    pipelineRunId = pipelineCheck.runId
 
     // 2. Get all news_posts with status='reviewing' (including retry-eligible posts)
     console.log("[CRON 3] Fetching posts under review...")
@@ -361,11 +377,21 @@ export async function GET(request: NextRequest) {
     console.log("[CRON 3] Job complete!")
     console.log(`[CRON 3] Summary: ${JSON.stringify(result.summary, null, 2)}`)
 
+    // Mark pipeline stage as completed
+    if (pipelineRunId) {
+      await completeStage(pipelineRunId, result.summary, result.errors)
+    }
+
     return NextResponse.json(result)
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error("[CRON 3] Fatal error:", errorMsg)
     result.errors.push(errorMsg)
+
+    // Mark pipeline stage as failed
+    if (pipelineRunId) {
+      await failStage(pipelineRunId, result.errors)
+    }
 
     return NextResponse.json(
       {

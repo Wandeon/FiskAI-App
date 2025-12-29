@@ -180,6 +180,25 @@ export const newsItems = pgTable(
   ]
 )
 
+// Pipeline run tracking for cron job coordination
+export const newsPipelineRuns = pgTable(
+  "news_pipeline_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runDate: timestamp("run_date", { withTimezone: true }).notNull(), // Date this pipeline run is for
+    stage: varchar("stage", { length: 20 }).notNull(), // 'fetch-classify' | 'review' | 'publish'
+    status: varchar("status", { length: 20 }).notNull(), // 'running' | 'completed' | 'failed'
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    summary: jsonb("summary").default({}), // Stage-specific summary data
+    errors: jsonb("errors").default([]), // Array of error messages
+  },
+  (table) => [
+    index("idx_news_pipeline_runs_date_stage").on(table.runDate, table.stage),
+    index("idx_news_pipeline_runs_status").on(table.status),
+  ]
+)
+
 // Export types
 export type NewsSource = typeof newsSources.$inferSelect
 export type NewNewsSource = typeof newsSources.$inferInsert
@@ -198,3 +217,6 @@ export type NewNewsPostSource = typeof newsPostSources.$inferInsert
 
 export type NewsItem = typeof newsItems.$inferSelect
 export type NewNewsItem = typeof newsItems.$inferInsert
+
+export type NewsPipelineRun = typeof newsPipelineRuns.$inferSelect
+export type NewNewsPipelineRun = typeof newsPipelineRuns.$inferInsert
