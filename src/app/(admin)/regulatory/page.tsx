@@ -15,6 +15,7 @@ import {
   FileText,
   RefreshCw,
   GitBranch,
+  Radar,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -94,6 +95,12 @@ export default async function RegulatoryDashboardPage() {
           <p className="text-muted-foreground">Croatian compliance automation pipeline</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/regulatory/sentinel">
+              <Radar className="mr-2 h-4 w-4" />
+              Sentinel Health
+            </Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/regulatory/sources">
               <Database className="mr-2 h-4 w-4" />
