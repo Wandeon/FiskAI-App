@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
-import { matchTransactionsToInvoices, getInvoiceCandidates } from "@/lib/banking/reconciliation"
+import { matchTransactionsToBoth, getAllCandidates } from "@/lib/banking/reconciliation"
 import { ParsedTransaction } from "@/lib/banking/csv-parser"
 import { AUTO_MATCH_THRESHOLD } from "@/lib/banking/reconciliation-config"
 import { MatchStatus, Prisma } from "@prisma/client"
@@ -77,17 +77,26 @@ export async function GET(request: Request) {
     }),
   ])
 
-  const invoices = await db.eInvoice.findMany({
-    where: {
-      companyId: company.id,
-      direction: "OUTBOUND",
-      paidAt: null,
-    },
-    include: {
-      lines: true,
-    },
-    orderBy: { issueDate: "desc" },
-  })
+  const [invoices, expenses] = await Promise.all([
+    db.eInvoice.findMany({
+      where: {
+        companyId: company.id,
+        direction: "OUTBOUND",
+        paidAt: null,
+      },
+      include: {
+        lines: true,
+      },
+      orderBy: { issueDate: "desc" },
+    }),
+    db.expense.findMany({
+      where: {
+        companyId: company.id,
+        status: { in: ["DRAFT", "PENDING"] },
+      },
+      orderBy: { date: "desc" },
+    }),
+  ])
 
   const parsedTransactions: (ParsedTransaction & { id: string })[] = transactions.map((txn) => ({
     id: txn.id,
@@ -99,7 +108,7 @@ export async function GET(request: Request) {
     currency: txn.bankAccount?.currency || "EUR",
   }))
 
-  const matchResults = matchTransactionsToInvoices(parsedTransactions, invoices)
+  const matchResults = matchTransactionsToBoth(parsedTransactions, invoices, expenses)
   const matchMap = new Map(matchResults.map((match) => [match.transactionId, match]))
   const parsedMap = new Map(parsedTransactions.map((t) => [t.id, t]))
 
@@ -119,7 +128,7 @@ export async function GET(request: Request) {
   const payload = {
     transactions: transactions.map((txn) => {
       const parsed = parsedMap.get(txn.id)
-      const candidates = parsed ? getInvoiceCandidates(parsed, invoices) : []
+      const allCandidates = parsed ? getAllCandidates(parsed, invoices, expenses) : { invoiceCandidates: [], expenseCandidates: [] }
       const matchInfo = matchMap.get(txn.id)
       return {
         id: txn.id,
@@ -135,9 +144,13 @@ export async function GET(request: Request) {
         },
         matchStatus: txn.matchStatus,
         confidenceScore: txn.confidenceScore ?? matchInfo?.confidenceScore ?? 0,
-        candidates: candidates.map((candidate) => ({
+        invoiceCandidates: allCandidates.invoiceCandidates.map((candidate) => ({
           ...candidate,
           issueDate: candidate.issueDate.toISOString(),
+        })),
+        expenseCandidates: allCandidates.expenseCandidates.map((candidate) => ({
+          ...candidate,
+          date: candidate.date.toISOString(),
         })),
       }
     }),

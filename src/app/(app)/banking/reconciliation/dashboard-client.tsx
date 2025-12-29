@@ -67,10 +67,18 @@ export function ReconciliationDashboard({
       bankAccount: { id: string; name: string }
       matchStatus: string
       confidenceScore: number
-      candidates: Array<{
+      invoiceCandidates: Array<{
         invoiceId: string
         invoiceNumber: string | null
         issueDate: string
+        totalAmount: number
+        score: number
+        reason: string
+      }>
+      expenseCandidates: Array<{
+        expenseId: string
+        description: string
+        date: string
         totalAmount: number
         score: number
         reason: string
@@ -93,14 +101,18 @@ export function ReconciliationDashboard({
     { label: "Ignorirano", value: data?.summary.ignored ?? 0 },
   ]
 
-  const handleMatch = async (transactionId: string, candidateId: string) => {
+  const handleMatch = async (transactionId: string, candidateId: string, candidateType: "invoice" | "expense") => {
     setLoadingTransactionId(transactionId)
     setStatusMessage(null)
     try {
+      const body = candidateType === "invoice"
+        ? { transactionId, invoiceId: candidateId }
+        : { transactionId, expenseId: candidateId }
+
       const response = await fetch("/api/banking/reconciliation/match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transactionId, invoiceId: candidateId }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -109,7 +121,7 @@ export function ReconciliationDashboard({
       }
 
       setStatusType("success")
-      setStatusMessage("Transakcija je povezana s računom")
+      setStatusMessage(candidateType === "invoice" ? "Transakcija je povezana s računom" : "Transakcija je povezana s troškom")
       mutate()
     } catch (err) {
       setStatusType("error")
@@ -237,7 +249,15 @@ export function ReconciliationDashboard({
               <tbody>
                 {data?.transactions?.length ? (
                   data.transactions.map((txn) => {
-                    const candidate = txn.candidates[0]
+                    // Determine best candidate based on transaction type
+                    const isCredit = txn.amount >= 0
+                    const invoiceCandidate = txn.invoiceCandidates[0]
+                    const expenseCandidate = txn.expenseCandidates[0]
+
+                    // Use invoice candidate for credits, expense candidate for debits
+                    const candidate = isCredit ? invoiceCandidate : expenseCandidate
+                    const candidateType = isCredit ? "invoice" : "expense"
+
                     const isHighlighted = highlightTransactionId === txn.id
                     return (
                       <tr
@@ -267,12 +287,18 @@ export function ReconciliationDashboard({
                         <td className="px-3 py-2 text-xs">
                           {candidate ? (
                             <div>
-                              <div className="font-semibold">{candidate.invoiceNumber || "–"}</div>
+                              <div className="font-semibold">
+                                {candidateType === "invoice"
+                                  ? (invoiceCandidate?.invoiceNumber || "–")
+                                  : expenseCandidate?.description}
+                              </div>
                               <div className="text-gray-500">
                                 {formatCurrency(candidate.totalAmount, txn.currency)} ·{" "}
                                 {candidate.score}%
                               </div>
-                              <div className="text-gray-400">{candidate.reason}</div>
+                              <div className="text-gray-400">
+                                {candidate.reason} · {candidateType === "invoice" ? "Račun" : "Trošak"}
+                              </div>
                             </div>
                           ) : (
                             <span className="text-gray-400">Nema kandidata</span>
@@ -282,7 +308,13 @@ export function ReconciliationDashboard({
                           <Button
                             size="sm"
                             disabled={!candidate || loadingTransactionId === txn.id}
-                            onClick={() => candidate && handleMatch(txn.id, candidate.invoiceId)}
+                            onClick={() => {
+                              if (candidate && candidateType === "invoice" && invoiceCandidate) {
+                                handleMatch(txn.id, invoiceCandidate.invoiceId, "invoice")
+                              } else if (candidate && candidateType === "expense" && expenseCandidate) {
+                                handleMatch(txn.id, expenseCandidate.expenseId, "expense")
+                              }
+                            }}
                           >
                             {loadingTransactionId === txn.id ? (
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
