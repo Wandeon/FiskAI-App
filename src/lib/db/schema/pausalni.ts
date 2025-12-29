@@ -15,12 +15,20 @@ import {
 // Note: companyId uses text() because Prisma Company model uses CUIDs, not UUIDs
 import { relations } from "drizzle-orm"
 
-// Paušalni profile for each company
+// Reference table for Prisma-managed Company (for FK constraints)
+// This allows Drizzle tables to reference the Prisma Company table
+export const company = pgTable("Company", {
+  id: text("id").primaryKey(),
+})
+
+// Pausalni profile for each company
 export const pausalniProfile = pgTable(
   "pausalni_profile",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    companyId: text("company_id").notNull(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => company.id, { onDelete: "cascade" }),
     hasPdvId: boolean("has_pdv_id").default(false),
     pdvId: varchar("pdv_id", { length: 20 }), // HR12345678901 format
     pdvIdSince: date("pdv_id_since"),
@@ -59,7 +67,9 @@ export const paymentObligation = pgTable(
   "payment_obligation",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    companyId: text("company_id").notNull(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => company.id, { onDelete: "cascade" }),
     obligationType: varchar("obligation_type", { length: 50 }).notNull(),
     periodMonth: integer("period_month").notNull(),
     periodYear: integer("period_year").notNull(),
@@ -88,7 +98,9 @@ export const euTransaction = pgTable(
   "eu_transaction",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    companyId: text("company_id").notNull(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => company.id, { onDelete: "cascade" }),
     bankTransactionId: uuid("bank_transaction_id"),
     direction: varchar("direction", { length: 20 }).notNull(), // RECEIVED, PROVIDED
     counterpartyName: varchar("counterparty_name", { length: 255 }),
@@ -119,7 +131,9 @@ export const euTransaction = pgTable(
 // Generated forms history
 export const generatedForm = pgTable("generated_form", {
   id: uuid("id").primaryKey().defaultRandom(),
-  companyId: text("company_id").notNull(),
+  companyId: text("company_id")
+    .notNull()
+    .references(() => company.id, { onDelete: "cascade" }),
   formType: varchar("form_type", { length: 20 }).notNull(), // PDV, PDV_S, ZP, PO_SD
   periodMonth: integer("period_month"),
   periodYear: integer("period_year").notNull(),
