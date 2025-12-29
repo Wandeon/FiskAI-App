@@ -89,6 +89,13 @@ export const ACTION_SHORTCUTS: Shortcut[] = [
     description: "Pretraga",
     category: "actions",
   },
+  {
+    id: "toggle-guidance-level",
+    keys: ["cmd", "g"],
+    action: "toggleGuidanceLevel",
+    description: "Promijeni razinu pomoći",
+    category: "actions",
+  },
 ]
 
 // Form shortcuts
