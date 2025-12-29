@@ -1,10 +1,10 @@
 // src/app/api/receipts/view/route.ts
-// Receipt image retrieval from R2 storage
+// Receipt image retrieval from R2 storage with cryptographic tenant isolation
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { requireCompany } from "@/lib/auth-utils"
-import { downloadFromR2 } from "@/lib/r2-client"
+import { downloadFromR2, verifyTenantSignature } from "@/lib/r2-client"
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
@@ -21,13 +21,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No key provided" }, { status: 400 })
     }
 
-    // Security: Verify the key belongs to this company
-    // Keys are formatted as: attachments/{companyId}/{year}/{month}/{hash}.{ext}
+    // Security Layer 1: Verify the key path belongs to this company
+    // Keys are formatted as: attachments/{companyId}/{year}/{month}/{sig}_{hash}.{ext}
     const keyParts = key.split("/")
     if (keyParts[0] !== "attachments" || keyParts[1] !== company.id) {
       logger.warn(
         { companyId: company.id, requestedKey: key },
-        "Unauthorized receipt access attempt"
+        "Unauthorized receipt access attempt - company ID mismatch"
+      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    // Security Layer 2: Verify cryptographic signature binds key to tenant
+    // This prevents access even if an attacker guesses a valid key path
+    if (!verifyTenantSignature(key, company.id)) {
+      logger.warn(
+        { companyId: company.id, requestedKey: key },
+        "Unauthorized receipt access attempt - invalid tenant signature"
       )
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
