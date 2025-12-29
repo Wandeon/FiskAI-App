@@ -13,9 +13,11 @@ export function EmptyState({ icon, title, description, action, className }: Empt
   return (
     <div
       className={cn("flex flex-col items-center justify-center py-12 px-4 text-center", className)}
+      role="status"
+      aria-label={`${title}${description ? ': ' + description : ''}`}
     >
       {icon && (
-        <div className="mb-4 rounded-full bg-[var(--surface-secondary)] p-4 text-[var(--muted)]">
+        <div className="mb-4 rounded-full bg-[var(--surface-secondary)] p-4 text-[var(--muted)]" aria-hidden="true">
           {icon}
         </div>
       )}

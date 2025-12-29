@@ -20,17 +20,30 @@ const alertVariants = cva(
   }
 );
 
-const Alert = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
-));
+export interface AlertProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof alertVariants> {
+  /**
+   * Controls how screen readers announce the alert.
+   * - "polite" (default): Waits for user to finish current activity
+   * - "assertive": Interrupts immediately for critical messages
+   * - "off": No announcement (for static alerts present on page load)
+   */
+  "aria-live"?: "polite" | "assertive" | "off";
+}
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ className, variant, "aria-live": ariaLive = "polite", ...props }, ref) => (
+    <div
+      ref={ref}
+      role="alert"
+      aria-live={ariaLive}
+      aria-atomic="true"
+      className={cn(alertVariants({ variant }), className)}
+      {...props}
+    />
+  )
+);
 Alert.displayName = "Alert";
 
 const AlertTitle = React.forwardRef<

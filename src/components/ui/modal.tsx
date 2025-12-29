@@ -67,6 +67,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "modal-title" : undefined}
+        aria-describedby={description ? "modal-description" : undefined}
         className={cn(
           "relative w-full rounded-card bg-[var(--surface-0)] shadow-elevated animate-scale-in",
           sizes[size],
@@ -81,7 +82,7 @@ export function Modal({
                 <h2 id="modal-title" className="text-lg font-semibold text-[var(--text-primary)]">
                   {title}
                 </h2>
-                {description && <p className="mt-1 text-sm text-[var(--text-disabled)]">{description}</p>}
+                {description && <p id="modal-description" className="mt-1 text-sm text-[var(--text-disabled)]">{description}</p>}
               </div>
             )}
             {showClose && (

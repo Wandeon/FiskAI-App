@@ -79,12 +79,13 @@ export function ConfirmDialog({
             "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
             config.iconBg
           )}
+          aria-hidden="true"
         >
           <Icon className={cn("h-6 w-6", config.iconColor)} />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-[var(--foreground)]">{title}</h3>
-          {description && <p className="mt-2 text-sm text-[var(--muted)]">{description}</p>}
+          <h3 id="confirm-dialog-title" className="text-lg font-semibold text-[var(--foreground)]">{title}</h3>
+          {description && <p id="confirm-dialog-description" className="mt-2 text-sm text-[var(--muted)]">{description}</p>}
           {children}
         </div>
       </div>

@@ -46,6 +46,12 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /**
+   * Accessible label for icon-only buttons (size="icon").
+   * Screen readers will announce this text instead of the button content.
+   * Required for icon-only buttons to meet WCAG accessibility standards.
+   */
+  "aria-label"?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

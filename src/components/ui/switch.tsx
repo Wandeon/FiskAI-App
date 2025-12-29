@@ -9,6 +9,16 @@ export interface SwitchProps extends Omit<
 > {
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
+  /**
+   * Accessible label for the switch.
+   * Required for standalone switches without a visible label.
+   */
+  "aria-label"?: string
+  /**
+   * ID of the element that labels this switch.
+   * Use when the switch has a visible label element.
+   */
+  "aria-labelledby"?: string
 }
 
 const Switch = forwardRef<HTMLInputElement, SwitchProps>(
@@ -31,11 +41,13 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       >
         <input
           type="checkbox"
+          role="switch"
           className="sr-only focus:outline-none"
           ref={ref}
           checked={checked}
           onChange={handleChange}
           disabled={disabled}
+          aria-checked={checked}
           {...props}
         />
         <span
@@ -43,6 +55,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
             "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
             checked ? "translate-x-6" : "translate-x-1"
           )}
+          aria-hidden="true"
         />
       </label>
     )
