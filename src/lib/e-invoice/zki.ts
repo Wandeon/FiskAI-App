@@ -1,4 +1,5 @@
 import * as crypto from "crypto"
+import { validateOib } from "../validations/oib"
 
 /**
  * ZKI (Zaštitni Kod Izdavatelja) - Protective Code of the Issuer
@@ -88,9 +89,9 @@ function formatAmount(amount: number): string {
 export function validateZKIInput(input: ZKIInput): { valid: boolean; errors: string[] } {
   const errors: string[] = []
 
-  // Validate OIB (11 digits)
-  if (!/^\d{11}$/.test(input.oib)) {
-    errors.push("OIB must be exactly 11 digits")
+  // Validate OIB (11 digits with checksum)
+  if (!validateOib(input.oib)) {
+    errors.push("Invalid OIB format or checksum")
   }
 
   // Validate invoice number

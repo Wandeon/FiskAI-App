@@ -1,11 +1,9 @@
 import { z } from "zod"
-
-// Croatian OIB validation (11 digits with checksum)
-const oibRegex = /^\d{11}$/
+import { oibSchema } from "./oib"
 
 export const companySchema = z.object({
   name: z.string().min(2, "Company name must be at least 2 characters"),
-  oib: z.string().regex(oibRegex, "OIB must be exactly 11 digits"),
+  oib: oibSchema,
   vatNumber: z.string().optional(),
   address: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
