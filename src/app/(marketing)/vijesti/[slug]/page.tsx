@@ -14,7 +14,7 @@ import {
 import { format } from "date-fns"
 import { hr } from "date-fns/locale"
 import Link from "next/link"
-import { ExternalLink, Calendar, CheckCircle2, Wrench, Zap, AlertCircle } from "lucide-react"
+import { ExternalLink, Calendar, CheckCircle2, Wrench, Zap, AlertCircle, Tag } from "lucide-react"
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 
@@ -369,6 +369,22 @@ export default async function PostDetailPage({ params }: PageProps) {
               </span>
             )}
           </div>
+
+          {/* Tags */}
+          {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
+            <div className="mb-8 flex flex-wrap items-center gap-2">
+              <Tag className="h-4 w-4 text-white/40" />
+              {post.tags.map((tag: string) => (
+                <Link
+                  key={tag}
+                  href={`/vijesti/tag/${tag}`}
+                  className="rounded-full bg-blue-500/20 px-3 py-1 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* Featured Image */}
           {post.featuredImageUrl && (

@@ -13,6 +13,7 @@ export interface ClassificationResult {
   suggestedSubcategory?: string
   keyDates?: string[] // Extract any dates/deadlines mentioned
   keyNumbers?: string[] // Extract any amounts/percentages mentioned
+  suggestedTags?: string[] // Extract relevant topic tags
 }
 
 const CLASSIFICATION_PROMPT = `Ti si urednik FiskAI portala za hrvatske poduzetnike i računovođe.
@@ -55,6 +56,14 @@ Pronađi i izvuci:
 - Sve datume i rokove (npr. "1. siječnja 2025", "do kraja godine")
 - Sve brojeve i iznose (npr. "20%", "10.000 EUR", "3 mjeseca")
 
+## ZADATAK 4: GENERIRAJ OZNAKE (TAGS)
+
+Izvuci 2-5 relevantnih tema/ključnih riječi iz vijesti. Oznake trebaju biti:
+- Specifične (ne općenite)
+- Korisne za pretraživanje i otkrivanje srodnog sadržaja
+- Na hrvatskom jeziku
+- Primjeri: "e-računi", "fiskalizacija", "paušalni-obrt", "PDV", "registar-ugovora"
+
 ## VIJEST ZA ANALIZU:
 Naslov: {title}
 
@@ -67,7 +76,8 @@ Odgovori ISKLJUČIVO u JSON formatu:
   "suggestedCategory": "porezi" | "propisi" | "poslovanje",
   "suggestedSubcategory": "pdv" | "porez-na-dobit" | ... (ako je primjenjivo),
   "keyDates": ["datum1", "datum2"],
-  "keyNumbers": ["broj1", "broj2"]
+  "keyNumbers": ["broj1", "broj2"],
+  "suggestedTags": ["oznaka1", "oznaka2", "oznaka3"]
 }`
 
 /**
@@ -113,6 +123,9 @@ export async function classifyNewsItem(item: NewsItem): Promise<ClassificationRe
     }
     if (!Array.isArray(result.keyNumbers)) {
       result.keyNumbers = []
+    }
+    if (!Array.isArray(result.suggestedTags)) {
+      result.suggestedTags = []
     }
 
     return result
