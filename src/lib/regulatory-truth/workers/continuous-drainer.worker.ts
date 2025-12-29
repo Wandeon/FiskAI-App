@@ -201,12 +201,15 @@ async function drainSourcePointers(): Promise<number> {
 
 /**
  * Check for DRAFT rules ready for review
+ * BATCH SIZE: Increased from 20 to 100 to leverage parallel processing
+ * With concurrency: 5 in reviewer.worker.ts, we can process 5 reviews simultaneously
+ * Larger batches mean fewer round trips and faster backlog drainage (issue #176)
  */
 async function drainDraftRules(): Promise<number> {
   const drafts = await db.regulatoryRule.findMany({
     where: { status: "DRAFT" },
     select: { id: true },
-    take: 20,
+    take: 100,
   })
 
   if (drafts.length === 0) return 0

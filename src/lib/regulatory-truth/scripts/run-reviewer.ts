@@ -73,7 +73,7 @@ async function main() {
          WHERE r.status IN ('DRAFT', 'PENDING_REVIEW')
          GROUP BY r.id, r."conceptSlug", r.status, r."riskTier", r."titleHr"
          ORDER BY r."createdAt" DESC
-         LIMIT 50`
+         LIMIT 200`
       )
 
       const pendingRules = result.rows
@@ -84,58 +84,91 @@ async function main() {
       let escalated = 0
       let failed = 0
 
-      for (const rule of pendingRules) {
+      // Process in batches for better throughput (issue #176)
+      const BATCH_SIZE = 10
+      const BATCH_DELAY = 5000 // 5 seconds between batches
+
+      for (let i = 0; i < pendingRules.length; i += BATCH_SIZE) {
+        const batch = pendingRules.slice(i, i + BATCH_SIZE)
         console.log(
-          `\n[reviewer] Processing: ${rule.conceptSlug} (${rule.riskTier}, ${rule.source_pointer_count} sources)`
+          `\n[reviewer] Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(pendingRules.length / BATCH_SIZE)} (${batch.length} rules)`
         )
-        console.log(`[reviewer] Title: ${rule.titleHr}`)
 
-        try {
-          const reviewerResult = await runReviewer(rule.id)
+        // Process batch in parallel
+        const batchResults = await Promise.allSettled(
+          batch.map(async (rule) => {
+            console.log(
+              `[reviewer] Processing: ${rule.conceptSlug} (${rule.riskTier}, ${rule.source_pointer_count} sources)`
+            )
 
-          if (reviewerResult.success && reviewerResult.output) {
-            const decision = reviewerResult.output.review_result.decision
-            const confidence = reviewerResult.output.review_result.computed_confidence
+            const reviewerResult = await runReviewer(rule.id)
 
-            switch (decision) {
-              case "APPROVE":
-                approved++
-                console.log(`[reviewer] ✓ APPROVED (confidence: ${confidence.toFixed(2)})`)
-                break
-              case "REJECT":
-                rejected++
-                console.log(`[reviewer] ✗ REJECTED (confidence: ${confidence.toFixed(2)})`)
-                if (reviewerResult.output.review_result.issues_found.length > 0) {
+            if (reviewerResult.success && reviewerResult.output) {
+              const decision = reviewerResult.output.review_result.decision
+              const confidence = reviewerResult.output.review_result.computed_confidence
+
+              switch (decision) {
+                case "APPROVE":
                   console.log(
-                    `[reviewer]   Issues: ${reviewerResult.output.review_result.issues_found.length}`
+                    `[reviewer] ✓ ${rule.conceptSlug} APPROVED (confidence: ${confidence.toFixed(2)})`
                   )
-                  for (const issue of reviewerResult.output.review_result.issues_found) {
-                    console.log(`[reviewer]   - [${issue.severity}] ${issue.description}`)
+                  return { status: "approved", rule }
+                case "REJECT":
+                  console.log(
+                    `[reviewer] ✗ ${rule.conceptSlug} REJECTED (confidence: ${confidence.toFixed(2)})`
+                  )
+                  if (reviewerResult.output.review_result.issues_found.length > 0) {
+                    console.log(
+                      `[reviewer]   Issues: ${reviewerResult.output.review_result.issues_found.length}`
+                    )
                   }
-                }
-                break
-              case "ESCALATE_HUMAN":
-              case "ESCALATE_ARBITER":
-                escalated++
-                console.log(`[reviewer] ⚠ ${decision} (confidence: ${confidence.toFixed(2)})`)
-                if (reviewerResult.output.review_result.human_review_reason) {
+                  return { status: "rejected", rule }
+                case "ESCALATE_HUMAN":
+                case "ESCALATE_ARBITER":
                   console.log(
-                    `[reviewer]   Reason: ${reviewerResult.output.review_result.human_review_reason}`
+                    `[reviewer] ⚠ ${rule.conceptSlug} ${decision} (confidence: ${confidence.toFixed(2)})`
                   )
-                }
+                  return { status: "escalated", rule }
+              }
+            } else {
+              console.log(`[reviewer] ✗ ${rule.conceptSlug} ${reviewerResult.error}`)
+              return { status: "failed", rule, error: reviewerResult.error }
+            }
+          })
+        )
+
+        // Count results
+        for (const result of batchResults) {
+          if (result.status === "fulfilled" && result.value) {
+            switch (result.value.status) {
+              case "approved":
+                approved++
+                break
+              case "rejected":
+                rejected++
+                break
+              case "escalated":
+                escalated++
+                break
+              case "failed":
+                failed++
                 break
             }
-          } else {
+          } else if (result.status === "rejected") {
             failed++
-            console.log(`[reviewer] ✗ ${reviewerResult.error}`)
+            console.error(`[reviewer] ✗ Batch processing error: ${result.reason}`)
           }
-        } catch (error) {
-          failed++
-          console.error(`[reviewer] ✗ ${error}`)
         }
 
-        // Rate limiting - wait 3 seconds between reviews
-        await new Promise((resolve) => setTimeout(resolve, 3000))
+        console.log(
+          `[reviewer] Batch complete: ${approved} approved, ${rejected} rejected, ${escalated} escalated, ${failed} failed so far`
+        )
+
+        // Wait before next batch
+        if (i + BATCH_SIZE < pendingRules.length) {
+          console.log(`[reviewer] Waiting ${BATCH_DELAY}ms before next batch...`)
+          await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY))
+        }
       }
 
       console.log(
