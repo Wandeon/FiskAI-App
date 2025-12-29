@@ -2,14 +2,8 @@ import { pgTable, uuid, varchar, boolean, timestamp, index, text } from "drizzle
 
 // Note: userId and companyId use text() because Prisma User/Company models use CUIDs, not UUIDs
 
-// Competence levels
-export const COMPETENCE_LEVELS = {
-  BEGINNER: "beginner",
-  AVERAGE: "average",
-  PRO: "pro",
-} as const
-
-export type CompetenceLevel = (typeof COMPETENCE_LEVELS)[keyof typeof COMPETENCE_LEVELS]
+// Re-export competence levels from single source of truth
+export { COMPETENCE_LEVELS, type CompetenceLevel } from "@/lib/types/competence"
 
 // Categories for competence
 export const GUIDANCE_CATEGORIES = {

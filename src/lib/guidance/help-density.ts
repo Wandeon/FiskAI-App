@@ -1,6 +1,6 @@
 // src/lib/guidance/help-density.ts
 
-import type { CompetenceLevel } from "@/lib/visibility/rules"
+import type { CompetenceLevel } from "@/lib/types/competence"
 
 export interface HelpDensityConfig {
   fieldTooltips: "all" | "key" | "none"

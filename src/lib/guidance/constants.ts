@@ -1,14 +1,9 @@
 // src/lib/guidance/constants.ts
 // Client-safe constants (no database imports)
 
-// Competence levels
-export const COMPETENCE_LEVELS = {
-  BEGINNER: "beginner",
-  AVERAGE: "average",
-  PRO: "pro",
-} as const
-
-export type CompetenceLevel = (typeof COMPETENCE_LEVELS)[keyof typeof COMPETENCE_LEVELS]
+// Import and re-export competence levels from single source of truth
+import { COMPETENCE_LEVELS, type CompetenceLevel } from "@/lib/types/competence"
+export { COMPETENCE_LEVELS, type CompetenceLevel }
 
 // Categories for competence
 export const GUIDANCE_CATEGORIES = {

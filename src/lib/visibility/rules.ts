@@ -3,12 +3,14 @@
 
 import type { LegalForm } from "@/lib/capabilities"
 import type { ElementId } from "./elements"
+import { type CompetenceLevel } from "@/lib/types/competence"
+
+// Re-export for backwards compatibility
+export type { CompetenceLevel } from "@/lib/types/competence"
 
 // ============================================================================
 // Competence Levels
 // ============================================================================
-
-export type CompetenceLevel = "beginner" | "average" | "pro"
 
 export const COMPETENCE_LABELS: Record<CompetenceLevel, string> = {
   beginner: "Početnik",
