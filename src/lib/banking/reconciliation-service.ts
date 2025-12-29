@@ -1,6 +1,6 @@
 import { db } from "@/lib/db"
 import { ParsedTransaction } from "./csv-parser"
-import { matchTransactionsToInvoices } from "./reconciliation"
+import { matchTransactionsToBoth } from "./reconciliation"
 import { AUTO_MATCH_THRESHOLD } from "./reconciliation-config"
 import { MatchStatus, Prisma } from "@prisma/client"
 import { revalidatePath } from "next/cache"
@@ -37,25 +37,28 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
     return { matchedCount: 0, evaluated: 0 }
   }
 
-  const invoices = await db.eInvoice.findMany({
-    where: {
-      companyId,
-      direction: "OUTBOUND",
-      paidAt: null,
-    },
-    include: { lines: true },
-  })
+  const [invoices, expenses] = await Promise.all([
+    db.eInvoice.findMany({
+      where: {
+        companyId,
+        direction: "OUTBOUND",
+        paidAt: null,
+      },
+      include: { lines: true },
+    }),
+    db.expense.findMany({
+      where: {
+        companyId,
+        status: { in: ["DRAFT", "PENDING"] }, // Only unpaid expenses
+      },
+    }),
+  ])
 
-  if (invoices.length === 0) {
+  if (invoices.length === 0 && expenses.length === 0) {
     return { matchedCount: 0, evaluated: 0 }
   }
 
-  const positiveTxns = transactions.filter((txn) => Number(txn.amount) > 0)
-  if (positiveTxns.length === 0) {
-    return { matchedCount: 0, evaluated: 0 }
-  }
-
-  const parsedTransactions: (ParsedTransaction & { id: string })[] = positiveTxns.map((txn) => ({
+  const parsedTransactions: (ParsedTransaction & { id: string })[] = transactions.map((txn) => ({
     id: txn.id,
     date: txn.date,
     amount: Number(txn.amount),
@@ -65,7 +68,7 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
     currency: txn.bankAccount?.currency || "EUR",
   }))
 
-  const results = matchTransactionsToInvoices(parsedTransactions, invoices)
+  const results = matchTransactionsToBoth(parsedTransactions, invoices, expenses)
   const txMap = new Map(parsedTransactions.map((txn) => [txn.id, txn]))
   const updates: Promise<unknown>[] = []
   let matchedCount = 0
@@ -77,7 +80,7 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
     const shouldAutoMatch =
       result.matchStatus === "matched" &&
       result.confidenceScore >= threshold &&
-      !!result.matchedInvoiceId
+      (!!result.matchedInvoiceId || !!result.matchedExpenseId)
 
     const updateData: Prisma.BankTransactionUpdateInput = {
       confidenceScore: result.confidenceScore,
@@ -86,6 +89,10 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
         shouldAutoMatch && result.matchedInvoiceId
           ? { connect: { id: result.matchedInvoiceId } }
           : { disconnect: true },
+      matchedExpense:
+        shouldAutoMatch && result.matchedExpenseId
+          ? { connect: { id: result.matchedExpenseId } }
+          : { disconnect: true },
       matchedAt: shouldAutoMatch ? new Date() : null,
       matchedBy: shouldAutoMatch ? userId : null,
     }
@@ -93,22 +100,41 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
     if (shouldAutoMatch) {
       matchedCount++
 
-      const invoice = invoices.find((inv) => inv.id === result.matchedInvoiceId)
-      if (invoice && !invoice.paidAt) {
-        updates.push(
-          db.eInvoice.update({
-            where: { id: invoice.id },
-            data: {
-              paidAt: txn.date,
-              status: "ACCEPTED",
-            },
-          })
-        )
-        invoice.paidAt = txn.date
+      if (result.matchedInvoiceId) {
+        const invoice = invoices.find((inv) => inv.id === result.matchedInvoiceId)
+        if (invoice && !invoice.paidAt) {
+          updates.push(
+            db.eInvoice.update({
+              where: { id: invoice.id },
+              data: {
+                paidAt: txn.date,
+                status: "ACCEPTED",
+              },
+            })
+          )
+          invoice.paidAt = txn.date
+        }
+      }
+
+      if (result.matchedExpenseId) {
+        const expense = expenses.find((exp) => exp.id === result.matchedExpenseId)
+        if (expense && expense.status !== "PAID") {
+          updates.push(
+            db.expense.update({
+              where: { id: expense.id },
+              data: {
+                paymentDate: txn.date,
+                status: "PAID",
+                paymentMethod: "TRANSFER",
+              },
+            })
+          )
+        }
       }
     } else {
       updateData.matchStatus = MatchStatus.UNMATCHED
       updateData.matchedInvoice = { disconnect: true }
+      updateData.matchedExpense = { disconnect: true }
       updateData.matchedAt = null
       updateData.matchedBy = null
     }
@@ -127,12 +153,13 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
   revalidatePath("/banking/transactions")
   revalidatePath("/banking/reconciliation")
   revalidatePath("/e-invoices")
+  revalidatePath("/expenses")
   if (bankAccountId) {
     revalidatePath(`/banking/${bankAccountId}`)
   }
 
   return {
     matchedCount,
-    evaluated: positiveTxns.length,
+    evaluated: parsedTransactions.length,
   }
 }
