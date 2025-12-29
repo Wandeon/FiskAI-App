@@ -152,7 +152,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
     url: "https://www.hok.hr/clanarina",
     hierarchy: 7,
     fetchIntervalHours: 168, // Weekly
-    priority: "medium",
+    priority: "high",
     domains: ["pausalni"],
   },
 
