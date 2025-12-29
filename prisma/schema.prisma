@@ -2008,6 +2008,15 @@ model Evidence {
   changeSummary String?
   deletedAt     DateTime?
 
+
+  // Staleness tracking for regulatory compliance (GitHub issue #893)
+  lastVerifiedAt  DateTime? // Last time source URL was checked and content confirmed unchanged
+  expiresAt       DateTime? // Explicit expiration date for evidence (e.g., from effectiveUntil in rules)
+  sourceEtag      String?   // ETag from source for change detection
+  sourceLastMod   DateTime? // Last-Modified header from source
+  verifyCount     Int       @default(0) // Number of times verified unchanged
+  stalenessStatus String    @default("FRESH") // FRESH, AGING, STALE, EXPIRED
+
   // NEW: OCR support fields
   contentClass          String  @default("HTML") // HTML, PDF_TEXT, PDF_SCANNED, DOC, XLSX, JSON
   ocrMetadata           Json? // OCR processing metadata
@@ -2034,6 +2043,9 @@ model Evidence {
   @@index([fetchedAt])
   @@index([contentHash])
   @@index([contentClass])
+  @@index([stalenessStatus])
+  @@index([expiresAt])
+  @@index([lastVerifiedAt])
 }
 
 model EvidenceArtifact {
