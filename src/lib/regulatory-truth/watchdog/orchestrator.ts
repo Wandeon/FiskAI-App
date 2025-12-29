@@ -13,6 +13,7 @@ import { sendDailyDigestEmail, raiseAlert } from "./alerting"
 import { getRandomDelay, sleep } from "./rate-limiter"
 import { db } from "@/lib/db"
 import type { PhaseResult, WatchdogRunResult } from "./types"
+import { runTier1Fetchers } from "../fetchers"
 
 const SCOUT_DELAY_MIN = 50000 // 50 seconds
 const SCOUT_DELAY_MAX = 70000 // 70 seconds
@@ -20,6 +21,56 @@ const SCRAPE_DELAY_MIN = 20000 // 20 seconds
 const SCRAPE_DELAY_MAX = 30000 // 30 seconds
 const SCOUT_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
 const SCRAPE_TIMEOUT_MS = 90 * 60 * 1000 // 90 minutes
+
+/**
+ * Run Tier 1 Phase - fetch structured data from official APIs
+ */
+async function runTier1Phase(): Promise<PhaseResult> {
+  const startedAt = new Date()
+  let itemsProcessed = 0
+  let itemsFailed = 0
+
+  try {
+    console.log("\n[watchdog] === TIER 1 PHASE ===")
+
+    const result = await runTier1Fetchers()
+    itemsProcessed =
+      result.hnb.ratesCreated +
+      result.nn.evidenceCreated +
+      result.eurlex.evidenceCreated +
+      result.mrms.evidenceCreated +
+      result.hok.evidenceCreated
+
+    if (result.hnb.error) itemsFailed++
+    if (result.nn.error) itemsFailed++
+    if (result.eurlex.error) itemsFailed++
+    if (result.mrms.error) itemsFailed++
+    if (result.hok.error) itemsFailed++
+
+    console.log(
+      `[watchdog] Tier 1 complete: HNB=${result.hnb.ratesCreated}, NN=${result.nn.evidenceCreated}, EUR-Lex=${result.eurlex.evidenceCreated}, MRMS=${result.mrms.evidenceCreated}, HOK=${result.hok.evidenceCreated}`
+    )
+
+    return {
+      phase: "TIER1",
+      startedAt,
+      completedAt: new Date(),
+      success: result.success,
+      itemsProcessed,
+      itemsFailed,
+    }
+  } catch (error) {
+    return {
+      phase: "TIER1",
+      startedAt,
+      completedAt: new Date(),
+      success: false,
+      itemsProcessed,
+      itemsFailed,
+      error: String(error),
+    }
+  }
+}
 
 /**
  * Run Scout Phase - check all endpoints for new items
@@ -311,6 +362,18 @@ export async function runWatchdogPipeline(): Promise<WatchdogRunResult> {
   console.log("========================================\n")
 
   try {
+    // Phase 0: Tier 1 Structured Fetchers
+    const tier1Result = await runTier1Phase()
+    phases.push(tier1Result)
+    if (!tier1Result.success) {
+      const alertId = await raiseAlert({
+        severity: "WARNING",
+        type: "PIPELINE_FAILURE",
+        message: `Tier 1 phase failed: ${tier1Result.error}`,
+      })
+      alertsRaised.push(alertId)
+    }
+
     // Phase 1: Scout
     const scoutResult = await runScoutPhase()
     phases.push(scoutResult)

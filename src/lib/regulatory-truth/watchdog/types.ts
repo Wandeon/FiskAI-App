@@ -65,7 +65,7 @@ export interface AuditReport {
 }
 
 export interface PhaseResult {
-  phase: "SCOUT" | "SCRAPE" | "PROCESS" | "HEALTH" | "AUDIT"
+  phase: "TIER1" | "SCOUT" | "SCRAPE" | "PROCESS" | "HEALTH" | "AUDIT"
   startedAt: Date
   completedAt: Date
   success: boolean

@@ -3,6 +3,7 @@
 import cron from "node-cron"
 import { runWatchdogPipeline, runStandaloneAudit, sendDigest } from "../watchdog/orchestrator"
 import { sendRegulatoryTruthDigest } from "../watchdog/resend-email"
+import { runTier1Fetchers } from "../fetchers"
 
 const TIMEZONE = process.env.WATCHDOG_TIMEZONE || "Europe/Zagreb"
 const WATCHDOG_ENABLED = process.env.WATCHDOG_ENABLED === "true"
@@ -61,6 +62,76 @@ export function startScheduler(): void {
     { timezone: TIMEZONE }
   )
   console.log("[scheduler] Scheduled: Legacy digest (SMTP) at 08:00")
+
+  // Tier 1 Fetchers: HNB exchange rates at 08:00, 13:00, 17:00
+  cron.schedule(
+    "0 8 * * *",
+    async () => {
+      console.log("[scheduler] Running Tier 1 fetchers (morning)...")
+      try {
+        const result = await runTier1Fetchers()
+        console.log(
+          `[scheduler] Tier 1 complete: HNB=${result.hnb.ratesCreated}, NN=${result.nn.evidenceCreated}, EUR-Lex=${result.eurlex.evidenceCreated}, MRMS=${result.mrms.evidenceCreated}, HOK=${result.hok.evidenceCreated}`
+        )
+      } catch (error) {
+        console.error("[scheduler] Tier 1 fetchers error:", error)
+      }
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Tier 1 fetchers (morning) at 08:00")
+
+  cron.schedule(
+    "0 13 * * *",
+    async () => {
+      console.log("[scheduler] Running Tier 1 fetchers (midday)...")
+      try {
+        const result = await runTier1Fetchers()
+        console.log(
+          `[scheduler] Tier 1 complete: HNB=${result.hnb.ratesCreated}, NN=${result.nn.evidenceCreated}, EUR-Lex=${result.eurlex.evidenceCreated}, MRMS=${result.mrms.evidenceCreated}, HOK=${result.hok.evidenceCreated}`
+        )
+      } catch (error) {
+        console.error("[scheduler] Tier 1 fetchers error:", error)
+      }
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Tier 1 fetchers (midday) at 13:00")
+
+  cron.schedule(
+    "0 17 * * *",
+    async () => {
+      console.log("[scheduler] Running Tier 1 fetchers (evening)...")
+      try {
+        const result = await runTier1Fetchers()
+        console.log(
+          `[scheduler] Tier 1 complete: HNB=${result.hnb.ratesCreated}, NN=${result.nn.evidenceCreated}, EUR-Lex=${result.eurlex.evidenceCreated}, MRMS=${result.mrms.evidenceCreated}, HOK=${result.hok.evidenceCreated}`
+        )
+      } catch (error) {
+        console.error("[scheduler] Tier 1 fetchers error:", error)
+      }
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Tier 1 fetchers (evening) at 17:00")
+
+  // Tier 1 Fetchers: NN latest issue check at 18:00
+  cron.schedule(
+    "0 18 * * *",
+    async () => {
+      console.log("[scheduler] Running Tier 1 fetchers (NN evening check)...")
+      try {
+        const result = await runTier1Fetchers()
+        console.log(
+          `[scheduler] Tier 1 complete: HNB=${result.hnb.ratesCreated}, NN=${result.nn.evidenceCreated}, EUR-Lex=${result.eurlex.evidenceCreated}, MRMS=${result.mrms.evidenceCreated}, HOK=${result.hok.evidenceCreated}`
+        )
+      } catch (error) {
+        console.error("[scheduler] Tier 1 fetchers error:", error)
+      }
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Tier 1 fetchers (NN evening check) at 18:00")
 
   // Random audit 1: between 10:00-14:00
   const audit1Hour = 10 + Math.floor(Math.random() * 4)
