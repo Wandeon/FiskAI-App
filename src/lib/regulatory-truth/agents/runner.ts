@@ -6,12 +6,63 @@ import type { AgentType } from "../schemas"
 import { getAgentPrompt } from "../prompts"
 
 // =============================================================================
+// AGENT TIMEOUT CONFIGURATION
+// =============================================================================
+// Per-agent timeout defaults based on expected workload:
+// - Sentinel: Fast HTTP fetches (seconds)
+// - OCR: CPU-intensive (up to 10 minutes for large PDFs)
+// - Extractor: LLM call (2 minutes)
+// - Composer: Complex LLM reasoning (3 minutes)
+// - Reviewer: Fast checks (1 minute)
+// - Arbiter: Conflict resolution (2 minutes)
+// - Releaser: Publication (1 minute)
+// - Others: Default to 2 minutes
+
+const AGENT_TIMEOUTS: Record<string, number> = {
+  SENTINEL: 30000, // 30 seconds
+  OCR: 600000, // 10 minutes for large PDFs
+  EXTRACTOR: 120000, // 2 minutes
+  COMPOSER: 180000, // 3 minutes
+  REVIEWER: 60000, // 1 minute
+  ARBITER: 120000, // 2 minutes
+  RELEASER: 60000, // 1 minute
+  CONTENT_CLASSIFIER: 120000, // 2 minutes
+  CLAIM_EXTRACTOR: 120000, // 2 minutes
+  PROCESS_EXTRACTOR: 120000, // 2 minutes
+  REFERENCE_EXTRACTOR: 120000, // 2 minutes
+  ASSET_EXTRACTOR: 120000, // 2 minutes
+  TRANSITIONAL_EXTRACTOR: 120000, // 2 minutes
+  COMPARISON_EXTRACTOR: 120000, // 2 minutes
+  QUERY_CLASSIFIER: 60000, // 1 minute
+  EXEMPTION_EXTRACTOR: 120000, // 2 minutes
+}
+
+const DEFAULT_TIMEOUT_MS = 300000 // 5 minutes fallback
+
+// =============================================================================
 // OLLAMA CLIENT (reuse existing pattern)
 // =============================================================================
 
 // Read env vars lazily (at call time) to support dotenv loading after import
-function getAgentTimeoutMs(): number {
-  return parseInt(process.env.AGENT_TIMEOUT_MS || "300000") // 5 minutes
+// Supports per-agent override via {AGENT_TYPE}_TIMEOUT_MS env var
+// Falls back to AGENT_TIMEOUT_MS global override, then per-agent defaults
+function getAgentTimeoutMs(agentType?: string): number {
+  // Check for per-agent env var override (e.g., OCR_TIMEOUT_MS)
+  if (agentType) {
+    const envOverride = process.env[`${agentType}_TIMEOUT_MS`]
+    if (envOverride) return parseInt(envOverride)
+  }
+
+  // Check for global env var override
+  const globalOverride = process.env.AGENT_TIMEOUT_MS
+  if (globalOverride) return parseInt(globalOverride)
+
+  // Use per-agent default or fallback
+  if (agentType && AGENT_TIMEOUTS[agentType]) {
+    return AGENT_TIMEOUTS[agentType]
+  }
+
+  return DEFAULT_TIMEOUT_MS
 }
 
 function getOllamaEndpoint(): string {
@@ -126,7 +177,7 @@ export async function runAgent<TInput, TOutput>(
 
       // Call Ollama - don't use format:"json" as qwen3-next model returns empty content with it
       const controller = new AbortController()
-      const timeoutMs = getAgentTimeoutMs()
+      const timeoutMs = getAgentTimeoutMs(agentType)
       timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
       const response = await fetch(`${getOllamaEndpoint()}/api/chat`, {
@@ -211,7 +262,7 @@ export async function runAgent<TInput, TOutput>(
         await db.agentRun.update({
           where: { id: run.id },
           data: {
-            rawOutput: parsed as any,
+            rawOutput: parsed as object,
             error: `Schema validation failed: ${outputValidation.error.message}`,
           },
         })
@@ -245,7 +296,7 @@ export async function runAgent<TInput, TOutput>(
 
       // Check if aborted due to timeout
       if (lastError?.name === "AbortError") {
-        lastError = new Error(`Agent timed out after ${getAgentTimeoutMs()}ms`)
+        lastError = new Error(`Agent ${agentType} timed out after ${getAgentTimeoutMs(agentType)}ms`)
       }
 
       if (attempt < maxRetries - 1) {
