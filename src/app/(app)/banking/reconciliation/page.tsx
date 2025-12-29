@@ -6,7 +6,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ReconciliationDashboard } from "./dashboard-client"
 
-export default async function ReconciliationPage() {
+export default async function ReconciliationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    transactionId?: string
+  }>
+}) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
@@ -15,10 +21,26 @@ export default async function ReconciliationPage() {
     userId: user.id!,
   })
 
+  const params = await searchParams
   const accounts = await db.bankAccount.findMany({
     where: { companyId: company.id },
     orderBy: { name: "asc" },
   })
+
+  // If transactionId is provided, get the transaction to determine the bank account
+  let defaultAccountId = accounts[0]?.id
+  if (params.transactionId) {
+    const transaction = await db.bankTransaction.findFirst({
+      where: {
+        id: params.transactionId,
+        companyId: company.id,
+      },
+      select: { bankAccountId: true },
+    })
+    if (transaction) {
+      defaultAccountId = transaction.bankAccountId
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -50,7 +72,7 @@ export default async function ReconciliationPage() {
           <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
             <li>Pokušajte uvesti izvode što češće kako bi AI imao najnovije podatke.</li>
             <li>Ručno povežite retke s najvišom ocjenom kad AI ne može automatski odlučiti.</li>
-            <li>Pritisnite „Poveži“ i status će se odmah promijeniti u „Ručno“.</li>
+            <li>Pritisnite „Poveži" i status će se odmah promijeniti u „Ručno".</li>
           </ul>
         </CardContent>
       </Card>
@@ -61,7 +83,8 @@ export default async function ReconciliationPage() {
           name: `${account.name} (${account.currency})`,
           currency: account.currency,
         }))}
-        defaultBankAccountId={accounts[0]?.id}
+        defaultBankAccountId={defaultAccountId}
+        highlightTransactionId={params.transactionId}
       />
     </div>
   )

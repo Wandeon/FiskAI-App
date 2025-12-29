@@ -174,9 +174,11 @@ export default async function TransactionsPage({
       label: "",
       render: (txn) =>
         txn.matchStatus === "UNMATCHED" ? (
-          <Button variant="outline" size="sm">
-            Poveži
-          </Button>
+          <Link href={`/banking/reconciliation?transactionId=${txn.id}`}>
+            <Button variant="outline" size="sm">
+              Poveži
+            </Button>
+          </Link>
         ) : null,
     },
   ]
@@ -381,9 +383,11 @@ export default async function TransactionsPage({
                   )}
                 </div>
                 {txn.matchStatus === "UNMATCHED" && (
-                  <Button variant="outline" size="sm">
-                    Poveži
-                  </Button>
+                  <Link href={`/banking/reconciliation?transactionId=${txn.id}`}>
+                    <Button variant="outline" size="sm">
+                      Poveži
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>

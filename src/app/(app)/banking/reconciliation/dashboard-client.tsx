@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -32,9 +32,11 @@ const fetcher = (url: string) =>
 export function ReconciliationDashboard({
   accounts,
   defaultBankAccountId,
+  highlightTransactionId,
 }: {
   accounts: AccountOption[]
   defaultBankAccountId?: string
+  highlightTransactionId?: string
 }) {
   const [selectedAccount, setSelectedAccount] = useState(
     defaultBankAccountId || accounts[0]?.id || ""
@@ -122,6 +124,18 @@ export function ReconciliationDashboard({
       style: "currency",
       currency,
     }).format(value)
+
+  // Scroll to highlighted transaction when data loads
+  useEffect(() => {
+    if (highlightTransactionId && data?.transactions?.length) {
+      const element = document.getElementById(`txn-${highlightTransactionId}`)
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" })
+        }, 100)
+      }
+    }
+  }, [highlightTransactionId, data])
 
   if (!selectedAccount) {
     return (
@@ -224,8 +238,15 @@ export function ReconciliationDashboard({
                 {data?.transactions?.length ? (
                   data.transactions.map((txn) => {
                     const candidate = txn.candidates[0]
+                    const isHighlighted = highlightTransactionId === txn.id
                     return (
-                      <tr key={txn.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <tr
+                        key={txn.id}
+                        id={`txn-${txn.id}`}
+                        className={`border-b border-slate-100 hover:bg-slate-50 ${
+                          isHighlighted ? "bg-blue-50 ring-2 ring-blue-500 ring-inset" : ""
+                        }`}
+                      >
                         <td className="px-3 py-2 text-xs">
                           {new Date(txn.date).toLocaleDateString("hr-HR")}
                         </td>
