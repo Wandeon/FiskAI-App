@@ -10,6 +10,7 @@ import {
   jsonb,
   text,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 
 // Note: companyId uses text() because Prisma Company model uses CUIDs, not UUIDs
@@ -90,6 +91,12 @@ export const paymentObligation = pgTable(
       table.status
     ),
     dueDateIdx: index("payment_obligation_due_date_idx").on(table.dueDate),
+    uniqueObligation: uniqueIndex("payment_obligation_unique_idx").on(
+      table.companyId,
+      table.obligationType,
+      table.periodMonth,
+      table.periodYear
+    ),
   })
 )
 
