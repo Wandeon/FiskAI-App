@@ -252,17 +252,33 @@ After individual posts, group medium-impact items by category theme:
 3. `og:image` from source URL (fallback)
 4. Category placeholder image
 
+### Local Image Caching (Issue #299)
+
+Images are cached locally to prevent hotlinking issues:
+
+- **Location:** `public/images/news-cache/`
+- **Naming:** SHA256 hash of URL (first 16 chars) + extension
+- **Max size:** 5MB per image
+- **Retention:** 30 days, auto-cleanup
+- **Module:** `src/lib/news/image-cache.ts`
+
+Database fields:
+- `local_image_path` - Cached local path (preferred)
+- `image_url` - Original URL (kept for reference/re-caching)
+
 ### Attribution Requirements
 
-- Always hotlink (don't host)
-- Visible credit overlay on images: "📷 Foto: Index.hr"
+- Cache images locally (never hotlink from source)
+- Keep original URL for reference and re-caching
+- Visible credit overlay on images: "Foto: Index.hr"
+- Fallback to category placeholder if cache fails
 - Source section at article bottom:
   ```
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ---
   Izvor: Index.hr
-  Originalni članak: [Naslov](url)
+  Originalni clanak: [Naslov](url)
   Fotografija: Index.hr
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ---
   ```
 
 ---

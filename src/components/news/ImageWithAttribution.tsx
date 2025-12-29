@@ -1,8 +1,15 @@
+"use client"
+
 import Image from "next/image"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface ImageWithAttributionProps {
+  /** Local cached image path (preferred - fixes hotlinking issue #299) */
+  localSrc?: string | null
+  /** Original external URL (fallback, kept for reference) */
   src?: string | null
+  /** Image source attribution */
   source?: string | null
   alt: string
   className?: string
@@ -27,15 +34,51 @@ const categoryPlaceholders: Record<string, string> = {
   default: "/images/placeholders/default.svg",
 }
 
+/**
+ * Image component with attribution overlay.
+ *
+ * Priority order:
+ * 1. Local cached image (localSrc) - preferred, no hotlinking
+ * 2. External URL (src) - fallback only
+ * 3. Category placeholder - when no image available
+ * 4. Default placeholder - final fallback
+ *
+ * @see Issue #299 - Image Attribution Hotlinking Risk
+ */
 export function ImageWithAttribution({
+  localSrc,
   src,
   source,
   alt,
   className,
   categorySlug,
 }: ImageWithAttributionProps) {
-  const imageSrc = src || categoryPlaceholders[categorySlug || ""] || categoryPlaceholders.default
-  const hasRealImage = !!src
+  const [imageError, setImageError] = useState(false)
+
+  // Determine image source with priority: local > external > placeholder
+  const getImageSrc = (): string => {
+    // If we had an error, fall back to placeholder
+    if (imageError) {
+      return categoryPlaceholders[categorySlug || ""] || categoryPlaceholders.default
+    }
+
+    // Prefer local cached image (no hotlinking)
+    if (localSrc) {
+      return localSrc
+    }
+
+    // External URL as fallback (may have hotlinking issues)
+    if (src) {
+      return src
+    }
+
+    // Category-specific or default placeholder
+    return categoryPlaceholders[categorySlug || ""] || categoryPlaceholders.default
+  }
+
+  const imageSrc = getImageSrc()
+  const hasRealImage = !!(localSrc || src) && !imageError
+  const isLocalImage = !!localSrc && !imageError
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
@@ -45,10 +88,13 @@ export function ImageWithAttribution({
         fill
         className="object-cover"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        onError={() => setImageError(true)}
+        // Only use unoptimized for external URLs (local images can be optimized)
+        unoptimized={!isLocalImage && !!src}
       />
       {hasRealImage && source && (
         <div className="absolute bottom-0 right-0 bg-black/70 px-2 py-1 text-xs text-white/90">
-          📷 Foto: {source}
+          Foto: {source}
         </div>
       )}
     </div>

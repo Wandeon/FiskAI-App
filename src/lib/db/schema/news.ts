@@ -70,9 +70,10 @@ export const newsPosts = pgTable(
     excerpt: varchar("excerpt", { length: 500 }),
 
     // Images with attribution
-    featuredImageUrl: varchar("featured_image_url", { length: 1000 }),
+    featuredImageUrl: varchar("featured_image_url", { length: 1000 }), // Original external URL (for reference)
     featuredImageSource: varchar("featured_image_source", { length: 200 }),
     featuredImageCaption: varchar("featured_image_caption", { length: 500 }),
+    featuredLocalImagePath: varchar("featured_local_image_path", { length: 500 }), // Cached local path (Issue #299)
 
     // Classification
     categoryId: varchar("category_id", { length: 50 }).references(() => newsCategories.id),
@@ -145,8 +146,9 @@ export const newsItems = pgTable(
     // New fields for news system
     impactLevel: varchar("impact_level", { length: 20 }), // 'high' | 'medium' | 'low'
     assignedToPostId: uuid("assigned_to_post_id").references(() => newsPosts.id),
-    imageUrl: varchar("image_url", { length: 1000 }),
+    imageUrl: varchar("image_url", { length: 1000 }), // Original external URL (for reference)
     imageSource: varchar("image_source", { length: 200 }),
+    localImagePath: varchar("local_image_path", { length: 500 }), // Cached local path (Issue #299)
 
     // Metadata
     status: varchar("status", { length: 20 }).default("pending").notNull(),
