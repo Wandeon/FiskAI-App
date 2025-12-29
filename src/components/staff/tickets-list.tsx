@@ -50,6 +50,10 @@ async function getTickets(
  }
 
  if (clientFilter) {
+ // Validate clientFilter is in assigned companies
+ if (!companyIds.includes(clientFilter)) {
+ return [] // Return empty if trying to filter by non-assigned client
+ }
  where.companyId = clientFilter
  }
 
