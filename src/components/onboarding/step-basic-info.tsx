@@ -1,7 +1,7 @@
 // src/components/onboarding/step-basic-info.tsx
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { OibInput } from "@/components/ui/oib-input"
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 import { toast } from "@/lib/toast"
 import type { LegalForm } from "@/lib/capabilities"
+import { createMinimalCompany } from "@/app/actions/onboarding"
 
 const LEGAL_FORM_OPTIONS: { value: LegalForm; label: string; description: string }[] = [
   { value: "OBRT_PAUSAL", label: "Paušalni obrt", description: "Do 60.000 € godišnje, bez PDV-a" },
@@ -28,16 +29,34 @@ const LEGAL_FORM_OPTIONS: { value: LegalForm; label: string; description: string
 
 export function StepBasicInfo() {
   const { data, updateData, setStep, isStepValid } = useOnboardingStore()
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     trackEvent(AnalyticsEvents.ONBOARDING_STARTED)
   }, [])
 
   const handleNext = () => {
-    if (isStepValid(1)) {
-      trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, { step: 1 })
-      setStep(2)
-    }
+    if (!isStepValid(1)) return
+
+    startTransition(async () => {
+      setError(null)
+
+      // Create minimal company record to prevent redirect loops
+      const result = await createMinimalCompany({
+        name: data.name!,
+        oib: data.oib!,
+        legalForm: data.legalForm!,
+      })
+
+      if ("error" in result && result.error) {
+        setError(result.error)
+        toast.error("Greška", result.error)
+      } else {
+        trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, { step: 1 })
+        setStep(2)
+      }
+    })
   }
 
   function handleOibLookupSuccess(lookupData: {
@@ -69,6 +88,8 @@ export function StepBasicInfo() {
           Unesite OIB - podaci će biti automatski pronađeni
         </p>
       </div>
+
+      {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
       <div className="space-y-4">
         <div>
@@ -128,8 +149,8 @@ export function StepBasicInfo() {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleNext} disabled={!isStepValid(1)}>
-          Dalje
+        <Button onClick={handleNext} disabled={!isStepValid(1) || isPending}>
+          {isPending ? "Spremanje..." : "Dalje"}
         </Button>
       </div>
     </div>

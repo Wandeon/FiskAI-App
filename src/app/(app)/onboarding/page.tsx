@@ -55,7 +55,6 @@ function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5
 export default function OnboardingPage() {
   const { currentStep, isStepValid, hydrate, data } = useOnboardingStore()
   const [isLoading, setIsLoading] = useState(true)
-  const [isExistingCompany, setIsExistingCompany] = useState(false)
 
   useEffect(() => {
     async function loadExistingData() {
@@ -63,9 +62,6 @@ export default function OnboardingPage() {
         const serverData = await getOnboardingData()
 
         if (serverData) {
-          // Company exists if we got data back
-          setIsExistingCompany(true)
-
           // Calculate which step to start on based on completion
           const calculatedStep = calculateOnboardingStep(serverData)
           // If all steps complete (6), show last step for review
@@ -135,7 +131,7 @@ export default function OnboardingPage() {
           {currentStep === 1 && <StepBasicInfo />}
           {currentStep === 2 && <StepCompetence />}
           {currentStep === 3 && <StepAddress />}
-          {currentStep === 4 && <StepContactTax isExistingCompany={isExistingCompany} />}
+          {currentStep === 4 && <StepContactTax />}
           {currentStep === 5 && <StepPausalniProfile />}
         </CardContent>
       </Card>

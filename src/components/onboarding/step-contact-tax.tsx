@@ -6,17 +6,12 @@ import { useRouter } from "next/navigation"
 import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { createCompany } from "@/app/actions/company"
 import { saveOnboardingData } from "@/app/actions/onboarding"
 import { saveCompetenceLevel } from "@/app/actions/guidance"
 import { toast } from "@/lib/toast"
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 
-interface StepContactTaxProps {
-  isExistingCompany?: boolean
-}
-
-export function StepContactTax({ isExistingCompany = false }: StepContactTaxProps) {
+export function StepContactTax() {
   const router = useRouter()
   const { data, updateData, setStep, reset, isStepValid } = useOnboardingStore()
   const [isPending, startTransition] = useTransition()
@@ -31,59 +26,27 @@ export function StepContactTax({ isExistingCompany = false }: StepContactTaxProp
       // Paušalni obrt cannot be VAT payer
       const isVatPayer = data.legalForm === "OBRT_PAUSAL" ? false : data.isVatPayer || false
 
-      let success = false
-      let errorMsg: string | null = null
+      // Always update existing company (created in step 1)
+      const result = await saveOnboardingData({
+        name: data.name!,
+        oib: data.oib!,
+        legalForm: data.legalForm!,
+        competence: data.competence,
+        address: data.address!,
+        postalCode: data.postalCode!,
+        city: data.city!,
+        country: data.country!,
+        email: data.email!,
+        phone: data.phone || undefined,
+        iban: data.iban!,
+        isVatPayer,
+      })
 
-      if (isExistingCompany) {
-        // Update existing company with saveOnboardingData
-        const result = await saveOnboardingData({
-          name: data.name!,
-          oib: data.oib!,
-          legalForm: data.legalForm!,
-          competence: data.competence,
-          address: data.address!,
-          postalCode: data.postalCode!,
-          city: data.city!,
-          country: data.country!,
-          email: data.email!,
-          phone: data.phone || undefined,
-          iban: data.iban!,
-          isVatPayer,
-        })
-
-        if ("error" in result && result.error) {
-          errorMsg = result.error
-        } else {
-          success = true
-        }
+      if ("error" in result && result.error) {
+        setError(result.error)
+        toast.error("Greška", result.error)
       } else {
-        // Create new company
-        const result = await createCompany({
-          name: data.name!,
-          oib: data.oib!,
-          address: data.address!,
-          postalCode: data.postalCode!,
-          city: data.city!,
-          country: data.country!,
-          email: data.email!,
-          phone: data.phone || "",
-          iban: data.iban!,
-          isVatPayer,
-          legalForm: data.legalForm,
-        })
-
-        if (result.error) {
-          errorMsg = result.error
-        } else if (result.success) {
-          success = true
-        }
-      }
-
-      if (errorMsg) {
-        setError(errorMsg)
-        toast.error("Greška", errorMsg)
-      } else if (success) {
-        // Save competence level to guidance preferences (for both new and existing)
+        // Save competence level to guidance preferences
         if (data.competence) {
           try {
             await saveCompetenceLevel(data.competence)
@@ -94,10 +57,7 @@ export function StepContactTax({ isExistingCompany = false }: StepContactTaxProp
 
         // Finalize analytics and store
         trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED, { competence: data.competence })
-        toast.success(
-          isExistingCompany ? "Podaci ažurirani!" : "Tvrtka kreirana!",
-          "Možete početi s radom"
-        )
+        toast.success("Onboarding završen!", "Možete početi s radom")
 
         // Wait a tiny bit for the toast to be seen
         setTimeout(() => {
