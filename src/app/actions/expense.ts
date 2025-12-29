@@ -518,7 +518,7 @@ export async function updateRecurringExpense(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithContext(user.id!, async (company) => {
       const existing = await db.recurringExpense.findFirst({
         where: { id },
       })
@@ -529,7 +529,18 @@ export async function updateRecurringExpense(
 
       const updateData: Prisma.RecurringExpenseUpdateInput = {}
 
-      if (input.categoryId) updateData.categoryId = input.categoryId
+      if (input.categoryId) {
+        const category = await db.expenseCategory.findFirst({
+          where: {
+            id: input.categoryId,
+            OR: [{ companyId: company.id }, { companyId: null }],
+          },
+        })
+        if (!category) {
+          return { success: false, error: "Kategorija nije pronađena" }
+        }
+        updateData.categoryId = input.categoryId
+      }
       if (input.vendorId !== undefined) updateData.vendorId = input.vendorId
       if (input.description) updateData.description = input.description
       if (input.netAmount !== undefined) updateData.netAmount = new Decimal(input.netAmount)
