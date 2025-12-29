@@ -141,12 +141,14 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
 
     if (existingCompany) {
       // Update existing company with basic info
+      // Re-calculate entitlements when legal form changes
       await db.company.update({
         where: { id: existingCompany.id },
         data: {
           name: data.name,
           oib: data.oib,
           legalForm: data.legalForm,
+          entitlements: getEntitlementsForLegalForm(data.legalForm),
         },
       })
 
@@ -166,12 +168,13 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
       const isOrphaned = oibExists.users.length === 0
 
       if (userMembership || isOrphaned) {
-        // Update existing company
+        // Update existing company with recalculated entitlements
         await db.company.update({
           where: { id: oibExists.id },
           data: {
             name: data.name,
             legalForm: data.legalForm,
+            entitlements: getEntitlementsForLegalForm(data.legalForm),
           },
         })
 
@@ -262,6 +265,7 @@ export async function saveOnboardingData(formData: z.input<typeof saveOnboarding
       name: data.name,
       oib: data.oib,
       legalForm: data.legalForm,
+      entitlements: getEntitlementsForLegalForm(data.legalForm),
       address: data.address,
       postalCode: data.postalCode,
       city: data.city,
