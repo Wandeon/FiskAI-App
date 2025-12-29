@@ -12,6 +12,7 @@ const baseSteps = [
 ] as const
 
 const pausalniStep = { number: 5, title: "Paušalni profil" } as const
+const billingStep = { number: 6, title: "Plan i naplata" } as const
 
 interface StepIndicatorProps {
   currentStep: OnboardingStep
@@ -21,9 +22,11 @@ interface StepIndicatorProps {
 export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) {
   const { data, setStep } = useOnboardingStore()
 
-  // Show 5 steps for OBRT_PAUSAL, 4 steps for others
+  // Show 6 steps for OBRT_PAUSAL (includes Paušalni profile), 5 steps for others
   const isPausalniObrt = data.legalForm === "OBRT_PAUSAL"
-  const steps = isPausalniObrt ? [...baseSteps, pausalniStep] : baseSteps
+  const steps = isPausalniObrt
+    ? [...baseSteps, pausalniStep, billingStep]
+    : [...baseSteps, billingStep]
 
   const handleStepClick = (stepNumber: number) => {
     // Allow navigating to any step that:

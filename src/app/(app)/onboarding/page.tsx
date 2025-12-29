@@ -9,15 +9,16 @@ import { StepCompetence } from "@/components/onboarding/step-competence"
 import { StepAddress } from "@/components/onboarding/step-address"
 import { StepContactTax } from "@/components/onboarding/step-contact-tax"
 import { StepPausalniProfile } from "@/components/onboarding/step-pausalni-profile"
+import { StepBilling } from "@/components/onboarding/step-billing"
 import { Card, CardContent } from "@/components/ui/card"
 import { getOnboardingData, type OnboardingData } from "@/app/actions/onboarding"
 import { Loader2 } from "lucide-react"
 
 /**
  * Calculate which onboarding step should be shown based on completion
- * Returns 1-5 for first incomplete step, or 6 if all complete (treated as 5 for display)
+ * Returns 1-6 for first incomplete step, or 7 if all complete (treated as 6 for display)
  */
-function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5 | 6 {
+function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5 | 6 | 7 {
   if (!data) return 1
 
   // Step 1: Basic Info (name, oib, legalForm)
@@ -48,7 +49,7 @@ function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5
     return 5
   }
 
-  // All complete
+  // Step 6: Billing (always show after all core steps complete)
   return 6
 }
 
@@ -68,11 +69,11 @@ export default function OnboardingPage() {
 
           // Calculate which step to start on based on completion
           const calculatedStep = calculateOnboardingStep(serverData)
-          // If all steps complete (6), show last step for review
-          // For OBRT_PAUSAL, last step is 5; for others, it's 4
+          // If all steps complete, show billing step (6)
+          // Otherwise show the calculated step
           let startStep: OnboardingStep
-          if (calculatedStep >= 6) {
-            startStep = serverData.legalForm === "OBRT_PAUSAL" ? 5 : 4
+          if (calculatedStep >= 7) {
+            startStep = 6
           } else {
             startStep = calculatedStep as OnboardingStep
           }
@@ -117,7 +118,7 @@ export default function OnboardingPage() {
     )
   }
 
-  const stepCount = data.legalForm === "OBRT_PAUSAL" ? 5 : 4
+  const stepCount = data.legalForm === "OBRT_PAUSAL" ? 6 : 5
 
   return (
     <div className="mx-auto max-w-xl py-12">
@@ -137,6 +138,7 @@ export default function OnboardingPage() {
           {currentStep === 3 && <StepAddress />}
           {currentStep === 4 && <StepContactTax isExistingCompany={isExistingCompany} />}
           {currentStep === 5 && <StepPausalniProfile />}
+          {currentStep === 6 && <StepBilling />}
         </CardContent>
       </Card>
 

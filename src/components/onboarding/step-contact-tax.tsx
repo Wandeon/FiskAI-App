@@ -92,19 +92,18 @@ export function StepContactTax({ isExistingCompany = false }: StepContactTaxProp
           }
         }
 
-        // Finalize analytics and store
-        trackEvent(AnalyticsEvents.ONBOARDING_COMPLETED, { competence: data.competence })
+        // Track company creation and proceed to billing step
+        trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, {
+          step: 4,
+          competence: data.competence
+        })
         toast.success(
           isExistingCompany ? "Podaci ažurirani!" : "Tvrtka kreirana!",
-          "Možete početi s radom"
+          "Još jedan korak do kraja"
         )
 
-        // Wait a tiny bit for the toast to be seen
-        setTimeout(() => {
-          reset() // Clear stored wizard data
-          router.push("/dashboard")
-          router.refresh()
-        }, 500)
+        // Navigate to billing step (step 6)
+        setStep(6)
       }
     })
   }
@@ -189,7 +188,7 @@ export function StepContactTax({ isExistingCompany = false }: StepContactTaxProp
           Natrag
         </Button>
         <Button onClick={handleSubmit} disabled={!isStepValid(4) || isPending}>
-          {isPending ? "Spremanje..." : "Završi postavljanje"}
+          {isPending ? "Spremanje..." : "Nastavi"}
         </Button>
       </div>
     </div>

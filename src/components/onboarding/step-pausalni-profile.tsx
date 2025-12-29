@@ -114,9 +114,10 @@ export function StepPausalniProfile() {
         iban: data.iban!,
         isVatPayer: data.isVatPayer ?? false,
       })
-      router.push("/dashboard")
+      // Navigate to billing step (step 6)
+      setStep(6)
     } catch (error) {
-      console.error("Failed to complete onboarding:", error)
+      console.error("Failed to save paušalni profile:", error)
     } finally {
       setIsSaving(false)
     }
@@ -297,7 +298,7 @@ export function StepPausalniProfile() {
           Natrag
         </Button>
         <Button onClick={handleComplete} disabled={!isStepValid(5) || isSaving}>
-          {isSaving ? "Spremanje..." : "Završi postavljanje"}
+          {isSaving ? "Spremanje..." : "Nastavi"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

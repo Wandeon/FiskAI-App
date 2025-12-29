@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware"
 import type { LegalForm } from "@/lib/capabilities"
 import type { CompetenceLevel } from "@/lib/visibility/rules"
 
-export type OnboardingStep = 1 | 2 | 3 | 4 | 5
+export type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6
 
 export interface OnboardingData {
   // Step 1: Basic Info
@@ -114,6 +114,9 @@ export const useOnboardingStore = create<OnboardingState>()(
               data.county?.trim() &&
               typeof data.prirezRate === "number"
             )
+          case 6:
+            // Step 6 (Billing) is always valid - it's informational only
+            return true
           default:
             return false
         }
