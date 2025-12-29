@@ -1,0 +1,37 @@
+/**
+ * Experiment Metrics API
+ *
+ * GET /api/experiments/:id/metrics - Get experiment metrics and analysis
+ */
+
+import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { getExperimentReport } from "@/lib/experiments"
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.user.systemRole !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const report = await getExperimentReport(params.id)
+
+    return NextResponse.json(report)
+  } catch (error) {
+    console.error("Error getting experiment metrics:", error)
+    return NextResponse.json(
+      { error: "Failed to get experiment metrics" },
+      { status: 500 }
+    )
+  }
+}
