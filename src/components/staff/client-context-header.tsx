@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ArrowLeft, Building2, FileText, BarChart3, FolderOpen, LayoutDashboard } from 'lucide-react'
+import { ArrowLeft, Building2, FileText, BarChart3, FolderOpen, LayoutDashboard, MessageSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +17,7 @@ const clientNavigation = [
   { name: 'Overview', href: '', icon: LayoutDashboard },
   { name: 'E-Invoices', href: '/e-invoices', icon: FileText },
   { name: 'Documents', href: '/documents', icon: FolderOpen },
+  { name: 'Messages', href: '/messages', icon: MessageSquare },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
 ]
 
@@ -67,7 +68,7 @@ export function StaffClientContextHeader({
             </div>
           </div>
         </div>
-        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+        <Badge variant="secondary" className="bg-accent text-accent-foreground">
           Staff Context
         </Badge>
       </div>
