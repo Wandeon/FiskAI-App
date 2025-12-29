@@ -154,11 +154,7 @@ export function generateOrganizationSchema() {
         availableLanguage: ["Croatian", "English"],
       },
     ],
-    sameAs: [
-      "https://www.linkedin.com/company/fiskai",
-      "https://twitter.com/fiskai_hr",
-      "https://github.com/fiskai",
-    ],
+    sameAs: ["https://github.com/fiskai"],
     knowsAbout: [
       "Croatian fiscalization",
       "E-invoicing",
