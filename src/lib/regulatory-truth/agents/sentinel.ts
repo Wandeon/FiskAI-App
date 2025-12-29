@@ -19,6 +19,7 @@ import {
   findPaginationLinks,
   extractDocumentLinks,
 } from "../parsers/html-list-parser"
+import { parseRSSFeed, filterRSSByDate, filterRSSByPattern } from "../parsers/rss-parser"
 import { logAuditEvent } from "../utils/audit-log"
 import { detectBinaryType, parseBinaryContent } from "../utils/binary-parser"
 import { ocrQueue, extractQueue } from "../workers/queues"
@@ -571,7 +572,41 @@ async function processEndpoint(
     // Parse content based on strategy
     let discoveredUrls: { url: string; title: string | null; date: string | null }[] = []
 
-    if (endpoint.listingStrategy === "SITEMAP_XML") {
+    if (endpoint.listingStrategy === "RSS_FEED") {
+      // RSS/Atom feed parsing
+      console.log(`[sentinel] Parsing RSS/Atom feed: ${endpoint.name}`)
+
+      let items = await parseRSSFeed(content)
+      console.log(`[sentinel] Parsed ${items.length} items from RSS feed`)
+
+      // Apply filters from metadata
+      const feedMeta = endpoint.metadata as {
+        urlPattern?: string
+        startDate?: string
+        endDate?: string
+      } | null
+
+      // Filter by URL pattern if specified
+      if (feedMeta?.urlPattern) {
+        const pattern = new RegExp(feedMeta.urlPattern)
+        items = filterRSSByPattern(items, pattern)
+        console.log(`[sentinel] Filtered to ${items.length} items by URL pattern`)
+      }
+
+      // Filter by date range if specified
+      if (feedMeta?.startDate || feedMeta?.endDate) {
+        const startDate = feedMeta.startDate ? new Date(feedMeta.startDate) : undefined
+        const endDate = feedMeta.endDate ? new Date(feedMeta.endDate) : undefined
+        items = filterRSSByDate(items, startDate, endDate)
+        console.log(`[sentinel] Filtered to ${items.length} items by date range`)
+      }
+
+      discoveredUrls = items.map((item) => ({
+        url: item.url,
+        title: item.title,
+        date: item.date,
+      }))
+    } else if (endpoint.listingStrategy === "SITEMAP_XML") {
       // Get allowed NN types from metadata (if this is an NN endpoint)
       const allowedNNTypes =
         endpoint.domain === "narodne-novine.nn.hr"

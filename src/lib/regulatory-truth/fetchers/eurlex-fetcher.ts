@@ -1,7 +1,19 @@
 // src/lib/regulatory-truth/fetchers/eurlex-fetcher.ts
 // Tier 1.5 Structured Fetcher: EUR-Lex EU Legislation
-// Uses CELEX identifiers for known key regulations
-// Note: EUR-Lex doesn't have a simple JSON API, so we use known URLs
+//
+// ⚠️ DEPRECATION NOTICE (2025-12-29):
+// This static CELEX list approach is being replaced with dynamic discovery
+// via EUR-Lex RSS feeds. See:
+// - src/lib/regulatory-truth/parsers/rss-parser.ts
+// - EUR-Lex endpoints in seed-endpoints.ts
+//
+// The RSS approach provides:
+// - Automatic discovery of new/updated regulations
+// - Croatian language filtering (lang=HR)
+// - Topic-based filtering (eurovoc codes)
+// - No manual CELEX list maintenance
+//
+// This file remains for backward compatibility and one-off CELEX lookups.
 
 import { db } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
