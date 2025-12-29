@@ -966,7 +966,336 @@ export function getHealth() {
 }
 
 /**
+ * Process a single discovered item: fetch content and create Evidence record.
+ */
+async function processSingleItem(item: {
+  id: string
+  url: string
+  contentHash: string | null
+  retryCount: number
+  endpoint: {
+    id: string
+    domain: string
+  }
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    // GUARD: Skip test/heartbeat domains - they should not enter the pipeline
+    if (isBlockedDomain(item.endpoint.domain)) {
+      console.log(`[sentinel] Skipping test domain: ${item.endpoint.domain}`)
+      await db.discoveredItem.update({
+        where: { id: item.id },
+        data: {
+          status: "SKIPPED",
+          errorMessage: `Blocked test domain: ${item.endpoint.domain}`,
+        },
+      })
+      return { success: false }
+    }
+
+    console.log(`[sentinel] Fetching: ${item.url}`)
+    const response = await fetchWithRateLimit(item.url)
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    // Handle binary files (PDF, DOCX, etc.)
+    let content: string
+    let contentType: string = "html"
+
+    // Check both URL extension AND content-type header for binary detection
+    const contentTypeHeader = response.headers.get("content-type") || ""
+    const binaryType = detectBinaryType(item.url, contentTypeHeader)
+
+    if (binaryType === "pdf") {
+      console.log(`[sentinel] PDF detected, checking if scanned or text-based...`)
+
+      const arrayBuffer = await response.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      const parsed = await parseBinaryContent(buffer, binaryType)
+
+      const pageCount = (parsed.metadata?.pages as number) || 1
+      const isScanned = isScannedPdf(parsed.text, pageCount)
+
+      // Find or create source (auto-creates if not found)
+      const source = await findOrCreateSource(item.endpoint.domain)
+
+      if (!source) {
+        console.log(`[sentinel] Could not find or create source for ${item.endpoint.domain}`)
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: { status: "SKIPPED", errorMessage: "No RegulatorySource available" },
+        })
+        return { success: false }
+      }
+
+      if (isScanned) {
+        // Scanned PDF - store as base64, queue for OCR
+        console.log(
+          `[sentinel] Scanned PDF detected (${pageCount} pages, ${parsed.text.length} chars)`
+        )
+
+        const contentHash = hashContent(buffer.toString("base64"))
+        const evidence = await db.evidence.create({
+          data: {
+            sourceId: source.id,
+            url: item.url,
+            rawContent: buffer.toString("base64"),
+            contentHash: contentHash,
+            contentType: "pdf",
+            contentClass: "PDF_SCANNED",
+          },
+        })
+
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "FETCHED",
+            processedAt: new Date(),
+            evidenceId: evidence.id,
+            contentHash: evidence.contentHash,
+          },
+        })
+
+        // Queue for OCR, NOT extract
+        const runId = `sentinel-${Date.now()}`
+        await ocrQueue.add("ocr", { evidenceId: evidence.id, runId })
+        console.log(`[sentinel] Queued ${evidence.id} for OCR`)
+
+        await logAuditEvent({
+          action: "EVIDENCE_FETCHED",
+          entityType: "EVIDENCE",
+          entityId: evidence.id,
+          metadata: {
+            sourceId: source.id,
+            url: item.url,
+            contentHash: contentHash,
+            contentClass: "PDF_SCANNED",
+          },
+        })
+
+        return { success: true }
+      } else {
+        // PDF with text layer - create artifact and queue for extract
+        console.log(
+          `[sentinel] Text PDF detected (${pageCount} pages, ${parsed.text.length} chars)`
+        )
+
+        const contentHash = hashContent(buffer.toString("base64"))
+        const evidence = await db.evidence.create({
+          data: {
+            sourceId: source.id,
+            url: item.url,
+            rawContent: buffer.toString("base64"),
+            contentHash: contentHash,
+            contentType: "pdf",
+            contentClass: "PDF_TEXT",
+          },
+        })
+
+        // Create PDF_TEXT artifact
+        const artifact = await db.evidenceArtifact.create({
+          data: {
+            evidenceId: evidence.id,
+            kind: "PDF_TEXT",
+            content: parsed.text,
+            contentHash: hashContent(parsed.text),
+          },
+        })
+
+        // Set primary text artifact
+        await db.evidence.update({
+          where: { id: evidence.id },
+          data: { primaryTextArtifactId: artifact.id },
+        })
+
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "FETCHED",
+            processedAt: new Date(),
+            evidenceId: evidence.id,
+            contentHash: evidence.contentHash,
+          },
+        })
+
+        // Queue for extraction
+        const runId = `sentinel-${Date.now()}`
+        await extractQueue.add("extract", { evidenceId: evidence.id, runId })
+        console.log(`[sentinel] Queued ${evidence.id} for extraction`)
+
+        await logAuditEvent({
+          action: "EVIDENCE_FETCHED",
+          entityType: "EVIDENCE",
+          entityId: evidence.id,
+          metadata: {
+            sourceId: source.id,
+            url: item.url,
+            contentHash: contentHash,
+            contentClass: "PDF_TEXT",
+          },
+        })
+
+        return { success: true }
+      }
+    } else if (binaryType !== "unknown") {
+      console.log(`[sentinel] Binary file detected: ${binaryType}`)
+
+      const arrayBuffer = await response.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      const parsed = await parseBinaryContent(buffer, binaryType)
+
+      if (!parsed.text || parsed.text.trim().length === 0) {
+        throw new Error(`No text extracted from ${binaryType} file`)
+      }
+
+      content = parsed.text
+      contentType = binaryType
+      console.log(`[sentinel] Extracted ${content.length} chars from ${binaryType}`)
+    } else {
+      content = await response.text()
+    }
+
+    const contentHash = hashContent(content)
+
+    // Check if content unchanged from previous fetch
+    if (item.contentHash && item.contentHash === contentHash) {
+      console.log(`[sentinel] Content unchanged for ${item.url}`)
+      await db.discoveredItem.update({
+        where: { id: item.id },
+        data: {
+          status: "PROCESSED",
+          processedAt: new Date(),
+        },
+      })
+      return { success: true }
+    }
+
+    // Check if we already have this content (from a different URL)
+    const existingEvidence = await db.evidence.findFirst({
+      where: { contentHash },
+    })
+
+    if (existingEvidence) {
+      // Link to existing evidence
+      await db.discoveredItem.update({
+        where: { id: item.id },
+        data: {
+          status: "PROCESSED",
+          processedAt: new Date(),
+          evidenceId: existingEvidence.id,
+          contentHash,
+        },
+      })
+      return { success: true }
+    }
+
+    // Find or create source (auto-creates if not found)
+    const source = await findOrCreateSource(item.endpoint.domain)
+
+    if (!source) {
+      console.log(`[sentinel] Could not find or create source for ${item.endpoint.domain}`)
+      await db.discoveredItem.update({
+        where: { id: item.id },
+        data: { status: "SKIPPED", errorMessage: "No RegulatorySource available" },
+      })
+      return { success: false }
+    }
+
+    // Check if this is a content change (item had previous hash)
+    const isContentChange = !!(item.contentHash && item.contentHash !== contentHash)
+
+    // Derive contentClass from contentType
+    const contentClassMap: Record<string, string> = {
+      html: "HTML",
+      pdf: "PDF_TEXT",
+      doc: "DOC",
+      docx: "DOCX",
+      xls: "XLS",
+      xlsx: "XLSX",
+      json: "JSON",
+      "json-ld": "JSON_LD",
+      xml: "XML",
+    }
+    const derivedContentClass = contentClassMap[contentType] || "HTML"
+
+    // Upsert evidence record (prevents duplicates with unique constraint on url+contentHash)
+    const evidence = await db.evidence.upsert({
+      where: {
+        url_contentHash: {
+          url: item.url,
+          contentHash,
+        },
+      },
+      create: {
+        sourceId: source.id,
+        url: item.url,
+        rawContent: content,
+        contentHash,
+        contentType: contentType,
+        contentClass: derivedContentClass,
+        hasChanged: isContentChange,
+        changeSummary: isContentChange
+          ? `Content updated from previous version (hash: ${item.contentHash?.slice(0, 8)}...)`
+          : null,
+      },
+      update: {
+        // If we re-encounter same content, just update fetchedAt timestamp
+        fetchedAt: new Date(),
+      },
+    })
+
+    // Log audit event for evidence creation
+    await logAuditEvent({
+      action: "EVIDENCE_FETCHED",
+      entityType: "EVIDENCE",
+      entityId: evidence.id,
+      metadata: {
+        sourceId: source.id,
+        url: item.url,
+        contentHash: contentHash,
+      },
+    })
+
+    await db.discoveredItem.update({
+      where: { id: item.id },
+      data: {
+        status: "FETCHED",
+        processedAt: new Date(),
+        evidenceId: evidence.id,
+        contentHash,
+      },
+    })
+
+    return { success: true }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+
+    log("error", `Failed to fetch item`, {
+      operation: "fetch-item",
+      itemId: item.id,
+      url: item.url,
+      error: errorMessage,
+      metadata: { retryCount: item.retryCount + 1 },
+    })
+
+    await db.discoveredItem.update({
+      where: { id: item.id },
+      data: {
+        retryCount: { increment: 1 },
+        errorMessage: errorMessage,
+        status: item.retryCount >= 2 ? "FAILED" : "PENDING",
+      },
+    })
+
+    return { success: false, error: errorMessage }
+  }
+}
+
+/**
  * Fetch content for pending discovered items and create Evidence records.
+ * Uses parallel processing grouped by domain for optimal throughput while
+ * respecting per-domain rate limits.
  */
 export async function fetchDiscoveredItems(limit: number = 100): Promise<{
   fetched: number
@@ -982,328 +1311,80 @@ export async function fetchDiscoveredItems(limit: number = 100): Promise<{
     include: { endpoint: true },
   })
 
-  let fetched = 0
-  let failed = 0
+  if (items.length === 0) {
+    log("info", "No pending items to fetch", {
+      operation: "fetch",
+    })
+    return { fetched: 0, failed: 0 }
+  }
+
+  log("info", `Processing ${items.length} pending items`, {
+    operation: "fetch",
+    metadata: { itemCount: items.length },
+  })
+
+  // Group items by domain for parallel processing
+  const itemsByDomain = new Map<
+    string,
+    Array<{
+      id: string
+      url: string
+      contentHash: string | null
+      retryCount: number
+      endpoint: { id: string; domain: string }
+    }>
+  >()
 
   for (const item of items) {
-    try {
-      // GUARD: Skip test/heartbeat domains - they should not enter the pipeline
-      if (isBlockedDomain(item.endpoint.domain)) {
-        console.log(`[sentinel] Skipping test domain: ${item.endpoint.domain}`)
-        await db.discoveredItem.update({
-          where: { id: item.id },
-          data: {
-            status: "SKIPPED",
-            errorMessage: `Blocked test domain: ${item.endpoint.domain}`,
-          },
-        })
-        continue
-      }
-
-      console.log(`[sentinel] Fetching: ${item.url}`)
-      const response = await fetchWithRateLimit(item.url)
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      // Handle binary files (PDF, DOCX, etc.)
-      let content: string
-      let contentType: string = "html"
-
-      // Check both URL extension AND content-type header for binary detection
-      const contentTypeHeader = response.headers.get("content-type") || ""
-      const binaryType = detectBinaryType(item.url, contentTypeHeader)
-
-      if (binaryType === "pdf") {
-        console.log(`[sentinel] PDF detected, checking if scanned or text-based...`)
-
-        const arrayBuffer = await response.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        const parsed = await parseBinaryContent(buffer, binaryType)
-
-        const pageCount = (parsed.metadata?.pages as number) || 1
-        const isScanned = isScannedPdf(parsed.text, pageCount)
-
-        // Find or create source (auto-creates if not found)
-        const source = await findOrCreateSource(item.endpoint.domain)
-
-        if (!source) {
-          console.log(`[sentinel] Could not find or create source for ${item.endpoint.domain}`)
-          await db.discoveredItem.update({
-            where: { id: item.id },
-            data: { status: "SKIPPED", errorMessage: "No RegulatorySource available" },
-          })
-          continue
-        }
-
-        if (isScanned) {
-          // Scanned PDF - store as base64, queue for OCR
-          console.log(
-            `[sentinel] Scanned PDF detected (${pageCount} pages, ${parsed.text.length} chars)`
-          )
-
-          const contentHash = hashContent(buffer.toString("base64"))
-          const evidence = await db.evidence.create({
-            data: {
-              sourceId: source.id,
-              url: item.url,
-              rawContent: buffer.toString("base64"),
-              contentHash: contentHash,
-              contentType: "pdf",
-              contentClass: "PDF_SCANNED",
-            },
-          })
-
-          await db.discoveredItem.update({
-            where: { id: item.id },
-            data: {
-              status: "FETCHED",
-              processedAt: new Date(),
-              evidenceId: evidence.id,
-              contentHash: evidence.contentHash,
-            },
-          })
-
-          // Queue for OCR, NOT extract
-          const runId = `sentinel-${Date.now()}`
-          await ocrQueue.add("ocr", { evidenceId: evidence.id, runId })
-          console.log(`[sentinel] Queued ${evidence.id} for OCR`)
-
-          await logAuditEvent({
-            action: "EVIDENCE_FETCHED",
-            entityType: "EVIDENCE",
-            entityId: evidence.id,
-            metadata: {
-              sourceId: source.id,
-              url: item.url,
-              contentHash: contentHash,
-              contentClass: "PDF_SCANNED",
-            },
-          })
-
-          fetched++
-        } else {
-          // PDF with text layer - create artifact and queue for extract
-          console.log(
-            `[sentinel] Text PDF detected (${pageCount} pages, ${parsed.text.length} chars)`
-          )
-
-          const contentHash = hashContent(buffer.toString("base64"))
-          const evidence = await db.evidence.create({
-            data: {
-              sourceId: source.id,
-              url: item.url,
-              rawContent: buffer.toString("base64"),
-              contentHash: contentHash,
-              contentType: "pdf",
-              contentClass: "PDF_TEXT",
-            },
-          })
-
-          // Create PDF_TEXT artifact
-          const artifact = await db.evidenceArtifact.create({
-            data: {
-              evidenceId: evidence.id,
-              kind: "PDF_TEXT",
-              content: parsed.text,
-              contentHash: hashContent(parsed.text),
-            },
-          })
-
-          // Set primary text artifact
-          await db.evidence.update({
-            where: { id: evidence.id },
-            data: { primaryTextArtifactId: artifact.id },
-          })
-
-          await db.discoveredItem.update({
-            where: { id: item.id },
-            data: {
-              status: "FETCHED",
-              processedAt: new Date(),
-              evidenceId: evidence.id,
-              contentHash: evidence.contentHash,
-            },
-          })
-
-          // Queue for extraction
-          const runId = `sentinel-${Date.now()}`
-          await extractQueue.add("extract", { evidenceId: evidence.id, runId })
-          console.log(`[sentinel] Queued ${evidence.id} for extraction`)
-
-          await logAuditEvent({
-            action: "EVIDENCE_FETCHED",
-            entityType: "EVIDENCE",
-            entityId: evidence.id,
-            metadata: {
-              sourceId: source.id,
-              url: item.url,
-              contentHash: contentHash,
-              contentClass: "PDF_TEXT",
-            },
-          })
-
-          fetched++
-        }
-
-        continue
-      } else if (binaryType !== "unknown") {
-        console.log(`[sentinel] Binary file detected: ${binaryType}`)
-
-        const arrayBuffer = await response.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        const parsed = await parseBinaryContent(buffer, binaryType)
-
-        if (!parsed.text || parsed.text.trim().length === 0) {
-          throw new Error(`No text extracted from ${binaryType} file`)
-        }
-
-        content = parsed.text
-        contentType = binaryType
-        console.log(`[sentinel] Extracted ${content.length} chars from ${binaryType}`)
-      } else {
-        content = await response.text()
-      }
-
-      const contentHash = hashContent(content)
-
-      // Check if content unchanged from previous fetch
-      if (item.contentHash && item.contentHash === contentHash) {
-        console.log(`[sentinel] Content unchanged for ${item.url}`)
-        await db.discoveredItem.update({
-          where: { id: item.id },
-          data: {
-            status: "PROCESSED",
-            processedAt: new Date(),
-          },
-        })
-        continue
-      }
-
-      // Check if we already have this content (from a different URL)
-      const existingEvidence = await db.evidence.findFirst({
-        where: { contentHash },
-      })
-
-      if (existingEvidence) {
-        // Link to existing evidence
-        await db.discoveredItem.update({
-          where: { id: item.id },
-          data: {
-            status: "PROCESSED",
-            processedAt: new Date(),
-            evidenceId: existingEvidence.id,
-            contentHash,
-          },
-        })
-      } else {
-        // Find or create source (auto-creates if not found)
-        const source = await findOrCreateSource(item.endpoint.domain)
-
-        if (!source) {
-          console.log(`[sentinel] Could not find or create source for ${item.endpoint.domain}`)
-          await db.discoveredItem.update({
-            where: { id: item.id },
-            data: { status: "SKIPPED", errorMessage: "No RegulatorySource available" },
-          })
-          continue
-        }
-
-        // Check if this is a content change (item had previous hash)
-        const isContentChange = !!(item.contentHash && item.contentHash !== contentHash)
-
-        // Derive contentClass from contentType
-        const contentClassMap: Record<string, string> = {
-          html: "HTML",
-          pdf: "PDF_TEXT",
-          doc: "DOC",
-          docx: "DOCX",
-          xls: "XLS",
-          xlsx: "XLSX",
-          json: "JSON",
-          "json-ld": "JSON_LD",
-          xml: "XML",
-        }
-        const derivedContentClass = contentClassMap[contentType] || "HTML"
-
-        // Upsert evidence record (prevents duplicates with unique constraint on url+contentHash)
-        const evidence = await db.evidence.upsert({
-          where: {
-            url_contentHash: {
-              url: item.url,
-              contentHash,
-            },
-          },
-          create: {
-            sourceId: source.id,
-            url: item.url,
-            rawContent: content,
-            contentHash,
-            contentType: contentType,
-            contentClass: derivedContentClass,
-            hasChanged: isContentChange,
-            changeSummary: isContentChange
-              ? `Content updated from previous version (hash: ${item.contentHash?.slice(0, 8)}...)`
-              : null,
-          },
-          update: {
-            // If we re-encounter same content, just update fetchedAt timestamp
-            fetchedAt: new Date(),
-          },
-        })
-
-        // Log audit event for evidence creation
-        await logAuditEvent({
-          action: "EVIDENCE_FETCHED",
-          entityType: "EVIDENCE",
-          entityId: evidence.id,
-          metadata: {
-            sourceId: source.id,
-            url: item.url,
-            contentHash: contentHash,
-          },
-        })
-
-        await db.discoveredItem.update({
-          where: { id: item.id },
-          data: {
-            status: "FETCHED",
-            processedAt: new Date(),
-            evidenceId: evidence.id,
-            contentHash,
-          },
-        })
-
-        fetched++
-      }
-    } catch (error) {
-      failed++
-      const errorMessage = error instanceof Error ? error.message : String(error)
-
-      log("error", `Failed to fetch item`, {
-        operation: "fetch-item",
-        itemId: item.id,
-        url: item.url,
-        error: errorMessage,
-        metadata: { retryCount: item.retryCount + 1 },
-      })
-
-      await db.discoveredItem.update({
-        where: { id: item.id },
-        data: {
-          retryCount: { increment: 1 },
-          errorMessage: errorMessage,
-          status: item.retryCount >= 2 ? "FAILED" : "PENDING",
-        },
-      })
+    const domain = item.endpoint.domain
+    if (!itemsByDomain.has(domain)) {
+      itemsByDomain.set(domain, [])
     }
+    itemsByDomain.get(domain)!.push(item)
   }
+
+  log("info", `Grouped into ${itemsByDomain.size} domains for parallel processing`, {
+    operation: "fetch",
+    metadata: { domainCount: itemsByDomain.size },
+  })
+
+  // Process each domain's items in parallel
+  // Within each domain, items are processed serially to respect rate limits
+  const domainPromises = Array.from(itemsByDomain.entries()).map(async ([domain, domainItems]) => {
+    log("debug", `Processing ${domainItems.length} items for ${domain}`, {
+      operation: "fetch-domain",
+      domain,
+      metadata: { itemCount: domainItems.length },
+    })
+
+    let domainFetched = 0
+    let domainFailed = 0
+
+    // Process items serially within this domain to respect rate limiting
+    for (const item of domainItems) {
+      const result = await processSingleItem(item)
+      if (result.success) {
+        domainFetched++
+      } else {
+        domainFailed++
+      }
+    }
+
+    return { fetched: domainFetched, failed: domainFailed }
+  })
+
+  // Wait for all domains to complete
+  const results = await Promise.all(domainPromises)
+
+  // Aggregate results
+  const fetched = results.reduce((sum, r) => sum + r.fetched, 0)
+  const failed = results.reduce((sum, r) => sum + r.failed, 0)
 
   log("info", `Fetch complete: ${fetched} succeeded, ${failed} failed`, {
     operation: "fetch",
     metadata: { fetched, failed },
   })
+
   return { fetched, failed }
 }
 
