@@ -116,6 +116,25 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
         include: { lines: true, buyer: true },
       })
 
+      // Check if invoice should be fiscalized automatically
+      try {
+        const fiscalDecision = await shouldFiscalizeInvoice({
+          ...invoice,
+          company,
+        })
+
+        if (fiscalDecision.shouldFiscalize) {
+          await queueFiscalRequest(invoice.id, company.id, fiscalDecision)
+          await db.eInvoice.update({
+            where: { id: invoice.id },
+            data: { fiscalStatus: "PENDING" },
+          })
+        }
+      } catch (fiscalError) {
+        // Log but don't fail invoice creation if fiscalization queueing fails
+        console.error("[createInvoice] Fiscalization queueing error:", fiscalError)
+      }
+
       revalidatePath("/invoices")
       return { success: true, data: invoice }
     })
@@ -191,6 +210,25 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
         },
         include: { lines: true, buyer: true },
       })
+
+      // Check if invoice should be fiscalized automatically
+      try {
+        const fiscalDecision = await shouldFiscalizeInvoice({
+          ...invoice,
+          company,
+        })
+
+        if (fiscalDecision.shouldFiscalize) {
+          await queueFiscalRequest(invoice.id, company.id, fiscalDecision)
+          await db.eInvoice.update({
+            where: { id: invoice.id },
+            data: { fiscalStatus: "PENDING" },
+          })
+        }
+      } catch (fiscalError) {
+        // Log but don't fail invoice creation if fiscalization queueing fails
+        console.error("[convertToInvoice] Fiscalization queueing error:", fiscalError)
+      }
 
       revalidatePath("/invoices")
       revalidatePath(`/invoices/${source.id}`)
@@ -473,6 +511,25 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
         company: true,
       },
     })
+
+    // Check if invoice should be fiscalized automatically
+    try {
+      const fiscalDecision = await shouldFiscalizeInvoice({
+        ...eInvoice,
+        company,
+      })
+
+      if (fiscalDecision.shouldFiscalize) {
+        await queueFiscalRequest(eInvoice.id, company.id, fiscalDecision)
+        await db.eInvoice.update({
+          where: { id: eInvoice.id },
+          data: { fiscalStatus: "PENDING" },
+        })
+      }
+    } catch (fiscalError) {
+      // Log but don't fail invoice creation if fiscalization queueing fails
+      console.error("[createEInvoice] Fiscalization queueing error:", fiscalError)
+    }
 
     revalidatePath("/e-invoices")
     return { success: "E-Invoice created", data: eInvoice }
