@@ -48,6 +48,7 @@ export const HOK_CONFIG = {
   recipientName: "Hrvatska obrtnička komora",
   iban: "HR4723400091510533498",
   model: "HR68",
+  referencePrefix: "99",
   exemptYears: 2, // First 2 years exempt
 } as const
 

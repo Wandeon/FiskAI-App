@@ -80,7 +80,7 @@ export const GET = withApiLogging(async (request: NextRequest) => {
           recipientIban: HOK_CONFIG.iban,
           amount: HOK_CONFIG.quarterlyAmount,
           model: HOK_CONFIG.model,
-          reference: company.oib, // HOK uses OIB directly
+          reference: `${HOK_CONFIG.referencePrefix}-${company.oib}`,
           purposeCode: "OTHR",
           description: `HOK članarina Q${Math.ceil(month / 3)} ${year}`,
         }
