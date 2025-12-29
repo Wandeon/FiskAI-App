@@ -9,7 +9,8 @@ import {
   CheckSquare,
   MessageSquare,
   FileText,
-  Settings
+  Settings,
+  UserPlus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStaffClient } from '@/contexts/staff-client-context'
@@ -17,6 +18,7 @@ import { useStaffClient } from '@/contexts/staff-client-context'
 const navigation = [
   { name: 'Dashboard', href: '/staff-dashboard', icon: LayoutDashboard },
   { name: 'Clients', href: '/clients', icon: Users },
+  { name: 'Invitations', href: '/invitations', icon: UserPlus },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Tasks', href: '/tasks', icon: CheckSquare },
   { name: 'Tickets', href: '/tickets', icon: MessageSquare },
