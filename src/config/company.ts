@@ -56,8 +56,8 @@ export interface CompanyInfo {
  */
 const PLACEHOLDER_OIB = "12345678901"
 const PLACEHOLDER_IBAN = "HR1234567890123456789"
-const PLACEHOLDER_PHONE = "+385 1 234 5678"
-const PLACEHOLDER_PHONE_EMERGENCY = "+385 1 234 5679"
+const PLACEHOLDER_PHONE = "+385 1 4929 380"
+const PLACEHOLDER_PHONE_EMERGENCY = "+385 1 4929 380"
 
 /**
  * Company information used across the marketing site.
@@ -94,7 +94,7 @@ export function getPhoneLink(phone: string): string {
 const PLACEHOLDER_PATTERNS = {
   oib: /^12345678901$/,
   iban: /^HR1234567890123456789$/,
-  phone: /^\+385 1 234 567[89]$/,
+  phone: /^\+385 1 4929 380$/,
 }
 
 /**
