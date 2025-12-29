@@ -17,11 +17,15 @@ export async function GET(request: NextRequest) {
     const summary = await fetchKpr(company.id, from, to)
     const csv = kprToCsv(summary)
 
+    const rangeLabel = from && to
+      ? `${from.toISOString().slice(0,10)}-${to.toISOString().slice(0,10)}`
+      : 'all'
+
     return new NextResponse(csv, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="kpr-${company.id}.csv"`,
+        "Content-Disposition": `attachment; filename="kpr-${company.oib}-${rangeLabel}.csv"`,
       },
     })
   } catch (error) {
