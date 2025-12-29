@@ -123,6 +123,76 @@ const REGULATORY_PATTERNS = [
   "fina",
   "hgk",
   "minf",
+  // E-invoicing standards (Pillar 6)
+  "en16931",
+  "ubl",
+  "cii",
+  "enabava",
+  "nabav",
+  "xml",
+  "peppol",
+  // Forms and submissions (Pillar 7)
+  "obrazac",
+  "obrazc",
+  "joppd",
+  "posd",
+  "po-sd",
+  "iod-doh",
+  "prijav",
+  // Corporate tax (Pillar 8)
+  "porez-na-dobit",
+  "profitni-porez",
+  "porezdob",
+  "capital-gain",
+  "kapitalni-dobita",
+  // Banking & reconciliation
+  "banka",
+  "bank",
+  "sepa",
+  "iban",
+  "transakcij",
+  "placan",
+  "izvod",
+  "statement",
+  "reconcil",
+  "uskladiv",
+  "usklađiv",
+  // Labor law
+  "ugovor-o-radu",
+  "zaposlenik",
+  "radnik",
+  "placa",
+  "plaća",
+  "otpremnin",
+  "godišnji",
+  "odmor",
+  "bolovanje",
+  "porodiljni",
+  "otkaz",
+  "prekid",
+  // Corporate governance
+  "skupstin",
+  "skupštin",
+  "no",
+  "nadzorni-odbor",
+  "upravni-odbor",
+  "direktor",
+  "skupština",
+  "glasovanje",
+  "odluka",
+  // Customs & import
+  "carin",
+  "uvoz",
+  "izvoz",
+  "intrastat",
+  "carinica",
+  "pdv-uvoz",
+  // Environmental
+  "ekološk",
+  "ekološka-pristojba",
+  "otpad",
+  "okoliš",
+  "reciklaž",
 ]
 
 const PRODUCT_PATTERNS = [
@@ -337,17 +407,91 @@ const TIME_PATTERNS = [
 
 // Entity extraction patterns (regulatory concepts)
 const ENTITY_PATTERNS = [
+  // Pillar 1: PDV (VAT)
   { pattern: /pdv/i, entity: "PDV" },
+  { pattern: /\bvat\b/i, entity: "PDV" },
+  { pattern: /prag\s*(za)?\s*pdv/i, entity: "VAT_THRESHOLD" },
+  { pattern: /oss/i, entity: "OSS" },
+  { pattern: /moss/i, entity: "MOSS" },
+
+  // Pillar 2: Porez na dohodak (Income Tax)
   { pattern: /porez\s*(na)?\s*dohodak/i, entity: "POREZ_NA_DOHODAK" },
-  { pattern: /porez\s*(na)?\s*dobit/i, entity: "POREZ_NA_DOBIT" },
-  { pattern: /pausaln/i, entity: "PAUSALNI_OBRT" },
-  { pattern: /fiskaliz/i, entity: "FISKALIZACIJA" },
+  { pattern: /iod-?doh/i, entity: "IOD_DOH" },
+  { pattern: /prirez/i, entity: "PRIREZ" },
+
+  // Pillar 3: Doprinosi (Contributions)
   { pattern: /doprinos/i, entity: "DOPRINOSI" },
-  { pattern: /prag/i, entity: "VAT_THRESHOLD" },
-  { pattern: /e-?racun/i, entity: "E_RACUN" },
-  { pattern: /joppd/i, entity: "JOPPD" },
+  { pattern: /mio\s*(i|1)/i, entity: "MIO_I" },
+  { pattern: /mio\s*(ii|2)/i, entity: "MIO_II" },
+  { pattern: /\bmio\b/i, entity: "MIO" },
+  { pattern: /\bmzo\b/i, entity: "MZO" },
+  { pattern: /hzzo/i, entity: "HZZO" },
+  { pattern: /hzmo/i, entity: "HZMO" },
+
+  // Pillar 4: Fiskalizacija (Fiscalization)
+  { pattern: /fiskaliz/i, entity: "FISKALIZACIJA" },
+  { pattern: /\bjir\b/i, entity: "JIR" },
+  { pattern: /\bzki\b/i, entity: "ZKI" },
+  { pattern: /\bcis\b/i, entity: "CIS" },
+  { pattern: /blagajna/i, entity: "BLAGAJNA" },
+  { pattern: /fisk.*racun/i, entity: "FISKALNI_RACUN" },
+
+  // Pillar 5: Paušalni obrt (Flat-rate business)
+  { pattern: /pausaln/i, entity: "PAUSALNI_OBRT" },
+  { pattern: /paušalni/i, entity: "PAUSALNI_OBRT" },
   { pattern: /po-?sd/i, entity: "PO_SD" },
-  { pattern: /mio|mzo|hzzo|hzmo/i, entity: "SOCIAL_CONTRIBUTIONS" },
+  { pattern: /obrazac\s*po-?sd/i, entity: "PO_SD" },
+
+  // Pillar 6: E-računi (E-invoicing)
+  { pattern: /e-?racun/i, entity: "E_RACUN" },
+  { pattern: /en\s*16931/i, entity: "EN16931" },
+  { pattern: /\bubl\b/i, entity: "UBL" },
+  { pattern: /\bcii\b/i, entity: "CII" },
+  { pattern: /peppol/i, entity: "PEPPOL" },
+  { pattern: /e-?nabav/i, entity: "ENABAVA" },
+
+  // Pillar 7: JOPPD/Obrasci (Forms)
+  { pattern: /joppd/i, entity: "JOPPD" },
+  { pattern: /obrazac/i, entity: "OBRAZAC" },
+  { pattern: /iod/i, entity: "IOD" },
+  { pattern: /po-?k/i, entity: "POK" },
+
+  // Pillar 8: Corporate tax (Porez na dobit)
+  { pattern: /porez\s*(na)?\s*dobit/i, entity: "POREZ_NA_DOBIT" },
+  { pattern: /por.*dob/i, entity: "POREZ_NA_DOBIT" },
+  { pattern: /kapit.*dobita/i, entity: "KAPITALNI_DOBITAK" },
+  { pattern: /dividenda/i, entity: "DIVIDENDA" },
+
+  // Banking & Reconciliation
+  { pattern: /sepa/i, entity: "SEPA" },
+  { pattern: /\biban\b/i, entity: "IBAN" },
+  { pattern: /bank.*sync/i, entity: "BANK_SYNC" },
+  { pattern: /izvo.*banke/i, entity: "IZVOD_BANKE" },
+  { pattern: /reconcil/i, entity: "RECONCILIATION" },
+  { pattern: /uskladiv/i, entity: "RECONCILIATION" },
+
+  // Labor law
+  { pattern: /ugovor\s*(o|o-)?\s*radu/i, entity: "UGOVOR_O_RADU" },
+  { pattern: /otpremnin/i, entity: "OTPREMNINA" },
+  { pattern: /godišnji\s*odmor/i, entity: "GODISNJI_ODMOR" },
+  { pattern: /bolovanje/i, entity: "BOLOVANJE" },
+  { pattern: /porodiljni/i, entity: "PORODILJNI_DOPUST" },
+
+  // Corporate governance
+  { pattern: /skupštin/i, entity: "SKUPSTINA" },
+  { pattern: /skupstin/i, entity: "SKUPSTINA" },
+  { pattern: /nadzorni\s*odbor/i, entity: "NADZORNI_ODBOR" },
+  { pattern: /upravni\s*odbor/i, entity: "UPRAVNI_ODBOR" },
+
+  // Customs & Import
+  { pattern: /carin/i, entity: "CARINA" },
+  { pattern: /uvoz/i, entity: "UVOZ" },
+  { pattern: /izvoz/i, entity: "IZVOZ" },
+  { pattern: /intrastat/i, entity: "INTRASTAT" },
+
+  // Environmental
+  { pattern: /ekološk.*pristojb/i, entity: "EKOLOSKA_PRISTOJBA" },
+  { pattern: /otpad/i, entity: "OTPAD" },
 ]
 
 // === HELPER FUNCTIONS ===
