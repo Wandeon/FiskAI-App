@@ -587,8 +587,8 @@ model BankTransaction {
   externalId       String?
   source           TransactionSource @default(MANUAL)
   bankAccount      BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  matchedExpense   Expense?          @relation(fields: [matchedExpenseId], references: [id])
-  matchedInvoice   EInvoice?         @relation(fields: [matchedInvoiceId], references: [id])
+  matchedExpense   Expense?          @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
+  matchedInvoice   EInvoice?         @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
 
   @@index([companyId])
   @@index([bankAccountId])
