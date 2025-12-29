@@ -29,6 +29,7 @@ import {
   calculateFinalConfidence,
   calculateAggregateEvidenceQuality,
 } from "./evidence-quality"
+import { synthesizeAnswer, synthesizeMultiRuleAnswer } from "./answer-synthesizer"
 
 /**
  * THREE-STAGE FAIL-CLOSED ANSWER BUILDER
@@ -441,13 +442,62 @@ export async function buildAnswer(
   // Determine obligation type (default to OBLIGATION for backward compatibility)
   const obligationType = (primaryRule.obligationType || "OBLIGATION") as ObligationType
 
-  // Build direct answer with obligation context
-  const directAnswer =
-    primaryRule.explanationHr ||
-    formatValueWithObligation(primaryRule.value, primaryRule.valueType, obligationType)
-
   // Get obligation badge for UI
   const obligationBadge = getObligationBadge(obligationType)
+
+  // === LLM-BASED ANSWER SYNTHESIS ===
+  // Try to synthesize natural language answer using LLM
+  // Fall back to template-based answer if LLM fails or is unavailable
+  let headline = primaryRule.titleHr
+  let directAnswer = ""
+
+  const synthesisContext = {
+    userQuery: query,
+    rules: rules.slice(0, 3), // Use top 3 rules for synthesis
+    primaryRule,
+    surface,
+    companyContext: company
+      ? {
+          legalForm: company.legalForm ?? undefined,
+          vatStatus: company.isVatPayer ? "U sustavu PDV-a" : "Nije u sustavu PDV-a",
+        }
+      : undefined,
+  }
+
+  // Use multi-rule synthesis if we have multiple rules, otherwise single-rule
+  const synthesized =
+    rules.length > 1
+      ? await synthesizeMultiRuleAnswer(synthesisContext)
+      : await synthesizeAnswer(synthesisContext)
+
+  if (synthesized) {
+    // LLM synthesis successful - use synthesized answer
+    headline = synthesized.headline
+    directAnswer = synthesized.directAnswer
+
+    assistantLogger.info(
+      {
+        query,
+        method: "llm-synthesis",
+        ruleCount: rules.length,
+      },
+      "Using LLM-synthesized answer"
+    )
+  } else {
+    // Fall back to template-based answer construction
+    directAnswer =
+      primaryRule.explanationHr ||
+      formatValueWithObligation(primaryRule.value, primaryRule.valueType, obligationType)
+
+    assistantLogger.info(
+      {
+        query,
+        method: "template-fallback",
+        reason: "llm-synthesis-failed",
+      },
+      "Using template-based answer (LLM synthesis failed)"
+    )
+  }
 
   // Generate contextual related questions
   const relatedQuestions = await generateContextualQuestions({
@@ -484,7 +534,7 @@ export async function buildAnswer(
     ...baseResponse,
     kind: "ANSWER",
     topic: interpretation.topic,
-    headline: primaryRule.titleHr,
+    headline,
     directAnswer,
     citations,
     confidence: {
