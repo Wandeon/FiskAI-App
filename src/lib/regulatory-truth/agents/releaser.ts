@@ -19,6 +19,8 @@ import {
 } from "../content-sync"
 import { getConceptMapping } from "../content-sync/concept-registry"
 import type { RiskTier } from "../schemas/common"
+import { verifyEvidenceIntegrity } from "../utils/content-hash"
+import { findQuoteInEvidence, isMatchTypeAcceptableForTier } from "../utils/quote-in-evidence"
 
 // =============================================================================
 // RELEASER AGENT
@@ -61,6 +63,135 @@ export interface RollbackValidation {
   errors: string[]
 }
 
+// =============================================================================
+// EVIDENCE CHAIN VERIFICATION
+// =============================================================================
+
+export interface EvidenceChainError {
+  ruleId: string
+  conceptSlug: string
+  pointerId: string
+  evidenceId: string
+  errorType: "orphaned_pointer" | "hash_mismatch" | "quote_not_found" | "quote_match_unacceptable"
+  message: string
+}
+
+export interface EvidenceChainVerificationResult {
+  valid: boolean
+  errors: EvidenceChainError[]
+}
+
+/**
+ * Verify the complete evidence chain integrity for a set of rules.
+ *
+ * Checks performed for each rule:
+ * 1. All source pointers reference existing Evidence records (no orphaned pointers)
+ * 2. Evidence.rawContent hash matches stored contentHash (no tampering)
+ * 3. SourcePointer.exactQuote exists in Evidence.rawContent (quote provenance)
+ * 4. Quote match type is acceptable for the rule's risk tier
+ *
+ * This is a HARD GATE for publication. Rules with broken evidence chains
+ * cannot be published as they would compromise audit trail integrity.
+ */
+export function verifyEvidenceChain(
+  rules: Array<{
+    id: string
+    conceptSlug: string
+    riskTier: string
+    sourcePointers: Array<{
+      id: string
+      evidenceId: string
+      exactQuote: string
+      evidence: {
+        id: string
+        rawContent: string
+        contentHash: string
+        contentType?: string | null
+      } | null
+    }>
+  }>
+): EvidenceChainVerificationResult {
+  const errors: EvidenceChainError[] = []
+
+  for (const rule of rules) {
+    for (const pointer of rule.sourcePointers) {
+      if (!pointer.evidence) {
+        errors.push({
+          ruleId: rule.id,
+          conceptSlug: rule.conceptSlug,
+          pointerId: pointer.id,
+          evidenceId: pointer.evidenceId,
+          errorType: "orphaned_pointer",
+          message: "Orphaned pointer: " + pointer.id + " references missing evidence " + pointer.evidenceId,
+        })
+        continue
+      }
+
+      const integrityCheck = verifyEvidenceIntegrity({
+        id: pointer.evidence.id,
+        rawContent: pointer.evidence.rawContent,
+        contentHash: pointer.evidence.contentHash,
+        contentType: pointer.evidence.contentType ?? undefined,
+      })
+
+      if (!integrityCheck.valid) {
+        errors.push({
+          ruleId: rule.id,
+          conceptSlug: rule.conceptSlug,
+          pointerId: pointer.id,
+          evidenceId: pointer.evidenceId,
+          errorType: "hash_mismatch",
+          message:
+            "Evidence " + pointer.evidenceId + " content hash mismatch - possible corruption. " +
+            "Expected: " + integrityCheck.expectedHash.slice(0, 16) + "..., " +
+            "Got: " + integrityCheck.actualHash.slice(0, 16) + "...",
+        })
+        continue
+      }
+
+      const quoteMatch = findQuoteInEvidence(
+        pointer.evidence.rawContent,
+        pointer.exactQuote,
+        pointer.evidence.contentHash
+      )
+
+      if (!quoteMatch.found) {
+        errors.push({
+          ruleId: rule.id,
+          conceptSlug: rule.conceptSlug,
+          pointerId: pointer.id,
+          evidenceId: pointer.evidenceId,
+          errorType: "quote_not_found",
+          message:
+            "Quote not found in evidence " + pointer.evidenceId + ". " +
+            "Quote preview: \"" + pointer.exactQuote.slice(0, 60) + "...\"",
+        })
+        continue
+      }
+
+      const matchAcceptable = isMatchTypeAcceptableForTier(quoteMatch.matchType, rule.riskTier)
+
+      if (!matchAcceptable.acceptable) {
+        errors.push({
+          ruleId: rule.id,
+          conceptSlug: rule.conceptSlug,
+          pointerId: pointer.id,
+          evidenceId: pointer.evidenceId,
+          errorType: "quote_match_unacceptable",
+          message:
+            "Quote match type \"" + quoteMatch.matchType + "\" not acceptable for " + rule.riskTier + " rule. " +
+            matchAcceptable.reason,
+        })
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  }
+}
+
 /**
  * Calculate semver version based on previous version and rule risk tiers.
  *
@@ -99,6 +230,70 @@ function calculateNextVersion(
 }
 
 /**
+
+  // HARD GATE: Evidence chain integrity
+  // Verify all source pointers reference valid, unmodified evidence
+  // and that quoted text exists in the evidence content
+  const evidenceChainCheck = verifyEvidenceChain(
+    rules.map((r) => ({
+      id: r.id,
+      conceptSlug: r.conceptSlug,
+      riskTier: r.riskTier,
+      sourcePointers: r.sourcePointers.map((sp) => ({
+        id: sp.id,
+        evidenceId: sp.evidenceId,
+        exactQuote: sp.exactQuote,
+        evidence: sp.evidence
+          ? {
+              id: sp.evidence.id,
+              rawContent: sp.evidence.rawContent,
+              contentHash: sp.evidence.contentHash,
+              contentType: sp.evidence.contentType,
+            }
+          : null,
+      })),
+    }))
+  )
+
+  if (!evidenceChainCheck.valid) {
+    // Group errors by type for clearer logging
+    const errorsByType = evidenceChainCheck.errors.reduce(
+      (acc, err) => {
+        acc[err.errorType] = (acc[err.errorType] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    console.error(
+      "[releaser] BLOCKED: Evidence chain verification failed:",
+      evidenceChainCheck.errors.length + " error(s) -",
+      Object.entries(errorsByType)
+        .map(([type, count]) => type + ": " + count)
+        .join(", ")
+    )
+
+    // Log detailed errors
+    for (const err of evidenceChainCheck.errors) {
+      console.error("[releaser]   - " + err.conceptSlug + ": " + err.message)
+    }
+
+    return {
+      success: false,
+      output: null,
+      releaseId: null,
+      publishedRuleIds: [],
+      error:
+        "Cannot release: evidence chain verification failed with " + evidenceChainCheck.errors.length + " error(s). " +
+        evidenceChainCheck.errors
+          .slice(0, 3)
+          .map((e) => e.conceptSlug + ": " + e.errorType)
+          .join("; ") +
+        (evidenceChainCheck.errors.length > 3
+          ? " (and " + (evidenceChainCheck.errors.length - 3) + " more)"
+          : ""),
+    }
+  }
  * Run the Releaser agent to create versioned release bundles
  */
 export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserResult> {
