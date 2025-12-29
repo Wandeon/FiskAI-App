@@ -9,6 +9,7 @@ import { db } from "@/lib/db"
 import { processScannedPdf } from "../utils/ocr-processor"
 import { hashContent } from "../utils/content-hash"
 import { logWorkerStartup } from "./startup-log"
+import { requestOcrReview } from "../services/human-review-service"
 
 logWorkerStartup("ocr")
 
@@ -68,6 +69,8 @@ async function processOcrJob(job: Job<OcrJobData>): Promise<JobResult> {
           },
         },
       })
+      // Create centralized human review request (Issue #884)
+      await requestOcrReview(evidenceId, { error: "No text extracted" })
       return { success: false, duration: Date.now() - start, error: "No text extracted from OCR" }
     }
 
@@ -103,6 +106,14 @@ async function processOcrJob(job: Job<OcrJobData>): Promise<JobResult> {
         },
       },
     })
+
+    // Create centralized human review request if needed (Issue #884)
+    if (ocrResult.needsManualReview) {
+      await requestOcrReview(evidenceId, {
+        avgConfidence: ocrResult.avgConfidence,
+        failedPages: ocrResult.failedPages,
+      })
+    }
 
     // 6. Queue for extraction (now has text artifact)
     await extractQueue.add("extract", { evidenceId, runId })

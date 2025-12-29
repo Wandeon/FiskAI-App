@@ -172,6 +172,12 @@ async function handleSourceConflict(conflict: {
     },
   })
 
+  // Create centralized human review request (Issue #884)
+  await requestConflictReview(conflict.id, {
+    conflictType: "SOURCE_CONFLICT",
+    escalationReason: "source_data_conflict",
+  })
+
   // Log audit event
   await logAuditEvent({
     action: "CONFLICT_ESCALATED",
@@ -337,6 +343,24 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
       resolvedAt: resolution !== "ESCALATE_TO_HUMAN" ? new Date() : null,
     },
   })
+
+  // Create centralized human review request if escalating (Issue #884)
+  if (resolution === "ESCALATE_TO_HUMAN") {
+    const escalationReason =
+      conflict.itemA.riskTier === "T0" && conflict.itemB.riskTier === "T0"
+        ? "both_t0"
+        : arbitration.confidence < 0.8
+          ? "low_confidence"
+          : "equal_authority"
+
+    await requestConflictReview(conflict.id, {
+      conflictType: conflict.conflictType,
+      ruleATier: conflict.itemA.riskTier,
+      ruleBTier: conflict.itemB.riskTier,
+      confidence: arbitration.confidence,
+      escalationReason,
+    })
+  }
 
   // Log audit event for conflict resolution
   await logAuditEvent({
