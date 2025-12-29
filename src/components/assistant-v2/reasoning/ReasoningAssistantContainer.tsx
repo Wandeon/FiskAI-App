@@ -103,7 +103,7 @@ export function ReasoningAssistantContainer({
       </ReasoningModal>
 
       {/* Input area */}
-      <div className="border-t border-gray-200 bg-white p-4">
+      <div className="border-t border-border bg-surface p-4">
         <AssistantInput
           surface={surface}
           onSubmit={handleSubmit}

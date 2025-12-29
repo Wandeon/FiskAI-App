@@ -46,7 +46,7 @@ export function ReasoningStepper({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden",
+        "bg-surface rounded-xl border border-default shadow-sm overflow-hidden",
         className
       )}
       role="region"
@@ -54,8 +54,8 @@ export function ReasoningStepper({
       aria-live="polite"
     >
       {/* Header */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-700">
+      <div className="px-4 py-3 bg-surface-1 border-b border-default flex items-center justify-between">
+        <h3 className="text-sm font-medium text-secondary">
           {streamState === "streaming" && "Analiziramo vase pitanje..."}
           {streamState === "awaiting_input" && "Potrebno pojasnjenje"}
           {streamState === "ended" && "Analiza zavrsena"}
@@ -63,12 +63,12 @@ export function ReasoningStepper({
         </h3>
 
         {streamState === "streaming" && timeSinceLastEvent !== null && (
-          <span className="text-xs text-gray-500">Azurirano: {timeSinceLastEvent}s</span>
+          <span className="text-xs text-tertiary">Azurirano: {timeSinceLastEvent}s</span>
         )}
       </div>
 
       {/* Stages */}
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-subtle">
         {REASONING_STAGES.map((stage) => (
           <StageStepWrapper
             key={stage}

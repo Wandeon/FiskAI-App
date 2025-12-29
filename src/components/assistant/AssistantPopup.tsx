@@ -126,21 +126,21 @@ export function AssistantPopup() {
             className="fixed bottom-20 right-4 md:right-6 w-[90vw] md:w-[400px] h-[600px] max-h-[80vh] bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden glass-card"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-slate-950 text-white">
+            <div className="flex items-center justify-between p-4 border-b border-border bg-surface-2 text-foreground">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                  <Sparkles className="w-4 h-4 text-blue-400" />
+                <div className="w-8 h-8 rounded-full bg-interactive/20 flex items-center justify-center border border-interactive/30">
+                  <Sparkles className="w-4 h-4 text-interactive" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm">FiskAI Asistent</h3>
-                  <p className="text-xs text-blue-200">Online</p>
+                  <p className="text-xs text-interactive">Online</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
+                  className="h-8 w-8 p-0 text-tertiary hover:text-foreground hover:bg-surface-1"
                   onClick={() => setIsOpen(false)}
                 >
                   <Minimize2 className="w-4 h-4" />
@@ -148,7 +148,7 @@ export function AssistantPopup() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
+                  className="h-8 w-8 p-0 text-tertiary hover:text-foreground hover:bg-surface-1"
                   onClick={() => setIsOpen(false)}
                 >
                   <X className="w-4 h-4" />
@@ -160,7 +160,7 @@ export function AssistantPopup() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[var(--surface-secondary)]/30 scrollbar-thin">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-4 opacity-70">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 rounded-full bg-info-bg text-info-text flex items-center justify-center mb-3">
                     <Sparkles className="w-6 h-6" />
                   </div>
                   <p className="text-sm font-medium mb-6">
@@ -171,7 +171,7 @@ export function AssistantPopup() {
                       <button
                         key={q}
                         onClick={() => handleSendMessage(undefined, q)}
-                        className="text-xs text-left p-2.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all"
+                        className="text-xs text-left p-2.5 rounded-lg bg-surface border border-border hover:border-interactive/50 hover:bg-info-bg/50 transition-all"
                       >
                         {q}
                       </button>
@@ -191,8 +191,8 @@ export function AssistantPopup() {
                       className={cn(
                         "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px]",
                         m.role === "user"
-                          ? "bg-blue-600 text-white hidden"
-                          : "bg-emerald-600 text-white"
+                          ? "bg-interactive text-white hidden"
+                          : "bg-success text-white"
                       )}
                     >
                       {m.role === "assistant" && <Bot className="w-3 h-3" />}
@@ -201,8 +201,8 @@ export function AssistantPopup() {
                       className={cn(
                         "p-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
                         m.role === "user"
-                          ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
-                          : "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl rounded-tl-sm"
+                          ? "bg-interactive text-white rounded-2xl rounded-tr-sm"
+                          : "bg-surface text-foreground border border-border rounded-2xl rounded-tl-sm"
                       )}
                     >
                       {m.content}
@@ -212,14 +212,14 @@ export function AssistantPopup() {
               )}
               {isLoading && (
                 <div className="flex gap-2 max-w-[85%] mr-auto">
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-success text-white flex items-center justify-center flex-shrink-0">
                     <Bot className="w-3 h-3" />
                   </div>
-                  <div className="bg-[var(--surface)] border border-[var(--border)] px-3 py-2 rounded-2xl rounded-tl-sm flex items-center gap-2">
+                  <div className="bg-surface border border-border px-3 py-2 rounded-2xl rounded-tl-sm flex items-center gap-2">
                     <div className="flex gap-1">
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                      <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                      <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                      <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"></span>
                     </div>
                   </div>
                 </div>
@@ -228,13 +228,13 @@ export function AssistantPopup() {
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-[var(--surface)] border-t border-[var(--border)]">
+            <div className="p-3 bg-surface border-t border-border">
               <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Upišite pitanje..."
-                  className="flex-1 h-10 bg-[var(--surface-secondary)]/50 border-transparent focus:bg-[var(--surface)] focus:border-blue-500/50 transition-all"
+                  className="flex-1 h-10 bg-surface-1/50 border-transparent focus:bg-surface focus:border-focus transition-all"
                   disabled={isLoading}
                 />
                 <Button
@@ -244,8 +244,8 @@ export function AssistantPopup() {
                   className={cn(
                     "h-10 w-10 p-0 rounded-full transition-all",
                     input.trim()
-                      ? "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
-                      : "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600"
+                      ? "bg-interactive hover:bg-interactive-hover shadow-lg shadow-interactive/20"
+                      : "bg-surface-2 text-muted"
                   )}
                 >
                   <Send className="w-4 h-4 ml-0.5" />
@@ -264,15 +264,15 @@ export function AssistantPopup() {
         className={cn(
           "fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300",
           isOpen
-            ? "bg-slate-800 text-white rotate-90"
-            : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-500/30"
+            ? "bg-surface-2 text-foreground rotate-90"
+            : "bg-gradient-to-r from-interactive to-interactive-hover text-white hover:shadow-interactive/30"
         )}
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
 
         {/* Notification dot (optional) */}
         {!isOpen && messages.length > 0 && (
-          <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-[var(--background)] rounded-full"></span>
+          <span className="absolute top-0 right-0 w-4 h-4 bg-danger border-2 border-base rounded-full"></span>
         )}
       </motion.button>
     </>

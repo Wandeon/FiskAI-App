@@ -10,10 +10,10 @@ interface AuthorityBadgeProps {
 }
 
 const LIGHT_STYLES: Record<AuthorityLevel, string> = {
-  LAW: "bg-purple-100 text-purple-800",
-  REGULATION: "bg-blue-100 text-blue-800",
-  GUIDANCE: "bg-green-100 text-green-800",
-  PRACTICE: "bg-gray-100 text-gray-800",
+  LAW: "bg-surface-1 text-secondary border border-default",
+  REGULATION: "bg-info-bg text-info-text border border-info-border",
+  GUIDANCE: "bg-success-bg text-success-text border border-success-border",
+  PRACTICE: "bg-surface-1 text-secondary border border-default",
 }
 
 const DARK_STYLES: Record<AuthorityLevel, string> = {

@@ -35,11 +35,11 @@ export function ReasoningCard({
   const stageEvents = allEvents.filter((e) => e.stage === stage)
 
   return (
-    <div className={cn("bg-white rounded-lg border border-gray-200 overflow-hidden", className)}>
+    <div className={cn("bg-surface rounded-lg border border-default overflow-hidden", className)}>
       {/* Header - always visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-1 transition-colors"
         aria-expanded={isExpanded}
       >
         {/* Stage icon */}
@@ -48,21 +48,21 @@ export function ReasoningCard({
         {/* Label and summary */}
         <div className="flex-1 text-left">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm text-gray-900">{label}</span>
-            <Check className="w-4 h-4 text-green-500" />
+            <span className="font-medium text-sm text-foreground">{label}</span>
+            <Check className="w-4 h-4 text-success-icon" />
           </div>
-          <p className="text-sm text-gray-600 truncate">{summary}</p>
+          <p className="text-sm text-secondary truncate">{summary}</p>
         </div>
 
         {/* Expand/collapse icon */}
-        <div className="text-gray-400">
+        <div className="text-tertiary">
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </div>
       </button>
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+        <div className="px-4 py-3 border-t border-subtle bg-surface-1">
           <StageDetails stage={stage} events={stageEvents} data={data} />
         </div>
       )}
@@ -98,17 +98,17 @@ function SourcesDetails({ data }: { data: unknown }) {
 
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-medium text-gray-500 uppercase">Pronadeni izvori</h4>
+      <h4 className="text-xs font-medium text-tertiary uppercase">Pronadeni izvori</h4>
       <ul className="space-y-1">
         {sources.slice(0, 3).map((source, i) => (
-          <li key={i} className="text-sm text-gray-700 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+          <li key={i} className="text-sm text-foreground flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-interactive" />
             {source.name}
-            <span className="text-xs text-gray-400">({source.authority})</span>
+            <span className="text-xs text-tertiary">({source.authority})</span>
           </li>
         ))}
         {sources.length > 3 && (
-          <li className="text-sm text-gray-500">+ {sources.length - 3} vise</li>
+          <li className="text-sm text-secondary">+ {sources.length - 3} vise</li>
         )}
       </ul>
     </div>
@@ -134,12 +134,12 @@ function ApplicabilityDetails({ data }: { data: unknown }) {
 
       {appData?.exclusions && appData.exclusions.length > 0 && (
         <div>
-          <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Iskljucena pravila</h4>
+          <h4 className="text-xs font-medium text-tertiary uppercase mb-2">Iskljucena pravila</h4>
           <ul className="space-y-2">
             {appData.exclusions.map((exc, i) => (
-              <li key={i} className="text-sm bg-yellow-50 p-2 rounded">
+              <li key={i} className="text-sm bg-warning-bg p-2 rounded">
                 <span className="font-medium">{exc.ruleTitle}</span>
-                <p className="text-gray-600 text-xs mt-1">
+                <p className="text-secondary text-xs mt-1">
                   Ocekivano: {exc.expected}, Stvarno: {exc.actual}
                 </p>
               </li>
@@ -195,7 +195,7 @@ function GenericDetails({ events }: { events: ReasoningEvent[] }) {
   }
 
   return (
-    <ul className="space-y-1 text-sm text-gray-600">
+    <ul className="space-y-1 text-sm text-secondary">
       {progressEvents.map((event, i) => (
         <li key={i}>• {event.message}</li>
       ))}

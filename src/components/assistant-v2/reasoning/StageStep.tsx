@@ -11,13 +11,13 @@ const stepVariants = cva("flex items-start gap-3 p-3 rounded-lg transition-all d
   variants: {
     state: {
       pending: "opacity-50",
-      active: "bg-blue-50 border border-blue-200",
+      active: "bg-info-bg border border-info-border",
       complete: "opacity-80",
-      error: "bg-red-50 border border-red-200",
+      error: "bg-danger-bg border border-danger-border",
     },
     expanded: {
       true: "",
-      false: "cursor-pointer hover:bg-gray-50",
+      false: "cursor-pointer hover:bg-surface-1",
     },
   },
   defaultVariants: {
@@ -29,10 +29,10 @@ const stepVariants = cva("flex items-start gap-3 p-3 rounded-lg transition-all d
 const iconVariants = cva("flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center", {
   variants: {
     state: {
-      pending: "bg-gray-200 text-gray-400",
-      active: "bg-blue-500 text-white",
-      complete: "bg-green-500 text-white",
-      error: "bg-red-500 text-white",
+      pending: "bg-surface-2 text-muted",
+      active: "bg-interactive text-white",
+      complete: "bg-success text-white",
+      error: "bg-danger text-white",
     },
   },
   defaultVariants: {
@@ -79,9 +79,9 @@ export function StageStep({
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <span className="font-medium text-sm text-gray-900">{label}</span>
+          <span className="font-medium text-sm text-foreground">{label}</span>
           {progress && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-tertiary">
               {progress.current}
               {progress.total ? `/${progress.total}` : ""}
             </span>
@@ -90,12 +90,12 @@ export function StageStep({
 
         {/* Message */}
         {message && state === "active" && (
-          <p className="text-sm text-gray-600 mt-1 truncate">{message}</p>
+          <p className="text-sm text-secondary mt-1 truncate">{message}</p>
         )}
 
         {/* Expanded content */}
         {isExpanded && children && (
-          <div className="mt-3 pt-3 border-t border-gray-100">{children}</div>
+          <div className="mt-3 pt-3 border-t border-subtle">{children}</div>
         )}
       </div>
     </div>

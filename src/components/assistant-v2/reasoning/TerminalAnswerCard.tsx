@@ -71,19 +71,19 @@ export function TerminalAnswerCard({ outcome, payload, className }: TerminalAnsw
 // === ANSWER ===
 function AnswerCard({ payload, className }: { payload: AnswerPayloadUI; className?: string }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-green-200 overflow-hidden", className)}>
+    <div className={cn("bg-surface rounded-xl border border-success-border overflow-hidden", className)}>
       {/* Header */}
-      <div className="px-4 py-3 bg-green-50 border-b border-green-200 flex items-center gap-2">
-        <CheckCircle className="w-5 h-5 text-green-600" />
-        <span className="font-medium text-green-800">Odgovor</span>
+      <div className="px-4 py-3 bg-success-bg border-b border-success-border flex items-center gap-2">
+        <CheckCircle className="w-5 h-5 text-success-icon" />
+        <span className="font-medium text-success-text">Odgovor</span>
         {payload.asOfDate && (
-          <span className="ml-auto text-xs text-gray-500">Na dan: {payload.asOfDate}</span>
+          <span className="ml-auto text-xs text-tertiary">Na dan: {payload.asOfDate}</span>
         )}
       </div>
 
       {/* Answer content */}
       <div className="p-4">
-        <p className="text-gray-900 leading-relaxed">{payload.answerHr}</p>
+        <p className="text-foreground leading-relaxed">{payload.answerHr}</p>
 
         {/* Structured data */}
         {payload.structured && <StructuredData structured={payload.structured} />}
@@ -110,29 +110,29 @@ function QualifiedAnswerCard({
   const citations = payload.citations ?? []
 
   return (
-    <div className={cn("bg-white rounded-xl border border-yellow-200 overflow-hidden", className)}>
+    <div className={cn("bg-surface rounded-xl border border-warning-border overflow-hidden", className)}>
       {/* Header */}
-      <div className="px-4 py-3 bg-yellow-50 border-b border-yellow-200 flex items-center gap-2">
-        <AlertTriangle className="w-5 h-5 text-yellow-600" />
-        <span className="font-medium text-yellow-800">Odgovor s upozorenjem</span>
+      <div className="px-4 py-3 bg-warning-bg border-b border-warning-border flex items-center gap-2">
+        <AlertTriangle className="w-5 h-5 text-warning-icon" />
+        <span className="font-medium text-warning-text">Odgovor s upozorenjem</span>
       </div>
 
       {/* Conflict warnings */}
       {conflictWarnings.map((warning, i) => (
-        <div key={i} className="mx-4 mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm font-medium text-yellow-800">{warning.description}</p>
+        <div key={i} className="mx-4 mt-4 p-3 bg-warning-bg border border-warning-border rounded-lg">
+          <p className="text-sm font-medium text-warning-text">{warning.description}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-            <div className="p-2 bg-white rounded">
+            <div className="p-2 bg-surface rounded">
               <span className="font-medium">{warning.sourceA.name}:</span>
-              <p className="text-gray-600">{warning.sourceA.says}</p>
+              <p className="text-secondary">{warning.sourceA.says}</p>
             </div>
-            <div className="p-2 bg-white rounded">
+            <div className="p-2 bg-surface rounded">
               <span className="font-medium">{warning.sourceB.name}:</span>
-              <p className="text-gray-600">{warning.sourceB.says}</p>
+              <p className="text-secondary">{warning.sourceB.says}</p>
             </div>
           </div>
           {warning.practicalResolution && (
-            <p className="mt-2 text-sm text-gray-700">
+            <p className="mt-2 text-sm text-foreground">
               <strong>U praksi:</strong> {warning.practicalResolution}
             </p>
           )}
@@ -141,13 +141,13 @@ function QualifiedAnswerCard({
 
       {/* Answer content */}
       <div className="p-4">
-        <p className="text-gray-900 leading-relaxed">{payload.answerHr}</p>
+        <p className="text-foreground leading-relaxed">{payload.answerHr}</p>
 
         {/* Caveats */}
         {caveats.length > 0 && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-            <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Napomene</h4>
-            <ul className="space-y-1 text-sm text-gray-600">
+          <div className="mt-3 p-3 bg-surface-1 rounded-lg">
+            <h4 className="text-xs font-medium text-tertiary uppercase mb-2">Napomene</h4>
+            <ul className="space-y-1 text-sm text-secondary">
               {caveats.map((caveat, i) => (
                 <li key={i}>• {caveat}</li>
               ))}
@@ -168,26 +168,26 @@ function RefusalCard({ payload, className }: { payload: RefusalPayloadUI; classN
   const nextSteps = payload.nextSteps ?? payload.template?.nextSteps ?? []
 
   return (
-    <div className={cn("bg-white rounded-xl border border-gray-200 overflow-hidden", className)}>
+    <div className={cn("bg-surface rounded-xl border border-default overflow-hidden", className)}>
       {/* Header */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
-        <XCircle className="w-5 h-5 text-gray-500" />
-        <span className="font-medium text-gray-700">Nije moguće odgovoriti</span>
+      <div className="px-4 py-3 bg-surface-1 border-b border-default flex items-center gap-2">
+        <XCircle className="w-5 h-5 text-tertiary" />
+        <span className="font-medium text-secondary">Nije moguće odgovoriti</span>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <p className="text-gray-700">{messageHr}</p>
+        <p className="text-secondary">{messageHr}</p>
 
         {/* Next steps */}
         {nextSteps.length > 0 && (
           <div className="mt-4">
-            <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Sljedeći koraci</h4>
+            <h4 className="text-xs font-medium text-tertiary uppercase mb-2">Sljedeći koraci</h4>
             <div className="flex flex-wrap gap-2">
               {nextSteps.map((step, i) => (
                 <button
                   key={i}
-                  className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-full hover:bg-blue-100 transition-colors"
+                  className="px-3 py-1.5 bg-info-bg text-info-text text-sm rounded-full hover:bg-info-bg/80 transition-colors"
                 >
                   {step.promptHr || step.prompt || step.type}
                 </button>
@@ -203,20 +203,20 @@ function RefusalCard({ payload, className }: { payload: RefusalPayloadUI; classN
 // === ERROR ===
 function ErrorCard({ payload, className }: { payload: ErrorPayload; className?: string }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-red-200 overflow-hidden", className)}>
+    <div className={cn("bg-surface rounded-xl border border-danger-border overflow-hidden", className)}>
       {/* Header */}
-      <div className="px-4 py-3 bg-red-50 border-b border-red-200 flex items-center gap-2">
-        <AlertCircle className="w-5 h-5 text-red-600" />
-        <span className="font-medium text-red-800">Greška</span>
-        <span className="ml-auto text-xs text-gray-500 font-mono">{payload.correlationId}</span>
+      <div className="px-4 py-3 bg-danger-bg border-b border-danger-border flex items-center gap-2">
+        <AlertCircle className="w-5 h-5 text-danger-icon" />
+        <span className="font-medium text-danger-text">Greška</span>
+        <span className="ml-auto text-xs text-tertiary font-mono">{payload.correlationId}</span>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <p className="text-gray-700">{payload.message}</p>
+        <p className="text-secondary">{payload.message}</p>
 
         {payload.retryable && (
-          <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <button className="mt-4 px-4 py-2 bg-interactive text-white rounded-lg hover:bg-interactive-hover transition-colors">
             Pokušaj ponovo
           </button>
         )}
@@ -233,9 +233,9 @@ function StructuredData({ structured }: { structured: AnswerPayloadUI["structure
   return (
     <div className="mt-4 grid gap-3">
       {structured.obligations && structured.obligations.length > 0 && (
-        <div className="p-3 bg-blue-50 rounded-lg">
-          <h4 className="text-xs font-medium text-blue-700 uppercase mb-1">Obveze</h4>
-          <ul className="space-y-1 text-sm text-gray-700">
+        <div className="p-3 bg-info-bg rounded-lg">
+          <h4 className="text-xs font-medium text-info-text uppercase mb-1">Obveze</h4>
+          <ul className="space-y-1 text-sm text-foreground">
             {structured.obligations.map((o, i) => (
               <li key={i}>• {o}</li>
             ))}
@@ -244,9 +244,9 @@ function StructuredData({ structured }: { structured: AnswerPayloadUI["structure
       )}
 
       {structured.deadlines && structured.deadlines.length > 0 && (
-        <div className="p-3 bg-orange-50 rounded-lg">
-          <h4 className="text-xs font-medium text-orange-700 uppercase mb-1">Rokovi</h4>
-          <ul className="space-y-1 text-sm text-gray-700">
+        <div className="p-3 bg-warning-bg rounded-lg">
+          <h4 className="text-xs font-medium text-warning-text uppercase mb-1">Rokovi</h4>
+          <ul className="space-y-1 text-sm text-foreground">
             {structured.deadlines.map((d, i) => (
               <li key={i}>• {d}</li>
             ))}
@@ -255,9 +255,9 @@ function StructuredData({ structured }: { structured: AnswerPayloadUI["structure
       )}
 
       {structured.thresholds && structured.thresholds.length > 0 && (
-        <div className="p-3 bg-purple-50 rounded-lg">
-          <h4 className="text-xs font-medium text-purple-700 uppercase mb-1">Pragovi</h4>
-          <ul className="space-y-1 text-sm text-gray-700">
+        <div className="p-3 bg-surface-1 rounded-lg border border-default">
+          <h4 className="text-xs font-medium text-secondary uppercase mb-1">Pragovi</h4>
+          <ul className="space-y-1 text-sm text-foreground">
             {structured.thresholds.map((t, i) => (
               <li key={i}>• {t}</li>
             ))}
@@ -274,20 +274,20 @@ function Citations({
   citations: Array<{ title: string; quote: string; url: string }>
 }) {
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
-      <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Izvori</h4>
+    <div className="mt-4 pt-4 border-t border-subtle">
+      <h4 className="text-xs font-medium text-tertiary uppercase mb-2">Izvori</h4>
       <div className="space-y-2">
         {citations.map((citation, i) => (
-          <div key={i} className="p-3 bg-gray-50 rounded-lg">
+          <div key={i} className="p-3 bg-surface-1 rounded-lg">
             <a
               href={citation.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-blue-600 hover:underline"
+              className="text-sm font-medium text-link hover:underline"
             >
               {citation.title}
             </a>
-            <p className="text-sm text-gray-600 mt-1 italic">&ldquo;{citation.quote}&rdquo;</p>
+            <p className="text-sm text-secondary mt-1 italic">&ldquo;{citation.quote}&rdquo;</p>
           </div>
         ))}
       </div>

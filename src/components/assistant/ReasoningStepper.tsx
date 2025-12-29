@@ -91,9 +91,9 @@ export function ReasoningStepper({ events, language = "hr", className }: Reasoni
               <div
                 className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center text-xs",
-                  status === "complete" && "bg-green-100 text-green-700",
-                  status === "active" && "bg-blue-100 text-blue-700 animate-pulse",
-                  status === "pending" && "bg-gray-100 text-gray-400"
+                  status === "complete" && "bg-success-bg text-success-text",
+                  status === "active" && "bg-info-bg text-info-text animate-pulse",
+                  status === "pending" && "bg-surface-1 text-muted"
                 )}
                 title={language === "hr" ? meta.labelHr : meta.label}
               >
@@ -103,7 +103,7 @@ export function ReasoningStepper({ events, language = "hr", className }: Reasoni
                 <div
                   className={cn(
                     "w-4 h-0.5",
-                    status === "complete" ? "bg-green-300" : "bg-gray-200"
+                    status === "complete" ? "bg-success-border" : "bg-border"
                   )}
                 />
               )}
@@ -114,7 +114,7 @@ export function ReasoningStepper({ events, language = "hr", className }: Reasoni
 
       {/* Current stage label */}
       {currentStage && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-secondary">
           {language === "hr" ? STAGE_META[currentStage].labelHr : STAGE_META[currentStage].label}
           ...
         </div>
@@ -122,7 +122,7 @@ export function ReasoningStepper({ events, language = "hr", className }: Reasoni
 
       {/* Progress messages */}
       {progressMessages.length > 0 && (
-        <div className="text-xs text-gray-500 space-y-0.5">
+        <div className="text-xs text-tertiary space-y-0.5">
           {progressMessages.map((msg, i) => (
             <div key={i} className="truncate">
               {msg}

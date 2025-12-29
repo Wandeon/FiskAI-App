@@ -12,9 +12,9 @@ interface RefusalCardProps {
 }
 
 const SEVERITY_STYLES = {
-  info: "border-blue-200 bg-blue-50 text-blue-900",
-  warning: "border-amber-200 bg-amber-50 text-amber-900",
-  critical: "border-red-200 bg-red-50 text-red-900",
+  info: "border-info-border bg-info-bg text-info-text",
+  warning: "border-warning-border bg-warning-bg text-warning-text",
+  critical: "border-danger-border bg-danger-bg text-danger-text",
 }
 
 const SEVERITY_ICONS = {

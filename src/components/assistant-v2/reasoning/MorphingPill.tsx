@@ -45,7 +45,7 @@ export function MorphingPill({
       onClick={handleClick}
       className={cn(
         "inline-flex items-center gap-2 px-4 py-2 rounded-full",
-        "bg-blue-500 text-white text-sm font-medium",
+        "bg-interactive text-white text-sm font-medium",
         "shadow-lg hover:shadow-xl transition-all duration-200",
         "hover:scale-105 active:scale-95",
         isAnimating && "scale-95 opacity-90",
@@ -80,7 +80,7 @@ export function ReasoningModal({ isOpen, onClose, children }: ReasoningModalProp
       {/* Modal content */}
       <div
         className={cn(
-          "relative w-full md:max-w-lg bg-white",
+          "relative w-full md:max-w-lg bg-surface",
           "rounded-t-2xl md:rounded-2xl shadow-2xl",
           "max-h-[80vh] overflow-y-auto",
           "animate-in slide-in-from-bottom duration-300"
@@ -88,7 +88,7 @@ export function ReasoningModal({ isOpen, onClose, children }: ReasoningModalProp
       >
         {/* Handle bar (mobile) */}
         <div className="md:hidden flex justify-center py-3">
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+          <div className="w-12 h-1.5 bg-border rounded-full" />
         </div>
 
         {/* Content */}

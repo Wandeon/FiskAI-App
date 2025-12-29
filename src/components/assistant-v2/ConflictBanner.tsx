@@ -20,8 +20,8 @@ export function ConflictBanner({ conflict, className }: ConflictBannerProps) {
   const styles = cn(
     "p-3 rounded-lg flex items-start gap-3 text-sm",
     isResolved && "bg-muted/50 text-muted-foreground",
-    isUnresolved && "bg-yellow-50 text-yellow-800 border border-yellow-200",
-    isContextDependent && "bg-blue-50 text-blue-800 border border-blue-200",
+    isUnresolved && "bg-warning-bg text-warning-text border border-warning-border",
+    isContextDependent && "bg-info-bg text-info-text border border-info-border",
     className
   )
 

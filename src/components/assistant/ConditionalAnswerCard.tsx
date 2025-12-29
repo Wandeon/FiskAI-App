@@ -20,17 +20,17 @@ export function ConditionalAnswerCard({
   const { branches, commonParts } = payload
 
   return (
-    <div className={cn("rounded-lg border border-amber-200 bg-amber-50 p-4", className)}>
+    <div className={cn("rounded-lg border border-warning-border bg-warning-bg p-4", className)}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">🔀</span>
-        <h3 className="font-medium text-amber-900">
+        <h3 className="font-medium text-warning-text">
           {language === "hr" ? "Uvjetni odgovor" : "Conditional Answer"}
         </h3>
       </div>
 
       {/* Common parts */}
-      {commonParts && <p className="text-sm text-amber-800 mb-3">{commonParts}</p>}
+      {commonParts && <p className="text-sm text-warning-text mb-3">{commonParts}</p>}
 
       {/* Branches */}
       <div className="space-y-2">
@@ -39,24 +39,24 @@ export function ConditionalAnswerCard({
             key={index}
             onClick={() => onBranchSelect?.(index)}
             className={cn(
-              "w-full text-left p-3 rounded-md border border-amber-200 bg-white",
-              "hover:border-amber-400 hover:bg-amber-50 transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-amber-400"
+              "w-full text-left p-3 rounded-md border border-warning-border bg-surface",
+              "hover:border-warning-border/80 hover:bg-warning-bg transition-colors",
+              "focus:outline-none focus:ring-2 focus:ring-warning-border"
             )}
           >
             {/* Condition */}
-            <div className="text-sm font-medium text-amber-700 mb-1">
+            <div className="text-sm font-medium text-warning-text mb-1">
               {language === "hr" ? branch.conditionHr : branch.condition}
             </div>
 
             {/* Answer preview */}
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-foreground">
               {language === "hr" ? branch.answerHr : branch.answer}
             </div>
 
             {/* Probability if available */}
             {branch.probability !== undefined && (
-              <div className="mt-1 text-xs text-amber-600">
+              <div className="mt-1 text-xs text-warning-text">
                 {Math.round(branch.probability * 100)}%{" "}
                 {language === "hr" ? "vjerojatnost" : "probability"}
               </div>
@@ -66,7 +66,7 @@ export function ConditionalAnswerCard({
       </div>
 
       {/* Help text */}
-      <p className="mt-3 text-xs text-amber-600">
+      <p className="mt-3 text-xs text-warning-text">
         {language === "hr"
           ? "Kliknite na opciju koja odgovara vašoj situaciji"
           : "Click on the option that matches your situation"}
