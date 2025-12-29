@@ -10,6 +10,7 @@ import { Reveal } from "@/components/motion/Reveal"
 import { Stagger, StaggerItem } from "@/components/motion/Stagger"
 import { FaqAccordion } from "@/components/marketing/FaqAccordion"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { companyInfo } from "@/config/company"
 
 type Billing = "monthly" | "annual"
 
@@ -435,8 +436,11 @@ export function MarketingPricingClient() {
                   Kontaktirajte nas
                 </Link>{" "}
                 putem emaila{" "}
-                <a href="mailto:info@fiskai.hr" className="font-semibold text-cyan-400 hover:underline">
-                  info@fiskai.hr
+                <a
+                  href={`mailto:${companyInfo.emailContact}`}
+                  className="font-semibold text-cyan-400 hover:underline"
+                >
+                  {companyInfo.emailContact}
                 </a>
               </p>
             </div>

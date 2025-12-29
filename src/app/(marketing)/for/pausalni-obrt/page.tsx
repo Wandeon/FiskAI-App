@@ -13,6 +13,7 @@ import {
 import { WorkflowScroller } from "@/components/marketing/WorkflowScroller"
 import { FaqAccordion } from "@/components/marketing/FaqAccordion"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { companyInfo } from "@/config/company"
 
 export const metadata: Metadata = {
   title: "FiskAI — Za paušalni obrt",
@@ -318,8 +319,11 @@ export default function PausalniObrtPage() {
                 Kontaktirajte nas
               </Link>{" "}
               putem emaila{" "}
-              <a href="mailto:info@fiskai.hr" className="font-semibold text-cyan-400 hover:underline">
-                info@fiskai.hr
+              <a
+                href={`mailto:${companyInfo.emailContact}`}
+                className="font-semibold text-cyan-400 hover:underline"
+              >
+                {companyInfo.emailContact}
               </a>
             </p>
           </div>
