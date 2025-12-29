@@ -98,7 +98,7 @@ export default function SecurityPage() {
                 <div>
                   <p className="font-medium">Glavna lokacija podataka</p>
                   <p className="text-white/60">
-                    Primarna baza podataka: EU (Njemačka, Frankfurt) - AWS eu-central-1
+                    Primarna baza podataka: EU (Njemačka) - Hetzner Cloud
                   </p>
                   <p className="text-xs text-white/60 mt-1">
                     Svi podaci ostaju unutar Europske unije u skladu s GDPR
@@ -106,7 +106,7 @@ export default function SecurityPage() {
                 </div>
                 <div>
                   <p className="font-medium">Backup lokacije</p>
-                  <p className="text-white/60">EU (Irska, Dublin) - AWS eu-west-1</p>
+                  <p className="text-white/60">EU (Njemačka) - Hetzner Cloud</p>
                   <p className="text-xs text-white/60 mt-1">
                     Dnevni backupi, 30 dana retencije, šifrirani
                   </p>
