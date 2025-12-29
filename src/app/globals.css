@@ -185,6 +185,237 @@ body {
   }
 }
 
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+  /* Reset colors for print - use high contrast black/white */
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --surface: #ffffff;
+    --border: #cccccc;
+    --muted: #666666;
+  }
+
+  /* Hide UI elements that shouldn't print */
+  .no-print,
+  nav,
+  aside,
+  header:not(.print-header),
+  footer:not(.print-footer),
+  .skip-link,
+  [role="navigation"],
+  [role="complementary"],
+  button:not(.print-button),
+  .btn,
+  .floating-action-button,
+  .toast,
+  .tooltip,
+  .modal-overlay,
+  .sidebar,
+  .app-sidebar,
+  .mobile-nav,
+  .mobile-menu,
+  .dropdown-menu,
+  .popover {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Base print styles */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure content uses full width */
+  .container,
+  .content,
+  main,
+  article {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Page breaks */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  p,
+  blockquote,
+  figure,
+  table,
+  ul,
+  ol {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Table styling for print */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #cccccc !important;
+    padding: 8px !important;
+    text-align: left !important;
+  }
+
+  thead {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Invoice-specific print styles */
+  .invoice-preview,
+  .invoice-pdf-preview {
+    aspect-ratio: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure invoice header is visible */
+  .invoice-header,
+  .print-header {
+    display: flex !important;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #000000;
+    margin-bottom: 1rem;
+  }
+
+  /* Invoice totals */
+  .invoice-totals,
+  .invoice-footer {
+    background-color: #f5f5f5 !important;
+    color: #000000 !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    border: 1px solid #cccccc !important;
+  }
+
+  /* Report styles for print */
+  .report-container {
+    padding: 0 !important;
+  }
+
+  .report-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #000000;
+  }
+
+  /* Links - show URL for reference */
+  a[href^="http"]:not(.no-print-url)::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666666;
+    font-weight: normal;
+  }
+
+  /* Card components - flatten for print */
+  .card,
+  [class*="card"] {
+    border: 1px solid #cccccc !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Badge styling for print */
+  .badge,
+  [class*="badge"] {
+    border: 1px solid #666666 !important;
+    background: transparent !important;
+    color: #000000 !important;
+  }
+
+  /* Ensure images print properly */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Print margins */
+  @page {
+    margin: 2cm;
+    size: A4;
+  }
+
+  /* First page margin */
+  @page :first {
+    margin-top: 3cm;
+  }
+}
+
+/* Utility classes for print control */
+@layer utilities {
+  .no-print {
+    @media print {
+      display: none !important;
+    }
+  }
+
+  .print-only {
+    display: none;
+    @media print {
+      display: block !important;
+    }
+  }
+
+  .print-break-before {
+    @media print {
+      page-break-before: always;
+      break-before: page;
+    }
+  }
+
+  .print-break-after {
+    @media print {
+      page-break-after: always;
+      break-after: page;
+    }
+  }
+
+  .print-avoid-break {
+    @media print {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  }
+}
+
 @layer utilities {
   /* Screen Reader Only - Visually hidden but accessible */
   .sr-only {

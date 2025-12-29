@@ -6,6 +6,7 @@ import { db } from "@/lib/db"
 const querySchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
+  format: z.enum(["csv", "json", "xml"]).optional().default("csv"),
 })
 
 function parseDate(value?: string) {
@@ -34,6 +35,48 @@ function csvEscape(value: string | number | null | undefined) {
 
 function buildCsv(rows: Array<Array<string | number | null | undefined>>) {
   return rows.map((row) => row.map(csvEscape).join(";")).join("\n")
+}
+
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+}
+
+function buildInvoicesXml(invoices: any[]): string {
+  const lines = invoices
+    .map(
+      (inv) => `
+    <Invoice>
+      <InvoiceNumber>${escapeXml(inv.invoiceNumber || "")}</InvoiceNumber>
+      <IssueDate>${formatDate(inv.issueDate)}</IssueDate>
+      <DueDate>${formatDate(inv.dueDate)}</DueDate>
+      <Buyer>
+        <Name>${escapeXml(inv.buyer?.name || "")}</Name>
+        <OIB>${escapeXml(inv.buyer?.oib || "")}</OIB>
+        <Email>${escapeXml(inv.buyer?.email || "")}</Email>
+      </Buyer>
+      <Direction>${escapeXml(inv.direction || "")}</Direction>
+      <Type>${escapeXml(inv.type || "")}</Type>
+      <Status>${escapeXml(inv.status || "")}</Status>
+      <NetAmount>${money(inv.netAmount)}</NetAmount>
+      <VATAmount>${money(inv.vatAmount)}</VATAmount>
+      <TotalAmount>${money(inv.totalAmount)}</TotalAmount>
+      <Paid>${inv.paidAt ? "true" : "false"}</Paid>
+      <PaidDate>${formatDate(inv.paidAt)}</PaidDate>
+      <Reference>${escapeXml(inv.providerRef || inv.internalReference || "")}</Reference>
+    </Invoice>`
+    )
+    .join("")
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Invoices xmlns="urn:fiskai:exports:invoices:1.0">
+  <ExportDate>${new Date().toISOString()}</ExportDate>
+  <Count>${invoices.length}</Count>${lines}
+</Invoices>`
 }
 
 export async function GET(request: Request) {
@@ -130,9 +173,55 @@ export async function GET(request: Request) {
     invoice.providerRef || invoice.internalReference || "",
   ])
 
-  const csv = "\uFEFF" + buildCsv([header, ...rows])
   const rangeLabel =
     parsed.data.from && parsed.data.to ? `${parsed.data.from}-${parsed.data.to}` : "svi"
+  const format = parsed.data.format
+
+  if (format === "json") {
+    const jsonData = {
+      exportDate: new Date().toISOString(),
+      dateRange: { from: parsed.data.from, to: parsed.data.to },
+      count: invoices.length,
+      invoices: invoices.map((inv) => ({
+        invoiceNumber: inv.invoiceNumber,
+        issueDate: formatDate(inv.issueDate),
+        dueDate: formatDate(inv.dueDate),
+        buyer: inv.buyer
+          ? { name: inv.buyer.name, oib: inv.buyer.oib, email: inv.buyer.email }
+          : null,
+        direction: inv.direction,
+        type: inv.type,
+        status: inv.status,
+        netAmount: money(inv.netAmount),
+        vatAmount: money(inv.vatAmount),
+        totalAmount: money(inv.totalAmount),
+        paid: !!inv.paidAt,
+        paidDate: formatDate(inv.paidAt),
+        reference: inv.providerRef || inv.internalReference || null,
+      })),
+    }
+    const filename = `fiskai-racuni-${rangeLabel}.json`
+    return new NextResponse(JSON.stringify(jsonData, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      },
+    })
+  }
+
+  if (format === "xml") {
+    const xml = buildInvoicesXml(invoices)
+    const filename = `fiskai-racuni-${rangeLabel}.xml`
+    return new NextResponse(xml, {
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      },
+    })
+  }
+
+  // Default: CSV format
+  const csv = "\uFEFF" + buildCsv([header, ...rows])
   const filename = `fiskai-racuni-${rangeLabel}.csv`
 
   return new NextResponse(csv, {

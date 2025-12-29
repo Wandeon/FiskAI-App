@@ -24,6 +24,7 @@ model User {
   staffAssignments    StaffAssignment[]    @relation("StaffAssignments")
   verificationCodes   VerificationCode[]
   webAuthnCredentials WebAuthnCredential[]
+  clientInvitations   ClientInvitation[]   @relation("ClientInvitations")
 }
 
 model Account {
@@ -146,6 +147,7 @@ model Company {
   statementPages                 StatementPage[]
   supportTickets                 SupportTicket[]
   statementTransactions          Transaction[]
+  clientInvitations              ClientInvitation[]   @relation("InvitedClients")
 }
 
 model CompanyUser {
@@ -178,6 +180,26 @@ model StaffAssignment {
   @@unique([staffId, companyId])
   @@index([staffId])
   @@index([companyId])
+}
+
+model ClientInvitation {
+  id          String                 @id @default(cuid())
+  staffId     String
+  email       String
+  companyName String?
+  message     String?
+  token       String                 @unique @default(cuid())
+  status      ClientInvitationStatus @default(PENDING)
+  createdAt   DateTime               @default(now())
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  companyId   String?
+  staff       User                   @relation("ClientInvitations", fields: [staffId], references: [id], onDelete: Cascade)
+  company     Company?               @relation("InvitedClients", fields: [companyId], references: [id])
+
+  @@index([staffId])
+  @@index([email])
+  @@index([token])
 }
 
 model Contact {
@@ -1277,6 +1299,13 @@ enum SystemRole {
   USER
   STAFF
   ADMIN
+}
+
+enum ClientInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
 }
 
 enum TicketCategory {

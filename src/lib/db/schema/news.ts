@@ -88,6 +88,9 @@ export const newsPosts = pgTable(
     lastError: text("last_error"),
     lastErrorAt: timestamp("last_error_at", { withTimezone: true }),
 
+    // Analytics
+    viewCount: integer("view_count").default(0).notNull(),
+
     // Timestamps
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

@@ -117,6 +117,7 @@ export default async function AdminNewsPage() {
               <th className="px-4 py-3">Naslov</th>
               <th className="px-4 py-3">Kategorija</th>
               <th className="px-4 py-3">Utjecaj</th>
+              <th className="px-4 py-3">Pregledi</th>
               <th className="px-4 py-3">Objavljeno</th>
               <th className="px-4 py-3 text-right">Akcije</th>
             </tr>
@@ -124,7 +125,7 @@ export default async function AdminNewsPage() {
           <tbody className="divide-y divide-[var(--border)] text-sm">
             {posts.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
+                <td colSpan={7} className="px-4 py-8 text-center text-[var(--muted)]">
                   Nema vijesti
                 </td>
               </tr>
@@ -140,6 +141,9 @@ export default async function AdminNewsPage() {
                   <td className="px-4 py-3 text-[var(--muted)]">{post.categoryId || "—"}</td>
                   <td className="px-4 py-3">
                     <ImpactBadge level={post.impactLevel} />
+                  </td>
+                  <td className="px-4 py-3 font-mono text-sm text-[var(--muted)]">
+                    {post.viewCount.toLocaleString("hr-HR")}
                   </td>
                   <td className="px-4 py-3 text-[var(--muted)]">
                     {post.publishedAt

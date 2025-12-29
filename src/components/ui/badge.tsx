@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { getStatusAriaLabel } from "@/lib/a11y";
 
 const badgeVariants = cva(
   // Base styles
@@ -35,14 +36,24 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  /** Status text for screen reader - generates aria-label via getStatusAriaLabel */
+  status?: string
+  /** Optional description for screen reader context */
+  statusDescription?: string
+}
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, variant, ...props }, ref) => {
+  ({ className, variant, status, statusDescription, ...props }, ref) => {
+    // Generate aria-label from status if provided and no explicit aria-label exists
+    const ariaLabel = props["aria-label"] ?? (status ? getStatusAriaLabel(status, statusDescription) : undefined)
+
     return (
       <div
         ref={ref}
+        role="status"
         className={cn(badgeVariants({ variant, className }))}
+        aria-label={ariaLabel}
         {...props}
       />
     );

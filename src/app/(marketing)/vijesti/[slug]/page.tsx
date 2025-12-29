@@ -4,6 +4,7 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories, newsPostSources, newsItems } from "@/lib/db/schema"
 import { eq, and, lte, desc } from "drizzle-orm"
 import { ImageWithAttribution } from "@/components/news/ImageWithAttribution"
+import { ViewTracker } from "@/components/news/ViewTracker"
 import { NewsMarkdown } from "@/components/news/NewsMarkdown"
 import { PostCard } from "@/components/news/PostCard"
 import { JsonLd } from "@/components/seo/JsonLd"
@@ -297,6 +298,9 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   return (
     <>
+      {/* Privacy-friendly view tracking */}
+      <ViewTracker slug={slug} />
+
       {/* Enterprise SEO: NewsArticle and BreadcrumbList schemas */}
       <JsonLd
         schemas={[

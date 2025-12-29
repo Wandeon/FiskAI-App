@@ -9,7 +9,6 @@
  * 5. For medium-impact: write digest entry & store for assembly
  * 6. Extract and store images from RSS
  */
-
 import { NextRequest, NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsItems, newsPosts, newsPostSources } from "@/lib/db/schema"
@@ -23,12 +22,12 @@ import {
   type ArticleContent,
 } from "@/lib/news/pipeline"
 import { eq, and, gte, lt, sql } from "drizzle-orm"
+import { generateUniqueSlug } from "@/lib/news/slug"
+import { eq, and, gte, sql } from "drizzle-orm"
 import Parser from "rss-parser"
 import { enqueueArticleJob } from "@/lib/article-agent/queue"
-
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes
-
 interface FetchClassifyResult {
   success: boolean
   summary: {
@@ -51,7 +50,6 @@ interface FetchClassifyResult {
   }
   errors: string[]
 }
-
 /**
  * Extract image URL and source from RSS item
  */
@@ -66,12 +64,10 @@ function extractImageFromRSS(item: any): { url?: string; source?: string } {
         return { url: mediaContent.$.url, source: "media:content" }
       }
     }
-
     // Priority 2: enclosure
     if (item.enclosure && item.enclosure.url) {
       return { url: item.enclosure.url, source: "enclosure" }
     }
-
     // Priority 3: Parse content:encoded or description for <img> tags
     const content = item["content:encoded"] || item.description || ""
     if (typeof content === "string") {
@@ -80,35 +76,17 @@ function extractImageFromRSS(item: any): { url?: string; source?: string } {
         return { url: imgMatch[1], source: "content-img" }
       }
     }
-
     return {}
   } catch (error) {
     console.error("Error extracting image from RSS:", error)
     return {}
   }
 }
-
-/**
- * Generate slug from title
- */
-function generateSlug(title: string): string {
-  const base = title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-
-  const timestamp = Date.now().toString().slice(-6)
-  return `${base.substring(0, 60)}-${timestamp}`
-}
-
 /**
  * Main handler
  */
 export async function GET(request: NextRequest) {
   console.log("[CRON 1] Starting fetch-classify job...")
-
   const result: FetchClassifyResult = {
     success: false,
     summary: {
@@ -124,33 +102,26 @@ export async function GET(request: NextRequest) {
     },
     errors: [],
   }
-
   try {
     // 1. Verify authorization
     const authHeader = request.headers.get("authorization")
     const expectedAuth = `Bearer ${process.env.CRON_SECRET}`
-
     if (!authHeader || authHeader !== expectedAuth) {
       console.error("[CRON 1] Unauthorized request")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
     // 2. Fetch RSS from all active sources
     console.log("[CRON 1] Fetching news from active sources...")
     const fetchResult = await fetchAllNews()
-
     result.summary.fetched = fetchResult.totalFetched
     result.summary.inserted = fetchResult.totalInserted
     result.summary.skipped = fetchResult.totalSkipped
     result.errors.push(...fetchResult.errors)
-
     console.log(`[CRON 1] Fetch complete: ${fetchResult.totalInserted} new items`)
-
     // 3. Filter items from today only (published_at >= today 00:00)
     // Also include items that failed previously but are eligible for retry
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
-
     // Get new items from today
     const newTodayItems = await drizzleDb
       .select()
@@ -162,7 +133,6 @@ export async function GET(request: NextRequest) {
           sql`${newsItems.impactLevel} IS NULL` // Not yet classified
         )
       )
-
     // Get items that failed but are eligible for retry (under max attempts)
     const retryItems = await drizzleDb
       .select()
@@ -174,7 +144,6 @@ export async function GET(request: NextRequest) {
           sql`${newsItems.processingAttempts} > 0` // Has been attempted before
         )
       )
-
     // Combine both sets (avoid duplicates by using a Map)
     const itemsMap = new Map<string, typeof newTodayItems[0]>()
     for (const item of newTodayItems) {
@@ -184,24 +153,19 @@ export async function GET(request: NextRequest) {
       itemsMap.set(item.id, item)
     }
     const todayItems = Array.from(itemsMap.values())
-
     result.summary.todayItems = newTodayItems.length
     result.summary.retryItems = retryItems.length
     console.log(`[CRON 1] Processing ${newTodayItems.length} new items + ${retryItems.length} retry items...`)
-
     if (todayItems.length === 0) {
       result.success = true
       console.log("[CRON 1] No items to process. Job complete.")
       return NextResponse.json(result)
     }
-
     // 4. Classify each item
     for (const item of todayItems) {
       try {
         console.log(`[CRON 1] Classifying: ${item.originalTitle}`)
-
         const classification = await classifyNewsItem(item)
-
         // Update news_items with impact_level
         await drizzleDb
           .update(newsItems)
@@ -210,22 +174,16 @@ export async function GET(request: NextRequest) {
             updatedAt: new Date(),
           })
           .where(eq(newsItems.id, item.id))
-
         // Track classification counts
         result.summary.classified[classification.impact]++
-
         console.log(`[CRON 1] Classified as ${classification.impact}: ${item.originalTitle}`)
-
         // 5. Handle high-impact items: write article & create draft post
         if (classification.impact === "high") {
           try {
             console.log(`[CRON 1] Writing article for high-impact: ${item.originalTitle}`)
-
             const article = await writeArticle(item, "high")
-
-            // Create news_posts record
-            const slug = generateSlug(article.title)
-
+            // Create news_posts record with unique slug
+            const slug = await generateUniqueSlug(article.title)
             const [post] = await drizzleDb
               .insert(newsPosts)
               .values({
@@ -250,13 +208,11 @@ export async function GET(request: NextRequest) {
                 updatedAt: new Date(),
               })
               .returning()
-
             // Link news_item to post
             await drizzleDb.insert(newsPostSources).values({
               postId: post.id,
               newsItemId: item.id,
             })
-
             // Update news_item with assignment
             await drizzleDb
               .update(newsItems)
@@ -267,10 +223,8 @@ export async function GET(request: NextRequest) {
                 updatedAt: new Date(),
               })
               .where(eq(newsItems.id, item.id))
-
             result.summary.postsCreated.highImpact++
             console.log(`[CRON 1] Created draft post: ${article.title}`)
-
             // Optionally queue Article Agent job for enhanced fact-checking
             // Only if ARTICLE_AGENT_ENABLED is set (disabled by default to avoid duplicate processing)
             if (process.env.ARTICLE_AGENT_ENABLED === "true") {
@@ -297,14 +251,11 @@ export async function GET(request: NextRequest) {
             result.errors.push(errorMsg)
           }
         }
-
         // 6. Handle medium-impact items: write digest entry
         if (classification.impact === "medium") {
           try {
             console.log(`[CRON 1] Writing digest entry for medium-impact: ${item.originalTitle}`)
-
             const digestEntry = await writeArticle(item, "medium")
-
             // Update news_item with digest entry data
             await drizzleDb
               .update(newsItems)
@@ -315,7 +266,6 @@ export async function GET(request: NextRequest) {
                 updatedAt: new Date(),
               })
               .where(eq(newsItems.id, item.id))
-
             result.summary.postsCreated.mediumImpact++
             console.log(`[CRON 1] Stored digest entry: ${item.originalTitle}`)
           } catch (error) {
@@ -324,7 +274,6 @@ export async function GET(request: NextRequest) {
             result.errors.push(errorMsg)
           }
         }
-
         // 7. Handle low-impact items: mark as processed but skip
         if (classification.impact === "low") {
           await drizzleDb
@@ -340,7 +289,6 @@ export async function GET(request: NextRequest) {
         const errorMsg = `Failed to process item ${item.id}: ${error instanceof Error ? error.message : String(error)}`
         console.error(`[CRON 1] ${errorMsg}`)
         result.errors.push(errorMsg)
-
         // Record the error for retry tracking
         try {
           const { shouldRetry, attempts } = await recordNewsItemError(item.id, error instanceof Error ? error : String(error))
@@ -355,17 +303,14 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-
     result.success = true
     console.log("[CRON 1] Job complete!")
     console.log(`[CRON 1] Summary: ${JSON.stringify(result.summary, null, 2)}`)
-
     return NextResponse.json(result)
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error("[CRON 1] Fatal error:", errorMsg)
     result.errors.push(errorMsg)
-
     return NextResponse.json(
       {
         success: false,

@@ -24,6 +24,7 @@ import {
   type ReviewFeedback,
   type RewriteResult,
 } from "@/lib/news/pipeline"
+import { generateUniqueSlug } from "@/lib/news/slug"
 import { eq, and, isNull, lt, sql } from "drizzle-orm"
 
 export const dynamic = "force-dynamic"
@@ -73,20 +74,6 @@ function generateExcerptFromContent(content: string, maxLength: number = 200): s
   return firstSentence.substring(0, maxLength).trim() + "..."
 }
 
-/**
- * Generate slug from title
- */
-function generateSlug(title: string): string {
-  const base = title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-
-  const timestamp = Date.now().toString().slice(-6)
-  return `${base.substring(0, 60)}-${timestamp}`
-}
 
 /**
  * Main handler
@@ -312,8 +299,8 @@ export async function GET(request: NextRequest) {
 
         const digest = await assembleDigest(digestItems)
 
-        // Create digest post
-        const digestSlug = generateSlug(digest.title)
+        // Create digest post with unique slug
+        const digestSlug = await generateUniqueSlug(digest.title)
         const publishedAt = new Date()
         publishedAt.setHours(6, 0, 0, 0)
 
