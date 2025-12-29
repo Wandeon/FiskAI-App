@@ -26,9 +26,11 @@ model User {
   staffAssignments    StaffAssignment[]    @relation("StaffAssignments")
   verificationCodes   VerificationCode[]
   webAuthnCredentials WebAuthnCredential[]
-  clientInvitations   ClientInvitation[]   @relation("ClientInvitations")
-  betaFeedback        BetaFeedback[]
-  staffReviews        StaffReview[]        @relation("StaffReviews")
+  clientInvitations    ClientInvitation[]     @relation("ClientInvitations")
+  betaFeedback         BetaFeedback[]
+  staffReviews         StaffReview[]          @relation("StaffReviews")
+  experimentAssignments ExperimentAssignment[]
+  experimentEvents     ExperimentEvent[]
 }
 
 model Account {
@@ -3275,8 +3277,10 @@ model Experiment {
   createdBy String?
 
   // Relations
-  segments ExperimentSegment[]
-  variants ExperimentVariant[]
+  segments    ExperimentSegment[]
+  variants    ExperimentVariant[]
+  assignments ExperimentAssignment[]
+  events      ExperimentEvent[]
 
   @@index([status])
 }
@@ -3306,6 +3310,10 @@ model ExperimentVariant {
   weight      Int     @default(50) // Traffic weight percentage
   config      Json? // Variant-specific configuration
 
+  // Relations
+  assignments ExperimentAssignment[]
+  events      ExperimentEvent[]
+
   @@unique([experimentId, name])
   @@index([experimentId])
 }
@@ -3316,4 +3324,48 @@ enum ExperimentStatus {
   PAUSED
   COMPLETED
   CANCELLED
+}
+
+// User experiment assignments for sticky sessions
+model ExperimentAssignment {
+  id           String   @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  assignedAt   DateTime @default(now())
+  exposedAt    DateTime? // First time user was exposed to variant
+  convertedAt  DateTime? // If user completed success metric
+
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experimentId, userId])
+  @@index([experimentId])
+  @@index([userId])
+  @@index([variantId])
+  @@index([exposedAt])
+}
+
+// Event tracking for experiment analysis
+model ExperimentEvent {
+  id           String   @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  eventType    String // e.g., "view", "click", "conversion"
+  eventName    String // e.g., "invoice_created", "signup_completed"
+  properties   Json? // Additional event data
+  timestamp    DateTime @default(now())
+
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([experimentId])
+  @@index([userId])
+  @@index([variantId])
+  @@index([eventType])
+  @@index([eventName])
+  @@index([timestamp])
 }
