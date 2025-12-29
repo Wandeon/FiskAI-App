@@ -895,7 +895,7 @@ Contextual help that respects visibility settings:
 | Settings page | ✅ Implemented | `/settings/guidance/` |
 | Dashboard widgets | ✅ Implemented | `ChecklistWidget`, `InsightsWidget` |
 | Quick level toggle | ✅ Implemented | `QuickLevelToggle` |
-| Email digest sending | 📋 Planned | Needs cron job implementation |
+| Email digest sending | ✅ Implemented | `/api/cron/checklist-digest`, email template |
 | Push notifications | 📋 Planned | Not implemented |
 | Context provider integration | ⚠️ Partial | `ConditionalHelpTooltip` stub exists |
 
@@ -923,9 +923,8 @@ The entire Guidance System was not mentioned in the Product Bible prior to this 
 
 ### Future Considerations
 
-1. **Email Digest Implementation** - Schema supports it, needs cron job
-2. **Context Provider** - `ConditionalHelpTooltip` notes "Task 3.4" for context integration
-3. **Calendar Integration** - Mentioned in notification preferences but not implemented
+1. **Context Provider** - `ConditionalHelpTooltip` notes "Task 3.4" for context integration
+2. **Calendar Integration** - Mentioned in notification preferences but not implemented
 
 ---
 
