@@ -61,7 +61,15 @@ export const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
     }
 
     return (
-      <Link ref={ref} href={href} {...props}>
+      <Link
+        ref={ref}
+        href={href}
+        className={cn(
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 rounded-sm",
+          props.className
+        )}
+        {...props}
+      >
         {children}
       </Link>
     );

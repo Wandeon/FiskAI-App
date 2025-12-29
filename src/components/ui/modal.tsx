@@ -87,7 +87,7 @@ export function Modal({
             {showClose && (
               <button
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-[var(--text-disabled)] hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)] transition-colors"
+                className="rounded-lg p-1.5 text-[var(--text-disabled)] hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2"
                 aria-label="Zatvori"
               >
                 <X className="h-5 w-5" />

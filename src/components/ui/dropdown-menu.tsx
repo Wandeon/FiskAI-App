@@ -82,6 +82,10 @@ export const DropdownMenuTrigger = forwardRef<
       aria-haspopup="true"
       aria-expanded={open}
       aria-controls={contentId}
+      className={cn(
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 rounded-md",
+        props.className
+      )}
       {...props}
     >
       {children}
@@ -210,7 +214,7 @@ export function DropdownMenuItem({
     <button
       role="menuitem"
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-surface-1 focus:bg-surface-1 text-foreground",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-surface-1 focus:bg-surface-1 focus-visible:ring-2 focus-visible:ring-border-focus text-foreground",
         disabled && "pointer-events-none opacity-50 text-muted",
         className
       )}

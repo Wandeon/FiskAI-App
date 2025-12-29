@@ -23,6 +23,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       <label
         className={cn(
           "relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer",
+          "focus-within:ring-2 focus-within:ring-border-focus focus-within:ring-offset-2",
           checked ? "bg-blue-600" : "bg-gray-200",
           disabled && "opacity-50 cursor-not-allowed",
           className
@@ -30,7 +31,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       >
         <input
           type="checkbox"
-          className="sr-only"
+          className="sr-only focus:outline-none"
           ref={ref}
           checked={checked}
           onChange={handleChange}

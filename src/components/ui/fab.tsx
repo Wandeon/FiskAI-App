@@ -40,7 +40,7 @@ export function FAB({ actions = defaultActions, className }: FABProps) {
             key={action.href}
             href={action.href}
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 animate-scale-in"
+            className="flex items-center gap-3 animate-scale-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 rounded-lg"
             style={{ animationDelay: `${index * 50}ms` }}
           >
             <span className="rounded-lg bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)] shadow-elevated">
@@ -58,6 +58,7 @@ export function FAB({ actions = defaultActions, className }: FABProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex h-14 w-14 items-center justify-center rounded-full shadow-elevated transition-all duration-200 touch-target",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
           isOpen
             ? "bg-[var(--surface-secondary)] text-[var(--foreground)] rotate-45"
             : "bg-brand-600 text-white"
