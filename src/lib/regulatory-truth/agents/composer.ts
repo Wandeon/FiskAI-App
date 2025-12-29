@@ -21,6 +21,10 @@ import {
 import { computeMeaningSignature } from "../utils/meaning-signature"
 import { validateExplanation, createQuoteOnlyExplanation } from "../utils/explanation-validator"
 import { createEdgeWithCycleCheck, CycleDetectedError } from "../graph/cycle-detection"
+import {
+  validateSourceConsistency,
+  logCrossSourceReferences,
+} from "../utils/source-consistency"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -78,6 +82,17 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       ruleId: null,
       error: `Blocked domain(s): ${blockedDomains.join(", ")}. Test data cannot create rules.`,
     }
+  }
+
+  // ISSUE #906: Validate source attribution integrity
+  // Verify that pointer.evidenceId sources are consistent across all pointers
+  const sourceConsistency = await validateSourceConsistency(sourcePointers)
+  if (sourceConsistency.crossSourceReferences.length > 0) {
+    console.warn(
+      `[composer] Cross-source references detected: ${sourceConsistency.warnings.join("; ")}`
+    )
+    // Log audit event for compliance tracking
+    await logCrossSourceReferences(sourcePointerIds[0], sourceConsistency)
   }
 
   // Build input for agent
@@ -430,6 +445,7 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
   }
 
   // Log audit event for rule creation
+  // Issue #906: Include cross-source reference info for audit trail
   await logAuditEvent({
     action: "RULE_CREATED",
     entityType: "RULE",
@@ -440,6 +456,10 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       confidence: draftRule.confidence,
       sourcePointerCount: sourcePointerIds.length,
       conflictsDetected: conflicts.length,
+      // Issue #906: Source attribution integrity
+      primarySourceId: sourceConsistency.primarySourceId,
+      crossSourceReferenceCount: sourceConsistency.crossSourceReferences.length,
+      hasCrossSourceReferences: sourceConsistency.crossSourceReferences.length > 0,
     },
   })
 
