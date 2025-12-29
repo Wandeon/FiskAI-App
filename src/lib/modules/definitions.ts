@@ -121,7 +121,7 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
     key: "vat",
     name: "VAT",
     description: "VAT management and submissions",
-    routes: ["/vat"],
+    routes: ["/reports/vat"],
     navItems: ["vat"],
     defaultEnabled: false,
   },
