@@ -6,7 +6,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 
 export const metadata: Metadata = {
   title: "FiskAI — Status",
-  description: "System status and health information for FiskAI platform.",
+  description: "Status sustava i informacije o dostupnosti FiskAI platforme.",
   alternates: {
     canonical: `${BASE_URL}/status`,
   },
