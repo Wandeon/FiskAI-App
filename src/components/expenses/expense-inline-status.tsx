@@ -27,8 +27,14 @@ export function ExpenseInlineStatus({ id, status }: { id: string; status: Expens
   const [error, setError] = useState<string | null>(null)
 
   const cycle = () => {
-    const order: ExpenseStatus[] = ["DRAFT", "PENDING", "PAID", "CANCELLED"]
+    // CANCELLED status requires explicit action with confirmation, not included in cycle
+    // See: https://github.com/Wandeon/FiskAI/issues/869
+    const order: ExpenseStatus[] = ["DRAFT", "PENDING", "PAID"]
     const idx = order.indexOf(current)
+    // If current status is CANCELLED, don't allow cycling (requires explicit action to change)
+    if (current === "CANCELLED") {
+      return current
+    }
     return order[(idx + 1) % order.length]
   }
 
@@ -54,7 +60,7 @@ export function ExpenseInlineStatus({ id, status }: { id: string; status: Expens
         "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold transition",
         STATUS_COLORS[current]
       )}
-      disabled={saving}
+      disabled={saving || current === "CANCELLED"}
       aria-label="Promijeni status troška"
     >
       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
