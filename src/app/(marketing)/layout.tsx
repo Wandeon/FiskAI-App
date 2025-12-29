@@ -4,6 +4,7 @@ import { MarketingHeader } from "@/components/marketing/MarketingHeader"
 import { MarketingAnalyticsInit } from "@/components/marketing/marketing-analytics-init"
 import { ComplianceProgressBar } from "@/components/marketing/ComplianceProgressBar"
 import { SpeculationRules } from "@/components/seo/speculation-rules"
+import { companyInfo } from "@/config/company"
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -45,12 +46,12 @@ export default async function MarketingLayout({
             <div className="space-y-2">
               <p className="text-xs font-medium text-white/50">PODUZEĆE I KONTAKT</p>
               <div className="space-y-1 text-sm text-white/70">
-                <p className="font-medium text-white">FiskAI d.o.o.</p>
-                <p>Zagreb, Hrvatska</p>
+                <p className="font-medium text-white">{companyInfo.name}</p>
+                <p>{companyInfo.city}, {companyInfo.country}</p>
                 <p>
                   Email:{" "}
-                  <a href="mailto:info@fiskai.hr" className="text-cyan-400 hover:underline">
-                    info@fiskai.hr
+                  <a href={`mailto:${companyInfo.emailContact}`} className="text-cyan-400 hover:underline">
+                    {companyInfo.emailContact}
                   </a>
                 </p>
               </div>
@@ -95,7 +96,7 @@ export default async function MarketingLayout({
         <div className="mx-auto max-w-6xl border-t border-white/10 px-4 py-4 md:px-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-xs text-white/60">
-              © {new Date().getFullYear()} FiskAI d.o.o. Sva prava pridržana.
+              © {new Date().getFullYear()} {companyInfo.name}. Sva prava pridržana.
             </p>
             <div className="flex items-center gap-6">
               <a href="/status" className="text-xs text-white/60 hover:text-white">

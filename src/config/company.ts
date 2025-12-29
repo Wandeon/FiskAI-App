@@ -20,7 +20,7 @@
  */
 
 export interface CompanyInfo {
-  /** Legal company name (e.g., "Metrica d.o.o.") */
+  /** Legal company name (e.g., "FiskAI d.o.o.") */
   name: string
   /** Croatian OIB (11 digits) */
   oib: string
@@ -51,31 +51,31 @@ export interface CompanyInfo {
 }
 
 /**
- * Default placeholder values for development.
- * In production, these should be overridden via environment variables.
+ * Real FiskAI company data for production.
+ * Values can still be overridden via environment variables if needed.
  */
-const PLACEHOLDER_OIB = "12345678901"
-const PLACEHOLDER_IBAN = "HR1234567890123456789"
-const PLACEHOLDER_PHONE = "+385 1 4929 380"
-const PLACEHOLDER_PHONE_EMERGENCY = "+385 1 4929 380"
+const FISKAI_OIB = "38472629040"
+const FISKAI_IBAN = "HR6523600001102774351"
+const FISKAI_PHONE = "+385 1 6326 933"
+const FISKAI_PHONE_EMERGENCY = "+385 95 326 9330"
 
 /**
  * Company information used across the marketing site.
  * Values can be overridden via NEXT_PUBLIC_* environment variables.
  */
 export const companyInfo: CompanyInfo = {
-  name: process.env.NEXT_PUBLIC_COMPANY_NAME || "Metrica d.o.o.",
-  oib: process.env.NEXT_PUBLIC_COMPANY_OIB || PLACEHOLDER_OIB,
-  iban: process.env.NEXT_PUBLIC_COMPANY_IBAN || PLACEHOLDER_IBAN,
-  bank: process.env.NEXT_PUBLIC_COMPANY_BANK || "ZABA",
-  vatId: process.env.NEXT_PUBLIC_COMPANY_VAT_ID || `HR${PLACEHOLDER_OIB}`,
-  phone: process.env.NEXT_PUBLIC_COMPANY_PHONE || PLACEHOLDER_PHONE,
+  name: process.env.NEXT_PUBLIC_COMPANY_NAME || "FiskAI d.o.o.",
+  oib: process.env.NEXT_PUBLIC_COMPANY_OIB || FISKAI_OIB,
+  iban: process.env.NEXT_PUBLIC_COMPANY_IBAN || FISKAI_IBAN,
+  bank: process.env.NEXT_PUBLIC_COMPANY_BANK || "PBZ",
+  vatId: process.env.NEXT_PUBLIC_COMPANY_VAT_ID || `HR${FISKAI_OIB}`,
+  phone: process.env.NEXT_PUBLIC_COMPANY_PHONE || FISKAI_PHONE,
   phoneEmergency:
-    process.env.NEXT_PUBLIC_COMPANY_PHONE_EMERGENCY || PLACEHOLDER_PHONE_EMERGENCY,
-  address: process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "Radnička cesta 80",
+    process.env.NEXT_PUBLIC_COMPANY_PHONE_EMERGENCY || FISKAI_PHONE_EMERGENCY,
+  address: process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "Ulica grada Vukovara 269a",
   city: process.env.NEXT_PUBLIC_COMPANY_CITY || "10000 Zagreb",
   country: "Hrvatska",
-  emailContact: process.env.NEXT_PUBLIC_COMPANY_EMAIL_CONTACT || "kontakt@fiskai.hr",
+  emailContact: process.env.NEXT_PUBLIC_COMPANY_EMAIL_CONTACT || "info@fiskai.hr",
   emailSupport: process.env.NEXT_PUBLIC_COMPANY_EMAIL_SUPPORT || "podrska@fiskai.hr",
   productName: "FiskAI",
   tagline: "AI-first računovodstvo za Hrvatsku",
@@ -90,6 +90,7 @@ export function getPhoneLink(phone: string): string {
 
 /**
  * Patterns that indicate placeholder data (for build-time warnings).
+ * These patterns match the OLD placeholder values to detect if they accidentally get used.
  */
 const PLACEHOLDER_PATTERNS = {
   oib: /^12345678901$/,
