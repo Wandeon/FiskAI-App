@@ -88,7 +88,7 @@ export function MarketingPricingClient() {
           "Glavna knjiga i financijski izvještaji",
           "Telefonska podrška unutar 4h",
         ],
-        ctaLabel: "Započni besplatnu 30-dnevnu probu",
+        ctaLabel: "Započni besplatnu probu",
         ctaHref: "/register",
         ctaClassName: "bg-gradient-to-r from-cyan-500 to-blue-600",
         footnote: "Besplatna migracija podataka za d.o.o.",
@@ -377,7 +377,7 @@ export function MarketingPricingClient() {
                 {
                   question: "Kako funkcionira besplatna proba?",
                   answer:
-                    "Besplatna proba traje 14 dana za paušalni plan i 30 dana za d.o.o. plan. Ne trebate kreditnu karticu. Nakon probnog razdoblja možete nastaviti ili otkazati bez penala.",
+                    "Besplatna proba traje 14 dana za sve planove. Ne trebate kreditnu karticu. Nakon probnog razdoblja možete nastaviti ili otkazati bez penala.",
                 },
                 {
                   question: "Što ako premašim limit računa?",
@@ -412,7 +412,7 @@ export function MarketingPricingClient() {
                   <Shield className="h-6 w-6 text-cyan-400" />
                 </div>
                 <p className="font-semibold">Bez rizika</p>
-                <p className="text-xs text-white/60">14-30 dana besplatne probe</p>
+                <p className="text-xs text-white/60">14 dana besplatne probe</p>
               </div>
               <div className="text-center">
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">

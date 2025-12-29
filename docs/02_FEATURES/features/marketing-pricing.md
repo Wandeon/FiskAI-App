@@ -103,7 +103,7 @@ Displays transparent pricing information for all FiskAI subscription plans inclu
 ### FAQ Section
 
 1. Five common questions with detailed answers -> `src/app/(marketing)/pricing/page.tsx:272-310`
-2. How free trial works: 14 days (paušalni) or 30 days (d.o.o.) -> `src/app/(marketing)/pricing/page.tsx:276-280`
+2. How free trial works: 14 days for all plans -> `src/app/(marketing)/pricing/page.tsx:276-280`
 3. Exceeding invoice limits: automatic notification and upgrade option -> `src/app/(marketing)/pricing/page.tsx:283-287`
 4. Cancellation policy: cancel anytime, access until end of paid period -> `src/app/(marketing)/pricing/page.tsx:290-294`
 5. Long-term commitment: monthly billing, 10% discount for annual payment -> `src/app/(marketing)/pricing/page.tsx:297-301`
@@ -112,7 +112,7 @@ Displays transparent pricing information for all FiskAI subscription plans inclu
 ### Trust Signals
 
 1. Three trust indicators with icons -> `src/app/(marketing)/pricing/page.tsx:314-336`
-2. No risk: 14-30 day free trial -> `src/app/(marketing)/pricing/page.tsx:315-321`
+2. No risk: 14-day free trial -> `src/app/(marketing)/pricing/page.tsx:315-321`
 3. Data in EU: GDPR compliant, data stored in Germany -> `src/app/(marketing)/pricing/page.tsx:322-328`
 4. Croatian support: phone and email within 24h -> `src/app/(marketing)/pricing/page.tsx:329-335`
 5. Contact information: link to /contact and phone number -> `src/app/(marketing)/pricing/page.tsx:337-348`
