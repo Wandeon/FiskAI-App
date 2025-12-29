@@ -66,6 +66,13 @@ export function ReviewToggle({
  size={size}
  onClick={handleToggle}
  disabled={isPending}
+ aria-pressed={reviewed}
+ aria-busy={isPending}
+ aria-label={
+ reviewed
+   ? "Marked as reviewed. Click to unmark."
+   : "Not reviewed. Click to mark as reviewed."
+ }
  className={cn(
  "gap-1.5 transition-all",
  reviewed && "bg-success hover:bg-success text-white"
