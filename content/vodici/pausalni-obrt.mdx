@@ -12,12 +12,18 @@ sources:
   - name: Hrvatska obrtnička komora
     url: https://www.hok.hr/
 faq:
+  - q: Mogu li imati paušalni obrt uz posao?
+    a: Da, možete. Doprinosi se umanjuju jer ih već plaća vaš poslodavac. Često plaćate samo HOK članarinu i porez na dohodak.
+  - q: Što ako prijeđem paušalni prag?
+    a: Automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca. Morate početi obračunavati PDV na račune i podnositi PDV prijave.
   - q: Koji je limit prihoda za paušalni obrt 2025.?
     a: Godišnji prihod do paušalnog praga. Prelaskom ovog praga automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca.
   - q: Koliko iznose doprinosi za paušalnog obrtnika?
     a: Ukupno oko 262€ mjesečno fiksno - MIO I. stup 153,70€, MIO II. stup 47,03€ (ako ste u II. stupu), HZZO 61,27€.
   - q: Mogu li paušalci odbijati troškove poslovanja?
     a: Ne. Paušalisti ne odbijaju stvarne troškove - porezna osnovica se računa kao 12% od ukupnog prihoda (normirani troškovi).
+  - q: Trebam li voditi knjige?
+    a: Ne, paušalisti ne vode poslovne knjige. Dovoljno je čuvati izdane račune i evidenciju prihoda.
 ---
 
 <QuickStatsBar
@@ -190,24 +196,7 @@ faq:
 
 ## Česta pitanja
 
-<FAQ items={[
-  {
-    question: "Mogu li imati paušalni obrt uz posao?",
-    answer: "Da, možete. Doprinosi se umanjuju jer ih već plaća vaš poslodavac. Često plaćate samo HOK članarinu i porez na dohodak."
-  },
-  {
-    question: "Što ako prijeđem paušalni prag?",
-    answer: "Automatski postajete PDV obveznik od prvog dana sljedećeg mjeseca. Morate početi obračunavati PDV na račune i podnositi PDV prijave."
-  },
-  {
-    question: "Koliko iznose doprinosi za 2025.?",
-    answer: "Ukupno oko 262€ mjesečno: MIO I. stup 153,70€, MIO II. stup 47,03€ (ako ste u II. stupu), HZZO 61,27€."
-  },
-  {
-    question: "Trebam li voditi knjige?",
-    answer: "Ne, paušalisti ne vode poslovne knjige. Dovoljno je čuvati izdane račune i evidenciju prihoda."
-  },
-]} />
+<FAQ items={frontmatter.faq} />
 
 ## Povezani pojmovi
 
@@ -221,7 +210,6 @@ faq:
 - [Paušalni vs Obrt na dohodak vs J.D.O.O.](/usporedba/pocinjem-solo)
 - [Dodatni prihod uz posao](/usporedba/dodatni-prihod)
 
-<FAQ items={frontmatter.faq} />
 <Sources
   sources={frontmatter.sources}
   lastUpdated={frontmatter.lastUpdated}
