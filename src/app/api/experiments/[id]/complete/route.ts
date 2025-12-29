@@ -10,9 +10,10 @@ import { completeExperiment } from "@/lib/experiments"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
 
     if (!session?.user) {
@@ -24,7 +25,7 @@ export async function POST(
     }
 
     const body = await request.json()
-    const experiment = await completeExperiment(params.id, {
+    const experiment = await completeExperiment(id, {
       controlValue: body.controlValue,
       variantValue: body.variantValue,
     })
