@@ -66,7 +66,7 @@ function FeaturedCard({ post }: { post: HeroPost }) {
                   {post.categoryName}
                 </Badge>
               )}
-              <h2 className="mb-2 text-3xl font-bold text-white group-hover:text-cyan-400 md:text-4xl">
+              <h2 className="mb-2 text-3xl font-bold text-white group-hover:text-accent md:text-4xl">
                 {post.title}
               </h2>
               {post.excerpt && (
@@ -109,7 +109,7 @@ function SecondaryCard({ post }: { post: HeroPost }) {
                   {post.categoryName}
                 </Badge>
               )}
-              <h3 className="mb-1 line-clamp-2 text-sm font-semibold text-white group-hover:text-cyan-400">
+              <h3 className="mb-1 line-clamp-2 text-sm font-semibold text-white group-hover:text-accent">
                 {post.title}
               </h3>
               {post.publishedAt && (

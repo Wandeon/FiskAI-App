@@ -30,7 +30,7 @@ export function HowToSteps({ title, description, steps, totalTime, className }: 
         <ol className="space-y-6">
           {steps.map((step, index) => (
             <li key={index} className="relative pl-10">
-              <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500 text-sm font-bold text-white">
+              <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-chart-7 text-sm font-bold text-white">
                 {index + 1}
               </div>
               <div>

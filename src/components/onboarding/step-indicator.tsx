@@ -65,9 +65,9 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                   disabled={!canClick}
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors",
-                    isActive && "border-blue-600 bg-blue-600 text-white",
+                    isActive && "border-focus bg-interactive text-white",
                     isPast && "border-green-600 bg-green-600 text-white",
-                    !isActive && !isPast && "border-gray-300 bg-white text-gray-500",
+                    !isActive && !isPast && "border-default bg-white text-tertiary",
                     canClick && !isActive && "cursor-pointer hover:border-blue-400",
                     !canClick && "cursor-not-allowed opacity-50"
                   )}
@@ -88,14 +88,14 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                 <span
                   className={cn(
                     "mt-2 text-xs font-medium",
-                    isActive ? "text-blue-600" : "text-gray-500"
+                    isActive ? "text-link" : "text-tertiary"
                   )}
                 >
                   {step.title}
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div className={cn("mx-4 h-0.5 w-12", isPast ? "bg-green-600" : "bg-gray-200")} />
+                <div className={cn("mx-4 h-0.5 w-12", isPast ? "bg-green-600" : "bg-surface-2")} />
               )}
             </li>
           )

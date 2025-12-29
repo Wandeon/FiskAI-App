@@ -21,10 +21,10 @@ export function PersonalizedSection() {
   const bracket = getPausalTaxBracket(annualRevenue)
 
   return (
-    <Card className="mb-8 border-blue-500/20 bg-blue-500/10">
+    <Card className="mb-8 border-focus/20 bg-interactive/10">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-interactive/20 text-blue-400">
             <Target className="h-5 w-5" />
           </span>
           <span className="text-white">Vaš personalizirani pregled</span>
@@ -53,8 +53,8 @@ export function PersonalizedSection() {
           </div>
         </div>
         {zaposlenje === "da" && (
-          <div className="mt-4 flex gap-3 rounded border border-yellow-500/20 bg-yellow-500/10 p-3 text-sm text-white/90">
-            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-yellow-500/20 text-yellow-400">
+          <div className="mt-4 flex gap-3 rounded border border-yellow-500/20 bg-warning/10 p-3 text-sm text-white/90">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-warning/20 text-yellow-400">
               <Lightbulb className="h-4 w-4" />
             </span>
             <p className="m-0">

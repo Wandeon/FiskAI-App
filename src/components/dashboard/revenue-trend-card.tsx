@@ -38,7 +38,7 @@ export function RevenueTrendCard({ data, className }: RevenueTrendCardProps) {
         <div
           className={cn(
             "flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium",
-            change >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+            change >= 0 ? "bg-success-bg text-success-text" : "bg-rose-50 text-rose-700"
           )}
         >
           {change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}

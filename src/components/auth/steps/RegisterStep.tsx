@@ -225,15 +225,15 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
           type="checkbox"
           checked={acceptTerms}
           onChange={(e) => setAcceptTerms(e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-cyan-500 focus:ring-cyan-400/30"
+          className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-accent focus:ring-cyan-400/30"
         />
         <span className="text-sm text-white/70">
           Prihvaćam{" "}
-          <a href="/terms" className="text-cyan-400 hover:underline" target="_blank">
+          <a href="/terms" className="text-accent hover:underline" target="_blank">
             Uvjete korištenja
           </a>{" "}
           i{" "}
-          <a href="/privacy" className="text-cyan-400 hover:underline" target="_blank">
+          <a href="/privacy" className="text-accent hover:underline" target="_blank">
             Politiku privatnosti
           </a>
         </span>

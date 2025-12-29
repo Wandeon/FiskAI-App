@@ -127,11 +127,11 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
   return (
     <div className="flex flex-col h-full overflow-auto">
       {/* Vendor Info */}
-      <div className="p-4 border-b bg-gray-50">
+      <div className="p-4 border-b bg-surface-1">
         <h3 className="font-semibold text-lg mb-3">Dobavljač</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-gray-500">Naziv</label>
+            <label className="text-xs text-tertiary">Naziv</label>
             <Input
               value={data.vendor.name}
               onChange={(e) => updateVendor("name", e.target.value)}
@@ -139,7 +139,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500">OIB</label>
+            <label className="text-xs text-tertiary">OIB</label>
             <Input
               value={data.vendor.oib || ""}
               onChange={(e) => updateVendor("oib", e.target.value)}
@@ -148,7 +148,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div className="col-span-2">
-            <label className="text-xs text-gray-500">Adresa</label>
+            <label className="text-xs text-tertiary">Adresa</label>
             <Input
               value={data.vendor.address || ""}
               onChange={(e) => updateVendor("address", e.target.value)}
@@ -163,7 +163,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
         <h3 className="font-semibold text-lg mb-3">Podaci računa</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-gray-500">Broj računa</label>
+            <label className="text-xs text-tertiary">Broj računa</label>
             <Input
               value={data.invoice.number}
               onChange={(e) => updateInvoice("number", e.target.value)}
@@ -171,7 +171,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Datum računa</label>
+            <label className="text-xs text-tertiary">Datum računa</label>
             <Input
               type="date"
               value={data.invoice.issueDate}
@@ -180,7 +180,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Datum dospijeća</label>
+            <label className="text-xs text-tertiary">Datum dospijeća</label>
             <Input
               type="date"
               value={data.invoice.dueDate || ""}
@@ -189,7 +189,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Datum isporuke</label>
+            <label className="text-xs text-tertiary">Datum isporuke</label>
             <Input
               type="date"
               value={data.invoice.deliveryDate || ""}
@@ -211,7 +211,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
         </div>
 
         <table className="w-full text-sm">
-          <thead className="bg-gray-100">
+          <thead className="bg-surface-2">
             <tr>
               <th className="text-left p-2">Opis</th>
               <th className="text-right p-2 w-16">Kol.</th>
@@ -225,7 +225,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             {data.lineItems.map((item) => {
               const isEditing = editingLineId === item.id
               return (
-                <tr key={item.id} className="border-b hover:bg-gray-50">
+                <tr key={item.id} className="border-b hover:bg-surface-1">
                   <td className="p-2">
                     {isEditing ? (
                       <Input
@@ -297,7 +297,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
                           onClick={saveEditLine}
                           className="h-7 w-7 p-0"
                         >
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-success-text" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -305,7 +305,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
                           onClick={cancelEditLine}
                           className="h-7 w-7 p-0"
                         >
-                          <X className="h-4 w-4 text-red-600" />
+                          <X className="h-4 w-4 text-danger-text" />
                         </Button>
                       </div>
                     ) : (
@@ -324,7 +324,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
                           onClick={() => removeLineItem(item.id)}
                           className="h-7 w-7 p-0"
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-4 w-4 text-danger-icon" />
                         </Button>
                       </div>
                     )}
@@ -336,24 +336,24 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
         </table>
 
         {data.lineItems.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="text-center py-4 text-tertiary text-sm">
             Nema stavki. Kliknite &quot;Dodaj&quot; za dodavanje.
           </div>
         )}
       </div>
 
       {/* Totals */}
-      <div className="p-4 border-b bg-gray-50">
+      <div className="p-4 border-b bg-surface-1">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Osnovica:</span>
+              <span className="text-secondary">Osnovica:</span>
               <span className="font-medium">
                 {calculatedSubtotal.toFixed(2)} {data.currency}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">PDV:</span>
+              <span className="text-secondary">PDV:</span>
               <span className="font-medium">
                 {calculatedTax.toFixed(2)} {data.currency}
               </span>
@@ -367,13 +367,13 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Navedeno na računu:</span>
+              <span className="text-secondary">Navedeno na računu:</span>
               <span className="font-medium">
                 {data.totalAmount.toFixed(2)} {data.currency}
               </span>
             </div>
             <div
-              className={`flex justify-between text-sm font-semibold ${mathValid ? "text-green-600" : "text-red-600"}`}
+              className={`flex justify-between text-sm font-semibold ${mathValid ? "text-success-text" : "text-danger-text"}`}
             >
               <span>Status:</span>
               <span>{mathValid ? "Ispravan" : "Neispravan"}</span>
@@ -383,11 +383,11 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
       </div>
 
       {/* Payment Info */}
-      <div className="p-4 bg-blue-50">
+      <div className="p-4 bg-info-bg">
         <h3 className="font-semibold text-lg mb-3">Podaci za plaćanje</h3>
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2">
-            <label className="text-xs text-gray-500">IBAN primatelja</label>
+            <label className="text-xs text-tertiary">IBAN primatelja</label>
             <Input
               value={data.payment.iban || data.vendor.iban || ""}
               onChange={(e) => updatePayment("iban", e.target.value)}
@@ -396,7 +396,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Model</label>
+            <label className="text-xs text-tertiary">Model</label>
             <Input
               value={data.payment.model || ""}
               onChange={(e) => updatePayment("model", e.target.value)}
@@ -405,7 +405,7 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
             />
           </div>
           <div className="col-span-3">
-            <label className="text-xs text-gray-500">Poziv na broj primatelja</label>
+            <label className="text-xs text-tertiary">Poziv na broj primatelja</label>
             <Input
               value={data.payment.reference || ""}
               onChange={(e) => updatePayment("reference", e.target.value)}

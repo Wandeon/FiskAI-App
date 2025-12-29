@@ -191,7 +191,7 @@ export function DocumentScanner({ onCapture, onClose, initialFile }: DocumentSca
               disabled={processing}
               className="flex flex-col items-center gap-1 text-white"
             >
-              <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-success flex items-center justify-center">
                 <Check className="h-8 w-8" />
               </div>
               <span className="text-xs">Potvrdi</span>

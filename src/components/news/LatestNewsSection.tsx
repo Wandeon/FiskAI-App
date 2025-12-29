@@ -25,7 +25,7 @@ export function LatestNewsSection({ posts }: LatestNewsSectionProps) {
     <section className="bg-[var(--surface)]">
       <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
         <Reveal className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-700 mb-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-info-bg px-4 py-1.5 text-sm font-medium text-link mb-4">
             <Newspaper className="h-4 w-4" />
             Porezne vijesti
           </div>
@@ -43,7 +43,7 @@ export function LatestNewsSection({ posts }: LatestNewsSectionProps) {
                 <Card className="card h-full transition-all group-hover:shadow-lg group-hover:border-blue-300 group-hover:-translate-y-0.5">
                   <CardHeader className="pb-2">
                     {post.categoryName && (
-                      <span className="text-xs font-medium text-blue-600 mb-1 block">
+                      <span className="text-xs font-medium text-link mb-1 block">
                         {post.categoryName}
                       </span>
                     )}
@@ -72,7 +72,7 @@ export function LatestNewsSection({ posts }: LatestNewsSectionProps) {
         <div className="mt-8 text-center">
           <Link
             href="/vijesti"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-link hover:underline"
           >
             Sve vijesti <ArrowRight className="h-4 w-4" />
           </Link>

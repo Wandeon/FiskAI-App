@@ -87,7 +87,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
                 "w-full text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
                 item.level === 3 && "pl-3",
                 activeId === item.id
-                  ? "font-semibold text-cyan-400"
+                  ? "font-semibold text-accent"
                   : "text-white/70 hover:text-white"
               )}
             >

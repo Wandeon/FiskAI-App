@@ -57,9 +57,9 @@ const CHANGELOG_ENTRIES: ChangelogEntry[] = [
 ]
 
 const typeColors = {
-  added: "bg-green-500/10 text-green-600 border-green-500/20",
-  changed: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  fixed: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  added: "bg-success/10 text-success-text border-green-500/20",
+  changed: "bg-interactive/10 text-link border-focus/20",
+  fixed: "bg-warning/10 text-warning-text border-amber-500/20",
 }
 
 const typeLabels = {

@@ -30,7 +30,7 @@ function AccordionItem({
     <div className="border-b border-white/10 last:border-b-0">
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-cyan-400"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-accent"
         aria-expanded={isOpen}
         aria-controls={`faq-answer-${index}`}
       >
@@ -83,7 +83,7 @@ export function AccordionFAQ({
   return (
     <div className="my-6 rounded-xl border border-white/10 bg-white/5">
       <div className="flex items-center gap-2 border-b border-white/10 px-6 py-4">
-        <HelpCircle className="h-5 w-5 text-cyan-400" />
+        <HelpCircle className="h-5 w-5 text-accent" />
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/70">
           {items.length} pitanja

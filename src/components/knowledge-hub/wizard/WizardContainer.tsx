@@ -148,7 +148,7 @@ export function WizardContainer() {
       {/* Progress bar */}
       <div className="h-2 overflow-hidden rounded-full bg-white/10 mb-8">
         <motion.div
-          className="h-2 rounded-full bg-cyan-500"
+          className="h-2 rounded-full bg-chart-7"
           animate={{ width: `${progress}%` }}
           transition={reduce ? { duration: 0 } : { duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         />
@@ -180,7 +180,7 @@ export function WizardContainer() {
                         "w-full rounded-xl border p-4 text-left transition-all",
                         "focus:outline-none focus:ring-2 focus:ring-cyan-500/30",
                         selected
-                          ? "border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/40"
+                          ? "border-cyan-500 bg-chart-7/10 ring-2 ring-cyan-500/40"
                           : "border-white/10 hover:border-white/20 hover:bg-white/5",
                         isThinking && "opacity-70 cursor-not-allowed"
                       )}
@@ -190,7 +190,7 @@ export function WizardContainer() {
                           className={cn(
                             "mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border",
                             selected
-                              ? "border-cyan-400/30 bg-white/10 text-cyan-400"
+                              ? "border-cyan-400/30 bg-white/10 text-accent"
                               : "border-white/10 bg-white/5 text-white/70"
                           )}
                         >

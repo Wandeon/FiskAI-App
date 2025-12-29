@@ -100,8 +100,8 @@ export function Sidebar({ defaultCollapsed = false, user, company }: SidebarProp
                     className={cn(
                       "rounded-full px-2 py-0.5 font-medium",
                       company.eInvoiceProvider
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-amber-50 text-amber-700"
+                        ? "bg-success-bg text-success-text"
+                        : "bg-warning-bg text-warning-text"
                     )}
                   >
                     {company.eInvoiceProvider ? "Posrednik spojen" : "Posrednik nije konfiguriran"}
@@ -109,7 +109,7 @@ export function Sidebar({ defaultCollapsed = false, user, company }: SidebarProp
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 font-medium",
-                      company.isVatPayer ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"
+                      company.isVatPayer ? "bg-info-bg text-link" : "bg-surface-2 text-secondary"
                     )}
                   >
                     {company.isVatPayer ? "PDV obveznik" : "Nije PDV obveznik"}

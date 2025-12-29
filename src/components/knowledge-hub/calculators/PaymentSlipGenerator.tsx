@@ -180,12 +180,12 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               className={cn(
                 "p-3 rounded-xl border text-left transition-colors",
                 selectedPayment === option.value
-                  ? "border-cyan-400/50 bg-cyan-500/20"
+                  ? "border-cyan-400/50 bg-chart-7/20"
                   : "border-white/10 bg-white/5 hover:bg-white/10"
               )}
             >
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-400">
+                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-chart-7/20 text-accent">
                   <option.icon className="h-5 w-5" />
                 </div>
                 <div>
@@ -305,7 +305,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
         </div>
 
         {barcodeError && (
-          <div className="mt-4 rounded-lg border border-rose-400/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+          <div className="mt-4 rounded-lg border border-rose-400/30 bg-chart-8/10 p-3 text-sm text-rose-300">
             {barcodeError}
           </div>
         )}

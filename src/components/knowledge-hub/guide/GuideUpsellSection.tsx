@@ -25,7 +25,7 @@ export function GuideUpsellSection({
   if (position === "top") {
     // Subtle banner at the top
     return (
-      <div className="not-prose mb-8 flex items-center justify-between rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
+      <div className="not-prose mb-8 flex items-center justify-between rounded-lg border border-focus/20 bg-interactive/10 p-4">
         <div className="flex items-center gap-3">
           <Zap className="h-5 w-5 text-blue-400" />
           <span className="text-sm text-white">
@@ -58,7 +58,7 @@ export function GuideUpsellSection({
         </ul>
         <Link
           href={href}
-          className="block w-full rounded-lg bg-blue-600 py-2 text-center text-sm font-medium text-white hover:bg-blue-700"
+          className="block w-full rounded-lg bg-interactive py-2 text-center text-sm font-medium text-white hover:bg-interactive-hover"
         >
           {cta}
         </Link>
@@ -71,7 +71,7 @@ export function GuideUpsellSection({
     <div className="not-prose my-12 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-8 text-white shadow-xl">
       <div className="mx-auto max-w-2xl text-center">
         <h3 className="mb-3 text-2xl font-bold">{title}</h3>
-        <p className="mb-6 text-gray-300">{description}</p>
+        <p className="mb-6 text-muted">{description}</p>
         <div className="mb-6 flex flex-wrap justify-center gap-4">
           {features.map((feature, i) => (
             <div
@@ -85,12 +85,12 @@ export function GuideUpsellSection({
         </div>
         <Link
           href={href}
-          className="inline-flex items-center gap-2 rounded-lg bg-white px-8 py-3 font-semibold text-gray-900 transition-transform hover:scale-105"
+          className="inline-flex items-center gap-2 rounded-lg bg-white px-8 py-3 font-semibold text-foreground transition-transform hover:scale-105"
         >
           {cta}
           <ArrowRight className="h-4 w-4" />
         </Link>
-        <p className="mt-4 text-xs text-gray-400">
+        <p className="mt-4 text-xs text-muted">
           Besplatna proba • Bez kreditne kartice • Otkaži bilo kada
         </p>
       </div>

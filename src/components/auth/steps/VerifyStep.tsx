@@ -71,7 +71,7 @@ export function VerifyStep({
         <motion.button
           type="button"
           onClick={onBack}
-          className="mt-1 inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-medium"
+          className="mt-1 inline-flex items-center gap-1 text-accent hover:text-cyan-300 font-medium"
         >
           {email}
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,7 +113,7 @@ export function VerifyStep({
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="text-cyan-400 hover:text-cyan-300 font-medium disabled:opacity-50"
+              className="text-accent hover:text-cyan-300 font-medium disabled:opacity-50"
             >
               {resending ? "Šaljem..." : "Pošalji ponovno"}
             </button>

@@ -131,10 +131,10 @@ export function PDVThresholdCalculator() {
             className={cn(
               "h-full transition-all duration-500",
               analysis.percentageOfThreshold > 90
-                ? "bg-rose-500"
+                ? "bg-chart-8"
                 : analysis.percentageOfThreshold > 70
-                  ? "bg-amber-500"
-                  : "bg-emerald-500"
+                  ? "bg-warning"
+                  : "bg-chart-4"
             )}
             style={{ width: `${Math.min(animatedPercentage, 100)}%` }}
           />
@@ -151,8 +151,8 @@ export function PDVThresholdCalculator() {
         className={cn(
           "p-4 rounded-xl transition-colors animate-fade-in",
           analysis.willCrossThreshold
-            ? "bg-amber-500/10 border border-amber-500/30"
-            : "bg-emerald-500/10 border border-emerald-500/30"
+            ? "bg-warning/10 border border-amber-500/30"
+            : "bg-chart-4/10 border border-emerald-500/30"
         )}
       >
         {analysis.willCrossThreshold ? (

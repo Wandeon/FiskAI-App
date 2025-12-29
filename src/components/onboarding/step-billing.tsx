@@ -160,7 +160,7 @@ export function StepBilling() {
                   className={`h-5 w-5 rounded-full border-2 transition-colors ${
                     (selectedPlan === plan.id || (defaultPlan === plan.id && !selectedPlan))
                       ? "border-brand-500 bg-brand-500"
-                      : "border-gray-300"
+                      : "border-default"
                   }`}
                 >
                   {(selectedPlan === plan.id || (defaultPlan === plan.id && !selectedPlan)) && (

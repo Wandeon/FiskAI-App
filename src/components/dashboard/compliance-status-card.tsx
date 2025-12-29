@@ -36,7 +36,7 @@ export function ComplianceStatusCard({ certificate, stats }: ComplianceStatusCar
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Fiskalizacija</CardTitle>
         <Shield
-          className={`h-4 w-4 ${isHealthy ? "text-green-600" : "text-amber-500"}`}
+          className={`h-4 w-4 ${isHealthy ? "text-success-text" : "text-warning-icon"}`}
           aria-hidden="true"
         />
       </CardHeader>
@@ -60,7 +60,7 @@ export function ComplianceStatusCard({ certificate, stats }: ComplianceStatusCar
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Uspješnost</span>
           <span
-            className={`text-sm font-medium ${stats.successRate >= 95 ? "text-green-600" : "text-amber-600"}`}
+            className={`text-sm font-medium ${stats.successRate >= 95 ? "text-success-text" : "text-warning-text"}`}
           >
             {stats.successRate.toFixed(1)}%
           </span>

@@ -59,7 +59,7 @@ export function NewsList() {
             className={cn(
               "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
               category === filter.value
-                ? "bg-blue-500 text-white"
+                ? "bg-interactive text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20"
             )}
           >

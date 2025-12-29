@@ -208,15 +208,15 @@ export function LineItemTable({
   }, [])
 
   const inputBase =
-    "w-full h-full bg-transparent border-0 px-3 py-3 text-[13px] outline-none focus:bg-blue-50/50 placeholder:text-gray-400 transition-colors"
+    "w-full h-full bg-transparent border-0 px-3 py-3 text-[13px] outline-none focus:bg-info-bg/50 placeholder:text-muted transition-colors"
   const numberInputBase =
-    "w-full h-full bg-transparent border-0 px-3 py-3 text-[13px] outline-none focus:bg-blue-50/50 text-right tabular-nums transition-colors"
+    "w-full h-full bg-transparent border-0 px-3 py-3 text-[13px] outline-none focus:bg-info-bg/50 text-right tabular-nums transition-colors"
 
   return (
     <div className="overflow-hidden rounded-card border border-[var(--border)] bg-white">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-gray-50 text-[12px] font-medium text-gray-500">
+          <tr className="bg-surface-1 text-[12px] font-medium text-tertiary">
             <th className="text-left px-3 py-2.5 border-b border-[var(--border)]">Opis</th>
             <th className="text-center px-3 py-2.5 border-b border-l border-[var(--border)] w-[80px]">
               Kol.
@@ -251,7 +251,7 @@ export function LineItemTable({
             return (
               <tr
                 key={index}
-                className={`text-[13px] hover:bg-gray-50/50 transition-colors ${
+                className={`text-[13px] hover:bg-surface-1/50 transition-colors ${
                   index > 0 ? "border-t border-[var(--border)]" : ""
                 }`}
               >
@@ -269,8 +269,8 @@ export function LineItemTable({
                     onMultilineChange={(isMulti) => handleMultilineChange(index, isMulti)}
                   />
                   {isActiveSuggestions && (
-                    <div className="absolute left-0 right-0 z-50 mt-0 max-h-56 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
-                      <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500">
+                    <div className="absolute left-0 right-0 z-50 mt-0 max-h-56 overflow-auto rounded-md border border-default bg-white shadow-lg">
+                      <div className="flex items-center gap-2 px-3 py-2 text-xs text-tertiary">
                         <Search className="h-3.5 w-3.5" />
                         Pronađeno u katalogu
                       </div>
@@ -278,14 +278,14 @@ export function LineItemTable({
                         {suggestions.map((s) => (
                           <li
                             key={s.id}
-                            className="cursor-pointer px-3 py-2 hover:bg-blue-50"
+                            className="cursor-pointer px-3 py-2 hover:bg-info-bg"
                             onMouseDown={(e) => {
                               e.preventDefault()
                               applySuggestion(index, s)
                             }}
                           >
-                            <div className="text-sm font-medium text-gray-900">{s.name}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-sm font-medium text-foreground">{s.name}</div>
+                            <div className="text-xs text-tertiary">
                               {s.price.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} € •{" "}
                               {unitLabels[s.unit] || "kom"} • PDV {s.vatRate}%
                             </div>
@@ -310,7 +310,7 @@ export function LineItemTable({
                   <select
                     value={line.unit || "C62"}
                     onChange={(e) => onChange(index, "unit", e.target.value)}
-                    className="w-full bg-transparent border-0 px-3 py-3 text-[13px] text-center outline-none focus:bg-blue-50/50 cursor-pointer transition-colors min-h-[44px]"
+                    className="w-full bg-transparent border-0 px-3 py-3 text-[13px] text-center outline-none focus:bg-info-bg/50 cursor-pointer transition-colors min-h-[44px]"
                   >
                     <option value="C62">kom</option>
                     <option value="HUR">sat</option>
@@ -338,7 +338,7 @@ export function LineItemTable({
                     <select
                       value={line.vatRate ?? 25}
                       onChange={(e) => onChange(index, "vatRate", parseInt(e.target.value))}
-                      className="w-full bg-transparent border-0 px-2 py-3 text-[13px] text-center tabular-nums outline-none focus:bg-blue-50/50 cursor-pointer transition-colors min-h-[44px]"
+                      className="w-full bg-transparent border-0 px-2 py-3 text-[13px] text-center tabular-nums outline-none focus:bg-info-bg/50 cursor-pointer transition-colors min-h-[44px]"
                     >
                       <option value={25}>25%</option>
                       <option value={13}>13%</option>
@@ -350,7 +350,7 @@ export function LineItemTable({
 
                 {/* Total */}
                 <td
-                  className={`px-3 py-3 text-right font-semibold text-gray-900 tabular-nums whitespace-nowrap border-l border-[var(--border)] ${cellAlign}`}
+                  className={`px-3 py-3 text-right font-semibold text-foreground tabular-nums whitespace-nowrap border-l border-[var(--border)] ${cellAlign}`}
                 >
                   {formatCurrency(total)}
                 </td>
@@ -362,7 +362,7 @@ export function LineItemTable({
                       <button
                         type="button"
                         onClick={() => onRemove(index)}
-                        className="rounded-md p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        className="rounded-md p-1.5 text-muted hover:text-danger-text hover:bg-danger-bg transition-colors"
                         aria-label={`Ukloni stavku ${index + 1}`}
                       >
                         <Trash2 className="h-4 w-4" />

@@ -28,12 +28,12 @@ export function StepAddress() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Adresa tvrtke</h2>
-        <p className="mt-1 text-sm text-gray-600">Unesite poslovnu adresu</p>
+        <p className="mt-1 text-sm text-secondary">Unesite poslovnu adresu</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="address" className="block text-sm font-medium text-foreground">
             Ulica i kućni broj *
           </label>
           <Input
@@ -47,7 +47,7 @@ export function StepAddress() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="postalCode" className="block text-sm font-medium text-foreground">
               Poštanski broj *
             </label>
             <Input
@@ -60,7 +60,7 @@ export function StepAddress() {
           </div>
 
           <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="city" className="block text-sm font-medium text-foreground">
               Grad *
             </label>
             <Input
@@ -74,7 +74,7 @@ export function StepAddress() {
         </div>
 
         <div>
-          <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="country" className="block text-sm font-medium text-foreground">
             Država *
           </label>
           <Input

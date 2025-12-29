@@ -70,8 +70,8 @@ export function CompactDropzone({
         flex items-center gap-4 px-4 py-3 rounded-xl border-2 border-dashed transition-all cursor-pointer
         ${
           isDragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 bg-gradient-to-r from-slate-50 to-white hover:border-gray-400"
+            ? "border-focus bg-info-bg"
+            : "border-default bg-gradient-to-r from-slate-50 to-white hover:border-strong"
         }
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}
@@ -91,17 +91,17 @@ export function CompactDropzone({
       <div
         className={`
         flex-shrink-0 p-2 rounded-full transition-colors
-        ${isDragActive ? "bg-blue-100" : "bg-gray-100"}
+        ${isDragActive ? "bg-info-bg" : "bg-surface-2"}
       `}
       >
-        <UploadCloud className={`h-5 w-5 ${isDragActive ? "text-blue-600" : "text-gray-500"}`} />
+        <UploadCloud className={`h-5 w-5 ${isDragActive ? "text-link" : "text-tertiary"}`} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900">
+        <p className="text-sm font-medium text-foreground">
           {isDragActive ? "Ispustite ovdje..." : "Povucite dokumente ovdje"}
         </p>
-        <p className="text-xs text-gray-500 truncate">PDF, XML, CSV, slike</p>
+        <p className="text-xs text-tertiary truncate">PDF, XML, CSV, slike</p>
       </div>
 
       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -109,7 +109,7 @@ export function CompactDropzone({
           <select
             value={selectedAccountId}
             onChange={(e) => onAccountChange(e.target.value)}
-            className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hidden sm:block"
+            className="text-sm border border-default rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-border-focus focus:border-focus hidden sm:block"
             onClick={(e) => e.stopPropagation()}
           >
             {bankAccounts.map((acc) => (

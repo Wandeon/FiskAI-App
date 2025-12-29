@@ -198,19 +198,19 @@ export function CorporateTaxDashboard({ companyName }: Props) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-              <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+            <div className="p-4 border rounded-lg bg-success-bg dark:bg-green-950 border-success-border dark:border-green-800">
+              <div className="text-2xl font-bold text-success-text dark:text-green-300">
                 {TAX_RATES.corporate.small.rate * 100}%
               </div>
-              <div className="text-sm text-green-600 dark:text-green-400">
+              <div className="text-sm text-success-text dark:text-green-400">
                 Za tvrtke s prihodima do {threshold.toLocaleString("hr-HR")} EUR
               </div>
             </div>
-            <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+            <div className="p-4 border rounded-lg bg-info-bg dark:bg-blue-950 border-info-border dark:border-blue-800">
+              <div className="text-2xl font-bold text-link dark:text-blue-300">
                 {TAX_RATES.corporate.large.rate * 100}%
               </div>
-              <div className="text-sm text-blue-600 dark:text-blue-400">
+              <div className="text-sm text-link dark:text-blue-400">
                 Za tvrtke s prihodima iznad {threshold.toLocaleString("hr-HR")} EUR
               </div>
             </div>

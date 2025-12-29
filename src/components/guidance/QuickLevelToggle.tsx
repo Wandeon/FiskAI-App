@@ -20,7 +20,7 @@ const levelIcons = {
 const levelColors = {
   beginner: "text-emerald-400",
   average: "text-amber-400",
-  pro: "text-cyan-400",
+  pro: "text-accent",
 }
 
 export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevelToggleProps) {

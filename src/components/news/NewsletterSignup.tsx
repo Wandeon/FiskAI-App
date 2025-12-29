@@ -48,7 +48,7 @@ export function NewsletterSignup() {
         </p>
 
         {isSubmitted ? (
-          <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+          <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-success/10 px-4 py-3 text-sm text-green-300">
             <Check className="h-4 w-4 flex-shrink-0" />
             <span>Uspješno ste se pretplatili!</span>
           </div>

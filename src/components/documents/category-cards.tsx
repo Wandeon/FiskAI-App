@@ -66,15 +66,15 @@ export function CategoryCards({ counts, activeCategory, compact = true }: Catego
               className={cn(
                 "inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
                 active
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-interactive text-white shadow-md"
+                  : "bg-surface-2 text-foreground hover:bg-surface-2"
               )}
             >
               <span>{label}</span>
               <span
                 className={cn(
                   "px-2 py-0.5 rounded-full text-xs font-bold",
-                  active ? "bg-white/20 text-white" : "bg-white text-gray-600"
+                  active ? "bg-white/20 text-white" : "bg-white text-secondary"
                 )}
               >
                 {count}
@@ -99,13 +99,13 @@ export function CategoryCards({ counts, activeCategory, compact = true }: Catego
             <div
               className={cn(
                 "cursor-pointer transition-all hover:shadow-md rounded-xl border p-4 text-center",
-                active && "ring-2 ring-blue-500 bg-blue-50"
+                active && "ring-2 ring-border-focus bg-info-bg"
               )}
             >
-              <p className={cn("text-2xl font-bold", active ? "text-blue-700" : "text-gray-900")}>
+              <p className={cn("text-2xl font-bold", active ? "text-link" : "text-foreground")}>
                 {count}
               </p>
-              <p className={cn("text-sm", active ? "text-blue-600" : "text-gray-500")}>{label}</p>
+              <p className={cn("text-sm", active ? "text-link" : "text-tertiary")}>{label}</p>
             </div>
           </Link>
         )

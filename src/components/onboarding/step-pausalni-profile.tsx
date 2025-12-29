@@ -226,8 +226,8 @@ export function StepPausalniProfile() {
                 key={idx}
                 className={`flex items-center space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                   data.taxBracket === idx + 1
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-focus bg-info-bg"
+                    : "border-default hover:border-default"
                 }`}
               >
                 <input
@@ -264,7 +264,7 @@ export function StepPausalniProfile() {
               <div key={idx} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-2 w-2 rounded-full ${ob.enabled ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`h-2 w-2 rounded-full ${ob.enabled ? "bg-success" : "bg-gray-300"}`}
                   />
                   <span className={ob.enabled ? "" : "text-muted-foreground line-through"}>
                     {ob.label}

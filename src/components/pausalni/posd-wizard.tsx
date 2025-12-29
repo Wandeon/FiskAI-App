@@ -92,8 +92,8 @@ export function PosdWizard({ companyId }: Props) {
     // Show error state
     if (error) {
       return (
-        <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4">
-          <p className="text-red-600">{error}</p>
+        <div className="rounded-lg border border-red-500/50 bg-danger/10 p-4">
+          <p className="text-danger-text">{error}</p>
           <Button variant="outline" onClick={() => setYear(year)} className="mt-3">
             Pokušaj ponovno
           </Button>
@@ -107,9 +107,9 @@ export function PosdWizard({ companyId }: Props) {
 
     return (
       <div className="space-y-6">
-        <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-4">
+        <div className="rounded-lg border border-focus/50 bg-interactive/10 p-4">
           <div className="flex gap-3">
-            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Info className="h-5 w-5 text-link flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-900 dark:text-blue-200">
               <p className="font-medium mb-1">O PO-SD obrascu</p>
               <p>
@@ -127,9 +127,9 @@ export function PosdWizard({ companyId }: Props) {
           </CardHeader>
           <CardContent className="space-y-4">
             {!hasData && (
-              <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 mb-4">
+              <div className="rounded-lg border border-amber-500/50 bg-warning/10 p-4 mb-4">
                 <div className="flex gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-warning-text flex-shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">
                       Nema evidentiranih računa
@@ -184,9 +184,9 @@ export function PosdWizard({ companyId }: Props) {
               </div>
             )}
 
-            <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
+            <div className="rounded-lg border border-amber-500/50 bg-warning/10 p-4">
               <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-warning-text flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">Napomena</p>
                   <p className="text-amber-800 dark:text-amber-300">
@@ -229,9 +229,9 @@ export function PosdWizard({ companyId }: Props) {
             <CardTitle className="text-lg">Odabir stope priznatih troškova</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-4">
+            <div className="rounded-lg border border-focus/50 bg-interactive/10 p-4">
               <div className="flex gap-3">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <Info className="h-5 w-5 text-link flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900 dark:text-blue-200">
                   <p>
                     Odaberite stopu priznatih troškova koja odgovara vašoj djelatnosti. Ova stopa će
@@ -248,8 +248,8 @@ export function PosdWizard({ companyId }: Props) {
                   onClick={() => setSelectedBracket(bracket.value)}
                   className={`w-full text-left rounded-lg border-2 p-4 transition-all ${
                     selectedBracket === bracket.value
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-border bg-surface-secondary hover:border-blue-500/50"
+                      ? "border-focus bg-interactive/10"
+                      : "border-border bg-surface-secondary hover:border-focus/50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -258,7 +258,7 @@ export function PosdWizard({ companyId }: Props) {
                       <p className="text-sm text-muted-foreground">{bracket.label}</p>
                     </div>
                     {selectedBracket === bracket.value && (
-                      <CheckCircle2 className="h-6 w-6 text-blue-600" />
+                      <CheckCircle2 className="h-6 w-6 text-link" />
                     )}
                   </div>
                   {yearSummary && (
@@ -346,7 +346,7 @@ export function PosdWizard({ companyId }: Props) {
                     -{formatCurrency(yearSummary.calculatedExpenses)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/50">
+                <div className="flex justify-between items-center p-3 rounded-lg bg-interactive/10 border border-focus/50">
                   <span className="font-medium">Neto prihod (porezna osnovica)</span>
                   <span className="font-bold text-lg">{formatCurrency(yearSummary.netIncome)}</span>
                 </div>
@@ -375,16 +375,16 @@ export function PosdWizard({ companyId }: Props) {
                   <span className="text-muted-foreground">Zdravstveno (16.5%)</span>
                   <span className="font-medium">{formatCurrency(estimatedHealth)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 rounded bg-amber-500/10 border border-amber-500/50 font-semibold">
+                <div className="flex justify-between items-center p-3 rounded bg-warning/10 border border-amber-500/50 font-semibold">
                   <span>Ukupno mjesečno</span>
                   <span>{formatCurrency(estimatedTotal)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-4">
+            <div className="rounded-lg border border-focus/50 bg-interactive/10 p-4">
               <div className="flex gap-3">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <Info className="h-5 w-5 text-link flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900 dark:text-blue-200">
                   <p className="font-medium mb-1">Napomena</p>
                   <p>
@@ -419,12 +419,12 @@ export function PosdWizard({ companyId }: Props) {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <CheckCircle2 className="h-6 w-6 text-success-text" />
               Upute za podnošenje PO-SD obrasca
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="rounded-lg bg-green-500/10 border border-green-500/50 p-4">
+            <div className="rounded-lg bg-success/10 border border-green-500/50 p-4">
               <p className="font-medium text-green-900 dark:text-green-200">
                 Pripremili smo za vas sve potrebne podatke za podnošenje PO-SD obrasca!
               </p>
@@ -441,7 +441,7 @@ export function PosdWizard({ companyId }: Props) {
                       href="https://eporezna.porezna-uprava.hr"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-link hover:underline"
                     >
                       ePorezna portal
                     </a>{" "}
@@ -502,9 +502,9 @@ export function PosdWizard({ companyId }: Props) {
               </div>
             </div>
 
-            <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
+            <div className="rounded-lg border border-amber-500/50 bg-warning/10 p-4">
               <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-warning-text flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">Važan rok!</p>
                   <p className="text-amber-800 dark:text-amber-300">
@@ -517,8 +517,8 @@ export function PosdWizard({ companyId }: Props) {
 
             {/* Generation Error */}
             {generationError && (
-              <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4">
-                <p className="text-red-600 text-sm">{generationError}</p>
+              <div className="rounded-lg border border-red-500/50 bg-danger/10 p-4">
+                <p className="text-danger-text text-sm">{generationError}</p>
               </div>
             )}
 
@@ -561,9 +561,9 @@ export function PosdWizard({ companyId }: Props) {
               </Button>
             </div>
 
-            <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-3">
+            <div className="rounded-lg border border-focus/50 bg-interactive/10 p-3">
               <div className="flex gap-3">
-                <Info className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <Info className="h-4 w-4 text-link flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900 dark:text-blue-200">
                   <p>
                     <strong>PDF</strong> - Pregledni dokument za vašu evidenciju
@@ -699,7 +699,7 @@ export function PosdWizard({ companyId }: Props) {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
                   currentStep >= step.num
-                    ? "bg-blue-600 text-white"
+                    ? "bg-interactive text-white"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -714,7 +714,7 @@ export function PosdWizard({ companyId }: Props) {
             {index < 3 && (
               <div
                 className={`flex-1 h-0.5 mx-2 transition-colors ${
-                  currentStep > step.num ? "bg-blue-600" : "bg-muted"
+                  currentStep > step.num ? "bg-interactive" : "bg-muted"
                 }`}
               />
             )}

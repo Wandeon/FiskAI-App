@@ -28,7 +28,7 @@ export function Sources({ sources, lastUpdated, lastReviewed, reviewer }: Source
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:underline"
+                  className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   {source.name}

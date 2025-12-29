@@ -28,7 +28,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
         <span
           className={cn(
             "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
-            isVatPayer ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+            isVatPayer ? "bg-success-bg text-success-text" : "bg-warning-bg text-warning-text"
           )}
         >
           <BadgePercent className="h-4 w-4" />
@@ -37,7 +37,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
       </div>
 
       {!isVatPayer && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-warning-bg px-3 py-2 text-sm text-amber-800">
           <ShieldAlert className="h-4 w-4" />
           <span>Provjerite jeste li pravilno označili PDV status i datume obveza.</span>
         </div>
@@ -49,7 +49,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
           <p className="text-2xl font-semibold text-[var(--foreground)]">
             {formatCurrency(paidVat)}
           </p>
-          <p className="text-xs font-medium text-emerald-600">
+          <p className="text-xs font-medium text-success-text">
             {paidPercent.toFixed(0)}% od ukupnog
           </p>
         </div>
@@ -58,7 +58,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
           <p className="text-2xl font-semibold text-[var(--foreground)]">
             {formatCurrency(pendingVat)}
           </p>
-          <p className="text-xs font-medium text-amber-600">
+          <p className="text-xs font-medium text-warning-text">
             {pendingPercent.toFixed(0)}% od ukupnog
           </p>
         </div>
@@ -76,7 +76,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
           />
         </div>
         <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--muted)]">
-          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <ShieldCheck className="h-4 w-4 text-success-text" />
           <span>
             Plaćeno uključuje fiskalizirane/prihvaćene; u tijeku su poslani ili na fiskalizaciji.
           </span>

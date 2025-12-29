@@ -29,9 +29,9 @@ const typeIcons = {
 }
 
 const typeColors = {
-  invoice_reminder: "text-blue-400 bg-blue-400/10",
+  invoice_reminder: "text-blue-400 bg-chart-1/10",
   expense_pattern: "text-amber-400 bg-amber-400/10",
-  revenue_trend: "text-emerald-400 bg-emerald-400/10",
+  revenue_trend: "text-emerald-400 bg-chart-4/10",
   compliance_risk: "text-red-400 bg-red-400/10",
 }
 

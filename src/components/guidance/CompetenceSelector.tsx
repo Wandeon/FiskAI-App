@@ -26,9 +26,9 @@ interface CompetenceSelectorProps {
 }
 
 const levelColors: Record<CompetenceLevel, string> = {
-  beginner: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  average: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  pro: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  beginner: "bg-chart-4/20 text-emerald-400 border-emerald-500/30",
+  average: "bg-warning/20 text-amber-400 border-amber-500/30",
+  pro: "bg-chart-7/20 text-accent border-cyan-500/30",
 }
 
 export function CompetenceSelector({

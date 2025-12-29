@@ -12,9 +12,9 @@ interface ProcessingQueueProps {
 export function ProcessingQueue({ jobs, onView, onRetry, onRemove }: ProcessingQueueProps) {
   if (jobs.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center">
-        <p className="text-sm text-gray-500">Nema dokumenata u redu čekanja</p>
-        <p className="text-xs text-gray-400 mt-1">Povucite datoteke u dropzonu za početak</p>
+      <div className="rounded-lg border border-dashed border-default p-6 text-center">
+        <p className="text-sm text-tertiary">Nema dokumenata u redu čekanja</p>
+        <p className="text-xs text-muted mt-1">Povucite datoteke u dropzonu za početak</p>
       </div>
     )
   }
@@ -38,8 +38,8 @@ export function ProcessingQueue({ jobs, onView, onRetry, onRemove }: ProcessingQ
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700">Red čekanja</h3>
-        <span className="text-xs text-gray-500">
+        <h3 className="text-sm font-semibold text-foreground">Red čekanja</h3>
+        <span className="text-xs text-tertiary">
           {jobs.length} {jobs.length === 1 ? "datoteka" : "datoteka"}
         </span>
       </div>

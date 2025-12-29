@@ -90,7 +90,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_circle_at_0%_0%,rgba(6,182,212,0.16),transparent_60%),radial-gradient(700px_circle_at_100%_20%,rgba(99,102,241,0.12),transparent_55%)]" />
             <div className="relative grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-center">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
+                <div className="inline-flex items-center gap-2 rounded-full bg-chart-7/10 px-3 py-1 text-xs font-semibold text-accent">
                   <Sparkles className="h-4 w-4" />
                   Preporučeni početak
                 </div>
@@ -114,15 +114,15 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
                 <p className="text-sm font-semibold text-white/90">Kako koristiti bazu znanja</p>
                 <ul className="mt-3 space-y-2 text-sm text-white/60">
                   <li className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-500" />
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-chart-7" />
                     Krenite s vodičem, zatim otvorite usporedbe.
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-500" />
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-chart-7" />
                     Koristite kalkulatore za brzu procjenu.
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-cyan-500" />
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-chart-7" />
                     Spremite link i vratite se kasnije.
                   </li>
                 </ul>
@@ -153,7 +153,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
               className={cn(
                 "rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
                 group === filter.id
-                  ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-400"
+                  ? "border-cyan-500/30 bg-chart-7/10 text-accent"
                   : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
               )}
             >
@@ -191,12 +191,12 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
                           <div>
                             <h3 className="text-lg font-semibold text-white/90">{guide.title}</h3>
                           </div>
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 transition-transform group-hover:scale-105">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-chart-7/10 text-accent transition-transform group-hover:scale-105">
                             <Icon className="h-5 w-5" />
                           </div>
                         </div>
                         <p className="mb-4 text-sm text-white/60">{guide.description}</p>
-                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 transition-all group-hover:gap-3 group-hover:underline">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition-all group-hover:gap-3 group-hover:underline">
                           Otvori vodič <ArrowRight className="h-4 w-4" />
                         </span>
                       </GlassCard>

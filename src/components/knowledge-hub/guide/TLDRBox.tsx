@@ -15,12 +15,12 @@ const variantStyles = {
   },
   success: {
     container: "border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-green-500/10",
-    icon: "bg-emerald-500/20 text-emerald-400",
+    icon: "bg-chart-4/20 text-emerald-400",
     title: "text-emerald-300",
   },
   warning: {
     container: "border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/10",
-    icon: "bg-amber-500/20 text-amber-400",
+    icon: "bg-warning/20 text-amber-400",
     title: "text-amber-300",
   },
 }

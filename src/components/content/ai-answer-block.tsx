@@ -92,9 +92,9 @@ export function AIAnswerBlock({
             <span
               className={cn(
                 "confidence-badge px-2 py-1 rounded text-xs font-medium",
-                confidence === "medium" && "bg-yellow-100 text-yellow-800",
-                confidence === "low" && "bg-red-100 text-red-800",
-                confidence === "pending" && "bg-gray-100 text-gray-800"
+                confidence === "medium" && "bg-warning-bg text-yellow-800",
+                confidence === "low" && "bg-danger-bg text-red-800",
+                confidence === "pending" && "bg-surface-2 text-foreground"
               )}
             >
               {confidenceLabels[confidence]}
@@ -105,7 +105,7 @@ export function AIAnswerBlock({
 
       <main
         data-ai-explanation="true"
-        className="ai-answer-content prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-cyan-400 prose-strong:text-white"
+        className="ai-answer-content prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-accent prose-strong:text-white"
       >
         {children}
       </main>

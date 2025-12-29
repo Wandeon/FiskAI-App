@@ -62,9 +62,9 @@ export function ContributionCalculator({ embedded = true }: Props) {
       <BreakdownBars
         formatValue={formatEUR}
         items={[
-          { label: "MIO I.", value: breakdown.mioI, colorClassName: "bg-cyan-500" },
-          { label: "MIO II.", value: breakdown.mioII, colorClassName: "bg-blue-500" },
-          { label: "HZZO", value: breakdown.hzzo, colorClassName: "bg-emerald-500" },
+          { label: "MIO I.", value: breakdown.mioI, colorClassName: "bg-chart-7" },
+          { label: "MIO II.", value: breakdown.mioII, colorClassName: "bg-interactive" },
+          { label: "HZZO", value: breakdown.hzzo, colorClassName: "bg-chart-4" },
         ]}
       />
       <p className="text-sm text-white/70">

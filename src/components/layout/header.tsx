@@ -86,9 +86,9 @@ export async function Header() {
         {/* Left Section */}
         <div className="flex items-center gap-3 md:gap-4 pl-12 md:pl-0">
           <Link href="/dashboard" className="flex items-center gap-2 group">
-            <FiskAILogo className="h-8 w-8 text-cyan-500 transition-all duration-300 group-hover:brightness-110" />
+            <FiskAILogo className="h-8 w-8 text-accent transition-all duration-300 group-hover:brightness-110" />
             <span className="hidden sm:inline text-lg font-bold text-[var(--foreground)]">
-              Fisk<span className="text-cyan-500">AI</span>
+              Fisk<span className="text-accent">AI</span>
             </span>
           </Link>
 

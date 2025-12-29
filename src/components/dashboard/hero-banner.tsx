@@ -45,37 +45,37 @@ export function HeroBanner({
         <div className="grid gap-4 sm:grid-cols-3">
           <Link
             href="/e-invoices/new"
-            className="surface-glass rounded-2xl border-white/20 p-4 transition hover:bg-white/20 text-slate-900"
+            className="surface-glass rounded-2xl border-white/20 p-4 transition hover:bg-white/20 text-foreground"
           >
-            <p className="text-xs uppercase tracking-wide text-slate-600">Sljedeći korak</p>
-            <p className="text-lg font-semibold text-slate-900">Kreirajte e-račun</p>
-            <p className="mt-1 text-sm text-slate-700 flex items-center gap-1">
+            <p className="text-xs uppercase tracking-wide text-secondary">Sljedeći korak</p>
+            <p className="text-lg font-semibold text-foreground">Kreirajte e-račun</p>
+            <p className="mt-1 text-sm text-foreground flex items-center gap-1">
               <ArrowRight className="icon-md" /> brzo iz nacrta
             </p>
           </Link>
-          <div className="surface-glass rounded-2xl border-white/20 p-4 text-slate-900">
-            <p className="text-xs uppercase tracking-wide text-slate-600">Nacrti</p>
+          <div className="surface-glass rounded-2xl border-white/20 p-4 text-foreground">
+            <p className="text-xs uppercase tracking-wide text-secondary">Nacrti</p>
             <div className="mt-1 flex items-end gap-2">
-              <p className="text-3xl font-semibold text-slate-900">{draftInvoices}</p>
-              <p className="text-sm text-slate-700">računa</p>
+              <p className="text-3xl font-semibold text-foreground">{draftInvoices}</p>
+              <p className="text-sm text-foreground">računa</p>
             </div>
-            <p className="mt-1 text-sm text-slate-700 flex items-center gap-1">
+            <p className="mt-1 text-sm text-foreground flex items-center gap-1">
               <Clock className="icon-md" /> spremni za slanje
             </p>
           </div>
-          <div className="surface-glass rounded-2xl border-white/20 p-4 text-slate-900">
-            <p className="text-xs uppercase tracking-wide text-slate-600">Status posrednika</p>
+          <div className="surface-glass rounded-2xl border-white/20 p-4 text-foreground">
+            <p className="text-xs uppercase tracking-wide text-secondary">Status posrednika</p>
             <div className="mt-1 flex items-center gap-2">
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  providerConfigured ? "bg-emerald-100" : "bg-amber-100"
+                  providerConfigured ? "bg-success-bg" : "bg-warning-bg"
                 )}
               >
                 <ShieldCheck
                   className={cn(
                     "icon-md",
-                    providerConfigured ? "text-emerald-700" : "text-amber-700"
+                    providerConfigured ? "text-success-text" : "text-warning-text"
                   )}
                 />
               </div>
@@ -83,7 +83,7 @@ export function HeroBanner({
                 <p className="text-base font-semibold">
                   {providerConfigured ? "Spremni za fiskalizaciju" : "Povežite posrednika"}
                 </p>
-                <p className="text-xs text-slate-700">
+                <p className="text-xs text-foreground">
                   {providerConfigured
                     ? "E-računi se mogu slati odmah"
                     : "Završite postavke u minutama"}

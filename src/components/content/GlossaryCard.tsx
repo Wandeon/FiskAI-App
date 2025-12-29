@@ -13,7 +13,7 @@ export function GlossaryCard({ term, definition, relatedTerms, className }: Glos
   return (
     <div className={cn("rounded-xl border border-white/10 bg-white/5 p-6", className)}>
       <div className="mb-3 flex items-center gap-2">
-        <BookOpen className="h-5 w-5 text-cyan-400" />
+        <BookOpen className="h-5 w-5 text-accent" />
         <h2 className="text-2xl font-bold text-white">{term}</h2>
       </div>
       <p className="mb-4 text-lg text-white/90">{definition}</p>

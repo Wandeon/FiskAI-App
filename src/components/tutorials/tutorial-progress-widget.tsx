@@ -62,7 +62,7 @@ export function TutorialProgressWidget({ track, progress }: TutorialProgressWidg
                   aria-label={`${task.title}, ${taskStatus}${task.isOptional ? ", opcionalno" : ""}`}
                 >
                   {isCompleted ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" aria-hidden="true" />
+                    <CheckCircle className="h-4 w-4 text-success-icon" aria-hidden="true" />
                   ) : (
                     <Circle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   )}

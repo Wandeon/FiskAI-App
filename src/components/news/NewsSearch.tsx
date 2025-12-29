@@ -132,7 +132,7 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
             className="flex-1 bg-transparent text-white placeholder:text-white/50 focus:outline-none"
             autoFocus
           />
-          {isLoading && <Loader2 className="h-5 w-5 animate-spin text-cyan-400" />}
+          {isLoading && <Loader2 className="h-5 w-5 animate-spin text-accent" />}
           <button
             onClick={handleCloseSearch}
             className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white"
@@ -211,7 +211,7 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
                               : ""}
                           </p>
                         </div>
-                        <ExternalLink className="mt-1 h-4 w-4 flex-shrink-0 text-white/30 group-hover:text-cyan-400" />
+                        <ExternalLink className="mt-1 h-4 w-4 flex-shrink-0 text-white/30 group-hover:text-accent" />
                       </a>
                     </li>
                   ))}

@@ -47,7 +47,7 @@ export function DeadlineCountdownCard({ deadlines, businessType }: DeadlineCount
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-success-icon" />
             Nema rokova u sljedećih 30 dana
           </div>
         </CardContent>
@@ -80,11 +80,11 @@ export function DeadlineCountdownCard({ deadlines, businessType }: DeadlineCount
             <div
               key={deadline.id}
               className={`flex items-start gap-3 rounded-lg p-2 ${
-                daysLeft <= 3 ? "bg-red-500/10" : daysLeft <= 7 ? "bg-amber-500/10" : "bg-muted/30"
+                daysLeft <= 3 ? "bg-danger/10" : daysLeft <= 7 ? "bg-warning/10" : "bg-muted/30"
               }`}
             >
               {daysLeft <= 3 ? (
-                <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-danger-icon mt-0.5 shrink-0" />
               ) : (
                 <Clock className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               )}

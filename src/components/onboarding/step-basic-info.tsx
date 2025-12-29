@@ -84,16 +84,16 @@ export function StepBasicInfo() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Osnovni podaci tvrtke</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-secondary">
           Unesite OIB - podaci će biti automatski pronađeni
         </p>
       </div>
 
-      {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+      {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="oib" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="oib" className="block text-sm font-medium text-foreground">
             OIB *
           </label>
           <OibInput
@@ -102,11 +102,11 @@ export function StepBasicInfo() {
             onLookupSuccess={handleOibLookupSuccess}
             onLookupError={handleOibLookupError}
           />
-          <p className="mt-1 text-xs text-gray-500">Osobni identifikacijski broj (11 znamenki)</p>
+          <p className="mt-1 text-xs text-tertiary">Osobni identifikacijski broj (11 znamenki)</p>
         </div>
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-foreground">
             Naziv tvrtke *
           </label>
           <Input
@@ -119,15 +119,15 @@ export function StepBasicInfo() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pravni oblik *</label>
+          <label className="block text-sm font-medium text-foreground mb-2">Pravni oblik *</label>
           <div className="space-y-2">
             {LEGAL_FORM_OPTIONS.map((option) => (
               <label
                 key={option.value}
                 className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
                   data.legalForm === option.value
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-focus bg-info-bg"
+                    : "border-default hover:border-default"
                 }`}
               >
                 <input
@@ -139,8 +139,8 @@ export function StepBasicInfo() {
                   className="mt-0.5 mr-3"
                 />
                 <div>
-                  <span className="font-medium text-gray-900">{option.label}</span>
-                  <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                  <span className="font-medium text-foreground">{option.label}</span>
+                  <p className="text-xs text-tertiary mt-0.5">{option.description}</p>
                 </div>
               </label>
             ))}

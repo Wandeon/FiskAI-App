@@ -72,15 +72,15 @@ export function TransactionEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Summary Header */}
-      <div className="p-4 border-b bg-gray-50">
+      <div className="p-4 border-b bg-surface-1">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-lg">Transakcije</h3>
-          <span className="text-sm text-gray-600">{transactions.length} stavki</span>
+          <span className="text-sm text-secondary">{transactions.length} stavki</span>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Početni saldo:</span>
+              <span className="text-secondary">Početni saldo:</span>
               <span className="font-medium">
                 {openingBalance !== null && openingBalance !== undefined
                   ? openingBalance.toFixed(2)
@@ -88,22 +88,22 @@ export function TransactionEditor({
                 EUR
               </span>
             </div>
-            <div className="flex justify-between text-green-600">
+            <div className="flex justify-between text-success-text">
               <span>Ukupno uplate:</span>
               <span className="font-medium">+{totalIncoming.toFixed(2)} EUR</span>
             </div>
-            <div className="flex justify-between text-red-600">
+            <div className="flex justify-between text-danger-text">
               <span>Ukupno isplate:</span>
               <span className="font-medium">-{totalOutgoing.toFixed(2)} EUR</span>
             </div>
           </div>
           <div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Izračunati saldo:</span>
+              <span className="text-secondary">Izračunati saldo:</span>
               <span className="font-medium">{calculatedClosing.toFixed(2)} EUR</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Navedeni saldo:</span>
+              <span className="text-secondary">Navedeni saldo:</span>
               <span className="font-medium">
                 {closingBalance !== null && closingBalance !== undefined
                   ? closingBalance.toFixed(2)
@@ -113,7 +113,7 @@ export function TransactionEditor({
             </div>
             <div
               className={`flex justify-between font-semibold ${
-                mathValid ? "text-green-600" : "text-red-600"
+                mathValid ? "text-success-text" : "text-danger-text"
               }`}
             >
               <span>Status:</span>
@@ -126,7 +126,7 @@ export function TransactionEditor({
       {/* Transaction Table */}
       <div className="flex-1 overflow-auto">
         <table className="w-full">
-          <thead className="bg-gray-100 sticky top-0">
+          <thead className="bg-surface-2 sticky top-0">
             <tr>
               <th className="text-left p-2 text-sm font-semibold">Datum</th>
               <th className="text-left p-2 text-sm font-semibold">Opis</th>
@@ -139,7 +139,7 @@ export function TransactionEditor({
             {transactions.map((transaction) => {
               const isEditing = editingId === transaction.id
               return (
-                <tr key={transaction.id} className="border-b hover:bg-gray-50">
+                <tr key={transaction.id} className="border-b hover:bg-surface-1">
                   <td className="p-2 text-sm">
                     {isEditing ? (
                       <Input
@@ -177,7 +177,7 @@ export function TransactionEditor({
                   </td>
                   <td
                     className={`p-2 text-sm text-right font-medium ${
-                      transaction.direction === "INCOMING" ? "text-green-600" : "text-red-600"
+                      transaction.direction === "INCOMING" ? "text-success-text" : "text-danger-text"
                     }`}
                   >
                     {isEditing ? (
@@ -216,7 +216,7 @@ export function TransactionEditor({
                           onClick={saveEdit}
                           className="h-7 w-7 p-0"
                         >
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-success-text" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -224,7 +224,7 @@ export function TransactionEditor({
                           onClick={cancelEdit}
                           className="h-7 w-7 p-0"
                         >
-                          <X className="h-4 w-4 text-red-600" />
+                          <X className="h-4 w-4 text-danger-text" />
                         </Button>
                       </div>
                     ) : (
@@ -244,7 +244,7 @@ export function TransactionEditor({
           </tbody>
         </table>
         {transactions.length === 0 && (
-          <div className="text-center py-8 text-gray-500">Nema pronađenih transakcija</div>
+          <div className="text-center py-8 text-tertiary">Nema pronađenih transakcija</div>
         )}
       </div>
     </div>

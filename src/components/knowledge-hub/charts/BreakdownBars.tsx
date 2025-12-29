@@ -64,7 +64,7 @@ export function BreakdownBars({
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/10">
               <motion.div
-                className={cn("h-full rounded-full", item.colorClassName ?? "bg-blue-600")}
+                className={cn("h-full rounded-full", item.colorClassName ?? "bg-interactive")}
                 initial={reduce ? false : { width: 0 }}
                 animate={reduce ? undefined : { width: `${percent}%` }}
                 transition={reduce ? undefined : { duration: 0.55, ease: [0.16, 1, 0.3, 1] }}

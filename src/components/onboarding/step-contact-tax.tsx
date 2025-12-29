@@ -78,14 +78,14 @@ export function StepContactTax() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Kontakt i porezni podaci</h2>
-        <p className="mt-1 text-sm text-gray-600">Email je obavezan, ostalo možete dodati kasnije</p>
+        <p className="mt-1 text-sm text-secondary">Email je obavezan, ostalo možete dodati kasnije</p>
       </div>
 
-      {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+      {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground">
             Email *
           </label>
           <Input
@@ -99,8 +99,8 @@ export function StepContactTax() {
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-            Telefon <span className="text-xs text-gray-500">(opcionalno)</span>
+          <label htmlFor="phone" className="block text-sm font-medium text-foreground">
+            Telefon <span className="text-xs text-tertiary">(opcionalno)</span>
           </label>
           <Input
             id="phone"
@@ -112,8 +112,8 @@ export function StepContactTax() {
         </div>
 
         <div>
-          <label htmlFor="iban" className="block text-sm font-medium text-gray-700">
-            IBAN <span className="text-xs text-gray-500">(opcionalno, potreban za e-račune)</span>
+          <label htmlFor="iban" className="block text-sm font-medium text-foreground">
+            IBAN <span className="text-xs text-tertiary">(opcionalno, potreban za e-račune)</span>
           </label>
           <Input
             id="iban"
@@ -122,7 +122,7 @@ export function StepContactTax() {
             placeholder="HR1234567890123456789"
             className="mt-1"
           />
-          <p className="mt-1 text-xs text-gray-500">IBAN je potreban za slanje e-računa</p>
+          <p className="mt-1 text-xs text-tertiary">IBAN je potreban za slanje e-računa</p>
         </div>
 
         {/* Hide VAT checkbox for paušalni obrt - they cannot be VAT payers */}
@@ -133,16 +133,16 @@ export function StepContactTax() {
               type="checkbox"
               checked={data.isVatPayer || false}
               onChange={(e) => updateData({ isVatPayer: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-default text-link focus:ring-border-focus"
             />
-            <label htmlFor="isVatPayer" className="text-sm text-gray-700">
+            <label htmlFor="isVatPayer" className="text-sm text-foreground">
               Tvrtka je obveznik PDV-a
             </label>
           </div>
         )}
 
         {data.legalForm === "OBRT_PAUSAL" && (
-          <div className="rounded-md bg-blue-50 border border-blue-100 p-3">
+          <div className="rounded-md bg-info-bg border border-blue-100 p-3">
             <p className="text-sm text-blue-800">
               <strong>Paušalni obrt</strong> nije u sustavu PDV-a i ne obračunava PDV na račune.
             </p>

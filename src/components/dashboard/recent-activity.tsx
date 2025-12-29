@@ -63,7 +63,7 @@ export function RecentActivity({ invoices, className }: RecentActivityProps) {
             {invoices.map((invoice) => {
               const status = statusConfig[invoice.status] || {
                 label: invoice.status,
-                className: "bg-gray-100",
+                className: "bg-surface-2",
               }
               const amount =
                 typeof invoice.totalAmount === "number"

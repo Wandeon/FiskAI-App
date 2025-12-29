@@ -31,7 +31,7 @@ export function PlanBadge({ capabilities, className }: PlanBadgeProps) {
       <span
         className={cn(
           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-          capabilities.isVatPayer ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"
+          capabilities.isVatPayer ? "bg-info-bg text-link" : "bg-surface-2 text-secondary"
         )}
         aria-hidden="true"
       >

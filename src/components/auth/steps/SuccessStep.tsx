@@ -69,7 +69,7 @@ export function SuccessStep({ isNewUser, userName }: SuccessStepProps) {
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="h-2 w-2 rounded-full bg-cyan-400"
+              className="h-2 w-2 rounded-full bg-chart-7"
               animate={{ y: [0, -6, 0] }}
               transition={{
                 duration: 0.6,

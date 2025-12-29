@@ -208,7 +208,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn(
                     "p-2 text-center text-white",
-                    r.isRecommended && "bg-emerald-500/20"
+                    r.isRecommended && "bg-chart-4/20"
                   )}
                 >
                   {r.label}
@@ -227,7 +227,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn(
                     "p-2 text-center text-white",
-                    r.isRecommended && "bg-emerald-500/10"
+                    r.isRecommended && "bg-chart-4/10"
                   )}
                 >
                   <AnimatedAmount value={r.contributions} />
@@ -241,7 +241,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn(
                     "p-2 text-center text-white",
-                    r.isRecommended && "bg-emerald-500/10"
+                    r.isRecommended && "bg-chart-4/10"
                   )}
                 >
                   <AnimatedAmount value={r.tax} />
@@ -255,7 +255,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn(
                     "p-2 text-center text-white",
-                    r.isRecommended && "bg-emerald-500/10"
+                    r.isRecommended && "bg-chart-4/10"
                   )}
                 >
                   <AnimatedAmount value={r.bookkeeping} />
@@ -269,7 +269,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn(
                     "p-2 text-center text-white",
-                    r.isRecommended && "bg-emerald-500/10"
+                    r.isRecommended && "bg-chart-4/10"
                   )}
                 >
                   <AnimatedAmount value={r.other} />
@@ -283,7 +283,7 @@ export function ComparisonCalculator({
                   key={r.type}
                   className={cn(
                     "p-2 text-center text-white",
-                    r.isRecommended && "bg-emerald-500/10"
+                    r.isRecommended && "bg-chart-4/10"
                   )}
                 >
                   <AnimatedAmount value={r.total} />
@@ -295,7 +295,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn("p-2 text-center", r.isRecommended && "bg-emerald-500/20")}
+                  className={cn("p-2 text-center", r.isRecommended && "bg-chart-4/20")}
                 >
                   <AnimatedAmount value={r.netIncome} />
                 </td>
@@ -313,14 +313,14 @@ export function ComparisonCalculator({
             className={cn(
               "border rounded-lg p-4",
               r.isRecommended
-                ? "border-emerald-500 bg-emerald-500/10"
+                ? "border-emerald-500 bg-chart-4/10"
                 : "border-white/20 bg-white/5"
             )}
           >
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/20">
               <h3 className="font-semibold text-base text-white">{r.label}</h3>
               {r.isRecommended && (
-                <span className="text-xs px-2 py-1 bg-emerald-500 text-white rounded">
+                <span className="text-xs px-2 py-1 bg-chart-4 text-white rounded">
                   ✓ Preporučeno
                 </span>
               )}
@@ -357,7 +357,7 @@ export function ComparisonCalculator({
                   <AnimatedAmount value={r.total} />
                 </span>
               </div>
-              <div className="flex justify-between items-center min-h-[44px] py-2 bg-emerald-500/20 -mx-4 px-4 -mb-4 rounded-b font-semibold text-emerald-400">
+              <div className="flex justify-between items-center min-h-[44px] py-2 bg-chart-4/20 -mx-4 px-4 -mb-4 rounded-b font-semibold text-emerald-400">
                 <span>NETO OSTATAK</span>
                 <span>
                   <AnimatedAmount value={r.netIncome} />

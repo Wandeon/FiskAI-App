@@ -136,7 +136,7 @@ export function AuthenticateStep({
         <button
           type="button"
           onClick={onForgotPassword}
-          className="text-cyan-400 hover:text-cyan-300"
+          className="text-accent hover:text-cyan-300"
         >
           Zaboravljena lozinka?
         </button>
@@ -145,7 +145,7 @@ export function AuthenticateStep({
           <button
             type="button"
             onClick={onPasskeyAuth}
-            className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300"
+            className="flex items-center gap-1 text-accent hover:text-cyan-300"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path

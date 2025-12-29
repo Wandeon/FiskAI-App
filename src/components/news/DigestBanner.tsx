@@ -21,20 +21,20 @@ export function DigestBanner({ date, itemCount, slug }: DigestBannerProps) {
         <GlassCard className="border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 transition-all hover:border-cyan-500/50 hover:from-cyan-500/20 hover:to-purple-500/20">
           <div className="flex items-center gap-6 p-6">
             {/* Icon */}
-            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-cyan-500/20">
-              <Newspaper className="h-8 w-8 text-cyan-400" />
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-chart-7/20">
+              <Newspaper className="h-8 w-8 text-accent" />
             </div>
 
             {/* Content */}
             <div className="flex-1">
               <div className="mb-1 flex items-center gap-2">
-                <span className="text-sm font-medium text-cyan-400">Dnevni pregled</span>
+                <span className="text-sm font-medium text-accent">Dnevni pregled</span>
                 <span className="text-sm text-white/50">•</span>
                 <time dateTime={date.toISOString()} className="text-sm text-white/70">
                   {formattedDate}
                 </time>
               </div>
-              <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-cyan-400">
+              <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-accent">
                 {itemCount} {itemCount === 1 ? "vijest" : itemCount < 5 ? "vijesti" : "vijesti"} u
                 dnevnom pregledu
               </h3>

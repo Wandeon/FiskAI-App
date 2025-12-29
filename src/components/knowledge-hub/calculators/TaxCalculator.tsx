@@ -86,9 +86,9 @@ export function TaxCalculator({ embedded = true }: Props) {
           className="pt-2"
           formatValue={formatEUR}
           items={[
-            { label: "Porez", value: costs.tax, colorClassName: "bg-cyan-500" },
-            { label: "Doprinosi", value: costs.contributions, colorClassName: "bg-blue-500" },
-            { label: "HOK", value: costs.hok, colorClassName: "bg-emerald-500" },
+            { label: "Porez", value: costs.tax, colorClassName: "bg-chart-7" },
+            { label: "Doprinosi", value: costs.contributions, colorClassName: "bg-interactive" },
+            { label: "HOK", value: costs.hok, colorClassName: "bg-chart-4" },
           ]}
         />
         <p className="text-xs text-white/70">
@@ -97,7 +97,7 @@ export function TaxCalculator({ embedded = true }: Props) {
       </div>
 
       {revenue >= THRESHOLDS.pausalni.value * 0.9 && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
+        <div className="rounded-xl border border-amber-500/30 bg-warning/10 p-3 text-sm text-amber-300">
           Blizu ste limita {formatEUR(THRESHOLDS.pausalni.value)}. Ako očekujete rast, otvorite{" "}
           <Link
             href="/usporedba/preko-praga"

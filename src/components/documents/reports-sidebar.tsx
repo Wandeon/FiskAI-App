@@ -76,7 +76,7 @@ export function ReportsSidebar({
       {/* Sidebar */}
       <div
         className={`
-          fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl z-50
+          fixed right-0 top-0 h-full w-80 bg-white border-l border-default shadow-xl z-50
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "translate-x-full"}
           lg:relative lg:transform-none lg:shadow-none lg:z-auto
@@ -85,11 +85,11 @@ export function ReportsSidebar({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-gray-900">
+          <h3 className="font-semibold text-foreground">
             {mode === "reports" ? "Izvještaji" : "Uvoz dokumenata"}
           </h3>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg lg:hidden">
-            <X className="h-5 w-5 text-gray-500" />
+          <button onClick={onClose} className="p-1 hover:bg-surface-2 rounded-lg lg:hidden">
+            <X className="h-5 w-5 text-tertiary" />
           </button>
         </div>
 
@@ -103,16 +103,16 @@ export function ReportsSidebar({
                   <Link
                     key={report.href}
                     href={report.href}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-1 transition-colors group"
                   >
-                    <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-blue-100 transition-colors">
-                      <Icon className="h-4 w-4 text-gray-600 group-hover:text-blue-600" />
+                    <div className="p-2 rounded-lg bg-surface-2 group-hover:bg-info-bg transition-colors">
+                      <Icon className="h-4 w-4 text-secondary group-hover:text-link" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{report.title}</p>
-                      <p className="text-xs text-gray-500 truncate">{report.description}</p>
+                      <p className="text-sm font-medium text-foreground">{report.title}</p>
+                      <p className="text-xs text-tertiary truncate">{report.description}</p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                    <ChevronRight className="h-4 w-4 text-muted group-hover:text-secondary" />
                   </Link>
                 )
               })}
@@ -120,7 +120,7 @@ export function ReportsSidebar({
               <div className="pt-4 mt-4 border-t">
                 <Link
                   href="/reports"
-                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
+                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-surface-1 hover:bg-surface-2 transition-colors text-sm font-medium text-foreground"
                 >
                   <BarChart3 className="h-4 w-4" />
                   Svi izvještaji
@@ -130,13 +130,13 @@ export function ReportsSidebar({
           ) : (
             <div className="space-y-3">
               {processingJobs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <div className="text-center py-8 text-tertiary">
+                  <FileText className="h-8 w-8 mx-auto mb-2 text-muted" />
                   <p className="text-sm">Nema dokumenata u obradi</p>
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-tertiary mb-3">
                     {processingJobs.length}{" "}
                     {processingJobs.length === 1 ? "dokument" : "dokumenata"} u redu
                   </p>

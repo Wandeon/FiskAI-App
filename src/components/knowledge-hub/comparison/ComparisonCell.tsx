@@ -14,11 +14,11 @@ interface ComparisonCellProps {
 
 // Colors optimized for dark section backgrounds
 const typeColors: Record<string, string> = {
-  pausalni: "border-emerald-400/30 bg-emerald-500/15",
-  "obrt-dohodak": "border-blue-400/30 bg-blue-500/15",
+  pausalni: "border-emerald-400/30 bg-chart-4/15",
+  "obrt-dohodak": "border-blue-400/30 bg-interactive/15",
   jdoo: "border-purple-400/30 bg-purple-500/15",
-  doo: "border-indigo-400/30 bg-indigo-500/15",
-  freelancer: "border-orange-400/30 bg-orange-500/15",
+  doo: "border-indigo-400/30 bg-chart-1/15",
+  freelancer: "border-orange-400/30 bg-chart-5/15",
   generic: "border-white/10 bg-white/5",
 }
 

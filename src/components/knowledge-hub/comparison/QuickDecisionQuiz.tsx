@@ -85,14 +85,14 @@ export function QuickDecisionQuiz({
   return (
     <div className="my-6 rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-cyan-400" />
+        <Sparkles className="h-5 w-5 text-accent" />
         <h3 className="text-lg font-semibold text-white">{title}</h3>
       </div>
 
       {/* Progress bar */}
       <div className="mb-6 h-2 overflow-hidden rounded-full bg-white/10">
         <motion.div
-          className="h-full bg-cyan-400"
+          className="h-full bg-chart-7"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.3 }}
@@ -108,7 +108,7 @@ export function QuickDecisionQuiz({
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
           >
-            <p className="mb-4 text-sm text-cyan-400">
+            <p className="mb-4 text-sm text-accent">
               Pitanje {currentQuestion + 1} od {questions.length}
             </p>
             <p className="mb-4 text-base font-medium text-white">
@@ -124,8 +124,8 @@ export function QuickDecisionQuiz({
                   className={cn(
                     "flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-all text-white",
                     answers[questions[currentQuestion].id] === option.value
-                      ? "border-cyan-400 bg-cyan-500/20"
-                      : "border-white/20 bg-white/5 hover:border-cyan-400/50 hover:bg-cyan-500/10"
+                      ? "border-cyan-400 bg-chart-7/20"
+                      : "border-white/20 bg-white/5 hover:border-cyan-400/50 hover:bg-chart-7/10"
                   )}
                 >
                   <span>{option.label}</span>
@@ -158,7 +158,7 @@ export function QuickDecisionQuiz({
                   {winner.link && (
                     <a
                       href={winner.link}
-                      className="mb-4 inline-block rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-600"
+                      className="mb-4 inline-block rounded-lg bg-chart-7 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-600"
                     >
                       Saznaj više o {winner.title}
                     </a>
@@ -168,7 +168,7 @@ export function QuickDecisionQuiz({
             })()}
             <button
               onClick={reset}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300"
+              className="mt-4 inline-flex items-center gap-2 text-sm text-accent hover:text-cyan-300"
             >
               <RotateCcw className="h-4 w-4" />
               Ponovi kviz

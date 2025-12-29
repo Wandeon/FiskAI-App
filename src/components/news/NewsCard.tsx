@@ -36,13 +36,13 @@ export function NewsCard({
         {categories.slice(0, 3).map((cat) => (
           <span
             key={cat}
-            className="rounded-full bg-blue-500/20 px-2 py-0.5 text-xs font-medium text-blue-300"
+            className="rounded-full bg-interactive/20 px-2 py-0.5 text-xs font-medium text-blue-300"
           >
             {categoryLabels[cat] || cat}
           </span>
         ))}
         {relevanceScore && relevanceScore >= 70 && (
-          <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-300">
+          <span className="rounded-full bg-success/20 px-2 py-0.5 text-xs font-medium text-green-300">
             Važno
           </span>
         )}

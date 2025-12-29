@@ -90,7 +90,7 @@ export function AIFeedback({
 
   if (feedbackGiven) {
     return (
-      <div className={clsx("text-sm text-green-600", className)}>
+      <div className={clsx("text-sm text-success-text", className)}>
         Hvala na povratnoj informaciji!
       </div>
     )
@@ -98,7 +98,7 @@ export function AIFeedback({
 
   if (showNotes) {
     return (
-      <div className={clsx("space-y-2 p-3 border rounded-lg bg-gray-50", className)}>
+      <div className={clsx("space-y-2 p-3 border rounded-lg bg-surface-1", className)}>
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium">Što je bilo pogrešno?</p>
           <Button variant="ghost" size="sm" onClick={handleNotesCancel} disabled={isSubmitting}>
@@ -106,7 +106,7 @@ export function AIFeedback({
           </Button>
         </div>
         <textarea
-          className="w-full px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-border-focus"
           rows={3}
           placeholder="Opišite što je AI krivo prepoznao..."
           value={notes}
@@ -142,7 +142,7 @@ export function AIFeedback({
           <button
             onClick={() => handleFeedbackClick("correct")}
             disabled={isSubmitting}
-            className="p-1 text-gray-400 hover:text-green-600 transition-colors disabled:opacity-50"
+            className="p-1 text-muted hover:text-success-text transition-colors disabled:opacity-50"
             title="Točno"
           >
             <ThumbsUp className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function AIFeedback({
           <button
             onClick={() => handleFeedbackClick("incorrect")}
             disabled={isSubmitting}
-            className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+            className="p-1 text-muted hover:text-danger-text transition-colors disabled:opacity-50"
             title="Netočno"
           >
             <ThumbsDown className="h-4 w-4" />
@@ -158,7 +158,7 @@ export function AIFeedback({
           <button
             onClick={() => handleFeedbackClick("partial")}
             disabled={isSubmitting}
-            className="p-1 text-gray-400 hover:text-orange-600 transition-colors disabled:opacity-50"
+            className="p-1 text-muted hover:text-orange-600 transition-colors disabled:opacity-50"
             title="Prijavi problem"
           >
             <AlertCircle className="h-4 w-4" />
@@ -172,8 +172,8 @@ export function AIFeedback({
     <div className={clsx("space-y-2", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-600">Je li AI dobro prepoznao?</span>
+          <MessageSquare className="h-4 w-4 text-muted" />
+          <span className="text-sm text-secondary">Je li AI dobro prepoznao?</span>
         </div>
         {confidence !== undefined && <AIConfidenceBadge confidence={confidence} />}
       </div>

@@ -121,12 +121,12 @@ export function EuTransactionReview({ companyId }: Props) {
   function getConfidenceBadge(score: number) {
     if (score >= 90) {
       return (
-        <Badge variant="default" className="bg-green-500">
+        <Badge variant="default" className="bg-success">
           Visoka sigurnost
         </Badge>
       )
     } else if (score >= 70) {
-      return <Badge className="bg-amber-500">Srednja sigurnost</Badge>
+      return <Badge className="bg-warning">Srednja sigurnost</Badge>
     } else {
       return <Badge variant="secondary">Niska sigurnost</Badge>
     }
@@ -161,7 +161,7 @@ export function EuTransactionReview({ companyId }: Props) {
         <CardContent>
           {transactions.length === 0 ? (
             <div className="text-center py-8">
-              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <CheckCircle2 className="h-12 w-12 text-success-icon mx-auto mb-4" />
               <p className="text-muted-foreground">
                 Nema transakcija za potvrdu. Sve EU transakcije su potvrđene!
               </p>
@@ -171,7 +171,7 @@ export function EuTransactionReview({ companyId }: Props) {
               {transactions.map((tx) => (
                 <div
                   key={tx.id}
-                  className="border border-amber-500/30 bg-amber-500/5 rounded-lg p-4 space-y-4"
+                  className="border border-amber-500/30 bg-warning/5 rounded-lg p-4 space-y-4"
                 >
                   {/* Transaction Details */}
                   <div className="space-y-3">

@@ -82,7 +82,7 @@ export function StepCompetence() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Koliko ste iskusni?</h2>
-        <p className="mt-1 text-sm text-gray-600">Prilagodit ćemo iskustvo vašoj razini znanja</p>
+        <p className="mt-1 text-sm text-secondary">Prilagodit ćemo iskustvo vašoj razini znanja</p>
       </div>
 
       <div className="space-y-3">
@@ -96,7 +96,7 @@ export function StepCompetence() {
               className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
                 isSelected
                   ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-500/20"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  : "border-default hover:border-default hover:bg-surface-1"
               }`}
             >
               <input
@@ -110,7 +110,7 @@ export function StepCompetence() {
 
               <div
                 className={`p-2 rounded-lg ${
-                  isSelected ? "bg-cyan-500 text-white" : "bg-gray-100 text-gray-500"
+                  isSelected ? "bg-chart-7 text-white" : "bg-surface-2 text-tertiary"
                 }`}
               >
                 <Icon className="h-6 w-6" />
@@ -118,32 +118,32 @@ export function StepCompetence() {
 
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900">{option.label}</span>
+                  <span className="font-semibold text-foreground">{option.label}</span>
                   {option.value === "average" && (
                     <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full">
                       Preporučeno
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mt-0.5">{option.description}</p>
+                <p className="text-sm text-secondary mt-0.5">{option.description}</p>
 
                 <ul className="mt-2 space-y-1">
                   {option.benefits.map((benefit) => (
-                    <li key={benefit} className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className={isSelected ? "text-cyan-500" : "text-gray-400"}>✓</span>
+                    <li key={benefit} className="flex items-center gap-2 text-xs text-tertiary">
+                      <span className={isSelected ? "text-accent" : "text-muted"}>✓</span>
                       {benefit}
                     </li>
                   ))}
                 </ul>
 
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-xs font-medium text-gray-700 mb-1">Kako će to utjecati na sučelje:</p>
-                  <p className="text-xs text-gray-600 leading-relaxed">{option.uiChanges}</p>
+                <div className="mt-3 pt-3 border-t border-default">
+                  <p className="text-xs font-medium text-foreground mb-1">Kako će to utjecati na sučelje:</p>
+                  <p className="text-xs text-secondary leading-relaxed">{option.uiChanges}</p>
                 </div>
               </div>
 
               {isSelected && (
-                <div className="text-cyan-500">
+                <div className="text-accent">
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
@@ -158,7 +158,7 @@ export function StepCompetence() {
         })}
       </div>
 
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-tertiary text-center">
         Možete promijeniti ovu postavku bilo kada u postavkama.
       </p>
 

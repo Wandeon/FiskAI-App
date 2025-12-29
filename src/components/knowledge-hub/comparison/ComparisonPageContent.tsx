@@ -113,7 +113,7 @@ export function ComparisonPageContent({ comparison, searchParams }: ComparisonPa
         </header>
 
         {/* MDX Content (includes ComparisonTable, Calculator, etc.) */}
-        <article className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-cyan-400 prose-strong:text-white">
+        <article className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-accent prose-strong:text-white">
           <MDXRemote
             source={content}
             components={{
@@ -137,7 +137,7 @@ export function ComparisonPageContent({ comparison, searchParams }: ComparisonPa
                     <span className="block text-sm text-white/60">
                       {guide!.frontmatter.description}
                     </span>
-                    <span className="mt-2 block text-sm font-semibold text-cyan-400">
+                    <span className="mt-2 block text-sm font-semibold text-accent">
                       Otvori vodič →
                     </span>
                   </GlassCard>
@@ -152,7 +152,7 @@ export function ComparisonPageContent({ comparison, searchParams }: ComparisonPa
                     <span className="block text-sm text-white/60">
                       Pokrenite čarobnjak i dobijte personaliziranu preporuku.
                     </span>
-                    <span className="mt-2 block text-sm font-semibold text-cyan-400">
+                    <span className="mt-2 block text-sm font-semibold text-accent">
                       Pokreni čarobnjak →
                     </span>
                   </GlassCard>

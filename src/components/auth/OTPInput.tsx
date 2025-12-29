@@ -149,7 +149,7 @@ export function OTPInput({
               activeIndex === index && !error
                 ? "border-cyan-400 ring-2 ring-cyan-400/30 scale-105"
                 : "border-white/20",
-              error && "border-red-400 bg-red-500/20",
+              error && "border-red-400 bg-danger/20",
               disabled && "cursor-not-allowed opacity-50"
             )}
             aria-label={`Digit ${index + 1} of ${length}`}

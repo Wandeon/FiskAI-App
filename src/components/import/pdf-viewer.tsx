@@ -18,14 +18,14 @@ export function PdfViewer({ url, className = "" }: PdfViewerProps) {
 
   if (error) {
     return (
-      <div className={`flex flex-col items-center justify-center h-full bg-gray-100 ${className}`}>
-        <FileText className="h-12 w-12 text-gray-400 mb-2" />
-        <p className="text-red-500 mb-4">Greška pri učitavanju PDF-a</p>
+      <div className={`flex flex-col items-center justify-center h-full bg-surface-2 ${className}`}>
+        <FileText className="h-12 w-12 text-muted mb-2" />
+        <p className="text-danger-icon mb-4">Greška pri učitavanju PDF-a</p>
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+          className="flex items-center gap-2 text-link hover:text-link"
         >
           <ExternalLink className="h-4 w-4" />
           Otvori u novom prozoru
@@ -37,10 +37,10 @@ export function PdfViewer({ url, className = "" }: PdfViewerProps) {
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* PDF Display using browser's native viewer (toolbar hidden) */}
-      <div className="flex-1 relative bg-gray-100">
+      <div className="flex-1 relative bg-surface-2">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-2 z-10">
+            <Loader2 className="h-8 w-8 animate-spin text-tertiary" />
           </div>
         )}
         <embed
@@ -74,14 +74,14 @@ export function ImageViewer({ url, className = "" }: ImageViewerProps) {
 
   if (error) {
     return (
-      <div className={`flex flex-col items-center justify-center h-full bg-gray-100 ${className}`}>
-        <FileText className="h-12 w-12 text-gray-400 mb-2" />
-        <p className="text-red-500 mb-4">Greška pri učitavanju slike</p>
+      <div className={`flex flex-col items-center justify-center h-full bg-surface-2 ${className}`}>
+        <FileText className="h-12 w-12 text-muted mb-2" />
+        <p className="text-danger-icon mb-4">Greška pri učitavanju slike</p>
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+          className="flex items-center gap-2 text-link hover:text-link"
         >
           <ExternalLink className="h-4 w-4" />
           Otvori u novom prozoru
@@ -93,7 +93,7 @@ export function ImageViewer({ url, className = "" }: ImageViewerProps) {
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Controls */}
-      <div className="flex items-center justify-end p-2 border-b bg-gray-50 gap-2">
+      <div className="flex items-center justify-end p-2 border-b bg-surface-1 gap-2">
         <Button variant="outline" size="sm" onClick={zoomOut} disabled={loading}>
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -104,9 +104,9 @@ export function ImageViewer({ url, className = "" }: ImageViewerProps) {
       </div>
 
       {/* Image Display */}
-      <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 p-4 relative">
+      <div className="flex-1 overflow-auto flex items-center justify-center bg-surface-2 p-4 relative">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-2 z-10">
             <div className="flex items-center gap-2">
               <Loader2 className="h-6 w-6 animate-spin" />
               <span>Učitavanje slike...</span>

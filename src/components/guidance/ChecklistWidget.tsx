@@ -93,7 +93,7 @@ export function ChecklistWidget({ initialItems, initialStats }: ChecklistWidgetP
     <GlassCard hover={false} padding="default">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-cyan-400" />
+          <ClipboardList className="h-5 w-5 text-accent" />
           <h3 className="font-semibold text-white">Što moram napraviti?</h3>
         </div>
         <span className="text-sm text-white/50 capitalize">{currentMonth}</span>
@@ -101,7 +101,7 @@ export function ChecklistWidget({ initialItems, initialStats }: ChecklistWidgetP
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-accent" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-8">
@@ -125,7 +125,7 @@ export function ChecklistWidget({ initialItems, initialStats }: ChecklistWidgetP
         <div className="mt-4 pt-4 border-t border-white/10">
           <Link
             href="/checklist"
-            className="flex items-center justify-between text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+            className="flex items-center justify-between text-sm text-accent hover:text-cyan-300 transition-colors"
           >
             <span>
               Još {stats.total - items.length} zadatak

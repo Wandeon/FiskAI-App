@@ -175,12 +175,12 @@ export function ComparisonTable({
                       key={col.id}
                       className={cn(
                         "sticky top-0 z-20 min-w-[180px] border-b border-white/10 bg-slate-800/80 p-3 text-center font-semibold text-white",
-                        col.id === highlightedColumn && "bg-blue-600/20"
+                        col.id === highlightedColumn && "bg-interactive/20"
                       )}
                     >
                       {col.name}
                       {col.id === highlightedColumn && (
-                        <span className="block text-xs font-normal text-cyan-400">Preporučeno</span>
+                        <span className="block text-xs font-normal text-accent">Preporučeno</span>
                       )}
                     </th>
                   ))}
@@ -207,7 +207,7 @@ export function ComparisonTable({
                   className={cn(
                     "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
                     selected
-                      ? "border-cyan-400/30 bg-cyan-500/15 text-white"
+                      ? "border-cyan-400/30 bg-chart-7/15 text-white"
                       : "border-white/10 bg-white/5 text-white/60"
                   )}
                 >
@@ -226,7 +226,7 @@ export function ComparisonTable({
                 </p>
               </div>
               {activeColumn?.id === highlightedColumn && (
-                <span className="rounded-full bg-cyan-500 px-3 py-1 text-xs font-semibold text-slate-900">
+                <span className="rounded-full bg-chart-7 px-3 py-1 text-xs font-semibold text-foreground">
                   Preporučeno
                 </span>
               )}
@@ -272,7 +272,7 @@ export function ComparisonTable({
   // Original prop-based approach for backwards compatibility
   if (!columns || !rows) {
     return (
-      <div className="text-red-500">
+      <div className="text-danger-icon">
         ComparisonTable requires either children or columns/rows props
       </div>
     )
@@ -294,13 +294,13 @@ export function ComparisonTable({
                   className={cn(
                     "border-b border-white/10 p-3 text-center font-semibold text-white",
                     col.highlighted || col.id === highlightedColumn
-                      ? "bg-blue-600/20"
+                      ? "bg-interactive/20"
                       : "bg-slate-800/80"
                   )}
                 >
                   {col.name}
                   {(col.highlighted || col.id === highlightedColumn) && (
-                    <span className="block text-xs font-normal text-cyan-400">Preporučeno</span>
+                    <span className="block text-xs font-normal text-accent">Preporučeno</span>
                   )}
                 </th>
               ))}
@@ -322,7 +322,7 @@ export function ComparisonTable({
                     key={col.id}
                     className={cn(
                       "p-3 text-center text-white/90",
-                      (col.highlighted || col.id === highlightedColumn) && "bg-blue-600/10"
+                      (col.highlighted || col.id === highlightedColumn) && "bg-interactive/10"
                     )}
                   >
                     {row.values[col.id]}
@@ -360,13 +360,13 @@ export function ComparisonTable({
                     className={cn(
                       "min-w-[140px] border-b border-white/10 p-3 text-center font-semibold text-white",
                       col.highlighted || col.id === highlightedColumn
-                        ? "bg-blue-600/20"
+                        ? "bg-interactive/20"
                         : "bg-slate-800/80"
                     )}
                   >
                     <div className="whitespace-nowrap">{col.name}</div>
                     {(col.highlighted || col.id === highlightedColumn) && (
-                      <span className="mt-1 block text-xs font-normal text-cyan-400">
+                      <span className="mt-1 block text-xs font-normal text-accent">
                         Preporučeno
                       </span>
                     )}
@@ -392,7 +392,7 @@ export function ComparisonTable({
                       key={col.id}
                       className={cn(
                         "p-3 text-center text-sm min-h-[44px] text-white/90",
-                        (col.highlighted || col.id === highlightedColumn) && "bg-blue-600/10"
+                        (col.highlighted || col.id === highlightedColumn) && "bg-interactive/10"
                       )}
                     >
                       {row.values[col.id]}

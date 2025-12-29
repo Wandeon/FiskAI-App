@@ -62,7 +62,7 @@ export function ChecklistMiniView({ collapsed = false, className }: ChecklistMin
       >
         <ListTodo className="h-5 w-5" />
         {pending > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[10px] font-bold text-white">
             {pending > 9 ? "9+" : pending}
           </span>
         )}
@@ -90,7 +90,7 @@ export function ChecklistMiniView({ collapsed = false, className }: ChecklistMin
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-500",
-                progress === 100 ? "bg-emerald-500" : "bg-brand-500"
+                progress === 100 ? "bg-chart-4" : "bg-brand-500"
               )}
               style={{ width: `${progress}%` }}
             />

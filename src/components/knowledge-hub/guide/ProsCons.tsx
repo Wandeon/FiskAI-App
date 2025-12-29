@@ -25,7 +25,7 @@ export function ProsCons({
       <div className="grid gap-4 md:grid-cols-2">
         <section className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-card">
           <header className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-chart-4/10 text-emerald-400">
               <CheckCircle2 className="h-5 w-5" aria-hidden />
             </span>
             <h4 className="text-sm font-semibold text-white">{prosTitle}</h4>
@@ -47,7 +47,7 @@ export function ProsCons({
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-card">
           <header className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-chart-8/10 text-rose-400">
               <XCircle className="h-5 w-5" aria-hidden />
             </span>
             <h4 className="text-sm font-semibold text-white">{consTitle}</h4>

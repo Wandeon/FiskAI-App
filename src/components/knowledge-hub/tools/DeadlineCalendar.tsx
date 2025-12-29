@@ -89,10 +89,10 @@ function buildStaticDeadlines(year: number): Deadline[] {
 }
 
 const typeColors = {
-  doprinosi: "bg-blue-600",
+  doprinosi: "bg-interactive",
   pdv: "bg-purple-600",
   dohodak: "bg-green-600",
-  porez: "bg-amber-500",
+  porez: "bg-warning",
   joppd: "bg-red-600",
 }
 
@@ -100,8 +100,8 @@ const typeColors = {
 const statusColors = {
   PAID: "bg-green-600",
   OVERDUE: "bg-red-600",
-  DUE_SOON: "bg-yellow-500",
-  PENDING: "bg-blue-600",
+  DUE_SOON: "bg-warning",
+  PENDING: "bg-interactive",
   SKIPPED: "bg-gray-600",
 }
 
@@ -222,7 +222,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
           className={cn(
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "all"
-              ? "border-blue-600 bg-blue-600 text-white"
+              ? "border-focus bg-interactive text-white"
               : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
           )}
         >
@@ -234,7 +234,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
           className={cn(
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "pausalni"
-              ? "border-blue-600 bg-blue-600 text-white"
+              ? "border-focus bg-interactive text-white"
               : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
           )}
         >
@@ -246,7 +246,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
           className={cn(
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "doo"
-              ? "border-blue-600 bg-blue-600 text-white"
+              ? "border-focus bg-interactive text-white"
               : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
           )}
         >
@@ -305,10 +305,10 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
                 key={day}
                 className={cn(
                   "p-2 border-t border-white/10 min-h-[84px]",
-                  isToday && "bg-blue-500/20"
+                  isToday && "bg-interactive/20"
                 )}
               >
-                <span className={cn("text-sm text-white/90", isToday && "font-bold text-cyan-400")}>
+                <span className={cn("text-sm text-white/90", isToday && "font-bold text-accent")}>
                   {day}
                 </span>
                 <div className="mt-1 space-y-1">
@@ -392,7 +392,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
               <button
                 type="button"
                 onClick={() => setShowPaymentSlip(true)}
-                className="btn-press w-full rounded-md border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="btn-press w-full rounded-md border border-focus bg-interactive px-4 py-2 text-sm font-medium text-white hover:bg-interactive-hover"
               >
                 Prikaži uplatnicu
               </button>

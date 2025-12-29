@@ -115,7 +115,7 @@ export function ConfirmationModal({
               onChange={(e) =>
                 onDocumentTypeChange?.(e.target.value as "BANK_STATEMENT" | "INVOICE")
               }
-              className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-blue-500"
+              className="text-sm border border-default rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-border-focus"
             >
               <option value="BANK_STATEMENT">Bankovni izvod</option>
               <option value="INVOICE">Račun</option>
@@ -136,12 +136,12 @@ export function ConfirmationModal({
 
         {/* Math Validation Warning - Bank Statement */}
         {normalizedDocType === "BANK_STATEMENT" && !mathValid && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4">
+          <div className="bg-danger-bg border-l-4 border-red-500 p-4 m-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <AlertTriangle className="h-5 w-5 text-danger-text" />
               <div>
                 <h3 className="font-semibold text-red-800">Provjera salda nije uspjela</h3>
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-danger-text">
                   Izračunati završni saldo ne odgovara navedenom završnom saldu. Pregledajte
                   transakcije prije potvrđivanja.
                 </p>
@@ -152,12 +152,12 @@ export function ConfirmationModal({
 
         {/* Math Validation Warning - Invoice */}
         {normalizedDocType === "INVOICE" && invoiceData && !invoiceData.mathValid && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 m-4">
+          <div className="bg-warning-bg border-l-4 border-yellow-500 p-4 m-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              <AlertTriangle className="h-5 w-5 text-warning-text" />
               <div>
                 <h3 className="font-semibold text-yellow-800">Provjera iznosa</h3>
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-warning-text">
                   Zbroj stavki ne odgovara ukupnom iznosu na računu. Pregledajte i ispravite stavke
                   prije potvrđivanja.
                 </p>
@@ -168,7 +168,7 @@ export function ConfirmationModal({
 
         {/* Bank Account Context Bar */}
         {normalizedDocType === "BANK_STATEMENT" && bankAccounts.length > 0 && (
-          <div className="px-4 py-2 bg-gray-50 border-b">
+          <div className="px-4 py-2 bg-surface-1 border-b">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Bankovni račun:</label>
               <select
@@ -211,7 +211,7 @@ export function ConfirmationModal({
             ) : invoiceData ? (
               <InvoiceEditor data={invoiceData} onChange={onInvoiceDataChange || (() => {})} />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-tertiary">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold mb-2">Učitavanje...</h3>
                   <p className="text-sm">Podaci računa se obrađuju</p>

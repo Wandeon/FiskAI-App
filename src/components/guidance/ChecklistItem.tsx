@@ -20,17 +20,17 @@ interface ChecklistItemProps {
 const urgencyStyles = {
   critical: {
     icon: "🔴",
-    bg: "bg-red-500/10 border-red-500/20",
+    bg: "bg-danger/10 border-red-500/20",
     text: "text-red-400",
   },
   soon: {
     icon: "🟡",
-    bg: "bg-amber-500/10 border-amber-500/20",
+    bg: "bg-warning/10 border-amber-500/20",
     text: "text-amber-400",
   },
   upcoming: {
     icon: "🔵",
-    bg: "bg-blue-500/10 border-blue-500/20",
+    bg: "bg-interactive/10 border-focus/20",
     text: "text-blue-400",
   },
   optional: {

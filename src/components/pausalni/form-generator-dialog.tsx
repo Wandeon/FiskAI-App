@@ -128,8 +128,8 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
 
         {/* Error Message */}
         {error && (
-          <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="rounded-lg bg-danger/10 border border-red-500/20 p-3">
+            <p className="text-sm text-danger-text">{error}</p>
           </div>
         )}
 

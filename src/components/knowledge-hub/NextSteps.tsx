@@ -39,7 +39,7 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
   return (
     <section className={cn("mt-12 border-t border-white/10 pt-8", className)}>
       <div className="mb-6 flex items-center gap-3">
-        <Sparkles className="h-6 w-6 text-cyan-400" />
+        <Sparkles className="h-6 w-6 text-accent" />
         <h2 className="text-2xl font-bold text-white">Sljedeći koraci</h2>
       </div>
 
@@ -56,16 +56,16 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
                 <Link
                   key={index}
                   href={tool.href}
-                  className="group rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5"
+                  className="group rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-chart-7/5"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                      <h4 className="font-semibold text-white group-hover:text-accent transition-colors">
                         {tool.title}
                       </h4>
                       <p className="mt-1 text-sm text-white/60">{tool.description}</p>
                     </div>
-                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-white/40 transition-transform group-hover:translate-x-1 group-hover:text-cyan-400" />
+                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-white/40 transition-transform group-hover:translate-x-1 group-hover:text-accent" />
                   </div>
                 </Link>
               ))}
@@ -85,16 +85,16 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
                 <Link
                   key={index}
                   href={comparison.href}
-                  className="group rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5"
+                  className="group rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-chart-7/5"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                      <h4 className="font-semibold text-white group-hover:text-accent transition-colors">
                         {comparison.title}
                       </h4>
                       <p className="mt-1 text-sm text-white/60">{comparison.description}</p>
                     </div>
-                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-white/40 transition-transform group-hover:translate-x-1 group-hover:text-cyan-400" />
+                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-white/40 transition-transform group-hover:translate-x-1 group-hover:text-accent" />
                   </div>
                 </Link>
               ))}
@@ -103,7 +103,7 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
         )}
 
         {/* CTA to register/try FiskAI */}
-        <div className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 p-6">
+        <div className="rounded-xl border border-focus/30 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white">Spremni za automatizaciju?</h3>
@@ -113,7 +113,7 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
             </div>
             <Link
               href="/auth"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-all hover:bg-blue-700 hover:scale-105"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-interactive px-6 py-3 font-semibold text-white transition-all hover:bg-interactive-hover hover:scale-105"
             >
               {ctaText}
               <ArrowRight className="h-4 w-4" />

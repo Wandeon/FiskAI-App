@@ -26,14 +26,14 @@ interface ProcessingCardProps {
 }
 
 const STATUS_CONFIG: Record<JobStatus, { label: string; color: string; icon: typeof Loader2 }> = {
-  PENDING: { label: "U redu čekanja...", color: "text-gray-500", icon: Loader2 },
-  PROCESSING: { label: "Obrada...", color: "text-blue-600", icon: Loader2 },
-  READY_FOR_REVIEW: { label: "Spreman za pregled", color: "text-amber-600", icon: Eye },
-  CONFIRMED: { label: "Potvrđeno", color: "text-green-600", icon: CheckCircle2 },
-  REJECTED: { label: "Odbijeno", color: "text-gray-400", icon: X },
-  VERIFIED: { label: "Verificirano", color: "text-green-600", icon: CheckCircle2 },
-  NEEDS_REVIEW: { label: "Potreban pregled", color: "text-amber-600", icon: AlertCircle },
-  FAILED: { label: "Greška", color: "text-red-600", icon: AlertCircle },
+  PENDING: { label: "U redu čekanja...", color: "text-tertiary", icon: Loader2 },
+  PROCESSING: { label: "Obrada...", color: "text-link", icon: Loader2 },
+  READY_FOR_REVIEW: { label: "Spreman za pregled", color: "text-warning-text", icon: Eye },
+  CONFIRMED: { label: "Potvrđeno", color: "text-success-text", icon: CheckCircle2 },
+  REJECTED: { label: "Odbijeno", color: "text-muted", icon: X },
+  VERIFIED: { label: "Verificirano", color: "text-success-text", icon: CheckCircle2 },
+  NEEDS_REVIEW: { label: "Potreban pregled", color: "text-warning-text", icon: AlertCircle },
+  FAILED: { label: "Greška", color: "text-danger-text", icon: AlertCircle },
 }
 
 const DOC_TYPE_LABELS: Record<DocumentType, string> = {
@@ -62,27 +62,27 @@ export function ProcessingCard({
     <div
       className={`
       rounded-lg border p-4 transition-all
-      ${isCurrentForReview ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-gray-200 bg-white"}
+      ${isCurrentForReview ? "border-focus bg-info-bg ring-2 ring-blue-200" : "border-default bg-white"}
       ${isDone ? "opacity-60" : ""}
     `}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="flex-shrink-0 mt-0.5">
-            <FileText className="h-5 w-5 text-gray-400" />
+            <FileText className="h-5 w-5 text-muted" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-sm text-gray-900 truncate" title={job.fileName}>
+            <p className="font-medium text-sm text-foreground truncate" title={job.fileName}>
               {job.fileName}
             </p>
             {job.documentType && !canChangeType && (
-              <p className="text-xs text-gray-500 mt-0.5">{DOC_TYPE_LABELS[job.documentType]}</p>
+              <p className="text-xs text-tertiary mt-0.5">{DOC_TYPE_LABELS[job.documentType]}</p>
             )}
             {canChangeType && onTypeChange && (
               <select
                 value={job.documentType || "INVOICE"}
                 onChange={(e) => onTypeChange(job.id, e.target.value as DocumentType)}
-                className="mt-1 text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500"
+                className="mt-1 text-xs border border-default rounded px-2 py-1 bg-white focus:ring-2 focus:ring-border-focus"
                 onClick={(e) => e.stopPropagation()}
               >
                 <option value="BANK_STATEMENT">Bankovni izvod</option>
@@ -96,10 +96,10 @@ export function ProcessingCard({
         {!isDone && (
           <button
             onClick={() => onRemove(job.id)}
-            className="flex-shrink-0 p-1 hover:bg-gray-100 rounded"
+            className="flex-shrink-0 p-1 hover:bg-surface-2 rounded"
             title="Ukloni"
           >
-            <X className="h-4 w-4 text-gray-400" />
+            <X className="h-4 w-4 text-muted" />
           </button>
         )}
       </div>
@@ -107,9 +107,9 @@ export function ProcessingCard({
       {/* Progress bar */}
       {isProcessing && (
         <div className="mt-3">
-          <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-surface-2 overflow-hidden">
             <div
-              className="h-full bg-blue-500 transition-all duration-300"
+              className="h-full bg-interactive transition-all duration-300"
               style={{ width: `${job.progress}%` }}
             />
           </div>
@@ -124,18 +124,18 @@ export function ProcessingCard({
         </div>
 
         {job.queuePosition && job.totalInQueue && job.totalInQueue > 1 && canView && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-muted">
             {job.queuePosition} od {job.totalInQueue}
           </span>
         )}
       </div>
 
       {/* Error message */}
-      {job.error && <p className="mt-2 text-xs text-red-600 line-clamp-2">{job.error}</p>}
+      {job.error && <p className="mt-2 text-xs text-danger-text line-clamp-2">{job.error}</p>}
 
       {/* Transaction count for confirmed */}
       {job.status === "CONFIRMED" && job.transactionCount !== undefined && (
-        <p className="mt-2 text-xs text-green-600">{job.transactionCount} transakcija uvezeno</p>
+        <p className="mt-2 text-xs text-success-text">{job.transactionCount} transakcija uvezeno</p>
       )}
 
       {/* Actions */}

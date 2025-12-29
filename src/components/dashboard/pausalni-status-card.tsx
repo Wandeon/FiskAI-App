@@ -47,7 +47,7 @@ export function PausalniStatusCard({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <Calculator className="h-4 w-4 text-cyan-500" />
+            <Calculator className="h-4 w-4 text-accent" />
             Paušalni obrt status
           </CardTitle>
           <Badge
@@ -79,15 +79,15 @@ export function PausalniStatusCard({
           <div
             className={`rounded-lg p-3 ${
               nextDeadline.daysLeft <= 3
-                ? "bg-red-500/10 border border-red-500/20"
+                ? "bg-danger/10 border border-red-500/20"
                 : nextDeadline.daysLeft <= 7
-                  ? "bg-amber-500/10 border border-amber-500/20"
+                  ? "bg-warning/10 border border-amber-500/20"
                   : "bg-muted/50"
             }`}
           >
             <div className="flex items-start gap-3">
               {nextDeadline.daysLeft <= 3 ? (
-                <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                <AlertTriangle className="h-5 w-5 text-danger-icon mt-0.5" />
               ) : (
                 <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
               )}

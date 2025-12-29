@@ -71,11 +71,11 @@ export function ObligationTimeline({ companyId }: Props) {
   function getStatusIcon(status: string) {
     switch (status) {
       case "PAID":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />
+        return <CheckCircle2 className="h-5 w-5 text-success-icon" />
       case "DUE_SOON":
-        return <Clock className="h-5 w-5 text-amber-500" />
+        return <Clock className="h-5 w-5 text-warning-icon" />
       case "OVERDUE":
-        return <AlertTriangle className="h-5 w-5 text-red-500" />
+        return <AlertTriangle className="h-5 w-5 text-danger-icon" />
       default:
         return <Calendar className="h-5 w-5 text-muted-foreground" />
     }
@@ -89,12 +89,12 @@ export function ObligationTimeline({ companyId }: Props) {
     switch (status) {
       case "PAID":
         return (
-          <Badge variant="default" className="bg-green-500">
+          <Badge variant="default" className="bg-success">
             Plaćeno
           </Badge>
         )
       case "DUE_SOON":
-        return <Badge className="bg-amber-500">Za {daysUntil} dana</Badge>
+        return <Badge className="bg-warning">Za {daysUntil} dana</Badge>
       case "OVERDUE":
         return <Badge variant="destructive">Prošao rok!</Badge>
       default:
@@ -163,11 +163,11 @@ export function ObligationTimeline({ companyId }: Props) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Uskoro dospijeva</p>
-                  <p className="text-2xl font-bold text-amber-600">
+                  <p className="text-2xl font-bold text-warning-text">
                     {formatCurrency(summary.amountDueSoon)}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 text-amber-500" />
+                <Clock className="h-8 w-8 text-warning-icon" />
               </div>
             </CardContent>
           </Card>
@@ -177,11 +177,11 @@ export function ObligationTimeline({ companyId }: Props) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Prekoračeno</p>
-                  <p className="text-2xl font-bold text-red-600">
+                  <p className="text-2xl font-bold text-danger-text">
                     {formatCurrency(summary.amountOverdue)}
                   </p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-red-500" />
+                <AlertTriangle className="h-8 w-8 text-danger-icon" />
               </div>
             </CardContent>
           </Card>
@@ -191,11 +191,11 @@ export function ObligationTimeline({ companyId }: Props) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Plaćeno</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-success-text">
                     {formatCurrency(summary.amountPaid)}
                   </p>
                 </div>
-                <CheckCircle2 className="h-8 w-8 text-green-500" />
+                <CheckCircle2 className="h-8 w-8 text-success-icon" />
               </div>
             </CardContent>
           </Card>
@@ -229,11 +229,11 @@ export function ObligationTimeline({ companyId }: Props) {
                         key={ob.id}
                         className={`flex items-start gap-4 p-4 rounded-lg transition-colors ${
                           ob.status === "OVERDUE"
-                            ? "bg-red-500/10"
+                            ? "bg-danger/10"
                             : ob.status === "DUE_SOON"
-                              ? "bg-amber-500/10"
+                              ? "bg-warning/10"
                               : ob.status === "PAID"
-                                ? "bg-green-500/5"
+                                ? "bg-success/5"
                                 : "bg-muted/30"
                         }`}
                       >
@@ -253,7 +253,7 @@ export function ObligationTimeline({ companyId }: Props) {
                             {ob.matchType === "AUTO" && (
                               <>
                                 {" "}
-                                • <span className="text-green-600">Auto-matched</span>
+                                • <span className="text-success-text">Auto-matched</span>
                               </>
                             )}
                           </p>

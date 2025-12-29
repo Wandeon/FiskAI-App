@@ -156,7 +156,7 @@ export function ReceiptScanner({ onExtracted, onCancel }: ReceiptScannerProps) {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-900 rounded-lg">
+          <div className="p-4 bg-danger-bg text-red-900 rounded-lg">
             <p className="text-sm font-medium">Greška</p>
             <p className="text-sm">{error}</p>
           </div>

@@ -22,7 +22,7 @@ export function ActionCards() {
         </div>
         <Link
           href="/assistant"
-          className={cn(buttonBaseStyles, "bg-blue-600 text-white hover:bg-blue-700")}
+          className={cn(buttonBaseStyles, "bg-interactive text-white hover:bg-interactive-hover")}
         >
           Pokreni asistenta
         </Link>
@@ -30,7 +30,7 @@ export function ActionCards() {
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success-bg text-success-text">
             <UserCog className="h-5 w-5" />
           </div>
           <div>
@@ -46,7 +46,7 @@ export function ActionCards() {
           href="/accountant"
           className={cn(
             buttonBaseStyles,
-            "border border-emerald-100 bg-white text-emerald-600 hover:bg-emerald-50"
+            "border border-emerald-100 bg-white text-success-text hover:bg-success-bg"
           )}
         >
           Otvori workspace

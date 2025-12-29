@@ -26,7 +26,7 @@ export function InsightsCard({
       description: isVatPayer
         ? "Postavite podsjetnik za uplatu i filtrirajte račune po kvartalu kako bi PDV obveze bile jasne."
         : "Niste PDV obveznik – provjerite jesu li računi označeni s odgovarajućim PDV statusom.",
-      icon: <ShieldCheck className="h-4 w-4 text-emerald-600" />,
+      icon: <ShieldCheck className="h-4 w-4 text-success-text" />,
     },
     {
       title: contactCount > 0 ? "Segmentirajte kontakte" : "Dodajte prvi kontakt",
@@ -42,7 +42,7 @@ export function InsightsCard({
         productCount > 0
           ? "Provjerite jesu li svi artikli s PDV kategorijom i jedinicom mjere. Razmislite o CSV importu za bulk ažuriranje."
           : "Kreirajte artikle koje najčešće koristite kako biste ubrzali ispunu e-računa.",
-      icon: <Boxes className="h-4 w-4 text-indigo-600" />,
+      icon: <Boxes className="h-4 w-4 text-link" />,
     },
     {
       title: "Iskoristite FiskAI asistenta",

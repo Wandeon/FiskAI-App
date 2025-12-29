@@ -162,7 +162,7 @@ export function NotificationPreferences({ className }: NotificationPreferencesPr
                 <CardTitle>Email obavijesti</CardTitle>
               </div>
               {saveStatus === "success" && (
-                <Badge variant="default" className="bg-green-500">
+                <Badge variant="default" className="bg-success">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Spremljeno
                 </Badge>
@@ -273,7 +273,7 @@ export function NotificationPreferences({ className }: NotificationPreferencesPr
                   </p>
                 </div>
                 {calendarPrefs.googleCalendarConnected ? (
-                  <Badge variant="default" className="bg-green-500">
+                  <Badge variant="default" className="bg-success">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     Povezano
                   </Badge>

@@ -56,7 +56,7 @@ export function TodayActionsCard({ alerts, stats, tasks }: TodayActionsCardProps
               className={cn(
                 "flex items-start gap-3 rounded-2xl border px-4 py-3",
                 alert.type === "warning"
-                  ? "border-amber-200 bg-amber-50/80 text-amber-800"
+                  ? "border-warning-border bg-warning-bg/80 text-amber-800"
                   : "border-brand-200 bg-brand-50/70 text-brand-800"
               )}
             >
