@@ -1,3 +1,16 @@
+/**
+ * Role Selection Page
+ *
+ * This page allows users with access to multiple portals to choose which one to enter.
+ * Currently shown only to STAFF and ADMIN users who can access multiple portals:
+ * - ADMIN: Can choose between admin, staff, or app portal
+ * - STAFF: Can choose between staff or app portal
+ * - USER: Redirected directly to app portal (no choice needed)
+ *
+ * AUDIT FIX #212: This behavior is intentional. Regular users only have access to one
+ * portal, so showing a selection page would be redundant. Future enhancement could
+ * show a welcome message or company context for all users.
+ */
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth-utils'
 import { getAvailableSubdomains, hasMultipleRoles } from '@/lib/auth/system-role'
