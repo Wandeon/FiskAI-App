@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         where: {
           companyId: company.id,
           date: { gte: dateFrom, lte: dateTo },
-          status: { in: ["PAID", "PENDING"] },
+          status: "PAID",
         },
         select: { netAmount: true },
       }),
