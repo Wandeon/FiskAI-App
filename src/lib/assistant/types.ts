@@ -177,10 +177,30 @@ export interface DebugBlock {
 // === CONFIDENCE ===
 export type ConfidenceLevel = "HIGH" | "MEDIUM" | "LOW"
 
+export interface ConfidenceBreakdown {
+  queryConfidence: number // 0-1, how well we understood the query
+  evidenceQuality: number // 0-1, overall evidence quality score
+  evidenceFactors: {
+    freshness: number // 0-1, based on evidence age
+    sourceCount: number // 0-1, based on number of corroborating sources
+    authorityWeight: number // 0-1, based on authority level
+    quoteQuality: number // 0-1, based on quote match quality
+    temporalMargin: number // 0-1, based on distance to effectiveUntil
+  }
+  evidenceDetails: {
+    freshnessAgeInDays: number // -1 if unknown
+    sourceCount: number
+    authorityLevel: string
+    hasExactQuote: boolean
+    daysUntilExpiration: number | null // null if no expiration
+  }
+}
+
 export interface Confidence {
   level: ConfidenceLevel
   score?: number
   rationale?: string
+  breakdown?: ConfidenceBreakdown
 }
 
 // === OBLIGATION TYPE ===

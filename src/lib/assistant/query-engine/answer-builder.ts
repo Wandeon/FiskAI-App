@@ -24,6 +24,11 @@ import {
 } from "./query-interpreter"
 import { prisma } from "@/lib/prisma"
 import { generateContextualQuestions } from "./contextual-questions"
+import {
+  calculateEvidenceQuality,
+  calculateFinalConfidence,
+  calculateAggregateEvidenceQuality,
+} from "./evidence-quality"
 
 /**
  * THREE-STAGE FAIL-CLOSED ANSWER BUILDER
@@ -458,6 +463,23 @@ export async function buildAnswer(
       : undefined,
   })
 
+  // === EVIDENCE-BASED CONFIDENCE CALCULATION ===
+  // Calculate evidence quality for the primary rule
+  const evidenceQuality = calculateEvidenceQuality(primaryRule)
+
+  // Calculate aggregate evidence quality across all rules
+  const aggregateEvidenceQuality = calculateAggregateEvidenceQuality(rules)
+
+  // Combine query confidence (30%) with evidence quality (70%)
+  const finalConfidence = calculateFinalConfidence(
+    interpretation.confidence,
+    evidenceQuality.overall
+  )
+
+  // Determine confidence level based on final score
+  const confidenceLevel: "HIGH" | "MEDIUM" | "LOW" =
+    finalConfidence >= 0.8 ? "HIGH" : finalConfidence >= 0.6 ? "MEDIUM" : "LOW"
+
   return {
     ...baseResponse,
     kind: "ANSWER",
@@ -466,9 +488,26 @@ export async function buildAnswer(
     directAnswer,
     citations,
     confidence: {
-      level:
-        primaryRule.confidence >= 0.9 ? "HIGH" : primaryRule.confidence >= 0.7 ? "MEDIUM" : "LOW",
-      score: primaryRule.confidence,
+      level: confidenceLevel,
+      score: finalConfidence,
+      breakdown: {
+        queryConfidence: interpretation.confidence,
+        evidenceQuality: evidenceQuality.overall,
+        evidenceFactors: {
+          freshness: evidenceQuality.factors.freshness,
+          sourceCount: evidenceQuality.factors.sourceCount,
+          authorityWeight: evidenceQuality.factors.authorityWeight,
+          quoteQuality: evidenceQuality.factors.quoteQuality,
+          temporalMargin: evidenceQuality.factors.temporalMargin,
+        },
+        evidenceDetails: {
+          freshnessAgeInDays: evidenceQuality.breakdown.freshness.ageInDays,
+          sourceCount: evidenceQuality.breakdown.sourceCount.count,
+          authorityLevel: evidenceQuality.breakdown.authorityWeight.level,
+          hasExactQuote: evidenceQuality.breakdown.quoteQuality.hasExactQuote,
+          daysUntilExpiration: evidenceQuality.breakdown.temporalMargin.daysRemaining,
+        },
+      },
     },
     // Include obligation metadata for UI
     obligationContext: {

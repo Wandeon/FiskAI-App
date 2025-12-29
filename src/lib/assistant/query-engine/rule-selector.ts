@@ -7,6 +7,7 @@ import {
   type EligibilityResult,
 } from "./rule-eligibility"
 import type { ObligationType } from "../types"
+import { calculateEvidenceQuality } from "./evidence-quality"
 
 const AUTHORITY_RANK: Record<string, number> = {
   LAW: 1,
@@ -163,12 +164,24 @@ export async function selectRules(
     }
   }
 
-  // Re-sort by authority rank
+  // Re-sort by authority rank, then by evidence quality (combined with rule confidence)
   eligibleRules.sort((a, b) => {
     const rankA = AUTHORITY_RANK[a.authorityLevel] ?? 99
     const rankB = AUTHORITY_RANK[b.authorityLevel] ?? 99
+
+    // Primary sort: authority level (LAW > REGULATION > GUIDANCE > PRACTICE)
     if (rankA !== rankB) return rankA - rankB
-    return b.confidence - a.confidence
+
+    // Secondary sort: evidence quality combined with rule confidence
+    // Calculate evidence quality scores for both rules
+    const evidenceQualityA = calculateEvidenceQuality(a as RuleCandidate).overall
+    const evidenceQualityB = calculateEvidenceQuality(b as RuleCandidate).overall
+
+    // Combine rule confidence (30%) with evidence quality (70%)
+    const combinedScoreA = a.confidence * 0.3 + evidenceQualityA * 0.7
+    const combinedScoreB = b.confidence * 0.3 + evidenceQualityB * 0.7
+
+    return combinedScoreB - combinedScoreA
   })
 
   return {
