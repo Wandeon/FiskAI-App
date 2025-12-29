@@ -1,17 +1,26 @@
-import { ModuleKey, MODULES } from "./definitions"
+import { ModuleKey, MODULES, getDependencies } from "./definitions"
 
 export interface ModuleAccess {
   hasModule: (moduleKey: ModuleKey) => boolean
   getEnabledModules: () => ModuleKey[]
   canAccessRoute: (pathname: string) => boolean
   getModuleForRoute: (pathname: string) => ModuleKey | null
+  getMissingDependencies: (moduleKey: ModuleKey) => ModuleKey[]
+  getDependentModules: (moduleKey: ModuleKey) => ModuleKey[]
 }
 
 export function createModuleAccess(entitlements: string[]): ModuleAccess {
   const enabledModules = new Set(entitlements as ModuleKey[])
 
   function hasModule(moduleKey: ModuleKey): boolean {
-    return enabledModules.has(moduleKey)
+    // First check if the module itself is enabled
+    if (!enabledModules.has(moduleKey)) {
+      return false
+    }
+
+    // Then check if all dependencies are enabled
+    const dependencies = getDependencies(moduleKey)
+    return dependencies.every((dep) => enabledModules.has(dep))
   }
 
   function getEnabledModules(): ModuleKey[] {
@@ -45,10 +54,27 @@ export function createModuleAccess(entitlements: string[]): ModuleAccess {
     return hasModule(moduleKey)
   }
 
+  function getMissingDependencies(moduleKey: ModuleKey): ModuleKey[] {
+    const dependencies = getDependencies(moduleKey)
+    return dependencies.filter((dep) => !enabledModules.has(dep))
+  }
+
+  function getDependentModules(moduleKey: ModuleKey): ModuleKey[] {
+    const dependents: ModuleKey[] = []
+    for (const [key, module] of Object.entries(MODULES)) {
+      if (module.depends?.includes(moduleKey) && enabledModules.has(key as ModuleKey)) {
+        dependents.push(key as ModuleKey)
+      }
+    }
+    return dependents
+  }
+
   return {
     hasModule,
     getEnabledModules,
     canAccessRoute,
     getModuleForRoute,
+    getMissingDependencies,
+    getDependentModules,
   }
 }

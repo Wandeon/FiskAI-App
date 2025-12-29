@@ -26,6 +26,7 @@ export interface ModuleDefinition {
   routes: string[]
   navItems: string[]
   defaultEnabled: boolean
+  depends?: ModuleKey[]
 }
 
 export const MODULES: Record<ModuleKey, ModuleDefinition> = {
@@ -44,6 +45,7 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
     routes: ["/e-invoices", "/e-invoices/new", "/e-invoices/[id]"],
     navItems: ["e-invoices"],
     defaultEnabled: true,
+    depends: ["invoicing", "contacts"],
   },
   fiscalization: {
     key: "fiscalization",
@@ -52,6 +54,7 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
     routes: ["/settings/fiscalisation", "/settings/premises"],
     navItems: ["fiscalization"],
     defaultEnabled: false,
+    depends: ["invoicing"],
   },
   contacts: {
     key: "contacts",
@@ -92,6 +95,7 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
     routes: ["/banking/reconciliation"],
     navItems: ["reconciliation"],
     defaultEnabled: false,
+    depends: ["banking", "invoicing"],
   },
   "reports-basic": {
     key: "reports-basic",
@@ -203,4 +207,37 @@ export function getEntitlementsForLegalForm(legalForm: string | null): ModuleKey
       // Fallback to default entitlements if legal form is unknown
       return DEFAULT_ENTITLEMENTS
   }
+}
+
+/**
+ * Get all dependencies for a module (including transitive dependencies)
+ */
+export function getDependencies(moduleKey: ModuleKey): ModuleKey[] {
+  const visited = new Set<ModuleKey>()
+  const dependencies: ModuleKey[] = []
+
+  function collectDependencies(key: ModuleKey) {
+    if (visited.has(key)) return
+    visited.add(key)
+
+    const module = MODULES[key]
+    if (module.depends) {
+      for (const dep of module.depends) {
+        collectDependencies(dep)
+        if (!dependencies.includes(dep)) {
+          dependencies.push(dep)
+        }
+      }
+    }
+  }
+
+  collectDependencies(moduleKey)
+  return dependencies
+}
+
+/**
+ * Get direct dependencies for a module (non-transitive)
+ */
+export function getDirectDependencies(moduleKey: ModuleKey): ModuleKey[] {
+  return MODULES[moduleKey].depends ?? []
 }
