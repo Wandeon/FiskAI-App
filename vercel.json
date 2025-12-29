@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/email-sync",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/fiscal-processor",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/fiscal-retry",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
