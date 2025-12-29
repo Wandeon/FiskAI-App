@@ -86,11 +86,41 @@ export type JobEvent =
   | { type: "JOB_FAILED"; error: string }
 
 // ─── Thresholds ──────────────────────────────────────────────
+// Now sourced from unified feature configuration
+// @see /src/lib/config/features.ts for the single source of truth
+import { getArticleAgentConfig } from "@/lib/config/features"
+
+// Getter function to ensure config is always current
+function getThresholds() {
+  const config = getArticleAgentConfig()
+  return {
+    PARAGRAPH_PASS: config.passThreshold,
+    PARAGRAPH_FAIL: config.failThreshold,
+    JOB_AUTO_APPROVE: config.jobAutoApprove,
+    MAX_ITERATIONS: config.maxIterations,
+    MIN_SUPPORTING_CLAIMS: config.minSupportingClaims,
+    TOP_K_CHUNKS: config.topKChunks,
+  } as const
+}
+
+// Legacy export for backward compatibility
 export const THRESHOLDS = {
-  PARAGRAPH_PASS: parseFloat(process.env.ARTICLE_AGENT_PASS_THRESHOLD || "0.8"),
-  PARAGRAPH_FAIL: parseFloat(process.env.ARTICLE_AGENT_FAIL_THRESHOLD || "0.5"),
-  JOB_AUTO_APPROVE: 0.85,
-  MAX_ITERATIONS: parseInt(process.env.ARTICLE_AGENT_MAX_ITERATIONS || "3"),
-  MIN_SUPPORTING_CLAIMS: 1,
-  TOP_K_CHUNKS: 5,
+  get PARAGRAPH_PASS() {
+    return getThresholds().PARAGRAPH_PASS
+  },
+  get PARAGRAPH_FAIL() {
+    return getThresholds().PARAGRAPH_FAIL
+  },
+  get JOB_AUTO_APPROVE() {
+    return getThresholds().JOB_AUTO_APPROVE
+  },
+  get MAX_ITERATIONS() {
+    return getThresholds().MAX_ITERATIONS
+  },
+  get MIN_SUPPORTING_CLAIMS() {
+    return getThresholds().MIN_SUPPORTING_CLAIMS
+  },
+  get TOP_K_CHUNKS() {
+    return getThresholds().TOP_K_CHUNKS
+  },
 } as const
