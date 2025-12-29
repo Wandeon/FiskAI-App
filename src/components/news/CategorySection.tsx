@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { PostCard } from "./PostCard"
 import { ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/primitives/button"
+import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 
 interface CategoryPost {

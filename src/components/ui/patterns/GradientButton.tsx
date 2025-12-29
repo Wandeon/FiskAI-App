@@ -4,7 +4,7 @@ import { forwardRef, ButtonHTMLAttributes } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/primitives/button"
+import { Button } from "@/components/ui/button"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
 
 interface GradientButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

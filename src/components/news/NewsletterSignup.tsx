@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 import { Mail, Loader2, Check } from "lucide-react"
 import { subscribeToNewsletter } from "@/app/actions/newsletter"
 import { toast } from "@/lib/toast"
-import { Badge } from "@/components/ui/primitives/badge"
+import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 

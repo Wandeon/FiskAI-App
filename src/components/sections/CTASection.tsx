@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { GradientButton } from "@/components/ui/patterns/GradientButton"
-import { Button } from "@/components/ui/primitives/button"
+import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/Reveal"
 import Link from "next/link"
 

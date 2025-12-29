@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
-import { Button } from "@/components/ui/primitives/button"
+import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/Reveal"
 
 type GuideListItem = {

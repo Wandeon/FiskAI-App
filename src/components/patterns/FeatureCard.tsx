@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
-import { Card } from "@/components/ui/primitives/card"
+import { Card } from "@/components/ui/card"
 import { IconBadge } from "./IconBadge"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
 

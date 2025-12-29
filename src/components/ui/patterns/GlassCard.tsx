@@ -3,7 +3,7 @@
 import { forwardRef, HTMLAttributes } from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { Card, cardVariants } from "@/components/ui/primitives/card"
+import { Card, cardVariants } from "@/components/ui/card"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
 
 interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {

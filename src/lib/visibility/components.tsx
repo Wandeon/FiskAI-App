@@ -7,7 +7,7 @@ import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from "react"
 import Link from "next/link"
 import { Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button, type ButtonProps } from "@/components/ui/primitives/button"
+import { Button, type ButtonProps } from "@/components/ui/button"
 import { useVisibility, useVisibilityOptional } from "./context"
 import type { ElementId } from "./elements"
 

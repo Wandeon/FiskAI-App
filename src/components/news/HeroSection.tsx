@@ -3,7 +3,7 @@ import { ImageWithAttribution } from "./ImageWithAttribution"
 import { formatDistanceToNow } from "date-fns"
 import { hr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/primitives/badge"
+import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
 

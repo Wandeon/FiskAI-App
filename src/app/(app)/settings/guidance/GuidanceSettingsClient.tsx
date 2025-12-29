@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Save, Loader2, Mail, Check } from "lucide-react"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { CompetenceSelector } from "@/components/guidance"
-import { Button } from "@/components/ui/primitives/button"
+import { Button } from "@/components/ui/button"
 import type { UserGuidancePreferences } from "@/lib/db/schema/guidance"
 import {
   type CompetenceLevel,
