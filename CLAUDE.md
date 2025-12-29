@@ -164,6 +164,26 @@ Key variables configured:
 - `RESEND_API_KEY` - Email service
 - `RESEND_FROM_EMAIL` - FiskAI <noreply@fiskai.hr>
 
+## AI API Key Security
+
+**CRITICAL: AI API keys must remain server-side only.**
+
+All AI API keys (`OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `OLLAMA_API_KEY`) are accessed exclusively via `process.env` in server-side code. This is by design.
+
+**Security Rules:**
+1. **Never prefix AI keys with `NEXT_PUBLIC_`** - This would expose them to the browser
+2. **All AI code runs server-side** - Located in `/src/lib/ai/` and `/src/lib/assistant/`
+3. **Lazy-load pattern** - OpenAI client uses `getOpenAI()` to avoid build-time errors
+4. **No client-side AI calls** - All AI operations go through API routes
+
+**Verified Locations:**
+- `/src/lib/ai/extract.ts` - Server-side `getOpenAI()`
+- `/src/lib/ai/ocr.ts` - Server-side `getOpenAI()`
+- `/src/lib/ai/deepseek.ts` - Server-side `DEEPSEEK_API_KEY`
+- `/src/lib/assistant/query-engine/answer-synthesizer.ts` - Server-side `getOpenAI()`
+
+This architecture ensures API keys never reach the client bundle.
+
 ## Regulatory Truth Layer
 
 > **Full Architecture:** See [docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md](./docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md)
