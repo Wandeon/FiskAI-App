@@ -24,6 +24,7 @@ export { synthesizeFactSheet } from "./steps/synthesize"
 export { writeDraft } from "./steps/draft"
 export { verifyDraft } from "./steps/verify"
 export { rewriteFailingParagraphs } from "./steps/rewrite"
+export { publishArticle, generateSlug } from "./steps/publish"
 
 // Orchestrator
 export { runArticleJob, createArticleJob } from "./orchestrator"
