@@ -98,7 +98,7 @@ export function Combobox({
             "flex h-10 w-full items-center justify-between rounded-md",
             "border border-white/10 bg-white/5 px-3 py-2",
             "text-sm text-white placeholder:text-white/40",
-            "hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50",
+            "hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
@@ -131,7 +131,7 @@ export function Combobox({
             className={cn(
               "w-full rounded-md border-0 bg-white/5 px-3 py-2 mb-1",
               "text-sm text-white placeholder:text-white/40",
-              "focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
             )}
             autoFocus
           />
@@ -151,9 +151,11 @@ export function Combobox({
                   className={cn(
                     "flex cursor-pointer items-center rounded-md px-3 py-2",
                     "text-sm text-white",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus",
                     index === highlightedIndex && "bg-white/10",
                     option.value === value && "bg-blue-500/20"
                   )}
+                  tabIndex={0}
                 >
                   <Check
                     className={cn(

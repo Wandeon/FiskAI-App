@@ -70,7 +70,7 @@ export const CommandItem = forwardRef<HTMLButtonElement, CommandItemProps>(
         onMouseEnter={onHover}
         className={cn(
           "group relative w-full rounded-xl px-3 py-2.5 text-left transition-all duration-150",
-          "focus:outline-none",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
           isSelected ? "bg-white/10" : "hover:bg-white/5"
         )}
       >
