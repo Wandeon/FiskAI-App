@@ -13,6 +13,8 @@ import {
   Calculator,
   Shield,
   Landmark,
+  Receipt,
+  FolderOpen,
   type LucideIcon,
 } from "lucide-react"
 import { ModuleKey } from "@/lib/modules/definitions"
@@ -41,17 +43,17 @@ export const navigation: NavSection[] = [
     title: "Financije",
     items: [
       { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos" },
+      { name: "Računi", href: "/invoices", icon: FileText, module: "invoicing" },
+      { name: "Troškovi", href: "/expenses", icon: Receipt, module: "expenses" },
       {
         name: "Dokumenti",
         href: "/documents",
-        icon: FileText,
-        // Always-on core module
+        icon: FolderOpen,
+        module: "documents",
         children: [
           { name: "Svi dokumenti", href: "/documents" },
-          { name: "Računi", href: "/documents?category=invoice" },
           { name: "E-Računi", href: "/documents?category=e-invoice" },
           { name: "Bankovni izvodi", href: "/documents?category=bank-statement" },
-          { name: "Troškovi", href: "/documents?category=expense" },
         ],
       },
       { name: "Banka", href: "/banking", icon: Building2, module: "banking" },
