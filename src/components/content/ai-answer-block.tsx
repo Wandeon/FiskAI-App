@@ -87,7 +87,7 @@ export function AIAnswerBlock({
       <header data-ai-bluf="true" className="ai-answer-header mb-6">
         <p className="text-lg font-medium mb-2">{bluf}</p>
         <div className="ai-answer-meta flex items-center gap-4 text-sm text-white/70">
-          <time dateTime={lastUpdated}>Azurirano: {displayDate}</time>
+          <time dateTime={lastUpdated}>Ažurirano: {displayDate}</time>
           {showConfidenceBadge && (
             <span
               className={cn(

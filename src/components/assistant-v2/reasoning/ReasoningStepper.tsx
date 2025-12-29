@@ -63,7 +63,7 @@ export function ReasoningStepper({
         </h3>
 
         {streamState === "streaming" && timeSinceLastEvent !== null && (
-          <span className="text-xs text-tertiary">Azurirano: {timeSinceLastEvent}s</span>
+          <span className="text-xs text-tertiary">Ažurirano: {timeSinceLastEvent}s</span>
         )}
       </div>
 
