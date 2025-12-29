@@ -7,6 +7,7 @@ import { mdxComponents } from "@/components/knowledge-hub/mdx-components"
 import { ComparisonTable } from "./ComparisonTable"
 import { ComparisonCalculator } from "./ComparisonCalculator"
 import { RecommendationCard } from "./RecommendationCard"
+import { GetStartedCTA } from "./GetStartedCTA"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
@@ -160,6 +161,9 @@ export function ComparisonPageContent({ comparison, searchParams }: ComparisonPa
             )}
           </div>
         </section>
+
+        {/* CTA to get started */}
+        <GetStartedCTA />
       </div>
     </SectionBackground>
   )
