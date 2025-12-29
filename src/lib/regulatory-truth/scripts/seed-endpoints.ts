@@ -360,6 +360,69 @@ const endpoints = [
     scrapeFrequency: "WEEKLY" as const,
     listingStrategy: "HTML_LIST" as const,
   },
+
+  // ==========================================================================
+  // EUR-Lex: EU Legislation RSS Feeds (Croatian-relevant)
+  // ==========================================================================
+  {
+    domain: "eur-lex.europa.eu",
+    path: "/EN/display-rss.do?lang=HR&eurovoc=8471", // VAT - Taxation
+    name: "EUR-Lex - VAT & Taxation (HR)",
+    endpointType: "LEGAL_ACTS" as const,
+    priority: "HIGH" as const,
+    scrapeFrequency: "DAILY" as const,
+    listingStrategy: "RSS_FEED" as const,
+    metadata: {
+      domain: "pdv",
+      language: "HR",
+      eurovoc: "8471", // VAT subject code
+      description: "EU VAT directives and regulations relevant to Croatia",
+    },
+  },
+  {
+    domain: "eur-lex.europa.eu",
+    path: "/EN/display-rss.do?lang=HR&eurovoc=8464", // Invoicing
+    name: "EUR-Lex - Invoicing & E-invoicing (HR)",
+    endpointType: "LEGAL_ACTS" as const,
+    priority: "HIGH" as const,
+    scrapeFrequency: "DAILY" as const,
+    listingStrategy: "RSS_FEED" as const,
+    metadata: {
+      domain: "fiskalizacija",
+      language: "HR",
+      eurovoc: "8464",
+      description: "EU invoicing and e-invoicing directives",
+    },
+  },
+  {
+    domain: "eur-lex.europa.eu",
+    path: "/EN/display-rss.do?lang=HR&type_doc=DIR&type_doc=REG", // Directives and Regulations only
+    name: "EUR-Lex - Croatian EU Law Updates",
+    endpointType: "LEGAL_ACTS" as const,
+    priority: "MEDIUM" as const,
+    scrapeFrequency: "DAILY" as const,
+    listingStrategy: "RSS_FEED" as const,
+    metadata: {
+      domain: "pausalni",
+      language: "HR",
+      description: "General EU directives and regulations applicable to Croatia",
+    },
+  },
+  {
+    domain: "eur-lex.europa.eu",
+    path: "/EN/display-rss.do?lang=HR&eurovoc=1954", // Social security
+    name: "EUR-Lex - Social Security (HR)",
+    endpointType: "LEGAL_ACTS" as const,
+    priority: "MEDIUM" as const,
+    scrapeFrequency: "TWICE_WEEKLY" as const,
+    listingStrategy: "RSS_FEED" as const,
+    metadata: {
+      domain: "doprinosi",
+      language: "HR",
+      eurovoc: "1954",
+      description: "EU social security and contributions regulations",
+    },
+  },
 ]
 
 async function main() {

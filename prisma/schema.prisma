@@ -1709,6 +1709,7 @@ enum ListingStrategy {
   PAGINATION
   DATE_FILTERED
   CRAWL // Recursive site crawling to build custom sitemaps
+  RSS_FEED // RSS/Atom feed parsing
 }
 
 enum DiscoveredItemStatus {
