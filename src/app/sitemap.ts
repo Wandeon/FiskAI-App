@@ -3,7 +3,6 @@ import {
   getSitemapRoutes,
   getCanonicalBaseUrl,
   isProductionSitemap,
-  type Locale,
 } from "@/config/routes"
 import {
   getGuideSlugs,
@@ -39,89 +38,63 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const now = new Date()
-  const locales: Locale[] = ["hr", "en"]
 
   // =========================================================================
   // 1. Static routes from registry
+  // Note: English alternates disabled until English routes are implemented (Issue #294)
+  // Currently only Croatian (hr) routes exist - no /en/* pages implemented yet
   // =========================================================================
   const sitemapRoutes = getSitemapRoutes()
 
-  const staticEntries: MetadataRoute.Sitemap = sitemapRoutes.flatMap(([, routeDef]) => {
-    return locales.map((locale) => ({
-      url: `${baseUrl}${routeDef.path[locale]}`,
-      lastModified: now,
-      changeFrequency: routeDef.changeFreq,
-      priority: routeDef.priority,
-      alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [l, `${baseUrl}${routeDef.path[l]}`])
-        ) as Record<Locale, string>,
-      },
-    }))
-  })
+  const staticEntries: MetadataRoute.Sitemap = sitemapRoutes.map(([, routeDef]) => ({
+    url: `${baseUrl}${routeDef.path.hr}`,
+    lastModified: now,
+    changeFrequency: routeDef.changeFreq,
+    priority: routeDef.priority,
+  }))
 
   // =========================================================================
   // 2. Dynamic MDX content
   // =========================================================================
 
   // Guides (/vodic/[slug])
+  // Note: English alternates disabled until English routes are implemented (Issue #294)
   const guideSlugs = getGuideSlugs()
   const guideEntries: MetadataRoute.Sitemap = guideSlugs.map((slug) => ({
     url: `${baseUrl}/vodic/${slug}`,
     lastModified: now,
     changeFrequency: "monthly" as const,
     priority: 0.7,
-    alternates: {
-      languages: {
-        hr: `${baseUrl}/vodic/${slug}`,
-        en: `${baseUrl}/en/guide/${slug}`,
-      },
-    },
   }))
 
   // Comparisons (/usporedba/[slug])
+  // Note: English alternates disabled until English routes are implemented (Issue #294)
   const comparisonSlugs = await getAllComparisonSlugs()
   const comparisonEntries: MetadataRoute.Sitemap = comparisonSlugs.map((slug) => ({
     url: `${baseUrl}/usporedba/${slug}`,
     lastModified: now,
     changeFrequency: "monthly" as const,
     priority: 0.7,
-    alternates: {
-      languages: {
-        hr: `${baseUrl}/usporedba/${slug}`,
-        en: `${baseUrl}/en/comparison/${slug}`,
-      },
-    },
   }))
 
   // Glossary (/rjecnik/[pojam])
+  // Note: English alternates disabled until English routes are implemented (Issue #294)
   const glossarySlugs = getGlossarySlugs()
   const glossaryEntries: MetadataRoute.Sitemap = glossarySlugs.map((slug) => ({
     url: `${baseUrl}/rjecnik/${slug}`,
     lastModified: now,
     changeFrequency: "monthly" as const,
     priority: 0.5,
-    alternates: {
-      languages: {
-        hr: `${baseUrl}/rjecnik/${slug}`,
-        en: `${baseUrl}/en/glossary/${slug}`,
-      },
-    },
   }))
 
   // How-Tos (/kako-da/[slug])
+  // Note: English alternates disabled until English routes are implemented (Issue #294)
   const howToSlugs = getHowToSlugs()
   const howToEntries: MetadataRoute.Sitemap = howToSlugs.map((slug) => ({
     url: `${baseUrl}/kako-da/${slug}`,
     lastModified: now,
     changeFrequency: "monthly" as const,
     priority: 0.6,
-    alternates: {
-      languages: {
-        hr: `${baseUrl}/kako-da/${slug}`,
-        en: `${baseUrl}/en/how-to/${slug}`,
-      },
-    },
   }))
 
   // =========================================================================
@@ -143,17 +116,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .where(and(eq(newsPosts.status, "published"), lte(newsPosts.publishedAt, now)))
       .limit(5000) // Reasonable limit for sitemap
 
+    // Note: English alternates disabled until English routes are implemented (Issue #294)
     newsEntries = publishedPosts.map((post) => ({
       url: `${baseUrl}/vijesti/${post.slug}`,
       lastModified: post.updatedAt || post.publishedAt || now,
       changeFrequency: "weekly" as const,
       priority: 0.6,
-      alternates: {
-        languages: {
-          hr: `${baseUrl}/vijesti/${post.slug}`,
-          en: `${baseUrl}/en/news/${post.slug}`,
-        },
-      },
     }))
 
     // News categories (/vijesti/kategorija/[slug])
@@ -164,17 +132,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from(newsCategories)
       .where(isNull(newsCategories.parentId)) // Only main categories
 
+    // Note: English alternates disabled until English routes are implemented (Issue #294)
     categoryEntries = categories.map((cat) => ({
       url: `${baseUrl}/vijesti/kategorija/${cat.slug}`,
       lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.7,
-      alternates: {
-        languages: {
-          hr: `${baseUrl}/vijesti/kategorija/${cat.slug}`,
-          en: `${baseUrl}/en/news/category/${cat.slug}`,
-        },
-      },
     }))
   } catch (error) {
     // Database unavailable - skip news entries but continue with static content
