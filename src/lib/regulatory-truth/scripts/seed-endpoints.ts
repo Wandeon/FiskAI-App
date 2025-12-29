@@ -76,6 +76,16 @@ const endpoints = [
   },
   {
     domain: "porezna-uprava.gov.hr",
+    path: "/HR_o_nama/Stranice/mapa-weba.aspx",
+    name: "Porezna Uprava - Sitemap/Web Map",
+    endpointType: "SITEMAP_INDEX" as const,
+    priority: "CRITICAL" as const,
+    scrapeFrequency: "EVERY_RUN" as const,
+    listingStrategy: "HTML_LIST" as const,
+    metadata: { comprehensive: true, hierarchical: true },
+  },
+  {
+    domain: "porezna-uprava.gov.hr",
     path: "/hr/vijesti/8",
     name: "Porezna - Vijesti",
     endpointType: "NEWS_LISTING" as const,
