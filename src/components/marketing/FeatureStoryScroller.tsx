@@ -34,8 +34,8 @@ const DEFAULT_STEPS: FeatureStoryStep[] = [
     bullets: ["Unos kamerom ili uploadom", "Istaknuta polja za provjeru", "Auditabilni prijedlozi"],
   },
   {
-    title: "E-računi i fiskalizacija 2.0 (u razvoju)",
-    subtitle: "Priprema za IE-Račune/posrednike i praćenje statusa e-računa end-to-end.",
+    title: "E-računi i fiskalizacija 2.0",
+    subtitle: "Priprema za IE-Račune/posrednike i praćenje statusa e-računa end-to-end. Dolazi uskoro.",
     bullets: [
       "Jedinstveni tok: izrada → slanje → status",
       "Povijest promjena i dokazivost",
