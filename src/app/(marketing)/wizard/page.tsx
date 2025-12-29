@@ -5,10 +5,15 @@ import Link from "next/link"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Pronađite svoj poslovni oblik | FiskAI",
   description:
     "Interaktivni čarobnjak koji vam pomaže odabrati pravi oblik poslovanja u Hrvatskoj.",
+  alternates: {
+    canonical: `${BASE_URL}/wizard`,
+  },
 }
 
 export default function WizardPage() {

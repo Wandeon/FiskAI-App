@@ -1,9 +1,14 @@
 import type { Metadata } from "next"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Politika AI podataka",
   description: "Politika korištenja i obrade podataka putem AI funkcionalnosti FiskAI-a.",
+  alternates: {
+    canonical: `${BASE_URL}/ai-data-policy`,
+  },
 }
 
 export default function AiDataPolicyPage() {

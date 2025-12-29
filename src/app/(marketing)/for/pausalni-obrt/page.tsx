@@ -15,10 +15,15 @@ import { FaqAccordion } from "@/components/marketing/FaqAccordion"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { companyInfo } from "@/config/company"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Za paušalni obrt",
   description:
     "AI-first računovodstveni asistent posebno prilagođen za paušalni obrt u Hrvatskoj. Izdavanje računa, praćenje troškova i izvozi za knjigovođu.",
+  alternates: {
+    canonical: `${BASE_URL}/for/pausalni-obrt`,
+  },
 }
 
 export default function PausalniObrtPage() {

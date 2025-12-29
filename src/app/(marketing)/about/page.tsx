@@ -2,9 +2,14 @@ import type { Metadata } from "next"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — O nama",
   description: "Saznajte više o FiskAI platformi: naša misija, vrijednosti i zašto nas odabrati za vaše računovodstvo.",
+  alternates: {
+    canonical: `${BASE_URL}/about`,
+  },
 }
 
 export default function AboutPage() {

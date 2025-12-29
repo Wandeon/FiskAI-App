@@ -5,9 +5,14 @@ import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { companyInfo, getPhoneLink, getFullAddress } from "@/config/company"
 import { ContactForm } from "@/components/marketing/contact-form"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Kontakt",
   description: "Kontaktirajte FiskAI tim za demo, beta program ili podršku.",
+  alternates: {
+    canonical: `${BASE_URL}/contact`,
+  },
 }
 
 export default function ContactPage() {

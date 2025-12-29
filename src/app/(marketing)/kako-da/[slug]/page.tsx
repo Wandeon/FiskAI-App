@@ -13,6 +13,8 @@ import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { NextSteps } from "@/components/knowledge-hub/NextSteps"
 import { AIAnswerBlock } from "@/components/content/ai-answer-block"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 interface Props {
   params: Promise<{ slug: string }>
 }
@@ -30,6 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${howto.frontmatter.title} | FiskAI`,
     description: howto.frontmatter.description,
+    alternates: {
+      canonical: `${BASE_URL}/kako-da/${slug}`,
+    },
   }
 }
 

@@ -18,11 +18,16 @@ import { NewsSearch } from "@/components/news/NewsSearch"
 import { NewsletterSignup } from "@/components/news/NewsletterSignup"
 import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Porezne Vijesti | FiskAI",
   description:
     "Najnovije vijesti iz Porezne uprave, Narodnih novina i FINA-e za hrvatske poduzetnike. Automatizirani sažeci relevantni za vaše poslovanje.",
   keywords: ["porezne vijesti", "porezna uprava", "narodne novine", "FINA", "hrvatska"],
+  alternates: {
+    canonical: `${BASE_URL}/vijesti`,
+  },
 }
 
 export const dynamic = "force-dynamic"

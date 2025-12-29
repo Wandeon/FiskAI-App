@@ -2,9 +2,14 @@ import { Metadata } from "next"
 import { ExternalLink } from "lucide-react"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Službeni izvori | FiskAI",
   description: "Popis službenih izvora koje FiskAI koristi za ažuriranje sadržaja i kalkulatora.",
+  alternates: {
+    canonical: `${BASE_URL}/izvori`,
+  },
 }
 
 const sources = [

@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import { POSDCalculatorClient } from "./POSDCalculatorClient"
 import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "PO-SD Kalkulator | Izračunaj iz bankovnog izvoda | FiskAI",
   description:
@@ -15,6 +17,9 @@ export const metadata: Metadata = {
     "ePorezna",
     "porez na dohodak",
   ],
+  alternates: {
+    canonical: `${BASE_URL}/alati/posd-kalkulator`,
+  },
   openGraph: {
     title: "PO-SD Kalkulator | Izračunaj iz bankovnog izvoda",
     description: "Učitaj XML izvod iz banke i automatski izračunaj primitke za PO-SD obrazac.",

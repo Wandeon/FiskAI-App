@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     "knjigovodstvo hrvatska",
     "AI računovodstvo",
   ],
+  alternates: {
+    canonical: BASE_URL,
+  },
   openGraph: {
     title: "FiskAI - Računovodstveni softver za male poduzetnike",
     description:

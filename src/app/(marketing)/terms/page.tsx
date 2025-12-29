@@ -2,9 +2,14 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Uvjeti korištenja",
   description: "Uvjeti korištenja za FiskAI - prava i obveze korisnika i pružatelja usluge.",
+  alternates: {
+    canonical: `${BASE_URL}/terms`,
+  },
 }
 
 export default function TermsPage() {

@@ -10,6 +10,8 @@ import { JsonLd } from "@/components/seo/JsonLd"
 import { generateDefinedTermSchema, generateBreadcrumbSchema } from "@/lib/schema"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 interface Props {
   params: Promise<{ pojam: string }>
 }
@@ -27,6 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${term.frontmatter.term} - Što je? | FiskAI Rječnik`,
     description: term.frontmatter.shortDefinition,
+    alternates: {
+      canonical: `${BASE_URL}/rjecnik/${pojam}`,
+    },
   }
 }
 

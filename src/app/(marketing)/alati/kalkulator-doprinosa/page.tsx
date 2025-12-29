@@ -7,6 +7,7 @@ import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { CONTRIBUTIONS, formatCurrency, formatPercentage } from "@/lib/fiscal-data"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 const contributionsYear = CONTRIBUTIONS.year
 const contributionBaseLabel = formatCurrency(CONTRIBUTIONS.base.minimum, { decimals: 2 })
 const mioRateLabel = formatPercentage(
@@ -19,6 +20,9 @@ export const metadata: Metadata = {
   title: `Kalkulator doprinosa ${contributionsYear} | FiskAI`,
   description:
     `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
+  alternates: {
+    canonical: `${BASE_URL}/alati/kalkulator-doprinosa`,
+  },
 }
 
 const faq = [

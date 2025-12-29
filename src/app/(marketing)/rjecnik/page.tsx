@@ -4,10 +4,15 @@ import { BookOpen, ArrowRight } from "lucide-react"
 import { getAllGlossaryTerms } from "@/lib/knowledge-hub/mdx"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Poslovni rječnik | FiskAI",
   description:
     "A-Z rječnik hrvatskih poslovnih i poreznih pojmova. PDV, OIB, JOPPD, fiskalizacija i više.",
+  alternates: {
+    canonical: `${BASE_URL}/rjecnik`,
+  },
 }
 
 export default async function GlossaryPage() {

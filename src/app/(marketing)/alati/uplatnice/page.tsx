@@ -8,9 +8,14 @@ import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { POZIV_NA_BROJ_CODES } from "@/lib/fiscal-data"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Generator Uplatnica | FiskAI",
   description: "Generirajte Hub3 uplatnice za plaćanje doprinosa, poreza i prireza.",
+  alternates: {
+    canonical: `${BASE_URL}/alati/uplatnice`,
+  },
 }
 
 export default function PaymentSlipsPage() {

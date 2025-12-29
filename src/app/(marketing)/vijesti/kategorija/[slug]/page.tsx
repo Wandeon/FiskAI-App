@@ -8,6 +8,8 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const dynamic = "force-dynamic"
 
 interface PageProps {
@@ -146,6 +148,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${category.nameHr} - Vijesti | FiskAI`,
     description: `Sve vijesti iz kategorije ${category.nameHr}. Pratite najnovije informacije relevantne za vaše poslovanje.`,
+    alternates: {
+      canonical: `${BASE_URL}/vijesti/kategorija/${slug}`,
+    },
   }
 }
 

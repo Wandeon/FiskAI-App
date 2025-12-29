@@ -15,10 +15,15 @@ import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Besplatni alati za poslovanje | FiskAI",
   description:
     "Besplatni kalkulatori i alati za hrvatske poduzetnike - doprinosi, porezi, uplatnice i više.",
+  alternates: {
+    canonical: `${BASE_URL}/alati`,
+  },
 }
 
 const tools = [

@@ -4,10 +4,15 @@ import { FileText, ArrowRight, Clock } from "lucide-react"
 import { getAllHowTos } from "@/lib/knowledge-hub/mdx"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Kako da... | Vodiči korak po korak | FiskAI",
   description:
     "Praktični vodiči za sve porezne i administrativne zadatke. PO-SD, fiskalizacija, PDV registracija i više.",
+  alternates: {
+    canonical: `${BASE_URL}/kako-da`,
+  },
 }
 
 export default async function HowToListingPage() {

@@ -6,10 +6,15 @@ import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
 import { HoverScale } from "@/components/ui/motion/HoverScale"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Baza znanja | FiskAI",
   description:
     "Vodiči, usporedbe i besplatni alati za hrvatske poduzetnike: paušalni obrt, obrt na dohodak, j.d.o.o., d.o.o. i PDV prag.",
+  alternates: {
+    canonical: `${BASE_URL}/baza-znanja`,
+  },
 }
 
 export default async function KnowledgeBasePage() {

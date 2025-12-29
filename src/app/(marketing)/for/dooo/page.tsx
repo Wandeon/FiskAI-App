@@ -12,10 +12,15 @@ import {
 } from "lucide-react"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Za d.o.o. (društvo s ograničenom odgovornošću)",
   description:
     "Napredno računovodstveno rješenje za d.o.o. tvrtke u Hrvatskoj: PDV obračun, e-računi, fiskalizacija, knjigovodstvo i izvještaji.",
+  alternates: {
+    canonical: `${BASE_URL}/for/dooo`,
+  },
 }
 
 export default function DooPage() {

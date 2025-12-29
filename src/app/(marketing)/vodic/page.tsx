@@ -6,10 +6,15 @@ import { GuidesExplorer } from "@/components/knowledge-hub/guide/GuidesExplorer"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { FadeIn } from "@/components/ui/motion/FadeIn"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Vodiči za poslovanje | FiskAI",
   description:
     "Kompletan vodič za sve oblike poslovanja u Hrvatskoj - paušalni obrt, obrt na dohodak, d.o.o. i više.",
+  alternates: {
+    canonical: `${BASE_URL}/vodic`,
+  },
 }
 
 export default function GuidesIndexPage() {

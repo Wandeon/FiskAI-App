@@ -13,10 +13,15 @@ import {
 } from "lucide-react"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Sigurnost i Trust Center",
   description:
     "Detaljna sigurnosna politika, podaci o privatnosti, rezidenciji podataka, incidentima i dostupnosti za FiskAI.",
+  alternates: {
+    canonical: `${BASE_URL}/security`,
+  },
 }
 
 export default function SecurityPage() {

@@ -12,10 +12,15 @@ import {
 } from "lucide-react"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Za knjigovođe i računovode",
   description:
     "Suradnja s klijentima na jednom mjestu: uredni izvozi, audit tragovi i automatizirani prenos podataka.",
+  alternates: {
+    canonical: `${BASE_URL}/for/accountants`,
+  },
 }
 
 export default function AccountantsPage() {

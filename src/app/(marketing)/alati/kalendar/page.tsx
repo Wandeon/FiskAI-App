@@ -7,9 +7,14 @@ import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { DEADLINES, ADDITIONAL_DEADLINES } from "@/lib/fiscal-data"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: `Kalendar Rokova ${DEADLINES.year} | FiskAI`,
   description: `Svi važni porezni rokovi za ${DEADLINES.year}. godinu na jednom mjestu.`,
+  alternates: {
+    canonical: `${BASE_URL}/alati/kalendar`,
+  },
 }
 
 const calendarYear = DEADLINES.year

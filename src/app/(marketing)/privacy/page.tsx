@@ -2,10 +2,15 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "FiskAI — Politika privatnosti",
   description:
     "Politika privatnosti za FiskAI - kako prikupljamo, koristimo i štitimo vaše podatke.",
+  alternates: {
+    canonical: `${BASE_URL}/privacy`,
+  },
 }
 
 export default function PrivacyPage() {

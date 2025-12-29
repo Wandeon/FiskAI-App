@@ -1,9 +1,14 @@
 import { Metadata } from "next"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+
 export const metadata: Metadata = {
   title: "Urednička politika | FiskAI",
   description: "Kako FiskAI održava točnost sadržaja, učestalost pregleda i proces ispravaka.",
+  alternates: {
+    canonical: `${BASE_URL}/urednicka-politika`,
+  },
 }
 
 export default function UrednickaPoltikaPage() {

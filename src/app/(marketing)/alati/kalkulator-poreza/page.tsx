@@ -7,6 +7,7 @@ import { generateWebApplicationSchema } from "@/lib/schema/webApplication"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { TAX_RATES, formatCurrency, formatPercentage } from "@/lib/fiscal-data"
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 const pausalYear = TAX_RATES.pausal.year
 const incomeYear = TAX_RATES.income.year
 const lowerIncomeBracket = TAX_RATES.income.brackets[0]
@@ -21,6 +22,9 @@ export const metadata: Metadata = {
   title: `Kalkulator paušalnog poreza ${pausalYear} | FiskAI`,
   description:
     `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
+  alternates: {
+    canonical: `${BASE_URL}/alati/kalkulator-poreza`,
+  },
 }
 
 const faq = [
