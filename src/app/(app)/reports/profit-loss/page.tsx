@@ -58,9 +58,17 @@ export default async function ProfitLossPage({
             {dateFrom.toLocaleDateString("hr-HR")} - {dateTo.toLocaleDateString("hr-HR")}
           </p>
         </div>
-        <Link href="/reports">
-          <Button variant="outline">← Natrag</Button>
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href={`/api/reports/profit-loss/pdf?from=${dateFrom.toISOString().split("T")[0]}&to=${dateTo.toISOString().split("T")[0]}`}
+            download
+          >
+            <Button variant="outline">Preuzmi PDF</Button>
+          </a>
+          <Link href="/reports">
+            <Button variant="outline">← Natrag</Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
