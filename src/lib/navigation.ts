@@ -12,6 +12,7 @@ import {
   Bot,
   Calculator,
   Shield,
+  Landmark,
   type LucideIcon,
 } from "lucide-react"
 import { ModuleKey } from "@/lib/modules/definitions"
@@ -60,6 +61,13 @@ export const navigation: NavSection[] = [
         icon: Calculator,
         module: "pausalni",
         showFor: ["OBRT_PAUSAL"],
+      },
+      {
+        name: "Porez na dobit",
+        href: "/corporate-tax",
+        icon: Landmark,
+        module: "corporate-tax",
+        showFor: ["DOO", "JDOO"],
       },
       {
         name: "Izvještaji",
