@@ -12,11 +12,14 @@ import {
   ChevronRight,
   ArrowUpRight,
   ListChecks,
+  FlaskConical,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PlanSettingsForm } from "./plan-settings-form"
+import { BetaSettingsForm } from "./beta-settings-form"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { redirect } from "next/navigation"
+import { db } from "@/lib/db"
 
 interface PageProps {
   searchParams: Promise<{ tab?: string }>
@@ -26,6 +29,12 @@ export default async function SettingsPage({ searchParams }: PageProps) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const params = await searchParams
+
+  // Fetch user's beta status
+  const dbUser = await db.user.findUnique({
+    where: { id: user.id },
+    select: { betaOptIn: true, betaOptInAt: true },
+  })
 
   // Derive capabilities to check enabled modules
   const capabilities = deriveCapabilities(company)
@@ -59,6 +68,13 @@ export default async function SettingsPage({ searchParams }: PageProps) {
       label: "Plan & pravna forma",
       description: "Pravna forma, PDV status i moduli",
       icon: ShieldCheck,
+      requiredModule: null,
+    },
+    {
+      id: "beta",
+      label: "Beta program",
+      description: "Pristup novim funkcionalnostima",
+      icon: FlaskConical,
       requiredModule: null,
     },
     {
@@ -222,6 +238,23 @@ export default async function SettingsPage({ searchParams }: PageProps) {
               </CardHeader>
               <CardContent>
                 <PasskeyManager />
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "beta" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Beta program</CardTitle>
+                <CardDescription>
+                  Pristupite novim funkcionalnostima i pomognite oblikovati buducnost FiskAI-a
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BetaSettingsForm
+                  initialBetaOptIn={dbUser?.betaOptIn ?? false}
+                  initialBetaOptInAt={dbUser?.betaOptInAt ?? null}
+                />
               </CardContent>
             </Card>
           )}

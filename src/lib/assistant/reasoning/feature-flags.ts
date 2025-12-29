@@ -26,23 +26,32 @@ export function getReasoningMode(): ReasoningMode {
 
 /**
  * Check if user is in the reasoning beta cohort.
- * Uses percentage-based rollout.
+ * Users can opt-in explicitly OR be selected via percentage-based rollout.
+ * @param userId - The user's ID
+ * @param userBetaOptIn - Whether the user has explicitly opted into beta (from User.betaOptIn)
  */
-export function isInReasoningBeta(userId: string): boolean {
+export function isInReasoningBeta(userId: string, userBetaOptIn?: boolean): boolean {
+  // Explicit opt-in always grants beta access
+  if (userBetaOptIn === true) {
+    return true
+  }
+
   const percentage = getReasoningConfig().betaPercentage
   if (percentage <= 0) return false
   if (percentage >= 100) return true
 
-  // Simple hash-based rollout
+  // Simple hash-based rollout for users who haven't explicitly opted in
   const hash = hashString(userId)
   return hash % 100 < percentage
 }
 
 /**
  * Get reasoning mode for a specific user.
- * Combines feature flags with per-user beta status.
+ * Combines feature flags with per-user beta status and explicit opt-in.
+ * @param userId - The user's ID
+ * @param userBetaOptIn - Whether the user has explicitly opted into beta
  */
-export function getReasoningModeForUser(userId?: string): ReasoningMode {
+export function getReasoningModeForUser(userId?: string, userBetaOptIn?: boolean): ReasoningMode {
   const globalMode = getReasoningMode()
 
   // Shadow mode always applies globally
@@ -50,10 +59,10 @@ export function getReasoningModeForUser(userId?: string): ReasoningMode {
     return "shadow"
   }
 
-  // Live mode respects beta cohort
+  // Live mode respects beta cohort or explicit opt-in
   if (globalMode === "live") {
     if (!userId) return "off"
-    return isInReasoningBeta(userId) ? "live" : "off"
+    return isInReasoningBeta(userId, userBetaOptIn) ? "live" : "off"
   }
 
   return "off"
