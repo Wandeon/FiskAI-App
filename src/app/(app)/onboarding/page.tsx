@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from "react"
 import { useOnboardingStore, type OnboardingStep } from "@/lib/stores/onboarding-store"
+import { useVisitorStore } from "@/stores/visitor-store"
+import { mapWizardToOnboarding, hasValidWizardData } from "@/lib/knowledge-hub/wizard-to-onboarding"
 import { StepIndicator } from "@/components/onboarding/step-indicator"
 import { StepBasicInfo } from "@/components/onboarding/step-basic-info"
 import { StepCompetence } from "@/components/onboarding/step-competence"
@@ -75,12 +77,18 @@ function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5
 
 export default function OnboardingPage() {
   const { currentStep, isStepValid, hydrate, data } = useOnboardingStore()
+  const { wizardAnswers, setStage } = useVisitorStore()
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadExistingData() {
       try {
         const serverData = await getOnboardingData()
+
+        // Check if we have wizard data to pre-fill
+        const wizardData = hasValidWizardData(wizardAnswers)
+          ? mapWizardToOnboarding(wizardAnswers)
+          : {}
 
         if (serverData) {
           // Calculate which step to start on based on completion
@@ -95,12 +103,13 @@ export default function OnboardingPage() {
           }
 
           // Hydrate store with server data and correct starting step
+          // Server data takes precedence over wizard data
           hydrate(
             {
               name: serverData.name || undefined,
               oib: serverData.oib || undefined,
-              legalForm: serverData.legalForm || undefined,
-              competence: serverData.competence || undefined,
+              legalForm: serverData.legalForm || wizardData.legalForm || undefined,
+              competence: serverData.competence || wizardData.competence || undefined,
               address: serverData.address || undefined,
               postalCode: serverData.postalCode || undefined,
               city: serverData.city || undefined,
@@ -109,10 +118,26 @@ export default function OnboardingPage() {
               phone: serverData.phone || undefined,
               iban: serverData.iban || undefined,
               isVatPayer: serverData.isVatPayer ?? false,
+              employedElsewhere: serverData.employedElsewhere ?? wizardData.employedElsewhere ?? false,
             },
             startStep
           )
+        } else {
+          // No server data - use wizard data as defaults
+          hydrate(
+            {
+              legalForm: wizardData.legalForm || undefined,
+              competence: wizardData.competence || undefined,
+              country: "HR",
+              isVatPayer: false,
+              employedElsewhere: wizardData.employedElsewhere ?? false,
+            },
+            1
+          )
         }
+
+        // Update stage to onboarding
+        setStage("onboarding")
       } catch (error) {
         console.error("Failed to load onboarding data:", error)
       } finally {
@@ -121,7 +146,7 @@ export default function OnboardingPage() {
     }
 
     loadExistingData()
-  }, [hydrate])
+  }, [hydrate, wizardAnswers, setStage])
 
   if (isLoading) {
     return (

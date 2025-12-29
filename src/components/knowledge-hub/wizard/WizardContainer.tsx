@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { WIZARD_QUESTIONS, getWizardResult } from "@/lib/knowledge-hub/wizard-logic"
 import { WizardAnswer } from "@/lib/knowledge-hub/types"
+import { useVisitorStore } from "@/stores/visitor-store"
 import {
   ArrowLeft,
   ArrowRight,
@@ -62,6 +63,7 @@ function getOptionIcon(questionId: string, value: string) {
 export function WizardContainer() {
   const router = useRouter()
   const reduce = useReducedMotion()
+  const { saveWizardAnswers, setStage } = useVisitorStore()
   const [currentQuestionId, setCurrentQuestionId] = useState("employment")
   const [answers, setAnswers] = useState<WizardAnswer[]>([])
   const [selectedValue, setSelectedValue] = useState<string | null>(null)
@@ -91,6 +93,14 @@ export function WizardContainer() {
         setQuestionHistory((prev) => [...prev, nextId])
         setSelectedValue(null)
       } else {
+        // Store wizard answers in visitor store for later use in onboarding
+        const wizardData: Record<string, string> = {}
+        newAnswers.forEach((answer) => {
+          wizardData[answer.questionId] = answer.value
+        })
+        saveWizardAnswers(wizardData)
+        setStage("recommendation")
+
         const result = getWizardResult(newAnswers)
         const url = result.params ? `${result.path}?${result.params.toString()}` : result.path
         router.push(url)
