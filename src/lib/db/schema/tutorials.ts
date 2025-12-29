@@ -2,6 +2,7 @@
 
 import { pgTable, text, timestamp, jsonb, index } from "drizzle-orm/pg-core"
 import { createId } from "@paralleldrive/cuid2"
+import { user, company } from "./guidance"
 
 export const tutorialProgress = pgTable(
   "tutorial_progress",
@@ -9,8 +10,12 @@ export const tutorialProgress = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => createId()),
-    userId: text("user_id").notNull(),
-    companyId: text("company_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => company.id, { onDelete: "cascade" }),
     trackId: text("track_id").notNull(),
     completedTasks: jsonb("completed_tasks").$type<string[]>().default([]),
     currentDay: text("current_day").default("1"),
