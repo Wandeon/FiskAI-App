@@ -166,7 +166,8 @@ export function generateOrganizationSchema() {
 }
 
 /**
- * WebSite schema - for sitelinks search box and site identity
+ * WebSite schema - for site identity
+ * Note: potentialAction removed until search page is implemented (see issue #190)
  */
 export function generateWebSiteSchema() {
   return {
@@ -180,14 +181,6 @@ export function generateWebSiteSchema() {
       "@id": "https://fiskai.hr/#organization",
     },
     inLanguage: ["hr", "en"],
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: "https://fiskai.hr/pretraga?q={search_term_string}",
-      },
-      "query-input": "required name=search_term_string",
-    },
   }
 }
 
