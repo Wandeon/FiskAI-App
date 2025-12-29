@@ -162,3 +162,45 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
 export const DEFAULT_ENTITLEMENTS: ModuleKey[] = MODULE_KEYS.filter(
   (key) => MODULES[key].defaultEnabled
 )
+
+/**
+ * Get entitlements for a specific legal form.
+ * Auto-assigns modules based on business type selection.
+ *
+ * @see GitHub Issue #202
+ * @see docs/product-bible/04-ACCESS-CONTROL.md
+ */
+export function getEntitlementsForLegalForm(legalForm: string | null): ModuleKey[] {
+  // Base entitlements for all business types
+  const base: ModuleKey[] = [
+    "invoicing",
+    "e-invoicing",
+    "contacts",
+    "products",
+    "expenses",
+    "documents",
+    "reports-basic",
+  ]
+
+  // Add specific modules based on legal form
+  switch (legalForm) {
+    case "OBRT_PAUSAL":
+      return [...base, "pausalni"]
+
+    case "OBRT_REAL":
+      return [...base, "expenses"]
+
+    case "OBRT_VAT":
+      return [...base, "vat", "expenses"]
+
+    case "JDOO":
+      return [...base, "vat", "corporate-tax", "reports-advanced"]
+
+    case "DOO":
+      return [...base, "vat", "corporate-tax", "reports-advanced", "reconciliation"]
+
+    default:
+      // Fallback to default entitlements if legal form is unknown
+      return DEFAULT_ENTITLEMENTS
+  }
+}

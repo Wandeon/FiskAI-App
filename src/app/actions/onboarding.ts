@@ -6,7 +6,7 @@ import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
 import type { LegalForm } from "@/lib/capabilities"
 import type { CompetenceLevel } from "@/lib/visibility/rules"
-import { DEFAULT_ENTITLEMENTS } from "@/lib/modules/definitions"
+import { DEFAULT_ENTITLEMENTS, getEntitlementsForLegalForm } from "@/lib/modules/definitions"
 
 // Onboarding data schema matching what the wizard collects
 export interface OnboardingData {
@@ -186,7 +186,7 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
         email: null,
         iban: null,
         isVatPayer: false,
-        entitlements: DEFAULT_ENTITLEMENTS,
+        entitlements: getEntitlementsForLegalForm(data.legalForm),
         users: {
           create: {
             userId: user.id!,

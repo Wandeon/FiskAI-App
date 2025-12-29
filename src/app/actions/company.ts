@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { encryptSecret } from "@/lib/secrets"
 
-import { DEFAULT_ENTITLEMENTS } from "@/lib/modules/definitions"
+import { DEFAULT_ENTITLEMENTS, getEntitlementsForLegalForm } from "@/lib/modules/definitions"
 
 export async function createCompany(formData: z.input<typeof companySchema>) {
   const user = await requireAuth()
@@ -45,17 +45,21 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
           ? { ...existingFlags, competence: data.competence }
           : existingFlags
 
+        // Determine entitlements based on legal form
+        const legalForm = data.legalForm || existingCompany.legalForm || "DOO"
+        const entitlements =
+          existingCompany.entitlements && (existingCompany.entitlements as any[]).length > 0
+            ? existingCompany.entitlements
+            : getEntitlementsForLegalForm(legalForm)
+
         const updated = await db.company.update({
           where: { id: existingCompany.id },
           data: {
             ...data,
             vatNumber: data.isVatPayer ? `HR${data.oib}` : existingCompany.vatNumber,
-            legalForm: data.legalForm || existingCompany.legalForm || "DOO",
+            legalForm,
             featureFlags: Object.keys(newFeatureFlags).length > 0 ? newFeatureFlags : undefined,
-            entitlements:
-              existingCompany.entitlements && (existingCompany.entitlements as any[]).length > 0
-                ? existingCompany.entitlements
-                : DEFAULT_ENTITLEMENTS,
+            entitlements,
           },
         })
 
@@ -80,13 +84,14 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
       }
     } else {
       // Create new company and link to user as owner
+      const legalForm = data.legalForm || "DOO"
       const newCompany = await db.company.create({
         data: {
           ...data,
           vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
-          legalForm: data.legalForm || "DOO",
+          legalForm,
           featureFlags: data.competence ? { competence: data.competence } : undefined,
-          entitlements: DEFAULT_ENTITLEMENTS,
+          entitlements: getEntitlementsForLegalForm(legalForm),
           users: {
             create: {
               userId: user.id!,
