@@ -6,6 +6,7 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { Prisma } from "@prisma/client"
+import { bankingLogger } from "@/lib/logger"
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024 // 20MB safety cap
 const ALLOWED_EXTENSIONS = ["pdf", "xml"]
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     }
   } catch (authError) {
     // If auth fails, try first company for testing
-    console.warn("[bank-import-upload] auth failed, using test mode:", authError)
+    bankingLogger.warn({ error: authError }, "Auth failed, using test mode for bank import upload")
     company = await db.company.findFirst()
     if (!company) {
       return NextResponse.json({ error: "No company found" }, { status: 404 })
@@ -106,14 +107,34 @@ export async function POST(request: Request) {
   if (existingJob && overwrite) {
     try {
       await db.importJob.delete({ where: { id: existingJob.id } })
-    } catch (e) {
-      console.warn("[bank-import-upload] failed deleting previous job", e)
+      bankingLogger.info(
+        { jobId: existingJob.id, accountId },
+        "Deleted previous import job for overwrite"
+      )
+    } catch (error) {
+      bankingLogger.error(
+        { error, jobId: existingJob.id, accountId },
+        "Failed to delete previous import job during overwrite - data integrity may be compromised"
+      )
+      return NextResponse.json(
+        { error: "Failed to overwrite previous import. Please try again or contact support." },
+        { status: 500 }
+      )
     }
     if (existingJob.storagePath) {
       try {
         await fs.unlink(existingJob.storagePath)
-      } catch {
-        // ignore
+        bankingLogger.info(
+          { path: existingJob.storagePath, jobId: existingJob.id },
+          "Deleted previous statement file for overwrite"
+        )
+      } catch (error) {
+        // Log error but continue - orphaned file is less critical than blocking upload
+        // A cleanup job should handle orphaned files periodically
+        bankingLogger.warn(
+          { error, path: existingJob.storagePath, jobId: existingJob.id },
+          "Failed to delete old statement file - orphaned file may remain on disk"
+        )
       }
     }
   }
@@ -134,6 +155,11 @@ export async function POST(request: Request) {
       },
     })
 
+    bankingLogger.info(
+      { jobId: job.id, accountId, fileName, checksum },
+      "Bank statement upload successful"
+    )
+
     return NextResponse.json({
       success: true,
       jobId: job.id,
@@ -143,12 +169,16 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      bankingLogger.warn(
+        { error, accountId, checksum },
+        "Duplicate statement upload attempt detected (checksum match)"
+      )
       return NextResponse.json(
         { error: "This statement was already uploaded for this account (checksum match)." },
         { status: 409 }
       )
     }
-    console.error("[bank-import-upload] error", error)
+    bankingLogger.error({ error, accountId, fileName }, "Failed to create import job")
     return NextResponse.json({ error: "Failed to create import job" }, { status: 500 })
   }
 }
