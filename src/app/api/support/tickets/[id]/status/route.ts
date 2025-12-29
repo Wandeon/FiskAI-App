@@ -8,7 +8,25 @@ const statusSchema = z.object({
   status: z.nativeEnum(SupportTicketStatus),
 })
 
-export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+// Valid status transitions for support ticket workflow
+// OPEN -> IN_PROGRESS: Start working on ticket
+// OPEN -> CLOSED: Close without working (e.g., duplicate, invalid)
+// IN_PROGRESS -> RESOLVED: Mark as resolved
+// IN_PROGRESS -> OPEN: Revert to open (needs more info)
+// RESOLVED -> CLOSED: Confirm resolution and close
+// RESOLVED -> IN_PROGRESS: Reopen if resolution didn't work
+// CLOSED -> OPEN: Reopen a closed ticket
+const VALID_TRANSITIONS: Record<SupportTicketStatus, SupportTicketStatus[]> = {
+  OPEN: [SupportTicketStatus.IN_PROGRESS, SupportTicketStatus.CLOSED],
+  IN_PROGRESS: [SupportTicketStatus.RESOLVED, SupportTicketStatus.OPEN],
+  RESOLVED: [SupportTicketStatus.CLOSED, SupportTicketStatus.IN_PROGRESS],
+  CLOSED: [SupportTicketStatus.OPEN],
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   const params = await context.params
   const user = await getCurrentUser()
   if (!user) {
@@ -22,7 +40,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   const ticket = await db.supportTicket.findFirst({
     where: { id: params.id, companyId: company.id },
-    select: { id: true },
+    select: { id: true, status: true },
   })
 
   if (!ticket) {
@@ -34,9 +52,23 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ error: "Neispravan status" }, { status: 400 })
   }
 
+  const currentStatus = ticket.status
+  const newStatus = parsed.data.status
+
+  // Allow no-op transitions (same status)
+  if (currentStatus !== newStatus) {
+    const allowedTransitions = VALID_TRANSITIONS[currentStatus]
+    if (!allowedTransitions.includes(newStatus)) {
+      return NextResponse.json(
+        { error: `Cannot transition from ${currentStatus} to ${newStatus}` },
+        { status: 400 }
+      )
+    }
+  }
+
   const updated = await db.supportTicket.update({
     where: { id: ticket.id },
-    data: { status: parsed.data.status },
+    data: { status: newStatus },
   })
 
   return NextResponse.json({ ticket: updated })
