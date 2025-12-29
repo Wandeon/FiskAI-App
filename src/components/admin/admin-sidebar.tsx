@@ -20,6 +20,7 @@ import {
   Activity,
   Scale,
   Flag,
+  Bot,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,7 @@ const navigation = [
   { name: "Staff", href: "/staff", icon: Users },
   { name: "Alerts", href: "/alerts", icon: AlertTriangle },
   { name: "System Status", href: "/system-status", icon: Activity },
+  { name: "Content Automation", href: "/content-automation", icon: Bot },
   { name: "Feature Flags", href: "/feature-flags", icon: Flag },
   { name: "Digest Preview", href: "/digest", icon: Mail },
   { name: "News", href: "/news", icon: Newspaper },
