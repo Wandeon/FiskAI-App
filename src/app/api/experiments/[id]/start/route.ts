@@ -11,9 +11,10 @@ import { startExperiment } from "@/lib/experiments"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -24,7 +25,7 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const experiment = await startExperiment(params.id)
+    const experiment = await startExperiment(id)
 
     return NextResponse.json({ experiment })
   } catch (error) {

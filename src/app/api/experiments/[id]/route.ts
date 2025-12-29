@@ -18,9 +18,10 @@ import type { UpdateExperimentInput } from "@/lib/experiments/types"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -32,7 +33,7 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const experiment = await getExperiment(params.id)
+    const experiment = await getExperiment(id)
 
     if (!experiment) {
       return NextResponse.json({ error: "Experiment not found" }, { status: 404 })
@@ -50,9 +51,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -76,7 +78,7 @@ export async function PATCH(
       status: body.status,
     }
 
-    const experiment = await updateExperiment(params.id, input)
+    const experiment = await updateExperiment(id, input)
 
     return NextResponse.json({ experiment })
   } catch (error) {
@@ -90,9 +92,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -104,7 +107,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    await deleteExperiment(params.id)
+    await deleteExperiment(id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

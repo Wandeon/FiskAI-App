@@ -61,6 +61,7 @@ function buildExpensesXml(expenses: any[]): string {
       <Status>${escapeXml(exp.status || "")}</Status>
       <NetAmount>${money(exp.netAmount)}</NetAmount>
       <VATAmount>${money(exp.vatAmount)}</VATAmount>
+      <VATDeductible>${exp.vatDeductible ? "true" : "false"}</VATDeductible>
       <TotalAmount>${money(exp.totalAmount)}</TotalAmount>
       <Paid>${exp.status === "PAID" || exp.paymentDate ? "true" : "false"}</Paid>
       <PaymentDate>${formatDate(exp.paymentDate)}</PaymentDate>
@@ -141,6 +142,7 @@ export async function GET(request: Request) {
     "Status",
     "Osnovica",
     "PDV",
+    "PDV priznat",
     "Ukupno",
     "Plaćeno",
     "Datum plaćanja",
@@ -158,6 +160,7 @@ export async function GET(request: Request) {
     expense.status,
     money(expense.netAmount),
     money(expense.vatAmount),
+    expense.vatDeductible ? "DA" : "NE",
     money(expense.totalAmount),
     expense.status === "PAID" || expense.paymentDate ? "DA" : "NE",
     formatDate(expense.paymentDate),
@@ -183,6 +186,7 @@ export async function GET(request: Request) {
         status: exp.status,
         netAmount: money(exp.netAmount),
         vatAmount: money(exp.vatAmount),
+        vatDeductible: exp.vatDeductible ?? false,
         totalAmount: money(exp.totalAmount),
         paid: exp.status === "PAID" || !!exp.paymentDate,
         paymentDate: formatDate(exp.paymentDate),
