@@ -36,41 +36,48 @@ export async function register(formData: z.infer<typeof registerSchema>) {
     },
   })
 
-  // Generate verification token
+  // Generate verification OTP code (modern flow)
   try {
-    const crypto = await import("crypto")
-    const tokenBytes = crypto.randomBytes(32)
-    const token = tokenBytes.toString("hex")
+    const { generateOTP, hashOTP, OTP_EXPIRY_MINUTES } = await import("@/lib/auth/otp")
 
-    // Token expires in 24 hours
-    const expires = new Date()
-    expires.setHours(expires.getHours() + 24)
-
-    // Delete any existing verification tokens for this email
-    await db.verificationToken.deleteMany({
-      where: { identifier: email },
-    })
-
-    // Create verification token
-    await db.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires,
+    // Delete any existing verification codes for this email
+    await db.verificationCode.deleteMany({
+      where: {
+        email: email.toLowerCase(),
+        type: "EMAIL_VERIFY",
       },
     })
 
-    // Send verification email
-    const verifyLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
+    // Generate and hash OTP
+    const code = generateOTP()
+    const codeHash = await hashOTP(code)
+
+    // Calculate expiry
+    const expiresAt = new Date()
+    expiresAt.setMinutes(expiresAt.getMinutes() + OTP_EXPIRY_MINUTES)
+
+    // Create verification code record
+    await db.verificationCode.create({
+      data: {
+        email: email.toLowerCase(),
+        userId: user.id,
+        codeHash,
+        type: "EMAIL_VERIFY",
+        expiresAt,
+      },
+    })
+
+    // Send OTP email
     const { sendEmail } = await import("@/lib/email")
-    const { VerificationEmail } = await import("@/lib/email/templates/verification-email")
+    const { OTPCodeEmail } = await import("@/lib/email/templates/otp-code-email")
 
     await sendEmail({
       to: email,
-      subject: "Potvrdite svoju email adresu - FiskAI",
-      react: VerificationEmail({
-        verifyLink,
+      subject: "Vaš FiskAI verifikacijski kod",
+      react: OTPCodeEmail({
+        code,
         userName: name,
+        type: "verify",
       }),
     })
   } catch (emailError) {
@@ -297,6 +304,12 @@ export async function loginWithPasskey(userId: string) {
   }
 }
 
+/**
+ * Legacy email verification via token links (backwards compatibility)
+ *
+ * Modern flow uses OTP codes via /api/auth/verify-code
+ * This function remains to support old verification links that may still be in users' inboxes
+ */
 export async function verifyEmail(token: string) {
   try {
     // Find the verification token
@@ -355,8 +368,8 @@ export async function verifyEmail(token: string) {
 
 export async function resendVerificationEmail(email: string) {
   // Rate limiting for verification email resend
-  const identifier = `email_verification_${email.toLowerCase()}`
-  const rateLimitResult = await checkRateLimit(identifier, "EMAIL_VERIFICATION")
+  const identifier = `otp_send_${email.toLowerCase()}`
+  const rateLimitResult = await checkRateLimit(identifier, "OTP_SEND")
 
   if (!rateLimitResult.allowed) {
     return { error: "rate_limited" }
@@ -378,40 +391,47 @@ export async function resendVerificationEmail(email: string) {
       return { success: true }
     }
 
-    // Generate new verification token
-    const crypto = await import("crypto")
-    const tokenBytes = crypto.randomBytes(32)
-    const token = tokenBytes.toString("hex")
+    // Generate and send OTP code (modern flow)
+    const { generateOTP, hashOTP, OTP_EXPIRY_MINUTES } = await import("@/lib/auth/otp")
 
-    // Token expires in 24 hours
-    const expires = new Date()
-    expires.setHours(expires.getHours() + 24)
-
-    // Delete any existing verification tokens for this email
-    await db.verificationToken.deleteMany({
-      where: { identifier: email },
-    })
-
-    // Create new verification token
-    await db.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires,
+    // Delete any existing verification codes for this email
+    await db.verificationCode.deleteMany({
+      where: {
+        email: email.toLowerCase(),
+        type: "EMAIL_VERIFY",
       },
     })
 
-    // Send verification email
-    const verifyLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`
+    // Generate and hash OTP
+    const code = generateOTP()
+    const codeHash = await hashOTP(code)
+
+    // Calculate expiry
+    const expiresAt = new Date()
+    expiresAt.setMinutes(expiresAt.getMinutes() + OTP_EXPIRY_MINUTES)
+
+    // Create verification code record
+    await db.verificationCode.create({
+      data: {
+        email: email.toLowerCase(),
+        userId: user.id,
+        codeHash,
+        type: "EMAIL_VERIFY",
+        expiresAt,
+      },
+    })
+
+    // Send OTP email
     const { sendEmail } = await import("@/lib/email")
-    const { VerificationEmail } = await import("@/lib/email/templates/verification-email")
+    const { OTPCodeEmail } = await import("@/lib/email/templates/otp-code-email")
 
     await sendEmail({
       to: email,
-      subject: "Potvrdite svoju email adresu - FiskAI",
-      react: VerificationEmail({
-        verifyLink,
+      subject: "Vaš FiskAI verifikacijski kod",
+      react: OTPCodeEmail({
+        code,
         userName: user.name || undefined,
+        type: "verify",
       }),
     })
 

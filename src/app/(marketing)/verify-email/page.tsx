@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { CheckCircle, XCircle, Clock, Loader2, RefreshCw } from "lucide-react"
+import { CheckCircle, XCircle, Clock, Loader2, RefreshCw, Info } from "lucide-react"
 import { verifyEmail, resendVerificationEmail } from "@/app/actions/auth"
 
 type VerificationState =
@@ -16,6 +16,7 @@ type VerificationState =
   | "expired"
   | "invalid"
   | "error"
+  | "use_otp" // New state for guiding to OTP flow
 
 export default function VerifyEmailPage() {
   const router = useRouter()
@@ -31,7 +32,8 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (!token) {
-      setState("invalid")
+      // No token provided - guide user to use modern OTP flow
+      setState("use_otp")
       return
     }
 
@@ -147,14 +149,23 @@ export default function VerifyEmailPage() {
             <CardTitle className="text-2xl">Link je istekao</CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">Ovaj link za potvrdu je istekao. Zatražite novi link.</p>
+            <p className="text-gray-600">
+              Ovaj link za potvrdu je istekao. Novi kod za potvrdu će biti poslan na vaš email.
+            </p>
+            <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800 flex items-start gap-2">
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p className="text-left">
+                Sada koristimo 6-znamenkaste kodove umjesto linkova za potvrdu. Unesite kod koji ste
+                primili na email.
+              </p>
+            </div>
 
             {expiredEmail ? (
               <>
                 {resent && (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle className="h-4 w-4" />
-                    <span className="text-sm">Novi link je poslan na {expiredEmail}</span>
+                    <span className="text-sm">Novi kod je poslan na {expiredEmail}</span>
                   </div>
                 )}
                 {resendError && (
@@ -174,7 +185,7 @@ export default function VerifyEmailPage() {
                   ) : (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      Pošalji novi link
+                      Pošalji novi kod
                     </>
                   )}
                 </Button>
@@ -190,7 +201,7 @@ export default function VerifyEmailPage() {
                 {resent && (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle className="h-4 w-4" />
-                    <span className="text-sm">Novi link je poslan!</span>
+                    <span className="text-sm">Novi kod je poslan!</span>
                   </div>
                 )}
                 {resendError && (
@@ -209,7 +220,7 @@ export default function VerifyEmailPage() {
                   ) : (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      Pošalji novi link
+                      Pošalji novi kod
                     </>
                   )}
                 </Button>
@@ -241,6 +252,38 @@ export default function VerifyEmailPage() {
               </Button>
               <Button asChild variant="ghost" className="w-full">
                 <Link href="/login">Prijavi se</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </>
+      )}
+
+      {state === "use_otp" && (
+        <>
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+              <Info className="h-8 w-8 text-blue-600" />
+            </div>
+            <CardTitle className="text-2xl">Koristite 6-znamenkasti kod</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-gray-600">
+              Email verifikacija sada koristi 6-znamenkaste kodove umjesto linkova.
+            </p>
+            <div className="rounded-md bg-blue-50 p-4 text-left space-y-2">
+              <p className="text-sm text-blue-900 font-medium">Kako potvrditi email:</p>
+              <ol className="text-sm text-blue-800 list-decimal list-inside space-y-1">
+                <li>Provjerite vaš email sandučić</li>
+                <li>Potražite 6-znamenkasti kod od FiskAI</li>
+                <li>Unesite kod tijekom registracije ili prijave</li>
+              </ol>
+            </div>
+            <div className="space-y-2">
+              <Button asChild className="w-full">
+                <Link href="/register">Započni registraciju</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/login">Ili se prijavi</Link>
               </Button>
             </div>
           </CardContent>

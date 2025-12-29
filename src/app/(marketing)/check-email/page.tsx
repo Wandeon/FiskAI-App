@@ -52,17 +52,17 @@ export default function CheckEmailPage() {
         <CardTitle className="text-2xl">Provjerite svoj email</CardTitle>
       </CardHeader>
       <CardContent className="text-center space-y-4">
-        <p className="text-gray-600">Poslali smo vam link za potvrdu na:</p>
+        <p className="text-gray-600">Poslali smo vam 6-znamenkasti kod za potvrdu na:</p>
         <p className="font-medium text-lg break-all">{email}</p>
         <p className="text-sm text-gray-500">
-          Kliknite na link u emailu kako biste potvrdili svoju adresu i aktivirali račun.
+          Unesite kod u obrascu za registraciju kako biste potvrdili svoju adresu i aktivirali račun.
         </p>
 
         <div className="rounded-md bg-amber-50 border border-amber-200 p-4 text-left">
           <p className="text-sm text-amber-800">
             <strong>Ne vidite email?</strong>
             <br />
-            Provjerite spam/neželjenu poštu. Link vrijedi 24 sata.
+            Provjerite spam/neželjenu poštu. Kod vrijedi 10 minuta.
           </p>
         </div>
 
