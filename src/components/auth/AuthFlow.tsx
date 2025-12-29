@@ -25,9 +25,8 @@ export function AuthFlow() {
     auth.startPasswordReset()
   }
 
-  const handlePasskeyAuth = () => {
-    // TODO: Implement passkey authentication
-    console.log("Passkey auth not yet implemented")
+  const handlePasskeyAuth = async () => {
+    await auth.authenticateWithPasskey()
   }
 
   return (

@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn, getSession } from "next-auth/react"
+import { startAuthentication } from "@simplewebauthn/browser"
+import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types"
 import { AuthStep, AuthFlowState, UserInfo } from "./types"
 import { setFaviconState, resetFavicon, flashFavicon } from "@/lib/favicon"
 import { getRedirectUrlForSystemRole } from "@/lib/middleware/subdomain"
@@ -357,6 +359,83 @@ export function useAuthFlow() {
     [state.email, setLoading, setError, handleSuccess]
   )
 
+  const authenticateWithPasskey = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Check if WebAuthn is supported
+      if (!window?.PublicKeyCredential || !navigator?.credentials) {
+        setError("Passkeys nisu podržani u ovom pregledniku")
+        return
+      }
+
+      // Start passkey authentication
+      const startResponse = await fetch("/api/webauthn/login/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: state.email }),
+      })
+
+      if (!startResponse.ok) {
+        const data = await startResponse.json()
+        if (startResponse.status === 404) {
+          setError("Niste registrirali niti jedan passkey")
+        } else {
+          setError(data.error || "Greška pri autentifikaciji")
+        }
+        return
+      }
+
+      const { userId, ...options } = (await startResponse.json()) as PublicKeyCredentialRequestOptionsJSON & {
+        userId: string
+      }
+
+      // Prompt user for passkey
+      const authenticationResponse = await startAuthentication(options)
+
+      // Finish authentication
+      const finishResponse = await fetch("/api/webauthn/login/finish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          response: authenticationResponse,
+        }),
+      })
+
+      if (!finishResponse.ok) {
+        const data = await finishResponse.json()
+        setError(data.error || "Greška pri autentifikaciji")
+        return
+      }
+
+      const { user } = await finishResponse.json()
+
+      // Sign in with the special passkey token
+      const result = await signIn("credentials", {
+        email: state.email,
+        password: `__PASSKEY__${user.id}`,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError("Greška pri prijavi")
+        return
+      }
+
+      // Success - redirect based on role
+      handleSuccess()
+    } catch (error) {
+      console.error("Passkey authentication error:", error)
+      if (error instanceof Error && error.name === "NotAllowedError") {
+        setError("Autentifikacija otkazana")
+      } else {
+        setError("Greška pri autentifikaciji s passkey-em")
+      }
+    }
+  }, [state.email, setLoading, setError, handleSuccess])
+
   const goBack = useCallback(() => {
     if (state.step === "authenticate" || state.step === "register") {
       setState(initialState)
@@ -381,6 +460,7 @@ export function useAuthFlow() {
     setError,
     checkEmail,
     authenticate,
+    authenticateWithPasskey,
     register,
     verifyCode,
     sendVerificationCode,
