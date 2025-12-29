@@ -24,6 +24,7 @@ export default async function ProductsPage() {
   const products = await db.product.findMany({
     where: { companyId: company.id },
     orderBy: { name: "asc" },
+    take: 50,
   })
 
   const unitMap = new Map<string, string>(unitCodes.map((unit) => [unit.code, unit.name]))
