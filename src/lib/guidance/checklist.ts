@@ -9,7 +9,7 @@ import {
   CHECKLIST_ACTIONS,
   type GuidanceCategory,
 } from "@/lib/db/schema/guidance"
-import { eq, and, or, gte, lte, notInArray, inArray, sql } from "drizzle-orm"
+import { eq, and, or, gte, lte, inArray, sql } from "drizzle-orm"
 import { OBLIGATION_LABELS } from "@/lib/pausalni/constants"
 import { getAllPatternInsights } from "./patterns"
 
@@ -119,13 +119,31 @@ async function getInteractedReferences(
 }
 
 /**
+ * Get count of completed items for a user/company
+ * This counts all items marked as completed in the interactions table
+ */
+async function getCompletedCount(userId: string, companyId: string): Promise<number> {
+  const result = await drizzleDb
+    .select({ count: sql<number>`count(*)` })
+    .from(checklistInteractions)
+    .where(
+      and(
+        eq(checklistInteractions.userId, userId),
+        eq(checklistInteractions.companyId, companyId),
+        eq(checklistInteractions.action, CHECKLIST_ACTIONS.COMPLETED)
+      )
+    )
+
+  return Number(result[0]?.count ?? 0)
+}
+
+/**
  * Get unpaid payment obligations as checklist items
  */
 async function getObligationItems(
   companyId: string,
   excludeRefs: Set<string>
 ): Promise<ChecklistItem[]> {
-  const today = new Date().toISOString().split("T")[0]
   const thirtyDaysFromNow = new Date()
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
 
@@ -429,6 +447,7 @@ export async function getChecklist(params: GetChecklistParams): Promise<{
   items: ChecklistItem[]
   stats: {
     total: number
+    completed: number
     critical: number
     soon: number
     upcoming: number
@@ -526,9 +545,14 @@ export async function getChecklist(params: GetChecklistParams): Promise<{
     return 0
   })
 
+  // Get completed count from interactions table
+  const completedCount = await getCompletedCount(userId, companyId)
+
   // Calculate stats before limiting
+  // Note: 'total' represents total items including completed (remaining + completed)
   const stats = {
-    total: allItems.length,
+    total: allItems.length + completedCount,
+    completed: completedCount,
     critical: allItems.filter((i) => i.urgency === URGENCY_LEVELS.CRITICAL).length,
     soon: allItems.filter((i) => i.urgency === URGENCY_LEVELS.SOON).length,
     upcoming: allItems.filter((i) => i.urgency === URGENCY_LEVELS.UPCOMING).length,

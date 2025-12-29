@@ -27,12 +27,14 @@ export function ChecklistMiniView({ collapsed = false, className }: ChecklistMin
         const res = await fetch("/api/guidance/checklist")
         if (res.ok) {
           const data = await res.json()
-          const items = data.items || []
+          // Use the stats object returned by the API which correctly
+          // tracks completed items from the interactions table
+          const apiStats = data.stats || { total: 0, completed: 0, critical: 0, soon: 0 }
           setStats({
-            total: items.length,
-            completed: items.filter((i: any) => i.completedAt).length,
-            critical: items.filter((i: any) => i.urgency === "critical" && !i.completedAt).length,
-            soon: items.filter((i: any) => i.urgency === "soon" && !i.completedAt).length,
+            total: apiStats.total,
+            completed: apiStats.completed,
+            critical: apiStats.critical,
+            soon: apiStats.soon,
           })
         }
       } catch (error) {
