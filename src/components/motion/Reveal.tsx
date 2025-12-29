@@ -3,6 +3,15 @@
 import { motion, type MotionProps, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
+/**
+ * Reveal Component
+ *
+ * A scroll-triggered animation that fades and slides content into view.
+ * Respects user's reduced-motion preferences for accessibility.
+ *
+ * @see Design System Accessibility Guide: src/design-system/ACCESSIBILITY.md
+ */
+
 type RevealProps = MotionProps & {
   children: React.ReactNode
   className?: string

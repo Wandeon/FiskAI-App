@@ -3,6 +3,15 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
+/**
+ * Stagger Components
+ *
+ * Creates staggered entrance animations for lists and groups of elements.
+ * Respects user's reduced-motion preferences for accessibility.
+ *
+ * @see Design System Accessibility Guide: src/design-system/ACCESSIBILITY.md
+ */
+
 export function Stagger({
   children,
   className,

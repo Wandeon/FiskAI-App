@@ -6,10 +6,10 @@ A self-enforcing design system with tokenized colors, typography, spacing, and m
 
 ```tsx
 // Import types for type-safe props
-import type { ButtonVariant, StatusVariant } from '@/design-system';
+import type { ButtonVariant, StatusVariant } from "@/design-system"
 
 // Use semantic Tailwind classes
-<div className="bg-surface text-foreground border-border">
+;<div className="bg-surface text-foreground border-border">
   <h1 className="text-heading-xl">Title</h1>
   <p className="text-body-md text-secondary">Description</p>
   <Button variant="primary">Action</Button>
@@ -20,6 +20,7 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
 ## Available Classes
 
 ### Surfaces
+
 - `bg-base` - Page background
 - `bg-surface` - Cards (default)
 - `bg-surface-1` - Nested cards, hover states
@@ -27,6 +28,7 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
 - `bg-surface-elevated` - Modals
 
 ### Text
+
 - `text-foreground` - Primary text
 - `text-secondary` - Body text
 - `text-tertiary` - Captions
@@ -34,6 +36,7 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
 - `text-link` - Links
 
 ### Status
+
 - `bg-success-bg`, `text-success-text`, `border-success-border`
 - `bg-warning-bg`, `text-warning-text`, `border-warning-border`
 - `bg-danger-bg`, `text-danger-text`, `border-danger-border`
@@ -47,10 +50,12 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
 - Code: `text-code-lg`, `text-code-md`, `text-code-sm`
 
 ### Interactive
+
 - `bg-interactive`, `hover:bg-interactive-hover`
 - `border-border-focus`
 
 ### Charts
+
 - `text-chart-1` through `text-chart-8`
 
 ## Enforcement
@@ -77,3 +82,4 @@ Hardcoded colors are blocked by ESLint:
 - [Architecture](../../docs/plans/2025-12-27-design-system-architecture.md)
 - [Typography System](./TYPOGRAPHY.md) - Complete typography documentation
 - [Governance](./TOKENS.md)
+- [Accessibility](./ACCESSIBILITY.md) - Motion and animation accessibility guidelines

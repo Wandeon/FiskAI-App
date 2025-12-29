@@ -16,26 +16,26 @@
  */
 export const duration = {
   /** Instant - 0ms */
-  instant: '0ms',
+  instant: "0ms",
   /** Ultra fast - 50ms (micro-interactions) */
-  fastest: '50ms',
+  fastest: "50ms",
   /** Very fast - 100ms (hover states) */
-  faster: '100ms',
+  faster: "100ms",
   /** Fast - 150ms (quick feedback) */
-  fast: '150ms',
+  fast: "150ms",
   /** Normal - 200ms (standard transitions) */
-  normal: '200ms',
+  normal: "200ms",
   /** Slow - 300ms (state changes) */
-  slow: '300ms',
+  slow: "300ms",
   /** Slower - 400ms (complex transitions) */
-  slower: '400ms',
+  slower: "400ms",
   /** Slowest - 500ms (major transitions) */
-  slowest: '500ms',
+  slowest: "500ms",
   /** Extended - 700ms (elaborate animations) */
-  extended: '700ms',
+  extended: "700ms",
   /** Long - 1000ms (dramatic effects) */
-  long: '1000ms',
-} as const;
+  long: "1000ms",
+} as const
 
 /**
  * Easing functions
@@ -43,28 +43,28 @@ export const duration = {
  */
 export const easing = {
   /** Linear - constant speed */
-  linear: 'linear',
+  linear: "linear",
   /** Ease - default browser easing */
-  ease: 'ease',
+  ease: "ease",
   /** Ease in - slow start, fast end */
-  easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+  easeIn: "cubic-bezier(0.4, 0, 1, 1)",
   /** Ease out - fast start, slow end (most common) */
-  easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
+  easeOut: "cubic-bezier(0, 0, 0.2, 1)",
   /** Ease in-out - slow start and end */
-  easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
   /** Emphasized ease in - dramatic entrance */
-  emphasizedIn: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+  emphasizedIn: "cubic-bezier(0.05, 0.7, 0.1, 1)",
   /** Emphasized ease out - dramatic exit */
-  emphasizedOut: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
+  emphasizedOut: "cubic-bezier(0.3, 0, 0.8, 0.15)",
   /** Bounce - playful overshoot */
-  bounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  bounce: "cubic-bezier(0.34, 1.56, 0.64, 1)",
   /** Smooth - natural feeling */
-  smooth: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+  smooth: "cubic-bezier(0.25, 0.1, 0.25, 1)",
   /** Sharp - quick and precise */
-  sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+  sharp: "cubic-bezier(0.4, 0, 0.6, 1)",
   /** Spring - elastic feel */
-  spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-} as const;
+  spring: "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+} as const
 
 /**
  * Motion intent presets
@@ -75,67 +75,78 @@ export const motionIntent = {
   entrance: {
     duration: duration.normal,
     easing: easing.easeOut,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Exit animations - elements disappearing */
   exit: {
     duration: duration.fast,
     easing: easing.easeIn,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Feedback animations - user interaction response */
   feedback: {
     duration: duration.faster,
     easing: easing.easeOut,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Attention animations - drawing user focus */
   attention: {
     duration: duration.slow,
     easing: easing.easeInOut,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Loading animations - progress indicators */
   loading: {
     duration: duration.long,
     easing: easing.linear,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Hover state transitions */
   hover: {
     duration: duration.faster,
     easing: easing.easeOut,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Focus state transitions */
   focus: {
     duration: duration.fast,
     easing: easing.easeOut,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Expand/collapse transitions */
   expand: {
     duration: duration.slow,
     easing: easing.easeInOut,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Modal/dialog transitions */
   modal: {
     duration: duration.slow,
     easing: easing.emphasizedIn,
-    delay: '0ms',
+    delay: "0ms",
   },
   /** Toast notification transitions */
   toast: {
     duration: duration.normal,
     easing: easing.spring,
-    delay: '0ms',
+    delay: "0ms",
   },
-} as const;
+} as const
 
 /**
  * Reduced motion configuration
  * Values to use when user prefers reduced motion
+ *
+ * IMPORTANT: All motion components MUST respect reduced motion preferences.
+ *
+ * Implementation guidelines:
+ * 1. Use Framer Motion's useReducedMotion() hook in React components
+ * 2. Set animation props to false/undefined when reduced motion is enabled
+ * 3. Use CSS variables (--duration-*) for CSS-based animations
+ * 4. Test with prefers-reduced-motion: reduce in DevTools
+ *
+ * @see Design System Accessibility Guide: src/design-system/ACCESSIBILITY.md
+ * @see Example implementations: src/components/motion/Reveal.tsx, src/components/motion/Stagger.tsx
  */
 export const reducedMotion = {
   /** Use instant duration for all animations */
@@ -143,10 +154,10 @@ export const reducedMotion = {
   /** Use linear easing (no acceleration) */
   easing: easing.linear,
   /** CSS media query for reduced motion preference */
-  mediaQuery: '(prefers-reduced-motion: reduce)',
-  /** Alternative fast duration if animation is essential */
+  mediaQuery: "(prefers-reduced-motion: reduce)",
+  /** Alternative fast duration if animation is essential (e.g., loading indicators) */
   essentialDuration: duration.faster,
-} as const;
+} as const
 
 /**
  * CSS keyframe animation definitions
@@ -238,7 +249,7 @@ export const keyframes = {
       75% { transform: translateX(5px); }
     }
   `,
-} as const;
+} as const
 
 /**
  * Combined motion tokens
@@ -249,10 +260,10 @@ export const motion = {
   intent: motionIntent,
   reducedMotion,
   keyframes,
-} as const;
+} as const
 
-export type Duration = keyof typeof duration;
-export type Easing = keyof typeof easing;
-export type MotionIntent = keyof typeof motionIntent;
-export type Keyframe = keyof typeof keyframes;
-export type Motion = typeof motion;
+export type Duration = keyof typeof duration
+export type Easing = keyof typeof easing
+export type MotionIntent = keyof typeof motionIntent
+export type Keyframe = keyof typeof keyframes
+export type Motion = typeof motion
