@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react"
 
 type Invoice = {
   id: string
@@ -16,9 +17,12 @@ type Invoice = {
 type SortField = "invoiceNumber" | "buyer" | "dueDate" | "totalAmount" | "daysOverdue"
 type SortDirection = "asc" | "desc"
 
+const PAGE_SIZE = 25
+
 export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
   const [sortField, setSortField] = useState<SortField>("dueDate")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [currentPage, setCurrentPage] = useState(1)
 
   const now = new Date()
 
@@ -72,6 +76,13 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
     return sorted
   }, [invoices, sortField, sortDirection])
 
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedInvoices.length / PAGE_SIZE)
+  const startIndex = (currentPage - 1) * PAGE_SIZE
+  const endIndex = startIndex + PAGE_SIZE
+  const paginatedInvoices = sortedInvoices.slice(startIndex, endIndex)
+
+  // Reset to first page when sorting changes
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
@@ -79,6 +90,11 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
       setSortField(field)
       setSortDirection("asc")
     }
+    setCurrentPage(1)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -98,7 +114,8 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
         <CardTitle className="text-base flex items-center justify-between">
           <span>Detalji neplaćenih računa</span>
           <span className="text-sm font-normal text-secondary">
-            Prikazano {sortedInvoices.length} računa
+            Prikazano {startIndex + 1}-{Math.min(endIndex, sortedInvoices.length)} od{" "}
+            {sortedInvoices.length} računa
           </span>
         </CardTitle>
       </CardHeader>
@@ -145,7 +162,7 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
               </tr>
             </thead>
             <tbody>
-              {sortedInvoices.map((inv) => {
+              {paginatedInvoices.map((inv) => {
                 const daysOverdue = getDaysOverdue(inv.dueDate)
                 return (
                   <tr key={inv.id} className="border-b hover:bg-surface-1">
@@ -175,6 +192,35 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 border-t mt-4">
+            <div className="text-sm text-secondary">
+              Stranica {currentPage} od {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prethodna
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Sljedeća
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
