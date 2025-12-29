@@ -28,3 +28,6 @@ export { publishArticle, generateSlug } from "./steps/publish"
 
 // Orchestrator
 export { runArticleJob, createArticleJob } from "./orchestrator"
+
+// Queue helpers (for background processing)
+export { enqueueArticleJob, enqueueExistingArticleJob } from "./queue"
