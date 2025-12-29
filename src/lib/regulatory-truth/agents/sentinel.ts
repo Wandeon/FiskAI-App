@@ -610,7 +610,7 @@ async function processEndpoint(
       // Get allowed NN types from metadata (if this is an NN endpoint)
       const allowedNNTypes =
         endpoint.domain === "narodne-novine.nn.hr"
-          ? (endpoint.metadata as { types?: number[] })?.types || [1, 2]
+          ? (endpoint.metadata as { types?: number[] })?.types || [1, 2, 3]
           : undefined
 
       // Check if this is a sitemap index that needs recursive scanning

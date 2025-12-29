@@ -26,7 +26,7 @@ const endpoints = [
     scrapeFrequency: "EVERY_RUN" as const,
     listingStrategy: "SITEMAP_XML" as const,
     urlPattern: "sitemap_\\d_\\d{4}_\\d+\\.xml",
-    metadata: { types: [1, 2], skipType3: true },
+    metadata: { types: [1, 2, 3] }, // Include Type 3 (Oglasni) - may contain relevant business content
   },
   {
     domain: "hzzo.hr",

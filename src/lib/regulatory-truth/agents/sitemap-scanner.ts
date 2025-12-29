@@ -32,7 +32,7 @@ export interface SitemapScanResult {
 const DEFAULT_OPTIONS: Required<SitemapScanOptions> = {
   maxDepth: 3,
   currentDepth: 0,
-  types: [1, 2], // NN: Službeni and Međunarodni only
+  types: [1, 2, 3], // NN: Include all types (Službeni, Međunarodni, Oglasni)
   deduplicateUrls: true,
   batchSize: 100,
   delayMs: 1000,

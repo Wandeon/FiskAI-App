@@ -18,7 +18,7 @@ const SITEMAP_ENTRYPOINTS = [
     domain: "narodne-novine.nn.hr",
     url: "https://narodne-novine.nn.hr/sitemap-index.xml",
     name: "Narodne Novine Sitemap",
-    types: [1, 2], // Službeni and Međunarodni only
+    types: [1, 2, 3], // Include all types (Službeni, Međunarodni, Oglasni)
   },
   {
     domain: "porezna-uprava.gov.hr",

@@ -68,11 +68,12 @@ export function parseNNSitemapFilename(filename: string): NNSitemapMeta | null {
 
 /**
  * Filter NN sitemaps to only include relevant types.
- * By default, includes Službeni (1) and Međunarodni (2), excludes Oglasni (3).
+ * By default, includes all types: Službeni (1), Međunarodni (2), and Oglasni (3).
+ * Type 3 (Oglasni) may contain relevant business content like tenders, court notices, and bankruptcy announcements.
  */
 export function filterNNSitemaps(
   entries: SitemapEntry[],
-  allowedTypes: number[] = [1, 2]
+  allowedTypes: number[] = [1, 2, 3]
 ): SitemapEntry[] {
   return entries.filter((entry) => {
     const filename = entry.url.split("/").pop() || ""
