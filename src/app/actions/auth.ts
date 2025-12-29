@@ -144,6 +144,8 @@ export async function login(formData: z.infer<typeof loginSchema>) {
   }
 
   // Check if user has multiple roles and redirect accordingly
+  // STAFF and ADMIN see role selection page (can access multiple portals)
+  // Regular users go directly to their dashboard (only one portal access)
   const { hasMultipleRoles } = await import("@/lib/auth/system-role")
   const systemRole = user.systemRole || "USER"
 
@@ -287,6 +289,8 @@ export async function loginWithPasskey(userId: string) {
     })
 
     // Check if user has multiple roles and return the redirect path
+    // STAFF and ADMIN see role selection page (can access multiple portals)
+    // Regular users go directly to their dashboard (only one portal access)
     const { hasMultipleRoles } = await import("@/lib/auth/system-role")
     const systemRole = user.systemRole || "USER"
 
