@@ -53,6 +53,8 @@ export default async function DashboardPage() {
     revenueTrendRaw,
     statusBuckets,
     ytdRevenue,
+    expenseCount,
+    lastBankImport,
   ] = await Promise.all([
     db.eInvoice.count({ where: { companyId: company.id } }),
     db.contact.count({ where: { companyId: company.id } }),
@@ -107,6 +109,14 @@ export default async function DashboardPage() {
       },
       _sum: { totalAmount: true },
     }),
+    db.expense.count({ where: { companyId: company.id } }),
+    db.bankImport
+      .findFirst({
+        where: { companyId: company.id },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      })
+      .then((result) => result?.createdAt),
   ])
 
   const totalRevenueValue = Number(totalRevenue._sum.totalAmount || new Decimal(0))
@@ -126,6 +136,10 @@ export default async function DashboardPage() {
     invoiceCount: eInvoiceCount,
     yearlyRevenue: Number(ytdRevenue._sum.totalAmount || 0),
     hasFiscalCert: !!company.fiscalEnabled,
+    legalForm: company.legalForm,
+    expenseCount,
+    contactCount,
+    lastBankImport: lastBankImport || undefined,
   })
 
   // Get compliance status for fiscalization-enabled companies
