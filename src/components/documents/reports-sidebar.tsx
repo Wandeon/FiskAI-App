@@ -35,6 +35,18 @@ const REPORTS = [
     description: "Dospjeli računi",
     icon: Clock,
   },
+  {
+    href: "/reports/expenses",
+    title: "Troškovi po kategoriji",
+    description: "Analiza rashoda",
+    icon: BarChart3,
+  },
+  {
+    href: "/reports/revenue",
+    title: "Prihodi po kupcu",
+    description: "Analiza prihoda",
+    icon: Users,
+  },
   { href: "/reports/kpr", title: "KPR / PO-SD", description: "Plaćeni računi", icon: BookOpen },
   {
     href: "/reports/export",
