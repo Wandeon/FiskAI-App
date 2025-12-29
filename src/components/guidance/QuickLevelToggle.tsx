@@ -71,7 +71,7 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
   const CurrentIcon = levelIcons[currentLevel]
   const levels = Object.values(COMPETENCE_LEVELS) as CompetenceLevel[]
 
-  // Listen for keyboard shortcut (Cmd+G) to cycle levels
+  // Listen for keyboard shortcut (Cmd+G / Ctrl+G) to cycle levels
   useEffect(() => {
     const handleToggle = () => {
       const currentIndex = levels.indexOf(currentLevel)
@@ -79,8 +79,19 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
       handleSetLevel(levels[nextIndex])
     }
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "g") {
+        e.preventDefault()
+        handleToggle()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
     window.addEventListener("toggle-guidance-level", handleToggle)
-    return () => window.removeEventListener("toggle-guidance-level", handleToggle)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("toggle-guidance-level", handleToggle)
+    }
   }, [currentLevel, levels])
 
   if (variant === "buttons") {
