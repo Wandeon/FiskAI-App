@@ -128,13 +128,32 @@ RAG is a tool. Knowledge graphs are structure. **Governance is the moat.**
 **Purpose:** Scan Croatian regulatory endpoints for new or changed content.
 
 **Execution:**
-- **Trigger:** Cron schedule (06:00 Europe/Zagreb)
-- **Operator:** Scheduler service
+- **Triggers:**
+  - Cron schedule (06:00 Europe/Zagreb) - Polling
+  - Webhooks/Push notifications - Real-time (NEW)
+  - Adaptive re-scanning - Based on change velocity
+  - Manual trigger - Via `runManually()`
+- **Operator:** Scheduler service, Webhook receiver
 - **Idempotency:** Same input produces same output
 
 **Components:**
 - **Scheduler Service** (`workers/scheduler.service.ts`) - Cron-based job scheduling
 - **Sentinel Agent** (`agents/sentinel.ts`) - Scans discovery endpoints
+- **Webhook Receiver** (`api/webhooks/regulatory-truth/route.ts`) - Receives push notifications (NEW)
+- **Webhook Processor** (`webhooks/processor.ts`) - Processes webhook events (NEW)
+
+**Discovery Methods:**
+
+1. **Scheduled Polling** (Traditional)
+   - Daily cron jobs
+   - Adaptive re-scanning based on change velocity
+   - Manual triggers
+
+2. **Webhooks & Push Notifications** (NEW)
+   - RSS/Atom feed subscriptions
+   - Email alerts (forwarded)
+   - HTTP webhooks from sources
+   - Real-time discovery with <1 minute latency
 
 **Data Flow:**
 ```
@@ -143,6 +162,8 @@ Scheduler → Sentinel → Evidence Records
         PDF_SCANNED → OCR Queue
         PDF_TEXT    → Extract Queue
         HTML        → Extract Queue
+
+Webhook → Processor → Evidence Records (same queue routing)
 ```
 
 ### Layer B: 24/7 Processing
@@ -908,12 +929,63 @@ All jobs run in Europe/Zagreb timezone:
 | WARNING  | Email digest only      | High unlinked pointers             |
 | INFO     | Logged only            | Normal operations                  |
 
+### Webhook Management
+
+**View webhook subscriptions:**
+
+```bash
+# List all active subscriptions
+npx tsx -e "
+import { db } from './src/lib/db'
+const subs = await db.webhookSubscription.findMany({
+  where: { isActive: true },
+  include: { source: true }
+})
+console.table(subs)
+"
+```
+
+**Check webhook events:**
+
+```bash
+# View recent webhook events
+npx tsx -e "
+import { db } from './src/lib/db'
+const events = await db.webhookEvent.findMany({
+  where: { status: 'PENDING' },
+  take: 10,
+  orderBy: { receivedAt: 'desc' }
+})
+console.table(events)
+"
+```
+
+**Process pending webhook events:**
+
+```bash
+# Manually process a webhook event
+npx tsx -e "
+import { processWebhookEvent } from './src/lib/regulatory-truth/webhooks/processor'
+await processWebhookEvent('<event-id>')
+"
+```
+
+**Test webhook endpoint:**
+
+```bash
+# Send test webhook
+curl -X POST 'https://fiskai.hr/api/webhooks/regulatory-truth?provider=test' \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.hr/test.pdf", "title": "Test"}'
+```
+
 ---
 
 ## Related Documentation
 
 - [Pipeline Details](../05_REGULATORY/PIPELINE.md)
 - [Monitoring & Alerting](../05_REGULATORY/monitoring-alerting.md)
+- [Webhook Setup Guide](../05_REGULATORY/WEBHOOK_SETUP.md) (NEW)
 - [Trust Guarantees](./trust-guarantees.md)
 - [Two-Layer Model](./two-layer-model.md)
 - [System Invariants](../_meta/invariants.md)

@@ -1918,8 +1918,9 @@ model RegulatorySource {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  evidence         Evidence[]
-  monitoringAlerts MonitoringAlert[]
+  evidence             Evidence[]
+  monitoringAlerts     MonitoringAlert[]
+  webhookSubscriptions WebhookSubscription[]
 
   @@index([isActive])
   @@index([lastFetchedAt])
@@ -3370,4 +3371,93 @@ model ExperimentEvent {
   @@index([eventType])
   @@index([eventName])
   @@index([timestamp])
+}
+
+// ============================================================================
+// WEBHOOK & PUSH NOTIFICATION INFRASTRUCTURE
+// ============================================================================
+
+// Webhook subscriptions for regulatory sources
+model WebhookSubscription {
+  id          String   @id @default(cuid())
+  sourceId    String? // Link to RegulatorySource if applicable
+  provider    String // e.g., "narodne-novine", "porezna-uprava", "fina", "custom"
+  webhookType String // RSS_FEED, EMAIL_ALERT, HTTP_WEBHOOK, API_POLLING
+  endpointUrl String? // External URL we're subscribed to
+
+  // Configuration
+  isActive       Boolean  @default(true)
+  config         Json? // Provider-specific configuration (API keys, filters, etc.)
+  filterPatterns String[] // URL patterns to filter incoming notifications
+
+  // Webhook security
+  secretKey      String? // HMAC secret for signature verification
+  authToken      String? // Bearer token or API key
+  verifySSL      Boolean  @default(true)
+
+  // Metadata
+  lastTriggeredAt DateTime?
+  lastSuccessAt   DateTime?
+  lastError       String?
+  triggerCount    Int       @default(0)
+  errorCount      Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  source RegulatorySource? @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  events WebhookEvent[]
+
+  @@index([provider])
+  @@index([webhookType])
+  @@index([isActive])
+  @@index([lastTriggeredAt])
+}
+
+// Webhook event log for received notifications
+model WebhookEvent {
+  id             String   @id @default(cuid())
+  subscriptionId String
+
+  // Event details
+  eventType     String // RSS_ITEM, EMAIL_NOTIFICATION, HTTP_POST, API_RESPONSE
+  sourceUrl     String? // Original URL from notification
+  contentUrl    String? // URL to fetch content from
+  title         String?
+  publishedAt   DateTime?
+
+  // Raw payload
+  rawPayload String @db.Text // Full payload for debugging
+  headers    Json? // HTTP headers
+
+  // Processing status
+  status       WebhookEventStatus @default(PENDING)
+  processedAt  DateTime?
+  errorMessage String?
+  retryCount   Int                @default(0)
+
+  // Evidence created
+  evidenceId String? // Link to Evidence if created
+
+  // Metadata
+  receivedAt DateTime @default(now())
+
+  // Relations
+  subscription WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([receivedAt])
+  @@index([eventType])
+  @@index([evidenceId])
+}
+
+enum WebhookEventStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  DUPLICATE
+  FILTERED
 }
