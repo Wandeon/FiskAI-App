@@ -228,11 +228,17 @@ class DomainRateLimiter {
     return { ...this.config }
   }
 
+  /**
+   * Manually reset circuit breaker for a domain.
+   * This clears the circuit breaker state and allows requests to proceed immediately.
+   * Should be used by administrators after resolving transient issues.
+   */
   resetCircuitBreaker(domain: string): void {
     const stats = this.getStats(domain)
     stats.isCircuitBroken = false
     stats.consecutiveErrors = 0
-    console.log(`[rate-limiter] Circuit breaker RESET for ${domain}`)
+    stats.circuitBrokenAt = undefined
+    console.log(`[rate-limiter] Circuit breaker MANUALLY RESET for ${domain}`)
   }
 
   getStatus(domain: string): { isCircuitBroken: boolean; consecutiveErrors: number } {
