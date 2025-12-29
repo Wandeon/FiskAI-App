@@ -22,7 +22,7 @@ export function NewsletterSignup() {
     }
 
     startTransition(async () => {
-      const result = await subscribeToNewsletter(email)
+      const result = await subscribeToNewsletter(email, "vijesti_sidebar")
 
       if (result.success) {
         setIsSubmitted(true)
