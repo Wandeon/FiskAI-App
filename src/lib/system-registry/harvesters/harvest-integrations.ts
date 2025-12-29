@@ -23,6 +23,8 @@ import {
   INTEGRATION_PATTERNS,
   INTEGRATION_ENV_SUFFIXES,
   INTEGRATION_FILE_PATTERNS,
+  INTERNAL_ENV_PREFIXES,
+  INTERNAL_LIB_DIRECTORIES,
 } from "../governance"
 
 interface IntegrationInfo {
@@ -84,12 +86,16 @@ export async function harvestIntegrations(projectRoot: string): Promise<Harveste
   const scannedPaths: string[] = []
 
   // Build known integration lookup
-  const knownPatterns = new Map<string, { displayName: string; envPrefix?: string; packageName?: string }>()
+  const knownPatterns = new Map<
+    string,
+    { displayName: string; envPrefix?: string; packageName?: string; directoryAliases?: string[] }
+  >()
   for (const pattern of INTEGRATION_PATTERNS) {
     knownPatterns.set(pattern.key, {
       displayName: pattern.displayName,
       envPrefix: pattern.envPrefix,
       packageName: pattern.packageName,
+      directoryAliases: pattern.directoryAliases,
     })
   }
 
@@ -109,8 +115,17 @@ export async function harvestIntegrations(projectRoot: string): Promise<Harveste
       // Check if it matches a known integration
       let matched = false
       for (const [key, info] of knownPatterns.entries()) {
-        // Exact match or contains (but avoid false positives)
-        if (lowerName === key || (lowerName.includes(key) && lowerName.length <= key.length + 5)) {
+        // Check key match
+        const keyMatch =
+          lowerName === key || (lowerName.includes(key) && lowerName.length <= key.length + 5)
+        // Check directory aliases
+        const aliasMatch = info.directoryAliases?.some(
+          (alias) =>
+            lowerName === alias ||
+            (lowerName.includes(alias) && lowerName.length <= alias.length + 5)
+        )
+
+        if (keyMatch || aliasMatch) {
           if (!seen.has(key)) {
             seen.add(key)
             integrations.push({
@@ -125,7 +140,9 @@ export async function harvestIntegrations(projectRoot: string): Promise<Harveste
       }
 
       // If not matched but looks like an integration, flag as unknown
-      if (!matched && looksLikeIntegration(dirPath)) {
+      // Skip internal library directories that aren't external integrations
+      const isInternalLib = INTERNAL_LIB_DIRECTORIES.includes(lowerName)
+      if (!matched && !isInternalLib && looksLikeIntegration(dirPath)) {
         const unknownKey = `unknown-${entry.name}`
         if (!seen.has(unknownKey)) {
           seen.add(unknownKey)
@@ -153,9 +170,7 @@ export async function harvestIntegrations(projectRoot: string): Promise<Harveste
       for (const [key, info] of knownPatterns.entries()) {
         if (info.envPrefix && !seen.has(key)) {
           const hasEnvVar = lines.some(
-            (line) =>
-              line.startsWith(info.envPrefix!) &&
-              !line.startsWith("#")
+            (line) => line.startsWith(info.envPrefix!) && !line.startsWith("#")
           )
           if (hasEnvVar) {
             seen.add(key)
@@ -176,6 +191,11 @@ export async function harvestIntegrations(projectRoot: string): Promise<Harveste
         const prefix = extractEnvPrefix(line)
         if (!prefix) continue
 
+        // Skip internal framework/platform env prefixes
+        const envKey = line.split("=")[0]
+        const isInternalPrefix = INTERNAL_ENV_PREFIXES.some((p) => envKey.startsWith(p))
+        if (isInternalPrefix) continue
+
         // Check if this prefix matches any known integration
         const isKnown = INTEGRATION_PATTERNS.some(
           (p) => p.envPrefix && line.startsWith(p.envPrefix)
@@ -188,7 +208,7 @@ export async function harvestIntegrations(projectRoot: string): Promise<Harveste
             integrations.push({
               name: unknownKey,
               displayName: `Unknown (env: ${prefix}_*)`,
-              path: `.env.example (${line.split("=")[0]})`,
+              path: `.env.example (${envKey})`,
               discoveryMethod: "env-usage",
               isUnknown: true,
             })

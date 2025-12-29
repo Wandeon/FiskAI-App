@@ -39,6 +39,8 @@ export interface IntegrationPattern {
   envPrefix?: string
   /** npm package name to detect */
   packageName?: string
+  /** Directory name(s) to detect in src/lib/ (if different from key) */
+  directoryAliases?: string[]
   /** Why this pattern exists */
   reason: string
 }
@@ -231,7 +233,7 @@ export function validateGovernance(): GovernanceViolation[] {
   // Check LIB_EXCLUSIONS
   for (const exclusion of LIB_EXCLUSIONS) {
     // Permanent exclusions don't need issueLink/expiresAt
-    if (PERMANENT_EXCLUSIONS.includes(exclusion.name as typeof PERMANENT_EXCLUSIONS[number])) {
+    if (PERMANENT_EXCLUSIONS.includes(exclusion.name as (typeof PERMANENT_EXCLUSIONS)[number])) {
       continue
     }
 
@@ -401,9 +403,10 @@ export const INTEGRATION_PATTERNS: IntegrationPattern[] = [
   // Croatian government
   {
     key: "fina-cis",
-    displayName: "FINA CIS",
+    displayName: "FINA CIS Fiscalization",
     envPrefix: "FINA_",
-    reason: "Croatian e-invoice system",
+    directoryAliases: ["fiscal", "porezna"],
+    reason: "Croatian Tax Authority fiscalization (Porezna uprava)",
   },
 
   // Security
@@ -429,6 +432,22 @@ export const INTEGRATION_PATTERNS: IntegrationPattern[] = [
     packageName: "@sentry/nextjs",
     reason: "Error monitoring",
   },
+
+  // Authentication
+  {
+    key: "microsoft-entra",
+    displayName: "Microsoft Entra ID (Azure AD)",
+    envPrefix: "MICROSOFT_",
+    reason: "Enterprise SSO authentication provider",
+  },
+
+  // E-invoicing
+  {
+    key: "einvoice",
+    displayName: "E-Invoice Service",
+    envPrefix: "EINVOICE_",
+    reason: "Croatian e-invoicing (eRačun) integration",
+  },
 ]
 
 /**
@@ -444,6 +463,31 @@ export const INTEGRATION_ENV_SUFFIXES = [
   "_WEBHOOK_SECRET",
   "_CLIENT_ID",
   "_CLIENT_SECRET",
+]
+
+/**
+ * Environment variable prefixes that are internal framework/platform config.
+ * These should NOT be flagged as unknown integrations.
+ */
+export const INTERNAL_ENV_PREFIXES = [
+  "NEXTAUTH_", // Auth.js framework config
+  "NEXT_PUBLIC_", // Next.js public vars
+  "DATABASE_", // Database connection
+  "CRON_", // Internal cron security
+  "NODE_", // Node.js config
+  "CI_", // CI/CD config
+  "COOLIFY_", // Deployment platform
+]
+
+/**
+ * Directory names in src/lib/ that are internal libraries, not external integrations.
+ * These should NOT be flagged as unknown integrations even if they have client.ts etc.
+ */
+export const INTERNAL_LIB_DIRECTORIES = [
+  "assistant", // Internal AI assistant engine
+  "utils", // Internal utilities
+  "shared", // Shared internal code
+  "hooks", // React hooks
 ]
 
 /**
@@ -527,6 +571,7 @@ export const ALLOWED_OWNERS = [
   "team:platform",
   "team:backend",
   "team:rtl",
+  "team:ai",
   "team:finance",
   "team:billing",
   "team:security",
