@@ -20,6 +20,7 @@ import {
   type ClassificationResult,
   type ArticleContent,
 } from "@/lib/news/pipeline"
+import { generateUniqueSlug } from "@/lib/news/slug"
 import { eq, and, gte, sql } from "drizzle-orm"
 import Parser from "rss-parser"
 import { enqueueArticleJob } from "@/lib/article-agent/queue"
@@ -84,20 +85,6 @@ function extractImageFromRSS(item: any): { url?: string; source?: string } {
   }
 }
 
-/**
- * Generate slug from title
- */
-function generateSlug(title: string): string {
-  const base = title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-
-  const timestamp = Date.now().toString().slice(-6)
-  return `${base.substring(0, 60)}-${timestamp}`
-}
 
 /**
  * Main handler
@@ -192,8 +179,8 @@ export async function GET(request: NextRequest) {
 
             const article = await writeArticle(item, "high")
 
-            // Create news_posts record
-            const slug = generateSlug(article.title)
+            // Create news_posts record with unique slug
+            const slug = await generateUniqueSlug(article.title)
 
             const [post] = await drizzleDb
               .insert(newsPosts)
