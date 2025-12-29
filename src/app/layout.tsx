@@ -76,7 +76,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "hr_HR",
-    alternateLocale: "en_US",
+    // Note: English locale removed until English routes are implemented (Issue #185)
+    // alternateLocale: "en_US",
     url: BASE_URL,
     siteName: "FiskAI",
     title: "FiskAI - AI-powered E-fakturiranje i Fiskalizacija",
@@ -114,9 +115,11 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: BASE_URL,
+    // Note: English language alternates removed until English routes are implemented (Issue #185)
+    // The route registry and sitemap include English paths, but no /en/* pages exist yet
     languages: {
       "hr-HR": BASE_URL,
-      "en-US": `${BASE_URL}/en`,
+      // "en-US": `${BASE_URL}/en`, // Disabled - no English routes implemented
       "x-default": BASE_URL,
     },
     types: {

@@ -9,6 +9,16 @@
  * - Type-safe RouteId prevents typos
  * - Explicit sitemap inclusion/exclusion
  * - SEO metadata (priority, changeFreq)
+ *
+ * IMPORTANT: English routes are defined here for future i18n implementation,
+ * but are NOT currently implemented. Only Croatian (hr) routes exist.
+ * See Issue #185 for tracking English route implementation.
+ *
+ * Status:
+ * - Croatian (hr) routes: ✅ Implemented and working
+ * - English (en) routes: ❌ Not implemented (registry only)
+ * - Sitemap: English alternates disabled (see sitemap.ts comments)
+ * - Layout metadata: English language alternates removed (see layout.tsx)
  */
 
 // =============================================================================
