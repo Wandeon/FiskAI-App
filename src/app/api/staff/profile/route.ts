@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+
+const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be at most 100 characters")
+    .trim()
+    .regex(
+      /^[\p{L}\p{M}\s'-]+$/u,
+      "Name can only contain letters, spaces, hyphens, and apostrophes"
+    ),
+})
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -15,11 +28,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name } = body
+    const validation = updateProfileSchema.safeParse(body)
 
-    if (!name || typeof name !== "string") {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 })
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors[0].message },
+        { status: 400 }
+      )
     }
+
+    const { name } = validation.data
 
     // Update user profile
     const updatedUser = await db.user.update({
