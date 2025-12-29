@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/lib/toast"
 import { createInvoice } from "@/app/actions/invoice"
 import { InvoiceType } from "@prisma/client"
+import { useFormShortcuts } from "@/hooks/use-keyboard-shortcuts"
 
 interface InvoiceFormProps {
   type: string
@@ -34,6 +35,7 @@ interface LineItem {
 
 export function InvoiceForm({ type, contacts, products, isPausalni = false }: InvoiceFormProps) {
   const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [buyerId, setBuyerId] = useState("")
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0])
@@ -44,6 +46,17 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
   const [lines, setLines] = useState<LineItem[]>([
     { description: "", quantity: 1, unit: "C62", unitPrice: 0, vatRate: defaultVatRate },
   ])
+
+  // Keyboard shortcuts: Ctrl+S to save, Escape to cancel
+  useFormShortcuts({
+    onSave: () => {
+      if (!isLoading) {
+        formRef.current?.requestSubmit()
+      }
+    },
+    onCancel: () => router.push("/invoices"),
+    enabled: !isLoading,
+  })
 
   function addLine() {
     setLines([
@@ -139,7 +152,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
     new Intl.NumberFormat("hr-HR", { style: "currency", currency: "EUR" }).format(amount)
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Osnovni podaci</CardTitle>

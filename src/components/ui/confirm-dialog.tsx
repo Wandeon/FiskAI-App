@@ -5,6 +5,7 @@ import { AlertTriangle, Info, CheckCircle2, Loader2 } from "lucide-react"
 import { Modal, ModalFooter } from "./modal"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
+import { useModalShortcuts } from "@/hooks/use-keyboard-shortcuts"
 
 type Variant = "danger" | "warning" | "info" | "success"
 
@@ -62,6 +63,13 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const config = variantConfig[variant]
   const Icon = config.icon
+
+  // Keyboard shortcuts: Escape to close, Ctrl+Enter to confirm
+  useModalShortcuts({
+    isOpen,
+    onClose,
+    onConfirm: loading ? undefined : onConfirm,
+  })
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} showClose={false} size="sm">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Camera, Sparkles, Loader2, Paperclip, X } from "lucide-react"
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "@/lib/toast"
 import { createExpense } from "@/app/actions/expense"
 import { ReceiptScanner } from "@/components/expense/receipt-scanner"
+import { useFormShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import type { ExpenseCategory } from "@prisma/client"
 import type { ExtractedReceipt, CategorySuggestion } from "@/lib/ai/types"
 
@@ -26,8 +27,26 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
   const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
+
+  // Keyboard shortcuts: Ctrl+S to save, Escape to cancel
+  useFormShortcuts({
+    onSave: () => {
+      if (!isLoading && !showScanner) {
+        formRef.current?.requestSubmit()
+      }
+    },
+    onCancel: () => {
+      if (showScanner) {
+        setShowScanner(false)
+      } else {
+        router.push("/expenses")
+      }
+    },
+    enabled: !isLoading,
+  })
   const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [categoryId, setCategoryId] = useState("")
@@ -179,7 +198,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-end items-center gap-4">
         {receiptUrl && (
           <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-md">
