@@ -29,6 +29,7 @@ export function StaffClientProvider({ children }: { children: ReactNode }) {
     if (response.ok) {
       const client = await response.json()
       setCurrentClient(client)
+      // Navigate to the client context overview page within the staff portal
       router.push(`/clients/${clientId}`)
     }
   }, [router])
