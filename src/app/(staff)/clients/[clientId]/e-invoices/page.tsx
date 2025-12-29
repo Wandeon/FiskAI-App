@@ -6,11 +6,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { DataTable, Column } from "@/components/ui/data-table"
-import { FileText, Download, Eye } from "lucide-react"
+import { FileText, Download, Eye, Check, Filter } from "lucide-react"
 import Link from "next/link"
+import { ReviewToggle } from "@/components/staff/review-toggle"
+import { StaffReviewEntity } from "@prisma/client"
 
 interface PageProps {
   params: Promise<{ clientId: string }>
+  searchParams: Promise<{ filter?: string }>
 }
 
 const statusLabels: Record<string, string> = {
@@ -51,10 +54,14 @@ type InvoiceItem = {
     name: string
     oib: string | null
   } | null
+  isReviewed: boolean
+  reviewerName?: string | null
+  reviewedAt?: Date | null
 }
 
-async function getClientInvoices(companyId: string) {
-  return db.eInvoice.findMany({
+async function getClientInvoices(companyId: string, filter?: string) {
+  // Get all invoices
+  const invoices = await db.eInvoice.findMany({
     where: { companyId },
     orderBy: { createdAt: "desc" },
     select: {
@@ -75,24 +82,68 @@ async function getClientInvoices(companyId: string) {
       },
     },
   })
+
+  // Get all reviews for these invoices
+  const invoiceIds = invoices.map((i) => i.id)
+  const reviews = await db.staffReview.findMany({
+    where: {
+      companyId,
+      entityType: "EINVOICE",
+      entityId: { in: invoiceIds },
+    },
+    include: {
+      reviewer: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  })
+
+  // Create a map for quick lookup
+  const reviewMap = new Map(reviews.map((r) => [r.entityId, r]))
+
+  // Merge invoices with review status
+  const invoicesWithReview = invoices.map((invoice) => {
+    const review = reviewMap.get(invoice.id)
+    return {
+      ...invoice,
+      isReviewed: !!review,
+      reviewerName: review?.reviewer.name,
+      reviewedAt: review?.reviewedAt,
+    }
+  })
+
+  // Apply filter
+  if (filter === "pending") {
+    return invoicesWithReview.filter((i) => !i.isReviewed)
+  } else if (filter === "reviewed") {
+    return invoicesWithReview.filter((i) => i.isReviewed)
+  }
+
+  return invoicesWithReview
 }
 
-export default async function ClientEInvoicesPage({ params }: PageProps) {
+export default async function ClientEInvoicesPage({ params, searchParams }: PageProps) {
   const { clientId } = await params
+  const { filter } = await searchParams
   const session = await auth()
 
   if (!session?.user) {
     redirect("/login")
   }
 
-  const invoices = await getClientInvoices(clientId)
+  const invoices = await getClientInvoices(clientId, filter)
 
-  // Calculate stats
+  // Calculate stats (need all invoices for accurate counts)
+  const allInvoices = filter ? await getClientInvoices(clientId) : invoices
   const stats = {
-    total: invoices.length,
-    drafts: invoices.filter((i) => i.status === "DRAFT").length,
-    sent: invoices.filter((i) => ["SENT", "DELIVERED", "ACCEPTED"].includes(i.status)).length,
-    totalAmount: invoices.reduce((sum, i) => sum + Number(i.totalAmount), 0),
+    total: allInvoices.length,
+    drafts: allInvoices.filter((i) => i.status === "DRAFT").length,
+    sent: allInvoices.filter((i) => ["SENT", "DELIVERED", "ACCEPTED"].includes(i.status)).length,
+    totalAmount: allInvoices.reduce((sum, i) => sum + Number(i.totalAmount), 0),
+    reviewed: allInvoices.filter((i) => i.isReviewed).length,
+    pending: allInvoices.filter((i) => !i.isReviewed).length,
   }
 
   const columns: Column<InvoiceItem>[] = [
@@ -163,6 +214,21 @@ export default async function ClientEInvoicesPage({ params }: PageProps) {
       ),
     },
     {
+      key: "reviewed",
+      header: "Pregled",
+      className: "text-center",
+      cell: (invoice) => (
+        <ReviewToggle
+          clientId={clientId}
+          entityType="EINVOICE"
+          entityId={invoice.id}
+          isReviewed={invoice.isReviewed}
+          reviewerName={invoice.reviewerName}
+          reviewedAt={invoice.reviewedAt}
+        />
+      ),
+    },
+    {
       key: "actions",
       header: "",
       className: "text-right",
@@ -181,7 +247,7 @@ export default async function ClientEInvoicesPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Invoices</p>
@@ -200,13 +266,38 @@ export default async function ClientEInvoicesPage({ params }: PageProps) {
             <p className="text-2xl font-bold">{stats.sent}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total Amount</p>
-            <p className="text-2xl font-bold">{stats.totalAmount.toFixed(2)} EUR</p>
-          </CardContent>
-        </Card>
+        <Link href={`/clients/${clientId}/e-invoices?filter=pending`}>
+          <Card className={`cursor-pointer transition-colors hover:bg-accent/50 ${filter === "pending" ? "border-orange-500 bg-orange-50" : ""}`}>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Za pregledati</p>
+              <p className="text-2xl font-bold text-orange-600">{stats.pending}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href={`/clients/${clientId}/e-invoices?filter=reviewed`}>
+          <Card className={`cursor-pointer transition-colors hover:bg-accent/50 ${filter === "reviewed" ? "border-green-500 bg-green-50" : ""}`}>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Pregledano</p>
+              <p className="text-2xl font-bold text-green-600">{stats.reviewed}</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
+
+      {/* Filter indicator */}
+      {filter && (
+        <div className="flex items-center gap-2">
+          <Badge variant={filter === "pending" ? "destructive" : "default"} className="gap-1">
+            <Filter className="h-3 w-3" />
+            {filter === "pending" ? "Za pregledati" : "Pregledano"}
+          </Badge>
+          <Link href={`/clients/${clientId}/e-invoices`}>
+            <Button variant="ghost" size="sm">
+              Ocisti filter
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Invoice List */}
       <Card>
@@ -215,8 +306,8 @@ export default async function ClientEInvoicesPage({ params }: PageProps) {
             <div className="py-12">
               <EmptyState
                 icon={<FileText className="h-8 w-8" />}
-                title="No invoices yet"
-                description="This client has not created any e-invoices yet."
+                title={filter === "pending" ? "Sve pregledano!" : filter === "reviewed" ? "Nista nije pregledano" : "No invoices yet"}
+                description={filter ? "Promijenite filter za prikaz drugih rezultata." : "This client has not created any e-invoices yet."}
               />
             </div>
           ) : (

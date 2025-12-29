@@ -28,6 +28,7 @@ model User {
   webAuthnCredentials WebAuthnCredential[]
   clientInvitations   ClientInvitation[]   @relation("ClientInvitations")
   betaFeedback        BetaFeedback[]
+  staffReviews        StaffReview[]        @relation("StaffReviews")
 }
 
 model Account {
@@ -153,6 +154,7 @@ model Company {
   clientInvitations              ClientInvitation[]   @relation("InvitedClients")
   entitlementHistory             EntitlementHistory[]
   featureFlagOverrides           FeatureFlagOverride[]
+  staffReviews                   StaffReview[]
 }
 
 // Audit trail for module entitlement changes
@@ -230,6 +232,24 @@ model ClientInvitation {
   @@index([staffId])
   @@index([email])
   @@index([token])
+}
+
+// Staff review tracking for accountant workflow (Pregledano feature)
+model StaffReview {
+  id           String           @id @default(cuid())
+  companyId    String
+  reviewerId   String
+  entityType   StaffReviewEntity
+  entityId     String
+  reviewedAt   DateTime         @default(now())
+  notes        String?
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reviewer     User             @relation("StaffReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, entityType, entityId])
+  @@index([companyId])
+  @@index([reviewerId])
+  @@index([entityType, entityId])
 }
 
 model Contact {
@@ -1338,6 +1358,12 @@ enum ClientInvitationStatus {
   CANCELLED
 }
 
+enum StaffReviewEntity {
+  EINVOICE
+  EXPENSE
+  DOCUMENT
+}
+
 enum TicketCategory {
   TECHNICAL
   BILLING
@@ -1435,6 +1461,10 @@ enum AuditAction {
   // Regulatory Truth Layer - Status Transitions & Pipeline
   RULE_STATUS_CHANGED
   PIPELINE_STAGE_COMPLETE
+
+  // Staff Portal
+  STAFF_REVIEW_MARKED
+  STAFF_REVIEW_UNMARKED
 }
 
 enum ExpenseStatus {
