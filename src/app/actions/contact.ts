@@ -107,16 +107,42 @@ export async function getContacts(type?: "CUSTOMER" | "SUPPLIER" | "BOTH") {
   })
 }
 
+/**
+ * Escapes SQL LIKE pattern characters (% and _) to prevent
+ * unintended wildcard matching in search queries.
+ */
+function escapeSqlLikePattern(str: string): string {
+  return str.replace(/[%_]/g, "\\$&")
+}
+
+/**
+ * Sanitizes search query input by:
+ * 1. Limiting length to prevent performance issues
+ * 2. Trimming whitespace
+ * 3. Escaping SQL LIKE wildcards
+ */
+function sanitizeSearchQuery(query: string, maxLength: number = 100): string {
+  return escapeSqlLikePattern(query.slice(0, maxLength).trim())
+}
+
 export async function searchContacts(query: string) {
   const user = await requireAuth()
+
+  // Sanitize the search query to prevent SQL LIKE pattern exploitation
+  const sanitizedQuery = sanitizeSearchQuery(query)
+
+  // Require minimum 2 characters for search
+  if (sanitizedQuery.length < 2) {
+    return []
+  }
 
   return requireCompanyWithContext(user.id!, async () => {
     return db.contact.findMany({
       where: {
         OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          { oib: { contains: query } },
-          { email: { contains: query, mode: "insensitive" } },
+          { name: { contains: sanitizedQuery, mode: "insensitive" } },
+          { oib: { contains: sanitizedQuery } },
+          { email: { contains: sanitizedQuery, mode: "insensitive" } },
         ],
       },
       take: 10,

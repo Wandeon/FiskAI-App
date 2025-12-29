@@ -14,12 +14,33 @@ export interface ContactListParams {
 
 export type ContactSegment = "VAT_PAYER" | "MISSING_EMAIL" | "NO_DOCUMENTS"
 
+/**
+ * Escapes SQL LIKE pattern characters (% and _) to prevent
+ * unintended wildcard matching in search queries.
+ */
+function escapeSqlLikePattern(str: string): string {
+  return str.replace(/[%_]/g, "\\$&")
+}
+
+/**
+ * Sanitizes search query input by:
+ * 1. Limiting length to prevent performance issues
+ * 2. Trimming whitespace
+ * 3. Escaping SQL LIKE wildcards
+ */
+function sanitizeSearchQuery(query: string, maxLength: number = 100): string {
+  return escapeSqlLikePattern(query.slice(0, maxLength).trim())
+}
+
 export async function getContactList(params: ContactListParams = {}) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
   const { search, type, segments = [], page = 1, limit = 20 } = params
   const skip = (page - 1) * limit
+
+  // Sanitize search query to prevent SQL LIKE pattern exploitation
+  const sanitizedSearch = search ? sanitizeSearchQuery(search) : undefined
 
   const segmentConditions = []
   if (segments.includes("VAT_PAYER")) {
@@ -39,13 +60,14 @@ export async function getContactList(params: ContactListParams = {}) {
   const where = {
     companyId: company.id,
     ...(type && type !== "ALL" && { type }),
-    ...(search && {
-      OR: [
-        { name: { contains: search, mode: "insensitive" as const } },
-        { oib: { contains: search } },
-        { email: { contains: search, mode: "insensitive" as const } },
-      ],
-    }),
+    ...(sanitizedSearch &&
+      sanitizedSearch.length >= 2 && {
+        OR: [
+          { name: { contains: sanitizedSearch, mode: "insensitive" as const } },
+          { oib: { contains: sanitizedSearch } },
+          { email: { contains: sanitizedSearch, mode: "insensitive" as const } },
+        ],
+      }),
     ...(segmentConditions.length > 0 && { AND: segmentConditions }),
   }
 
