@@ -18,10 +18,10 @@ interface GeneratedForm {
   status: string
 }
 
+// Form types relevant for pausalni obrt
 const FORM_TYPE_LABELS: Record<string, string> = {
-  PDV: "PDV obrazac",
-  "PDV-S": "PDV-S obrazac",
-  ZP: "ZP obrazac",
+  "PO-SD": "PO-SD obrazac (godisnja prijava)",
+  DOH: "DOH obrazac (porez na dohodak)",
 }
 
 export default function FormsPage() {
@@ -75,7 +75,7 @@ export default function FormsPage() {
       case "GENERATING":
         return "Generiranje..."
       case "ERROR":
-        return "Greška"
+        return "Greska"
       default:
         return status
     }
@@ -121,7 +121,7 @@ export default function FormsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Obrasci</h1>
-          <p className="text-muted-foreground mt-1">Povijest generiranih poreznih obrazaca</p>
+          <p className="text-muted-foreground mt-1">Povijest generiranih poreznih obrazaca za pausalni obrt</p>
         </div>
         <Button onClick={() => setShowGenerateDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -141,7 +141,7 @@ export default function FormsPage() {
           {groupedForms.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">Još nema generiranih obrazaca</p>
+              <p className="text-muted-foreground mb-4">Jos nema generiranih obrazaca</p>
               <Button onClick={() => setShowGenerateDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Generiraj prvi obrazac

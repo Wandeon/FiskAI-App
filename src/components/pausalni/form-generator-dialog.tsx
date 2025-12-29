@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Loader2, FileText } from "lucide-react"
-import { CROATIAN_MONTHS } from "@/lib/pausalni/constants"
 
 interface Props {
   isOpen: boolean
@@ -20,15 +19,14 @@ interface Props {
   onGenerated?: () => void
 }
 
+// Form types relevant for pausalni obrt
 const FORM_TYPES = [
-  { value: "PDV", label: "PDV obrazac (mjesečni promet)" },
-  { value: "PDV-S", label: "PDV-S obrazac (EU transakcije)" },
-  { value: "ZP", label: "ZP obrazac (zbirna prijava)" },
+  { value: "PO-SD", label: "PO-SD obrazac (godisnja prijava pausalnog obrta)" },
+  { value: "DOH", label: "DOH obrazac (porez na dohodak)" },
 ]
 
 export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
   const [formType, setFormType] = useState<string>("")
-  const [month, setMonth] = useState<string>("")
   const [year, setYear] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +36,7 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
   const yearOptions = [currentYear, currentYear - 1, currentYear - 2]
 
   async function handleGenerate() {
-    if (!formType || !month || !year) {
+    if (!formType || !year) {
       setError("Molimo ispunite sva polja")
       return
     }
@@ -54,7 +52,8 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
         },
         body: JSON.stringify({
           formType,
-          month: parseInt(month),
+          // For annual forms like PO-SD, month is 12 (full year)
+          month: 12,
           year: parseInt(year),
         }),
       })
@@ -69,7 +68,7 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
       onGenerated?.()
       handleClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nepoznata greška")
+      setError(err instanceof Error ? err.message : "Nepoznata greska")
     } finally {
       setIsGenerating(false)
     }
@@ -78,7 +77,6 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
   function handleClose() {
     if (!isGenerating) {
       setFormType("")
-      setMonth("")
       setYear("")
       setError(null)
       onClose()
@@ -90,7 +88,7 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
       isOpen={isOpen}
       onClose={handleClose}
       title="Generiraj obrazac"
-      description="Odaberite vrstu obrasca i razdoblje za generiranje"
+      description="Odaberite vrstu obrasca i godinu za pausalni obrt"
       size="md"
     >
       <div className="space-y-4">
@@ -105,23 +103,6 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
               {FORM_TYPES.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Period Selection - Month */}
-        <div className="space-y-2">
-          <Label htmlFor="month">Mjesec</Label>
-          <Select value={month} onValueChange={setMonth} disabled={isGenerating}>
-            <SelectTrigger id="month">
-              <SelectValue placeholder="Odaberite mjesec" />
-            </SelectTrigger>
-            <SelectContent>
-              {CROATIAN_MONTHS.map((monthName, index) => (
-                <SelectItem key={index + 1} value={String(index + 1)}>
-                  {monthName.charAt(0).toUpperCase() + monthName.slice(1)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -157,7 +138,7 @@ export function FormGeneratorDialog({ isOpen, onClose, onGenerated }: Props) {
           <Button variant="outline" onClick={handleClose} disabled={isGenerating}>
             Odustani
           </Button>
-          <Button onClick={handleGenerate} disabled={isGenerating || !formType || !month || !year}>
+          <Button onClick={handleGenerate} disabled={isGenerating || !formType || !year}>
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
