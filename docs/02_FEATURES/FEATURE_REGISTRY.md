@@ -14,8 +14,27 @@
 | `[P]`  | **Partial**     | Core works but entry point changed or functionality moved.           |
 | `[S]`  | **Scaffold**    | Entry point exists but functionality is stub/placeholder/model-only. |
 | `[D]`  | **Designed**    | Documented specification exists. No code yet.                        |
+| `[X]`  | **Deprecated**  | Sunset announced. See deprecation registry for timeline.             |
 
 > **Policy:** PRs marking features "done" must update status accurately. See [docs/STATUS.md](../STATUS.md) for module-level status.
+
+## Deprecation Lifecycle
+
+Features follow a defined lifecycle for deprecation:
+
+1. **Active** - Feature is fully supported
+2. **Deprecated** - Sunset date announced, deprecation warnings shown
+3. **Sunset** - Feature removed or disabled
+
+When deprecating a feature:
+
+1. Add entry to `src/lib/deprecation/registry.ts`
+2. Update status in this registry to `[X]`
+3. Add `<DeprecationNotice>` component to affected routes
+4. Document migration path if applicable
+5. Announce via release notes
+
+See `src/lib/deprecation/` for the deprecation system implementation.
 
 ## Registry
 
