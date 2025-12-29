@@ -80,9 +80,17 @@ export default async function VatReportPage({
             Razdoblje: {dateFrom.toLocaleDateString("hr-HR")} - {dateTo.toLocaleDateString("hr-HR")}
           </p>
         </div>
-        <Link href="/reports">
-          <Button variant="outline">← Natrag</Button>
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href={`/api/reports/vat/xml?from=${dateFrom.toISOString().split("T")[0]}&to=${dateTo.toISOString().split("T")[0]}`}
+            download
+          >
+            <Button variant="default">Preuzmi XML za ePorezna</Button>
+          </a>
+          <Link href="/reports">
+            <Button variant="outline">Natrag</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Date filter */}

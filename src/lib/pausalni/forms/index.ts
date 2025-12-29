@@ -10,6 +10,18 @@ export {
 } from "./pdv-generator"
 
 export {
+  generatePdvSXml,
+  generatePdvSFormForPeriod,
+  preparePdvSFormData,
+  getEuTransactionsByCountry,
+  calculatePdvSTotals,
+  validatePdvSFormData,
+  type PdvSFormData,
+  type PdvSXmlOptions,
+  type CountryBreakdown,
+} from "./pdv-s-generator"
+
+export {
   generatePosdXml,
   generatePosdFormForPeriod,
   preparePosdFormData,
