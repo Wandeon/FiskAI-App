@@ -10,7 +10,7 @@ import {
 import { assistantLogger } from "@/lib/logger"
 import { extractKeywords } from "./text-utils"
 import { matchConcepts } from "./concept-matcher"
-import { selectRules } from "./rule-selector"
+import { selectRules, type RuleSelectionContext } from "./rule-selector"
 import { detectConflicts } from "./conflict-detector"
 import { buildCitations } from "./citation-builder"
 import {
@@ -22,6 +22,7 @@ import {
   CONFIDENCE_THRESHOLD_STRICT,
   type Interpretation,
 } from "./query-interpreter"
+import { prisma } from "@/lib/prisma"
 
 /**
  * THREE-STAGE FAIL-CLOSED ANSWER BUILDER
@@ -276,6 +277,28 @@ export async function buildAnswer(
   // STAGE 2: RETRIEVAL GATE
   // ============================================
 
+  // Fetch company data if companyId provided (for APP surface personalization)
+  let company: Awaited<ReturnType<typeof fetchCompanyData>> | null = null
+  if (companyId) {
+    company = await fetchCompanyData(companyId)
+  }
+
+  // Build rule selection context with company data
+  const selectionContext: RuleSelectionContext = {
+    asOfDate: new Date(),
+    ...(company && {
+      companyData: {
+        legalForm: company.legalForm ?? undefined,
+        vatStatus: company.isVatPayer ? "REGISTERED" : "NOT_REGISTERED",
+        // Map from Company fields - these would need to be added to schema
+        // For now, we work with what we have
+        activityNkd: undefined, // Not in current schema
+        county: undefined, // Not in current schema
+        revenueYtd: undefined, // Not in current schema
+      },
+    }),
+  }
+
   // Extract keywords for concept matching
   const keywords = extractKeywords(query)
 
@@ -297,9 +320,9 @@ export async function buildAnswer(
     return buildNoCitableRulesRefusal(baseResponse, interpretation.topic, interpretation)
   }
 
-  // Select rules for matched concepts
+  // Select rules for matched concepts with company context
   const conceptSlugs = conceptMatches.map((c) => c.slug)
-  const selectionResult = await selectRules(conceptSlugs)
+  const selectionResult = await selectRules(conceptSlugs, selectionContext)
   const rules = selectionResult.rules
 
   if (rules.length === 0) {
@@ -364,13 +387,34 @@ export async function buildAnswer(
   // Build client context for APP surface
   let clientContext: ClientContextBlock | undefined
   if (surface === "APP") {
-    if (interpretation.personalizationNeeded && companyId) {
+    if (interpretation.personalizationNeeded && companyId && company) {
+      const requiredFields = getRequiredFieldsFromEntities(interpretation.entities)
+      const usedFields = buildUsedFields(company)
+      const missingFields = requiredFields.filter(
+        (field) => !usedFields.some((used) => used.field === field)
+      )
+
+      clientContext = {
+        used: usedFields,
+        completeness: {
+          status: missingFields.length === 0 ? "COMPLETE" : usedFields.length > 0 ? "PARTIAL" : "NONE",
+          score: usedFields.length / Math.max(requiredFields.length, 1),
+        },
+        ...(missingFields.length > 0 && {
+          missing: missingFields.map((f) => ({
+            label: f,
+            impact: "Poboljšalo bi točnost odgovora",
+          })),
+        }),
+      }
+    } else if (interpretation.personalizationNeeded && companyId && !company) {
+      // Company not found
       const requiredFields = getRequiredFieldsFromEntities(interpretation.entities)
       clientContext = {
-        used: [], // Would be populated from actual client data
+        used: [],
         completeness: {
-          status: "PARTIAL",
-          score: 0.5,
+          status: "NONE",
+          score: 0,
         },
         missing: requiredFields.map((f) => ({
           label: f,
@@ -589,6 +633,57 @@ function generateRelatedQuestions(conceptSlugs: string[]): string[] {
   }
 
   return [...new Set(questions)].slice(0, 4)
+}
+
+/**
+ * Fetch company data for personalization context.
+ * Returns null if company not found.
+ */
+async function fetchCompanyData(companyId: string) {
+  return await prisma.company.findUnique({
+    where: { id: companyId },
+    select: {
+      id: true,
+      name: true,
+      legalForm: true,
+      isVatPayer: true,
+      oib: true,
+      // Add more fields as they become available in schema
+      // activityNkd: true,
+      // county: true,
+      // revenueYtd: true,
+    },
+  })
+}
+
+/**
+ * Build list of used fields from company data for client context.
+ */
+function buildUsedFields(
+  company: NonNullable<Awaited<ReturnType<typeof fetchCompanyData>>>
+): Array<{ field: string; value: string }> {
+  const used: Array<{ field: string; value: string }> = []
+
+  if (company.legalForm) {
+    used.push({
+      field: "Pravni oblik",
+      value: company.legalForm,
+    })
+  }
+
+  if (company.isVatPayer !== null && company.isVatPayer !== undefined) {
+    used.push({
+      field: "PDV status",
+      value: company.isVatPayer ? "U sustavu PDV-a" : "Nije u sustavu PDV-a",
+    })
+  }
+
+  // Add more fields as they become available
+  // if (company.activityNkd) {
+  //   used.push({ field: "Djelatnost (NKD)", value: company.activityNkd })
+  // }
+
+  return used
 }
 
 // Re-export types for API layer
