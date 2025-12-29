@@ -189,10 +189,10 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
 
   const borderColor =
     status === "success"
-      ? "border-green-300 bg-green-50"
+      ? "border-success-border bg-success-bg"
       : status === "error"
-        ? "border-red-200 bg-red-50"
-        : "border-dashed border-[var(--border)] bg-gradient-to-r from-indigo-50 via-[var(--surface)] to-sky-50"
+        ? "border-danger-border bg-danger-bg"
+        : "border-dashed border-[var(--border)] bg-gradient-to-r from-info-bg via-[var(--surface)] to-info-bg"
 
   const last = lastByAccount[accountId]
   const lastLabel = last?.sequenceNumber
@@ -201,20 +201,20 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 text-white p-5 border border-slate-700 shadow">
+      <div className="rounded-xl bg-gradient-to-r from-foreground via-foreground to-foreground text-inverse p-5 border border-strong shadow">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <p className="text-sm uppercase tracking-wide text-slate-200">Uvoz bankovnih izvoda</p>
+            <p className="text-sm uppercase tracking-wide text-inverse/80">Uvoz bankovnih izvoda</p>
             <p className="text-lg font-semibold">Povucite PDF ili XML ovdje</p>
-            <p className="text-xs text-slate-200/80 mt-1">
+            <p className="text-xs text-inverse/70 mt-1">
               Podržano: RBA, ZABA, PBZ (PDF) ili CAMT.053 (XML)
             </p>
-            <p className="text-xs text-slate-200/80 mt-1">{lastLabel}</p>
+            <p className="text-xs text-inverse/70 mt-1">{lastLabel}</p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-200/80">Račun</label>
+            <label className="text-xs text-inverse/70">Račun</label>
             <select
-              className="rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-white"
+              className="rounded-md border border-strong bg-surface-2 px-3 py-2 text-sm text-foreground"
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
             >
@@ -246,18 +246,18 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
 
         <div className="flex flex-col items-center justify-center gap-3 text-center">
           {status === "uploading" ? (
-            <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+            <Loader2 className="h-10 w-10 animate-spin text-link" />
           ) : status === "success" ? (
-            <CheckCircle2 className="h-10 w-10 text-green-600" />
+            <CheckCircle2 className="h-10 w-10 text-success-text" />
           ) : status === "error" ? (
-            <AlertCircle className="h-10 w-10 text-red-600" />
+            <AlertCircle className="h-10 w-10 text-danger-text" />
           ) : (
-            <UploadCloud className="h-10 w-10 text-blue-600" />
+            <UploadCloud className="h-10 w-10 text-link" />
           )}
 
           <div>
             <p className="text-base font-semibold">Povucite i ispustite PDF ili XML izvod ovdje</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-secondary">
               Digitalni ili skenirani PDF · CAMT XML · max 20 MB
             </p>
           </div>
@@ -267,7 +267,7 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
           </Button>
 
           {fileName && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-secondary">
               Odabrano: <span className="font-medium">{fileName}</span>
             </p>
           )}
@@ -276,17 +276,17 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
             <p
               className={`text-xs ${
                 status === "error"
-                  ? "text-red-600"
+                  ? "text-danger-text"
                   : status === "success"
-                    ? "text-green-600"
-                    : "text-gray-600"
+                    ? "text-success-text"
+                    : "text-secondary"
               }`}
             >
               {message}
             </p>
           )}
           {needsOverwrite && pendingFile && (
-            <div className="flex items-center gap-2 text-xs text-gray-700">
+            <div className="flex items-center gap-2 text-xs text-foreground">
               <Button
                 size="sm"
                 onClick={() => uploadFile(pendingFile, true)}
@@ -310,15 +310,15 @@ export function StatementDropzone({ accounts, lastByAccount }: DropzoneProps) {
         <ProgressBar step={step} />
 
         {jobStatus && (
-          <div className="mt-3 text-xs text-gray-700">
+          <div className="mt-3 text-xs text-foreground">
             <span className="font-semibold">Status:</span> {jobStatus}{" "}
             {progressText ? `· ${progressText}` : ""}
           </div>
         )}
         {logs.length > 0 && (
-          <div className="w-full mt-3 rounded-md bg-slate-50 border border-slate-200 p-2 text-left">
-            <p className="text-[11px] text-gray-500 mb-1">Dnevnik procesa</p>
-            <ul className="space-y-1 text-[11px] text-gray-700 max-h-24 overflow-y-auto">
+          <div className="w-full mt-3 rounded-md bg-surface-1 border border-default p-2 text-left">
+            <p className="text-[11px] text-secondary mb-1">Dnevnik procesa</p>
+            <ul className="space-y-1 text-[11px] text-foreground max-h-24 overflow-y-auto">
               {logs.map((l, idx) => (
                 <li key={idx} className="truncate">
                   {l}
@@ -352,20 +352,20 @@ function ProgressBar({
 
   return (
     <div className="mt-4 space-y-2 rounded-lg border bg-[var(--surface)]/70 p-3 shadow-sm">
-      <div className="flex items-center justify-between text-[11px] text-gray-600 mb-1">
+      <div className="flex items-center justify-between text-[11px] text-secondary mb-1">
         {steps.map((s, idx) => (
-          <span key={s} className={idx <= activeIndex ? "font-semibold text-gray-900" : ""}>
+          <span key={s} className={idx <= activeIndex ? "font-semibold text-foreground" : ""}>
             {labels[s]}
           </span>
         ))}
       </div>
-      <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+      <div className="h-2 w-full rounded-full bg-surface-1 overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
+          className="h-full bg-gradient-to-r from-interactive to-interactive transition-all duration-500"
           style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
         />
       </div>
-      <div className="text-[11px] text-gray-500">
+      <div className="text-[11px] text-secondary">
         {step === "upload" && "Upload u tijeku..."}
         {step === "process" && "Ekstrakcija teksta i matematička provjera."}
         {step === "vision" && "Vision fallback za stranice s greškama."}

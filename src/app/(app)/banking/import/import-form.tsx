@@ -174,13 +174,13 @@ export function ImportForm({ accounts }: ImportFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+        <div className="bg-danger-bg border border-danger-border text-danger-text px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+        <div className="bg-success-bg border border-success-border text-success-text px-4 py-3 rounded">
           {success}
         </div>
       )}
@@ -192,7 +192,7 @@ export function ImportForm({ accounts }: ImportFormProps) {
             id="accountId"
             value={selectedAccount}
             onChange={(e) => setSelectedAccount(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-default px-3 py-2 text-sm"
             required
             disabled={loading}
           >
@@ -215,7 +215,7 @@ export function ImportForm({ accounts }: ImportFormProps) {
             required
             disabled={loading}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-secondary mt-1">
             Odaberite CSV datoteku s bankovnim transakcijama
           </p>
         </div>
@@ -226,7 +226,7 @@ export function ImportForm({ accounts }: ImportFormProps) {
             id="bankName"
             value={selectedBank}
             onChange={(e) => setSelectedBank(e.target.value as SupportedBank)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-default px-3 py-2 text-sm"
             disabled={loading}
           >
             <option value="generic">Generički</option>
@@ -245,32 +245,32 @@ export function ImportForm({ accounts }: ImportFormProps) {
       {/* Preview */}
       {previewData && previewData.length > 0 && (
         <div className="border rounded-lg overflow-hidden">
-          <div className="bg-gray-50 px-4 py-2 border-b">
+          <div className="bg-surface-1 px-4 py-2 border-b">
             <p className="text-sm font-semibold">Pregled: {previewData.length} transakcija</p>
           </div>
           <div className="overflow-x-auto max-h-96">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 sticky top-0">
+              <thead className="bg-surface-1 sticky top-0">
                 <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">Datum</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">Opis</th>
-                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-600">Iznos</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">Ref</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-600">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-secondary">Datum</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-secondary">Opis</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-secondary">Iznos</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-secondary">Ref</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-secondary">
                     Protivna strana
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {previewData.slice(0, 100).map((txn, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
+                  <tr key={idx} className="hover:bg-surface-1">
                     <td className="px-3 py-2 text-xs">
                       {new Date(txn.date).toLocaleDateString("hr-HR")}
                     </td>
                     <td className="px-3 py-2 text-xs max-w-xs truncate">{txn.description}</td>
                     <td
                       className={`px-3 py-2 text-xs text-right font-mono ${
-                        txn.amount >= 0 ? "text-green-600" : "text-red-600"
+                        txn.amount >= 0 ? "text-success-text" : "text-danger-text"
                       }`}
                     >
                       {txn.amount >= 0 ? "+" : ""}
@@ -287,7 +287,7 @@ export function ImportForm({ accounts }: ImportFormProps) {
               </tbody>
             </table>
             {previewData.length > 100 && (
-              <div className="px-4 py-2 bg-gray-50 text-xs text-gray-500 text-center">
+              <div className="px-4 py-2 bg-surface-1 text-xs text-secondary text-center">
                 Prikazano prvih 100 od {previewData.length} transakcija
               </div>
             )}

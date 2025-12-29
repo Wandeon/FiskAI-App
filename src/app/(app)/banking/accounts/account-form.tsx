@@ -107,7 +107,7 @@ export function AccountForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+        <div className="bg-danger-bg border border-danger-border text-danger-text px-4 py-3 rounded">
           {error}
         </div>
       )}
@@ -134,10 +134,10 @@ export function AccountForm() {
             onChange={handleIbanChange}
             required
             disabled={loading}
-            className={ibanError ? "border-red-500" : ""}
+            className={ibanError ? "border-danger-border" : ""}
           />
-          {ibanError && <p className="text-xs text-red-600 mt-1">{ibanError}</p>}
-          <p className="text-xs text-gray-500 mt-1">Accepts all European IBAN formats</p>
+          {ibanError && <p className="text-xs text-danger-text mt-1">{ibanError}</p>}
+          <p className="text-xs text-secondary mt-1">Accepts all European IBAN formats</p>
         </div>
 
         <div>
@@ -150,9 +150,9 @@ export function AccountForm() {
             onChange={(e) => setBankName(e.target.value)}
             required
             disabled={loading}
-            className={bankName ? "bg-blue-50 border-blue-200" : ""}
+            className={bankName ? "bg-info-bg border-info-border" : ""}
           />
-          {bankName && <p className="text-xs text-blue-600 mt-1">Automatski otkriveno iz IBAN-a</p>}
+          {bankName && <p className="text-xs text-link mt-1">Automatski otkriveno iz IBAN-a</p>}
         </div>
 
         <div>
@@ -160,7 +160,7 @@ export function AccountForm() {
           <select
             id="currency"
             name="currency"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-default px-3 py-2 text-sm"
             disabled={loading}
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
@@ -170,7 +170,7 @@ export function AccountForm() {
             <option value="USD">USD</option>
           </select>
           {iban.startsWith("HR") && currency === "EUR" && (
-            <p className="text-xs text-blue-600 mt-1">Automatski odabrano za hrvatske IBAN-ove</p>
+            <p className="text-xs text-link mt-1">Automatski odabrano za hrvatske IBAN-ove</p>
           )}
         </div>
       </div>
@@ -180,7 +180,7 @@ export function AccountForm() {
           type="checkbox"
           id="isDefault"
           name="isDefault"
-          className="rounded border-gray-300"
+          className="rounded border-default"
           disabled={loading}
         />
         <Label htmlFor="isDefault" className="font-normal cursor-pointer">

@@ -45,7 +45,7 @@ export function ExpenseActions({ expense }: { expense: Expense }) {
           onChange={(e) => {
             if (e.target.value) handlePay(e.target.value as PaymentMethod)
           }}
-          className="rounded-md border-gray-300 text-sm"
+          className="rounded-md border-default text-sm"
           disabled={isLoading}
         >
           <option value="">Označi plaćeno...</option>

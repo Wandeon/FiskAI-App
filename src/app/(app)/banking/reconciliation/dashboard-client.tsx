@@ -152,7 +152,7 @@ export function ReconciliationDashboard({
   if (!selectedAccount) {
     return (
       <Card>
-        <CardContent className="text-sm text-gray-500">
+        <CardContent className="text-sm text-secondary">
           Dodajte bankovni račun kako biste koristili knjiženje.
         </CardContent>
       </Card>
@@ -164,7 +164,7 @@ export function ReconciliationDashboard({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Pomirenje bankovnih transakcija</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-secondary">
             Automatsko povezivanje računa (prag {data?.autoMatchThreshold ?? 85}).
           </p>
         </div>
@@ -175,7 +175,7 @@ export function ReconciliationDashboard({
               id="account"
               value={selectedAccount}
               onChange={(event) => setSelectedAccount(event.target.value)}
-              className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-default px-3 py-2 text-sm"
             >
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
@@ -190,7 +190,7 @@ export function ReconciliationDashboard({
               id="status"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-default px-3 py-2 text-sm"
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -206,7 +206,7 @@ export function ReconciliationDashboard({
         {statusCards.map((card) => (
           <Card key={card.label}>
             <CardContent>
-              <p className="text-xs uppercase tracking-wide text-gray-500">{card.label}</p>
+              <p className="text-xs uppercase tracking-wide text-secondary">{card.label}</p>
               <p className="text-2xl font-semibold">{card.value}</p>
             </CardContent>
           </Card>
@@ -217,8 +217,8 @@ export function ReconciliationDashboard({
         <div
           className={`flex items-center gap-2 rounded border px-4 py-3 text-sm ${
             statusType === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-800"
+              ? "border-success-border bg-success-bg text-success-text"
+              : "border-danger-border bg-danger-bg text-danger-text"
           }`}
         >
           {statusType === "success" ? <CheckCircle /> : <AlertCircle />}
@@ -227,7 +227,7 @@ export function ReconciliationDashboard({
       )}
 
       {error && (
-        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="rounded border border-danger-border bg-danger-bg px-4 py-3 text-sm text-danger-text">
           {(error as Error).message}
         </div>
       )}
@@ -236,7 +236,7 @@ export function ReconciliationDashboard({
         <CardContent>
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-surface-1 text-xs uppercase tracking-wide text-secondary">
                 <tr>
                   <th className="px-3 py-2">Datum</th>
                   <th className="px-3 py-2">Opis</th>
@@ -263,8 +263,8 @@ export function ReconciliationDashboard({
                       <tr
                         key={txn.id}
                         id={`txn-${txn.id}`}
-                        className={`border-b border-slate-100 hover:bg-slate-50 ${
-                          isHighlighted ? "bg-blue-50 ring-2 ring-blue-500 ring-inset" : ""
+                        className={`border-b border-subtle hover:bg-surface-1 ${
+                          isHighlighted ? "bg-info-bg ring-2 ring-info-border ring-inset" : ""
                         }`}
                       >
                         <td className="px-3 py-2 text-xs">
@@ -272,7 +272,7 @@ export function ReconciliationDashboard({
                         </td>
                         <td className="px-3 py-2">
                           <div className="truncate font-medium">{txn.description}</div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-secondary">
                             {txn.reference || txn.counterpartyName || "—"}
                           </div>
                         </td>
@@ -280,7 +280,7 @@ export function ReconciliationDashboard({
                           {formatCurrency(txn.amount, txn.currency)}
                         </td>
                         <td className="px-3 py-2 text-center">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-surface-1 px-2 py-1 text-xs font-medium text-secondary">
                             {txn.confidenceScore}%
                           </span>
                         </td>
@@ -292,16 +292,16 @@ export function ReconciliationDashboard({
                                   ? (invoiceCandidate?.invoiceNumber || "–")
                                   : expenseCandidate?.description}
                               </div>
-                              <div className="text-gray-500">
+                              <div className="text-secondary">
                                 {formatCurrency(candidate.totalAmount, txn.currency)} ·{" "}
                                 {candidate.score}%
                               </div>
-                              <div className="text-gray-400">
+                              <div className="text-tertiary">
                                 {candidate.reason} · {candidateType === "invoice" ? "Račun" : "Trošak"}
                               </div>
                             </div>
                           ) : (
-                            <span className="text-gray-400">Nema kandidata</span>
+                            <span className="text-tertiary">Nema kandidata</span>
                           )}
                         </td>
                         <td className="px-3 py-2 text-right">
@@ -328,7 +328,7 @@ export function ReconciliationDashboard({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-3 py-10 text-center text-sm text-slate-500">
+                    <td colSpan={6} className="px-3 py-10 text-center text-sm text-secondary">
                       Nema transakcija za prikaz
                     </td>
                   </tr>
@@ -336,7 +336,7 @@ export function ReconciliationDashboard({
               </tbody>
             </table>
           </div>
-          {isValidating && <div className="mt-3 text-xs text-gray-500">Ažuriranje...</div>}
+          {isValidating && <div className="mt-3 text-xs text-secondary">Ažuriranje...</div>}
         </CardContent>
       </Card>
     </div>

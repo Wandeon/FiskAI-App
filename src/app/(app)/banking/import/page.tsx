@@ -61,7 +61,7 @@ export default async function ImportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Uvoz izvoda</h1>
-          <p className="text-gray-500">Uvezite bankovne transakcije iz CSV datoteke</p>
+          <p className="text-secondary">Uvezite bankovne transakcije iz CSV datoteke</p>
         </div>
         <div className="flex gap-2">
           <Link href="/banking/documents">
@@ -76,7 +76,7 @@ export default async function ImportPage() {
       <Card>
         <CardContent className="pt-6">
           {accounts.length === 0 ? (
-            <div className="py-4 text-sm text-gray-500">
+            <div className="py-4 text-sm text-secondary">
               Najprije morate dodati bankovni račun prije uvoza izvoda.
             </div>
           ) : (
@@ -91,7 +91,7 @@ export default async function ImportPage() {
           <h2 className="text-lg font-semibold mb-4">Uvezi novi izvod</h2>
           {accounts.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-gray-500 mb-4">Najprije morate dodati bankovni račun</p>
+              <p className="text-secondary mb-4">Najprije morate dodati bankovni račun</p>
               <Link href="/banking/accounts">
                 <Button>Dodaj račun</Button>
               </Link>
@@ -106,24 +106,24 @@ export default async function ImportPage() {
       <Card>
         <CardContent className="pt-6">
           <h3 className="font-semibold mb-3">Upute za uvoz</h3>
-          <div className="space-y-2 text-sm text-gray-600">
+          <div className="space-y-2 text-sm text-secondary">
             <p>
               <strong>1. Format CSV datoteke:</strong> Datoteka mora sadržavati sljedeće stupce:
             </p>
             <ul className="list-disc list-inside ml-4 space-y-1">
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">datum</code> - Datum transakcije
+                <code className="bg-surface-1 px-1 py-0.5 rounded">datum</code> - Datum transakcije
                 (YYYY-MM-DD)
               </li>
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">opis</code> - Opis transakcije
+                <code className="bg-surface-1 px-1 py-0.5 rounded">opis</code> - Opis transakcije
               </li>
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">iznos</code> - Iznos (pozitivan za
+                <code className="bg-surface-1 px-1 py-0.5 rounded">iznos</code> - Iznos (pozitivan za
                 prihode, negativan za rashode)
               </li>
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">stanje</code> - Stanje računa
+                <code className="bg-surface-1 px-1 py-0.5 rounded">stanje</code> - Stanje računa
                 nakon transakcije
               </li>
             </ul>
@@ -132,22 +132,22 @@ export default async function ImportPage() {
             </p>
             <ul className="list-disc list-inside ml-4 space-y-1">
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">referenca</code> - Bankovna
+                <code className="bg-surface-1 px-1 py-0.5 rounded">referenca</code> - Bankovna
                 referenca
               </li>
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">protivna_strana</code> - Naziv
+                <code className="bg-surface-1 px-1 py-0.5 rounded">protivna_strana</code> - Naziv
                 proturačuna
               </li>
               <li>
-                <code className="bg-gray-100 px-1 py-0.5 rounded">protivni_iban</code> - IBAN
+                <code className="bg-surface-1 px-1 py-0.5 rounded">protivni_iban</code> - IBAN
                 proturačuna
               </li>
             </ul>
             <p className="mt-3">
               <strong>3. Primjer CSV strukture:</strong>
             </p>
-            <pre className="bg-gray-100 p-3 rounded text-xs overflow-x-auto">
+            <pre className="bg-surface-1 p-3 rounded text-xs overflow-x-auto">
               {`datum,opis,iznos,stanje,referenca,protivna_strana,protivni_iban
 2025-01-15,Uplata od kupca,1500.00,15500.00,REF123,ACME d.o.o.,HR1234567890123456789
 2025-01-16,Plaćanje računa,-350.50,15149.50,REF124,XYZ d.o.o.,HR9876543210987654321`}
@@ -164,40 +164,40 @@ export default async function ImportPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-surface-1 border-b">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
                         Datum uvoza
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
                         Račun
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
                         Datoteka
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">
                         Transakcija
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-center text-xs font-medium text-secondary uppercase">
                         Format
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-border">
                     {recentImports.map((imp) => (
-                      <tr key={imp.id} className="hover:bg-gray-50">
+                      <tr key={imp.id} className="hover:bg-surface-1">
                         <td className="px-4 py-3 text-sm">
                           {new Date(imp.importedAt).toLocaleString("hr-HR")}
                         </td>
                         <td className="px-4 py-3 text-sm">{imp.bankAccount.name}</td>
-                        <td className="px-4 py-3 text-sm font-mono text-gray-600">
+                        <td className="px-4 py-3 text-sm font-mono text-secondary">
                           {imp.fileName}
                         </td>
                         <td className="px-4 py-3 text-sm text-right font-semibold">
                           {imp.transactionCount}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          <span className="text-xs bg-info-bg text-info-text px-2 py-1 rounded">
                             {imp.format}
                           </span>
                         </td>

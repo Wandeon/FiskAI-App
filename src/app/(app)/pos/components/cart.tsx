@@ -42,20 +42,20 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
       {/* Header */}
       <div className="p-4 border-b">
         <h2 className="font-bold">Košarica</h2>
-        <p className="text-sm text-gray-500">{items.length} stavki</p>
+        <p className="text-sm text-secondary">{items.length} stavki</p>
       </div>
 
       {/* Items */}
       <div className="flex-1 overflow-auto p-4 space-y-3">
         {items.length === 0 ? (
-          <p className="text-center text-gray-400 py-8">Košarica je prazna</p>
+          <p className="text-center text-tertiary py-8">Košarica je prazna</p>
         ) : (
           items.map((item) => (
-            <div key={item.id} className="bg-gray-50 rounded-lg p-3">
+            <div key={item.id} className="bg-surface-1 rounded-lg p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{item.description}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-secondary">
                     {formatPrice(item.unitPrice)} × {item.quantity}
                   </p>
                 </div>
@@ -84,7 +84,7 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="ml-auto text-red-500"
+                  className="ml-auto text-danger-text"
                   onClick={() => onRemove(item.id)}
                 >
                   ×
@@ -96,15 +96,15 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
       </div>
 
       {/* Totals */}
-      <div className="p-4 border-t bg-gray-50 space-y-2">
+      <div className="p-4 border-t bg-surface-1 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Osnovica:</span>
+          <span className="text-secondary">Osnovica:</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
 
         {Object.entries(vatByRate).map(([rate, amount]) => (
           <div key={rate} className="flex justify-between text-sm">
-            <span className="text-gray-500">PDV {rate}%:</span>
+            <span className="text-secondary">PDV {rate}%:</span>
             <span>{formatPrice(amount)}</span>
           </div>
         ))}

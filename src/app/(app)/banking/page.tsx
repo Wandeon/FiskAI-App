@@ -61,7 +61,7 @@ export default async function BankingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Bankarstvo</h1>
-          <p className="text-gray-500">Upravljanje bankovnim računima i transakcijama</p>
+          <p className="text-secondary">Upravljanje bankovnim računima i transakcijama</p>
         </div>
         <div className="flex gap-2">
           <Link href="/banking/import">
@@ -80,7 +80,7 @@ export default async function BankingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500 mb-1">Ukupno stanje</p>
+            <p className="text-sm text-secondary mb-1">Ukupno stanje</p>
             <div className="space-y-1">
               {Object.entries(balancesByCurrency).map(([currency, balance]) => (
                 <p key={currency} className="text-3xl font-bold">
@@ -103,14 +103,14 @@ export default async function BankingPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500 mb-1">Broj računa</p>
+            <p className="text-sm text-secondary mb-1">Broj računa</p>
             <p className="text-3xl font-bold">{accounts.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500 mb-1">Nepovezane transakcije</p>
-            <p className="text-3xl font-bold text-orange-600">{unmatchedCount}</p>
+            <p className="text-sm text-secondary mb-1">Nepovezane transakcije</p>
+            <p className="text-3xl font-bold text-warning-text">{unmatchedCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -143,22 +143,22 @@ export default async function BankingPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {accounts.map((account) => (
-              <Card key={account.id} className={account.isDefault ? "ring-2 ring-blue-500" : ""}>
+              <Card key={account.id} className={account.isDefault ? "ring-2 ring-info-border" : ""}>
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="font-semibold">{account.name}</p>
                       {account.isDefault && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                        <span className="text-xs bg-info-bg text-info-text px-2 py-0.5 rounded">
                           Zadani
                         </span>
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500 font-mono mb-3">{account.iban}</p>
-                  <p className="text-sm text-gray-600 mb-3">{account.bankName}</p>
+                  <p className="text-sm text-secondary font-mono mb-3">{account.iban}</p>
+                  <p className="text-sm text-secondary mb-3">{account.bankName}</p>
                   <div className="border-t pt-3 mb-3">
-                    <p className="text-xs text-gray-500">Saldo</p>
+                    <p className="text-xs text-secondary">Saldo</p>
                     <p className="text-xl font-bold">
                       {new Intl.NumberFormat("hr-HR", {
                         style: "currency",
@@ -214,41 +214,41 @@ export default async function BankingPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-surface-1 border-b">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
                         Datum
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
                         Račun
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
                         Opis
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">
                         Iznos
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-center text-xs font-medium text-secondary uppercase">
                         Status
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-border">
                     {recentTransactions.map((txn) => (
-                      <tr key={txn.id} className="hover:bg-gray-50">
+                      <tr key={txn.id} className="hover:bg-surface-1">
                         <td className="px-4 py-3 text-sm">
                           {new Date(txn.date).toLocaleDateString("hr-HR")}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{txn.bankAccount.name}</td>
+                        <td className="px-4 py-3 text-sm text-secondary">{txn.bankAccount.name}</td>
                         <td className="px-4 py-3 text-sm">
                           <div className="max-w-xs truncate">{txn.description}</div>
                           {txn.counterpartyName && (
-                            <div className="text-xs text-gray-500">{txn.counterpartyName}</div>
+                            <div className="text-xs text-secondary">{txn.counterpartyName}</div>
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm text-right font-mono">
                           <span
-                            className={Number(txn.amount) >= 0 ? "text-green-600" : "text-red-600"}
+                            className={Number(txn.amount) >= 0 ? "text-success-text" : "text-danger-text"}
                           >
                             {Number(txn.amount) >= 0 ? "+" : ""}
                             {new Intl.NumberFormat("hr-HR", {
@@ -259,16 +259,16 @@ export default async function BankingPage() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           {txn.matchStatus === "UNMATCHED" ? (
-                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                            <span className="text-xs bg-warning-bg text-warning-text px-2 py-1 rounded">
                               Nepovezano
                             </span>
                           ) : txn.matchStatus === "AUTO_MATCHED" ||
                             txn.matchStatus === "MANUAL_MATCHED" ? (
-                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            <span className="text-xs bg-success-bg text-success-text px-2 py-1 rounded">
                               Povezano
                             </span>
                           ) : (
-                            <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                            <span className="text-xs bg-surface-1 text-foreground px-2 py-1 rounded">
                               Ignorirano
                             </span>
                           )}

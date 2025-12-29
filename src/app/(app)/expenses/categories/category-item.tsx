@@ -68,7 +68,7 @@ export function CategoryItem({ category }: CategoryItemProps) {
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded border-2 border-blue-500">
+      <div className="flex items-center gap-2 py-2 px-3 bg-surface-1 rounded border-2 border-info-border">
         <Input
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -91,10 +91,10 @@ export function CategoryItem({ category }: CategoryItemProps) {
           PDV priznati
         </label>
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={handleSave} className="text-green-600">
+          <Button size="sm" variant="ghost" onClick={handleSave} className="text-success-text">
             <Check className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" onClick={handleCancel} className="text-gray-600">
+          <Button size="sm" variant="ghost" onClick={handleCancel} className="text-secondary">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -103,21 +103,21 @@ export function CategoryItem({ category }: CategoryItemProps) {
   }
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+    <div className="flex items-center justify-between py-2 px-3 bg-surface-1 rounded hover:bg-surface-1 transition-colors">
       <div className="flex items-center gap-3">
         <span className="font-mono text-sm bg-[var(--surface)] px-2 py-0.5 rounded border">
           {category.code}
         </span>
         <span>{category.name}</span>
-        <span className="text-xs text-gray-500">({category._count.expenses} troškova)</span>
+        <span className="text-xs text-secondary">({category._count.expenses} troškova)</span>
       </div>
       <div className="flex items-center gap-2">
         {category.vatDeductibleDefault ? (
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+          <span className="text-xs bg-success-bg text-success-text px-2 py-0.5 rounded">
             PDV priznati
           </span>
         ) : (
-          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+          <span className="text-xs bg-warning-bg text-warning-text px-2 py-0.5 rounded">
             PDV nepriznati
           </span>
         )}
@@ -125,7 +125,7 @@ export function CategoryItem({ category }: CategoryItemProps) {
           size="sm"
           variant="ghost"
           onClick={() => setIsEditing(true)}
-          className="text-blue-600 hover:text-blue-800"
+          className="text-link hover:text-info-text"
         >
           <Pencil className="h-4 w-4" />
         </Button>
@@ -134,7 +134,7 @@ export function CategoryItem({ category }: CategoryItemProps) {
           variant="ghost"
           onClick={handleDelete}
           disabled={isDeleting || category._count.expenses > 0}
-          className="text-red-600 hover:text-red-800 disabled:opacity-50"
+          className="text-danger-text hover:text-danger-text disabled:opacity-50"
           title={
             category._count.expenses > 0
               ? "Nije moguće obrisati kategoriju koja ima troškove"

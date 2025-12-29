@@ -28,7 +28,7 @@ export default async function ExpenseCategoriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Kategorije troškova</h1>
-          <p className="text-gray-500">Upravljanje kategorijama za klasifikaciju troškova</p>
+          <p className="text-secondary">Upravljanje kategorijama za klasifikaciju troškova</p>
         </div>
         <div className="flex gap-2">
           <Link href="/expenses">
@@ -76,7 +76,7 @@ export default async function ExpenseCategoriesPage() {
               {systemCategories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded opacity-75"
+                  className="flex items-center justify-between py-2 px-3 bg-surface-1 rounded opacity-75"
                 >
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-sm bg-[var(--surface)] px-2 py-0.5 rounded border">
@@ -84,7 +84,7 @@ export default async function ExpenseCategoriesPage() {
                     </span>
                     <span>{cat.name}</span>
                   </div>
-                  <span className="text-xs text-gray-500">Sistemska</span>
+                  <span className="text-xs text-secondary">Sistemska</span>
                 </div>
               ))}
             </div>

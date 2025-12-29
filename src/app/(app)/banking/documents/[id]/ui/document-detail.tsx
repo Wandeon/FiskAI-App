@@ -74,8 +74,8 @@ export function DocumentDetail({ job, statement }: Props) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div className="bg-slate-50 border-r h-[80vh]">
-        <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border-b bg-[var(--surface)]">
+      <div className="bg-surface-1 border-r h-[80vh]">
+        <div className="flex items-center gap-2 px-4 py-2 text-sm text-secondary border-b bg-[var(--surface)]">
           <Eye className="h-4 w-4" />
           Izvorni dokument
         </div>
@@ -85,10 +85,10 @@ export function DocumentDetail({ job, statement }: Props) {
             type="application/pdf"
             className="w-full h-[75vh]"
           >
-            <p className="p-4 text-sm text-gray-500">PDF pregled nije dostupan.</p>
+            <p className="p-4 text-sm text-secondary">PDF pregled nije dostupan.</p>
           </object>
         ) : fileType === "image" ? (
-          <div className="w-full h-[75vh] flex items-center justify-center bg-gray-100 overflow-auto p-4">
+          <div className="w-full h-[75vh] flex items-center justify-center bg-surface-1 overflow-auto p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/banking/import/jobs/${job.id}/file`}
@@ -97,8 +97,8 @@ export function DocumentDetail({ job, statement }: Props) {
             />
           </div>
         ) : (
-          <div className="w-full h-[75vh] flex items-center justify-center bg-gray-100">
-            <p className="text-sm text-gray-500">Pregled ovog formata nije dostupan.</p>
+          <div className="w-full h-[75vh] flex items-center justify-center bg-surface-1">
+            <p className="text-sm text-secondary">Pregled ovog formata nije dostupan.</p>
           </div>
         )}
       </div>
@@ -106,13 +106,13 @@ export function DocumentDetail({ job, statement }: Props) {
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-2">
           {job.status === "VERIFIED" ? (
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle2 className="h-5 w-5 text-success-text" />
           ) : (
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <AlertTriangle className="h-5 w-5 text-warning-icon" />
           )}
           <div>
             <p className="font-semibold text-sm">Prepoznate transakcije</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-secondary">
               Usporedite s PDF-om i korigirajte iznose, datume ili reference.
             </p>
           </div>
@@ -120,7 +120,7 @@ export function DocumentDetail({ job, statement }: Props) {
 
         <div className="border rounded-lg max-h-[70vh] overflow-y-auto">
           <table className="w-full text-xs">
-            <thead className="bg-gray-50 sticky top-0">
+            <thead className="bg-surface-1 sticky top-0">
               <tr>
                 <th className="px-3 py-2 text-left">Datum</th>
                 <th className="px-3 py-2 text-left">Opis</th>
@@ -199,7 +199,7 @@ export function DocumentDetail({ job, statement }: Props) {
           <Button onClick={markVerified} variant="secondary" size="sm" disabled={saving}>
             Označi kao verificirano
           </Button>
-          {message && <span className="text-xs text-gray-600">{message}</span>}
+          {message && <span className="text-xs text-secondary">{message}</span>}
         </div>
       </div>
     </div>

@@ -164,7 +164,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
               id="buyerId"
               value={buyerId}
               onChange={(e) => setBuyerId(e.target.value)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
               required
             >
               <option value="">Odaberite kupca...</option>
@@ -208,7 +208,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
                 if (e.target.value) addProduct(e.target.value)
                 e.target.value = ""
               }}
-              className="text-sm rounded-md border-gray-300"
+              className="text-sm rounded-md border-default"
             >
               <option value="">+ Dodaj proizvod...</option>
               {products.map((p) => {
@@ -262,7 +262,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
                     <select
                       value={line.unit}
                       onChange={(e) => updateLine(index, "unit", e.target.value)}
-                      className="w-full rounded-md border-gray-300 text-sm"
+                      className="w-full rounded-md border-default text-sm"
                     >
                       <option value="C62">kom</option>
                       <option value="HUR">sat</option>
@@ -289,7 +289,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
                     <select
                       value={isPausalni ? 0 : line.vatRate}
                       onChange={(e) => updateLine(index, "vatRate", parseFloat(e.target.value))}
-                      className="w-full rounded-md border-gray-300 text-sm disabled:bg-gray-100"
+                      className="w-full rounded-md border-default text-sm disabled:bg-surface-1"
                       disabled={isPausalni}
                       title={isPausalni ? "Paušalni obrt ne obračunava PDV" : undefined}
                     >
@@ -312,7 +312,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
                     <button
                       type="button"
                       onClick={() => removeLine(index)}
-                      className="text-red-500 hover:text-red-700 px-2"
+                      className="text-danger-text hover:text-danger-text px-2"
                       disabled={lines.length === 1}
                     >
                       ×
@@ -334,11 +334,11 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
           <div className="flex justify-end">
             <dl className="text-sm space-y-1">
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">Osnovica:</dt>
+                <dt className="text-secondary">Osnovica:</dt>
                 <dd className="font-mono">{formatCurrency(totals.netAmount)}</dd>
               </div>
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">PDV:</dt>
+                <dt className="text-secondary">PDV:</dt>
                 <dd className="font-mono">{formatCurrency(totals.vatAmount)}</dd>
               </div>
               <div className="flex justify-between gap-8 text-lg border-t pt-2">
@@ -352,8 +352,8 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
 
       {/* Paušalni VAT notice */}
       {isPausalni && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">
+        <div className="rounded-lg border border-info-border bg-info-bg p-4">
+          <p className="text-sm text-info-text">
             <strong>Paušalni obrt:</strong> Kao paušalni obrtnik niste u sustavu PDV-a i ne
             obračunavate PDV na račune. Svi iznosi su prikazani bez PDV-a.
           </p>
@@ -369,7 +369,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full rounded-md border-gray-300 text-sm"
+            className="w-full rounded-md border-default text-sm"
             rows={3}
             placeholder="Dodatne napomene..."
           />

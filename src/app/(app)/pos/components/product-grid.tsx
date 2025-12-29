@@ -57,11 +57,11 @@ export function ProductGrid({ products, onProductClick, onCustomItem }: Props) {
             <button
               key={product.id}
               onClick={() => onProductClick(product)}
-              className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:border-blue-500 hover:shadow-md transition-all text-left"
+              className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:border-interactive hover:shadow-md transition-all text-left"
             >
               <div className="font-medium truncate">{product.name}</div>
               {product.sku && <div className="text-xs text-[var(--muted)]">{product.sku}</div>}
-              <div className="mt-2 text-lg font-bold text-blue-600">
+              <div className="mt-2 text-lg font-bold text-link">
                 {formatPrice(product.price)}
               </div>
               <div className="text-xs text-[var(--muted)]">PDV {product.vatRate}%</div>

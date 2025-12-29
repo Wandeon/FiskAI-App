@@ -46,7 +46,7 @@ export default async function BankAccountsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Bankovni računi</h1>
-          <p className="text-gray-500">Upravljanje bankovnim računima tvrtke</p>
+          <p className="text-secondary">Upravljanje bankovnim računima tvrtke</p>
         </div>
         <Link href="/banking">
           <Button variant="outline">Natrag na bankarstvo</Button>
@@ -77,40 +77,40 @@ export default async function BankAccountsPage() {
         ) : (
           <div className="space-y-4">
             {accounts.map((account) => (
-              <Card key={account.id} className={account.isDefault ? "ring-2 ring-blue-500" : ""}>
+              <Card key={account.id} className={account.isDefault ? "ring-2 ring-info-border" : ""}>
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-lg">{account.name}</h3>
                         {account.isDefault && (
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          <span className="text-xs bg-info-bg text-info-text px-2 py-1 rounded">
                             Zadani račun
                           </span>
                         )}
                       </div>
                       <div className="space-y-1 text-sm">
                         <div>
-                          <span className="text-gray-500">IBAN:</span>{" "}
+                          <span className="text-secondary">IBAN:</span>{" "}
                           <span className="font-mono">{account.iban}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Banka:</span>{" "}
+                          <span className="text-secondary">Banka:</span>{" "}
                           <span>{account.bankName}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Valuta:</span>{" "}
+                          <span className="text-secondary">Valuta:</span>{" "}
                           <span>{account.currency}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Transakcija:</span>{" "}
+                          <span className="text-secondary">Transakcija:</span>{" "}
                           <span>{account._count.transactions}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex flex-col justify-between">
                       <div>
-                        <p className="text-sm text-gray-500">Trenutno stanje</p>
+                        <p className="text-sm text-secondary">Trenutno stanje</p>
                         <p className="text-2xl font-bold">
                           {new Intl.NumberFormat("hr-HR", {
                             style: "currency",
@@ -118,7 +118,7 @@ export default async function BankAccountsPage() {
                           }).format(Number(account.currentBalance))}
                         </p>
                         {account.lastSyncAt && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-secondary mt-1">
                             Zadnja sinkronizacija:{" "}
                             {new Date(account.lastSyncAt).toLocaleString("hr-HR")}
                           </p>

@@ -17,7 +17,7 @@ export function OfflineIndicator({ online, pendingCount, syncing }: OfflineIndic
   // Syncing state
   if (syncing) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+      <div className="flex items-center gap-1.5 text-xs text-link bg-info-bg px-2 py-1 rounded">
         <RefreshCw className="h-3.5 w-3.5 animate-spin" />
         <span>Sinkronizacija...</span>
       </div>
@@ -27,7 +27,7 @@ export function OfflineIndicator({ online, pendingCount, syncing }: OfflineIndic
   // Online with pending sales (syncing completed)
   if (online && pendingCount > 0) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+      <div className="flex items-center gap-1.5 text-xs text-warning-text bg-warning-bg px-2 py-1 rounded">
         <AlertCircle className="h-3.5 w-3.5" />
         <span>{pendingCount} na čekanju</span>
       </div>
@@ -36,7 +36,7 @@ export function OfflineIndicator({ online, pendingCount, syncing }: OfflineIndic
 
   // Offline mode
   return (
-    <div className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+    <div className="flex items-center gap-1.5 text-xs text-danger-text bg-danger-bg px-2 py-1 rounded">
       <WifiOff className="h-3.5 w-3.5" />
       <span>Offline{pendingCount > 0 ? ` (${pendingCount})` : ""}</span>
     </div>

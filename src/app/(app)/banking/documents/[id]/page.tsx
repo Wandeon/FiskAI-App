@@ -43,7 +43,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{job.originalName}</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-secondary">
             {job.bankAccount && (
               <>
                 Račun: {job.bankAccount.name} ({job.bankAccount.iban}) ·{" "}

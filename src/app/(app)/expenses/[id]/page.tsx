@@ -48,7 +48,7 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{expense.description}</h1>
-          <p className="text-gray-500">{expense.category.name}</p>
+          <p className="text-secondary">{expense.category.name}</p>
         </div>
         <div className="flex gap-2">
           <Link href="/expenses">
@@ -65,29 +65,29 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
           </CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-2 text-sm">
-              <dt className="text-gray-500">Status:</dt>
+              <dt className="text-secondary">Status:</dt>
               <dd>
-                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100">
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-surface-1">
                   {STATUS_LABELS[expense.status]}
                 </span>
               </dd>
-              <dt className="text-gray-500">Datum:</dt>
+              <dt className="text-secondary">Datum:</dt>
               <dd>{new Date(expense.date).toLocaleDateString("hr-HR")}</dd>
               {expense.dueDate && (
                 <>
-                  <dt className="text-gray-500">Rok plaćanja:</dt>
+                  <dt className="text-secondary">Rok plaćanja:</dt>
                   <dd>{new Date(expense.dueDate).toLocaleDateString("hr-HR")}</dd>
                 </>
               )}
               {expense.paymentMethod && (
                 <>
-                  <dt className="text-gray-500">Način plaćanja:</dt>
+                  <dt className="text-secondary">Način plaćanja:</dt>
                   <dd>{PAYMENT_LABELS[expense.paymentMethod]}</dd>
                 </>
               )}
               {expense.paymentDate && (
                 <>
-                  <dt className="text-gray-500">Datum plaćanja:</dt>
+                  <dt className="text-secondary">Datum plaćanja:</dt>
                   <dd>{new Date(expense.paymentDate).toLocaleDateString("hr-HR")}</dd>
                 </>
               )}
@@ -104,14 +104,14 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
               <div className="space-y-1">
                 <p className="font-medium">{expense.vendor.name}</p>
                 {expense.vendor.oib && (
-                  <p className="text-sm text-gray-500">OIB: {expense.vendor.oib}</p>
+                  <p className="text-sm text-secondary">OIB: {expense.vendor.oib}</p>
                 )}
                 {expense.vendor.address && (
-                  <p className="text-sm text-gray-500">{expense.vendor.address}</p>
+                  <p className="text-sm text-secondary">{expense.vendor.address}</p>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500">Nepoznat dobavljač</p>
+              <p className="text-secondary">Nepoznat dobavljač</p>
             )}
           </CardContent>
         </Card>
@@ -125,11 +125,11 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
           <div className="flex justify-end">
             <dl className="text-sm space-y-1">
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">Neto:</dt>
+                <dt className="text-secondary">Neto:</dt>
                 <dd className="font-mono">{formatCurrency(expense.netAmount)}</dd>
               </div>
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">PDV:</dt>
+                <dt className="text-secondary">PDV:</dt>
                 <dd className="font-mono">
                   {formatCurrency(expense.vatAmount)}{" "}
                   {expense.vatDeductible ? "(priznati)" : "(nepriznati)"}

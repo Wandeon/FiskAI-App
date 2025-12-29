@@ -79,15 +79,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold font-mono">{invoice.invoiceNumber}</h1>
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-info-bg text-info-text">
               {TYPE_LABELS[invoice.type] || invoice.type}
             </span>
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-surface-1 text-foreground">
               {STATUS_LABELS[invoice.status] || invoice.status}
             </span>
           </div>
           {invoice.internalReference && (
-            <p className="text-sm text-gray-500">Interna oznaka: {invoice.internalReference}</p>
+            <p className="text-sm text-secondary">Interna oznaka: {invoice.internalReference}</p>
           )}
         </div>
         <div className="flex gap-2">
@@ -100,9 +100,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
       {/* Conversion info */}
       {invoice.convertedFrom && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-info-bg border-info-border">
           <CardContent className="py-3">
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-info-text">
               Konvertirano iz:{" "}
               <Link
                 href={`/invoices/${invoice.convertedFrom.id}`}
@@ -116,9 +116,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       )}
 
       {invoice.convertedTo && invoice.convertedTo.length > 0 && (
-        <Card className="bg-green-50 border-green-200">
+        <Card className="bg-success-bg border-success-border">
           <CardContent className="py-3">
-            <p className="text-sm text-green-800">
+            <p className="text-sm text-success-text">
               Konvertirano u:{" "}
               {invoice.convertedTo.map((c, i) => (
                 <span key={c.id}>
@@ -144,19 +144,19 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <div className="space-y-1">
                 <p className="font-medium">{invoice.buyer.name}</p>
                 {invoice.buyer.oib && (
-                  <p className="text-sm text-gray-500">OIB: {invoice.buyer.oib}</p>
+                  <p className="text-sm text-secondary">OIB: {invoice.buyer.oib}</p>
                 )}
                 {invoice.buyer.address && (
-                  <p className="text-sm text-gray-500">{invoice.buyer.address}</p>
+                  <p className="text-sm text-secondary">{invoice.buyer.address}</p>
                 )}
                 {(invoice.buyer.postalCode || invoice.buyer.city) && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-secondary">
                     {invoice.buyer.postalCode} {invoice.buyer.city}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500">-</p>
+              <p className="text-secondary">-</p>
             )}
           </CardContent>
         </Card>
@@ -168,11 +168,11 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </CardHeader>
           <CardContent className="space-y-4">
             <dl className="grid grid-cols-2 gap-2 text-sm">
-              <dt className="text-gray-500">Datum izdavanja:</dt>
+              <dt className="text-secondary">Datum izdavanja:</dt>
               <dd>{new Date(invoice.issueDate).toLocaleDateString("hr-HR")}</dd>
               {invoice.dueDate && (
                 <>
-                  <dt className="text-gray-500">Rok plaćanja:</dt>
+                  <dt className="text-secondary">Rok plaćanja:</dt>
                   <dd>{new Date(invoice.dueDate).toLocaleDateString("hr-HR")}</dd>
                 </>
               )}
@@ -180,7 +180,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
             {/* Fiscal Status */}
             <div className="pt-2 border-t">
-              <div className="text-sm font-medium text-gray-700 mb-2">Status fiskalizacije</div>
+              <div className="text-sm font-medium text-foreground mb-2">Status fiskalizacije</div>
               <FiscalStatusBadge invoice={invoice} hasCertificate={!!activeCertificate} />
             </div>
           </CardContent>
@@ -228,11 +228,11 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           <div className="flex justify-end">
             <dl className="text-sm space-y-1">
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">Osnovica:</dt>
+                <dt className="text-secondary">Osnovica:</dt>
                 <dd className="font-medium">{formatCurrency(Number(invoice.netAmount))}</dd>
               </div>
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">PDV:</dt>
+                <dt className="text-secondary">PDV:</dt>
                 <dd className="font-medium">{formatCurrency(Number(invoice.vatAmount))}</dd>
               </div>
               <div className="flex justify-between gap-8 text-lg border-t pt-2">

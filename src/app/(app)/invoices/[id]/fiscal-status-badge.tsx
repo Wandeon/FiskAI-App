@@ -27,7 +27,7 @@ export function FiscalStatusBadge({ invoice, hasCertificate }: FiscalStatusBadge
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Badge variant="default" className="bg-green-600 hover:bg-green-600">
+          <Badge variant="default" className="bg-success hover:bg-success">
             <CheckCircle2 className="w-3 h-3 mr-1" />
             Fiskalizirano
           </Badge>
@@ -79,7 +79,7 @@ export function FiscalStatusBadge({ invoice, hasCertificate }: FiscalStatusBadge
           </Badge>
           <div className="text-xs text-muted-foreground space-y-1">
             {latestRequest.errorMessage && (
-              <div className="text-red-600">Greška: {latestRequest.errorMessage}</div>
+              <div className="text-danger-text">Greška: {latestRequest.errorMessage}</div>
             )}
             {latestRequest.errorCode && (
               <div className="font-mono">Kod greške: {latestRequest.errorCode}</div>

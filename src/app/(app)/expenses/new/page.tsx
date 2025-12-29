@@ -31,7 +31,7 @@ export default async function NewExpensePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Novi trošak</h1>
-          <p className="text-gray-500">Evidentirajte novi poslovni trošak</p>
+          <p className="text-secondary">Evidentirajte novi poslovni trošak</p>
         </div>
         <Link href="/expenses">
           <Button variant="outline">← Natrag</Button>

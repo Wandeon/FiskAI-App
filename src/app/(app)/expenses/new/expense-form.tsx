@@ -201,13 +201,13 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-end items-center gap-4">
         {receiptUrl && (
-          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-md">
+          <div className="flex items-center gap-2 text-sm text-success-text bg-success-bg px-3 py-1.5 rounded-md">
             <Paperclip className="h-4 w-4" />
             <span>Račun priložen</span>
             <button
               type="button"
               onClick={() => setReceiptUrl(undefined)}
-              className="text-green-600 hover:text-green-800"
+              className="text-success-text hover:text-success-text"
             >
               <X className="h-3 w-3" />
             </button>
@@ -236,7 +236,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
                 const cat = categories.find((c) => c.id === e.target.value)
                 if (cat) setVatDeductible(cat.vatDeductibleDefault)
               }}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
               required
             >
               <option value="">Odaberite...</option>
@@ -248,7 +248,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
             </select>
             {suggestions.length > 0 && (
               <div className="mt-2 space-y-2">
-                <span className="text-xs text-gray-500 flex items-center">
+                <span className="text-xs text-secondary flex items-center">
                   <Sparkles className="h-3 w-3 mr-1" />
                   Prijedlozi:
                 </span>
@@ -257,7 +257,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
                     <div key={suggestion.categoryId} className="group relative">
                       <Badge
                         variant="secondary"
-                        className="cursor-pointer hover:bg-gray-200"
+                        className="cursor-pointer hover:bg-surface-2"
                         onClick={() => setCategoryId(suggestion.categoryId)}
                       >
                         {suggestion.categoryName}
@@ -266,7 +266,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
                         </span>
                       </Badge>
                       {suggestion.reason && (
-                        <div className="absolute z-10 hidden group-hover:block bottom-full left-0 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap">
+                        <div className="absolute z-10 hidden group-hover:block bottom-full left-0 mb-1 px-2 py-1 text-xs text-white bg-surface-2 rounded shadow-lg whitespace-nowrap">
                           {suggestion.reason}
                         </div>
                       )}
@@ -285,7 +285,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
                 const v = vendors.find((x) => x.id === e.target.value)
                 setVendorName(v?.name || "")
               }}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
             >
               <option value="">Nepoznat</option>
               {vendors.map((v) => (
@@ -345,7 +345,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
             <select
               value={vatRate}
               onChange={(e) => setVatRate(e.target.value)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
             >
               <option value="25">25%</option>
               <option value="13">13%</option>
@@ -369,11 +369,11 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
           <div className="flex justify-end">
             <dl className="text-sm space-y-1">
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">Neto:</dt>
+                <dt className="text-secondary">Neto:</dt>
                 <dd className="font-mono">{formatCurrency(net)}</dd>
               </div>
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">PDV:</dt>
+                <dt className="text-secondary">PDV:</dt>
                 <dd className="font-mono">{formatCurrency(vat)}</dd>
               </div>
               <div className="flex justify-between gap-8 text-lg border-t pt-2">
@@ -395,7 +395,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
             >
               <option value="">Nije plaćeno</option>
               <option value="CASH">Gotovina</option>
@@ -415,7 +415,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full rounded-md border-gray-300 text-sm"
+            className="w-full rounded-md border-default text-sm"
             rows={3}
             placeholder="Dodatne napomene..."
           />

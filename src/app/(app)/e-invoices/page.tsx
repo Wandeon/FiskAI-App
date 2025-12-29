@@ -24,15 +24,15 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
-  PENDING_FISCALIZATION: "bg-yellow-100 text-yellow-700",
-  FISCALIZED: "bg-blue-100 text-blue-700",
-  SENT: "bg-blue-100 text-blue-700",
-  DELIVERED: "bg-green-100 text-green-700",
-  ACCEPTED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  ARCHIVED: "bg-gray-100 text-gray-600",
-  ERROR: "bg-red-100 text-red-700",
+  DRAFT: "bg-surface-1 text-foreground",
+  PENDING_FISCALIZATION: "bg-warning-bg text-warning-text",
+  FISCALIZED: "bg-info-bg text-info-text",
+  SENT: "bg-info-bg text-info-text",
+  DELIVERED: "bg-success-bg text-success-text",
+  ACCEPTED: "bg-success-bg text-success-text",
+  REJECTED: "bg-danger-bg text-danger-text",
+  ARCHIVED: "bg-surface-1 text-secondary",
+  ERROR: "bg-danger-bg text-danger-text",
 }
 
 type InvoiceItem = {
@@ -78,12 +78,12 @@ export default async function EInvoicesPage() {
         <div>
           <Link
             href={`/e-invoices/${invoice.id}`}
-            className="font-medium text-blue-600 hover:underline"
+            className="font-medium text-link hover:underline"
           >
             {invoice.invoiceNumber}
           </Link>
           {invoice.jir && (
-            <p className="text-xs text-gray-400 mt-0.5">JIR: {invoice.jir.substring(0, 8)}...</p>
+            <p className="text-xs text-tertiary mt-0.5">JIR: {invoice.jir.substring(0, 8)}...</p>
           )}
         </div>
       ),
@@ -94,7 +94,7 @@ export default async function EInvoicesPage() {
       cell: (invoice) => (
         <div>
           <p className="font-medium">{invoice.buyer?.name || "-"}</p>
-          {invoice.buyer?.oib && <p className="text-xs text-gray-500">OIB: {invoice.buyer.oib}</p>}
+          {invoice.buyer?.oib && <p className="text-xs text-secondary">OIB: {invoice.buyer.oib}</p>}
         </div>
       ),
     },
@@ -118,7 +118,7 @@ export default async function EInvoicesPage() {
           <p className="font-mono font-medium">
             {Number(invoice.totalAmount).toFixed(2)} {invoice.currency}
           </p>
-          <p className="text-xs text-gray-500">PDV: {Number(invoice.vatAmount).toFixed(2)}</p>
+          <p className="text-xs text-secondary">PDV: {Number(invoice.vatAmount).toFixed(2)}</p>
         </div>
       ),
     },
@@ -129,7 +129,7 @@ export default async function EInvoicesPage() {
       cell: (invoice) => (
         <span
           className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-            statusColors[invoice.status] || "bg-gray-100 text-gray-700"
+            statusColors[invoice.status] || "bg-surface-1 text-foreground"
           }`}
         >
           {statusLabels[invoice.status] || invoice.status}
@@ -165,25 +165,25 @@ export default async function EInvoicesPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Ukupno računa</p>
+            <p className="text-sm text-secondary">Ukupno računa</p>
             <p className="text-2xl font-bold">{stats.total}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Nacrti</p>
+            <p className="text-sm text-secondary">Nacrti</p>
             <p className="text-2xl font-bold">{stats.drafts}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Poslano</p>
+            <p className="text-sm text-secondary">Poslano</p>
             <p className="text-2xl font-bold">{stats.sent}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Ukupni iznos</p>
+            <p className="text-sm text-secondary">Ukupni iznos</p>
             <p className="text-2xl font-bold">{stats.totalAmount.toFixed(2)} EUR</p>
           </CardContent>
         </Card>

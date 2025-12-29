@@ -24,15 +24,15 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
-  PENDING_FISCALIZATION: "bg-yellow-100 text-yellow-700",
-  FISCALIZED: "bg-blue-100 text-blue-700",
-  SENT: "bg-blue-100 text-blue-700",
-  DELIVERED: "bg-green-100 text-green-700",
-  ACCEPTED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  ARCHIVED: "bg-gray-100 text-gray-600",
-  ERROR: "bg-red-100 text-red-700",
+  DRAFT: "bg-surface-1 text-foreground",
+  PENDING_FISCALIZATION: "bg-warning-bg text-warning-text",
+  FISCALIZED: "bg-info-bg text-info-text",
+  SENT: "bg-info-bg text-info-text",
+  DELIVERED: "bg-success-bg text-success-text",
+  ACCEPTED: "bg-success-bg text-success-text",
+  REJECTED: "bg-danger-bg text-danger-text",
+  ARCHIVED: "bg-surface-1 text-secondary",
+  ERROR: "bg-danger-bg text-danger-text",
 }
 
 export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageProps) {
@@ -64,7 +64,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
         <div>
           <Link
             href="/e-invoices"
-            className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+            className="text-sm text-secondary hover:text-foreground mb-2 inline-block"
           >
             ← Natrag na listu
           </Link>
@@ -73,7 +73,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
         <div className="flex items-center gap-4">
           <span
             className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${
-              statusColors[invoice.status] || "bg-gray-100 text-gray-700"
+              statusColors[invoice.status] || "bg-surface-1 text-foreground"
             }`}
           >
             {statusLabels[invoice.status] || invoice.status}
@@ -127,7 +127,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
                     {invoice.buyer.email && <p>{invoice.buyer.email}</p>}
                   </>
                 ) : (
-                  <p className="text-gray-500">Kupac nije naveden</p>
+                  <p className="text-secondary">Kupac nije naveden</p>
                 )}
               </CardContent>
             </Card>
@@ -141,22 +141,22 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="border-b bg-gray-50">
+                  <thead className="border-b bg-surface-1">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">#</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-secondary">#</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-secondary">
                         Opis
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-secondary">
                         Kol.
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-secondary">
                         Cijena
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-secondary">
                         PDV
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-secondary">
                         Iznos
                       </th>
                     </tr>
@@ -164,7 +164,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
                   <tbody className="divide-y">
                     {invoice.lines.map((line) => (
                       <tr key={line.id}>
-                        <td className="px-4 py-3 text-sm text-gray-500">{line.lineNumber}</td>
+                        <td className="px-4 py-3 text-sm text-secondary">{line.lineNumber}</td>
                         <td className="px-4 py-3">{line.description}</td>
                         <td className="px-4 py-3 text-right font-mono">
                           {Number(line.quantity)} {line.unit}
@@ -194,13 +194,13 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Neto iznos</span>
+                <span className="text-secondary">Neto iznos</span>
                 <span className="font-mono">
                   {Number(invoice.netAmount).toFixed(2)} {invoice.currency}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">PDV</span>
+                <span className="text-secondary">PDV</span>
                 <span className="font-mono">
                   {Number(invoice.vatAmount).toFixed(2)} {invoice.currency}
                 </span>
@@ -221,23 +221,23 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Datum izdavanja</span>
+                <span className="text-secondary">Datum izdavanja</span>
                 <span>{new Date(invoice.issueDate).toLocaleDateString("hr-HR")}</span>
               </div>
               {invoice.dueDate && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Datum dospijeća</span>
+                  <span className="text-secondary">Datum dospijeća</span>
                   <span>{new Date(invoice.dueDate).toLocaleDateString("hr-HR")}</span>
                 </div>
               )}
               {invoice.buyerReference && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Referenca kupca</span>
+                  <span className="text-secondary">Referenca kupca</span>
                   <span>{invoice.buyerReference}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Smjer</span>
+                <span className="text-secondary">Smjer</span>
                 <span>{invoice.direction === "OUTBOUND" ? "Izlazni" : "Ulazni"}</span>
               </div>
             </CardContent>
@@ -254,7 +254,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
               <CardContent className="space-y-3 text-sm">
                 {invoice.jir && (
                   <div>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-secondary text-xs">
                       <GlossaryTerm term="jir" showIcon={false}>
                         JIR
                       </GlossaryTerm>
@@ -264,7 +264,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
                 )}
                 {invoice.zki && (
                   <div>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-secondary text-xs">
                       <GlossaryTerm term="zki" showIcon={false}>
                         ZKI
                       </GlossaryTerm>
@@ -274,7 +274,7 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
                 )}
                 {invoice.fiscalizedAt && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Fiskalizirano</span>
+                    <span className="text-secondary">Fiskalizirano</span>
                     <span>{new Date(invoice.fiscalizedAt).toLocaleString("hr-HR")}</span>
                   </div>
                 )}
@@ -284,12 +284,12 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
 
           {/* Error Info */}
           {invoice.providerError && (
-            <Card className="border-red-200">
+            <Card className="border-danger-border">
               <CardHeader>
-                <CardTitle className="text-red-600">Greška</CardTitle>
+                <CardTitle className="text-danger-text">Greška</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-red-600">{invoice.providerError}</p>
+                <p className="text-sm text-danger-text">{invoice.providerError}</p>
               </CardContent>
             </Card>
           )}
@@ -301,22 +301,22 @@ export default async function EInvoiceDetailPage({ params }: EInvoiceDetailPageP
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Kreirano</span>
+                <span className="text-secondary">Kreirano</span>
                 <span>{new Date(invoice.createdAt).toLocaleString("hr-HR")}</span>
               </div>
               {invoice.sentAt && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Poslano</span>
+                  <span className="text-secondary">Poslano</span>
                   <span>{new Date(invoice.sentAt).toLocaleString("hr-HR")}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Ažurirano</span>
+                <span className="text-secondary">Ažurirano</span>
                 <span>{new Date(invoice.updatedAt).toLocaleString("hr-HR")}</span>
               </div>
               {invoice.paidAt && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Plaćeno</span>
+                  <span className="text-secondary">Plaćeno</span>
                   <span>{new Date(invoice.paidAt).toLocaleString("hr-HR")}</span>
                 </div>
               )}

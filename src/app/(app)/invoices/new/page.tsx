@@ -50,7 +50,7 @@ export default async function NewInvoicePage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Novi {title.toLowerCase()}</h1>
-          <p className="text-gray-500">Kreirajte novi {title.toLowerCase()}</p>
+          <p className="text-secondary">Kreirajte novi {title.toLowerCase()}</p>
         </div>
         <Link href="/invoices">
           <Button variant="outline">← Natrag</Button>

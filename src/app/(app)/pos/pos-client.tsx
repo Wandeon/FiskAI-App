@@ -176,7 +176,7 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
         <div className="flex items-center gap-3">
           <OfflineIndicator online={online} pendingCount={pendingCount} syncing={syncing} />
           {terminalReaderId ? (
-            <span className="text-xs text-green-600">● Terminal povezan</span>
+            <span className="text-xs text-success-text">● Terminal povezan</span>
           ) : (
             <span className="text-xs text-[var(--muted)]">● Nema terminala</span>
           )}

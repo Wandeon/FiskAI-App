@@ -13,12 +13,12 @@ export function ConnectionBadge({ status, expiresAt }: ConnectionBadgeProps) {
 
     return (
       <div className="flex items-center gap-2">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5" />
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-bg text-success-text">
+          <span className="w-1.5 h-1.5 bg-success rounded-full mr-1.5" />
           Povezano
         </span>
         {daysLeft !== null && daysLeft <= 14 && (
-          <span className="text-xs text-amber-600">
+          <span className="text-xs text-warning-text">
             Ističe za {daysLeft} {daysLeft === 1 ? "dan" : "dana"}
           </span>
         )}
@@ -28,15 +28,15 @@ export function ConnectionBadge({ status, expiresAt }: ConnectionBadgeProps) {
 
   if (status === "EXPIRED") {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5" />
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning-bg text-warning-text">
+        <span className="w-1.5 h-1.5 bg-warning rounded-full mr-1.5" />
         Isteklo
       </span>
     )
   }
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-1 text-secondary">
       Ručni uvoz
     </span>
   )

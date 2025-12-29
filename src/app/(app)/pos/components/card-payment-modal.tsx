@@ -126,15 +126,15 @@ export function CardPaymentModal({
       <div className="text-center space-y-6 py-4">
         {/* Total */}
         <div>
-          <p className="text-sm text-gray-500">Za platiti</p>
+          <p className="text-sm text-secondary">Za platiti</p>
           <p className="text-4xl font-bold">{formatPrice(total)}</p>
         </div>
 
         {/* Status */}
         {state === "creating" && (
           <div className="py-8">
-            <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto" />
-            <p className="mt-4 text-gray-500">Priprema plaćanja...</p>
+            <div className="animate-spin h-12 w-12 border-4 border-info-border border-t-transparent rounded-full mx-auto" />
+            <p className="mt-4 text-secondary">Priprema plaćanja...</p>
           </div>
         )}
 
@@ -142,7 +142,7 @@ export function CardPaymentModal({
           <div className="py-8">
             <div className="text-6xl mb-4">💳</div>
             <p className="text-lg font-medium">Prislonite ili umetnite karticu</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-secondary mt-2">
               Čekanje na terminal...
             </p>
           </div>
@@ -150,16 +150,16 @@ export function CardPaymentModal({
 
         {state === "processing" && (
           <div className="py-8">
-            <div className="animate-spin h-12 w-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto" />
-            <p className="mt-4 text-gray-500">Obrada plaćanja...</p>
+            <div className="animate-spin h-12 w-12 border-4 border-success border-t-transparent rounded-full mx-auto" />
+            <p className="mt-4 text-secondary">Obrada plaćanja...</p>
           </div>
         )}
 
         {state === "error" && (
           <div className="py-4">
             <div className="text-6xl mb-4">❌</div>
-            <p className="text-lg font-medium text-red-600">Plaćanje nije uspjelo</p>
-            <p className="text-sm text-gray-500 mt-2">{error}</p>
+            <p className="text-lg font-medium text-danger-text">Plaćanje nije uspjelo</p>
+            <p className="text-sm text-secondary mt-2">{error}</p>
             <div className="flex justify-center gap-2 mt-6">
               <Button variant="outline" onClick={handleCancel}>
                 Odustani

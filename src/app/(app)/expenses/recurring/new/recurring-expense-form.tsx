@@ -99,7 +99,7 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
               required
             >
               <option value="">Odaberite...</option>
@@ -115,7 +115,7 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
             <select
               value={vendorId}
               onChange={(e) => setVendorId(e.target.value)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
             >
               <option value="">Nepoznat</option>
               {vendors.map((v) => (
@@ -158,7 +158,7 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
             <select
               value={vatRate}
               onChange={(e) => setVatRate(e.target.value)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
             >
               <option value="25">25%</option>
               <option value="13">13%</option>
@@ -171,11 +171,11 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
           <div className="flex justify-end">
             <dl className="text-sm space-y-1">
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">Neto:</dt>
+                <dt className="text-secondary">Neto:</dt>
                 <dd className="font-mono">{formatCurrency(net)}</dd>
               </div>
               <div className="flex justify-between gap-8">
-                <dt className="text-gray-500">PDV:</dt>
+                <dt className="text-secondary">PDV:</dt>
                 <dd className="font-mono">{formatCurrency(vat)}</dd>
               </div>
               <div className="flex justify-between gap-8 text-lg border-t pt-2">
@@ -197,7 +197,7 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
             <select
               value={frequency}
               onChange={(e) => setFrequency(e.target.value as Frequency)}
-              className="w-full mt-1 rounded-md border-gray-300"
+              className="w-full mt-1 rounded-md border-default"
               required
             >
               <option value="WEEKLY">Tjedno</option>

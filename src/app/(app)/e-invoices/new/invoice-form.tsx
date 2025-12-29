@@ -367,7 +367,7 @@ export function InvoiceForm({
                         {...register("invoiceNumber")}
                         placeholder={nextInvoiceNumber}
                         error={errors.invoiceNumber?.message}
-                        className="bg-gray-50 text-gray-700"
+                        className="bg-surface-1 text-foreground"
                       />
                     </div>
 

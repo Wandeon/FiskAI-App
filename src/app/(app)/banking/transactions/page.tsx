@@ -17,10 +17,10 @@ const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
 }
 
 const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
-  UNMATCHED: "bg-orange-100 text-orange-800",
-  AUTO_MATCHED: "bg-green-100 text-green-800",
-  MANUAL_MATCHED: "bg-blue-100 text-blue-800",
-  IGNORED: "bg-gray-100 text-gray-800",
+  UNMATCHED: "bg-warning-bg text-warning-text",
+  AUTO_MATCHED: "bg-success-bg text-success-text",
+  MANUAL_MATCHED: "bg-info-bg text-info-text",
+  IGNORED: "bg-surface-1 text-foreground",
 }
 
 export default async function TransactionsPage({
@@ -112,7 +112,7 @@ export default async function TransactionsPage({
     {
       key: "bankAccount",
       label: "Račun",
-      render: (txn) => <span className="text-sm text-gray-600">{txn.bankAccount.name}</span>,
+      render: (txn) => <span className="text-sm text-secondary">{txn.bankAccount.name}</span>,
     },
     {
       key: "description",
@@ -121,10 +121,10 @@ export default async function TransactionsPage({
         <div className="max-w-md">
           <div className="text-sm truncate">{txn.description}</div>
           {txn.counterpartyName && (
-            <div className="text-xs text-gray-500 truncate">{txn.counterpartyName}</div>
+            <div className="text-xs text-secondary truncate">{txn.counterpartyName}</div>
           )}
           {txn.counterpartyIban && (
-            <div className="text-xs text-gray-400 font-mono">{txn.counterpartyIban}</div>
+            <div className="text-xs text-tertiary font-mono">{txn.counterpartyIban}</div>
           )}
         </div>
       ),
@@ -135,7 +135,7 @@ export default async function TransactionsPage({
       render: (txn) => (
         <span
           className={`font-mono text-sm font-semibold ${
-            Number(txn.amount) >= 0 ? "text-green-600" : "text-red-600"
+            Number(txn.amount) >= 0 ? "text-success-text" : "text-danger-text"
           }`}
         >
           {Number(txn.amount) >= 0 ? "+" : ""}
@@ -147,7 +147,7 @@ export default async function TransactionsPage({
       key: "balance",
       label: "Stanje",
       render: (txn) => (
-        <span className="font-mono text-sm text-gray-600">
+        <span className="font-mono text-sm text-secondary">
           {formatCurrency(Number(txn.balance), txn.bankAccount.currency)}
         </span>
       ),
@@ -161,11 +161,11 @@ export default async function TransactionsPage({
             {MATCH_STATUS_LABELS[txn.matchStatus]}
           </span>
           {txn.matchedInvoice && (
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-secondary mt-1">
               Račun: {txn.matchedInvoice.invoiceNumber}
             </div>
           )}
-          {txn.matchedExpense && <div className="text-xs text-gray-500 mt-1">Trošak</div>}
+          {txn.matchedExpense && <div className="text-xs text-secondary mt-1">Trošak</div>}
         </div>
       ),
     },
@@ -189,7 +189,7 @@ export default async function TransactionsPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Transakcije</h1>
-          <p className="text-gray-500">Pregled bankovnih transakcija</p>
+          <p className="text-secondary">Pregled bankovnih transakcija</p>
         </div>
         <div className="flex gap-2">
           <Link href="/banking/import">
@@ -211,7 +211,7 @@ export default async function TransactionsPage({
                 <select
                   name="accountId"
                   defaultValue={params.accountId || ""}
-                  className="w-full rounded-md border-gray-300 text-sm"
+                  className="w-full rounded-md border-default text-sm"
                 >
                   <option value="">Svi računi</option>
                   {accounts.map((account) => (
@@ -227,7 +227,7 @@ export default async function TransactionsPage({
                 <select
                   name="status"
                   defaultValue={params.status || ""}
-                  className="w-full rounded-md border-gray-300 text-sm"
+                  className="w-full rounded-md border-default text-sm"
                 >
                   <option value="">Svi statusi</option>
                   {Object.entries(MATCH_STATUS_LABELS).map(([value, label]) => (
@@ -244,7 +244,7 @@ export default async function TransactionsPage({
                   type="date"
                   name="dateFrom"
                   defaultValue={params.dateFrom || ""}
-                  className="w-full rounded-md border-gray-300 text-sm"
+                  className="w-full rounded-md border-default text-sm"
                 />
               </div>
 
@@ -254,7 +254,7 @@ export default async function TransactionsPage({
                   type="date"
                   name="dateTo"
                   defaultValue={params.dateTo || ""}
-                  className="w-full rounded-md border-gray-300 text-sm"
+                  className="w-full rounded-md border-default text-sm"
                 />
               </div>
             </div>
@@ -279,22 +279,22 @@ export default async function TransactionsPage({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Ukupno transakcija</p>
+            <p className="text-sm text-secondary">Ukupno transakcija</p>
             <p className="text-2xl font-bold">{total}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Nepovezane</p>
-            <p className="text-2xl font-bold text-orange-600">
+            <p className="text-sm text-secondary">Nepovezane</p>
+            <p className="text-2xl font-bold text-warning-text">
               {transactions.filter((t) => t.matchStatus === "UNMATCHED").length}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Povezane</p>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-sm text-secondary">Povezane</p>
+            <p className="text-2xl font-bold text-success-text">
               {
                 transactions.filter(
                   (t) => t.matchStatus === "AUTO_MATCHED" || t.matchStatus === "MANUAL_MATCHED"
@@ -305,8 +305,8 @@ export default async function TransactionsPage({
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Ignorirane</p>
-            <p className="text-2xl font-bold text-gray-600">
+            <p className="text-sm text-secondary">Ignorirane</p>
+            <p className="text-2xl font-bold text-secondary">
               {transactions.filter((t) => t.matchStatus === "IGNORED").length}
             </p>
           </CardContent>
@@ -354,7 +354,7 @@ export default async function TransactionsPage({
                 </div>
                 <div className="text-right">
                   <p
-                    className={`text-lg font-semibold ${Number(txn.amount) >= 0 ? "text-green-600" : "text-red-600"}`}
+                    className={`text-lg font-semibold ${Number(txn.amount) >= 0 ? "text-success-text" : "text-danger-text"}`}
                   >
                     {Number(txn.amount) >= 0 ? "+" : ""}
                     {formatCurrency(Number(txn.amount), txn.bankAccount.currency)}
@@ -401,7 +401,7 @@ export default async function TransactionsPage({
           {page > 1 && (
             <Link
               href={buildPaginationLink(page - 1, params)}
-              className="px-3 py-1 border rounded hover:bg-gray-50"
+              className="px-3 py-1 border rounded hover:bg-surface-1"
             >
               ← Prethodna
             </Link>
@@ -412,7 +412,7 @@ export default async function TransactionsPage({
           {page < totalPages && (
             <Link
               href={buildPaginationLink(page + 1, params)}
-              className="px-3 py-1 border rounded hover:bg-gray-50"
+              className="px-3 py-1 border rounded hover:bg-surface-1"
             >
               Sljedeća →
             </Link>

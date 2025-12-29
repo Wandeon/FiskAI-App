@@ -108,8 +108,8 @@ export default async function RecurringExpensesPage() {
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             expense.isActive
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-700"
+              ? "bg-success-bg text-success-text"
+              : "bg-surface-1 text-foreground"
           }`}
         >
           {expense.isActive ? "Aktivan" : "Neaktivan"}
@@ -142,13 +142,13 @@ export default async function RecurringExpensesPage() {
       </div>
 
       {/* Info card */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-info-bg border-info-border">
         <CardContent className="py-4">
           <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-900">
+            <Calendar className="h-5 w-5 text-link mt-0.5" />
+            <div className="text-sm text-info-text">
               <p className="font-medium">Kako funkcioniraju ponavljajući troškovi?</p>
-              <p className="mt-1 text-blue-800">
+              <p className="mt-1 text-info-text">
                 Svaki dan u ponoć sustav provjerava ima li ponavljajućih troškova čiji je datum
                 dospio. Za svaki takav trošak automatski se kreira novi trošak u statusu "Nacrt" i
                 postavlja se sljedeći datum prema učestalosti.
@@ -200,8 +200,8 @@ export default async function RecurringExpensesPage() {
                   <span
                     className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                       expense.isActive
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
+                        ? "bg-success-bg text-success-text"
+                        : "bg-surface-1 text-foreground"
                     }`}
                   >
                     {expense.isActive ? "Aktivan" : "Neaktivan"}

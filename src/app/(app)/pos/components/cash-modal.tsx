@@ -127,7 +127,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
       <div className="space-y-6">
         {/* Total due */}
         <div className="text-center">
-          <p className="text-sm text-gray-500">Za platiti</p>
+          <p className="text-sm text-secondary">Za platiti</p>
           <p className="text-4xl font-bold">{formatPrice(total)}</p>
         </div>
 
@@ -165,9 +165,9 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
 
         {/* Change */}
         {receivedAmount >= total && (
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-600">Vraćeno kupcu</p>
-            <p className="text-3xl font-bold text-green-700">
+          <div className="text-center p-4 bg-success-bg rounded-lg">
+            <p className="text-sm text-success-text">Vraćeno kupcu</p>
+            <p className="text-3xl font-bold text-success-text">
               {formatPrice(change)}
             </p>
           </div>
