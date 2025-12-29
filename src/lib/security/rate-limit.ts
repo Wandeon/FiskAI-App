@@ -1,5 +1,7 @@
 // src/lib/security/rate-limit.ts
-// Rate limiting and account security utilities
+// Rate limiting and account security utilities with Redis backend for multi-instance support
+
+import { redis } from "@/lib/regulatory-truth/workers/redis"
 
 interface RateLimitRecord {
   count: number
@@ -7,8 +9,8 @@ interface RateLimitRecord {
   blockedUntil?: number // Timestamp when block expires
 }
 
-// In-memory rate limiting store (in production, use Redis)
-const rateLimitStore = new Map<string, RateLimitRecord>()
+// Redis key prefix for rate limiting
+const RATE_LIMIT_PREFIX = "rate-limit:"
 
 export const RATE_LIMITS = {
   LOGIN: {
@@ -44,97 +46,171 @@ export const RATE_LIMITS = {
 }
 
 /**
- * Check if an identifier has exceeded rate limits
+ * Get the Redis key for a rate limit identifier
  */
-export function checkRateLimit(
+function getKey(identifier: string, limitType: string): string {
+  return `${RATE_LIMIT_PREFIX}${limitType}:${identifier}`
+}
+
+/**
+ * Check if an identifier has exceeded rate limits (async Redis-based)
+ */
+export async function checkRateLimit(
+  identifier: string,
+  limitType: keyof typeof RATE_LIMITS = "API_CALLS"
+): Promise<{ allowed: boolean; resetAt?: number; blockedUntil?: number }> {
+  const now = Date.now()
+  const limit = RATE_LIMITS[limitType]
+  const key = getKey(identifier, limitType)
+
+  try {
+    const data = await redis.get(key)
+    const record: RateLimitRecord | null = data ? JSON.parse(data) : null
+
+    if (!record) {
+      // First attempt in this window
+      const newRecord: RateLimitRecord = {
+        count: 1,
+        resetAt: now + limit.window,
+      }
+      // Set with TTL equal to the window duration (in seconds)
+      await redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(newRecord))
+      return { allowed: true, resetAt: now + limit.window }
+    }
+
+    // Check if currently blocked
+    if (record.blockedUntil && record.blockedUntil > now) {
+      return {
+        allowed: false,
+        resetAt: record.resetAt,
+        blockedUntil: record.blockedUntil,
+      }
+    }
+
+    // Check if we need to reset the window (expired)
+    if (record.resetAt < now) {
+      const newRecord: RateLimitRecord = {
+        count: 1,
+        resetAt: now + limit.window,
+      }
+      await redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(newRecord))
+      return { allowed: true, resetAt: now + limit.window }
+    }
+
+    // Check if we've exceeded the limit
+    if (record.count >= limit.attempts) {
+      // Block the user
+      const blockedRecord: RateLimitRecord = {
+        count: record.count + 1,
+        resetAt: record.resetAt,
+        blockedUntil: now + limit.blockDuration,
+      }
+      // Set TTL to the block duration
+      await redis.setex(key, Math.ceil(limit.blockDuration / 1000), JSON.stringify(blockedRecord))
+      return {
+        allowed: false,
+        resetAt: record.resetAt,
+        blockedUntil: now + limit.blockDuration,
+      }
+    }
+
+    // Increment count
+    const updatedRecord: RateLimitRecord = {
+      ...record,
+      count: record.count + 1,
+    }
+    // Preserve remaining TTL
+    const ttl = await redis.ttl(key)
+    if (ttl > 0) {
+      await redis.setex(key, ttl, JSON.stringify(updatedRecord))
+    } else {
+      await redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(updatedRecord))
+    }
+
+    return { allowed: true, resetAt: record.resetAt }
+  } catch (error) {
+    // If Redis is unavailable, fail open but log the error
+    console.error("[rate-limit] Redis error, allowing request:", error)
+    return { allowed: true }
+  }
+}
+
+/**
+ * Synchronous rate limit check (for backward compatibility)
+ * Uses in-memory fallback when Redis is not immediately available
+ * NOTE: This will not work across instances - use async checkRateLimit where possible
+ */
+const inMemoryFallback = new Map<string, RateLimitRecord>()
+
+export function checkRateLimitSync(
   identifier: string,
   limitType: keyof typeof RATE_LIMITS = "API_CALLS"
 ): { allowed: boolean; resetAt?: number; blockedUntil?: number } {
+  console.warn(
+    "[rate-limit] Using sync rate limit check - this will not work across instances. Use async checkRateLimit instead."
+  )
   const now = Date.now()
   const limit = RATE_LIMITS[limitType]
-  const record = rateLimitStore.get(identifier)
-
-  // Clean up expired records
-  for (const [key, data] of rateLimitStore.entries()) {
-    if (data.resetAt < now) {
-      rateLimitStore.delete(key)
-    }
-  }
+  const key = getKey(identifier, limitType)
+  const record = inMemoryFallback.get(key)
 
   if (!record) {
-    // First attempt in this window
-    rateLimitStore.set(identifier, {
+    inMemoryFallback.set(key, {
       count: 1,
       resetAt: now + limit.window,
     })
     return { allowed: true, resetAt: now + limit.window }
   }
 
-  // Check if currently blocked
   if (record.blockedUntil && record.blockedUntil > now) {
-    return {
-      allowed: false,
-      resetAt: record.resetAt,
-      blockedUntil: record.blockedUntil,
-    }
+    return { allowed: false, resetAt: record.resetAt, blockedUntil: record.blockedUntil }
   }
 
-  // Check if we need to reset the window
   if (record.resetAt < now) {
-    rateLimitStore.set(identifier, {
-      count: 1,
-      resetAt: now + limit.window,
-    })
+    inMemoryFallback.set(key, { count: 1, resetAt: now + limit.window })
     return { allowed: true, resetAt: now + limit.window }
   }
 
-  // Check if we've exceeded the limit
   if (record.count >= limit.attempts) {
-    // Block the user
-    rateLimitStore.set(identifier, {
+    inMemoryFallback.set(key, {
       count: record.count + 1,
       resetAt: record.resetAt,
       blockedUntil: now + limit.blockDuration,
     })
-    return {
-      allowed: false,
-      resetAt: record.resetAt,
-      blockedUntil: now + limit.blockDuration,
-    }
+    return { allowed: false, resetAt: record.resetAt, blockedUntil: now + limit.blockDuration }
   }
 
-  // Increment count
-  rateLimitStore.set(identifier, {
-    ...record,
-    count: record.count + 1,
-  })
-
+  inMemoryFallback.set(key, { ...record, count: record.count + 1 })
   return { allowed: true, resetAt: record.resetAt }
 }
 
 /**
  * Reset rate limit for an identifier
  */
-export function resetRateLimit(identifier: string) {
-  rateLimitStore.delete(identifier)
+export async function resetRateLimit(identifier: string): Promise<void> {
+  // Reset all limit types for this identifier
+  const limitTypes = Object.keys(RATE_LIMITS) as (keyof typeof RATE_LIMITS)[]
+  try {
+    await Promise.all(limitTypes.map((type) => redis.del(getKey(identifier, type))))
+  } catch (error) {
+    console.error("[rate-limit] Redis error during reset:", error)
+  }
+  // Also clear from fallback
+  limitTypes.forEach((type) => inMemoryFallback.delete(getKey(identifier, type)))
 }
 
 /**
  * Get rate limit info for an identifier
  */
-export function getRateLimitInfo(identifier: string): RateLimitRecord | undefined {
-  return rateLimitStore.get(identifier)
+export async function getRateLimitInfo(
+  identifier: string,
+  limitType: keyof typeof RATE_LIMITS = "API_CALLS"
+): Promise<RateLimitRecord | undefined> {
+  try {
+    const data = await redis.get(getKey(identifier, limitType))
+    return data ? JSON.parse(data) : undefined
+  } catch (error) {
+    console.error("[rate-limit] Redis error during info fetch:", error)
+    return undefined
+  }
 }
-
-// Cleanup expired records periodically
-setInterval(
-  () => {
-    const now = Date.now()
-    for (const [key, data] of rateLimitStore.entries()) {
-      if (data.resetAt < now || (data.blockedUntil && data.blockedUntil < now)) {
-        rateLimitStore.delete(key)
-      }
-    }
-  },
-  5 * 60 * 1000
-) // Every 5 minutes

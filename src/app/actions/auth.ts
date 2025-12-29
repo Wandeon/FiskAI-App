@@ -92,7 +92,7 @@ export async function login(formData: z.infer<typeof loginSchema>) {
 
   // Rate limiting for login attempts
   const identifier = `login_${email.toLowerCase()}`
-  const rateLimitResult = checkRateLimit(identifier, "LOGIN")
+  const rateLimitResult = await checkRateLimit(identifier, "LOGIN")
 
   if (!rateLimitResult.allowed) {
     // Don't reveal that account exists or rate limit status
@@ -155,7 +155,7 @@ export async function logout() {
 export async function requestPasswordReset(email: string) {
   // Rate limiting for password reset attempts
   const identifier = `password_reset_${email.toLowerCase()}`
-  const rateLimitResult = checkRateLimit(identifier, "PASSWORD_RESET")
+  const rateLimitResult = await checkRateLimit(identifier, "PASSWORD_RESET")
 
   if (!rateLimitResult.allowed) {
     // Always return success to prevent information leakage and rate limit detection
@@ -356,7 +356,7 @@ export async function verifyEmail(token: string) {
 export async function resendVerificationEmail(email: string) {
   // Rate limiting for verification email resend
   const identifier = `email_verification_${email.toLowerCase()}`
-  const rateLimitResult = checkRateLimit(identifier, "EMAIL_VERIFICATION")
+  const rateLimitResult = await checkRateLimit(identifier, "EMAIL_VERIFICATION")
 
   if (!rateLimitResult.allowed) {
     return { error: "rate_limited" }

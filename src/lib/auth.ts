@@ -44,7 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Rate limiting for login attempts
         const email = credentials.email as string
         const identifier = `login_${email.toLowerCase()}`
-        const rateLimitResult = checkRateLimit(identifier, "LOGIN")
+        const rateLimitResult = await checkRateLimit(identifier, "LOGIN")
 
         if (!rateLimitResult.allowed) {
           console.log(`Rate limited login attempt for ${credentials.email}`)
