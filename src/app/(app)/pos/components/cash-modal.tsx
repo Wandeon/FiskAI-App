@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Modal, ModalFooter } from "@/components/ui/modal"
 import { processPosSale } from "@/app/actions/pos"
 import { toast } from "@/lib/toast"
+import { queueOfflineSale, isOnline } from "@/lib/pos/offline-queue"
 import type { CartItem } from "../types"
 import type { ProcessPosSaleResult } from "@/types/pos"
 
@@ -42,6 +43,27 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
     setProcessing(true)
 
     try {
+      // Check if we're online
+      if (!isOnline()) {
+        // Queue for later sync
+        await queueOfflineSale({
+          items,
+          paymentMethod: "CASH",
+          total,
+        })
+        toast.success("Prodaja spremljena za sinkronizaciju")
+        // Return a partial result for offline mode
+        onComplete({
+          success: true,
+          invoice: {
+            id: `offline-${Date.now()}`,
+            invoiceNumber: "Na čekanju",
+            totalAmount: total,
+          },
+        })
+        return
+      }
+
       const result = await processPosSale({
         items: items.map((item) => ({
           productId: item.productId,
@@ -56,10 +78,45 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
       if (result.success) {
         onComplete(result)
       } else {
-        toast.error(result.error || "Greška pri obradi")
+        // If server error, offer to queue offline
+        const shouldQueue = window.confirm(
+          `${result.error}\n\nŽelite li spremiti prodaju za kasniju sinkronizaciju?`
+        )
+        if (shouldQueue) {
+          await queueOfflineSale({
+            items,
+            paymentMethod: "CASH",
+            total,
+          })
+          toast.success("Prodaja spremljena za sinkronizaciju")
+          onComplete({
+            success: true,
+            invoice: {
+              id: `offline-${Date.now()}`,
+              invoiceNumber: "Na čekanju",
+              totalAmount: total,
+            },
+          })
+        } else {
+          toast.error(result.error || "Greška pri obradi")
+        }
       }
     } catch (error) {
-      toast.error("Greška pri obradi prodaje")
+      // Network error - queue for offline
+      await queueOfflineSale({
+        items,
+        paymentMethod: "CASH",
+        total,
+      })
+      toast.success("Nema veze - prodaja spremljena za sinkronizaciju")
+      onComplete({
+        success: true,
+        invoice: {
+          id: `offline-${Date.now()}`,
+          invoiceNumber: "Na čekanju",
+          totalAmount: total,
+        },
+      })
     } finally {
       setProcessing(false)
     }

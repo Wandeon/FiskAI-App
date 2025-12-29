@@ -7,8 +7,10 @@ import { PaymentBar } from "./components/payment-bar"
 import { CashModal } from "./components/cash-modal"
 import { CardPaymentModal } from "./components/card-payment-modal"
 import { ReceiptModal } from "./components/receipt-modal"
+import { OfflineIndicator } from "./components/offline-indicator"
 import type { PosProduct, CartItem } from "./types"
 import type { ProcessPosSaleResult } from "@/types/pos"
+import { useOfflinePos } from "@/lib/pos/use-offline-pos"
 
 interface Props {
   products: PosProduct[]
@@ -18,6 +20,14 @@ interface Props {
 
 export function PosClient({ products, companyIban, terminalReaderId }: Props) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const { online, pendingCount, syncing, saveCart, loadCart, clearSavedCart } = useOfflinePos({
+    onSyncSuccess: (saleId) => {
+      console.log(`Sale ${saleId} synced successfully`)
+    },
+    onSyncError: (saleId, error) => {
+      console.error(`Failed to sync sale ${saleId}:`, error)
+    },
+  })
   const [showCashModal, setShowCashModal] = useState(false)
   const [showCardModal, setShowCardModal] = useState(false)
   const [saleResult, setSaleResult] = useState<ProcessPosSaleResult | null>(null)
@@ -90,6 +100,24 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
     setSaleResult(null)
   }
 
+  // Backup cart on changes
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      saveCart(cartItems)
+    } else {
+      clearSavedCart()
+    }
+  }, [cartItems, saveCart, clearSavedCart])
+
+  // Restore cart on mount
+  useEffect(() => {
+    loadCart().then((saved) => {
+      if (saved && saved.length > 0) {
+        setCartItems(saved)
+      }
+    })
+  }, [loadCart])
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Don't trigger shortcuts when typing in inputs
@@ -145,7 +173,8 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
           <h1 className="text-xl font-bold">Blagajna</h1>
           <p className="text-xs text-[var(--muted)]">F1 Gotovina • F2 Kartica • Ctrl+Del Očisti</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <OfflineIndicator online={online} pendingCount={pendingCount} syncing={syncing} />
           {terminalReaderId ? (
             <span className="text-xs text-green-600">● Terminal povezan</span>
           ) : (
