@@ -24,8 +24,16 @@ export default async function BankingPage() {
     orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
   })
 
-  // Calculate total balance
-  const totalBalance = accounts.reduce((sum, acc) => sum + Number(acc.currentBalance), 0)
+  // Calculate total balance per currency
+  const balancesByCurrency = accounts.reduce(
+    (acc, account) => {
+      const currency = account.currency
+      const balance = Number(account.currentBalance)
+      acc[currency] = (acc[currency] || 0) + balance
+      return acc
+    },
+    {} as Record<string, number>
+  )
 
   // Get unmatched transactions count
   const unmatchedCount = await db.bankTransaction.count({
@@ -40,7 +48,7 @@ export default async function BankingPage() {
     where: { companyId: company.id },
     include: {
       bankAccount: {
-        select: { name: true },
+        select: { name: true, currency: true },
       },
     },
     orderBy: { date: "desc" },
@@ -73,12 +81,24 @@ export default async function BankingPage() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-gray-500 mb-1">Ukupno stanje</p>
-            <p className="text-3xl font-bold">
-              {new Intl.NumberFormat("hr-HR", {
-                style: "currency",
-                currency: "EUR",
-              }).format(totalBalance)}
-            </p>
+            <div className="space-y-1">
+              {Object.entries(balancesByCurrency).map(([currency, balance]) => (
+                <p key={currency} className="text-3xl font-bold">
+                  {new Intl.NumberFormat("hr-HR", {
+                    style: "currency",
+                    currency,
+                  }).format(balance)}
+                </p>
+              ))}
+              {Object.keys(balancesByCurrency).length === 0 && (
+                <p className="text-3xl font-bold">
+                  {new Intl.NumberFormat("hr-HR", {
+                    style: "currency",
+                    currency: "EUR",
+                  }).format(0)}
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -233,7 +253,7 @@ export default async function BankingPage() {
                             {Number(txn.amount) >= 0 ? "+" : ""}
                             {new Intl.NumberFormat("hr-HR", {
                               style: "currency",
-                              currency: "EUR",
+                              currency: txn.bankAccount.currency,
                             }).format(Number(txn.amount))}
                           </span>
                         </td>
