@@ -17,7 +17,10 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.pool = pool
 }
 
-export { db }
+// Alias for backwards compatibility with experiments module (fixes #926)
+const prisma = db
+
+export { db, prisma }
 export {
   setTenantContext,
   getTenantContext,
