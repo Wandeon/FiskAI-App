@@ -11,17 +11,17 @@ import { DEFAULT_ENTITLEMENTS, getEntitlementsForLegalForm } from "@/lib/modules
 // Onboarding data schema matching what the wizard collects
 export interface OnboardingData {
   // Step 1: Basic Info
-  name: string
-  oib: string
+  name: string | null
+  oib: string | null
   legalForm: LegalForm | null
 
   // Step 2: Competence Level (stored in featureFlags)
   competence: CompetenceLevel | null
 
   // Step 3: Address
-  address: string
-  postalCode: string
-  city: string
+  address: string | null
+  postalCode: string | null
+  city: string | null
   country: string
 
   // Step 4: Contact & Tax
@@ -47,6 +47,29 @@ export async function getOnboardingData(): Promise<OnboardingData | null> {
   const company = await getCurrentCompany(user.id!)
 
   if (!company) {
+    // If user selected business type during registration, pre-fill it
+    const fullUser = await db.user.findUnique({
+      where: { id: user.id! },
+      select: { intendedBusinessType: true },
+    })
+
+    if (fullUser?.intendedBusinessType) {
+      return {
+        name: null,
+        oib: null,
+        legalForm: fullUser.intendedBusinessType as LegalForm,
+        competence: null,
+        address: null,
+        postalCode: null,
+        city: null,
+        country: "HR",
+        email: null,
+        phone: null,
+        iban: null,
+        isVatPayer: false,
+      }
+    }
+
     return null
   }
 

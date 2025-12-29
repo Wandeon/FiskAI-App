@@ -7,16 +7,23 @@ import { cn } from "@/lib/utils"
 
 interface RegisterStepProps {
   email: string
-  onSubmit: (name: string, password: string) => Promise<void>
+  onSubmit: (name: string, password: string, businessType?: string) => Promise<void>
   onBack: () => void
   isLoading: boolean
   error: string | null
 }
 
+const BUSINESS_TYPE_OPTIONS = [
+  { value: "OBRT_PAUSAL", label: "Paušalni obrt" },
+  { value: "OBRT_REAL", label: "Obrt u sustavu PDV-a" },
+  { value: "DOO", label: "d.o.o." },
+]
+
 export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: RegisterStepProps) {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [businessType, setBusinessType] = useState<string>("")
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -29,7 +36,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (canSubmit) {
-      await onSubmit(name, password)
+      await onSubmit(name, password, businessType || undefined)
     }
   }
 
@@ -71,6 +78,38 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
           autoFocus
           className="w-full h-12 px-4 text-base rounded-xl border border-white/20 bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:border-cyan-400"
         />
+
+        <div>
+          <label className="block text-sm font-medium text-white/80 mb-2">
+            Vrsta poslovanja (opcionalno)
+          </label>
+          <div className="grid grid-cols-1 gap-2">
+            {BUSINESS_TYPE_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
+                  businessType === option.value
+                    ? "bg-white/15 border-white/30"
+                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                )}
+              >
+                <input
+                  type="radio"
+                  name="businessType"
+                  value={option.value}
+                  checked={businessType === option.value}
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  className="h-4 w-4 border-white/30 bg-white/10 text-white focus:ring-white/30"
+                />
+                <span className="text-sm text-white/90">{option.label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-white/50">
+            Pomoći će nam da personaliziramo vašu početnu konfiguraciju
+          </p>
+        </div>
 
         <div className="relative">
           <input

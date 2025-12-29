@@ -201,7 +201,7 @@ export function useAuthFlow() {
   )
 
   const register = useCallback(
-    async (name: string, password: string) => {
+    async (name: string, password: string, businessType?: string) => {
       setLoading(true)
       setError(null)
 
@@ -214,6 +214,7 @@ export function useAuthFlow() {
             email: state.email,
             name,
             password,
+            businessType,
           }),
         })
 

@@ -7,12 +7,13 @@ const schema = z.object({
   email: z.string().email(),
   name: z.string().min(2),
   password: z.string().min(8),
+  businessType: z.enum(["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"]).optional(),
 })
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, name, password } = schema.parse(body)
+    const { email, name, password, businessType } = schema.parse(body)
 
     const emailLower = email.toLowerCase()
 
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
         email: emailLower,
         name,
         passwordHash,
+        intendedBusinessType: businessType,
       },
     })
 

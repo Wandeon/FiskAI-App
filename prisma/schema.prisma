@@ -16,6 +16,7 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   systemRole          SystemRole           @default(USER)
+  intendedBusinessType String?             // Business type selected during registration (OBRT_PAUSAL, OBRT_REAL, OBRT_VAT, JDOO, DOO)
   betaOptIn           Boolean              @default(false)
   betaOptInAt         DateTime?
   accounts            Account[]
