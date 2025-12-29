@@ -148,6 +148,32 @@ model Company {
   supportTickets                 SupportTicket[]
   statementTransactions          Transaction[]
   clientInvitations              ClientInvitation[]   @relation("InvitedClients")
+  entitlementHistory             EntitlementHistory[]
+}
+
+// Audit trail for module entitlement changes
+model EntitlementHistory {
+  id            String                   @id @default(cuid())
+  companyId     String
+  userId        String
+  changeType    EntitlementChangeType
+  moduleKey     String?
+  previousValue Json?
+  newValue      Json?
+  previousPlan  String?
+  newPlan       String?
+  reason        String?
+  metadata      Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime                 @default(now())
+  company       Company                  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([changeType])
+  @@index([moduleKey])
+  @@index([createdAt])
 }
 
 model CompanyUser {
@@ -1345,6 +1371,18 @@ enum InvoiceType {
   PROFORMA
   CREDIT_NOTE
   DEBIT_NOTE
+}
+
+enum EntitlementChangeType {
+  MODULE_ENABLED
+  MODULE_DISABLED
+  PERMISSIONS_UPDATED
+  TRIAL_STARTED
+  TRIAL_EXPIRED
+  PLAN_UPGRADED
+  PLAN_DOWNGRADED
+  ENTITLEMENTS_MIGRATED
+  MANUAL_OVERRIDE
 }
 
 enum AuditAction {

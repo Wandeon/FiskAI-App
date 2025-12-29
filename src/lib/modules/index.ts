@@ -1,2 +1,5 @@
 export * from "./definitions"
 export * from "./access"
+export * from "./permissions"
+export * from "./audit"
+export * from "./entitlement-service"
