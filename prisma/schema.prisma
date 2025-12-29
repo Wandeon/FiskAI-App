@@ -940,9 +940,9 @@ model FiscalRequest {
   responseXml    String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  certificate    FiscalCertificate @relation(fields: [certificateId], references: [id])
+  certificate    FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
   company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invoice        EInvoice?         @relation(fields: [invoiceId], references: [id])
+  invoice        EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@unique([companyId, invoiceId, messageType])
   @@index([status, nextRetryAt])
