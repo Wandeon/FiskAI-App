@@ -89,6 +89,10 @@ export interface SourceCard {
   // Evidence provenance (required for primary, optional for supporting)
   evidenceId?: string
   fetchedAt?: string | null // When evidence was fetched; null if unknown (never fabricate)
+  // Freshness metadata (GitHub issue #158)
+  freshnessStatus?: "fresh" | "aging" | "stale" | "critical"
+  freshnessWarning?: string // User-facing warning message
+  daysSinceFetch?: number // Age in days for transparency
 }
 
 /**

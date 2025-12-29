@@ -1,6 +1,11 @@
 // src/lib/assistant/query-engine/citation-builder.ts
 import type { RuleCandidate } from "./rule-selector"
 import type { CitationBlock, SourceCard, AuthorityLevel } from "@/lib/assistant/types"
+import {
+  checkEvidenceFreshness,
+  formatFreshnessWarning,
+  calculateFreshnessPenalty,
+} from "@/lib/assistant/utils/evidence-freshness"
 
 const MAX_SUPPORTING = 3
 
@@ -31,17 +36,37 @@ function ruleToSourceCard(rule: RuleCandidate): SourceCard | null {
   const evidence = pointer.evidence
   if (!evidence) return null
 
+  const authority = rule.authorityLevel as AuthorityLevel
+
+  // Check evidence freshness (GitHub issue #158)
+  const freshnessCheck = checkEvidenceFreshness(
+    evidence.fetchedAt,
+    authority,
+    evidence.hasChanged
+  )
+
+  // Apply freshness penalty to confidence
+  const freshnessPenalty = calculateFreshnessPenalty(freshnessCheck)
+  const adjustedConfidence = rule.confidence * freshnessPenalty
+
+  // Format freshness warning if needed
+  const freshnessWarning = formatFreshnessWarning(freshnessCheck)
+
   return {
     id: rule.id,
     title: rule.titleHr,
-    authority: rule.authorityLevel as AuthorityLevel,
+    authority,
     reference: pointer.lawReference || undefined,
     quote: pointer.exactQuote,
     url: evidence.url || "",
     effectiveFrom: rule.effectiveFrom.toISOString().split("T")[0],
-    confidence: rule.confidence,
+    confidence: adjustedConfidence,
     // Evidence provenance (required for primary citations)
     evidenceId: evidence.id,
     fetchedAt: evidence.fetchedAt?.toISOString() || new Date().toISOString(),
+    // Freshness metadata (GitHub issue #158)
+    freshnessStatus: freshnessCheck.status,
+    freshnessWarning: freshnessWarning || undefined,
+    daysSinceFetch: freshnessCheck.daysSinceFetch,
   }
 }
