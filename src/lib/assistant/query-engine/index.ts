@@ -1,6 +1,12 @@
 export { extractKeywords, tokenize, normalizeDiacritics } from "./text-utils"
 export { matchConcepts, type ConceptMatch } from "./concept-matcher"
 export {
+  matchConceptsWithSemantics,
+  getMatchMethodStats,
+  isSemanticSearchAvailable,
+  type EnhancedConceptMatch,
+} from "./semantic-concept-matcher"
+export {
   selectRules,
   selectRulesSimple,
   type RuleCandidate,

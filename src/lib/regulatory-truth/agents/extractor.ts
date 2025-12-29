@@ -16,6 +16,7 @@ import { isBlockedDomain } from "../utils/concept-resolver"
 import { generateCoverageReport, saveCoverageReport } from "../quality/coverage-report"
 import { normalizeQuotes } from "../utils/quote-normalizer"
 import { isValidDomain } from "../schemas/common"
+import { generatePointerEmbeddingsBatch } from "../utils/rtl-embedder"
 
 // =============================================================================
 // EXTRACTOR AGENT
@@ -290,6 +291,18 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     console.warn(
       `[extractor] Rejected ${rejectedExtractions.length}/${result.output.extractions.length} extractions`
     )
+  }
+
+  // Generate embeddings for source pointers (async, non-blocking)
+  if (sourcePointerIds.length > 0) {
+    console.log(`[extractor] Generating embeddings for ${sourcePointerIds.length} pointers...`)
+    try {
+      const embeddings = await generatePointerEmbeddingsBatch(sourcePointerIds)
+      console.log(`[extractor] ✓ Generated ${embeddings.size} embeddings`)
+    } catch (embeddingError) {
+      // Log but don't fail - embeddings can be backfilled later
+      console.warn(`[extractor] Failed to generate embeddings: ${embeddingError}`)
+    }
   }
 
   // Generate and save coverage report
