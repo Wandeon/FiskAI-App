@@ -91,6 +91,12 @@ export const newsPosts = pgTable(
     // Analytics
     viewCount: integer("view_count").default(0).notNull(),
 
+    // Content Freshness
+    expiresAt: timestamp("expires_at", { withTimezone: true }), // For time-sensitive content
+    lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }), // Last content accuracy check
+    freshnessStatus: varchar("freshness_status", { length: 20 }).default("fresh"), // 'fresh' | 'stale' | 'expired' | 'archived'
+    freshnessCheckedAt: timestamp("freshness_checked_at", { withTimezone: true }), // Last staleness check run
+
     // Timestamps
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -103,6 +109,8 @@ export const newsPosts = pgTable(
     index("idx_news_posts_category").on(table.categoryId),
     index("idx_news_posts_type").on(table.type),
     index("idx_news_posts_impact").on(table.impactLevel),
+    index("idx_news_posts_freshness").on(table.freshnessStatus),
+    index("idx_news_posts_expires").on(table.expiresAt),
   ]
 )
 

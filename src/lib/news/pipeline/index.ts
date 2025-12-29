@@ -48,6 +48,24 @@ export {
   type RetryConfig,
 } from "./error-recovery"
 
+// Staleness Detection
+export {
+  checkAllPostsStaleness,
+  getPostsNeedingReview,
+  markPostAsVerified,
+  setPostExpiration,
+  archiveOldPosts,
+  getFreshnessStats,
+  determineFreshnessStatus,
+  isApproachingStaleness,
+  getStalenessThreshold,
+  STALENESS_THRESHOLDS,
+  WARNING_THRESHOLD_DAYS,
+  type FreshnessStatus,
+  type StalenessCheckResult,
+  type StalenessCheckSummary,
+} from "./staleness-checker"
+
 /**
  * Full pipeline orchestration example:
  *

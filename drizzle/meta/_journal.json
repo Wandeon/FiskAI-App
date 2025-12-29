@@ -78,6 +78,13 @@
       "when": 1766950367844,
       "tag": "0010_wonderful_diamondback",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1767017949752,
+      "tag": "0011_add-news-freshness-fields",
+      "breakpoints": true
     }
   ]
 }
