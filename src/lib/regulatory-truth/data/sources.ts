@@ -21,7 +21,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pausalno",
     name: "Porezna uprava - Paušalno oporezivanje",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/pausalno_oporezivanje.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/pausalno_oporezivanje.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -30,7 +30,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pausalno-obrtnici",
     name: "Porezna uprava - Paušalno oporezivanje obrtnika",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/porez_na_dohodak_pausalno_oporezivanje_obrtnika.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/porez_na_dohodak_pausalno_oporezivanje_obrtnika.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -61,7 +61,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "hzzo-doprinosi",
     name: "HZZO - Doprinosi za zdravstveno osiguranje",
-    url: "https://www.hzzo.hr/obvezno-osiguranje/",
+    url: "https://hzzo.hr/obvezno-osiguranje/",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -70,7 +70,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-doprinosi-stope",
     name: "Porezna uprava - Stope doprinosa",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/doprinosi.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/doprinosi.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -83,7 +83,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pdv",
     name: "Porezna uprava - Porez na dodanu vrijednost",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/porez_na_dodanu_vrijednost.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/porez_na_dodanu_vrijednost.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -92,7 +92,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pdv-stope",
     name: "Porezna uprava - Stope PDV-a",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/stope_poreza_na_dodanu_vrijednost.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/stope_poreza_na_dodanu_vrijednost.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -101,7 +101,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pdv-prag",
     name: "Porezna uprava - Prag za upis u registar PDV-a",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/prag_za_upis_u_registar_obveznika_PDV.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/prag_za_upis_u_registar_obveznika_PDV.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -114,7 +114,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-fiskalizacija",
     name: "Porezna uprava - Fiskalizacija",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/fiskalizacija.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/fiskalizacija.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -136,7 +136,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-rokovi",
     name: "Porezna uprava - Rokovi plaćanja",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/rokovi_placanja_poreza.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/rokovi_placanja_poreza.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -162,7 +162,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-porez-dohodak",
     name: "Porezna uprava - Porez na dohodak",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/porez_na_dohodak.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/porez_na_dohodak.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -171,7 +171,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-osobni-odbitak",
     name: "Porezna uprava - Osobni odbitak",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/osobni_odbitak.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/osobni_odbitak.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -184,7 +184,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-porez-dobit",
     name: "Porezna uprava - Porez na dobit",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/porez_na_dobit.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/porez_na_dobit.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "low",
@@ -210,7 +210,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-eu-promet",
     name: "Porezna uprava - Promet s EU",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/eu_promet.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/eu_promet.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -232,7 +232,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-prirez",
     name: "Porezna uprava - Prirez porezu na dohodak",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/prirez_porezu_na_dohodak.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/prirez_porezu_na_dohodak.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -312,7 +312,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-porezne-kartice",
     name: "Porezna uprava - Porezne kartice",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/porezne_kartice.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/porezne_kartice.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -321,7 +321,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-posebni-porezi",
     name: "Porezna uprava - Posebni porezi",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/posebni_porezi.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/posebni_porezi.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "low",
@@ -330,7 +330,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-porezna-osnovica",
     name: "Porezna uprava - Porezna osnovica",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/porezna_osnovica.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/porezna_osnovica.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -339,7 +339,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-predujam",
     name: "Porezna uprava - Predujam poreza",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/predujam_poreza.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/predujam_poreza.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -348,7 +348,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-godisnja-prijava",
     name: "Porezna uprava - Godišnja porezna prijava",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/godisnja_porezna_prijava.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/godisnja_porezna_prijava.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -357,7 +357,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-joppd",
     name: "Porezna uprava - JOPPD obrazac",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/joppd.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/joppd.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -366,7 +366,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-eporezna",
     name: "Porezna uprava - ePorezna",
-    url: "https://www.porezna-uprava.hr/Stranice/ePorezna.aspx",
+    url: "https://porezna-uprava.gov.hr/Stranice/ePorezna.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -375,7 +375,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-obrasci",
     name: "Porezna uprava - Obrasci",
-    url: "https://www.porezna-uprava.hr/HR_obrasci/Stranice/Obrasci.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_obrasci/Stranice/Obrasci.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -507,7 +507,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pdv-prijava",
     name: "Porezna uprava - PDV prijava",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/pdv_prijava.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/pdv_prijava.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -516,7 +516,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pdv-oslobodjenja",
     name: "Porezna uprava - PDV oslobođenja",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/pdv_oslobodjenja.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/pdv_oslobodjenja.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
@@ -525,7 +525,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-pdv-povrat",
     name: "Porezna uprava - Povrat PDV-a",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/povrat_pdv.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/povrat_pdv.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -578,7 +578,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-misljenja",
     name: "Porezna uprava - Mišljenja i upute",
-    url: "https://www.porezna-uprava.hr/HR_publikacije/Stranice/Misljenja_Upute.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_publikacije/Stranice/Misljenja_Upute.aspx",
     hierarchy: 6,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -587,7 +587,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-tumacenja",
     name: "Porezna uprava - Tumačenja propisa",
-    url: "https://www.porezna-uprava.hr/HR_publikacije/Stranice/Tumacenja_propisa.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_publikacije/Stranice/Tumacenja_propisa.aspx",
     hierarchy: 6,
     fetchIntervalHours: 24,
     priority: "medium",
@@ -631,7 +631,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "hzzo-osnovica",
     name: "HZZO - Osnovica za obračun doprinosa",
-    url: "https://www.hzzo.hr/osnovica-za-obracun-doprinosa/",
+    url: "https://hzzo.hr/osnovica-za-obracun-doprinosa/",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -644,7 +644,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-kalendar",
     name: "Porezna uprava - Porezni kalendar",
-    url: "https://www.porezna-uprava.hr/HR_publikacije/Stranice/Porezni_kalendar.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_publikacije/Stranice/Porezni_kalendar.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "critical",
@@ -653,7 +653,7 @@ export const REGULATORY_SOURCES: SourceDefinition[] = [
   {
     slug: "porezna-zatezne-kamate",
     name: "Porezna uprava - Zatezne kamate",
-    url: "https://www.porezna-uprava.hr/HR_Porezni_sustav/Stranice/zatezne_kamate.aspx",
+    url: "https://porezna-uprava.gov.hr/HR_Porezni_sustav/Stranice/zatezne_kamate.aspx",
     hierarchy: 5,
     fetchIntervalHours: 24,
     priority: "high",
