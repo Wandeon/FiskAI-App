@@ -7,6 +7,7 @@ import {
   type FetchWithRetryOptions,
 } from "../utils/rate-limiter"
 import { detectContentChange, hashContent } from "../utils/content-hash"
+import { findSimilarEvidenceByContent, generateEvidenceEmbedding } from "../utils/evidence-embedder"
 import {
   parseSitemap,
   parseSitemapIndex,
@@ -1172,11 +1173,13 @@ async function processSingleItem(item: {
     }
 
     // Check if we already have this content (from a different URL)
+    // Step 1: Exact hash match (fastest, most reliable)
     const existingEvidence = await db.evidence.findFirst({
       where: { contentHash },
     })
 
     if (existingEvidence) {
+      console.log(`[sentinel] Found exact hash match for ${item.url}`)
       // Link to existing evidence
       await db.discoveredItem.update({
         where: { id: item.id },
@@ -1188,6 +1191,54 @@ async function processSingleItem(item: {
         },
       })
       return { success: true }
+    }
+
+    // Step 2: Semantic similarity check (catches variations)
+    // Only run if hash match failed - prevents unnecessary API calls
+    try {
+      const similarEvidence = await findSimilarEvidenceByContent(
+        content,
+        contentType,
+        0.90, // High threshold for duplicates (90% similarity)
+        1 // Only need to find one match
+      )
+
+      if (similarEvidence.length > 0) {
+        const match = similarEvidence[0]
+        console.log(
+          `[sentinel] Found semantic duplicate for ${item.url} (similarity: ${(match.similarity * 100).toFixed(1)}%, existing: ${match.url})`
+        )
+
+        // Link to existing evidence
+        await db.discoveredItem.update({
+          where: { id: item.id },
+          data: {
+            status: "PROCESSED",
+            processedAt: new Date(),
+            evidenceId: match.id,
+            contentHash, // Still store the hash for this URL
+          },
+        })
+
+        // Log audit event for semantic duplicate detection
+        await logAuditEvent({
+          action: "SEMANTIC_DUPLICATE_DETECTED",
+          entityType: "EVIDENCE",
+          entityId: match.id,
+          metadata: {
+            newUrl: item.url,
+            existingUrl: match.url,
+            similarity: match.similarity,
+            newContentHash: contentHash,
+            existingContentHash: match.contentHash,
+          },
+        })
+
+        return { success: true }
+      }
+    } catch (error) {
+      // If semantic search fails, log and continue to create new Evidence
+      console.error(`[sentinel] Semantic similarity check failed for ${item.url}:`, error)
     }
 
     // Find or create source (auto-creates if not found)
@@ -1255,6 +1306,12 @@ async function processSingleItem(item: {
         url: item.url,
         contentHash: contentHash,
       },
+    })
+
+    // Generate embedding for semantic duplicate detection
+    // Run asynchronously to not block Evidence creation
+    generateEvidenceEmbedding(evidence.id).catch((error) => {
+      console.error(`[sentinel] Failed to generate embedding for Evidence ${evidence.id}:`, error)
     })
 
     await db.discoveredItem.update({
