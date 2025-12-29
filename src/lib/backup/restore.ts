@@ -87,7 +87,7 @@ export async function restoreCompanyData(
         if (!skipInvoices) {
           // Delete invoice lines first
           await tx.eInvoiceLine.deleteMany({
-            where: { invoice: { companyId } },
+            where: { eInvoice: { companyId } },
           })
           await tx.eInvoice.deleteMany({ where: { companyId } })
         }
@@ -133,6 +133,7 @@ export async function restoreCompanyData(
                 await tx.contact.create({
                   data: {
                     companyId,
+                    type: contact.type ?? "CUSTOMER",
                     name: contact.name,
                     email: contact.email,
                     oib: contact.oib,
@@ -150,6 +151,7 @@ export async function restoreCompanyData(
               await tx.contact.create({
                 data: {
                   companyId,
+                  type: contact.type ?? "CUSTOMER",
                   name: contact.name,
                   email: contact.email,
                   oib: contact.oib,
@@ -178,7 +180,7 @@ export async function restoreCompanyData(
                 where: {
                   companyId,
                   OR: [
-                    product.code ? { code: product.code } : {},
+                    product.sku ? { sku: product.sku } : {},
                     { name: product.name },
                   ].filter((c) => Object.keys(c).length > 0),
                 },
@@ -201,7 +203,7 @@ export async function restoreCompanyData(
                   data: {
                     companyId,
                     name: product.name,
-                    code: product.code,
+                    sku: product.sku,
                     description: product.description,
                     unit: product.unit,
                     price: product.price,
@@ -215,7 +217,7 @@ export async function restoreCompanyData(
                 data: {
                   companyId,
                   name: product.name,
-                  code: product.code,
+                  sku: product.sku,
                   description: product.description,
                   unit: product.unit,
                   price: product.price,
@@ -246,7 +248,7 @@ export async function restoreCompanyData(
               if (existing) {
                 // Update invoice and replace lines
                 await tx.eInvoiceLine.deleteMany({
-                  where: { invoiceId: existing.id },
+                  where: { eInvoiceId: existing.id },
                 })
                 await tx.eInvoice.update({
                   where: { id: existing.id },
@@ -266,7 +268,7 @@ export async function restoreCompanyData(
                 for (const line of invoice.lines) {
                   await tx.eInvoiceLine.create({
                     data: {
-                      invoiceId: existing.id,
+                      eInvoiceId: existing.id,
                       lineNumber: line.lineNumber,
                       description: line.description,
                       quantity: line.quantity,
@@ -297,7 +299,7 @@ export async function restoreCompanyData(
                 for (const line of invoice.lines) {
                   await tx.eInvoiceLine.create({
                     data: {
-                      invoiceId: newInvoice.id,
+                      eInvoiceId: newInvoice.id,
                       lineNumber: line.lineNumber,
                       description: line.description,
                       quantity: line.quantity,
@@ -329,7 +331,7 @@ export async function restoreCompanyData(
               for (const line of invoice.lines) {
                 await tx.eInvoiceLine.create({
                   data: {
-                    invoiceId: newInvoice.id,
+                    eInvoiceId: newInvoice.id,
                     lineNumber: line.lineNumber,
                     description: line.description,
                     quantity: line.quantity,
@@ -379,6 +381,7 @@ export async function restoreCompanyData(
                 await tx.expense.create({
                   data: {
                     companyId,
+                    categoryId: expense.categoryId,
                     date: expense.date,
                     description: expense.description,
                     status: expense.status,
@@ -394,6 +397,7 @@ export async function restoreCompanyData(
               await tx.expense.create({
                 data: {
                   companyId,
+                  categoryId: expense.categoryId,
                   date: expense.date,
                   description: expense.description,
                   status: expense.status,
