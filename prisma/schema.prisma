@@ -474,7 +474,7 @@ model Expense {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   bankTransactions BankTransaction[]
-  category         ExpenseCategory   @relation(fields: [categoryId], references: [id])
+  category         ExpenseCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   vendor           Contact?          @relation("ExpenseVendor", fields: [vendorId], references: [id])
 
