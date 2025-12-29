@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Mail, Phone, MapPin, Clock, MessageSquare } from "lucide-react"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
 import { companyInfo, getPhoneLink, getFullAddress } from "@/config/company"
+import { ContactForm } from "@/components/marketing/contact-form"
 
 export const metadata: Metadata = {
   title: "FiskAI — Kontakt",
@@ -132,57 +133,7 @@ export default function ContactPage() {
                 Zatražite personalizirani demo koji pokazuje kako FiskAI može ubrzati vaše
                 računovodstvo.
               </p>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Ime i prezime *</label>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
-                    placeholder="Vaše ime i prezime"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email *</label>
-                  <input
-                    type="email"
-                    className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
-                    placeholder="vaš@email.hr"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Tip poslovanja *</label>
-                  <select className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40">
-                    <option value="">Odaberite...</option>
-                    <option value="pausalni-obrt">Paušalni obrt</option>
-                    <option value="vat-obrt">VAT obrt</option>
-                    <option value="doo">d.o.o.</option>
-                    <option value="accountant">Knjigovođa/računovoda</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Broj računa mjesečno *</label>
-                  <select className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40">
-                    <option value="">Odaberite...</option>
-                    <option value="1-10">1-10</option>
-                    <option value="11-50">11-50</option>
-                    <option value="51-200">51-200</option>
-                    <option value="200+">200+</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Poruka (opcionalno)</label>
-                  <textarea
-                    className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 min-h-[100px]"
-                    placeholder="Specifična pitanja ili zahtjevi..."
-                  />
-                </div>
-                <button className="w-full rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 text-sm font-semibold text-white hover:opacity-90">
-                  Pošalji zahtjev za demo
-                </button>
-                <p className="text-xs text-white/60">
-                  Kontaktirat ćemo vas unutar 24h radnim danima da dogovorimo vrijeme demo sastanka.
-                </p>
-              </div>
+              <ContactForm />
             </div>
 
             <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
