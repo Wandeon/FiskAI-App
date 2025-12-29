@@ -256,6 +256,9 @@ export async function updateExpenseInline(
         data.status = validated.data.status
         if (validated.data.status === "PAID") {
           data.paymentDate = new Date()
+          // Default to OTHER when payment method is not specified via inline update
+          // This ensures paymentMethod is always set when marking as PAID
+          data.paymentMethod = "OTHER"
         }
       }
       if (validated.data.totalAmount !== undefined) {
