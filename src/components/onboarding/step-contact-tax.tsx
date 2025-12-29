@@ -17,8 +17,10 @@ export function StepContactTax() {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = () => {
-    if (!isStepValid(4)) return
+  const handleSubmit = async (skipOptional: boolean = false) => {
+    // For skip, only email is required. For submit, validate all filled fields
+    if (!skipOptional && !isStepValid(4)) return
+    if (skipOptional && !data.email?.includes("@")) return
 
     startTransition(async () => {
       setError(null)
@@ -32,13 +34,13 @@ export function StepContactTax() {
         oib: data.oib!,
         legalForm: data.legalForm!,
         competence: data.competence,
-        address: data.address!,
-        postalCode: data.postalCode!,
-        city: data.city!,
-        country: data.country!,
+        address: data.address || undefined,
+        postalCode: data.postalCode || undefined,
+        city: data.city || undefined,
+        country: data.country || "HR",
         email: data.email!,
         phone: data.phone || undefined,
-        iban: data.iban!,
+        iban: data.iban || undefined,
         isVatPayer,
       })
 
@@ -58,11 +60,12 @@ export function StepContactTax() {
         // Track company creation and proceed to billing step
         trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, {
           step: 4,
-          competence: data.competence
+          competence: data.competence,
+          skippedOptional: skipOptional,
         })
         toast.success(
           "Podaci spremljeni!",
-          "Još jedan korak do kraja"
+          skipOptional ? "Možete dovršiti ostale podatke kasnije" : "Još jedan korak do kraja"
         )
 
         // Navigate to billing step (step 6)
@@ -75,7 +78,7 @@ export function StepContactTax() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Kontakt i porezni podaci</h2>
-        <p className="mt-1 text-sm text-gray-600">Završite postavljanje tvrtke</p>
+        <p className="mt-1 text-sm text-gray-600">Email je obavezan, ostalo možete dodati kasnije</p>
       </div>
 
       {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
@@ -97,7 +100,7 @@ export function StepContactTax() {
 
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-            Telefon
+            Telefon <span className="text-xs text-gray-500">(opcionalno)</span>
           </label>
           <Input
             id="phone"
@@ -110,7 +113,7 @@ export function StepContactTax() {
 
         <div>
           <label htmlFor="iban" className="block text-sm font-medium text-gray-700">
-            IBAN *
+            IBAN <span className="text-xs text-gray-500">(opcionalno, potreban za e-račune)</span>
           </label>
           <Input
             id="iban"
@@ -119,6 +122,7 @@ export function StepContactTax() {
             placeholder="HR1234567890123456789"
             className="mt-1"
           />
+          <p className="mt-1 text-xs text-gray-500">IBAN je potreban za slanje e-računa</p>
         </div>
 
         {/* Hide VAT checkbox for paušalni obrt - they cannot be VAT payers */}
@@ -146,13 +150,25 @@ export function StepContactTax() {
         )}
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-3">
         <Button variant="outline" onClick={() => setStep(3)} disabled={isPending}>
           Natrag
         </Button>
-        <Button onClick={handleSubmit} disabled={!isStepValid(4) || isPending}>
-          {isPending ? "Spremanje..." : "Nastavi"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => handleSubmit(true)}
+            disabled={!data.email?.includes("@") || isPending}
+          >
+            Dovršit ću kasnije
+          </Button>
+          <Button
+            onClick={() => handleSubmit(false)}
+            disabled={!isStepValid(4) || isPending}
+          >
+            {isPending ? "Spremanje..." : "Nastavi"}
+          </Button>
+        </div>
       </div>
     </div>
   )

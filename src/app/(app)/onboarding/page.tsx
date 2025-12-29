@@ -17,19 +17,39 @@ import { Loader2 } from "lucide-react"
 /**
  * Calculate which onboarding step should be shown based on completion
  * Returns 1-6 for first incomplete step, or 7 if all complete (treated as 6 for display)
+ *
+ * REQUIRED steps:
+ * - Step 1: Basic Info (name, OIB, legal form)
+ *
+ * OPTIONAL steps (can be skipped):
+ * - Step 2: Competence Level
+ * - Step 3: Address
+ * - Step 4: Contact & Tax (only email is required, IBAN and phone are optional)
+ * - Step 5: Paušalni Profile (only for OBRT_PAUSAL)
+ * - Step 6: Billing (informational only)
  */
 function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5 | 6 | 7 {
   if (!data) return 1
 
-  // Step 1: Basic Info (name, oib, legalForm)
+  // Step 1: Basic Info (name, oib, legalForm) - REQUIRED
   const step1Complete = !!(data.name?.trim() && data.oib?.match(/^\d{11}$/) && data.legalForm)
   if (!step1Complete) return 1
 
-  // Step 2: Competence Level
+  // After step 1, check if user has completed minimum required data for dashboard access
+  // Minimum: Step 1 (basic info) - that's it! Everything else is optional
+
+  // If user has email, they've likely completed the flow - go to billing
+  if (data.email?.includes("@")) {
+    return 6 // Go to billing step
+  }
+
+  // Otherwise, continue with normal flow
+
+  // Step 2: Competence Level - OPTIONAL
   const step2Complete = !!data.competence
   if (!step2Complete) return 2
 
-  // Step 3: Address
+  // Step 3: Address - OPTIONAL
   const step3Complete = !!(
     data.address?.trim() &&
     data.postalCode?.trim() &&
@@ -38,8 +58,8 @@ function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5
   )
   if (!step3Complete) return 3
 
-  // Step 4: Contact & Tax (email and iban required)
-  const step4Complete = !!(data.email?.includes("@") && data.iban?.trim())
+  // Step 4: Contact & Tax (only email required, IBAN optional)
+  const step4Complete = !!data.email?.includes("@")
   if (!step4Complete) return 4
 
   // Step 5: Paušalni Profile (only for OBRT_PAUSAL)

@@ -66,6 +66,14 @@ export function StepCompetence() {
     }
   }
 
+  const handleSkip = () => {
+    trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, {
+      step: 2,
+      skipped: true,
+    })
+    setStep(3)
+  }
+
   const handleBack = () => {
     setStep(1)
   }
@@ -154,13 +162,18 @@ export function StepCompetence() {
         Možete promijeniti ovu postavku bilo kada u postavkama.
       </p>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-3">
         <Button variant="outline" onClick={handleBack}>
           Natrag
         </Button>
-        <Button onClick={handleNext} disabled={!isStepValid(2)}>
-          Dalje
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={handleSkip}>
+            Preskoči za sada
+          </Button>
+          <Button onClick={handleNext} disabled={!isStepValid(2)}>
+            Dalje
+          </Button>
+        </div>
       </div>
     </div>
   )

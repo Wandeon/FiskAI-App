@@ -85,10 +85,16 @@ export const useOnboardingStore = create<OnboardingState>()(
         const { data } = get()
         switch (step) {
           case 1:
+            // Step 1: Required - Basic company info (name, OIB, legal form)
             return !!(data.name?.trim() && data.oib?.match(/^\d{11}$/) && data.legalForm)
           case 2:
+            // Step 2: Optional - Competence level (can be skipped)
             return !!data.competence
           case 3:
+            // Step 3: Optional - Address (can be skipped)
+            // If any address field is filled, all address fields must be filled
+            const hasAnyAddress = !!(data.address || data.postalCode || data.city)
+            if (!hasAnyAddress) return true // Allow empty address
             return !!(
               data.address?.trim() &&
               data.postalCode?.trim() &&
@@ -96,7 +102,11 @@ export const useOnboardingStore = create<OnboardingState>()(
               data.country?.trim()
             )
           case 4:
-            return !!(data.email?.includes("@") && data.iban?.trim())
+            // Step 4: Email required, IBAN and phone optional
+            // If IBAN is filled, it should have some content
+            const emailValid = !!data.email?.includes("@")
+            const ibanValid = !data.iban || data.iban.trim().length > 0
+            return emailValid && ibanValid
           case 5:
             // Only validate Step 5 for OBRT_PAUSAL legal form
             if (data.legalForm !== "OBRT_PAUSAL") {

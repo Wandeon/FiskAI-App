@@ -4,14 +4,24 @@
 import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 
 export function StepAddress() {
   const { data, updateData, setStep, isStepValid } = useOnboardingStore()
 
   const handleNext = () => {
     if (isStepValid(3)) {
+      trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, { step: 3 })
       setStep(4)
     }
+  }
+
+  const handleSkip = () => {
+    trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, {
+      step: 3,
+      skipped: true,
+    })
+    setStep(4)
   }
 
   return (
@@ -77,13 +87,18 @@ export function StepAddress() {
         </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-3">
         <Button variant="outline" onClick={() => setStep(2)}>
           Natrag
         </Button>
-        <Button onClick={handleNext} disabled={!isStepValid(3)}>
-          Dalje
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={handleSkip}>
+            Preskoči za sada
+          </Button>
+          <Button onClick={handleNext} disabled={!isStepValid(3)}>
+            Dalje
+          </Button>
+        </div>
       </div>
     </div>
   )
