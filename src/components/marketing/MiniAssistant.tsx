@@ -59,7 +59,7 @@ export function MiniAssistant() {
   )
 
   return (
-    <section className="relative bg-gradient-to-b from-slate-900/90 via-slate-800/60 to-white py-12 md:py-16">
+    <section className="relative bg-gradient-to-b from-surface-dark via-surface-1 to-white py-12 md:py-16">
       {/* Subtle grid overlay continuing from hero */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.02]"
@@ -77,14 +77,14 @@ export function MiniAssistant() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="rounded-2xl bg-slate-800/50 backdrop-blur-md border border-slate-700/50 p-6 md:p-8"
+          className="rounded-2xl bg-surface/50 backdrop-blur-md border border-border p-6 md:p-8"
         >
           {/* Header */}
           <div className="text-center mb-6">
             <h2 className="text-lg md:text-xl font-semibold text-white">
               Pitajte nas bilo što o porezima i poslovanju
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-secondary mt-1">
               Svaki odgovor potkrijepljen službenim izvorima
             </p>
           </div>
@@ -94,10 +94,10 @@ export function MiniAssistant() {
             <motion.div
               className={cn(
                 "relative rounded-xl transition-all duration-300",
-                "bg-slate-900/70 border",
+                "bg-surface-dark border",
                 isFocused
-                  ? "border-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
-                  : "border-slate-600/50"
+                  ? "border-focus shadow-focus"
+                  : "border-border"
               )}
               animate={
                 isFocused
@@ -122,7 +122,7 @@ export function MiniAssistant() {
                 placeholder="Postavite pitanje..."
                 className={cn(
                   "w-full px-4 py-3.5 pr-12 rounded-xl",
-                  "bg-transparent text-white placeholder:text-slate-500",
+                  "bg-transparent text-white placeholder:text-muted",
                   "focus:outline-none"
                 )}
               />
@@ -135,9 +135,9 @@ export function MiniAssistant() {
                   "absolute right-2 top-1/2 -translate-y-1/2",
                   "p-2 rounded-lg transition-all duration-200",
                   "disabled:opacity-30 disabled:cursor-not-allowed",
-                  "bg-gradient-to-r from-cyan-500 to-blue-600",
-                  "text-white shadow-lg shadow-cyan-500/20",
-                  "hover:shadow-xl hover:shadow-cyan-500/25"
+                  "bg-interactive",
+                  "text-white shadow-lg",
+                  "hover:bg-interactive-hover hover:shadow-xl"
                 )}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -147,7 +147,7 @@ export function MiniAssistant() {
             </motion.div>
 
             {/* Verified answers microline */}
-            <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500 mt-2">
+            <p className="flex items-center justify-center gap-1.5 text-xs text-muted mt-2">
               <Shield className="w-3 h-3" />
               Verificirani odgovori s izvorima
             </p>
@@ -168,9 +168,9 @@ export function MiniAssistant() {
                 whileTap={{ scale: 0.98 }}
                 className={cn(
                   "px-3 py-2 text-sm rounded-full whitespace-nowrap",
-                  "bg-slate-700/50 border border-slate-600/50",
-                  "text-slate-300 hover:text-white",
-                  "hover:bg-slate-700/70 hover:border-slate-500/50",
+                  "bg-surface-1 border border-border",
+                  "text-secondary hover:text-white",
+                  "hover:bg-surface-2 hover:border-border-hover",
                   "transition-all duration-200"
                 )}
               >
@@ -181,11 +181,11 @@ export function MiniAssistant() {
 
           {/* Authority proof strip */}
           <div className="flex items-center justify-center gap-3 mb-6">
-            <span className="text-xs text-slate-500">Izvori:</span>
+            <span className="text-xs text-muted">Izvori:</span>
             {AUTHORITY_SOURCES.map((source) => (
               <span
                 key={source.short}
-                className="px-2 py-1 text-xs rounded bg-slate-700/30 text-slate-400 border border-slate-600/30"
+                className="px-2 py-1 text-xs rounded bg-surface-1 text-secondary border border-border"
                 title={source.name}
               >
                 {source.name}
@@ -197,7 +197,7 @@ export function MiniAssistant() {
           <div className="text-center">
             <motion.a
               href="/assistant"
-              className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-link hover:text-link-hover transition-colors"
               whileHover={{ x: 3 }}
             >
               Otvori puni odgovor sa izvorima

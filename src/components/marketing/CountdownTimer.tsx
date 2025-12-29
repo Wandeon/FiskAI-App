@@ -40,28 +40,28 @@ function getUrgencyLevel(days: number): "relaxed" | "attention" | "urgent" | "cr
 
 const urgencyStyles = {
   relaxed: {
-    bg: "bg-green-500/10",
-    border: "border-green-500/30",
-    text: "text-green-400",
-    bar: "bg-green-500",
+    bg: "bg-success-bg",
+    border: "border-success-border",
+    text: "text-success-text",
+    bar: "bg-success",
   },
   attention: {
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/30",
-    text: "text-blue-400",
-    bar: "bg-blue-500",
+    bg: "bg-info-bg",
+    border: "border-info-border",
+    text: "text-info-text",
+    bar: "bg-info",
   },
   urgent: {
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/30",
-    text: "text-amber-400",
-    bar: "bg-amber-500",
+    bg: "bg-warning-bg",
+    border: "border-warning-border",
+    text: "text-warning-text",
+    bar: "bg-warning",
   },
   critical: {
-    bg: "bg-red-500/10",
-    border: "border-red-500/30",
-    text: "text-red-400",
-    bar: "bg-red-500",
+    bg: "bg-danger-bg",
+    border: "border-danger-border",
+    text: "text-danger-text",
+    bar: "bg-danger",
   },
 }
 

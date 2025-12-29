@@ -21,7 +21,7 @@ export function AuroraBackground({ className, intensity = "medium" }: AuroraBack
     <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
       {/* Primary cyan orb - top left */}
       <motion.div
-        className="absolute -left-[10%] -top-[20%] h-[500px] w-[500px] rounded-full bg-cyan-500 blur-[120px]"
+        className="absolute -left-[10%] -top-[20%] h-[500px] w-[500px] rounded-full bg-accent blur-[120px]"
         style={{ opacity: opacity.base }}
         animate={{
           x: [0, 30, 0],
@@ -38,7 +38,7 @@ export function AuroraBackground({ className, intensity = "medium" }: AuroraBack
 
       {/* Secondary blue orb - center right */}
       <motion.div
-        className="absolute -right-[5%] top-[30%] h-[400px] w-[400px] rounded-full bg-blue-600 blur-[100px]"
+        className="absolute -right-[5%] top-[30%] h-[400px] w-[400px] rounded-full bg-interactive blur-[100px]"
         style={{ opacity: opacity.base }}
         animate={{
           x: [0, -20, 0],
@@ -55,7 +55,7 @@ export function AuroraBackground({ className, intensity = "medium" }: AuroraBack
 
       {/* Tertiary indigo orb - bottom center */}
       <motion.div
-        className="absolute bottom-[10%] left-[40%] h-[350px] w-[350px] rounded-full bg-indigo-500 blur-[100px]"
+        className="absolute bottom-[10%] left-[40%] h-[350px] w-[350px] rounded-full bg-chart-1 blur-[100px]"
         style={{ opacity: opacity.base * 0.7 }}
         animate={{
           x: [0, -40, 0],
@@ -72,7 +72,7 @@ export function AuroraBackground({ className, intensity = "medium" }: AuroraBack
 
       {/* Small accent orb - adds sparkle */}
       <motion.div
-        className="absolute right-[30%] top-[15%] h-[200px] w-[200px] rounded-full bg-cyan-400 blur-[80px]"
+        className="absolute right-[30%] top-[15%] h-[200px] w-[200px] rounded-full bg-accent-light blur-[80px]"
         style={{ opacity: opacity.base * 0.5 }}
         animate={{
           x: [0, 50, 0],

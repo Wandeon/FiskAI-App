@@ -109,7 +109,7 @@ function PreviewFrame({
       <div className="relative p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-blue-600/10 text-blue-700 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-interactive-secondary text-interactive flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4" />
             </div>
             <p className="text-xs font-semibold text-[var(--muted)]">FiskAI • Demo</p>
@@ -133,11 +133,11 @@ function PreviewFrame({
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 h-10 w-10 rounded-xl bg-blue-600/10 text-blue-700 flex items-center justify-center">
+                  <div className="mt-0.5 h-10 w-10 rounded-xl bg-interactive-secondary text-interactive flex items-center justify-center">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-blue-700">{preview.kicker}</p>
+                    <p className="text-xs font-semibold text-interactive">{preview.kicker}</p>
                     <p className="text-sm font-semibold">{preview.title}</p>
                   </div>
                 </div>
@@ -229,13 +229,13 @@ export function WorkflowScroller({
               className={cn(
                 "rounded-2xl border p-6 transition-colors",
                 isActive
-                  ? "border-blue-200 bg-blue-50"
+                  ? "border-info-border bg-info-bg"
                   : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-secondary)]"
               )}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold text-blue-700">Korak {index + 1}</p>
+                  <p className="text-xs font-semibold text-interactive">Korak {index + 1}</p>
                   <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
                   <p className="mt-1 text-sm text-[var(--muted)]">{step.subtitle}</p>
                 </div>
@@ -243,7 +243,7 @@ export function WorkflowScroller({
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold",
                     isActive
-                      ? "border-blue-200 bg-white text-blue-700"
+                      ? "border-info-border bg-white text-interactive"
                       : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]"
                   )}
                 >
@@ -253,7 +253,7 @@ export function WorkflowScroller({
               <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
                 {step.bullets.map((bullet) => (
                   <li key={bullet} className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-blue-600" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-interactive" />
                     <span>{bullet}</span>
                   </li>
                 ))}

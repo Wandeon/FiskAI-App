@@ -82,8 +82,8 @@ export function PortalCard({
         <motion.div
           className={cn(
             "relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition-colors",
-            "hover:border-cyan-400/30 hover:bg-white/10",
-            featured && "border-cyan-400/20 bg-cyan-500/10"
+            "hover:border-accent-border hover:bg-white/10",
+            featured && "border-accent-border bg-accent-light"
           )}
           style={{
             transformStyle: "preserve-3d",
@@ -131,7 +131,7 @@ export function PortalCard({
 
           <div className="relative z-10 flex items-start gap-3">
             {icon && (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-cyan-400">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-accent-icon">
                 {icon}
               </span>
             )}
@@ -151,7 +151,7 @@ export function PortalCard({
               )}
             </div>
 
-            <ArrowRight className="h-4 w-4 shrink-0 text-white/40 transition-all group-hover:translate-x-0.5 group-hover:text-cyan-400" />
+            <ArrowRight className="h-4 w-4 shrink-0 text-white/40 transition-all group-hover:translate-x-0.5 group-hover:text-accent-icon" />
           </div>
         </motion.div>
       </Link>

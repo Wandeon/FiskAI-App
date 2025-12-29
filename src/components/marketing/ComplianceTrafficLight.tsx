@@ -54,27 +54,27 @@ async function fetchUpcomingDeadlines(): Promise<DeadlineInfo> {
 const statusConfig = {
   green: {
     icon: CheckCircle,
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-700",
-    dot: "bg-green-500",
-    glow: "shadow-green-200",
+    bg: "bg-success-bg",
+    border: "border-success-border",
+    text: "text-success-text",
+    dot: "bg-success",
+    glow: "shadow-success-border",
   },
   yellow: {
     icon: Clock,
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    text: "text-amber-700",
-    dot: "bg-amber-500",
-    glow: "shadow-amber-200",
+    bg: "bg-warning-bg",
+    border: "border-warning-border",
+    text: "text-warning-text",
+    dot: "bg-warning",
+    glow: "shadow-warning-border",
   },
   red: {
     icon: AlertCircle,
-    bg: "bg-red-50",
-    border: "border-red-200",
-    text: "text-red-700",
-    dot: "bg-red-500",
-    glow: "shadow-red-200",
+    bg: "bg-danger-bg",
+    border: "border-danger-border",
+    text: "text-danger-text",
+    dot: "bg-danger",
+    glow: "shadow-danger-border",
   },
 }
 
@@ -146,7 +146,7 @@ export function ComplianceTrafficLight({ className }: { className?: string }) {
               <div>
                 <p className={cn("text-sm font-medium", config.text)}>{info.message}</p>
                 {info.deadlineName && info.daysUntil !== undefined && (
-                  <p className="mt-1 text-xs text-gray-600">
+                  <p className="mt-1 text-xs text-secondary">
                     {info.daysUntil === 0
                       ? "Rok je danas!"
                       : info.daysUntil === 1
@@ -156,7 +156,7 @@ export function ComplianceTrafficLight({ className }: { className?: string }) {
                 )}
                 <a
                   href="/alati/kalendar"
-                  className="mt-2 inline-block text-xs font-medium text-blue-600 hover:underline"
+                  className="mt-2 inline-block text-xs font-medium text-link hover:underline"
                 >
                   Pogledaj kalendar rokova →
                 </a>

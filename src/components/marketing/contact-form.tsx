@@ -72,7 +72,7 @@ export function ContactForm() {
           placeholder="Vaše ime i prezime"
         />
         {fieldErrors.name && (
-          <p className="mt-1 text-xs text-red-400">{fieldErrors.name[0]}</p>
+          <p className="mt-1 text-xs text-danger-text">{fieldErrors.name[0]}</p>
         )}
       </div>
 
@@ -90,7 +90,7 @@ export function ContactForm() {
           placeholder="vaš@email.hr"
         />
         {fieldErrors.email && (
-          <p className="mt-1 text-xs text-red-400">{fieldErrors.email[0]}</p>
+          <p className="mt-1 text-xs text-danger-text">{fieldErrors.email[0]}</p>
         )}
       </div>
 
@@ -112,7 +112,7 @@ export function ContactForm() {
           <option value="accountant">Knjigovođa/računovoda</option>
         </select>
         {fieldErrors.businessType && (
-          <p className="mt-1 text-xs text-red-400">{fieldErrors.businessType[0]}</p>
+          <p className="mt-1 text-xs text-danger-text">{fieldErrors.businessType[0]}</p>
         )}
       </div>
 
@@ -134,7 +134,7 @@ export function ContactForm() {
           <option value="200+">200+</option>
         </select>
         {fieldErrors.invoiceVolume && (
-          <p className="mt-1 text-xs text-red-400">{fieldErrors.invoiceVolume[0]}</p>
+          <p className="mt-1 text-xs text-danger-text">{fieldErrors.invoiceVolume[0]}</p>
         )}
       </div>
 
@@ -150,7 +150,7 @@ export function ContactForm() {
           placeholder="Specifična pitanja ili zahtjevi..."
         />
         {fieldErrors.message && (
-          <p className="mt-1 text-xs text-red-400">{fieldErrors.message[0]}</p>
+          <p className="mt-1 text-xs text-danger-text">{fieldErrors.message[0]}</p>
         )}
       </div>
 
@@ -158,8 +158,8 @@ export function ContactForm() {
         <div
           className={`rounded-md p-3 text-sm ${
             submitStatus.type === "success"
-              ? "bg-green-500/10 text-green-400 border border-green-500/20"
-              : "bg-red-500/10 text-red-400 border border-red-500/20"
+              ? "bg-success-bg text-success-text border border-success-border"
+              : "bg-danger-bg text-danger-text border border-danger-border"
           }`}
         >
           {submitStatus.message}
@@ -169,7 +169,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        className="w-full rounded-md bg-interactive px-4 py-3 text-sm font-semibold text-white hover:bg-interactive-hover disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
       >
         {isSubmitting ? "Šaljem..." : "Pošalji zahtjev za demo"}
       </button>

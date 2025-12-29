@@ -70,8 +70,8 @@ export function LifecycleSelector({ className }: { className?: string }) {
               className={cn(
                 "relative flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors",
                 "hover:bg-[var(--surface-secondary)]",
-                isActive && !isPanic && "text-blue-700",
-                isActive && isPanic && "text-red-700",
+                isActive && !isPanic && "text-interactive",
+                isActive && isPanic && "text-danger-text",
                 !isActive && "text-[var(--muted)]"
               )}
               title={stage.description}
@@ -81,7 +81,7 @@ export function LifecycleSelector({ className }: { className?: string }) {
                   layoutId="lifecycle-indicator"
                   className={cn(
                     "absolute inset-0 rounded-md",
-                    isPanic ? "bg-red-100" : "bg-blue-100"
+                    isPanic ? "bg-danger-bg" : "bg-info-bg"
                   )}
                   transition={{ type: "spring", duration: 0.3, bounce: 0.15 }}
                 />

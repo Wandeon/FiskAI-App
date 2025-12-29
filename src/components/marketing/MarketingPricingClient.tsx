@@ -186,7 +186,7 @@ export function MarketingPricingClient() {
               >
                 Godišnje
               </span>
-              <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
+              <span className="ml-2 inline-flex items-center rounded-full bg-success-bg px-2 py-1 text-xs font-semibold text-success-text">
                 Uštedi 10%
               </span>
             </div>
@@ -219,12 +219,12 @@ export function MarketingPricingClient() {
                     cardBase,
                     hover,
                     plan.highlighted &&
-                      "relative border-2 border-cyan-500/30 bg-gradient-to-b from-cyan-500/10 to-white/5 shadow-lg"
+                      "relative border-2 border-accent-border bg-gradient-to-b from-accent-light to-white/5 shadow-lg"
                   )}
                 >
                   {plan.highlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-1 text-sm font-semibold text-white">
+                      <div className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1 text-sm font-semibold text-white">
                         Najpopularnije
                       </div>
                     </div>
@@ -248,7 +248,7 @@ export function MarketingPricingClient() {
                     </div>
 
                     {billing === "annual" && (
-                      <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800">
+                      <div className="mb-3 rounded-lg border border-success-border bg-success-bg px-3 py-2 text-xs text-success-text">
                         Naplata: {formatEuro(billedAnnually)} godišnje • Ušteda{" "}
                         {formatEuro(savings)}
                       </div>
@@ -260,7 +260,7 @@ export function MarketingPricingClient() {
                   <ul className="mb-8 space-y-3">
                     {plan.bullets.map((bullet) => (
                       <li key={bullet} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-success-icon" />
                         <span>{bullet}</span>
                       </li>
                     ))}
@@ -283,10 +283,10 @@ export function MarketingPricingClient() {
         </Reveal>
 
         <Reveal>
-          <div className="mb-16 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-8 text-center">
+          <div className="mb-16 rounded-2xl border border-accent-border bg-gradient-to-r from-accent-light to-interactive-secondary p-8 text-center">
             <div className="mx-auto max-w-2xl">
               <div className="mb-6">
-                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-white">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white">
                   <Users className="h-4 w-4" />
                   Besplatno za knjigovođe
                 </div>
@@ -300,22 +300,22 @@ export function MarketingPricingClient() {
 
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="space-y-2">
-                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10">
-                    <FileText className="h-5 w-5 text-cyan-400" />
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent-light">
+                    <FileText className="h-5 w-5 text-accent-icon" />
                   </div>
                   <p className="font-medium">Uredni izvozi</p>
                   <p className="text-xs text-white/60">CSV/Excel s PDF prilozima</p>
                 </div>
                 <div className="space-y-2">
-                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10">
-                    <Users className="h-5 w-5 text-cyan-400" />
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent-light">
+                    <Users className="h-5 w-5 text-accent-icon" />
                   </div>
                   <p className="font-medium">Pristup klijentima</p>
                   <p className="text-xs text-white/60">Direktna komunikacija</p>
                 </div>
                 <div className="space-y-2">
-                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10">
-                    <Zap className="h-5 w-5 text-cyan-400" />
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent-light">
+                    <Zap className="h-5 w-5 text-accent-icon" />
                   </div>
                   <p className="font-medium">70% manje rada</p>
                   <p className="text-xs text-white/60">Manje ručnog unosa</p>
@@ -325,7 +325,7 @@ export function MarketingPricingClient() {
               <div className="mt-8">
                 <Link
                   href="/for/accountants"
-                  className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors"
+                  className="inline-flex items-center justify-center rounded-md bg-interactive px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-interactive-hover"
                 >
                   Registrirajte se kao knjigovođa
                 </Link>
@@ -416,14 +416,14 @@ export function MarketingPricingClient() {
               </div>
               <div className="text-center">
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-                  <Globe className="h-6 w-6 text-cyan-400" />
+                  <Globe className="h-6 w-6 text-accent-icon" />
                 </div>
                 <p className="font-semibold">Podaci u EU</p>
                 <p className="text-xs text-white/60">GDPR usklađeno, podaci u Njemačkoj</p>
               </div>
               <div className="text-center">
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-                  <Users className="h-6 w-6 text-cyan-400" />
+                  <Users className="h-6 w-6 text-accent-icon" />
                 </div>
                 <p className="font-semibold">Podrška na hrvatskom</p>
                 <p className="text-xs text-white/60">Telefon i email unutar 24h</p>
@@ -432,13 +432,13 @@ export function MarketingPricingClient() {
             <div className="mt-8 text-center">
               <p className="text-sm">
                 Imate pitanja o cijenama?{" "}
-                <Link href="/contact" className="font-semibold text-cyan-400 hover:underline">
+                <Link href="/contact" className="font-semibold text-link hover:underline">
                   Kontaktirajte nas
                 </Link>{" "}
                 putem emaila{" "}
                 <a
                   href={`mailto:${companyInfo.emailContact}`}
-                  className="font-semibold text-cyan-400 hover:underline"
+                  className="font-semibold text-link hover:underline"
                 >
                   {companyInfo.emailContact}
                 </a>

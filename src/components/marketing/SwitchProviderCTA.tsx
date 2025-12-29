@@ -56,7 +56,7 @@ export function SwitchProviderCTA({ className, showAfterScroll = 600 }: SwitchPr
           <div className="relative">
             {/* Gentle pulse glow */}
             <motion.div
-              className="absolute inset-0 rounded-full bg-blue-500/20 blur-xl"
+              className="absolute inset-0 rounded-full bg-interactive/20 blur-xl"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.5, 0.3],
@@ -69,7 +69,7 @@ export function SwitchProviderCTA({ className, showAfterScroll = 600 }: SwitchPr
             />
 
             {/* Main CTA pill */}
-            <div className="relative flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/95 px-4 py-2.5 shadow-2xl backdrop-blur-sm">
+            <div className="relative flex items-center gap-2 rounded-full border border-white/20 bg-surface-dark px-4 py-2.5 shadow-2xl backdrop-blur-sm">
               {/* Empathetic icon */}
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
@@ -84,7 +84,7 @@ export function SwitchProviderCTA({ className, showAfterScroll = 600 }: SwitchPr
               {/* CTA Link */}
               <Link
                 href="/prelazak"
-                className="group ml-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-sm font-medium text-white transition-all hover:from-blue-600 hover:to-indigo-600"
+                className="group ml-1 flex items-center gap-1 rounded-full bg-interactive px-3 py-1 text-sm font-medium text-white transition-all hover:bg-interactive-hover"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 <span>Prijeđi lako</span>
@@ -119,20 +119,20 @@ export function SwitchProviderBanner({ className }: { className?: string }) {
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-rose-200/50 bg-gradient-to-r from-rose-50 to-orange-50",
+        "relative overflow-hidden rounded-xl border border-danger-border bg-gradient-to-r from-danger-bg to-warning-bg",
         className
       )}
     >
       <div className="flex items-center justify-between gap-4 p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
-            <Heart className="h-5 w-5 text-rose-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-danger-bg">
+            <Heart className="h-5 w-5 text-danger-icon" />
           </div>
           <div>
-            <p className="font-medium text-slate-900">
+            <p className="font-medium text-foreground">
               Razumijemo — promjena softvera djeluje zastrašujuće.
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-secondary">
               Ali što ako vam kažemo da prijenos traje samo 5 minuta?
             </p>
           </div>
@@ -141,14 +141,14 @@ export function SwitchProviderBanner({ className }: { className?: string }) {
         <div className="flex items-center gap-2">
           <Link
             href="/prelazak"
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            className="inline-flex items-center gap-2 rounded-lg bg-surface-dark px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface-darker"
           >
             <RefreshCw className="h-4 w-4" />
             Saznaj kako
           </Link>
           <button
             onClick={() => setIsDismissed(true)}
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-1 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

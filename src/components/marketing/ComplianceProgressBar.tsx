@@ -132,9 +132,9 @@ export function ComplianceProgressBar({ className }: { className?: string }) {
           <div
             className={cn(
               "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white",
-              trafficLight === "green" && "bg-green-500",
-              trafficLight === "yellow" && "bg-amber-500",
-              trafficLight === "red" && "bg-red-500"
+              trafficLight === "green" && "bg-success",
+              trafficLight === "yellow" && "bg-warning",
+              trafficLight === "red" && "bg-danger"
             )}
           >
             {complianceScore}%
@@ -149,13 +149,13 @@ export function ComplianceProgressBar({ className }: { className?: string }) {
 
         {/* Progress Bar */}
         <div className="hidden flex-1 px-6 sm:block">
-          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+          <div className="h-2 overflow-hidden rounded-full bg-surface-1">
             <motion.div
               className={cn(
                 "h-full rounded-full",
-                trafficLight === "green" && "bg-green-500",
-                trafficLight === "yellow" && "bg-amber-500",
-                trafficLight === "red" && "bg-red-500"
+                trafficLight === "green" && "bg-success",
+                trafficLight === "yellow" && "bg-warning",
+                trafficLight === "red" && "bg-danger"
               )}
               initial={{ width: 0 }}
               animate={{ width: `${complianceScore}%` }}
@@ -189,7 +189,7 @@ export function ComplianceProgressBar({ className }: { className?: string }) {
                 <h3 className="text-sm font-semibold">{checklist.title}</h3>
                 <a
                   href="/register"
-                  className="flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                  className="flex items-center gap-1 rounded-md bg-interactive px-3 py-1.5 text-xs font-medium text-white hover:bg-interactive-hover"
                 >
                   <Save className="h-3 w-3" />
                   Spremi napredak
@@ -208,20 +208,20 @@ export function ComplianceProgressBar({ className }: { className?: string }) {
                       className={cn(
                         "flex items-center gap-2 rounded-lg border p-3 text-left transition-all",
                         isComplete
-                          ? "border-green-200 bg-green-50"
-                          : "border-[var(--border)] bg-[var(--surface)] hover:border-blue-300"
+                          ? "border-success-border bg-success-bg"
+                          : "border-[var(--border)] bg-[var(--surface)] hover:border-focus"
                       )}
                     >
                       {isComplete ? (
-                        <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600" />
+                        <CheckCircle className="h-5 w-5 flex-shrink-0 text-success-icon" />
                       ) : (
-                        <Circle className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                        <Circle className="h-5 w-5 flex-shrink-0 text-muted" />
                       )}
                       <div className="min-w-0 flex-1">
                         <p
                           className={cn(
                             "truncate text-sm font-medium",
-                            isComplete && "text-green-700"
+                            isComplete && "text-success-text"
                           )}
                         >
                           {stepLabels[step] || step}
@@ -235,7 +235,7 @@ export function ComplianceProgressBar({ className }: { className?: string }) {
 
               <p className="mt-3 text-center text-xs text-[var(--muted)]">
                 Kreiraj račun da sačuvaš napredak i pristupiš svim alatima →{" "}
-                <a href="/register" className="font-medium text-blue-600 hover:underline">
+                <a href="/register" className="font-medium text-link hover:underline">
                   Besplatna registracija
                 </a>
               </p>

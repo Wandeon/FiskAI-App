@@ -25,7 +25,7 @@ export function DemoInvoice({ reduce }: { reduce: boolean }) {
             className="h-2 w-2 rounded-full bg-blue-600"
             animate={pulse as any}
           />
-          <span className="text-[10px] font-semibold text-blue-700">Spremno</span>
+          <span className="text-[10px] font-semibold text-interactive">Spremno</span>
         </div>
       </div>
 
@@ -47,14 +47,14 @@ export function DemoInvoice({ reduce }: { reduce: boolean }) {
       <div className="flex items-center justify-between">
         <div className="h-2 w-28 overflow-hidden rounded-full bg-[var(--border-light)]">
           <motion.div
-            className="h-full rounded-full bg-blue-600"
+            className="h-full rounded-full bg-interactive"
             initial={reduce ? false : { width: "20%" }}
             animate={reduce ? undefined : { width: ["20%", "70%", "40%"] }}
             transition={reduce ? undefined : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
         <motion.div
-          className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white"
+          className="inline-flex items-center rounded-md bg-interactive px-3 py-2 text-xs font-semibold text-white"
           animate={pulse as any}
         >
           Pošalji PDF
@@ -81,13 +81,13 @@ export function DemoScan({ reduce }: { reduce: boolean }) {
           <>
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute left-2 right-2 top-3 h-0.5 rounded bg-blue-600/80"
+              className="pointer-events-none absolute left-2 right-2 top-3 h-0.5 rounded bg-interactive/80"
               animate={{ y: [0, 110, 0] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute inset-x-3 top-10 h-6 rounded border border-blue-300/60 bg-blue-200/20"
+              className="pointer-events-none absolute inset-x-3 top-10 h-6 rounded border border-info-border bg-info-bg/20"
               animate={{ opacity: [0.25, 0.7, 0.25] }}
               transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -109,8 +109,8 @@ export function DemoScan({ reduce }: { reduce: boolean }) {
           <p className="text-xs font-semibold">Ured</p>
         </div>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-[10px] font-semibold text-blue-700">AI prijedlog</span>
-          <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white">
+          <span className="text-[10px] font-semibold text-interactive">AI prijedlog</span>
+          <span className="rounded-full bg-interactive px-2 py-1 text-[10px] font-semibold text-white">
             Potvrdi
           </span>
         </div>
@@ -123,9 +123,9 @@ export function DemoPayments({ reduce }: { reduce: boolean }) {
   return (
     <div className="space-y-2">
       {[
-        { id: "#2025-041", status: "Poslano", tone: "bg-blue-600/10 text-blue-700" },
-        { id: "#2025-042", status: "Dospijeva", tone: "bg-warning-50 text-warning-700" },
-        { id: "#2025-043", status: "Plaćeno", tone: "bg-green-50 text-green-700" },
+        { id: "#2025-041", status: "Poslano", tone: "bg-interactive-secondary text-interactive" },
+        { id: "#2025-042", status: "Dospijeva", tone: "bg-warning-bg text-warning-text" },
+        { id: "#2025-043", status: "Plaćeno", tone: "bg-success-bg text-success-text" },
       ].map((row) => (
         <div
           key={row.id}
@@ -145,7 +145,7 @@ export function DemoPayments({ reduce }: { reduce: boolean }) {
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--border-light)]">
           <motion.div
-            className="h-full rounded-full bg-blue-600"
+            className="h-full rounded-full bg-interactive"
             initial={reduce ? false : { width: "35%" }}
             animate={reduce ? undefined : { width: ["35%", "72%", "48%"] }}
             transition={reduce ? undefined : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
@@ -167,7 +167,7 @@ export function DemoExport({ reduce }: { reduce: boolean }) {
             className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-2"
           >
             <span className="text-xs font-semibold">{item}</span>
-            <CheckCircle2 className="h-4 w-4 text-green-600" aria-hidden />
+            <CheckCircle2 className="h-4 w-4 text-success-icon" aria-hidden />
           </div>
         ))}
       </div>
@@ -181,7 +181,7 @@ export function DemoExport({ reduce }: { reduce: boolean }) {
             transition={reduce ? undefined : { duration: 1.1, repeat: Infinity, repeatDelay: 0.6 }}
           />
         </div>
-        <span className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white">
+        <span className="inline-flex items-center rounded-md bg-interactive px-3 py-2 text-xs font-semibold text-white">
           Preuzmi ZIP
         </span>
       </div>
