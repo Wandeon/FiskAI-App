@@ -332,7 +332,7 @@ async function getOnboardingItems(
     }
   }
 
-  // No e-invoice provider
+  // No e-invoice provider - Issue #885: Updated href to dedicated e-invoice settings page
   if (!company.eInvoiceProvider) {
     const ref = "onboarding:einvoice_provider"
     if (!excludeRefs.has(ref)) {
@@ -346,7 +346,28 @@ async function getOnboardingItems(
         action: {
           type: ACTION_TYPES.WIZARD,
           wizardId: "einvoice_setup",
-          href: "/settings",
+          href: "/settings/e-invoice",
+        },
+        reference: ref,
+      })
+    }
+  }
+
+  // Issue #885: First invoice guidance
+  if (company._count.eInvoices === 0) {
+    const ref = "onboarding:first_invoice"
+    if (!excludeRefs.has(ref)) {
+      items.push({
+        id: "onboarding_first_invoice",
+        category: "fakturiranje",
+        type: CHECKLIST_ITEM_TYPES.ONBOARDING,
+        title: "Kreiraj prvi račun",
+        description: "Izradite svoj prvi e-račun koristeći vodič korak-po-korak",
+        urgency: URGENCY_LEVELS.UPCOMING,
+        action: {
+          type: ACTION_TYPES.WIZARD,
+          wizardId: "first_invoice",
+          href: "/e-invoices/new",
         },
         reference: ref,
       })
@@ -393,6 +414,73 @@ async function getOnboardingItems(
     }
   }
 
+  // Issue #885: Bank import and bank account guidance
+  const bankAccounts = await db.bankAccount.count({ where: { companyId } })
+  const bankImports = await db.bankImport.count({ where: { companyId } })
+
+  // First bank account guidance
+  if (bankAccounts === 0) {
+    const ref = "onboarding:first_bank_account"
+    if (!excludeRefs.has(ref)) {
+      items.push({
+        id: "onboarding_first_bank_account",
+        category: "financije",
+        type: CHECKLIST_ITEM_TYPES.ONBOARDING,
+        title: "Dodaj bankovni račun",
+        description: "Povežite bankovni račun za praćenje transakcija",
+        urgency: URGENCY_LEVELS.OPTIONAL,
+        action: {
+          type: ACTION_TYPES.LINK,
+          href: "/banking/accounts",
+        },
+        reference: ref,
+      })
+    }
+  }
+
+  // Bank import guidance (only if they have accounts but no imports)
+  if (bankAccounts > 0 && bankImports === 0) {
+    const ref = "onboarding:bank_import"
+    if (!excludeRefs.has(ref)) {
+      items.push({
+        id: "onboarding_bank_import",
+        category: "financije",
+        type: CHECKLIST_ITEM_TYPES.ONBOARDING,
+        title: "Uvezi bankovne izvode",
+        description: "Importirajte bankovne izvode za automatsko uparivanje transakcija",
+        urgency: URGENCY_LEVELS.UPCOMING,
+        action: {
+          type: ACTION_TYPES.WIZARD,
+          wizardId: "bank_import",
+          href: "/banking/import",
+        },
+        reference: ref,
+      })
+    }
+  }
+
+  // Issue #885: First expense guidance
+  const expenses = await db.expense.count({ where: { companyId } })
+  if (expenses === 0) {
+    const ref = "onboarding:first_expense"
+    if (!excludeRefs.has(ref)) {
+      items.push({
+        id: "onboarding_first_expense",
+        category: "financije",
+        type: CHECKLIST_ITEM_TYPES.ONBOARDING,
+        title: "Evidentiraj prvi trošak",
+        description: "Dodajte prvi trošak za praćenje rashoda i kategorizaciju",
+        urgency: URGENCY_LEVELS.OPTIONAL,
+        action: {
+          type: ACTION_TYPES.WIZARD,
+          wizardId: "first_expense",
+          href: "/expenses/new",
+        },
+        reference: ref,
+      })
+    }
+  }
+
   return items
 }
 
@@ -430,7 +518,7 @@ async function getSeasonalItems(
         action: {
           type: ACTION_TYPES.WIZARD,
           wizardId: "posd",
-          href: "/pausalni/posd",
+          href: "/pausalni/po-sd",
         },
         reference: ref,
       })
