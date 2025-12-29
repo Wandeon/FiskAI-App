@@ -175,7 +175,7 @@ export default async function VatThresholdReportPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success-icon">
               {formatCurrency(reportData.annualRevenue, "EUR")}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -193,7 +193,7 @@ export default async function VatThresholdReportPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-link">
               {formatCurrency(reportData.vatThreshold, "EUR")}
             </div>
             <p className="text-xs text-muted-foreground">Prema Zakonu o PDV-u</p>
@@ -211,7 +211,7 @@ export default async function VatThresholdReportPage() {
           <CardContent>
             <div
               className={`text-2xl font-bold ${
-                reportData.remainingUntilThreshold > 0 ? "text-amber-600" : "text-green-600"
+                reportData.remainingUntilThreshold > 0 ? "text-amber-600" : "text-success-icon"
               }`}
             >
               {formatCurrency(reportData.remainingUntilThreshold, "EUR")}
@@ -234,7 +234,7 @@ export default async function VatThresholdReportPage() {
             <div
               className={`text-2xl font-bold ${
                 reportData.projectedAnnualRevenue >= reportData.vatThreshold
-                  ? "text-red-600"
+                  ? "text-danger-text"
                   : "text-purple-600"
               }`}
             >
@@ -361,12 +361,12 @@ export default async function VatThresholdReportPage() {
           <CardContent>
             <div className="space-y-4">
               {reportData.status === "EXCEEDED" && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <h4 className="font-medium text-red-800 flex items-center gap-1">
+                <div className="p-3 bg-danger-bg border border-danger-border rounded-lg">
+                  <h4 className="font-medium text-danger-text flex items-center gap-1">
                     <XCircle className="h-4 w-4" />
                     Obvezan PDV
                   </h4>
-                  <p className="text-sm text-red-700 mt-1">
+                  <p className="text-sm text-danger-text mt-1">
                     Prekoračili ste prag od 40.000 €. Obvezni ste prijaviti PDV.
                   </p>
                   <Button variant="outline" size="sm" className="mt-2" asChild>
@@ -392,30 +392,30 @@ export default async function VatThresholdReportPage() {
               )}
 
               {reportData.status === "BELOW" && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-800 flex items-center gap-1">
+                <div className="p-3 bg-success-bg border border-success-border rounded-lg">
+                  <h4 className="font-medium text-success-text flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
                     Ispravan status
                   </h4>
-                  <p className="text-sm text-green-700 mt-1">
+                  <p className="text-sm text-success-text mt-1">
                     Ispod praga PDV-a. Trenutno ste izuzeći od obveze PDV-a.
                   </p>
-                  <p className="text-sm text-green-600 mt-1">
+                  <p className="text-sm text-success-icon mt-1">
                     Ako nastavite trenutnom stopom, procijenjeno je{" "}
                     {formatCurrency(reportData.projectedAnnualRevenue, "EUR")}
                   </p>
                 </div>
               )}
 
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-800 flex items-center gap-1">
+              <div className="p-3 bg-info-bg border border-info-border rounded-lg">
+                <h4 className="font-medium text-info-text flex items-center gap-1">
                   <TrendingUp className="h-4 w-4" />
                   Procjena za preostatak godine
                 </h4>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm text-link mt-1">
                   Još {formatCurrency(reportData.remainingUntilThreshold, "EUR")} do praga
                 </p>
-                <p className="text-sm text-blue-600">
+                <p className="text-sm text-link">
                   Trebate {formatCurrency(reportData.estimatedDailyRevenueNeeded, "EUR")} dnevno za
                   ostvarenje praga do kraja godine (ako želite)
                 </p>
@@ -435,8 +435,8 @@ export default async function VatThresholdReportPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-blue-100 p-1">
-                  <Scale className="h-4 w-4 text-blue-600" />
+                <div className="mt-0.5 rounded-full bg-info-bg p-1">
+                  <Scale className="h-4 w-4 text-link" />
                 </div>
                 <div>
                   <h4 className="font-medium">PDV registracija</h4>
@@ -447,8 +447,8 @@ export default async function VatThresholdReportPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-green-100 p-1">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                <div className="mt-0.5 rounded-full bg-success-bg p-1">
+                  <CheckCircle className="h-4 w-4 text-success-icon" />
                 </div>
                 <div>
                   <h4 className="font-medium">Paušalni obrt status</h4>

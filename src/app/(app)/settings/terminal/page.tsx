@@ -10,7 +10,7 @@ export default async function TerminalSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Stripe Terminal</h1>
-        <p className="text-gray-500">Konfiguracija fizičkog čitača kartica za POS</p>
+        <p className="text-secondary">Konfiguracija fizičkog čitača kartica za POS</p>
       </div>
 
       <Card>

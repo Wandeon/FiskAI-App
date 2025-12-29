@@ -219,11 +219,11 @@ export function CertificateUploadDialog({
                   flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors
                   ${
                     step === s
-                      ? "border-blue-600 bg-blue-600 text-white"
+                      ? "border-interactive bg-interactive text-white"
                       : ["verify", "done"].includes(step) &&
                           idx < (["upload", "verify", "done"] as const).indexOf(step)
-                        ? "border-green-600 bg-green-600 text-white"
-                        : "border-gray-300 bg-white text-gray-400"
+                        ? "border-success bg-success text-white"
+                        : "border-default bg-surface text-muted"
                   }
                 `}
               >
@@ -241,8 +241,8 @@ export function CertificateUploadDialog({
                     ${
                       ["verify", "done"].includes(step) &&
                       idx < (["upload", "verify", "done"] as const).indexOf(step)
-                        ? "bg-green-600"
-                        : "bg-gray-300"
+                        ? "bg-success"
+                        : "border-subtle"
                     }
                   `}
                 />
@@ -261,30 +261,30 @@ export function CertificateUploadDialog({
                 flex flex-col items-center justify-center px-6 py-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors
                 ${
                   isDragActive
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 hover:border-gray-400 bg-gray-50"
+                    ? "border-interactive bg-info-bg"
+                    : "border-default hover:border-strong bg-surface-1"
                 }
                 ${loading ? "opacity-50 cursor-not-allowed" : ""}
               `}
             >
               <input {...getInputProps()} />
               <Upload
-                className={`h-12 w-12 mb-4 ${isDragActive ? "text-blue-500" : "text-gray-400"}`}
+                className={`h-12 w-12 mb-4 ${isDragActive ? "text-interactive" : "text-muted"}`}
               />
-              <p className="text-sm font-medium text-gray-900 mb-1">
+              <p className="text-sm font-medium text-foreground mb-1">
                 {isDragActive ? "Drop the file here" : "Drag & drop your certificate"}
               </p>
-              <p className="text-xs text-gray-500 mb-3">or click to browse</p>
-              <p className="text-xs text-gray-400">Accepts .p12 and .pfx files (max 50KB)</p>
+              <p className="text-xs text-secondary mb-3">or click to browse</p>
+              <p className="text-xs text-tertiary">Accepts .p12 and .pfx files (max 50KB)</p>
             </div>
 
             {/* Selected File */}
             {file && (
-              <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <Shield className="h-5 w-5 text-blue-600 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-info-bg border border-info-border rounded-lg">
+                <Shield className="h-5 w-5 text-info-icon flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+                  <p className="text-xs text-secondary">{(file.size / 1024).toFixed(1)} KB</p>
                 </div>
               </div>
             )}
@@ -305,9 +305,9 @@ export function CertificateUploadDialog({
 
             {/* Error Message */}
             {error && (
-              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="flex items-start gap-2 p-3 bg-danger-bg border border-danger-border rounded-lg">
+                <AlertCircle className="h-5 w-5 text-danger-icon flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-danger-text">{error}</p>
               </div>
             )}
           </div>
@@ -316,52 +316,52 @@ export function CertificateUploadDialog({
         {/* Step 2: Verify */}
         {step === "verify" && certInfo && (
           <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div className="bg-surface-1 rounded-lg p-4 space-y-3">
               <div>
-                <Label className="text-xs text-gray-500">Subject</Label>
-                <p className="text-sm font-medium text-gray-900 mt-1">{certInfo.subject}</p>
+                <Label className="text-xs text-secondary">Subject</Label>
+                <p className="text-sm font-medium text-foreground mt-1">{certInfo.subject}</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-gray-500">OIB</Label>
-                  <p className="text-sm font-medium text-gray-900 mt-1">{certInfo.oib}</p>
+                  <Label className="text-xs text-secondary">OIB</Label>
+                  <p className="text-sm font-medium text-foreground mt-1">{certInfo.oib}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Serial Number</Label>
-                  <p className="text-sm font-medium text-gray-900 mt-1">{certInfo.serial}</p>
+                  <Label className="text-xs text-secondary">Serial Number</Label>
+                  <p className="text-sm font-medium text-foreground mt-1">{certInfo.serial}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-gray-500">Valid From</Label>
-                  <p className="text-sm font-medium text-gray-900 mt-1">
+                  <Label className="text-xs text-secondary">Valid From</Label>
+                  <p className="text-sm font-medium text-foreground mt-1">
                     {formatDate(certInfo.notBefore)}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Valid Until</Label>
-                  <p className="text-sm font-medium text-gray-900 mt-1">
+                  <Label className="text-xs text-secondary">Valid Until</Label>
+                  <p className="text-sm font-medium text-foreground mt-1">
                     {formatDate(certInfo.notAfter)}
                   </p>
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Issuer</Label>
-                <p className="text-sm font-medium text-gray-900 mt-1">{certInfo.issuer}</p>
+                <Label className="text-xs text-secondary">Issuer</Label>
+                <p className="text-sm font-medium text-foreground mt-1">{certInfo.issuer}</p>
               </div>
             </div>
 
             {/* Confirmation Checkbox */}
-            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3 p-4 bg-info-bg border border-info-border rounded-lg">
               <input
                 type="checkbox"
                 id="confirm"
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
                 disabled={loading}
-                className="mt-1 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                className="mt-1 h-4 w-4 text-interactive rounded border-default focus:ring-border-focus"
               />
-              <label htmlFor="confirm" className="text-sm text-gray-700 cursor-pointer">
+              <label htmlFor="confirm" className="text-sm text-secondary cursor-pointer">
                 I confirm that this is the correct {environment} fiscalisation certificate for my
                 company
               </label>
@@ -369,9 +369,9 @@ export function CertificateUploadDialog({
 
             {/* Error Message */}
             {error && (
-              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="flex items-start gap-2 p-3 bg-danger-bg border border-danger-border rounded-lg">
+                <AlertCircle className="h-5 w-5 text-danger-icon flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-danger-text">{error}</p>
               </div>
             )}
           </div>
@@ -380,11 +380,11 @@ export function CertificateUploadDialog({
         {/* Step 3: Done */}
         {step === "done" && (
           <div className="flex flex-col items-center justify-center py-8">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-success-bg mb-4">
+              <CheckCircle2 className="h-8 w-8 text-success-icon" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Certificate Uploaded</h3>
-            <p className="text-sm text-gray-500 text-center">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Certificate Uploaded</h3>
+            <p className="text-sm text-secondary text-center">
               Your {environment} certificate has been securely stored and is ready to use.
             </p>
           </div>

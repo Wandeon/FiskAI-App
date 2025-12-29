@@ -213,7 +213,7 @@ export default async function PausalniObrtReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success-icon">
               {formatCurrency(Number(annualSummary._sum?.totalAmount || 0), "HRK")}
             </div>
             <p className="text-xs text-muted-foreground">{annualSummary._count._all} računa</p>
@@ -229,7 +229,7 @@ export default async function PausalniObrtReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-link">
               {formatCurrency(
                 Number(taxSeasonPack.totalExpensesAmount._sum?.totalAmount || 0),
                 "HRK"
@@ -319,8 +319,8 @@ export default async function PausalniObrtReportsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-green-100 p-2">
-                    <FileArchive className="h-4 w-4 text-green-600" />
+                  <div className="rounded-full bg-success-bg p-2">
+                    <FileArchive className="h-4 w-4 text-success-icon" />
                   </div>
                   <div>
                     <p className="font-medium">Paušalni Obrt Godišnji Paket</p>
@@ -337,8 +337,8 @@ export default async function PausalniObrtReportsPage() {
 
               <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-blue-100 p-2">
-                    <ArchiveX className="h-4 w-4 text-blue-600" />
+                  <div className="rounded-full bg-info-bg p-2">
+                    <ArchiveX className="h-4 w-4 text-link" />
                   </div>
                   <div>
                     <p className="font-medium">Paušalni Obrt Kvartalni Paket</p>

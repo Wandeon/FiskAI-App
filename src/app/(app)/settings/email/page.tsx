@@ -42,13 +42,13 @@ export default async function EmailSettingsPage({
       </div>
 
       {params.success === "connected" && (
-        <div className="rounded-md bg-green-50 p-4 text-green-800">
+        <div className="rounded-md bg-success-bg p-4 text-success-text border border-success-border">
           Email connected successfully! Set up import rules below.
         </div>
       )}
 
       {params.error && (
-        <div className="rounded-md bg-red-50 p-4 text-red-800">
+        <div className="rounded-md bg-danger-bg p-4 text-danger-text border border-danger-border">
           Connection failed: {params.error.replace(/_/g, " ")}
         </div>
       )}

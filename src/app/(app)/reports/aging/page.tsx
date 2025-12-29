@@ -48,7 +48,7 @@ export default async function AgingReportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Starost potraživanja</h1>
-          <p className="text-gray-500">Pregled neplaćenih računa po dospjelosti</p>
+          <p className="text-secondary">Pregled neplaćenih računa po dospjelosti</p>
         </div>
         <div className="flex gap-2">
           <a href="/api/reports/aging/pdf" download>
@@ -63,37 +63,37 @@ export default async function AgingReportPage() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-gray-500">Tekući</p>
-            <p className="text-xl font-bold text-green-600">{formatCurrency(totals.current)}</p>
-            <p className="text-xs text-gray-400">{aging.current.length} računa</p>
+            <p className="text-sm text-secondary">Tekući</p>
+            <p className="text-xl font-bold text-success-icon">{formatCurrency(totals.current)}</p>
+            <p className="text-xs text-muted">{aging.current.length} računa</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-gray-500">1-30 dana</p>
-            <p className="text-xl font-bold text-yellow-600">{formatCurrency(totals.days30)}</p>
-            <p className="text-xs text-gray-400">{aging.days30.length} računa</p>
+            <p className="text-sm text-secondary">1-30 dana</p>
+            <p className="text-xl font-bold text-warning-icon">{formatCurrency(totals.days30)}</p>
+            <p className="text-xs text-muted">{aging.days30.length} računa</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-gray-500">31-60 dana</p>
+            <p className="text-sm text-secondary">31-60 dana</p>
             <p className="text-xl font-bold text-orange-600">{formatCurrency(totals.days60)}</p>
-            <p className="text-xs text-gray-400">{aging.days60.length} računa</p>
+            <p className="text-xs text-muted">{aging.days60.length} računa</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-gray-500">61-90 dana</p>
-            <p className="text-xl font-bold text-red-500">{formatCurrency(totals.days90)}</p>
-            <p className="text-xs text-gray-400">{aging.days90.length} računa</p>
+            <p className="text-sm text-secondary">61-90 dana</p>
+            <p className="text-xl font-bold text-danger-text">{formatCurrency(totals.days90)}</p>
+            <p className="text-xs text-muted">{aging.days90.length} računa</p>
           </CardContent>
         </Card>
         <Card className="border-red-500">
           <CardContent className="pt-4">
-            <p className="text-sm text-gray-500">90+ dana</p>
-            <p className="text-xl font-bold text-red-700">{formatCurrency(totals.over90)}</p>
-            <p className="text-xs text-gray-400">{aging.over90.length} računa</p>
+            <p className="text-sm text-secondary">90+ dana</p>
+            <p className="text-xl font-bold text-danger-text">{formatCurrency(totals.over90)}</p>
+            <p className="text-xs text-muted">{aging.over90.length} računa</p>
           </CardContent>
         </Card>
       </div>

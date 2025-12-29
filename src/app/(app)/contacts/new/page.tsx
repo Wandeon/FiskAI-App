@@ -138,7 +138,7 @@ export default function NewContactPage() {
       <h1 className="text-2xl font-bold">Novi kontakt</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+        {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
 
         <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
           <section className="grid gap-4 p-6 md:grid-cols-2">
@@ -152,20 +152,20 @@ export default function NewContactPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Vrsta kontakta</label>
               <select
-                className="h-10 w-full rounded-md border border-gray-300 px-3"
+                className="h-10 w-full rounded-md border border-default px-3"
                 {...register("type")}
               >
                 <option value="CUSTOMER">Kupac</option>
                 <option value="SUPPLIER">Dobavljač</option>
                 <option value="BOTH">Kupac i dobavljač</option>
               </select>
-              {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+              {errors.type && <p className="text-sm text-danger-text">{errors.type.message}</p>}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Država</label>
               <select
-                className="h-10 w-full rounded-md border border-gray-300 px-3"
+                className="h-10 w-full rounded-md border border-default px-3"
                 {...register("country")}
               >
                 <option value="HR">🇭🇷 Hrvatska</option>
@@ -213,7 +213,7 @@ export default function NewContactPage() {
                   onLookupError={handleOibLookupError}
                   error={errors.oib?.message}
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-secondary">
                   11 znamenaka — kliknite “Dohvati podatke” za automatsko popunjavanje
                   naziva/adrese.
                 </p>
@@ -230,7 +230,7 @@ export default function NewContactPage() {
                   }
                 />
                 {isEuCustomer && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-secondary">
                     EU PDV identifikacijski broj (npr. {countryValue}123456789)
                   </p>
                 )}
@@ -272,12 +272,12 @@ export default function NewContactPage() {
                 {...register("paymentTermsDays", { valueAsNumber: true })}
                 placeholder="npr. 15"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-secondary">
                 Koliko dana nakon izdavanja računa ovaj kupac u pravilu plaća. Koristi se za
                 automatski izračun dospijeća.
               </p>
               {errors.paymentTermsDays && (
-                <p className="text-sm text-red-500">{errors.paymentTermsDays.message}</p>
+                <p className="text-sm text-danger-text">{errors.paymentTermsDays.message}</p>
               )}
             </div>
 
@@ -285,7 +285,7 @@ export default function NewContactPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">PDV ID</label>
                 <Input {...register("vatNumber")} placeholder="HR12345678901" disabled />
-                <p className="text-xs text-gray-500">Automatski popunjeno iz OIB-a (HR + OIB)</p>
+                <p className="text-xs text-secondary">Automatski popunjeno iz OIB-a (HR + OIB)</p>
               </div>
             )}
           </section>

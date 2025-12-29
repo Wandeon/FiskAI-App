@@ -119,15 +119,15 @@ export function BillingPageClient({
     <div className="space-y-8">
       {/* Trial Banner */}
       {isTrialing && trialEnd && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+        <div className="rounded-xl border border-warning-border bg-warning-bg p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-warning-icon flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
+              <p className="font-medium text-warning-text">
                 Probno razdoblje - {daysLeft}{" "}
                 {daysLeft === 1 ? "dan" : daysLeft < 5 ? "dana" : "dana"} preostalo
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+              <p className="text-sm text-warning-text mt-1">
                 Istječe {trialEnd.toLocaleDateString("hr-HR")}. Odaberite plan za nastavak
                 korištenja.
               </p>
@@ -216,23 +216,23 @@ export function BillingPageClient({
                 </div>
                 <ul className="mt-4 space-y-2">
                   <li className="flex items-center gap-2 text-sm text-[var(--foreground)]">
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success-icon" />
                     {plan.invoiceLimit === -1
                       ? "Neograničeno računa"
                       : `${plan.invoiceLimit} računa/mj`}
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[var(--foreground)]">
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success-icon" />
                     {plan.userLimit === -1
                       ? "Neograničeno korisnika"
                       : `${plan.userLimit} ${plan.userLimit === 1 ? "korisnik" : "korisnika"}`}
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[var(--foreground)]">
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success-icon" />
                     Fiskalizacija
                   </li>
                   <li className="flex items-center gap-2 text-sm text-[var(--foreground)]">
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success-icon" />
                     E-Računi (B2G/B2B)
                   </li>
                 </ul>

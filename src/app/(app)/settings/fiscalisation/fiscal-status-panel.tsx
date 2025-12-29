@@ -32,36 +32,36 @@ const STATUS_CONFIG = {
   QUEUED: {
     icon: Clock,
     label: "Queued",
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-50",
+    color: "text-warning-icon",
+    bgColor: "bg-warning-bg",
     badgeVariant: "secondary" as const,
   },
   PROCESSING: {
     icon: Loader2,
     label: "Processing",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
+    color: "text-info-icon",
+    bgColor: "bg-info-bg",
     badgeVariant: "default" as const,
   },
   COMPLETED: {
     icon: CheckCircle2,
     label: "Completed",
-    color: "text-green-600",
-    bgColor: "bg-green-50",
+    color: "text-success-icon",
+    bgColor: "bg-success-bg",
     badgeVariant: "secondary" as const,
   },
   FAILED: {
     icon: XCircle,
     label: "Failed",
-    color: "text-red-600",
-    bgColor: "bg-red-50",
+    color: "text-danger-icon",
+    bgColor: "bg-danger-bg",
     badgeVariant: "destructive" as const,
   },
   DEAD: {
     icon: Skull,
     label: "Dead",
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
+    color: "text-tertiary",
+    bgColor: "bg-surface-1",
     badgeVariant: "outline" as const,
   },
 }
@@ -87,7 +87,7 @@ export function FiscalStatusPanel({ requests, stats }: FiscalStatusPanelProps) {
 
   const getStatusIcon = (status: string) => {
     const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]
-    if (!config) return <AlertCircle className="h-4 w-4 text-gray-600" />
+    if (!config) return <AlertCircle className="h-4 w-4 text-tertiary" />
     const Icon = config.icon
     return <Icon className={`h-4 w-4 ${config.color}`} />
   }
@@ -209,7 +209,7 @@ export function FiscalStatusPanel({ requests, stats }: FiscalStatusPanelProps) {
                         </Button>
                       )}
                       {request.errorMessage && (
-                        <div className="mt-1 text-xs text-red-600">
+                        <div className="mt-1 text-xs text-danger-text">
                           {request.errorMessage.length > 50
                             ? `${request.errorMessage.slice(0, 50)}...`
                             : request.errorMessage}

@@ -46,7 +46,7 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-medium text-gray-700">Naplatni uređaji</h4>
+        <h4 className="text-sm font-medium text-secondary">Naplatni uređaji</h4>
         {!isAdding && (
           <Button variant="outline" size="sm" onClick={() => setIsAdding(true)}>
             + Dodaj uređaj
@@ -55,14 +55,14 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
       </div>
 
       {devices.length === 0 && !isAdding ? (
-        <div className="rounded-lg border border-dashed border-[var(--border)] p-4 text-center">
-          <p className="text-sm text-gray-500">
+        <div className="rounded-lg border border-dashed border-default p-4 text-center">
+          <p className="text-sm text-secondary">
             Nema naplatnih uređaja. Svaki poslovni prostor treba barem jedan naplatni uređaj za
             izdavanje računa.
           </p>
           <button
             onClick={() => setIsAdding(true)}
-            className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+            className="mt-2 text-sm font-medium text-link hover:underline"
           >
             + Dodaj prvi uređaj
           </button>
@@ -72,7 +72,7 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
           {devices.map((device) => (
             <div
               key={device.id}
-              className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded"
+              className="flex items-center justify-between py-2 px-3 bg-surface-1 rounded"
             >
               <div className="flex items-center gap-3">
                 <span className="font-mono text-sm bg-[var(--surface)] px-2 py-0.5 rounded border">
@@ -82,12 +82,12 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
               </div>
               <div className="flex items-center gap-2">
                 {device.isDefault && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-success-bg text-success-text border border-success-border px-2 py-0.5 rounded">
                     Zadani
                   </span>
                 )}
                 {!device.isActive && (
-                  <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-danger-bg text-danger-text border border-danger-border px-2 py-0.5 rounded">
                     Neaktivan
                   </span>
                 )}
@@ -98,7 +98,7 @@ export function DevicesList({ premisesId, companyId, devices }: DevicesListProps
       )}
 
       {isAdding && (
-        <form onSubmit={handleAddDevice} className="mt-2 p-3 bg-gray-50 rounded">
+        <form onSubmit={handleAddDevice} className="mt-2 p-3 bg-surface-1 rounded">
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <Input

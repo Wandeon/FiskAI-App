@@ -54,7 +54,7 @@ export default async function ProfitLossPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dobit i gubitak</h1>
-          <p className="text-gray-500">
+          <p className="text-secondary">
             {dateFrom.toLocaleDateString("hr-HR")} - {dateTo.toLocaleDateString("hr-HR")}
           </p>
         </div>
@@ -75,21 +75,21 @@ export default async function ProfitLossPage({
         <CardContent className="pt-4">
           <form className="flex gap-4 items-end" method="GET">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Od</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Od</label>
               <input
                 type="date"
                 name="from"
                 defaultValue={dateFrom.toISOString().split("T")[0]}
-                className="rounded-md border-gray-300"
+                className="rounded-md border-default"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Do</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Do</label>
               <input
                 type="date"
                 name="to"
                 defaultValue={dateTo.toISOString().split("T")[0]}
-                className="rounded-md border-gray-300"
+                className="rounded-md border-default"
               />
             </div>
             <Button type="submit">Primijeni</Button>
@@ -100,29 +100,29 @@ export default async function ProfitLossPage({
       <div className="grid md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base text-green-600">Prihodi</CardTitle>
+            <CardTitle className="text-base text-success-icon">Prihodi</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold font-mono">{formatCurrency(revenue)}</p>
-            <p className="text-sm text-gray-500">{invoices.length} računa</p>
+            <p className="text-sm text-secondary">{invoices.length} računa</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base text-red-600">Rashodi</CardTitle>
+            <CardTitle className="text-base text-danger-text">Rashodi</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold font-mono">{formatCurrency(costs)}</p>
-            <p className="text-sm text-gray-500">{expenses.length} troškova</p>
+            <p className="text-sm text-secondary">{expenses.length} troškova</p>
           </CardContent>
         </Card>
-        <Card className={profit >= 0 ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50"}>
+        <Card className={profit >= 0 ? "border-green-500 bg-success-bg" : "border-red-500 bg-danger-bg"}>
           <CardHeader>
             <CardTitle className="text-base">{profit >= 0 ? "Dobit" : "Gubitak"}</CardTitle>
           </CardHeader>
           <CardContent>
             <p
-              className={`text-3xl font-bold font-mono ${profit >= 0 ? "text-green-600" : "text-red-600"}`}
+              className={`text-3xl font-bold font-mono ${profit >= 0 ? "text-success-icon" : "text-danger-text"}`}
             >
               {formatCurrency(Math.abs(profit))}
             </p>

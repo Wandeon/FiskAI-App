@@ -69,7 +69,7 @@ export default function NewProductPage() {
       <h1 className="text-2xl font-bold">Novi proizvod</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+        {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
 
         <Card>
           <CardHeader>
@@ -88,7 +88,7 @@ export default function NewProductPage() {
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium">Opis</label>
               <textarea
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-default px-3 py-2 text-sm"
                 rows={3}
                 {...register("description")}
                 placeholder="Kratki opis proizvoda ili usluge"
@@ -103,7 +103,7 @@ export default function NewProductPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Jedinica mjere</label>
               <select
-                className="h-10 w-full rounded-md border border-gray-300 px-3"
+                className="h-10 w-full rounded-md border border-default px-3"
                 {...register("unit")}
               >
                 {unitCodes.map((unit) => (
@@ -136,7 +136,7 @@ export default function NewProductPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">PDV kategorija</label>
               <select
-                className="h-10 w-full rounded-md border border-gray-300 px-3"
+                className="h-10 w-full rounded-md border border-default px-3"
                 {...register("vatCategory")}
                 onChange={(e) => {
                   register("vatCategory").onChange(e)
@@ -170,12 +170,12 @@ export default function NewProductPage() {
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300"
+                className="h-4 w-4 rounded border-default"
                 {...register("isActive")}
               />
               <span className="text-sm font-medium">Aktivan proizvod</span>
             </label>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-secondary">
               Neaktivni proizvodi neće se prikazivati prilikom kreiranja računa
             </p>
           </CardContent>

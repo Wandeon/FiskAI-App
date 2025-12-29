@@ -290,12 +290,12 @@ export default async function SettingsPage({ searchParams }: PageProps) {
                     />
                   </div>
 
-                  <div className="rounded-xl bg-blue-50 p-4">
-                    <div className="flex items-center gap-2 text-blue-800">
+                  <div className="rounded-xl bg-info-bg p-4 border border-info-border">
+                    <div className="flex items-center gap-2 text-info-text">
                       <ListChecks className="h-4 w-4" />
                       <p className="font-semibold">Rokovi za usklađenost</p>
                     </div>
-                    <ul className="mt-3 space-y-1 text-sm text-blue-800">
+                    <ul className="mt-3 space-y-1 text-sm text-info-text">
                       <li>
                         • <strong>1. siječnja 2026.</strong> – Obveza primanja e-računa (B2B)
                       </li>
@@ -350,9 +350,9 @@ function StatusCard({
   variant: "success" | "warning" | "danger"
 }) {
   const colors = {
-    success: "bg-emerald-50 text-emerald-700",
-    warning: "bg-amber-50 text-amber-700",
-    danger: "bg-red-50 text-red-700",
+    success: "bg-success-bg text-success-text border border-success-border",
+    warning: "bg-warning-bg text-warning-text border border-warning-border",
+    danger: "bg-danger-bg text-danger-text border border-danger-border",
   } as const
 
   return (

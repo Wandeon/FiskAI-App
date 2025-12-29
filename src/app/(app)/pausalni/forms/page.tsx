@@ -163,7 +163,7 @@ export default function FormsPage() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="p-2 rounded-lg bg-blue-500/10">
-                            <FileText className="h-5 w-5 text-blue-600" />
+                            <FileText className="h-5 w-5 text-link" />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">

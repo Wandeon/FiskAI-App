@@ -49,7 +49,7 @@ export function TerminalSettingsForm({ initialData }: Props) {
           onChange={(e) => setLocationId(e.target.value)}
           placeholder="tml_..."
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-secondary mt-1">
           Pronađite u Stripe Dashboard → Terminal → Locations
         </p>
       </div>
@@ -63,7 +63,7 @@ export function TerminalSettingsForm({ initialData }: Props) {
           onChange={(e) => setReaderId(e.target.value)}
           placeholder="tmr_..."
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-secondary mt-1">
           Pronađite u Stripe Dashboard → Terminal → Readers
         </p>
       </div>

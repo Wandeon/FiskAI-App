@@ -97,7 +97,7 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
       <CardHeader>
         <CardTitle className="text-base flex items-center justify-between">
           <span>Detalji neplaćenih računa</span>
-          <span className="text-sm font-normal text-gray-500">
+          <span className="text-sm font-normal text-secondary">
             Prikazano {sortedInvoices.length} računa
           </span>
         </CardTitle>
@@ -108,35 +108,35 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
             <thead>
               <tr className="border-b">
                 <th
-                  className="text-left py-2 cursor-pointer hover:bg-gray-50"
+                  className="text-left py-2 cursor-pointer hover:bg-surface-1"
                   onClick={() => handleSort("invoiceNumber")}
                 >
                   Račun
                   <SortIcon field="invoiceNumber" />
                 </th>
                 <th
-                  className="text-left py-2 cursor-pointer hover:bg-gray-50"
+                  className="text-left py-2 cursor-pointer hover:bg-surface-1"
                   onClick={() => handleSort("buyer")}
                 >
                   Kupac
                   <SortIcon field="buyer" />
                 </th>
                 <th
-                  className="text-left py-2 cursor-pointer hover:bg-gray-50"
+                  className="text-left py-2 cursor-pointer hover:bg-surface-1"
                   onClick={() => handleSort("dueDate")}
                 >
                   Dospijeće
                   <SortIcon field="dueDate" />
                 </th>
                 <th
-                  className="text-right py-2 cursor-pointer hover:bg-gray-50"
+                  className="text-right py-2 cursor-pointer hover:bg-surface-1"
                   onClick={() => handleSort("totalAmount")}
                 >
                   Iznos
                   <SortIcon field="totalAmount" />
                 </th>
                 <th
-                  className="text-left py-2 cursor-pointer hover:bg-gray-50"
+                  className="text-left py-2 cursor-pointer hover:bg-surface-1"
                   onClick={() => handleSort("daysOverdue")}
                 >
                   Status
@@ -148,11 +148,11 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
               {sortedInvoices.map((inv) => {
                 const daysOverdue = getDaysOverdue(inv.dueDate)
                 return (
-                  <tr key={inv.id} className="border-b hover:bg-gray-50">
+                  <tr key={inv.id} className="border-b hover:bg-surface-1">
                     <td className="py-2">
                       <Link
                         href={`/invoices/${inv.id}`}
-                        className="text-blue-600 hover:underline font-mono"
+                        className="text-link hover:underline font-mono"
                       >
                         {inv.invoiceNumber}
                       </Link>
@@ -164,9 +164,9 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
                     </td>
                     <td className="py-2">
                       {daysOverdue > 0 ? (
-                        <span className="text-red-600">{daysOverdue} dana kasni</span>
+                        <span className="text-danger-text">{daysOverdue} dana kasni</span>
                       ) : (
-                        <span className="text-green-600">Tekući</span>
+                        <span className="text-success-icon">Tekući</span>
                       )}
                     </td>
                   </tr>

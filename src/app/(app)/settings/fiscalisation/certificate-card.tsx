@@ -77,9 +77,9 @@ export function CertificateCard({ environment, certificate, companyOib }: Certif
                 }
                 className={
                   status === "active"
-                    ? "bg-green-600 hover:bg-green-700"
+                    ? "bg-success hover:bg-success"
                     : status === "expiring-soon"
-                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      ? "bg-warning hover:bg-warning"
                       : undefined
                 }
               >
@@ -94,11 +94,11 @@ export function CertificateCard({ environment, certificate, companyOib }: Certif
             <>
               {/* OIB Mismatch Warning */}
               {hasOibMismatch && (
-                <div className="flex items-start gap-2 rounded-md bg-yellow-50 border border-yellow-200 p-3 text-sm">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-2 rounded-md bg-warning-bg border border-warning-border p-3 text-sm">
+                  <AlertTriangle className="h-4 w-4 text-warning-icon mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-yellow-900">OIB Mismatch</p>
-                    <p className="text-yellow-700 mt-1">
+                    <p className="font-medium text-warning-text">OIB Mismatch</p>
+                    <p className="text-warning-text mt-1">
                       Certificate OIB ({certificate.oibExtracted}) does not match company OIB (
                       {companyOib}). Fiscalisation will fail unless OIBs match.
                     </p>
@@ -109,41 +109,41 @@ export function CertificateCard({ environment, certificate, companyOib }: Certif
               {/* Certificate Details */}
               <div className="space-y-3">
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="text-gray-500">Subject</div>
+                  <div className="text-secondary">Subject</div>
                   <div className="col-span-2 font-medium">{certificate.certSubject}</div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="text-gray-500">OIB</div>
+                  <div className="text-secondary">OIB</div>
                   <div className="col-span-2 font-medium font-mono">{certificate.oibExtracted}</div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="text-gray-500">Serial</div>
+                  <div className="text-secondary">Serial</div>
                   <div className="col-span-2 font-medium font-mono text-xs">
                     {certificate.certSerial}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="text-gray-500">Valid From</div>
+                  <div className="text-secondary">Valid From</div>
                   <div className="col-span-2 font-medium">
                     {formatDate(certificate.certNotBefore)}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="text-gray-500">Expires</div>
+                  <div className="text-secondary">Expires</div>
                   <div className="col-span-2">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{formatDate(certificate.certNotAfter)}</span>
                       {status === "expiring-soon" && (
-                        <span className="text-xs text-yellow-600">
+                        <span className="text-xs text-warning-text">
                           ({daysUntil(certificate.certNotAfter)} days remaining)
                         </span>
                       )}
                       {status === "expired" && (
-                        <span className="text-xs text-red-600">
+                        <span className="text-xs text-danger-text">
                           (expired {Math.abs(daysUntil(certificate.certNotAfter))} days ago)
                         </span>
                       )}
@@ -153,7 +153,7 @@ export function CertificateCard({ environment, certificate, companyOib }: Certif
 
                 {certificate.lastUsedAt && (
                   <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div className="text-gray-500">Last Used</div>
+                    <div className="text-secondary">Last Used</div>
                     <div className="col-span-2 font-medium">
                       {formatDateTime(certificate.lastUsedAt)}
                     </div>
@@ -186,11 +186,11 @@ export function CertificateCard({ environment, certificate, companyOib }: Certif
           ) : (
             <div className="text-center py-8">
               <div className="flex justify-center mb-3">
-                <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                  <FileKey className="h-6 w-6 text-gray-400" />
+                <div className="h-12 w-12 rounded-full bg-surface-1 flex items-center justify-center">
+                  <FileKey className="h-6 w-6 text-muted" />
                 </div>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-secondary mb-4">
                 No certificate uploaded for {environment === "TEST" ? "test" : "production"}{" "}
                 environment
               </p>
@@ -217,10 +217,10 @@ export function CertificateCard({ environment, certificate, companyOib }: Certif
 
       {/* Delete Confirmation Dialog */}
       {showDeleteDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--surface)] rounded-lg p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50">
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-2">Delete Certificate?</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-secondary mb-4">
               This will permanently delete the {environment === "TEST" ? "test" : "production"}{" "}
               certificate. You will need to upload a new certificate to fiscalize invoices.
             </p>
@@ -267,14 +267,14 @@ function getCertificateStatus(certificate: FiscalCertificate | null): Certificat
 function getStatusIcon(status: CertificateStatus) {
   switch (status) {
     case "active":
-      return <ShieldCheck className="h-5 w-5 text-green-600" />
+      return <ShieldCheck className="h-5 w-5 text-success-icon" />
     case "expiring-soon":
-      return <ShieldAlert className="h-5 w-5 text-yellow-600" />
+      return <ShieldAlert className="h-5 w-5 text-warning-icon" />
     case "expired":
     case "revoked":
-      return <ShieldAlert className="h-5 w-5 text-red-600" />
+      return <ShieldAlert className="h-5 w-5 text-danger-icon" />
     default:
-      return <Shield className="h-5 w-5 text-gray-400" />
+      return <Shield className="h-5 w-5 text-muted" />
   }
 }
 

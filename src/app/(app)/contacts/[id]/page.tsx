@@ -150,7 +150,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
             </div>
             <div>
               <h1 className="text-2xl font-bold">{contact.name}</h1>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-secondary">
                 <span
                   className={cn(
                     "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
@@ -187,7 +187,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
             {contact.email && (
               <a
                 href={`mailto:${contact.email}`}
-                className="flex items-center gap-2 text-gray-600 hover:text-brand-600"
+                className="flex items-center gap-2 text-secondary hover:text-brand-600"
               >
                 <Mail className="h-4 w-4" />
                 {contact.email}
@@ -196,14 +196,14 @@ export default async function ContactOverviewPage({ params }: PageProps) {
             {contact.phone && (
               <a
                 href={`tel:${contact.phone}`}
-                className="flex items-center gap-2 text-gray-600 hover:text-brand-600"
+                className="flex items-center gap-2 text-secondary hover:text-brand-600"
               >
                 <Phone className="h-4 w-4" />
                 {contact.phone}
               </a>
             )}
             {(contact.address || contact.city) && (
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-secondary">
                 <MapPin className="h-4 w-4" />
                 {[contact.address, contact.postalCode, contact.city].filter(Boolean).join(", ")}
               </div>
@@ -221,7 +221,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 <Euro className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-secondary">
                   {isCustomer ? "Ukupni prihod" : "Ukupni troskovi"}
                 </p>
                 <p className="text-2xl font-semibold">
@@ -238,18 +238,18 @@ export default async function ContactOverviewPage({ params }: PageProps) {
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  outstandingBalance > 0 ? "bg-amber-100" : "bg-gray-100"
+                  outstandingBalance > 0 ? "bg-amber-100" : "bg-surface-1"
                 )}
               >
                 <Receipt
                   className={cn(
                     "h-5 w-5",
-                    outstandingBalance > 0 ? "text-amber-600" : "text-gray-400"
+                    outstandingBalance > 0 ? "text-amber-600" : "text-muted"
                   )}
                 />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Neplaceno</p>
+                <p className="text-sm text-secondary">Neplaceno</p>
                 <p
                   className={cn(
                     "text-2xl font-semibold",
@@ -272,10 +272,10 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                   paymentBehavior === "excellent"
                     ? "bg-emerald-100"
                     : paymentBehavior === "good"
-                      ? "bg-blue-100"
+                      ? "bg-info-bg"
                       : paymentBehavior === "fair"
                         ? "bg-amber-100"
-                        : "bg-red-100"
+                        : "bg-danger-bg"
                 )}
               >
                 <Clock
@@ -284,15 +284,15 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                     paymentBehavior === "excellent"
                       ? "text-emerald-600"
                       : paymentBehavior === "good"
-                        ? "text-blue-600"
+                        ? "text-link"
                         : paymentBehavior === "fair"
                           ? "text-amber-600"
-                          : "text-red-600"
+                          : "text-danger-text"
                   )}
                 />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Prosj. placanje</p>
+                <p className="text-sm text-secondary">Prosj. placanje</p>
                 <p className="text-2xl font-semibold">
                   {paidInvoices.length > 0 ? `${avgPaymentDays} dana` : "-"}
                 </p>
@@ -308,7 +308,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 <FileText className="h-5 w-5 text-brand-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Ukupno racuna</p>
+                <p className="text-sm text-secondary">Ukupno racuna</p>
                 <p className="text-2xl font-semibold">{totalInvoices}</p>
               </div>
             </div>
@@ -327,10 +327,10 @@ export default async function ContactOverviewPage({ params }: PageProps) {
             {/* On-time percentage */}
             <div>
               <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-gray-500">Na vrijeme</span>
+                <span className="text-secondary">Na vrijeme</span>
                 <span className="font-medium">{onTimePercentage}%</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-gray-100">
+              <div className="h-2 w-full rounded-full bg-surface-1">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
@@ -351,17 +351,17 @@ export default async function ContactOverviewPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="text-center p-3 rounded-lg bg-emerald-50">
                 <p className="text-2xl font-semibold text-emerald-600">{onTimePayments}</p>
-                <p className="text-xs text-gray-500">Na vrijeme</p>
+                <p className="text-xs text-secondary">Na vrijeme</p>
               </div>
-              <div className="text-center p-3 rounded-lg bg-red-50">
-                <p className="text-2xl font-semibold text-red-600">{latePayments}</p>
-                <p className="text-xs text-gray-500">Zakasnjelo</p>
+              <div className="text-center p-3 rounded-lg bg-danger-bg">
+                <p className="text-2xl font-semibold text-danger-text">{latePayments}</p>
+                <p className="text-xs text-secondary">Zakasnjelo</p>
               </div>
             </div>
 
             {/* Overdue warning */}
             {overdueInvoices.length > 0 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-bg text-danger-text text-sm">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>
                   {overdueInvoices.length} {overdueInvoices.length === 1 ? "racun" : "racuna"}{" "}
@@ -377,10 +377,10 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 paymentBehavior === "excellent"
                   ? "bg-emerald-50 text-emerald-700"
                   : paymentBehavior === "good"
-                    ? "bg-blue-50 text-blue-700"
+                    ? "bg-info-bg text-link"
                     : paymentBehavior === "fair"
                       ? "bg-amber-50 text-amber-700"
-                      : "bg-red-50 text-red-700"
+                      : "bg-danger-bg text-danger-text"
               )}
             >
               {paymentBehavior === "excellent" || paymentBehavior === "good" ? (
@@ -414,7 +414,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             {recentInvoices.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-secondary">
                 <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Nema racuna za ovaj kontakt</p>
                 <Link href={`/e-invoices/new?buyerId=${id}`}>
@@ -434,26 +434,26 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                     <Link
                       key={invoice.id}
                       href={`/e-invoices/${invoice.id}`}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-1 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
                             "flex h-8 w-8 items-center justify-center rounded-full",
-                            isPaid ? "bg-emerald-100" : isOverdue ? "bg-red-100" : "bg-gray-100"
+                            isPaid ? "bg-emerald-100" : isOverdue ? "bg-danger-bg" : "bg-surface-1"
                           )}
                         >
                           {isPaid ? (
                             <CheckCircle className="h-4 w-4 text-emerald-600" />
                           ) : isOverdue ? (
-                            <AlertCircle className="h-4 w-4 text-red-600" />
+                            <AlertCircle className="h-4 w-4 text-danger-text" />
                           ) : (
-                            <Clock className="h-4 w-4 text-gray-400" />
+                            <Clock className="h-4 w-4 text-muted" />
                           )}
                         </div>
                         <div>
                           <p className="font-medium text-sm">{invoice.invoiceNumber}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-secondary">
                             {new Date(invoice.issueDate).toLocaleDateString("hr-HR")}
                           </p>
                         </div>
@@ -466,8 +466,8 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                             isPaid
                               ? "text-emerald-600"
                               : isOverdue
-                                ? "text-red-600"
-                                : "text-gray-500"
+                                ? "text-danger-text"
+                                : "text-secondary"
                           )}
                         >
                           {isPaid ? "Placeno" : isOverdue ? "Dospjelo" : "Ceka placanje"}
@@ -493,13 +493,13 @@ export default async function ContactOverviewPage({ params }: PageProps) {
               {
                 label: "Nacrti",
                 count: invoices.filter((i) => i.status === "DRAFT").length,
-                color: "bg-gray-100 text-gray-600",
+                color: "bg-surface-1 text-secondary",
               },
               {
                 label: "Poslano",
                 count: invoices.filter((i) => ["SENT", "DELIVERED", "ACCEPTED"].includes(i.status))
                   .length,
-                color: "bg-blue-100 text-blue-600",
+                color: "bg-info-bg text-link",
               },
               {
                 label: "Placeno",
@@ -509,7 +509,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
               {
                 label: "Dospjelo",
                 count: overdueInvoices.length,
-                color: "bg-red-100 text-red-600",
+                color: "bg-danger-bg text-danger-text",
               },
             ].map((item) => (
               <div
@@ -517,7 +517,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 className={cn("p-4 rounded-lg text-center", item.color.split(" ")[0])}
               >
                 <p className={cn("text-3xl font-bold", item.color.split(" ")[1])}>{item.count}</p>
-                <p className="text-sm text-gray-600">{item.label}</p>
+                <p className="text-sm text-secondary">{item.label}</p>
               </div>
             ))}
           </div>

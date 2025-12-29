@@ -96,11 +96,11 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
                       <Badge variant="outline">{group.rows.length} transakcija</Badge>
                     </div>
                     <div className="text-sm font-semibold text-foreground">
-                      <span className="text-green-600">+{formatCurrency(group.totalIncome)}</span>
+                      <span className="text-success-icon">+{formatCurrency(group.totalIncome)}</span>
                       {" / "}
-                      <span className="text-red-600">-{formatCurrency(group.totalExpense)}</span>
+                      <span className="text-danger-text">-{formatCurrency(group.totalExpense)}</span>
                       {" = "}
-                      <span className={group.netIncome >= 0 ? "text-green-600" : "text-red-600"}>
+                      <span className={group.netIncome >= 0 ? "text-success-icon" : "text-danger-text"}>
                         {formatCurrency(group.netIncome)}
                       </span>
                     </div>
@@ -129,10 +129,10 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
                               {r.documentNumber}
                             </td>
                             <td className="px-3 py-2 text-muted-foreground">{r.description}</td>
-                            <td className="px-3 py-2 text-right text-green-600">
+                            <td className="px-3 py-2 text-right text-success-icon">
                               {r.income > 0 ? formatCurrency(r.income) : "—"}
                             </td>
-                            <td className="px-3 py-2 text-right text-red-600">
+                            <td className="px-3 py-2 text-right text-danger-text">
                               {r.expense > 0 ? formatCurrency(r.expense) : "—"}
                             </td>
                             <td className="px-3 py-2 text-right font-semibold">
@@ -161,20 +161,20 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
               <p className="text-xs text-muted-foreground">{summary.rows.length} transakcija</p>
             </div>
 
-            <div className="space-y-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
+            <div className="space-y-2 rounded-lg border border-success-border bg-success-bg px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-success-text">
                 Primitak (Prihod)
               </p>
-              <p className="text-2xl font-bold text-green-700">
+              <p className="text-2xl font-bold text-success-text">
                 {formatCurrency(summary.totalIncome)}
               </p>
             </div>
 
-            <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+            <div className="space-y-2 rounded-lg border border-danger-border bg-danger-bg px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-danger-text">
                 Izdatak (Trošak)
               </p>
-              <p className="text-2xl font-bold text-red-700">
+              <p className="text-2xl font-bold text-danger-text">
                 {formatCurrency(summary.totalExpense)}
               </p>
             </div>
@@ -182,20 +182,20 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
             <div
               className={`space-y-2 rounded-lg border px-3 py-2 ${
                 summary.netIncome >= 0
-                  ? "border-blue-200 bg-blue-50"
+                  ? "border-info-border bg-info-bg"
                   : "border-orange-200 bg-orange-50"
               }`}
             >
               <p
                 className={`text-xs font-semibold uppercase tracking-wide ${
-                  summary.netIncome >= 0 ? "text-blue-700" : "text-orange-700"
+                  summary.netIncome >= 0 ? "text-link" : "text-orange-700"
                 }`}
               >
                 Neto {summary.netIncome >= 0 ? "Dobit" : "Gubitak"}
               </p>
               <p
                 className={`text-2xl font-bold ${
-                  summary.netIncome >= 0 ? "text-blue-700" : "text-orange-700"
+                  summary.netIncome >= 0 ? "text-link" : "text-orange-700"
                 }`}
               >
                 {formatCurrency(Math.abs(summary.netIncome))}
@@ -210,7 +210,7 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
                 {Object.entries(summary.byQuarter).map(([quarter, data]) => (
                   <div key={quarter} className="flex items-center justify-between text-xs">
                     <span className="font-medium">{quarter}</span>
-                    <span className={data.netIncome >= 0 ? "text-green-600" : "text-red-600"}>
+                    <span className={data.netIncome >= 0 ? "text-success-icon" : "text-danger-text"}>
                       {formatCurrency(data.netIncome)}
                     </span>
                   </div>

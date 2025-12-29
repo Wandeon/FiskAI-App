@@ -147,8 +147,8 @@ export function BetaSettingsForm({ initialBetaOptIn, initialBetaOptInAt }: BetaS
                       className={cn(
                         "rounded-lg p-2 transition-colors",
                         selectedRating && selectedRating >= rating
-                          ? "text-amber-500"
-                          : "text-gray-300 hover:text-amber-400"
+                          ? "text-warning-icon"
+                          : "text-muted hover:text-warning-text"
                       )}
                       aria-label={`Ocjena ${rating} od 5`}
                     >

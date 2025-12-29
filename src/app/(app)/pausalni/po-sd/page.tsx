@@ -28,7 +28,7 @@ export default async function PoSDPage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <FileText className="h-6 w-6 text-blue-600" />
+          <FileText className="h-6 w-6 text-link" />
           <h1 className="text-2xl font-bold">PO-SD Godišnja Prijava</h1>
         </div>
         <p className="text-muted-foreground">
@@ -41,14 +41,14 @@ export default async function PoSDPage() {
         className={`${
           isBeforeDeadline
             ? "border-amber-500/50 bg-amber-500/10"
-            : "border-blue-500/50 bg-blue-500/10"
+            : "border-focus/50 bg-blue-500/10"
         }`}
       >
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Calendar
               className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                isBeforeDeadline ? "text-amber-600" : "text-blue-600"
+                isBeforeDeadline ? "text-amber-600" : "text-link"
               }`}
             />
             <div>
@@ -65,7 +65,7 @@ export default async function PoSDPage() {
                 className={`text-sm mt-1 ${
                   isBeforeDeadline
                     ? "text-amber-800 dark:text-amber-300"
-                    : "text-blue-800 dark:text-blue-300"
+                    : "text-info-text dark:text-blue-300"
                 }`}
               >
                 PO-SD obrazac za {currentYear - 1}. godinu mora biti podnesen do{" "}

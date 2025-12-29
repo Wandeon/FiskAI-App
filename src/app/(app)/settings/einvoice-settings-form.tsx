@@ -109,16 +109,16 @@ export function EInvoiceSettingsForm({ company }: EInvoiceSettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+      {error && <div className="rounded-md bg-danger-bg border border-danger-border p-3 text-sm text-danger-text">{error}</div>}
       {success && (
-        <div className="rounded-md bg-green-50 p-3 text-sm text-green-600">{success}</div>
+        <div className="rounded-md bg-success-bg border border-success-border p-3 text-sm text-success-text">{success}</div>
       )}
 
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Informacijski posrednik</label>
           <select
-            className="h-10 w-full rounded-md border border-gray-300 px-3"
+            className="h-10 w-full rounded-md border border-default px-3"
             {...register("eInvoiceProvider")}
           >
             <option value="">Odaberite pružatelja...</option>
@@ -131,15 +131,15 @@ export function EInvoiceSettingsForm({ company }: EInvoiceSettingsFormProps) {
         </div>
 
         {selectedProviderInfo && (
-          <div className="rounded-md bg-gray-50 p-4">
+          <div className="rounded-md bg-surface-1 border border-default p-4">
             <h4 className="font-medium">{selectedProviderInfo.name}</h4>
-            <p className="mt-1 text-sm text-gray-600">{selectedProviderInfo.description}</p>
+            <p className="mt-1 text-sm text-secondary">{selectedProviderInfo.description}</p>
             {selectedProviderInfo.website && (
               <a
                 href={selectedProviderInfo.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-block text-sm text-blue-600 hover:underline"
+                className="mt-2 inline-block text-sm text-link hover:underline"
               >
                 Posjetite web stranicu →
               </a>
@@ -155,16 +155,16 @@ export function EInvoiceSettingsForm({ company }: EInvoiceSettingsFormProps) {
               {...register("eInvoiceApiKey")}
               placeholder="Unesite API ključ od pružatelja"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-secondary">
               API ključ dobivate od odabranog informacijskog posrednika nakon registracije.
             </p>
           </div>
         )}
 
         {selectedProvider === "mock" && (
-          <div className="rounded-md bg-yellow-50 p-4">
-            <h4 className="font-medium text-yellow-800">Test način rada</h4>
-            <p className="mt-1 text-sm text-yellow-700">
+          <div className="rounded-md bg-warning-bg border border-warning-border p-4">
+            <h4 className="font-medium text-warning-text">Test način rada</h4>
+            <p className="mt-1 text-sm text-warning-text">
               U test načinu rada e-računi se ne šalju nikuda. Koristite za testiranje
               funkcionalnosti aplikacije prije povezivanja sa stvarnim pružateljem.
             </p>
