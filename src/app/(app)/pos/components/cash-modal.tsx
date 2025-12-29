@@ -52,13 +52,22 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
           total,
         })
         toast.success("Prodaja spremljena za sinkronizaciju")
-        // Return a partial result for offline mode
+        // Return a complete result for offline mode
         onComplete({
           success: true,
           invoice: {
             id: `offline-${Date.now()}`,
-            invoiceNumber: "Na čekanju",
+            invoiceNumber: "Na cekanju",
             totalAmount: total,
+            issueDate: new Date().toISOString(),
+            paymentMethod: "CASH",
+            items: items.map((item) => ({
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.quantity * item.unitPrice,
+              vatRate: item.vatRate,
+            })),
           },
         })
         return
@@ -80,7 +89,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
       } else {
         // If server error, offer to queue offline
         const shouldQueue = window.confirm(
-          `${result.error}\n\nŽelite li spremiti prodaju za kasniju sinkronizaciju?`
+          `${result.error}\n\nZelite li spremiti prodaju za kasniju sinkronizaciju?`
         )
         if (shouldQueue) {
           await queueOfflineSale({
@@ -93,12 +102,21 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
             success: true,
             invoice: {
               id: `offline-${Date.now()}`,
-              invoiceNumber: "Na čekanju",
+              invoiceNumber: "Na cekanju",
               totalAmount: total,
+              issueDate: new Date().toISOString(),
+              paymentMethod: "CASH",
+              items: items.map((item) => ({
+                description: item.description,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.quantity * item.unitPrice,
+                vatRate: item.vatRate,
+              })),
             },
           })
         } else {
-          toast.error(result.error || "Greška pri obradi")
+          toast.error(result.error || "Greska pri obradi")
         }
       }
     } catch (error) {
@@ -113,8 +131,17 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
         success: true,
         invoice: {
           id: `offline-${Date.now()}`,
-          invoiceNumber: "Na čekanju",
+          invoiceNumber: "Na cekanju",
           totalAmount: total,
+          issueDate: new Date().toISOString(),
+          paymentMethod: "CASH",
+          items: items.map((item) => ({
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.quantity * item.unitPrice,
+            vatRate: item.vatRate,
+          })),
         },
       })
     } finally {
