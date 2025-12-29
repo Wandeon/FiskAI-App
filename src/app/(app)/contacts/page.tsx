@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { Plus, Users, LayoutGrid, Rows } from "lucide-react"
 import { getContactList } from "@/app/actions/contact-list"
 import { ContactCard } from "@/components/contacts/contact-card"
+import { ContactCsvImport } from "@/components/contacts/contact-csv-import"
 import { ContactFilters } from "@/components/contacts/contact-filters"
 import { ContactListSkeleton } from "@/components/contacts/contact-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -52,8 +53,8 @@ async function ContactList({
         title={search || type !== "ALL" ? "Nema rezultata" : "Nemate kontakata"}
         description={
           search || type !== "ALL"
-            ? "Pokušajte s drugim filterima"
-            : "Dodajte svoj prvi kontakt za početak fakturiranja"
+            ? "Pokusajte s drugim filterima"
+            : "Dodajte svoj prvi kontakt za pocetak fakturiranja"
         }
         action={
           !search && type === "ALL" ? (
@@ -94,7 +95,7 @@ async function ContactList({
 
           {pagination.hasMore && (
             <Link href={buildPageLink(page + 1, search, type, segments)}>
-              <Button variant="outline">Sljedeća</Button>
+              <Button variant="outline">Sljedeca</Button>
             </Link>
           )}
         </div>
@@ -122,7 +123,7 @@ export default async function ContactsPage({ searchParams }: PageProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Kontakti</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">Upravljajte kupcima i dobavljačima</p>
+          <p className="text-sm text-[var(--muted)] mt-1">Upravljajte kupcima i dobavljacima</p>
         </div>
         <VisibleButton id="action:create-contact" asChild>
           <Button asChild>
@@ -156,6 +157,9 @@ export default async function ContactsPage({ searchParams }: PageProps) {
         view={view}
       />
 
+      {/* CSV Import */}
+      <ContactCsvImport />
+
       {/* Contact List */}
       {view === "board" ? (
         <Suspense fallback={<ContactListSkeleton />}>
@@ -181,8 +185,8 @@ function QuickFilterButton({
   const isActive = current === value
   let label = "Svi"
   if (value === "CUSTOMER") label = "Kupci"
-  else if (value === "SUPPLIER") label = "Dobavljači"
-  else if (value === "BOTH") label = "Kupci/Dobavljači"
+  else if (value === "SUPPLIER") label = "Dobavljaci"
+  else if (value === "BOTH") label = "Kupci/Dobavljaci"
 
   return (
     <Link href={`/contacts?type=${value}&view=${view}`} className="text-sm">
@@ -215,8 +219,8 @@ async function ContactBoard({
 
   const columns = [
     { key: "CUSTOMER", label: "Kupci" },
-    { key: "SUPPLIER", label: "Dobavljači" },
-    { key: "BOTH", label: "Kupci/Dobavljači" },
+    { key: "SUPPLIER", label: "Dobavljaci" },
+    { key: "BOTH", label: "Kupci/Dobavljaci" },
     { key: "OTHER", label: "Ostalo" },
   ] as const
 
