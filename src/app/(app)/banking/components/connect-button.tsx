@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Loader2, Link2, Unlink } from "lucide-react"
+import { Loader2, Link2, Unlink, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 interface ConnectButtonProps {
@@ -40,6 +40,35 @@ export function ConnectButton({ bankAccountId, connectionStatus, bankName }: Con
     }
   }
 
+  async function handleRefresh() {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/bank/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bankAccountId }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        if (data.stillValid) {
+          toast.info("Veza je još uvijek aktivna")
+        } else {
+          toast.error(data.error || "Osvježavanje nije uspjelo")
+        }
+        return
+      }
+
+      // Redirect to bank auth
+      window.location.href = data.redirectUrl
+    } catch (error) {
+      toast.error("Osvježavanje nije uspjelo")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleDisconnect() {
     if (!confirm("Jeste li sigurni da želite prekinuti automatsku sinkronizaciju?")) {
       return
@@ -70,16 +99,28 @@ export function ConnectButton({ bankAccountId, connectionStatus, bankName }: Con
 
   if (connectionStatus === "CONNECTED") {
     return (
-      <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading}>
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <>
-            <Unlink className="h-4 w-4 mr-2" />
-            Prekini vezu
-          </>
-        )}
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Osvježi
+            </>
+          )}
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading}>
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Unlink className="h-4 w-4 mr-2" />
+              Prekini
+            </>
+          )}
+        </Button>
+      </div>
     )
   }
 
