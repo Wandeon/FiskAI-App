@@ -8,6 +8,8 @@ import {
   MessageSquare,
   FileText,
   Receipt,
+  Upload,
+  Activity as ActivityIcon,
 } from 'lucide-react'
 
 async function getStaffStats(userId: string) {
@@ -68,7 +70,7 @@ interface Activity {
   companyName: string
   companyId: string
   action: string
-  type: 'assignment' | 'invoice' | 'expense' | 'ticket'
+  type: 'assignment' | 'invoice' | 'expense' | 'ticket' | 'document' | 'audit'
   date: Date
   amount?: number
 }
@@ -85,29 +87,48 @@ async function getRecentActivity(userId: string): Promise<Activity[]> {
 
   if (companyIds.length === 0) return []
 
-  const [recentInvoices, recentExpenses, recentTickets] = await Promise.all([
+  const [recentInvoices, recentExpenses, recentTickets, recentDocuments, recentAuditLogs] = await Promise.all([
     db.eInvoice.findMany({
       where: { companyId: { in: companyIds } },
       select: { id: true, companyId: true, invoiceNumber: true, status: true, totalAmount: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
-      take: 5,
+      take: 10,
     }),
     db.expense.findMany({
       where: { companyId: { in: companyIds } },
       select: { id: true, companyId: true, description: true, status: true, totalAmount: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
-      take: 5,
+      take: 10,
     }),
     db.supportTicket.findMany({
       where: { companyId: { in: companyIds } },
       select: { id: true, companyId: true, title: true, status: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
-      take: 5,
+      take: 10,
+    }),
+    db.emailAttachment.findMany({
+      where: {
+        companyId: { in: companyIds },
+        status: { in: ['PENDING', 'IMPORTED'] }
+      },
+      select: { id: true, companyId: true, filename: true, status: true, receivedAt: true, senderEmail: true },
+      orderBy: { receivedAt: 'desc' },
+      take: 10,
+    }),
+    db.auditLog.findMany({
+      where: {
+        companyId: { in: companyIds },
+        action: { in: ['CREATE', 'UPDATE', 'DELETE', 'EXPORT'] },
+        entity: { in: ['Invoice', 'Expense', 'Contact', 'Product', 'SupportTicket'] }
+      },
+      select: { id: true, companyId: true, action: true, entity: true, entityId: true, timestamp: true },
+      orderBy: { timestamp: 'desc' },
+      take: 10,
     }),
   ])
 
   const activities: Activity[] = [
-    ...assignments.slice(0, 3).map(a => ({
+    ...assignments.slice(0, 2).map(a => ({
       id: `assign-${a.id}`, companyName: a.company.name, companyId: a.companyId,
       action: 'Assigned to client', type: 'assignment' as const, date: a.assignedAt,
     })),
@@ -125,10 +146,18 @@ async function getRecentActivity(userId: string): Promise<Activity[]> {
       id: `ticket-${ticket.id}`, companyName: companyMap.get(ticket.companyId) || 'Unknown', companyId: ticket.companyId,
       action: `Ticket: ${ticket.title.slice(0, 30)} - ${ticket.status}`, type: 'ticket' as const, date: ticket.createdAt,
     })),
+    ...recentDocuments.map(doc => ({
+      id: `doc-${doc.id}`, companyName: companyMap.get(doc.companyId) || 'Unknown', companyId: doc.companyId,
+      action: `Document uploaded: ${doc.filename.slice(0, 30)} - ${doc.status}`, type: 'document' as const, date: doc.receivedAt,
+    })),
+    ...recentAuditLogs.map(log => ({
+      id: `audit-${log.id}`, companyName: companyMap.get(log.companyId) || 'Unknown', companyId: log.companyId,
+      action: `${log.action} ${log.entity}`, type: 'audit' as const, date: log.timestamp,
+    })),
   ]
 
   activities.sort((a, b) => b.date.getTime() - a.date.getTime())
-  return activities.slice(0, 10)
+  return activities.slice(0, 15)
 }
 
 function getActivityIcon(type: string) {
@@ -136,6 +165,8 @@ function getActivityIcon(type: string) {
     case 'invoice': return <FileText className="h-4 w-4 text-primary" />
     case 'expense': return <Receipt className="h-4 w-4 text-warning" />
     case 'ticket': return <MessageSquare className="h-4 w-4 text-accent" />
+    case 'document': return <Upload className="h-4 w-4 text-blue-500" />
+    case 'audit': return <ActivityIcon className="h-4 w-4 text-purple-500" />
     default: return <Users className="h-4 w-4 text-success" />
   }
 }
