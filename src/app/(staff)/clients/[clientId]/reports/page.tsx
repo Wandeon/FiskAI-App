@@ -10,13 +10,13 @@ import {
  BarChart3,
  TrendingUp,
  FileText,
- Download,
  Calendar,
  PieChart,
  ArrowUpRight,
  ArrowDownRight,
 } from "lucide-react"
 import Link from "next/link"
+import { ExportButtons } from "./export-buttons"
 
 interface PageProps {
  params: Promise<{ clientId: string }>
@@ -92,7 +92,6 @@ export default async function ClientReportsPage({ params }: PageProps) {
  const { company, yearlyRevenue, monthlyRevenue, lastMonthRevenue, expenseTotal } =
  await getClientReportData(clientId)
 
- // Log staff access to reports (GDPR compliance)
  const reqHeaders = await headers()
  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
  logStaffAccess({
@@ -159,7 +158,6 @@ export default async function ClientReportsPage({ params }: PageProps) {
 
  return (
  <div className="space-y-6">
- {/* Financial Overview */}
  <div className="grid gap-4 md:grid-cols-4">
  <Card>
  <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -189,9 +187,8 @@ export default async function ClientReportsPage({ params }: PageProps) {
  <div className="text-2xl font-bold">
  {thisMonthRevenue.toLocaleString("hr-HR", { style: "currency", currency: "EUR" })}
  </div>
- <p className={`text-xs ${monthChange >= 0 ? "text-success-icon" : "text-danger-icon"}`}>
- {monthChange >= 0 ? "+" : ""}
- {monthChange.toFixed(1)}% vs last month
+ <p className={monthChange >= 0 ? "text-xs text-success-icon" : "text-xs text-danger-icon"}>
+ {monthChange >= 0 ? "+" : ""}{monthChange.toFixed(1)}% vs last month
  </p>
  </CardContent>
  </Card>
@@ -227,7 +224,6 @@ export default async function ClientReportsPage({ params }: PageProps) {
  )}
  </div>
 
- {/* Pausalni Threshold Alert */}
  {isPausalni && ytdRevenue > 0 && (
  <Card
  className={
@@ -242,8 +238,7 @@ export default async function ClientReportsPage({ params }: PageProps) {
  <div>
  <p className="font-medium">VAT Threshold Status</p>
  <p className="text-sm text-muted-foreground">
- {ytdRevenue.toLocaleString("hr-HR", { style: "currency", currency: "EUR" })} /{" "}
- 60,000.00 EUR ({((ytdRevenue / 60000) * 100).toFixed(1)}%)
+ {ytdRevenue.toLocaleString("hr-HR", { style: "currency", currency: "EUR" })} / 60,000.00 EUR ({((ytdRevenue / 60000) * 100).toFixed(1)}%)
  </p>
  </div>
  <Badge
@@ -261,7 +256,6 @@ export default async function ClientReportsPage({ params }: PageProps) {
  </Card>
  )}
 
- {/* Available Reports */}
  <Card>
  <CardHeader>
  <CardTitle>Available Reports</CardTitle>
@@ -283,7 +277,7 @@ export default async function ClientReportsPage({ params }: PageProps) {
  <p className="text-sm text-muted-foreground">{report.description}</p>
  {report.available ? (
  <Button variant="link" size="sm" className="px-0 mt-2" asChild>
- <Link href={`/clients/${clientId}/reports/${report.id}`}>
+ <Link href={"/clients/" + clientId + "/reports/" + report.id}>
  Generate Report
  </Link>
  </Button>
@@ -300,25 +294,13 @@ export default async function ClientReportsPage({ params }: PageProps) {
  </CardContent>
  </Card>
 
- {/* Export Options */}
  <Card>
  <CardHeader>
  <CardTitle>Export Data</CardTitle>
  <CardDescription>Download client data in various formats</CardDescription>
  </CardHeader>
  <CardContent className="flex gap-4">
- <Button variant="outline">
- <Download className="h-4 w-4 mr-2" />
- Export Invoices (CSV)
- </Button>
- <Button variant="outline">
- <Download className="h-4 w-4 mr-2" />
- Export Documents (ZIP)
- </Button>
- <Button variant="outline">
- <Download className="h-4 w-4 mr-2" />
- Full Data Export
- </Button>
+ <ExportButtons clientId={clientId} />
  </CardContent>
  </Card>
  </div>
