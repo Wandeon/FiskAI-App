@@ -22,8 +22,17 @@ export interface ProcessPosSaleResult {
     invoiceNumber: string
     totalAmount: number
     issueDate: string // ISO string
+    paymentMethod: "CASH" | "CARD"
+    items: Array<{
+      description: string
+      quantity: number
+      unitPrice: number
+      totalPrice: number
+      vatRate: number
+    }>
   }
   issuerOib?: string
+  operatorOib?: string
   jir?: string
   zki?: string
   pdfUrl?: string

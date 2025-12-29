@@ -1,6 +1,11 @@
 import { cache } from "react"
 import { unstable_cache } from "next/cache"
-import { getAdminMetrics, getComplianceHealth, getOnboardingFunnel } from "./admin/metrics"
+import {
+  getAdminMetrics,
+  getComplianceHealth,
+  getOnboardingFunnel,
+  getRecentSignups,
+} from "./admin/metrics"
 import { getTenantList } from "./admin/tenant-list"
 import type { TenantFilters, TenantSort, TenantPagination } from "./admin/tenant-list"
 
@@ -53,6 +58,21 @@ export const getCachedComplianceHealth = unstable_cache(
   {
     revalidate: 300, // 5 minutes
     tags: ["admin-metrics", "compliance"],
+  }
+)
+
+/**
+ * Cached version of getRecentSignups
+ * Revalidates every 1 minute
+ */
+export const getCachedRecentSignups = unstable_cache(
+  async (limit: number = 5) => {
+    return await getRecentSignups(limit)
+  },
+  ["recent-signups"],
+  {
+    revalidate: 60, // 1 minute
+    tags: ["admin-metrics", "tenant-list"],
   }
 )
 

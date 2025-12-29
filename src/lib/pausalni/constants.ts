@@ -1,33 +1,36 @@
+import { CONTRIBUTIONS } from "@/lib/fiscal-data"
+
 // 2025 Contribution amounts for paušalni obrt
+// Imported from centralized fiscal-data to avoid duplication
 export const DOPRINOSI_2025 = {
   MIO_I: {
-    amount: 107.88,
-    amountCents: 10788,
+    amount: CONTRIBUTIONS.monthly.mioI,
+    amountCents: Math.round(CONTRIBUTIONS.monthly.mioI * 100),
     recipientName: "Državni proračun RH",
-    iban: "HR1210010051863000160",
-    model: "HR68",
+    iban: CONTRIBUTIONS.rates.MIO_I.iban,
+    model: CONTRIBUTIONS.rates.MIO_I.model,
     referencePrefix: "8214",
-    description: "MIO I. stup",
+    description: CONTRIBUTIONS.rates.MIO_I.name,
   },
   MIO_II: {
-    amount: 35.96,
-    amountCents: 3596,
+    amount: CONTRIBUTIONS.monthly.mioII,
+    amountCents: Math.round(CONTRIBUTIONS.monthly.mioII * 100),
     recipientName: "Državni proračun RH",
-    iban: "HR7610010051700036001",
-    model: "HR68",
+    iban: CONTRIBUTIONS.rates.MIO_II.iban,
+    model: CONTRIBUTIONS.rates.MIO_II.model,
     referencePrefix: "2046",
-    description: "MIO II. stup",
+    description: CONTRIBUTIONS.rates.MIO_II.name,
   },
   ZDRAVSTVENO: {
-    amount: 118.67,
-    amountCents: 11867,
+    amount: CONTRIBUTIONS.monthly.hzzo,
+    amountCents: Math.round(CONTRIBUTIONS.monthly.hzzo * 100),
     recipientName: "Državni proračun RH",
-    iban: "HR6510010051550100001",
-    model: "HR68",
+    iban: CONTRIBUTIONS.rates.HZZO.iban,
+    model: CONTRIBUTIONS.rates.HZZO.model,
     referencePrefix: "8478",
-    description: "Zdravstveno osiguranje",
+    description: CONTRIBUTIONS.rates.HZZO.name,
   },
-  TOTAL: 262.51,
+  TOTAL: CONTRIBUTIONS.monthly.total,
 } as const
 
 // PDV payment configuration

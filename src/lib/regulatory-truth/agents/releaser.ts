@@ -17,6 +17,7 @@ import {
   emitContentSyncEvent,
   mapRtlDomainToContentDomain,
 } from "../content-sync"
+import { getConceptMapping } from "../content-sync/concept-registry"
 import type { RiskTier } from "../schemas/common"
 
 // =============================================================================
@@ -431,6 +432,17 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
       console.warn(
         `[releaser] Rule ${rule.id} has no conceptId, falling back to conceptSlug "${rule.conceptSlug}". ` +
           `Event may be dead-lettered if slug is not in concept registry.`
+      )
+    }
+
+    // VALIDATION: Check if conceptId exists in CONCEPT_REGISTRY
+    // This prevents content sync dead-letter events (issue #266)
+    const conceptMapping = getConceptMapping(effectiveConceptId)
+    if (!conceptMapping) {
+      console.warn(
+        `[releaser] ⚠️  UNMAPPED CONCEPT: Rule ${rule.id} (${rule.conceptSlug}) has conceptId "${effectiveConceptId}" ` +
+          `which is NOT in CONCEPT_REGISTRY. Content sync event will be DEAD_LETTERED. ` +
+          `Add mapping to src/lib/regulatory-truth/content-sync/concept-registry.ts`
       )
     }
 

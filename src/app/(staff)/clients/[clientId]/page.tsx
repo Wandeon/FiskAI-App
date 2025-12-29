@@ -3,15 +3,30 @@ import { db } from "@/lib/db"
 import { notFound, redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FileText, FolderOpen, TrendingUp, Users, AlertCircle } from "lucide-react"
+import { FileText, FolderOpen, TrendingUp, Users, AlertCircle, Receipt, MessageSquare, ClipboardCheck, BarChart3 } from "lucide-react"
 import Link from "next/link"
+import type { Metadata } from "next"
 
 interface PageProps {
   params: Promise<{ clientId: string }>
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { clientId } = await params
+
+  const company = await db.company.findUnique({
+    where: { id: clientId },
+    select: { name: true },
+  })
+
+  return {
+    title: company ? `${company.name} - Client Details` : "Client Details",
+    description: `View client information, stats, and activity for ${company?.name || "client"}`,
+  }
+}
+
 async function getClientOverview(companyId: string) {
-  const [company, invoiceStats, documentStats, contactCount, openTickets] = await Promise.all([
+  const [company, invoiceStats, expenseStats, documentStats, contactCount, openTickets] = await Promise.all([
     db.company.findUnique({
       where: { id: companyId },
       select: {
@@ -31,6 +46,11 @@ async function getClientOverview(companyId: string) {
       _count: { id: true },
       _sum: { totalAmount: true },
     }),
+    db.expense.aggregate({
+      where: { companyId },
+      _count: { id: true },
+      _sum: { amount: true },
+    }),
     db.document.count({ where: { companyId } }),
     db.contact.count({ where: { companyId } }),
     db.supportTicket.count({
@@ -38,7 +58,15 @@ async function getClientOverview(companyId: string) {
     }),
   ])
 
-  return { company, invoiceStats, documentStats, contactCount, openTickets }
+  // Calculate pending review count
+  const [invoiceCount, expenseCount, reviewedCount] = await Promise.all([
+    db.eInvoice.count({ where: { companyId } }),
+    db.expense.count({ where: { companyId } }),
+    db.staffReview.count({ where: { companyId } }),
+  ])
+  const pendingReview = (invoiceCount + expenseCount) - reviewedCount
+
+  return { company, invoiceStats, expenseStats, documentStats, contactCount, openTickets, pendingReview }
 }
 
 export default async function ClientOverviewPage({ params }: PageProps) {
@@ -49,7 +77,7 @@ export default async function ClientOverviewPage({ params }: PageProps) {
     redirect("/login")
   }
 
-  const { company, invoiceStats, documentStats, contactCount, openTickets } =
+  const { company, invoiceStats, expenseStats, documentStats, contactCount, openTickets, pendingReview } =
     await getClientOverview(clientId)
 
   if (!company) {
@@ -57,28 +85,48 @@ export default async function ClientOverviewPage({ params }: PageProps) {
   }
 
   const totalRevenue = Number(invoiceStats._sum.totalAmount || 0)
+  const totalExpenses = Number(expenseStats._sum.amount || 0)
 
   return (
     <div className="space-y-6">
-      {/* Open Tickets Alert */}
-      {openTickets > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="flex items-center gap-4 py-4">
-            <AlertCircle className="h-5 w-5 text-orange-600" />
-            <div>
-              <p className="font-medium text-orange-900">
-                {openTickets} open support {openTickets === 1 ? "ticket" : "tickets"}
-              </p>
-              <p className="text-sm text-orange-700">
-                This client has pending support requests that need attention.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Alerts */}
+      {(openTickets > 0 || pendingReview > 0) && (
+        <div className="space-y-3">
+          {openTickets > 0 && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="flex items-center gap-4 py-4">
+                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="font-medium text-orange-900">
+                    {openTickets} open support {openTickets === 1 ? "ticket" : "tickets"}
+                  </p>
+                  <p className="text-sm text-orange-700">
+                    This client has pending support requests that need attention.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {pendingReview > 0 && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="flex items-center gap-4 py-4">
+                <ClipboardCheck className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="font-medium text-blue-900">
+                    {pendingReview} {pendingReview === 1 ? "item" : "items"} pending review
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Review invoices and expenses to ensure accuracy before filing.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -91,7 +139,7 @@ export default async function ClientOverviewPage({ params }: PageProps) {
                 currency: "EUR",
               })}
             </div>
-            <p className="text-xs text-muted-foreground">From all invoices</p>
+            <p className="text-xs text-muted-foreground">From invoices</p>
           </CardContent>
         </Card>
 
@@ -108,6 +156,35 @@ export default async function ClientOverviewPage({ params }: PageProps) {
           </Card>
         </Link>
 
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {totalExpenses.toLocaleString("hr-HR", {
+                style: "currency",
+                currency: "EUR",
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">{expenseStats._count.id} expenses</p>
+          </CardContent>
+        </Card>
+
+        <Link href={`/clients/${clientId}/reports`}>
+          <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Reports</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">View</div>
+              <p className="text-xs text-muted-foreground">Financial reports</p>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link href={`/clients/${clientId}/documents`}>
           <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -116,21 +193,23 @@ export default async function ClientOverviewPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{documentStats}</div>
-              <p className="text-xs text-muted-foreground">Uploaded documents</p>
+              <p className="text-xs text-muted-foreground">Files uploaded</p>
             </CardContent>
           </Card>
         </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Contacts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{contactCount}</div>
-            <p className="text-xs text-muted-foreground">Business contacts</p>
-          </CardContent>
-        </Card>
+        <Link href={`/clients/${clientId}/messages`}>
+          <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Messages</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{contactCount}</div>
+              <p className="text-xs text-muted-foreground">Contacts</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Company Details */}

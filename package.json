@@ -46,7 +46,8 @@
     "validate:routes": "tsx scripts/validate-routes.ts",
     "validate:content": "tsx scripts/validate-content.ts",
     "registry:check": "npx tsx src/lib/system-registry/scripts/registry-check.ts",
-    "registry:harvest": "npx tsx src/lib/system-registry/harvesters/index.ts"
+    "registry:harvest": "npx tsx src/lib/system-registry/harvesters/index.ts",
+    "verify-contrast": "tsx src/design-system/scripts/verify-contrast.ts"
   },
   "lint-staged": {
     "src/app/(app)/**/*.{ts,tsx}": [

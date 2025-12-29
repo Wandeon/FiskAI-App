@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Building2, AlertCircle, ChevronRight } from 'lucide-react'
+import { Building2, AlertCircle, ChevronRight, ClipboardCheck } from 'lucide-react'
 import { ClientsSearch } from './clients-search'
 
 async function getAssignedClients(userId: string, searchQuery?: string) {
@@ -27,6 +27,7 @@ async function getAssignedClients(userId: string, searchQuery?: string) {
               eInvoices: true,
               expenses: true,
               supportTickets: { where: { status: { not: 'CLOSED' } } },
+              staffReviews: true,
             },
           },
         },
@@ -34,6 +35,26 @@ async function getAssignedClients(userId: string, searchQuery?: string) {
     },
     orderBy: { assignedAt: 'desc' },
   })
+
+  // Get pending review counts for each company
+  const companyIds = assignments.map(a => a.company.id)
+
+  // Count total reviewable items (invoices + expenses) minus reviewed ones
+  const pendingReviewCounts = await Promise.all(
+    companyIds.map(async (companyId) => {
+      const [invoiceCount, expenseCount, reviewedCount] = await Promise.all([
+        db.eInvoice.count({ where: { companyId } }),
+        db.expense.count({ where: { companyId } }),
+        db.staffReview.count({ where: { companyId } }),
+      ])
+      return {
+        companyId,
+        pendingReview: (invoiceCount + expenseCount) - reviewedCount,
+      }
+    })
+  )
+
+  const pendingMap = new Map(pendingReviewCounts.map(p => [p.companyId, p.pendingReview]))
 
   return assignments.map(a => ({
     id: a.company.id,
@@ -46,6 +67,7 @@ async function getAssignedClients(userId: string, searchQuery?: string) {
       invoices: a.company._count.eInvoices,
       expenses: a.company._count.expenses,
       openTickets: a.company._count.supportTickets,
+      pendingReview: pendingMap.get(a.company.id) || 0,
     },
   }))
 }
@@ -111,6 +133,12 @@ export async function ClientsList({ searchQuery }: ClientsListProps) {
                         <Badge variant="destructive" className="gap-1">
                           <AlertCircle className="h-3 w-3" />
                           {client.stats.openTickets}
+                        </Badge>
+                      )}
+                      {client.stats.pendingReview > 0 && (
+                        <Badge variant="outline" className="gap-1 border-orange-300 text-orange-600 bg-orange-50">
+                          <ClipboardCheck className="h-3 w-3" />
+                          {client.stats.pendingReview} za pregled
                         </Badge>
                       )}
                     </div>

@@ -115,3 +115,29 @@ export async function getComplianceHealth(): Promise<ComplianceHealth> {
     successRate: totalAttempts > 0 ? Math.round((allFiscalized / totalAttempts) * 100) : 100,
   }
 }
+
+export interface RecentSignup {
+  id: string
+  name: string
+  legalForm: string
+  createdAt: Date
+  subscriptionStatus: string | null
+}
+
+export async function getRecentSignups(limit: number = 5): Promise<RecentSignup[]> {
+  const companies = await db.company.findMany({
+    select: {
+      id: true,
+      name: true,
+      legalForm: true,
+      createdAt: true,
+      subscriptionStatus: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: limit,
+  })
+
+  return companies
+}

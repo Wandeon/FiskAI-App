@@ -1,9 +1,7 @@
-import Link from "next/link"
 import { drizzleDb } from "@/lib/db/drizzle"
-import { newsPosts } from "@/lib/db/schema/news"
+import { newsPosts, newsCategories } from "@/lib/db/schema/news"
 import { desc, sql } from "drizzle-orm"
-import { Eye, Pencil } from "lucide-react"
-import { DeleteButton } from "./delete-button"
+import { NewsTableClient } from "./news-table-client"
 
 export const dynamic = "force-dynamic"
 
@@ -40,11 +38,45 @@ async function getStatusCounts(): Promise<StatusCounts> {
 }
 
 async function getPosts() {
-  return await drizzleDb.select().from(newsPosts).orderBy(desc(newsPosts.createdAt)).limit(100)
+  const posts = await drizzleDb
+    .select({
+      id: newsPosts.id,
+      slug: newsPosts.slug,
+      title: newsPosts.title,
+      status: newsPosts.status,
+      categoryId: newsPosts.categoryId,
+      impactLevel: newsPosts.impactLevel,
+      viewCount: newsPosts.viewCount,
+      publishedAt: newsPosts.publishedAt,
+      createdAt: newsPosts.createdAt,
+    })
+    .from(newsPosts)
+    .orderBy(desc(newsPosts.createdAt))
+
+  // Convert dates to ISO strings for serialization
+  return posts.map((post) => ({
+    ...post,
+    publishedAt: post.publishedAt?.toISOString() || null,
+    createdAt: post.createdAt?.toISOString() || new Date().toISOString(),
+  }))
+}
+
+async function getCategories() {
+  return await drizzleDb
+    .select({
+      id: newsCategories.id,
+      nameHr: newsCategories.nameHr,
+    })
+    .from(newsCategories)
+    .orderBy(newsCategories.nameHr)
 }
 
 export default async function AdminNewsPage() {
-  const [statusCounts, posts] = await Promise.all([getStatusCounts(), getPosts()])
+  const [statusCounts, posts, categories] = await Promise.all([
+    getStatusCounts(),
+    getPosts(),
+    getCategories(),
+  ])
   const cronConfigured = Boolean(process.env.CRON_SECRET)
   const aiConfigured = Boolean(
     process.env.OLLAMA_API_KEY || process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY
@@ -105,80 +137,8 @@ export default async function AdminNewsPage() {
         </div>
       </div>
 
-      {/* Posts Table */}
-      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-card">
-        <div className="border-b border-[var(--border)] bg-[var(--surface-secondary)] px-6 py-4">
-          <h3 className="text-lg font-semibold">Svi postovi</h3>
-        </div>
-        <table className="w-full border-collapse">
-          <thead className="bg-[var(--surface-secondary)] text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-            <tr>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Naslov</th>
-              <th className="px-4 py-3">Kategorija</th>
-              <th className="px-4 py-3">Utjecaj</th>
-              <th className="px-4 py-3">Pregledi</th>
-              <th className="px-4 py-3">Objavljeno</th>
-              <th className="px-4 py-3 text-right">Akcije</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border)] text-sm">
-            {posts.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-[var(--muted)]">
-                  Nema vijesti
-                </td>
-              </tr>
-            ) : (
-              posts.map((post) => (
-                <tr key={post.id} className="hover:bg-[var(--surface-secondary)]/50">
-                  <td className="px-4 py-3">
-                    <StatusBadge status={post.status} />
-                  </td>
-                  <td className="px-4 py-3 font-medium text-[var(--foreground)]">
-                    <div className="max-w-md truncate">{post.title}</div>
-                  </td>
-                  <td className="px-4 py-3 text-[var(--muted)]">{post.categoryId || "—"}</td>
-                  <td className="px-4 py-3">
-                    <ImpactBadge level={post.impactLevel} />
-                  </td>
-                  <td className="px-4 py-3 font-mono text-sm text-[var(--muted)]">
-                    {post.viewCount.toLocaleString("hr-HR")}
-                  </td>
-                  <td className="px-4 py-3 text-[var(--muted)]">
-                    {post.publishedAt
-                      ? new Date(post.publishedAt).toLocaleDateString("hr-HR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/vijesti/${post.slug}`}
-                        className="rounded-lg border border-[var(--border)] p-2 hover:bg-[var(--surface-secondary)]"
-                        title="View"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                      <Link
-                        href={`/news/${post.id}`}
-                        className="rounded-lg border border-[var(--border)] p-2 hover:bg-[var(--surface-secondary)]"
-                        title="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      <DeleteButton postId={post.id} postTitle={post.title} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Posts Table with Search/Filter */}
+      <NewsTableClient initialPosts={posts} categories={categories} />
     </div>
   )
 }
@@ -194,39 +154,6 @@ function StatusCard({ label, count, color }: { label: string; count: number; col
         </div>
       </div>
     </div>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    pending: "bg-gray-500/20 text-gray-700 dark:text-gray-300",
-    draft: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300",
-    reviewing: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
-    published: "bg-green-500/20 text-green-700 dark:text-green-300",
-  }
-
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${colors[status] || colors.pending}`}
-    >
-      {status}
-    </span>
-  )
-}
-
-function ImpactBadge({ level }: { level: string | null }) {
-  if (!level) return <span className="text-[var(--muted)]">—</span>
-
-  const colors: Record<string, string> = {
-    high: "bg-red-500/20 text-red-700 dark:text-red-300",
-    medium: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
-    low: "bg-gray-500/20 text-gray-700 dark:text-gray-300",
-  }
-
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${colors[level] || ""}`}>
-      {level}
-    </span>
   )
 }
 

@@ -26,8 +26,11 @@ model User {
   staffAssignments    StaffAssignment[]    @relation("StaffAssignments")
   verificationCodes   VerificationCode[]
   webAuthnCredentials WebAuthnCredential[]
-  clientInvitations   ClientInvitation[]   @relation("ClientInvitations")
-  betaFeedback        BetaFeedback[]
+  clientInvitations    ClientInvitation[]     @relation("ClientInvitations")
+  betaFeedback         BetaFeedback[]
+  staffReviews         StaffReview[]          @relation("StaffReviews")
+  experimentAssignments ExperimentAssignment[]
+  experimentEvents     ExperimentEvent[]
 }
 
 model Account {
@@ -89,38 +92,38 @@ model PasswordResetToken {
 }
 
 model Company {
-  id                             String               @id @default(cuid())
+  id                             String                @id @default(cuid())
   name                           String
-  oib                            String               @unique
+  oib                            String                @unique
   vatNumber                      String?
   address                        String
   city                           String
   postalCode                     String
-  country                        String               @default("HR")
+  country                        String                @default("HR")
   email                          String?
   phone                          String?
   iban                           String?
-  isVatPayer                     Boolean              @default(false)
+  isVatPayer                     Boolean               @default(false)
   eInvoiceProvider               String?
-  createdAt                      DateTime             @default(now())
-  updatedAt                      DateTime             @updatedAt
+  createdAt                      DateTime              @default(now())
+  updatedAt                      DateTime              @updatedAt
   eInvoiceApiKeyEncrypted        String?
   legalForm                      String?
   entitlements                   Json?
   featureFlags                   Json?
-  deviceCode                     String               @default("1")
-  fiscalEnabled                  Boolean              @default(false)
-  fiscalEnvironment              FiscalEnv            @default(PROD)
-  premisesCode                   String               @default("1")
-  stripeCustomerId               String?              @unique
-  stripeSubscriptionId           String?              @unique
-  subscriptionStatus             String?              @default("trialing")
-  subscriptionPlan               String?              @default("pausalni")
+  deviceCode                     String                @default("1")
+  fiscalEnabled                  Boolean               @default(false)
+  fiscalEnvironment              FiscalEnv             @default(PROD)
+  premisesCode                   String                @default("1")
+  stripeCustomerId               String?               @unique
+  stripeSubscriptionId           String?               @unique
+  subscriptionStatus             String?               @default("trialing")
+  subscriptionPlan               String?               @default("pausalni")
   trialEndsAt                    DateTime?
   subscriptionCurrentPeriodStart DateTime?
   subscriptionCurrentPeriodEnd   DateTime?
-  invoiceLimit                   Int                  @default(50)
-  userLimit                      Int                  @default(1)
+  invoiceLimit                   Int                   @default(50)
+  userLimit                      Int                   @default(1)
   stripeTerminalLocationId       String?
   stripeTerminalReaderId         String?
   aiUsage                        AIUsage[]
@@ -145,19 +148,21 @@ model Company {
   products                       Product[]
   recurringExpenses              RecurringExpense[]
   savedReports                   SavedReport[]
-  assignedStaff                  StaffAssignment[]    @relation("AssignedStaff")
+  assignedStaff                  StaffAssignment[]     @relation("AssignedStaff")
   statements                     Statement[]
   statementPages                 StatementPage[]
   supportTickets                 SupportTicket[]
   statementTransactions          Transaction[]
-  clientInvitations              ClientInvitation[]   @relation("InvitedClients")
+  clientInvitations              ClientInvitation[]    @relation("InvitedClients")
   entitlementHistory             EntitlementHistory[]
   featureFlagOverrides           FeatureFlagOverride[]
+  staffReviews                   StaffReview[]
+  adminAlerts                    AdminAlert[]
 }
 
 // Audit trail for module entitlement changes
 model EntitlementHistory {
-  id            String                   @id @default(cuid())
+  id            String                @id @default(cuid())
   companyId     String
   userId        String
   changeType    EntitlementChangeType
@@ -170,8 +175,8 @@ model EntitlementHistory {
   metadata      Json?
   ipAddress     String?
   userAgent     String?
-  createdAt     DateTime                 @default(now())
-  company       Company                  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime              @default(now())
+  company       Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([userId])
@@ -230,6 +235,24 @@ model ClientInvitation {
   @@index([staffId])
   @@index([email])
   @@index([token])
+}
+
+// Staff review tracking for accountant workflow (Pregledano feature)
+model StaffReview {
+  id           String           @id @default(cuid())
+  companyId    String
+  reviewerId   String
+  entityType   StaffReviewEntity
+  entityId     String
+  reviewedAt   DateTime         @default(now())
+  notes        String?
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reviewer     User             @relation("StaffReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, entityType, entityId])
+  @@index([companyId])
+  @@index([reviewerId])
+  @@index([entityType, entityId])
 }
 
 model Contact {
@@ -842,24 +865,26 @@ model WebAuthnCredential {
 }
 
 model FiscalCertificate {
-  id               String          @id @default(cuid())
-  companyId        String
-  environment      FiscalEnv
-  provider         String          @default("DIRECT")
-  certSubject      String
-  certSerial       String
-  certNotBefore    DateTime
-  certNotAfter     DateTime
-  oibExtracted     String
-  certSha256       String
-  encryptedP12     String
-  encryptedDataKey String
-  status           CertStatus      @default(PENDING)
-  lastUsedAt       DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  fiscalRequests   FiscalRequest[]
+  id                        String          @id @default(cuid())
+  companyId                 String
+  environment               FiscalEnv
+  provider                  String          @default("DIRECT")
+  certSubject               String
+  certSerial                String
+  certNotBefore             DateTime
+  certNotAfter              DateTime
+  oibExtracted              String
+  certSha256                String
+  encryptedP12              String
+  encryptedDataKey          String
+  status                    CertStatus      @default(PENDING)
+  lastUsedAt                DateTime?
+  lastExpiryNotificationAt  DateTime?       // When last expiry notification was sent
+  lastExpiryNotificationDay Int?            // Days remaining when notification was sent (30, 14, 7, 1)
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  company                   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalRequests            FiscalRequest[]
 
   @@unique([companyId, environment])
   @@index([companyId])
@@ -1338,6 +1363,12 @@ enum ClientInvitationStatus {
   CANCELLED
 }
 
+enum StaffReviewEntity {
+  EINVOICE
+  EXPENSE
+  DOCUMENT
+}
+
 enum TicketCategory {
   TECHNICAL
   BILLING
@@ -1435,6 +1466,15 @@ enum AuditAction {
   // Regulatory Truth Layer - Status Transitions & Pipeline
   RULE_STATUS_CHANGED
   PIPELINE_STAGE_COMPLETE
+
+  // Staff Portal - Client Data Access (GDPR compliance)
+  STAFF_VIEW_CLIENT
+  STAFF_VIEW_INVOICES
+  STAFF_VIEW_DOCUMENTS
+  STAFF_VIEW_REPORTS
+  STAFF_EXPORT_DATA
+  STAFF_MARK_REVIEWED
+  STAFF_REVIEW_UNMARKED
 }
 
 enum ExpenseStatus {
@@ -1679,32 +1719,32 @@ enum DiscoveredItemStatus {
 }
 
 enum NodeType {
-  HUB    // Container page (lists, indexes, sitemaps)
-  LEAF   // Content page (articles, regulations)
-  ASSET  // Binary file (PDF, DOCX, XLS)
+  HUB // Container page (lists, indexes, sitemaps)
+  LEAF // Content page (articles, regulations)
+  ASSET // Binary file (PDF, DOCX, XLS)
 }
 
 enum NodeRole {
-  ARCHIVE      // Historical (/archive/, /2020/)
-  INDEX        // Navigation/pagination
-  NEWS_FEED    // High velocity (/vijesti/, /news/)
-  REGULATION   // Core legal text
-  FORM         // Downloadable forms (/obrasci/)
-  GUIDANCE     // Official guidance (/upute/, /misljenja/)
+  ARCHIVE // Historical (/archive/, /2020/)
+  INDEX // Navigation/pagination
+  NEWS_FEED // High velocity (/vijesti/, /news/)
+  REGULATION // Core legal text
+  FORM // Downloadable forms (/obrasci/)
+  GUIDANCE // Official guidance (/upute/, /misljenja/)
 }
 
 enum FreshnessRisk {
-  CRITICAL    // VAT rates, deadlines - hours matter
-  HIGH        // New laws, gazette items
-  MEDIUM      // Standard content
-  LOW         // Archives, FAQs
+  CRITICAL // VAT rates, deadlines - hours matter
+  HIGH // New laws, gazette items
+  MEDIUM // Standard content
+  LOW // Archives, FAQs
 }
 
 enum RiskTier {
-  T0  // Critical: Tax rates, legal deadlines, penalties
-  T1  // High: Thresholds, contribution bases
-  T2  // Medium: Procedural requirements, form fields
-  T3  // Low: UI labels, help text
+  T0 // Critical: Tax rates, legal deadlines, penalties
+  T1 // High: Thresholds, contribution bases
+  T2 // Medium: Procedural requirements, form fields
+  T3 // Low: UI labels, help text
 }
 
 enum AgentType {
@@ -1770,32 +1810,32 @@ enum GraphEdgeType {
   EXEMPTS
   DEPENDS_ON
   SUPERSEDES
-  OVERRIDES      // Lex specialis - specific overrides general
+  OVERRIDES // Lex specialis - specific overrides general
 }
 
 enum AuthorityLevel {
-  LAW           // Legally binding (Narodne novine)
-  GUIDANCE      // Interpretation (Porezna uprava)
-  PROCEDURE     // Technical execution (FINA, HZMO, HZZO)
-  PRACTICE      // What passes inspections
+  LAW // Legally binding (Narodne novine)
+  GUIDANCE // Interpretation (Porezna uprava)
+  PROCEDURE // Technical execution (FINA, HZMO, HZZO)
+  PRACTICE // What passes inspections
 }
 
 enum AutomationPolicy {
-  ALLOW         // Safe for full automation
-  CONFIRM       // Requires user confirmation
-  BLOCK         // Manual only, no automation
+  ALLOW // Safe for full automation
+  CONFIRM // Requires user confirmation
+  BLOCK // Manual only, no automation
 }
 
 enum RuleStability {
-  STABLE        // Rarely changes
-  VOLATILE      // Changes frequently
+  STABLE // Rarely changes
+  VOLATILE // Changes frequently
 }
 
 enum ObligationType {
-  OBLIGATION      // Must comply (e.g., "must pay 25%")
-  NO_OBLIGATION   // Explicitly exempt/not applicable
-  CONDITIONAL     // Depends on other factors (use appliesWhen)
-  INFORMATIONAL   // Reference value, not a requirement
+  OBLIGATION // Must comply (e.g., "must pay 25%")
+  NO_OBLIGATION // Explicitly exempt/not applicable
+  CONDITIONAL // Depends on other factors (use appliesWhen)
+  INFORMATIONAL // Reference value, not a requirement
 }
 
 // ============================================================================
@@ -1864,20 +1904,20 @@ enum TransitionPattern {
 }
 
 model RegulatorySource {
-  id                String    @id @default(cuid())
-  slug              String    @unique  // e.g., "porezna-pausalni"
-  name              String               // "Porezna uprava - Paušalno oporezivanje"
-  url               String
-  hierarchy         Int       @default(5)  // 1=Ustav, 2=Zakon, 3=Podzakonski, 4=Pravilnik, 5=Uputa, 6=Mišljenje, 7=Praksa
-  fetchIntervalHours Int      @default(24)
-  lastFetchedAt     DateTime?
-  lastContentHash   String?
-  isActive          Boolean   @default(true)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  slug               String    @unique // e.g., "porezna-pausalni"
+  name               String // "Porezna uprava - Paušalno oporezivanje"
+  url                String
+  hierarchy          Int       @default(5) // 1=Ustav, 2=Zakon, 3=Podzakonski, 4=Pravilnik, 5=Uputa, 6=Mišljenje, 7=Praksa
+  fetchIntervalHours Int       @default(24)
+  lastFetchedAt      DateTime?
+  lastContentHash    String?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  evidence          Evidence[]
-  monitoringAlerts  MonitoringAlert[]
+  evidence         Evidence[]
+  monitoringAlerts MonitoringAlert[]
 
   @@index([isActive])
   @@index([lastFetchedAt])
@@ -1885,27 +1925,27 @@ model RegulatorySource {
 
 model DiscoveryEndpoint {
   id                String                @id @default(cuid())
-  domain            String                // e.g., "hzzo.hr"
-  path              String                // e.g., "/novosti"
-  name              String                // Human-readable name
+  domain            String // e.g., "hzzo.hr"
+  path              String // e.g., "/novosti"
+  name              String // Human-readable name
   endpointType      DiscoveryEndpointType
   priority          DiscoveryPriority
   scrapeFrequency   ScrapeFrequency
   listingStrategy   ListingStrategy
-  urlPattern        String?               // Regex for extracting item URLs
-  paginationPattern String?               // e.g., "?page={N}"
+  urlPattern        String? // Regex for extracting item URLs
+  paginationPattern String? // e.g., "?page={N}"
   lastScrapedAt     DateTime?
-  lastContentHash   String?               // SHA-256 of page content
+  lastContentHash   String? // SHA-256 of page content
   itemCount         Int                   @default(0)
   errorCount        Int                   @default(0)
   consecutiveErrors Int                   @default(0)
   lastError         String?
   isActive          Boolean               @default(true)
-  metadata          Json?                 // Additional endpoint-specific config
+  metadata          Json? // Additional endpoint-specific config
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
 
-  discoveries       DiscoveredItem[]
+  discoveries DiscoveredItem[]
 
   @@unique([domain, path])
   @@index([priority])
@@ -1913,75 +1953,75 @@ model DiscoveryEndpoint {
 }
 
 model DiscoveredItem {
-  id            String               @id @default(cuid())
-  endpointId    String
-  url           String
-  title         String?
-  publishedAt   DateTime?
-  contentHash   String?
-  status        DiscoveredItemStatus @default(PENDING)
-  processedAt   DateTime?
-  evidenceId    String?              // Link to Evidence if fetched
-  errorMessage  String?
-  retryCount    Int                  @default(0)
-  createdAt     DateTime             @default(now())
+  id           String               @id @default(cuid())
+  endpointId   String
+  url          String
+  title        String?
+  publishedAt  DateTime?
+  contentHash  String?
+  status       DiscoveredItemStatus @default(PENDING)
+  processedAt  DateTime?
+  evidenceId   String? // Link to Evidence if fetched
+  errorMessage String?
+  retryCount   Int                  @default(0)
+  createdAt    DateTime             @default(now())
 
   // --- Topology ---
-  nodeType      NodeType   @default(LEAF)
-  nodeRole      NodeRole?
-  parentUrl     String?
-  depth         Int        @default(0)
+  nodeType  NodeType  @default(LEAF)
+  nodeRole  NodeRole?
+  parentUrl String?
+  depth     Int       @default(0)
 
   // --- Velocity (EWMA: 0.0=static, 1.0=volatile) ---
-  changeFrequency  Float      @default(0.5)
-  lastChangedAt    DateTime?
-  scanCount        Int        @default(0)
+  changeFrequency Float     @default(0.5)
+  lastChangedAt   DateTime?
+  scanCount       Int       @default(0)
 
   // --- Risk ---
-  freshnessRisk    FreshnessRisk  @default(MEDIUM)
+  freshnessRisk FreshnessRisk @default(MEDIUM)
 
   // --- Scheduling ---
-  nextScanDue      DateTime   @default(now())
+  nextScanDue DateTime @default(now())
 
-  endpoint      DiscoveryEndpoint    @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  endpoint DiscoveryEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
   @@unique([endpointId, url])
   @@index([status])
   @@index([publishedAt])
   @@index([evidenceId])
-  @@index([nextScanDue, freshnessRisk])  // The "Manifest" query
-  @@index([endpointId, nodeType])        // Grouping queries
+  @@index([nextScanDue, freshnessRisk]) // The "Manifest" query
+  @@index([endpointId, nodeType]) // Grouping queries
 }
 
 model Evidence {
-  id              String   @id @default(cuid())
-  sourceId        String
-  fetchedAt       DateTime @default(now())
-  contentHash     String
-  rawContent      String   @db.Text  // Full HTML/PDF text
-  contentType     String   @default("html")  // html, pdf, xml
-  url             String
-  hasChanged      Boolean  @default(false)
-  changeSummary   String?
-  deletedAt       DateTime?
+  id            String    @id @default(cuid())
+  sourceId      String
+  fetchedAt     DateTime  @default(now())
+  contentHash   String
+  rawContent    String    @db.Text // Full HTML/PDF text
+  contentType   String    @default("html") // html, pdf, xml
+  url           String
+  hasChanged    Boolean   @default(false)
+  changeSummary String?
+  deletedAt     DateTime?
 
   // NEW: OCR support fields
-  contentClass            String   @default("HTML")  // HTML, PDF_TEXT, PDF_SCANNED, DOC, XLSX, JSON
-  ocrMetadata             Json?    // OCR processing metadata
-  primaryTextArtifactId   String?  // Points to canonical text artifact for Extractor
+  contentClass          String  @default("HTML") // HTML, PDF_TEXT, PDF_SCANNED, DOC, XLSX, JSON
+  ocrMetadata           Json? // OCR processing metadata
+  primaryTextArtifactId String? // Points to canonical text artifact for Extractor
 
-  source          RegulatorySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  sourcePointers  SourcePointer[]
-  agentRuns       AgentRun[]
-  extractionRejected ExtractionRejected[]
-  artifacts       EvidenceArtifact[]
-  atomicClaims    AtomicClaim[]
-  processes       RegulatoryProcess[]
-  referenceTables ReferenceTable[]
-  assets          RegulatoryAsset[]
+  source                 RegulatorySource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourcePointers         SourcePointer[]
+  agentRuns              AgentRun[]
+  extractionRejected     ExtractionRejected[]
+  artifacts              EvidenceArtifact[]
+  atomicClaims           AtomicClaim[]
+  processes              RegulatoryProcess[]
+  referenceTables        ReferenceTable[]
+  assets                 RegulatoryAsset[]
   transitionalProvisions TransitionalProvision[]
-  coverageReport    CoverageReport?
-  comparisonMatrices ComparisonMatrix[]
+  coverageReport         CoverageReport?
+  comparisonMatrices     ComparisonMatrix[]
 
   @@unique([url, contentHash])
   @@index([sourceId])
@@ -1993,13 +2033,13 @@ model Evidence {
 model EvidenceArtifact {
   id          String   @id @default(cuid())
   evidenceId  String
-  kind        String   // PDF_TEXT, OCR_TEXT, OCR_HOCR, HTML_CLEANED, TABLE_JSON
+  kind        String // PDF_TEXT, OCR_TEXT, OCR_HOCR, HTML_CLEANED, TABLE_JSON
   content     String   @db.Text
   contentHash String
-  pageMap     Json?    // Per-page metadata: [{page, confidence, method}]
+  pageMap     Json? // Per-page metadata: [{page, confidence, method}]
   createdAt   DateTime @default(now())
 
-  evidence    Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  evidence Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
 
   @@index([evidenceId])
   @@index([kind])
@@ -2007,25 +2047,25 @@ model EvidenceArtifact {
 }
 
 model SourcePointer {
-  id              String   @id @default(cuid())
-  evidenceId      String
-  domain          String   // pausalni, pdv, doprinosi, fiskalizacija, etc.
-  valueType       String   // currency, percentage, date, threshold, text
-  extractedValue  String   // Stored as string, parsed by application
-  displayValue    String   // Human-readable format
-  exactQuote      String   @db.Text  // Exact text from source
-  contextBefore   String?  @db.Text  // Previous sentence/paragraph
-  contextAfter    String?  @db.Text  // Following sentence/paragraph
-  selector        String?  // CSS selector or XPath
+  id             String  @id @default(cuid())
+  evidenceId     String
+  domain         String // pausalni, pdv, doprinosi, fiskalizacija, etc.
+  valueType      String // currency, percentage, date, threshold, text
+  extractedValue String // Stored as string, parsed by application
+  displayValue   String // Human-readable format
+  exactQuote     String  @db.Text // Exact text from source
+  contextBefore  String? @db.Text // Previous sentence/paragraph
+  contextAfter   String? @db.Text // Following sentence/paragraph
+  selector       String? // CSS selector or XPath
 
   // Article-level anchoring
-  articleNumber   String?  // e.g., "38", "12a"
-  paragraphNumber String?  // e.g., "1", "2"
-  lawReference    String?  // e.g., "Zakon o PDV-u (NN 73/13)"
+  articleNumber   String? // e.g., "38", "12a"
+  paragraphNumber String? // e.g., "1", "2"
+  lawReference    String? // e.g., "Zakon o PDV-u (NN 73/13)"
 
-  confidence      Float    @default(0.8)
+  confidence      Float     @default(0.8)
   extractionNotes String?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
   deletedAt       DateTime?
 
   // Provenance anchoring: UTF-16 code unit indices into Evidence.rawContent
@@ -2034,12 +2074,12 @@ model SourcePointer {
   //
   // INVARIANT: endOffset = startOffset + exactQuote.length (for EXACT matches)
   // INVARIANT: rawContent.slice(startOffset, endOffset) === exactQuote (for EXACT matches)
-  startOffset     Int?
-  endOffset       Int?
-  matchType       SourcePointerMatchType?  @default(PENDING_VERIFICATION)
+  startOffset Int?
+  endOffset   Int?
+  matchType   SourcePointerMatchType? @default(PENDING_VERIFICATION)
 
-  evidence        Evidence @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
-  rules           RegulatoryRule[] @relation("RuleSourcePointers")
+  evidence Evidence         @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+  rules    RegulatoryRule[] @relation("RuleSourcePointers")
 
   @@index([evidenceId])
   @@index([domain])
@@ -2050,7 +2090,7 @@ model SourcePointer {
 
 model Concept {
   id          String   @id @default(cuid())
-  slug        String   @unique  // e.g., "pausalni-obrt"
+  slug        String   @unique // e.g., "pausalni-obrt"
   nameHr      String
   nameEn      String?
   aliases     String[] // Alternative names
@@ -2060,54 +2100,54 @@ model Concept {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  parent      Concept?  @relation("ConceptHierarchy", fields: [parentId], references: [id])
-  children    Concept[] @relation("ConceptHierarchy")
-  rules       RegulatoryRule[]
+  parent   Concept?         @relation("ConceptHierarchy", fields: [parentId], references: [id])
+  children Concept[]        @relation("ConceptHierarchy")
+  rules    RegulatoryRule[]
 
   @@index([parentId])
 }
 
 model RegulatoryRule {
-  id                String           @id @default(cuid())
-  conceptSlug       String           // e.g., "pausalni-revenue-threshold"
-  conceptId         String?
-  titleHr           String
-  titleEn           String?
-  riskTier          RiskTier
-  authorityLevel    AuthorityLevel   @default(GUIDANCE)  // LAW, GUIDANCE, PROCEDURE, PRACTICE
-  automationPolicy  AutomationPolicy @default(CONFIRM)   // ALLOW, CONFIRM, BLOCK
-  ruleStability     RuleStability    @default(STABLE)    // STABLE, VOLATILE
-  appliesWhen       String           @db.Text            // AppliesWhen DSL expression
-  value             String           // The regulatory value (stored as string)
-  valueType         String           // percentage, currency_hrk, currency_eur, count, date, text
-  obligationType    ObligationType   @default(OBLIGATION)  // OBLIGATION, NO_OBLIGATION, CONDITIONAL, INFORMATIONAL
-  outcome           Json?            // Structured outcome (VALUE, OBLIGATION, PROCEDURE)
-  explanationHr     String?          @db.Text
-  explanationEn     String?          @db.Text
-  effectiveFrom     DateTime
-  effectiveUntil    DateTime?
-  supersedesId      String?          // Previous rule this supersedes
-  status            RuleStatus       @default(DRAFT)
-  confidence        Float            @default(0.8)
-  composerNotes     String?
-  reviewerNotes     String?
-  approvedBy        String?          // User ID who approved (for T0/T1)
-  approvedAt        DateTime?
-  meaningSignature  String?          // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  conceptSlug      String // e.g., "pausalni-revenue-threshold"
+  conceptId        String?
+  titleHr          String
+  titleEn          String?
+  riskTier         RiskTier
+  authorityLevel   AuthorityLevel   @default(GUIDANCE) // LAW, GUIDANCE, PROCEDURE, PRACTICE
+  automationPolicy AutomationPolicy @default(CONFIRM) // ALLOW, CONFIRM, BLOCK
+  ruleStability    RuleStability    @default(STABLE) // STABLE, VOLATILE
+  appliesWhen      String           @db.Text // AppliesWhen DSL expression
+  value            String // The regulatory value (stored as string)
+  valueType        String // percentage, currency_hrk, currency_eur, count, date, text
+  obligationType   ObligationType   @default(OBLIGATION) // OBLIGATION, NO_OBLIGATION, CONDITIONAL, INFORMATIONAL
+  outcome          Json? // Structured outcome (VALUE, OBLIGATION, PROCEDURE)
+  explanationHr    String?          @db.Text
+  explanationEn    String?          @db.Text
+  effectiveFrom    DateTime
+  effectiveUntil   DateTime?
+  supersedesId     String? // Previous rule this supersedes
+  status           RuleStatus       @default(DRAFT)
+  confidence       Float            @default(0.8)
+  composerNotes    String?
+  reviewerNotes    String?
+  approvedBy       String? // User ID who approved (for T0/T1)
+  approvedAt       DateTime?
+  meaningSignature String? // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  concept           Concept?  @relation(fields: [conceptId], references: [id])
-  supersedes        RegulatoryRule?  @relation("RuleSupersession", fields: [supersedesId], references: [id])
-  supersededBy      RegulatoryRule[] @relation("RuleSupersession")
-  sourcePointers    SourcePointer[]  @relation("RuleSourcePointers")
-  releases          RuleRelease[]    @relation("ReleaseRules")
-  conflictsA        RegulatoryConflict[] @relation("ConflictItemA")
-  conflictsB        RegulatoryConflict[] @relation("ConflictItemB")
-  agentRuns         AgentRun[]
-  outgoingEdges     GraphEdge[] @relation("EdgeFrom")
-  incomingEdges     GraphEdge[] @relation("EdgeTo")
-  atomicClaims      AtomicClaim[]
+  concept        Concept?             @relation(fields: [conceptId], references: [id])
+  supersedes     RegulatoryRule?      @relation("RuleSupersession", fields: [supersedesId], references: [id])
+  supersededBy   RegulatoryRule[]     @relation("RuleSupersession")
+  sourcePointers SourcePointer[]      @relation("RuleSourcePointers")
+  releases       RuleRelease[]        @relation("ReleaseRules")
+  conflictsA     RegulatoryConflict[] @relation("ConflictItemA")
+  conflictsB     RegulatoryConflict[] @relation("ConflictItemB")
+  agentRuns      AgentRun[]
+  outgoingEdges  GraphEdge[]          @relation("EdgeFrom")
+  incomingEdges  GraphEdge[]          @relation("EdgeTo")
+  atomicClaims   AtomicClaim[]
 
   // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
   // This enables conflict candidates to be stored before arbiter resolution
@@ -2124,41 +2164,41 @@ model RegulatoryRule {
 // ============================================================================
 
 model AtomicClaim {
-  id                String        @id @default(cuid())
+  id String @id @default(cuid())
 
   // WHO - Subject
   subjectType       SubjectType
-  subjectQualifiers String[]      // ["pausalni-obrt", "exceeds-threshold"]
+  subjectQualifiers String[] // ["pausalni-obrt", "exceeds-threshold"]
 
   // WHEN - Condition
-  triggerExpr       String?       // "sales > 10000 EUR"
-  temporalExpr      String?       // "from 2025-01-01"
-  jurisdiction      String        @default("HR")
+  triggerExpr  String? // "sales > 10000 EUR"
+  temporalExpr String? // "from 2025-01-01"
+  jurisdiction String  @default("HR")
 
   // WHAT - Assertion
-  assertionType     AssertionType
-  logicExpr         String        // "tax_place = destination"
-  value             String?
-  valueType         String?
+  assertionType AssertionType
+  logicExpr     String // "tax_place = destination"
+  value         String?
+  valueType     String?
 
   // Extensibility
-  parameters        Json?         // Coefficients, formula constants
+  parameters Json? // Coefficients, formula constants
 
   // Provenance
-  exactQuote        String        @db.Text
-  articleNumber     String?
-  lawReference      String?
-  confidence        Float         @default(0.8)
+  exactQuote    String  @db.Text
+  articleNumber String?
+  lawReference  String?
+  confidence    Float   @default(0.8)
 
   // Relations
-  evidenceId        String
-  evidence          Evidence      @relation(fields: [evidenceId], references: [id])
-  ruleId            String?
-  rule              RegulatoryRule? @relation(fields: [ruleId], references: [id])
-  exceptions        ClaimException[]
+  evidenceId String
+  evidence   Evidence         @relation(fields: [evidenceId], references: [id])
+  ruleId     String?
+  rule       RegulatoryRule?  @relation(fields: [ruleId], references: [id])
+  exceptions ClaimException[]
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([subjectType])
   @@index([assertionType])
@@ -2168,13 +2208,13 @@ model AtomicClaim {
 }
 
 model ClaimException {
-  id              String   @id @default(cuid())
-  claimId         String
-  condition       String   // "IF alcohol_content > 0"
-  overridesTo     String   // concept slug of overriding rule
-  sourceArticle   String   // "Art 38(4)"
+  id            String @id @default(cuid())
+  claimId       String
+  condition     String // "IF alcohol_content > 0"
+  overridesTo   String // concept slug of overriding rule
+  sourceArticle String // "Art 38(4)"
 
-  claim           AtomicClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  claim AtomicClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
   @@index([claimId])
 }
@@ -2184,29 +2224,29 @@ model ClaimException {
 // ============================================================================
 
 model ConceptNode {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  nameHr          String
-  nameEn          String?
+  id     String  @id @default(cuid())
+  slug   String  @unique
+  nameHr String
+  nameEn String?
 
   // Taxonomy relations
-  parentId        String?
-  parent          ConceptNode?  @relation("ConceptNodeHierarchy", fields: [parentId], references: [id])
-  children        ConceptNode[] @relation("ConceptNodeHierarchy")
+  parentId String?
+  parent   ConceptNode?  @relation("ConceptNodeHierarchy", fields: [parentId], references: [id])
+  children ConceptNode[] @relation("ConceptNodeHierarchy")
 
   // Synonyms & hyponyms
-  synonyms        String[]      // ["sok", "juice", "voćni sok"]
-  hyponyms        String[]      // More specific terms
+  synonyms String[] // ["sok", "juice", "voćni sok"]
+  hyponyms String[] // More specific terms
 
   // Legal categorization
-  legalCategory   String?       // "bezalkoholno piće" (the legal term)
-  vatCategory     String?       // Links to VAT rate concept
+  legalCategory String? // "bezalkoholno piće" (the legal term)
+  vatCategory   String? // Links to VAT rate concept
 
   // Search optimization
-  searchTerms     String[]      // All terms that should match this concept
+  searchTerms String[] // All terms that should match this concept
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([legalCategory])
   @@index([vatCategory])
@@ -2218,27 +2258,27 @@ model ConceptNode {
 // ============================================================================
 
 model RegulatoryProcess {
-  id              String      @id @default(cuid())
-  slug            String      @unique
-  titleHr         String
-  titleEn         String?
-  jurisdiction    String      @default("HR")
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  titleHr      String
+  titleEn      String?
+  jurisdiction String  @default("HR")
 
   // Process metadata
-  processType     ProcessType
-  estimatedTime   String?     // "3-5 radnih dana"
+  processType   ProcessType
+  estimatedTime String? // "3-5 radnih dana"
 
   // Prerequisites as JSON
-  prerequisites   Json?       // { "requires": ["digital-certificate"] }
+  prerequisites Json? // { "requires": ["digital-certificate"] }
 
   // Relations
-  steps           ProcessStep[]
-  assets          RegulatoryAsset[]
-  evidenceId      String?
-  evidence        Evidence?   @relation(fields: [evidenceId], references: [id])
+  steps      ProcessStep[]
+  assets     RegulatoryAsset[]
+  evidenceId String?
+  evidence   Evidence?         @relation(fields: [evidenceId], references: [id])
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([processType])
   @@index([jurisdiction])
@@ -2246,13 +2286,13 @@ model RegulatoryProcess {
 }
 
 model ProcessStep {
-  id              String   @id @default(cuid())
-  processId       String
-  orderNum        Int
+  id        String @id @default(cuid())
+  processId String
+  orderNum  Int
 
   // Step content
-  actionHr        String   @db.Text
-  actionEn        String?  @db.Text
+  actionHr String  @db.Text
+  actionEn String? @db.Text
 
   // Dependencies (by ID for loose coupling)
   requiresStepIds String[]
@@ -2263,9 +2303,9 @@ model ProcessStep {
   onFailureStepId String?
   failureAction   String?
 
-  process         RegulatoryProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+  process RegulatoryProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([processId, orderNum])
   @@index([processId])
@@ -2276,26 +2316,26 @@ model ProcessStep {
 // ============================================================================
 
 model ReferenceTable {
-  id              String            @id @default(cuid())
-  category        ReferenceCategory
-  name            String
-  jurisdiction    String            @default("HR")
+  id           String            @id @default(cuid())
+  category     ReferenceCategory
+  name         String
+  jurisdiction String            @default("HR")
 
   // Table metadata
-  keyColumn       String            // "city", "code"
-  valueColumn     String            // "iban", "description"
+  keyColumn   String // "city", "code"
+  valueColumn String // "iban", "description"
 
   // Data
-  entries         ReferenceEntry[]
+  entries ReferenceEntry[]
 
   // Provenance
-  sourceUrl       String?
-  lastUpdated     DateTime          @default(now())
-  evidenceId      String?
-  evidence        Evidence?         @relation(fields: [evidenceId], references: [id])
+  sourceUrl   String?
+  lastUpdated DateTime  @default(now())
+  evidenceId  String?
+  evidence    Evidence? @relation(fields: [evidenceId], references: [id])
 
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([category, name, jurisdiction])
   @@index([category])
@@ -2303,16 +2343,16 @@ model ReferenceTable {
 }
 
 model ReferenceEntry {
-  id              String   @id @default(cuid())
-  tableId         String
+  id      String @id @default(cuid())
+  tableId String
 
-  key             String   // "Split", "6201.11"
-  value           String   // "HR1234...", "Računalne usluge"
-  metadata        Json?    // { "model": "21" }
+  key      String // "Split", "6201.11"
+  value    String // "HR1234...", "Računalne usluge"
+  metadata Json? // { "model": "21" }
 
-  table           ReferenceTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  table ReferenceTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([tableId, key])
   @@index([tableId])
@@ -2323,36 +2363,36 @@ model ReferenceEntry {
 // ============================================================================
 
 model RegulatoryAsset {
-  id              String      @id @default(cuid())
+  id String @id @default(cuid())
 
   // Identity
-  formCode        String?     // "PDV-P", "JOPPD"
-  officialName    String
-  description     String?     @db.Text
+  formCode     String? // "PDV-P", "JOPPD"
+  officialName String
+  description  String? @db.Text
 
   // Access
-  downloadUrl     String
-  format          AssetFormat
-  fileSize        Int?
+  downloadUrl String
+  format      AssetFormat
+  fileSize    Int?
 
   // Context
-  assetType       AssetType
-  processId       String?
-  process         RegulatoryProcess? @relation(fields: [processId], references: [id])
-  stepNumber      Int?
+  assetType  AssetType
+  processId  String?
+  process    RegulatoryProcess? @relation(fields: [processId], references: [id])
+  stepNumber Int?
 
   // Validity
-  validFrom       DateTime?
-  validUntil      DateTime?
-  version         String?
+  validFrom  DateTime?
+  validUntil DateTime?
+  version    String?
 
   // Provenance
-  sourceUrl       String
-  evidenceId      String?
-  evidence        Evidence?   @relation(fields: [evidenceId], references: [id])
+  sourceUrl  String
+  evidenceId String?
+  evidence   Evidence? @relation(fields: [evidenceId], references: [id])
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([formCode])
   @@index([assetType])
@@ -2365,31 +2405,31 @@ model RegulatoryAsset {
 // ============================================================================
 
 model TransitionalProvision {
-  id              String            @id @default(cuid())
+  id String @id @default(cuid())
 
   // What's transitioning
-  fromRule        String            // concept slug of old rule
-  toRule          String            // concept slug of new rule
+  fromRule String // concept slug of old rule
+  toRule   String // concept slug of new rule
 
   // Transition logic
-  cutoffDate      DateTime
-  logicExpr       String            // "IF invoice_date < cutoff AND delivery_date >= cutoff"
-  appliesRule     String            // Which rule applies
+  cutoffDate  DateTime
+  logicExpr   String // "IF invoice_date < cutoff AND delivery_date >= cutoff"
+  appliesRule String // Which rule applies
 
   // Explanation
-  explanationHr   String            @db.Text
-  explanationEn   String?           @db.Text
+  explanationHr String  @db.Text
+  explanationEn String? @db.Text
 
   // Pattern
-  pattern         TransitionPattern
+  pattern TransitionPattern
 
   // Provenance
-  sourceArticle   String
-  evidenceId      String
-  evidence        Evidence          @relation(fields: [evidenceId], references: [id])
+  sourceArticle String
+  evidenceId    String
+  evidence      Evidence @relation(fields: [evidenceId], references: [id])
 
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([cutoffDate])
   @@index([fromRule])
@@ -2399,46 +2439,46 @@ model TransitionalProvision {
 
 // Truth health snapshot for monitoring system integrity
 model TruthHealthSnapshot {
-  id                        String   @id @default(cuid())
-  timestamp                 DateTime @default(now())
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
 
   // Rule counts by status
-  totalRules                Int
-  publishedRules            Int
-  approvedRules             Int
-  pendingReviewRules        Int
-  draftRules                Int
-  rejectedRules             Int
+  totalRules         Int
+  publishedRules     Int
+  approvedRules      Int
+  pendingReviewRules Int
+  draftRules         Int
+  rejectedRules      Int
 
   // Pointer coverage metrics
-  totalPointers             Int
-  unlinkedPointers          Int      // Pointers not linked to any rule
-  unlinkedPointersRate      Float    // % unlinked (lower = better)
+  totalPointers        Int
+  unlinkedPointers     Int // Pointers not linked to any rule
+  unlinkedPointersRate Float // % unlinked (lower = better)
 
   // Evidence quality
-  rulesWithMultiplePointers Int      // Rules with >1 pointer
-  multiplePointerRate       Float    // % of non-rejected rules with >1 pointer
-  publishedWithTwoPlus      Int      // PUBLISHED rules with >=2 pointers
-  publishedPointerCoverage  Float    // % of PUBLISHED with >=2 pointers
+  rulesWithMultiplePointers Int // Rules with >1 pointer
+  multiplePointerRate       Float // % of non-rejected rules with >1 pointer
+  publishedWithTwoPlus      Int // PUBLISHED rules with >=2 pointers
+  publishedPointerCoverage  Float // % of PUBLISHED with >=2 pointers
 
   // Consolidation health
-  duplicateGroupsDetected   Int      // Should always be 0
-  testDataLeakage           Int      // Test domain data in non-quarantine status
-  aliasResolutionsToday     Int      // Composer runs that resolved to canonical
+  duplicateGroupsDetected Int // Should always be 0
+  testDataLeakage         Int // Test domain data in non-quarantine status
+  aliasResolutionsToday   Int // Composer runs that resolved to canonical
 
   // Concept health
-  totalConcepts             Int
-  conceptsWithRules         Int
-  orphanedConcepts          Int      // Concepts with no rules
+  totalConcepts     Int
+  conceptsWithRules Int
+  orphanedConcepts  Int // Concepts with no rules
 
   // Evidence strength metrics
-  multiSourceRules          Int      @default(0)  // Rules with 2+ distinct sources
-  singleSourceRules         Int      @default(0)  // Rules with only 1 source
-  singleSourceCanPublish    Int      @default(0)  // Single-source with LAW tier
-  singleSourceBlocked       Int      @default(0)  // Single-source blocked from publish
+  multiSourceRules       Int @default(0) // Rules with 2+ distinct sources
+  singleSourceRules      Int @default(0) // Rules with only 1 source
+  singleSourceCanPublish Int @default(0) // Single-source with LAW tier
+  singleSourceBlocked    Int @default(0) // Single-source blocked from publish
 
   // Alerts triggered
-  alertsTriggered           String[] // List of alert types triggered
+  alertsTriggered String[] // List of alert types triggered
 
   @@index([timestamp])
 }
@@ -2453,8 +2493,8 @@ model GraphEdge {
   notes      String?
   createdAt  DateTime      @default(now())
 
-  fromRule   RegulatoryRule @relation("EdgeFrom", fields: [fromRuleId], references: [id], onDelete: Cascade)
-  toRule     RegulatoryRule @relation("EdgeTo", fields: [toRuleId], references: [id], onDelete: Cascade)
+  fromRule RegulatoryRule @relation("EdgeFrom", fields: [fromRuleId], references: [id], onDelete: Cascade)
+  toRule   RegulatoryRule @relation("EdgeTo", fields: [toRuleId], references: [id], onDelete: Cascade)
 
   @@unique([fromRuleId, toRuleId, relation])
   @@index([fromRuleId])
@@ -2462,18 +2502,18 @@ model GraphEdge {
 }
 
 model RuleRelease {
-  id              String   @id @default(cuid())
-  version         String   // semver: "1.0.0"
-  releaseType     String   // major, minor, patch
-  releasedAt      DateTime @default(now())
-  effectiveFrom   DateTime
-  contentHash     String   // SHA-256 of rule content
-  changelogHr     String?  @db.Text
-  changelogEn     String?  @db.Text
-  approvedBy      String[] // List of approver user IDs
-  auditTrail      Json?    // { sourceEvidenceCount, sourcePointerCount, reviewCount, humanApprovals }
+  id            String   @id @default(cuid())
+  version       String // semver: "1.0.0"
+  releaseType   String // major, minor, patch
+  releasedAt    DateTime @default(now())
+  effectiveFrom DateTime
+  contentHash   String // SHA-256 of rule content
+  changelogHr   String?  @db.Text
+  changelogEn   String?  @db.Text
+  approvedBy    String[] // List of approver user IDs
+  auditTrail    Json? // { sourceEvidenceCount, sourcePointerCount, reviewCount, humanApprovals }
 
-  rules           RegulatoryRule[] @relation("ReleaseRules")
+  rules RegulatoryRule[] @relation("ReleaseRules")
 
   @@unique([version])
   @@index([releasedAt])
@@ -2481,25 +2521,25 @@ model RuleRelease {
 }
 
 model AgentRun {
-  id              String    @id @default(cuid())
-  agentType       AgentType
-  status          String    @default("running")  // running, completed, failed
-  input           Json      // The input provided to the agent
-  output          Json?     // The output from the agent (null if failed)
-  rawOutput       Json?     // Raw LLM output on failure (for debugging)
-  error           String?   // Error message if failed
-  tokensUsed      Int?
-  durationMs      Int?
-  confidence      Float?
-  startedAt       DateTime  @default(now())
-  completedAt     DateTime?
+  id          String    @id @default(cuid())
+  agentType   AgentType
+  status      String    @default("running") // running, completed, failed
+  input       Json // The input provided to the agent
+  output      Json? // The output from the agent (null if failed)
+  rawOutput   Json? // Raw LLM output on failure (for debugging)
+  error       String? // Error message if failed
+  tokensUsed  Int?
+  durationMs  Int?
+  confidence  Float?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
 
   // Optional relations based on what the agent processed
-  evidenceId      String?
-  ruleId          String?
+  evidenceId String?
+  ruleId     String?
 
-  evidence        Evidence?       @relation(fields: [evidenceId], references: [id])
-  rule            RegulatoryRule? @relation(fields: [ruleId], references: [id])
+  evidence Evidence?       @relation(fields: [evidenceId], references: [id])
+  rule     RegulatoryRule? @relation(fields: [ruleId], references: [id])
 
   @@index([agentType])
   @@index([status])
@@ -2507,23 +2547,23 @@ model AgentRun {
 }
 
 model RegulatoryConflict {
-  id                String         @id @default(cuid())
-  conflictType      ConflictType
-  status            ConflictStatus @default(OPEN)
-  itemAId           String?
-  itemBId           String?
-  description       String         @db.Text
-  metadata          Json?          // Source-level conflicts store sourcePointerIds here
-  resolution        Json?          // { winningItemId, strategy, rationaleHr, rationaleEn }
-  confidence        Float?
-  requiresHumanReview Boolean      @default(false)
-  humanReviewReason String?
-  resolvedBy        String?        // User ID
-  resolvedAt        DateTime?
-  createdAt         DateTime       @default(now())
+  id                  String         @id @default(cuid())
+  conflictType        ConflictType
+  status              ConflictStatus @default(OPEN)
+  itemAId             String?
+  itemBId             String?
+  description         String         @db.Text
+  metadata            Json? // Source-level conflicts store sourcePointerIds here
+  resolution          Json? // { winningItemId, strategy, rationaleHr, rationaleEn }
+  confidence          Float?
+  requiresHumanReview Boolean        @default(false)
+  humanReviewReason   String?
+  resolvedBy          String? // User ID
+  resolvedAt          DateTime?
+  createdAt           DateTime       @default(now())
 
-  itemA             RegulatoryRule? @relation("ConflictItemA", fields: [itemAId], references: [id])
-  itemB             RegulatoryRule? @relation("ConflictItemB", fields: [itemBId], references: [id])
+  itemA RegulatoryRule? @relation("ConflictItemA", fields: [itemAId], references: [id])
+  itemB RegulatoryRule? @relation("ConflictItemB", fields: [itemBId], references: [id])
 
   @@index([status])
   @@index([conflictType])
@@ -2537,14 +2577,14 @@ model MonitoringAlert {
   affectedRuleIds     String[]
   sourceId            String?
   description         String        @db.Text
-  autoAction          Json?         // { action, executed, result }
+  autoAction          Json? // { action, executed, result }
   humanActionRequired Boolean       @default(false)
   acknowledgedBy      String?
   acknowledgedAt      DateTime?
   resolvedAt          DateTime?
   createdAt           DateTime      @default(now())
 
-  source              RegulatorySource? @relation(fields: [sourceId], references: [id])
+  source RegulatorySource? @relation(fields: [sourceId], references: [id])
 
   @@index([severity])
   @@index([type])
@@ -2558,13 +2598,13 @@ model MonitoringAlert {
 // =============================================================================
 
 model RegulatoryAuditLog {
-  id           String   @id @default(cuid())
-  action       String   // RULE_CREATED, RULE_APPROVED, RULE_REJECTED, CONFLICT_RESOLVED, RELEASE_PUBLISHED
-  entityType   String   // RULE, CONFLICT, RELEASE, EVIDENCE
-  entityId     String
-  performedBy  String?  // User ID or "SYSTEM"
-  performedAt  DateTime @default(now())
-  metadata     Json?    // Additional context
+  id          String   @id @default(cuid())
+  action      String // RULE_CREATED, RULE_APPROVED, RULE_REJECTED, CONFLICT_RESOLVED, RELEASE_PUBLISHED
+  entityType  String // RULE, CONFLICT, RELEASE, EVIDENCE
+  entityId    String
+  performedBy String? // User ID or "SYSTEM"
+  performedAt DateTime @default(now())
+  metadata    Json? // Additional context
 
   @@index([entityType, entityId])
   @@index([performedAt])
@@ -2593,9 +2633,9 @@ enum WatchdogCheckType {
   QUALITY_DEGRADATION
   PIPELINE_HEALTH
   REJECTION_RATE
-  DRAINER_PROGRESS    // PR #90 fix: detect drainer stalls
-  QUEUE_BACKLOG       // PR #90 fix: detect queue buildup
-  DLQ_HEALTH          // PR #90 fix: dead letter queue monitoring
+  DRAINER_PROGRESS // PR #90 fix: detect drainer stalls
+  QUEUE_BACKLOG // PR #90 fix: detect queue buildup
+  DLQ_HEALTH // PR #90 fix: dead letter queue monitoring
 }
 
 enum WatchdogAlertType {
@@ -2608,9 +2648,9 @@ enum WatchdogAlertType {
   AUDIT_FAIL
   AUDIT_PARTIAL
   SOURCE_SUSPENDED
-  DRAINER_STALL       // PR #90 fix: no progress for N minutes
-  QUEUE_BACKLOG       // PR #90 fix: queue depth exceeds threshold
-  DLQ_SPIKE           // PR #90 fix: dead letter queue growing
+  DRAINER_STALL // PR #90 fix: no progress for N minutes
+  QUEUE_BACKLOG // PR #90 fix: queue depth exceeds threshold
+  DLQ_SPIKE // PR #90 fix: dead letter queue growing
 }
 
 enum AuditResult {
@@ -2620,10 +2660,10 @@ enum AuditResult {
 }
 
 enum SourcePointerMatchType {
-  EXACT                  // Quote found exactly as stored
-  NORMALIZED             // Quote found after whitespace/unicode normalization
-  NOT_FOUND              // Quote does not exist in evidence (broken provenance)
-  PENDING_VERIFICATION   // Quote not yet checked against evidence
+  EXACT // Quote found exactly as stored
+  NORMALIZED // Quote found after whitespace/unicode normalization
+  NOT_FOUND // Quote does not exist in evidence (broken provenance)
+  PENDING_VERIFICATION // Quote not yet checked against evidence
 }
 
 // ============================================================================
@@ -2672,7 +2712,7 @@ enum SystemStatusJobMode {
 model WatchdogHealth {
   id          String               @id @default(cuid())
   checkType   WatchdogCheckType
-  entityId    String               // source ID, phase name, etc.
+  entityId    String // source ID, phase name, etc.
   status      WatchdogHealthStatus
   lastChecked DateTime             @default(now())
   lastHealthy DateTime?
@@ -2686,23 +2726,63 @@ model WatchdogHealth {
 }
 
 model WatchdogAlert {
-  id              String           @id @default(cuid())
+  id              String            @id @default(cuid())
   severity        WatchdogSeverity
   type            WatchdogAlertType
   entityId        String?
   message         String
   details         Json?
-  occurredAt      DateTime         @default(now())
+  occurredAt      DateTime          @default(now())
   acknowledgedAt  DateTime?
   acknowledgedBy  String?
   resolvedAt      DateTime?
   notifiedAt      DateTime?
-  occurrenceCount Int              @default(1)
+  occurrenceCount Int               @default(1)
 
   @@index([severity])
   @@index([type])
   @@index([occurredAt])
   @@index([resolvedAt])
+}
+
+// =============================================================================
+// ADMIN ALERTS - Platform monitoring and alert management
+// =============================================================================
+
+enum AdminAlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  DISMISSED
+  RESOLVED
+}
+
+model AdminAlert {
+  id           String           @id @default(cuid())
+  type         String // onboarding-stuck, approaching-limit, critical-limit, cert-expiring, cert-expired, inactive, support-ticket
+  level        String // critical, warning, info
+  companyId    String
+  status       AdminAlertStatus @default(ACTIVE)
+  title        String
+  description  String           @db.Text
+  autoAction   String?
+  metadata     Json? // Store additional context (e.g., revenue, days remaining)
+  createdAt    DateTime         @default(now())
+  acknowledgedAt DateTime?
+  acknowledgedBy String? // User ID who acknowledged
+  dismissedAt    DateTime?
+  dismissedBy    String? // User ID who dismissed
+  resolvedAt     DateTime?
+  resolvedBy     String? // User ID who resolved
+  snoozedUntil   DateTime? // For snooze functionality
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, type])
+  @@index([companyId])
+  @@index([type])
+  @@index([level])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model WatchdogAudit {
@@ -2726,17 +2806,17 @@ model WatchdogAudit {
 // =============================================================================
 
 model ExtractionRejected {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   evidenceId    String
-  rejectionType String   // e.g., "INVALID_PERCENTAGE", "QUOTE_NOT_IN_EVIDENCE", "INVALID_DATE"
-  rawOutput     Json     // The raw LLM output that failed
-  errorDetails  String   // Specific error message
-  attemptCount  Int      @default(1)
-  lastAttemptAt DateTime @default(now())
+  rejectionType String // e.g., "INVALID_PERCENTAGE", "QUOTE_NOT_IN_EVIDENCE", "INVALID_DATE"
+  rawOutput     Json // The raw LLM output that failed
+  errorDetails  String // Specific error message
+  attemptCount  Int       @default(1)
+  lastAttemptAt DateTime  @default(now())
   resolvedAt    DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
-  evidence      Evidence @relation(fields: [evidenceId], references: [id])
+  evidence Evidence @relation(fields: [evidenceId], references: [id])
 
   @@index([evidenceId])
   @@index([rejectionType])
@@ -2749,11 +2829,11 @@ model ExtractionRejected {
 
 model SoftFailLog {
   id           String   @id @default(cuid())
-  operation    String   // e.g., "extractor", "reviewer", "composer"
-  entityType   String?  // e.g., "evidence", "rule", "source"
+  operation    String // e.g., "extractor", "reviewer", "composer"
+  entityType   String? // e.g., "evidence", "rule", "source"
   entityId     String?
   errorMessage String   @db.Text
-  metadata     Json?    // Additional context (duration, stack trace, etc.)
+  metadata     Json? // Additional context (duration, stack trace, etc.)
   createdAt    DateTime @default(now())
 
   @@index([operation])
@@ -2763,24 +2843,24 @@ model SoftFailLog {
 
 // === REASONING TRACE (Visible Reasoning UX Audit Trail) ===
 model ReasoningTrace {
-  id                  String   @id @default(cuid())
-  requestId           String   @unique
-  events              Json     // Full typed ReasoningEvent[]
-  userContextSnapshot Json     // Frozen at request start
+  id                  String @id @default(cuid())
+  requestId           String @unique
+  events              Json // Full typed ReasoningEvent[]
+  userContextSnapshot Json // Frozen at request start
 
   // Summary columns for fast queries
-  outcome             String   // ANSWER | QUALIFIED_ANSWER | REFUSAL | ERROR
-  domain              String?
-  riskTier            String?
-  confidence          Float?
-  sourceCount         Int?
-  eligibleRuleCount   Int?
-  exclusionCount      Int?
-  conflictCount       Int?
-  refusalReason       String?
-  durationMs          Int?
+  outcome           String // ANSWER | QUALIFIED_ANSWER | REFUSAL | ERROR
+  domain            String?
+  riskTier          String?
+  confidence        Float?
+  sourceCount       Int?
+  eligibleRuleCount Int?
+  exclusionCount    Int?
+  conflictCount     Int?
+  refusalReason     String?
+  durationMs        Int?
 
-  createdAt           DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([requestId])
   @@index([outcome])
@@ -2794,16 +2874,16 @@ model ReasoningTrace {
 // ============================================================================
 
 model BetaFeedback {
-  id          String   @id @default(cuid())
-  userId      String
-  feature     String   // e.g. "reasoning", "ai-assistant"
-  rating      Int?     // 1-5 star rating
-  feedback    String?  // Free-form text feedback
-  category    String?  // "bug", "suggestion", "praise", "other"
-  metadata    Json?    // Additional context (browser, page, etc.)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String // e.g. "reasoning", "ai-assistant"
+  rating    Int? // 1-5 star rating
+  feedback  String? // Free-form text feedback
+  category  String? // "bug", "suggestion", "praise", "other"
+  metadata  Json? // Additional context (browser, page, etc.)
+  createdAt DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([feature])
@@ -2815,38 +2895,38 @@ model BetaFeedback {
 // ============================================================================
 
 model CoverageReport {
-  id              String   @id @default(cuid())
-  evidenceId      String
-  createdAt       DateTime @default(now())
+  id         String   @id @default(cuid())
+  evidenceId String
+  createdAt  DateTime @default(now())
 
   // Extraction counts by shape
-  claimsCount           Int   @default(0)
-  processesCount        Int   @default(0)
-  referenceTablesCount  Int   @default(0)
-  assetsCount           Int   @default(0)
-  provisionsCount       Int   @default(0)
+  claimsCount          Int @default(0)
+  processesCount       Int @default(0)
+  referenceTablesCount Int @default(0)
+  assetsCount          Int @default(0)
+  provisionsCount      Int @default(0)
 
   // Legacy extraction (for comparison)
-  sourcePointersCount   Int   @default(0)
+  sourcePointersCount Int @default(0)
 
   // Classification
-  primaryContentType    String?  // LOGIC, PROCESS, REFERENCE, etc.
-  classificationConfidence Float @default(0)
+  primaryContentType       String? // LOGIC, PROCESS, REFERENCE, etc.
+  classificationConfidence Float   @default(0)
 
   // Coverage assessment
-  coverageScore         Float    @default(0)  // 0-1, overall coverage
-  isComplete            Boolean  @default(false)
-  missingShapes         String[] // ["claims", "processes"]
-  warnings              String[] // Quality warnings
+  coverageScore Float    @default(0) // 0-1, overall coverage
+  isComplete    Boolean  @default(false)
+  missingShapes String[] // ["claims", "processes"]
+  warnings      String[] // Quality warnings
 
   // Reviewer status
-  reviewerApproved      Boolean  @default(false)
-  reviewerNotes         String?
-  reviewedAt            DateTime?
-  reviewedBy            String?
+  reviewerApproved Boolean   @default(false)
+  reviewerNotes    String?
+  reviewedAt       DateTime?
+  reviewedBy       String?
 
   // Relations
-  evidence              Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  evidence Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
 
   @@unique([evidenceId])
   @@index([coverageScore])
@@ -2859,29 +2939,29 @@ model CoverageReport {
 // ============================================================================
 
 model ComparisonMatrix {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  titleHr     String
-  titleEn     String?
+  id      String  @id @default(cuid())
+  slug    String  @unique
+  titleHr String
+  titleEn String?
 
   // Contextual Anchor for retrieval
-  appliesWhen String?  @db.Text  // "IF user_type == 'freelancer' OR revenue < 40000"
-  domainTags  String[]           // ["STARTING_BUSINESS", "TAX_REGIME"]
+  appliesWhen String?  @db.Text // "IF user_type == 'freelancer' OR revenue < 40000"
+  domainTags  String[] // ["STARTING_BUSINESS", "TAX_REGIME"]
 
   // Structured data (JSON for flexibility)
-  options     Json     // ComparisonOption[]
-  criteria    Json     // ComparisonCriterion[]
-  cells       Json     // ComparisonCell[]
+  options  Json // ComparisonOption[]
+  criteria Json // ComparisonCriterion[]
+  cells    Json // ComparisonCell[]
 
   // Optional conclusion
-  conclusion  String?  @db.Text
+  conclusion String? @db.Text
 
   // Provenance
-  evidenceId  String?
-  evidence    Evidence? @relation(fields: [evidenceId], references: [id])
+  evidenceId String?
+  evidence   Evidence? @relation(fields: [evidenceId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([domainTags])
   @@index([evidenceId])
@@ -2892,7 +2972,7 @@ model ComparisonMatrix {
 // ============================================================================
 
 model SystemRegistryStatusSnapshot {
-  id                   String                      @id @default(cuid())
+  id                   String                     @id @default(cuid())
   headlineStatus       SystemStatusHeadline
   refreshQuality       SystemStatusRefreshQuality
   criticalCount        Int
@@ -2907,7 +2987,7 @@ model SystemRegistryStatusSnapshot {
   lastRefreshStatus    SystemStatusRefreshStatus?
   lastRefreshError     String?
   topItems             Json
-  createdAt            DateTime                    @default(now())
+  createdAt            DateTime                   @default(now())
 
   @@index([createdAt])
 }
@@ -2919,7 +2999,7 @@ model SystemRegistryStatusPointer {
 }
 
 model SystemRegistryStatusEvent {
-  id                String                  @id @default(cuid())
+  id                String                @id @default(cuid())
   eventType         SystemStatusEventType
   severity          String
   message           String
@@ -2928,7 +3008,7 @@ model SystemRegistryStatusEvent {
   owner             String?
   link              String?
   requestedByUserId String?
-  createdAt         DateTime                @default(now())
+  createdAt         DateTime              @default(now())
 
   @@index([createdAt])
   @@index([eventType])
@@ -2966,9 +3046,9 @@ model SystemRegistryRefreshLock {
 // ============================================================================
 
 enum FeatureFlagScope {
-  GLOBAL    // Applies to all users/tenants
-  TENANT    // Applies to specific companies
-  USER      // Applies to specific users
+  GLOBAL // Applies to all users/tenants
+  TENANT // Applies to specific companies
+  USER // Applies to specific users
 }
 
 enum FeatureFlagStatus {
@@ -2978,32 +3058,33 @@ enum FeatureFlagStatus {
 }
 
 model FeatureFlag {
-  id             String             @id @default(cuid())
-  key            String             @unique // e.g., "reasoning_ux", "ai_assistant_v2"
-  name           String             // Human-readable name
-  description    String?            @db.Text
-  scope          FeatureFlagScope   @default(GLOBAL)
-  status         FeatureFlagStatus  @default(INACTIVE)
+  id          String            @id @default(cuid())
+  key         String            @unique // e.g., "reasoning_ux", "ai_assistant_v2"
+  name        String // Human-readable name
+  description String?           @db.Text
+  scope       FeatureFlagScope  @default(GLOBAL)
+  status      FeatureFlagStatus @default(INACTIVE)
 
   // Value configuration
-  defaultValue   Boolean            @default(false)
+  defaultValue Boolean @default(false)
 
   // Rollout configuration
-  rolloutPercentage Int             @default(0)  // 0-100 for gradual rollout
+  rolloutPercentage Int @default(0) // 0-100 for gradual rollout
 
   // Metadata
-  category       String?            // e.g., "ai", "billing", "ux"
-  tags           String[]           // For filtering/searching
+  category String? // e.g., "ai", "billing", "ux"
+  tags     String[] // For filtering/searching
 
   // Audit trail
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  createdBy      String?            // User ID who created
-  updatedBy      String?            // User ID who last updated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String? // User ID who created
+  updatedBy String? // User ID who last updated
 
   // Relations
   overrides      FeatureFlagOverride[]
   auditLog       FeatureFlagAuditLog[]
+  segmentTargets SegmentFeatureTarget[]
 
   @@index([key])
   @@index([status])
@@ -3012,23 +3093,23 @@ model FeatureFlag {
 }
 
 model FeatureFlagOverride {
-  id            String      @id @default(cuid())
-  flagId        String
-  flag          FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  id     String      @id @default(cuid())
+  flagId String
+  flag   FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
 
   // Target (one of these should be set based on flag scope)
-  companyId     String?
-  company       Company?    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId        String?
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String?
 
   // Override value
-  enabled       Boolean
+  enabled Boolean
 
   // Scheduling
-  expiresAt     DateTime?
+  expiresAt DateTime?
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([flagId, companyId, userId])
   @@index([flagId])
@@ -3049,17 +3130,242 @@ enum FeatureFlagAuditAction {
 }
 
 model FeatureFlagAuditLog {
-  id          String                  @id @default(cuid())
-  flagId      String
-  flag        FeatureFlag             @relation(fields: [flagId], references: [id], onDelete: Cascade)
-  action      FeatureFlagAuditAction
-  userId      String                  // Who made the change
-  previousValue Json?                 // Snapshot of previous state
-  newValue      Json?                 // Snapshot of new state
-  reason        String?               // Optional reason for change
-  createdAt     DateTime              @default(now())
+  id            String                 @id @default(cuid())
+  flagId        String
+  flag          FeatureFlag            @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  action        FeatureFlagAuditAction
+  userId        String // Who made the change
+  previousValue Json? // Snapshot of previous state
+  newValue      Json? // Snapshot of new state
+  reason        String? // Optional reason for change
+  createdAt     DateTime               @default(now())
 
   @@index([flagId])
   @@index([userId])
   @@index([createdAt])
+}
+
+// =============================================================================
+// User Segmentation System
+// =============================================================================
+
+enum SegmentStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum SegmentOperator {
+  EQUALS
+  NOT_EQUALS
+  IN
+  NOT_IN
+  GREATER_THAN
+  LESS_THAN
+  GREATER_THAN_OR_EQUAL
+  LESS_THAN_OR_EQUAL
+  CONTAINS
+  NOT_CONTAINS
+  IS_NULL
+  IS_NOT_NULL
+}
+
+enum SegmentLogicOperator {
+  AND
+  OR
+}
+
+model UserSegment {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?       @db.Text
+  status      SegmentStatus @default(DRAFT)
+
+  // Rules DSL stored as JSON
+  // Example: { "operator": "AND", "conditions": [{ "field": "legalForm", "operator": "IN", "value": ["OBRT_PAUSAL", "OBRT_REAL"] }] }
+  rules Json
+
+  // Cached metrics (updated by background job)
+  memberCount     Int       @default(0)
+  lastEvaluatedAt DateTime?
+
+  // Metadata
+  category String? // e.g., "legal_form", "subscription", "behavior"
+  tags     String[]
+  isSystem Boolean  @default(false) // System segments cannot be deleted
+
+  // Audit trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  featureTargeting  SegmentFeatureTarget[]
+  membershipHistory SegmentMembershipHistory[]
+  experiments       ExperimentSegment[]
+
+  @@index([status])
+  @@index([category])
+  @@index([tags])
+}
+
+// Track segment membership changes over time for cohort analysis
+model SegmentMembershipHistory {
+  id        String      @id @default(cuid())
+  segmentId String
+  segment   UserSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  companyId String
+
+  // Membership change
+  joined      Boolean // true = joined, false = left
+  evaluatedAt DateTime @default(now())
+
+  // Snapshot of company attributes at evaluation time
+  attributeSnapshot Json?
+
+  @@index([segmentId])
+  @@index([companyId])
+  @@index([evaluatedAt])
+}
+
+// Connect segments to feature flags for targeting
+model SegmentFeatureTarget {
+  id        String      @id @default(cuid())
+  segmentId String
+  segment   UserSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  flagId    String
+  flag      FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  // Override behavior
+  enabled  Boolean @default(true)
+  priority Int     @default(0) // Higher priority wins in conflicts
+
+  // Scheduling
+  startsAt  DateTime?
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([segmentId, flagId])
+  @@index([segmentId])
+  @@index([flagId])
+}
+
+// Product experiments using segments
+model Experiment {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?          @db.Text
+  status      ExperimentStatus @default(DRAFT)
+
+  // Experiment configuration
+  hypothesis     String?   @db.Text
+  startDate      DateTime?
+  endDate        DateTime?
+  trafficPercent Int       @default(100) // % of segment to include
+
+  // Results tracking
+  successMetric String? // e.g., "conversion_rate", "retention"
+  controlValue  Float?
+  variantValue  Float?
+
+  // Audit trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  // Relations
+  segments    ExperimentSegment[]
+  variants    ExperimentVariant[]
+  assignments ExperimentAssignment[]
+  events      ExperimentEvent[]
+
+  @@index([status])
+}
+
+model ExperimentSegment {
+  id           String      @id @default(cuid())
+  experimentId String
+  experiment   Experiment  @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  segmentId    String
+  segment      UserSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  // Segment can be control or treatment
+  isControl Boolean @default(false)
+
+  @@unique([experimentId, segmentId])
+  @@index([experimentId])
+  @@index([segmentId])
+}
+
+model ExperimentVariant {
+  id           String     @id @default(cuid())
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  name        String // e.g., "control", "variant_a", "variant_b"
+  description String?
+  weight      Int     @default(50) // Traffic weight percentage
+  config      Json? // Variant-specific configuration
+
+  // Relations
+  assignments ExperimentAssignment[]
+  events      ExperimentEvent[]
+
+  @@unique([experimentId, name])
+  @@index([experimentId])
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// User experiment assignments for sticky sessions
+model ExperimentAssignment {
+  id           String   @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  assignedAt   DateTime @default(now())
+  exposedAt    DateTime? // First time user was exposed to variant
+  convertedAt  DateTime? // If user completed success metric
+
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experimentId, userId])
+  @@index([experimentId])
+  @@index([userId])
+  @@index([variantId])
+  @@index([exposedAt])
+}
+
+// Event tracking for experiment analysis
+model ExperimentEvent {
+  id           String   @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  eventType    String // e.g., "view", "click", "conversion"
+  eventName    String // e.g., "invoice_created", "signup_completed"
+  properties   Json? // Additional event data
+  timestamp    DateTime @default(now())
+
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([experimentId])
+  @@index([userId])
+  @@index([variantId])
+  @@index([eventType])
+  @@index([eventName])
+  @@index([timestamp])
 }

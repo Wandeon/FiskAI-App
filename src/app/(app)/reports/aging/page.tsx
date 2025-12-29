@@ -4,6 +4,7 @@ import { setTenantContext } from "@/lib/prisma-extensions"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { AgingReportTable } from "./aging-report-table"
 
 export default async function AgingReportPage() {
   const user = await requireAuth()
@@ -93,55 +94,7 @@ export default async function AgingReportPage() {
       </div>
 
       {unpaidInvoices.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Detalji neplaćenih računa</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Račun</th>
-                  <th className="text-left py-2">Kupac</th>
-                  <th className="text-left py-2">Dospijeće</th>
-                  <th className="text-right py-2">Iznos</th>
-                  <th className="text-left py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {unpaidInvoices.slice(0, 20).map((inv) => {
-                  const daysOverdue = inv.dueDate
-                    ? Math.floor((now.getTime() - inv.dueDate.getTime()) / (24 * 60 * 60 * 1000))
-                    : 0
-                  return (
-                    <tr key={inv.id} className="border-b">
-                      <td className="py-2">
-                        <Link
-                          href={`/invoices/${inv.id}`}
-                          className="text-blue-600 hover:underline font-mono"
-                        >
-                          {inv.invoiceNumber}
-                        </Link>
-                      </td>
-                      <td className="py-2">{inv.buyer?.name || "-"}</td>
-                      <td className="py-2">{inv.dueDate?.toLocaleDateString("hr-HR")}</td>
-                      <td className="py-2 text-right font-mono">
-                        {formatCurrency(Number(inv.totalAmount))}
-                      </td>
-                      <td className="py-2">
-                        {daysOverdue > 0 ? (
-                          <span className="text-red-600">{daysOverdue} dana kasni</span>
-                        ) : (
-                          <span className="text-green-600">Tekući</span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <AgingReportTable invoices={unpaidInvoices} />
       )}
     </div>
   )

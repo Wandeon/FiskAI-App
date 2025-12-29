@@ -4,6 +4,7 @@ import {
   getCachedAdminMetrics,
   getCachedOnboardingFunnel,
   getCachedComplianceHealth,
+  getCachedRecentSignups,
 } from "@/lib/cache"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
@@ -26,11 +27,19 @@ export const revalidate = 300 // 5 minutes
 export default async function AdminPage() {
   await requireAdmin()
 
-  const [metrics, funnel, compliance] = await Promise.all([
+  const [metrics, funnel, compliance, recentSignups] = await Promise.all([
     getCachedAdminMetrics(),
     getCachedOnboardingFunnel(),
     getCachedComplianceHealth(),
+    getCachedRecentSignups(5),
   ])
 
-  return <AdminDashboard metrics={metrics} funnel={funnel} compliance={compliance} />
+  return (
+    <AdminDashboard
+      metrics={metrics}
+      funnel={funnel}
+      compliance={compliance}
+      recentSignups={recentSignups}
+    />
+  )
 }

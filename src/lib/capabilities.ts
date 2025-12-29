@@ -15,6 +15,18 @@ import { parseTenantFlags, type TenantFeatureFlags } from "./config/features"
 export type LegalForm = "OBRT_PAUSAL" | "OBRT_REAL" | "OBRT_VAT" | "JDOO" | "DOO"
 export type { ModuleKey, PermissionAction }
 
+/**
+ * Inferred user segment based on company attributes.
+ * Used for quick categorization without database queries.
+ */
+export type InferredSegment =
+  | "pausalni_non_vat"
+  | "pausalni_vat"
+  | "real_income"
+  | "corporate_doo"
+  | "corporate_jdoo"
+  | "unknown"
+
 export interface ModuleCapability {
   enabled: boolean
   reason?: string
@@ -26,8 +38,10 @@ export interface Capabilities {
   legalForm: LegalForm
   isVatPayer: boolean
   entitlements: ModuleKey[]
-featureFlags: TenantFeatureFlags
+  featureFlags: TenantFeatureFlags
   modules: Record<ModuleKey, ModuleCapability>
+  /** Inferred user segment for quick targeting decisions */
+  segment: InferredSegment
   visibility: {
     requireVatFields: boolean
     allowReverseCharge: boolean
@@ -56,11 +70,33 @@ const defaultEntitlements: ModuleKey[] = [
 ]
 
 /**
+ * Infer user segment from company attributes.
+ * This is a fast, synchronous check that can be used without database queries.
+ */
+function inferSegment(legalForm: LegalForm, isVatPayer: boolean): InferredSegment {
+  switch (legalForm) {
+    case "OBRT_PAUSAL":
+      return isVatPayer ? "pausalni_vat" : "pausalni_non_vat"
+    case "OBRT_VAT":
+      return "pausalni_vat"
+    case "OBRT_REAL":
+      return "real_income"
+    case "DOO":
+      return "corporate_doo"
+    case "JDOO":
+      return "corporate_jdoo"
+    default:
+      return "unknown"
+  }
+}
+
+/**
  * Derive capabilities from company data.
  * Combines module entitlements with tenant-specific feature flags.
  *
  * @see /src/lib/config/features.ts for global feature configuration
  * @see /src/lib/modules/definitions.ts for module definitions
+ * @see /src/lib/segmentation for full segment evaluation
  */
 export function deriveCapabilities(company: PartialCompany | null): Capabilities {
   const legalForm = (company?.legalForm as LegalForm) || "DOO"
@@ -108,6 +144,9 @@ export function deriveCapabilities(company: PartialCompany | null): Capabilities
   const allowReverseCharge = isVatPayer
   const requireOib = legalForm === "DOO" || legalForm === "JDOO"
 
+  // Infer segment for quick targeting decisions
+  const segment = inferSegment(legalForm, isVatPayer)
+
   // Create the can() helper function
   const can = (moduleKey: ModuleKey, action: PermissionAction): boolean => {
     return hasPermission(rawEntitlements, moduleKey, action)
@@ -119,6 +158,7 @@ export function deriveCapabilities(company: PartialCompany | null): Capabilities
     entitlements,
     featureFlags,
     modules,
+    segment,
     visibility: {
       requireVatFields,
       allowReverseCharge,

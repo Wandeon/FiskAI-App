@@ -1,8 +1,10 @@
 import { ReactNode } from "react"
 import { redirect, notFound } from "next/navigation"
+import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { StaffClientContextHeader } from "@/components/staff/client-context-header"
+import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
 
 interface ClientContextLayoutProps {
   children: ReactNode
@@ -67,6 +69,24 @@ export default async function ClientContextLayout({ children, params }: ClientCo
   if (!company) {
     notFound()
   }
+
+  // Log staff access to client data (GDPR compliance)
+  const reqHeaders = await headers()
+  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
+  // Fire-and-forget - don't await to avoid blocking the page load
+  logStaffAccess({
+    staffUserId: session.user.id,
+    clientCompanyId: clientId,
+    action: "STAFF_VIEW_CLIENT",
+    resourceType: "Company",
+    resourceId: clientId,
+    metadata: {
+      clientName: company.name,
+      clientOib: company.oib,
+    },
+    ipAddress,
+    userAgent,
+  })
 
   return (
     <div className="space-y-6">

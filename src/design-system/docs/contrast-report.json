@@ -1,0 +1,191 @@
+{
+  "timestamp": "2025-12-29T15:14:11.856Z",
+  "summary": {
+    "total": 20,
+    "passed": 17,
+    "aaa": 10,
+    "failed": 3
+  },
+  "results": [
+    {
+      "purpose": "Primary text on white surface",
+      "foreground": "#0f172a",
+      "background": "#ffffff",
+      "ratio": 17.85,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Secondary text on white surface",
+      "foreground": "#334155",
+      "background": "#ffffff",
+      "ratio": 10.35,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Tertiary text on white surface",
+      "foreground": "#475569",
+      "background": "#ffffff",
+      "ratio": 7.58,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Disabled text on white surface",
+      "foreground": "#94a3b8",
+      "background": "#ffffff",
+      "ratio": 2.56,
+      "required": 3,
+      "level": "Fail",
+      "passes": false
+    },
+    {
+      "purpose": "Link text on white surface",
+      "foreground": "#2563eb",
+      "background": "#ffffff",
+      "ratio": 5.17,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Primary text on page background",
+      "foreground": "#0f172a",
+      "background": "#f8fafc",
+      "ratio": 17.06,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Success text on success background",
+      "foreground": "#047857",
+      "background": "#ecfdf5",
+      "ratio": 5.21,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Warning text on warning background",
+      "foreground": "#b45309",
+      "background": "#fffbeb",
+      "ratio": 4.84,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Danger text on danger background",
+      "foreground": "#b91c1c",
+      "background": "#fef2f2",
+      "ratio": 5.91,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Info text on info background",
+      "foreground": "#1d4ed8",
+      "background": "#eff6ff",
+      "ratio": 6.16,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Primary text on dark surface",
+      "foreground": "#f8fafc",
+      "background": "#0f172a",
+      "ratio": 17.06,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Secondary text on dark surface",
+      "foreground": "#94a3b8",
+      "background": "#0f172a",
+      "ratio": 6.96,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Tertiary text on dark surface",
+      "foreground": "#64748b",
+      "background": "#0f172a",
+      "ratio": 3.75,
+      "required": 4.5,
+      "level": "Fail",
+      "passes": false
+    },
+    {
+      "purpose": "Disabled text on dark surface",
+      "foreground": "#475569",
+      "background": "#0f172a",
+      "ratio": 2.36,
+      "required": 3,
+      "level": "Fail",
+      "passes": false
+    },
+    {
+      "purpose": "Link text on dark surface",
+      "foreground": "#60a5fa",
+      "background": "#0f172a",
+      "ratio": 7.02,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Primary text on dark page background",
+      "foreground": "#f8fafc",
+      "background": "#020617",
+      "ratio": 19.28,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Success text on success background (dark)",
+      "foreground": "#34d399",
+      "background": "#0f172a",
+      "ratio": 9.29,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Warning text on warning background (dark)",
+      "foreground": "#fbbf24",
+      "background": "#0f172a",
+      "ratio": 10.69,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    },
+    {
+      "purpose": "Danger text on danger background (dark)",
+      "foreground": "#f87171",
+      "background": "#0f172a",
+      "ratio": 6.45,
+      "required": 4.5,
+      "level": "AA",
+      "passes": true
+    },
+    {
+      "purpose": "Info text on info background (dark)",
+      "foreground": "#60a5fa",
+      "background": "#0f172a",
+      "ratio": 7.02,
+      "required": 4.5,
+      "level": "AAA",
+      "passes": true
+    }
+  ]
+}

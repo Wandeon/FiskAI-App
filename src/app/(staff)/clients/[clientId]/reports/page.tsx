@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
+import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -89,6 +91,22 @@ export default async function ClientReportsPage({ params }: PageProps) {
 
   const { company, yearlyRevenue, monthlyRevenue, lastMonthRevenue, expenseTotal } =
     await getClientReportData(clientId)
+
+  // Log staff access to reports (GDPR compliance)
+  const reqHeaders = await headers()
+  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
+  logStaffAccess({
+    staffUserId: session.user.id,
+    clientCompanyId: clientId,
+    action: "STAFF_VIEW_REPORTS",
+    resourceType: "Report",
+    metadata: {
+      companyName: company?.name,
+      legalForm: company?.legalForm,
+    },
+    ipAddress,
+    userAgent,
+  })
 
   const ytdRevenue = Number(yearlyRevenue._sum.totalAmount || 0)
   const ytdVat = Number(yearlyRevenue._sum.vatAmount || 0)

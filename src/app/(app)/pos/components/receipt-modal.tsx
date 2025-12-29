@@ -1,29 +1,101 @@
 // src/app/(dashboard)/pos/components/receipt-modal.tsx
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Modal, ModalFooter } from "@/components/ui/modal"
 import type { ProcessPosSaleResult } from "@/types/pos"
 import { generateFiscalQRCode, type FiscalQRData } from "@/lib/fiscal/qr-generator"
+import {
+  WebUSBPrinter,
+  BrowserPrintFallback,
+  type ThermalPrinter,
+} from "@/lib/pos/thermal-printer"
+import {
+  generateEscPosReceipt,
+  generateHtmlReceipt,
+  extractReceiptData,
+} from "@/lib/pos/receipt-formatter"
 
 interface Props {
   isOpen: boolean
   result: ProcessPosSaleResult
+  companyInfo?: {
+    name: string
+    address?: string
+    oib: string
+  }
   onNewSale: () => void
   onClose: () => void
 }
 
-export function ReceiptModal({ isOpen, result, onNewSale, onClose }: Props) {
+export function ReceiptModal({ isOpen, result, companyInfo, onNewSale, onClose }: Props) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
+  const [printer, setPrinter] = useState<ThermalPrinter | null>(null)
+  const [isPrinting, setIsPrinting] = useState(false)
+  const [printError, setPrintError] = useState<string | null>(null)
+  const [printerConnected, setPrinterConnected] = useState(false)
+
+  // Default company info if not provided (memoized to avoid useCallback dependency issues)
+  const company = useMemo(
+    () => companyInfo ?? { name: "FiskAI Demo", oib: "00000000000" },
+    [companyInfo]
+  )
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("hr-HR", {
       style: "currency",
       currency: "EUR",
     }).format(price)
+
+  // Connect to USB thermal printer
+  const connectUsbPrinter = useCallback(async () => {
+    setPrintError(null)
+    try {
+      const usbPrinter = new WebUSBPrinter(80)
+      const connected = await usbPrinter.connect()
+      if (connected) {
+        setPrinter(usbPrinter)
+        setPrinterConnected(true)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error("USB printer connection failed:", error)
+      setPrintError("Povezivanje USB pisaca nije uspjelo")
+      return false
+    }
+  }, [])
+
+  // Print to thermal printer
+  const printThermal = useCallback(async () => {
+    if (!result.invoice) return
+
+    setIsPrinting(true)
+    setPrintError(null)
+
+    try {
+      const receiptData = extractReceiptData(result, company, qrCodeDataUrl ?? undefined)
+
+      if (printer && printerConnected) {
+        // Print to connected thermal printer
+        const escPosData = generateEscPosReceipt(receiptData, printer.getPaperWidth())
+        await printer.print(escPosData)
+      } else {
+        // Fallback to browser print with thermal receipt styling
+        const browserPrinter = new BrowserPrintFallback(80)
+        const html = generateHtmlReceipt(receiptData, 80)
+        browserPrinter.printHtml(html)
+      }
+    } catch (error) {
+      console.error("Print failed:", error)
+      setPrintError(error instanceof Error ? error.message : "Ispis nije uspio")
+    } finally {
+      setIsPrinting(false)
+    }
+  }, [result, company, qrCodeDataUrl, printer, printerConnected])
 
   // Generate QR code when fiscalization data is available
   useEffect(() => {
@@ -61,11 +133,21 @@ export function ReceiptModal({ isOpen, result, onNewSale, onClose }: Props) {
     }
   }, [isOpen, result])
 
-  function handlePrint() {
+  // Legacy PDF print (opens in new window)
+  function handlePdfPrint() {
     if (result.pdfUrl) {
       window.open(result.pdfUrl, "_blank")
     }
   }
+
+  // Disconnect printer on unmount
+  useEffect(() => {
+    return () => {
+      if (printer) {
+        printer.disconnect()
+      }
+    }
+  }, [printer])
 
   return (
     <Modal isOpen={isOpen} title="Prodaja zavrsena" onClose={onClose}>
@@ -134,10 +216,45 @@ export function ReceiptModal({ isOpen, result, onNewSale, onClose }: Props) {
       </div>
 
       <ModalFooter>
-        <Button variant="outline" onClick={handlePrint}>
-          Ispisi racun
-        </Button>
-        <Button onClick={onNewSale}>Nova prodaja</Button>
+        <div className="w-full space-y-3">
+          {/* Print error message */}
+          {printError && (
+            <p className="text-sm text-destructive text-center">{printError}</p>
+          )}
+
+          {/* Thermal printer connection */}
+          <div className="flex items-center justify-center gap-2 text-sm">
+            {printerConnected ? (
+              <Badge variant="success">USB pisac povezan</Badge>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={connectUsbPrinter}
+                className="text-muted-foreground"
+              >
+                Povezi USB termal pisac
+              </Button>
+            )}
+          </div>
+
+          {/* Print buttons */}
+          <div className="flex justify-center gap-2">
+            <Button
+              variant="outline"
+              onClick={printThermal}
+              disabled={isPrinting}
+            >
+              {isPrinting ? "Ispisuje..." : printerConnected ? "Ispisi termal" : "Ispisi racun"}
+            </Button>
+            {result.pdfUrl && (
+              <Button variant="ghost" onClick={handlePdfPrint}>
+                PDF
+              </Button>
+            )}
+            <Button onClick={onNewSale}>Nova prodaja</Button>
+          </div>
+        </div>
       </ModalFooter>
     </Modal>
   )

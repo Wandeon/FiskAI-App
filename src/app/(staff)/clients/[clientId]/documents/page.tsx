@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
+import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -64,6 +66,19 @@ export default async function ClientDocumentsPage({ params }: PageProps) {
   }
 
   const documents = await getClientDocuments(clientId)
+
+  // Log staff access to documents (GDPR compliance)
+  const reqHeaders = await headers()
+  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
+  logStaffAccess({
+    staffUserId: session.user.id,
+    clientCompanyId: clientId,
+    action: "STAFF_VIEW_DOCUMENTS",
+    resourceType: "Document",
+    metadata: { documentCount: documents.length },
+    ipAddress,
+    userAgent,
+  })
 
   // Calculate stats
   const stats = {

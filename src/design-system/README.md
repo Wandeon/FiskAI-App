@@ -11,7 +11,7 @@ import type { ButtonVariant, StatusVariant } from "@/design-system"
 // Use semantic Tailwind classes
 ;<div className="bg-surface text-foreground border-border">
   <h1 className="text-heading-xl">Title</h1>
-  <p className="text-body-base text-secondary">Description</p>
+  <p className="text-body-md text-secondary">Description</p>
   <Button variant="primary">Action</Button>
   <Badge variant="success">Status</Badge>
 </div>
@@ -43,11 +43,11 @@ import type { ButtonVariant, StatusVariant } from "@/design-system"
 - `bg-info-bg`, `text-info-text`, `border-info-border`
 
 ### Typography
-
-- `text-display-xl`, `text-display-lg`, `text-display-md`
-- `text-heading-xl`, `text-heading-lg`, `text-heading-md`, `text-heading-sm`
-- `text-body-lg`, `text-body-base`, `text-body-sm`, `text-body-xs`
-- `text-label`, `text-caption`, `text-overline`, `text-code`
+- Display: `text-display-xl`, `text-display-lg`, `text-display-md`, `text-display-sm`
+- Headings: `text-heading-xl`, `text-heading-lg`, `text-heading-md`, `text-heading-sm`, `text-heading-xs`
+- Body: `text-body-lg`, `text-body-md`, `text-body-sm`, `text-body-xs`
+- Labels: `text-label-lg`, `text-label-md`, `text-label-sm`
+- Code: `text-code-lg`, `text-code-md`, `text-code-sm`
 
 ### Interactive
 
@@ -80,5 +80,6 @@ Hardcoded colors are blocked by ESLint:
 ## Documentation
 
 - [Architecture](../../docs/plans/2025-12-27-design-system-architecture.md)
+- [Typography System](./TYPOGRAPHY.md) - Complete typography documentation
 - [Governance](./TOKENS.md)
 - [Accessibility](./ACCESSIBILITY.md) - Motion and animation accessibility guidelines

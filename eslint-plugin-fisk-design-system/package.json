@@ -1,0 +1,15 @@
+{
+  "name": "eslint-plugin-fisk-design-system",
+  "version": "1.0.0",
+  "description": "ESLint rules for Fisk design system color token enforcement",
+  "main": "index.js",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "design-system",
+    "tailwind",
+    "colors"
+  ],
+  "author": "FiskAI",
+  "license": "MIT"
+}

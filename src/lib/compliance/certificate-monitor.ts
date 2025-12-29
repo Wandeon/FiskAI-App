@@ -4,12 +4,18 @@ import { Html, Head, Body, Container, Text, Link, Hr } from "@react-email/compon
 import React from "react"
 import { FiscalEnv } from "@prisma/client"
 
+// Standard notification intervals (days before expiry)
+export const NOTIFICATION_INTERVALS = [30, 14, 7, 1] as const
+export type NotificationInterval = (typeof NOTIFICATION_INTERVALS)[number]
+
 export interface ExpiringCertificate {
+  certificateId: string
   companyId: string
   companyName: string
   ownerEmail: string
   validUntil: Date
   daysRemaining: number
+  lastNotificationDay: number | null
 }
 
 /**
@@ -60,13 +66,59 @@ export async function findExpiringCertificates(
       const daysRemaining = Math.ceil((validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
       return {
+        certificateId: cert.id,
         companyId: company.id,
         companyName: company.name,
         ownerEmail: company.users[0]?.user?.email || "",
         validUntil,
         daysRemaining,
+        lastNotificationDay: cert.lastExpiryNotificationDay,
       }
     })
+}
+
+/**
+ * Determine if a notification should be sent based on days remaining and last notification
+ * Returns the notification interval to use, or null if no notification needed
+ */
+export function shouldSendNotification(
+  daysRemaining: number,
+  lastNotificationDay: number | null
+): NotificationInterval | null {
+  // Find the current notification interval (highest interval <= daysRemaining)
+  const currentInterval = NOTIFICATION_INTERVALS.find((interval) => daysRemaining <= interval)
+
+  if (!currentInterval) {
+    return null // More than 30 days remaining, no notification needed
+  }
+
+  // If no notification has been sent, send one
+  if (lastNotificationDay === null) {
+    return currentInterval
+  }
+
+  // Only send if we've crossed into a new (lower) interval
+  if (currentInterval < lastNotificationDay) {
+    return currentInterval
+  }
+
+  return null
+}
+
+/**
+ * Update notification tracking after sending
+ */
+export async function updateNotificationTracking(
+  certificateId: string,
+  notificationDay: NotificationInterval
+): Promise<void> {
+  await db.fiscalCertificate.update({
+    where: { id: certificateId },
+    data: {
+      lastExpiryNotificationAt: new Date(),
+      lastExpiryNotificationDay: notificationDay,
+    },
+  })
 }
 
 /**
@@ -101,43 +153,43 @@ function CertificateExpiryEmail({
         React.createElement(
           Text,
           { style: { fontSize: "24px", fontWeight: "bold", marginBottom: "20px" } },
-          "Upozorenje: FINA certifikat ističe"
+          "Upozorenje: FINA certifikat istice"
         ),
         React.createElement(
           Text,
           { style: { fontSize: "16px", marginBottom: "15px" } },
-          `Poštovani,`
+          "Postovani,"
         ),
         React.createElement(
           Text,
           { style: { fontSize: "16px", marginBottom: "15px" } },
-          `FINA certifikat za ${companyName} ističe za ${daysRemaining} dana (${validUntil}).`
+          `FINA certifikat za ${companyName} istice za ${daysRemaining} dana (${validUntil}).`
         ),
         React.createElement(
           Text,
           { style: { fontSize: "16px", marginBottom: "15px" } },
-          `Molimo obnovite certifikat kako biste nastavili s fiskalizacijom računa.`
+          "Molimo obnovite certifikat kako biste nastavili s fiskalizacijom racuna."
         ),
         React.createElement(Hr, null),
         React.createElement(
           Text,
           { style: { fontSize: "14px", marginBottom: "10px", fontWeight: "bold" } },
-          `Koraci za obnovu:`
+          "Koraci za obnovu:"
         ),
         React.createElement(
           Text,
           { style: { fontSize: "14px", marginBottom: "5px" } },
-          `1. Posjetite FINA e-usluge`
+          "1. Posjetite FINA e-usluge"
         ),
         React.createElement(
           Text,
           { style: { fontSize: "14px", marginBottom: "5px" } },
-          `2. Prijavite se s vašim pristupnim podacima`
+          "2. Prijavite se s vasim pristupnim podacima"
         ),
         React.createElement(
           Text,
           { style: { fontSize: "14px", marginBottom: "15px" } },
-          `3. Zatražite obnovu certifikata za fiskalizaciju`
+          "3. Zatrazite obnovu certifikata za fiskalizaciju"
         ),
         React.createElement(
           Link,
@@ -159,7 +211,7 @@ function CertificateExpiryEmail({
         React.createElement(
           Text,
           { style: { fontSize: "12px", color: "#666666", marginTop: "20px" } },
-          `Ova poruka je automatski generirana. Za dodatna pitanja kontaktirajte FiskAI podršku.`
+          "Ova poruka je automatski generirana. Za dodatna pitanja kontaktirajte FiskAI podrsku."
         )
       )
     )
@@ -178,7 +230,7 @@ export async function sendCertificateExpiryNotification(cert: ExpiringCertificat
 
   await sendEmail({
     to: cert.ownerEmail,
-    subject: `FiskAI: FINA certifikat ističe za ${cert.daysRemaining} dana`,
+    subject: `FiskAI: FINA certifikat istice za ${cert.daysRemaining} dana`,
     react: CertificateExpiryEmail({
       companyName: cert.companyName,
       daysRemaining: cert.daysRemaining,

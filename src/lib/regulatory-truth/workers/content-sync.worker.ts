@@ -129,13 +129,16 @@ async function claimEvent(eventId: string): Promise<ContentSyncEvent | null> {
  * Mark an event as successfully processed.
  *
  * @param eventId - The event ID to mark as done
+ * @param prUrl - The GitHub PR URL created for this event
  */
-async function markDone(eventId: string): Promise<void> {
+async function markDone(eventId: string, prUrl?: string): Promise<void> {
   await drizzleDb
     .update(contentSyncEvents)
     .set({
       status: "DONE",
       processedAt: new Date(),
+      prUrl: prUrl ?? null,
+      prCreatedAt: prUrl ? new Date() : null,
     })
     .where(eq(contentSyncEvents.eventId, eventId))
 }
@@ -323,8 +326,8 @@ async function processContentSyncJob(
 
     console.log(`[content-sync] Created PR: ${prUrl}`)
 
-    // Transaction C: Mark done
-    await markDone(eventId)
+    // Transaction C: Mark done and store PR URL
+    await markDone(eventId, prUrl)
 
     return {
       success: true,

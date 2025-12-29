@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { AlertTriangle, AlertCircle, Info, ArrowRight, Filter } from "lucide-react"
+import { AlertTriangle, AlertCircle, Info, ArrowRight, Filter, X, Check, Clock, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import type { Alert, AlertLevel, AlertType } from "@/lib/admin/alerts"
 
 const LEVEL_STYLES: Record<AlertLevel, { icon: typeof AlertTriangle; color: string }> = {
@@ -38,6 +39,8 @@ interface AlertsPageProps {
 export function AlertsPage({ alerts }: AlertsPageProps) {
   const [filterLevel, setFilterLevel] = useState<AlertLevel | "all">("all")
   const [filterType, setFilterType] = useState<AlertType | "all">("all")
+  const [loadingAlerts, setLoadingAlerts] = useState<Set<string>>(new Set())
+  const router = useRouter()
 
   const filteredAlerts = alerts.filter((alert) => {
     if (filterLevel !== "all" && alert.level !== filterLevel) return false
@@ -48,6 +51,43 @@ export function AlertsPage({ alerts }: AlertsPageProps) {
   const criticalCount = alerts.filter((a) => a.level === "critical").length
   const warningCount = alerts.filter((a) => a.level === "warning").length
   const infoCount = alerts.filter((a) => a.level === "info").length
+
+  const handleAlertAction = async (
+    alert: Alert,
+    action: "dismiss" | "resolve" | "acknowledge"
+  ) => {
+    const alertKey = `${alert.type}-${alert.companyId}`
+    setLoadingAlerts((prev) => new Set(prev).add(alertKey))
+
+    try {
+      const response = await fetch("/api/admin/alerts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action,
+          companyId: alert.companyId,
+          type: alert.type,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} alert`)
+      }
+
+      router.refresh()
+    } catch (error) {
+      console.error(`Error ${action} alert:`, error)
+      alert(`Failed to ${action} alert. Please try again.`)
+    } finally {
+      setLoadingAlerts((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(alertKey)
+        return newSet
+      })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -165,6 +205,9 @@ export function AlertsPage({ alerts }: AlertsPageProps) {
             <div className="space-y-3">
               {filteredAlerts.map((alert) => {
                 const { icon: Icon, color } = LEVEL_STYLES[alert.level]
+                const alertKey = `${alert.type}-${alert.companyId}`
+                const isLoading = loadingAlerts.has(alertKey)
+
                 return (
                   <div
                     key={alert.id}
@@ -201,11 +244,44 @@ export function AlertsPage({ alerts }: AlertsPageProps) {
                         Created: {alert.createdAt.toLocaleString("hr-HR")}
                       </p>
                     </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/tenants/${alert.companyId}`}>
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAlertAction(alert, "resolve")}
+                        disabled={isLoading}
+                        title="Mark as resolved"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Resolve
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAlertAction(alert, "acknowledge")}
+                        disabled={isLoading}
+                        title="Acknowledge alert"
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Acknowledge
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAlertAction(alert, "dismiss")}
+                        disabled={isLoading}
+                        title="Dismiss alert"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Dismiss
+                      </Button>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/tenants/${alert.companyId}`}>
+                          <ArrowRight className="h-4 w-4 mr-1" />
+                          View
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 )
               })}

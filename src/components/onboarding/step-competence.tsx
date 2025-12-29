@@ -14,6 +14,7 @@ const COMPETENCE_OPTIONS: {
   description: string
   icon: typeof Sparkles
   benefits: string[]
+  uiChanges: string
 }[] = [
   {
     value: "beginner",
@@ -25,6 +26,8 @@ const COMPETENCE_OPTIONS: {
       "Detaljne upute i objašnjenja",
       "Postupno otključavanje značajki",
     ],
+    uiChanges:
+      "Vidjeti ćete detaljne tooltipove na svakom polju, potvrde prije važnih radnji, i objašnjenja nakon svake operacije.",
   },
   {
     value: "average",
@@ -36,6 +39,8 @@ const COMPETENCE_OPTIONS: {
       "Direktan pristup fakturama",
       "Umjerene upute kad je potrebno",
     ],
+    uiChanges:
+      "Vidjeti ćete tooltipove na ključnim poljima, potvrde samo za kritične radnje, i kratke obavijesti o uspjehu.",
   },
   {
     value: "pro",
@@ -43,6 +48,8 @@ const COMPETENCE_OPTIONS: {
     description: "Profesionalac sam. Želim sve značajke odmah.",
     icon: Zap,
     benefits: ["Sve otključano odmah", "Bez ograničenja i čekanja", "Napredne postavke vidljive"],
+    uiChanges:
+      "Vidjeti ćete čisto sučelje bez tooltipova, bez potvrdi, i vidljive tipkovničke prečace za brži rad.",
   },
 ]
 
@@ -121,10 +128,9 @@ export function StepCompetence() {
                   ))}
                 </ul>
 
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 italic">
-                    {COMPETENCE_DESCRIPTIONS[option.value]}
-                  </p>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <p className="text-xs font-medium text-gray-700 mb-1">Kako će to utjecati na sučelje:</p>
+                  <p className="text-xs text-gray-600 leading-relaxed">{option.uiChanges}</p>
                 </div>
               </div>
 

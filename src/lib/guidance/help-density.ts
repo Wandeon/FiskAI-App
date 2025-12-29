@@ -35,7 +35,7 @@ export function getHelpDensity(competence: CompetenceLevel): HelpDensityConfig {
 }
 
 export const COMPETENCE_DESCRIPTIONS: Record<CompetenceLevel, string> = {
-  beginner: "Maksimalna pomoć: tooltipovi svugdje, objašnjenja, upozorenja",
-  average: "Uravnoteženo: ključne napomene, opcionalno proširenje",
-  pro: "Minimalno: čist UI, napredne prečace vidljive",
+  beginner: "Detaljni tooltipovi na svim poljima, potvrde za sve važne radnje, i objašnjenja nakon svake operacije.",
+  average: "Tooltipovi samo na ključnim poljima, potvrde samo za kritične radnje, i kratke obavijesti o uspjehu.",
+  pro: "Bez tooltipova, bez potvrdi, i vidljive tipkovničke prečace za brži rad.",
 }
