@@ -408,11 +408,150 @@ export const JDOO_FIRST_WEEK: TutorialTrack = {
   ],
 }
 
+export const OBRT_REAL_FIRST_WEEK: TutorialTrack = {
+  id: "obrt-real-first-week",
+  name: "Obrt (Stvarni dohodak) First Week",
+  description: "Naučite koristiti FiskAI za obrt sa stvarnim dohotkom u 5 dana",
+  targetLegalForm: ["OBRT_REAL"],
+  days: [
+    {
+      day: 1,
+      title: "Kontakti",
+      tasks: [
+        {
+          id: "add-first-customer",
+          title: "Dodaj prvog kupca",
+          href: "/contacts/new",
+          completionCheck: (ctx) => ctx.contactsCount >= 1,
+        },
+        {
+          id: "understand-oib",
+          title: "Razumij OIB validaciju",
+          description: "OIB je 11-znamenkasti identifikacijski broj",
+          href: "/vodici/oib-validacija",
+        },
+        {
+          id: "import-csv",
+          title: "Uvezi kontakte iz CSV",
+          isOptional: true,
+          href: "/contacts/import",
+        },
+      ],
+    },
+    {
+      day: 2,
+      title: "Proizvodi/Usluge",
+      tasks: [
+        {
+          id: "add-first-product",
+          title: "Dodaj svoju glavnu uslugu",
+          href: "/products/new",
+          completionCheck: (ctx) => ctx.productsCount >= 1,
+        },
+        {
+          id: "set-price",
+          title: "Postavi cijenu",
+          description: "Obrt sa stvarnim dohotkom ne naplaćuje PDV ispod praga",
+          href: "/products",
+        },
+        {
+          id: "understand-income-calculation",
+          title: "Razumij izračun dohotka",
+          description: "Dohodak = Prihodi - Rashodi",
+          href: "/vodici/stvarni-dohodak",
+        },
+      ],
+    },
+    {
+      day: 3,
+      title: "Prvi račun",
+      tasks: [
+        {
+          id: "create-first-invoice",
+          title: "Kreiraj račun za kupca",
+          href: "/invoices/new",
+          completionCheck: (ctx) => ctx.invoicesCount >= 1,
+        },
+        {
+          id: "preview-pdf",
+          title: "Pregledaj PDF preview",
+          href: "/invoices",
+        },
+        {
+          id: "send-or-download",
+          title: "Pošalji e-mailom ili preuzmi",
+          href: "/invoices",
+        },
+        {
+          id: "understand-kpr",
+          title: "Razumij KPR unos",
+          description: "Račun se automatski upisuje u Knjigu primitaka i izdataka",
+          href: "/vodici/kpr",
+        },
+      ],
+    },
+    {
+      day: 4,
+      title: "Troškovi i Rashodi",
+      tasks: [
+        {
+          id: "add-first-expense",
+          title: "Dodaj prvi trošak",
+          href: "/expenses/new",
+          completionCheck: (ctx) => ctx.hasExpenseEntry,
+        },
+        {
+          id: "understand-deductible-expenses",
+          title: "Razumij priznate rashode",
+          description: "Koje troškove možete odbiti od prihoda",
+          href: "/vodici/priznati-rashodi",
+        },
+        {
+          id: "connect-bank",
+          title: "Poveži bankovni račun",
+          isOptional: true,
+          href: "/banking/connect",
+          completionCheck: (ctx) => ctx.hasBankConnection,
+        },
+      ],
+    },
+    {
+      day: 5,
+      title: "KPR i Rokovi",
+      tasks: [
+        {
+          id: "open-kpr",
+          title: "Otvori Knjigu primitaka i izdataka",
+          href: "/kpr",
+          completionCheck: (ctx) => ctx.hasKprEntry,
+        },
+        {
+          id: "view-calendar",
+          title: "Pregledaj kalendar obveza",
+          href: "/rokovi",
+        },
+        {
+          id: "understand-contributions",
+          title: "Razumij MIO/HZZO doprinose",
+          href: "/vodici/doprinosi",
+        },
+        {
+          id: "connect-google",
+          title: "Poveži s Google kalendarom",
+          isOptional: true,
+          href: "/settings/integrations",
+          completionCheck: (ctx) => ctx.hasCalendarReminder,
+        },
+      ],
+    },
+  ],
+}
+
 export const VAT_BUSINESS_FIRST_WEEK: TutorialTrack = {
   id: "vat-business-first-week",
   name: "PDV Obveznik First Week",
   description: "Naučite koristiti FiskAI kao PDV obveznik u 5 dana",
-  targetLegalForm: ["OBRT", "OBRT_PAUSAL_VAT"],
+  targetLegalForm: ["OBRT", "OBRT_VAT", "OBRT_PAUSAL_VAT"],
   days: [
     {
       day: 1,
@@ -541,7 +680,13 @@ export const VAT_BUSINESS_FIRST_WEEK: TutorialTrack = {
   ],
 }
 
-export const ALL_TRACKS = [PAUSALNI_FIRST_WEEK, DOO_FIRST_WEEK, JDOO_FIRST_WEEK, VAT_BUSINESS_FIRST_WEEK]
+export const ALL_TRACKS = [
+  PAUSALNI_FIRST_WEEK,
+  OBRT_REAL_FIRST_WEEK,
+  VAT_BUSINESS_FIRST_WEEK,
+  DOO_FIRST_WEEK,
+  JDOO_FIRST_WEEK,
+]
 
 export function getTrackForLegalForm(legalForm: string): TutorialTrack | null {
   return ALL_TRACKS.find((track) => track.targetLegalForm.includes(legalForm)) || null

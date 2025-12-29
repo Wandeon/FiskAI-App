@@ -121,9 +121,8 @@ export default async function DashboardPage() {
 
   const totalRevenueValue = Number(totalRevenue._sum.totalAmount || new Decimal(0))
 
-  // Get tutorial track and progress for paušalni users
-  const tutorialTrack =
-    company.legalForm === "OBRT_PAUSAL" ? getTrackForLegalForm("OBRT_PAUSAL") : null
+  // Get tutorial track and progress for all business types
+  const tutorialTrack = company.legalForm ? getTrackForLegalForm(company.legalForm) : null
 
   const tutorialProgress =
     tutorialTrack && user.id
@@ -340,7 +339,7 @@ export default async function DashboardPage() {
           {/* Contextual Help */}
           {triggers.length > 0 && <ContextualHelpBanner triggers={triggers} />}
 
-          {/* Tutorial Progress for Paušalni */}
+          {/* Tutorial Progress Widget */}
           {tutorialTrack && (
             <TutorialProgressWidget track={tutorialTrack} progress={tutorialProgress} />
           )}
