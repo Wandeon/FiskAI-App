@@ -6,52 +6,52 @@ import { StaffClientMessages } from "@/components/staff/client-messages"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 interface PageProps {
-  params: Promise<{ clientId: string }>
+ params: Promise<{ clientId: string }>
 }
 
 async function getClientMessages(companyId: string) {
-  const [company, tickets] = await Promise.all([
-    db.company.findUnique({
-      where: { id: companyId },
-      select: { id: true, name: true },
-    }),
-    db.supportTicket.findMany({
-      where: { companyId },
-      orderBy: { updatedAt: "desc" },
-      include: {
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { id: true, body: true, createdAt: true, authorId: true },
-        },
-      },
-    }),
-  ])
+ const [company, tickets] = await Promise.all([
+ db.company.findUnique({
+ where: { id: companyId },
+ select: { id: true, name: true },
+ }),
+ db.supportTicket.findMany({
+ where: { companyId },
+ orderBy: { updatedAt: "desc" },
+ include: {
+ messages: {
+ orderBy: { createdAt: "desc" },
+ take: 1,
+ select: { id: true, body: true, createdAt: true, authorId: true },
+ },
+ },
+ }),
+ ])
 
-  return { company, tickets }
+ return { company, tickets }
 }
 
 export default async function ClientMessagesPage({ params }: PageProps) {
-  const { clientId } = await params
-  const session = await auth()
+ const { clientId } = await params
+ const session = await auth()
 
-  if (!session?.user) {
-    redirect("/login")
-  }
+ if (!session?.user) {
+ redirect("/login")
+ }
 
-  const { company, tickets } = await getClientMessages(clientId)
+ const { company, tickets } = await getClientMessages(clientId)
 
-  if (!company) {
-    notFound()
-  }
+ if (!company) {
+ notFound()
+ }
 
-  return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <StaffClientMessages
-        clientId={clientId}
-        clientName={company.name}
-        initialTickets={tickets}
-      />
-    </Suspense>
-  )
+ return (
+ <Suspense fallback={<LoadingSpinner />}>
+ <StaffClientMessages
+ clientId={clientId}
+ clientName={company.name}
+ initialTickets={tickets}
+ />
+ </Suspense>
+ )
 }
