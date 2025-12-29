@@ -94,8 +94,12 @@ export async function deleteContact(contactId: string) {
   })
 }
 
-export async function getContacts(type?: "CUSTOMER" | "SUPPLIER" | "BOTH") {
+export async function getContacts(
+  type?: "CUSTOMER" | "SUPPLIER" | "BOTH",
+  options?: { page?: number; limit?: number }
+) {
   const user = await requireAuth()
+  const { page = 1, limit = 50 } = options ?? {}
 
   return requireCompanyWithContext(user.id!, async () => {
     return db.contact.findMany({
@@ -103,6 +107,8 @@ export async function getContacts(type?: "CUSTOMER" | "SUPPLIER" | "BOTH") {
         ...(type && { type }),
       },
       orderBy: { name: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
     })
   })
 }

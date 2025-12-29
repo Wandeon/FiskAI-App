@@ -141,8 +141,12 @@ export async function deleteProduct(productId: string) {
   })
 }
 
-export async function getProducts(activeOnly: boolean = false) {
+export async function getProducts(
+  activeOnly: boolean = false,
+  options?: { page?: number; limit?: number }
+) {
   const user = await requireAuth()
+  const { page = 1, limit = 50 } = options ?? {}
 
   return requireCompanyWithContext(user.id!, async () => {
     return db.product.findMany({
@@ -150,6 +154,8 @@ export async function getProducts(activeOnly: boolean = false) {
         ...(activeOnly && { isActive: true }),
       },
       orderBy: { name: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
     })
   })
 }

@@ -214,7 +214,7 @@ async function ContactBoard({
     type: type as ContactType | "ALL",
     segments: validSegments as (typeof SEGMENTS)[number][],
     page: 1,
-    limit: 120,
+    limit: 50,
   })
 
   const columns = [
