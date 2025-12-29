@@ -434,9 +434,9 @@ export function MarketingPricingClient() {
                 <Link href="/contact" className="font-semibold text-cyan-400 hover:underline">
                   Kontaktirajte nas
                 </Link>{" "}
-                ili pozovite na{" "}
-                <a href="tel:+38512345678" className="font-semibold text-cyan-400 hover:underline">
-                  +385 1 234 5678
+                putem emaila{" "}
+                <a href="mailto:info@fiskai.hr" className="font-semibold text-cyan-400 hover:underline">
+                  info@fiskai.hr
                 </a>
               </p>
             </div>

@@ -56,12 +56,12 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium">Telefon</p>
                     <a
-                      href="tel:+38512345678"
+                      href="mailto:info@fiskai.hr"
                       className="text-sm text-cyan-400 hover:underline block"
                     >
-                      +385 1 234 5678
+                      info@fiskai.hr
                     </a>
-                    <p className="text-xs text-white/60 mt-1">Radnim danima 9-17h</p>
+                    <p className="text-xs text-white/60 mt-1">Email kontakt</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -88,7 +88,7 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium">Vrijeme odgovora</p>
                     <p className="text-sm text-white/60">Unutar 24h radnim danima</p>
-                    <p className="text-xs text-white/60 mt-1">Hitni slučajevi: +385 1 234 5679</p>
+                    <p className="text-xs text-white/60 mt-1">Email: info@fiskai.hr</p>
                   </div>
                 </div>
               </div>
@@ -98,16 +98,16 @@ export default function ContactPage() {
               <h2 className="text-xl font-semibold mb-4">Tvrtka</h2>
               <div className="space-y-2 text-sm">
                 <p>
-                  <span className="font-medium">Naziv:</span> Metrica d.o.o.
+                  <span className="font-medium">Naziv:</span> FiskAI d.o.o.
                 </p>
                 <p>
-                  <span className="font-medium">OIB:</span> 12345678901
+                  <span className="font-medium">Sjedište:</span> Zagreb, Hrvatska
                 </p>
                 <p>
-                  <span className="font-medium">IBAN:</span> HR1234567890123456789 (ZABA)
+                  <span className="font-medium">OIB:</span> U registraciji
                 </p>
                 <p>
-                  <span className="font-medium">VAT ID:</span> HR12345678901
+                  <span className="font-medium">Email:</span> info@fiskai.hr
                 </p>
                 <p className="text-white/60 mt-2">
                   Registrirana u Sudskom registru Republike Hrvatske
