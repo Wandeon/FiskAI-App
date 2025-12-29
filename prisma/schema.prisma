@@ -965,11 +965,13 @@ model AIFeedback {
   @@index([companyId])
   @@index([entityType, entityId])
   @@index([operation])
+  @@index([userId])
 }
 
 model AIUsage {
   id         String   @id @default(cuid())
   companyId  String
+  userId     String?
   operation  String
   tokensUsed Int?
   costCents  Int?
@@ -980,6 +982,7 @@ model AIUsage {
 
   @@index([companyId, createdAt])
   @@index([companyId, operation])
+  @@index([userId, createdAt])
 }
 
 model ArticleJob {
