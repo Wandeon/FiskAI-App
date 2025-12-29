@@ -126,6 +126,7 @@
     "gray-matter": "^4.0.3",
     "ics": "^3.8.1",
     "ioredis": "^5.8.2",
+    "isomorphic-dompurify": "^2.35.0",
     "js-yaml": "^4.1.1",
     "jsdom": "^27.3.0",
     "lucide-react": "^0.468.0",

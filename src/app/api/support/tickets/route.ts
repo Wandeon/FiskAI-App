@@ -3,6 +3,7 @@ import { z } from "zod"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { SupportTicketPriority, SupportTicketStatus, TicketCategory } from "@prisma/client"
+import { sanitizeUserContent } from "@/lib/security/sanitize"
 
 const createSchema = z.object({
   title: z.string().min(3, "Naslov je prekratak"),
@@ -69,12 +70,16 @@ export async function POST(request: Request) {
 
   const data = parsed.data
 
+  // Sanitize user-generated content to prevent XSS
+  const sanitizedTitle = sanitizeUserContent(data.title.trim())
+  const sanitizedBody = data.body ? sanitizeUserContent(data.body.trim()) : null
+
   const ticket = await db.supportTicket.create({
     data: {
       companyId: company.id,
       createdById: user.id!,
-      title: data.title.trim(),
-      body: data.body?.trim() || null,
+      title: sanitizedTitle,
+      body: sanitizedBody,
       priority: data.priority || SupportTicketPriority.NORMAL,
       category: data.category || TicketCategory.GENERAL,
     },
