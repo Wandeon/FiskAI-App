@@ -5,6 +5,7 @@ import { UploadCloud, CheckCircle2, AlertCircle, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { toast } from "@/lib/toast"
+import { sanitizeCsvValue } from "@/lib/csv-sanitize"
 
 type ParsedRow = {
   name: string
@@ -39,7 +40,8 @@ export function ProductCsvImport({ onParsed }: ProductCsvImportProps) {
     }
 
     const rows: ParsedRow[] = lines.slice(1).map((line) => {
-      const cols = line.split(",").map((c) => c.trim())
+      // Sanitize CSV values to prevent formula injection attacks (fixes #858)
+      const cols = line.split(",").map((c) => sanitizeCsvValue(c.trim()))
       const get = (key: string) => cols[headers.indexOf(key)] || ""
       return {
         name: get("name"),

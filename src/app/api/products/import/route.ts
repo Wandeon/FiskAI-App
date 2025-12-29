@@ -3,6 +3,7 @@ import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
+import { sanitizeCsvValue } from "@/lib/csv-sanitize"
 
 const rowSchema = z.object({
   name: z.string().min(1),
@@ -47,12 +48,13 @@ export async function POST(request: Request) {
         db.product.create({
           data: {
             companyId: company.id,
-            name: row.name,
-            sku: row.sku || null,
-            unit: row.unit || "kom",
+            // Sanitize string values to prevent CSV formula injection (fixes #858)
+            name: sanitizeCsvValue(row.name),
+            sku: row.sku ? sanitizeCsvValue(row.sku) : null,
+            unit: row.unit ? sanitizeCsvValue(row.unit) : "kom",
             price: row.price ?? 0,
             vatRate: row.vatRate ?? 25,
-            vatCategory: row.vatCategory || "S",
+            vatCategory: row.vatCategory ? sanitizeCsvValue(row.vatCategory) : "S",
             description: null,
             isActive: true,
           },
