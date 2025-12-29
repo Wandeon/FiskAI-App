@@ -119,6 +119,9 @@ export const metadata: Metadata = {
       "en-US": `${BASE_URL}/en`,
       "x-default": BASE_URL,
     },
+    types: {
+      "application/rss+xml": `${BASE_URL}/feed.xml`,
+    },
   },
   category: "business",
   verification: {
