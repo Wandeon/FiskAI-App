@@ -20,6 +20,7 @@ import {
   getRefreshJob,
   acquireRefreshLock,
 } from "./store"
+import { sendSystemStatusAlerts } from "./alerting"
 import { createWorkerConnection, closeRedis } from "@/lib/regulatory-truth/workers/redis"
 import { deadletterQueue } from "@/lib/regulatory-truth/workers/queues"
 
@@ -129,6 +130,22 @@ export async function processRefreshJob(
           requestedByUserId: userId,
         }))
       )
+
+      // Send alerts for important events (external monitoring integration)
+      const alertableEvents = events.filter(
+        (e) => e.severity === "CRITICAL" || e.severity === "ERROR" || e.severity === "WARNING"
+      )
+      if (alertableEvents.length > 0) {
+        try {
+          const alertResult = await sendSystemStatusAlerts(alertableEvents)
+          console.log(
+            `[system-status-worker] Alerts sent: ${alertResult.sent}, skipped: ${alertResult.skipped}, errors: ${alertResult.errors}`
+          )
+        } catch (alertError) {
+          // Don't fail the job if alerting fails
+          console.error("[system-status-worker] Failed to send alerts:", alertError)
+        }
+      }
     }
 
     // Heartbeat after save
