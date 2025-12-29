@@ -96,14 +96,14 @@ export function Combobox({
           aria-haspopup="listbox"
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md",
-            "border border-white/10 bg-white/5 px-3 py-2",
-            "text-sm text-white placeholder:text-white/40",
-            "hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
+            "border border-default bg-surface-1 px-3 py-2",
+            "text-sm text-foreground placeholder:text-muted",
+            "hover:bg-surface-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
         >
-          <span className={cn(!selectedOption && "text-white/40")}>
+          <span className={cn(!selectedOption && "text-muted")}>
             {selectedOption?.label || placeholder}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -114,7 +114,7 @@ export function Combobox({
         <Popover.Content
           className={cn(
             "z-50 w-[var(--radix-popover-trigger-width)] rounded-md",
-            "border border-white/10 bg-gray-900 p-1 shadow-xl",
+            "border border-default bg-surface-elevated p-1 shadow-xl",
             "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
           )}
           sideOffset={4}
@@ -129,8 +129,8 @@ export function Combobox({
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleKeyDown}
             className={cn(
-              "w-full rounded-md border-0 bg-white/5 px-3 py-2 mb-1",
-              "text-sm text-white placeholder:text-white/40",
+              "w-full rounded-md border-0 bg-surface-1 px-3 py-2 mb-1",
+              "text-sm text-foreground placeholder:text-muted",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
             )}
             autoFocus
@@ -139,7 +139,7 @@ export function Combobox({
           {/* Options list */}
           <ul role="listbox" aria-label="Options" className="max-h-60 overflow-auto">
             {filteredOptions.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-white/50">{emptyMessage}</li>
+              <li className="px-3 py-2 text-sm text-muted">{emptyMessage}</li>
             ) : (
               filteredOptions.map((option, index) => (
                 <li
@@ -150,10 +150,10 @@ export function Combobox({
                   onMouseEnter={() => setHighlightedIndex(index)}
                   className={cn(
                     "flex cursor-pointer items-center rounded-md px-3 py-2",
-                    "text-sm text-white",
+                    "text-sm text-foreground",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus",
-                    index === highlightedIndex && "bg-white/10",
-                    option.value === value && "bg-blue-500/20"
+                    index === highlightedIndex && "bg-surface-1",
+                    option.value === value && "bg-interactive-secondary"
                   )}
                   tabIndex={0}
                 >
@@ -166,7 +166,7 @@ export function Combobox({
                   <div className="flex-1">
                     <div>{option.label}</div>
                     {option.description && (
-                      <div className="text-xs text-white/50">{option.description}</div>
+                      <div className="text-xs text-muted">{option.description}</div>
                     )}
                   </div>
                 </li>

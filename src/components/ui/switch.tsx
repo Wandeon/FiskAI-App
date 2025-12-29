@@ -34,7 +34,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
         className={cn(
           "relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer",
           "focus-within:ring-2 focus-within:ring-border-focus focus-within:ring-offset-2",
-          checked ? "bg-blue-600" : "bg-gray-200",
+          checked ? "bg-interactive" : "bg-surface-2",
           disabled && "opacity-50 cursor-not-allowed",
           className
         )}

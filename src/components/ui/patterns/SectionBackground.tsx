@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils"
 import { GlowOrb } from "@/components/ui/motion/GlowOrb"
 
 const variantStyles = {
-  hero: "bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900",
-  dark: "bg-slate-950",
-  subtle: "bg-slate-900/50",
-  gradient: "bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900",
-  mesh: "bg-slate-950",
+  hero: "bg-gradient-to-br from-base via-interactive to-surface",
+  dark: "bg-base",
+  subtle: "bg-surface/50",
+  gradient: "bg-gradient-to-br from-base via-chart-1 to-surface",
+  mesh: "bg-base",
 } as const
 
 type SectionBackgroundVariant = keyof typeof variantStyles
