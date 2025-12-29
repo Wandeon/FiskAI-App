@@ -3,17 +3,16 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   FileText,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
   Download,
-  Printer,
   Info,
   AlertCircle,
   Loader2,
+  FileCode,
 } from "lucide-react"
 import { formatCurrency } from "@/lib/format"
 
@@ -52,6 +51,9 @@ export function PosdWizard({ companyId }: Props) {
   const [incomeSummary, setIncomeSummary] = useState<IncomeSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+  const [isGeneratingXml, setIsGeneratingXml] = useState(false)
+  const [generationError, setGenerationError] = useState<string | null>(null)
 
   // Fetch income summary on mount and when year changes
   useEffect(() => {
@@ -513,15 +515,64 @@ export function PosdWizard({ companyId }: Props) {
               </div>
             </div>
 
+            {/* Generation Error */}
+            {generationError && (
+              <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4">
+                <p className="text-red-600 text-sm">{generationError}</p>
+              </div>
+            )}
+
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1">
-                <Printer className="h-4 w-4 mr-2" />
-                Ispiši sažetak
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf || isGeneratingXml}
+              >
+                {isGeneratingPdf ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generiram...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Preuzmi PDF
+                  </>
+                )}
               </Button>
-              <Button variant="outline" className="flex-1">
-                <Download className="h-4 w-4 mr-2" />
-                Preuzmi PDF
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleDownloadXml}
+                disabled={isGeneratingPdf || isGeneratingXml}
+              >
+                {isGeneratingXml ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generiram...
+                  </>
+                ) : (
+                  <>
+                    <FileCode className="h-4 w-4 mr-2" />
+                    Preuzmi XML
+                  </>
+                )}
               </Button>
+            </div>
+
+            <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 p-3">
+              <div className="flex gap-3">
+                <Info className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900 dark:text-blue-200">
+                  <p>
+                    <strong>PDF</strong> - Pregledni dokument za vašu evidenciju
+                  </p>
+                  <p>
+                    <strong>XML</strong> - Format za učitavanje u ePorezna sustav
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -536,6 +587,7 @@ export function PosdWizard({ companyId }: Props) {
               // Reset wizard
               setCurrentStep(1)
               setYearSummary(null)
+              setGenerationError(null)
             }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -544,6 +596,92 @@ export function PosdWizard({ companyId }: Props) {
         </div>
       </div>
     )
+  }
+
+  // Download PDF handler
+  async function handleDownloadPdf() {
+    if (!yearSummary) return
+
+    setIsGeneratingPdf(true)
+    setGenerationError(null)
+
+    try {
+      const response = await fetch("/api/pausalni/posd/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          year,
+          expenseBracket: selectedBracket,
+          grossIncome: yearSummary.totalIncome,
+          format: "pdf",
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Generiranje PDF-a nije uspjelo")
+      }
+
+      // Download the PDF
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `PO-SD_${year}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setGenerationError(err instanceof Error ? err.message : "Nepoznata greška")
+    } finally {
+      setIsGeneratingPdf(false)
+    }
+  }
+
+  // Download XML handler
+  async function handleDownloadXml() {
+    if (!yearSummary) return
+
+    setIsGeneratingXml(true)
+    setGenerationError(null)
+
+    try {
+      const response = await fetch("/api/pausalni/posd/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          year,
+          expenseBracket: selectedBracket,
+          grossIncome: yearSummary.totalIncome,
+          format: "xml",
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Generiranje XML-a nije uspjelo")
+      }
+
+      // Download the XML
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `PO-SD_${year}.xml`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setGenerationError(err instanceof Error ? err.message : "Nepoznata greška")
+    } finally {
+      setIsGeneratingXml(false)
+    }
   }
 
   return (
