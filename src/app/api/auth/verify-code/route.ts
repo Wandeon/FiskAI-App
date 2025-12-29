@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     // Rate limit check for verification attempts
     const rateLimitKey = `otp_verify_${emailLower}`
-    const rateLimit = checkRateLimit(rateLimitKey, "OTP_VERIFY")
+    const rateLimit = await checkRateLimit(rateLimitKey, "OTP_VERIFY")
 
     if (!rateLimit.allowed) {
       return NextResponse.json(

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     // Rate limit check
     const rateLimitKey = `otp_send_${email.toLowerCase()}`
-    const rateLimit = checkRateLimit(rateLimitKey, "OTP_SEND")
+    const rateLimit = await checkRateLimit(rateLimitKey, "OTP_SEND")
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
