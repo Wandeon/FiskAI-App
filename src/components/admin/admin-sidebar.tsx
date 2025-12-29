@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Activity,
   Scale,
+  Flag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Staff", href: "/staff", icon: Users },
   { name: "Alerts", href: "/alerts", icon: AlertTriangle },
   { name: "System Status", href: "/system-status", icon: Activity },
+  { name: "Feature Flags", href: "/feature-flags", icon: Flag },
   { name: "Digest Preview", href: "/digest", icon: Mail },
   { name: "News", href: "/news", icon: Newspaper },
   { name: "Regulatory", href: "/regulatory", icon: Scale },

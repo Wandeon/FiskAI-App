@@ -152,6 +152,7 @@ model Company {
   statementTransactions          Transaction[]
   clientInvitations              ClientInvitation[]   @relation("InvitedClients")
   entitlementHistory             EntitlementHistory[]
+  featureFlagOverrides           FeatureFlagOverride[]
 }
 
 // Audit trail for module entitlement changes
@@ -2958,4 +2959,107 @@ model SystemRegistryRefreshLock {
   startedAt         DateTime
   requestedByUserId String
   jobId             String
+}
+
+// ============================================================================
+// FEATURE FLAG MANAGEMENT
+// ============================================================================
+
+enum FeatureFlagScope {
+  GLOBAL    // Applies to all users/tenants
+  TENANT    // Applies to specific companies
+  USER      // Applies to specific users
+}
+
+enum FeatureFlagStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model FeatureFlag {
+  id             String             @id @default(cuid())
+  key            String             @unique // e.g., "reasoning_ux", "ai_assistant_v2"
+  name           String             // Human-readable name
+  description    String?            @db.Text
+  scope          FeatureFlagScope   @default(GLOBAL)
+  status         FeatureFlagStatus  @default(INACTIVE)
+
+  // Value configuration
+  defaultValue   Boolean            @default(false)
+
+  // Rollout configuration
+  rolloutPercentage Int             @default(0)  // 0-100 for gradual rollout
+
+  // Metadata
+  category       String?            // e.g., "ai", "billing", "ux"
+  tags           String[]           // For filtering/searching
+
+  // Audit trail
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  createdBy      String?            // User ID who created
+  updatedBy      String?            // User ID who last updated
+
+  // Relations
+  overrides      FeatureFlagOverride[]
+  auditLog       FeatureFlagAuditLog[]
+
+  @@index([key])
+  @@index([status])
+  @@index([category])
+  @@index([tags])
+}
+
+model FeatureFlagOverride {
+  id            String      @id @default(cuid())
+  flagId        String
+  flag          FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  // Target (one of these should be set based on flag scope)
+  companyId     String?
+  company       Company?    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId        String?
+
+  // Override value
+  enabled       Boolean
+
+  // Scheduling
+  expiresAt     DateTime?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([flagId, companyId, userId])
+  @@index([flagId])
+  @@index([companyId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum FeatureFlagAuditAction {
+  CREATED
+  UPDATED
+  ENABLED
+  DISABLED
+  ARCHIVED
+  OVERRIDE_ADDED
+  OVERRIDE_REMOVED
+  ROLLOUT_CHANGED
+}
+
+model FeatureFlagAuditLog {
+  id          String                  @id @default(cuid())
+  flagId      String
+  flag        FeatureFlag             @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  action      FeatureFlagAuditAction
+  userId      String                  // Who made the change
+  previousValue Json?                 // Snapshot of previous state
+  newValue      Json?                 // Snapshot of new state
+  reason        String?               // Optional reason for change
+  createdAt     DateTime              @default(now())
+
+  @@index([flagId])
+  @@index([userId])
+  @@index([createdAt])
 }
