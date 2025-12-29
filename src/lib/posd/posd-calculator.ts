@@ -1,9 +1,9 @@
 /**
- * PO-SD Calculator for Paušalni Obrtnici
+ * PO-SD Calculator for Pausalni Obrtnici
  *
- * PO-SD = Pregled primitaka i izdataka (za paušalno oporezivanje)
+ * PO-SD = Pregled primitaka i izdataka (za pausalno oporezivanje)
  *
- * For lump-sum taxation (paušalni obrt), only INCOME matters.
+ * For lump-sum taxation (pausalni obrt), only INCOME matters.
  * Tax is calculated on gross income based on thresholds.
  */
 
@@ -19,9 +19,19 @@ import {
 import { BankTransaction, calculateQuarterlyTotals } from "./bank-xml-parser"
 
 const VAT_THRESHOLD = THRESHOLDS.pdv.value
-const NORMATIVE_EXPENSE_RATE = TAX_RATES.pausal.normativeExpenseRate
 const PAUSAL_TAX_RATE = TAX_RATES.pausal.rate
 const DEFAULT_PRIREZ_RATE = getAveragePrirezRate()
+
+// Valid normative expense rates based on activity type (Croatian tax law)
+export type ExpenseBracket = 25 | 30 | 34 | 40 | 85
+
+export const EXPENSE_BRACKETS: { value: ExpenseBracket; label: string }[] = [
+  { value: 25, label: "Usluzne djelatnosti" },
+  { value: 30, label: "Proizvodne i trgovacke djelatnosti" },
+  { value: 34, label: "Trgovina na malo" },
+  { value: 40, label: "Promet na veliko" },
+  { value: 85, label: "Turisticke djelatnosti" },
+]
 
 const CITY_RATE_LOOKUP: Record<string, string> = {
   zagreb: "Zagreb",
@@ -44,6 +54,7 @@ export interface POSDInput {
   businessType: "pausalni" | "slobodna-djelatnost"
   hasSecondPensionPillar: boolean
   municipalityRate?: number // Prirez rate (e.g., 0.18 for Zagreb)
+  expenseBracket?: ExpenseBracket // Normative expense rate based on activity (default: 30)
 }
 
 export interface QuarterlyBreakdown {
@@ -60,7 +71,8 @@ export interface POSDResult {
   quarterlyBreakdown: QuarterlyBreakdown[]
 
   // Tax calculation
-  normativeExpenses: number // 30% of income
+  expenseBracket: ExpenseBracket // The applied expense rate (25, 30, 34, 40, or 85)
+  normativeExpenses: number // expenseBracket% of income
   taxBase: number // income - normative expenses
   incomeTax: number // 12% of tax base
   surtax: number // prirez (varies by municipality)
@@ -85,10 +97,16 @@ export interface POSDResult {
 }
 
 /**
- * Calculate PO-SD for paušalni obrt
+ * Calculate PO-SD for pausalni obrt
  */
 export function calculatePOSD(input: POSDInput): POSDResult {
-  const { incomeTransactions, year, hasSecondPensionPillar, municipalityRate = 0 } = input
+  const {
+    incomeTransactions,
+    year,
+    hasSecondPensionPillar,
+    municipalityRate = 0,
+    expenseBracket = 30,
+  } = input
 
   const warnings: string[] = []
 
@@ -135,16 +153,17 @@ export function calculatePOSD(input: POSDInput): POSDResult {
 
   if (totalIncome > VAT_THRESHOLD) {
     warnings.push(
-      `⚠️ Prešli ste PDV prag od ${formatFiscalCurrency(VAT_THRESHOLD)}! Morate se registrirati za PDV.`
+      "Presli ste PDV prag od " + formatFiscalCurrency(VAT_THRESHOLD) + "! Morate se registrirati za PDV."
     )
   } else if (isNearVATThreshold) {
     warnings.push(
-      `⚠️ Blizu ste PDV praga (${vatThresholdPercentage.toFixed(1)}%). Pratite prihode pažljivo.`
+      "Blizu ste PDV praga (" + vatThresholdPercentage.toFixed(1) + "%). Pratite prihode pazljivo."
     )
   }
 
-  // Normative expenses (30% for most activities)
-  const normativeExpenses = totalIncome * NORMATIVE_EXPENSE_RATE
+  // Normative expenses based on selected expense bracket (activity type)
+  const expenseRate = expenseBracket / 100
+  const normativeExpenses = totalIncome * expenseRate
 
   // Tax base
   const taxBase = totalIncome - normativeExpenses
@@ -182,7 +201,7 @@ export function calculatePOSD(input: POSDInput): POSDResult {
   // Check if contributions are higher than income
   if (yearlyContributions > totalIncome * 0.5) {
     warnings.push(
-      "ℹ️ Doprinosi čine više od 50% prihoda. Razmislite o drugim opcijama ako je ovo vaš jedini posao."
+      "Doprinosi cine vise od 50% prihoda. Razmislite o drugim opcijama ako je ovo vas jedini posao."
     )
   }
 
@@ -190,6 +209,7 @@ export function calculatePOSD(input: POSDInput): POSDResult {
     year,
     totalIncome,
     quarterlyBreakdown,
+    expenseBracket,
     normativeExpenses,
     taxBase,
     incomeTax,
