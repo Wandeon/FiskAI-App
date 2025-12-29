@@ -39,6 +39,10 @@ export const consolidatorQueue = createQueue("consolidator", { max: 1, duration:
 // Lower rate limit since it involves git operations
 export const contentSyncQueue = createQueue("content-sync", { max: 2, duration: 60000 })
 
+// Article Agent queue - processes article generation jobs
+// Lower rate limit since each job involves multiple LLM calls
+export const articleQueue = createQueue("article", { max: 2, duration: 60000 })
+
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
 export const deadletterQueue = createQueue("deadletter")
@@ -66,6 +70,7 @@ export const allQueues = {
   release: releaseQueue,
   consolidator: consolidatorQueue,
   contentSync: contentSyncQueue,
+  article: articleQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
   "system-status": systemStatusQueue,
