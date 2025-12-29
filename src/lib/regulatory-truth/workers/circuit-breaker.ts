@@ -51,3 +51,38 @@ export function getCircuitBreakerStatus(): Record<string, { state: string; stats
   }
   return status
 }
+
+/**
+ * Manually reset a circuit breaker by name.
+ * This forces the circuit breaker back to closed state, allowing requests to pass through.
+ * Use this for manual intervention after transient issues are resolved.
+ */
+export function resetCircuitBreaker(name: string): boolean {
+  const breaker = breakers.get(name)
+  if (!breaker) {
+    return false
+  }
+
+  // Close the circuit breaker and clear stats
+  breaker.close()
+  console.log(`[circuit-breaker] Manual reset for ${name}`)
+  return true
+}
+
+/**
+ * Reset all circuit breakers.
+ * Returns the list of breakers that were reset.
+ */
+export function resetAllCircuitBreakers(): string[] {
+  const resetNames: string[] = []
+  for (const [name, breaker] of breakers) {
+    if (breaker.opened || breaker.halfOpen) {
+      breaker.close()
+      resetNames.push(name)
+    }
+  }
+  if (resetNames.length > 0) {
+    console.log(`[circuit-breaker] Manual reset for all breakers: ${resetNames.join(", ")}`)
+  }
+  return resetNames
+}
