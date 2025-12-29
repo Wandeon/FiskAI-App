@@ -50,9 +50,14 @@ export default async function AgingReportPage() {
           <h1 className="text-2xl font-bold">Starost potraživanja</h1>
           <p className="text-gray-500">Pregled neplaćenih računa po dospjelosti</p>
         </div>
-        <Link href="/reports">
-          <Button variant="outline">← Natrag</Button>
-        </Link>
+        <div className="flex gap-2">
+          <a href="/api/reports/aging/pdf" download>
+            <Button variant="outline">Preuzmi PDF</Button>
+          </a>
+          <Link href="/reports">
+            <Button variant="outline">← Natrag</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
