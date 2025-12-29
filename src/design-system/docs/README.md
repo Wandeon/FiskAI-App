@@ -1,6 +1,6 @@
-# FiskAI Design System - Color Token Documentation
+# FiskAI Design System - Documentation
 
-Welcome to the comprehensive documentation for the FiskAI color system. This documentation addresses Issue #235: improving semantic color token adoption across the codebase.
+Welcome to the comprehensive documentation for the FiskAI design system. This documentation provides complete references for color tokens, spacing system, and other design primitives.
 
 ## 📚 Documentation Index
 
@@ -13,7 +13,16 @@ Welcome to the comprehensive documentation for the FiskAI color system. This doc
 - Usage patterns and best practices
 - ESLint enforcement guide
 
-### 2. [Migration Guide](./MIGRATION_GUIDE.md)
+### 2. [Spacing System Reference](./SPACING_SYSTEM.md)
+**Start here** for complete spacing system documentation.
+
+- 4px base unit spacing scale
+- Semantic spacing aliases
+- Component-specific spacing tokens
+- Usage patterns and best practices
+- Responsive spacing strategies
+
+### 3. [Migration Guide](./MIGRATION_GUIDE.md)
 **Use this** when converting components from hardcoded colors to semantic tokens.
 
 - Step-by-step migration process
@@ -22,7 +31,7 @@ Welcome to the comprehensive documentation for the FiskAI color system. This doc
 - Testing checklist
 - Troubleshooting guide
 
-### 3. [Contrast Audit Report](./CONTRAST_AUDIT.md)
+### 4. [Contrast Audit Report](./CONTRAST_AUDIT.md)
 **Review this** to understand accessibility compliance.
 
 - WCAG 2.1 compliance status
@@ -30,7 +39,7 @@ Welcome to the comprehensive documentation for the FiskAI color system. This doc
 - Passing/failing tests with recommendations
 - Testing methodology
 
-### 4. [Contrast Report (JSON)](./contrast-report.json)
+### 5. [Contrast Report (JSON)](./contrast-report.json)
 **Auto-generated** by the verification script.
 
 - Machine-readable test results
@@ -41,10 +50,11 @@ Welcome to the comprehensive documentation for the FiskAI color system. This doc
 
 ### For Developers
 
-1. **Learn the tokens**: Read [COLOR_SYSTEM.md](./COLOR_SYSTEM.md)
-2. **Enable linting**: ESLint will flag hardcoded colors automatically
-3. **Migrate components**: Use [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) as reference
-4. **Test both modes**: Verify light and dark mode appearance
+1. **Learn the color tokens**: Read [COLOR_SYSTEM.md](./COLOR_SYSTEM.md)
+2. **Learn the spacing system**: Read [SPACING_SYSTEM.md](./SPACING_SYSTEM.md)
+3. **Enable linting**: ESLint will flag hardcoded colors automatically
+4. **Migrate components**: Use [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) as reference
+5. **Test both modes**: Verify light and dark mode appearance
 
 ### For Designers
 
