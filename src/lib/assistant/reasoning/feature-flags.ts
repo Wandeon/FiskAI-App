@@ -1,4 +1,9 @@
 // src/lib/assistant/reasoning/feature-flags.ts
+//
+// Re-exports from unified feature configuration for backward compatibility.
+// @see /src/lib/config/features.ts for the single source of truth.
+
+import { getReasoningConfig } from "@/lib/config/features"
 
 export type ReasoningMode = "off" | "shadow" | "live"
 
@@ -6,7 +11,7 @@ export type ReasoningMode = "off" | "shadow" | "live"
  * Check if the Visible Reasoning UX is enabled.
  */
 export function isReasoningEnabled(): boolean {
-  return process.env.REASONING_UX_ENABLED === "true"
+  return getReasoningConfig().enabled
 }
 
 /**
@@ -16,11 +21,7 @@ export function isReasoningEnabled(): boolean {
  * - live: Use new reasoning pipeline
  */
 export function getReasoningMode(): ReasoningMode {
-  const mode = process.env.REASONING_MODE
-  if (mode === "shadow" || mode === "live") {
-    return mode
-  }
-  return "off"
+  return getReasoningConfig().mode
 }
 
 /**
@@ -28,7 +29,7 @@ export function getReasoningMode(): ReasoningMode {
  * Uses percentage-based rollout.
  */
 export function isInReasoningBeta(userId: string): boolean {
-  const percentage = parseInt(process.env.REASONING_BETA_PERCENTAGE || "0", 10)
+  const percentage = getReasoningConfig().betaPercentage
   if (percentage <= 0) return false
   if (percentage >= 100) return true
 

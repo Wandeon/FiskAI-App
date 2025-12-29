@@ -82,7 +82,11 @@ export interface WatchdogRunResult {
   alertsRaised: string[]
 }
 
-// Thresholds (can be overridden via env)
+// Thresholds - now sourced from unified feature configuration
+// @see /src/lib/config/features.ts for the single source of truth
+import { getWatchdogConfig, type WatchdogConfig } from "@/lib/config/features"
+
+// Legacy constant export for backward compatibility
 export const DEFAULT_THRESHOLDS = {
   STALE_SOURCE_WARNING_DAYS: 7,
   STALE_SOURCE_CRITICAL_DAYS: 14,
@@ -103,8 +107,28 @@ export const DEFAULT_THRESHOLDS = {
   DLQ_CRITICAL: 50,
 }
 
+// Map from legacy threshold keys to unified config properties
+const THRESHOLD_TO_CONFIG_KEY: Record<keyof typeof DEFAULT_THRESHOLDS, keyof WatchdogConfig> = {
+  STALE_SOURCE_WARNING_DAYS: "staleSourceWarningDays",
+  STALE_SOURCE_CRITICAL_DAYS: "staleSourceCriticalDays",
+  FAILURE_RATE_WARNING: "failureRateWarning",
+  FAILURE_RATE_CRITICAL: "failureRateCritical",
+  CONFIDENCE_WARNING: "confidenceWarning",
+  CONFIDENCE_CRITICAL: "confidenceCritical",
+  REJECTION_RATE_WARNING: "rejectionRateWarning",
+  REJECTION_RATE_CRITICAL: "rejectionRateCritical",
+  PHASE_DURATION_WARNING_MULTIPLIER: "phaseDurationWarningMultiplier",
+  PHASE_DURATION_CRITICAL_MULTIPLIER: "phaseDurationCriticalMultiplier",
+  DRAINER_STALL_WARNING_MINUTES: "drainerStallWarningMinutes",
+  DRAINER_STALL_CRITICAL_MINUTES: "drainerStallCriticalMinutes",
+  QUEUE_BACKLOG_WARNING: "queueBacklogWarning",
+  QUEUE_BACKLOG_CRITICAL: "queueBacklogCritical",
+  DLQ_WARNING: "dlqWarning",
+  DLQ_CRITICAL: "dlqCritical",
+}
+
 export function getThreshold(key: keyof typeof DEFAULT_THRESHOLDS): number {
-  const envKey = key.replace(/_/g, "_")
-  const envValue = process.env[envKey]
-  return envValue ? parseFloat(envValue) : DEFAULT_THRESHOLDS[key]
+  const config = getWatchdogConfig()
+  const configKey = THRESHOLD_TO_CONFIG_KEY[key]
+  return config[configKey] as number
 }

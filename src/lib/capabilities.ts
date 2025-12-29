@@ -1,5 +1,6 @@
 import type { Company } from "@prisma/client"
 import { MODULE_KEYS, ModuleKey } from "./modules/definitions"
+import { parseTenantFlags, type TenantFeatureFlags } from "./config/features"
 
 export type LegalForm = "OBRT_PAUSAL" | "OBRT_REAL" | "OBRT_VAT" | "JDOO" | "DOO"
 export type { ModuleKey }
@@ -8,7 +9,7 @@ export interface Capabilities {
   legalForm: LegalForm
   isVatPayer: boolean
   entitlements: ModuleKey[]
-  featureFlags: Record<string, boolean>
+  featureFlags: TenantFeatureFlags
   modules: Record<ModuleKey, { enabled: boolean; reason?: string }>
   visibility: {
     requireVatFields: boolean
@@ -35,6 +36,13 @@ const defaultEntitlements: ModuleKey[] = [
   "products",
 ]
 
+/**
+ * Derive capabilities from company data.
+ * Combines module entitlements with tenant-specific feature flags.
+ *
+ * @see /src/lib/config/features.ts for global feature configuration
+ * @see /src/lib/modules/definitions.ts for module definitions
+ */
 export function deriveCapabilities(company: PartialCompany | null): Capabilities {
   const legalForm = (company?.legalForm as LegalForm) || "DOO"
 
@@ -44,7 +52,8 @@ export function deriveCapabilities(company: PartialCompany | null): Capabilities
     entitlements = company.entitlements as ModuleKey[]
   }
 
-  const featureFlags = (company?.featureFlags as Record<string, boolean>) || {}
+  // Use unified config parsing for tenant feature flags
+  const featureFlags = parseTenantFlags(company?.featureFlags)
   const isVatPayer = !!company?.isVatPayer
 
   // Create visibility map for all known modules
