@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth-utils"
 import {
   dismissAlert,
   resolveAlert,
@@ -9,10 +9,9 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-
-    if (!session?.user || session.user.systemRole !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const user = await getCurrentUser()
+    if (!user || user.systemRole !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = session.user.id
+    const userId = user.id
 
     switch (action) {
       case "dismiss":
@@ -47,18 +46,12 @@ export async function POST(request: NextRequest) {
         await snoozeAlert(companyId, type, userId, new Date(snoozedUntil))
         break
       default:
-        return NextResponse.json(
-          { error: `Invalid action: ${action}` },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: `Invalid action: ${action}` }, { status: 400 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Alert action error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

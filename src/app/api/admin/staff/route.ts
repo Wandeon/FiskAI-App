@@ -3,10 +3,9 @@ import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 
 export async function POST(request: NextRequest) {
-  // Check admin auth
   const user = await getCurrentUser()
   if (!user || user.systemRole !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
   }
 
   try {
@@ -17,13 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
     }
 
-    // Check if user exists
     const existingUser = await db.user.findUnique({
       where: { email: email.toLowerCase() },
     })
 
     if (existingUser) {
-      // If user exists and is already STAFF or ADMIN, return error
       if (existingUser.systemRole === "STAFF") {
         return NextResponse.json({ error: "User is already a staff member" }, { status: 400 })
       }
@@ -31,7 +28,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Cannot demote admin to staff" }, { status: 400 })
       }
 
-      // Promote user to STAFF
       const updatedUser = await db.user.update({
         where: { id: existingUser.id },
         data: { systemRole: "STAFF" },
@@ -49,8 +45,6 @@ export async function POST(request: NextRequest) {
         message: "User promoted to staff",
       })
     } else {
-      // User doesn't exist - in a full implementation, we'd send an invitation
-      // For now, return an error
       return NextResponse.json(
         {
           error: "User not found. Please ensure the user has registered first.",
@@ -64,11 +58,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
-  // Check admin auth
+export async function GET() {
   const user = await getCurrentUser()
   if (!user || user.systemRole !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
   }
 
   try {

@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { isGlobalAdmin } from "@/lib/admin"
-import { auth } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth-utils"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.email || !isGlobalAdmin(session.user.email)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+  const user = await getCurrentUser()
+  if (!user || user.systemRole !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
   }
 
   const { companyId } = await params
