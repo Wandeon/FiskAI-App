@@ -1,3 +1,5 @@
+import { validateOib } from "./validations/oib"
+
 /**
  * OIB Lookup Service
  * Provides smart lookup for Croatian company data using:
@@ -81,27 +83,7 @@ async function getSudskiToken(): Promise<string | null> {
   }
 }
 
-/**
- * Validates OIB format and checksum
- * OIB is 11 digits with ISO 7064, MOD 11-10 checksum
- */
-export function validateOib(oib: string): boolean {
-  // Must be exactly 11 digits
-  if (!/^\d{11}$/.test(oib)) {
-    return false
-  }
-
-  // Calculate ISO 7064, MOD 11-10 checksum
-  let sum = 10
-  for (let i = 0; i < 10; i++) {
-    sum = (sum + parseInt(oib[i], 10)) % 10
-    if (sum === 0) sum = 10
-    sum = (sum * 2) % 11
-  }
-
-  const checkDigit = (11 - sum) % 10
-  return checkDigit === parseInt(oib[10], 10)
-}
+// validateOib is now imported from ./validations/oib
 
 /**
  * Lookup company data via VIES API

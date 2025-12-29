@@ -9,6 +9,7 @@ import { getFiscalProvider, testFiscalProvider } from "@/lib/e-invoice/fiscal-pr
 import { FiscalConfig } from "@/lib/e-invoice/fiscal-types"
 import { validateCroatianCompliance } from "@/lib/compliance/en16931-validator"
 import { logger } from "@/lib/logger"
+import { oibSchema } from "@/lib/validations/oib"
 
 const sandboxTestSchema = z.object({
   type: z.enum(["connection", "invoice", "status", "cancel"]),
@@ -20,14 +21,8 @@ const sandboxTestSchema = z.object({
       totalAmount: z.number().positive(),
       issueDate: z.string().datetime(),
       buyerName: z.string().min(1).max(200),
-      buyerOib: z
-        .string()
-        .length(11)
-        .regex(/^\d{11}$/, "OIB must be 11 digits"),
-      sellerOib: z
-        .string()
-        .length(11)
-        .regex(/^\d{11}$/, "OIB must be 11 digits"),
+      buyerOib: oibSchema,
+      sellerOib: oibSchema,
     })
     .optional(),
   jir: z.string().optional(), // For status/cancel tests

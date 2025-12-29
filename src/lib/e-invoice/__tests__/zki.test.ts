@@ -10,7 +10,7 @@ import { calculateZKI, validateZKIInput, type ZKIInput } from "../zki"
 
 describe("ZKI Calculation", () => {
   const validInput: ZKIInput = {
-    oib: "12345678901",
+    oib: "12345678903", // Valid test OIB with checksum
     dateTime: new Date("2024-12-15T14:30:25"),
     invoiceNumber: "2024/1-1-1",
     premisesCode: "1",
@@ -67,7 +67,23 @@ describe("ZKI Calculation", () => {
       })
 
       assert.strictEqual(result.valid, false, "Invalid OIB should fail validation")
-      assert.ok(result.errors.includes("OIB must be exactly 11 digits"), "Should have OIB error")
+      assert.ok(
+        result.errors.includes("Invalid OIB format or checksum"),
+        "Should have OIB error"
+      )
+    })
+
+    it("should reject OIB with invalid checksum", () => {
+      const result = validateZKIInput({
+        ...validInput,
+        oib: "12345678901", // 11 digits but invalid checksum
+      })
+
+      assert.strictEqual(result.valid, false, "Invalid OIB checksum should fail validation")
+      assert.ok(
+        result.errors.includes("Invalid OIB format or checksum"),
+        "Should have OIB error"
+      )
     })
 
     it("should reject empty invoice number", () => {
