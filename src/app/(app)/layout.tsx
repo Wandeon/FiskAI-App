@@ -12,6 +12,7 @@ import { DashboardBackground } from "@/components/layout/DashboardBackground"
 import { VisibilityProvider } from "@/lib/visibility"
 import { getVisibilityProviderProps } from "@/lib/visibility/server"
 import { DashboardSkipLinks } from "@/components/a11y/skip-link"
+import { WhatsNewModal } from "@/components/announcements/WhatsNewModal"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await auth()
@@ -88,6 +89,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Mobile bottom navigation */}
       <BottomNav />
+
+      {/* What's New modal for feature announcements */}
+      <WhatsNewModal />
     </div>
   )
 }
