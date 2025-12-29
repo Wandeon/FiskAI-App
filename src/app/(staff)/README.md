@@ -1,22 +1,28 @@
 # Staff Route Group
 
-This route group contains the staff portal pages that will be accessible at the root domain when the user accesses via the `staff.fiskai.hr` subdomain.
+This route group contains the staff portal pages accessible via the `staff.fiskai.hr` subdomain.
 
 ## Implementation Status
 
 - [x] Route group structure created (Task 4.3)
 - [x] Layout with placeholder sidebar/header
 - [x] Placeholder pages (clients list, overview)
-- [ ] Middleware-based routing (Phase 3, Task 3.5)
+- [x] Middleware-based routing (Phase 3, Task 3.5)
 - [ ] Staff components (Phase 5)
 
 ## Pages
 
-- `/` - Staff overview/dashboard (placeholder)
+- `/staff-dashboard` - Staff overview/dashboard (placeholder)
 - `/clients` - Assigned clients list (placeholder)
+- `/invitations` - Staff invitations management
 
-## Activation
+## Routing
 
-This route group will be activated in **Phase 3, Task 3.5** when subdomain-based middleware routing is implemented.
+Subdomain-based middleware routing is **active**. The middleware in `/src/middleware.ts`:
 
-Until then, these pages won't be accessible to avoid route conflicts with (marketing) and (app) route groups.
+1. Detects `staff.fiskai.hr` subdomain via `getSubdomain()`
+2. Requires authentication (redirects to login if not authenticated)
+3. Validates user has STAFF or ADMIN systemRole via `canAccessSubdomain()`
+4. Rewrites requests to the `(staff)` route group
+
+See `/src/lib/middleware/subdomain.ts` for subdomain utilities.
