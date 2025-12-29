@@ -232,6 +232,21 @@ export async function updateCompanyPlan(
 
   const data = validated.data
 
+  // Get current company data for audit log
+  const currentCompany = await db.company.findUnique({
+    where: { id: companyId },
+    select: {
+      legalForm: true,
+      isVatPayer: true,
+      entitlements: true,
+    },
+  })
+
+  if (!currentCompany) {
+    return { error: "Company not found" }
+  }
+
+  // Update company
   await db.company.update({
     where: { id: companyId },
     data: {
@@ -241,9 +256,77 @@ export async function updateCompanyPlan(
     },
   })
 
+  // Log legal form change to audit log if it changed
+  if (currentCompany.legalForm !== data.legalForm) {
+    try {
+      await db.auditLog.create({
+        data: {
+          companyId,
+          userId: user.id!,
+          action: "UPDATE",
+          entity: "Company",
+          entityId: companyId,
+          changes: {
+            before: {
+              legalForm: currentCompany.legalForm,
+            },
+            after: {
+              legalForm: data.legalForm,
+            },
+          },
+        },
+      })
+    } catch (error) {
+      console.error("[AuditLog] Failed to log legal form change:", error)
+      // Don't fail the update if audit log fails
+    }
+  }
+
   revalidatePath("/settings")
   revalidatePath("/dashboard")
   return { success: "Plan updated" }
+}
+
+export async function checkCompanyHasHistoricalData(companyId: string) {
+  const user = await requireAuth()
+
+  // Verify user has access to this company
+  const companyUser = await db.companyUser.findFirst({
+    where: {
+      userId: user.id!,
+      companyId,
+    },
+  })
+
+  if (!companyUser) {
+    return { error: "Unauthorized" }
+  }
+
+  // Check for historical invoices
+  const invoiceCount = await db.eInvoice.count({
+    where: { companyId },
+  })
+
+  // Check for business premises (indicates fiscalization setup)
+  const premisesCount = await db.businessPremises.count({
+    where: { companyId },
+  })
+
+  // Check for contacts (customer/supplier relationships)
+  const contactCount = await db.contact.count({
+    where: { companyId },
+  })
+
+  const hasHistoricalData = invoiceCount > 0 || premisesCount > 0 || contactCount > 5
+
+  return {
+    hasHistoricalData,
+    details: {
+      invoiceCount,
+      premisesCount,
+      contactCount,
+    },
+  }
 }
 
 export async function switchCompany(companyId: string) {
