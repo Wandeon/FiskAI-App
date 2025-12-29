@@ -25,7 +25,7 @@ export const COMPONENT_TYPES = [
 
 export type ComponentType = (typeof COMPONENT_TYPES)[number]
 
-export const STATUS_VALUES = ["STABLE", "BETA", "DEPRECATED", "DISABLED"] as const
+export const STATUS_VALUES = ["STABLE", "BETA", "PLANNED", "DEPRECATED", "DISABLED"] as const
 export type ComponentStatus = (typeof STATUS_VALUES)[number]
 
 export const CRITICALITY_VALUES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const
@@ -138,7 +138,14 @@ export interface ObservedComponent {
   type: ComponentType
   name: string
   observedAt: string[]
-  discoveryMethod: "directory-exists" | "config-reference" | "route-scan" | "compose-service" | "cron-route" | "code-reference" | "env-usage"
+  discoveryMethod:
+    | "directory-exists"
+    | "config-reference"
+    | "route-scan"
+    | "compose-service"
+    | "cron-route"
+    | "code-reference"
+    | "env-usage"
   metadata?: Record<string, unknown>
 }
 

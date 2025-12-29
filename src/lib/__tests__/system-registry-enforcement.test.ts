@@ -7,23 +7,25 @@ describe("System Registry enforcement", () => {
     const observed = [
       {
         componentId: "module-test",
-        type: "MODULE",
+        type: "MODULE" as const,
         name: "Test Module",
         observedAt: ["src/lib/test"],
-        discoveryMethod: "directory-exists",
+        discoveryMethod: "directory-exists" as const,
       },
     ]
     const declared = [
       {
         componentId: "module-test",
-        type: "MODULE",
+        type: "MODULE" as const,
         name: "Test Module",
-        status: "STABLE",
-        criticality: "CRITICAL",
+        status: "STABLE" as const,
+        criticality: "CRITICAL" as const,
         owner: "team:not-real",
         docsRef: "docs/README.md",
         codeRef: "src",
         dependencies: [],
+        dependents: [],
+        criticalPaths: [],
       },
     ]
 
@@ -41,10 +43,10 @@ describe("System Registry enforcement", () => {
     const observed = [
       {
         componentId: "route-group-foo",
-        type: "ROUTE_GROUP",
+        type: "ROUTE_GROUP" as const,
         name: "Foo API",
         observedAt: ["src/app/api/foo"],
-        discoveryMethod: "route-scan",
+        discoveryMethod: "route-scan" as const,
       },
     ]
     const declared: any[] = []

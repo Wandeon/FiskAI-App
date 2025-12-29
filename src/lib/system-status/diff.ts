@@ -1,5 +1,20 @@
-import type { SystemStatusEventType } from "./types"
-import type { SystemStatusSnapshot } from "./refresh"
+import type { SystemStatusEventType, HeadlineStatus, RefreshStatus, RefreshQuality } from "./types"
+
+/**
+ * Minimal interface for snapshot diffing - only includes fields used by diffSnapshots.
+ * This allows accepting both the local SystemStatusSnapshot and Prisma model results.
+ */
+export interface DiffableSnapshot {
+  criticalCount: number
+  highCount: number
+  mediumCount: number
+  lowCount: number
+  observedCount: number
+  declaredCount: number
+  refreshQuality: RefreshQuality | string
+  lastRefreshStatus: RefreshStatus | string | null
+  lastRefreshError: string | null
+}
 
 export interface SystemStatusEventInput {
   eventType: SystemStatusEventType
@@ -25,8 +40,8 @@ export interface SystemStatusEventInput {
  * - REFRESH_DEGRADED: Refresh quality is degraded
  */
 export function diffSnapshots(
-  prev: Partial<SystemStatusSnapshot> | null,
-  next: SystemStatusSnapshot
+  prev: Partial<DiffableSnapshot> | null,
+  next: DiffableSnapshot
 ): SystemStatusEventInput[] {
   const events: SystemStatusEventInput[] = []
 
