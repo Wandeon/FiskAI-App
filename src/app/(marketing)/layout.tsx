@@ -5,6 +5,7 @@ import { MarketingAnalyticsInit } from "@/components/marketing/marketing-analyti
 import { ComplianceProgressBar } from "@/components/marketing/ComplianceProgressBar"
 import { SpeculationRules } from "@/components/seo/speculation-rules"
 import { companyInfo } from "@/config/company"
+import { FooterNewsletter } from "@/components/marketing/FooterNewsletter"
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -35,7 +36,7 @@ export default async function MarketingLayout({
       <ComplianceProgressBar />
 
       <footer className="border-t border-white/10 bg-slate-950">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-2 lg:grid-cols-5 md:px-6">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-2 lg:grid-cols-6 md:px-6">
           <div className="space-y-3 lg:col-span-2">
             <div>
               <p className="text-sm font-semibold text-white">FiskAI</p>
@@ -91,6 +92,9 @@ export default async function MarketingLayout({
                 Odgovor unutar 24h radnim danima putem emaila.
               </p>
             </div>
+          </div>
+          <div className="lg:col-span-2">
+            <FooterNewsletter />
           </div>
         </div>
         <div className="mx-auto max-w-6xl border-t border-white/10 px-4 py-4 md:px-6">

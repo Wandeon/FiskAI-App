@@ -10,7 +10,10 @@ export interface NewsletterSubscribeResult {
   alreadySubscribed?: boolean
 }
 
-export async function subscribeToNewsletter(email: string): Promise<NewsletterSubscribeResult> {
+export async function subscribeToNewsletter(
+  email: string,
+  source: string = "footer"
+): Promise<NewsletterSubscribeResult> {
   try {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -61,7 +64,7 @@ export async function subscribeToNewsletter(email: string): Promise<NewsletterSu
     // Create new subscription
     await drizzleDb.insert(newsletterSubscriptions).values({
       email: normalizedEmail,
-      source: "vijesti_sidebar",
+      source: source,
       isActive: true,
     })
 
