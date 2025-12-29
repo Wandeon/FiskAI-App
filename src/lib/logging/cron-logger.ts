@@ -17,7 +17,6 @@ export type CronJobName =
   | "checklist-digest"
   | "deadline-reminders"
   | "email-sync"
-  | "fetch-news"
   | "fiscal-processor"
   | "fiscal-retry"
   | "news/fetch-classify"

@@ -1052,18 +1052,6 @@ export const JOB_COMPONENTS: SystemComponent[] = [
     criticalPaths: ["path-fiscalization"],
   },
   {
-    componentId: "job-fetch-news",
-    type: "JOB",
-    name: "Fetch News Cron",
-    status: "STABLE",
-    criticality: "LOW",
-    owner: "team:platform",
-    docsRef: null,
-    codeRef: "src/app/api/cron/fetch-news/route.ts",
-    dependencies: [],
-    criticalPaths: [],
-  },
-  {
     componentId: "job-checklist-digest",
     type: "JOB",
     name: "Checklist Digest Cron",
