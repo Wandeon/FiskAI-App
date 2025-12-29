@@ -1,18 +1,26 @@
 // src/lib/assistant/query-engine/concept-matcher.ts
 import { prisma } from "@/lib/prisma"
 import { normalizeDiacritics } from "./text-utils"
+import { hybridSearch, semanticSearch, type SemanticMatch } from "./semantic-search"
 
 /**
- * FAIL-CLOSED CONCEPT MATCHER
+ * HYBRID CONCEPT MATCHER (Keyword + Semantic)
  *
- * This matcher uses strict token-level matching with a minimum score threshold.
- * Gibberish queries MUST return no matches, triggering a REFUSAL.
+ * This matcher combines two approaches:
+ * 1. KEYWORD MATCHING: Strict token-level matching (original approach)
+ * 2. SEMANTIC SEARCH: Vector similarity using embeddings (NEW)
+ *
+ * The hybrid approach improves recall by understanding:
+ * - Synonyms (e.g., "promet" vs "prihod")
+ * - Natural language variations
+ * - Context and intent
  *
  * Key invariants:
- * 1. No substring matching - exact token matches only
+ * 1. No substring matching - exact token matches only (for keyword path)
  * 2. Minimum token length of 3 characters
  * 3. Stopwords removed from matching
  * 4. Minimum score threshold enforced
+ * 5. Configurable weights for keyword vs semantic
  */
 
 export interface ConceptMatch {
@@ -21,6 +29,33 @@ export interface ConceptMatch {
   nameHr: string
   score: number
   matchedKeywords: string[]
+  matchType?: "keyword" | "semantic" | "hybrid"
+}
+
+/**
+ * Configuration for concept matching strategy
+ */
+export interface MatchConfig {
+  /**
+   * Matching mode:
+   * - "keyword": Use only keyword matching (legacy)
+   * - "semantic": Use only semantic search (new)
+   * - "hybrid": Combine both (recommended)
+   */
+  mode?: "keyword" | "semantic" | "hybrid"
+
+  /**
+   * Minimum score threshold for matches
+   */
+  minScore?: number
+
+  /**
+   * Weights for hybrid mode (only used when mode = "hybrid")
+   */
+  weights?: {
+    keyword?: number
+    semantic?: number
+  }
 }
 
 // Minimum score threshold - concepts below this are NOT matched
@@ -233,7 +268,10 @@ function calculateMatchScore(
   return { score, matchedTokens }
 }
 
-export async function matchConcepts(keywords: string[]): Promise<ConceptMatch[]> {
+/**
+ * Match concepts using keyword-only approach (legacy)
+ */
+async function matchConceptsKeyword(keywords: string[]): Promise<ConceptMatch[]> {
   // Tokenize and filter keywords
   const queryTokens = keywords
     .flatMap((k) => tokenizeForMatching(k))
@@ -276,10 +314,87 @@ export async function matchConcepts(keywords: string[]): Promise<ConceptMatch[]>
         nameHr: concept.nameHr,
         score,
         matchedKeywords: matchedTokens,
+        matchType: "keyword",
       })
     }
   }
 
   // Sort by score descending
   return matches.sort((a, b) => b.score - a.score)
+}
+
+/**
+ * Match concepts using the configured strategy
+ *
+ * @param keywords - Query keywords extracted from user query
+ * @param config - Configuration for matching strategy
+ */
+export async function matchConcepts(
+  keywords: string[],
+  config: MatchConfig = {}
+): Promise<ConceptMatch[]> {
+  const {
+    mode = "hybrid",
+    minScore = MINIMUM_SCORE_THRESHOLD,
+    weights = { keyword: 0.3, semantic: 0.7 },
+  } = config
+
+  // Build query string for semantic search
+  const query = keywords.join(" ")
+
+  try {
+    switch (mode) {
+      case "keyword": {
+        // Pure keyword matching (original approach)
+        return await matchConceptsKeyword(keywords)
+      }
+
+      case "semantic": {
+        // Pure semantic search
+        const semanticMatches = await semanticSearch(query, {
+          minSimilarity: minScore,
+          topK: 10,
+        })
+
+        // Convert SemanticMatch to ConceptMatch
+        return semanticMatches.map((m) => ({
+          conceptId: m.conceptId,
+          slug: m.slug,
+          nameHr: m.nameHr,
+          score: m.similarity,
+          matchedKeywords: keywords,
+          matchType: "semantic",
+        }))
+      }
+
+      case "hybrid":
+      default: {
+        // Hybrid approach: combine keyword + semantic
+        const keywordMatches = await matchConceptsKeyword(keywords)
+
+        // Perform hybrid search
+        const hybridMatches = await hybridSearch(query, keywordMatches, {
+          semanticWeight: weights.semantic,
+          keywordWeight: weights.keyword,
+          minSimilarity: minScore,
+          topK: 10,
+        })
+
+        // Convert to ConceptMatch format
+        return hybridMatches.map((m) => ({
+          conceptId: m.conceptId,
+          slug: m.slug,
+          nameHr: m.nameHr,
+          score: m.similarity,
+          matchedKeywords: keywords,
+          matchType: m.matchType,
+        }))
+      }
+    }
+  } catch (error) {
+    console.error("Error in concept matching:", error)
+    // Fallback to keyword matching if semantic search fails
+    console.warn("Falling back to keyword-only matching")
+    return await matchConceptsKeyword(keywords)
+  }
 }

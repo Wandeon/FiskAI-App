@@ -2114,8 +2114,22 @@ model Concept {
   parent   Concept?         @relation("ConceptHierarchy", fields: [parentId], references: [id])
   children Concept[]        @relation("ConceptHierarchy")
   rules    RegulatoryRule[]
+  embedding ConceptEmbedding?
 
   @@index([parentId])
+}
+
+model ConceptEmbedding {
+  id          String   @id @default(cuid())
+  conceptId   String   @unique
+  embedding   Unsupported("vector(768)")? // pgvector embedding (768 dims for nomic-embed-text)
+  embeddingText String @db.Text // Text that was embedded (nameHr + aliases)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  concept     Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@index([conceptId])
 }
 
 model RegulatoryRule {
