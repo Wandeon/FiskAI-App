@@ -27,19 +27,22 @@ export async function writeDraft(job: ArticleJob): Promise<string> {
     maxTokens: 4000,
   })
 
-  // 4. Parse into paragraphs
-  const paragraphs = parseIntoParagraphs(content)
+  // 4. Add sources section
+  const contentWithSources = addSourcesSection(content, factSheet.claims)
 
-  // 5. Create draft record
+  // 5. Parse into paragraphs
+  const paragraphs = parseIntoParagraphs(contentWithSources)
+
+  // 6. Create draft record
   const draft = await db.articleDraft.create({
     data: {
       jobId: job.id,
       iteration: job.currentIteration,
-      contentMdx: content,
+      contentMdx: contentWithSources,
     },
   })
 
-  // 6. Create paragraph records
+  // 7. Create paragraph records
   for (let i = 0; i < paragraphs.length; i++) {
     await db.draftParagraph.create({
       data: {
@@ -58,8 +61,27 @@ function buildDraftPrompt(type: ArticleJob["type"], factSheet: FactSheet, claims
   const template = DRAFTING_PROMPTS[type]
   const entities = factSheet.keyEntities as unknown as KeyEntities
 
+  // Build sources map
+  const sourcesMap = new Map<string, number>()
+  const sourcesList: string[] = []
+
+  claims.forEach((c) => {
+    if (c.sourceUrl && !sourcesMap.has(c.sourceUrl)) {
+      sourcesMap.set(c.sourceUrl, sourcesList.length + 1)
+      sourcesList.push(c.sourceUrl)
+    }
+  })
+
   const claimsText = claims
-    .map((c) => `- [${c.category}] ${c.statement}${c.quote ? ` ("${c.quote}")` : ""}`)
+    .map((c) => {
+      const sourceNum = c.sourceUrl ? sourcesMap.get(c.sourceUrl) : null
+      const sourceTag = sourceNum ? ` [^${sourceNum}]` : ""
+      return `- [${c.category}] ${c.statement}${c.quote ? ` ("${c.quote}")` : ""}${sourceTag}`
+    })
+    .join("\n")
+
+  const sourcesText = sourcesList
+    .map((url, idx) => `[^${idx + 1}]: ${url}`)
     .join("\n")
 
   const entitiesText = [
@@ -75,6 +97,38 @@ function buildDraftPrompt(type: ArticleJob["type"], factSheet: FactSheet, claims
     .replace("{topic}", factSheet.topic)
     .replace("{entities}", entitiesText || "Nema identificiranih entiteta")
     .replace("{claims}", claimsText || "Nema ekstrahiranih tvrdnji")
+    .replace("{sources}", sourcesText || "Nema izvora")
+}
+
+function addSourcesSection(content: string, claims: Claim[]): string {
+  // Extract unique sources from claims
+  const sourcesMap = new Map<string, number>()
+  const sourcesList: { url: string; title?: string }[] = []
+
+  claims.forEach((c) => {
+    if (c.sourceUrl && !sourcesMap.has(c.sourceUrl)) {
+      sourcesMap.set(c.sourceUrl, sourcesList.length + 1)
+      // Try to extract a title from the URL or use a generic label
+      const urlObj = new URL(c.sourceUrl)
+      const title = urlObj.hostname.replace(/^www\./, "")
+      sourcesList.push({ url: c.sourceUrl, title })
+    }
+  })
+
+  // If no sources, return content as-is
+  if (sourcesList.length === 0) {
+    return content
+  }
+
+  // Build sources section
+  const sourcesSection = [
+    "",
+    "## Izvori",
+    "",
+    ...sourcesList.map((source, idx) => `[^${idx + 1}]: [${source.title}](${source.url})`),
+  ].join("\n")
+
+  return content + sourcesSection
 }
 
 function parseIntoParagraphs(content: string): string[] {

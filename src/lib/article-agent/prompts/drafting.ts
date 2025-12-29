@@ -14,11 +14,15 @@ Ključni entiteti: {entities}
 TVRDNJE (koristi samo ove):
 {claims}
 
+IZVORI:
+{sources}
+
 PRAVILA:
 1. NE IZMIŠLJAJ činjenice - koristi samo gore navedene tvrdnje
 2. Svaki paragraf mora biti potkrijepljen barem jednom tvrdnjom
 3. Ako nešto nije u fact sheetu, NE SPOMINJI to
 4. Bez generičkih uvoda i fraza
+5. Za svaku činjenicu iz izvora dodaj inline oznaku [^N] gdje je N broj izvora
 
 STRUKTURA:
 - **TL;DR** (3 kratke stavke)
@@ -41,11 +45,15 @@ Ključni entiteti: {entities}
 TVRDNJE (koristi samo ove):
 {claims}
 
+IZVORI:
+{sources}
+
 PRAVILA:
 1. NE IZMIŠLJAJ činjenice - koristi samo gore navedene tvrdnje
 2. Svaki paragraf mora biti potkrijepljen barem jednom tvrdnjom
 3. Strukturiraj vodič logično s jasnim naslovima
 4. Bez generičkih uvoda i fraza
+5. Za svaku činjenicu iz izvora dodaj inline oznaku [^N] gdje je N broj izvora
 
 STRUKTURA:
 - Uvod (1 paragraf)
@@ -67,10 +75,14 @@ Ključni entiteti: {entities}
 TVRDNJE (koristi samo ove):
 {claims}
 
+IZVORI:
+{sources}
+
 PRAVILA:
 1. NE IZMIŠLJAJ činjenice - koristi samo gore navedene tvrdnje
 2. Fokusiraj se na praktične korake
 3. Koristi numerirane liste za korake
+4. Za svaku činjenicu iz izvora dodaj inline oznaku [^N] gdje je N broj izvora
 
 STRUKTURA:
 - Kratki uvod (što ćete postići)
@@ -92,10 +104,14 @@ Ključni entiteti: {entities}
 TVRDNJE (koristi samo ove):
 {claims}
 
+IZVORI:
+{sources}
+
 PRAVILA:
 1. NE IZMIŠLJAJ činjenice
 2. Kratka, precizna definicija
 3. Primjeri ako su dostupni u fact sheetu
+4. Za svaku činjenicu iz izvora dodaj inline oznaku [^N] gdje je N broj izvora
 
 STRUKTURA:
 - Definicija (1-2 rečenice)
@@ -116,10 +132,14 @@ Ključni entiteti: {entities}
 TVRDNJE (koristi samo ove):
 {claims}
 
+IZVORI:
+{sources}
+
 PRAVILA:
 1. NE IZMIŠLJAJ činjenice
 2. Objektivna usporedba
 3. Koristi tablice gdje je prikladno
+4. Za svaku činjenicu iz izvora dodaj inline oznaku [^N] gdje je N broj izvora
 
 STRUKTURA:
 - Uvod (što uspoređujemo)
