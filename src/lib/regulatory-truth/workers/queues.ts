@@ -43,6 +43,10 @@ export const contentSyncQueue = createQueue("content-sync", { max: 2, duration: 
 // Lower rate limit since each job involves multiple LLM calls
 export const articleQueue = createQueue("article", { max: 2, duration: 60000 })
 
+// Backup queue - processes scheduled company data backups
+// Rate limited to avoid overwhelming the system during batch operations
+export const backupQueue = createQueue("backup", { max: 2, duration: 60000 })
+
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
 export const deadletterQueue = createQueue("deadletter")
@@ -71,6 +75,7 @@ export const allQueues = {
   consolidator: consolidatorQueue,
   contentSync: contentSyncQueue,
   article: articleQueue,
+  backup: backupQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
   "system-status": systemStatusQueue,
