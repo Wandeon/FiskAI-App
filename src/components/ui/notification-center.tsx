@@ -59,7 +59,7 @@ export function NotificationCenter({
         <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-secondary)]">
           <Bell className="h-5 w-5" />
           {displayCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger-500 text-xs font-semibold text-white shadow-lg">
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-xs font-semibold text-white shadow-lg">
               {displayCount > 9 ? "9+" : displayCount}
             </span>
           )}
@@ -96,7 +96,7 @@ export function NotificationCenter({
                         {item.action && (
                           <Link
                             href={item.action.href}
-                            className="text-brand-600 hover:text-brand-700 font-medium"
+                            className="text-link hover:underline font-medium"
                           >
                             {item.action.label}
                           </Link>
@@ -111,7 +111,7 @@ export function NotificationCenter({
           <div className="border-t border-[var(--border)] px-5 py-3 text-center">
             <Link
               href="/notifications"
-              className="text-sm font-semibold text-brand-600 hover:text-brand-700"
+              className="text-sm font-semibold text-link hover:underline"
             >
               Prikaži sve obavijesti
             </Link>
@@ -126,7 +126,7 @@ function NotificationIcon({ type }: { type: NotificationType }) {
   const base = "flex h-9 w-9 items-center justify-center rounded-full"
   if (type === "success") {
     return (
-      <div className={cn(base, "bg-emerald-50 text-emerald-600")}>
+      <div className={cn(base, "bg-success-bg text-success-icon")}>
         {" "}
         <CheckCircle2 className="h-4 w-4" />{" "}
       </div>
@@ -134,14 +134,14 @@ function NotificationIcon({ type }: { type: NotificationType }) {
   }
   if (type === "warning") {
     return (
-      <div className={cn(base, "bg-amber-50 text-amber-600")}>
+      <div className={cn(base, "bg-warning-bg text-warning-icon")}>
         {" "}
         <AlertCircle className="h-4 w-4" />{" "}
       </div>
     )
   }
   return (
-    <div className={cn(base, "bg-slate-100 text-slate-600")}>
+    <div className={cn(base, "bg-surface-1 text-secondary")}>
       {" "}
       <Bell className="h-4 w-4" />{" "}
     </div>

@@ -11,10 +11,10 @@ interface GlowOrbProps {
 }
 
 const colorMap = {
-  blue: "bg-blue-500/20 blur-[120px]",
-  cyan: "bg-cyan-500/10 blur-[80px]",
-  indigo: "bg-indigo-500/15 blur-[100px]",
-  purple: "bg-purple-500/15 blur-[100px]",
+  blue: "bg-interactive/20 blur-[120px]",
+  cyan: "bg-accent/10 blur-[80px]",
+  indigo: "bg-chart-1/15 blur-[100px]",
+  purple: "bg-chart-2/15 blur-[100px]",
 }
 
 const sizeMap = {

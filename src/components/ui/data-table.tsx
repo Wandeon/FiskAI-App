@@ -72,7 +72,7 @@ onRowActivate,
   if (data.length === 0) {
     return (
       <div
-        className="rounded-md border border-gray-200 p-8 text-center text-gray-500"
+        className="rounded-md border border-default p-8 text-center text-secondary"
         role="status"
         aria-label={emptyMessage}
       >
@@ -83,7 +83,7 @@ onRowActivate,
 
   return (
     <div
-      className={cn("overflow-x-auto rounded-md border border-gray-200", className)}
+      className={cn("overflow-x-auto rounded-md border border-default", className)}
       role="grid"
       aria-label={caption}
       tabIndex={keyboardNavigation ? 0 : undefined}
@@ -91,7 +91,7 @@ onRowActivate,
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead>
-          <tr className="border-b bg-gray-50">
+          <tr className="border-b bg-surface-1">
             {columns.map((column) => {
               const isSortable = column.sortable && onSort
               const isSorted = sort?.field === column.key
@@ -104,8 +104,8 @@ onRowActivate,
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "px-4 py-3 text-left font-medium text-gray-700",
-                    isSortable && "cursor-pointer hover:bg-gray-100",
+                    "px-4 py-3 text-left font-medium text-secondary",
+                    isSortable && "cursor-pointer hover:bg-surface-2",
                     column.className
                   )}
                   aria-sort={isSorted ? (sort.order === "asc" ? "ascending" : "descending") : undefined}
@@ -136,8 +136,8 @@ onRowActivate,
             <tr
               key={getRowKey(item)}
               className={cn(
-                "border-b last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors",
-                selectedIndex === index && "bg-blue-50 ring-2 ring-inset ring-blue-200"
+                "border-b last:border-b-0 hover:bg-surface-1 cursor-pointer transition-colors",
+                selectedIndex === index && "bg-interactive-secondary ring-2 ring-inset ring-border-focus"
               )}
               onClick={() => setSelectedIndex(index)}
               onDoubleClick={() => handleActivate(index)}
