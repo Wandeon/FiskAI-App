@@ -9,14 +9,11 @@ interface MarketingSkeletonProps {
 /**
  * Skeleton component for marketing pages
  */
-export function MarketingSkeleton({
-  variant = "landing",
-  className,
-}: MarketingSkeletonProps) {
+export function MarketingSkeleton({ variant = "landing", className }: MarketingSkeletonProps) {
   return (
     <div className={cn("min-h-screen", className)}>
-      {variant === "landing" && <LandingPageSkeleton />}
-      {variant === "article" && <ArticlePageSkeleton />}
+      {variant === "landing" && <LandingSkeletonContent />}
+      {variant === "article" && <ArticleSkeletonContent />}
       {variant === "list" && <ListPageSkeleton />}
       {variant === "tool" && <ToolPageSkeleton />}
       {variant === "auth" && <AuthPageSkeleton />}
@@ -24,7 +21,7 @@ export function MarketingSkeleton({
   )
 }
 
-function LandingPageSkeleton() {
+function LandingSkeletonContent() {
   return (
     <div className="space-y-16 py-12">
       {/* Hero */}
@@ -65,7 +62,7 @@ function LandingPageSkeleton() {
   )
 }
 
-function ArticlePageSkeleton() {
+function ArticleSkeletonContent() {
   return (
     <div className="container max-w-4xl mx-auto py-12 px-4 space-y-8">
       {/* Breadcrumb */}

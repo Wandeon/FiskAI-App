@@ -48,7 +48,7 @@ export function formatHub3aData(data: PaymentSlipData): HubGenerationResult {
   const truncateWithWarning = (str: string, maxLength: number, fieldName: string): string => {
     if (str && str.length > maxLength) {
       warnings.push(
-        \`\${fieldName} skraćeno s \${str.length} na \${maxLength} znakova: "\${str}" -> "\${str.substring(0, maxLength)}"\`
+        `${fieldName} skraćeno s ${str.length} na ${maxLength} znakova: "${str}" -> "${str.substring(0, maxLength)}"`
       )
     }
     return truncate(str, maxLength)
@@ -57,7 +57,7 @@ export function formatHub3aData(data: PaymentSlipData): HubGenerationResult {
   // Validate reference number - this is critical and should not be truncated
   if (data.reference && data.reference.length > 22) {
     throw new Error(
-      \`Poziv na broj je predugačak: \${data.reference.length} znakova (maksimum 22). Molimo koristite kraći poziv na broj.\`
+      `Poziv na broj je predugačak: ${data.reference.length} znakova (maksimum 22). Molimo koristite kraći poziv na broj.`
     )
   }
 
@@ -119,7 +119,7 @@ export async function generateBarcodeSvg(data: PaymentSlipData): Promise<string>
 export async function generateBarcodeDataUrl(data: PaymentSlipData): Promise<string> {
   const svg = await generateBarcodeSvg(data)
   const base64 = Buffer.from(svg).toString("base64")
-  return \`data:image/svg+xml;base64,\${base64}\`
+  return `data:image/svg+xml;base64,${base64}`
 }
 
 /**
@@ -167,9 +167,9 @@ export function generateDoprinosiSlip(
     recipientIban: config.iban,
     amount: config.amount,
     model: config.model,
-    reference: \`\${config.referencePrefix}-\${oib}\`,
+    reference: `${config.referencePrefix}-${oib}`,
     purposeCode: "OTHR",
-    description: \`\${config.description} \${monthNames[periodMonth - 1]} \${periodYear}\`,
+    description: `${config.description} ${monthNames[periodMonth - 1]} ${periodYear}`,
   }
 }
 
@@ -193,8 +193,8 @@ export function generatePdvSlip(
     recipientIban: PDV_CONFIG.iban,
     amount,
     model: PDV_CONFIG.model,
-    reference: \`\${PDV_CONFIG.referencePrefix}-\${oib}\`,
+    reference: `${PDV_CONFIG.referencePrefix}-${oib}`,
     purposeCode: "TAXS",
-    description: \`PDV za \${CROATIAN_MONTHS[periodMonth - 1]} \${periodYear}\`,
+    description: `PDV za ${CROATIAN_MONTHS[periodMonth - 1]} ${periodYear}`,
   }
 }

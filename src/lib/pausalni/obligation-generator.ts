@@ -13,7 +13,7 @@ import {
   lookupPostalCode,
   calculatePausalTaxWithPrirez,
 } from "@/lib/fiscal-data"
-import { prisma } from "@/lib/db/prisma"
+import { prisma } from "@/lib/prisma"
 import { differenceInYears, startOfMonth, isBefore, isAfter } from "date-fns"
 
 /**
@@ -26,7 +26,7 @@ export class PausalniThresholdExceededError extends Error {
   constructor(income: number) {
     const threshold = THRESHOLDS.pausalni.value
     super(
-      \`Godišnji primitak (\${income.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (\${threshold.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.\`
+      `Godišnji primitak (${income.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (${threshold.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.`
     )
     this.name = "PausalniThresholdExceededError"
     this.income = income

@@ -4,7 +4,10 @@ import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import RoleChangeNotification from "@/emails/role-change-notification"
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
   const user = await getCurrentUser()
   if (!user || user.systemRole !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
@@ -17,16 +20,22 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { confirmationToken, reason } = body
 
     if (!confirmationToken || typeof confirmationToken !== "string") {
-      return NextResponse.json({ error: "Confirmation token is required for role changes" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Confirmation token is required for role changes" },
+        { status: 400 }
+      )
     }
 
-    const staffUser = await db.user.findUnique({ where: { id: userId }, select: { id: true, email: true, name: true, systemRole: true } })
+    const staffUser = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, systemRole: true },
+    })
 
     if (!staffUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const expectedToken = \`DEMOTE_\${userId}_\${user.id}\`
+    const expectedToken = `DEMOTE_${userId}_${user.id}`
     if (confirmationToken !== expectedToken) {
       return NextResponse.json({ error: "Invalid confirmation token" }, { status: 400 })
     }
@@ -81,14 +90,21 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       console.error("Failed to send role change notification email:", emailError)
     }
 
-    return NextResponse.json({ success: true, user: updatedUser, message: "Staff member removed and notification email sent." })
+    return NextResponse.json({
+      success: true,
+      user: updatedUser,
+      message: "Staff member removed and notification email sent.",
+    })
   } catch (error) {
     console.error("Error removing staff member:", error)
     return NextResponse.json({ error: "Failed to remove staff member" }, { status: 500 })
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
   const user = await getCurrentUser()
   if (!user || user.systemRole !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
@@ -99,7 +115,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const staffUser = await db.user.findUnique({
       where: { id: userId, systemRole: "STAFF" },
-      select: { id: true, email: true, name: true, createdAt: true, staffAssignments: { include: { company: { select: { id: true, name: true, oib: true } } } } },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        staffAssignments: { include: { company: { select: { id: true, name: true, oib: true } } } },
+      },
     })
 
     if (!staffUser) {

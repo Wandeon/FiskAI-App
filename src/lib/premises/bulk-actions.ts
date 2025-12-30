@@ -27,10 +27,10 @@ interface BulkImportResult {
  * Parse CSV content for premises import
  * Expected columns: code, name, address (optional), isDefault (optional)
  */
-export function parsePremisesCsv(csvContent: string): {
+export async function parsePremisesCsv(csvContent: string): Promise<{
   rows: BulkImportRow[]
   errors: string[]
-} {
+}> {
   const lines = csvContent.trim().split("\n")
   if (lines.length < 2) {
     return { rows: [], errors: ["CSV datoteka je prazna ili nema podataka"] }
@@ -41,7 +41,9 @@ export function parsePremisesCsv(csvContent: string): {
   const codeIndex = header.findIndex((h) => h === "kod" || h === "code")
   const nameIndex = header.findIndex((h) => h === "naziv" || h === "name")
   const addressIndex = header.findIndex((h) => h === "adresa" || h === "address")
-  const defaultIndex = header.findIndex((h) => h === "zadani" || h === "isdefault" || h === "default")
+  const defaultIndex = header.findIndex(
+    (h) => h === "zadani" || h === "isdefault" || h === "default"
+  )
 
   if (codeIndex === -1) {
     return { rows: [], errors: ["CSV mora sadrzavati stupac 'kod' ili 'code'"] }
@@ -77,8 +79,14 @@ export function parsePremisesCsv(csvContent: string): {
     rows.push({
       code,
       name,
-      address: addressIndex !== -1 ? values[addressIndex]?.trim().replace(/"/g, "") || undefined : undefined,
-      isDefault: defaultIndex !== -1 ? ["da", "yes", "true", "1"].includes(values[defaultIndex]?.toLowerCase().trim() ?? "") : false,
+      address:
+        addressIndex !== -1
+          ? values[addressIndex]?.trim().replace(/"/g, "") || undefined
+          : undefined,
+      isDefault:
+        defaultIndex !== -1
+          ? ["da", "yes", "true", "1"].includes(values[defaultIndex]?.toLowerCase().trim() ?? "")
+          : false,
     })
   }
 
@@ -328,7 +336,7 @@ export async function bulkAssignDevices(
 /**
  * Generate CSV template for premises import
  */
-export function generatePremisesTemplate(): string {
+export async function generatePremisesTemplate(): Promise<string> {
   return `kod,naziv,adresa,zadani
 1,Glavni ured,"Ilica 123, Zagreb",da
 2,Poslovnica Centar,"Trg bana Jelacica 1, Zagreb",ne

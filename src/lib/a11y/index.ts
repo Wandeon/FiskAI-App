@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * Accessibility utilities for WCAG compliance
  * Provides helper functions for aria labels, focus management, and screen reader announcements
