@@ -53,8 +53,8 @@ async function ContactList({
         title={search || type !== "ALL" ? "Nema rezultata" : "Nemate kontakata"}
         description={
           search || type !== "ALL"
-            ? "Pokusajte s drugim filterima"
-            : "Dodajte svoj prvi kontakt za pocetak fakturiranja"
+            ? "Pokušajte s drugim filterima"
+            : "Dodajte svoj prvi kontakt za početak fakturiranja"
         }
         action={
           !search && type === "ALL" ? (
@@ -95,7 +95,7 @@ async function ContactList({
 
           {pagination.hasMore && (
             <Link href={buildPageLink(page + 1, search, type, segments)}>
-              <Button variant="outline">Sljedeca</Button>
+              <Button variant="outline">Sljedeća</Button>
             </Link>
           )}
         </div>
@@ -123,7 +123,7 @@ export default async function ContactsPage({ searchParams }: PageProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Kontakti</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">Upravljajte kupcima i dobavljacima</p>
+          <p className="text-sm text-[var(--muted)] mt-1">Upravljajte kupcima i dobavljačima</p>
         </div>
         <VisibleButton id="action:create-contact" asChild>
           <Button asChild>
@@ -185,8 +185,8 @@ function QuickFilterButton({
   const isActive = current === value
   let label = "Svi"
   if (value === "CUSTOMER") label = "Kupci"
-  else if (value === "SUPPLIER") label = "Dobavljaci"
-  else if (value === "BOTH") label = "Kupci/Dobavljaci"
+  else if (value === "SUPPLIER") label = "Dobavljači"
+  else if (value === "BOTH") label = "Kupci/Dobavljači"
 
   return (
     <Link href={`/contacts?type=${value}&view=${view}`} className="text-sm">
@@ -219,8 +219,8 @@ async function ContactBoard({
 
   const columns = [
     { key: "CUSTOMER", label: "Kupci" },
-    { key: "SUPPLIER", label: "Dobavljaci" },
-    { key: "BOTH", label: "Kupci/Dobavljaci" },
+    { key: "SUPPLIER", label: "Dobavljači" },
+    { key: "BOTH", label: "Kupci/Dobavljači" },
     { key: "OTHER", label: "Ostalo" },
   ] as const
 
