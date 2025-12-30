@@ -2055,7 +2055,10 @@ model Evidence {
   sourceEtag      String?   // ETag from source for change detection
   sourceLastMod   DateTime? // Last-Modified header from source
   verifyCount     Int       @default(0) // Number of times verified unchanged
-  stalenessStatus String    @default("FRESH") // FRESH, AGING, STALE, EXPIRED
+  stalenessStatus String    @default("FRESH") // FRESH, AGING, STALE, UNAVAILABLE, EXPIRED
+
+  // GitHub issue #1021: Track consecutive HEAD failures for grace period
+  consecutiveFailures Int @default(0) // Reset to 0 on success, increment on failure
 
   // NEW: OCR support fields
   contentClass          String  @default("HTML") // HTML, PDF_TEXT, PDF_SCANNED, DOC, XLSX, JSON

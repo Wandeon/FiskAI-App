@@ -4,12 +4,14 @@
  *
  * Handles expiration and staleness detection for regulatory evidence.
  * Implements GitHub issue #893: RTL Stale data handling.
+ * Implements GitHub issue #1021: Grace period for transient HEAD failures.
  *
  * Key responsibilities:
  * 1. Check evidence staleness based on age and source verification
  * 2. Auto-deprecate rules past effectiveUntil dates
  * 3. Trigger re-crawl when source content changes
  * 4. Track evidence verification status
+ * 5. Handle transient network failures with retry logic (#1021)
  */
 
 import { db } from "@/lib/db"
@@ -98,6 +100,11 @@ function calculateStalenessStatus(
 /**
  * Check staleness of a single evidence record.
  * Performs HEAD request to verify source availability and detect changes.
+ *
+ * GitHub issue #1021: Implements grace period for transient HEAD failures.
+ * - Network errors set status to UNAVAILABLE (not EXPIRED)
+ * - Only mark EXPIRED after MAX_CONSECUTIVE_FAILURES failures
+ * - Does not update lastVerifiedAt on failure to allow sooner retries
  */
 export async function checkEvidenceStaleness(
   evidenceId: string
@@ -126,6 +133,12 @@ export async function checkEvidenceStaleness(
   let contentChanged = false
   let newEtag: string | null = null
   let newLastModified: Date | null = null
+  let isNetworkError = false
+
+  // Get current consecutive failure count from evidence record
+  // This field tracks failed HEAD requests for grace period logic
+  const currentConsecutiveFailures =
+    (evidence as { consecutiveFailures?: number }).consecutiveFailures || 0
 
   try {
     // Perform HEAD request to check source availability and headers
@@ -153,17 +166,36 @@ export async function checkEvidenceStaleness(
     }
   } catch (error) {
     // Network error - source may be temporarily unavailable
-    console.error(`[staleness] Error checking ${evidence.url}:`, error)
+    // GitHub issue #1021: Don't immediately mark as EXPIRED
+    console.error(`[staleness] Network error checking ${evidence.url}:`, error)
     sourceStillAvailable = false
+    isNetworkError = true
   }
 
-  // Determine status - content change or unavailability makes it stale
+  // Calculate new consecutive failure count
+  const newConsecutiveFailures = sourceStillAvailable
+    ? 0
+    : currentConsecutiveFailures + 1
+
+  // Determine status - GitHub issue #1021: Use grace period for transient failures
   let status = calculateStalenessStatus(daysSinceVerification, threshold)
   if (contentChanged) {
     status = STALENESS_STATUS.STALE
   }
   if (!sourceStillAvailable) {
-    status = STALENESS_STATUS.EXPIRED
+    // Only mark as EXPIRED after multiple consecutive failures
+    // This prevents transient network errors from incorrectly expiring evidence
+    if (newConsecutiveFailures >= STALENESS_CONFIG.MAX_CONSECUTIVE_FAILURES) {
+      status = STALENESS_STATUS.EXPIRED
+      console.log(
+        `[staleness] Evidence ${evidenceId} marked EXPIRED after ${newConsecutiveFailures} consecutive failures`
+      )
+    } else {
+      status = STALENESS_STATUS.UNAVAILABLE
+      console.log(
+        `[staleness] Evidence ${evidenceId} marked UNAVAILABLE (failure ${newConsecutiveFailures}/${STALENESS_CONFIG.MAX_CONSECUTIVE_FAILURES})`
+      )
+    }
   }
 
   return {
@@ -176,12 +208,16 @@ export async function checkEvidenceStaleness(
     newLastModified,
     staleDays: daysSinceVerification,
     status,
+    isNetworkError,
+    consecutiveFailures: newConsecutiveFailures,
   }
 }
 
 /**
  * Check staleness of all evidence records that are due for verification.
  * Uses batch processing with rate limiting.
+ *
+ * GitHub issue #1021: Also checks UNAVAILABLE evidence sooner for retry.
  */
 export async function checkAllEvidenceStaleness(
   limit: number = 100
@@ -198,22 +234,32 @@ export async function checkAllEvidenceStaleness(
 
   try {
     // Find evidence that needs verification
-    // Prioritize: never verified, then oldest verified
+    // Prioritize: never verified, then UNAVAILABLE (for retry), then oldest verified
+    // GitHub issue #1021: UNAVAILABLE evidence retries after 4 hours instead of 24
     const evidenceToCheck = await db.evidence.findMany({
       where: {
         deletedAt: null,
         OR: [
           { lastVerifiedAt: null },
+          // UNAVAILABLE evidence: retry after 4 hours (GitHub #1021)
           {
+            stalenessStatus: STALENESS_STATUS.UNAVAILABLE,
             lastVerifiedAt: {
-              lt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Older than 24 hours
+              lt: new Date(Date.now() - STALENESS_CONFIG.UNAVAILABLE_RETRY_INTERVAL),
+            },
+          },
+          // Normal evidence: retry after 24 hours
+          {
+            stalenessStatus: { not: STALENESS_STATUS.UNAVAILABLE },
+            lastVerifiedAt: {
+              lt: new Date(Date.now() - 24 * 60 * 60 * 1000),
             },
           },
         ],
       },
       orderBy: [{ lastVerifiedAt: "asc" }], // NULL values first, then oldest
       take: limit,
-      select: { id: true },
+      select: { id: true, stalenessStatus: true },
     })
 
     console.log(`[staleness] Checking ${evidenceToCheck.length} evidence records`)
@@ -223,17 +269,33 @@ export async function checkAllEvidenceStaleness(
         const check = await checkEvidenceStaleness(id)
         result.checked++
 
-        // Update evidence record with verification results
+        // GitHub issue #1021: Only update lastVerifiedAt on successful check
+        // This allows UNAVAILABLE evidence to be retried sooner
+        const updateData: {
+          sourceEtag?: string
+          sourceLastMod?: Date
+          verifyCount: { increment: number }
+          stalenessStatus: string
+          hasChanged: boolean
+          consecutiveFailures: number
+          lastVerifiedAt?: Date
+        } = {
+          sourceEtag: check.newEtag || undefined,
+          sourceLastMod: check.newLastModified || undefined,
+          verifyCount: { increment: 1 },
+          stalenessStatus: check.status,
+          hasChanged: check.contentChanged,
+          consecutiveFailures: check.consecutiveFailures,
+        }
+
+        // Only update lastVerifiedAt on successful verification
+        if (check.sourceStillAvailable) {
+          updateData.lastVerifiedAt = new Date()
+        }
+
         await db.evidence.update({
           where: { id },
-          data: {
-            lastVerifiedAt: new Date(),
-            sourceEtag: check.newEtag || undefined,
-            sourceLastMod: check.newLastModified || undefined,
-            verifyCount: { increment: 1 },
-            stalenessStatus: check.status,
-            hasChanged: check.contentChanged,
-          },
+          data: updateData,
         })
 
         if (check.status === STALENESS_STATUS.STALE) {
@@ -242,7 +304,7 @@ export async function checkAllEvidenceStaleness(
         if (check.status === STALENESS_STATUS.EXPIRED) {
           result.expired++
         }
-        if (!check.sourceStillAvailable) {
+        if (check.status === STALENESS_STATUS.UNAVAILABLE) {
           result.unavailable++
         }
         if (check.contentChanged) {
@@ -271,7 +333,7 @@ export async function checkAllEvidenceStaleness(
     }
 
     console.log(
-      `[staleness] Check complete: ${result.checked} checked, ${result.stale} stale, ${result.changed} changed`
+      `[staleness] Check complete: ${result.checked} checked, ${result.stale} stale, ${result.unavailable} unavailable, ${result.changed} changed`
     )
   } catch (error) {
     result.success = false
@@ -360,6 +422,7 @@ export async function queueStaleEvidenceForRecrawl(
 
   try {
     // Find stale or expired evidence with changed content
+    // GitHub issue #1021: Don't queue UNAVAILABLE - let it retry first
     const staleEvidence = await db.evidence.findMany({
       where: {
         deletedAt: null,
@@ -443,17 +506,19 @@ export async function queueStaleEvidenceForRecrawl(
 
 /**
  * Get staleness statistics for monitoring.
+ * GitHub issue #1021: Added unavailable count for UNAVAILABLE status.
  */
 export async function getStalenessStats(): Promise<{
   total: number
   fresh: number
   aging: number
   stale: number
+  unavailable: number
   expired: number
   neverVerified: number
   changedContent: number
 }> {
-  const [total, fresh, aging, stale, expired, neverVerified, changedContent] =
+  const [total, fresh, aging, stale, unavailable, expired, neverVerified, changedContent] =
     await Promise.all([
       db.evidence.count({ where: { deletedAt: null } }),
       db.evidence.count({
@@ -464,6 +529,9 @@ export async function getStalenessStats(): Promise<{
       }),
       db.evidence.count({
         where: { deletedAt: null, stalenessStatus: STALENESS_STATUS.STALE },
+      }),
+      db.evidence.count({
+        where: { deletedAt: null, stalenessStatus: STALENESS_STATUS.UNAVAILABLE },
       }),
       db.evidence.count({
         where: { deletedAt: null, stalenessStatus: STALENESS_STATUS.EXPIRED },
@@ -481,6 +549,7 @@ export async function getStalenessStats(): Promise<{
     fresh,
     aging,
     stale,
+    unavailable,
     expired,
     neverVerified,
     changedContent,
