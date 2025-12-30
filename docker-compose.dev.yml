@@ -3,13 +3,21 @@
 # WARNING: These credentials are for LOCAL DEVELOPMENT ONLY.
 # Never use these values in production or expose this setup to the internet.
 #
-# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# Setup:
+#   1. Copy .env.docker.example to .env.docker
+#   2. Generate secure secrets (instructions in .env.docker.example)
+#   3. Run: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# The defaults below are WEAK and provided for convenience only.
+# Production deployments MUST use docker-compose.prod.yml with proper secrets management.
 
 services:
   fiskai-db:
+    env_file:
+      - .env.docker
     environment:
       POSTGRES_USER: fiskai
-      POSTGRES_PASSWORD: fiskai_dev_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fiskai_dev_password}
       POSTGRES_DB: fiskai
     ports:
       - "5434:5432"  # Exposed for local DB tools (DBeaver, pgAdmin, etc.)
@@ -17,13 +25,15 @@ services:
       - fiskai_dev
 
   fiskai-app:
+    env_file:
+      - .env.docker
     environment:
-      - DATABASE_URL=postgresql://fiskai:fiskai_dev_password@fiskai-db:5432/fiskai?schema=public
+      - DATABASE_URL=postgresql://fiskai:${POSTGRES_PASSWORD:-fiskai_dev_password}@fiskai-db:5432/fiskai?schema=public
       - NEXTAUTH_URL=http://localhost:3002
-      - NEXTAUTH_SECRET=dev_secret_not_for_production_use_only
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-dev_secret_not_for_production_use_only}
       - NEXT_PUBLIC_APP_NAME=FiskAI Dev
       - NEXT_PUBLIC_APP_URL=http://localhost:3002
-      - EINVOICE_KEY_SECRET=dev_einvoice_secret_32_chars_minimum
+      - EINVOICE_KEY_SECRET=${EINVOICE_KEY_SECRET:-dev_einvoice_secret_32_chars_minimum}
       # AUTH_TRUST_HOST: Safe in dev since localhost only.
       # WARNING: Port 3002 is exposed - NEVER use this config in production!
       # Production requires network isolation. See: docs/04_OPERATIONS/NETWORK_ISOLATION_SECURITY.md
