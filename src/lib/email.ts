@@ -1,7 +1,11 @@
 import { Resend } from "resend"
+import { z } from "zod"
 
 // Initialize Resend client
 const resendApiKey = process.env.RESEND_API_KEY
+
+// Email validation schema
+const emailSchema = z.string().email()
 
 let resend: Resend | null = null
 
@@ -28,6 +32,19 @@ export async function sendEmail(options: SendEmailOptions) {
     return {
       success: false,
       error: "Email service not configured. Please add RESEND_API_KEY to environment variables.",
+    }
+  }
+
+  // Validate email addresses
+  const emails = Array.isArray(options.to) ? options.to : [options.to]
+  for (const email of emails) {
+    const result = emailSchema.safeParse(email)
+    if (!result.success) {
+      console.error(`Invalid email address: ${email}`)
+      return {
+        success: false,
+        error: `Invalid email address: ${email}`,
+      }
     }
   }
 
