@@ -43,6 +43,72 @@ async function findConflictingRules(rule: {
 }
 
 /**
+ * Check if a rule can be auto-approved.
+ *
+ * ABSOLUTE GATE: T0/T1 rules NEVER auto-approve, regardless of any other criteria.
+ * This is the single point of enforcement for tier-based auto-approval policy.
+ *
+ * This function implements the fix for Issue #845:
+ * The tier check is the FIRST check, acting as an absolute gate before
+ * any other auto-approval logic executes.
+ *
+ * @param rule - Rule to check for auto-approval eligibility
+ * @returns Whether auto-approval is allowed for this rule
+ */
+export async function canAutoApprove(rule: {
+  id: string
+  riskTier: string
+  status: string
+  confidence: number
+}): Promise<boolean> {
+  // ========================================
+  // ABSOLUTE GATE: T0/T1 NEVER auto-approve
+  // ========================================
+  // This check MUST come first, before any other logic.
+  // No amount of confidence, grace period, or other factors
+  // can override this gate for critical risk tiers.
+  if (rule.riskTier === "T0" || rule.riskTier === "T1") {
+    return false // No further checks needed
+  }
+
+  // Only T2/T3 can proceed to other checks
+  const gracePeriodHours = parseInt(process.env.AUTO_APPROVE_GRACE_HOURS || "24")
+  const minConfidence = parseFloat(process.env.AUTO_APPROVE_MIN_CONFIDENCE || "0.90")
+  const cutoffDate = new Date(Date.now() - gracePeriodHours * 60 * 60 * 1000)
+
+  // Check remaining criteria
+  if (rule.status !== "PENDING_REVIEW") {
+    return false
+  }
+
+  if (rule.confidence < minConfidence) {
+    return false
+  }
+
+  // Check grace period via updatedAt
+  const ruleData = await db.regulatoryRule.findUnique({
+    where: { id: rule.id },
+    select: { updatedAt: true },
+  })
+  if (!ruleData || ruleData.updatedAt >= cutoffDate) {
+    return false
+  }
+
+  // Check for open conflicts
+  const openConflicts = await db.regulatoryConflict.count({
+    where: {
+      status: "OPEN",
+      OR: [{ itemAId: rule.id }, { itemBId: rule.id }],
+    },
+  })
+  if (openConflicts > 0) {
+    return false
+  }
+
+  return true
+}
+
+/**
  * Auto-approve PENDING_REVIEW rules that meet criteria:
  * - Have been pending for at least 24 hours (grace period)
  * - Have confidence >= 0.90
@@ -70,7 +136,7 @@ export async function autoApproveEligibleRules(): Promise<{
   const cutoffDate = new Date(Date.now() - gracePeriodHours * 60 * 60 * 1000)
 
   console.log(
-    `[auto-approve] Looking for PENDING_REVIEW rules older than ${gracePeriodHours}h with confidence >= ${minConfidence}`
+    \`[auto-approve] Looking for PENDING_REVIEW rules older than \${gracePeriodHours}h with confidence >= \${minConfidence}\`
   )
 
   // Find eligible rules (NEVER auto-approve T0/T1)
@@ -91,6 +157,7 @@ export async function autoApproveEligibleRules(): Promise<{
       riskTier: true,
       confidence: true,
       updatedAt: true,
+      status: true,
     },
   })
 
@@ -103,13 +170,29 @@ export async function autoApproveEligibleRules(): Promise<{
   })
 
   if (skippedCritical > 0) {
-    console.log(`[auto-approve] ${skippedCritical} T0/T1 rules awaiting human approval`)
+    console.log(\`[auto-approve] \${skippedCritical} T0/T1 rules awaiting human approval\`)
   }
 
   const results = { approved: 0, skipped: 0, errors: [] as string[] }
 
   for (const rule of eligibleRules) {
     try {
+      // ========================================
+      // ABSOLUTE GATE: Defense-in-depth tier check (Issue #845)
+      // ========================================
+      // The query already filters by riskTier: { in: ["T2", "T3"] },
+      // but we verify again via canAutoApprove() to protect against:
+      // 1. Race conditions where tier changes between query and approval
+      // 2. Data corruption or unexpected tier values
+      // 3. Future code changes that might bypass the query filter
+      if (!(await canAutoApprove(rule))) {
+        console.log(
+          \`[auto-approve] BLOCKED: \${rule.conceptSlug} (tier: \${rule.riskTier}) failed canAutoApprove gate\`
+        )
+        results.skipped++
+        continue
+      }
+
       // INVARIANT: NEVER approve rules without source pointers
       const pointerCount = await db.sourcePointer.count({
         where: { rules: { some: { id: rule.id } } },
@@ -117,11 +200,16 @@ export async function autoApproveEligibleRules(): Promise<{
 
       if (pointerCount === 0) {
         console.log(
-          `[auto-approve] BLOCKED: ${rule.conceptSlug} has 0 source pointers - cannot approve without evidence`
+          \`[auto-approve] BLOCKED: \${rule.conceptSlug} has 0 source pointers - cannot approve without evidence\`
         )
         results.skipped++
         continue
       }
+
+      // Log approval attempt with tier for audit trail (Issue #845 requirement)
+      console.log(
+        \`[auto-approve] Attempting: \${rule.conceptSlug} (tier: \${rule.riskTier}, confidence: \${rule.confidence})\`
+      )
 
       // Use approveRule service with proper context for audit trail
       // Note: autoApprove=true marks this as automated, but we don't pass sourceSlug
@@ -131,32 +219,36 @@ export async function autoApproveEligibleRules(): Promise<{
         () => approveRule(rule.id, "AUTO_APPROVE_SYSTEM", "grace-period-auto-approve")
       )
       if (!approveResult.success) {
-        console.log(`[auto-approve] FAILED: ${rule.conceptSlug} - ${approveResult.error}`)
-        results.errors.push(`${rule.id}: ${approveResult.error}`)
+        console.log(\`[auto-approve] FAILED: \${rule.conceptSlug} - \${approveResult.error}\`)
+        results.errors.push(\`\${rule.id}: \${approveResult.error}\`)
         continue
       }
 
       // Update reviewer notes separately (service handles status + audit)
+      // Include tier in notes for audit trail (Issue #845)
       await db.regulatoryRule.update({
         where: { id: rule.id },
         data: {
           reviewerNotes: JSON.stringify({
             auto_approved: true,
-            reason: `Grace period (${gracePeriodHours}h) elapsed with confidence ${rule.confidence}`,
+            reason: \`Grace period (\${gracePeriodHours}h) elapsed with confidence \${rule.confidence}\`,
             approved_at: new Date().toISOString(),
+            tier: rule.riskTier,
           }),
         },
       })
 
-      console.log(`[auto-approve] Approved: ${rule.conceptSlug} (confidence: ${rule.confidence})`)
+      console.log(
+        \`[auto-approve] Approved: \${rule.conceptSlug} (tier: \${rule.riskTier}, confidence: \${rule.confidence})\`
+      )
       results.approved++
     } catch (error) {
-      results.errors.push(`${rule.id}: ${error instanceof Error ? error.message : String(error)}`)
+      results.errors.push(\`\${rule.id}: \${error instanceof Error ? error.message : String(error)}\`)
     }
   }
 
   console.log(
-    `[auto-approve] Complete: ${results.approved} approved, ${results.skipped} skipped, ${results.errors.length} errors`
+    \`[auto-approve] Complete: \${results.approved} approved, \${results.skipped} skipped, \${results.errors.length} errors\`
   )
   return results
 }
@@ -186,7 +278,7 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       success: false,
       output: null,
       updatedRuleId: null,
-      error: `Rule not found: ${ruleId}`,
+      error: \`Rule not found: \${ruleId}\`,
     }
   }
 
@@ -234,20 +326,11 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
 
   switch (reviewOutput.decision) {
     case "APPROVE":
-      // INVARIANT: NEVER approve rules without source pointers
-      const pointerCount = await db.sourcePointer.count({
-        where: { rules: { some: { id: rule.id } } },
-      })
-
-      if (pointerCount === 0) {
-        newStatus = "PENDING_REVIEW"
-        console.log(
-          `[reviewer] BLOCKED: Rule ${rule.conceptSlug} has 0 source pointers - cannot approve without evidence`
-        )
-        break
-      }
-
-      // NEVER auto-approve T0/T1 - always require human review
+      // ========================================
+      // ABSOLUTE GATE: T0/T1 check FIRST (Issue #845)
+      // ========================================
+      // This check MUST come before any other approval logic.
+      // T0/T1 rules require human review regardless of confidence or other factors.
       if (rule.riskTier === "T0" || rule.riskTier === "T1") {
         newStatus = "PENDING_REVIEW"
         // Create centralized human review request (Issue #884)
@@ -257,9 +340,26 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
           reviewerNotes: reviewOutput.reviewer_notes,
         })
         console.log(
-          `[reviewer] ${rule.riskTier} rule ${rule.conceptSlug} requires human approval (never auto-approved)`
+          \`[reviewer] \${rule.riskTier} rule \${rule.conceptSlug} requires human approval (never auto-approved)\`
         )
-      } else if (
+        break
+      }
+
+      // INVARIANT: NEVER approve rules without source pointers
+      const pointerCount = await db.sourcePointer.count({
+        where: { rules: { some: { id: rule.id } } },
+      })
+
+      if (pointerCount === 0) {
+        newStatus = "PENDING_REVIEW"
+        console.log(
+          \`[reviewer] BLOCKED: Rule \${rule.conceptSlug} has 0 source pointers - cannot approve without evidence\`
+        )
+        break
+      }
+
+      // Only T2/T3 can reach here - auto-approve with high confidence
+      if (
         (rule.riskTier === "T2" || rule.riskTier === "T3") &&
         reviewOutput.computed_confidence >= 0.95
       ) {
@@ -304,7 +404,7 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
             },
           },
         })
-        console.log(`[reviewer] Created conflict ${conflict.id} for Arbiter`)
+        console.log(\`[reviewer] Created conflict \${conflict.id} for Arbiter\`)
       }
 
       newStatus = "PENDING_REVIEW"
@@ -324,6 +424,7 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
         human_review_reason: reviewOutput.human_review_reason,
         reviewer_notes: reviewOutput.reviewer_notes,
         reviewed_at: new Date().toISOString(),
+        tier: rule.riskTier,
       }),
       confidence: reviewOutput.computed_confidence,
       ...(newStatus === "APPROVED" && {
@@ -332,7 +433,7 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
     },
   })
 
-  // Log audit event for review decision
+  // Log audit event for review decision (includes tier for Issue #845)
   await logAuditEvent({
     action:
       newStatus === "APPROVED"
@@ -346,6 +447,7 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       decision: reviewOutput.decision,
       newStatus,
       confidence: reviewOutput.computed_confidence,
+      tier: rule.riskTier,
     },
   })
 
