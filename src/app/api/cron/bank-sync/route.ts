@@ -22,7 +22,11 @@ interface SyncResult {
   error?: string
 }
 
-export async function POST(request: Request) {
+/**
+ * Shared handler for bank sync operations
+ * Supports both GET (Vercel cron default) and POST (manual triggers)
+ */
+async function handleBankSync(request: Request) {
   const log = createCronLogger("bank-sync")
   const startTime = Date.now()
 
@@ -130,6 +134,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sync failed" }, { status: 500 })
   }
 }
+
+// GET is used by Vercel cron jobs by default
+export const GET = handleBankSync
+
+// POST is supported for manual triggers and testing
+export const POST = handleBankSync
 
 /**
  * Process a single account with proper transaction management
@@ -245,9 +255,4 @@ async function processAccount(
       error: error instanceof Error ? error.message : "Unknown error",
     }
   }
-}
-
-// Also support GET for easy testing
-export async function GET(request: Request) {
-  return POST(request)
 }
