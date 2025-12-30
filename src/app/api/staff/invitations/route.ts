@@ -4,6 +4,8 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import { addDays } from "date-fns"
 import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
+import { sendEmail } from "@/lib/email"
+import ClientInvitation from "@/emails/client-invitation"
 
 const createInvitationSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -123,8 +125,26 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // TODO: Send invitation email using Resend
-    // Log invitation creation without exposing the sensitive token
+    // Send invitation email using Resend
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+    const invitationUrl = `${baseUrl}/accept-invitation?token=${invitation.token}`
+
+    const emailResult = await sendEmail({
+      to: email,
+      subject: "Poziv u FiskAI platformu",
+      react: ClientInvitation({
+        invitationUrl,
+        staffName: session.user.name || "Vaš računovođa",
+        message,
+      }),
+    })
+
+    if (!emailResult.success) {
+      console.error("Failed to send invitation email:", emailResult.error)
+      // Still return success since the invitation was created
+      // The user can manually share the link if needed
+    }
+
     console.log(`Invitation created for ${email} (ID: ${invitation.id})`)
 
     return NextResponse.json(invitation, { status: 201 })
