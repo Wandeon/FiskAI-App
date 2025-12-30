@@ -5,6 +5,10 @@
       "schedule": "0 5 * * *"
     },
     {
+    {
+      "path": "/api/cron/cleanup-uploads",
+      "schedule": "0 2 * * *"
+    },
       "path": "/api/cron/certificate-check",
       "schedule": "0 6 * * *"
     },

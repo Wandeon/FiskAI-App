@@ -275,7 +275,7 @@ export default async function PausalniObrtReportsPage() {
             <div className="text-2xl font-bold text-amber-600">
               {formatCurrency(Number(annualSummary._sum.vatAmount || 0), "HRK")}
             </div>
-            <p className="text-xs text-muted-foreground">Obveza prema FURS</p>
+            <p className="text-xs text-muted-foreground">Obveza prema Poreznoj upravi</p>
           </CardContent>
         </Card>
       </div>
@@ -364,7 +364,7 @@ export default async function PausalniObrtReportsPage() {
                   </div>
                   <div>
                     <p className="font-medium">PDS Prijava</p>
-                    <p className="text-sm text-muted-foreground">PDV prijava za FURS</p>
+                    <p className="text-sm text-muted-foreground">PDV prijava za Poreznu upravu</p>
                   </div>
                 </div>
                 <Button variant="outline" size="sm" asChild>

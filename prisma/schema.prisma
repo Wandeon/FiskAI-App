@@ -471,6 +471,7 @@ model Expense {
   vatDeductible    Boolean           @default(true)
   currency         String            @default("EUR")
   status           ExpenseStatus     @default(DRAFT)
+  statusBeforeMatch ExpenseStatus?
   paymentMethod    PaymentMethod?
   paymentDate      DateTime?
   receiptUrl       String?

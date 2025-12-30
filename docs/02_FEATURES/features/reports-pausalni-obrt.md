@@ -179,7 +179,7 @@ New fiscalization rules apply to paušalni obrtnici:
 ### 3. PDS Prijava (VAT Declaration)
 
 - **URL**: `/api/exports/pausalni-obrt?period=yearly&type=tax`
-- **Contents**: VAT declaration for FURS (Tax Administration)
+- **Contents**: VAT declaration for Porezna uprava (Croatian Tax Administration)
 - **Use Case**: VAT filing when threshold exceeded
 - **Link**: `src/app/(dashboard)/reports/pausalni-obrt/page.tsx:371`
 

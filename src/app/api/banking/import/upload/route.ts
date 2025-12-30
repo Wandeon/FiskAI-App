@@ -153,6 +153,21 @@ export async function POST(request: Request) {
       message: "Upload received. Processing will continue in the background.",
     })
   } catch (error) {
+    // Failed to create job - clean up uploaded file
+    try {
+      await fs.unlink(storagePath)
+      bankingLogger.info(
+        { path: storagePath, fileName },
+        "Cleaned up uploaded file after job creation failed"
+      )
+    } catch (unlinkError) {
+      bankingLogger.error(
+        { error: unlinkError, path: storagePath, fileName },
+        "Failed to clean up uploaded file after job creation failed - orphaned file will be cleaned by cron"
+      )
+    }
+
+
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       bankingLogger.warn(
         { error, accountId, checksum },

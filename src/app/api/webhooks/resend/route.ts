@@ -157,9 +157,25 @@ export async function POST(request: NextRequest) {
       case "email.bounced":
         updateData.emailBouncedAt = now
         updateData.emailBounceReason = data.bounce?.message || "Unknown bounce reason"
+
+        // Add to global suppression list
+        await db.emailSuppression.upsert({
+          where: { email: data.to[0] },
+          create: {
+            email: data.to[0],
+            reason: "bounce",
+            details: data.bounce?.message || "Unknown bounce reason",
+          },
+          update: {
+            reason: "bounce",
+            details: data.bounce?.message || "Unknown bounce reason",
+            suppressedAt: now,
+          },
+        })
+
         logger.warn(
-          { invoiceId: invoice.id, emailId, reason: data.bounce?.message },
-          "Invoice email bounced"
+          { invoiceId: invoice.id, emailId, reason: data.bounce?.message, email: data.to[0] },
+          "Invoice email bounced - added to suppression list"
         )
         break
 
@@ -167,7 +183,26 @@ export async function POST(request: NextRequest) {
         // Treat spam complaints as bounces
         updateData.emailBouncedAt = now
         updateData.emailBounceReason = "Spam complaint"
-        logger.warn({ invoiceId: invoice.id, emailId }, "Invoice email marked as spam")
+
+        // Add to global suppression list
+        await db.emailSuppression.upsert({
+          where: { email: data.to[0] },
+          create: {
+            email: data.to[0],
+            reason: "complaint",
+            details: "Spam complaint",
+          },
+          update: {
+            reason: "complaint",
+            details: "Spam complaint",
+            suppressedAt: now,
+          },
+        })
+
+        logger.warn(
+          { invoiceId: invoice.id, emailId, email: data.to[0] },
+          "Invoice email marked as spam - added to suppression list"
+        )
         break
 
       case "email.delivery_delayed":
