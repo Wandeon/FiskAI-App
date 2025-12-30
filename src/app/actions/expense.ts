@@ -679,10 +679,16 @@ export async function processRecurringExpenses(): Promise<ActionResult> {
           nextDate: { lte: now },
           OR: [{ endDate: null }, { endDate: { gte: now } }],
         },
+        include: {
+          category: true,
+        },
       })
 
       let created = 0
       for (const recurring of dueExpenses) {
+        // Determine vatDeductible: use recurring expense value if set, otherwise use category default
+        const vatDeductible = recurring.vatDeductible ?? recurring.category.vatDeductibleDefault ?? true
+
         // Create the expense
         await db.expense.create({
           data: {
@@ -694,7 +700,7 @@ export async function processRecurringExpenses(): Promise<ActionResult> {
             netAmount: recurring.netAmount,
             vatAmount: recurring.vatAmount,
             totalAmount: recurring.totalAmount,
-            vatDeductible: true,
+            vatDeductible,
             vatRate: recurring.vatRate,
             currency: "EUR",
             status: "DRAFT",

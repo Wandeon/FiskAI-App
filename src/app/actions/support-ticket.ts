@@ -55,20 +55,52 @@ export async function assignSupportTicket(ticketId: string, userId: string | nul
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Verify user has STAFF or ADMIN role
+      if (user.systemRole !== "STAFF" && user.systemRole !== "ADMIN") {
+        return { success: false, error: "Nemate dozvolu za dodjelu tiketa" }
+      }
+
+      // Verify ticket belongs to the user's company
       const ticket = await db.supportTicket.findFirst({
-        where: { id: ticketId },
+        where: { id: ticketId, companyId: company.id },
         select: { id: true },
       })
 
       if (!ticket) {
-        return { success: false, error: "Ticket not found" }
+        return { success: false, error: "Tiket nije pronađen" }
+      }
+
+      // Verify userId is valid staff/admin if not null
+      if (userId) {
+        const assignee = await db.user.findFirst({
+          where: {
+            id: userId,
+            systemRole: { in: ["STAFF", "ADMIN"] },
+          },
+          select: { id: true },
+        })
+
+        if (!assignee) {
+          return { success: false, error: "Nevažeći korisnik za dodjelu" }
+        }
       }
 
       await db.supportTicket.update({
         where: { id: ticketId },
         data: { assignedToId: userId },
       })
+
+      logger.info(
+        {
+          userId: user.id,
+          companyId: company.id,
+          ticketId,
+          assignedToId: userId,
+          operation: "support_ticket_assigned",
+        },
+        "Support ticket assigned"
+      )
 
       return { success: true }
     })
