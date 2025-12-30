@@ -1,6 +1,7 @@
 import OpenAI from "openai"
 import { ExtractedReceipt, ExtractedInvoice, ExtractionResult } from "./types"
 import { trackAIUsage } from "./usage-tracking"
+import { extractedReceiptSchema, extractedInvoiceSchema } from "./schemas"
 
 // Lazy-load OpenAI client to avoid build errors when API key is not set
 function getOpenAI() {
@@ -87,9 +88,49 @@ export async function extractReceipt(
         })
       }
       return { success: false, error: "No response from AI" }
+    }    // Parse and validate JSON response
+    let parsedData: unknown
+    try {
+      parsedData = JSON.parse(content)
+    } catch (parseError) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "extract_receipt",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: "Invalid JSON format in response",
+        rawText: text,
+      }
     }
 
-    const data = JSON.parse(content) as ExtractedReceipt
+    // Validate against schema
+    const validationResult = extractedReceiptSchema.safeParse(parsedData)
+    if (!validationResult.success) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "extract_receipt",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: `Invalid extraction format: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+        rawText: text,
+      }
+    }
+
+    const data = validationResult.data
 
     // Track successful usage
     if (companyId) {
@@ -169,9 +210,49 @@ export async function extractInvoice(
         })
       }
       return { success: false, error: "No response from AI" }
+    }    // Parse and validate JSON response
+    let parsedData: unknown
+    try {
+      parsedData = JSON.parse(content)
+    } catch (parseError) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "extract_invoice",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: "Invalid JSON format in response",
+        rawText: text,
+      }
     }
 
-    const data = JSON.parse(content) as ExtractedInvoice
+    // Validate against schema
+    const validationResult = extractedInvoiceSchema.safeParse(parsedData)
+    if (!validationResult.success) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "extract_invoice",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: `Invalid extraction format: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+        rawText: text,
+      }
+    }
+
+    const data = validationResult.data
 
     // Track successful usage
     if (companyId) {

@@ -1,6 +1,7 @@
 import OpenAI from "openai"
 import type { RuleCandidate } from "./rule-selector"
 import { assistantLogger } from "@/lib/logger"
+import { synthesizedAnswerSchema } from "@/lib/ai/schemas"
 
 /**
  * ANSWER SYNTHESIZER
@@ -147,28 +148,23 @@ ${context.companyContext.vatStatus ? `PDV status: ${context.companyContext.vatSt
     try {
       const parsed = JSON.parse(content)
 
-      // Validate required fields
-      if (!parsed.headline || !parsed.directAnswer) {
+      // Validate against Zod schema
+      const validationResult = synthesizedAnswerSchema.safeParse(parsed)
+      if (!validationResult.success) {
         assistantLogger.warn(
-          { parsed },
-          "Invalid LLM response: missing required fields"
-        )
-        return null
-      }
-
-      // Validate length constraints
-      if (parsed.headline.length > 120 || parsed.directAnswer.length > 240) {
-        assistantLogger.warn(
-          { parsed },
-          "Invalid LLM response: exceeds length constraints"
+          {
+            parsed,
+            errors: validationResult.error.errors.map(e => e.message)
+          },
+          "Invalid LLM response: schema validation failed"
         )
         return null
       }
 
       synthesized = {
-        headline: parsed.headline.trim(),
-        directAnswer: parsed.directAnswer.trim(),
-        explanation: parsed.explanation?.trim(),
+        headline: validationResult.data.headline.trim(),
+        directAnswer: validationResult.data.directAnswer.trim(),
+        explanation: validationResult.data.explanation?.trim(),
         confidence: context.primaryRule.confidence,
       }
     } catch (parseError) {
@@ -279,14 +275,24 @@ GENERIRAJ sveobuhvatan odgovor koji objašnjava kako se ova pravila primjenjuju:
     }
 
     const parsed = JSON.parse(content)
-    if (!parsed.headline || !parsed.directAnswer) {
+
+    // Validate against Zod schema
+    const validationResult = synthesizedAnswerSchema.safeParse(parsed)
+    if (!validationResult.success) {
+      assistantLogger.warn(
+        {
+          parsed,
+          errors: validationResult.error.errors.map(e => e.message)
+        },
+        "Invalid multi-rule LLM response: schema validation failed"
+      )
       return null
     }
 
     const synthesized: SynthesizedAnswer = {
-      headline: parsed.headline.trim(),
-      directAnswer: parsed.directAnswer.trim(),
-      explanation: parsed.explanation?.trim(),
+      headline: validationResult.data.headline.trim(),
+      directAnswer: validationResult.data.directAnswer.trim(),
+      explanation: validationResult.data.explanation?.trim(),
       confidence: context.primaryRule.confidence,
     }
 

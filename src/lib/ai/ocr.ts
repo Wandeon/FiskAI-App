@@ -76,9 +76,49 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
+    }    // Parse and validate JSON response
+    let parsedData: unknown
+    try {
+      parsedData = JSON.parse(jsonMatch[0])
+    } catch (parseError) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "ocr_receipt",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: "Invalid JSON format in response",
+        rawText: content,
+      }
     }
 
-    const data = JSON.parse(jsonMatch[0]) as ExtractedReceipt
+    // Validate against schema
+    const validationResult = extractedReceiptSchema.safeParse(parsedData)
+    if (!validationResult.success) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "ocr_receipt",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: `Invalid extraction format: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+        rawText: content,
+      }
+    }
+
+    const data = validationResult.data
     success = true
 
     // Track successful usage
@@ -183,9 +223,49 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
+    }    // Parse and validate JSON response
+    let parsedData: unknown
+    try {
+      parsedData = JSON.parse(jsonMatch[0])
+    } catch (parseError) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "ocr_receipt",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: "Invalid JSON format in response",
+        rawText: content,
+      }
     }
 
-    const data = JSON.parse(jsonMatch[0]) as ExtractedReceipt
+    // Validate against schema
+    const validationResult = extractedReceiptSchema.safeParse(parsedData)
+    if (!validationResult.success) {
+      if (companyId) {
+        await trackAIUsage({
+          companyId,
+          operation: "ocr_receipt",
+          model,
+          inputTokens,
+          outputTokens,
+          success: false,
+        })
+      }
+      return {
+        success: false,
+        error: `Invalid extraction format: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+        rawText: content,
+      }
+    }
+
+    const data = validationResult.data
 
     // Track successful usage
     if (companyId) {
