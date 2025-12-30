@@ -7,7 +7,7 @@ import {
   requireCompanyWithContext,
   requireCompanyWithPermission,
 } from "@/lib/auth-utils"
-import { productSchema } from "@/lib/validations"
+import { productSchema, getVatRateFromCategory } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 
 const productInlineSchema = productSchema.pick({
@@ -36,9 +36,13 @@ export async function createProduct(formData: z.infer<typeof productSchema>) {
       return { error: "Nedostaje kontekst tvrtke" }
     }
 
+    // Derive vatRate from vatCategory to ensure consistency
+    const vatRate = getVatRateFromCategory(validatedFields.data.vatCategory)
+
     const product = await db.product.create({
       data: {
         ...validatedFields.data,
+        vatRate,
         companyId: context.companyId,
         description: validatedFields.data.description || null,
         sku: validatedFields.data.sku || null,
@@ -68,9 +72,15 @@ export async function updateProduct(productId: string, formData: z.infer<typeof 
       return { error: "Neispravni podaci", details: validatedFields.error.flatten() }
     }
 
+    // Derive vatRate from vatCategory to ensure consistency
+    const vatRate = getVatRateFromCategory(validatedFields.data.vatCategory)
+
     const product = await db.product.update({
       where: { id: productId },
-      data: validatedFields.data,
+      data: {
+        ...validatedFields.data,
+        vatRate,
+      },
     })
 
     revalidatePath("/products")
@@ -110,9 +120,15 @@ export async function updateProductInline(
       return { error: "Neispravni podaci", details: validated.error.flatten() }
     }
 
+    // Derive vatRate from vatCategory to ensure consistency
+    const vatRate = getVatRateFromCategory(validated.data.vatCategory)
+
     const product = await db.product.update({
       where: { id: productId },
-      data: validated.data,
+      data: {
+        ...validated.data,
+        vatRate,
+      },
     })
 
     revalidatePath("/products")

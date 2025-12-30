@@ -35,3 +35,18 @@ export const vatCategories = [
   { code: "Z", name: "Nulta stopa", rate: 0 },
   { code: "O", name: "Izvan oporezivanja", rate: 0 },
 ] as const
+
+// Map VAT category codes to their corresponding rates
+// Used to derive vatRate from vatCategory to ensure consistency
+export const vatRateMap: Record<string, number> = {
+  S: 25,
+  AA: 13,
+  E: 0,
+  Z: 0,
+  O: 0,
+}
+
+// Helper function to get VAT rate from category
+export function getVatRateFromCategory(vatCategory: string): number {
+  return vatRateMap[vatCategory] ?? 25
+}
