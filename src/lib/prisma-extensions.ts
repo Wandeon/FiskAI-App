@@ -128,6 +128,10 @@ const TENANT_MODELS = [
   "BusinessPremises",
   "PaymentDevice",
   "InvoiceSequence",
+  "Payout",
+  "PayoutLine",
+  "JoppdSubmission",
+  "JoppdSubmissionLine",
   // Note: CompanyUser intentionally NOT included - it's filtered by userId, not companyId
   // Including it breaks getCurrentCompany() which queries CompanyUser before tenant context exists
 ] as const

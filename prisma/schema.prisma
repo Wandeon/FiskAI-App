@@ -149,12 +149,14 @@ model Company {
   paymentDevices                 PaymentDevice[]
   potentialDuplicates            PotentialDuplicate[]
   products                       Product[]
+  payouts                        Payout[]
   recurringExpenses              RecurringExpense[]
   savedReports                   SavedReport[]
   assignedStaff                  StaffAssignment[]     @relation("AssignedStaff")
   statements                     Statement[]
   statementPages                 StatementPage[]
   supportTickets                 SupportTicket[]
+  joppdSubmissions               JoppdSubmission[]
   statementTransactions          Transaction[]
   clientInvitations              ClientInvitation[]    @relation("InvitedClients")
   entitlementHistory             EntitlementHistory[]
@@ -1214,6 +1216,85 @@ model generated_form {
   created_at           DateTime? @default(now()) @db.Timestamp(6)
 }
 
+model Payout {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String       @map("company_id")
+  payoutDate  DateTime     @map("payout_date") @db.Date
+  periodYear  Int          @map("period_year")
+  periodMonth Int          @map("period_month")
+  description String?      @map("description") @db.VarChar(255)
+  createdAt   DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime?    @updatedAt @map("updated_at") @db.Timestamp(6)
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  lines       PayoutLine[]
+
+  @@index([companyId, periodYear, periodMonth], map: "payout_period_idx")
+  @@map("payout")
+}
+
+model PayoutLine {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payoutId      String   @map("payout_id")
+  lineNumber    Int      @map("line_number")
+  recipientName String?  @map("recipient_name") @db.VarChar(200)
+  recipientOib  String?  @map("recipient_oib") @db.VarChar(11)
+  grossAmount   Decimal? @map("gross_amount") @db.Decimal(12, 2)
+  netAmount     Decimal? @map("net_amount") @db.Decimal(12, 2)
+  taxAmount     Decimal? @map("tax_amount") @db.Decimal(12, 2)
+  joppdData     Json?    @map("joppd_data")
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  payout        Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  submissions   JoppdSubmissionLine[]
+
+  @@index([payoutId], map: "payout_line_payout_idx")
+  @@map("payout_line")
+}
+
+model JoppdSubmission {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId             String                @map("company_id")
+  periodYear            Int                   @map("period_year")
+  periodMonth           Int                   @map("period_month")
+  status                JoppdSubmissionStatus @default(PREPARED)
+  submissionReference   String?               @map("submission_reference") @db.VarChar(100)
+  isCorrection          Boolean               @default(false) @map("is_correction")
+  correctedSubmissionId String?               @map("corrected_submission_id")
+  signedXmlStorageKey   String?               @map("signed_xml_storage_key") @db.VarChar(500)
+  signedXmlHash         String?               @map("signed_xml_hash") @db.VarChar(64)
+  createdAt             DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime?             @updatedAt @map("updated_at") @db.Timestamp(6)
+  submittedAt           DateTime?             @map("submitted_at") @db.Timestamp(6)
+  acceptedAt            DateTime?             @map("accepted_at") @db.Timestamp(6)
+  rejectedAt            DateTime?             @map("rejected_at") @db.Timestamp(6)
+  rejectionReason       String?               @map("rejection_reason") @db.VarChar(500)
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  correctedSubmission   JoppdSubmission?      @relation("JoppdSubmissionCorrections", fields: [correctedSubmissionId], references: [id], onDelete: SetNull)
+  corrections           JoppdSubmission[]     @relation("JoppdSubmissionCorrections")
+  lines                 JoppdSubmissionLine[]
+
+  @@index([companyId, periodYear, periodMonth], map: "joppd_submission_period_idx")
+  @@index([status], map: "joppd_submission_status_idx")
+  @@map("joppd_submission")
+}
+
+model JoppdSubmissionLine {
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submissionId   String                @map("submission_id")
+  payoutLineId   String                @map("payout_line_id")
+  lineNumber     Int                   @map("line_number")
+  lineData       Json?                 @map("line_data")
+  originalLineId String?               @map("original_line_id")
+  createdAt      DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  submission     JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  payoutLine     PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
+  originalLine   JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
+  corrections    JoppdSubmissionLine[] @relation("JoppdLineCorrections")
+
+  @@index([submissionId], map: "joppd_submission_line_submission_idx")
+  @@index([payoutLineId], map: "joppd_submission_line_payout_idx")
+  @@map("joppd_submission_line")
+}
+
 model news_categories {
   id                    String            @id @db.VarChar(50)
   slug                  String            @unique @db.VarChar(100)
@@ -1613,6 +1694,13 @@ enum JobStatus {
   FAILED
   READY_FOR_REVIEW
   CONFIRMED
+  REJECTED
+}
+
+enum JoppdSubmissionStatus {
+  PREPARED
+  SUBMITTED
+  ACCEPTED
   REJECTED
 }
 
@@ -3685,4 +3773,3 @@ model CronJobError {
   @@index([resolvedAt])
   @@index([createdAt])
 }
-
