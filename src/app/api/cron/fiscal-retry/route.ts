@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { executeFiscalRequest } from "@/lib/fiscal/fiscal-pipeline"
+import { buildFiscalResponseCreateInput } from "@/lib/fiscal/response-builder"
 
 // Croatian law requires fiscalization within 48 hours
 const DEADLINE_HOURS = 48
@@ -56,8 +57,7 @@ export async function GET(request: Request) {
       }
 
       // Calculate time since creation (for 48-hour deadline)
-      const hoursSinceCreation =
-        (Date.now() - fiscalRequest.createdAt.getTime()) / (1000 * 60 * 60)
+      const hoursSinceCreation = (Date.now() - fiscalRequest.createdAt.getTime()) / (1000 * 60 * 60)
       const hoursRemaining = DEADLINE_HOURS - hoursSinceCreation
 
       // Check if we're approaching or past the 48-hour deadline
@@ -87,8 +87,7 @@ export async function GET(request: Request) {
 
       // Calculate next retry time with exponential backoff
       const nextAttempt = fiscalRequest.attemptCount + 1
-      const retryDelay =
-        RETRY_DELAYS[Math.min(nextAttempt - 1, RETRY_DELAYS.length - 1)]
+      const retryDelay = RETRY_DELAYS[Math.min(nextAttempt - 1, RETRY_DELAYS.length - 1)]
       const nextRetryAt = new Date(Date.now() + retryDelay * 1000)
 
       // Log the retry attempt for audit
@@ -106,6 +105,18 @@ export async function GET(request: Request) {
 
       try {
         const result = await executeFiscalRequest(fiscalRequest)
+
+        await db.fiscalResponse.create({
+          data: buildFiscalResponseCreateInput(fiscalRequest, {
+            status: result.success ? "SUCCESS" : "FAILED",
+            attemptNumber: nextAttempt,
+            jir: result.jir,
+            zki: result.zki,
+            responseXml: result.responseXml,
+            errorCode: result.errorCode,
+            errorMessage: result.errorMessage,
+          }),
+        })
 
         await db.fiscalRequest.update({
           where: { id: fiscalRequest.id },
@@ -142,8 +153,7 @@ export async function GET(request: Request) {
           alertSent,
         })
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
         const poreznaCode =
           error && typeof error === "object" && "poreznaCode" in error
             ? (error as { poreznaCode?: string }).poreznaCode
@@ -151,11 +161,8 @@ export async function GET(request: Request) {
         const isFinalAttempt = nextAttempt >= MAX_ATTEMPTS
 
         // Calculate next retry time if not final attempt
-        const retryDelayForError =
-          RETRY_DELAYS[Math.min(nextAttempt - 1, RETRY_DELAYS.length - 1)]
-        const nextRetryAtForError = new Date(
-          Date.now() + retryDelayForError * 1000
-        )
+        const retryDelayForError = RETRY_DELAYS[Math.min(nextAttempt - 1, RETRY_DELAYS.length - 1)]
+        const nextRetryAtForError = new Date(Date.now() + retryDelayForError * 1000)
 
         await db.fiscalRequest.update({
           where: { id: fiscalRequest.id },
@@ -165,6 +172,16 @@ export async function GET(request: Request) {
             errorMessage: errorMessage,
             nextRetryAt: isFinalAttempt ? undefined : nextRetryAtForError,
           },
+        })
+
+        await db.fiscalResponse.create({
+          data: buildFiscalResponseCreateInput(fiscalRequest, {
+            status: "FAILED",
+            attemptNumber: nextAttempt,
+            zki: fiscalRequest.zki,
+            errorCode: poreznaCode,
+            errorMessage,
+          }),
         })
 
         // Log the failure
@@ -197,9 +214,7 @@ export async function GET(request: Request) {
 
 // Mark request as dead when 48-hour deadline expires
 async function markDeadlineExpired(
-  fiscalRequest: Awaited<
-    ReturnType<typeof db.fiscalRequest.findMany>
-  >[number] & {
+  fiscalRequest: Awaited<ReturnType<typeof db.fiscalRequest.findMany>>[number] & {
     company?: { id: string; name: string; email: string | null } | null
     invoice?: { id: string; invoiceNumber: string | null } | null
   }
@@ -211,23 +226,11 @@ async function markDeadlineExpired(
       errorMessage: "48-hour fiscalization deadline expired",
     },
   })
-
-  // Update invoice status
-  if (fiscalRequest.invoiceId) {
-    await db.eInvoice.update({
-      where: { id: fiscalRequest.invoiceId },
-      data: {
-        fiscalStatus: "FAILED",
-      },
-    })
-  }
 }
 
 // Send alert notification
 async function sendDeadlineAlert(
-  fiscalRequest: Awaited<
-    ReturnType<typeof db.fiscalRequest.findMany>
-  >[number] & {
+  fiscalRequest: Awaited<ReturnType<typeof db.fiscalRequest.findMany>>[number] & {
     company?: { id: string; name: string; email: string | null } | null
     invoice?: { id: string; invoiceNumber: string | null } | null
   },
@@ -280,9 +283,7 @@ function getAlertMessage(alertType: string): string {
 
 // Audit logging functions
 async function logRetryAttempt(
-  fiscalRequest: Awaited<
-    ReturnType<typeof db.fiscalRequest.findMany>
-  >[number] & {
+  fiscalRequest: Awaited<ReturnType<typeof db.fiscalRequest.findMany>>[number] & {
     company?: { id: string; name: string; email: string | null } | null
     invoice?: { id: string; invoiceNumber: string | null } | null
   },
@@ -310,9 +311,7 @@ async function logRetryAttempt(
 }
 
 async function logRetrySuccess(
-  fiscalRequest: Awaited<
-    ReturnType<typeof db.fiscalRequest.findMany>
-  >[number] & {
+  fiscalRequest: Awaited<ReturnType<typeof db.fiscalRequest.findMany>>[number] & {
     company?: { id: string; name: string; email: string | null } | null
     invoice?: { id: string; invoiceNumber: string | null } | null
   },
@@ -338,9 +337,7 @@ async function logRetrySuccess(
 }
 
 async function logRetryFailure(
-  fiscalRequest: Awaited<
-    ReturnType<typeof db.fiscalRequest.findMany>
-  >[number] & {
+  fiscalRequest: Awaited<ReturnType<typeof db.fiscalRequest.findMany>>[number] & {
     company?: { id: string; name: string; email: string | null } | null
     invoice?: { id: string; invoiceNumber: string | null } | null
   },

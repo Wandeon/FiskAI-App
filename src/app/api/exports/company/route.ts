@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { exportCompanyData, validateBackupData, BackupData } from "@/lib/backup/export"
 import { logger } from "@/lib/logger"
+import { createControlSum } from "@/lib/exports/control-sum"
 
 function escapeXml(str: string | null | undefined): string {
   if (!str) return ""
@@ -205,6 +206,7 @@ export async function GET(request: Request) {
     if (format === "xml") {
       const filename = `fiskai-backup-${safeCompanyName}-${timestamp}.xml`
       const xml = buildCompanyXml(exportData)
+      const controlSum = createControlSum(xml)
       response = new Response(xml, {
         headers: {
           "Content-Type": "application/xml; charset=utf-8",
@@ -212,18 +214,22 @@ export async function GET(request: Request) {
           "X-Export-Type": "company-data",
           "X-Company-Id": company.id,
           "X-Export-Timestamp": exportData.createdAt.toISOString(),
+          "X-Export-Control-Sum": controlSum,
         },
       })
     } else {
       // Default: JSON format
       const filename = `fiskai-backup-${safeCompanyName}-${timestamp}.json`
-      response = new Response(JSON.stringify(exportData, null, 2), {
+      const body = JSON.stringify(exportData, null, 2)
+      const controlSum = createControlSum(body)
+      response = new Response(body, {
         headers: {
           "Content-Type": "application/json",
           "Content-Disposition": `attachment; filename="${filename}"`,
           "X-Export-Type": "company-data",
           "X-Company-Id": company.id,
           "X-Export-Timestamp": exportData.createdAt.toISOString(),
+          "X-Export-Control-Sum": controlSum,
         },
       })
     }

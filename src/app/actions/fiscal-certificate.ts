@@ -6,6 +6,7 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { encryptWithEnvelope } from "@/lib/fiscal/envelope-encryption"
 import { parseP12Certificate, validateCertificate } from "@/lib/fiscal/certificate-parser"
+import { buildFiscalRequestSnapshot } from "@/lib/fiscal/request-snapshot"
 
 export interface UploadCertificateInput {
   p12Base64: string
@@ -288,6 +289,12 @@ export async function manualFiscalizeAction(
       return { success: false, error: "No active certificate configured" }
     }
 
+    const snapshot = buildFiscalRequestSnapshot({
+      invoice,
+      company,
+      certificate,
+    })
+
     const request = await db.fiscalRequest.upsert({
       where: {
         companyId_invoiceId_messageType: {
@@ -305,6 +312,7 @@ export async function manualFiscalizeAction(
         attemptCount: 0,
         maxAttempts: 5,
         nextRetryAt: new Date(),
+        ...snapshot,
       },
       update: {
         status: "QUEUED",
@@ -312,6 +320,7 @@ export async function manualFiscalizeAction(
         nextRetryAt: new Date(),
         errorCode: null,
         errorMessage: null,
+        ...snapshot,
       },
     })
 

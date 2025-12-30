@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { FiscalRequest } from "@prisma/client"
 import { executeFiscalRequest } from "@/lib/fiscal/fiscal-pipeline"
+import { buildFiscalResponseCreateInput } from "@/lib/fiscal/response-builder"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -67,6 +68,17 @@ async function processJob(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const result = await executeFiscalRequest(job)
+    const attemptNumber = job.attemptCount + 1
+
+    await db.fiscalResponse.create({
+      data: buildFiscalResponseCreateInput(job, {
+        status: "SUCCESS",
+        attemptNumber,
+        jir: result.jir,
+        zki: result.zki,
+        responseXml: result.responseXml,
+      }),
+    })
 
     // Success - update with JIR
     await db.fiscalRequest.update({
@@ -77,6 +89,7 @@ async function processJob(
         responseXml: result.responseXml,
         lockedAt: null,
         lockedBy: null,
+        attemptCount: attemptNumber,
       },
     })
 
@@ -98,6 +111,17 @@ async function processJob(
     const classification = classifyError(error)
     const attemptCount = job.attemptCount + 1
 
+    await db.fiscalResponse.create({
+      data: buildFiscalResponseCreateInput(job, {
+        status: "FAILED",
+        attemptNumber: attemptCount,
+        zki: job.zki,
+        errorCode: classification.code,
+        errorMessage: classification.message,
+        httpStatus: classification.httpStatus,
+      }),
+    })
+
     await db.fiscalRequest.update({
       where: { id: job.id },
       data: {
@@ -111,16 +135,6 @@ async function processJob(
         lockedBy: null,
       },
     })
-
-    // Update invoice fiscal status
-    if (job.invoiceId) {
-      await db.eInvoice.update({
-        where: { id: job.invoiceId },
-        data: {
-          fiscalStatus: classification.retriable ? "PENDING" : "FAILED",
-        },
-      })
-    }
 
     return { success: false, error: classification.message }
   }

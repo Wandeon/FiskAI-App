@@ -4,26 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import {
-  Calculator,
-  FileText,
-  TrendingUp,
-  Calendar,
-  Info,
-  ExternalLink,
-  Euro,
-} from "lucide-react"
+import { Calculator, FileText, TrendingUp, Calendar, Info, ExternalLink, Euro } from "lucide-react"
 import { TAX_RATES, getCorporateTaxRate } from "@/lib/fiscal-data/data/tax-rates"
 
 interface Props {
-  companyId: string
   companyName: string
+  taxBaseInputs: {
+    periodFrom: Date
+    periodTo: Date
+    revenue: number
+    expenses: number
+    nonDeductibleExpenses: number
+    accountingProfit: number
+    taxBase: number
+  }
 }
 
-export function CorporateTaxDashboard({ companyName }: Props) {
-  // In a real implementation, this would be fetched from the database
-  const estimatedRevenue = 0
-  const estimatedProfit = 0
+export function CorporateTaxDashboard({ companyName, taxBaseInputs }: Props) {
+  const estimatedRevenue = taxBaseInputs.revenue
+  const estimatedProfit = taxBaseInputs.taxBase
 
   const taxRate = getCorporateTaxRate(estimatedRevenue)
   const taxRatePercent = taxRate * 100
@@ -38,9 +37,7 @@ export function CorporateTaxDashboard({ companyName }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Porez na dobit</h1>
-          <p className="text-muted-foreground">
-            Upravljanje porezom na dobit za {companyName}
-          </p>
+          <p className="text-muted-foreground">Upravljanje porezom na dobit za {companyName}</p>
         </div>
         <Badge variant={isSmallCompany ? "default" : "secondary"}>
           {isSmallCompany ? "Mala tvrtka (10%)" : "Velika tvrtka (18%)"}
@@ -52,9 +49,8 @@ export function CorporateTaxDashboard({ companyName }: Props) {
         <Info className="h-4 w-4" />
         <AlertTitle>Porez na dobit u Hrvatskoj</AlertTitle>
         <AlertDescription>
-          Stopa poreza na dobit iznosi{" "}
-          <strong>{TAX_RATES.corporate.small.rate * 100}%</strong> za tvrtke s prihodima do{" "}
-          {threshold.toLocaleString("hr-HR")} EUR, ili{" "}
+          Stopa poreza na dobit iznosi <strong>{TAX_RATES.corporate.small.rate * 100}%</strong> za
+          tvrtke s prihodima do {threshold.toLocaleString("hr-HR")} EUR, ili{" "}
           <strong>{TAX_RATES.corporate.large.rate * 100}%</strong> za tvrtke s vecim prihodima.
           Porezna osnovica je ostvarena dobit nakon odbitka dopustenih rashoda.
         </AlertDescription>
@@ -68,10 +64,8 @@ export function CorporateTaxDashboard({ companyName }: Props) {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {estimatedRevenue.toLocaleString("hr-HR")} EUR
-            </div>
-            <p className="text-xs text-muted-foreground">Godisnji prihod</p>
+            <div className="text-2xl font-bold">{estimatedRevenue.toLocaleString("hr-HR")} EUR</div>
+            <p className="text-xs text-muted-foreground">Prihodi iz glavne knjige</p>
           </CardContent>
         </Card>
 
@@ -81,10 +75,8 @@ export function CorporateTaxDashboard({ companyName }: Props) {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {estimatedProfit.toLocaleString("hr-HR")} EUR
-            </div>
-            <p className="text-xs text-muted-foreground">Oporeziva dobit</p>
+            <div className="text-2xl font-bold">{estimatedProfit.toLocaleString("hr-HR")} EUR</div>
+            <p className="text-xs text-muted-foreground">Oporeziva dobit (osnovica)</p>
           </CardContent>
         </Card>
 
@@ -107,13 +99,50 @@ export function CorporateTaxDashboard({ companyName }: Props) {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {estimatedTax.toLocaleString("hr-HR")} EUR
-            </div>
+            <div className="text-2xl font-bold">{estimatedTax.toLocaleString("hr-HR")} EUR</div>
             <p className="text-xs text-muted-foreground">Godisnji porez na dobit</p>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Osnovica poreza na dobit</CardTitle>
+          <CardDescription>
+            Pregled ulaznih stavki iz glavne knjige za odabrani period.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span>Prihodi</span>
+            <span className="font-medium">{taxBaseInputs.revenue.toLocaleString("hr-HR")} EUR</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Rashodi</span>
+            <span className="font-medium">
+              {taxBaseInputs.expenses.toLocaleString("hr-HR")} EUR
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Nedopušteni rashodi</span>
+            <span className="font-medium">
+              {taxBaseInputs.nonDeductibleExpenses.toLocaleString("hr-HR")} EUR
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-t pt-2">
+            <span>Računovodstvena dobit</span>
+            <span className="font-semibold">
+              {taxBaseInputs.accountingProfit.toLocaleString("hr-HR")} EUR
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Porezna osnovica</span>
+            <span className="font-semibold">
+              {taxBaseInputs.taxBase.toLocaleString("hr-HR")} EUR
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Content */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -124,14 +153,12 @@ export function CorporateTaxDashboard({ companyName }: Props) {
               <FileText className="h-5 w-5" />
               PD obrazac
             </CardTitle>
-            <CardDescription>
-              Prijava poreza na dobit - godisnji porezni obrazac
-            </CardDescription>
+            <CardDescription>Prijava poreza na dobit - godisnji porezni obrazac</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              PD obrazac se podnosi do kraja travnja za prethodnu kalendarsku godinu.
-              FiskAI ce vam pomoci s pripremom podataka za obrazac.
+              PD obrazac se podnosi do kraja travnja za prethodnu kalendarsku godinu. FiskAI ce vam
+              pomoci s pripremom podataka za obrazac.
             </p>
             <div className="flex gap-2">
               <Button variant="outline" disabled>
@@ -163,8 +190,8 @@ export function CorporateTaxDashboard({ companyName }: Props) {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Akontacije poreza na dobit placaju se tromjesecno, do kraja mjeseca
-              koji slijedi nakon zavrsetka tromjesecja.
+              Akontacije poreza na dobit placaju se tromjesecno, do kraja mjeseca koji slijedi nakon
+              zavrsetka tromjesecja.
             </p>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -192,9 +219,7 @@ export function CorporateTaxDashboard({ companyName }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Stope poreza na dobit {TAX_RATES.corporate.year}</CardTitle>
-          <CardDescription>
-            Pregled vazecih poreznih stopa prema visini prihoda
-          </CardDescription>
+          <CardDescription>Pregled vazecih poreznih stopa prema visini prihoda</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">

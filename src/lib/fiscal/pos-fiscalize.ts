@@ -2,6 +2,8 @@ import { calculateZKI, validateZKIInput } from "@/lib/e-invoice/zki"
 import { db } from "@/lib/db"
 import { executeFiscalRequest } from "./fiscal-pipeline"
 import { FiscalStatus, FiscalMessageType } from "@prisma/client"
+import { buildFiscalRequestSnapshot } from "@/lib/fiscal/request-snapshot"
+import { buildFiscalResponseCreateInput } from "@/lib/fiscal/response-builder"
 
 const FORCE_DEMO_MODE = process.env.FISCAL_DEMO_MODE === "true"
 
@@ -88,17 +90,21 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
   })
 
   if (!certificate) {
-    // No certificate - queue for retry, but return success with ZKI only
-    await queueFiscalRetry(invoice.id)
     return {
-      success: true,
+      success: false,
       zki,
-      error: "Fiskalizacija u čekanju - nema aktivnog certifikata",
+      error: "Fiskalizacija nije moguća - nema aktivnog certifikata",
     }
   }
 
   // Real fiscalization - create fiscal request and execute
   try {
+    const snapshot = buildFiscalRequestSnapshot({
+      invoice,
+      company,
+      certificate,
+    })
+
     // Create fiscal request record
     const fiscalRequest = await db.fiscalRequest.create({
       data: {
@@ -108,11 +114,24 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
         messageType: "RACUN" as FiscalMessageType,
         status: "PROCESSING" as FiscalStatus,
         attemptCount: 1,
+        ...snapshot,
       },
     })
 
     // Execute fiscalization
     const result = await executeFiscalRequest(fiscalRequest)
+
+    await db.fiscalResponse.create({
+      data: buildFiscalResponseCreateInput(fiscalRequest, {
+        status: result.success ? "SUCCESS" : "FAILED",
+        attemptNumber: 1,
+        jir: result.jir,
+        zki: result.zki || zki,
+        responseXml: result.responseXml,
+        errorCode: result.errorCode,
+        errorMessage: result.errorMessage,
+      }),
+    })
 
     // Update request with result
     await db.fiscalRequest.update({
@@ -124,6 +143,7 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
         responseXml: result.responseXml,
         errorCode: result.errorCode,
         errorMessage: result.errorMessage,
+        attemptCount: 1,
       },
     })
 
@@ -157,12 +177,34 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
       (error as { poreznaCode: string }).poreznaCode !== "p001" &&
       (error as { poreznaCode: string }).poreznaCode !== "p002"
 
-    // Queue for retry if it's a temporary failure
-    if (shouldRetry) {
-      await queueFiscalRetry(invoice.id)
-    }
-
     const errorMessage = error instanceof Error ? error.message : "Greška kod fiskalizacije"
+
+    if (shouldRetry) {
+      const request = await db.fiscalRequest.findFirst({
+        where: { invoiceId: invoice.id, messageType: "RACUN" },
+        orderBy: { createdAt: "desc" },
+      })
+
+      if (request) {
+        await db.fiscalResponse.create({
+          data: buildFiscalResponseCreateInput(request, {
+            status: "FAILED",
+            attemptNumber: request.attemptCount + 1,
+            zki,
+            errorMessage,
+          }),
+        })
+
+        await db.fiscalRequest.update({
+          where: { id: request.id },
+          data: {
+            status: "FAILED",
+            errorMessage,
+            attemptCount: request.attemptCount + 1,
+          },
+        })
+      }
+    }
 
     return {
       success: false,
@@ -170,14 +212,4 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
       error: errorMessage,
     }
   }
-}
-
-async function queueFiscalRetry(invoiceId: string): Promise<void> {
-  // Update invoice to mark it needs fiscalization retry
-  await db.eInvoice.update({
-    where: { id: invoiceId },
-    data: {
-      fiscalStatus: "PENDING",
-    },
-  })
 }

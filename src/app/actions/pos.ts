@@ -126,17 +126,13 @@ export async function processPosSale(input: ProcessPosSaleInput): Promise<Proces
           },
         })
       } else {
-        // Still save ZKI if available (for offline mode/retry)
-        if (fiscalResult.zki) {
-          await db.eInvoice.update({
-            where: { id: invoice.id },
-            data: {
-              zki: fiscalResult.zki,
-              status: "PENDING_FISCALIZATION",
-            },
-          })
-        }
         console.error("Fiscalization warning:", fiscalResult.error)
+        revalidatePath("/invoices")
+        revalidatePath("/pos")
+        return {
+          success: false,
+          error: fiscalResult.error || "Greška pri fiskalizaciji računa",
+        }
       }
 
       revalidatePath("/invoices")
