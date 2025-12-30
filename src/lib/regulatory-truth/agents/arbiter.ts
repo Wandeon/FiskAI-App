@@ -13,6 +13,7 @@ import type { AuthorityLevel } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
 import { withSoftFail } from "../utils/soft-fail"
 import { findOverridingRules, doesOverride } from "../taxonomy/precedence-builder"
+import { requestConflictReview } from "../services/human-review-service"
 
 // =============================================================================
 // ARBITER AGENT

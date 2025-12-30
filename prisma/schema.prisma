@@ -2719,6 +2719,27 @@ model RegulatoryAuditLog {
 }
 
 // =============================================================================
+// CONFLICT RESOLUTION AUDIT - Detailed conflict resolution tracking (Issue #789)
+// =============================================================================
+
+model ConflictResolutionAudit {
+  id         String   @id @default(cuid())
+  conflictId String
+  ruleAId    String?
+  ruleBId    String?
+  resolution String // RULE_A_PREVAILS, RULE_B_PREVAILS, MERGE_RULES, ESCALATE_TO_HUMAN
+  reason     String   @db.Text
+  resolvedBy String // ARBITER_AGENT, HUMAN, SYSTEM
+  resolvedAt DateTime @default(now())
+  metadata   Json? // { authorityComparison, sourceComparison, temporalAnalysis, aiArbitration }
+
+  @@index([conflictId])
+  @@index([ruleAId])
+  @@index([ruleBId])
+  @@index([resolvedAt])
+}
+
+// =============================================================================
 // HUMAN REVIEW QUEUE - Centralized review management (Issue #884)
 // =============================================================================
 
