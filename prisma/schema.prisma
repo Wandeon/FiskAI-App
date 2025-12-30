@@ -365,6 +365,7 @@ model JournalEntry {
   period                 AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict)
   createdBy              User?          @relation(fields: [createdById], references: [id])
   lines                  JournalLine[]
+  depreciationEntries    DepreciationEntry[]
   operationalEvents      OperationalEvent[]
 
   @@unique([companyId, fiscalYear, entryNumber])
@@ -5247,14 +5248,17 @@ model DepreciationEntry {
   sequence           Int
   amount             Decimal  @db.Decimal(12, 2)
   accumulatedAmount  Decimal  @db.Decimal(12, 2)
+  journalEntryId     String?
   createdAt          DateTime @default(now())
 
   schedule DepreciationSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   asset    FixedAsset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry?     @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
 
   @@unique([scheduleId, sequence])
   @@index([assetId, periodStart])
   @@index([periodEnd])
+  @@index([journalEntryId])
 }
 
 model DisposalEvent {
