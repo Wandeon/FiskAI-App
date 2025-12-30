@@ -47,6 +47,7 @@ export type JoppdItem = {
 }
 
 export type BankPaymentInstruction = {
+  payoutLineId: string
   recipientName: string
   recipientIban?: string
   amount: number

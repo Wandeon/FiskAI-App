@@ -57,8 +57,8 @@ export async function prepareJoppdSubmission(input: PrepareJoppdSubmissionInput)
   const lineInputs: JoppdLineInput[] = payout.lines.map((line, index) => ({
     lineNumber: line.lineNumber ?? index + 1,
     payoutLineId: line.id,
-    recipientName: line.recipientName,
-    recipientOib: line.recipientOib,
+    recipientName: line.employeeName ?? line.recipientName,
+    recipientOib: line.employeeOib ?? line.recipientOib,
     grossAmount: decimalToNumber(line.grossAmount),
     netAmount: decimalToNumber(line.netAmount),
     taxAmount: decimalToNumber(line.taxAmount),
