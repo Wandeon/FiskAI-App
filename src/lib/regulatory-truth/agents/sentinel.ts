@@ -7,7 +7,7 @@ import {
   type FetchWithRetryOptions,
 } from "../utils/rate-limiter"
 import { detectContentChange, hashContent } from "../utils/content-hash"
-import { findSimilarEvidenceByContent, generateEvidenceEmbedding } from "../utils/evidence-embedder"
+import { findSimilarEvidenceByContent } from "../utils/evidence-embedder"
 import {
   parseSitemap,
   parseSitemapIndex,
@@ -23,7 +23,7 @@ import {
 import { parseRSSFeed, filterRSSByDate, filterRSSByPattern } from "../parsers/rss-parser"
 import { logAuditEvent } from "../utils/audit-log"
 import { detectBinaryType, parseBinaryContent } from "../utils/binary-parser"
-import { ocrQueue, extractQueue } from "../workers/queues"
+import { ocrQueue, extractQueue, evidenceEmbeddingQueue } from "../workers/queues"
 import { isScannedPdf } from "../utils/ocr-processor"
 import { isBlockedDomain } from "../utils/concept-resolver"
 import { crawlSite, CrawlOptions } from "./site-crawler"
@@ -1308,10 +1308,17 @@ async function processSingleItem(item: {
       },
     })
 
-    // Generate embedding for semantic duplicate detection
-    // Run asynchronously to not block Evidence creation
-    generateEvidenceEmbedding(evidence.id).catch((error) => {
-      console.error(`[sentinel] Failed to generate embedding for Evidence ${evidence.id}:`, error)
+    // Queue embedding generation for semantic duplicate detection
+    // Uses dedicated queue with retry logic (GitHub issue #828)
+    const runId = `sentinel-embed-${Date.now()}`
+    await evidenceEmbeddingQueue.add(
+      "generate-embedding",
+      { evidenceId: evidence.id, runId },
+      { jobId: `embed-${evidence.id}` }
+    )
+    log("debug", `Queued embedding generation for Evidence ${evidence.id}`, {
+      operation: "queue-embedding",
+      metadata: { evidenceId: evidence.id, runId },
     })
 
     await db.discoveredItem.update({

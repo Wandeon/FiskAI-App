@@ -2067,8 +2067,12 @@ model Evidence {
   ocrMetadata           Json? // OCR processing metadata
   primaryTextArtifactId String? // Points to canonical text artifact for Extractor
 
-  // Semantic similarity support for duplicate detection
-  embedding Unsupported("vector(768)")? // Vector embedding for semantic duplicate detection
+  // Semantic similarity support for duplicate detection (GitHub issue #828)
+  embedding           Unsupported("vector(768)")? // Vector embedding for semantic duplicate detection
+  embeddingStatus     String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  embeddingError      String?   // Error message if embedding generation failed
+  embeddingAttempts   Int       @default(0) // Number of embedding generation attempts
+  embeddingUpdatedAt  DateTime? // Last embedding status update
 
   source                 RegulatorySource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   sourcePointers         SourcePointer[]
@@ -2091,6 +2095,7 @@ model Evidence {
   @@index([stalenessStatus])
   @@index([expiresAt])
   @@index([lastVerifiedAt])
+  @@index([embeddingStatus]) // For retry queue queries
 }
 
 model EvidenceArtifact {

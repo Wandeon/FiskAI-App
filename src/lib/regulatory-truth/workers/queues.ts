@@ -63,6 +63,13 @@ export const backupQueue = createQueue("backup", { max: 2, duration: 60000 })
 // Higher rate limit since embeddings are lightweight
 export const embeddingQueue = createQueue("embedding", { max: 10, duration: 60000 })
 
+// Evidence embedding queue - generates embeddings for Evidence records
+// Uses dedicated queue with retry logic for semantic duplicate detection (GitHub issue #828)
+export const evidenceEmbeddingQueue = createQueue("evidence-embedding", {
+  max: 5,
+  duration: 60000,
+})
+
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
 
@@ -99,6 +106,7 @@ export const allQueues = {
   article: articleQueue,
   backup: backupQueue,
   embedding: embeddingQueue,
+  "evidence-embedding": evidenceEmbeddingQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
   "system-status": systemStatusQueue,
