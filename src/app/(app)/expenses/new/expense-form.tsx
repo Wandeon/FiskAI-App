@@ -175,6 +175,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
       netAmount: net,
       vatAmount: vat,
       totalAmount: total,
+      vatRate: parseFloat(vatRate),
       vatDeductible,
       paymentMethod: paymentMethod || undefined,
       notes: notes || undefined,

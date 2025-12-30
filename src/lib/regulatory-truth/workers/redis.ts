@@ -91,3 +91,56 @@ export async function getDrainerIdleMinutes(): Promise<number> {
   const now = new Date()
   return (now.getTime() - lastActivity.getTime()) / (1000 * 60)
 }
+
+// ============================================================================
+// PER-STAGE HEARTBEAT TRACKING (Issue #807 fix)
+// ============================================================================
+
+const DRAINER_STAGES_KEY = "regulatory-truth:drainer:stages"
+
+export interface StageHeartbeat {
+  stage: string
+  lastActivity: string // ISO timestamp
+  itemsProcessed: number
+  avgDurationMs: number
+  lastError?: string
+}
+
+export async function updateStageHeartbeat(data: StageHeartbeat): Promise<void> {
+  await redis.hset(DRAINER_STAGES_KEY, {
+    [data.stage]: JSON.stringify(data),
+  })
+}
+
+export async function getStageHeartbeat(stage: string): Promise<StageHeartbeat | null> {
+  const data = await redis.hget(DRAINER_STAGES_KEY, stage)
+  if (!data) return null
+  try {
+    return JSON.parse(data) as StageHeartbeat
+  } catch {
+    return null
+  }
+}
+
+export async function getAllStageHeartbeats(): Promise<Record<string, StageHeartbeat>> {
+  const data = await redis.hgetall(DRAINER_STAGES_KEY)
+  const heartbeats: Record<string, StageHeartbeat> = {}
+  for (const [stage, value] of Object.entries(data)) {
+    try {
+      heartbeats[stage] = JSON.parse(value) as StageHeartbeat
+    } catch {
+      // Skip malformed data
+    }
+  }
+  return heartbeats
+}
+
+export async function getStageIdleMinutes(stage: string): Promise<number> {
+  const heartbeat = await getStageHeartbeat(stage)
+  if (!heartbeat) {
+    return Infinity
+  }
+  const lastActivity = new Date(heartbeat.lastActivity)
+  const now = new Date()
+  return (now.getTime() - lastActivity.getTime()) / (1000 * 60)
+}

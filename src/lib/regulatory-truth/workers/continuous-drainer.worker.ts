@@ -12,8 +12,9 @@ import {
 import { db } from "@/lib/db"
 import { Prisma } from "@prisma/client"
 import { fetchDiscoveredItems } from "../agents/sentinel"
-import { closeRedis, updateDrainerHeartbeat } from "./redis"
+import { closeRedis, updateDrainerHeartbeat, updateStageHeartbeat } from "./redis"
 import { logWorkerStartup } from "./startup-log"
+import { createCircuitBreaker } from "./circuit-breaker"
 
 logWorkerStartup("continuous-drainer")
 
@@ -46,6 +47,107 @@ const state: DrainerState = {
     cycleCount: 0,
   },
 }
+
+// ============================================================================
+// PER-STAGE TRACKING (Issue #807 fix: individual stage stall detection)
+// ============================================================================
+
+interface StageMetrics {
+  itemsProcessed: number
+  totalDurationMs: number
+  lastError?: string
+}
+
+const stageMetrics: Record<string, StageMetrics> = {
+  "pending-items": { itemsProcessed: 0, totalDurationMs: 0 },
+  "pending-ocr": { itemsProcessed: 0, totalDurationMs: 0 },
+  "fetched-evidence": { itemsProcessed: 0, totalDurationMs: 0 },
+  "source-pointers": { itemsProcessed: 0, totalDurationMs: 0 },
+  "draft-rules": { itemsProcessed: 0, totalDurationMs: 0 },
+  conflicts: { itemsProcessed: 0, totalDurationMs: 0 },
+  "approved-rules": { itemsProcessed: 0, totalDurationMs: 0 },
+}
+
+const stageCircuitBreakers = {
+  "pending-items": createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-pending-items", errorThresholdPercentage: 30 }
+  ),
+  "pending-ocr": createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-pending-ocr", errorThresholdPercentage: 30 }
+  ),
+  "fetched-evidence": createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-fetched-evidence", errorThresholdPercentage: 30 }
+  ),
+  "source-pointers": createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-source-pointers", errorThresholdPercentage: 30 }
+  ),
+  "draft-rules": createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-draft-rules", errorThresholdPercentage: 30 }
+  ),
+  conflicts: createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-conflicts", errorThresholdPercentage: 30 }
+  ),
+  "approved-rules": createCircuitBreaker(
+    async (fn: () => Promise<number>) => fn(),
+    { timeout: 300000, name: "drainer-approved-rules", errorThresholdPercentage: 30 }
+  ),
+}
+
+async function executeStage(
+  stageName: string,
+  stageFunction: () => Promise<number>
+): Promise<number> {
+  const startTime = Date.now()
+  let itemsProcessed = 0
+
+  try {
+    const breaker = stageCircuitBreakers[stageName as keyof typeof stageCircuitBreakers]
+    itemsProcessed = await breaker.fire(stageFunction)
+    const duration = Date.now() - startTime
+    stageMetrics[stageName].itemsProcessed += itemsProcessed
+    stageMetrics[stageName].totalDurationMs += duration
+    delete stageMetrics[stageName].lastError
+    const avgDuration =
+      stageMetrics[stageName].itemsProcessed > 0
+        ? stageMetrics[stageName].totalDurationMs / stageMetrics[stageName].itemsProcessed
+        : 0
+    await updateStageHeartbeat({
+      stage: stageName,
+      lastActivity: new Date().toISOString(),
+      itemsProcessed: stageMetrics[stageName].itemsProcessed,
+      avgDurationMs: Math.round(avgDuration),
+    }).catch((err) => {
+      console.error(
+        `[drainer] Failed to update stage heartbeat for ${stageName}:`,
+        err instanceof Error ? err.message : err
+      )
+    })
+    return itemsProcessed
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err))
+    stageMetrics[stageName].lastError = error.message
+    await updateStageHeartbeat({
+      stage: stageName,
+      lastActivity: new Date().toISOString(),
+      itemsProcessed: stageMetrics[stageName].itemsProcessed,
+      avgDurationMs: 0,
+      lastError: error.message,
+    }).catch((updateErr) => {
+      console.error(
+        `[drainer] Failed to update stage heartbeat for ${stageName}:`,
+        updateErr instanceof Error ? updateErr.message : updateErr
+      )
+    })
+    throw error
+  }
+}
+
 
 // Backoff configuration
 const BACKOFF = {
@@ -287,7 +389,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 1: Fetch PENDING items → Evidence
   try {
-    const fetched = await drainPendingItems()
+    const fetched = await executeStage("pending-items", drainPendingItems)
     if (fetched > 0) {
       workDone = true
       console.log(`[drainer] Stage 1: Fetched ${fetched} items`)
@@ -298,7 +400,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 1.5: Queue scanned PDFs for OCR
   try {
-    const ocrQueued = await drainPendingOcr()
+    const ocrQueued = await executeStage("pending-ocr", drainPendingOcr)
     if (ocrQueued > 0) {
       workDone = true
       console.log(`[drainer] Stage 1.5: Queued ${ocrQueued} OCR jobs`)
@@ -309,7 +411,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 2: Queue Evidence for extraction
   try {
-    const extracted = await drainFetchedEvidence()
+    const extracted = await executeStage("fetched-evidence", drainFetchedEvidence)
     if (extracted > 0) {
       workDone = true
       console.log(`[drainer] Stage 2: Queued ${extracted} extract jobs`)
@@ -320,7 +422,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 3: Queue pointers for composition
   try {
-    const composed = await drainSourcePointers()
+    const composed = await executeStage("source-pointers", drainSourcePointers)
     if (composed > 0) {
       workDone = true
       console.log(`[drainer] Stage 3: Queued ${composed} compose jobs`)
@@ -331,7 +433,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 4: Queue drafts for review
   try {
-    const reviewed = await drainDraftRules()
+    const reviewed = await executeStage("draft-rules", drainDraftRules)
     if (reviewed > 0) {
       workDone = true
       console.log(`[drainer] Stage 4: Queued ${reviewed} review jobs`)
@@ -342,7 +444,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 5: Queue conflicts for arbiter
   try {
-    const arbitrated = await drainConflicts()
+    const arbitrated = await executeStage("conflicts", drainConflicts)
     if (arbitrated > 0) {
       workDone = true
       console.log(`[drainer] Stage 5: Queued ${arbitrated} arbiter jobs`)
@@ -353,7 +455,7 @@ async function runDrainCycle(): Promise<boolean> {
 
   // Stage 6: Queue approved rules for release
   try {
-    const released = await drainApprovedRules()
+    const released = await executeStage("approved-rules", drainApprovedRules)
     if (released > 0) {
       workDone = true
       console.log(`[drainer] Stage 6: Queued ${released} release jobs`)

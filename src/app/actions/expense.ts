@@ -658,6 +658,7 @@ export async function processRecurringExpenses(): Promise<ActionResult> {
             vatAmount: recurring.vatAmount,
             totalAmount: recurring.totalAmount,
             vatDeductible: true,
+            vatRate: recurring.vatRate,
             currency: "EUR",
             status: "DRAFT",
             notes: "Automatski kreiran iz ponavljajućeg troška",

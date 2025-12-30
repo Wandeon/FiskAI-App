@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server"
-import { promises as fs } from "fs"
-import path from "path"
 import { createHash } from "crypto"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { detectDocumentType } from "@/lib/import/detect-document-type"
 import { DocumentType } from "@prisma/client"
+import { uploadToR2, generateR2Key } from "@/lib/r2-client"
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 const ALLOWED_EXTENSIONS = ["pdf", "xml", "csv", "jpg", "jpeg", "png", "heic", "webp"]
@@ -52,12 +51,9 @@ export async function POST(request: Request) {
   const buffer = Buffer.from(arrayBuffer)
   const checksum = createHash("sha256").update(buffer).digest("hex")
 
-  // Store file
-  const storageDir = path.join(process.cwd(), "uploads", "imports")
-  await fs.mkdir(storageDir, { recursive: true })
-  const storedFileName = `${checksum}.${extension}`
-  const storagePath = path.join(storageDir, storedFileName)
-  await fs.writeFile(storagePath, buffer)
+  // Upload file to R2 storage
+  const key = generateR2Key(company.id, checksum, fileName)
+  await uploadToR2(key, buffer, file.type)
 
   // Detect document type
   const detection = detectDocumentType(fileName, file.type)
@@ -71,7 +67,7 @@ export async function POST(request: Request) {
       bankAccountId: bankAccountId || null,
       fileChecksum: checksum,
       originalName: fileName,
-      storagePath,
+      storageKey: key,
       status: "PENDING",
       documentType,
     },
