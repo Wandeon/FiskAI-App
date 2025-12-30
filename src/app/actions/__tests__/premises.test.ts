@@ -42,6 +42,7 @@ import {
   createDevice,
   updatePremises,
   deletePremises,
+  updateDevice,
 } from "@/app/actions/premises"
 
 const user = { id: "user-1" }
@@ -131,5 +132,21 @@ describe("premises actions auth", () => {
       where: { id: "prem-1", companyId: "company-1" },
     })
     expect(result.success).toBe(false)
+  })
+
+  it("updateDevice scopes lookup to auth company", async () => {
+    vi.mocked(db.paymentDevice.findFirst).mockResolvedValue({
+      id: "dev-1",
+      companyId: "company-1",
+      businessPremisesId: "prem-1",
+      code: 1,
+    } as any)
+    vi.mocked(db.paymentDevice.update).mockResolvedValue({ id: "dev-1" } as any)
+
+    await updateDevice("dev-1", { name: "POS" })
+
+    expect(db.paymentDevice.findFirst).toHaveBeenCalledWith({
+      where: { id: "dev-1", companyId: "company-1" },
+    })
   })
 })

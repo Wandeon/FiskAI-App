@@ -248,45 +248,52 @@ export async function updateDevice(
   input: Partial<Omit<CreateDeviceInput, "companyId" | "businessPremisesId">>
 ): Promise<ActionResult> {
   try {
-    const existing = await db.paymentDevice.findUnique({ where: { id } })
-    if (!existing) {
-      return { success: false, error: "Naplatni uređaj nije pronađen" }
-    }
+    const user = await requireAuth()
 
-    // Check for duplicate code if code is being changed
-    if (input.code && input.code !== existing.code) {
-      const duplicate = await db.paymentDevice.findUnique({
-        where: {
-          businessPremisesId_code: {
-            businessPremisesId: existing.businessPremisesId,
-            code: input.code,
-          },
-        },
+    return requireCompanyWithContext(user.id!, async (company) => {
+      const existing = await db.paymentDevice.findFirst({
+        where: { id, companyId: company.id },
       })
-      if (duplicate) {
-        return { success: false, error: `Naplatni uređaj s kodom ${input.code} već postoji` }
+      if (!existing) {
+        return { success: false, error: "Naplatni uređaj nije pronađen" }
       }
-    }
 
-    // If this should be default, unset other defaults first
-    if (input.isDefault) {
-      await db.paymentDevice.updateMany({
-        where: {
-          businessPremisesId: existing.businessPremisesId,
-          isDefault: true,
-          id: { not: id },
-        },
-        data: { isDefault: false },
+      // Check for duplicate code if code is being changed
+      if (input.code && input.code !== existing.code) {
+        const duplicate = await db.paymentDevice.findUnique({
+          where: {
+            businessPremisesId_code: {
+              businessPremisesId: existing.businessPremisesId,
+              code: input.code,
+            },
+          },
+        })
+        if (duplicate) {
+          return { success: false, error: `Naplatni uređaj s kodom ${input.code} već postoji` }
+        }
+      }
+
+      // If this should be default, unset other defaults first
+      if (input.isDefault) {
+        await db.paymentDevice.updateMany({
+          where: {
+            businessPremisesId: existing.businessPremisesId,
+            companyId: company.id,
+            isDefault: true,
+            id: { not: id },
+          },
+          data: { isDefault: false },
+        })
+      }
+
+      const device = await db.paymentDevice.update({
+        where: { id },
+        data: input,
       })
-    }
 
-    const device = await db.paymentDevice.update({
-      where: { id },
-      data: input,
+      revalidatePath("/settings/premises")
+      return { success: true, data: device }
     })
-
-    revalidatePath("/settings/premises")
-    return { success: true, data: device }
   } catch (error) {
     console.error("Failed to update device:", error)
     return { success: false, error: "Greška pri ažuriranju naplatnog uređaja" }
