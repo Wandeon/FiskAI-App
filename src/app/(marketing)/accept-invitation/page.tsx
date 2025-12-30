@@ -64,7 +64,7 @@ export default function AcceptInvitationPage() {
       }
 
       try {
-        const response = await fetch(\`/api/invitations/verify?token=\${token}\`)
+        const response = await fetch(`/api/invitations/verify?token=${token}`)
         const data = await response.json()
 
         if (!response.ok) {

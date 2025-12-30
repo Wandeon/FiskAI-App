@@ -112,6 +112,7 @@
     "bottleneck": "^2.19.5",
     "bullmq": "^5.66.2",
     "bwip-js": "^4.8.0",
+    "clamscan": "^2.4.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cron": "^4.4.0",

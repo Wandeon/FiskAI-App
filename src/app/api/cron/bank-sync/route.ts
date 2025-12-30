@@ -40,15 +40,7 @@ async function handleBankSync(request: Request) {
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
   }
 
-  const cronSecret = process.env.CRON_SECRET
-
-  // SECURITY: Require CRON_SECRET to be configured
-  if (!cronSecret) {
-    console.error("[cron] CRON_SECRET not configured")
-    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
-  }
-
-  if (authHeader !== `Bearer `) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -92,9 +84,7 @@ async function handleBankSync(request: Request) {
             entityId: account.id,
             entityType: "BankAccount",
             error:
-              result.reason instanceof Error
-                ? result.reason
-                : new Error(String(result.reason)),
+              result.reason instanceof Error ? result.reason : new Error(String(result.reason)),
             metadata: {
               companyId: account.companyId,
               syncProvider: account.syncProvider,
@@ -106,10 +96,7 @@ async function handleBankSync(request: Request) {
           results.push({
             accountId: account.id,
             status: "error",
-            error:
-              result.reason instanceof Error
-                ? result.reason.message
-                : "Unknown error",
+            error: result.reason instanceof Error ? result.reason.message : "Unknown error",
           })
         }
       }
@@ -132,11 +119,7 @@ async function handleBankSync(request: Request) {
     })
   } catch (error) {
     const durationMs = Date.now() - startTime
-    log.fail(
-      error instanceof Error ? error : new Error(String(error)),
-      undefined,
-      durationMs
-    )
+    log.fail(error instanceof Error ? error : new Error(String(error)), undefined, durationMs)
 
     // Record global cron error to DLQ
     await recordCronError({
@@ -202,13 +185,9 @@ async function processAccount(
 
     // Fetch transactions from external provider (outside transaction)
     const provider = getProvider(account.syncProvider)
-    const since =
-      account.lastSyncAt || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+    const since = account.lastSyncAt || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
-    const transactions = await provider.fetchTransactions(
-      account.syncProviderAccountId,
-      since
-    )
+    const transactions = await provider.fetchTransactions(account.syncProviderAccountId, since)
 
     // Process with dedup (has its own database operations)
     const dedupResult = await processTransactionsWithDedup(

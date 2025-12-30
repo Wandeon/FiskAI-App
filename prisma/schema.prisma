@@ -32,6 +32,12 @@ model User {
   staffReviews         StaffReview[]          @relation("StaffReviews")
   experimentAssignments ExperimentAssignment[]
   experimentEvents     ExperimentEvent[]
+  payoutsLocked        Payout[]               @relation("PayoutLockedBy")
+  payoutsReported      Payout[]               @relation("PayoutReportedBy")
+  calculationSnapshots CalculationSnapshot[]  @relation("CalculationSnapshotCreatedBy")
+  travelOrders         TravelOrder[]          @relation("TravelOrderTraveler")
+  mileageLogs          MileageLog[]           @relation("MileageLogTraveler")
+  generatedTravelPdfs  TravelPdf[]            @relation("TravelPdfGeneratedBy")
 }
 
 model Account {
@@ -129,6 +135,7 @@ model Company {
   userLimit                      Int                   @default(1)
   stripeTerminalLocationId       String?
   stripeTerminalReaderId         String?
+  stockValuationMethod           StockValuationMethod  @default(WEIGHTED_AVERAGE)
   aiUsage                        AIUsage[]
   auditLogs                      AuditLog[]
   bankAccounts                   BankAccount[]
@@ -141,15 +148,26 @@ model Company {
   emailConnections               EmailConnection[]
   emailImportRules               EmailImportRule[]
   expenses                       Expense[]
+  expenseLines                   ExpenseLine[]
+  uraInputs                      UraInput[]
+  attachments                    Attachment[]
+  expenseCorrections             ExpenseCorrection[]
+  fixedAssetCandidates           FixedAssetCandidate[]
   expenseCategories              ExpenseCategory[]
   fiscalCertificates             FiscalCertificate[]
   fiscalRequests                 FiscalRequest[]
   importJobs                     ImportJob[]
   invoiceSequences               InvoiceSequence[]
+  payouts                        Payout[]
+  payoutLines                    PayoutLine[]
+  mileageLogs                    MileageLog[]
   paymentDevices                 PaymentDevice[]
   potentialDuplicates            PotentialDuplicate[]
   products                       Product[]
-  payouts                        Payout[]
+  warehouses                     Warehouse[]
+  stockItems                     StockItem[]
+  stockMovements                 StockMovement[]
+  valuationSnapshots             ValuationSnapshot[]
   recurringExpenses              RecurringExpense[]
   savedReports                   SavedReport[]
   assignedStaff                  StaffAssignment[]     @relation("AssignedStaff")
@@ -158,12 +176,190 @@ model Company {
   supportTickets                 SupportTicket[]
   joppdSubmissions               JoppdSubmission[]
   statementTransactions          Transaction[]
+  travelOrders                   TravelOrder[]
+  travelPdfs                     TravelPdf[]
   clientInvitations              ClientInvitation[]    @relation("InvitedClients")
   entitlementHistory             EntitlementHistory[]
   featureFlagOverrides           FeatureFlagOverride[]
   staffReviews                   StaffReview[]
   adminAlerts                    AdminAlert[]
   bankImports                    BankImport[]
+  fixedAssets                    FixedAsset[]
+  assetCandidates                AssetCandidate[]
+  cashIns                        CashIn[]
+  cashOuts                       CashOut[]
+  cashDayCloses                  CashDayClose[]
+  employees                      Employee[]
+}
+
+// ============================================================================
+// EMPLOYMENT & PAYROLL
+// ============================================================================
+
+model Employee {
+  id          String   @id @default(cuid())
+  companyId   String
+  firstName   String
+  lastName    String
+  oib         String?
+  dateOfBirth DateTime?
+  email       String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company             Company                      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employmentContracts EmploymentContract[]
+  roles               EmployeeRole[]
+  dependents          Dependent[]
+  allowances          Allowance[]
+  pensionPillars      PensionPillar[]
+
+  @@unique([companyId, oib])
+  @@index([companyId])
+  @@index([lastName])
+}
+
+model EmployeeRole {
+  id            String   @id @default(cuid())
+  companyId     String
+  employeeId    String
+  title         String
+  description   String?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
+}
+
+model EmploymentContract {
+  id           String   @id @default(cuid())
+  companyId    String
+  employeeId   String
+  contractCode String?
+  startedAt    DateTime
+  endedAt      DateTime?
+  status       EmploymentContractStatus @default(ACTIVE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company           Company                     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee          Employee                    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  versions          EmploymentContractVersion[]
+  terminationEvents EmploymentTerminationEvent[]
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([startedAt])
+  @@index([endedAt])
+}
+
+model EmploymentContractVersion {
+  id             String   @id @default(cuid())
+  companyId      String
+  contractId     String
+  version        Int
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  roleTitle      String?
+  employmentType EmploymentType?
+  hoursPerWeek   Int?
+  salaryAmount   Decimal? @db.Decimal(12, 2)
+  salaryCurrency String   @default("EUR")
+  createdAt      DateTime @default(now())
+
+  company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contract EmploymentContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, version])
+  @@index([companyId])
+  @@index([contractId, effectiveFrom])
+}
+
+model EmploymentTerminationEvent {
+  id           String             @id @default(cuid())
+  companyId    String
+  contractId   String
+  employeeId   String
+  terminatedAt DateTime
+  reason       TerminationReason
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contract EmploymentContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  employee Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([contractId])
+  @@index([employeeId])
+  @@index([terminatedAt])
+}
+
+model Dependent {
+  id            String   @id @default(cuid())
+  companyId     String
+  employeeId    String
+  fullName      String
+  relation      DependentRelation
+  birthDate     DateTime?
+  oib           String?
+  isDisabled    Boolean  @default(false)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
+}
+
+model Allowance {
+  id            String   @id @default(cuid())
+  companyId     String
+  employeeId    String
+  type          AllowanceType
+  amount        Decimal  @db.Decimal(12, 2)
+  currency      String   @default("EUR")
+  taxable       Boolean  @default(false)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
+}
+
+model PensionPillar {
+  id               String   @id @default(cuid())
+  companyId        String
+  employeeId       String
+  pillar           PensionPillarType
+  fundName         String?
+  contributionRate Decimal? @db.Decimal(5, 2)
+  effectiveFrom    DateTime
+  effectiveTo      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
 }
 
 // Audit trail for module entitlement changes
@@ -301,9 +497,109 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stockItems  StockItem[]
+  stockMovements StockMovement[]
+  valuationSnapshots ValuationSnapshot[]
 
   @@unique([companyId, sku])
   @@index([companyId])
+}
+
+model Warehouse {
+  id         String   @id @default(cuid())
+  companyId  String
+  name       String
+  code       String?
+  address    String?
+  city       String?
+  postalCode String?
+  country    String   @default("HR")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stockItems StockItem[]
+  stockMovements StockMovement[]
+  valuationSnapshots ValuationSnapshot[]
+
+  @@unique([companyId, name])
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+model StockItem {
+  id               String   @id @default(cuid())
+  companyId        String
+  warehouseId      String
+  productId        String
+  quantityOnHand   Decimal  @default(0) @db.Decimal(14, 3)
+  averageCost      Decimal? @db.Decimal(10, 2)
+  lastMovementAt   DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  warehouse        Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  movements        StockMovement[]
+  valuationSnapshots ValuationSnapshot[]
+
+  @@unique([warehouseId, productId])
+  @@index([companyId])
+  @@index([productId])
+}
+
+model StockMovement {
+  id              String             @id @default(cuid())
+  companyId       String
+  warehouseId     String
+  productId       String
+  stockItemId     String?
+  movementType    StockMovementType
+  quantity        Decimal            @db.Decimal(14, 3)
+  unitCost        Decimal?           @db.Decimal(10, 2)
+  movementDate    DateTime           @default(now())
+  referenceNumber String?
+  eInvoiceLineId  String?
+  expenseId       String?
+  createdAt       DateTime           @default(now())
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product         Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  stockItem       StockItem?         @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
+  eInvoiceLine    EInvoiceLine?      @relation(fields: [eInvoiceLineId], references: [id], onDelete: SetNull)
+  expense         Expense?           @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  valuationSnapshots ValuationSnapshot[]
+
+  @@index([companyId])
+  @@index([warehouseId])
+  @@index([productId])
+  @@index([movementDate])
+  @@index([eInvoiceLineId])
+  @@index([expenseId])
+}
+
+model ValuationSnapshot {
+  id               String               @id @default(cuid())
+  companyId        String
+  warehouseId      String
+  productId        String
+  stockItemId      String?
+  movementId       String?
+  valuationMethod  StockValuationMethod
+  quantityOnHand   Decimal              @db.Decimal(14, 3)
+  value            Decimal              @db.Decimal(14, 2)
+  asOfDate         DateTime
+  createdAt        DateTime             @default(now())
+  company          Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  warehouse        Warehouse            @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product          Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  stockItem        StockItem?           @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
+  movement         StockMovement?       @relation(fields: [movementId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([warehouseId])
+  @@index([productId])
+  @@index([asOfDate])
 }
 
 model EInvoice {
@@ -389,6 +685,7 @@ model EInvoiceLine {
   vatCategory String   @default("S")
   vatAmount   Decimal  @db.Decimal(10, 2)
   eInvoice    EInvoice @relation(fields: [eInvoiceId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
 
   @@index([eInvoiceId])
 }
@@ -425,6 +722,51 @@ model AuditLog {
   @@index([companyId])
   @@index([entity, entityId])
   @@index([timestamp])
+}
+
+model CashIn {
+  id           String   @id @default(cuid())
+  companyId    String
+  businessDate DateTime @db.Date
+  amount       Decimal  @db.Decimal(14, 2)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([businessDate])
+}
+
+model CashOut {
+  id           String   @id @default(cuid())
+  companyId    String
+  businessDate DateTime @db.Date
+  amount       Decimal  @db.Decimal(14, 2)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([businessDate])
+}
+
+model CashDayClose {
+  id             String   @id @default(cuid())
+  companyId      String
+  businessDate   DateTime @db.Date
+  openingBalance Decimal  @db.Decimal(14, 2)
+  totalIn        Decimal  @db.Decimal(14, 2)
+  totalOut       Decimal  @db.Decimal(14, 2)
+  closingBalance Decimal  @db.Decimal(14, 2)
+  note           String?
+  closedAt       DateTime @default(now())
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, businessDate])
+  @@index([companyId])
+  @@index([businessDate])
 }
 
 model BusinessPremises {
@@ -499,14 +841,132 @@ model Expense {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   bankTransactions BankTransaction[]
+  lines            ExpenseLine[]
+  attachments      Attachment[]
+  uraInputs        UraInput[]
+  corrections      ExpenseCorrection[]
+  assetCandidates  FixedAssetCandidate[]
   category         ExpenseCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   vendor           Contact?          @relation("ExpenseVendor", fields: [vendorId], references: [id])
+  stockMovements   StockMovement[]
 
   @@index([companyId])
   @@index([date])
   @@index([status])
   @@index([categoryId])
+}
+
+model ExpenseLine {
+  id          String   @id @default(cuid())
+  companyId   String
+  expenseId   String
+  description String
+  quantity    Decimal  @db.Decimal(10, 2)
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  netAmount   Decimal  @db.Decimal(10, 2)
+  vatRate     Decimal  @db.Decimal(5, 2)
+  vatAmount   Decimal  @db.Decimal(10, 2)
+  totalAmount Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+  uraInputs   UraInput[]
+  assetCandidate FixedAssetCandidate?
+
+  @@index([companyId])
+  @@index([expenseId])
+}
+
+model UraInput {
+  id                   String   @id @default(cuid())
+  companyId            String
+  expenseId            String
+  expenseLineId        String
+  date                 DateTime
+  vendorName           String?
+  vendorVatNumber      String?
+  netAmount            Decimal  @db.Decimal(10, 2)
+  vatRate              Decimal  @db.Decimal(5, 2)
+  vatAmount            Decimal  @db.Decimal(10, 2)
+  totalAmount          Decimal  @db.Decimal(10, 2)
+  deductibleVatAmount  Decimal  @db.Decimal(10, 2)
+  nonDeductibleVatAmount Decimal @db.Decimal(10, 2)
+  ruleReferences       Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  expense              Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseLine          ExpenseLine @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
+  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  attachments          Attachment[]
+
+  @@index([companyId])
+  @@index([expenseId])
+  @@index([expenseLineId])
+}
+
+model Attachment {
+  id               String           @id @default(cuid())
+  companyId         String
+  expenseId         String?
+  expenseLineId     String?
+  uraInputId        String?
+  fileName          String
+  contentType       String
+  url               String
+  size              Int?
+  sourceType        AttachmentSource @default(UPLOAD)
+  sourceExternalId  String?
+  isSourceImmutable Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  expense           Expense?        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseLine       ExpenseLine?    @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
+  uraInput          UraInput?       @relation(fields: [uraInputId], references: [id], onDelete: Cascade)
+  company           Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([expenseId])
+  @@index([expenseLineId])
+  @@index([uraInputId])
+}
+
+model ExpenseCorrection {
+  id        String   @id @default(cuid())
+  companyId String
+  expenseId String
+  userId    String?
+  reason    String?
+  changes   Json
+  createdAt DateTime @default(now())
+  expense   Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([expenseId])
+}
+
+model FixedAssetCandidate {
+  id             String                 @id @default(cuid())
+  companyId      String
+  expenseId      String
+  expenseLineId  String                 @unique
+  description    String
+  amount         Decimal                @db.Decimal(10, 2)
+  currency       String                 @default("EUR")
+  thresholdValue Decimal                @db.Decimal(10, 2)
+  status         FixedAssetCandidateStatus @default(PENDING)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  reviewedAt     DateTime?
+  expense        Expense                @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseLine    ExpenseLine            @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
+  company        Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([expenseId])
 }
 
 model ExpenseCategory {
@@ -546,6 +1006,120 @@ model RecurringExpense {
 
   @@index([companyId])
   @@index([nextDate])
+}
+
+enum TravelOrderStatus {
+  DRAFT
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+enum TravelVehicleType {
+  COMPANY_CAR
+  PRIVATE_CAR
+  PUBLIC_TRANSPORT
+  PLANE
+  OTHER
+}
+
+enum MileageLogSource {
+  MANUAL
+  IMPORTED
+  DEVICE
+}
+
+model TravelOrder {
+  id                    String            @id @default(cuid())
+  companyId             String
+  travelerUserId        String?
+  orderNumber           String
+  purpose               String
+  origin                String?
+  destination           String
+  departureDate         DateTime
+  returnDate            DateTime
+  vehicleType           TravelVehicleType
+  distanceKm            Decimal?          @db.Decimal(10, 2)
+  perDiemDays           Decimal?          @db.Decimal(8, 2)
+  perDiemRate           Decimal?          @db.Decimal(10, 2)
+  perDiemAmount         Decimal?          @db.Decimal(12, 2)
+  mileageRate           Decimal?          @db.Decimal(10, 2)
+  mileageAmount         Decimal?          @db.Decimal(12, 2)
+  totalAmount           Decimal           @db.Decimal(12, 2)
+  currency              String            @default("EUR")
+  perDiemRuleVersionId  String?
+  mileageRuleVersionId  String?
+  status                TravelOrderStatus @default(DRAFT)
+  notes                 String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  travelerUser          User?             @relation("TravelOrderTraveler", fields: [travelerUserId], references: [id], onDelete: SetNull)
+  mileageLogs           MileageLog[]
+  pdfs                  TravelPdf[]
+  perDiemRuleVersion    RegulatoryRule?   @relation("TravelOrderPerDiemRule", fields: [perDiemRuleVersionId], references: [id])
+  mileageRuleVersion    RegulatoryRule?   @relation("TravelOrderMileageRule", fields: [mileageRuleVersionId], references: [id])
+
+  @@unique([companyId, orderNumber])
+  @@index([companyId])
+  @@index([travelerUserId])
+  @@index([status])
+  @@index([departureDate])
+  @@index([returnDate])
+}
+
+model MileageLog {
+  id             String            @id @default(cuid())
+  companyId      String
+  travelOrderId  String?
+  travelerUserId String?
+  logDate        DateTime
+  origin         String?
+  destination    String?
+  purpose        String
+  startOdometer  Decimal?          @db.Decimal(12, 2)
+  endOdometer    Decimal?          @db.Decimal(12, 2)
+  distanceKm     Decimal           @db.Decimal(10, 2)
+  vehicleType    TravelVehicleType
+  source         MileageLogSource  @default(MANUAL)
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  travelOrder    TravelOrder?      @relation(fields: [travelOrderId], references: [id], onDelete: SetNull)
+  travelerUser   User?             @relation("MileageLogTraveler", fields: [travelerUserId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([travelOrderId])
+  @@index([travelerUserId])
+  @@index([logDate])
+}
+
+model TravelPdf {
+  id                String     @id @default(cuid())
+  companyId         String
+  travelOrderId     String
+  version           Int        @default(1)
+  fileName          String
+  mimeType          String     @default("application/pdf")
+  sizeBytes         Int
+  r2Key             String
+  sha256            String
+  sourceSnapshot    Json
+  isImmutable       Boolean    @default(true)
+  lockedAt          DateTime   @default(now())
+  generatedAt       DateTime   @default(now())
+  generatedByUserId String?
+  createdAt         DateTime   @default(now())
+  company           Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  travelOrder       TravelOrder @relation(fields: [travelOrderId], references: [id], onDelete: Cascade)
+  generatedByUser   User?      @relation("TravelPdfGeneratedBy", fields: [generatedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([travelOrderId, version])
+  @@index([companyId])
+  @@index([travelOrderId])
+  @@index([sha256])
 }
 
 model SavedReport {
@@ -977,6 +1551,17 @@ model FiscalRequest {
   lockedBy       String?
   jir            String?
   zki            String?
+  certificateSubject   String?
+  certificateSerial    String?
+  certificateNotBefore DateTime?
+  certificateNotAfter  DateTime?
+  certificateSha256    String?
+  certificateProvider  String?
+  certificateOib       String?
+  qrInvoiceNumber      String?
+  qrIssuerOib          String?
+  qrIssueDate          DateTime?
+  qrAmount             Decimal?         @db.Decimal(10, 2)
   errorCode      String?
   errorMessage   String?
   lastHttpStatus Int?
@@ -988,11 +1573,35 @@ model FiscalRequest {
   certificate    FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
   company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   invoice        EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  responses      FiscalResponse[]
 
   @@unique([companyId, invoiceId, messageType])
   @@index([status, nextRetryAt])
   @@index([companyId])
   @@index([invoiceId])
+}
+
+model FiscalResponse {
+  id                String               @id @default(cuid())
+  requestId         String
+  status            FiscalResponseStatus
+  attemptNumber     Int
+  jir               String?
+  zki               String?
+  responseXml       String?
+  errorCode         String?
+  errorMessage      String?
+  httpStatus        Int?
+  qrJir             String?
+  qrZki             String?
+  qrVerificationUrl String?
+  qrDateTime        DateTime?
+  qrAmount          Decimal?             @db.Decimal(10, 2)
+  createdAt         DateTime             @default(now())
+  request           FiscalRequest         @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([status])
 }
 
 model AIFeedback {
@@ -1511,6 +2120,50 @@ enum SystemRole {
   ADMIN
 }
 
+enum EmploymentContractStatus {
+  ACTIVE
+  TERMINATED
+  SUSPENDED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  FIXED_TERM
+  TEMPORARY
+  CONTRACTOR
+}
+
+enum TerminationReason {
+  RESIGNATION
+  DISMISSAL
+  END_OF_CONTRACT
+  RETIREMENT
+  MUTUAL_AGREEMENT
+  OTHER
+}
+
+enum DependentRelation {
+  CHILD
+  SPOUSE
+  PARENT
+  OTHER
+}
+
+enum AllowanceType {
+  MEAL
+  TRANSPORT
+  HOUSING
+  BONUS
+  OTHER
+}
+
+enum PensionPillarType {
+  FIRST
+  SECOND
+  THIRD
+}
+
 enum ClientInvitationStatus {
   PENDING
   ACCEPTED
@@ -1716,6 +2369,18 @@ enum DocumentType {
   EXPENSE
 }
 
+enum StockMovementType {
+  PRIMKA
+  IZDATNICA
+  ADJUSTMENT
+}
+
+enum StockValuationMethod {
+  FIFO
+  LIFO
+  WEIGHTED_AVERAGE
+}
+
 enum PageStatus {
   PENDING
   VERIFIED
@@ -1789,6 +2454,20 @@ enum AttachmentStatus {
   FAILED
 }
 
+enum AttachmentSource {
+  UPLOAD
+  EMAIL
+  IMPORT
+  SYSTEM
+}
+
+enum FixedAssetCandidateStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+}
+
 enum FiscalEnv {
   TEST
   PROD
@@ -1813,6 +2492,11 @@ enum FiscalMessageType {
   RACUN
   STORNO
   PROVJERA
+}
+
+enum FiscalResponseStatus {
+  SUCCESS
+  FAILED
 }
 
 enum CertificateNotificationStatus {
@@ -2376,6 +3060,70 @@ model RegulatoryRule {
   @@index([effectiveFrom])
   @@index([meaningSignature])
   @@index([conceptId])
+}
+
+// ============================================================================
+// FISCAL RULE TABLES (Deterministic Calculations)
+// ============================================================================
+
+model RuleTable {
+  id          String        @id @default(cuid())
+  key         String        @unique // VAT, MUNICIPALITY_INCOME_TAX, CONTRIBUTIONS, PER_DIEM, MILEAGE, JOPPD_CODEBOOK
+  name        String
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  versions    RuleVersion[]
+
+  @@index([key])
+}
+
+model RuleVersion {
+  id            String         @id @default(cuid())
+  tableId       String
+  version       String
+  effectiveFrom DateTime
+  effectiveUntil DateTime?
+  data          Json
+  dataHash      String
+  publishedAt   DateTime       @default(now())
+  createdAt     DateTime       @default(now())
+
+  table     RuleTable     @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  snapshots RuleSnapshot[]
+  calculations RuleCalculation[]
+
+  @@unique([tableId, version])
+  @@index([tableId, effectiveFrom])
+}
+
+model RuleSnapshot {
+  id            String       @id @default(cuid())
+  ruleVersionId String
+  data          Json
+  dataHash      String
+  createdAt     DateTime     @default(now())
+
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+
+  @@index([ruleVersionId])
+}
+
+model RuleCalculation {
+  id            String       @id @default(cuid())
+  ruleVersionId String
+  tableKey      String
+  input         Json
+  result        Json
+  referenceDate DateTime
+  createdAt     DateTime     @default(now())
+
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+
+  @@index([tableKey])
+  @@index([ruleVersionId])
+  @@index([referenceDate])
 }
 
 // ============================================================================
@@ -3663,6 +4411,114 @@ model ExperimentEvent {
 }
 
 // ============================================================================
+// PAYROLL & PAYOUTS
+// ============================================================================
+
+model Payout {
+  id         String       @id @default(cuid())
+  companyId  String
+  status     PayoutStatus @default(DRAFT)
+  periodFrom DateTime
+  periodTo   DateTime
+  currency   String       @default("EUR")
+
+  lockedAt   DateTime?
+  lockedById String?
+  reportedAt DateTime?
+  reportedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  lockedBy      User?              @relation("PayoutLockedBy", fields: [lockedById], references: [id])
+  reportedBy    User?              @relation("PayoutReportedBy", fields: [reportedById], references: [id])
+  lines         PayoutLine[]
+  artifacts     PayslipArtifact[]
+  snapshots     CalculationSnapshot[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([periodFrom, periodTo])
+}
+
+model PayoutLine {
+  id           String   @id @default(cuid())
+  companyId    String
+  payoutId     String
+  employmentId String
+  employeeName String
+  employeeOib  String?
+  employeeIban String?
+  grossAmount  Decimal  @db.Decimal(19, 4)
+  netAmount    Decimal  @db.Decimal(19, 4)
+  taxAmount    Decimal  @db.Decimal(19, 4)
+  currency     String   @default("EUR")
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout    Payout  @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  artifacts PayslipArtifact[]
+  snapshots CalculationSnapshot[]
+
+  @@index([companyId])
+  @@index([payoutId])
+  @@index([employmentId])
+}
+
+model PayslipArtifact {
+  id          String   @id @default(cuid())
+  companyId   String
+  payoutId    String
+  payoutLineId String
+  storageKey  String
+  fileName    String
+  contentType String
+  sizeBytes   Int
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout    Payout    @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([payoutId])
+  @@index([payoutLineId])
+}
+
+model CalculationSnapshot {
+  id                 String   @id @default(cuid())
+  companyId          String
+  payoutId           String
+  payoutLineId       String?
+  rulesEngineSnapshot Json
+  employmentSnapshot Json
+  inputSnapshot      Json
+  outputSnapshot     Json
+  createdById        String?
+  createdAt          DateTime @default(now())
+
+  company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout     Payout     @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
+  createdBy  User?      @relation("CalculationSnapshotCreatedBy", fields: [createdById], references: [id])
+
+  @@index([companyId])
+  @@index([payoutId])
+  @@index([payoutLineId])
+}
+
+enum PayoutStatus {
+  DRAFT
+  LOCKED
+  REPORTED
+}
+
+// ============================================================================
 // WEBHOOK & PUSH NOTIFICATION INFRASTRUCTURE
 // ============================================================================
 
@@ -3772,4 +4628,145 @@ model CronJobError {
   @@index([entityId])
   @@index([resolvedAt])
   @@index([createdAt])
+}
+
+// ============================================================================
+// ASSET REGISTRY & DEPRECIATION
+// ============================================================================
+
+model FixedAsset {
+  id                 String              @id @default(cuid())
+  companyId          String
+  name               String
+  category           AssetCategory
+  acquisitionDate    DateTime
+  acquisitionCost    Decimal             @db.Decimal(12, 2)
+  salvageValue       Decimal             @default(0) @db.Decimal(12, 2)
+  usefulLifeMonths   Int
+  depreciationMethod DepreciationMethod
+  status             AssetStatus         @default(ACTIVE)
+  disposedAt         DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  depreciationSchedule  DepreciationSchedule?
+  depreciationEntries   DepreciationEntry[]
+  disposalEvents        DisposalEvent[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([acquisitionDate])
+}
+
+model DepreciationSchedule {
+  id               String                     @id @default(cuid())
+  assetId          String                     @unique
+  method           DepreciationMethod
+  periodMonths     Int                        @default(1)
+  startDate        DateTime
+  endDate          DateTime
+  totalDepreciation Decimal                   @db.Decimal(12, 2)
+  status           DepreciationScheduleStatus @default(LOCKED)
+  lockedAt         DateTime?
+  createdAt        DateTime                   @default(now())
+
+  asset   FixedAsset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  entries DepreciationEntry[]
+
+  @@index([assetId])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model DepreciationEntry {
+  id                 String   @id @default(cuid())
+  scheduleId         String
+  assetId            String
+  periodStart        DateTime
+  periodEnd          DateTime
+  sequence           Int
+  amount             Decimal  @db.Decimal(12, 2)
+  accumulatedAmount  Decimal  @db.Decimal(12, 2)
+  createdAt          DateTime @default(now())
+
+  schedule DepreciationSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  asset    FixedAsset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, sequence])
+  @@index([assetId, periodStart])
+  @@index([periodEnd])
+}
+
+model DisposalEvent {
+  id           String   @id @default(cuid())
+  assetId      String
+  disposalDate DateTime
+  proceeds     Decimal? @db.Decimal(12, 2)
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  asset FixedAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([disposalDate])
+}
+
+model AssetCandidate {
+  id               String               @id @default(cuid())
+  companyId        String
+  source           AssetCandidateSource
+  sourceReference  String
+  name             String
+  category         AssetCategory
+  acquisitionDate  DateTime
+  acquisitionCost  Decimal              @db.Decimal(12, 2)
+  usefulLifeMonths Int?
+  metadata         Json?
+  status           AssetCandidateStatus  @default(PENDING)
+  convertedAssetId String?               @unique
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  convertedAsset FixedAsset? @relation(fields: [convertedAssetId], references: [id])
+
+  @@unique([companyId, source, sourceReference])
+  @@index([status])
+  @@index([companyId])
+}
+
+enum AssetCategory {
+  BUILDING
+  EQUIPMENT
+  FURNITURE
+  VEHICLE
+  INTANGIBLE
+  OTHER
+}
+
+enum AssetStatus {
+  ACTIVE
+  PAUSED
+  DISPOSED
+}
+
+enum DepreciationMethod {
+  STRAIGHT_LINE
+  DECLINING_BALANCE
+  MANUAL
+}
+
+enum DepreciationScheduleStatus {
+  LOCKED
+}
+
+enum AssetCandidateStatus {
+  PENDING
+  CONVERTED
+  REJECTED
+}
+
+enum AssetCandidateSource {
+  PROCUREMENT
 }
