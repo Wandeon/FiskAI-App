@@ -13,6 +13,7 @@ interface ActionButtonsProps {
   onHowToApplyClick?: () => void
   onSave?: () => void
   onShare?: () => void
+  headline?: string
   className?: string
 }
 
@@ -25,6 +26,7 @@ export function ActionButtons({
   onHowToApplyClick,
   onSave,
   onShare,
+  headline,
   className,
 }: ActionButtonsProps) {
   const hasAnyButton = hasWhy || hasHowToApply || onSave || onShare
@@ -40,6 +42,7 @@ export function ActionButtons({
           type="button"
           onClick={onWhyClick}
           aria-expanded={whyExpanded}
+          aria-label={headline ? `Saznajte zašto: ${headline}` : "Saznajte zašto"}
           className={cn(
             "text-sm px-3 py-1.5 border rounded-md transition-colors",
             "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50",
@@ -55,6 +58,7 @@ export function ActionButtons({
           type="button"
           onClick={onHowToApplyClick}
           aria-expanded={howToApplyExpanded}
+          aria-label="Kako primijeniti ovu preporuku"
           className={cn(
             "text-sm px-3 py-1.5 border rounded-md transition-colors",
             "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50",

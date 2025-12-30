@@ -64,6 +64,7 @@ export const AnswerCard = forwardRef<HTMLHeadingElement, AnswerCardProps>(functi
           <button
             type="button"
             onClick={onWhyClick}
+            aria-label={`Saznajte zašto: ${headline}`}
             className="text-sm px-3 py-1.5 border rounded-md hover:bg-muted transition-colors"
           >
             Why?
@@ -73,6 +74,7 @@ export const AnswerCard = forwardRef<HTMLHeadingElement, AnswerCardProps>(functi
           <button
             type="button"
             onClick={onHowToApplyClick}
+            aria-label="Kako primijeniti ovu preporuku"
             className="text-sm px-3 py-1.5 border rounded-md hover:bg-muted transition-colors"
           >
             How to apply
