@@ -92,6 +92,10 @@ export async function runAutoMatchExpenses(params: AutoMatchParams) {
     if (shouldAutoMatch) {
       matchedCount++
 
+      // Get current expense to preserve its status
+      const expense = expenses.find((e) => e.id === result.matchedExpenseId)
+      if (!expense) continue
+
       // Link transaction to expense
       updates.push(
         db.bankTransaction.update({
@@ -106,11 +110,12 @@ export async function runAutoMatchExpenses(params: AutoMatchParams) {
         })
       )
 
-      // Mark expense as paid
+      // Mark expense as paid, preserving original status
       updates.push(
         db.expense.update({
           where: { id: result.matchedExpenseId! },
           data: {
+            statusBeforeMatch: expense.status,
             status: "PAID",
             paymentDate: txn.date,
           },
@@ -228,10 +233,11 @@ export async function linkTransactionToExpense(
       },
     })
 
-    // Mark expense as paid
+    // Mark expense as paid, preserving original status
     await db.expense.update({
       where: { id: expenseId },
       data: {
+        statusBeforeMatch: expense.status,
         status: "PAID",
         paymentDate: transaction.date,
       },
@@ -281,12 +287,16 @@ export async function unlinkTransactionFromExpense(
       },
     })
 
-    // Reset expense status back to PENDING if there was one
+    // Restore expense to its original status if there was one
     if (expenseId) {
+      const expense = transaction.matchedExpense
+      const restoredStatus = expense?.statusBeforeMatch || "PENDING"
+
       await db.expense.update({
         where: { id: expenseId },
         data: {
-          status: "PENDING",
+          status: restoredStatus,
+          statusBeforeMatch: null, // Clear the saved status
           paymentDate: null,
         },
       })

@@ -1037,14 +1037,24 @@ async function processSingleItem(item: {
         )
 
         const contentHash = hashContent(buffer.toString("base64"))
-        const evidence = await db.evidence.create({
-          data: {
+        const evidence = await db.evidence.upsert({
+          where: {
+            url_contentHash: {
+              url: item.url,
+              contentHash: contentHash,
+            },
+          },
+          create: {
             sourceId: source.id,
             url: item.url,
             rawContent: buffer.toString("base64"),
             contentHash: contentHash,
             contentType: "pdf",
             contentClass: "PDF_SCANNED",
+          },
+          update: {
+            // If we re-encounter same content, just update fetchedAt timestamp
+            fetchedAt: new Date(),
           },
         })
 
@@ -1083,14 +1093,24 @@ async function processSingleItem(item: {
         )
 
         const contentHash = hashContent(buffer.toString("base64"))
-        const evidence = await db.evidence.create({
-          data: {
+        const evidence = await db.evidence.upsert({
+          where: {
+            url_contentHash: {
+              url: item.url,
+              contentHash: contentHash,
+            },
+          },
+          create: {
             sourceId: source.id,
             url: item.url,
             rawContent: buffer.toString("base64"),
             contentHash: contentHash,
             contentType: "pdf",
             contentClass: "PDF_TEXT",
+          },
+          update: {
+            // If we re-encounter same content, just update fetchedAt timestamp
+            fetchedAt: new Date(),
           },
         })
 
