@@ -12,34 +12,19 @@ const MAX_UPLOAD_BYTES = 20 * 1024 * 1024 // 20MB safety cap
 const ALLOWED_EXTENSIONS = ["pdf", "xml"]
 
 export async function POST(request: Request) {
-  // For testing, allow first company without auth
   let company, userId
 
   try {
     const user = await requireAuth()
-    if (user) {
-      userId = user.id!
-      const userCompany = await requireCompany(userId)
-      if (!userCompany) {
-        return NextResponse.json({ error: "Company not found" }, { status: 404 })
-      }
-      company = userCompany
-    } else {
-      // Fallback for testing: get first company
-      company = await db.company.findFirst()
-      if (!company) {
-        return NextResponse.json({ error: "No company found" }, { status: 404 })
-      }
-      userId = "test-user-" + Date.now()
+    userId = user.id!
+    const userCompany = await requireCompany(userId)
+    if (!userCompany) {
+      return NextResponse.json({ error: "Company not found" }, { status: 404 })
     }
+    company = userCompany
   } catch (authError) {
-    // If auth fails, try first company for testing
-    bankingLogger.warn({ error: authError }, "Auth failed, using test mode for bank import upload")
-    company = await db.company.findFirst()
-    if (!company) {
-      return NextResponse.json({ error: "No company found" }, { status: 404 })
-    }
-    userId = "test-user-" + Date.now()
+    bankingLogger.warn({ error: authError }, "Bank import upload authentication failed")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   setTenantContext({
