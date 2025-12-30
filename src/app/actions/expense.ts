@@ -55,6 +55,14 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
         return { success: false, error: "Kategorija nije pronađena" }
       }
 
+      // Check if receipt is required for this category
+      if (category.receiptRequired && !input.receiptUrl) {
+        return {
+          success: false,
+          error: "Račun je obavezan za ovu kategoriju troška"
+        }
+      }
+
       // Verify vendor if provided (automatically filtered by tenant context)
       if (input.vendorId) {
         const vendor = await db.contact.findFirst({
@@ -115,7 +123,33 @@ export async function updateExpense(
 
       const updateData: Prisma.ExpenseUpdateInput = {}
 
-      if (input.categoryId) updateData.category = { connect: { id: input.categoryId } }
+      // Check if category is being changed and validate receipt requirement
+      if (input.categoryId) {
+        const category = await db.expenseCategory.findFirst({
+          where: {
+            id: input.categoryId,
+            OR: [{ companyId: existing.companyId }, { companyId: null }],
+          },
+        })
+
+        if (!category) {
+          return { success: false, error: "Kategorija nije pronađena" }
+        }
+
+        // If changing category, check if new category requires receipt
+        const finalReceiptUrl = (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl !== undefined
+          ? (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl
+          : existing.receiptUrl
+
+        if (category.receiptRequired && !finalReceiptUrl) {
+          return {
+            success: false,
+            error: "Račun je obavezan za ovu kategoriju troška"
+          }
+        }
+
+        updateData.category = { connect: { id: input.categoryId } }
+      }
       if (input.vendorId !== undefined) {
         updateData.vendor = input.vendorId
           ? { connect: { id: input.vendorId } }

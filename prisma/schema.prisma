@@ -492,6 +492,7 @@ model ExpenseCategory {
   name                 String
   code                 String
   vatDeductibleDefault Boolean   @default(true)
+  receiptRequired      Boolean   @default(false)
   isActive             Boolean   @default(true)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt

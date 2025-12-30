@@ -28,11 +28,38 @@ export interface PaymentSlipData {
 }
 
 /**
+ * Result of HUB-3A generation including warnings about truncated fields
+ */
+export interface HubGenerationResult {
+  data: string
+  warnings: string[]
+}
+
+/**
  * Format data according to HUB-3A specification
  * Each field has specific length limits and must be in correct order
+ * Returns data and warnings about truncated fields
  */
-export function formatHub3aData(data: PaymentSlipData): string {
+export function formatHub3aData(data: PaymentSlipData): HubGenerationResult {
   const currency = data.currency || "EUR"
+  const warnings: string[] = []
+
+  // Helper function to truncate with warning
+  const truncateWithWarning = (str: string, maxLength: number, fieldName: string): string => {
+    if (str && str.length > maxLength) {
+      warnings.push(
+        \`\${fieldName} skraćeno s \${str.length} na \${maxLength} znakova: "\${str}" -> "\${str.substring(0, maxLength)}"\`
+      )
+    }
+    return truncate(str, maxLength)
+  }
+
+  // Validate reference number - this is critical and should not be truncated
+  if (data.reference && data.reference.length > 22) {
+    throw new Error(
+      \`Poziv na broj je predugačak: \${data.reference.length} znakova (maksimum 22). Molimo koristite kraći poziv na broj.\`
+    )
+  }
 
   // Amount must be 15 digits with 2 decimal places, no separator
   // e.g., 107.88 EUR -> "000000000010788"
@@ -44,20 +71,23 @@ export function formatHub3aData(data: PaymentSlipData): string {
     "HRVHUB30", // Header (8 chars)
     currency, // Currency (3 chars)
     amountStr, // Amount (15 chars)
-    truncate(data.payerName, 30), // Payer name (max 30)
-    truncate(data.payerAddress, 27), // Payer address (max 27)
-    truncate(data.payerCity, 27), // Payer city (max 27)
-    truncate(data.recipientName, 25), // Recipient name (max 25)
-    truncate(data.recipientAddress, 25), // Recipient address (max 25)
-    truncate(data.recipientCity, 27), // Recipient city (max 27)
+    truncateWithWarning(data.payerName, 30, "Ime platitelja"), // Payer name (max 30)
+    truncateWithWarning(data.payerAddress, 27, "Adresa platitelja"), // Payer address (max 27)
+    truncateWithWarning(data.payerCity, 27, "Grad platitelja"), // Payer city (max 27)
+    truncateWithWarning(data.recipientName, 25, "Ime primatelja"), // Recipient name (max 25)
+    truncateWithWarning(data.recipientAddress, 25, "Adresa primatelja"), // Recipient address (max 25)
+    truncateWithWarning(data.recipientCity, 27, "Grad primatelja"), // Recipient city (max 27)
     data.recipientIban, // IBAN (21 chars for HR)
     data.model, // Model (4 chars, e.g., "HR68")
-    truncate(data.reference, 22), // Reference (max 22)
+    data.reference, // Reference (max 22) - validated above, never truncated
     data.purposeCode || "OTHR", // Purpose code (4 chars)
-    truncate(data.description, 35), // Description (max 35)
+    truncateWithWarning(data.description, 35, "Opis plaćanja"), // Description (max 35)
   ]
 
-  return lines.join("\n")
+  return {
+    data: lines.join("\n"),
+    warnings,
+  }
 }
 
 /**
@@ -67,10 +97,10 @@ export async function generateBarcodeSvg(data: PaymentSlipData): Promise<string>
   // Dynamic import to avoid SSR issues
   const { PDF417 } = await import("pdf417-generator")
 
-  const hub3aString = formatHub3aData(data)
+  const result = formatHub3aData(data)
 
   // Generate barcode
-  const barcode = PDF417.encode(hub3aString, {
+  const barcode = PDF417.encode(result.data, {
     columns: 10,
     errorLevel: 5,
   })
@@ -89,7 +119,7 @@ export async function generateBarcodeSvg(data: PaymentSlipData): Promise<string>
 export async function generateBarcodeDataUrl(data: PaymentSlipData): Promise<string> {
   const svg = await generateBarcodeSvg(data)
   const base64 = Buffer.from(svg).toString("base64")
-  return `data:image/svg+xml;base64,${base64}`
+  return \`data:image/svg+xml;base64,\${base64}\`
 }
 
 /**
@@ -137,9 +167,9 @@ export function generateDoprinosiSlip(
     recipientIban: config.iban,
     amount: config.amount,
     model: config.model,
-    reference: `${config.referencePrefix}-${oib}`,
+    reference: \`\${config.referencePrefix}-\${oib}\`,
     purposeCode: "OTHR",
-    description: `${config.description} ${monthNames[periodMonth - 1]} ${periodYear}`,
+    description: \`\${config.description} \${monthNames[periodMonth - 1]} \${periodYear}\`,
   }
 }
 
@@ -163,8 +193,8 @@ export function generatePdvSlip(
     recipientIban: PDV_CONFIG.iban,
     amount,
     model: PDV_CONFIG.model,
-    reference: `${PDV_CONFIG.referencePrefix}-${oib}`,
+    reference: \`\${PDV_CONFIG.referencePrefix}-\${oib}\`,
     purposeCode: "TAXS",
-    description: `PDV za ${CROATIAN_MONTHS[periodMonth - 1]} ${periodYear}`,
+    description: \`PDV za \${CROATIAN_MONTHS[periodMonth - 1]} \${periodYear}\`,
   }
 }

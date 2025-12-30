@@ -102,35 +102,10 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
     return () => clearTimeout(timeoutId)
   }, [description, vendorName])
 
-  const handleExtracted = async (data: ExtractedReceiptWithUrl) => {
+  const handleExtracted = (data: ExtractedReceiptWithUrl) => {
     // Fill form with extracted data
     setVendorName(data.vendor)
-
-    // Try to match vendor by OIB if provided
-    if (data.vendorOib) {
-      setVendorOib(data.vendorOib)
-
-      // Search for vendor by OIB using the existing searchContacts action
-      try {
-        const { searchContacts } = await import("@/app/actions/contact")
-        const matchingContacts = await searchContacts(data.vendorOib)
-
-        if (matchingContacts && matchingContacts.length > 0) {
-          // Auto-select the first matching vendor
-          const vendor = matchingContacts[0]
-          setVendorId(vendor.id)
-          setVendorName(vendor.name)
-          toast.success(`Dobavljač pronađen: ${vendor.name}`)
-        } else {
-          // No vendor found, keep the extracted name and OIB for manual selection/creation
-          toast.info(`OIB dobavljača izvučen (${data.vendorOib}), ali dobavljač nije pronađen u bazi`)
-        }
-      } catch (error) {
-        console.error("Failed to search vendor by OIB:", error)
-        // Continue with extracted data even if search fails
-      }
-    }
-
+    if (data.vendorOib) setVendorOib(data.vendorOib)
     setDate(data.date)
 
     // Calculate net amount from total and VAT
@@ -272,6 +247,14 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
                 </option>
               ))}
             </select>
+            {categoryId && categories.find((c) => c.id === categoryId)?.receiptRequired && !receiptUrl && (
+              <div className="mt-2 flex items-start gap-2 text-sm text-warning-text bg-warning-bg border border-warning-border px-3 py-2 rounded-md">
+                <Paperclip className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>
+                  Račun je obavezan za ovu kategoriju. Molimo skenirajte ili priložite račun.
+                </span>
+              </div>
+            )}
             {suggestions.length > 0 && (
               <div className="mt-2 space-y-2">
                 <span className="text-xs text-secondary flex items-center">
