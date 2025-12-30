@@ -230,6 +230,33 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
+  // Auto-redirect STAFF/ADMIN users from app subdomain to their primary subdomain
+  // This prevents confusion where staff see client UI instead of staff tools
+  if (subdomain === "app" && (systemRole === "STAFF" || systemRole === "ADMIN")) {
+    const externalUrl = getExternalUrl(request)
+    const redirectUrl = getRedirectUrlForSystemRole(
+      systemRole as "USER" | "STAFF" | "ADMIN",
+      externalUrl.toString()
+    )
+
+    logger.info(
+      {
+        requestId,
+        systemRole,
+        currentSubdomain: subdomain,
+        redirectUrl,
+      },
+      "Auto-redirecting staff/admin user from app subdomain to their primary subdomain"
+    )
+
+    const response = NextResponse.redirect(redirectUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("Content-Security-Policy", generateCSP(nonce))
+    return response
+  }
+
+
   // Rewrite to appropriate route group based on subdomain
   const url = request.nextUrl.clone()
 
