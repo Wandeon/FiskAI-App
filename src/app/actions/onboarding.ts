@@ -113,7 +113,7 @@ const saveOnboardingSchema = z.object({
   country: z.string().min(1),
   email: z.string().email(),
   phone: z.string().optional(),
-  iban: z.string().min(1),
+  iban: z.string().optional(),
   isVatPayer: z.boolean(),
   // Pausalni profile fields (step 5)
   acceptsCash: z.boolean().optional(),
@@ -289,7 +289,7 @@ export async function saveOnboardingData(formData: z.input<typeof saveOnboarding
       country: data.country,
       email: data.email,
       phone: data.phone || null,
-      iban: data.iban,
+      iban: data.iban || null,
       isVatPayer: data.isVatPayer,
       vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
       featureFlags,
