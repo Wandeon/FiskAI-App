@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Loader2, Trash2, Eye } from "lucide-react"
+import { Eye } from "lucide-react"
 import Link from "next/link"
 import type { ImportJob, BankAccount } from "@prisma/client"
 
@@ -15,30 +14,17 @@ type Props = {
 }
 
 export function DocumentsTable({ jobs: initialJobs }: Props) {
-  const [jobs, setJobs] = useState<JobWithAccount[]>(initialJobs)
-  const [deleting, setDeleting] = useState<string | null>(null)
-
-  async function handleDelete(id: string) {
-    setDeleting(id)
-    try {
-      const res = await fetch(`/api/banking/import/jobs/${id}`, { method: "DELETE" })
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        alert(json.error || "Brisanje nije uspjelo")
-      } else {
-        setJobs((prev) => prev.filter((j) => j.id !== id))
-      }
-    } finally {
-      setDeleting(null)
-    }
-  }
+  const jobs = initialJobs
 
   if (!jobs.length) {
     return <div className="p-6 text-sm text-secondary">Nema dokumenata.</div>
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto space-y-2">
+      <p className="text-xs text-secondary">
+        Bankovni uvozi su nepromjenjivi zbog revizijskog traga.
+      </p>
       <table className="w-full text-sm">
         <thead className="bg-surface-1 border-b">
           <tr>
@@ -102,18 +88,6 @@ export function DocumentsTable({ jobs: initialJobs }: Props) {
                       <Eye className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(job.id)}
-                    disabled={deleting === job.id}
-                  >
-                    {deleting === job.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4 text-danger-text" />
-                    )}
-                  </Button>
                 </div>
               </td>
             </tr>

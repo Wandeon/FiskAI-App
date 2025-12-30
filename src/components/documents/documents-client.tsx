@@ -26,6 +26,14 @@ interface DocumentsClientProps {
   children: React.ReactNode
 }
 
+type ImportJobPayload = {
+  transactions?: Array<Record<string, unknown>>
+  items?: Array<Record<string, unknown>>
+  warehouseId?: string
+  movementDate?: string
+  referenceNumber?: string
+}
+
 export function DocumentsClient({
   bankAccounts,
   initialJobs = [],
@@ -36,7 +44,7 @@ export function DocumentsClient({
   const [selectedAccountId, setSelectedAccountId] = useState<string>(bankAccounts[0]?.id || "")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modalJob, setModalJob] = useState<ImportJobState | null>(null)
-  const [modalData, setModalData] = useState<any>(null)
+  const [modalData, setModalData] = useState<ImportJobPayload | null>(null)
 
   // Determine if we're in processing mode (have active jobs)
   const hasActiveJobs = jobs.some(
@@ -156,7 +164,8 @@ export function DocumentsClient({
               )
             )
           }
-        } catch (e) {
+        } catch (error) {
+          console.error("Upload failed", error)
           setJobs((prev) =>
             prev.map((j) =>
               j.id === tempId
@@ -183,7 +192,7 @@ export function DocumentsClient({
         const job = jobs.find((j) => j.id === jobId)
         if (job) {
           setModalJob({ ...job, ...data.job })
-          setModalData(data.job.extractedData)
+          setModalData(data.job.extractedData as ImportJobPayload)
         }
       }
     },
@@ -191,12 +200,13 @@ export function DocumentsClient({
   )
 
   const handleConfirm = useCallback(
-    async (jobId: string, editedData: any) => {
+    async (jobId: string, editedData: ImportJobPayload | null) => {
+      const transactions = editedData?.transactions ?? []
       const res = await fetch(`/api/import/jobs/${jobId}/confirm`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          transactions: editedData.transactions,
+          transactions,
           bankAccountId: selectedAccountId,
         }),
       })
@@ -283,7 +293,7 @@ export function DocumentsClient({
 
   // Handle document type change from the confirmation modal
   const handleModalTypeChange = useCallback(
-    async (newType: "BANK_STATEMENT" | "INVOICE") => {
+    async (newType: DocumentType) => {
       if (!modalJob) return
 
       // Close modal while reprocessing

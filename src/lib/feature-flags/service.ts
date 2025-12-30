@@ -459,7 +459,8 @@ export async function restoreFlag(
  */
 export async function createOverride(
   input: CreateOverrideInput,
-  userId: string
+  userId: string,
+  reason: string
 ): Promise<FeatureFlagOverride> {
   const override = await prisma.featureFlagOverride.create({
     data: {
@@ -477,6 +478,7 @@ export async function createOverride(
       action: "OVERRIDE_ADDED",
       userId,
       newValue: override as unknown as object,
+      reason,
     },
   })
 
@@ -487,7 +489,11 @@ export async function createOverride(
 /**
  * Delete a feature flag override
  */
-export async function deleteOverride(overrideId: string, userId: string): Promise<void> {
+export async function deleteOverride(
+  overrideId: string,
+  userId: string,
+  reason: string
+): Promise<void> {
   const override = await prisma.featureFlagOverride.findUnique({ where: { id: overrideId } })
   if (!override) throw new Error("Override not found")
 
@@ -497,6 +503,7 @@ export async function deleteOverride(overrideId: string, userId: string): Promis
       action: "OVERRIDE_REMOVED",
       userId,
       previousValue: override as unknown as object,
+      reason,
     },
   })
 

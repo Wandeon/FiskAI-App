@@ -136,6 +136,16 @@ async function processJob(
       },
     })
 
+    if (job.invoiceId) {
+      await db.eInvoice.update({
+        where: { id: job.invoiceId },
+        data: {
+          fiscalStatus: classification.retriable ? "PENDING" : "FAILED",
+          ...(classification.retriable ? {} : { status: "ERROR" }),
+        },
+      })
+    }
+
     return { success: false, error: classification.message }
   }
 }

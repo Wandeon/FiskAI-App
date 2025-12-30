@@ -8,6 +8,7 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { IncomingInvoice } from "@/lib/e-invoice/types"
 import { logger } from "@/lib/logger"
 import { oibOptionalSchema } from "@/lib/validations/oib"
+import { upsertOrganizationFromContact } from "@/lib/master-data/organization-service"
 
 const incomingInvoiceSchema = z.object({
   invoiceNumber: z.string(),
@@ -113,88 +114,109 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create or find buyer contact
-    let buyerContact = null
-    if (invoiceData.buyer?.oib) {
-      buyerContact = await db.contact.findFirst({
-        where: {
-          oib: invoiceData.buyer.oib,
-          companyId: company.id,
-        },
-      })
-
-      if (!buyerContact) {
-        // Create new buyer contact
-        buyerContact = await db.contact.create({
-          data: {
-            companyId: company.id,
-            type: "SUPPLIER",
-            name: invoiceData.buyer.name,
+    const incomingInvoice = await db.$transaction(async (tx) => {
+      // Create or find buyer contact
+      let buyerContact = null as null | { id: string; organizationId: string | null }
+      if (invoiceData.buyer?.oib) {
+        buyerContact = await tx.contact.findFirst({
+          where: {
             oib: invoiceData.buyer.oib,
-            address: invoiceData.buyer.address,
-            city: invoiceData.buyer.city,
-            postalCode: invoiceData.buyer.postalCode,
-            country: invoiceData.buyer.country,
+            companyId: company.id,
           },
+          select: { id: true, organizationId: true },
+        })
+
+        if (!buyerContact) {
+          buyerContact = await tx.contact.create({
+            data: {
+              companyId: company.id,
+              type: "SUPPLIER",
+              name: invoiceData.buyer.name,
+              oib: invoiceData.buyer.oib,
+              address: invoiceData.buyer.address,
+              city: invoiceData.buyer.city,
+              postalCode: invoiceData.buyer.postalCode,
+              country: invoiceData.buyer.country,
+            },
+            select: { id: true, organizationId: true },
+          })
+        }
+      }
+
+      let buyerOrganizationId = buyerContact?.organizationId ?? null
+      if (buyerContact && !buyerOrganizationId) {
+        const { organizationId } = await upsertOrganizationFromContact(tx, company.id, {
+          name: invoiceData.buyer?.name || "Unknown",
+          oib: invoiceData.buyer?.oib,
+          address: invoiceData.buyer?.address,
+          city: invoiceData.buyer?.city,
+          postalCode: invoiceData.buyer?.postalCode,
+          country: invoiceData.buyer?.country,
+        })
+        buyerOrganizationId = organizationId
+        await tx.contact.update({
+          where: { id: buyerContact.id },
+          data: { organizationId },
         })
       }
-    }
 
-    // Create the incoming e-invoice
-    const incomingInvoice = await db.eInvoice.create({
-      data: {
-        companyId: company.id,
-        direction: invoiceData.direction,
-        type: invoiceData.type,
-        internalReference: generateInternalReference(
-          invoiceData.invoiceNumber,
-          invoiceData.issueDate
-        ),
-        notes: `Primljeni e-račun iz vanjskog sustava. Provider ref: ${invoiceData.providerRef || "N/A"}`,
-        buyerId: buyerContact?.id,
+      // Create the incoming e-invoice
+      return tx.eInvoice.create({
+        data: {
+          companyId: company.id,
+          direction: invoiceData.direction,
+          type: invoiceData.type,
+          internalReference: generateInternalReference(
+            invoiceData.invoiceNumber,
+            invoiceData.issueDate
+          ),
+          notes: `Primljeni e-račun iz vanjskog sustava. Provider ref: ${invoiceData.providerRef || "N/A"}`,
+          buyerId: buyerContact?.id,
+          buyerOrganizationId,
 
-        // Invoice data
-        invoiceNumber: invoiceData.invoiceNumber,
-        issueDate: new Date(invoiceData.issueDate),
-        dueDate: invoiceData.dueDate ? new Date(invoiceData.dueDate) : undefined,
-        currency: invoiceData.currency,
-        bankAccount: company.iban || undefined,
+          // Invoice data
+          invoiceNumber: invoiceData.invoiceNumber,
+          issueDate: new Date(invoiceData.issueDate),
+          dueDate: invoiceData.dueDate ? new Date(invoiceData.dueDate) : undefined,
+          currency: invoiceData.currency,
+          bankAccount: company.iban || undefined,
 
-        // Amounts
-        netAmount: invoiceData.netAmount,
-        vatAmount: invoiceData.vatAmount,
-        totalAmount: invoiceData.totalAmount,
+          // Amounts
+          netAmount: invoiceData.netAmount,
+          vatAmount: invoiceData.vatAmount,
+          totalAmount: invoiceData.totalAmount,
 
-        // Status - set to "DELIVERED" since it's received
-        status: "DELIVERED",
+          // Status - set to "DELIVERED" since it's received
+          status: "DELIVERED",
 
-        // Provider info
-        providerRef: invoiceData.providerRef,
-        providerStatus: "RECEIVED",
-        providerError: null,
+          // Provider info
+          providerRef: invoiceData.providerRef,
+          providerStatus: "RECEIVED",
+          providerError: null,
 
-        // XML data if provided
-        ...(invoiceData.xmlData && { ublXml: invoiceData.xmlData }),
+          // XML data if provided
+          ...(invoiceData.xmlData && { ublXml: invoiceData.xmlData }),
 
-        // Create invoice lines
-        lines: {
-          create: invoiceData.lines.map((line, index) => ({
-            lineNumber: index + 1,
-            description: line.description,
-            quantity: line.quantity,
-            unit: line.unit,
-            unitPrice: line.unitPrice,
-            netAmount: line.netAmount,
-            vatRate: line.vatRate,
-            vatCategory: line.vatCategory,
-            vatAmount: line.vatAmount,
-          })),
+          // Create invoice lines
+          lines: {
+            create: invoiceData.lines.map((line, index) => ({
+              lineNumber: index + 1,
+              description: line.description,
+              quantity: line.quantity,
+              unit: line.unit,
+              unitPrice: line.unitPrice,
+              netAmount: line.netAmount,
+              vatRate: line.vatRate,
+              vatCategory: line.vatCategory,
+              vatAmount: line.vatAmount,
+            })),
+          },
         },
-      },
-      include: {
-        lines: { orderBy: { lineNumber: "asc" } },
-        buyer: true,
-      },
+        include: {
+          lines: { orderBy: { lineNumber: "asc" } },
+          buyer: true,
+        },
+      })
     })
 
     logger.info(

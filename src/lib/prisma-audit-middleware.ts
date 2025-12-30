@@ -7,6 +7,9 @@ import { logger } from "./logger"
 const AUDITED_MODELS = [
   "EInvoice",
   "Contact",
+  "Organization",
+  "Address",
+  "TaxIdentity",
   "Product",
   "Company",
   "EInvoiceLine",

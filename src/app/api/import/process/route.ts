@@ -57,7 +57,13 @@ export async function POST(request: Request) {
     const documentType = job.documentType || DocumentType.BANK_STATEMENT
     let extractedData: any = null
 
-    if (documentType === DocumentType.INVOICE) {
+    if (documentType === DocumentType.PRIMKA || documentType === DocumentType.IZDATNICA) {
+      extractedData = {
+        items: [],
+        movementType: documentType,
+        referenceNumber: job.originalName,
+      }
+    } else if (documentType === DocumentType.INVOICE) {
       // Process as invoice
       if (["pdf", "jpg", "jpeg", "png", "heic", "webp"].includes(extension)) {
         extractedData = await processInvoice(job, extension)

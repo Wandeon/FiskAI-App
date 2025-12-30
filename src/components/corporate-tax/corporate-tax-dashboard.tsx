@@ -14,6 +14,9 @@ interface Props {
     periodTo: Date
     revenue: number
     expenses: number
+    glExpenses: number
+    depreciation: number
+    payroll: number
     nonDeductibleExpenses: number
     accountingProfit: number
     taxBase: number
@@ -118,8 +121,24 @@ export function CorporateTaxDashboard({ companyName, taxBaseInputs }: Props) {
             <span className="font-medium">{taxBaseInputs.revenue.toLocaleString("hr-HR")} EUR</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Rashodi</span>
+            <span>Rashodi (glavna knjiga)</span>
             <span className="font-medium">
+              {taxBaseInputs.glExpenses.toLocaleString("hr-HR")} EUR
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Amortizacija</span>
+            <span className="font-medium">
+              {taxBaseInputs.depreciation.toLocaleString("hr-HR")} EUR
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Plaće</span>
+            <span className="font-medium">{taxBaseInputs.payroll.toLocaleString("hr-HR")} EUR</span>
+          </div>
+          <div className="flex items-center justify-between border-t pt-2">
+            <span>Ukupni rashodi</span>
+            <span className="font-semibold">
               {taxBaseInputs.expenses.toLocaleString("hr-HR")} EUR
             </span>
           </div>

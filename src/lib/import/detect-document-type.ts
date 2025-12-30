@@ -44,6 +44,22 @@ export function detectDocumentType(
   const ext = fileName.split(".").pop()?.toLowerCase() || ""
   const nameLower = fileName.toLowerCase()
 
+  if (nameLower.includes("primka")) {
+    return {
+      type: DocumentType.PRIMKA,
+      confidence: 0.9,
+      reason: "Filename contains 'primka'",
+    }
+  }
+
+  if (nameLower.includes("izdatnica")) {
+    return {
+      type: DocumentType.IZDATNICA,
+      confidence: 0.9,
+      reason: "Filename contains 'izdatnica'",
+    }
+  }
+
   // XML files are almost always bank statements (CAMT.053)
   if (ext === "xml") {
     return {

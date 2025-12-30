@@ -1,6 +1,7 @@
 import { describe, it } from "node:test"
 import assert from "node:assert"
 import { generateJoppdXml, type JoppdFormData } from "../joppd/joppd-generator"
+import { validateJoppdXml } from "../joppd/joppd-xml-schema"
 
 describe("JOPPD XML Generator", () => {
   it("generates valid JOPPD XML structure", () => {
@@ -43,9 +44,11 @@ describe("JOPPD XML Generator", () => {
     }
 
     const xml = generateJoppdXml(input)
+    const validation = validateJoppdXml(xml)
 
     // Check Root
     assert.ok(xml.includes("<ObrazacJOPPD"), "Missing root element")
+    assert.equal(validation.valid, true, "XML should pass schema validation")
 
     // Check Header
     assert.ok(xml.includes("<Metapodaci>"), "Missing Metapodaci")

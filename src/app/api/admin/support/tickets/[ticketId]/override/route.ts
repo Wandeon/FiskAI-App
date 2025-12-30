@@ -40,12 +40,16 @@ export async function PATCH(
   try {
     const body = await request.json()
     const { status, priority, assignedToId, reason } = body
+    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
 
     if (!status && !priority && typeof assignedToId === "undefined") {
       return NextResponse.json(
         { error: "At least one override field is required" },
         { status: 400 }
       )
+    }
+    if (!trimmedReason) {
+      return NextResponse.json({ error: "Reason is required" }, { status: 400 })
     }
 
     const ticket = await db.supportTicket.findUnique({
@@ -71,10 +75,10 @@ export async function PATCH(
       action: "UPDATE",
       entity: "SupportTicket",
       entityId: ticket.id,
+      reason: trimmedReason,
       changes: {
         before: serializeTicket(ticket),
         after: serializeTicket(updatedTicket),
-        reason: reason || "Support override",
       },
       ipAddress: getIpFromHeaders(request.headers),
       userAgent: getUserAgentFromHeaders(request.headers),

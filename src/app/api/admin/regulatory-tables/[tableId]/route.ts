@@ -71,6 +71,10 @@ export async function PATCH(
     const body = await request.json()
     const { name, category, jurisdiction, keyColumn, valueColumn, sourceUrl, evidenceId, reason } =
       body
+    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
+    if (!trimmedReason) {
+      return NextResponse.json({ error: "Reason is required" }, { status: 400 })
+    }
 
     const table = await db.referenceTable.findUnique({
       where: { id: tableId },
@@ -102,10 +106,10 @@ export async function PATCH(
       action: "UPDATE",
       entity: "ReferenceTable",
       entityId: table.id,
+      reason: trimmedReason,
       changes: {
         before: serializeTable(table),
         after: serializeTable(updatedTable),
-        reason: reason || "Admin regulatory table update",
       },
       ipAddress: getIpFromHeaders(request.headers),
       userAgent: getUserAgentFromHeaders(request.headers),

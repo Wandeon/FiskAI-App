@@ -137,62 +137,92 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
         }
       : undefined
 
-  const expenses = await db.expense.findMany({
+  const uraInputs = await db.uraInput.findMany({
     where: {
       companyId,
-      status: { not: "DRAFT" },
       ...(dateFilter ? { date: dateFilter } : {}),
     },
     include: {
-      vendor: { select: { name: true, oib: true } },
+      expense: {
+        select: {
+          id: true,
+          date: true,
+          description: true,
+          vendor: { select: { name: true, oib: true } },
+        },
+      },
+      expenseLine: {
+        select: {
+          description: true,
+        },
+      },
     },
     orderBy: { date: "asc" },
   })
 
-  return expenses.map((exp) => {
-    const rate = Number(exp.vatRate)
-    const net = Number(exp.netAmount)
-    const vat = Number(exp.vatAmount)
+  const aggregated = new Map<string, UraRow & { deductibleVat: number; nonDeductibleVat: number }>()
 
-    let base25 = 0,
-      vat25 = 0
-    let base13 = 0,
-      vat13 = 0
-    let base5 = 0,
-      vat5 = 0
-    let base0 = 0
+  for (const input of uraInputs) {
+    const expense = input.expense
+    const key = expense.id
+    const rate = Number(input.vatRate)
+    const net = Number(input.netAmount)
+    const vat = Number(input.vatAmount)
+
+    const existing =
+      aggregated.get(key) ??
+      (() => {
+        const entry: UraRow & { deductibleVat: number; nonDeductibleVat: number } = {
+          date: expense.date,
+          documentRef: expense.description,
+          vendorName: expense.vendor?.name ?? null,
+          vendorOib: expense.vendor?.oib ?? null,
+          netAmount: 0,
+          vatAmount: 0,
+          totalAmount: 0,
+          vatDeductible: true,
+          base25: 0,
+          vat25: 0,
+          base13: 0,
+          vat13: 0,
+          base5: 0,
+          vat5: 0,
+          base0: 0,
+          deductibleVat: 0,
+          nonDeductibleVat: 0,
+        }
+        aggregated.set(key, entry)
+        return entry
+      })()
+
+    existing.netAmount += net
+    existing.vatAmount += vat
+    existing.totalAmount += Number(input.totalAmount)
+    existing.deductibleVat += Number(input.deductibleVatAmount)
+    existing.nonDeductibleVat += Number(input.nonDeductibleVatAmount)
 
     if (Math.abs(rate - 25) < 0.1) {
-      base25 = net
-      vat25 = vat
+      existing.base25 += net
+      existing.vat25 += vat
     } else if (Math.abs(rate - 13) < 0.1) {
-      base13 = net
-      vat13 = vat
+      existing.base13 += net
+      existing.vat13 += vat
     } else if (Math.abs(rate - 5) < 0.1) {
-      base5 = net
-      vat5 = vat
+      existing.base5 += net
+      existing.vat5 += vat
     } else {
-      base0 = net
+      existing.base0 += net
     }
 
-    return {
-      date: exp.date,
-      documentRef: exp.description,
-      vendorName: exp.vendor?.name ?? null,
-      vendorOib: exp.vendor?.oib ?? null,
-      netAmount: Number(exp.netAmount),
-      vatAmount: Number(exp.vatAmount),
-      totalAmount: Number(exp.totalAmount),
-      vatDeductible: exp.vatDeductible,
-      base25,
-      vat25,
-      base13,
-      vat13,
-      base5,
-      vat5,
-      base0,
+    if (input.expenseLine?.description && input.expenseLine.description !== expense.description) {
+      existing.documentRef = `${expense.description} - ${input.expenseLine.description}`
     }
-  })
+  }
+
+  return Array.from(aggregated.values()).map(({ deductibleVat, nonDeductibleVat, ...row }) => ({
+    ...row,
+    vatDeductible: nonDeductibleVat <= 0 && deductibleVat > 0,
+  }))
 }
 
 function formatDate(value?: Date | null) {

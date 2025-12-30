@@ -1,4 +1,4 @@
-import type { AccountingPeriod } from "@prisma/client"
+import type { AccountingPeriod, PeriodType } from "@prisma/client"
 import { db } from "@/lib/db"
 import { logServiceBoundarySnapshot } from "@/lib/audit-hooks"
 import { runWithAuditContext } from "@/lib/audit-context"
@@ -6,6 +6,9 @@ import { runWithAuditContext } from "@/lib/audit-context"
 export interface AccountingPeriodInput {
   startDate: Date
   endDate: Date
+  periodType?: PeriodType
+  fiscalYear?: number
+  periodNumber?: number
 }
 
 export async function listAccountingPeriods(companyId: string): Promise<AccountingPeriod[]> {
@@ -21,10 +24,17 @@ export async function createAccountingPeriod(
   actorId: string,
   reason: string
 ): Promise<AccountingPeriod> {
+  const fiscalYear = input.fiscalYear ?? input.startDate.getFullYear()
+  const periodNumber = input.periodNumber ?? input.startDate.getMonth() + 1
+  const periodType = input.periodType ?? "MONTHLY"
+
   const period = await runWithAuditContext({ actorId, reason }, async () =>
     db.accountingPeriod.create({
       data: {
         companyId,
+        fiscalYear,
+        periodNumber,
+        periodType,
         startDate: input.startDate,
         endDate: input.endDate,
       },

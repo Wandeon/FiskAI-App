@@ -18,11 +18,11 @@ import {
 } from "lucide-react"
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Početna" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Početna", module: "platform-core" },
   { href: "/e-invoices", icon: FileText, label: "Računi", module: "invoicing" },
-  { href: "/support", icon: LifeBuoy, label: "Support" },
+  { href: "/support", icon: LifeBuoy, label: "Support", module: "platform-core" },
   { href: "/contacts", icon: Users, label: "Kontakti" },
-  { href: "/settings", icon: Settings, label: "Postavke" },
+  { href: "/settings", icon: Settings, label: "Postavke", module: "platform-core" },
 ]
 
 const quickActions = [

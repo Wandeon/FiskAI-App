@@ -39,7 +39,13 @@ model User {
   mileageLogs          MileageLog[]           @relation("MileageLogTraveler")
   generatedTravelPdfs  TravelPdf[]            @relation("TravelPdfGeneratedBy")
   closedAccountingPeriods AccountingPeriod[]
+  lockedAccountingPeriods AccountingPeriod[]  @relation("AccountingPeriodLockedBy")
   journalEntriesCreated   JournalEntry[]
+  reviewQueueRequested    ReviewQueueItem[]   @relation("ReviewQueueRequestedBy")
+  reviewQueueAssigned     ReviewQueueItem[]   @relation("ReviewQueueAssignedTo")
+  reviewQueueCompleted    ReviewQueueItem[]   @relation("ReviewQueueCompletedBy")
+  reviewDecisions         ReviewDecision[]    @relation("ReviewDecisionDecider")
+  reportingApprovals      ReportingStatus[]   @relation("ReportingStatusApprover")
 }
 
 model Account {
@@ -203,6 +209,7 @@ model Company {
   cashIns                        CashIn[]
   cashOuts                       CashOut[]
   cashDayCloses                  CashDayClose[]
+  cashLimitSetting               CashLimitSetting?
   employees                      Employee[]
   artifacts                      Artifact[]
   employeeRoles                  EmployeeRole[]
@@ -218,6 +225,9 @@ model Company {
   accountMappings                AccountMapping[]
   exportProfiles                 ExportProfile[]
   exportJobs                     ExportJob[]
+  reviewQueueItems               ReviewQueueItem[]
+  reviewDecisions                ReviewDecision[]
+  reportingStatuses              ReportingStatus[]
 }
 
 model ChartOfAccounts {
@@ -256,15 +266,88 @@ model AccountingPeriod {
   status         PeriodStatus   @default(OPEN)
   closedAt       DateTime?
   closedById     String?
+  lockedAt       DateTime?
+  lockedById     String?
+  lockReason     String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   closedBy       User?          @relation(fields: [closedById], references: [id])
+  lockedBy       User?          @relation("AccountingPeriodLockedBy", fields: [lockedById], references: [id])
   journalEntries JournalEntry[]
   trialBalances  TrialBalance[]
+  reportingStatuses ReportingStatus[]
 
   @@unique([companyId, fiscalYear, periodNumber])
   @@index([companyId, status])
+}
+
+model ReportingStatus {
+  id                String           @id @default(cuid())
+  companyId          String
+  periodId           String
+  reportType         ReportType
+  status             ReportingState  @default(DRAFT)
+  reviewQueueItemId  String?         @unique
+  submittedAt        DateTime?
+  approvedAt         DateTime?
+  approvedById       String?
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period             AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  approvedBy         User?            @relation("ReportingStatusApprover", fields: [approvedById], references: [id])
+  reviewQueueItem    ReviewQueueItem? @relation("ReportingStatusReviewQueue", fields: [reviewQueueItemId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, periodId, reportType])
+  @@index([companyId, status])
+  @@index([periodId])
+}
+
+model ReviewQueueItem {
+  id           String              @id @default(cuid())
+  companyId    String
+  entityType   ReviewQueueEntityType
+  entityId     String
+  status       ReviewQueueStatus   @default(PENDING)
+  priority     ReviewQueuePriority @default(NORMAL)
+  requestedById String?
+  requestedAt DateTime            @default(now())
+  assignedToId String?
+  assignedAt  DateTime?
+  dueAt       DateTime?
+  completedAt DateTime?
+  completedById String?
+  notes       String?
+  metadata    Json?
+  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedBy User?               @relation("ReviewQueueRequestedBy", fields: [requestedById], references: [id])
+  assignedTo  User?               @relation("ReviewQueueAssignedTo", fields: [assignedToId], references: [id])
+  completedBy User?               @relation("ReviewQueueCompletedBy", fields: [completedById], references: [id])
+  decisions   ReviewDecision[]
+  reportingStatus ReportingStatus? @relation("ReportingStatusReviewQueue")
+
+  @@index([companyId, status])
+  @@index([entityType, entityId])
+  @@index([assignedToId])
+}
+
+model ReviewDecision {
+  id          String             @id @default(cuid())
+  companyId   String
+  reviewId    String
+  decision    ReviewDecisionType
+  notes       String?
+  decidedById String?
+  decidedAt   DateTime           @default(now())
+  company     Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  review      ReviewQueueItem    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  decidedBy   User?              @relation("ReviewDecisionDecider", fields: [decidedById], references: [id])
+
+  @@index([companyId])
+  @@index([reviewId])
+  @@index([decidedAt])
 }
 
 model JournalEntry {
@@ -287,6 +370,7 @@ model JournalEntry {
   period                 AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict)
   createdBy              User?          @relation(fields: [createdById], references: [id])
   lines                  JournalLine[]
+  depreciationEntries    DepreciationEntry[]
   operationalEvents      OperationalEvent[]
 
   @@unique([companyId, fiscalYear, entryNumber])
@@ -714,10 +798,12 @@ model Contact {
   country           String      @default("HR")
   email             String?
   phone             String?
+  organizationId    String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
   paymentTermsDays  Int         @default(15)
   company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organization      Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   eInvoicesAsBuyer  EInvoice[]  @relation("EInvoiceBuyer")
   eInvoicesAsSeller EInvoice[]  @relation("EInvoiceSeller")
   expensesAsVendor  Expense[]   @relation("ExpenseVendor")
@@ -725,6 +811,72 @@ model Contact {
   @@unique([companyId, oib])
   @@index([companyId])
   @@index([oib])
+  @@index([organizationId])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  companyId  String
+  line1      String
+  line2      String?
+  city       String
+  postalCode String?
+  country    String   @default("HR")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organizations Organization[] @relation("OrganizationPrimaryAddress")
+
+  @@unique([companyId, line1, line2, city, postalCode, country])
+  @@index([companyId])
+  @@index([city])
+}
+
+model Organization {
+  id                   String        @id @default(cuid())
+  companyId            String
+  legalName            String
+  normalizedLegalName  String
+  email                String?
+  phone                String?
+  primaryAddressId     String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  company              Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  primaryAddress       Address?      @relation("OrganizationPrimaryAddress", fields: [primaryAddressId], references: [id], onDelete: SetNull)
+  taxIdentities        TaxIdentity[]
+  contacts             Contact[]
+  bankAccounts         BankAccount[]
+  buyerInvoices        EInvoice[]    @relation("EInvoiceBuyerOrganization")
+  sellerInvoices       EInvoice[]    @relation("EInvoiceSellerOrganization")
+  vendorExpenses       Expense[]     @relation("ExpenseVendorOrganization")
+  counterpartyTransactions BankTransaction[] @relation("BankTransactionCounterpartyOrganization")
+
+  @@unique([companyId, normalizedLegalName])
+  @@index([companyId])
+  @@index([normalizedLegalName])
+  @@index([primaryAddressId])
+}
+
+model TaxIdentity {
+  id             String          @id @default(cuid())
+  companyId      String
+  type           TaxIdentityType
+  value          String
+  country        String          @default("HR")
+  organizationId String?
+  personId       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  person         Person?         @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, type, value])
+  @@index([companyId])
+  @@index([organizationId])
+  @@index([personId])
+  @@index([type])
 }
 
 model Person {
@@ -968,6 +1120,8 @@ model EInvoice {
   direction         EInvoiceDirection
   sellerId          String?
   buyerId           String?
+  sellerOrganizationId String?
+  buyerOrganizationId  String?
   invoiceNumber     String
   issueDate         DateTime
   dueDate           DateTime?
@@ -1014,6 +1168,7 @@ model EInvoice {
   emailBounceReason String?
   bankTransactions  BankTransaction[]
   buyer             Contact?          @relation("EInvoiceBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
+  buyerOrganization Organization?     @relation("EInvoiceBuyerOrganization", fields: [buyerOrganizationId], references: [id], onDelete: SetNull)
   company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   convertedFrom     EInvoice?         @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
   convertedTo       EInvoice[]        @relation("InvoiceConversion")
@@ -1021,6 +1176,7 @@ model EInvoice {
   creditNotes       EInvoice[]        @relation("InvoiceCorrections")
   importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
   seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: SetNull)
+  sellerOrganization Organization?    @relation("EInvoiceSellerOrganization", fields: [sellerOrganizationId], references: [id], onDelete: SetNull)
   lines             EInvoiceLine[]
   fiscalRequests    FiscalRequest[]
   revenueRegisterEntries RevenueRegisterEntry[]
@@ -1036,6 +1192,8 @@ model EInvoice {
   @@index([emailMessageId])
   @@index([sellerId])
   @@index([buyerId])
+  @@index([sellerOrganizationId])
+  @@index([buyerOrganizationId])
   @@index([correctsInvoiceId])
 }
 
@@ -1176,6 +1334,19 @@ model CashDayClose {
   @@index([businessDate])
 }
 
+model CashLimitSetting {
+  id          String   @id @default(cuid())
+  companyId   String   @unique
+  limitAmount Decimal  @db.Decimal(14, 2)
+  currency    String   @default("EUR")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
 model BusinessPremises {
   id        String            @id @default(cuid())
   companyId String
@@ -1229,6 +1400,7 @@ model Expense {
   id               String            @id @default(cuid())
   companyId        String
   vendorId         String?
+  vendorOrganizationId String?
   categoryId       String
   description      String
   date             DateTime
@@ -1256,6 +1428,7 @@ model Expense {
   category         ExpenseCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   vendor           Contact?          @relation("ExpenseVendor", fields: [vendorId], references: [id])
+  vendorOrganization Organization?   @relation("ExpenseVendorOrganization", fields: [vendorOrganizationId], references: [id])
   stockMovements   StockMovement[]
   matchRecords     MatchRecord[]
 
@@ -1263,6 +1436,7 @@ model Expense {
   @@index([date])
   @@index([status])
   @@index([categoryId])
+  @@index([vendorOrganizationId])
 }
 
 model ExpenseLine {
@@ -1558,6 +1732,7 @@ model BankAccount {
   currentBalance        Decimal           @db.Decimal(12, 2)
   lastSyncAt            DateTime?
   isDefault             Boolean           @default(false)
+  organizationId        String?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   connectionExpiresAt   DateTime?
@@ -1565,6 +1740,7 @@ model BankAccount {
   syncProvider          SyncProvider?
   syncProviderAccountId String?
   company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organization          Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   connection            BankConnection?
   statementImports      StatementImport[]
   transactions          BankTransaction[]
@@ -1574,6 +1750,7 @@ model BankAccount {
   @@unique([companyId, iban])
   @@index([companyId])
   @@index([connectionStatus])
+  @@index([organizationId])
 }
 
 model BankTransaction {
@@ -1589,6 +1766,7 @@ model BankTransaction {
   reference        String?
   counterpartyName String?
   counterpartyIban String?
+  counterpartyOrganizationId String?
   matchedInvoiceId String?
   matchedExpenseId String?
   matchStatus      MatchStatus       @default(UNMATCHED)
@@ -1602,6 +1780,7 @@ model BankTransaction {
   statementImport  StatementImport?  @relation(fields: [statementImportId], references: [id], onDelete: SetNull)
   matchedExpense   Expense?          @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
   matchedInvoice   EInvoice?         @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
+  counterpartyOrganization Organization? @relation("BankTransactionCounterpartyOrganization", fields: [counterpartyOrganizationId], references: [id], onDelete: SetNull)
   matchRecords     MatchRecord[]
 
   @@index([companyId])
@@ -1610,6 +1789,7 @@ model BankTransaction {
   @@index([date])
   @@index([externalId])
   @@index([statementImportId])
+  @@index([counterpartyOrganizationId])
 }
 
 model MatchRecord {
@@ -2326,6 +2506,7 @@ model JoppdSubmission {
   correctedSubmission   JoppdSubmission?      @relation("JoppdSubmissionCorrections", fields: [correctedSubmissionId], references: [id], onDelete: SetNull)
   corrections           JoppdSubmission[]     @relation("JoppdSubmissionCorrections")
   lines                 JoppdSubmissionLine[]
+  events                JoppdSubmissionEvent[]
 
   @@index([companyId, periodYear, periodMonth], map: "joppd_submission_period_idx")
   @@index([status], map: "joppd_submission_status_idx")
@@ -2339,15 +2520,31 @@ model JoppdSubmissionLine {
   lineNumber     Int                   @map("line_number")
   lineData       Json?                 @map("line_data")
   originalLineId String?               @map("original_line_id")
+  ruleVersionId  String?               @map("rule_version_id")
   createdAt      DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
   submission     JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   payoutLine     PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
   originalLine   JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
   corrections    JoppdSubmissionLine[] @relation("JoppdLineCorrections")
+  ruleVersion    RuleVersion?          @relation(fields: [ruleVersionId], references: [id], onDelete: SetNull)
 
   @@index([submissionId], map: "joppd_submission_line_submission_idx")
   @@index([payoutLineId], map: "joppd_submission_line_payout_idx")
+  @@index([ruleVersionId], map: "joppd_submission_line_rule_version_idx")
   @@map("joppd_submission_line")
+}
+
+model JoppdSubmissionEvent {
+  id           String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submissionId String                @map("submission_id")
+  status       JoppdSubmissionStatus
+  note         String?               @db.VarChar(500)
+  createdAt    DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  submission   JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId], map: "joppd_submission_event_submission_idx")
+  @@index([status], map: "joppd_submission_event_status_idx")
+  @@map("joppd_submission_event")
 }
 
 model news_categories {
@@ -2636,6 +2833,11 @@ enum ContactType {
   BOTH
 }
 
+enum TaxIdentityType {
+  OIB
+  VAT
+}
+
 enum PersonSnapshotAction {
   CREATE
   UPDATE
@@ -2720,10 +2922,57 @@ enum PeriodStatus {
   LOCKED
 }
 
+enum ReportType {
+  VAT
+  PDV
+  KPR
+  PROFIT_LOSS
+  BALANCE_SHEET
+  VAT_SUMMARY
+  REVENUE_BY_CUSTOMER
+  EXPENSES_BY_CATEGORY
+  RECEIVABLES_AGING
+  PAYABLES_AGING
+  CASH_FLOW
+}
+
+enum ReportingState {
+  DRAFT
+  READY_FOR_REVIEW
+  APPROVED
+  SUBMITTED
+  REJECTED
+}
+
+enum ReviewQueueStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ReviewQueuePriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum ReviewQueueEntityType {
+  REPORTING_STATUS
+  ACCOUNTING_PERIOD
+}
+
+enum ReviewDecisionType {
+  APPROVED
+  REJECTED
+}
+
 enum OperationalSourceType {
   INVOICE
   EXPENSE
   BANK_TRANSACTION
+  PAYROLL
+  ASSET
+  INVENTORY
 }
 
 enum OperationalEventType {
@@ -2731,6 +2980,13 @@ enum OperationalEventType {
   EXPENSE_RECORDED
   BANK_TRANSACTION_INCOMING
   BANK_TRANSACTION_OUTGOING
+  PAYROLL_POSTED
+  ASSET_ACQUIRED
+  ASSET_DEPRECIATION
+  ASSET_DISPOSED
+  INVENTORY_RECEIPT
+  INVENTORY_ISSUE
+  INVENTORY_ADJUSTMENT
 }
 
 enum OperationalEventStatus {
@@ -2838,16 +3094,6 @@ enum Frequency {
   YEARLY
 }
 
-enum ReportType {
-  VAT_SUMMARY
-  PROFIT_LOSS
-  REVENUE_BY_CUSTOMER
-  EXPENSES_BY_CATEGORY
-  RECEIVABLES_AGING
-  PAYABLES_AGING
-  CASH_FLOW
-}
-
 enum ReportSchedule {
   NONE
   WEEKLY
@@ -2918,6 +3164,8 @@ enum DocumentType {
   BANK_STATEMENT
   INVOICE
   EXPENSE
+  PRIMKA
+  IZDATNICA
 }
 
 enum StockMovementType {
@@ -5196,14 +5444,17 @@ model DepreciationEntry {
   sequence           Int
   amount             Decimal  @db.Decimal(12, 2)
   accumulatedAmount  Decimal  @db.Decimal(12, 2)
+  journalEntryId     String?
   createdAt          DateTime @default(now())
 
   schedule DepreciationSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   asset    FixedAsset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry?     @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
 
   @@unique([scheduleId, sequence])
   @@index([assetId, periodStart])
   @@index([periodEnd])
+  @@index([journalEntryId])
 }
 
 model DisposalEvent {

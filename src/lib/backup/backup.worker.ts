@@ -10,7 +10,11 @@
  * Email notifications are sent upon completion if configured
  */
 import { Job } from "bullmq"
-import { createWorker, setupGracefulShutdown, type JobResult } from "@/lib/regulatory-truth/workers/base"
+import {
+  createWorker,
+  setupGracefulShutdown,
+  type JobResult,
+} from "@/lib/regulatory-truth/workers/base"
 import { jobsProcessed, jobDuration } from "@/lib/regulatory-truth/workers/metrics"
 import { db } from "@/lib/db"
 import { exportCompanyData, validateBackupData, type BackupFrequency } from "./export"
@@ -32,6 +36,9 @@ export interface BackupResult {
   recordCounts: {
     contacts: number
     products: number
+    warehouses: number
+    stockItems: number
+    stockMovements: number
     invoices: number
     expenses: number
   }
@@ -41,7 +48,12 @@ export interface BackupResult {
 
 async function processBackupJob(job: Job<BackupJobData>): Promise<JobResult> {
   const start = Date.now()
-  const { companyId, frequency, notifyEmail: _notifyEmail, retentionDays: _retentionDays = 30 } = job.data
+  const {
+    companyId,
+    frequency,
+    notifyEmail: _notifyEmail,
+    retentionDays: _retentionDays = 30,
+  } = job.data
 
   logger.info(
     {
@@ -78,10 +90,7 @@ async function processBackupJob(job: Job<BackupJobData>): Promise<JobResult> {
     // Validate the backup
     const validation = validateBackupData(backupData)
     if (!validation.valid) {
-      logger.error(
-        { companyId, errors: validation.errors },
-        "Backup validation failed"
-      )
+      logger.error({ companyId, errors: validation.errors }, "Backup validation failed")
       return {
         success: false,
         duration: Date.now() - start,
@@ -105,6 +114,9 @@ async function processBackupJob(job: Job<BackupJobData>): Promise<JobResult> {
     const recordCounts = {
       contacts: backupData.contacts.length,
       products: backupData.products.length,
+      warehouses: backupData.warehouses.length,
+      stockItems: backupData.stockItems.length,
+      stockMovements: backupData.stockMovements.length,
       invoices: backupData.invoices.length,
       expenses: backupData.expenses.length,
     }

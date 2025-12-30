@@ -47,6 +47,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       lines: { orderBy: { lineNumber: "asc" } },
       convertedFrom: { select: { id: true, invoiceNumber: true, type: true } },
       convertedTo: { select: { id: true, invoiceNumber: true, type: true } },
+      correctsInvoice: { select: { id: true, invoiceNumber: true, type: true } },
+      creditNotes: { select: { id: true, invoiceNumber: true, type: true } },
       fiscalRequests: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -125,6 +127,41 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   {i > 0 && ", "}
                   <Link href={`/invoices/${c.id}`} className="font-medium hover:underline">
                     {c.invoiceNumber} ({TYPE_LABELS[c.type]})
+                  </Link>
+                </span>
+              ))}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {invoice.correctsInvoice && (
+        <Card className="bg-warning-bg border-warning-border">
+          <CardContent className="py-3">
+            <p className="text-sm text-warning-text">
+              Storno za račun:{" "}
+              <Link
+                href={`/invoices/${invoice.correctsInvoice.id}`}
+                className="font-medium hover:underline"
+              >
+                {invoice.correctsInvoice.invoiceNumber} ({TYPE_LABELS[invoice.correctsInvoice.type]}
+                )
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {invoice.creditNotes && invoice.creditNotes.length > 0 && (
+        <Card className="bg-warning-bg border-warning-border">
+          <CardContent className="py-3">
+            <p className="text-sm text-warning-text">
+              Storno dokumenti:{" "}
+              {invoice.creditNotes.map((note, index) => (
+                <span key={note.id}>
+                  {index > 0 && ", "}
+                  <Link href={`/invoices/${note.id}`} className="font-medium hover:underline">
+                    {note.invoiceNumber} ({TYPE_LABELS[note.type]})
                   </Link>
                 </span>
               ))}

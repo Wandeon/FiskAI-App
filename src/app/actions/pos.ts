@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache"
 import type { ProcessPosSaleInput, ProcessPosSaleResult } from "@/types/pos"
 import { fiscalizePosSale } from "@/lib/fiscal/pos-fiscalize"
 import { recordRevenueRegisterEntry } from "@/lib/invoicing/events"
+import { ensureOrganizationForContact } from "@/lib/master-data/contact-master-data"
 
 const Decimal = Prisma.Decimal
 
@@ -77,6 +78,10 @@ export async function processPosSale(input: ProcessPosSaleInput): Promise<Proces
       const vatAmount = lineItems.reduce((sum, l) => sum.add(l.vatAmount), new Decimal(0))
       const totalAmount = netAmount.add(vatAmount)
 
+      const buyerOrganizationId = input.buyerId
+        ? await ensureOrganizationForContact(company.id, input.buyerId)
+        : null
+
       // Create invoice
       const invoice = await db.eInvoice.create({
         data: {
@@ -86,6 +91,7 @@ export async function processPosSale(input: ProcessPosSaleInput): Promise<Proces
           invoiceNumber: numbering.invoiceNumber,
           internalReference: numbering.internalReference,
           buyerId: input.buyerId || null,
+          buyerOrganizationId,
           issueDate,
           currency: "EUR",
           netAmount,

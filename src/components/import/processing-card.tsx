@@ -40,6 +40,8 @@ const DOC_TYPE_LABELS: Record<DocumentType, string> = {
   BANK_STATEMENT: "Bankovni izvod",
   INVOICE: "Račun",
   EXPENSE: "Trošak",
+  PRIMKA: "Primka",
+  IZDATNICA: "Izdatnica",
 }
 
 export function ProcessingCard({
@@ -88,6 +90,8 @@ export function ProcessingCard({
                 <option value="BANK_STATEMENT">Bankovni izvod</option>
                 <option value="INVOICE">Račun</option>
                 <option value="EXPENSE">Trošak</option>
+                <option value="PRIMKA">Primka</option>
+                <option value="IZDATNICA">Izdatnica</option>
               </select>
             )}
           </div>
