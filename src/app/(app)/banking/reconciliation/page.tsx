@@ -72,7 +72,10 @@ export default async function ReconciliationPage({
           <ul className="text-sm text-secondary space-y-1 list-disc list-inside">
             <li>Pokušajte uvesti izvode što češće kako bi AI imao najnovije podatke.</li>
             <li>Ručno povežite retke s najvišom ocjenom kad AI ne može automatski odlučiti.</li>
-            <li>Pritisnite „Poveži" i status će se odmah promijeniti u „Ručno".</li>
+            <li>
+              Pritisnite &bdquo;Poveži&ldquo; i status će se odmah promijeniti u
+              &bdquo;Ručno&ldquo;.
+            </li>
           </ul>
         </CardContent>
       </Card>
