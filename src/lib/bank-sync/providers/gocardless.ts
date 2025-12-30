@@ -14,11 +14,27 @@ const GOCARDLESS_BASE =
 // Token cache (simple in-memory, refresh when expired)
 let tokenCache: { access: string; expiresAt: number } | null = null
 
+// Promise deduplication to prevent concurrent token refreshes
+let tokenPromise: Promise<string> | null = null
+
 async function getAccessToken(): Promise<string> {
+  // Return cached token if still valid (with 60s buffer)
   if (tokenCache && Date.now() < tokenCache.expiresAt - 60000) {
     return tokenCache.access
   }
 
+  // Use promise deduplication to prevent race conditions:
+  // If a refresh is already in progress, return that promise instead of starting a new one
+  if (!tokenPromise) {
+    tokenPromise = refreshToken().finally(() => {
+      tokenPromise = null
+    })
+  }
+
+  return tokenPromise
+}
+
+async function refreshToken(): Promise<string> {
   const secretId = process.env.GOCARDLESS_SECRET_ID
   const secretKey = process.env.GOCARDLESS_SECRET_KEY
 
