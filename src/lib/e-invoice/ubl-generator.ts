@@ -28,7 +28,22 @@ function formatDecimal(value: number | string | Prisma.Decimal, decimals: number
   return Number(value).toFixed(decimals)
 }
 
-function generatePartyXml(party: Contact | Company, isSupplier: boolean): string {
+function generatePaymentTermsNote(issueDate: Date, dueDate: Date): string {
+  const daysDiff = Math.round((dueDate.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (daysDiff === 0) {
+    return "Rok plaćanja: odmah po primitku računa"
+  } else if (daysDiff === 1) {
+    return "Rok plaćanja: 1 dan od datuma računa"
+  } else if (daysDiff > 1) {
+    return `Rok plaćanja: ${daysDiff} dana od datuma računa`
+  } else {
+    // Negative days means due date is before issue date
+    return `Rok plaćanja: ${formatDate(dueDate)}`
+  }
+}
+
+function generatePartyXml(party: Contact | Company, isSupplier: boolean): string{
   const oib = "oib" in party ? party.oib : null
   const vatNumber = "vatNumber" in party ? party.vatNumber : null
 
