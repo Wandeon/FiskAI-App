@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/recurring-expenses",
+      "schedule": "0 1 * * *"
+    },
+    {
       "path": "/api/cron/bank-sync",
       "schedule": "0 5 * * *"
     },

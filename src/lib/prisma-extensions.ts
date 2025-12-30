@@ -1018,6 +1018,16 @@ export class CashAmountNegativeError extends Error {
   }
 }
 
+export class CashLimitExceededError extends Error {
+  constructor(limit: string, nextBalance: string) {
+    super(
+      `Cash limit exceeded: adding this amount would result in ${nextBalance} EUR, ` +
+        `which exceeds the configured limit of ${limit} EUR.`
+    )
+    this.name = "CashLimitExceededError"
+  }
+}
+
 export class CashBulkMutationNotAllowedError extends Error {
   constructor(model: string, action: string) {
     super(`Cannot ${action} ${model} in bulk. Use individual operations for cash integrity.`)

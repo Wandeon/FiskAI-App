@@ -69,6 +69,7 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
       description,
       netAmount: net,
       vatAmount: vat,
+      vatRate: parseFloat(vatRate),
       totalAmount: total,
       frequency,
       nextDate: new Date(nextDate),

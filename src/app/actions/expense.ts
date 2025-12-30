@@ -808,6 +808,7 @@ interface CreateRecurringExpenseInput {
   description: string
   netAmount: number
   vatAmount: number
+  vatRate: number
   totalAmount: number
   frequency: Frequency
   nextDate: Date

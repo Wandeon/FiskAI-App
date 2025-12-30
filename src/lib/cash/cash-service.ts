@@ -3,6 +3,7 @@ import {
   CashAmountNegativeError,
   CashBalanceNegativeError,
   CashDayClosedError,
+  CashLimitExceededError,
 } from "@/lib/prisma-extensions"
 import { Prisma } from "@prisma/client"
 
@@ -82,6 +83,12 @@ export async function createCashIn(input: CashEntryInput) {
   const nextBalance = balance.plus(amount)
   if (nextBalance.lessThan(0)) {
     throw new CashBalanceNegativeError()
+  }
+
+  // Check if adding cash would exceed the configured limit
+  const limitSetting = await getCashLimitSetting(input.companyId)
+  if (limitSetting?.isActive && nextBalance.greaterThan(limitSetting.limitAmount)) {
+    throw new CashLimitExceededError(limitSetting.limitAmount.toString(), nextBalance.toString())
   }
 
   return db.cashIn.create({

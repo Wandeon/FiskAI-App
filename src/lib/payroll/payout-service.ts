@@ -45,11 +45,18 @@ export async function calculateAndSnapshotPayoutLine(params: {
 }) {
   const payout = await db.payout.findUnique({
     where: { id: params.payoutId },
-    select: { periodFrom: true, periodTo: true, currency: true },
+    select: { periodFrom: true, periodTo: true, currency: true, status: true },
   })
 
   if (!payout) {
     throw new Error("Payout not found.")
+  }
+
+  // Snapshots can only be created for DRAFT payouts
+  if (payout.status !== "DRAFT") {
+    throw new Error(
+      `Cannot create calculation snapshot: payout is ${payout.status}. Only DRAFT payouts can have new calculations.`
+    )
   }
 
   const payoutLine = await db.payoutLine.findUnique({
