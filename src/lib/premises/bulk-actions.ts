@@ -196,63 +196,67 @@ export async function clonePremises(
   newName: string
 ): Promise<ActionResult> {
   try {
-    const source = await db.businessPremises.findUnique({
-      where: { id: premisesId },
-      include: { devices: true },
-    })
+    const user = await requireAuth()
 
-    if (!source) {
-      return { success: false, error: "Izvorni poslovni prostor nije pronaden" }
-    }
+    return requireCompanyWithContext(user.id!, async (company) => {
+      const source = await db.businessPremises.findFirst({
+        where: { id: premisesId, companyId: company.id },
+        include: { devices: true },
+      })
 
-    // Check if new code already exists
-    const existing = await db.businessPremises.findUnique({
-      where: {
-        companyId_code: {
-          companyId: source.companyId,
-          code: newCode,
+      if (!source) {
+        return { success: false, error: "Izvorni poslovni prostor nije pronaden" }
+      }
+
+      // Check if new code already exists
+      const existing = await db.businessPremises.findUnique({
+        where: {
+          companyId_code: {
+            companyId: company.id,
+            code: newCode,
+          },
         },
-      },
-    })
+      })
 
-    if (existing) {
-      return { success: false, error: `Poslovni prostor s kodom ${newCode} vec postoji` }
-    }
+      if (existing) {
+        return { success: false, error: `Poslovni prostor s kodom ${newCode} vec postoji` }
+      }
 
-    // Create new premises
-    const newPremises = await db.businessPremises.create({
-      data: {
-        companyId: source.companyId,
-        code: newCode,
-        name: newName,
-        address: source.address,
-        isDefault: false,
-        isActive: true,
-      },
-    })
-
-    // Clone devices
-    for (const device of source.devices) {
-      await db.paymentDevice.create({
+      // Create new premises
+      const newPremises = await db.businessPremises.create({
         data: {
-          companyId: source.companyId,
-          businessPremisesId: newPremises.id,
-          code: device.code,
-          name: device.name,
-          isDefault: device.isDefault,
+          companyId: company.id,
+          code: newCode,
+          name: newName,
+          address: source.address,
+          isDefault: false,
           isActive: true,
         },
       })
-    }
 
-    revalidatePath("/settings/premises")
-    return {
-      success: true,
-      data: {
-        premises: newPremises,
-        devicesCloned: source.devices.length,
-      },
-    }
+      // Clone devices
+      for (const device of source.devices) {
+        await db.paymentDevice.create({
+          data: {
+            companyId: company.id,
+            businessPremisesId: newPremises.id,
+            code: device.code,
+            name: device.name,
+            isDefault: device.isDefault,
+            isActive: true,
+          },
+        })
+      }
+
+      revalidatePath("/settings/premises")
+      return {
+        success: true,
+        data: {
+          premises: newPremises,
+          devicesCloned: source.devices.length,
+        },
+      }
+    })
   } catch (error) {
     console.error("Failed to clone premises:", error)
     return { success: false, error: "Greska pri kloniranju poslovnog prostora" }

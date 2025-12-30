@@ -7,6 +7,7 @@ vi.mock("@/lib/db", () => ({
       updateMany: vi.fn(),
       create: vi.fn(),
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
     },
     paymentDevice: {
       findMany: vi.fn(),
@@ -26,7 +27,7 @@ vi.mock("next/cache", () => ({
 
 import { db } from "@/lib/db"
 import { requireAuth, requireCompanyWithContext } from "@/lib/auth-utils"
-import { bulkTogglePremisesStatus, bulkImportPremises } from "@/lib/premises/bulk-actions"
+import { bulkTogglePremisesStatus, bulkImportPremises, clonePremises } from "@/lib/premises/bulk-actions"
 
 const user = { id: "user-1" }
 const company = { id: "company-1" }
@@ -62,5 +63,22 @@ describe("premises bulk actions auth", () => {
       where: { companyId: "company-1", isDefault: true },
       data: { isDefault: false },
     })
+  })
+
+  it("clonePremises rejects non-owned premises", async () => {
+    vi.mocked(db.businessPremises.findFirst).mockResolvedValue(null as any)
+    vi.mocked(db.businessPremises.findUnique)
+      .mockResolvedValueOnce({
+        id: "prem-9",
+        companyId: "company-999",
+        address: "addr",
+        devices: [],
+      } as any)
+      .mockResolvedValueOnce(null as any)
+    vi.mocked(db.businessPremises.create).mockResolvedValue({ id: "prem-10" } as any)
+
+    const result = await clonePremises("prem-9", 2, "Clone")
+
+    expect(result.success).toBe(false)
   })
 })
