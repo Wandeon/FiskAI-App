@@ -402,6 +402,9 @@ const TENANT_MODELS = [
   "JoppdSubmissionLine",
   "PayslipArtifact",
   "CalculationSnapshot",
+  "ReportingStatus",
+  "ReviewQueueItem",
+  "ReviewDecision",
   "Employee",
   "EmployeeRole",
   "EmploymentContract",
@@ -440,6 +443,9 @@ const AUDITED_MODELS = [
   "PaymentDevice",
   "InvoiceSequence",
   "SupportTicket",
+  "ReportingStatus",
+  "ReviewQueueItem",
+  "ReviewDecision",
 ] as const
 type AuditedModel = (typeof AUDITED_MODELS)[number]
 
