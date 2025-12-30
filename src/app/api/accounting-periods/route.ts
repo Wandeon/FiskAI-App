@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
     {
       startDate: new Date(body.startDate),
       endDate: new Date(body.endDate),
+      periodType: body.periodType,
+      fiscalYear: body.fiscalYear,
+      periodNumber: body.periodNumber,
     },
     user.id!,
     body.reason ?? "create_accounting_period"

@@ -39,7 +39,13 @@ model User {
   mileageLogs          MileageLog[]           @relation("MileageLogTraveler")
   generatedTravelPdfs  TravelPdf[]            @relation("TravelPdfGeneratedBy")
   closedAccountingPeriods AccountingPeriod[]
+  lockedAccountingPeriods AccountingPeriod[]  @relation("AccountingPeriodLockedBy")
   journalEntriesCreated   JournalEntry[]
+  reviewQueueRequested    ReviewQueueItem[]   @relation("ReviewQueueRequestedBy")
+  reviewQueueAssigned     ReviewQueueItem[]   @relation("ReviewQueueAssignedTo")
+  reviewQueueCompleted    ReviewQueueItem[]   @relation("ReviewQueueCompletedBy")
+  reviewDecisions         ReviewDecision[]    @relation("ReviewDecisionDecider")
+  reportingApprovals      ReportingStatus[]   @relation("ReportingStatusApprover")
 }
 
 model Account {
@@ -215,6 +221,9 @@ model Company {
   revenueRegisterEntries         RevenueRegisterEntry[]
   invoiceEvents                  InvoiceEvent[]
   matchRecords                   MatchRecord[]
+  reviewQueueItems               ReviewQueueItem[]
+  reviewDecisions                ReviewDecision[]
+  reportingStatuses              ReportingStatus[]
 }
 
 model ChartOfAccounts {
@@ -252,15 +261,88 @@ model AccountingPeriod {
   status         PeriodStatus   @default(OPEN)
   closedAt       DateTime?
   closedById     String?
+  lockedAt       DateTime?
+  lockedById     String?
+  lockReason     String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   closedBy       User?          @relation(fields: [closedById], references: [id])
+  lockedBy       User?          @relation("AccountingPeriodLockedBy", fields: [lockedById], references: [id])
   journalEntries JournalEntry[]
   trialBalances  TrialBalance[]
+  reportingStatuses ReportingStatus[]
 
   @@unique([companyId, fiscalYear, periodNumber])
   @@index([companyId, status])
+}
+
+model ReportingStatus {
+  id                String           @id @default(cuid())
+  companyId          String
+  periodId           String
+  reportType         ReportType
+  status             ReportingState  @default(DRAFT)
+  reviewQueueItemId  String?         @unique
+  submittedAt        DateTime?
+  approvedAt         DateTime?
+  approvedById       String?
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period             AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  approvedBy         User?            @relation("ReportingStatusApprover", fields: [approvedById], references: [id])
+  reviewQueueItem    ReviewQueueItem? @relation("ReportingStatusReviewQueue", fields: [reviewQueueItemId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, periodId, reportType])
+  @@index([companyId, status])
+  @@index([periodId])
+}
+
+model ReviewQueueItem {
+  id           String              @id @default(cuid())
+  companyId    String
+  entityType   ReviewQueueEntityType
+  entityId     String
+  status       ReviewQueueStatus   @default(PENDING)
+  priority     ReviewQueuePriority @default(NORMAL)
+  requestedById String?
+  requestedAt DateTime            @default(now())
+  assignedToId String?
+  assignedAt  DateTime?
+  dueAt       DateTime?
+  completedAt DateTime?
+  completedById String?
+  notes       String?
+  metadata    Json?
+  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedBy User?               @relation("ReviewQueueRequestedBy", fields: [requestedById], references: [id])
+  assignedTo  User?               @relation("ReviewQueueAssignedTo", fields: [assignedToId], references: [id])
+  completedBy User?               @relation("ReviewQueueCompletedBy", fields: [completedById], references: [id])
+  decisions   ReviewDecision[]
+  reportingStatus ReportingStatus? @relation("ReportingStatusReviewQueue")
+
+  @@index([companyId, status])
+  @@index([entityType, entityId])
+  @@index([assignedToId])
+}
+
+model ReviewDecision {
+  id          String             @id @default(cuid())
+  companyId   String
+  reviewId    String
+  decision    ReviewDecisionType
+  notes       String?
+  decidedById String?
+  decidedAt   DateTime           @default(now())
+  company     Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  review      ReviewQueueItem    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  decidedBy   User?              @relation("ReviewDecisionDecider", fields: [decidedById], references: [id])
+
+  @@index([companyId])
+  @@index([reviewId])
+  @@index([decidedAt])
 }
 
 model JournalEntry {
@@ -2651,6 +2733,44 @@ enum PeriodStatus {
   SOFT_CLOSE
   CLOSED
   LOCKED
+}
+
+enum ReportType {
+  VAT
+  PDV
+  KPR
+  PROFIT_LOSS
+  BALANCE_SHEET
+}
+
+enum ReportingState {
+  DRAFT
+  READY_FOR_REVIEW
+  APPROVED
+  SUBMITTED
+  REJECTED
+}
+
+enum ReviewQueueStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ReviewQueuePriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum ReviewQueueEntityType {
+  REPORTING_STATUS
+  ACCOUNTING_PERIOD
+}
+
+enum ReviewDecisionType {
+  APPROVED
+  REJECTED
 }
 
 enum OperationalSourceType {
