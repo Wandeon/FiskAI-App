@@ -106,9 +106,17 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
       })
     }
 
+    // Provide user-friendly error message for missing API key
+    const errorMessage =
+      error instanceof Error && error.message === "OpenAI API key not configured"
+        ? "AI features temporarily unavailable. Please enter receipt details manually."
+        : error instanceof Error
+          ? error.message
+          : "OCR failed"
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "OCR failed",
+      error: errorMessage,
     }
   }
 }
@@ -204,9 +212,17 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
       })
     }
 
+    // Provide user-friendly error message for missing API key
+    const errorMessage =
+      error instanceof Error && error.message === "OpenAI API key not configured"
+        ? "AI features temporarily unavailable. Please enter receipt details manually."
+        : error instanceof Error
+          ? error.message
+          : "OCR failed"
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "OCR failed",
+      error: errorMessage,
     }
   }
 }

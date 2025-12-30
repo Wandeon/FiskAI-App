@@ -22,7 +22,7 @@ export const maxDuration = 300 // 5 minutes
 export async function GET(request: Request) {
   // Verify cron secret
   const authHeader = request.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer `) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

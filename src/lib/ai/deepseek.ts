@@ -19,7 +19,7 @@ interface DeepseekResponse {
 async function requestDeepseek(body: Record<string, unknown>) {
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {
-    throw new Error("DEEPSEEK_API_KEY is not configured")
+    throw new Error("AI features temporarily unavailable")
   }
 
   const res = await fetch(DEEPSEEK_API_URL, {

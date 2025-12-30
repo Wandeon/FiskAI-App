@@ -25,9 +25,9 @@ export async function submitContactForm(formData: z.infer<typeof marketingContac
 
     const { name, email, businessType, invoiceVolume, message } = validatedFields.data
 
-    // Rate limiting by email to prevent spam (uses EMAIL_VERIFICATION limit: 3/hour)
+    // Rate limiting by email to prevent spam (3 attempts per hour)
     const rateLimitKey = `contact-form:${email}`
-    const rateLimitResult = await checkRateLimit(rateLimitKey, "EMAIL_VERIFICATION")
+    const rateLimitResult = await checkRateLimit(rateLimitKey, "CONTACT_FORM")
 
     if (!rateLimitResult.allowed) {
       return {
