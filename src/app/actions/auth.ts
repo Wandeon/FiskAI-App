@@ -186,6 +186,8 @@ export async function requestPasswordReset(email: string) {
     const crypto = await import("crypto")
     const tokenBytes = crypto.randomBytes(32)
     const token = tokenBytes.toString("hex")
+    // Hash the token before storing (security: prevent token reuse if DB is compromised)
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
 
     // Token expires in 1 hour
     const expiresAt = new Date()
@@ -199,13 +201,13 @@ export async function requestPasswordReset(email: string) {
     // Create new reset token
     await db.passwordResetToken.create({
       data: {
-        token,
+        token: tokenHash, // Store hash, not plain token
         userId: user.id,
         expiresAt,
       },
     })
 
-    // Send password reset email
+    // Send password reset email with plain token (only sent once, never stored)
     const resetLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`
 
     const { sendEmail } = await import("@/lib/email")
@@ -234,9 +236,13 @@ export async function requestPasswordReset(email: string) {
  */
 export async function validatePasswordResetToken(token: string) {
   try {
+    // Hash the submitted token to compare with stored hash
+    const crypto = await import("crypto")
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
+
     // Find token and validate it hasn't expired
     const resetToken = await db.passwordResetToken.findUnique({
-      where: { token },
+      where: { token: tokenHash },
       include: { user: true },
     })
 
@@ -253,18 +259,18 @@ export async function validatePasswordResetToken(token: string) {
     }
 
     // Generate a secure session identifier
-    const crypto = await import("crypto")
     const sessionId = crypto.randomBytes(32).toString("hex")
+    const sessionHash = crypto.createHash("sha256").update(sessionId).digest("hex")
 
-    // Store the session ID in the token record (we'll use it to validate the reset)
+    // Store the session ID hash in the token record (we'll use it to validate the reset)
     // We don't delete the token yet - we'll delete it when password is actually reset
     // This creates a short-lived, one-time-use session
     await db.passwordResetToken.update({
       where: { id: resetToken.id },
       data: {
-        // Store session ID in the token field temporarily
+        // Store session ID hash in the token field temporarily
         // The original token is no longer valid after this point
-        token: sessionId,
+        token: sessionHash,
       },
     })
 
@@ -284,9 +290,13 @@ export async function validatePasswordResetToken(token: string) {
  */
 export async function resetPassword(sessionId: string, newPassword: string) {
   try {
-    // Find the session by the session ID (which is now stored in the token field)
+    // Hash the session ID to compare with stored hash
+    const crypto = await import("crypto")
+    const sessionHash = crypto.createHash("sha256").update(sessionId).digest("hex")
+
+    // Find the session by the session ID hash (which is now stored in the token field)
     const resetToken = await db.passwordResetToken.findUnique({
-      where: { token: sessionId },
+      where: { token: sessionHash },
       include: { user: true },
     })
 

@@ -121,6 +121,8 @@ export async function POST(request: Request) {
       // Generate a short-lived token for password reset form
       const crypto = await import("crypto")
       const resetToken = crypto.randomBytes(32).toString("hex")
+      // Hash the token before storing (security: prevent token reuse if DB is compromised)
+      const tokenHash = crypto.createHash("sha256").update(resetToken).digest("hex")
 
       const user = await db.user.findUnique({
         where: { email: emailLower },
@@ -138,7 +140,7 @@ export async function POST(request: Request) {
 
         await db.passwordResetToken.create({
           data: {
-            token: resetToken,
+            token: tokenHash, // Store hash, not plain token
             userId: user.id,
             expiresAt,
           },
@@ -148,7 +150,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         verified: true,
-        resetToken,
+        resetToken, // Return plain token to client (only once, never stored)
       })
     }
 
