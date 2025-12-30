@@ -34,6 +34,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
  const [statusFilter, setStatusFilter] = useState<string>("all")
  const [isCreating, setIsCreating] = useState(false)
  const [editingId, setEditingId] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ flag: FeatureFlagWithOverrides; reason: string } | null>(null)
 
  // New flag form state
  const [newFlag, setNewFlag] = useState({
