@@ -149,6 +149,21 @@ export const UI_COMPONENTS: SystemComponent[] = [
 
 export const MODULE_COMPONENTS: SystemComponent[] = [
   {
+    componentId: "module-platform-core",
+    type: "MODULE",
+    name: "Platform Core",
+    status: "STABLE",
+    criticality: "CRITICAL",
+    owner: "team:platform",
+    docsRef: null,
+    codeRef: "src/lib/modules/definitions.ts",
+    dependencies: [
+      { componentId: "lib-auth", type: "HARD" },
+      { componentId: "store-postgresql", type: "HARD" },
+    ],
+    criticalPaths: [],
+  },
+  {
     componentId: "module-invoicing",
     type: "MODULE",
     name: "Invoicing",

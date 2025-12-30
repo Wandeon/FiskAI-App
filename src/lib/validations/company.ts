@@ -28,6 +28,7 @@ export const planSettingsSchema = z.object({
   entitlements: z
     .array(
       z.enum([
+        "platform-core",
         "invoicing",
         "e-invoicing",
         "fiscalization",

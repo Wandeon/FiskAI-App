@@ -59,6 +59,7 @@ type PartialCompany = Pick<Company, "isVatPayer"> & {
 }
 
 const defaultEntitlements: ModuleKey[] = [
+  "platform-core",
   "invoicing",
   "e-invoicing",
   "expenses",
@@ -134,7 +135,11 @@ export function deriveCapabilities(company: PartialCompany | null): Capabilities
 
     modules[key] = {
       enabled,
-      permissions: enabled ? (permissions.length > 0 ? permissions : DEFAULT_MODULE_PERMISSIONS) : [],
+      permissions: enabled
+        ? permissions.length > 0
+          ? permissions
+          : DEFAULT_MODULE_PERMISSIONS
+        : [],
       expiresAt,
     }
   }
