@@ -15,6 +15,22 @@ import {
   buildCrawlEvent,
   trackCrawlerHit,
 } from "@/lib/ai-crawler"
+import { checkRateLimit } from "@/lib/security/rate-limit"
+
+// Build Content-Security-Policy header with nonce
+function buildCSP(nonce: string): string {
+  return [
+    "default-src 'self'",
+    \`script-src 'self' 'nonce-\${nonce}' 'strict-dynamic' https://challenges.cloudflare.com\`,
+    \`style-src 'self' 'nonce-\${nonce}'\`,
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https:",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ")
+}
 
 // Routes to skip (API, static assets, etc.)
 function shouldSkipRoute(pathname: string): boolean {
@@ -37,7 +53,7 @@ function getRealHost(request: NextRequest): string {
 function getExternalUrl(request: NextRequest): URL {
   const proto = request.headers.get("x-forwarded-proto") || "https"
   const host = getRealHost(request)
-  const url = new URL(request.nextUrl.pathname + request.nextUrl.search, `${proto}://${host}`)
+  const url = new URL(request.nextUrl.pathname + request.nextUrl.search, \`\${proto}://\${host}\`)
   return url
 }
 
@@ -45,6 +61,9 @@ export async function middleware(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID()
   const startTime = Date.now()
   const pathname = request.nextUrl.pathname
+
+  // Generate CSP nonce for this request
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64")
 
   // Log incoming request
   logger.info(
@@ -83,7 +102,9 @@ export async function middleware(request: NextRequest) {
   if (shouldSkipRoute(pathname)) {
     const response = NextResponse.next()
     response.headers.set("x-request-id", requestId)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("x-nonce", nonce)
+    response.headers.set("Content-Security-Policy", buildCSP(nonce))
+    response.headers.set("x-response-time", \`\${Date.now() - startTime}ms\`)
     return response
   }
 
@@ -91,12 +112,48 @@ export async function middleware(request: NextRequest) {
   const realHost = getRealHost(request)
   const subdomain = getSubdomain(realHost)
 
-  // Marketing subdomain - allow all traffic
+  // Marketing subdomain - apply rate limiting for unauthenticated traffic
   if (subdomain === "marketing") {
+    // Get IP address for rate limiting
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "anonymous"
+
+    // Check rate limit for unauthenticated traffic
+    const rateLimitResult = await checkRateLimit(
+      \`unauthenticated_\${ip}\`,
+      "UNAUTHENTICATED_TRAFFIC"
+    )
+
+    if (!rateLimitResult.allowed) {
+      logger.warn(
+        {
+          requestId,
+          ip,
+          pathname,
+          resetAt: rateLimitResult.resetAt,
+          blockedUntil: rateLimitResult.blockedUntil,
+        },
+        "Rate limit exceeded for unauthenticated traffic"
+      )
+
+      return new NextResponse("Previše zahtjeva. Molimo pričekajte prije ponovnog pokušaja.", {
+        status: 429,
+        headers: {
+          "Retry-After": "60",
+          "X-RateLimit-Reset": rateLimitResult.resetAt?.toString() || "",
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      })
+    }
+
     const response = NextResponse.next()
     response.headers.set("x-request-id", requestId)
+    response.headers.set("x-nonce", nonce)
+    response.headers.set("Content-Security-Policy", buildCSP(nonce))
     response.headers.set("x-subdomain", subdomain)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("x-response-time", \`\${Date.now() - startTime}ms\`)
 
     // Apply cache headers for public KB pages
     const cacheHeaders = getCacheHeaders(pathname)
@@ -130,7 +187,9 @@ export async function middleware(request: NextRequest) {
 
     const response = NextResponse.redirect(loginUrl)
     response.headers.set("x-request-id", requestId)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("x-nonce", nonce)
+    response.headers.set("Content-Security-Policy", buildCSP(nonce))
+    response.headers.set("x-response-time", \`\${Date.now() - startTime}ms\`)
     return response
   }
 
@@ -157,7 +216,9 @@ export async function middleware(request: NextRequest) {
 
     const response = NextResponse.redirect(redirectUrl)
     response.headers.set("x-request-id", requestId)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("x-nonce", nonce)
+    response.headers.set("Content-Security-Policy", buildCSP(nonce))
+    response.headers.set("x-response-time", \`\${Date.now() - startTime}ms\`)
     return response
   }
 
@@ -181,13 +242,15 @@ export async function middleware(request: NextRequest) {
 
   // Don't rewrite if already in the correct route group
   if (!pathname.startsWith(routeGroup)) {
-    url.pathname = `${routeGroup}${pathname}`
+    url.pathname = \`\${routeGroup}\${pathname}\`
 
     const response = NextResponse.rewrite(url)
     response.headers.set("x-request-id", requestId)
+    response.headers.set("x-nonce", nonce)
+    response.headers.set("Content-Security-Policy", buildCSP(nonce))
     response.headers.set("x-subdomain", subdomain)
     response.headers.set("x-route-group", routeGroup)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("x-response-time", \`\${Date.now() - startTime}ms\`)
 
     logger.info(
       {
@@ -206,9 +269,11 @@ export async function middleware(request: NextRequest) {
   // Add subdomain to headers for route group selection
   const response = NextResponse.next()
   response.headers.set("x-request-id", requestId)
+  response.headers.set("x-nonce", nonce)
+  response.headers.set("Content-Security-Policy", buildCSP(nonce))
   response.headers.set("x-subdomain", subdomain)
   response.headers.set("x-route-group", routeGroup)
-  response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+  response.headers.set("x-response-time", \`\${Date.now() - startTime}ms\`)
 
   logger.info(
     {
