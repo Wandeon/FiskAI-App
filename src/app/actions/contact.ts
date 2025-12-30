@@ -25,6 +25,19 @@ export async function createContact(formData: z.infer<typeof contactSchema>) {
       return { error: "No tenant context" }
     }
 
+    // Check for existing OIB within the same company
+    if (validatedFields.data.oib) {
+      const existingContact = await db.contact.findFirst({
+        where: { oib: validatedFields.data.oib },
+      })
+      if (existingContact) {
+        return {
+          error: "Kontakt s ovim OIB-om već postoji",
+          existingContact: { id: existingContact.id, name: existingContact.name },
+        }
+      }
+    }
+
     const contact = await db.contact.create({
       data: {
         ...validatedFields.data,
@@ -61,6 +74,22 @@ export async function updateContact(contactId: string, formData: z.infer<typeof 
 
     if (!validatedFields.success) {
       return { error: "Invalid fields", details: validatedFields.error.flatten() }
+    }
+
+    // Check for OIB conflicts with other contacts (exclude current contact)
+    if (validatedFields.data.oib) {
+      const conflictingContact = await db.contact.findFirst({
+        where: {
+          oib: validatedFields.data.oib,
+          id: { not: contactId },
+        },
+      })
+      if (conflictingContact) {
+        return {
+          error: "Kontakt s ovim OIB-om već postoji",
+          existingContact: { id: conflictingContact.id, name: conflictingContact.name },
+        }
+      }
     }
 
     const contact = await db.contact.update({
