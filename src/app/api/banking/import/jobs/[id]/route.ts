@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { db } from "@/lib/db"
+import { bankingLogger } from "@/lib/logger"
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -103,16 +104,34 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  // Delete file best-effort
+  // Delete file with proper error logging
   if (job.storagePath) {
     try {
       await import("fs").then((fs) => fs.promises.unlink(job.storagePath))
-    } catch {
-      // ignore missing file
+      bankingLogger.info(
+        { jobId: job.id, path: job.storagePath },
+        "Successfully deleted file for import job"
+      )
+    } catch (error) {
+      // Log error but continue - orphaned file will be cleaned up by cron job
+      // Don't fail the delete operation if file is missing or inaccessible
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        bankingLogger.warn(
+          { jobId: job.id, path: job.storagePath },
+          "File already deleted or missing during job deletion"
+        )
+      } else {
+        bankingLogger.error(
+          { error, jobId: job.id, path: job.storagePath },
+          "Failed to delete file for import job - will be cleaned by cron job"
+        )
+      }
     }
   }
 
   await db.importJob.delete({ where: { id: jobId } })
+
+  bankingLogger.info({ jobId: job.id }, "Import job deleted successfully")
 
   return NextResponse.json({ success: true })
 }
