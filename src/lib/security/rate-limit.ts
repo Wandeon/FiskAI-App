@@ -90,6 +90,11 @@ export const RATE_LIMITS = {
     window: 60 * 1000, // 1 minute
     blockDuration: 60 * 1000, // 1 minute block
   },
+  SUPPORT_TICKET: {
+    attempts: 10, // 10 tickets per hour
+    window: 60 * 60 * 1000, // 1 hour
+    blockDuration: 60 * 60 * 1000, // 1 hour block
+  },
 }
 
 /**

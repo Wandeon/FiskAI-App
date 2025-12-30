@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { SupportTicketPriority, SupportTicketStatus, TicketCategory } from "@prisma/client"
 import { sanitizeUserContent } from "@/lib/security/sanitize"
+import { checkRateLimit } from "@/lib/security/rate-limit"
 
 const createSchema = z.object({
   title: z.string().min(3, "Naslov je prekratak"),
@@ -56,6 +57,15 @@ export async function POST(request: Request) {
   const user = await getCurrentUser()
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // Check rate limit for ticket creation
+  const rateLimitResult = await checkRateLimit(`support-ticket:${user.id}`, "SUPPORT_TICKET")
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Prekoračen limit tiketa. Pokušajte kasnije." },
+      { status: 429 }
+    )
   }
 
   const company = await getCurrentCompany(user.id!)
