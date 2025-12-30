@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { Prisma } from "@prisma/client"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { db } from "@/lib/db"
@@ -104,36 +103,15 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  // Delete file with proper error logging
-  if (job.storagePath) {
-    try {
-      await import("fs").then((fs) => fs.promises.unlink(job.storagePath))
-      bankingLogger.info(
-        { jobId: job.id, path: job.storagePath },
-        "Successfully deleted file for import job"
-      )
-    } catch (error) {
-      // Log error but continue - orphaned file will be cleaned up by cron job
-      // Don't fail the delete operation if file is missing or inaccessible
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-        bankingLogger.warn(
-          { jobId: job.id, path: job.storagePath },
-          "File already deleted or missing during job deletion"
-        )
-      } else {
-        bankingLogger.error(
-          { error, jobId: job.id, path: job.storagePath },
-          "Failed to delete file for import job - will be cleaned by cron job"
-        )
-      }
-    }
-  }
+  bankingLogger.warn(
+    { jobId: job.id, userId: user.id },
+    "Rejected bank import deletion attempt: imports are immutable"
+  )
 
-  await db.importJob.delete({ where: { id: jobId } })
-
-  bankingLogger.info({ jobId: job.id }, "Import job deleted successfully")
-
-  return NextResponse.json({ success: true })
+  return NextResponse.json(
+    { error: "Bankovni uvozi su nepromjenjivi i nije ih moguće obrisati." },
+    { status: 405 }
+  )
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -158,23 +136,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Missing job id" }, { status: 400 })
   }
 
-  const payload = await request.json()
-  const txs = Array.isArray(payload.transactions) ? payload.transactions : []
+  await request.json().catch(() => null)
+  bankingLogger.warn(
+    { jobId, userId: user.id },
+    "Rejected bank import mutation attempt: imports are immutable"
+  )
 
-  for (const tx of txs) {
-    if (!tx.id) continue
-    await db.transaction.updateMany({
-      where: { id: tx.id, companyId: company.id },
-      data: {
-        date: tx.date ? new Date(tx.date) : undefined,
-        amount: tx.amount !== undefined ? new Prisma.Decimal(tx.amount) : undefined,
-        description: tx.description ?? undefined,
-        reference: tx.reference ?? undefined,
-        payeeName: tx.payeeName ?? undefined,
-        iban: tx.iban ?? undefined,
-      },
-    })
-  }
-
-  return NextResponse.json({ success: true })
+  return NextResponse.json(
+    { error: "Bankovni uvozi su nepromjenjivi i nije ih moguće uređivati." },
+    { status: 405 }
+  )
 }

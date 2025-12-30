@@ -2,7 +2,16 @@
 // Data export and backup utilities for GDPR compliance and data portability
 
 import { db } from "@/lib/db"
-import { EInvoice, Contact, Product, Expense, Company } from "@prisma/client"
+import {
+  EInvoice,
+  Contact,
+  Product,
+  Expense,
+  Company,
+  Warehouse,
+  StockItem,
+  StockMovement,
+} from "@prisma/client"
 import { logger } from "@/lib/logger"
 import { backupQueue } from "@/lib/regulatory-truth/workers/queues"
 import { requirePermission } from "@/lib/rbac"
@@ -29,6 +38,9 @@ export interface BackupData {
   company: Company
   contacts: Contact[]
   products: Product[]
+  warehouses: Warehouse[]
+  stockItems: StockItem[]
+  stockMovements: StockMovement[]
   invoices: (EInvoice & { lines: any[] })[] // Including invoice lines
   expenses: Expense[]
   createdAt: Date
@@ -102,45 +114,79 @@ export async function exportCompanyData(options: ExportOptions): Promise<BackupD
     }
 
     // Get related data with tenant isolation using batched fetching
-    const [contacts, products, expenses] = await Promise.all([
-      fetchInBatches((skip, take) =>
-        db.contact.findMany({
-          where: {
-            companyId,
-            ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
-          },
-          skip,
-          take,
-          orderBy: { createdAt: "asc" },
-        })
-      ),
-      fetchInBatches((skip, take) =>
-        db.product.findMany({
-          where: {
-            companyId,
-            ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
-          },
-          skip,
-          take,
-          orderBy: { createdAt: "asc" },
-        })
-      ),
-      fetchInBatches((skip, take) =>
-        db.expense.findMany({
-          where: {
-            companyId,
-            ...(dateRange ? { date: { gte: dateRange.from, lte: dateRange.to } } : {}),
-          },
-          include: {
-            category: true,
-            vendor: true,
-          },
-          skip,
-          take,
-          orderBy: { date: "asc" },
-        })
-      ),
-    ])
+    const [contacts, products, warehouses, stockItems, stockMovements, expenses] =
+      await Promise.all([
+        fetchInBatches((skip, take) =>
+          db.contact.findMany({
+            where: {
+              companyId,
+              ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
+            },
+            skip,
+            take,
+            orderBy: { createdAt: "asc" },
+          })
+        ),
+        fetchInBatches((skip, take) =>
+          db.product.findMany({
+            where: {
+              companyId,
+              ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
+            },
+            skip,
+            take,
+            orderBy: { createdAt: "asc" },
+          })
+        ),
+        fetchInBatches((skip, take) =>
+          db.warehouse.findMany({
+            where: {
+              companyId,
+              ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
+            },
+            skip,
+            take,
+            orderBy: { createdAt: "asc" },
+          })
+        ),
+        fetchInBatches((skip, take) =>
+          db.stockItem.findMany({
+            where: {
+              companyId,
+              ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
+            },
+            skip,
+            take,
+            orderBy: { createdAt: "asc" },
+          })
+        ),
+        fetchInBatches((skip, take) =>
+          db.stockMovement.findMany({
+            where: {
+              companyId,
+              ...(dateRange ? { movementDate: { gte: dateRange.from, lte: dateRange.to } } : {}),
+            },
+            skip,
+            take,
+            orderBy: { movementDate: "asc" },
+          })
+        ),
+        fetchInBatches((skip, take) =>
+          db.expense.findMany({
+            where: {
+              companyId,
+              ...(dateRange ? { date: { gte: dateRange.from, lte: dateRange.to } } : {}),
+            },
+            include: {
+              category: true,
+              vendor: true,
+            },
+            skip,
+            take,
+            orderBy: { date: "asc" },
+          })
+        ),
+      ])
 
     // Get invoices with lines using batched fetching
     const invoices = await fetchInBatches((skip, take) =>
@@ -166,6 +212,9 @@ export async function exportCompanyData(options: ExportOptions): Promise<BackupD
       company,
       contacts,
       products,
+      warehouses,
+      stockItems,
+      stockMovements,
       invoices: invoices.map((inv) => ({
         ...inv,
         lines: inv.lines.map((line) => ({
@@ -185,6 +234,9 @@ export async function exportCompanyData(options: ExportOptions): Promise<BackupD
         recordCounts: {
           contacts: contacts.length,
           products: products.length,
+          warehouses: warehouses.length,
+          stockItems: stockItems.length,
+          stockMovements: stockMovements.length,
           invoices: invoices.length,
           expenses: expenses.length,
         },
@@ -277,10 +329,7 @@ export async function scheduleBackup(
   for (const job of existingJobs) {
     if (job.name === `scheduled-backup:${companyId}`) {
       await backupQueue.removeRepeatableByKey(job.key)
-      logger.info(
-        { companyId, oldKey: job.key },
-        "Removed existing backup schedule"
-      )
+      logger.info({ companyId, oldKey: job.key }, "Removed existing backup schedule")
     }
   }
 
@@ -359,9 +408,9 @@ export async function getBackupSchedule(
   for (const job of jobs) {
     if (job.name === `scheduled-backup:${companyId}`) {
       // Extract frequency from job pattern
-      const frequency = Object.entries(CRON_MAP).find(
-        ([_, cron]) => cron === job.pattern
-      )?.[0] as BackupFrequency | undefined
+      const frequency = Object.entries(CRON_MAP).find(([_, cron]) => cron === job.pattern)?.[0] as
+        | BackupFrequency
+        | undefined
 
       if (frequency) {
         return {
@@ -388,9 +437,9 @@ export async function listAllBackupSchedules(): Promise<
   for (const job of jobs) {
     if (job.name?.startsWith("scheduled-backup:")) {
       const companyId = job.name.replace("scheduled-backup:", "")
-      const frequency = Object.entries(CRON_MAP).find(
-        ([_, cron]) => cron === job.pattern
-      )?.[0] as BackupFrequency | undefined
+      const frequency = Object.entries(CRON_MAP).find(([_, cron]) => cron === job.pattern)?.[0] as
+        | BackupFrequency
+        | undefined
 
       if (frequency) {
         schedules.push({
@@ -425,6 +474,18 @@ export function validateBackupData(backupData: BackupData): { valid: boolean; er
 
   if (!Array.isArray(backupData.products)) {
     errors.push("Missing or invalid products data")
+  }
+
+  if (!Array.isArray(backupData.warehouses)) {
+    errors.push("Missing or invalid warehouses data")
+  }
+
+  if (!Array.isArray(backupData.stockItems)) {
+    errors.push("Missing or invalid stock items data")
+  }
+
+  if (!Array.isArray(backupData.stockMovements)) {
+    errors.push("Missing or invalid stock movements data")
   }
 
   if (!Array.isArray(backupData.expenses)) {

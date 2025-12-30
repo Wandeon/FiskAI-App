@@ -45,8 +45,9 @@ export async function GET(request: NextRequest) {
 
     const json = JSON.stringify(payload, null, 2)
     const controlSum = createControlSum(json)
+    const responseBody = JSON.stringify({ ...payload, controlSum }, null, 2)
 
-    return new NextResponse(json, {
+    return new NextResponse(responseBody, {
       status: 200,
       headers: {
         "Content-Type": "application/json; charset=utf-8",

@@ -23,6 +23,7 @@ export async function isGlobalAdmin(email?: string | null) {
 }
 
 export const MODULE_LABELS: Record<string, string> = {
+  "platform-core": "Platform Core",
   invoicing: "Izrada računa",
   "e-invoicing": "E-Računi",
   expenses: "Troškovi",

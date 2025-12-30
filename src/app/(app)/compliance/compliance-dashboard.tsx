@@ -12,7 +12,11 @@ import {
   Building2,
   FileText,
   XCircle,
+  Lock,
+  Unlock,
+  ClipboardCheck,
 } from "lucide-react"
+import { useState } from "react"
 import { format } from "date-fns"
 import { hr } from "date-fns/locale"
 import Link from "next/link"
@@ -46,6 +50,25 @@ export interface ComplianceData {
   fiscalizationStats: FiscalizationStats
   premisesCount: number
   recentInvoices: FiscalizedInvoice[]
+  reportingStatuses: ReportingStatusSummary[]
+  accountingPeriods: AccountingPeriodSummary[]
+}
+
+export interface ReportingStatusSummary {
+  id: string
+  reportType: string
+  status: string
+  updatedAt: Date | string
+  reviewStatus?: string | null
+}
+
+export interface AccountingPeriodSummary {
+  id: string
+  startDate: Date | string
+  endDate: Date | string
+  status: string
+  lockedAt: Date | string | null
+  lockReason: string | null
 }
 
 interface ComplianceDashboardProps {
@@ -55,6 +78,10 @@ interface ComplianceDashboardProps {
 
 export function ComplianceDashboard({ data, company }: ComplianceDashboardProps) {
   const { certificateStatus, fiscalizationStats, premisesCount, recentInvoices } = data
+  const [reportingStatuses, setReportingStatuses] = useState(data.reportingStatuses)
+  const [accountingPeriods, setAccountingPeriods] = useState(data.accountingPeriods)
+  const [pendingReportId, setPendingReportId] = useState<string | null>(null)
+  const [pendingPeriodId, setPendingPeriodId] = useState<string | null>(null)
 
   const getCertificateStatusBadge = () => {
     switch (certificateStatus.status) {
@@ -112,6 +139,89 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
     ]
 
     return items
+  }
+
+  const reportTypeLabels: Record<string, string> = {
+    VAT: "PDV obračun",
+    PDV: "EU PDV izvještaj",
+    KPR: "KPR knjiga",
+    PROFIT_LOSS: "Račun dobiti i gubitka",
+    BALANCE_SHEET: "Bilanca",
+  }
+
+  const reportStatusStyles: Record<string, string> = {
+    DRAFT: "bg-gray-50 text-gray-700 border-gray-200",
+    READY_FOR_REVIEW: "bg-amber-50 text-amber-700 border-amber-200",
+    APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    SUBMITTED: "bg-blue-50 text-blue-700 border-blue-200",
+    REJECTED: "bg-red-50 text-red-700 border-red-200",
+  }
+
+  const periodStatusStyles: Record<string, string> = {
+    OPEN: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    SOFT_CLOSE: "bg-amber-50 text-amber-700 border-amber-200",
+    CLOSED: "bg-gray-100 text-gray-600 border-gray-200",
+    LOCKED: "bg-red-50 text-red-700 border-red-200",
+    FUTURE: "bg-blue-50 text-blue-700 border-blue-200",
+  }
+
+  const handleReportAction = async (statusId: string, action: "request" | "approve" | "reject") => {
+    setPendingReportId(statusId)
+    try {
+      const res = await fetch(`/api/reporting-status/${statusId}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          reason: "compliance_dashboard",
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error ?? "Failed to update reporting status")
+        return
+      }
+
+      const payload = (await res.json()) as { status: ReportingStatusSummary }
+      setReportingStatuses((prev) =>
+        prev.map((item) => (item.id === payload.status.id ? payload.status : item))
+      )
+    } catch (error) {
+      alert("Failed to update reporting status")
+    } finally {
+      setPendingReportId(null)
+    }
+  }
+
+  const handlePeriodToggle = async (periodId: string, action: "lock" | "unlock") => {
+    setPendingPeriodId(periodId)
+    try {
+      const res = await fetch("/api/accounting-periods/lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          periodId,
+          action,
+          reason: "compliance_dashboard",
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error ?? "Failed to update accounting period")
+        return
+      }
+
+      const payload = (await res.json()) as { period: AccountingPeriodSummary }
+      setAccountingPeriods((prev) =>
+        prev.map((item) => (item.id === payload.period.id ? payload.period : item))
+      )
+    } catch (error) {
+      alert("Failed to update accounting period")
+    } finally {
+      setPendingPeriodId(null)
+    }
   }
 
   return (
@@ -319,6 +429,142 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4 text-[var(--muted)]" />
+              Reporting status
+            </CardTitle>
+            <CardDescription>Pregled statusa izvještaja i odobrenja</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {reportingStatuses.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">Nema evidentiranih izvještaja.</p>
+            ) : (
+              reportingStatuses.map((status) => (
+                <div
+                  key={status.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--border)] p-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">
+                      {reportTypeLabels[status.reportType] ?? status.reportType}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      Zadnje ažuriranje{" "}
+                      {format(new Date(status.updatedAt), "d. MMM yyyy", { locale: hr })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      className={`border ${reportStatusStyles[status.status] ?? "border-gray-200"}`}
+                    >
+                      {status.status.replace(/_/g, " ")}
+                    </Badge>
+                    {status.reviewStatus && (
+                      <Badge variant="outline" className="text-xs">
+                        Review: {status.reviewStatus}
+                      </Badge>
+                    )}
+                    {status.status === "DRAFT" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReportAction(status.id, "request")}
+                        disabled={pendingReportId === status.id}
+                      >
+                        Zatraži pregled
+                      </Button>
+                    )}
+                    {status.status === "READY_FOR_REVIEW" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReportAction(status.id, "approve")}
+                        disabled={pendingReportId === status.id}
+                      >
+                        Odobri
+                      </Button>
+                    )}
+                    {status.status === "READY_FOR_REVIEW" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleReportAction(status.id, "reject")}
+                        disabled={pendingReportId === status.id}
+                      >
+                        Odbij
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-[var(--muted)]" />
+              Period locking
+            </CardTitle>
+            <CardDescription>Zaključavanje računovodstvenih perioda</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {accountingPeriods.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">Nema definiranih perioda.</p>
+            ) : (
+              accountingPeriods.map((period) => (
+                <div
+                  key={period.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--border)] p-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">
+                      {format(new Date(period.startDate), "d. MMM yyyy", { locale: hr })} -{" "}
+                      {format(new Date(period.endDate), "d. MMM yyyy", { locale: hr })}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {period.lockReason ? `Razlog: ${period.lockReason}` : "Bez razloga"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      className={`border ${periodStatusStyles[period.status] ?? "border-gray-200"}`}
+                    >
+                      {period.status.replace(/_/g, " ")}
+                    </Badge>
+                    {period.status === "LOCKED" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePeriodToggle(period.id, "unlock")}
+                        disabled={pendingPeriodId === period.id}
+                      >
+                        <Unlock className="h-3 w-3 mr-1" />
+                        Otključaj
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePeriodToggle(period.id, "lock")}
+                        disabled={pendingPeriodId === period.id || period.status === "CLOSED"}
+                      >
+                        <Lock className="h-3 w-3 mr-1" />
+                        Zaključaj
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>

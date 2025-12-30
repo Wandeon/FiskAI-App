@@ -146,12 +146,19 @@ const EXPENSE_EVENT_STATUSES = new Set(["PENDING", "PAID"])
 
 type OperationalEventInput = {
   companyId: string
-  sourceType: "INVOICE" | "EXPENSE" | "BANK_TRANSACTION"
+  sourceType: "INVOICE" | "EXPENSE" | "BANK_TRANSACTION" | "PAYROLL" | "ASSET" | "INVENTORY"
   eventType:
     | "INVOICE_ISSUED"
     | "EXPENSE_RECORDED"
     | "BANK_TRANSACTION_INCOMING"
     | "BANK_TRANSACTION_OUTGOING"
+    | "PAYROLL_POSTED"
+    | "ASSET_ACQUIRED"
+    | "ASSET_DEPRECIATION"
+    | "ASSET_DISPOSED"
+    | "INVENTORY_RECEIPT"
+    | "INVENTORY_ISSUE"
+    | "INVENTORY_ADJUSTMENT"
   sourceId: string
   entryDate: Date
   payload?: Prisma.InputJsonValue
@@ -225,6 +232,88 @@ function buildTransactionEvent(record: {
     sourceId: record.id,
     entryDate: record.date,
     payload: { direction: record.direction },
+  }
+}
+
+function buildPayrollEvent(record: {
+  id: string
+  companyId: string
+  payoutDate: Date
+  status?: string | null
+}): OperationalEventInput | null {
+  if (record.status && record.status !== "LOCKED") return null
+  return {
+    companyId: record.companyId,
+    sourceType: "PAYROLL",
+    eventType: "PAYROLL_POSTED",
+    sourceId: record.id,
+    entryDate: record.payoutDate,
+    payload: { status: record.status ?? "LOCKED" },
+  }
+}
+
+function buildAssetAcquisitionEvent(record: {
+  id: string
+  companyId: string
+  acquisitionDate: Date
+}): OperationalEventInput {
+  return {
+    companyId: record.companyId,
+    sourceType: "ASSET",
+    eventType: "ASSET_ACQUIRED",
+    sourceId: record.id,
+    entryDate: record.acquisitionDate,
+  }
+}
+
+function buildAssetDepreciationEvent(record: {
+  id: string
+  companyId: string
+  periodEnd: Date
+}): OperationalEventInput {
+  return {
+    companyId: record.companyId,
+    sourceType: "ASSET",
+    eventType: "ASSET_DEPRECIATION",
+    sourceId: record.id,
+    entryDate: record.periodEnd,
+  }
+}
+
+function buildAssetDisposalEvent(record: {
+  id: string
+  companyId: string
+  disposalDate: Date
+}): OperationalEventInput {
+  return {
+    companyId: record.companyId,
+    sourceType: "ASSET",
+    eventType: "ASSET_DISPOSED",
+    sourceId: record.id,
+    entryDate: record.disposalDate,
+  }
+}
+
+function buildInventoryEvent(record: {
+  id: string
+  companyId: string
+  movementType: string
+  movementDate: Date
+}): OperationalEventInput {
+  const eventType =
+    record.movementType === "PRIMKA"
+      ? "INVENTORY_RECEIPT"
+      : record.movementType === "IZDATNICA"
+        ? "INVENTORY_ISSUE"
+        : "INVENTORY_ADJUSTMENT"
+
+  return {
+    companyId: record.companyId,
+    sourceType: "INVENTORY",
+    eventType,
+    sourceId: record.id,
+    entryDate: record.movementDate,
+    payload: { movementType: record.movementType },
   }
 }
 
@@ -356,6 +445,9 @@ async function assertEntryBalanced(prismaBase: PrismaClient, entryId: string): P
 // Models that require tenant filtering
 const TENANT_MODELS = [
   "Contact",
+  "Organization",
+  "Address",
+  "TaxIdentity",
   "Product",
   "EInvoice",
   "EInvoiceLine",
@@ -367,6 +459,7 @@ const TENANT_MODELS = [
   "CashIn",
   "CashOut",
   "CashDayClose",
+  "CashLimitSetting",
   "BankAccount",
   "BankTransaction",
   "MatchRecord",
@@ -382,6 +475,11 @@ const TENANT_MODELS = [
   "Attachment",
   "ExpenseCorrection",
   "FixedAssetCandidate",
+  "FixedAsset",
+  "DepreciationSchedule",
+  "DepreciationEntry",
+  "DisposalEvent",
+  "AssetCandidate",
   "ExpenseCategory",
   "RecurringExpense",
   "SavedReport",
@@ -397,12 +495,21 @@ const TENANT_MODELS = [
   "TrialBalance",
   "PostingRule",
   "OperationalEvent",
+  "AccountMapping",
+  "ExportProfile",
+  "ExportJob",
   "Payout",
   "PayoutLine",
+  "Payslip",
   "JoppdSubmission",
   "JoppdSubmissionLine",
   "PayslipArtifact",
   "CalculationSnapshot",
+  "BankPaymentExport",
+  "BankPaymentLine",
+  "ReportingStatus",
+  "ReviewQueueItem",
+  "ReviewDecision",
   "Employee",
   "EmployeeRole",
   "EmploymentContract",
@@ -411,6 +518,10 @@ const TENANT_MODELS = [
   "Dependent",
   "Allowance",
   "PensionPillar",
+  "Warehouse",
+  "StockItem",
+  "StockMovement",
+  "ValuationSnapshot",
   // Note: CompanyUser intentionally NOT included - it's filtered by userId, not companyId
   // Including it breaks getCurrentCompany() which queries CompanyUser before tenant context exists
 ] as const
@@ -418,6 +529,9 @@ const TENANT_MODELS = [
 // Models to audit (exclude AuditLog itself to prevent infinite loops)
 const AUDITED_MODELS = [
   "Contact",
+  "Organization",
+  "Address",
+  "TaxIdentity",
   "Product",
   "EInvoice",
   "Company",
@@ -426,6 +540,7 @@ const AUDITED_MODELS = [
   "CashIn",
   "CashOut",
   "CashDayClose",
+  "CashLimitSetting",
   "BankAccount",
   "MatchRecord",
   "StatementImport",
@@ -442,6 +557,9 @@ const AUDITED_MODELS = [
   "PaymentDevice",
   "InvoiceSequence",
   "SupportTicket",
+  "ReportingStatus",
+  "ReviewQueueItem",
+  "ReviewDecision",
 ] as const
 type AuditedModel = (typeof AUDITED_MODELS)[number]
 
@@ -495,7 +613,7 @@ async function assertPeriodUnlocked(
   const lockedPeriod = await prismaBase.accountingPeriod.findFirst({
     where: {
       companyId,
-      status: "LOCKED",
+      status: { in: Array.from(LOCKED_PERIOD_STATUSES) },
       startDate: { lte: date },
       endDate: { gte: date },
     },
@@ -571,7 +689,7 @@ async function enforcePeriodLockForBulk(
   if (!companyId) return
 
   const lockedPeriods = await prismaBase.accountingPeriod.findMany({
-    where: { companyId, status: "LOCKED" },
+    where: { companyId, status: { in: Array.from(LOCKED_PERIOD_STATUSES) } },
     select: { startDate: true, endDate: true },
   })
 
@@ -648,12 +766,12 @@ async function enforceInvoiceImmutability(
 
   const existing = await prismaBase.eInvoice.findUnique({
     where: args.where as Prisma.EInvoiceWhereUniqueInput,
-    select: { status: true },
+    select: { status: true, jir: true, fiscalizedAt: true },
   })
 
   if (!existing) return
 
-  if (existing.status !== "DRAFT") {
+  if (existing.status !== "DRAFT" || existing.jir || existing.fiscalizedAt) {
     throw new InvoiceImmutabilityError(
       `Attempted to update fields [${disallowedKeys.join(", ")}] on invoice in status ${
         existing.status
@@ -670,7 +788,9 @@ async function enforceInvoiceLineImmutability(
   const lockedLine = await prismaBase.eInvoiceLine.findFirst({
     where: {
       ...where,
-      eInvoice: { status: { not: "DRAFT" } },
+      eInvoice: {
+        OR: [{ status: { not: "DRAFT" } }, { jir: { not: null } }, { fiscalizedAt: { not: null } }],
+      },
     },
     select: { id: true, eInvoiceId: true },
   })
@@ -689,10 +809,10 @@ async function enforceInvoiceDeleteImmutability(
 ): Promise<void> {
   const existing = await prismaBase.eInvoice.findUnique({
     where,
-    select: { status: true },
+    select: { status: true, jir: true, fiscalizedAt: true },
   })
 
-  if (existing && existing.status !== "DRAFT") {
+  if (existing && (existing.status !== "DRAFT" || existing.jir || existing.fiscalizedAt)) {
     throw new InvoiceImmutabilityError(
       `Cannot ${action} invoice in status ${existing.status}. Use a credit note for corrections.`
     )
@@ -714,7 +834,7 @@ async function enforceInvoiceUpdateManyImmutability(
   const lockedInvoice = await prismaBase.eInvoice.findFirst({
     where: {
       ...(args.where ?? {}),
-      status: { not: "DRAFT" },
+      OR: [{ status: { not: "DRAFT" } }, { jir: { not: null } }, { fiscalizedAt: { not: null } }],
     },
     select: { id: true, status: true },
   })
@@ -801,6 +921,18 @@ async function ensureAttachmentMutable(
 
   if (immutable) {
     throw new AttachmentImmutabilityError(immutable.id)
+  }
+}
+
+// ============================================
+// ARTIFACT IMMUTABILITY PROTECTION
+// ============================================
+// Artifacts are content-addressed and must remain immutable once stored.
+
+export class ArtifactImmutabilityError extends Error {
+  constructor(action: string) {
+    super(`Cannot ${action} Artifact records: artifacts are immutable once stored.`)
+    this.name = "ArtifactImmutabilityError"
   }
 }
 
@@ -934,6 +1066,144 @@ function getDecimalValue(value: unknown): Prisma.Decimal | null {
 function assertAmountNonNegative(amount: Prisma.Decimal) {
   if (amount.lessThan(0)) {
     throw new CashAmountNegativeError()
+  }
+}
+
+export class StockValuationMethodMismatchError extends Error {
+  constructor(companyId: string, method: string) {
+    super(`Stock valuation method mismatch for company ${companyId}: ${method}`)
+    this.name = "StockValuationMethodMismatchError"
+  }
+}
+
+export class StockValuationMethodChangeError extends Error {
+  constructor(companyId: string) {
+    super(
+      `Stock valuation method cannot be changed for company ${companyId} once stock activity exists.`
+    )
+    this.name = "StockValuationMethodChangeError"
+  }
+}
+
+export class StockMovementReconciliationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "StockMovementReconciliationError"
+  }
+}
+
+function assertStockMovementQuantity(movementType: string, quantity: Prisma.Decimal | null): void {
+  if (!quantity) return
+  if (quantity.isZero()) {
+    throw new StockMovementReconciliationError("Stock movement quantity cannot be zero.")
+  }
+  if ((movementType === "PRIMKA" || movementType === "IZDATNICA") && quantity.lte(0)) {
+    throw new StockMovementReconciliationError(
+      `Stock movement ${movementType} requires a positive quantity.`
+    )
+  }
+}
+
+async function assertStockItemRelations(
+  prismaBase: PrismaClient,
+  data: Record<string, unknown>
+): Promise<void> {
+  const companyId = data.companyId as string | undefined
+  const warehouseId = data.warehouseId as string | undefined
+  const productId = data.productId as string | undefined
+  if (!companyId || !warehouseId || !productId) return
+
+  const [warehouse, product] = await Promise.all([
+    prismaBase.warehouse.findUnique({ where: { id: warehouseId }, select: { companyId: true } }),
+    prismaBase.product.findUnique({ where: { id: productId }, select: { companyId: true } }),
+  ])
+
+  if (!warehouse || warehouse.companyId !== companyId) {
+    throw new StockMovementReconciliationError("Warehouse does not belong to company.")
+  }
+
+  if (!product || product.companyId !== companyId) {
+    throw new StockMovementReconciliationError("Product does not belong to company.")
+  }
+}
+
+async function assertStockMovementRelations(
+  prismaBase: PrismaClient,
+  data: Record<string, unknown>
+): Promise<void> {
+  const companyId = (data.companyId as string | undefined) ?? getTenantContext()?.companyId
+  const warehouseId = data.warehouseId as string | undefined
+  const productId = data.productId as string | undefined
+  const stockItemId = data.stockItemId as string | undefined
+
+  if (!companyId) return
+
+  if (warehouseId) {
+    const warehouse = await prismaBase.warehouse.findUnique({
+      where: { id: warehouseId },
+      select: { companyId: true },
+    })
+    if (!warehouse || warehouse.companyId !== companyId) {
+      throw new StockMovementReconciliationError("Warehouse does not belong to company.")
+    }
+  }
+
+  if (productId) {
+    const product = await prismaBase.product.findUnique({
+      where: { id: productId },
+      select: { companyId: true },
+    })
+    if (!product || product.companyId !== companyId) {
+      throw new StockMovementReconciliationError("Product does not belong to company.")
+    }
+  }
+
+  if (stockItemId) {
+    const stockItem = await prismaBase.stockItem.findUnique({
+      where: { id: stockItemId },
+      select: { companyId: true, warehouseId: true, productId: true },
+    })
+
+    if (!stockItem || stockItem.companyId !== companyId) {
+      throw new StockMovementReconciliationError("Stock item does not belong to company.")
+    }
+
+    if (warehouseId && stockItem.warehouseId !== warehouseId) {
+      throw new StockMovementReconciliationError("Stock item does not match warehouse.")
+    }
+
+    if (productId && stockItem.productId !== productId) {
+      throw new StockMovementReconciliationError("Stock item does not match product.")
+    }
+  }
+}
+
+async function assertStockValuationMethod(
+  prismaBase: PrismaClient,
+  companyId: string,
+  valuationMethod: string
+): Promise<void> {
+  const company = await prismaBase.company.findUnique({
+    where: { id: companyId },
+    select: { stockValuationMethod: true },
+  })
+
+  if (company && company.stockValuationMethod !== valuationMethod) {
+    throw new StockValuationMethodMismatchError(companyId, valuationMethod)
+  }
+}
+
+async function assertStockValuationMethodChange(
+  prismaBase: PrismaClient,
+  companyId: string
+): Promise<void> {
+  const [activityCount, snapshotCount] = await Promise.all([
+    prismaBase.stockMovement.count({ where: { companyId } }),
+    prismaBase.valuationSnapshot.count({ where: { companyId } }),
+  ])
+
+  if (activityCount > 0 || snapshotCount > 0) {
+    throw new StockValuationMethodChangeError(companyId)
   }
 }
 
@@ -1479,6 +1749,30 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "StockItem" && args.data && typeof args.data === "object") {
+            await assertStockItemRelations(prismaBase, args.data as Record<string, unknown>)
+          }
+
+          if (model === "StockMovement" && args.data && typeof args.data === "object") {
+            const data = args.data as Record<string, unknown>
+            const movementType = data.movementType as string | undefined
+            const quantity = getDecimalValue(data.quantity)
+            if (movementType) {
+              assertStockMovementQuantity(movementType, quantity)
+            }
+            await assertStockMovementRelations(prismaBase, data)
+          }
+
+          if (model === "ValuationSnapshot" && args.data && typeof args.data === "object") {
+            const data = args.data as Record<string, unknown>
+            const companyId =
+              (data.companyId as string | undefined) ?? getTenantContext()?.companyId
+            const valuationMethod = data.valuationMethod as string | undefined
+            if (companyId && valuationMethod) {
+              await assertStockValuationMethod(prismaBase, companyId, valuationMethod)
+            }
+          }
+
           const result = await query(args)
 
           // Audit logging for create operations
@@ -1531,12 +1825,49 @@ export function withTenantIsolation(prisma: PrismaClient) {
             await upsertOperationalEvent(prismaBase, event)
           }
 
+          if (model === "FixedAsset" && result && typeof result === "object") {
+            const event = buildAssetAcquisitionEvent(
+              result as { id: string; companyId: string; acquisitionDate: Date }
+            )
+            await upsertOperationalEvent(prismaBase, event)
+          }
+
+          if (model === "DepreciationEntry" && result && typeof result === "object") {
+            const event = buildAssetDepreciationEvent(
+              result as { id: string; companyId: string; periodEnd: Date }
+            )
+            await upsertOperationalEvent(prismaBase, event)
+          }
+
+          if (model === "DisposalEvent" && result && typeof result === "object") {
+            const event = buildAssetDisposalEvent(
+              result as { id: string; companyId: string; disposalDate: Date }
+            )
+            await upsertOperationalEvent(prismaBase, event)
+          }
+
+          if (model === "StockMovement" && result && typeof result === "object") {
+            const event = buildInventoryEvent(
+              result as {
+                id: string
+                companyId: string
+                movementType: string
+                movementDate: Date
+              }
+            )
+            await upsertOperationalEvent(prismaBase, event)
+          }
+
           return result
         },
         async update({ model, args, query }) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields
           if (model === "Evidence" && args.data && typeof args.data === "object") {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
+          }
+
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("update")
           }
 
           if (model in PERIOD_LOCK_MODELS) {
@@ -1570,6 +1901,64 @@ export function withTenantIsolation(prisma: PrismaClient) {
               prismaBase,
               args.where as Prisma.AttachmentWhereUniqueInput
             )
+          }
+
+          if (model === "Company" && args.data && typeof args.data === "object") {
+            const data = args.data as Record<string, unknown>
+            if ("stockValuationMethod" in data && data.stockValuationMethod) {
+              const existing = await prismaBase.company.findUnique({
+                where: args.where as Prisma.CompanyWhereUniqueInput,
+                select: { id: true, stockValuationMethod: true },
+              })
+              const nextMethod = data.stockValuationMethod as string
+              if (existing && existing.stockValuationMethod !== nextMethod) {
+                await assertStockValuationMethodChange(prismaBase, existing.id)
+              }
+            }
+          }
+
+          if (model === "StockItem" && args.data && typeof args.data === "object") {
+            const existing = await prismaBase.stockItem.findUnique({
+              where: args.where as Prisma.StockItemWhereUniqueInput,
+              select: { companyId: true, warehouseId: true, productId: true },
+            })
+            if (!existing) {
+              throw new StockMovementReconciliationError("Stock item not found.")
+            }
+            const next = { ...existing, ...(args.data as Record<string, unknown>) }
+            await assertStockItemRelations(prismaBase, next)
+          }
+
+          if (model === "StockMovement" && args.data && typeof args.data === "object") {
+            const existing = await prismaBase.stockMovement.findUnique({
+              where: args.where as Prisma.StockMovementWhereUniqueInput,
+              select: {
+                companyId: true,
+                warehouseId: true,
+                productId: true,
+                stockItemId: true,
+                movementType: true,
+                quantity: true,
+              },
+            })
+            if (!existing) {
+              throw new StockMovementReconciliationError("Stock movement not found.")
+            }
+            const next = { ...existing, ...(args.data as Record<string, unknown>) }
+            const movementType = next.movementType as string
+            const quantity = getDecimalValue(next.quantity)
+            assertStockMovementQuantity(movementType, quantity)
+            await assertStockMovementRelations(prismaBase, next)
+          }
+
+          if (model === "ValuationSnapshot" && args.data && typeof args.data === "object") {
+            const data = args.data as Record<string, unknown>
+            const companyId =
+              (data.companyId as string | undefined) ?? getTenantContext()?.companyId
+            const valuationMethod = data.valuationMethod as string | undefined
+            if (companyId && valuationMethod) {
+              await assertStockValuationMethod(prismaBase, companyId, valuationMethod)
+            }
           }
 
           // REGULATORY RULE STATUS TRANSITIONS: enforce allowed transitions (hard backstop)
@@ -1698,11 +2087,24 @@ export function withTenantIsolation(prisma: PrismaClient) {
             const newStatus = getRequestedPayoutStatus(args.data)
             const existing = await prismaBase.payout.findUnique({
               where: args.where as Prisma.PayoutWhereUniqueInput,
-              select: { status: true },
+              select: { id: true, status: true, companyId: true, payoutDate: true },
             })
 
             if (!existing) {
               throw new PayoutStatusTransitionError("Cannot transition payout: payout not found.")
+            }
+
+            const nextStatus = newStatus ?? existing.status
+            if (nextStatus && nextStatus !== existing.status) {
+              const event = buildPayrollEvent({
+                id: existing.id,
+                companyId: existing.companyId,
+                payoutDate: existing.payoutDate,
+                status: nextStatus,
+              })
+              if (event) {
+                operationalEvent = event
+              }
             }
 
             if (!newStatus || newStatus === existing.status) {
@@ -1757,6 +2159,40 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "Payslip") {
+            const existing = await prismaBase.payslip.findUnique({
+              where: args.where as Prisma.PayslipWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot edit payslip: payslip not found.")
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit payslips in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "Payslip") {
+            const existing = await prismaBase.payslip.findUnique({
+              where: args.where as Prisma.PayslipWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot delete payslip: payslip not found.")
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payslips in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
           if (model === "PayslipArtifact") {
             const existing = await prismaBase.payslipArtifact.findUnique({
               where: args.where as Prisma.PayslipArtifactWhereUniqueInput,
@@ -1772,6 +2208,44 @@ export function withTenantIsolation(prisma: PrismaClient) {
             if (existing.payout.status !== "DRAFT") {
               throw new PayoutStatusTransitionError(
                 `Cannot edit payslip artifacts in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "BankPaymentExport") {
+            const existing = await prismaBase.bankPaymentExport.findUnique({
+              where: args.where as Prisma.BankPaymentExportWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit bank payment export: export not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit bank payment exports in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "BankPaymentLine") {
+            const existing = await prismaBase.bankPaymentLine.findUnique({
+              where: args.where as Prisma.BankPaymentLineWhereUniqueInput,
+              select: { export: { select: { payout: { select: { status: true } } } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit bank payment line: payment line not found."
+              )
+            }
+
+            if (existing.export.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit bank payment lines in ${existing.export.payout.status} state. Locked payouts are immutable.`
               )
             }
           }
@@ -1812,6 +2286,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return result
         },
         async delete({ model, args, query }) {
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("delete")
+          }
+
           if (model === "EInvoice") {
             await enforceInvoiceDeleteImmutability(
               prismaBase,
@@ -1913,6 +2391,44 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "BankPaymentExport") {
+            const existing = await prismaBase.bankPaymentExport.findUnique({
+              where: args.where as Prisma.BankPaymentExportWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete bank payment export: export not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete bank payment exports in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "BankPaymentLine") {
+            const existing = await prismaBase.bankPaymentLine.findUnique({
+              where: args.where as Prisma.BankPaymentLineWhereUniqueInput,
+              select: { export: { select: { payout: { select: { status: true } } } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete bank payment line: payment line not found."
+              )
+            }
+
+            if (existing.export.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete bank payment lines in ${existing.export.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
           if (model === "CashDayClose") {
             throw new CashDayCloseImmutableError("delete")
           }
@@ -2004,6 +2520,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("updateMany")
+          }
+
           await enforcePeriodLockForBulk(prismaBase, model, {
             where: args.where as Record<string, unknown>,
           })
@@ -2036,9 +2556,15 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
-          if (model === "PayoutLine" || model === "PayslipArtifact") {
+          if (
+            model === "PayoutLine" ||
+            model === "Payslip" ||
+            model === "PayslipArtifact" ||
+            model === "BankPaymentExport" ||
+            model === "BankPaymentLine"
+          ) {
             throw new PayoutStatusTransitionError(
-              "Cannot update payout lines or payslip artifacts using updateMany. Use per-record updates."
+              "Cannot update payout lines, payslips, bank payment exports, or payslip artifacts using updateMany. Use per-record updates."
             )
           }
 
@@ -2073,6 +2599,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return query(args)
         },
         async deleteMany({ model, args, query }) {
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("deleteMany")
+          }
+
           if (model === "EInvoice") {
             const lockedInvoice = await prismaBase.eInvoice.findFirst({
               where: {
@@ -2101,9 +2631,15 @@ export function withTenantIsolation(prisma: PrismaClient) {
             throw new CalculationSnapshotImmutabilityError()
           }
 
-          if (model === "PayoutLine" || model === "PayslipArtifact") {
+          if (
+            model === "PayoutLine" ||
+            model === "Payslip" ||
+            model === "PayslipArtifact" ||
+            model === "BankPaymentExport" ||
+            model === "BankPaymentLine"
+          ) {
             throw new PayoutStatusTransitionError(
-              "Cannot delete payout lines or payslip artifacts in bulk. Use per-record deletes."
+              "Cannot delete payout lines, payslips, bank payment exports, or payslip artifacts in bulk. Use per-record deletes."
             )
           }
 
@@ -2137,6 +2673,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields in upsert
           if (model === "Evidence" && args.update && typeof args.update === "object") {
             checkEvidenceImmutability(args.update as Record<string, unknown>)
+          }
+
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("upsert")
           }
 
           if (model in PERIOD_LOCK_MODELS) {

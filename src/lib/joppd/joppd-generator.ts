@@ -9,6 +9,7 @@ export interface JoppdLineField {
 export interface JoppdLineInput {
   lineNumber: number
   payoutLineId: string
+  ruleVersionId?: string | null
   recipientName?: string | null
   recipientOib?: string | null
   grossAmount?: number | null

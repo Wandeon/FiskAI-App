@@ -22,9 +22,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 
   const { companyId, userId, enabled, expiresAt } = body
+  const reason = typeof body.reason === "string" ? body.reason.trim() : ""
 
   if (enabled === undefined) {
     return NextResponse.json({ error: "enabled is required" }, { status: 400 })
+  }
+  if (!reason) {
+    return NextResponse.json({ error: "reason is required" }, { status: 400 })
   }
 
   // Validate that at least one target is specified for non-global flags
@@ -44,12 +48,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         enabled,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
       },
-      user.id!
+      user.id!,
+      reason
     )
     return NextResponse.json(override, { status: 201 })
   } catch (error) {
     if (error instanceof Error && error.message.includes("Unique constraint")) {
-      return NextResponse.json({ error: "An override for this target already exists" }, { status: 409 })
+      return NextResponse.json(
+        { error: "An override for this target already exists" },
+        { status: 409 }
+      )
     }
     throw error
   }
@@ -74,6 +82,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   if (!overrideId) {
     return NextResponse.json({ error: "overrideId is required" }, { status: 400 })
   }
+  const deleteReason = typeof body.reason === "string" ? body.reason.trim() : ""
+  if (!deleteReason) {
+    return NextResponse.json({ error: "reason is required" }, { status: 400 })
+  }
 
   // Verify override belongs to this flag
   const override = flag.overrides.find((o) => o.id === overrideId)
@@ -81,6 +93,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Override not found" }, { status: 404 })
   }
 
-  await deleteOverride(overrideId, user.id!)
+  await deleteOverride(overrideId, user.id!, deleteReason)
   return NextResponse.json({ success: true })
 }

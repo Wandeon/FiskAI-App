@@ -17,7 +17,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const body = await request.json()
   const { documentType } = body
 
-  if (!documentType || !["BANK_STATEMENT", "INVOICE", "EXPENSE"].includes(documentType)) {
+  if (
+    !documentType ||
+    !["BANK_STATEMENT", "INVOICE", "EXPENSE", "PRIMKA", "IZDATNICA"].includes(documentType)
+  ) {
     return NextResponse.json({ error: "Invalid document type" }, { status: 400 })
   }
 

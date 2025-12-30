@@ -3,7 +3,14 @@ import dynamic from "next/dynamic"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import type { CertificateStatus, FiscalizationStats, ComplianceData } from "./compliance-dashboard"
+import type {
+  CertificateStatus,
+  FiscalizationStats,
+  ComplianceData,
+  ReportingStatusSummary,
+  AccountingPeriodSummary,
+} from "./compliance-dashboard"
+import { ensureReportingStatuses } from "@/lib/reporting/status-service"
 
 // Dynamic import for heavy ComplianceDashboard component
 const ComplianceDashboard = dynamic(
@@ -101,6 +108,30 @@ export default async function CompliancePage() {
     lastSync: lastSync?.updatedAt || null,
   }
 
+  const accountingPeriods = await db.accountingPeriod.findMany({
+    where: { companyId: company.id },
+    orderBy: { startDate: "desc" },
+    take: 3,
+  })
+
+  const latestPeriod = accountingPeriods[0]
+  if (latestPeriod) {
+    await ensureReportingStatuses({
+      companyId: company.id,
+      periodId: latestPeriod.id,
+      actorId: user.id!,
+      reason: "compliance_dashboard_bootstrap",
+    })
+  }
+
+  const reportingStatuses = latestPeriod
+    ? await db.reportingStatus.findMany({
+        where: { companyId: company.id, periodId: latestPeriod.id },
+        orderBy: { reportType: "asc" },
+        include: { reviewQueueItem: { select: { status: true } } },
+      })
+    : []
+
   // Fetch recent fiscalized invoices
   const recentInvoices = await db.eInvoice.findMany({
     where: {
@@ -146,6 +177,25 @@ export default async function CompliancePage() {
       fiscalizedAt: inv.fiscalizedAt!,
       buyerName: inv.buyer?.name || "Nepoznato",
     })),
+    reportingStatuses: reportingStatuses.map(
+      (status): ReportingStatusSummary => ({
+        id: status.id,
+        reportType: status.reportType,
+        status: status.status,
+        updatedAt: status.updatedAt,
+        reviewStatus: status.reviewQueueItem?.status ?? null,
+      })
+    ),
+    accountingPeriods: accountingPeriods.map(
+      (period): AccountingPeriodSummary => ({
+        id: period.id,
+        startDate: period.startDate,
+        endDate: period.endDate,
+        status: period.status,
+        lockedAt: period.lockedAt,
+        lockReason: period.lockReason,
+      })
+    ),
   }
 
   return (

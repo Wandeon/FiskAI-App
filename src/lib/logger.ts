@@ -6,10 +6,16 @@ const isDev = process.env.NODE_ENV !== "production"
 const lokiUrl = process.env.LOKI_URL
 const lokiEnabled = !!lokiUrl && !isDev
 
+// Detect Edge runtime (middleware runs in Edge)
+// Edge runtime doesn't support pino.transport() which uses Node.js worker threads
+const isEdgeRuntime =
+  typeof globalThis.EdgeRuntime !== "undefined" ||
+  (typeof process !== "undefined" && process.env.NEXT_RUNTIME === "edge")
+
 // Build transport targets for log aggregation
 function buildTransport() {
-  if (isDev) {
-    // In dev mode, use synchronous stdout only
+  // Edge runtime doesn't support worker-based transports
+  if (isEdgeRuntime || isDev) {
     return undefined
   }
 
@@ -35,7 +41,7 @@ function buildTransport() {
   return pino.transport({ targets })
 }
 
-// In dev mode, don't use pino-pretty transport (worker threads crash with Next.js HMR)
+// In dev mode or Edge runtime, don't use pino-pretty transport (worker threads not available)
 // Instead use synchronous pretty printing via pino's built-in formatters
 const transport = buildTransport()
 export const logger = pino(

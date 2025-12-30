@@ -80,6 +80,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ tabl
     if (!Array.isArray(entries)) {
       return NextResponse.json({ error: "Entries array is required" }, { status: 400 })
     }
+    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
+    if (!trimmedReason) {
+      return NextResponse.json({ error: "Reason is required" }, { status: 400 })
+    }
 
     const table = await db.referenceTable.findUnique({
       where: { id: tableId },
@@ -133,6 +137,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ tabl
       action: "UPDATE",
       entity: "ReferenceTableEntries",
       entityId: tableId,
+      reason: trimmedReason,
       changes: {
         before: {
           table: serializeTable(table),
@@ -142,7 +147,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ tabl
           table: serializeTable(updatedTable),
           entries: serializeEntries(updatedTable.entries),
         },
-        reason: reason || "Admin regulatory table entries update",
       },
       ipAddress: getIpFromHeaders(request.headers),
       userAgent: getUserAgentFromHeaders(request.headers),

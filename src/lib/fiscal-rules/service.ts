@@ -1,7 +1,7 @@
 import { createHash } from "crypto"
 import { prisma } from "@/lib/prisma"
 import type {
-  CalculationInputByTableKey,
+  CalculationRequest,
   CalculationResponse,
   ContributionsRuleData,
   JoppdCodebookData,
@@ -240,7 +240,7 @@ function calculateJoppdCodebook(data: JoppdCodebookData, input: { code?: string 
 }
 
 export async function calculateDeterministicRule(
-  input: CalculationInputByTableKey & { referenceDate?: string | Date }
+  input: CalculationRequest
 ): Promise<CalculationResponse<unknown>> {
   assertValidRuleTableKey(input.tableKey)
 
@@ -251,7 +251,20 @@ export async function calculateDeterministicRule(
         ? new Date(input.referenceDate)
         : new Date()
 
-  const ruleVersion = await getEffectiveRuleVersion(input.tableKey, referenceDate)
+  const ruleVersion = input.ruleVersionId
+    ? await prisma.ruleVersion.findUnique({
+        where: { id: input.ruleVersionId },
+        include: { table: true },
+      })
+    : await getEffectiveRuleVersion(input.tableKey, referenceDate)
+
+  if (!ruleVersion) {
+    throw new Error(`Rule version not found for ${input.tableKey}`)
+  }
+
+  if ("table" in ruleVersion && ruleVersion.table.key !== input.tableKey) {
+    throw new Error(`Rule version ${ruleVersion.id} does not match table ${input.tableKey}`)
+  }
   const data = ruleVersion.data as RuleDataByTableKey
 
   let result: unknown

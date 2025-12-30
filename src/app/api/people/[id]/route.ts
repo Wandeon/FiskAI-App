@@ -8,6 +8,7 @@ import {
   normalizePersonUpdate,
   type PersonWithRoles,
 } from "@/lib/people/person-service"
+import { applyPersonRoles } from "@/lib/people/person-role-service"
 import { Prisma } from "@prisma/client"
 
 const updateSchema = personSchema.partial()
@@ -79,97 +80,17 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
         const normalized = normalizePersonUpdate(parsed.data, existing)
 
-        const roleEvents: Array<{
-          type: Prisma.PersonEventType
-          payload: Record<string, unknown>
-        }> = []
-
-        if (normalized.roles !== undefined) {
-          const contactInput = normalized.roles?.contact
-          if (contactInput === null) {
-            if (existing.contactRoles.length > 0) {
-              await tx.personContactRole.delete({
-                where: { companyId_personId: { companyId: company.id, personId: existing.id } },
-              })
-              roleEvents.push({ type: "CONTACT_ROLE_REMOVED", payload: { personId: existing.id } })
-            }
-          } else if (contactInput) {
-            if (existing.contactRoles.length === 0) {
-              roleEvents.push({ type: "CONTACT_ROLE_ASSIGNED", payload: { role: contactInput } })
-            }
-            await tx.personContactRole.upsert({
-              where: { companyId_personId: { companyId: company.id, personId: existing.id } },
-              create: {
-                companyId: company.id,
-                personId: existing.id,
-                type: contactInput.type,
-                paymentTermsDays: contactInput.paymentTermsDays ?? 15,
-                notes: contactInput.notes ?? null,
-              },
-              update: {
-                type: contactInput.type,
-                paymentTermsDays: contactInput.paymentTermsDays ?? 15,
-                notes: contactInput.notes ?? null,
-              },
-            })
-          }
-
-          const employeeInput = normalized.roles?.employee
-          if (employeeInput === null) {
-            if (existing.employeeRoles.length > 0) {
-              await tx.personEmployeeRole.delete({
-                where: { companyId_personId: { companyId: company.id, personId: existing.id } },
-              })
-              roleEvents.push({ type: "EMPLOYEE_ROLE_REMOVED", payload: { personId: existing.id } })
-            }
-          } else if (employeeInput) {
-            if (existing.employeeRoles.length === 0) {
-              roleEvents.push({ type: "EMPLOYEE_ROLE_ASSIGNED", payload: { role: employeeInput } })
-            }
-            await tx.personEmployeeRole.upsert({
-              where: { companyId_personId: { companyId: company.id, personId: existing.id } },
-              create: {
-                companyId: company.id,
-                personId: existing.id,
-                jobTitle: employeeInput.jobTitle ?? null,
-                startDate: employeeInput.startDate ?? null,
-                endDate: employeeInput.endDate ?? null,
-              },
-              update: {
-                jobTitle: employeeInput.jobTitle ?? null,
-                startDate: employeeInput.startDate ?? null,
-                endDate: employeeInput.endDate ?? null,
-              },
-            })
-          }
-
-          const directorInput = normalized.roles?.director
-          if (directorInput === null) {
-            if (existing.directorRoles.length > 0) {
-              await tx.personDirectorRole.delete({
-                where: { companyId_personId: { companyId: company.id, personId: existing.id } },
-              })
-              roleEvents.push({ type: "DIRECTOR_ROLE_REMOVED", payload: { personId: existing.id } })
-            }
-          } else if (directorInput) {
-            if (existing.directorRoles.length === 0) {
-              roleEvents.push({ type: "DIRECTOR_ROLE_ASSIGNED", payload: { role: directorInput } })
-            }
-            await tx.personDirectorRole.upsert({
-              where: { companyId_personId: { companyId: company.id, personId: existing.id } },
-              create: {
-                companyId: company.id,
-                personId: existing.id,
-                appointmentDate: directorInput.appointmentDate ?? null,
-                resignationDate: directorInput.resignationDate ?? null,
-              },
-              update: {
-                appointmentDate: directorInput.appointmentDate ?? null,
-                resignationDate: directorInput.resignationDate ?? null,
-              },
-            })
-          }
-        }
+        const roleEvents = await applyPersonRoles({
+          tx,
+          companyId: company.id,
+          personId: existing.id,
+          roles: normalized.roles,
+          existingRoles: {
+            contactRoles: existing.contactRoles,
+            employeeRoles: existing.employeeRoles,
+            directorRoles: existing.directorRoles,
+          },
+        })
 
         await tx.personSnapshot.create({
           data: {

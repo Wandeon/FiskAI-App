@@ -8,6 +8,7 @@ import {
   requireCompanyWithPermission,
 } from "@/lib/auth-utils"
 import { contactSchema } from "@/lib/validations"
+import { upsertOrganizationFromContact } from "@/lib/master-data/organization-service"
 import { revalidatePath } from "next/cache"
 
 export async function createContact(formData: z.infer<typeof contactSchema>) {
@@ -38,18 +39,33 @@ export async function createContact(formData: z.infer<typeof contactSchema>) {
       }
     }
 
-    const contact = await db.contact.create({
-      data: {
-        ...validatedFields.data,
-        companyId: context.companyId,
-        oib: validatedFields.data.oib || null,
-        vatNumber: validatedFields.data.vatNumber || null,
-        address: validatedFields.data.address || null,
-        city: validatedFields.data.city || null,
-        postalCode: validatedFields.data.postalCode || null,
-        email: validatedFields.data.email || null,
-        phone: validatedFields.data.phone || null,
-      },
+    const contact = await db.$transaction(async (tx) => {
+      const { organizationId } = await upsertOrganizationFromContact(tx, context.companyId, {
+        name: validatedFields.data.name,
+        oib: validatedFields.data.oib,
+        vatNumber: validatedFields.data.vatNumber,
+        email: validatedFields.data.email,
+        phone: validatedFields.data.phone,
+        address: validatedFields.data.address,
+        city: validatedFields.data.city,
+        postalCode: validatedFields.data.postalCode,
+        country: validatedFields.data.country,
+      })
+
+      return tx.contact.create({
+        data: {
+          ...validatedFields.data,
+          companyId: context.companyId,
+          oib: validatedFields.data.oib || null,
+          vatNumber: validatedFields.data.vatNumber || null,
+          address: validatedFields.data.address || null,
+          city: validatedFields.data.city || null,
+          postalCode: validatedFields.data.postalCode || null,
+          email: validatedFields.data.email || null,
+          phone: validatedFields.data.phone || null,
+          organizationId,
+        },
+      })
     })
 
     revalidatePath("/contacts")
@@ -92,9 +108,31 @@ export async function updateContact(contactId: string, formData: z.infer<typeof 
       }
     }
 
-    const contact = await db.contact.update({
-      where: { id: contactId },
-      data: validatedFields.data,
+    const contact = await db.$transaction(async (tx) => {
+      const { organizationId } = await upsertOrganizationFromContact(
+        tx,
+        existingContact.companyId,
+        {
+          name: validatedFields.data.name,
+          oib: validatedFields.data.oib,
+          vatNumber: validatedFields.data.vatNumber,
+          email: validatedFields.data.email,
+          phone: validatedFields.data.phone,
+          address: validatedFields.data.address,
+          city: validatedFields.data.city,
+          postalCode: validatedFields.data.postalCode,
+          country: validatedFields.data.country,
+        },
+        existingContact.organizationId
+      )
+
+      return tx.contact.update({
+        where: { id: contactId },
+        data: {
+          ...validatedFields.data,
+          organizationId,
+        },
+      })
     })
 
     revalidatePath("/contacts")
@@ -117,27 +155,24 @@ export async function deleteContact(contactId: string) {
     // Check for related invoices (as buyer or seller)
     const invoiceCount = await db.eInvoice.count({
       where: {
-        OR: [
-          { buyerId: contactId },
-          { sellerId: contactId }
-        ]
-      }
+        OR: [{ buyerId: contactId }, { sellerId: contactId }],
+      },
     })
 
     if (invoiceCount > 0) {
       return {
-        error: `Nije moguće obrisati kontakt koji je referenciran u ${invoiceCount} račun${invoiceCount === 1 ? 'u' : 'a'}. Brisanje bi narušilo integritet podataka i fiskalne zahtjeve za čuvanjem podataka.`
+        error: `Nije moguće obrisati kontakt koji je referenciran u ${invoiceCount} račun${invoiceCount === 1 ? "u" : "a"}. Brisanje bi narušilo integritet podataka i fiskalne zahtjeve za čuvanjem podataka.`,
       }
     }
 
     // Check for related expenses
     const expenseCount = await db.expense.count({
-      where: { vendorId: contactId }
+      where: { vendorId: contactId },
     })
 
     if (expenseCount > 0) {
       return {
-        error: `Nije moguće obrisati kontakt koji je referenciran u ${expenseCount} trošk${expenseCount === 1 ? 'u' : 'a'}. Brisanje bi narušilo integritet podataka i fiskalne zahtjeve za čuvanjem podataka.`
+        error: `Nije moguće obrisati kontakt koji je referenciran u ${expenseCount} trošk${expenseCount === 1 ? "u" : "a"}. Brisanje bi narušilo integritet podataka i fiskalne zahtjeve za čuvanjem podataka.`,
       }
     }
 

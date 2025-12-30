@@ -146,8 +146,16 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
     include: {
       expense: {
         select: {
+          id: true,
+          date: true,
           description: true,
           supplierBill: { select: { documentNumber: true } },
+          vendor: { select: { name: true, oib: true } },
+        },
+      },
+      expenseLine: {
+        select: {
+          description: true,
         },
       },
     },
@@ -185,13 +193,13 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
 
     if (!existing) {
       grouped.set(input.expenseId, {
-        date: input.date,
+        date: input.expense?.date ?? input.date,
         documentRef:
           input.expense?.supplierBill?.documentNumber ||
           input.expense?.description ||
           "Bez reference",
-        vendorName: input.vendorName ?? null,
-        vendorOib: input.vendorVatNumber ?? null,
+        vendorName: input.vendorName ?? input.expense?.vendor?.name ?? null,
+        vendorOib: input.vendorVatNumber ?? input.expense?.vendor?.oib ?? null,
         netAmount: 0,
         vatAmount: 0,
         totalAmount: 0,
@@ -226,6 +234,14 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
     } else {
       record.base0 += net
     }
+
+    // Append expense line description if different from expense description
+    if (
+      input.expenseLine?.description &&
+      input.expenseLine.description !== input.expense?.description
+    ) {
+      record.documentRef = `${record.documentRef} - ${input.expenseLine.description}`
+    }
   }
 
   return Array.from(grouped.values()).map((record) => ({
@@ -236,7 +252,7 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
     netAmount: record.netAmount,
     vatAmount: record.vatAmount,
     totalAmount: record.totalAmount,
-    vatDeductible: record.nonDeductibleVat === 0,
+    vatDeductible: record.nonDeductibleVat <= 0 && record.deductibleVat > 0,
     base25: record.base25,
     vat25: record.vat25,
     base13: record.base13,

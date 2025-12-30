@@ -8,6 +8,7 @@ import {
   normalizePersonInput,
   type PersonWithRoles,
 } from "@/lib/people/person-service"
+import { applyPersonRoles } from "@/lib/people/person-role-service"
 import { Prisma } from "@prisma/client"
 
 export async function GET() {
@@ -84,54 +85,17 @@ export async function POST(request: Request) {
           },
         })
 
-        const roleEvents: Array<{ type: string; payload: Record<string, unknown> }> = []
-
-        if (normalized.roles?.contact) {
-          await tx.personContactRole.create({
-            data: {
-              companyId: company.id,
-              personId: created.id,
-              type: normalized.roles.contact.type,
-              paymentTermsDays: normalized.roles.contact.paymentTermsDays ?? 15,
-              notes: normalized.roles.contact.notes ?? null,
-            },
-          })
-          roleEvents.push({
-            type: "CONTACT_ROLE_ASSIGNED",
-            payload: { role: normalized.roles.contact },
-          })
-        }
-
-        if (normalized.roles?.employee) {
-          await tx.personEmployeeRole.create({
-            data: {
-              companyId: company.id,
-              personId: created.id,
-              jobTitle: normalized.roles.employee.jobTitle ?? null,
-              startDate: normalized.roles.employee.startDate ?? null,
-              endDate: normalized.roles.employee.endDate ?? null,
-            },
-          })
-          roleEvents.push({
-            type: "EMPLOYEE_ROLE_ASSIGNED",
-            payload: { role: normalized.roles.employee },
-          })
-        }
-
-        if (normalized.roles?.director) {
-          await tx.personDirectorRole.create({
-            data: {
-              companyId: company.id,
-              personId: created.id,
-              appointmentDate: normalized.roles.director.appointmentDate ?? null,
-              resignationDate: normalized.roles.director.resignationDate ?? null,
-            },
-          })
-          roleEvents.push({
-            type: "DIRECTOR_ROLE_ASSIGNED",
-            payload: { role: normalized.roles.director },
-          })
-        }
+        const roleEvents = await applyPersonRoles({
+          tx,
+          companyId: company.id,
+          personId: created.id,
+          roles: normalized.roles,
+          existingRoles: {
+            contactRoles: [],
+            employeeRoles: [],
+            directorRoles: [],
+          },
+        })
 
         const withRoles = (await tx.person.findUnique({
           where: { id: created.id },

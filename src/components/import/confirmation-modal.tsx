@@ -5,6 +5,7 @@ import { X, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TransactionEditor, ExtractedTransaction } from "./transaction-editor"
 import { InvoiceEditor, ExtractedInvoice } from "./invoice-editor"
+import { DocumentType } from "@prisma/client"
 
 // Dynamic import PDF/Image viewers to avoid SSR issues with pdfjs-dist
 const PdfViewer = dynamic(() => import("./pdf-viewer").then((mod) => mod.PdfViewer), {
@@ -27,8 +28,8 @@ interface ConfirmationModalProps {
   fileName?: string // Alternative casing
   fileType: "PDF" | "IMAGE" | "pdf" | "image"
   fileUrl: string
-  documentType: "BANK_STATEMENT" | "INVOICE" | "EXPENSE" | null
-  onDocumentTypeChange?: (type: "BANK_STATEMENT" | "INVOICE") => void
+  documentType: DocumentType | null
+  onDocumentTypeChange?: (type: DocumentType) => void
   // Bank statement props
   transactions?: ExtractedTransaction[]
   openingBalance?: number
@@ -77,8 +78,12 @@ export function ConfirmationModal({
   // Normalize prop names for backward compatibility
   const displayFilename = filename || fileName || "Untitled"
   const normalizedFileType = fileType.toUpperCase() as "PDF" | "IMAGE"
-  const normalizedDocType =
-    documentType === "EXPENSE" || documentType === null ? "BANK_STATEMENT" : documentType
+  const normalizedDocType = documentType ?? DocumentType.BANK_STATEMENT
+  const isInvoice = normalizedDocType === DocumentType.INVOICE
+  const isBankStatement =
+    normalizedDocType === DocumentType.BANK_STATEMENT || normalizedDocType === DocumentType.EXPENSE
+  const isStockMovement =
+    normalizedDocType === DocumentType.PRIMKA || normalizedDocType === DocumentType.IZDATNICA
   const bankAccountId = selectedBankAccount || selectedAccountId
   const handleAccountChange = onBankAccountChange || onAccountChange
   const handleDiscard = () => {
@@ -100,7 +105,7 @@ export function ConfirmationModal({
   // Determine if confirm should be disabled
   const isInvoiceValid = invoiceData?.mathValid !== false
   const isBankStatementValid = mathValid
-  const canConfirm = normalizedDocType === "INVOICE" ? isInvoiceValid : isBankStatementValid
+  const canConfirm = isInvoice ? isInvoiceValid : isBankStatement ? isBankStatementValid : true
   if (!isOpen) return null
 
   return (
@@ -112,13 +117,13 @@ export function ConfirmationModal({
             <h2 className="text-xl font-semibold">{displayFilename}</h2>
             <select
               value={normalizedDocType}
-              onChange={(e) =>
-                onDocumentTypeChange?.(e.target.value as "BANK_STATEMENT" | "INVOICE")
-              }
+              onChange={(e) => onDocumentTypeChange?.(e.target.value as DocumentType)}
               className="text-sm border border-default rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-border-focus"
             >
               <option value="BANK_STATEMENT">Bankovni izvod</option>
               <option value="INVOICE">Račun</option>
+              <option value="PRIMKA">Primka</option>
+              <option value="IZDATNICA">Izdatnica</option>
             </select>
           </div>
           <div className="flex items-center gap-2">
@@ -135,12 +140,12 @@ export function ConfirmationModal({
         </div>
 
         {/* Math Validation Warning - Bank Statement */}
-        {normalizedDocType === "BANK_STATEMENT" && !mathValid && (
-          <div className="bg-danger-bg border-l-4 border-red-500 p-4 m-4">
+        {isBankStatement && !mathValid && (
+          <div className="bg-danger-bg border-l-4 border-danger-border p-4 m-4">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-danger-text" />
               <div>
-                <h3 className="font-semibold text-red-800">Provjera salda nije uspjela</h3>
+                <h3 className="font-semibold text-danger-text">Provjera salda nije uspjela</h3>
                 <p className="text-sm text-danger-text">
                   Izračunati završni saldo ne odgovara navedenom završnom saldu. Pregledajte
                   transakcije prije potvrđivanja.
@@ -151,12 +156,12 @@ export function ConfirmationModal({
         )}
 
         {/* Math Validation Warning - Invoice */}
-        {normalizedDocType === "INVOICE" && invoiceData && !invoiceData.mathValid && (
-          <div className="bg-warning-bg border-l-4 border-yellow-500 p-4 m-4">
+        {isInvoice && invoiceData && !invoiceData.mathValid && (
+          <div className="bg-warning-bg border-l-4 border-warning-border p-4 m-4">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning-text" />
               <div>
-                <h3 className="font-semibold text-yellow-800">Provjera iznosa</h3>
+                <h3 className="font-semibold text-warning-text">Provjera iznosa</h3>
                 <p className="text-sm text-warning-text">
                   Zbroj stavki ne odgovara ukupnom iznosu na računu. Pregledajte i ispravite stavke
                   prije potvrđivanja.
@@ -167,7 +172,7 @@ export function ConfirmationModal({
         )}
 
         {/* Bank Account Context Bar */}
-        {normalizedDocType === "BANK_STATEMENT" && bankAccounts.length > 0 && (
+        {isBankStatement && bankAccounts.length > 0 && (
           <div className="px-4 py-2 bg-surface-1 border-b">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Bankovni račun:</label>
@@ -200,7 +205,7 @@ export function ConfirmationModal({
 
           {/* Right Side - Transaction Editor or Invoice Editor */}
           <div className="w-1/2 overflow-hidden">
-            {normalizedDocType === "BANK_STATEMENT" ? (
+            {isBankStatement ? (
               <TransactionEditor
                 transactions={transactions}
                 openingBalance={openingBalance}
@@ -208,8 +213,17 @@ export function ConfirmationModal({
                 mathValid={mathValid}
                 onChange={onTransactionsChange}
               />
-            ) : invoiceData ? (
+            ) : isInvoice && invoiceData ? (
               <InvoiceEditor data={invoiceData} onChange={onInvoiceDataChange || (() => {})} />
+            ) : isStockMovement ? (
+              <div className="flex items-center justify-center h-full text-tertiary">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-2">Dokument skladišta</h3>
+                  <p className="text-sm">
+                    Potvrdite dokument nakon što su dostupne stavke primke ili izdatnice.
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full text-tertiary">
                 <div className="text-center">

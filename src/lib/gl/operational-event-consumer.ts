@@ -128,6 +128,25 @@ function buildSplitLines(
   return lines
 }
 
+function buildSimpleLines(amount: Prisma.Decimal, rule: PostingRuleRecord): PostingLineInput[] {
+  const zero = new Prisma.Decimal(0)
+
+  return [
+    {
+      accountId: rule.debitAccountId,
+      debit: amount,
+      credit: zero,
+      lineNumber: 1,
+    },
+    {
+      accountId: rule.creditAccountId,
+      debit: zero,
+      credit: amount,
+      lineNumber: 2,
+    },
+  ]
+}
+
 async function buildPostingRequest(event: {
   id: string
   companyId: string
@@ -243,6 +262,159 @@ async function buildPostingRequest(event: {
       description: transaction.description ?? `Bank transaction ${transaction.id}`,
       reference: transaction.reference ?? transaction.id,
       lines,
+    }
+  }
+
+  if (event.sourceType === "PAYROLL") {
+    const payout = await db.payout.findUnique({
+      where: { id: event.sourceId },
+      select: {
+        id: true,
+        payoutDate: true,
+        description: true,
+        lines: {
+          select: { grossAmount: true, netAmount: true, taxAmount: true },
+        },
+      },
+    })
+
+    if (!payout) {
+      throw new Error("Payroll payout not found for operational event.")
+    }
+
+    const total = payout.lines.reduce((sum, line) => {
+      if (line.grossAmount) {
+        return sum.plus(line.grossAmount)
+      }
+      const net = line.netAmount ?? new Prisma.Decimal(0)
+      const tax = line.taxAmount ?? new Prisma.Decimal(0)
+      return sum.plus(net).plus(tax)
+    }, new Prisma.Decimal(0))
+
+    if (total.lte(0)) {
+      throw new Error("Payroll payout total must be greater than zero.")
+    }
+
+    return {
+      companyId: event.companyId,
+      entryDate: payout.payoutDate,
+      description: payout.description ?? `Payroll payout ${payout.id}`,
+      reference: payout.id,
+      lines: buildSimpleLines(total, rule),
+    }
+  }
+
+  if (event.sourceType === "ASSET") {
+    if (event.eventType === "ASSET_ACQUIRED") {
+      const asset = await db.fixedAsset.findUnique({
+        where: { id: event.sourceId },
+        select: { id: true, name: true, acquisitionDate: true, acquisitionCost: true },
+      })
+
+      if (!asset) {
+        throw new Error("Fixed asset not found for operational event.")
+      }
+
+      return {
+        companyId: event.companyId,
+        entryDate: asset.acquisitionDate,
+        description: `Asset acquisition: ${asset.name}`,
+        reference: asset.id,
+        lines: buildSimpleLines(new Prisma.Decimal(asset.acquisitionCost), rule),
+      }
+    }
+
+    if (event.eventType === "ASSET_DEPRECIATION") {
+      const entry = await db.depreciationEntry.findUnique({
+        where: { id: event.sourceId },
+        select: {
+          id: true,
+          amount: true,
+          periodEnd: true,
+          asset: { select: { name: true } },
+        },
+      })
+
+      if (!entry) {
+        throw new Error("Depreciation entry not found for operational event.")
+      }
+
+      return {
+        companyId: event.companyId,
+        entryDate: entry.periodEnd,
+        description: `Asset depreciation: ${entry.asset.name}`,
+        reference: entry.id,
+        lines: buildSimpleLines(new Prisma.Decimal(entry.amount), rule),
+      }
+    }
+
+    if (event.eventType === "ASSET_DISPOSED") {
+      const disposal = await db.disposalEvent.findUnique({
+        where: { id: event.sourceId },
+        select: {
+          id: true,
+          disposalDate: true,
+          proceeds: true,
+          asset: { select: { name: true } },
+        },
+      })
+
+      if (!disposal) {
+        throw new Error("Asset disposal not found for operational event.")
+      }
+
+      if (!disposal.proceeds) {
+        throw new Error("Asset disposal proceeds must be set for posting.")
+      }
+
+      return {
+        companyId: event.companyId,
+        entryDate: disposal.disposalDate,
+        description: `Asset disposal: ${disposal.asset.name}`,
+        reference: disposal.id,
+        lines: buildSimpleLines(new Prisma.Decimal(disposal.proceeds), rule),
+      }
+    }
+  }
+
+  if (event.sourceType === "INVENTORY") {
+    const movement = await db.stockMovement.findUnique({
+      where: { id: event.sourceId },
+      select: {
+        id: true,
+        movementDate: true,
+        movementType: true,
+        quantity: true,
+        unitCost: true,
+        referenceNumber: true,
+        product: { select: { name: true } },
+        stockItem: { select: { averageCost: true } },
+      },
+    })
+
+    if (!movement) {
+      throw new Error("Stock movement not found for operational event.")
+    }
+
+    const quantity = new Prisma.Decimal(movement.quantity).abs()
+    const unitCost = movement.unitCost ?? movement.stockItem?.averageCost
+
+    if (!unitCost) {
+      throw new Error("Stock movement requires unit cost for posting.")
+    }
+
+    const amount = quantity.mul(new Prisma.Decimal(unitCost))
+
+    if (amount.lte(0)) {
+      throw new Error("Stock movement amount must be greater than zero.")
+    }
+
+    return {
+      companyId: event.companyId,
+      entryDate: movement.movementDate,
+      description: `Inventory ${movement.movementType}: ${movement.product.name}`,
+      reference: movement.referenceNumber ?? movement.id,
+      lines: buildSimpleLines(amount, rule),
     }
   }
 

@@ -3,6 +3,7 @@ import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
+import { upsertOrganizationFromContact } from "@/lib/master-data/organization-service"
 
 const rowSchema = z.object({
   type: z.enum(["CUSTOMER", "SUPPLIER", "BOTH"]),
@@ -73,9 +74,20 @@ export async function POST(request: Request) {
       }
     }
 
-    await db.$transaction(
-      rows.map((row) =>
-        db.contact.create({
+    await db.$transaction(async (tx) => {
+      for (const row of rows) {
+        const { organizationId } = await upsertOrganizationFromContact(tx, company.id, {
+          name: row.name,
+          oib: row.oib,
+          email: row.email,
+          phone: row.phone,
+          address: row.address,
+          city: row.city,
+          postalCode: row.postalCode,
+          country: row.country,
+        })
+
+        await tx.contact.create({
           data: {
             companyId: company.id,
             type: row.type,
@@ -88,10 +100,11 @@ export async function POST(request: Request) {
             postalCode: row.postalCode || null,
             country: row.country || "HR",
             paymentTermsDays: row.paymentTermsDays ?? 15,
+            organizationId,
           },
         })
-      )
-    )
+      }
+    })
 
     revalidatePath("/contacts")
     return NextResponse.json({ success: true, created: rows.length })

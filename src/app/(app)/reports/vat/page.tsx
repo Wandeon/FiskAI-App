@@ -117,6 +117,18 @@ export default async function VatReportPage({
             <Button variant="outline">Preuzmi PDF</Button>
           </a>
           <a
+            href={`/api/reports/ira?from=${dateFrom.toISOString().split("T")[0]}&to=${dateTo.toISOString().split("T")[0]}`}
+            download
+          >
+            <Button variant="outline">IRA (izlazni PDV)</Button>
+          </a>
+          <a
+            href={`/api/reports/ura?from=${dateFrom.toISOString().split("T")[0]}&to=${dateTo.toISOString().split("T")[0]}`}
+            download
+          >
+            <Button variant="outline">URA (ulazni PDV)</Button>
+          </a>
+          <a
             href={`/api/reports/vat/xml?from=${dateFrom.toISOString().split("T")[0]}&to=${dateTo.toISOString().split("T")[0]}`}
             download
           >

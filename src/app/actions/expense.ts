@@ -6,6 +6,7 @@ import {
   requireCompanyWithContext,
   requireCompanyWithPermission,
 } from "@/lib/auth-utils"
+import { ensureOrganizationForContact } from "@/lib/master-data/contact-master-data"
 import { revalidatePath } from "next/cache"
 import { Prisma, ExpenseStatus, PaymentMethod, Frequency } from "@prisma/client"
 import { z } from "zod"
@@ -112,6 +113,10 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
         }
       }
 
+      const vendorOrganizationId = input.vendorId
+        ? await ensureOrganizationForContact(company.id, input.vendorId)
+        : null
+
       const status: ExpenseStatus = input.paymentMethod ? "PAID" : "DRAFT"
       const lineItems = (input.lines?.length ? input.lines : [buildDefaultExpenseLine(input)]).map(
         (line) => ({
@@ -131,6 +136,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
             companyId: company.id,
             categoryId: input.categoryId,
             vendorId: input.vendorId || null,
+            vendorOrganizationId,
             description: input.description,
             date: input.date,
             dueDate: input.dueDate || null,

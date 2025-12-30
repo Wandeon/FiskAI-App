@@ -5,6 +5,7 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
 import { MatchKind, MatchSource, MatchStatus, Prisma, ImportFormat } from "@prisma/client"
 import { createHash } from "crypto"
+import { logAudit } from "@/lib/audit"
 
 const Decimal = Prisma.Decimal
 
@@ -389,6 +390,33 @@ export async function matchTransaction(
         },
       })
 
+      const beforeMatch = latestMatch
+        ? {
+            matchStatus: latestMatch.matchStatus,
+            matchKind: latestMatch.matchKind,
+            matchedInvoiceId: latestMatch.matchedInvoiceId,
+            matchedExpenseId: latestMatch.matchedExpenseId,
+          }
+        : { matchStatus: MatchStatus.UNMATCHED }
+
+      await logAudit({
+        companyId: company.id,
+        userId: user.id!,
+        action: "UPDATE",
+        entity: "BankTransaction",
+        entityId: transactionId,
+        reason: type === "invoice" ? "bank_match_invoice" : "bank_match_expense",
+        changes: {
+          before: beforeMatch,
+          after: {
+            matchStatus: MatchStatus.MANUAL_MATCHED,
+            matchKind: type === "invoice" ? MatchKind.INVOICE : MatchKind.EXPENSE,
+            matchedInvoiceId: type === "invoice" ? matchId : null,
+            matchedExpenseId: type === "expense" ? matchId : null,
+          },
+        },
+      })
+
       revalidatePath("/banking")
       revalidatePath(`/banking/transactions/${transactionId}`)
       return { success: true }
@@ -437,6 +465,29 @@ export async function unmatchTransaction(transactionId: string): Promise<ActionR
           source: MatchSource.MANUAL,
           reason: "Manual unlink",
           createdBy: user.id!,
+        },
+      })
+
+      await logAudit({
+        companyId: company.id,
+        userId: user.id!,
+        action: "UPDATE",
+        entity: "BankTransaction",
+        entityId: transactionId,
+        reason: "bank_unmatch",
+        changes: {
+          before: {
+            matchStatus: latestMatch.matchStatus,
+            matchKind: latestMatch.matchKind,
+            matchedInvoiceId: latestMatch.matchedInvoiceId,
+            matchedExpenseId: latestMatch.matchedExpenseId,
+          },
+          after: {
+            matchStatus: MatchStatus.UNMATCHED,
+            matchKind: MatchKind.UNMATCH,
+            matchedInvoiceId: null,
+            matchedExpenseId: null,
+          },
         },
       })
 

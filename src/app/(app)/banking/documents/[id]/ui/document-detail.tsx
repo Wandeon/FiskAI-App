@@ -26,50 +26,25 @@ function getFileType(fileName: string): "pdf" | "image" | "other" {
 
 export function DocumentDetail({ job, statement }: Props) {
   const fileType = getFileType(job.originalName)
-  const [transactions, setTransactions] = useState(statement?.transactions || [])
+  const transactions = statement?.transactions || []
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
-  async function save() {
+  async function markVerified() {
     setSaving(true)
     setMessage(null)
     try {
-      const res = await fetch(`/api/banking/import/jobs/${job.id}`, {
-        method: "PATCH",
+      await fetch(`/api/banking/import/jobs/${job.id}/status`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transactions: transactions.map((t) => ({
-            id: t.id,
-            date: t.date,
-            amount: Number(t.amount),
-            description: t.description,
-            reference: t.reference,
-            payeeName: t.payeeName,
-            iban: t.iban,
-          })),
-        }),
+        body: JSON.stringify({ status: "VERIFIED" }),
       })
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        setMessage(json.error || "Spremanje nije uspjelo")
-      } else {
-        setMessage("Spremljeno. Označite kao verificirano ako je točno.")
-      }
-    } catch (e) {
-      setMessage("Spremanje nije uspjelo")
+      setMessage("Označeno kao verificirano.")
+    } catch (error) {
+      setMessage("Označavanje nije uspjelo.")
     } finally {
       setSaving(false)
     }
-  }
-
-  async function markVerified() {
-    await save()
-    await fetch(`/api/banking/import/jobs/${job.id}/status`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "VERIFIED" }),
-    })
-    setMessage("Označeno kao verificirano.")
   }
 
   return (
@@ -113,7 +88,7 @@ export function DocumentDetail({ job, statement }: Props) {
           <div>
             <p className="font-semibold text-sm">Prepoznate transakcije</p>
             <p className="text-xs text-secondary">
-              Usporedite s PDF-om i korigirajte iznose, datume ili reference.
+              Usporedite s PDF-om. Uvozi su nepromjenjivi radi revizijskog traga.
             </p>
           </div>
         </div>
@@ -129,63 +104,12 @@ export function DocumentDetail({ job, statement }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {transactions.map((t, idx) => (
+              {transactions.map((t) => (
                 <tr key={t.id}>
-                  <td className="px-3 py-2">
-                    <input
-                      type="date"
-                      className="w-full border rounded px-2 py-1 text-xs"
-                      value={new Date(t.date).toISOString().slice(0, 10)}
-                      onChange={(e) =>
-                        setTransactions((prev) => {
-                          const copy = [...prev]
-                          copy[idx] = { ...copy[idx], date: new Date(e.target.value) as any }
-                          return copy
-                        })
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <textarea
-                      className="w-full border rounded px-2 py-1 text-xs min-h-[60px]"
-                      value={t.description ?? ""}
-                      onChange={(e) =>
-                        setTransactions((prev) => {
-                          const copy = [...prev]
-                          copy[idx] = { ...copy[idx], description: e.target.value }
-                          return copy
-                        })
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="text"
-                      className="w-full border rounded px-2 py-1 text-xs"
-                      value={t.reference ?? ""}
-                      onChange={(e) =>
-                        setTransactions((prev) => {
-                          const copy = [...prev]
-                          copy[idx] = { ...copy[idx], reference: e.target.value }
-                          return copy
-                        })
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      className="w-full border rounded px-2 py-1 text-xs text-right"
-                      value={Number(t.amount)}
-                      onChange={(e) =>
-                        setTransactions((prev) => {
-                          const copy = [...prev]
-                          copy[idx] = { ...copy[idx], amount: Number(e.target.value) as any }
-                          return copy
-                        })
-                      }
-                    />
-                  </td>
+                  <td className="px-3 py-2">{new Date(t.date).toISOString().slice(0, 10)}</td>
+                  <td className="px-3 py-2 whitespace-pre-wrap">{t.description ?? "-"}</td>
+                  <td className="px-3 py-2">{t.reference ?? "-"}</td>
+                  <td className="px-3 py-2 text-right">{Number(t.amount)}</td>
                 </tr>
               ))}
             </tbody>
@@ -193,9 +117,6 @@ export function DocumentDetail({ job, statement }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={save} disabled={saving} size="sm">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Spremi promjene"}
-          </Button>
           <Button onClick={markVerified} variant="secondary" size="sm" disabled={saving}>
             Označi kao verificirano
           </Button>

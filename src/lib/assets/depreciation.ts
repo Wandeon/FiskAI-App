@@ -6,6 +6,7 @@ import {
   type FixedAsset,
 } from "@prisma/client"
 
+import { postJournalEntry } from "@/lib/gl/posting-service"
 import { prisma } from "@/lib/prisma"
 
 const Decimal = Prisma.Decimal
@@ -29,6 +30,22 @@ export type DepreciationEntriesInput = {
   usefulLifeMonths: number
   depreciationMethod: DepreciationMethod
   periodMonths?: number
+}
+
+export type DepreciationPostingInput = {
+  companyId: string
+  periodStart: Date
+  periodEnd: Date
+  debitAccountId: string
+  creditAccountId: string
+  createdById?: string
+  status?: "DRAFT" | "POSTED"
+  descriptionTemplate?: (params: { assetName: string; entrySequence: number }) => string
+}
+
+export type DepreciationPostingResult = {
+  depreciationEntryId: string
+  journalEntryId: string
 }
 
 const toDecimal = (value: Prisma.Decimal | number | string) =>
@@ -165,4 +182,71 @@ export const listDepreciationEntriesByPeriod = async (params: {
     },
     orderBy: [{ periodStart: "asc" }, { sequence: "asc" }],
   })
+}
+
+export const postDepreciationEntriesForPeriod = async (
+  input: DepreciationPostingInput
+): Promise<DepreciationPostingResult[]> => {
+  const entries = await prisma.depreciationEntry.findMany({
+    where: {
+      asset: { companyId: input.companyId },
+      periodStart: { gte: input.periodStart },
+      periodEnd: { lte: input.periodEnd },
+      journalEntryId: null,
+    },
+    include: {
+      asset: true,
+    },
+    orderBy: [{ periodStart: "asc" }, { sequence: "asc" }],
+  })
+
+  if (entries.length === 0) {
+    return []
+  }
+
+  const results: DepreciationPostingResult[] = []
+
+  for (const entry of entries) {
+    const amount = toDecimal(entry.amount)
+    const description =
+      input.descriptionTemplate?.({ assetName: entry.asset.name, entrySequence: entry.sequence }) ??
+      `Depreciation ${entry.asset.name} #${entry.sequence}`
+
+    const journalEntry = await postJournalEntry({
+      companyId: input.companyId,
+      entryDate: entry.periodEnd,
+      description,
+      reference: `DEPR-${entry.id}`,
+      createdById: input.createdById,
+      status: input.status,
+      lines: [
+        {
+          accountId: input.debitAccountId,
+          debit: amount,
+          credit: 0,
+          lineNumber: 1,
+          description,
+        },
+        {
+          accountId: input.creditAccountId,
+          debit: 0,
+          credit: amount,
+          lineNumber: 2,
+          description,
+        },
+      ],
+    })
+
+    await prisma.depreciationEntry.update({
+      where: { id: entry.id },
+      data: { journalEntryId: journalEntry.journalEntry.id },
+    })
+
+    results.push({
+      depreciationEntryId: entry.id,
+      journalEntryId: journalEntry.journalEntry.id,
+    })
+  }
+
+  return results
 }

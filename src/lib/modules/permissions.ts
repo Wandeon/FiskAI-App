@@ -62,13 +62,17 @@ export const VIEW_ONLY_PERMISSIONS: PermissionAction[] = ["view", "export"]
 /**
  * Subscription plan entitlement defaults
  */
-export const PLAN_DEFAULTS: Record<string, { modules: ModuleKey[]; permissions: PermissionAction[] }> = {
+export const PLAN_DEFAULTS: Record<
+  string,
+  { modules: ModuleKey[]; permissions: PermissionAction[] }
+> = {
   free: {
-    modules: ["invoicing", "contacts", "products", "documents"],
+    modules: ["platform-core", "invoicing", "contacts", "products", "documents"],
     permissions: ["view", "create", "edit", "delete"],
   },
   starter: {
     modules: [
+      "platform-core",
       "invoicing",
       "e-invoicing",
       "contacts",
@@ -81,6 +85,7 @@ export const PLAN_DEFAULTS: Record<string, { modules: ModuleKey[]; permissions: 
   },
   professional: {
     modules: [
+      "platform-core",
       "invoicing",
       "e-invoicing",
       "contacts",
@@ -97,6 +102,7 @@ export const PLAN_DEFAULTS: Record<string, { modules: ModuleKey[]; permissions: 
   },
   enterprise: {
     modules: [
+      "platform-core",
       "invoicing",
       "e-invoicing",
       "fiscalization",
