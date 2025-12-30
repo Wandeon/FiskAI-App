@@ -79,6 +79,14 @@ export function GuidanceProvider({ children }: { children: ReactNode }) {
     [preferences]
   )
 
+  const getHelpDensityConfig = useCallback(
+    (category: GuidanceCategory): HelpDensityConfig => {
+      const level = getLevel(category)
+      return getHelpDensity(level)
+    },
+    [getLevel]
+  )
+
   const setLevel = useCallback(
     async (category: GuidanceCategory | "global", level: CompetenceLevel) => {
       try {

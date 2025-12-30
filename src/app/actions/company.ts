@@ -127,7 +127,7 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
 
     revalidatePath("/dashboard")
     return { success: true, companyId }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Onboarding] createCompany failed:", error)
     return { error: "Došlo je do greške pri kreiranju tvrtke. Molimo pokušajte ponovno." }
   }

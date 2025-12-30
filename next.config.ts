@@ -52,21 +52,8 @@ const nextConfig: NextConfig = {
                 },
               ]
             : []),
-          // Content-Security-Policy - relaxed for app functionality
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Required for Next.js
-              "style-src 'self' 'unsafe-inline'", // Required for styled-components/tailwind
-              "img-src 'self' data: https:",
-              "font-src 'self' data:",
-              "connect-src 'self' https:",
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join("; "),
-          },
+          // Note: Content-Security-Policy is handled in middleware with nonce-based security
+          // See src/middleware.ts and src/lib/middleware/csp.ts for implementation
         ],
       },
     ]
