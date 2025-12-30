@@ -1,5 +1,8 @@
 import { validateOib } from "./validations/oib"
 
+// Re-export validateOib for convenience
+export { validateOib } from "./validations/oib"
+
 /**
  * OIB Lookup Service
  * Provides smart lookup for Croatian company data using:
