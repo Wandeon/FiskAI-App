@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { UploadCloud, CheckCircle2, AlertCircle, FileText } from "lucide-react"
+import Papa from "papaparse"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { toast } from "@/lib/toast"
@@ -30,46 +31,68 @@ export function ContactCsvImport({ onParsed, onImportComplete }: ContactCsvImpor
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, startTransition] = useTransition()
 
-  const parseCsv = async (file: File) => {
-    const text = await file.text()
-    const lines = text.split(/\r?\n/).filter(Boolean)
-    if (lines.length === 0) {
-      setError("Prazna datoteka")
-      return
-    }
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase())
-    const required = ["name", "type"]
-    if (!required.every((r) => headers.includes(r))) {
-      setError("CSV mora imati stupce 'name' i 'type'")
-      return
-    }
+  const parseCsv = async (file: File): Promise<ParsedRow[] | undefined> => {
+    return new Promise((resolve) => {
+      Papa.parse<Record<string, string>>(file, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header) => header.trim().toLowerCase(),
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            const firstError = results.errors[0]
+            setError(`Greska pri parsiranju CSV-a: ${firstError.message}`)
+            resolve(undefined)
+            return
+          }
 
-    const rows: ParsedRow[] = lines.slice(1).map((line) => {
-      const cols = line.split(",").map((c) => c.trim())
-      const get = (key: string) => cols[headers.indexOf(key)] || ""
-      const typeValue = get("type").toUpperCase()
-      const validType =
-        typeValue === "CUSTOMER" || typeValue === "SUPPLIER" || typeValue === "BOTH"
-          ? typeValue
-          : "CUSTOMER"
-      return {
-        type: validType as "CUSTOMER" | "SUPPLIER" | "BOTH",
-        name: get("name"),
-        oib: get("oib") || undefined,
-        email: get("email") || undefined,
-        phone: get("phone") || undefined,
-        address: get("address") || undefined,
-        city: get("city") || undefined,
-        postalCode: get("postalcode") || get("postal_code") || undefined,
-        country: get("country") || undefined,
-        paymentTermsDays: get("paymenttermsdays") ? Number(get("paymenttermsdays")) : undefined,
-      }
+          if (results.data.length === 0) {
+            setError("Prazna datoteka")
+            resolve(undefined)
+            return
+          }
+
+          const headers = results.meta.fields?.map((f) => f.toLowerCase()) || []
+          const required = ["name", "type"]
+          if (!required.every((r) => headers.includes(r))) {
+            setError("CSV mora imati stupce 'name' i 'type'")
+            resolve(undefined)
+            return
+          }
+
+          const rows: ParsedRow[] = results.data.map((record) => {
+            const get = (key: string) => (record[key] || "").trim()
+            const typeValue = get("type").toUpperCase()
+            const validType =
+              typeValue === "CUSTOMER" || typeValue === "SUPPLIER" || typeValue === "BOTH"
+                ? typeValue
+                : "CUSTOMER"
+            return {
+              type: validType as "CUSTOMER" | "SUPPLIER" | "BOTH",
+              name: get("name"),
+              oib: get("oib") || undefined,
+              email: get("email") || undefined,
+              phone: get("phone") || undefined,
+              address: get("address") || undefined,
+              city: get("city") || undefined,
+              postalCode: get("postalcode") || get("postal_code") || undefined,
+              country: get("country") || undefined,
+              paymentTermsDays: get("paymenttermsdays")
+                ? Number(get("paymenttermsdays"))
+                : undefined,
+            }
+          })
+          setRowCount(rows.length)
+          setError(null)
+          onParsed?.(rows)
+          toast.success("CSV ucitan", `${rows.length} kontakata spremno za uvoz`)
+          resolve(rows)
+        },
+        error: (error) => {
+          setError(`Greska pri citanju CSV-a: ${error.message}`)
+          resolve(undefined)
+        },
+      })
     })
-    setRowCount(rows.length)
-    setError(null)
-    onParsed?.(rows)
-    toast.success("CSV ucitan", `${rows.length} kontakata spremno za uvoz`)
-    return rows
   }
 
   const handleFile = async (file?: File) => {
