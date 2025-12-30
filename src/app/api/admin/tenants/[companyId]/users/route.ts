@@ -1,9 +1,88 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import { logAudit, getIpFromHeaders, getUserAgentFromHeaders } from "@/lib/audit"
+import { sendEmail } from "@/lib/email"
+import { AdminUserManagementEmail } from "@/lib/email/templates/admin-user-management-email"
 
 type RouteContext = {
   params: Promise<{ companyId: string }>
+}
+
+type AdminAction = "add" | "remove" | "change-role"
+
+interface NotificationContext {
+  action: AdminAction
+  adminEmail: string
+  companyName: string
+  affectedUserEmail: string
+  affectedUserName: string | null
+  oldRole?: string
+  newRole?: string
+  ipAddress: string | null
+  timestamp: string
+}
+
+async function sendAdminActionNotifications(
+  context: NotificationContext,
+  ownerEmail: string | null,
+  ownerName: string | null
+): Promise<void> {
+  const timestamp = new Date().toLocaleString("hr-HR", {
+    timeZone: "Europe/Zagreb",
+    dateStyle: "full",
+    timeStyle: "medium",
+  })
+
+  const emailPromises: Promise<unknown>[] = []
+
+  if (ownerEmail && ownerEmail !== context.affectedUserEmail) {
+    emailPromises.push(
+      sendEmail({
+        to: ownerEmail,
+        subject: "[FiskAI Admin] Promjena korisnika u tvrtki " + context.companyName,
+        react: AdminUserManagementEmail({
+          recipientName: ownerName || "Vlasnik",
+          recipientType: "owner",
+          action: context.action,
+          adminEmail: context.adminEmail,
+          companyName: context.companyName,
+          affectedUserEmail: context.affectedUserEmail,
+          affectedUserName: context.affectedUserName,
+          oldRole: context.oldRole,
+          newRole: context.newRole,
+          ipAddress: context.ipAddress,
+          timestamp,
+        }),
+      }).catch((error) => {
+        console.error("[AdminUserManagement] Failed to notify owner:", error)
+      })
+    )
+  }
+
+  emailPromises.push(
+    sendEmail({
+      to: context.affectedUserEmail,
+      subject: "[FiskAI Admin] Promjena vaseg pristupa tvrtki " + context.companyName,
+      react: AdminUserManagementEmail({
+        recipientName: context.affectedUserName || "Korisnik",
+        recipientType: "user",
+        action: context.action,
+        adminEmail: context.adminEmail,
+        companyName: context.companyName,
+        affectedUserEmail: context.affectedUserEmail,
+        affectedUserName: context.affectedUserName,
+        oldRole: context.oldRole,
+        newRole: context.newRole,
+        ipAddress: context.ipAddress,
+        timestamp,
+      }),
+    }).catch((error) => {
+      console.error("[AdminUserManagement] Failed to notify user:", error)
+    })
+  )
+
+  await Promise.allSettled(emailPromises)
 }
 
 export async function GET(req: NextRequest, context: RouteContext) {
@@ -49,26 +128,49 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
-    await requireAdmin()
+    const admin = await requireAdmin()
     const { companyId } = await context.params
     const body = await req.json()
 
-    const { action, userId, role, email } = body
+    const { action, userId, role, email, reason } = body
+
+    const ipAddress = getIpFromHeaders(req.headers)
+    const userAgent = getUserAgentFromHeaders(req.headers)
+
+    const adminUser = await db.user.findUnique({
+      where: { id: admin.id },
+      select: { email: true, name: true },
+    })
+
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+      select: { name: true },
+    })
+
+    if (!company) {
+      return NextResponse.json({ error: "Company not found" }, { status: 404 })
+    }
+
+    const ownerCompanyUser = await db.companyUser.findFirst({
+      where: { companyId, role: "OWNER" },
+      include: {
+        user: {
+          select: { email: true, name: true },
+        },
+      },
+    })
 
     if (action === "add") {
-      // Add user to company
       if (!email) {
         return NextResponse.json({ error: "Email is required" }, { status: 400 })
       }
 
-      // Find or create user
-      let user = await db.user.findUnique({ where: { email } })
+      const user = await db.user.findUnique({ where: { email } })
 
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 })
       }
 
-      // Check if user is already in company
       const existing = await db.companyUser.findUnique({
         where: {
           userId_companyId: {
@@ -82,30 +184,68 @@ export async function POST(req: NextRequest, context: RouteContext) {
         return NextResponse.json({ error: "User is already in company" }, { status: 400 })
       }
 
-      // Add user to company
-      await db.companyUser.create({
+      const newRole = role || "MEMBER"
+
+      const newCompanyUser = await db.companyUser.create({
         data: {
           userId: user.id,
           companyId,
-          role: role || "MEMBER",
+          role: newRole,
         },
       })
+
+      await logAudit({
+        companyId,
+        userId: admin.id,
+        action: "CREATE",
+        entity: "CompanyUser",
+        entityId: newCompanyUser.id,
+        changes: {
+          after: {
+            userId: user.id,
+            userEmail: user.email,
+            role: newRole,
+            adminAction: "admin_add_user",
+            reason: reason || "Admin portal action",
+          },
+        },
+        ipAddress,
+        userAgent,
+      })
+
+      await sendAdminActionNotifications(
+        {
+          action: "add",
+          adminEmail: adminUser?.email || "admin@fiskai.hr",
+          companyName: company.name || companyId,
+          affectedUserEmail: user.email,
+          affectedUserName: user.name,
+          newRole,
+          ipAddress,
+          timestamp: new Date().toISOString(),
+        },
+        ownerCompanyUser?.user.email || null,
+        ownerCompanyUser?.user.name || null
+      )
 
       return NextResponse.json({ success: true })
     }
 
     if (action === "remove") {
-      // Remove user from company
       if (!userId) {
         return NextResponse.json({ error: "User ID is required" }, { status: 400 })
       }
 
-      // Check if user is owner
       const companyUser = await db.companyUser.findUnique({
         where: {
           userId_companyId: {
             userId,
             companyId,
+          },
+        },
+        include: {
+          user: {
+            select: { email: true, name: true },
           },
         },
       })
@@ -121,6 +261,25 @@ export async function POST(req: NextRequest, context: RouteContext) {
         )
       }
 
+      await logAudit({
+        companyId,
+        userId: admin.id,
+        action: "DELETE",
+        entity: "CompanyUser",
+        entityId: companyUser.id,
+        changes: {
+          before: {
+            userId,
+            userEmail: companyUser.user.email,
+            role: companyUser.role,
+            adminAction: "admin_remove_user",
+            reason: reason || "Admin portal action",
+          },
+        },
+        ipAddress,
+        userAgent,
+      })
+
       await db.companyUser.delete({
         where: {
           userId_companyId: {
@@ -130,21 +289,39 @@ export async function POST(req: NextRequest, context: RouteContext) {
         },
       })
 
+      await sendAdminActionNotifications(
+        {
+          action: "remove",
+          adminEmail: adminUser?.email || "admin@fiskai.hr",
+          companyName: company.name || companyId,
+          affectedUserEmail: companyUser.user.email,
+          affectedUserName: companyUser.user.name,
+          oldRole: companyUser.role,
+          ipAddress,
+          timestamp: new Date().toISOString(),
+        },
+        ownerCompanyUser?.user.email || null,
+        ownerCompanyUser?.user.name || null
+      )
+
       return NextResponse.json({ success: true })
     }
 
     if (action === "change-role") {
-      // Change user role
       if (!userId || !role) {
         return NextResponse.json({ error: "User ID and role are required" }, { status: 400 })
       }
 
-      // Check if user exists in company
       const companyUser = await db.companyUser.findUnique({
         where: {
           userId_companyId: {
             userId,
             companyId,
+          },
+        },
+        include: {
+          user: {
+            select: { email: true, name: true },
           },
         },
       })
@@ -153,13 +330,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
         return NextResponse.json({ error: "User not found in company" }, { status: 404 })
       }
 
-      // Prevent changing owner role
       if (companyUser.role === "OWNER" && role !== "OWNER") {
         return NextResponse.json(
           { error: "Cannot change owner role. Transfer ownership first." },
           { status: 400 }
         )
       }
+
+      const oldRole = companyUser.role
 
       await db.companyUser.update({
         where: {
@@ -170,6 +348,40 @@ export async function POST(req: NextRequest, context: RouteContext) {
         },
         data: { role },
       })
+
+      await logAudit({
+        companyId,
+        userId: admin.id,
+        action: "UPDATE",
+        entity: "CompanyUser",
+        entityId: companyUser.id,
+        changes: {
+          before: { role: oldRole },
+          after: {
+            role,
+            adminAction: "admin_change_role",
+            reason: reason || "Admin portal action",
+          },
+        },
+        ipAddress,
+        userAgent,
+      })
+
+      await sendAdminActionNotifications(
+        {
+          action: "change-role",
+          adminEmail: adminUser?.email || "admin@fiskai.hr",
+          companyName: company.name || companyId,
+          affectedUserEmail: companyUser.user.email,
+          affectedUserName: companyUser.user.name,
+          oldRole,
+          newRole: role,
+          ipAddress,
+          timestamp: new Date().toISOString(),
+        },
+        ownerCompanyUser?.user.email || null,
+        ownerCompanyUser?.user.name || null
+      )
 
       return NextResponse.json({ success: true })
     }
