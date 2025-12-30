@@ -5,12 +5,12 @@
       "schedule": "0 5 * * *"
     },
     {
+      "path": "/api/cron/certificate-check",
+      "schedule": "0 6 * * *"
+    },
     {
       "path": "/api/cron/cleanup-uploads",
       "schedule": "0 2 * * *"
-    },
-      "path": "/api/cron/certificate-check",
-      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/deadline-reminders",
@@ -27,6 +27,26 @@
     {
       "path": "/api/cron/fiscal-retry",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/news/fetch-classify",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/news/review",
+      "schedule": "30 23 * * *"
+    },
+    {
+      "path": "/api/cron/news/publish",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/news/stale-check",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/newsletter-send",
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/system-status-cleanup",
