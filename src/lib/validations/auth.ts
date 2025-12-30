@@ -1,23 +1,23 @@
 import { z } from "zod"
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email("Unesite ispravnu email adresu"),
+  password: z.string().min(1, "Lozinka je obavezna"),
 })
 
 export const registerSchema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
+    name: z.string().min(2, "Ime mora imati najmanje 2 znaka"),
+    email: z.string().email("Unesite ispravnu email adresu"),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+      .min(8, "Lozinka mora imati najmanje 8 znakova")
+      .regex(/[A-Z]/, "Lozinka mora sadržavati barem jedno veliko slovo")
+      .regex(/[0-9]/, "Lozinka mora sadržavati barem jedan broj"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "Lozinke se ne podudaraju",
     path: ["confirmPassword"],
   })
 
