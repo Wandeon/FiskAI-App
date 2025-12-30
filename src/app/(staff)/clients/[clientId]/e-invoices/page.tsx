@@ -140,7 +140,7 @@ export default async function ClientEInvoicesPage({ params, searchParams }: Page
  // Log staff access to invoices (GDPR compliance)
  const reqHeaders = await headers()
  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
- logStaffAccess({
+ await logStaffAccess({
  staffUserId: session.user.id,
  clientCompanyId: clientId,
  action: "STAFF_VIEW_INVOICES",

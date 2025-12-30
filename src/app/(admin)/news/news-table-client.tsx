@@ -453,7 +453,7 @@ export function NewsTableClient({ initialPosts, categories }: NewsTableClientPro
  disabled={currentPage === totalPages}
  className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-secondary)]"
  >
- Sljedeca
+ Sljedeća
  <ChevronRight className="h-4 w-4" />
  </button>
  </div>

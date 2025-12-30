@@ -70,7 +70,7 @@ export default async function ClientDocumentsPage({ params }: PageProps) {
  // Log staff access to documents (GDPR compliance)
  const reqHeaders = await headers()
  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
- logStaffAccess({
+ await logStaffAccess({
  staffUserId: session.user.id,
  clientCompanyId: clientId,
  action: "STAFF_VIEW_DOCUMENTS",

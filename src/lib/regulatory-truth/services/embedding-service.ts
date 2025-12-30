@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { sourceChunkEmbeddings } from "@/lib/db/drizzle/schema/embeddings"
 import { embedBatch, embedText } from "@/lib/article-agent/verification/embedder"
-import { eq } from "drizzle-orm"
+import { count, countDistinct, eq } from "drizzle-orm"
 
 export interface EmbeddingResult {
   success: boolean

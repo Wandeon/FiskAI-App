@@ -94,7 +94,7 @@ export default async function ClientReportsPage({ params }: PageProps) {
 
  const reqHeaders = await headers()
  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
- logStaffAccess({
+ await logStaffAccess({
  staffUserId: session.user.id,
  clientCompanyId: clientId,
  action: "STAFF_VIEW_REPORTS",

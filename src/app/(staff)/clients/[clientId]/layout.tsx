@@ -73,8 +73,7 @@ export default async function ClientContextLayout({ children, params }: ClientCo
  // Log staff access to client data (GDPR compliance)
  const reqHeaders = await headers()
  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
- // Fire-and-forget - don't await to avoid blocking the page load
- logStaffAccess({
+ await logStaffAccess({
  staffUserId: session.user.id,
  clientCompanyId: clientId,
  action: "STAFF_VIEW_CLIENT",

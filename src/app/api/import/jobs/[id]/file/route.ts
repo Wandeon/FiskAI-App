@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 import { promises as fs } from "fs"
+import { createHash } from "crypto"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth()

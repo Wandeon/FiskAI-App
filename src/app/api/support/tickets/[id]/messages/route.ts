@@ -37,6 +37,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   // Sanitize user-generated content to prevent XSS
   const sanitizedBody = sanitizeUserContent(parsed.data.body.trim())
 
+  // Validate content after sanitization to prevent empty submissions
+  if (!sanitizedBody || sanitizedBody.length < 1) {
+    return NextResponse.json({ error: "Poruka je prazna ili sadrzi nedozvoljeni sadrzaj" }, { status: 400 })
+  }
+
   const message = await db.supportTicketMessage.create({
     data: {
       ticketId: ticket.id,

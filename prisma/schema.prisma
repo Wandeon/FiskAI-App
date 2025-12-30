@@ -351,7 +351,7 @@ model EInvoice {
   emailBouncedAt    DateTime?
   emailBounceReason String?
   bankTransactions  BankTransaction[]
-  buyer             Contact?          @relation("EInvoiceBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  buyer             Contact?          @relation("EInvoiceBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
   company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   convertedFrom     EInvoice?         @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
   convertedTo       EInvoice[]        @relation("InvoiceConversion")
