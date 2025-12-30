@@ -16,6 +16,7 @@ interface HelpTooltipProps {
   className?: string
   children?: ReactNode
   forceShow?: boolean // Override visibility check
+  isKeyField?: boolean // Mark as key field to show when fieldTooltips is "key"
 }
 
 export function HelpTooltip({
@@ -26,8 +27,23 @@ export function HelpTooltip({
   className,
   children,
   forceShow = false,
+  isKeyField = false,
 }: HelpTooltipProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { getHelpDensity } = useGuidance()
+
+  const helpDensity = getHelpDensity(category)
+  const { fieldTooltips } = helpDensity
+
+  // Determine if tooltip should be visible based on help density settings
+  const shouldShowTooltip = forceShow ||
+    fieldTooltips === "all" ||
+    (fieldTooltips === "key" && isKeyField)
+
+  // If tooltip should not be shown, only render children
+  if (!shouldShowTooltip) {
+    return children ? <>{children}</> : null
+  }
 
   // Position classes
   const positionClasses = {
@@ -80,7 +96,7 @@ export function HelpTooltip({
   )
 }
 
-// Wrapper that respects guidance level
+// Wrapper that respects guidance level (legacy - now handled by HelpTooltip directly via help density)
 interface ConditionalHelpTooltipProps extends HelpTooltipProps {
   showForLevels?: CompetenceLevel[]
 }
@@ -95,7 +111,7 @@ export function ConditionalHelpTooltip({
 
   // Only show tooltip if current level is in the allowed list
   if (!showForLevels.includes(currentLevel)) {
-    return null
+    return props.children ? <>{props.children}</> : null
   }
 
   return <HelpTooltip category={category} {...props} />

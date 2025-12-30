@@ -7,6 +7,7 @@ import {
   type CompetenceLevel,
   type GuidanceCategory,
 } from "@/lib/guidance/constants"
+import { getHelpDensity, type HelpDensityConfig } from "@/lib/guidance/help-density"
 
 interface GuidancePreferences {
   levelFakturiranje: CompetenceLevel
@@ -23,6 +24,7 @@ interface GuidanceContextType {
   shouldShowTooltip: (category: GuidanceCategory) => boolean
   shouldShowWizard: (category: GuidanceCategory) => boolean
   isDenseMode: () => boolean
+  getHelpDensity: (category: GuidanceCategory) => HelpDensityConfig
 }
 
 const defaultPreferences: GuidancePreferences = {
@@ -153,6 +155,7 @@ export function GuidanceProvider({ children }: { children: ReactNode }) {
         shouldShowTooltip,
         shouldShowWizard,
         isDenseMode,
+        getHelpDensity: getHelpDensityConfig,
       }}
     >
       {children}
