@@ -4,7 +4,30 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { getIpFromHeaders, getUserAgentFromHeaders, logAudit } from "@/lib/audit"
 import { SupportTicketStatus, SupportTicketPriority } from "@prisma/client"
+
+const serializeTicket = (ticket: {
+  id: string
+  companyId: string
+  assignedToId: string | null
+  status: SupportTicketStatus
+  priority: SupportTicketPriority
+  category: string
+  title: string
+  createdAt: Date
+  updatedAt: Date
+}) => ({
+  id: ticket.id,
+  companyId: ticket.companyId,
+  assignedToId: ticket.assignedToId,
+  status: ticket.status,
+  priority: ticket.priority,
+  category: ticket.category,
+  title: ticket.title,
+  createdAt: ticket.createdAt.toISOString(),
+  updatedAt: ticket.updatedAt.toISOString(),
+})
 
 export async function GET(request: Request) {
   const user = await getCurrentUser()
@@ -81,11 +104,17 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json()
-    const { ticketIds, action, assignToId, status } = body
+    const { ticketIds, action, assignToId, status, reason } = body
 
     if (!ticketIds || !Array.isArray(ticketIds) || ticketIds.length === 0) {
       return NextResponse.json({ error: "No ticket IDs provided" }, { status: 400 })
     }
+
+    const ipAddress = getIpFromHeaders(request.headers)
+    const userAgent = getUserAgentFromHeaders(request.headers)
+    const beforeTickets = await db.supportTicket.findMany({
+      where: { id: { in: ticketIds } },
+    })
 
     switch (action) {
       case "assign":
@@ -118,6 +147,34 @@ export async function PATCH(request: Request) {
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 })
     }
+
+    const afterTickets = await db.supportTicket.findMany({
+      where: { id: { in: ticketIds } },
+    })
+    const afterMap = new Map(afterTickets.map((ticket) => [ticket.id, ticket]))
+
+    await Promise.all(
+      beforeTickets.map((ticket) => {
+        const updatedTicket = afterMap.get(ticket.id)
+        if (!updatedTicket) return Promise.resolve()
+
+        return logAudit({
+          companyId: ticket.companyId,
+          userId: user.id,
+          action: "UPDATE",
+          entity: "SupportTicket",
+          entityId: ticket.id,
+          changes: {
+            before: serializeTicket(ticket),
+            after: serializeTicket(updatedTicket),
+            action,
+            reason: reason || "Admin bulk action",
+          },
+          ipAddress,
+          userAgent,
+        })
+      })
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

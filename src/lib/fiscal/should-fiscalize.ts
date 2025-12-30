@@ -1,6 +1,7 @@
 // src/lib/fiscal/should-fiscalize.ts
 import { db } from "@/lib/db"
 import { EInvoice, Company, PaymentMethod } from "@prisma/client"
+import { buildFiscalRequestSnapshot } from "@/lib/fiscal/request-snapshot"
 
 export interface FiscalDecision {
   shouldFiscalize: boolean
@@ -92,38 +93,55 @@ export async function shouldFiscalizeInvoice(
 }
 
 export async function queueFiscalRequest(
-  invoiceId: string,
-  companyId: string,
+  invoice: Pick<EInvoice, "id" | "invoiceNumber" | "issueDate" | "totalAmount">,
+  company: Pick<Company, "id" | "oib">,
   decision: FiscalDecision
 ): Promise<string | null> {
   if (!decision.shouldFiscalize || !decision.certificateId) {
     return null
   }
 
+  const certificate = await db.fiscalCertificate.findUnique({
+    where: { id: decision.certificateId },
+  })
+
+  if (!certificate) {
+    return null
+  }
+
+  const snapshot = buildFiscalRequestSnapshot({
+    invoice,
+    company,
+    certificate,
+  })
+
   const request = await db.fiscalRequest.upsert({
     where: {
       companyId_invoiceId_messageType: {
-        companyId,
-        invoiceId,
+        companyId: company.id,
+        invoiceId: invoice.id,
         messageType: "RACUN",
       },
     },
     create: {
-      companyId,
-      invoiceId,
+      companyId: company.id,
+      invoiceId: invoice.id,
       certificateId: decision.certificateId,
       messageType: "RACUN",
       status: "QUEUED",
       attemptCount: 0,
       maxAttempts: 5,
       nextRetryAt: new Date(),
+      ...snapshot,
     },
     update: {
+      certificateId: decision.certificateId,
       status: "QUEUED",
       attemptCount: 0,
       nextRetryAt: new Date(),
       errorCode: null,
       errorMessage: null,
+      ...snapshot,
     },
   })
 

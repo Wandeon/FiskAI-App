@@ -213,7 +213,7 @@ export function SupportDashboardClient({
   const updateTicketStatus = async (ticketId: string, newStatus: SupportTicketStatus) => {
     setIsUpdating(ticketId)
     try {
-      const response = await fetch(`/api/admin/support/tickets/${ticketId}/status`, {
+      const response = await fetch(`/api/admin/support/tickets/${ticketId}/override`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -238,9 +238,7 @@ export function SupportDashboardClient({
         <MessageSquare className="h-8 w-8 text-secondary" />
         <div>
           <h1 className="text-2xl font-bold text-foreground">Podrška</h1>
-          <p className="text-sm text-tertiary">
-            Upravljanje zahtjevima za podršku svih klijenata
-          </p>
+          <p className="text-sm text-tertiary">Upravljanje zahtjevima za podršku svih klijenata</p>
         </div>
       </div>
 
@@ -269,8 +267,7 @@ export function SupportDashboardClient({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="h-4 w-4 text-warning" />
-              U tijeku
+              <Clock className="h-4 w-4 text-warning" />U tijeku
             </CardTitle>
           </CardHeader>
           <CardContent>

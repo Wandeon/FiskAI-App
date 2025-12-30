@@ -8,8 +8,8 @@ import {
   kprToCsv,
   summaryToCsv,
 } from "@/lib/reports/accountant-export"
+import { createControlSum } from "@/lib/exports/control-sum"
 import archiver from "archiver"
-import { Readable } from "stream"
 
 const querySchema = z.object({
   from: z.string().optional(),
@@ -73,15 +73,29 @@ export async function GET(request: NextRequest) {
       throw err
     })
 
-    // Add CSV files to the archive
-    archive.append(summaryToCsv(exportData), { name: "00-SAZETAK.csv" })
-    archive.append(invoicesToCsv(exportData.invoices), { name: "01-RACUNI.csv" })
-    archive.append(expensesToCsv(exportData.expenses), { name: "02-TROSKOVI.csv" })
-    archive.append(kprToCsv(exportData.kprRows), { name: "03-KPR.csv" })
+    const files = {
+      "00-SAZETAK.csv": summaryToCsv(exportData),
+      "01-RACUNI.csv": invoicesToCsv(exportData.invoices),
+      "02-TROSKOVI.csv": expensesToCsv(exportData.expenses),
+      "03-KPR.csv": kprToCsv(exportData.kprRows),
+      "PROCITAJ-ME.txt": createReadme(exportData, parsed.data.from, parsed.data.to),
+    }
 
-    // Add a README file with instructions
-    const readme = createReadme(exportData, parsed.data.from, parsed.data.to)
-    archive.append(readme, { name: "PROCITAJ-ME.txt" })
+    const controlManifest = {
+      generatedAt: new Date().toISOString(),
+      files: Object.entries(files).map(([name, content]) => ({
+        name,
+        bytes: Buffer.byteLength(content),
+        controlSum: createControlSum(content),
+      })),
+    }
+
+    // Add CSV files and README to the archive
+    Object.entries(files).forEach(([name, content]) => {
+      archive.append(content, { name })
+    })
+
+    archive.append(JSON.stringify(controlManifest, null, 2), { name: "CONTROL_SUMS.json" })
 
     // Finalize the archive
     await archive.finalize()
@@ -93,6 +107,7 @@ export async function GET(request: NextRequest) {
 
     // Combine all chunks into a single buffer
     const zipBuffer = Buffer.concat(chunks)
+    const controlSum = createControlSum(zipBuffer)
 
     // Return the ZIP file
     const filename = `fiskai-tax-season-pack-${rangeLabel}.zip`
@@ -103,6 +118,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Content-Length": zipBuffer.length.toString(),
+        "X-Export-Control-Sum": controlSum,
       },
     })
   } catch (error) {

@@ -1,0 +1,4736 @@
+[
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:57:01Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTntM2g",
+        "name": "type-safety",
+        "description": "TypeScript type safety issues",
+        "color": "D93F0B"
+      }
+    ],
+    "number": 928,
+    "title": "[TypeScript] Type Safety Audit Summary - 304 errors found",
+    "updatedAt": "2025-12-29T19:57:01Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/928"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:56:29Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTntM2g",
+        "name": "type-safety",
+        "description": "TypeScript type safety issues",
+        "color": "D93F0B"
+      }
+    ],
+    "number": 927,
+    "title": "[TypeScript] 50+ unsafe type assertions using 'as unknown as'",
+    "updatedAt": "2025-12-29T19:56:29Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/927"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:54:33Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTntM2g",
+        "name": "type-safety",
+        "description": "TypeScript type safety issues",
+        "color": "D93F0B"
+      }
+    ],
+    "number": 918,
+    "title": "[TypeScript] Implicit any in function parameters - 20+ violations",
+    "updatedAt": "2025-12-29T19:54:33Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/918"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:54:30Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTntM2g",
+        "name": "type-safety",
+        "description": "TypeScript type safety issues",
+        "color": "D93F0B"
+      }
+    ],
+    "number": 917,
+    "title": "[TypeScript] 381 unsafe 'any' type usages across codebase",
+    "updatedAt": "2025-12-29T19:54:30Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/917"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:53:47Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTntM2g",
+        "name": "type-safety",
+        "description": "TypeScript type safety issues",
+        "color": "D93F0B"
+      }
+    ],
+    "number": 915,
+    "title": "[TypeScript] Prisma schema drift - Missing models and fields",
+    "updatedAt": "2025-12-29T19:53:47Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/915"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:51:18Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3Dg",
+        "name": "documentation",
+        "description": "Improvements or additions to documentation",
+        "color": "0075ca"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 913,
+    "title": "[DB] Database Schema Audit Summary - December 2025",
+    "updatedAt": "2025-12-29T19:51:18Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/913"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:49:53Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 908,
+    "title": "[Testing] Missing tests for e-invoice UBL generation and provider integration",
+    "updatedAt": "2025-12-29T19:49:53Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/908"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:49:31Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 905,
+    "title": "[Testing] E2E tests skipped due to missing test credentials",
+    "updatedAt": "2025-12-29T19:49:31Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/905"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:49:12Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 899,
+    "title": "[Testing] Missing integration tests for RBAC permission enforcement",
+    "updatedAt": "2025-12-29T19:49:12Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/899"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:48:51Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 895,
+    "title": "[Testing] Missing E2E tests for payment flow and fiscalization journey",
+    "updatedAt": "2025-12-29T19:48:51Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/895"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:48:31Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJxg",
+        "name": "area:invoicing",
+        "description": "Launch gaps area: invoicing",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 886,
+    "title": "[Testing] Missing integration tests for server actions (invoice, expense, contact, banking)",
+    "updatedAt": "2025-12-29T19:48:31Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/886"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:48:09Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 875,
+    "title": "[Testing] Missing tests for fiscalization pipeline (Croatian tax authority integration)",
+    "updatedAt": "2025-12-29T19:48:09Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/875"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:47:47Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 862,
+    "title": "[Testing] Missing tests for authentication flows and session management",
+    "updatedAt": "2025-12-29T19:47:47Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/862"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:47:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 841,
+    "title": "[Testing] Missing unit tests for bank reconciliation matching logic",
+    "updatedAt": "2025-12-29T19:47:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/841"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:47:01Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr1cg",
+        "name": "testing",
+        "description": "Test coverage and quality",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnr17w",
+        "name": "tech-debt",
+        "description": "Technical debt and code quality",
+        "color": "FBCA04"
+      }
+    ],
+    "number": 823,
+    "title": "[Testing] Missing unit tests for Stripe billing/subscription logic",
+    "updatedAt": "2025-12-29T19:47:01Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/823"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:46:24Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlRPmQ",
+        "name": "rtl-pipeline",
+        "description": "Regulatory Truth Layer pipeline",
+        "color": "7057ff"
+      }
+    ],
+    "number": 789,
+    "title": "[RTL] Arbiter conflict resolution lacks evidence source hierarchy comparison",
+    "updatedAt": "2025-12-29T19:46:24Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/789"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:46:20Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWf2Q",
+        "name": "area:admin",
+        "description": "Admin portal area",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 785,
+    "title": "[Admin Portal] isGlobalAdmin function uses insecure email allowlist fallback",
+    "updatedAt": "2025-12-29T19:46:20Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/785"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:45:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 738,
+    "title": "[DB] ClientInvitation.companyId missing onDelete behavior - orphaned invitations",
+    "updatedAt": "2025-12-29T19:45:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/738"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:45:17Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 718,
+    "title": "[DB] StaffAssignment.assignedBy missing onDelete behavior and index",
+    "updatedAt": "2025-12-29T19:45:17Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/718"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:45:16Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 716,
+    "title": "[Errors] Sentry Client Missing beforeSend Filter for Sensitive Data",
+    "updatedAt": "2025-12-29T19:45:16Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/716"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:45:11Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 706,
+    "title": "[Middleware] Staff and App Subdomain Access Logic May Cause Confusion",
+    "updatedAt": "2025-12-29T19:45:11Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/706"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:57Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 693,
+    "title": "[DB] AuditLog missing onDelete: Cascade - orphans possible on company delete",
+    "updatedAt": "2025-12-29T19:44:57Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/693"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:56Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 692,
+    "title": "[Errors] Inconsistent 500 Error Response Format",
+    "updatedAt": "2025-12-29T19:44:56Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/692"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:54Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJdw",
+        "name": "priority:P3",
+        "description": "Launch readiness priority P3",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 689,
+    "title": "[BANKING] CSV parser ignores currency field in parsed transactions - multi-currency reconciliation broken",
+    "updatedAt": "2025-12-29T19:44:54Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/689"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:53Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWZwg",
+        "name": "staff-portal",
+        "description": "Issues related to staff accountant portal",
+        "color": "5319e7"
+      }
+    ],
+    "number": 687,
+    "title": "[Staff Portal] Missing audit logging for bulk export operations",
+    "updatedAt": "2025-12-29T19:44:53Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/687"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:53Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJow",
+        "name": "area:onboarding",
+        "description": "Launch gaps area: onboarding",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKFw",
+        "name": "area:pausalni-obrt",
+        "description": "Launch gaps area: pausalni-obrt",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 685,
+    "title": "[Onboarding] Paušalni profile step blocks users when postal code lookup fails",
+    "updatedAt": "2025-12-29T19:44:53Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/685"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:53Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 684,
+    "title": "[Visibility] VisibilityProvider not wrapped around Sidebar component",
+    "updatedAt": "2025-12-29T19:44:53Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/684"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:48Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 679,
+    "title": "[Server Actions] marketing-contact.ts: checkRateLimit uses wrong function signature",
+    "updatedAt": "2025-12-29T19:44:48Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/679"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq5dw",
+        "name": "config",
+        "description": "Configuration issues",
+        "color": "C5DEF5"
+      }
+    ],
+    "number": 678,
+    "title": "[Config] Redis port exposed to all interfaces in docker-compose.workers.yml",
+    "updatedAt": "2025-12-29T19:44:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/678"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlRPug",
+        "name": "audit",
+        "description": "System audit findings",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWf2Q",
+        "name": "area:admin",
+        "description": "Admin portal area",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 677,
+    "title": "[Admin Portal] Missing audit logging for critical admin operations",
+    "updatedAt": "2025-12-29T19:44:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/677"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:44Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCK3Q",
+        "name": "area:ai",
+        "description": "Launch gaps area: ai",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 676,
+    "title": "[AI] No input length validation on AI endpoints",
+    "updatedAt": "2025-12-29T19:44:44Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/676"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:44Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 675,
+    "title": "[Storage] 11-year retention policy not implemented for document storage",
+    "updatedAt": "2025-12-29T19:44:44Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/675"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:44Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 674,
+    "title": "[Modules] DOO legal form includes reconciliation without banking dependency",
+    "updatedAt": "2025-12-29T19:44:44Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/674"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:41Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 673,
+    "title": "[Email] Microsoft OAuth revokeAccess is a no-op",
+    "updatedAt": "2025-12-29T19:44:41Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/673"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:41Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 672,
+    "title": "[AUTH] Missing RBAC permission checks in API routes",
+    "updatedAt": "2025-12-29T19:44:41Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/672"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:40Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 671,
+    "title": "[Expenses] updateExpenseInline allows setting totalAmount without updating net/VAT",
+    "updatedAt": "2025-12-29T19:44:40Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/671"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:40Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 670,
+    "title": "[E-Invoice] Mock provider generates invalid ZKI format",
+    "updatedAt": "2025-12-29T19:44:40Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/670"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:40Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKjg",
+        "name": "area:integrations",
+        "description": "Launch gaps area: integrations",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 669,
+    "title": "[Cron] fiscal-retry: Sends alerts but relies only on console.warn for ops visibility",
+    "updatedAt": "2025-12-29T19:44:40Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/669"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:40Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKog",
+        "name": "area:ux",
+        "description": "Launch gaps area: ux",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlRScA",
+        "name": "ai-assistant",
+        "description": "AI Assistant component",
+        "color": "5319E7"
+      }
+    ],
+    "number": 668,
+    "title": "[Frontend] SuggestionChips uses array index as key prop",
+    "updatedAt": "2025-12-29T19:44:40Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/668"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:39Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 667,
+    "title": "[DB] Missing index on Expense vendorId foreign key",
+    "updatedAt": "2025-12-29T19:44:39Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/667"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:38Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 666,
+    "title": "[Errors] API Routes Use console.error Instead of Structured Logger",
+    "updatedAt": "2025-12-29T19:44:38Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/666"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:38Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 665,
+    "title": "[Email] Deadline reminder emails use raw HTML without sanitization",
+    "updatedAt": "2025-12-29T19:44:38Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/665"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:37Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 664,
+    "title": "[SECURITY] Metrics Endpoint Exposes Sensitive Business Data Without Authentication",
+    "updatedAt": "2025-12-29T19:44:37Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/664"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:36Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKdg",
+        "name": "area:support",
+        "description": "Launch gaps area: support",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 663,
+    "title": "[Support] Missing company filter in getSupportTickets - Returns all tickets across companies",
+    "updatedAt": "2025-12-29T19:44:36Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/663"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:36Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 662,
+    "title": "[Email] Email import rules vulnerable to regex injection via senderDomain/subjectContains",
+    "updatedAt": "2025-12-29T19:44:36Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/662"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:35Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWZwg",
+        "name": "staff-portal",
+        "description": "Issues related to staff accountant portal",
+        "color": "5319e7"
+      }
+    ],
+    "number": 661,
+    "title": "[Staff Portal] Bulk export API bypasses ADMIN assignment check",
+    "updatedAt": "2025-12-29T19:44:35Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/661"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:32Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrTfQ",
+        "name": "reports",
+        "description": "Reports module issues",
+        "color": "0E8A16"
+      }
+    ],
+    "number": 660,
+    "title": "[Reports] Timezone handling bug in date filtering - uses local server time",
+    "updatedAt": "2025-12-29T19:44:32Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/660"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:32Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 659,
+    "title": "[Visibility] action:export-data element ID never used in codebase",
+    "updatedAt": "2025-12-29T19:44:32Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/659"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:31Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKFw",
+        "name": "area:pausalni-obrt",
+        "description": "Launch gaps area: pausalni-obrt",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 658,
+    "title": "[Paušalni] Quarterly tax deadline dates incorrectly use quarter end dates instead of deadlines",
+    "updatedAt": "2025-12-29T19:44:31Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/658"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:30Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq5dw",
+        "name": "config",
+        "description": "Configuration issues",
+        "color": "C5DEF5"
+      }
+    ],
+    "number": 657,
+    "title": "[Config] Inconsistent CRON_SECRET validation across endpoints",
+    "updatedAt": "2025-12-29T19:44:30Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/657"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:29Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 656,
+    "title": "[Visibility] Registered elements without visibility rules",
+    "updatedAt": "2025-12-29T19:44:29Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/656"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:28Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJdw",
+        "name": "priority:P3",
+        "description": "Launch readiness priority P3",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 655,
+    "title": "[Server Actions] guidance.ts: saveCompetenceLevel missing input validation",
+    "updatedAt": "2025-12-29T19:44:28Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/655"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:28Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWf2Q",
+        "name": "area:admin",
+        "description": "Admin portal area",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 654,
+    "title": "[Admin Portal] Dual authentication system creates inconsistent access control",
+    "updatedAt": "2025-12-29T19:44:28Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/654"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:28Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 653,
+    "title": "[Middleware] Potential Redirect Loop with Nested Subdomains",
+    "updatedAt": "2025-12-29T19:44:28Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/653"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:27Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCK3Q",
+        "name": "area:ai",
+        "description": "Launch gaps area: ai",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 652,
+    "title": "[AI] Potential prompt injection vulnerability in receipt extraction",
+    "updatedAt": "2025-12-29T19:44:27Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/652"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:27Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlTmpA",
+        "name": "marketing",
+        "description": "Marketing pages",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 651,
+    "title": "[Marketing] Broken Navigation Links in MarketingHeader",
+    "updatedAt": "2025-12-29T19:44:27Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/651"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:26Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 650,
+    "title": "[E-Invoice] Incoming invoice buyer/seller role confusion",
+    "updatedAt": "2025-12-29T19:44:26Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/650"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:25Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 649,
+    "title": "[DB] Missing index on RecurringExpense vendorId and categoryId foreign keys",
+    "updatedAt": "2025-12-29T19:44:25Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/649"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:25Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKog",
+        "name": "area:ux",
+        "description": "Launch gaps area: ux",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlUM5g",
+        "name": "design-system",
+        "description": "Design system related",
+        "color": "5319e7"
+      }
+    ],
+    "number": 648,
+    "title": "[Frontend] MultiSelect dropdown missing click outside handler",
+    "updatedAt": "2025-12-29T19:44:25Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/648"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:24Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 647,
+    "title": "[Modules] getEntitlementsForLegalForm includes 'expenses' multiple times",
+    "updatedAt": "2025-12-29T19:44:24Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/647"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:24Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 646,
+    "title": "[Visibility] card:compliance-status uses same element ID as fiscalization-status",
+    "updatedAt": "2025-12-29T19:44:24Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/646"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKdg",
+        "name": "area:support",
+        "description": "Launch gaps area: support",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 645,
+    "title": "[Support] Missing company filter in getSupportTicket - IDOR vulnerability",
+    "updatedAt": "2025-12-29T19:44:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/645"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJow",
+        "name": "area:onboarding",
+        "description": "Launch gaps area: onboarding",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 644,
+    "title": "[Onboarding] Address step skip leaves empty placeholder values in database",
+    "updatedAt": "2025-12-29T19:44:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/644"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:22Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 643,
+    "title": "[Storage] No signed URLs for R2 storage - direct buffer serving",
+    "updatedAt": "2025-12-29T19:44:22Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/643"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:22Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKjg",
+        "name": "area:integrations",
+        "description": "Launch gaps area: integrations",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 642,
+    "title": "[Cron] bank-sync: Missing error notification for sync failures",
+    "updatedAt": "2025-12-29T19:44:22Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/642"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:21Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 641,
+    "title": "[Errors] Server Actions Not Using createSafeAction Wrapper",
+    "updatedAt": "2025-12-29T19:44:21Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/641"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:21Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 640,
+    "title": "[Expenses] Missing expense edit page - no way to modify existing expenses",
+    "updatedAt": "2025-12-29T19:44:21Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/640"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:19Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 639,
+    "title": "[AUTH] WebAuthn in-memory challenge store not production-ready",
+    "updatedAt": "2025-12-29T19:44:19Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/639"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:19Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWZwg",
+        "name": "staff-portal",
+        "description": "Issues related to staff accountant portal",
+        "color": "5319e7"
+      }
+    ],
+    "number": 638,
+    "title": "[Staff Portal] Batch review API bypasses ADMIN assignment check",
+    "updatedAt": "2025-12-29T19:44:19Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/638"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:18Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 637,
+    "title": "[SECURITY] Resend Webhook Skips Signature Verification When Secret Not Set",
+    "updatedAt": "2025-12-29T19:44:18Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/637"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:12Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlWf2Q",
+        "name": "area:admin",
+        "description": "Admin portal area",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 636,
+    "title": "[Admin Portal] Critical: Hardcoded default admin password with weak value",
+    "updatedAt": "2025-12-29T19:44:12Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/636"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:10Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 635,
+    "title": "[E-Invoice] Invoice editing allows data changes after fiscalization",
+    "updatedAt": "2025-12-29T19:44:10Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/635"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 634,
+    "title": "[DB] Missing indexes on EInvoice sellerId and buyerId foreign keys",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/634"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 633,
+    "title": "[Server Actions] onboarding.ts: createMinimalCompany allows linking user to orphaned company without verification",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/633"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCK3Q",
+        "name": "area:ai",
+        "description": "Launch gaps area: ai",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 632,
+    "title": "[AI] Assistant API missing usage tracking",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/632"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 631,
+    "title": "[Modules] pausalni page uses legalForm check instead of module entitlement",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/631"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 630,
+    "title": "[Cron] email-sync: No timeout or maxDuration configuration",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/630"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 629,
+    "title": "[Expenses] Fuel category hardcodes 50% VAT deductibility but implementation ignores it",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/629"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 628,
+    "title": "[Storage] No virus/malware scanning for uploaded files",
+    "updatedAt": "2025-12-29T19:44:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/628"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:05Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 627,
+    "title": "[Middleware] Missing CSP: frame-src and worker-src Directives",
+    "updatedAt": "2025-12-29T19:44:05Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/627"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:05Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 626,
+    "title": "[Errors] API Routes Missing Centralized withApiLogging Wrapper",
+    "updatedAt": "2025-12-29T19:44:05Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/626"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:44:04Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq5dw",
+        "name": "config",
+        "description": "Configuration issues",
+        "color": "C5DEF5"
+      }
+    ],
+    "number": 625,
+    "title": "[Config] Turnstile bot protection bypassed in development mode",
+    "updatedAt": "2025-12-29T19:44:04Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/625"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:59Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 624,
+    "title": "[SECURITY] IDOR in Banking Import Job Status Update",
+    "updatedAt": "2025-12-29T19:43:59Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/624"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:58Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 623,
+    "title": "[AUTH] Cron endpoints vulnerable without CRON_SECRET environment variable",
+    "updatedAt": "2025-12-29T19:43:58Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/623"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:58Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKFw",
+        "name": "area:pausalni-obrt",
+        "description": "Launch gaps area: pausalni-obrt",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 622,
+    "title": "[PAUSALNI] PDV form generator calculates 25% VAT without verifying rate matches transaction rate",
+    "updatedAt": "2025-12-29T19:43:58Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/622"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:55Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 621,
+    "title": "[Billing] Stripe Terminal missing company ownership validation",
+    "updatedAt": "2025-12-29T19:43:55Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/621"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:52Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 620,
+    "title": "[E-Invoice] PDF generation missing credit note and debit note handling",
+    "updatedAt": "2025-12-29T19:43:52Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/620"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:49Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 619,
+    "title": "[FISCAL] CIS communication timeout of 30s may be insufficient - requests marked failed prematurely",
+    "updatedAt": "2025-12-29T19:43:49Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/619"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:48Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 618,
+    "title": "[Billing] No handling of subscription proration or plan changes via webhook",
+    "updatedAt": "2025-12-29T19:43:48Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/618"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 617,
+    "title": "[Email] Staff invitation email sending is not implemented",
+    "updatedAt": "2025-12-29T19:43:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/617"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnrFEA",
+        "name": "database",
+        "description": "Database schema and query issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 616,
+    "title": "[DB] Missing index on FiscalRequest.certificateId foreign key",
+    "updatedAt": "2025-12-29T19:43:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/616"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJow",
+        "name": "area:onboarding",
+        "description": "Launch gaps area: onboarding",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKog",
+        "name": "area:ux",
+        "description": "Launch gaps area: ux",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 615,
+    "title": "[Onboarding] Competence level not saved when step is skipped",
+    "updatedAt": "2025-12-29T19:43:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/615"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:45Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKjg",
+        "name": "area:integrations",
+        "description": "Launch gaps area: integrations",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 614,
+    "title": "[BANKING] Bank transaction dedup uses date window without timezone handling - duplicate transactions across DST boundaries",
+    "updatedAt": "2025-12-29T19:43:45Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/614"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:44Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCK3Q",
+        "name": "area:ai",
+        "description": "Launch gaps area: ai",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 613,
+    "title": "[AI] Assistant API missing rate limiting",
+    "updatedAt": "2025-12-29T19:43:44Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/613"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:43Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 612,
+    "title": "[Billing] Missing entitlements/modules sync after subscription changes",
+    "updatedAt": "2025-12-29T19:43:43Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/612"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:43Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKjg",
+        "name": "area:integrations",
+        "description": "Launch gaps area: integrations",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 611,
+    "title": "[Cron] bank-sync: Missing timeout handling for external API calls",
+    "updatedAt": "2025-12-29T19:43:43Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/611"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:42Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 610,
+    "title": "[Modules] Middleware doesn't enforce module-level route protection",
+    "updatedAt": "2025-12-29T19:43:42Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/610"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:38Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 609,
+    "title": "[Storage] No magic byte validation for uploaded files - extension-only check",
+    "updatedAt": "2025-12-29T19:43:38Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/609"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:37Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 608,
+    "title": "[Expenses] No validation that totalAmount equals netAmount + vatAmount",
+    "updatedAt": "2025-12-29T19:43:37Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/608"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:37Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 607,
+    "title": "[Email] Email templates do not include List-Unsubscribe header for transactional emails",
+    "updatedAt": "2025-12-29T19:43:37Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/607"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:35Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 606,
+    "title": "[Visibility] Unused sub-stages in progression logic",
+    "updatedAt": "2025-12-29T19:43:35Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/606"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq5dw",
+        "name": "config",
+        "description": "Configuration issues",
+        "color": "C5DEF5"
+      }
+    ],
+    "number": 605,
+    "title": "[Config] TypeScript build errors ignored in production builds",
+    "updatedAt": "2025-12-29T19:43:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/605"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 604,
+    "title": "[SECURITY] Bank Callback Missing Authentication - Allows Hijacking Bank Connections",
+    "updatedAt": "2025-12-29T19:43:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/604"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJdw",
+        "name": "priority:P3",
+        "description": "Launch readiness priority P3",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 603,
+    "title": "[Server Actions] fiscalize.ts: Exposing internal error messages to clients",
+    "updatedAt": "2025-12-29T19:43:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/603"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 602,
+    "title": "[Middleware] Security: Host Header Injection Risk via x-forwarded-host",
+    "updatedAt": "2025-12-29T19:43:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/602"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:33Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 601,
+    "title": "[AUTH] Rate limiting fails open when Redis unavailable",
+    "updatedAt": "2025-12-29T19:43:33Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/601"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:31Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 600,
+    "title": "[E-Invoice] VAT calculation precision issues with Decimal type conversion",
+    "updatedAt": "2025-12-29T19:43:31Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/600"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:24Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 599,
+    "title": "[Visibility] Missing element IDs for several navigation items",
+    "updatedAt": "2025-12-29T19:43:24Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/599"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:24Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 598,
+    "title": "[Email] Resend webhook signature verification is optional",
+    "updatedAt": "2025-12-29T19:43:24Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/598"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:19Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKjg",
+        "name": "area:integrations",
+        "description": "Launch gaps area: integrations",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 597,
+    "title": "[Cron] fiscal-processor and fiscal-retry: Potential race condition on same records",
+    "updatedAt": "2025-12-29T19:43:19Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/597"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:16Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 596,
+    "title": "[Visibility] Mobile navigation missing module entitlements filtering",
+    "updatedAt": "2025-12-29T19:43:16Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/596"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:12Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq5dw",
+        "name": "config",
+        "description": "Configuration issues",
+        "color": "C5DEF5"
+      }
+    ],
+    "number": 595,
+    "title": "[Config] Missing startup environment validation for required secrets",
+    "updatedAt": "2025-12-29T19:43:12Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/595"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:12Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 594,
+    "title": "[Modules] API routes lack module entitlement checks",
+    "updatedAt": "2025-12-29T19:43:12Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/594"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:09Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 593,
+    "title": "[SECURITY] Email OAuth Callback Missing Authentication - Allows Hijacking Any Company",
+    "updatedAt": "2025-12-29T19:43:09Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/593"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:07Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 592,
+    "title": "[Middleware] Missing CORS Configuration for API Routes",
+    "updatedAt": "2025-12-29T19:43:07Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/592"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJdw",
+        "name": "priority:P3",
+        "description": "Launch readiness priority P3",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 591,
+    "title": "[Server Actions] Duplicate switchCompany and getUserCompanies functions in company.ts and company-switch.ts",
+    "updatedAt": "2025-12-29T19:43:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/591"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 590,
+    "title": "[AUTH] User enumeration via check-email endpoint",
+    "updatedAt": "2025-12-29T19:43:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/590"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:43:02Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 589,
+    "title": "[E-Invoice] Provider factory throws not implemented for ie-racuni but provider exists",
+    "updatedAt": "2025-12-29T19:43:02Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/589"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:58Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 588,
+    "title": "[Cron] bank-sync and email-sync run at same time (05:00) causing potential resource contention",
+    "updatedAt": "2025-12-29T19:42:58Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/588"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:48Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 587,
+    "title": "[Config][CRITICAL] Secrets committed to Git history - requires credential rotation",
+    "updatedAt": "2025-12-29T19:42:48Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/587"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:47Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 586,
+    "title": "[Billing] Webhook error handling returns 500 for signature validation failures",
+    "updatedAt": "2025-12-29T19:42:47Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/586"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:47Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 585,
+    "title": "[Modules] capabilities.ts defaultEntitlements differs from definitions.ts DEFAULT_ENTITLEMENTS",
+    "updatedAt": "2025-12-29T19:42:47Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/585"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKFw",
+        "name": "area:pausalni-obrt",
+        "description": "Launch gaps area: pausalni-obrt",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 584,
+    "title": "[PAUSALNI] 60k EUR threshold comparison uses > instead of >= - off-by-one compliance error",
+    "updatedAt": "2025-12-29T19:42:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/584"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 583,
+    "title": "[Server Actions] banking.ts: importBankStatement missing input validation with Zod",
+    "updatedAt": "2025-12-29T19:42:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/583"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:46Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 582,
+    "title": "[AUTH] Subdomain bypass via x-subdomain header in development mode",
+    "updatedAt": "2025-12-29T19:42:46Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/582"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:45Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 581,
+    "title": "[E-Invoice] Unarchive restores invoice to DELIVERED status regardless of original status",
+    "updatedAt": "2025-12-29T19:42:45Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/581"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:45Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 580,
+    "title": "[Middleware] Security: Unused x-subdomain Override Header Could Enable Subdomain Spoofing",
+    "updatedAt": "2025-12-29T19:42:45Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/580"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:44Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 579,
+    "title": "[SECURITY] Cron Endpoints Bypass Authentication When CRON_SECRET Not Set",
+    "updatedAt": "2025-12-29T19:42:44Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/579"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:43Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 578,
+    "title": "[Billing] Terminal payment PUT endpoint lacks company authorization check",
+    "updatedAt": "2025-12-29T19:42:43Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/578"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:39Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 577,
+    "title": "[Cron] email-sync: Same weak authentication bypass issue",
+    "updatedAt": "2025-12-29T19:42:39Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/577"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:38Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKFw",
+        "name": "area:pausalni-obrt",
+        "description": "Launch gaps area: pausalni-obrt",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 576,
+    "title": "[PAUSALNI] Tax bracket lookup uses exclusive max boundary - edge case tax miscalculation at 11300, 15300 EUR thresholds",
+    "updatedAt": "2025-12-29T19:42:38Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/576"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 575,
+    "title": "[Billing] Failed payment handler incomplete - no user notification or grace period",
+    "updatedAt": "2025-12-29T19:42:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/575"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:32Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 574,
+    "title": "[Email] OAuth callback lacks CSRF protection via state parameter validation",
+    "updatedAt": "2025-12-29T19:42:32Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/574"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:30Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ2A",
+        "name": "area:expenses",
+        "description": "Launch gaps area: expenses",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 573,
+    "title": "[BANKING] Reconciliation matching uses floating-point comparison with 1 EUR tolerance - precision loss risk",
+    "updatedAt": "2025-12-29T19:42:30Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/573"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:27Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 572,
+    "title": "[Visibility] profit-loss reports page missing route protection",
+    "updatedAt": "2025-12-29T19:42:27Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/572"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:27Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 571,
+    "title": "[Email] No rate limiting on invoice email sending",
+    "updatedAt": "2025-12-29T19:42:27Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/571"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:25Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 570,
+    "title": "[E-Invoice] EN16931 validator missing critical business rules (BR-* rules)",
+    "updatedAt": "2025-12-29T19:42:25Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/570"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:24Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 569,
+    "title": "[Server Actions] invoice.ts: Missing audit logging for invoice operations",
+    "updatedAt": "2025-12-29T19:42:24Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/569"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 568,
+    "title": "[Visibility] pausalni-obrt reports page missing route protection",
+    "updatedAt": "2025-12-29T19:42:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/568"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 567,
+    "title": "[Modules] FeatureGuard component missing critical modules",
+    "updatedAt": "2025-12-29T19:42:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/567"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 565,
+    "title": "[AUTH] Passkey/OTP authentication bypass via password prefix injection",
+    "updatedAt": "2025-12-29T19:42:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/565"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqndw",
+        "name": "email",
+        "description": "Email system issues",
+        "color": "0052CC"
+      }
+    ],
+    "number": 566,
+    "title": "[Email] Unsubscribe token is insecure - uses plain base64 encoding",
+    "updatedAt": "2025-12-29T19:42:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/566"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:22Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-yA",
+        "name": "security",
+        "description": "Security vulnerability or concern",
+        "color": "FF0000"
+      }
+    ],
+    "number": 564,
+    "title": "[SECURITY] Hardcoded Admin Password with Weak Default",
+    "updatedAt": "2025-12-29T19:42:22Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/564"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:22Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwbQ",
+        "name": "cron",
+        "description": "Cron jobs and scheduled tasks",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnq0PA",
+        "name": "infrastructure",
+        "description": "Infrastructure and DevOps",
+        "color": "006b75"
+      }
+    ],
+    "number": 563,
+    "title": "[Cron] bank-sync: Weak authentication bypass when CRON_SECRET unset",
+    "updatedAt": "2025-12-29T19:42:22Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/563"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:20Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqwcg",
+        "name": "middleware",
+        "description": "Middleware and routing issues",
+        "color": "6B4FE6"
+      }
+    ],
+    "number": 562,
+    "title": "[Middleware] Test-Implementation Mismatch: Localhost returns 'marketing' but test expects 'app'",
+    "updatedAt": "2025-12-29T19:42:20Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/562"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:07Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqsjw",
+        "name": "visibility",
+        "description": "Visibility system and UX controls",
+        "color": "5319E7"
+      }
+    ],
+    "number": 561,
+    "title": "[Visibility] ActionCards component bypasses visibility system",
+    "updatedAt": "2025-12-29T19:42:07Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/561"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:01Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 560,
+    "title": "[E-Invoice] Missing invoice type (R-1/R-2) handling for Croatian compliance",
+    "updatedAt": "2025-12-29T19:42:01Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/560"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:42:00Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 559,
+    "title": "[Server Actions] expense.ts: Missing audit logging for sensitive expense operations",
+    "updatedAt": "2025-12-29T19:42:00Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/559"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:50Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 558,
+    "title": "[Modules] Stripe plans don't sync entitlements to Company.entitlements",
+    "updatedAt": "2025-12-29T19:41:50Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/558"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:49Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 557,
+    "title": "[Billing] Incomplete subscription period date handling",
+    "updatedAt": "2025-12-29T19:41:49Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/557"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:39Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 556,
+    "title": "[AUTH] Dual admin auth mechanisms create inconsistent access control",
+    "updatedAt": "2025-12-29T19:41:39Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/556"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 554,
+    "title": "[E-Invoice] ZKI calculation uses SHA256 in demo mode instead of proper format",
+    "updatedAt": "2025-12-29T19:41:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/554"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJdw",
+        "name": "priority:P3",
+        "description": "Launch readiness priority P3",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 555,
+    "title": "[Server Actions] pos.ts: Validation before auth allows unauthenticated probing",
+    "updatedAt": "2025-12-29T19:41:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/555"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 553,
+    "title": "[Billing] Race condition in subscription status synchronization",
+    "updatedAt": "2025-12-29T19:41:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/553"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:25Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 552,
+    "title": "[FISCAL] Missing certificate expiry pre-check before queuing fiscal requests",
+    "updatedAt": "2025-12-29T19:41:25Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/552"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:23Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJvQ",
+        "name": "area:billing",
+        "description": "Launch gaps area: billing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 551,
+    "title": "[Billing] Missing webhook idempotency handling - duplicate events may cause inconsistent state",
+    "updatedAt": "2025-12-29T19:41:23Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/551"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:16Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 550,
+    "title": "[FISCAL] ZKI validation allows negative amounts, violating fiscalization spec",
+    "updatedAt": "2025-12-29T19:41:16Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/550"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:10Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnqkYQ",
+        "name": "modules",
+        "description": "Module system and entitlements",
+        "color": "5319e7"
+      }
+    ],
+    "number": 549,
+    "title": "[Modules] Missing entitlement check on /invoices, /banking, /pos, /expenses pages",
+    "updatedAt": "2025-12-29T19:41:10Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/549"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:09Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 548,
+    "title": "[E-Invoice] Invoice number sequence race condition in preview vs actual allocation",
+    "updatedAt": "2025-12-29T19:41:09Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/548"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:08Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 547,
+    "title": "[FISCAL] Race condition in fiscal queue processor - concurrent workers may double-process requests",
+    "updatedAt": "2025-12-29T19:41:08Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/547"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:41:00Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 546,
+    "title": "[AUTH] Hardcoded fallback admin password in source code",
+    "updatedAt": "2025-12-29T19:41:00Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/546"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:40:59Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 545,
+    "title": "[Server Actions] support-ticket.ts: Missing 'use server' directive",
+    "updatedAt": "2025-12-29T19:40:59Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/545"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:40:37Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 544,
+    "title": "[E-Invoice] Missing EN16931 required BG-4 Seller contact element",
+    "updatedAt": "2025-12-29T19:40:37Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/544"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:40:33Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJdw",
+        "name": "priority:P3",
+        "description": "Launch readiness priority P3",
+        "color": "0E8A16"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 543,
+    "title": "[Server Actions] company.ts: Race condition in switchCompany transaction",
+    "updatedAt": "2025-12-29T19:40:33Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/543"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:40:06Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 542,
+    "title": "[E-Invoice] UBL generator hardcodes currency to EUR in line items",
+    "updatedAt": "2025-12-29T19:40:06Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/542"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:40:01Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 541,
+    "title": "[Server Actions] auth.ts: resetPassword lacks password strength validation",
+    "updatedAt": "2025-12-29T19:40:01Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/541"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:39:34Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJ9A",
+        "name": "area:e-invoicing",
+        "description": "Launch gaps area: e-invoicing",
+        "color": "1D76DB"
+      }
+    ],
+    "number": 540,
+    "title": "[E-Invoice] UBL generator missing OrderReference element (EN16931 BT-13)",
+    "updatedAt": "2025-12-29T19:39:34Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/540"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:39:30Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 539,
+    "title": "[Server Actions] expense.ts: createExpenseCategory missing companyId in create",
+    "updatedAt": "2025-12-29T19:39:30Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/539"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:39:02Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJVg",
+        "name": "priority:P2",
+        "description": "Launch readiness priority P2",
+        "color": "FBCA04"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 538,
+    "title": "[Server Actions] newsletter.ts: Missing rate limiting allows subscription spam",
+    "updatedAt": "2025-12-29T19:39:02Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/538"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:38:41Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJPw",
+        "name": "priority:P1",
+        "description": "Launch readiness priority P1",
+        "color": "D93F0B"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 537,
+    "title": "[Server Actions] article-agent.ts: Missing tenant isolation allows cross-company data access",
+    "updatedAt": "2025-12-29T19:38:41Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/537"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T19:38:15Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3CQ",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCJHw",
+        "name": "priority:P0",
+        "description": "Launch readiness priority P0",
+        "color": "B60205"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACSVCKPA",
+        "name": "area:security",
+        "description": "Launch gaps area: security",
+        "color": "1D76DB"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTnp-Fg",
+        "name": "server-actions",
+        "description": "Server action related issues",
+        "color": "5319E7"
+      }
+    ],
+    "number": 536,
+    "title": "[Server Actions] premises.ts: Missing authentication and authorization checks",
+    "updatedAt": "2025-12-29T19:38:15Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/536"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T17:25:14Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlUM5g",
+        "name": "design-system",
+        "description": "Design system related",
+        "color": "5319e7"
+      }
+    ],
+    "number": 526,
+    "title": "Fix #217 Batch 7: Admin + Staff Pages - Replace hardcoded Tailwind colors",
+    "updatedAt": "2025-12-29T17:25:14Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/526"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T10:19:09Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACSGK3IQ",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlRPug",
+        "name": "audit",
+        "description": "System audit findings",
+        "color": "5319e7"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlUM5g",
+        "name": "design-system",
+        "description": "Design system related",
+        "color": "5319e7"
+      }
+    ],
+    "number": 217,
+    "title": "[Audit/UI] Widespread hardcoded Tailwind colors in 137+ component files",
+    "updatedAt": "2025-12-29T10:19:09Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/217"
+  },
+  {
+    "assignees": [],
+    "author": { "id": "U_kgDOCuLbLQ", "is_bot": false, "login": "Wandeon", "name": "" },
+    "comments": [],
+    "createdAt": "2025-12-29T10:09:29Z",
+    "labels": [
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlRPmQ",
+        "name": "rtl-pipeline",
+        "description": "Regulatory Truth Layer pipeline",
+        "color": "7057ff"
+      },
+      {
+        "id": "LA_kwDOQmIYms8AAAACTlRPug",
+        "name": "audit",
+        "description": "System audit findings",
+        "color": "5319e7"
+      }
+    ],
+    "number": 166,
+    "title": "[AUDIT] RTL: All 1,995 SourcePointers Pending Verification",
+    "updatedAt": "2025-12-29T10:09:29Z",
+    "url": "https://github.com/Wandeon/FiskAI/issues/166"
+  }
+]

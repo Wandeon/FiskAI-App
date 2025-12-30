@@ -6,14 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { listExperiments, createExperiment } from "@/lib/experiments"
 import type { CreateExperimentInput, ExperimentFilters } from "@/lib/experiments/types"
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -36,16 +35,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ experiments })
   } catch (error) {
     console.error("Error listing experiments:", error)
-    return NextResponse.json(
-      { error: "Failed to list experiments" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to list experiments" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

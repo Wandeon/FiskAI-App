@@ -9,6 +9,8 @@ import {
 import { revalidatePath } from "next/cache"
 import { Prisma, ExpenseStatus, PaymentMethod, Frequency } from "@prisma/client"
 import { z } from "zod"
+import { calculateVatInputAmounts, evaluateVatInputRules } from "@/lib/vat/input-vat"
+import { emitAssetCandidates } from "@/lib/fixed-assets/asset-candidates"
 
 const Decimal = Prisma.Decimal
 
@@ -26,12 +28,47 @@ interface CreateExpenseInput {
   dueDate?: Date
   netAmount: number
   vatAmount: number
+  vatRate: number
   totalAmount: number
   vatDeductible?: boolean
   currency?: string
   paymentMethod?: string
   notes?: string
   receiptUrl?: string
+  lines?: ExpenseLineInput[]
+}
+
+interface ExpenseLineInput {
+  description: string
+  quantity: number
+  unitPrice: number
+  netAmount: number
+  vatRate: number
+  vatAmount: number
+  totalAmount: number
+}
+
+function resolveReceiptFileName(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const name = parsed.pathname.split("/").pop()
+    return name || "receipt"
+  } catch {
+    const parts = url.split("/")
+    return parts[parts.length - 1] || "receipt"
+  }
+}
+
+function buildDefaultExpenseLine(input: CreateExpenseInput): ExpenseLineInput {
+  return {
+    description: input.description,
+    quantity: 1,
+    unitPrice: input.netAmount,
+    netAmount: input.netAmount,
+    vatRate: input.vatRate,
+    vatAmount: input.vatAmount,
+    totalAmount: input.totalAmount,
+  }
 }
 
 export async function createExpense(input: CreateExpenseInput): Promise<ActionResult> {
@@ -59,14 +96,16 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
       if (category.receiptRequired && !input.receiptUrl) {
         return {
           success: false,
-          error: "Račun je obavezan za ovu kategoriju troška"
+          error: "Račun je obavezan za ovu kategoriju troška",
         }
       }
 
       // Verify vendor if provided (automatically filtered by tenant context)
+      let vendor = null as null | { name: string; vatNumber: string | null; oib: string | null }
       if (input.vendorId) {
-        const vendor = await db.contact.findFirst({
+        vendor = await db.contact.findFirst({
           where: { id: input.vendorId },
+          select: { name: true, vatNumber: true, oib: true },
         })
         if (!vendor) {
           return { success: false, error: "Dobavljač nije pronađen" }
@@ -74,27 +113,95 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
       }
 
       const status: ExpenseStatus = input.paymentMethod ? "PAID" : "DRAFT"
+      const lineItems = (input.lines?.length ? input.lines : [buildDefaultExpenseLine(input)]).map(
+        (line) => ({
+          description: line.description,
+          quantity: new Decimal(line.quantity),
+          unitPrice: new Decimal(line.unitPrice),
+          netAmount: new Decimal(line.netAmount),
+          vatRate: new Decimal(line.vatRate),
+          vatAmount: new Decimal(line.vatAmount),
+          totalAmount: new Decimal(line.totalAmount),
+        })
+      )
 
-      const expense = await db.expense.create({
-        data: {
-          companyId: company.id,
-          categoryId: input.categoryId,
-          vendorId: input.vendorId || null,
-          description: input.description,
-          date: input.date,
-          dueDate: input.dueDate || null,
-          netAmount: new Decimal(input.netAmount),
-          vatAmount: new Decimal(input.vatAmount),
-          vatRate: new Decimal(input.vatRate),
-          totalAmount: new Decimal(input.totalAmount),
-          vatDeductible: input.vatDeductible ?? true,
-          currency: input.currency || "EUR",
-          status,
-          paymentMethod: input.paymentMethod as PaymentMethod | null,
-          paymentDate: input.paymentMethod ? new Date() : null,
-          notes: input.notes || null,
-          receiptUrl: input.receiptUrl || null,
-        },
+      const expense = await db.$transaction(async (tx) => {
+        const createdExpense = await tx.expense.create({
+          data: {
+            companyId: company.id,
+            categoryId: input.categoryId,
+            vendorId: input.vendorId || null,
+            description: input.description,
+            date: input.date,
+            dueDate: input.dueDate || null,
+            netAmount: new Decimal(input.netAmount),
+            vatAmount: new Decimal(input.vatAmount),
+            vatRate: new Decimal(input.vatRate),
+            totalAmount: new Decimal(input.totalAmount),
+            vatDeductible: input.vatDeductible ?? true,
+            currency: input.currency || "EUR",
+            status,
+            paymentMethod: input.paymentMethod as PaymentMethod | null,
+            paymentDate: input.paymentMethod ? new Date() : null,
+            notes: input.notes || null,
+            receiptUrl: input.receiptUrl || null,
+            lines: {
+              create: lineItems,
+            },
+          },
+          include: { lines: true },
+        })
+
+        if (input.receiptUrl) {
+          await tx.attachment.create({
+            data: {
+              expenseId: createdExpense.id,
+              fileName: resolveReceiptFileName(input.receiptUrl),
+              contentType: "application/octet-stream",
+              url: input.receiptUrl,
+              sourceType: "UPLOAD",
+              isSourceImmutable: false,
+            },
+          })
+        }
+
+        for (const line of createdExpense.lines) {
+          const { references } = await evaluateVatInputRules(
+            tx,
+            company,
+            createdExpense,
+            line,
+            category
+          )
+          const { deductibleVatAmount, nonDeductibleVatAmount } = calculateVatInputAmounts(
+            createdExpense,
+            line
+          )
+
+          await tx.uraInput.create({
+            data: {
+              expenseId: createdExpense.id,
+              expenseLineId: line.id,
+              date: createdExpense.date,
+              vendorName: vendor?.name ?? null,
+              vendorVatNumber: vendor?.vatNumber ?? vendor?.oib ?? null,
+              netAmount: line.netAmount,
+              vatRate: line.vatRate,
+              vatAmount: line.vatAmount,
+              totalAmount: line.totalAmount,
+              deductibleVatAmount: new Decimal(deductibleVatAmount),
+              nonDeductibleVatAmount: new Decimal(nonDeductibleVatAmount),
+              ruleReferences: references,
+            },
+          })
+        }
+
+        await emitAssetCandidates(tx, {
+          expense: createdExpense,
+          lines: createdExpense.lines,
+        })
+
+        return createdExpense
       })
 
       revalidatePath("/expenses")
@@ -113,9 +220,10 @@ export async function updateExpense(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithPermission(user.id!, "expense:update", async () => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async (company) => {
       const existing = await db.expense.findFirst({
         where: { id },
+        include: { lines: true },
       })
 
       if (!existing) {
@@ -138,14 +246,15 @@ export async function updateExpense(
         }
 
         // If changing category, check if new category requires receipt
-        const finalReceiptUrl = (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl !== undefined
-          ? (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl
-          : existing.receiptUrl
+        const finalReceiptUrl =
+          (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl !== undefined
+            ? (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl
+            : existing.receiptUrl
 
         if (category.receiptRequired && !finalReceiptUrl) {
           return {
             success: false,
-            error: "Račun je obavezan za ovu kategoriju troška"
+            error: "Račun je obavezan za ovu kategoriju troška",
           }
         }
 
@@ -177,9 +286,134 @@ export async function updateExpense(
           (input as CreateExpenseInput & { receiptUrl?: string }).receiptUrl || null
       }
 
-      const expense = await db.expense.update({
-        where: { id },
-        data: updateData,
+      const changes: Record<string, { before: unknown; after: unknown }> = {}
+      const trackChange = (field: keyof CreateExpenseInput, before: unknown, after: unknown) => {
+        if (after !== undefined && before !== after) {
+          changes[field] = { before, after }
+        }
+      }
+
+      trackChange("description", existing.description, input.description)
+      trackChange("date", existing.date, input.date)
+      trackChange("dueDate", existing.dueDate, input.dueDate)
+      trackChange("netAmount", Number(existing.netAmount), input.netAmount)
+      trackChange("vatAmount", Number(existing.vatAmount), input.vatAmount)
+      trackChange("vatRate", Number(existing.vatRate), input.vatRate)
+      trackChange("totalAmount", Number(existing.totalAmount), input.totalAmount)
+      trackChange("vatDeductible", existing.vatDeductible, input.vatDeductible)
+      trackChange("notes", existing.notes, input.notes)
+      trackChange("paymentMethod", existing.paymentMethod, input.paymentMethod)
+      trackChange("receiptUrl", existing.receiptUrl, input.receiptUrl)
+      if (input.vendorId !== undefined) {
+        trackChange("vendorId", existing.vendorId, input.vendorId)
+      }
+      if (input.categoryId !== undefined) {
+        trackChange("categoryId", existing.categoryId, input.categoryId)
+      }
+
+      const expense = await db.$transaction(async (tx) => {
+        const updatedExpense = await tx.expense.update({
+          where: { id },
+          data: updateData,
+          include: { lines: true, category: true, vendor: true },
+        })
+
+        if (Object.keys(changes).length > 0) {
+          await tx.expenseCorrection.create({
+            data: {
+              expenseId: updatedExpense.id,
+              userId: user.id,
+              changes,
+            },
+          })
+        }
+
+        if (
+          updatedExpense.lines.length === 1 &&
+          (input.description ||
+            input.netAmount !== undefined ||
+            input.vatAmount !== undefined ||
+            input.vatRate !== undefined ||
+            input.totalAmount !== undefined)
+        ) {
+          const line = updatedExpense.lines[0]
+          await tx.expenseLine.update({
+            where: { id: line.id },
+            data: {
+              description: updatedExpense.description,
+              quantity: new Decimal(1),
+              unitPrice: new Decimal(updatedExpense.netAmount),
+              netAmount: updatedExpense.netAmount,
+              vatRate: updatedExpense.vatRate,
+              vatAmount: updatedExpense.vatAmount,
+              totalAmount: updatedExpense.totalAmount,
+            },
+          })
+        }
+
+        if (input.receiptUrl) {
+          await tx.attachment.create({
+            data: {
+              expenseId: updatedExpense.id,
+              fileName: resolveReceiptFileName(input.receiptUrl),
+              contentType: "application/octet-stream",
+              url: input.receiptUrl,
+              sourceType: "UPLOAD",
+              isSourceImmutable: false,
+            },
+          })
+        }
+
+        await tx.uraInput.deleteMany({
+          where: { expenseId: updatedExpense.id },
+        })
+
+        const refreshedLines = await tx.expenseLine.findMany({
+          where: { expenseId: updatedExpense.id },
+        })
+
+        for (const line of refreshedLines) {
+          const { references } = await evaluateVatInputRules(
+            tx,
+            company,
+            updatedExpense,
+            line,
+            updatedExpense.category
+          )
+          const { deductibleVatAmount, nonDeductibleVatAmount } = calculateVatInputAmounts(
+            updatedExpense,
+            line
+          )
+
+          await tx.uraInput.create({
+            data: {
+              expenseId: updatedExpense.id,
+              expenseLineId: line.id,
+              date: updatedExpense.date,
+              vendorName: updatedExpense.vendor?.name ?? null,
+              vendorVatNumber:
+                updatedExpense.vendor?.vatNumber ?? updatedExpense.vendor?.oib ?? null,
+              netAmount: line.netAmount,
+              vatRate: line.vatRate,
+              vatAmount: line.vatAmount,
+              totalAmount: line.totalAmount,
+              deductibleVatAmount: new Decimal(deductibleVatAmount),
+              nonDeductibleVatAmount: new Decimal(nonDeductibleVatAmount),
+              ruleReferences: references,
+            },
+          })
+        }
+
+        await tx.fixedAssetCandidate.deleteMany({
+          where: { expenseId: updatedExpense.id },
+        })
+
+        await emitAssetCandidates(tx, {
+          expense: updatedExpense,
+          lines: refreshedLines,
+        })
+
+        return updatedExpense
       })
 
       revalidatePath("/expenses")
@@ -301,9 +535,44 @@ export async function updateExpenseInline(
         data.totalAmount = new Decimal(validated.data.totalAmount)
       }
 
-      const expense = await db.expense.update({
-        where: { id },
-        data,
+      const changes: Record<string, { before: unknown; after: unknown }> = {}
+      if (validated.data.status && existing.status !== validated.data.status) {
+        changes.status = { before: existing.status, after: validated.data.status }
+      }
+      if (validated.data.totalAmount !== undefined) {
+        changes.totalAmount = {
+          before: Number(existing.totalAmount),
+          after: validated.data.totalAmount,
+        }
+      }
+
+      const expense = await db.$transaction(async (tx) => {
+        const updatedExpense = await tx.expense.update({
+          where: { id },
+          data,
+          include: { lines: true },
+        })
+
+        if (Object.keys(changes).length > 0) {
+          await tx.expenseCorrection.create({
+            data: {
+              expenseId: updatedExpense.id,
+              userId: user.id,
+              changes,
+            },
+          })
+        }
+
+        if (validated.data.totalAmount !== undefined && updatedExpense.lines.length === 1) {
+          await tx.expenseLine.update({
+            where: { id: updatedExpense.lines[0].id },
+            data: {
+              totalAmount: new Decimal(validated.data.totalAmount),
+            },
+          })
+        }
+
+        return updatedExpense
       })
 
       revalidatePath("/expenses")
@@ -583,8 +852,7 @@ export async function updateRecurringExpense(
       if (input.description) updateData.description = input.description
       if (input.netAmount !== undefined) updateData.netAmount = new Decimal(input.netAmount)
       if (input.vatAmount !== undefined) updateData.vatAmount = new Decimal(input.vatAmount)
-      if (input.totalAmount !== undefined)
-        updateData.totalAmount = new Decimal(input.totalAmount)
+      if (input.totalAmount !== undefined) updateData.totalAmount = new Decimal(input.totalAmount)
       if (input.frequency) updateData.frequency = input.frequency
       if (input.nextDate) updateData.nextDate = input.nextDate
       if (input.endDate !== undefined) updateData.endDate = input.endDate
@@ -633,10 +901,7 @@ export async function deleteRecurringExpense(id: string): Promise<ActionResult> 
   }
 }
 
-export async function toggleRecurringExpense(
-  id: string,
-  isActive: boolean
-): Promise<ActionResult> {
+export async function toggleRecurringExpense(id: string, isActive: boolean): Promise<ActionResult> {
   try {
     const user = await requireAuth()
 
