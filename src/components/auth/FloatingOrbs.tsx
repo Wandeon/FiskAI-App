@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 
 export type AuthState =
   | "identify"
@@ -17,7 +17,8 @@ interface FloatingOrbsProps {
   className?: string
 }
 
-// Color palettes for each state
+// @design-override: Decorative floating orbs use raw hex colors for gradient animations
+// These colors are intentionally hardcoded for smooth color transitions in framer-motion
 const stateColors: Record<AuthState, string[]> = {
   identify: ["#0891b2", "#14b8a6", "#a855f7", "#06b6d4"],
   authenticate: ["#0891b2", "#3b82f6", "#0ea5e9", "#06b6d4"],
@@ -28,8 +29,17 @@ const stateColors: Record<AuthState, string[]> = {
   error: ["#ef4444", "#f43f5e", "#ec4899", "#fb7185"],
 }
 
-// Generate random orb configurations
-function generateOrbs(count: number) {
+interface Orb {
+  id: number
+  size: number
+  x: number
+  y: number
+  duration: number
+  delay: number
+}
+
+// Generate random orb configurations (client-side only)
+function generateOrbs(count: number): Orb[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     size: 300 + Math.random() * 400, // 300-700px (larger for smoother look)
@@ -41,16 +51,21 @@ function generateOrbs(count: number) {
 }
 
 export function FloatingOrbs({ state, className }: FloatingOrbsProps) {
-  // Generate orbs once on mount
-  const orbs = useMemo(() => generateOrbs(6), [])
+  // Generate orbs only on client to avoid hydration mismatch from Math.random()
+  const [orbs, setOrbs] = useState<Orb[]>([])
+
+  useEffect(() => {
+    setOrbs(generateOrbs(6))
+  }, [])
   const colors = stateColors[state]
 
   return (
+    // @design-override: Decorative background uses raw slate colors for dark theme consistency
     <div
       className={`fixed inset-0 -z-10 overflow-hidden bg-slate-950 ${className || ""}`}
       aria-hidden="true"
     >
-      {/* Base gradient */}
+      {/* Base gradient - @design-override: intentional dark gradient for auth backdrop */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-black" />
 
       {/* Floating orbs */}

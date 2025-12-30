@@ -12,13 +12,17 @@
  * @returns CSP header value
  */
 export function generateCSP(nonce: string): string {
+  const isDev = process.env.NODE_ENV === "development"
+
   const cspDirectives = [
     "default-src 'self'",
     // Script CSP with nonce and strict-dynamic for compatibility
     // strict-dynamic allows scripts loaded by nonce-tagged scripts to run
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // In development, allow 'unsafe-eval' for Next.js hot reloading
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     // Style CSP with nonce for inline styles (used by Next.js and Tailwind)
-    `style-src 'self' 'nonce-${nonce}'`,
+    // In development, allow 'unsafe-inline' for faster style injection
+    `style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ""}`,
     // Allow images from self, data URIs, and HTTPS sources
     "img-src 'self' data: https:",
     // Allow fonts from self and data URIs
