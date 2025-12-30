@@ -216,7 +216,12 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     }
 
     // Validate extraction before storing
-    const validation = validateExtraction(extraction)
+    // Pass both original and cleaned content for proper quote verification (issue #750)
+    const validation = validateExtraction(extraction, {
+      originalContent: content,
+      cleanedContent: cleanedContent,
+      requireBothMatch: true,
+    })
 
     if (!validation.valid) {
       rejectedExtractions.push({ extraction, errors: validation.errors })
