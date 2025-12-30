@@ -4,6 +4,9 @@
 import { useState, type ReactNode } from "react"
 import { HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useGuidance } from "@/contexts/GuidanceContext"
+import type { CompetenceLevel } from "@/lib/guidance/constants"
+
 
 interface HelpTooltipProps {
   content: string
@@ -79,14 +82,21 @@ export function HelpTooltip({
 
 // Wrapper that respects guidance level
 interface ConditionalHelpTooltipProps extends HelpTooltipProps {
-  showForLevels?: ("beginner" | "average" | "pro")[]
+  showForLevels?: CompetenceLevel[]
 }
 
 export function ConditionalHelpTooltip({
   showForLevels = ["beginner"],
+  category = "fakturiranje",
   ...props
 }: ConditionalHelpTooltipProps) {
-  // For now, always show - context will be integrated in Task 3.4
-  // This allows components to use it without context being set up yet
-  return <HelpTooltip {...props} />
+  const { getLevel } = useGuidance()
+  const currentLevel = getLevel(category)
+
+  // Only show tooltip if current level is in the allowed list
+  if (!showForLevels.includes(currentLevel)) {
+    return null
+  }
+
+  return <HelpTooltip category={category} {...props} />
 }
