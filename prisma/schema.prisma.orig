@@ -1,0 +1,3622 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  name                String?
+  emailVerified       DateTime?
+  image               String?
+  passwordHash        String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  systemRole          SystemRole           @default(USER)
+  intendedBusinessType String?             // Business type selected during registration (OBRT_PAUSAL, OBRT_REAL, OBRT_VAT, JDOO, DOO)
+  betaOptIn           Boolean              @default(false)
+  betaOptInAt         DateTime?
+  accounts            Account[]
+  companies           CompanyUser[]
+  passwordResetTokens PasswordResetToken[]
+  sessions            Session[]
+  assignmentsMade     StaffAssignment[]    @relation("AssignmentsMade")
+  staffAssignments    StaffAssignment[]    @relation("StaffAssignments")
+  verificationCodes   VerificationCode[]
+  webAuthnCredentials WebAuthnCredential[]
+  clientInvitations    ClientInvitation[]     @relation("ClientInvitations")
+  betaFeedback         BetaFeedback[]
+  staffReviews         StaffReview[]          @relation("StaffReviews")
+  experimentAssignments ExperimentAssignment[]
+  experimentEvents     ExperimentEvent[]
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model VerificationCode {
+  id        String               @id @default(cuid())
+  email     String
+  userId    String?
+  codeHash  String
+  type      VerificationCodeType
+  expiresAt DateTime
+  attempts  Int                  @default(0)
+  createdAt DateTime             @default(now())
+  user      User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Company {
+  id                             String                @id @default(cuid())
+  name                           String
+  oib                            String                @unique
+  vatNumber                      String?
+  address                        String
+  city                           String
+  postalCode                     String
+  country                        String                @default("HR")
+  email                          String?
+  phone                          String?
+  iban                           String?
+  isVatPayer                     Boolean               @default(false)
+  eInvoiceProvider               String?
+  createdAt                      DateTime              @default(now())
+  updatedAt                      DateTime              @updatedAt
+  eInvoiceApiKeyEncrypted        String?
+  legalForm                      String?
+  entitlements                   Json?
+  featureFlags                   Json?
+  deviceCode                     String                @default("1")
+  fiscalEnabled                  Boolean               @default(false)
+  fiscalEnvironment              FiscalEnv             @default(PROD)
+  premisesCode                   String                @default("1")
+  stripeCustomerId               String?               @unique
+  stripeSubscriptionId           String?               @unique
+  subscriptionStatus             String?               @default("trialing")
+  subscriptionPlan               String?               @default("pausalni")
+  trialEndsAt                    DateTime?
+  subscriptionCurrentPeriodStart DateTime?
+  subscriptionCurrentPeriodEnd   DateTime?
+  invoiceLimit                   Int                   @default(50)
+  userLimit                      Int                   @default(1)
+  stripeTerminalLocationId       String?
+  stripeTerminalReaderId         String?
+  aiUsage                        AIUsage[]
+  auditLogs                      AuditLog[]
+  bankAccounts                   BankAccount[]
+  bankConnections                BankConnection[]
+  businessPremises               BusinessPremises[]
+  users                          CompanyUser[]
+  contacts                       Contact[]
+  eInvoices                      EInvoice[]
+  emailAttachments               EmailAttachment[]
+  emailConnections               EmailConnection[]
+  emailImportRules               EmailImportRule[]
+  expenses                       Expense[]
+  expenseCategories              ExpenseCategory[]
+  fiscalCertificates             FiscalCertificate[]
+  fiscalRequests                 FiscalRequest[]
+  importJobs                     ImportJob[]
+  invoiceSequences               InvoiceSequence[]
+  paymentDevices                 PaymentDevice[]
+  potentialDuplicates            PotentialDuplicate[]
+  products                       Product[]
+  recurringExpenses              RecurringExpense[]
+  savedReports                   SavedReport[]
+  assignedStaff                  StaffAssignment[]     @relation("AssignedStaff")
+  statements                     Statement[]
+  statementPages                 StatementPage[]
+  supportTickets                 SupportTicket[]
+  statementTransactions          Transaction[]
+  clientInvitations              ClientInvitation[]    @relation("InvitedClients")
+  entitlementHistory             EntitlementHistory[]
+  featureFlagOverrides           FeatureFlagOverride[]
+  staffReviews                   StaffReview[]
+  adminAlerts                    AdminAlert[]
+  bankImports                    BankImport[]
+}
+
+// Audit trail for module entitlement changes
+model EntitlementHistory {
+  id            String                @id @default(cuid())
+  companyId     String
+  userId        String
+  changeType    EntitlementChangeType
+  moduleKey     String?
+  previousValue Json?
+  newValue      Json?
+  previousPlan  String?
+  newPlan       String?
+  reason        String?
+  metadata      Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime              @default(now())
+  company       Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([changeType])
+  @@index([moduleKey])
+  @@index([createdAt])
+}
+
+model CompanyUser {
+  id                 String    @id @default(cuid())
+  userId             String
+  companyId          String
+  role               Role      @default(MEMBER)
+  isDefault          Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  notificationSeenAt DateTime?
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@index([userId])
+  @@index([companyId])
+}
+
+model StaffAssignment {
+  id         String   @id @default(cuid())
+  staffId    String
+  companyId  String
+  assignedAt DateTime @default(now())
+  assignedBy String
+  notes      String?
+  assigner   User     @relation("AssignmentsMade", fields: [assignedBy], references: [id])
+  company    Company  @relation("AssignedStaff", fields: [companyId], references: [id], onDelete: Cascade)
+  staff      User     @relation("StaffAssignments", fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, companyId])
+  @@index([staffId])
+  @@index([companyId])
+}
+
+model ClientInvitation {
+  id          String                 @id @default(cuid())
+  staffId     String
+  email       String
+  companyName String?
+  message     String?
+  token       String                 @unique @default(cuid())
+  status      ClientInvitationStatus @default(PENDING)
+  createdAt   DateTime               @default(now())
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  companyId   String?
+  staff       User                   @relation("ClientInvitations", fields: [staffId], references: [id], onDelete: Cascade)
+  company     Company?               @relation("InvitedClients", fields: [companyId], references: [id])
+
+  @@index([staffId])
+  @@index([email])
+  @@index([token])
+}
+
+// Staff review tracking for accountant workflow (Pregledano feature)
+model StaffReview {
+  id           String           @id @default(cuid())
+  companyId    String
+  reviewerId   String
+  entityType   StaffReviewEntity
+  entityId     String
+  reviewedAt   DateTime         @default(now())
+  notes        String?
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reviewer     User             @relation("StaffReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, entityType, entityId])
+  @@index([companyId])
+  @@index([reviewerId])
+  @@index([entityType, entityId])
+}
+
+model Contact {
+  id                String      @id @default(cuid())
+  companyId         String
+  type              ContactType
+  name              String
+  oib               String?
+  vatNumber         String?
+  address           String?
+  city              String?
+  postalCode        String?
+  country           String      @default("HR")
+  email             String?
+  phone             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  paymentTermsDays  Int         @default(15)
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  eInvoicesAsBuyer  EInvoice[]  @relation("EInvoiceBuyer")
+  eInvoicesAsSeller EInvoice[]  @relation("EInvoiceSeller")
+  expensesAsVendor  Expense[]   @relation("ExpenseVendor")
+
+  @@unique([companyId, oib])
+  @@index([companyId])
+  @@index([oib])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  companyId   String
+  name        String
+  description String?
+  sku         String?
+  unit        String   @default("C62")
+  price       Decimal  @db.Decimal(10, 2)
+  vatRate     Decimal  @default(25) @db.Decimal(5, 2)
+  vatCategory String   @default("S")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model EInvoice {
+  id                String            @id @default(cuid())
+  companyId         String
+  direction         EInvoiceDirection
+  sellerId          String?
+  buyerId           String?
+  invoiceNumber     String
+  issueDate         DateTime
+  dueDate           DateTime?
+  currency          String            @default("EUR")
+  buyerReference    String?
+  netAmount         Decimal           @db.Decimal(10, 2)
+  vatAmount         Decimal           @db.Decimal(10, 2)
+  totalAmount       Decimal           @db.Decimal(10, 2)
+  status            EInvoiceStatus    @default(DRAFT)
+  jir               String?
+  zki               String?
+  fiscalizedAt      DateTime?
+  ublXml            String?
+  providerRef       String?
+  providerStatus    String?
+  providerError     String?
+  archivedAt        DateTime?
+  archiveRef        String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  sentAt            DateTime?
+  receivedAt        DateTime?
+  type              InvoiceType       @default(E_INVOICE)
+  internalReference String?
+  notes             String?
+  convertedFromId   String?
+  paidAt            DateTime?
+  bankAccount       String?
+  includeBarcode    Boolean           @default(true)
+  importJobId       String?           @unique
+  paymentModel      String?
+  paymentReference  String?
+  vendorBankName    String?
+  vendorIban        String?
+  fiscalStatus      String?
+  operatorOib       String?
+  paymentMethod     PaymentMethod?
+  emailMessageId    String?
+  emailDeliveredAt  DateTime?
+  emailOpenedAt     DateTime?
+  emailClickedAt    DateTime?
+  emailBouncedAt    DateTime?
+  emailBounceReason String?
+  bankTransactions  BankTransaction[]
+  buyer             Contact?          @relation("EInvoiceBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
+  company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  convertedFrom     EInvoice?         @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
+  convertedTo       EInvoice[]        @relation("InvoiceConversion")
+  importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
+  seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: SetNull)
+  lines             EInvoiceLine[]
+  fiscalRequests    FiscalRequest[]
+
+  @@unique([companyId, invoiceNumber])
+  @@index([companyId])
+  @@index([status])
+  @@index([invoiceNumber])
+  @@index([direction])
+  @@index([type])
+  @@index([emailMessageId])
+}
+
+model EInvoiceLine {
+  id          String   @id @default(cuid())
+  eInvoiceId  String
+  lineNumber  Int
+  description String
+  quantity    Decimal  @db.Decimal(10, 3)
+  unit        String   @default("C62")
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  netAmount   Decimal  @db.Decimal(10, 2)
+  vatRate     Decimal  @db.Decimal(5, 2)
+  vatCategory String   @default("S")
+  vatAmount   Decimal  @db.Decimal(10, 2)
+  eInvoice    EInvoice @relation(fields: [eInvoiceId], references: [id], onDelete: Cascade)
+
+  @@index([eInvoiceId])
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  companyId String
+  userId    String?
+  action    AuditAction
+  entity    String
+  entityId  String
+  changes   Json?
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime    @default(now())
+  company   Company     @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([entity, entityId])
+  @@index([timestamp])
+}
+
+model BusinessPremises {
+  id        String            @id @default(cuid())
+  companyId String
+  code      Int
+  name      String
+  address   String?
+  isDefault Boolean           @default(false)
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sequences InvoiceSequence[]
+  devices   PaymentDevice[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+model PaymentDevice {
+  id                 String           @id @default(cuid())
+  companyId          String
+  businessPremisesId String
+  code               Int
+  name               String
+  isDefault          Boolean          @default(false)
+  isActive           Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  businessPremises   BusinessPremises @relation(fields: [businessPremisesId], references: [id], onDelete: Cascade)
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPremisesId, code])
+  @@index([companyId])
+}
+
+model InvoiceSequence {
+  id                 String           @id @default(cuid())
+  companyId          String
+  businessPremisesId String
+  year               Int
+  lastNumber         Int              @default(0)
+  updatedAt          DateTime         @updatedAt
+  businessPremises   BusinessPremises @relation(fields: [businessPremisesId], references: [id], onDelete: Cascade)
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPremisesId, year])
+  @@index([companyId])
+}
+
+model Expense {
+  id               String            @id @default(cuid())
+  companyId        String
+  vendorId         String?
+  categoryId       String
+  description      String
+  date             DateTime
+  dueDate          DateTime?
+  netAmount        Decimal           @db.Decimal(10, 2)
+  vatAmount        Decimal           @db.Decimal(10, 2)
+  totalAmount      Decimal           @db.Decimal(10, 2)
+  vatDeductible    Boolean           @default(true)
+  currency         String            @default("EUR")
+  status           ExpenseStatus     @default(DRAFT)
+  paymentMethod    PaymentMethod?
+  paymentDate      DateTime?
+  receiptUrl       String?
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  bankTransactions BankTransaction[]
+  category         ExpenseCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vendor           Contact?          @relation("ExpenseVendor", fields: [vendorId], references: [id])
+
+  @@index([companyId])
+  @@index([date])
+  @@index([status])
+  @@index([categoryId])
+}
+
+model ExpenseCategory {
+  id                   String    @id @default(cuid())
+  companyId            String?
+  name                 String
+  code                 String
+  vatDeductibleDefault Boolean   @default(true)
+  isActive             Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  expenses             Expense[]
+  company              Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+model RecurringExpense {
+  id          String    @id @default(cuid())
+  companyId   String
+  vendorId    String?
+  categoryId  String
+  description String
+  netAmount   Decimal   @db.Decimal(10, 2)
+  vatAmount   Decimal   @db.Decimal(10, 2)
+  totalAmount Decimal   @db.Decimal(10, 2)
+  frequency   Frequency
+  nextDate    DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([nextDate])
+}
+
+model SavedReport {
+  id        String         @id @default(cuid())
+  companyId String
+  userId    String
+  name      String
+  type      ReportType
+  filters   Json
+  schedule  ReportSchedule @default(NONE)
+  emailTo   String[]
+  createdAt DateTime       @default(now())
+  lastRunAt DateTime?
+  company   Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([type])
+  @@index([userId])
+}
+
+model BankAccount {
+  id                    String            @id @default(cuid())
+  companyId             String
+  name                  String
+  iban                  String
+  bankName              String
+  currency              String            @default("EUR")
+  currentBalance        Decimal           @db.Decimal(12, 2)
+  lastSyncAt            DateTime?
+  isDefault             Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  connectionExpiresAt   DateTime?
+  connectionStatus      ConnectionStatus  @default(MANUAL)
+  syncProvider          SyncProvider?
+  syncProviderAccountId String?
+  company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection            BankConnection?
+  imports               BankImport[]
+  transactions          BankTransaction[]
+  importJobs            ImportJob[]
+  statements            Statement[]
+
+  @@unique([companyId, iban])
+  @@index([companyId])
+  @@index([connectionStatus])
+}
+
+model BankTransaction {
+  id               String            @id @default(cuid())
+  companyId        String
+  bankAccountId    String
+  date             DateTime
+  description      String
+  amount           Decimal           @db.Decimal(12, 2)
+  balance          Decimal           @db.Decimal(12, 2)
+  reference        String?
+  counterpartyName String?
+  counterpartyIban String?
+  matchedInvoiceId String?
+  matchedExpenseId String?
+  matchStatus      MatchStatus       @default(UNMATCHED)
+  matchedAt        DateTime?
+  matchedBy        String?
+  createdAt        DateTime          @default(now())
+  confidenceScore  Int?
+  externalId       String?
+  source           TransactionSource @default(MANUAL)
+  bankAccount      BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  matchedExpense   Expense?          @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
+  matchedInvoice   EInvoice?         @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([bankAccountId])
+  @@index([matchStatus])
+  @@index([date])
+  @@index([externalId])
+}
+
+model BankConnection {
+  id                   String           @id @default(cuid())
+  companyId            String
+  bankAccountId        String           @unique
+  provider             SyncProvider
+  providerConnectionId String
+  institutionId        String
+  institutionName      String
+  status               ConnectionStatus @default(MANUAL)
+  authorizedAt         DateTime?
+  expiresAt            DateTime?
+  lastError            String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  bankAccount          BankAccount      @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company              Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([status])
+  @@index([providerConnectionId])
+}
+
+model PotentialDuplicate {
+  id              String               @id @default(cuid())
+  companyId       String
+  transactionAId  String
+  transactionBId  String
+  similarityScore Float
+  reason          String
+  status          DuplicateStatus      @default(PENDING)
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolution      DuplicateResolution?
+  createdAt       DateTime             @default(now())
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([status])
+}
+
+model EmailConnection {
+  id              String                @id @default(cuid())
+  companyId       String
+  provider        EmailProvider
+  emailAddress    String
+  status          EmailConnectionStatus @default(CONNECTED)
+  accessTokenEnc  String?
+  refreshTokenEnc String
+  tokenExpiresAt  DateTime?
+  scopes          String[]
+  lastSyncAt      DateTime?
+  syncCursor      String?
+  lastError       String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  attachments     EmailAttachment[]
+  company         Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importRules     EmailImportRule[]
+
+  @@unique([companyId, emailAddress])
+  @@index([companyId])
+  @@index([status])
+}
+
+model EmailImportRule {
+  id               String          @id @default(cuid())
+  connectionId     String
+  companyId        String
+  senderEmail      String?
+  senderDomain     String?
+  subjectContains  String?
+  filenameContains String?
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection       EmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId])
+  @@index([companyId])
+}
+
+model EmailAttachment {
+  id                   String           @id @default(cuid())
+  companyId            String
+  connectionId         String
+  providerMessageId    String
+  providerAttachmentId String?
+  contentHash          String
+  receivedAt           DateTime
+  senderEmail          String
+  subject              String
+  filename             String
+  mimeType             String
+  sizeBytes            Int
+  r2Key                String
+  status               AttachmentStatus @default(PENDING)
+  importJobId          String?          @unique
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  company              Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  connection           EmailConnection  @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  importJob            ImportJob?       @relation(fields: [importJobId], references: [id])
+
+  @@unique([connectionId, contentHash])
+  @@index([companyId])
+  @@index([connectionId])
+  @@index([status])
+}
+
+model BankImport {
+  id               String       @id @default(cuid())
+  companyId        String
+  bankAccountId    String
+  fileName         String
+  format           ImportFormat
+  transactionCount Int
+  importedAt       DateTime     @default(now())
+  importedBy       String
+  bankAccount      BankAccount  @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company          Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([bankAccountId])
+}
+
+model ImportJob {
+  id              String           @id @default(cuid())
+  companyId       String
+  userId          String
+  bankAccountId   String?
+  fileChecksum    String
+  originalName    String
+  storagePath     String
+  status          JobStatus        @default(PENDING)
+  tierUsed        TierType?
+  failureReason   String?
+  pagesProcessed  Int              @default(0)
+  pagesFailed     Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  documentType    DocumentType?
+  extractedData   Json?
+  invoice         EInvoice?
+  emailAttachment EmailAttachment?
+  bankAccount     BankAccount?     @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  statement       Statement?
+
+  @@index([companyId])
+  @@index([bankAccountId])
+  @@index([status])
+  @@index([userId])
+  @@index([bankAccountId, fileChecksum])
+  @@index([userId])
+}
+
+model Statement {
+  id                  String          @id @default(cuid())
+  importJobId         String          @unique
+  companyId           String
+  bankAccountId       String
+  statementDate       DateTime
+  periodStart         DateTime
+  periodEnd           DateTime
+  sequenceNumber      Int
+  previousStatementId String?
+  openingBalance      Decimal         @db.Decimal(14, 2)
+  closingBalance      Decimal         @db.Decimal(14, 2)
+  currency            String          @default("EUR")
+  isGapDetected       Boolean         @default(false)
+  isLocked            Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  bankAccount         BankAccount     @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company             Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importJob           ImportJob       @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+  previousStatement   Statement?      @relation("StatementChain", fields: [previousStatementId], references: [id])
+  nextStatements      Statement[]     @relation("StatementChain")
+  pages               StatementPage[]
+  transactions        Transaction[]
+
+  @@unique([bankAccountId, sequenceNumber, periodStart])
+  @@index([companyId])
+  @@index([bankAccountId])
+  @@index([periodStart])
+}
+
+model StatementPage {
+  id               String        @id @default(cuid())
+  statementId      String
+  companyId        String
+  pageNumber       Int
+  pageStartBalance Decimal?      @db.Decimal(14, 2)
+  pageEndBalance   Decimal?      @db.Decimal(14, 2)
+  status           PageStatus    @default(PENDING)
+  rawText          String?
+  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  statement        Statement     @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  transactions     Transaction[]
+
+  @@unique([statementId, pageNumber])
+  @@index([companyId])
+}
+
+model Transaction {
+  id          String        @id @default(cuid())
+  statementId String
+  pageId      String
+  companyId   String
+  date        DateTime
+  amount      Decimal       @db.Decimal(14, 2)
+  direction   TxDirection
+  payeeName   String?
+  description String?
+  reference   String?
+  iban        String?
+  category    String?
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  page        StatementPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  statement   Statement     @relation(fields: [statementId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([statementId])
+  @@index([pageId])
+  @@index([date])
+}
+
+model SupportTicket {
+  id           String                 @id @default(cuid())
+  companyId    String
+  createdById  String?
+  assignedToId String?
+  title        String
+  body         String?
+  status       SupportTicketStatus    @default(OPEN)
+  priority     SupportTicketPriority  @default(NORMAL)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  category     TicketCategory         @default(GENERAL)
+  company      Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  messages     SupportTicketMessage[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdById])
+  @@index([assignedToId])
+}
+
+model SupportTicketMessage {
+  id          String                     @id @default(cuid())
+  ticketId    String
+  authorId    String?
+  body        String
+  createdAt   DateTime                   @default(now())
+  ticket      SupportTicket              @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  attachments SupportTicketAttachment[]
+
+  @@index([ticketId])
+}
+
+model SupportTicketAttachment {
+  id        String                @id @default(cuid())
+  messageId String
+  fileName  String
+  fileType  String
+  fileSize  Int
+  r2Key     String
+  createdAt DateTime              @default(now())
+  message   SupportTicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  credentialId String    @unique
+  publicKey    String
+  counter      BigInt    @default(0)
+  transports   String?
+  name         String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model FiscalCertificate {
+  id                        String          @id @default(cuid())
+  companyId                 String
+  environment               FiscalEnv
+  provider                  String          @default("DIRECT")
+  certSubject               String
+  certSerial                String
+  certNotBefore             DateTime
+  certNotAfter              DateTime
+  oibExtracted              String
+  certSha256                String
+  encryptedP12              String
+  encryptedDataKey          String
+  status                    CertStatus      @default(PENDING)
+  lastUsedAt                DateTime?
+  lastExpiryNotificationAt  DateTime?       // When last expiry notification was sent
+  lastExpiryNotificationDay Int?            // Days remaining when notification was sent (30, 14, 7, 1)
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  company                   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalRequests            FiscalRequest[]
+
+  @@unique([companyId, environment])
+  @@index([companyId])
+  @@index([status])
+}
+
+// Certificate expiry notification tracking with retry support
+model CertificateNotification {
+  id              String                        @id @default(cuid())
+  certificateId   String
+  companyId       String
+  notificationDay Int                           // Days before expiry (30, 14, 7, 1)
+  status          CertificateNotificationStatus @default(PENDING)
+  attemptCount    Int                           @default(0)
+  maxAttempts     Int                           @default(3)
+  nextRetryAt     DateTime?
+  error           String?
+  sentAt          DateTime?
+  createdAt       DateTime                      @default(now())
+  updatedAt       DateTime                      @updatedAt
+
+  @@unique([certificateId, notificationDay])
+  @@index([status, nextRetryAt])
+  @@index([companyId])
+}
+
+model FiscalRequest {
+  id             String            @id @default(cuid())
+  companyId      String
+  certificateId  String
+  invoiceId      String?
+  messageType    FiscalMessageType
+  status         FiscalStatus      @default(QUEUED)
+  attemptCount   Int               @default(0)
+  maxAttempts    Int               @default(5)
+  nextRetryAt    DateTime          @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  jir            String?
+  zki            String?
+  errorCode      String?
+  errorMessage   String?
+  lastHttpStatus Int?
+  requestXml     String?
+  signedXml      String?
+  responseXml    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  certificate    FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
+  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoice        EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, invoiceId, messageType])
+  @@index([status, nextRetryAt])
+  @@index([companyId])
+  @@index([invoiceId])
+}
+
+model AIFeedback {
+  id         String   @id @default(cuid())
+  companyId  String
+  userId     String
+  entityType String
+  entityId   String
+  operation  String
+  feedback   String
+  correction Json?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([operation])
+  @@index([userId])
+}
+
+model AIUsage {
+  id         String   @id @default(cuid())
+  companyId  String
+  userId     String?
+  operation  String
+  tokensUsed Int?
+  costCents  Int?
+  model      String?
+  success    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([companyId, operation])
+  @@index([userId, createdAt])
+}
+
+model ArticleJob {
+  id               String         @id @default(cuid())
+  type             ArticleType
+  status           ArticleStatus  @default(SYNTHESIZING)
+  sourceUrls       String[]
+  topic            String?
+  currentIteration Int            @default(0)
+  maxIterations    Int            @default(3)
+  factSheetId      String?        @unique
+  finalContentMdx  String?
+  finalSlug        String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  publishedAt      DateTime?
+  drafts           ArticleDraft[]
+  factSheet        FactSheet?
+
+  @@index([status])
+  @@index([type])
+}
+
+model FactSheet {
+  id           String        @id @default(cuid())
+  jobId        String        @unique
+  topic        String
+  keyEntities  Json
+  createdAt    DateTime      @default(now())
+  claims       Claim[]
+  job          ArticleJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sourceChunks SourceChunk[]
+}
+
+model Claim {
+  id            String              @id @default(cuid())
+  factSheetId   String
+  statement     String
+  quote         String?
+  sourceUrl     String
+  sourceChunkId String?
+  confidence    Float
+  category      String?
+  factSheet     FactSheet           @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
+  sourceChunk   SourceChunk?        @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  verifications ClaimVerification[]
+
+  @@index([factSheetId])
+  @@index([sourceChunkId])
+}
+
+model SourceChunk {
+  id          String    @id @default(cuid())
+  factSheetId String
+  sourceUrl   String
+  content     String
+  fetchedAt   DateTime  @default(now())
+  claims      Claim[]
+  factSheet   FactSheet @relation(fields: [factSheetId], references: [id], onDelete: Cascade)
+
+  @@index([factSheetId])
+}
+
+model ArticleDraft {
+  id         String           @id @default(cuid())
+  jobId      String
+  iteration  Int
+  contentMdx String
+  createdAt  DateTime         @default(now())
+  job        ArticleJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  paragraphs DraftParagraph[]
+
+  @@unique([jobId, iteration])
+}
+
+model DraftParagraph {
+  id                 String              @id @default(cuid())
+  draftId            String
+  index              Int
+  content            String
+  isLocked           Boolean             @default(false)
+  confidence         Float?
+  supportingClaimIds String[]
+  verifications      ClaimVerification[]
+  draft              ArticleDraft        @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@unique([draftId, index])
+}
+
+model ClaimVerification {
+  id              String         @id @default(cuid())
+  paragraphId     String
+  claimId         String
+  similarityScore Float
+  isSupporting    Boolean
+  createdAt       DateTime       @default(now())
+  claim           Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  paragraph       DraftParagraph @relation(fields: [paragraphId], references: [id], onDelete: Cascade)
+
+  @@unique([paragraphId, claimId])
+}
+
+model checklist_interactions {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String
+  company_id     String
+  item_type      String    @db.VarChar(50)
+  item_reference String    @db.VarChar(100)
+  action         String    @db.VarChar(20)
+  snoozed_until  DateTime? @db.Timestamp(6)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([item_reference], map: "checklist_interactions_reference_idx")
+  @@index([user_id, company_id], map: "checklist_interactions_user_company_idx")
+}
+
+model compliance_deadlines {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String    @db.VarChar(200)
+  description    String?
+  deadline_date  DateTime  @db.Date
+  deadline_type  String    @db.VarChar(50)
+  applies_to     Json      @default("[\"all\"]")
+  recurrence     String?   @db.VarChar(20)
+  recurrence_day Int?
+  source_url     String?   @db.VarChar(500)
+  source_name    String?   @db.VarChar(100)
+  severity       String?   @default("normal") @db.VarChar(20)
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([deadline_date], map: "idx_deadlines_date")
+  @@index([deadline_type], map: "idx_deadlines_type")
+}
+
+model eu_transaction {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id           String
+  bank_transaction_id  String?   @db.Uuid
+  direction            String    @db.VarChar(20)
+  counterparty_name    String?   @db.VarChar(255)
+  counterparty_country String?   @db.VarChar(2)
+  counterparty_vat_id  String?   @db.VarChar(20)
+  transaction_date     DateTime  @db.Date
+  amount               Decimal   @db.Decimal(10, 2)
+  currency             String?   @default("EUR") @db.VarChar(3)
+  pdv_rate             Decimal?  @default(25.00) @db.Decimal(4, 2)
+  pdv_amount           Decimal?  @db.Decimal(10, 2)
+  reporting_month      Int
+  reporting_year       Int
+  vendor_id            String?   @db.Uuid
+  detection_method     String?   @db.VarChar(20)
+  confidence_score     Int?
+  user_confirmed       Boolean?  @default(false)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([company_id, reporting_year, reporting_month], map: "eu_transaction_reporting_idx")
+}
+
+model eu_vendor {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name_pattern     String    @db.VarChar(255)
+  display_name     String    @db.VarChar(255)
+  country_code     String    @db.VarChar(2)
+  vendor_type      String    @db.VarChar(50)
+  is_eu            Boolean?  @default(true)
+  confidence_score Int?      @default(100)
+  is_system        Boolean?  @default(true)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([name_pattern], map: "eu_vendor_pattern_idx")
+}
+
+model generated_form {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id           String
+  form_type            String    @db.VarChar(20)
+  period_month         Int?
+  period_year          Int
+  format               String    @db.VarChar(10)
+  file_path            String?   @db.VarChar(500)
+  file_hash            String?   @db.VarChar(64)
+  form_data            Json?
+  submitted_to_porezna Boolean?  @default(false)
+  submitted_at         DateTime? @db.Timestamp(6)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model news_categories {
+  id                    String            @id @db.VarChar(50)
+  slug                  String            @unique @db.VarChar(100)
+  name_hr               String            @db.VarChar(200)
+  parent_id             String?           @db.VarChar(50)
+  icon                  String?           @db.VarChar(50)
+  color                 String?           @db.VarChar(20)
+  sort_order            Int?              @default(0)
+  created_at            DateTime?         @default(now()) @db.Timestamptz(6)
+  news_categories       news_categories?  @relation("news_categoriesTonews_categories", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_news_categories news_categories[] @relation("news_categoriesTonews_categories")
+  news_posts            news_posts[]
+
+  @@index([parent_id], map: "idx_news_categories_parent")
+  @@index([slug], map: "idx_news_categories_slug")
+}
+
+model news_items {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source_id           String              @db.VarChar(100)
+  original_title      String              @db.VarChar(500)
+  original_content    String?
+  source_url          String              @db.VarChar(1000)
+  published_at        DateTime?           @db.Timestamptz(6)
+  summary_hr          String?
+  categories          Json?               @default("[]")
+  relevance_score     String?             @db.VarChar(10)
+  processed_at        DateTime?           @db.Timestamptz(6)
+  created_at          DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?           @default(now()) @db.Timestamptz(6)
+  fetched_at          DateTime?           @db.Timestamptz(6)
+  summary_en          String?
+  impact_level        String?             @db.VarChar(20)
+  assigned_to_post_id String?             @db.Uuid
+  image_url           String?             @db.VarChar(1000)
+  image_source        String?             @db.VarChar(200)
+  status              String              @default("pending") @db.VarChar(20)
+  news_posts          news_posts?         @relation(fields: [assigned_to_post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "news_items_assigned_to_post_id_news_posts_id_fk")
+  news_sources        news_sources        @relation(fields: [source_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "news_items_source_id_news_sources_id_fk")
+  news_post_sources   news_post_sources[]
+
+  @@index([assigned_to_post_id], map: "idx_news_items_assigned")
+  @@index([impact_level], map: "idx_news_items_impact")
+  @@index([published_at], map: "idx_news_items_published")
+  @@index([source_id], map: "idx_news_items_source")
+  @@index([status], map: "idx_news_items_status")
+  @@index([source_url], map: "idx_news_items_url")
+}
+
+model news_post_sources {
+  post_id      String     @db.Uuid
+  news_item_id String     @db.Uuid
+  news_items   news_items @relation(fields: [news_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  news_posts   news_posts @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([post_id, news_item_id])
+  @@index([news_item_id], map: "idx_news_post_sources_item")
+  @@index([post_id], map: "idx_news_post_sources_post")
+}
+
+model news_posts {
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                   String              @unique @db.VarChar(300)
+  type                   String              @db.VarChar(20)
+  title                  String              @db.VarChar(500)
+  content                String
+  excerpt                String?             @db.VarChar(500)
+  featured_image_url     String?             @db.VarChar(1000)
+  featured_image_source  String?             @db.VarChar(200)
+  featured_image_caption String?             @db.VarChar(500)
+  category_id            String?             @db.VarChar(50)
+  tags                   Json?               @default("[]")
+  impact_level           String?             @db.VarChar(20)
+  ai_passes              Json?               @default("{}")
+  status                 String              @default("draft") @db.VarChar(20)
+  published_at           DateTime?           @db.Timestamptz(6)
+  created_at             DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?           @default(now()) @db.Timestamptz(6)
+  news_items             news_items[]
+  news_post_sources      news_post_sources[]
+  news_categories        news_categories?    @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([category_id], map: "idx_news_posts_category")
+  @@index([impact_level], map: "idx_news_posts_impact")
+  @@index([published_at], map: "idx_news_posts_published")
+  @@index([slug], map: "idx_news_posts_slug")
+  @@index([status], map: "idx_news_posts_status")
+  @@index([type], map: "idx_news_posts_type")
+}
+
+model news_sources {
+  id                   String       @id @db.VarChar(100)
+  name                 String       @db.VarChar(200)
+  url                  String       @db.VarChar(500)
+  feed_type            String       @db.VarChar(20)
+  feed_url             String?      @db.VarChar(500)
+  scrape_selector      String?
+  is_active            Boolean      @default(true)
+  fetch_interval_hours Int          @default(24)
+  last_fetched_at      DateTime?    @db.Timestamptz(6)
+  created_at           DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?    @default(now()) @db.Timestamptz(6)
+  news_items           news_items[]
+
+  @@index([is_active], map: "idx_news_sources_active")
+}
+
+model news_tags {
+  id         String    @id @db.VarChar(50)
+  slug       String    @unique @db.VarChar(100)
+  name_hr    String    @db.VarChar(200)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([slug], map: "idx_news_tags_slug")
+}
+
+model newsletter_subscriptions {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String    @unique @db.VarChar(255)
+  is_active       Boolean   @default(true)
+  source          String?   @default("vijesti_sidebar") @db.VarChar(100)
+  confirmed_at    DateTime? @db.Timestamptz(6)
+  unsubscribed_at DateTime? @db.Timestamptz(6)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([is_active], map: "idx_newsletter_active")
+  @@index([email], map: "idx_newsletter_email")
+}
+
+model notification_preference {
+  id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                   String
+  channel                   String    @db.VarChar(20)
+  enabled                   Boolean?  @default(true)
+  remind_7_days             Boolean?  @default(true)
+  remind_3_days             Boolean?  @default(true)
+  remind_1_day              Boolean?  @default(true)
+  remind_day_of             Boolean?  @default(true)
+  google_calendar_connected Boolean?  @default(false)
+  google_calendar_id        String?   @db.VarChar(255)
+  created_at                DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model pausalni_profile {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id       String
+  has_pdv_id       Boolean?  @default(false)
+  pdv_id           String?   @db.VarChar(20)
+  pdv_id_since     DateTime? @db.Date
+  eu_active        Boolean?  @default(false)
+  hok_member_since DateTime? @db.Date
+  tourism_activity Boolean?  @default(false)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([company_id], map: "pausalni_profile_company_idx")
+}
+
+model payment_obligation {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id             String
+  obligation_type        String    @db.VarChar(50)
+  period_month           Int
+  period_year            Int
+  amount                 Decimal   @db.Decimal(10, 2)
+  due_date               DateTime  @db.Date
+  status                 String    @default("PENDING") @db.VarChar(20)
+  paid_date              DateTime? @db.Date
+  paid_amount            Decimal?  @db.Decimal(10, 2)
+  matched_transaction_id String?   @db.Uuid
+  match_type             String?   @db.VarChar(20)
+  notes                  String?
+  created_at             DateTime? @default(now()) @db.Timestamp(6)
+  updated_at             DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([company_id, status], map: "payment_obligation_company_status_idx")
+  @@index([due_date])
+}
+
+model user_guidance_preferences {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String
+  level_fakturiranje String    @default("beginner") @db.VarChar(20)
+  level_financije    String    @default("beginner") @db.VarChar(20)
+  level_eu           String    @default("beginner") @db.VarChar(20)
+  global_level       String?   @db.VarChar(20)
+  email_digest       String?   @default("weekly") @db.VarChar(20)
+  push_enabled       Boolean?  @default(true)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([user_id], map: "user_guidance_preferences_user_idx")
+}
+
+enum VerificationCodeType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  LOGIN_VERIFY
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  ACCOUNTANT
+  VIEWER
+}
+
+enum SystemRole {
+  USER
+  STAFF
+  ADMIN
+}
+
+enum ClientInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum StaffReviewEntity {
+  EINVOICE
+  EXPENSE
+  DOCUMENT
+}
+
+enum TicketCategory {
+  TECHNICAL
+  BILLING
+  ACCOUNTING
+  GENERAL
+}
+
+enum ContactType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+enum EInvoiceDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum EInvoiceStatus {
+  DRAFT
+  PENDING_FISCALIZATION
+  FISCALIZED
+  SENT
+  DELIVERED
+  ACCEPTED
+  REJECTED
+  ARCHIVED
+  ERROR
+}
+
+enum InvoiceType {
+  INVOICE
+  E_INVOICE
+  QUOTE
+  PROFORMA
+  CREDIT_NOTE
+  DEBIT_NOTE
+}
+
+enum EntitlementChangeType {
+  MODULE_ENABLED
+  MODULE_DISABLED
+  PERMISSIONS_UPDATED
+  TRIAL_STARTED
+  TRIAL_EXPIRED
+  PLAN_UPGRADED
+  PLAN_DOWNGRADED
+  ENTITLEMENTS_MIGRATED
+  MANUAL_OVERRIDE
+}
+
+enum AuditAction {
+  // Core CRUD operations
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  EXPORT
+  LOGIN
+  LOGOUT
+
+  // Regulatory Truth Layer - Evidence
+  EVIDENCE_FETCHED
+  EVIDENCE_HASH_REPAIRED
+
+  // Regulatory Truth Layer - Rules
+  RULE_CREATED
+  RULE_APPROVED
+  RULE_PUBLISHED
+  RULE_AUTO_PUBLISHED
+  RULE_REJECTED
+  RULE_REJECTED_TEST_DATA
+  RULE_DELETED
+  RULE_MERGED
+  RULE_ROLLBACK
+  RULE_QUEUED_FOR_REVIEW
+  RULE_CONCEPT_LINKED
+  MERGE_RULES
+
+  // Regulatory Truth Layer - Concepts
+  CONCEPT_CREATED
+  CONCEPT_MERGED
+  CONFIDENCE_DECAY_APPLIED
+
+  // Regulatory Truth Layer - Conflicts
+  CONFLICT_CREATED
+  CONFLICT_RESOLVED
+  CONFLICT_ESCALATED
+
+  // Regulatory Truth Layer - Releases
+  RELEASE_PUBLISHED
+  RELEASE_ROLLED_BACK
+  RELEASE_HASH_REPAIRED
+
+  // Regulatory Truth Layer - Status Transitions & Pipeline
+  RULE_STATUS_CHANGED
+  PIPELINE_STAGE_COMPLETE
+
+  // Staff Portal - Client Data Access (GDPR compliance)
+  STAFF_VIEW_CLIENT
+  STAFF_VIEW_INVOICES
+  STAFF_VIEW_DOCUMENTS
+  STAFF_VIEW_REPORTS
+  STAFF_EXPORT_DATA
+  STAFF_MARK_REVIEWED
+  STAFF_REVIEW_UNMARKED
+}
+
+enum ExpenseStatus {
+  DRAFT
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  OTHER
+}
+
+enum Frequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum ReportType {
+  VAT_SUMMARY
+  PROFIT_LOSS
+  REVENUE_BY_CUSTOMER
+  EXPENSES_BY_CATEGORY
+  RECEIVABLES_AGING
+  PAYABLES_AGING
+  CASH_FLOW
+}
+
+enum ReportSchedule {
+  NONE
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum MatchStatus {
+  UNMATCHED
+  AUTO_MATCHED
+  MANUAL_MATCHED
+  IGNORED
+}
+
+enum ImportFormat {
+  CSV
+  XML_CAMT053
+  MT940
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  VERIFIED
+  NEEDS_REVIEW
+  FAILED
+  READY_FOR_REVIEW
+  CONFIRMED
+  REJECTED
+}
+
+enum TierType {
+  XML
+  TEXT_LLM
+  VISION_LLM
+}
+
+enum DocumentType {
+  BANK_STATEMENT
+  INVOICE
+  EXPENSE
+}
+
+enum PageStatus {
+  PENDING
+  VERIFIED
+  NEEDS_VISION
+  FAILED
+}
+
+enum TxDirection {
+  INCOMING
+  OUTGOING
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum SyncProvider {
+  GOCARDLESS
+  PLAID
+  SALTEDGE
+}
+
+enum ConnectionStatus {
+  MANUAL
+  CONNECTED
+  EXPIRED
+}
+
+enum TransactionSource {
+  MANUAL
+  AIS_SYNC
+}
+
+enum DuplicateStatus {
+  PENDING
+  RESOLVED
+}
+
+enum DuplicateResolution {
+  KEEP_BOTH
+  MERGE
+  DELETE_NEW
+}
+
+enum EmailProvider {
+  GMAIL
+  MICROSOFT
+}
+
+enum EmailConnectionStatus {
+  CONNECTED
+  EXPIRED
+  REVOKED
+  ERROR
+}
+
+enum AttachmentStatus {
+  PENDING
+  IMPORTED
+  SKIPPED
+  FAILED
+}
+
+enum FiscalEnv {
+  TEST
+  PROD
+}
+
+enum CertStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+enum FiscalStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  DEAD
+}
+
+enum FiscalMessageType {
+  RACUN
+  STORNO
+  PROVJERA
+}
+
+enum CertificateNotificationStatus {
+  PENDING     // Initial state, waiting to send
+  SENT        // Successfully sent
+  FAILED      // All retries exhausted
+  RETRYING    // Failed but will retry
+}
+
+enum ArticleType {
+  NEWS
+  GUIDE
+  HOWTO
+  GLOSSARY
+  COMPARISON
+}
+
+enum ArticleStatus {
+  SYNTHESIZING
+  PLANNING
+  DRAFTING
+  VERIFYING
+  NEEDS_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+// =============================================================================
+// REGULATORY TRUTH LAYER
+// =============================================================================
+
+enum DiscoveryEndpointType {
+  SITEMAP_INDEX
+  SITEMAP_ISSUE
+  NEWS_LISTING
+  LEGAL_ACTS
+  CONSULTATIONS
+  TECHNICAL_DOCS
+  FORMS
+  CODE_LISTS
+  ANNOUNCEMENTS
+  STATISTICS
+}
+
+enum DiscoveryPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ScrapeFrequency {
+  EVERY_RUN
+  DAILY
+  TWICE_WEEKLY
+  WEEKLY
+  MONTHLY
+}
+
+enum ListingStrategy {
+  SITEMAP_XML
+  HTML_LIST
+  HTML_TABLE
+  PAGINATION
+  DATE_FILTERED
+  CRAWL // Recursive site crawling to build custom sitemaps
+  RSS_FEED // RSS/Atom feed parsing
+}
+
+enum DiscoveredItemStatus {
+  PENDING
+  FETCHED
+  PROCESSED
+  SKIPPED
+  FAILED
+}
+
+enum NodeType {
+  HUB // Container page (lists, indexes, sitemaps)
+  LEAF // Content page (articles, regulations)
+  ASSET // Binary file (PDF, DOCX, XLS)
+}
+
+enum NodeRole {
+  ARCHIVE // Historical (/archive/, /2020/)
+  INDEX // Navigation/pagination
+  NEWS_FEED // High velocity (/vijesti/, /news/)
+  REGULATION // Core legal text
+  FORM // Downloadable forms (/obrasci/)
+  GUIDANCE // Official guidance (/upute/, /misljenja/)
+}
+
+enum FreshnessRisk {
+  CRITICAL // VAT rates, deadlines - hours matter
+  HIGH // New laws, gazette items
+  MEDIUM // Standard content
+  LOW // Archives, FAQs
+}
+
+enum RiskTier {
+  T0 // Critical: Tax rates, legal deadlines, penalties
+  T1 // High: Thresholds, contribution bases
+  T2 // Medium: Procedural requirements, form fields
+  T3 // Low: UI labels, help text
+}
+
+enum AgentType {
+  SENTINEL
+  EXTRACTOR
+  COMPOSER
+  REVIEWER
+  RELEASER
+  ARBITER
+  CONTENT_CLASSIFIER
+  CLAIM_EXTRACTOR
+  PROCESS_EXTRACTOR
+  REFERENCE_EXTRACTOR
+  ASSET_EXTRACTOR
+  TRANSITIONAL_EXTRACTOR
+  QUERY_CLASSIFIER
+  COMPARISON_EXTRACTOR
+}
+
+enum RuleStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  PUBLISHED
+  DEPRECATED
+  REJECTED
+}
+
+enum ConflictType {
+  SOURCE_CONFLICT
+  TEMPORAL_CONFLICT
+  SCOPE_CONFLICT
+  INTERPRETATION_CONFLICT
+}
+
+enum ConflictStatus {
+  OPEN
+  RESOLVED
+  ESCALATED
+}
+
+enum AlertSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AlertType {
+  SOURCE_CHANGED
+  SOURCE_UNAVAILABLE
+  RULE_SUPERSEDED
+  CONFLICT_DETECTED
+  DEADLINE_APPROACHING
+  CONFIDENCE_DEGRADED
+  COVERAGE_GAP
+}
+
+enum GraphEdgeType {
+  AMENDS
+  INTERPRETS
+  REQUIRES
+  EXEMPTS
+  DEPENDS_ON
+  SUPERSEDES
+  OVERRIDES // Lex specialis - specific overrides general
+}
+
+enum AuthorityLevel {
+  LAW // Legally binding (Narodne novine)
+  GUIDANCE // Interpretation (Porezna uprava)
+  PROCEDURE // Technical execution (FINA, HZMO, HZZO)
+  PRACTICE // What passes inspections
+}
+
+enum AutomationPolicy {
+  ALLOW // Safe for full automation
+  CONFIRM // Requires user confirmation
+  BLOCK // Manual only, no automation
+}
+
+enum RuleStability {
+  STABLE // Rarely changes
+  VOLATILE // Changes frequently
+}
+
+enum ObligationType {
+  OBLIGATION // Must comply (e.g., "must pay 25%")
+  NO_OBLIGATION // Explicitly exempt/not applicable
+  CONDITIONAL // Depends on other factors (use appliesWhen)
+  INFORMATIONAL // Reference value, not a requirement
+}
+
+// ============================================================================
+// KNOWLEDGE SHAPES ENUMS
+// ============================================================================
+
+enum SubjectType {
+  TAXPAYER
+  EMPLOYER
+  COMPANY
+  INDIVIDUAL
+  ALL
+}
+
+enum AssertionType {
+  OBLIGATION
+  PROHIBITION
+  PERMISSION
+  DEFINITION
+}
+
+enum ProcessType {
+  REGISTRATION
+  FILING
+  APPEAL
+  CLOSURE
+  AMENDMENT
+  INQUIRY
+}
+
+enum ReferenceCategory {
+  IBAN
+  CN_CODE
+  TAX_OFFICE
+  INTEREST_RATE
+  EXCHANGE_RATE
+  FORM_CODE
+  DEADLINE_CALENDAR
+}
+
+enum AssetFormat {
+  PDF
+  XML
+  XLS
+  XLSX
+  DOC
+  DOCX
+  HTML
+}
+
+enum AssetType {
+  FORM
+  TEMPLATE
+  GUIDE
+  INSTRUCTION
+  REGULATION_TEXT
+}
+
+enum TransitionPattern {
+  INVOICE_DATE
+  DELIVERY_DATE
+  PAYMENT_DATE
+  EARLIER_EVENT
+  LATER_EVENT
+  TAXPAYER_CHOICE
+}
+
+model RegulatorySource {
+  id                 String    @id @default(cuid())
+  slug               String    @unique // e.g., "porezna-pausalni"
+  name               String // "Porezna uprava - Paušalno oporezivanje"
+  url                String
+  hierarchy          Int       @default(5) // 1=Ustav, 2=Zakon, 3=Podzakonski, 4=Pravilnik, 5=Uputa, 6=Mišljenje, 7=Praksa
+  fetchIntervalHours Int       @default(24)
+  lastFetchedAt      DateTime?
+  lastContentHash    String?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  evidence             Evidence[]
+  monitoringAlerts     MonitoringAlert[]
+  webhookSubscriptions WebhookSubscription[]
+
+  @@index([isActive])
+  @@index([lastFetchedAt])
+}
+
+model DiscoveryEndpoint {
+  id                String                @id @default(cuid())
+  domain            String // e.g., "hzzo.hr"
+  path              String // e.g., "/novosti"
+  name              String // Human-readable name
+  endpointType      DiscoveryEndpointType
+  priority          DiscoveryPriority
+  scrapeFrequency   ScrapeFrequency
+  listingStrategy   ListingStrategy
+  urlPattern        String? // Regex for extracting item URLs
+  paginationPattern String? // e.g., "?page={N}"
+  lastScrapedAt     DateTime?
+  lastContentHash   String? // SHA-256 of page content
+  itemCount         Int                   @default(0)
+  errorCount        Int                   @default(0)
+  consecutiveErrors Int                   @default(0)
+  lastError         String?
+  isActive          Boolean               @default(true)
+  metadata          Json? // Additional endpoint-specific config
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  discoveries DiscoveredItem[]
+
+  @@unique([domain, path])
+  @@index([priority])
+  @@index([lastScrapedAt])
+}
+
+model DiscoveredItem {
+  id           String               @id @default(cuid())
+  endpointId   String
+  url          String
+  title        String?
+  publishedAt  DateTime?
+  contentHash  String?
+  status       DiscoveredItemStatus @default(PENDING)
+  processedAt  DateTime?
+  evidenceId   String? // Link to Evidence if fetched
+  errorMessage String?
+  retryCount   Int                  @default(0)
+  createdAt    DateTime             @default(now())
+
+  // --- Topology ---
+  nodeType  NodeType  @default(LEAF)
+  nodeRole  NodeRole?
+  parentUrl String?
+  depth     Int       @default(0)
+
+  // --- Velocity (EWMA: 0.0=static, 1.0=volatile) ---
+  changeFrequency Float     @default(0.5)
+  lastChangedAt   DateTime?
+  scanCount       Int       @default(0)
+
+  // --- Risk ---
+  freshnessRisk FreshnessRisk @default(MEDIUM)
+
+  // --- Scheduling ---
+  nextScanDue DateTime @default(now())
+
+  endpoint DiscoveryEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@unique([endpointId, url])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([evidenceId])
+  @@index([nextScanDue, freshnessRisk]) // The "Manifest" query
+  @@index([endpointId, nodeType]) // Grouping queries
+}
+
+model Evidence {
+  id            String    @id @default(cuid())
+  sourceId      String
+  fetchedAt     DateTime  @default(now())
+  contentHash   String
+  rawContent    String    @db.Text // Full HTML/PDF text
+  contentType   String    @default("html") // html, pdf, xml
+  url           String
+  hasChanged    Boolean   @default(false)
+  changeSummary String?
+  deletedAt     DateTime?
+
+
+  // Staleness tracking for regulatory compliance (GitHub issue #893)
+  lastVerifiedAt  DateTime? // Last time source URL was checked and content confirmed unchanged
+  expiresAt       DateTime? // Explicit expiration date for evidence (e.g., from effectiveUntil in rules)
+  sourceEtag      String?   // ETag from source for change detection
+  sourceLastMod   DateTime? // Last-Modified header from source
+  verifyCount     Int       @default(0) // Number of times verified unchanged
+  stalenessStatus String    @default("FRESH") // FRESH, AGING, STALE, UNAVAILABLE, EXPIRED
+
+  // GitHub issue #1021: Track consecutive HEAD failures for grace period
+  consecutiveFailures Int @default(0) // Reset to 0 on success, increment on failure
+
+  // NEW: OCR support fields
+  contentClass          String  @default("HTML") // HTML, PDF_TEXT, PDF_SCANNED, DOC, XLSX, JSON
+  ocrMetadata           Json? // OCR processing metadata
+  primaryTextArtifactId String? // Points to canonical text artifact for Extractor
+
+  // Semantic similarity support for duplicate detection
+  embedding Unsupported("vector(768)")? // Vector embedding for semantic duplicate detection
+
+  source                 RegulatorySource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourcePointers         SourcePointer[]
+  agentRuns              AgentRun[]
+  extractionRejected     ExtractionRejected[]
+  artifacts              EvidenceArtifact[]
+  atomicClaims           AtomicClaim[]
+  processes              RegulatoryProcess[]
+  referenceTables        ReferenceTable[]
+  assets                 RegulatoryAsset[]
+  transitionalProvisions TransitionalProvision[]
+  coverageReport         CoverageReport?
+  comparisonMatrices     ComparisonMatrix[]
+
+  @@unique([url, contentHash])
+  @@index([sourceId])
+  @@index([fetchedAt])
+  @@index([contentHash])
+  @@index([contentClass])
+  @@index([stalenessStatus])
+  @@index([expiresAt])
+  @@index([lastVerifiedAt])
+}
+
+model EvidenceArtifact {
+  id          String   @id @default(cuid())
+  evidenceId  String
+  kind        String // PDF_TEXT, OCR_TEXT, OCR_HOCR, HTML_CLEANED, TABLE_JSON
+  content     String   @db.Text
+  contentHash String
+  pageMap     Json? // Per-page metadata: [{page, confidence, method}]
+  createdAt   DateTime @default(now())
+
+  evidence Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+
+  @@index([evidenceId])
+  @@index([kind])
+  @@index([createdAt])
+}
+
+model SourcePointer {
+  id             String  @id @default(cuid())
+  evidenceId     String
+  domain         String // pausalni, pdv, doprinosi, fiskalizacija, etc.
+  valueType      String // currency, percentage, date, threshold, text
+  extractedValue String // Stored as string, parsed by application
+  displayValue   String // Human-readable format
+  exactQuote     String  @db.Text // Exact text from source
+  contextBefore  String? @db.Text // Previous sentence/paragraph
+  contextAfter   String? @db.Text // Following sentence/paragraph
+  selector       String? // CSS selector or XPath
+
+  // Article-level anchoring
+  articleNumber   String? // e.g., "38", "12a"
+  paragraphNumber String? // e.g., "1", "2"
+  lawReference    String? // e.g., "Zakon o PDV-u (NN 73/13)"
+
+  confidence      Float     @default(0.8)
+  extractionNotes String?
+  createdAt       DateTime  @default(now())
+  deletedAt       DateTime?
+
+  // Vector embedding for semantic search (nomic-embed-text, 768 dims)
+  // Generated from exactQuote + contextBefore + contextAfter
+  // Enables semantic similarity search beyond keyword matching
+  embedding Unsupported("vector(768)")?
+
+  // Provenance anchoring: UTF-16 code unit indices into Evidence.rawContent
+  // These are JavaScript String.indexOf() return values, NOT byte offsets.
+  // Use to slice exactQuote from rawContent: rawContent.slice(startOffset, endOffset)
+  //
+  // INVARIANT: endOffset = startOffset + exactQuote.length (for EXACT matches)
+  // INVARIANT: rawContent.slice(startOffset, endOffset) === exactQuote (for EXACT matches)
+  startOffset Int?
+  endOffset   Int?
+  matchType   SourcePointerMatchType? @default(PENDING_VERIFICATION)
+
+  evidence Evidence         @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+  rules    RegulatoryRule[] @relation("RuleSourcePointers")
+
+  @@index([evidenceId])
+  @@index([domain])
+  @@index([confidence])
+  @@index([articleNumber])
+  @@index([matchType])
+}
+
+model Concept {
+  id          String   @id @default(cuid())
+  slug        String   @unique // e.g., "pausalni-obrt"
+  nameHr      String
+  nameEn      String?
+  aliases     String[] // Alternative names
+  tags        String[] // Categorization tags
+  description String?  @db.Text
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   Concept?         @relation("ConceptHierarchy", fields: [parentId], references: [id])
+  children Concept[]        @relation("ConceptHierarchy")
+  rules    RegulatoryRule[]
+  embedding ConceptEmbedding?
+
+  @@index([parentId])
+}
+
+model ConceptEmbedding {
+  id          String   @id @default(cuid())
+  conceptId   String   @unique
+  embedding   Unsupported("vector(768)")? // pgvector embedding (768 dims for nomic-embed-text)
+  embeddingText String @db.Text // Text that was embedded (nameHr + aliases)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  concept     Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@index([conceptId])
+}
+
+model RegulatoryRule {
+  id               String           @id @default(cuid())
+  conceptSlug      String // e.g., "pausalni-revenue-threshold"
+  conceptId        String?
+  titleHr          String
+  titleEn          String?
+  riskTier         RiskTier
+  authorityLevel   AuthorityLevel   @default(GUIDANCE) // LAW, GUIDANCE, PROCEDURE, PRACTICE
+  automationPolicy AutomationPolicy @default(CONFIRM) // ALLOW, CONFIRM, BLOCK
+  ruleStability    RuleStability    @default(STABLE) // STABLE, VOLATILE
+  appliesWhen      String           @db.Text // AppliesWhen DSL expression
+  value            String // The regulatory value (stored as string)
+  valueType        String // percentage, currency_hrk, currency_eur, count, date, text
+  obligationType   ObligationType   @default(OBLIGATION) // OBLIGATION, NO_OBLIGATION, CONDITIONAL, INFORMATIONAL
+  outcome          Json? // Structured outcome (VALUE, OBLIGATION, PROCEDURE)
+  explanationHr    String?          @db.Text
+  explanationEn    String?          @db.Text
+  effectiveFrom    DateTime
+  effectiveUntil   DateTime?
+  supersedesId     String? // Previous rule this supersedes
+  status           RuleStatus       @default(DRAFT)
+  confidence       Float            @default(0.8)
+  composerNotes    String?
+  reviewerNotes    String?
+  approvedBy       String? // User ID who approved (for T0/T1)
+  approvedAt       DateTime?
+  meaningSignature String? // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  concept        Concept?             @relation(fields: [conceptId], references: [id])
+  supersedes     RegulatoryRule?      @relation("RuleSupersession", fields: [supersedesId], references: [id])
+  supersededBy   RegulatoryRule[]     @relation("RuleSupersession")
+  sourcePointers SourcePointer[]      @relation("RuleSourcePointers")
+  releases       RuleRelease[]        @relation("ReleaseRules")
+  conflictsA     RegulatoryConflict[] @relation("ConflictItemA")
+  conflictsB     RegulatoryConflict[] @relation("ConflictItemB")
+  agentRuns      AgentRun[]
+  outgoingEdges  GraphEdge[]          @relation("EdgeFrom")
+  incomingEdges  GraphEdge[]          @relation("EdgeTo")
+  atomicClaims   AtomicClaim[]
+
+  // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
+  // This enables conflict candidates to be stored before arbiter resolution
+  @@unique([conceptSlug, effectiveFrom, status])
+  @@index([status])
+  @@index([riskTier])
+  @@index([conceptSlug])
+  @@index([effectiveFrom])
+  @@index([meaningSignature])
+  @@index([conceptId])
+}
+
+// ============================================================================
+// SHAPE 1: ATOMIC CLAIMS (Logic Frames)
+// ============================================================================
+
+model AtomicClaim {
+  id String @id @default(cuid())
+
+  // WHO - Subject
+  subjectType       SubjectType
+  subjectQualifiers String[] // ["pausalni-obrt", "exceeds-threshold"]
+
+  // WHEN - Condition
+  triggerExpr  String? // "sales > 10000 EUR"
+  temporalExpr String? // "from 2025-01-01"
+  jurisdiction String  @default("HR")
+
+  // WHAT - Assertion
+  assertionType AssertionType
+  logicExpr     String // "tax_place = destination"
+  value         String?
+  valueType     String?
+
+  // Extensibility
+  parameters Json? // Coefficients, formula constants
+
+  // Provenance
+  exactQuote    String  @db.Text
+  articleNumber String?
+  lawReference  String?
+  confidence    Float   @default(0.8)
+
+  // Relations
+  evidenceId String
+  evidence   Evidence         @relation(fields: [evidenceId], references: [id])
+  ruleId     String?
+  rule       RegulatoryRule?  @relation(fields: [ruleId], references: [id])
+  exceptions ClaimException[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subjectType])
+  @@index([assertionType])
+  @@index([jurisdiction])
+  @@index([evidenceId])
+  @@index([ruleId])
+}
+
+model ClaimException {
+  id            String @id @default(cuid())
+  claimId       String
+  condition     String // "IF alcohol_content > 0"
+  overridesTo   String // concept slug of overriding rule
+  sourceArticle String // "Art 38(4)"
+
+  claim AtomicClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+}
+
+// ============================================================================
+// SHAPE 2: TAXONOMY (Concept Graph)
+// ============================================================================
+
+model ConceptNode {
+  id     String  @id @default(cuid())
+  slug   String  @unique
+  nameHr String
+  nameEn String?
+
+  // Taxonomy relations
+  parentId String?
+  parent   ConceptNode?  @relation("ConceptNodeHierarchy", fields: [parentId], references: [id])
+  children ConceptNode[] @relation("ConceptNodeHierarchy")
+
+  // Synonyms & hyponyms
+  synonyms String[] // ["sok", "juice", "voćni sok"]
+  hyponyms String[] // More specific terms
+
+  // Legal categorization
+  legalCategory String? // "bezalkoholno piće" (the legal term)
+  vatCategory   String? // Links to VAT rate concept
+
+  // Search optimization
+  searchTerms String[] // All terms that should match this concept
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([legalCategory])
+  @@index([vatCategory])
+  @@index([parentId])
+}
+
+// ============================================================================
+// SHAPE 4: WORKFLOW (Process Graph)
+// ============================================================================
+
+model RegulatoryProcess {
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  titleHr      String
+  titleEn      String?
+  jurisdiction String  @default("HR")
+
+  // Process metadata
+  processType   ProcessType
+  estimatedTime String? // "3-5 radnih dana"
+
+  // Prerequisites as JSON
+  prerequisites Json? // { "requires": ["digital-certificate"] }
+
+  // Relations
+  steps      ProcessStep[]
+  assets     RegulatoryAsset[]
+  evidenceId String?
+  evidence   Evidence?         @relation(fields: [evidenceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([processType])
+  @@index([jurisdiction])
+  @@index([evidenceId])
+}
+
+model ProcessStep {
+  id        String @id @default(cuid())
+  processId String
+  orderNum  Int
+
+  // Step content
+  actionHr String  @db.Text
+  actionEn String? @db.Text
+
+  // Dependencies (by ID for loose coupling)
+  requiresStepIds String[]
+  requiresAssets  String[]
+
+  // Branching
+  onSuccessStepId String?
+  onFailureStepId String?
+  failureAction   String?
+
+  process RegulatoryProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([processId, orderNum])
+  @@index([processId])
+}
+
+// ============================================================================
+// SHAPE 5: REFERENCE (Lookup Tables)
+// ============================================================================
+
+model ReferenceTable {
+  id           String            @id @default(cuid())
+  category     ReferenceCategory
+  name         String
+  jurisdiction String            @default("HR")
+
+  // Table metadata
+  keyColumn   String // "city", "code"
+  valueColumn String // "iban", "description"
+
+  // Data
+  entries ReferenceEntry[]
+
+  // Provenance
+  sourceUrl   String?
+  lastUpdated DateTime  @default(now())
+  evidenceId  String?
+  evidence    Evidence? @relation(fields: [evidenceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, name, jurisdiction])
+  @@index([category])
+  @@index([jurisdiction])
+}
+
+model ReferenceEntry {
+  id      String @id @default(cuid())
+  tableId String
+
+  key      String // "Split", "6201.11"
+  value    String // "HR1234...", "Računalne usluge"
+  metadata Json? // { "model": "21" }
+
+  table ReferenceTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([tableId, key])
+  @@index([tableId])
+}
+
+// ============================================================================
+// SHAPE 6: DOCUMENT (Asset Repository)
+// ============================================================================
+
+model RegulatoryAsset {
+  id String @id @default(cuid())
+
+  // Identity
+  formCode     String? // "PDV-P", "JOPPD"
+  officialName String
+  description  String? @db.Text
+
+  // Access
+  downloadUrl String
+  format      AssetFormat
+  fileSize    Int?
+
+  // Context
+  assetType  AssetType
+  processId  String?
+  process    RegulatoryProcess? @relation(fields: [processId], references: [id])
+  stepNumber Int?
+
+  // Validity
+  validFrom  DateTime?
+  validUntil DateTime?
+  version    String?
+
+  // Provenance
+  sourceUrl  String
+  evidenceId String?
+  evidence   Evidence? @relation(fields: [evidenceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([formCode])
+  @@index([assetType])
+  @@index([processId])
+  @@index([evidenceId])
+}
+
+// ============================================================================
+// SHAPE 7: TEMPORAL (Transitional Provisions)
+// ============================================================================
+
+model TransitionalProvision {
+  id String @id @default(cuid())
+
+  // What's transitioning
+  fromRule String // concept slug of old rule
+  toRule   String // concept slug of new rule
+
+  // Transition logic
+  cutoffDate  DateTime
+  logicExpr   String // "IF invoice_date < cutoff AND delivery_date >= cutoff"
+  appliesRule String // Which rule applies
+
+  // Explanation
+  explanationHr String  @db.Text
+  explanationEn String? @db.Text
+
+  // Pattern
+  pattern TransitionPattern
+
+  // Provenance
+  sourceArticle String
+  evidenceId    String
+  evidence      Evidence @relation(fields: [evidenceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cutoffDate])
+  @@index([fromRule])
+  @@index([toRule])
+  @@index([evidenceId])
+}
+
+// Truth health snapshot for monitoring system integrity
+model TruthHealthSnapshot {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Rule counts by status
+  totalRules         Int
+  publishedRules     Int
+  approvedRules      Int
+  pendingReviewRules Int
+  draftRules         Int
+  rejectedRules      Int
+
+  // Pointer coverage metrics
+  totalPointers        Int
+  unlinkedPointers     Int // Pointers not linked to any rule
+  unlinkedPointersRate Float // % unlinked (lower = better)
+
+  // Evidence quality
+  rulesWithMultiplePointers Int // Rules with >1 pointer
+  multiplePointerRate       Float // % of non-rejected rules with >1 pointer
+  publishedWithTwoPlus      Int // PUBLISHED rules with >=2 pointers
+  publishedPointerCoverage  Float // % of PUBLISHED with >=2 pointers
+
+  // Consolidation health
+  duplicateGroupsDetected Int // Should always be 0
+  testDataLeakage         Int // Test domain data in non-quarantine status
+  aliasResolutionsToday   Int // Composer runs that resolved to canonical
+
+  // Concept health
+  totalConcepts     Int
+  conceptsWithRules Int
+  orphanedConcepts  Int // Concepts with no rules
+
+  // Evidence strength metrics
+  multiSourceRules       Int @default(0) // Rules with 2+ distinct sources
+  singleSourceRules      Int @default(0) // Rules with only 1 source
+  singleSourceCanPublish Int @default(0) // Single-source with LAW tier
+  singleSourceBlocked    Int @default(0) // Single-source blocked from publish
+
+  // Alerts triggered
+  alertsTriggered String[] // List of alert types triggered
+
+  @@index([timestamp])
+}
+
+model GraphEdge {
+  id         String        @id @default(cuid())
+  fromRuleId String
+  toRuleId   String
+  relation   GraphEdgeType
+  validFrom  DateTime
+  validTo    DateTime?
+  notes      String?
+  createdAt  DateTime      @default(now())
+
+  fromRule RegulatoryRule @relation("EdgeFrom", fields: [fromRuleId], references: [id], onDelete: Cascade)
+  toRule   RegulatoryRule @relation("EdgeTo", fields: [toRuleId], references: [id], onDelete: Cascade)
+
+  @@unique([fromRuleId, toRuleId, relation])
+  @@index([fromRuleId])
+  @@index([toRuleId])
+}
+
+model RuleRelease {
+  id            String   @id @default(cuid())
+  version       String // semver: "1.0.0"
+  releaseType   String // major, minor, patch
+  releasedAt    DateTime @default(now())
+  effectiveFrom DateTime
+  contentHash   String // SHA-256 of rule content
+  changelogHr   String?  @db.Text
+  changelogEn   String?  @db.Text
+  approvedBy    String[] // List of approver user IDs
+  auditTrail    Json? // { sourceEvidenceCount, sourcePointerCount, reviewCount, humanApprovals }
+
+  rules RegulatoryRule[] @relation("ReleaseRules")
+
+  @@unique([version])
+  @@index([releasedAt])
+  @@index([effectiveFrom])
+}
+
+model AgentRun {
+  id          String    @id @default(cuid())
+  agentType   AgentType
+  status      String    @default("running") // running, completed, failed
+  input       Json // The input provided to the agent
+  output      Json? // The output from the agent (null if failed)
+  rawOutput   Json? // Raw LLM output on failure (for debugging)
+  error       String? // Error message if failed
+  tokensUsed  Int?
+  durationMs  Int?
+  confidence  Float?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  // Optional relations based on what the agent processed
+  evidenceId String?
+  ruleId     String?
+
+  evidence Evidence?       @relation(fields: [evidenceId], references: [id])
+  rule     RegulatoryRule? @relation(fields: [ruleId], references: [id])
+
+  @@index([agentType])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model RegulatoryConflict {
+  id                  String         @id @default(cuid())
+  conflictType        ConflictType
+  status              ConflictStatus @default(OPEN)
+  itemAId             String?
+  itemBId             String?
+  description         String         @db.Text
+  metadata            Json? // Source-level conflicts store sourcePointerIds here
+  resolution          Json? // { winningItemId, strategy, rationaleHr, rationaleEn }
+  confidence          Float?
+  requiresHumanReview Boolean        @default(false)
+  humanReviewReason   String?
+  resolvedBy          String? // User ID
+  resolvedAt          DateTime?
+  createdAt           DateTime       @default(now())
+
+  itemA RegulatoryRule? @relation("ConflictItemA", fields: [itemAId], references: [id])
+  itemB RegulatoryRule? @relation("ConflictItemB", fields: [itemBId], references: [id])
+
+  @@index([status])
+  @@index([conflictType])
+  @@index([createdAt])
+}
+
+model MonitoringAlert {
+  id                  String        @id @default(cuid())
+  severity            AlertSeverity
+  type                AlertType
+  affectedRuleIds     String[]
+  sourceId            String?
+  description         String        @db.Text
+  autoAction          Json? // { action, executed, result }
+  humanActionRequired Boolean       @default(false)
+  acknowledgedBy      String?
+  acknowledgedAt      DateTime?
+  resolvedAt          DateTime?
+  createdAt           DateTime      @default(now())
+
+  source RegulatorySource? @relation(fields: [sourceId], references: [id])
+
+  @@index([severity])
+  @@index([type])
+  @@index([sourceId])
+  @@index([createdAt])
+  @@index([resolvedAt])
+}
+
+// =============================================================================
+// AUDIT LOG - Legal Defense Layer
+// =============================================================================
+
+model RegulatoryAuditLog {
+  id          String   @id @default(cuid())
+  action      String // RULE_CREATED, RULE_APPROVED, RULE_REJECTED, CONFLICT_RESOLVED, RELEASE_PUBLISHED
+  entityType  String // RULE, CONFLICT, RELEASE, EVIDENCE
+  entityId    String
+  performedBy String? // User ID or "SYSTEM"
+  performedAt DateTime @default(now())
+  metadata    Json? // Additional context
+
+  @@index([entityType, entityId])
+  @@index([performedAt])
+  @@index([action])
+}
+
+// =============================================================================
+// HUMAN REVIEW QUEUE - Centralized review management (Issue #884)
+// =============================================================================
+
+enum HumanReviewPriority {
+  CRITICAL
+  HIGH
+  NORMAL
+  LOW
+}
+
+enum HumanReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+model HumanReviewQueue {
+  id          String              @id @default(cuid())
+  entityType  String              // EVIDENCE, RULE, CONFLICT, SOURCE_POINTER
+  entityId    String
+  reason      String              // HumanReviewReason enum value
+  priority    HumanReviewPriority @default(NORMAL)
+  status      HumanReviewStatus   @default(PENDING)
+  context     Json?               // Additional context for the reviewer
+  requestedBy String              // Source of the request (e.g., "ocr-worker", "arbiter")
+  requestedAt DateTime            @default(now())
+  slaDeadline DateTime            // When review should be completed by
+  assignedTo  String?             // User ID assigned to review
+  completedAt DateTime?
+  completedBy String?             // User ID who completed the review
+  resolution  Json?               // Resolution details
+
+  @@index([status])
+  @@index([priority])
+  @@index([entityType, entityId])
+  @@index([slaDeadline])
+  @@index([requestedAt])
+}
+
+// =============================================================================
+// WATCHDOG SYSTEM - Autonomous Monitoring & Health Checks
+// =============================================================================
+
+enum WatchdogSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum WatchdogHealthStatus {
+  HEALTHY
+  WARNING
+  CRITICAL
+}
+
+enum WatchdogCheckType {
+  STALE_SOURCE
+  SCRAPER_FAILURE
+  QUALITY_DEGRADATION
+  PIPELINE_HEALTH
+  REJECTION_RATE
+  DRAINER_PROGRESS // PR #90 fix: detect drainer stalls
+  QUEUE_BACKLOG // PR #90 fix: detect queue buildup
+  DLQ_HEALTH // PR #90 fix: dead letter queue monitoring
+}
+
+enum WatchdogAlertType {
+  STALE_SOURCE
+  SCRAPER_FAILURE
+  QUALITY_DEGRADATION
+  PIPELINE_FAILURE
+  PHASE_TIMEOUT
+  HIGH_REJECTION_RATE
+  AUDIT_FAIL
+  AUDIT_PARTIAL
+  SOURCE_SUSPENDED
+  DRAINER_STALL // PR #90 fix: no progress for N minutes
+  QUEUE_BACKLOG // PR #90 fix: queue depth exceeds threshold
+  DLQ_SPIKE // PR #90 fix: dead letter queue growing
+}
+
+enum AuditResult {
+  PASS
+  PARTIAL
+  FAIL
+}
+
+enum SourcePointerMatchType {
+  EXACT // Quote found exactly as stored
+  NORMALIZED // Quote found after whitespace/unicode normalization
+  NOT_FOUND // Quote does not exist in evidence (broken provenance)
+  PENDING_VERIFICATION // Quote not yet checked against evidence
+}
+
+// ============================================================================
+// SYSTEM STATUS (Human Control Layer)
+// ============================================================================
+
+enum SystemStatusHeadline {
+  OK
+  ATTENTION
+  ACTION_REQUIRED
+}
+
+enum SystemStatusRefreshStatus {
+  SUCCESS
+  FAILED
+}
+
+enum SystemStatusRefreshQuality {
+  FULL
+  DEGRADED
+}
+
+enum SystemStatusEventType {
+  NEW_CRITICAL
+  CRITICAL_RESOLVED
+  OWNER_CHANGED
+  NEW_OBSERVED
+  DECLARED_MISSING
+  UNKNOWN_INTEGRATION
+  REFRESH_FAILED
+  REFRESH_DEGRADED
+}
+
+enum SystemStatusJobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum SystemStatusJobMode {
+  SYNC
+  ASYNC
+}
+
+model WatchdogHealth {
+  id          String               @id @default(cuid())
+  checkType   WatchdogCheckType
+  entityId    String // source ID, phase name, etc.
+  status      WatchdogHealthStatus
+  lastChecked DateTime             @default(now())
+  lastHealthy DateTime?
+  metric      Decimal?             @db.Decimal(10, 4)
+  threshold   Decimal?             @db.Decimal(10, 4)
+  message     String?
+
+  @@unique([checkType, entityId])
+  @@index([status])
+  @@index([checkType])
+}
+
+model WatchdogAlert {
+  id              String            @id @default(cuid())
+  severity        WatchdogSeverity
+  type            WatchdogAlertType
+  entityId        String?
+  message         String
+  details         Json?
+  occurredAt      DateTime          @default(now())
+  acknowledgedAt  DateTime?
+  acknowledgedBy  String?
+  resolvedAt      DateTime?
+  notifiedAt      DateTime?
+  occurrenceCount Int               @default(1)
+
+  @@index([severity])
+  @@index([type])
+  @@index([occurredAt])
+  @@index([resolvedAt])
+}
+
+// =============================================================================
+// ADMIN ALERTS - Platform monitoring and alert management
+// =============================================================================
+
+enum AdminAlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  DISMISSED
+  RESOLVED
+}
+
+model AdminAlert {
+  id           String           @id @default(cuid())
+  type         String // onboarding-stuck, approaching-limit, critical-limit, cert-expiring, cert-expired, inactive, support-ticket
+  level        String // critical, warning, info
+  companyId    String
+  status       AdminAlertStatus @default(ACTIVE)
+  title        String
+  description  String           @db.Text
+  autoAction   String?
+  metadata     Json? // Store additional context (e.g., revenue, days remaining)
+  createdAt    DateTime         @default(now())
+  acknowledgedAt DateTime?
+  acknowledgedBy String? // User ID who acknowledged
+  dismissedAt    DateTime?
+  dismissedBy    String? // User ID who dismissed
+  resolvedAt     DateTime?
+  resolvedBy     String? // User ID who resolved
+  snoozedUntil   DateTime? // For snooze functionality
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, type])
+  @@index([companyId])
+  @@index([type])
+  @@index([level])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model WatchdogAudit {
+  id           String      @id @default(cuid())
+  runDate      DateTime    @db.Date
+  auditedAt    DateTime    @default(now())
+  rulesAudited Int
+  rulesPassed  Int
+  rulesFailed  Int
+  overallScore Decimal     @db.Decimal(5, 2)
+  result       AuditResult
+  findings     Json
+  alertsRaised String[]
+
+  @@index([runDate])
+  @@index([result])
+}
+
+// =============================================================================
+// EXTRACTION REJECTED - Dead Letter Queue
+// =============================================================================
+
+model ExtractionRejected {
+  id            String    @id @default(cuid())
+  evidenceId    String
+  rejectionType String // e.g., "INVALID_PERCENTAGE", "QUOTE_NOT_IN_EVIDENCE", "INVALID_DATE"
+  rawOutput     Json // The raw LLM output that failed
+  errorDetails  String // Specific error message
+  attemptCount  Int       @default(1)
+  lastAttemptAt DateTime  @default(now())
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  evidence Evidence @relation(fields: [evidenceId], references: [id])
+
+  @@index([evidenceId])
+  @@index([rejectionType])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// SOFT FAIL LOG - Track AI operation failures
+// =============================================================================
+
+model SoftFailLog {
+  id           String   @id @default(cuid())
+  operation    String // e.g., "extractor", "reviewer", "composer"
+  entityType   String? // e.g., "evidence", "rule", "source"
+  entityId     String?
+  errorMessage String   @db.Text
+  metadata     Json? // Additional context (duration, stack trace, etc.)
+  createdAt    DateTime @default(now())
+
+  @@index([operation])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+// === REASONING TRACE (Visible Reasoning UX Audit Trail) ===
+model ReasoningTrace {
+  id                  String @id @default(cuid())
+  requestId           String @unique
+  events              Json // Full typed ReasoningEvent[]
+  userContextSnapshot Json // Frozen at request start
+
+  // Summary columns for fast queries
+  outcome           String // ANSWER | QUALIFIED_ANSWER | REFUSAL | ERROR
+  domain            String?
+  riskTier          String?
+  confidence        Float?
+  sourceCount       Int?
+  eligibleRuleCount Int?
+  exclusionCount    Int?
+  conflictCount     Int?
+  refusalReason     String?
+  durationMs        Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([requestId])
+  @@index([outcome])
+  @@index([riskTier])
+  @@index([createdAt])
+  @@index([confidence])
+}
+
+// ============================================================================
+// BETA FEEDBACK
+// ============================================================================
+
+model BetaFeedback {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String // e.g. "reasoning", "ai-assistant"
+  rating    Int? // 1-5 star rating
+  feedback  String? // Free-form text feedback
+  category  String? // "bug", "suggestion", "praise", "other"
+  metadata  Json? // Additional context (browser, page, etc.)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// COVERAGE TRACKING
+// ============================================================================
+
+model CoverageReport {
+  id         String   @id @default(cuid())
+  evidenceId String
+  createdAt  DateTime @default(now())
+
+  // Extraction counts by shape
+  claimsCount          Int @default(0)
+  processesCount       Int @default(0)
+  referenceTablesCount Int @default(0)
+  assetsCount          Int @default(0)
+  provisionsCount      Int @default(0)
+
+  // Legacy extraction (for comparison)
+  sourcePointersCount Int @default(0)
+
+  // Classification
+  primaryContentType       String? // LOGIC, PROCESS, REFERENCE, etc.
+  classificationConfidence Float   @default(0)
+
+  // Coverage assessment
+  coverageScore Float    @default(0) // 0-1, overall coverage
+  isComplete    Boolean  @default(false)
+  missingShapes String[] // ["claims", "processes"]
+  warnings      String[] // Quality warnings
+
+  // Reviewer status
+  reviewerApproved Boolean   @default(false)
+  reviewerNotes    String?
+  reviewedAt       DateTime?
+  reviewedBy       String?
+
+  // Relations
+  evidence Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId])
+  @@index([coverageScore])
+  @@index([isComplete])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// SHAPE 8: COMPARISON MATRIX (Strategic Comparisons)
+// ============================================================================
+
+model ComparisonMatrix {
+  id      String  @id @default(cuid())
+  slug    String  @unique
+  titleHr String
+  titleEn String?
+
+  // Contextual Anchor for retrieval
+  appliesWhen String?  @db.Text // "IF user_type == 'freelancer' OR revenue < 40000"
+  domainTags  String[] // ["STARTING_BUSINESS", "TAX_REGIME"]
+
+  // Structured data (JSON for flexibility)
+  options  Json // ComparisonOption[]
+  criteria Json // ComparisonCriterion[]
+  cells    Json // ComparisonCell[]
+
+  // Optional conclusion
+  conclusion String? @db.Text
+
+  // Provenance
+  evidenceId String?
+  evidence   Evidence? @relation(fields: [evidenceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([domainTags])
+  @@index([evidenceId])
+}
+
+// ============================================================================
+// SYSTEM STATUS MODELS (Human Control Layer)
+// ============================================================================
+
+model SystemRegistryStatusSnapshot {
+  id                   String                     @id @default(cuid())
+  headlineStatus       SystemStatusHeadline
+  refreshQuality       SystemStatusRefreshQuality
+  criticalCount        Int
+  highCount            Int
+  mediumCount          Int
+  lowCount             Int
+  observedCount        Int
+  declaredCount        Int
+  newDriftSinceDays    Int
+  lastRefreshStartedAt DateTime?
+  lastRefreshEndedAt   DateTime?
+  lastRefreshStatus    SystemStatusRefreshStatus?
+  lastRefreshError     String?
+  topItems             Json
+  createdAt            DateTime                   @default(now())
+
+  @@index([createdAt])
+}
+
+model SystemRegistryStatusPointer {
+  id        String   @id @default(cuid())
+  currentId String
+  updatedAt DateTime @updatedAt
+}
+
+model SystemRegistryStatusEvent {
+  id                String                @id @default(cuid())
+  eventType         SystemStatusEventType
+  severity          String
+  message           String
+  nextAction        String
+  componentId       String?
+  owner             String?
+  link              String?
+  requestedByUserId String?
+  createdAt         DateTime              @default(now())
+
+  @@index([createdAt])
+  @@index([eventType])
+}
+
+model SystemRegistryRefreshJob {
+  id                String                @id @default(cuid())
+  status            SystemStatusJobStatus
+  mode              SystemStatusJobMode
+  dedupeKey         String
+  lockKey           String
+  requestedByUserId String
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  timeoutSeconds    Int
+  error             String?
+  snapshotId        String?
+  createdAt         DateTime              @default(now())
+
+  @@index([dedupeKey])
+  @@index([status])
+}
+
+model SystemRegistryRefreshLock {
+  id                String   @id @default(cuid())
+  lockKey           String   @unique
+  lockedUntil       DateTime
+  startedAt         DateTime
+  requestedByUserId String
+  jobId             String
+}
+
+// ============================================================================
+// FEATURE FLAG MANAGEMENT
+// ============================================================================
+
+enum FeatureFlagScope {
+  GLOBAL // Applies to all users/tenants
+  TENANT // Applies to specific companies
+  USER // Applies to specific users
+}
+
+enum FeatureFlagStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model FeatureFlag {
+  id          String            @id @default(cuid())
+  key         String            @unique // e.g., "reasoning_ux", "ai_assistant_v2"
+  name        String // Human-readable name
+  description String?           @db.Text
+  scope       FeatureFlagScope  @default(GLOBAL)
+  status      FeatureFlagStatus @default(INACTIVE)
+
+  // Value configuration
+  defaultValue Boolean @default(false)
+
+  // Rollout configuration
+  rolloutPercentage Int @default(0) // 0-100 for gradual rollout
+
+  // Metadata
+  category String? // e.g., "ai", "billing", "ux"
+  tags     String[] // For filtering/searching
+
+  // Audit trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String? // User ID who created
+  updatedBy String? // User ID who last updated
+
+  // Relations
+  overrides      FeatureFlagOverride[]
+  auditLog       FeatureFlagAuditLog[]
+  segmentTargets SegmentFeatureTarget[]
+
+  @@index([key])
+  @@index([status])
+  @@index([category])
+  @@index([tags])
+}
+
+model FeatureFlagOverride {
+  id     String      @id @default(cuid())
+  flagId String
+  flag   FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  // Target (one of these should be set based on flag scope)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String?
+
+  // Override value
+  enabled Boolean
+
+  // Scheduling
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([flagId, companyId, userId])
+  @@index([flagId])
+  @@index([companyId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum FeatureFlagAuditAction {
+  CREATED
+  UPDATED
+  ENABLED
+  DISABLED
+  ARCHIVED
+  OVERRIDE_ADDED
+  OVERRIDE_REMOVED
+  ROLLOUT_CHANGED
+}
+
+model FeatureFlagAuditLog {
+  id            String                 @id @default(cuid())
+  flagId        String
+  flag          FeatureFlag            @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  action        FeatureFlagAuditAction
+  userId        String // Who made the change
+  previousValue Json? // Snapshot of previous state
+  newValue      Json? // Snapshot of new state
+  reason        String? // Optional reason for change
+  createdAt     DateTime               @default(now())
+
+  @@index([flagId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// User Segmentation System
+// =============================================================================
+
+enum SegmentStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum SegmentOperator {
+  EQUALS
+  NOT_EQUALS
+  IN
+  NOT_IN
+  GREATER_THAN
+  LESS_THAN
+  GREATER_THAN_OR_EQUAL
+  LESS_THAN_OR_EQUAL
+  CONTAINS
+  NOT_CONTAINS
+  IS_NULL
+  IS_NOT_NULL
+}
+
+enum SegmentLogicOperator {
+  AND
+  OR
+}
+
+model UserSegment {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?       @db.Text
+  status      SegmentStatus @default(DRAFT)
+
+  // Rules DSL stored as JSON
+  // Example: { "operator": "AND", "conditions": [{ "field": "legalForm", "operator": "IN", "value": ["OBRT_PAUSAL", "OBRT_REAL"] }] }
+  rules Json
+
+  // Cached metrics (updated by background job)
+  memberCount     Int       @default(0)
+  lastEvaluatedAt DateTime?
+
+  // Metadata
+  category String? // e.g., "legal_form", "subscription", "behavior"
+  tags     String[]
+  isSystem Boolean  @default(false) // System segments cannot be deleted
+
+  // Audit trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  featureTargeting  SegmentFeatureTarget[]
+  membershipHistory SegmentMembershipHistory[]
+  experiments       ExperimentSegment[]
+
+  @@index([status])
+  @@index([category])
+  @@index([tags])
+}
+
+// Track segment membership changes over time for cohort analysis
+model SegmentMembershipHistory {
+  id        String      @id @default(cuid())
+  segmentId String
+  segment   UserSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  companyId String
+
+  // Membership change
+  joined      Boolean // true = joined, false = left
+  evaluatedAt DateTime @default(now())
+
+  // Snapshot of company attributes at evaluation time
+  attributeSnapshot Json?
+
+  @@index([segmentId])
+  @@index([companyId])
+  @@index([evaluatedAt])
+}
+
+// Connect segments to feature flags for targeting
+model SegmentFeatureTarget {
+  id        String      @id @default(cuid())
+  segmentId String
+  segment   UserSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  flagId    String
+  flag      FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  // Override behavior
+  enabled  Boolean @default(true)
+  priority Int     @default(0) // Higher priority wins in conflicts
+
+  // Scheduling
+  startsAt  DateTime?
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([segmentId, flagId])
+  @@index([segmentId])
+  @@index([flagId])
+}
+
+// Product experiments using segments
+model Experiment {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?          @db.Text
+  status      ExperimentStatus @default(DRAFT)
+
+  // Experiment configuration
+  hypothesis     String?   @db.Text
+  startDate      DateTime?
+  endDate        DateTime?
+  trafficPercent Int       @default(100) // % of segment to include
+
+  // Results tracking
+  successMetric String? // e.g., "conversion_rate", "retention"
+  controlValue  Float?
+  variantValue  Float?
+
+  // Audit trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  // Relations
+  segments    ExperimentSegment[]
+  variants    ExperimentVariant[]
+  assignments ExperimentAssignment[]
+  events      ExperimentEvent[]
+
+  @@index([status])
+}
+
+model ExperimentSegment {
+  id           String      @id @default(cuid())
+  experimentId String
+  experiment   Experiment  @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  segmentId    String
+  segment      UserSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  // Segment can be control or treatment
+  isControl Boolean @default(false)
+
+  @@unique([experimentId, segmentId])
+  @@index([experimentId])
+  @@index([segmentId])
+}
+
+model ExperimentVariant {
+  id           String     @id @default(cuid())
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  name        String // e.g., "control", "variant_a", "variant_b"
+  description String?
+  weight      Int     @default(50) // Traffic weight percentage
+  config      Json? // Variant-specific configuration
+
+  // Relations
+  assignments ExperimentAssignment[]
+  events      ExperimentEvent[]
+
+  @@unique([experimentId, name])
+  @@index([experimentId])
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// User experiment assignments for sticky sessions
+model ExperimentAssignment {
+  id           String   @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  assignedAt   DateTime @default(now())
+  exposedAt    DateTime? // First time user was exposed to variant
+  convertedAt  DateTime? // If user completed success metric
+
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experimentId, userId])
+  @@index([experimentId])
+  @@index([userId])
+  @@index([variantId])
+  @@index([exposedAt])
+}
+
+// Event tracking for experiment analysis
+model ExperimentEvent {
+  id           String   @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  eventType    String // e.g., "view", "click", "conversion"
+  eventName    String // e.g., "invoice_created", "signup_completed"
+  properties   Json? // Additional event data
+  timestamp    DateTime @default(now())
+
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([experimentId])
+  @@index([userId])
+  @@index([variantId])
+  @@index([eventType])
+  @@index([eventName])
+  @@index([timestamp])
+}
+
+// ============================================================================
+// WEBHOOK & PUSH NOTIFICATION INFRASTRUCTURE
+// ============================================================================
+
+// Webhook subscriptions for regulatory sources
+model WebhookSubscription {
+  id          String   @id @default(cuid())
+  sourceId    String? // Link to RegulatorySource if applicable
+  provider    String // e.g., "narodne-novine", "porezna-uprava", "fina", "custom"
+  webhookType String // RSS_FEED, EMAIL_ALERT, HTTP_WEBHOOK, API_POLLING
+  endpointUrl String? // External URL we're subscribed to
+
+  // Configuration
+  isActive       Boolean  @default(true)
+  config         Json? // Provider-specific configuration (API keys, filters, etc.)
+  filterPatterns String[] // URL patterns to filter incoming notifications
+
+  // Webhook security
+  secretKey      String? // HMAC secret for signature verification
+  authToken      String? // Bearer token or API key
+  verifySSL      Boolean  @default(true)
+
+  // Metadata
+  lastTriggeredAt DateTime?
+  lastSuccessAt   DateTime?
+  lastError       String?
+  triggerCount    Int       @default(0)
+  errorCount      Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  source RegulatorySource? @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  events WebhookEvent[]
+
+  @@index([provider])
+  @@index([webhookType])
+  @@index([isActive])
+  @@index([lastTriggeredAt])
+}
+
+// Webhook event log for received notifications
+model WebhookEvent {
+  id             String   @id @default(cuid())
+  subscriptionId String
+
+  // Event details
+  eventType     String // RSS_ITEM, EMAIL_NOTIFICATION, HTTP_POST, API_RESPONSE
+  sourceUrl     String? // Original URL from notification
+  contentUrl    String? // URL to fetch content from
+  title         String?
+  publishedAt   DateTime?
+
+  // Raw payload
+  rawPayload String @db.Text // Full payload for debugging
+  headers    Json? // HTTP headers
+
+  // Processing status
+  status       WebhookEventStatus @default(PENDING)
+  processedAt  DateTime?
+  errorMessage String?
+  retryCount   Int                @default(0)
+
+  // Evidence created
+  evidenceId String? // Link to Evidence if created
+
+  // Metadata
+  receivedAt DateTime @default(now())
+
+  // Relations
+  subscription WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([receivedAt])
+  @@index([eventType])
+  @@index([evidenceId])
+}
+
+enum WebhookEventStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  DUPLICATE
+  FILTERED
+}
+
+
+// Dead Letter Queue for cron job failures
+model CronJobError {
+  id           String    @id @default(cuid())
+  jobName      String
+  entityId     String?
+  entityType   String?
+  errorMessage String    @db.Text
+  errorCode    String?
+  attemptCount Int       @default(1)
+  metadata     Json?
+  resolvedAt   DateTime?
+  resolvedBy   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([jobName, entityId])
+  @@index([jobName])
+  @@index([entityId])
+  @@index([resolvedAt])
+  @@index([createdAt])
+}
+
