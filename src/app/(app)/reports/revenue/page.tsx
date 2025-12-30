@@ -140,7 +140,7 @@ export default async function RevenueByCustomerPage({
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold font-mono text-success-icon">{formatCurrency(totalRevenue)}</p>
-            <p className="text-sm text-secondary">{invoices.length} racuna</p>
+            <p className="text-sm text-secondary">{invoices.length} računa</p>
           </CardContent>
         </Card>
       </div>
@@ -159,7 +159,7 @@ export default async function RevenueByCustomerPage({
                 <thead>
                   <tr className="border-b text-left">
                     <th className="pb-2 font-medium">Kupac</th>
-                    <th className="pb-2 font-medium text-right">Broj racuna</th>
+                    <th className="pb-2 font-medium text-right">Broj računa</th>
                     <th className="pb-2 font-medium text-right">Neto</th>
                     <th className="pb-2 font-medium text-right">PDV</th>
                     <th className="pb-2 font-medium text-right">Ukupno</th>

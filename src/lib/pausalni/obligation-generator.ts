@@ -7,11 +7,31 @@ import {
 } from "@/lib/db/schema/pausalni"
 import { DOPRINOSI_2025, DEADLINES, HOK_CONFIG, CROATIAN_MONTHS } from "./constants"
 import { eq, and } from "drizzle-orm"
+import { THRESHOLDS, exceedsPausalniLimit } from "@/lib/fiscal-data"
+
+/**
+ * Custom error for when annual income exceeds paušalni threshold
+ */
+export class PausalniThresholdExceededError extends Error {
+  public readonly income: number
+  public readonly threshold: number
+
+  constructor(income: number) {
+    const threshold = THRESHOLDS.pausalni.value
+    super(
+      `Godišnji primitak (${income.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (${threshold.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.`
+    )
+    this.name = "PausalniThresholdExceededError"
+    this.income = income
+    this.threshold = threshold
+  }
+}
 
 interface GenerateOptions {
   companyId: string
   year: number
   month?: number // If provided, generate only for this month
+  annualIncome?: number // If provided, validate against 60,000 EUR threshold
 }
 
 /**

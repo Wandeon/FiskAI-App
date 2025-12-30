@@ -29,8 +29,12 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/format"
+import { protectRoute } from "@/lib/visibility/route-protection"
 
 export default async function PausalniObrtReportsPage() {
+  // Visibility system route protection - pausalni obrt specific reports
+  await protectRoute("page:reports")
+
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 

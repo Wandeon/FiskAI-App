@@ -18,6 +18,26 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     const fileBuffer = await fs.readFile(job.storagePath)
+
+    // Verify file integrity using stored checksum
+    if (job.fileChecksum) {
+      const currentHash = createHash("sha256").update(fileBuffer).digest("hex")
+      if (currentHash !== job.fileChecksum) {
+        logger.error(
+          {
+            jobId: job.id,
+            expected: job.fileChecksum,
+            actual: currentHash,
+          },
+          "File integrity check failed"
+        )
+        return NextResponse.json(
+          { error: "File integrity verification failed" },
+          { status: 500 }
+        )
+      }
+    }
+
     const ext = job.originalName.split(".").pop()?.toLowerCase() || ""
 
     const mimeTypes: Record<string, string> = {
@@ -35,6 +55,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       headers: {
         "Content-Type": mimeTypes[ext] || "application/octet-stream",
         "Content-Disposition": `inline; filename="${job.originalName}"`,
+        ...(job.fileChecksum && {
+          "Content-MD5": Buffer.from(job.fileChecksum, "hex").toString("base64"),
+          "X-Content-SHA256": job.fileChecksum,
+        }),
       },
     })
   } catch {

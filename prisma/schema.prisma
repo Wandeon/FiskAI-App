@@ -356,7 +356,7 @@ model EInvoice {
   convertedFrom     EInvoice?         @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
   convertedTo       EInvoice[]        @relation("InvoiceConversion")
   importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
-  seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: SetNull)
   lines             EInvoiceLine[]
   fiscalRequests    FiscalRequest[]
 

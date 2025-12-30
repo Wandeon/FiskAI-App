@@ -117,7 +117,7 @@ export function ChecklistPageClient({
       <div>
         <h1 className="text-2xl font-bold text-[var(--foreground)] flex items-center gap-3">
           <ClipboardList className="h-7 w-7 text-cyan-400" />
-          Sto moram napraviti?
+          Što moram napraviti?
         </h1>
         <p className="text-[var(--muted)] mt-1">
           {companyName} - <span className="capitalize">{currentMonth}</span>
@@ -131,7 +131,7 @@ export function ChecklistPageClient({
         </GlassCard>
         <GlassCard hover={false} padding="sm">
           <div className="text-2xl font-bold text-red-400">{stats.critical}</div>
-          <div className="text-sm text-[var(--muted)]">Kriticno</div>
+          <div className="text-sm text-[var(--muted)]">Kritično</div>
         </GlassCard>
         <GlassCard hover={false} padding="sm">
           <div className="text-2xl font-bold text-amber-400">{stats.soon}</div>
@@ -141,7 +141,7 @@ export function ChecklistPageClient({
           <div className="text-2xl font-bold text-emerald-400">
             {initialStats.total - stats.total}
           </div>
-          <div className="text-sm text-[var(--muted)]">Dovrseno</div>
+          <div className="text-sm text-[var(--muted)]">Dovršeno</div>
         </GlassCard>
       </div>
 
@@ -169,7 +169,7 @@ export function ChecklistPageClient({
         <GlassCard hover={false} padding="lg">
           <div className="text-center py-8">
             <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-            <p className="text-[var(--foreground)] text-lg font-medium">Sve je obradjeno!</p>
+            <p className="text-[var(--foreground)] text-lg font-medium">Sve je obrađeno!</p>
             <p className="text-[var(--muted)] mt-1">
               {filter === "all"
                 ? "Nema zadataka za ovaj mjesec"

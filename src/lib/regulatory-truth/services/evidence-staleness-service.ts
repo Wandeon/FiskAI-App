@@ -31,7 +31,16 @@ export const STALENESS_STATUS = {
   FRESH: "FRESH",
   AGING: "AGING",
   STALE: "STALE",
+  UNAVAILABLE: "UNAVAILABLE", // Transient failure - will retry sooner (GitHub #1021)
   EXPIRED: "EXPIRED",
+} as const
+
+// Configuration for retry logic (GitHub issue #1021)
+const STALENESS_CONFIG = {
+  // Number of consecutive failures before marking as EXPIRED
+  MAX_CONSECUTIVE_FAILURES: 3,
+  // Retry interval for UNAVAILABLE evidence (4 hours in ms)
+  UNAVAILABLE_RETRY_INTERVAL: 4 * 60 * 60 * 1000,
 } as const
 
 export type StalenessStatus = (typeof STALENESS_STATUS)[keyof typeof STALENESS_STATUS]
@@ -46,6 +55,9 @@ export interface EvidenceStalenessCheck {
   newLastModified: Date | null
   staleDays: number
   status: StalenessStatus
+  // GitHub issue #1021: Track transient failures
+  isNetworkError: boolean
+  consecutiveFailures: number
 }
 
 export interface StalenessCheckResult {

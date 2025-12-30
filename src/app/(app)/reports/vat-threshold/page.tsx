@@ -25,6 +25,7 @@ import Link from "next/link"
 import { formatCurrency } from "@/lib/format"
 import { logger } from "@/lib/logger"
 import { calculateVatThresholdProgress } from "@/lib/reports/kpr-generator"
+import { protectRoute } from "@/lib/visibility/route-protection"
 
 interface VatThresholdData {
   annualRevenue: number
@@ -44,6 +45,9 @@ interface VatThresholdData {
 }
 
 export default async function VatThresholdReportPage() {
+  // Visibility system route protection - VAT threshold reports
+  await protectRoute("page:reports")
+
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 

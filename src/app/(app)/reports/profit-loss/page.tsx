@@ -4,12 +4,16 @@ import { setTenantContext } from "@/lib/prisma-extensions"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { protectRoute } from "@/lib/visibility/route-protection"
 
 export default async function ProfitLossPage({
   searchParams,
 }: {
   searchParams: Promise<{ from?: string; to?: string }>
 }) {
+  // Visibility system route protection
+  await protectRoute("page:reports")
+
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const params = await searchParams

@@ -315,6 +315,13 @@ export function validatePosdFormData(data: PosdFormData): {
     errors.push("Ukupan primitak ne može biti negativan")
   }
 
+  // Validate 60,000 EUR paušalni threshold (critical tax compliance check)
+  if (exceedsPausalniLimit(data.grossIncome)) {
+    errors.push(
+      `Godišnji primitak (${data.grossIncome.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (${THRESHOLDS.pausalni.value.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.`
+    )
+  }
+
   // Validate expense calculation
   const expectedExpenses =
     Math.round(data.grossIncome * (data.expenseBracket / 100) * 100) / 100

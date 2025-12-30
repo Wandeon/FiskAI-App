@@ -5,8 +5,12 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AgingReportTable } from "./aging-report-table"
+import { protectRoute } from "@/lib/visibility/route-protection"
 
 export default async function AgingReportPage() {
+  // Visibility system route protection
+  await protectRoute("page:reports")
+
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
