@@ -300,6 +300,7 @@ model Product {
   updatedAt   DateTime @updatedAt
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  @@unique([companyId, sku])
   @@index([companyId])
 }
 
