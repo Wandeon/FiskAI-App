@@ -162,6 +162,160 @@ model Company {
   staffReviews                   StaffReview[]
   adminAlerts                    AdminAlert[]
   bankImports                    BankImport[]
+  chartOfAccounts                ChartOfAccounts[]
+  accountingPeriods              AccountingPeriod[]
+  journalEntries                 JournalEntry[]
+  trialBalances                  TrialBalance[]
+  postingRules                   PostingRule[]
+  operationalEvents              OperationalEvent[]
+}
+
+model ChartOfAccounts {
+  id            String             @id @default(cuid())
+  companyId     String
+  code          String
+  name          String
+  description   String?
+  normalBalance AccountNormalBalance
+  statementType StatementType
+  lockLevel     AccountLockLevel   @default(USER)
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines  JournalLine[]
+  trialBalances TrialBalance[]
+  debitRules    PostingRule[]      @relation("DebitPostingRules")
+  creditRules   PostingRule[]      @relation("CreditPostingRules")
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([companyId, statementType])
+}
+
+model AccountingPeriod {
+  id             String         @id @default(cuid())
+  companyId      String
+  fiscalYear     Int
+  periodNumber   Int
+  periodType     PeriodType     @default(MONTHLY)
+  startDate      DateTime
+  endDate        DateTime
+  status         PeriodStatus   @default(OPEN)
+  closedAt       DateTime?
+  closedById     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  closedBy       User?          @relation(fields: [closedById], references: [id])
+  journalEntries JournalEntry[]
+  trialBalances  TrialBalance[]
+
+  @@unique([companyId, fiscalYear, periodNumber])
+  @@index([companyId, status])
+}
+
+model JournalEntry {
+  id                     String         @id @default(cuid())
+  companyId              String
+  entryNumber            Int
+  fiscalYear             Int
+  entryDate              DateTime
+  periodId               String
+  status                 EntryStatus    @default(DRAFT)
+  description            String
+  reference              String?
+  contentHash            String
+  hashAlgoVersion        Int            @default(1)
+  canonicalFormatVersion Int            @default(1)
+  createdById            String?
+  createdAt              DateTime       @default(now())
+  postedAt               DateTime?
+  company                Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period                 AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  createdBy              User?          @relation(fields: [createdById], references: [id])
+  lines                  JournalLine[]
+  operationalEvents      OperationalEvent[]
+
+  @@unique([companyId, fiscalYear, entryNumber])
+  @@index([companyId, entryDate])
+  @@index([companyId, status])
+  @@index([periodId])
+}
+
+model JournalLine {
+  id             String          @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal         @db.Decimal(14, 2)
+  credit         Decimal         @db.Decimal(14, 2)
+  lineNumber     Int
+  description    String?
+  dimensions     Json?
+  createdAt      DateTime        @default(now())
+  journalEntry   JournalEntry    @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account        ChartOfAccounts @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+}
+
+model TrialBalance {
+  id          String          @id @default(cuid())
+  companyId   String
+  periodId    String
+  accountId   String
+  debitTotal  Decimal         @db.Decimal(14, 2)
+  creditTotal Decimal         @db.Decimal(14, 2)
+  netBalance  Decimal         @db.Decimal(14, 2)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period      AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  account     ChartOfAccounts @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, periodId, accountId])
+  @@index([companyId, periodId])
+  @@index([accountId])
+}
+
+model PostingRule {
+  id              String               @id @default(cuid())
+  companyId       String
+  sourceType      OperationalSourceType
+  eventType       OperationalEventType
+  debitAccountId  String
+  creditAccountId String
+  description     String?
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  debitAccount    ChartOfAccounts      @relation("DebitPostingRules", fields: [debitAccountId], references: [id], onDelete: Restrict)
+  creditAccount   ChartOfAccounts      @relation("CreditPostingRules", fields: [creditAccountId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, sourceType, eventType])
+  @@index([companyId])
+}
+
+model OperationalEvent {
+  id             String                 @id @default(cuid())
+  companyId      String
+  sourceType     OperationalSourceType
+  eventType      OperationalEventType
+  sourceId       String
+  entryDate      DateTime
+  status         OperationalEventStatus @default(PENDING)
+  journalEntryId String?
+  payload        Json?
+  errorMessage   String?
+  createdAt      DateTime               @default(now())
+  processedAt    DateTime?
+  company        Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalEntry   JournalEntry?          @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, sourceType, sourceId, eventType])
+  @@index([companyId, status])
 }
 
 // Audit trail for module entitlement changes
@@ -1480,6 +1634,60 @@ enum InvoiceType {
   PROFORMA
   CREDIT_NOTE
   DEBIT_NOTE
+}
+
+enum AccountNormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum StatementType {
+  BALANCE_SHEET
+  PROFIT_LOSS
+}
+
+enum AccountLockLevel {
+  SYSTEM
+  TEMPLATE
+  USER
+}
+
+enum EntryStatus {
+  DRAFT
+  POSTED
+}
+
+enum PeriodType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum PeriodStatus {
+  FUTURE
+  OPEN
+  SOFT_CLOSE
+  CLOSED
+  LOCKED
+}
+
+enum OperationalSourceType {
+  INVOICE
+  EXPENSE
+  BANK_TRANSACTION
+}
+
+enum OperationalEventType {
+  INVOICE_ISSUED
+  EXPENSE_RECORDED
+  BANK_TRANSACTION_INCOMING
+  BANK_TRANSACTION_OUTGOING
+}
+
+enum OperationalEventStatus {
+  PENDING
+  POSTED
+  FAILED
 }
 
 enum EntitlementChangeType {
@@ -3685,4 +3893,3 @@ model CronJobError {
   @@index([resolvedAt])
   @@index([createdAt])
 }
-

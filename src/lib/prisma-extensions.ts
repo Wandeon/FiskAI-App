@@ -105,6 +105,252 @@ export function runWithTenant<T>(context: TenantContext, fn: () => T): T {
   return tenantContextStore.run(context, fn)
 }
 
+// ============================================
+// GENERAL LEDGER (GL) SAFETY GUARDS
+// ============================================
+
+const LOCKED_PERIOD_STATUSES = new Set(["CLOSED", "LOCKED"])
+
+export class AccountingPeriodLockedError extends Error {
+  constructor(periodId: string) {
+    super(`AccountingPeriod ${periodId} is locked and cannot accept entries.`)
+    this.name = "AccountingPeriodLockedError"
+  }
+}
+
+export class JournalEntryBalanceError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "JournalEntryBalanceError"
+  }
+}
+
+export class JournalEntryImmutableError extends Error {
+  constructor(entryId: string) {
+    super(`JournalEntry ${entryId} is already posted and cannot be modified.`)
+    this.name = "JournalEntryImmutableError"
+  }
+}
+
+export class JournalLineAmountError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "JournalLineAmountError"
+  }
+}
+
+const INVOICE_EVENT_STATUSES = new Set(["SENT", "FISCALIZED", "DELIVERED", "ACCEPTED"])
+const EXPENSE_EVENT_STATUSES = new Set(["PENDING", "PAID"])
+
+type OperationalEventInput = {
+  companyId: string
+  sourceType: "INVOICE" | "EXPENSE" | "BANK_TRANSACTION"
+  eventType:
+    | "INVOICE_ISSUED"
+    | "EXPENSE_RECORDED"
+    | "BANK_TRANSACTION_INCOMING"
+    | "BANK_TRANSACTION_OUTGOING"
+  sourceId: string
+  entryDate: Date
+  payload?: Prisma.InputJsonValue
+}
+
+async function upsertOperationalEvent(
+  prismaBase: PrismaClient,
+  event: OperationalEventInput
+): Promise<void> {
+  await prismaBase.operationalEvent.upsert({
+    where: {
+      companyId_sourceType_sourceId_eventType: {
+        companyId: event.companyId,
+        sourceType: event.sourceType,
+        sourceId: event.sourceId,
+        eventType: event.eventType,
+      },
+    },
+    create: event,
+    update: {},
+  })
+}
+
+function buildInvoiceEvent(record: {
+  id: string
+  companyId: string
+  status: string
+  direction: string
+  issueDate: Date
+}): OperationalEventInput | null {
+  if (record.direction !== "OUTBOUND") return null
+  if (!INVOICE_EVENT_STATUSES.has(record.status)) return null
+  return {
+    companyId: record.companyId,
+    sourceType: "INVOICE",
+    eventType: "INVOICE_ISSUED",
+    sourceId: record.id,
+    entryDate: record.issueDate,
+    payload: { status: record.status },
+  }
+}
+
+function buildExpenseEvent(record: {
+  id: string
+  companyId: string
+  status: string
+  date: Date
+}): OperationalEventInput | null {
+  if (!EXPENSE_EVENT_STATUSES.has(record.status)) return null
+  return {
+    companyId: record.companyId,
+    sourceType: "EXPENSE",
+    eventType: "EXPENSE_RECORDED",
+    sourceId: record.id,
+    entryDate: record.date,
+    payload: { status: record.status },
+  }
+}
+
+function buildTransactionEvent(record: {
+  id: string
+  companyId: string
+  direction: string
+  date: Date
+}): OperationalEventInput {
+  return {
+    companyId: record.companyId,
+    sourceType: "BANK_TRANSACTION",
+    eventType:
+      record.direction === "INCOMING" ? "BANK_TRANSACTION_INCOMING" : "BANK_TRANSACTION_OUTGOING",
+    sourceId: record.id,
+    entryDate: record.date,
+    payload: { direction: record.direction },
+  }
+}
+
+function toDecimal(value: unknown): Prisma.Decimal {
+  if (value instanceof Prisma.Decimal) {
+    return value
+  }
+  if (typeof value === "number" || typeof value === "string") {
+    return new Prisma.Decimal(value)
+  }
+  return new Prisma.Decimal(0)
+}
+
+function extractConnectId(data: Record<string, unknown>, field: string): string | null {
+  const nested = data[field]
+  if (!nested || typeof nested !== "object") return null
+  const connect = (nested as { connect?: { id?: string } }).connect
+  if (!connect || typeof connect !== "object") return null
+  return typeof connect.id === "string" ? connect.id : null
+}
+
+function extractJournalEntryPeriodId(data: Record<string, unknown>): string | null {
+  if (typeof data.periodId === "string") {
+    return data.periodId
+  }
+  return extractConnectId(data, "period")
+}
+
+function extractJournalEntryIdFromLine(data: Record<string, unknown>): string | null {
+  if (typeof data.journalEntryId === "string") {
+    return data.journalEntryId
+  }
+  return extractConnectId(data, "journalEntry")
+}
+
+function assertLineAmounts(line: { debit?: unknown; credit?: unknown }): void {
+  const debit = toDecimal(line.debit ?? 0)
+  const credit = toDecimal(line.credit ?? 0)
+  const debitPositive = debit.gt(0)
+  const creditPositive = credit.gt(0)
+
+  if ((debitPositive && creditPositive) || (!debitPositive && !creditPositive)) {
+    throw new JournalLineAmountError("Each journal line must have either debit or credit amount.")
+  }
+
+  if (debit.lt(0) || credit.lt(0)) {
+    throw new JournalLineAmountError("Journal line amounts cannot be negative.")
+  }
+}
+
+function assertBalancedLines(lines: Array<{ debit?: unknown; credit?: unknown }>): void {
+  const totals = lines.reduce(
+    (acc, line) => {
+      const debit = toDecimal(line.debit ?? 0)
+      const credit = toDecimal(line.credit ?? 0)
+      return {
+        debit: acc.debit.plus(debit),
+        credit: acc.credit.plus(credit),
+      }
+    },
+    { debit: new Prisma.Decimal(0), credit: new Prisma.Decimal(0) }
+  )
+
+  if (!totals.debit.equals(totals.credit)) {
+    throw new JournalEntryBalanceError(
+      `Unbalanced journal entry. debit=${totals.debit.toFixed(2)} credit=${totals.credit.toFixed(2)}`
+    )
+  }
+}
+
+function extractLineInputs(
+  data: Record<string, unknown>
+): Array<{ debit?: unknown; credit?: unknown }> {
+  const lines = data.lines
+  if (!lines || typeof lines !== "object") return []
+  const create = (lines as { create?: unknown }).create
+  if (Array.isArray(create)) {
+    return create as Array<{ debit?: unknown; credit?: unknown }>
+  }
+  const createMany = (lines as { createMany?: { data?: unknown } }).createMany
+  if (createMany && Array.isArray(createMany.data)) {
+    return createMany.data as Array<{ debit?: unknown; credit?: unknown }>
+  }
+  return []
+}
+
+async function assertPeriodOpen(prismaBase: PrismaClient, periodId: string): Promise<void> {
+  const period = await prismaBase.accountingPeriod.findUnique({
+    where: { id: periodId },
+    select: { status: true },
+  })
+
+  if (!period) {
+    return
+  }
+
+  if (LOCKED_PERIOD_STATUSES.has(period.status)) {
+    throw new AccountingPeriodLockedError(periodId)
+  }
+}
+
+async function assertEntryNotPosted(prismaBase: PrismaClient, entryId: string): Promise<void> {
+  const entry = await prismaBase.journalEntry.findUnique({
+    where: { id: entryId },
+    select: { status: true },
+  })
+
+  if (entry?.status === "POSTED") {
+    throw new JournalEntryImmutableError(entryId)
+  }
+}
+
+async function assertEntryBalanced(prismaBase: PrismaClient, entryId: string): Promise<void> {
+  const totals = await prismaBase.journalLine.aggregate({
+    where: { journalEntryId: entryId },
+    _sum: { debit: true, credit: true },
+  })
+
+  const debit = totals._sum.debit ?? new Prisma.Decimal(0)
+  const credit = totals._sum.credit ?? new Prisma.Decimal(0)
+
+  if (!debit.equals(credit)) {
+    throw new JournalEntryBalanceError(
+      `Unbalanced journal entry. debit=${debit.toFixed(2)} credit=${credit.toFixed(2)}`
+    )
+  }
+}
+
 // Models that require tenant filtering
 const TENANT_MODELS = [
   "Contact",
@@ -128,6 +374,13 @@ const TENANT_MODELS = [
   "BusinessPremises",
   "PaymentDevice",
   "InvoiceSequence",
+  "ChartOfAccounts",
+  "AccountingPeriod",
+  "JournalEntry",
+  "JournalLine",
+  "TrialBalance",
+  "PostingRule",
+  "OperationalEvent",
   // Note: CompanyUser intentionally NOT included - it's filtered by userId, not companyId
   // Including it breaks getCurrentCompany() which queries CompanyUser before tenant context exists
 ] as const
@@ -494,6 +747,45 @@ export function withTenantIsolation(prisma: PrismaClient) {
               companyId: context.companyId,
             } as typeof args.data
           }
+
+          if (model === "JournalEntry" && args.data && typeof args.data === "object") {
+            const data = args.data as Record<string, unknown>
+            const periodId = extractJournalEntryPeriodId(data)
+            if (periodId) {
+              await assertPeriodOpen(prismaBase, periodId)
+            }
+            const status = typeof data.status === "string" ? data.status : "DRAFT"
+            const lines = extractLineInputs(data)
+            if (status === "POSTED") {
+              if (lines.length === 0) {
+                throw new JournalEntryBalanceError("Posted journal entries must include lines.")
+              }
+              lines.forEach(assertLineAmounts)
+              assertBalancedLines(lines)
+            }
+          }
+
+          if (model === "JournalLine" && args.data && typeof args.data === "object") {
+            const data = args.data as Record<string, unknown>
+            const entryId = extractJournalEntryIdFromLine(data)
+            if (entryId) {
+              const entry = await prismaBase.journalEntry.findUnique({
+                where: { id: entryId },
+                select: { status: true, periodId: true },
+              })
+              if (entry?.status === "POSTED") {
+                throw new JournalEntryImmutableError(entryId)
+              }
+              if (entry?.periodId) {
+                await assertPeriodOpen(prismaBase, entry.periodId)
+              }
+            }
+            assertLineAmounts({
+              debit: data.debit,
+              credit: data.credit,
+            })
+          }
+
           const result = await query(args)
 
           // Audit logging for create operations
@@ -505,6 +797,47 @@ export function withTenantIsolation(prisma: PrismaClient) {
             queueAuditLog(prismaBase, model, "CREATE", result as Record<string, unknown>)
           }
 
+          if (model === "EInvoice" && result && typeof result === "object") {
+            const event = buildInvoiceEvent(
+              result as {
+                id: string
+                companyId: string
+                status: string
+                direction: string
+                issueDate: Date
+              }
+            )
+            if (event) {
+              await upsertOperationalEvent(prismaBase, event)
+            }
+          }
+
+          if (model === "Expense" && result && typeof result === "object") {
+            const event = buildExpenseEvent(
+              result as {
+                id: string
+                companyId: string
+                status: string
+                date: Date
+              }
+            )
+            if (event) {
+              await upsertOperationalEvent(prismaBase, event)
+            }
+          }
+
+          if (model === "Transaction" && result && typeof result === "object") {
+            const event = buildTransactionEvent(
+              result as {
+                id: string
+                companyId: string
+                direction: string
+                date: Date
+              }
+            )
+            await upsertOperationalEvent(prismaBase, event)
+          }
+
           return result
         },
         async update({ model, args, query }) {
@@ -514,6 +847,8 @@ export function withTenantIsolation(prisma: PrismaClient) {
           }
 
           // REGULATORY RULE STATUS TRANSITIONS: enforce allowed transitions (hard backstop)
+          let operationalEvent: OperationalEventInput | null = null
+
           if (model === "RegulatoryRule") {
             const newStatus = getRequestedRuleStatus(args.data)
 
@@ -545,6 +880,94 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "EInvoice") {
+            const existing = await prismaBase.eInvoice.findUnique({
+              where: args.where as Prisma.EInvoiceWhereUniqueInput,
+              select: { id: true, companyId: true, status: true, direction: true, issueDate: true },
+            })
+            const data = args.data as Record<string, unknown>
+            const nextStatus = typeof data.status === "string" ? data.status : existing?.status
+            if (existing && nextStatus && nextStatus !== existing.status) {
+              operationalEvent = buildInvoiceEvent({
+                ...existing,
+                status: nextStatus,
+              })
+            }
+          }
+
+          if (model === "Expense") {
+            const existing = await prismaBase.expense.findUnique({
+              where: args.where as Prisma.ExpenseWhereUniqueInput,
+              select: { id: true, companyId: true, status: true, date: true },
+            })
+            const data = args.data as Record<string, unknown>
+            const nextStatus = typeof data.status === "string" ? data.status : existing?.status
+            if (existing && nextStatus && nextStatus !== existing.status) {
+              operationalEvent = buildExpenseEvent({
+                ...existing,
+                status: nextStatus,
+              })
+            }
+          }
+
+          if (model === "JournalEntry") {
+            const existing = await prismaBase.journalEntry.findUnique({
+              where: args.where as Prisma.JournalEntryWhereUniqueInput,
+              select: { id: true, status: true, periodId: true },
+            })
+
+            if (!existing) {
+              throw new JournalEntryBalanceError("JournalEntry not found.")
+            }
+
+            if (existing.status === "POSTED") {
+              throw new JournalEntryImmutableError(existing.id)
+            }
+
+            const data = args.data as Record<string, unknown>
+            const nextPeriodId = extractJournalEntryPeriodId(data) ?? existing.periodId
+            if (nextPeriodId) {
+              await assertPeriodOpen(prismaBase, nextPeriodId)
+            }
+
+            const newStatus = typeof data.status === "string" ? data.status : null
+            if (newStatus === "POSTED") {
+              await assertEntryBalanced(prismaBase, existing.id)
+            }
+          }
+
+          if (model === "JournalLine") {
+            const existing = await prismaBase.journalLine.findUnique({
+              where: args.where as Prisma.JournalLineWhereUniqueInput,
+              select: {
+                id: true,
+                debit: true,
+                credit: true,
+                journalEntry: { select: { id: true, status: true, periodId: true } },
+              },
+            })
+
+            if (!existing) {
+              throw new JournalLineAmountError("JournalLine not found.")
+            }
+
+            const entry = existing.journalEntry
+            if (entry.status === "POSTED") {
+              throw new JournalEntryImmutableError(entry.id)
+            }
+
+            if (entry.periodId) {
+              await assertPeriodOpen(prismaBase, entry.periodId)
+            }
+
+            if (args.data && typeof args.data === "object") {
+              const data = args.data as Record<string, unknown>
+              const nextDebit = "debit" in data ? data.debit : existing.debit
+              const nextCredit = "credit" in data ? data.credit : existing.credit
+              assertLineAmounts({ debit: nextDebit, credit: nextCredit })
+            }
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -563,9 +986,39 @@ export function withTenantIsolation(prisma: PrismaClient) {
             queueAuditLog(prismaBase, model, "UPDATE", result as Record<string, unknown>)
           }
 
+          if (operationalEvent) {
+            await upsertOperationalEvent(prismaBase, operationalEvent)
+          }
+
           return result
         },
         async delete({ model, args, query }) {
+          if (model === "JournalEntry") {
+            const existing = await prismaBase.journalEntry.findUnique({
+              where: args.where as Prisma.JournalEntryWhereUniqueInput,
+              select: { id: true, status: true },
+            })
+
+            if (existing?.status === "POSTED") {
+              throw new JournalEntryImmutableError(existing.id)
+            }
+          }
+
+          if (model === "JournalLine") {
+            const existing = await prismaBase.journalLine.findUnique({
+              where: args.where as Prisma.JournalLineWhereUniqueInput,
+              select: { journalEntry: { select: { id: true, status: true, periodId: true } } },
+            })
+
+            if (existing?.journalEntry.status === "POSTED") {
+              throw new JournalEntryImmutableError(existing.journalEntry.id)
+            }
+
+            if (existing?.journalEntry.periodId) {
+              await assertPeriodOpen(prismaBase, existing.journalEntry.periodId)
+            }
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
