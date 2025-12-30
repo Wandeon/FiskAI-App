@@ -27,6 +27,7 @@ interface CreateExpenseInput {
   netAmount: number
   vatAmount: number
   totalAmount: number
+  vatRate: number
   vatDeductible?: boolean
   currency?: string
   paymentMethod?: string
@@ -78,6 +79,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
           netAmount: new Decimal(input.netAmount),
           vatAmount: new Decimal(input.vatAmount),
           totalAmount: new Decimal(input.totalAmount),
+          vatRate: new Decimal(input.vatRate),
           vatDeductible: input.vatDeductible ?? true,
           currency: input.currency || "EUR",
           status,
@@ -125,6 +127,7 @@ export async function updateExpense(
       if (input.date) updateData.date = input.date
       if (input.dueDate !== undefined) updateData.dueDate = input.dueDate
       if (input.netAmount !== undefined) updateData.netAmount = new Decimal(input.netAmount)
+      if (input.vatRate !== undefined) updateData.vatRate = new Decimal(input.vatRate)
       if (input.vatAmount !== undefined) updateData.vatAmount = new Decimal(input.vatAmount)
       if (input.totalAmount !== undefined) updateData.totalAmount = new Decimal(input.totalAmount)
       if (input.vatDeductible !== undefined) updateData.vatDeductible = input.vatDeductible
@@ -453,6 +456,7 @@ interface CreateRecurringExpenseInput {
   netAmount: number
   vatAmount: number
   totalAmount: number
+  vatRate: number
   frequency: Frequency
   nextDate: Date
   endDate?: Date
@@ -496,6 +500,7 @@ export async function createRecurringExpense(
           netAmount: new Decimal(input.netAmount),
           vatAmount: new Decimal(input.vatAmount),
           totalAmount: new Decimal(input.totalAmount),
+          vatRate: new Decimal(input.vatRate),
           frequency: input.frequency,
           nextDate: input.nextDate,
           endDate: input.endDate || null,
@@ -544,6 +549,7 @@ export async function updateRecurringExpense(
       }
       if (input.vendorId !== undefined) updateData.vendorId = input.vendorId
       if (input.description) updateData.description = input.description
+      if (input.vatRate !== undefined) updateData.vatRate = new Decimal(input.vatRate)
       if (input.netAmount !== undefined) updateData.netAmount = new Decimal(input.netAmount)
       if (input.vatAmount !== undefined) updateData.vatAmount = new Decimal(input.vatAmount)
       if (input.totalAmount !== undefined)
@@ -652,6 +658,7 @@ export async function processRecurringExpenses(): Promise<ActionResult> {
             companyId: company.id,
             categoryId: recurring.categoryId,
             vendorId: recurring.vendorId,
+            vatRate: recurring.vatRate,
             description: recurring.description,
             date: recurring.nextDate,
             netAmount: recurring.netAmount,
