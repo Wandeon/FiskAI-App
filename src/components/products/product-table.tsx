@@ -242,6 +242,13 @@ export function ProductTable({ products, vatOptions }: ProductTableProps) {
                           setSavingId(null)
                         }}
                         disabled={savingId === product.id}
+                        aria-label={
+                          savingId === product.id
+                            ? `Spremanje promjena za ${product.name}`
+                            : errorId === product.id
+                              ? `Greška pri spremanju ${product.name}`
+                              : `Spremi promjene za ${product.name}`
+                        }
                       >
                         {savingId === product.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
