@@ -1,6 +1,7 @@
 // src/lib/fiscal/fiscal-pipeline.ts
 import { db } from "@/lib/db"
 import { FiscalRequest } from "@prisma/client"
+import { randomFillSync } from "crypto"
 import { decryptWithEnvelope } from "./envelope-encryption"
 import { parseP12Certificate, forgeToPem } from "./certificate-parser"
 import { buildRacunRequest, buildStornoRequest, FiscalInvoiceData } from "./xml-builder"
@@ -34,94 +35,114 @@ export async function executeFiscalRequest(request: FiscalRequest): Promise<Pipe
     throw { poreznaCode: "p003", message: "Certificate has expired" }
   }
 
-  // 2. Decrypt certificate
-  const decryptedPayload = decryptWithEnvelope(
-    certificate.encryptedP12,
-    certificate.encryptedDataKey
-  )
-  const { p12, password } = JSON.parse(decryptedPayload)
-  const p12Buffer = Buffer.from(p12, "base64")
+  // 2. Decrypt certificate and setup secure cleanup
+  // Security: Use try-finally to ensure sensitive data is zeroed even on errors
+  let p12Buffer: Buffer | null = null
+  let credentials: { privateKeyPem: string; certPem: string } | null = null
 
-  const parsedCert = await parseP12Certificate(p12Buffer, password)
-  const credentials = forgeToPem(parsedCert.privateKey, parsedCert.certificate)
-
-  // 3. Load invoice data
-  const invoice = await db.eInvoice.findUnique({
-    where: { id: request.invoiceId! },
-    include: {
-      lines: true,
-      company: true,
-    },
-  })
-
-  if (!invoice) {
-    throw { poreznaCode: "p004", message: "Invoice not found" }
-  }
-
-  // 4. Build fiscal invoice structure
-  const fiscalInvoice = mapToFiscalInvoice(invoice)
-
-  // 5. Build XML
-  let buildResult
-  if (request.messageType === "STORNO" && invoice.jir) {
-    buildResult = buildStornoRequest(
-      fiscalInvoice,
-      invoice.jir,
-      credentials.privateKeyPem,
-      certificate.oibExtracted
+  try {
+    const decryptedPayload = decryptWithEnvelope(
+      certificate.encryptedP12,
+      certificate.encryptedDataKey
     )
-  } else {
-    buildResult = buildRacunRequest(
-      fiscalInvoice,
-      credentials.privateKeyPem,
-      certificate.oibExtracted
-    )
-  }
+    const { p12, password } = JSON.parse(decryptedPayload)
 
-  const { xml, zki, messageId } = buildResult
+    // Security: Store in Buffer which can be securely zeroed
+    p12Buffer = Buffer.from(p12, "base64")
 
-  // Store request XML
-  await db.fiscalRequest.update({
-    where: { id: request.id },
-    data: { requestXml: xml, zki },
-  })
+    const parsedCert = await parseP12Certificate(p12Buffer, password)
+    credentials = forgeToPem(parsedCert.privateKey, parsedCert.certificate)
 
-  // 6. Sign XML
-  const signedXml = signXML(xml, credentials)
+    // Note: password string remains in memory (JS strings are immutable)
+    // but we minimize its lifetime by scoping it to this block
 
-  // Store signed XML
-  await db.fiscalRequest.update({
-    where: { id: request.id },
-    data: { signedXml },
-  })
+    // 3. Load invoice data
+    const invoice = await db.eInvoice.findUnique({
+      where: { id: request.invoiceId! },
+      include: {
+        lines: true,
+        company: true,
+      },
+    })
 
-  // 7. Submit to Porezna
-  const response = await submitToPorezna(signedXml, certificate.environment)
-
-  // Store response
-  await db.fiscalRequest.update({
-    where: { id: request.id },
-    data: { responseXml: response.rawResponse },
-  })
-
-  // Update certificate last used
-  await db.fiscalCertificate.update({
-    where: { id: certificate.id },
-    data: { lastUsedAt: new Date() },
-  })
-
-  if (response.success) {
-    return {
-      success: true,
-      jir: response.jir,
-      zki: response.zki || zki,
-      responseXml: response.rawResponse,
+    if (!invoice) {
+      throw { poreznaCode: "p004", message: "Invoice not found" }
     }
-  } else {
-    throw {
-      poreznaCode: response.errorCode,
-      message: response.errorMessage || "Unknown error",
+
+    // 4. Build fiscal invoice structure
+    const fiscalInvoice = mapToFiscalInvoice(invoice)
+
+    // 5. Build XML
+    let buildResult
+    if (request.messageType === "STORNO" && invoice.jir) {
+      buildResult = buildStornoRequest(
+        fiscalInvoice,
+        invoice.jir,
+        credentials.privateKeyPem,
+        certificate.oibExtracted
+      )
+    } else {
+      buildResult = buildRacunRequest(
+        fiscalInvoice,
+        credentials.privateKeyPem,
+        certificate.oibExtracted
+      )
     }
+
+    const { xml, zki, messageId } = buildResult
+
+    // Store request XML
+    await db.fiscalRequest.update({
+      where: { id: request.id },
+      data: { requestXml: xml, zki },
+    })
+
+    // 6. Sign XML
+    const signedXml = signXML(xml, credentials)
+
+    // Store signed XML
+    await db.fiscalRequest.update({
+      where: { id: request.id },
+      data: { signedXml },
+    })
+
+    // 7. Submit to Porezna
+    const response = await submitToPorezna(signedXml, certificate.environment)
+
+    // Store response
+    await db.fiscalRequest.update({
+      where: { id: request.id },
+      data: { responseXml: response.rawResponse },
+    })
+
+    // Update certificate last used
+    await db.fiscalCertificate.update({
+      where: { id: certificate.id },
+      data: { lastUsedAt: new Date() },
+    })
+
+    if (response.success) {
+      return {
+        success: true,
+        jir: response.jir,
+        zki: response.zki || zki,
+        responseXml: response.rawResponse,
+      }
+    } else {
+      throw {
+        poreznaCode: response.errorCode,
+        message: response.errorMessage || "Unknown error",
+      }
+    }
+  } finally {
+    // Security: Zero sensitive buffers to prevent memory exposure
+    // This ensures cleanup even if errors occur during processing
+    if (p12Buffer) {
+      randomFillSync(p12Buffer)
+    }
+
+    // Clear credentials reference (though strings can't be securely zeroed in JS)
+    credentials = null
   }
 }
 
