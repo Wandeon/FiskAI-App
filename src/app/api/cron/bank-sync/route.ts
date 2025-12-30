@@ -40,15 +40,7 @@ async function handleBankSync(request: Request) {
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
   }
 
-  const cronSecret = process.env.CRON_SECRET
-
-  // SECURITY: Require CRON_SECRET to be configured
-  if (!cronSecret) {
-    console.error("[cron] CRON_SECRET not configured")
-    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
-  }
-
-  if (authHeader !== `Bearer `) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

@@ -26,7 +26,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const expectedToken = \`DEMOTE_\${userId}_\${user.id}\`
+    const expectedToken = `DEMOTE_${userId}_${user.id}`
     if (confirmationToken !== expectedToken) {
       return NextResponse.json({ error: "Invalid confirmation token" }, { status: 400 })
     }

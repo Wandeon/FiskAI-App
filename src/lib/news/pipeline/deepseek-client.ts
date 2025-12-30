@@ -100,11 +100,11 @@ async function callOllamaCloud(
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const response = await fetch(\`\${endpoint}/api/chat\`, {
+      const response = await fetch(`${endpoint}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: \`Bearer \${apiKey}\`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model,
@@ -121,7 +121,7 @@ async function callOllamaCloud(
       if (!response.ok) {
         const errorBody = await response.text()
         throw new DeepSeekError(
-          \`Ollama API error: \${response.status} \${response.statusText}\`,
+          `Ollama API error: ${response.status} ${response.statusText}`,
           response.status,
           errorBody
         )
@@ -167,7 +167,7 @@ async function callOllamaCloud(
   })
 
   throw new DeepSeekError(
-    \`Ollama API failed after \${retries} attempts: \${lastError?.message}\`,
+    `Ollama API failed after ${retries} attempts: ${lastError?.message}`,
     undefined,
     lastError
   )
@@ -253,7 +253,7 @@ async function callOpenAI(
   })
 
   throw new DeepSeekError(
-    \`OpenAI API failed after \${retries} attempts: \${lastError?.message}\`,
+    `OpenAI API failed after ${retries} attempts: ${lastError?.message}`,
     undefined,
     lastError
   )
@@ -322,7 +322,7 @@ export async function callDeepSeek(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: \`Bearer \${apiKey}\`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(requestBody),
       })
@@ -330,7 +330,7 @@ export async function callDeepSeek(
       if (!response.ok) {
         const errorBody = await response.text()
         throw new DeepSeekError(
-          \`DeepSeek API error: \${response.status} \${response.statusText}\`,
+          `DeepSeek API error: ${response.status} ${response.statusText}`,
           response.status,
           errorBody
         )
@@ -384,7 +384,7 @@ export async function callDeepSeek(
   })
 
   throw new DeepSeekError(
-    \`DeepSeek API failed after \${retries} attempts: \${lastError?.message}\`,
+    `DeepSeek API failed after ${retries} attempts: ${lastError?.message}`,
     undefined,
     lastError
   )
@@ -412,7 +412,7 @@ export async function callDeepSeekJSON<T>(
     return JSON.parse(response) as T
   } catch (error) {
     throw new DeepSeekError(
-      \`Failed to parse DeepSeek JSON response: \${(error as Error).message}\`,
+      `Failed to parse DeepSeek JSON response: ${(error as Error).message}`,
       undefined,
       response
     )

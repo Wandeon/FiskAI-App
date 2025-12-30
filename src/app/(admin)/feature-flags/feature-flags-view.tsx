@@ -541,4 +541,3 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
  </div>
  )
 }
-}

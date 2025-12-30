@@ -110,6 +110,7 @@ export type { DirectImpact, MatchType, TransitiveImpact } from "./blast-radius"
 
 // Utility: Get component by ID
 export function getComponent(componentId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { DECLARED_COMPONENTS } = require("./declarations")
   return DECLARED_COMPONENTS.find(
     (c: { componentId: string; aliases?: string[] }) =>
@@ -119,12 +120,14 @@ export function getComponent(componentId: string) {
 
 // Utility: Get components by type
 export function getComponentsByType(type: string) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { DECLARED_COMPONENTS } = require("./declarations")
   return DECLARED_COMPONENTS.filter((c: { type: string }) => c.type === type)
 }
 
 // Utility: Get critical path by ID
 export function getCriticalPath(pathId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { CRITICAL_PATHS } = require("./declarations")
   return CRITICAL_PATHS.find((p: { pathId: string }) => p.pathId === pathId)
 }
@@ -134,6 +137,7 @@ export function getCriticalPathComponents(pathId: string) {
   const path = getCriticalPath(pathId)
   if (!path) return []
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { DECLARED_COMPONENTS } = require("./declarations")
   return path.components
     .map((id: string) => getComponent(id))

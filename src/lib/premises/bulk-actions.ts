@@ -27,10 +27,10 @@ interface BulkImportResult {
  * Parse CSV content for premises import
  * Expected columns: code, name, address (optional), isDefault (optional)
  */
-export function parsePremisesCsv(csvContent: string): {
+export async function parsePremisesCsv(csvContent: string): Promise<{
   rows: BulkImportRow[]
   errors: string[]
-} {
+}> {
   const lines = csvContent.trim().split("\n")
   if (lines.length < 2) {
     return { rows: [], errors: ["CSV datoteka je prazna ili nema podataka"] }
@@ -328,7 +328,7 @@ export async function bulkAssignDevices(
 /**
  * Generate CSV template for premises import
  */
-export function generatePremisesTemplate(): string {
+export async function generatePremisesTemplate(): Promise<string> {
   return `kod,naziv,adresa,zadani
 1,Glavni ured,"Ilica 123, Zagreb",da
 2,Poslovnica Centar,"Trg bana Jelacica 1, Zagreb",ne

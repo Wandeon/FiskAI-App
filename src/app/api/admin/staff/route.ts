@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Confirmation token is required for role changes" }, { status: 400 })
     }
 
-    const expectedToken = \`PROMOTE_\${email.toLowerCase()}_\${user.id}\`
+    const expectedToken = `PROMOTE_${email.toLowerCase()}_${user.id}`
     if (confirmationToken !== expectedToken) {
       return NextResponse.json({ error: "Invalid confirmation token" }, { status: 400 })
     }
