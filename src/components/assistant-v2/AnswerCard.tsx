@@ -35,8 +35,8 @@ export const AnswerCard = forwardRef<HTMLHeadingElement, AnswerCardProps>(functi
       {/* Key details */}
       {keyDetails && keyDetails.length > 0 && (
         <ul className="mt-4 space-y-1.5" role="list">
-          {keyDetails.map((detail, i) => (
-            <li key={i} className="text-sm flex items-start gap-2">
+          {keyDetails.map((detail) => (
+            <li key={detail} className="text-sm flex items-start gap-2">
               <span className="text-primary mt-0.5">•</span>
               <span>{detail}</span>
             </li>

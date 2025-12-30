@@ -26,9 +26,9 @@ export function RelatedQuestions({ questions, onSelect, className }: RelatedQues
       <h4 className="text-sm font-medium text-muted-foreground mb-2">Related questions</h4>
 
       <div className="flex flex-wrap gap-2">
-        {displayQuestions.map((question, i) => (
+        {displayQuestions.map((question) => (
           <button
-            key={i}
+            key={question}
             type="button"
             onClick={() => onSelect(question)}
             className={cn(

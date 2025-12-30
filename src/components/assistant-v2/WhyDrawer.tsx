@@ -51,8 +51,8 @@ export function WhyDrawer({ bullets, isExpanded, onClose, className }: WhyDrawer
       </div>
 
       <ul className="space-y-2">
-        {bullets.map((bullet, i) => (
-          <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+        {bullets.map((bullet) => (
+          <li key={bullet} className="text-sm text-muted-foreground flex items-start gap-2">
             <span className="text-primary mt-0.5 shrink-0">•</span>
             <span>{bullet}</span>
           </li>
