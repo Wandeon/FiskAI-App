@@ -270,6 +270,16 @@ async function retryPendingNotifications(results: {
 
 /**
  * Send a new notification for a certificate
+ *
+ * Uses a "claim-then-send" pattern to prevent duplicate emails:
+ * 1. Upsert a PENDING record first (acts as a distributed lock via unique constraint)
+ * 2. Only the instance that successfully creates/claims the PENDING record proceeds
+ * 3. Send the email
+ * 4. Update to SENT on success, or RETRYING on failure
+ *
+ * This prevents duplicates when:
+ * - Multiple cron instances run concurrently
+ * - Email succeeds but subsequent DB write fails
  */
 async function sendNewNotification(
   cert: ExpiringCertificate,
@@ -286,27 +296,74 @@ async function sendNewNotification(
       error: string
       willRetry: boolean
     }>
+    skipped: Array<{
+      companyId: string
+      daysRemaining: number
+      reason: string
+    }>
   }
 ) {
+  // Step 1: Claim ownership by creating a PENDING record first
+  // The unique constraint on (certificateId, notificationDay) ensures only one
+  // instance can successfully create this record. Others will get a conflict.
+  let notification
   try {
-    // Send the notification email
-    await sendCertificateExpiryNotification(cert)
-
-    // Update tracking to prevent duplicate notifications
-    await updateNotificationTracking(cert.certificateId, notificationDay)
-
-    // Record successful notification
-    await db.certificateNotification.create({
-      data: {
+    notification = await db.certificateNotification.upsert({
+      where: {
+        certificateId_notificationDay: {
+          certificateId: cert.certificateId,
+          notificationDay,
+        },
+      },
+      // If record exists, don't modify it - we lost the race
+      update: {},
+      // Create new PENDING record to claim ownership
+      create: {
         certificateId: cert.certificateId,
         companyId: cert.companyId,
         notificationDay,
+        status: CertificateNotificationStatus.PENDING,
+        attemptCount: 0,
+        maxAttempts: MAX_RETRY_ATTEMPTS,
+      },
+    })
+
+    // If the record already existed (not PENDING or attemptCount > 0), another instance owns it
+    if (notification.status !== CertificateNotificationStatus.PENDING || notification.attemptCount > 0) {
+      results.skipped.push({
+        companyId: cert.companyId,
+        daysRemaining: cert.daysRemaining,
+        reason: `notification_already_${notification.status.toLowerCase()}_for_${notificationDay}_days`,
+      })
+      return
+    }
+  } catch (claimError) {
+    // Unique constraint violation means another instance claimed it
+    console.warn(`Could not claim notification for ${cert.companyId} (${notificationDay} days): already claimed`)
+    results.skipped.push({
+      companyId: cert.companyId,
+      daysRemaining: cert.daysRemaining,
+      reason: `notification_claimed_by_another_instance_for_${notificationDay}_days`,
+    })
+    return
+  }
+
+  // Step 2: We own the PENDING record - now send the email
+  try {
+    await sendCertificateExpiryNotification(cert)
+
+    // Step 3a: Email sent successfully - update to SENT
+    await db.certificateNotification.update({
+      where: { id: notification.id },
+      data: {
         status: CertificateNotificationStatus.SENT,
         attemptCount: 1,
-        maxAttempts: MAX_RETRY_ATTEMPTS,
         sentAt: new Date(),
       },
     })
+
+    // Update tracking to prevent duplicate notifications at this interval
+    await updateNotificationTracking(cert.certificateId, notificationDay)
 
     results.newNotificationsSent.push({
       companyId: cert.companyId,
@@ -314,22 +371,18 @@ async function sendNewNotification(
       notificationDay,
     })
   } catch (emailError) {
+    // Step 3b: Email failed - schedule for retry
     const errorMessage = emailError instanceof Error ? emailError.message : "Unknown error"
-
     console.error(`Failed to send notification for ${cert.companyId}:`, emailError)
 
-    // Create a notification record for retry
     const retryDelay = RETRY_DELAYS[0] // First retry delay (1 hour)
     const nextRetryAt = new Date(Date.now() + retryDelay)
 
-    await db.certificateNotification.create({
+    await db.certificateNotification.update({
+      where: { id: notification.id },
       data: {
-        certificateId: cert.certificateId,
-        companyId: cert.companyId,
-        notificationDay,
         status: CertificateNotificationStatus.RETRYING,
         attemptCount: 1,
-        maxAttempts: MAX_RETRY_ATTEMPTS,
         nextRetryAt,
         error: errorMessage,
       },
