@@ -162,6 +162,8 @@ model Company {
   staffReviews                   StaffReview[]
   adminAlerts                    AdminAlert[]
   bankImports                    BankImport[]
+  fixedAssets                    FixedAsset[]
+  assetCandidates                AssetCandidate[]
 }
 
 // Audit trail for module entitlement changes
@@ -3686,3 +3688,143 @@ model CronJobError {
   @@index([createdAt])
 }
 
+// ============================================================================
+// ASSET REGISTRY & DEPRECIATION
+// ============================================================================
+
+model FixedAsset {
+  id                 String              @id @default(cuid())
+  companyId          String
+  name               String
+  category           AssetCategory
+  acquisitionDate    DateTime
+  acquisitionCost    Decimal             @db.Decimal(12, 2)
+  salvageValue       Decimal             @default(0) @db.Decimal(12, 2)
+  usefulLifeMonths   Int
+  depreciationMethod DepreciationMethod
+  status             AssetStatus         @default(ACTIVE)
+  disposedAt         DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  depreciationSchedule  DepreciationSchedule?
+  depreciationEntries   DepreciationEntry[]
+  disposalEvents        DisposalEvent[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([acquisitionDate])
+}
+
+model DepreciationSchedule {
+  id               String                     @id @default(cuid())
+  assetId          String                     @unique
+  method           DepreciationMethod
+  periodMonths     Int                        @default(1)
+  startDate        DateTime
+  endDate          DateTime
+  totalDepreciation Decimal                   @db.Decimal(12, 2)
+  status           DepreciationScheduleStatus @default(LOCKED)
+  lockedAt         DateTime?
+  createdAt        DateTime                   @default(now())
+
+  asset   FixedAsset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  entries DepreciationEntry[]
+
+  @@index([assetId])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model DepreciationEntry {
+  id                 String   @id @default(cuid())
+  scheduleId         String
+  assetId            String
+  periodStart        DateTime
+  periodEnd          DateTime
+  sequence           Int
+  amount             Decimal  @db.Decimal(12, 2)
+  accumulatedAmount  Decimal  @db.Decimal(12, 2)
+  createdAt          DateTime @default(now())
+
+  schedule DepreciationSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  asset    FixedAsset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, sequence])
+  @@index([assetId, periodStart])
+  @@index([periodEnd])
+}
+
+model DisposalEvent {
+  id           String   @id @default(cuid())
+  assetId      String
+  disposalDate DateTime
+  proceeds     Decimal? @db.Decimal(12, 2)
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  asset FixedAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([disposalDate])
+}
+
+model AssetCandidate {
+  id               String               @id @default(cuid())
+  companyId        String
+  source           AssetCandidateSource
+  sourceReference  String
+  name             String
+  category         AssetCategory
+  acquisitionDate  DateTime
+  acquisitionCost  Decimal              @db.Decimal(12, 2)
+  usefulLifeMonths Int?
+  metadata         Json?
+  status           AssetCandidateStatus  @default(PENDING)
+  convertedAssetId String?               @unique
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  convertedAsset FixedAsset? @relation(fields: [convertedAssetId], references: [id])
+
+  @@unique([companyId, source, sourceReference])
+  @@index([status])
+  @@index([companyId])
+}
+
+enum AssetCategory {
+  BUILDING
+  EQUIPMENT
+  FURNITURE
+  VEHICLE
+  INTANGIBLE
+  OTHER
+}
+
+enum AssetStatus {
+  ACTIVE
+  PAUSED
+  DISPOSED
+}
+
+enum DepreciationMethod {
+  STRAIGHT_LINE
+  DECLINING_BALANCE
+  MANUAL
+}
+
+enum DepreciationScheduleStatus {
+  LOCKED
+}
+
+enum AssetCandidateStatus {
+  PENDING
+  CONVERTED
+  REJECTED
+}
+
+enum AssetCandidateSource {
+  PROCUREMENT
+}
