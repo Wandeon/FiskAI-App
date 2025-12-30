@@ -15,16 +15,15 @@ export async function GET(request: Request) {
   }
 
   const batchSize = 10
-  const lockDurationMs = 60000
   const workerId = `worker-${crypto.randomUUID().slice(0, 8)}`
-  // Calculate stale lock cutoff in TypeScript to avoid SQL injection
-  const staleLockCutoff = new Date(Date.now() - lockDurationMs)
 
   try {
     // Recover stale locks first
     await recoverStaleLocks()
 
     // Acquire jobs with row locking
+    // Use database NOW() to prevent race conditions from clock skew between app servers
+    // Add minimum lock age (60s) to prevent processing locks that were just acquired
     const jobs = await db.$queryRaw<FiscalRequest[]>`
       UPDATE "FiscalRequest"
       SET
@@ -36,7 +35,7 @@ export async function GET(request: Request) {
         WHERE "status" IN ('QUEUED', 'FAILED')
           AND "nextRetryAt" <= NOW()
           AND "attemptCount" < "maxAttempts"
-          AND ("lockedAt" IS NULL OR "lockedAt" < ${staleLockCutoff})
+          AND ("lockedAt" IS NULL OR "lockedAt" < NOW() - INTERVAL '60 seconds')
         ORDER BY "nextRetryAt" ASC
         FOR UPDATE SKIP LOCKED
         LIMIT ${batchSize}
@@ -207,18 +206,16 @@ function calculateNextRetry(attemptCount: number): Date {
 }
 
 async function recoverStaleLocks() {
-  const staleLockThreshold = 5 * 60 * 1000 // 5 minutes
-
-  await db.fiscalRequest.updateMany({
-    where: {
-      status: "PROCESSING",
-      lockedAt: { lt: new Date(Date.now() - staleLockThreshold) },
-    },
-    data: {
-      status: "FAILED",
-      lockedAt: null,
-      lockedBy: null,
-      errorMessage: "Lock expired - worker may have crashed",
-    },
-  })
+  // Use database NOW() and transaction isolation to prevent recovering locks
+  // that are actively being processed by slow-running jobs
+  await db.$executeRaw`
+    UPDATE "FiscalRequest"
+    SET
+      "status" = 'FAILED',
+      "lockedAt" = NULL,
+      "lockedBy" = NULL,
+      "errorMessage" = 'Lock expired - worker may have crashed'
+    WHERE "status" = 'PROCESSING'
+      AND "lockedAt" < NOW() - INTERVAL '5 minutes'
+  `
 }
