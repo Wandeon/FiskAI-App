@@ -44,6 +44,55 @@ Sentry.init({
     "ResizeObserver loop",
   ],
 
+  // Filter out sensitive data before sending to Sentry
+  beforeSend(event) {
+    // Remove sensitive headers
+    if (event.request?.headers) {
+      delete event.request.headers["authorization"]
+      delete event.request.headers["cookie"]
+      delete event.request.headers["x-api-key"]
+    }
+
+    // Redact sensitive URL parameters
+    if (event.request?.url) {
+      try {
+        const url = new URL(event.request.url)
+        // Remove authentication and session tokens
+        url.searchParams.delete("token")
+        url.searchParams.delete("code")
+        url.searchParams.delete("session")
+        url.searchParams.delete("api_key")
+        url.searchParams.delete("apiKey")
+        event.request.url = url.toString()
+      } catch {
+        // Invalid URL, keep original
+      }
+    }
+
+    // Redact sensitive data from breadcrumbs
+    if (event.breadcrumbs) {
+      event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
+        // Redact sensitive URL parameters in breadcrumb URLs
+        if (breadcrumb.data?.url) {
+          try {
+            const url = new URL(breadcrumb.data.url)
+            url.searchParams.delete("token")
+            url.searchParams.delete("code")
+            url.searchParams.delete("session")
+            url.searchParams.delete("api_key")
+            url.searchParams.delete("apiKey")
+            breadcrumb.data.url = url.toString()
+          } catch {
+            // Invalid URL, keep original
+          }
+        }
+        return breadcrumb
+      })
+    }
+
+    return event
+  },
+
   // Only send errors in production
   enabled: process.env.NODE_ENV === "production",
 })
