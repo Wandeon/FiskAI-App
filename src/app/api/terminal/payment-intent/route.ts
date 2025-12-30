@@ -39,10 +39,19 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    await requireAuth()
+    const user = await requireAuth()
+    const company = await requireCompany(user.id!)
     const body = await request.json()
 
     const input = processSchema.parse(body)
+
+    // Verify the reader belongs to this company
+    if (company.stripeTerminalReaderId !== input.readerId) {
+      return NextResponse.json(
+        { error: "Reader not authorized for this company" },
+        { status: 403 }
+      )
+    }
 
     const result = await processPaymentOnReader({
       readerId: input.readerId,
