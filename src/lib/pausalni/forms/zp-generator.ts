@@ -375,6 +375,7 @@ export interface EuTransactionRecord {
   transactionDate: Date
   amount: string // Decimal stored as string
   direction: string // "RECEIVED" or "PROVIDED"
+  transactionType?: string | null // "SERVICES" or "GOODS"
 }
 
 export function convertEuTransactionsToZp(transactions: EuTransactionRecord[]): ZpTransaction[] {
@@ -385,7 +386,7 @@ export function convertEuTransactionsToZp(transactions: EuTransactionRecord[]): 
         tx.counterpartyCountry &&
         tx.counterpartyCountry !== "HR" &&
         tx.counterpartyVatId &&
-        tx.direction === "RECEIVED" // Services we received (paid for)
+        tx.direction === "RECEIVED" // Services/goods we received (paid for)
       )
     })
     .map((tx) => ({
@@ -394,7 +395,8 @@ export function convertEuTransactionsToZp(transactions: EuTransactionRecord[]): 
       vendorName: tx.counterpartyName || undefined,
       transactionDate: new Date(tx.transactionDate),
       amount: parseFloat(tx.amount),
-      isGoodsDelivery: false, // Paušalni typically deals with services, not goods
+      // Use transactionType from database, default to SERVICES for backwards compatibility
+      isGoodsDelivery: tx.transactionType === "GOODS",
       isTriangularTransaction: false,
     }))
 }

@@ -113,6 +113,10 @@ export const euTransaction = pgTable(
     counterpartyName: varchar("counterparty_name", { length: 255 }),
     counterpartyCountry: varchar("counterparty_country", { length: 2 }),
     counterpartyVatId: varchar("counterparty_vat_id", { length: 20 }),
+    // VIES validation fields
+    viesValidated: boolean("vies_validated").default(false),
+    viesValidatedAt: timestamp("vies_validated_at"),
+    viesValid: boolean("vies_valid"),
     transactionDate: date("transaction_date").notNull(),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
     currency: varchar("currency", { length: 3 }).default("EUR"),
@@ -124,6 +128,10 @@ export const euTransaction = pgTable(
     detectionMethod: varchar("detection_method", { length: 20 }),
     confidenceScore: integer("confidence_score"),
     userConfirmed: boolean("user_confirmed").default(false),
+    // Transaction type: SERVICES or GOODS (for Intrastat)
+    transactionType: varchar("transaction_type", { length: 20 }).default("SERVICES"),
+    // Intrastat specific fields (only for goods)
+    intrastatReportable: boolean("intrastat_reportable").default(false),
     createdAt: timestamp("created_at").defaultNow(),
   },
   (table) => ({
@@ -131,6 +139,41 @@ export const euTransaction = pgTable(
       table.companyId,
       table.reportingYear,
       table.reportingMonth
+    ),
+    transactionTypeIdx: index("eu_transaction_type_idx").on(
+      table.companyId,
+      table.transactionType
+    ),
+  })
+)
+
+// Intrastat annual tracking for goods movement thresholds
+export const intrastatTracking = pgTable(
+  "intrastat_tracking",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => company.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    // Cumulative goods values for threshold checking
+    arrivalsTotal: decimal("arrivals_total", { precision: 12, scale: 2 }).default("0"),
+    dispatchesTotal: decimal("dispatches_total", { precision: 12, scale: 2 }).default("0"),
+    // Threshold breach tracking
+    arrivalsThresholdBreached: boolean("arrivals_threshold_breached").default(false),
+    arrivalsThresholdBreachedAt: timestamp("arrivals_threshold_breached_at"),
+    dispatchesThresholdBreached: boolean("dispatches_threshold_breached").default(false),
+    dispatchesThresholdBreachedAt: timestamp("dispatches_threshold_breached_at"),
+    // Warning tracking (80% threshold)
+    arrivalsWarningShown: boolean("arrivals_warning_shown").default(false),
+    dispatchesWarningShown: boolean("dispatches_warning_shown").default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    companyYearIdx: uniqueIndex("intrastat_tracking_company_year_idx").on(
+      table.companyId,
+      table.year
     ),
   })
 )

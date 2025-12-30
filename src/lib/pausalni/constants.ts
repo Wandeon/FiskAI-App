@@ -68,6 +68,25 @@ export const DEADLINES = {
 // VAT threshold for paušalni obrt
 export const VAT_THRESHOLD_2025 = 60000 // EUR
 
+// Intrastat thresholds (in EUR) - Annual cumulative values
+export const INTRASTAT_THRESHOLDS = {
+  ARRIVALS: 350000, // Goods arriving into Croatia from EU
+  DISPATCHES: 200000, // Goods dispatched from Croatia to EU
+  WARNING_THRESHOLD: 0.8, // Warn at 80% of threshold
+} as const
+
+// Transaction type classification
+export const TRANSACTION_TYPES = {
+  SERVICES: "SERVICES",
+  GOODS: "GOODS",
+} as const
+
+// VIES (VAT Information Exchange System) configuration
+export const VIES_CONFIG = {
+  SOAP_URL: "https://ec.europa.eu/taxation_customs/vies/services/checkVatService",
+  TIMEOUT_MS: 10000,
+} as const
+
 // EU country codes for IBAN detection
 export const EU_COUNTRY_CODES = [
   "AT",
