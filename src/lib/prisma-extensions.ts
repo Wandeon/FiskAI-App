@@ -136,6 +136,10 @@ const TENANT_MODELS = [
   "BusinessPremises",
   "PaymentDevice",
   "InvoiceSequence",
+  "Payout",
+  "PayoutLine",
+  "PayslipArtifact",
+  "CalculationSnapshot",
   "Employee",
   "EmployeeRole",
   "EmploymentContract",
@@ -180,6 +184,17 @@ type AuditedModel = (typeof AUDITED_MODELS)[number]
 // Once created, it MUST NOT be modified to preserve audit integrity.
 
 const EVIDENCE_IMMUTABLE_FIELDS = ["rawContent", "contentHash", "fetchedAt"] as const
+
+// ============================================
+// PAYOUT SNAPSHOT IMMUTABILITY PROTECTION
+// ============================================
+
+export class CalculationSnapshotImmutabilityError extends Error {
+  constructor() {
+    super("Cannot modify CalculationSnapshot records. Snapshots are immutable once created.")
+    this.name = "CalculationSnapshotImmutabilityError"
+  }
+}
 
 /**
  * Error thrown when attempting to modify immutable evidence fields.
@@ -559,6 +574,55 @@ function getRequestedRuleStatus(data: unknown): string | null {
   return null
 }
 
+function getRequestedPayoutStatus(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null
+  const d = data as Record<string, unknown>
+  const s = d.status
+
+  if (typeof s === "string") return s
+
+  if (s && typeof s === "object") {
+    const setObj = s as Record<string, unknown>
+    if (typeof setObj.set === "string") return setObj.set
+  }
+
+  return null
+}
+
+const PAYOUT_ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ["LOCKED"],
+  LOCKED: ["REPORTED"],
+  REPORTED: [],
+}
+
+export class PayoutStatusTransitionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "PayoutStatusTransitionError"
+  }
+}
+
+function validatePayoutTransition(
+  currentStatus: string,
+  newStatus: string
+): { allowed: boolean; error?: string } {
+  if (currentStatus === newStatus) {
+    return { allowed: true }
+  }
+
+  const allowedTargets = PAYOUT_ALLOWED_TRANSITIONS[currentStatus] ?? []
+  if (!allowedTargets.includes(newStatus)) {
+    return {
+      allowed: false,
+      error:
+        `Illegal payout status transition: ${currentStatus} → ${newStatus}. ` +
+        `Allowed transitions from ${currentStatus}: [${allowedTargets.join(", ") || "none"}].`,
+    }
+  }
+
+  return { allowed: true }
+}
+
 /**
  * Validate status transitions for RegulatoryRule.
  * Returns allowed: true if transition is valid.
@@ -816,6 +880,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
           if (model === "Attachment") {
             await ensureAttachmentMutable(
               prismaBase,
@@ -855,6 +923,88 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "Payout") {
+            const newStatus = getRequestedPayoutStatus(args.data)
+            const existing = await prismaBase.payout.findUnique({
+              where: args.where as Prisma.PayoutWhereUniqueInput,
+              select: { status: true },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot transition payout: payout not found.")
+            }
+
+            if (!newStatus || newStatus === existing.status) {
+              if (existing.status !== "DRAFT") {
+                throw new PayoutStatusTransitionError(
+                  `Cannot edit payout in ${existing.status} state. Locked payouts are immutable.`
+                )
+              }
+            } else {
+              const transition = validatePayoutTransition(existing.status, newStatus)
+              if (!transition.allowed) {
+                throw new PayoutStatusTransitionError(
+                  transition.error ?? "Payout status transition not allowed."
+                )
+              }
+
+              const allowedKeys =
+                existing.status === "DRAFT" && newStatus === "LOCKED"
+                  ? new Set(["status", "lockedAt", "lockedById"])
+                  : new Set(["status", "reportedAt", "reportedById"])
+
+              const disallowedKeys = Object.keys(args.data ?? {}).filter(
+                (key) => !allowedKeys.has(key)
+              )
+
+              if (disallowedKeys.length > 0) {
+                throw new PayoutStatusTransitionError(
+                  `Payout updates during ${existing.status} → ${newStatus} may only set ${Array.from(
+                    allowedKeys
+                  ).join(", ")}. Disallowed: ${disallowedKeys.join(", ")}.`
+                )
+              }
+            }
+          }
+
+          if (model === "PayoutLine") {
+            const existing = await prismaBase.payoutLine.findUnique({
+              where: args.where as Prisma.PayoutLineWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit payout line: payout line not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit payout lines in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "PayslipArtifact") {
+            const existing = await prismaBase.payslipArtifact.findUnique({
+              where: args.where as Prisma.PayslipArtifactWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit payslip artifact: payslip artifact not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit payslip artifacts in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
           if (model === "CashDayClose") {
             throw new CashDayCloseImmutableError("update")
           }
@@ -887,6 +1037,65 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return result
         },
         async delete({ model, args, query }) {
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "Payout") {
+            const existing = await prismaBase.payout.findUnique({
+              where: args.where as Prisma.PayoutWhereUniqueInput,
+              select: { status: true },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot delete payout: payout not found.")
+            }
+
+            if (existing.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payout in ${existing.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "PayoutLine") {
+            const existing = await prismaBase.payoutLine.findUnique({
+              where: args.where as Prisma.PayoutLineWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete payout line: payout line not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payout lines in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "PayslipArtifact") {
+            const existing = await prismaBase.payslipArtifact.findUnique({
+              where: args.where as Prisma.PayslipArtifactWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete payslip artifact: payslip artifact not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payslip artifacts in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
           if (model === "CashDayClose") {
             throw new CashDayCloseImmutableError("delete")
           }
@@ -955,6 +1164,25 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "Payout") {
+            const newStatus = getRequestedPayoutStatus(args.data)
+            if (newStatus) {
+              throw new PayoutStatusTransitionError(
+                "Cannot update Payout.status using updateMany. Use explicit status transition methods."
+              )
+            }
+          }
+
+          if (model === "PayoutLine" || model === "PayslipArtifact") {
+            throw new PayoutStatusTransitionError(
+              "Cannot update payout lines or payslip artifacts using updateMany. Use per-record updates."
+            )
+          }
+
           if (model === "Attachment") {
             await ensureAttachmentMutable(prismaBase, args.where as Prisma.AttachmentWhereInput)
           }
@@ -986,6 +1214,16 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return query(args)
         },
         async deleteMany({ model, args, query }) {
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "PayoutLine" || model === "PayslipArtifact") {
+            throw new PayoutStatusTransitionError(
+              "Cannot delete payout lines or payslip artifacts in bulk. Use per-record deletes."
+            )
+          }
+
           if (model === "CashDayClose") {
             throw new CashDayCloseImmutableError("deleteMany")
           }
@@ -1011,6 +1249,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields in upsert
           if (model === "Evidence" && args.update && typeof args.update === "object") {
             checkEvidenceImmutability(args.update as Record<string, unknown>)
+          }
+
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
           }
 
           if (model === "CashDayClose") {
