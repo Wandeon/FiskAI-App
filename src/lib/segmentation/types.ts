@@ -96,6 +96,7 @@ export const SEGMENTABLE_FIELDS = {
     label: "Has Module",
     description: "Whether company has a specific module enabled",
     options: [
+      "platform-core",
       "invoicing",
       "e-invoicing",
       "fiscalization",

@@ -37,7 +37,14 @@ export interface NavSection {
 export const navigation: NavSection[] = [
   {
     title: "Pregled",
-    items: [{ name: "Nadzorna ploča", href: "/dashboard", icon: LayoutDashboard }],
+    items: [
+      {
+        name: "Nadzorna ploča",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        module: "platform-core",
+      },
+    ],
   },
   {
     title: "Financije",
@@ -88,8 +95,8 @@ export const navigation: NavSection[] = [
   {
     title: "Suradnja",
     items: [
-      { name: "Računovođa", href: "/accountant", icon: UserCog },
-      { name: "Podrška", href: "/support", icon: LifeBuoy },
+      { name: "Računovođa", href: "/accountant", icon: UserCog, module: "platform-core" },
+      { name: "Podrška", href: "/support", icon: LifeBuoy, module: "platform-core" },
     ],
   },
   {
@@ -107,9 +114,10 @@ export const navigation: NavSection[] = [
         name: "Usklađenost",
         href: "/compliance",
         icon: Shield,
+        module: "platform-core",
         showFor: ["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "DOO", "JDOO"],
       },
-      { name: "Postavke", href: "/settings", icon: Settings },
+      { name: "Postavke", href: "/settings", icon: Settings, module: "platform-core" },
     ],
   },
 ]

@@ -11,6 +11,7 @@ import { logAudit } from "@/lib/audit"
  * Available module keys that can be gifted to tenants
  */
 const AVAILABLE_MODULES = [
+  "platform-core",
   "invoicing",
   "e-invoicing",
   "fiscalization",

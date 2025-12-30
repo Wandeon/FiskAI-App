@@ -1,4 +1,5 @@
 export const MODULE_KEYS = [
+  "platform-core",
   "invoicing",
   "e-invoicing",
   "fiscalization",
@@ -31,6 +32,14 @@ export interface ModuleDefinition {
 }
 
 export const MODULES: Record<ModuleKey, ModuleDefinition> = {
+  "platform-core": {
+    key: "platform-core",
+    name: "Platform Core",
+    description: "Core platform access for dashboards, settings, and support",
+    routes: ["/dashboard", "/settings", "/support", "/accountant", "/compliance"],
+    navItems: ["dashboard", "settings", "support", "accountant", "compliance"],
+    defaultEnabled: true,
+  },
   invoicing: {
     key: "invoicing",
     name: "Invoicing",
@@ -179,6 +188,7 @@ export const DEFAULT_ENTITLEMENTS: ModuleKey[] = MODULE_KEYS.filter(
 export function getEntitlementsForLegalForm(legalForm: string | null): ModuleKey[] {
   // Base entitlements for all business types
   const base: ModuleKey[] = [
+    "platform-core",
     "invoicing",
     "e-invoicing",
     "contacts",

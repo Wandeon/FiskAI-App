@@ -605,7 +605,7 @@ async function assertPeriodUnlocked(
   const lockedPeriod = await prismaBase.accountingPeriod.findFirst({
     where: {
       companyId,
-      status: "LOCKED",
+      status: { in: Array.from(LOCKED_PERIOD_STATUSES) },
       startDate: { lte: date },
       endDate: { gte: date },
     },
@@ -681,7 +681,7 @@ async function enforcePeriodLockForBulk(
   if (!companyId) return
 
   const lockedPeriods = await prismaBase.accountingPeriod.findMany({
-    where: { companyId, status: "LOCKED" },
+    where: { companyId, status: { in: Array.from(LOCKED_PERIOD_STATUSES) } },
     select: { startDate: true, endDate: true },
   })
 
@@ -913,6 +913,18 @@ async function ensureAttachmentMutable(
 
   if (immutable) {
     throw new AttachmentImmutabilityError(immutable.id)
+  }
+}
+
+// ============================================
+// ARTIFACT IMMUTABILITY PROTECTION
+// ============================================
+// Artifacts are content-addressed and must remain immutable once stored.
+
+export class ArtifactImmutabilityError extends Error {
+  constructor(action: string) {
+    super(`Cannot ${action} Artifact records: artifacts are immutable once stored.`)
+    this.name = "ArtifactImmutabilityError"
   }
 }
 
@@ -1846,6 +1858,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("update")
+          }
+
           if (model in PERIOD_LOCK_MODELS) {
             const { companyId, date } = await resolvePeriodLockContext(prismaBase, model, {
               data: args.data as Record<string, unknown>,
@@ -2190,6 +2206,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return result
         },
         async delete({ model, args, query }) {
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("delete")
+          }
+
           if (model === "EInvoice") {
             await enforceInvoiceDeleteImmutability(
               prismaBase,
@@ -2382,6 +2402,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("updateMany")
+          }
+
           await enforcePeriodLockForBulk(prismaBase, model, {
             where: args.where as Record<string, unknown>,
           })
@@ -2451,6 +2475,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return query(args)
         },
         async deleteMany({ model, args, query }) {
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("deleteMany")
+          }
+
           if (model === "EInvoice") {
             const lockedInvoice = await prismaBase.eInvoice.findFirst({
               where: {
@@ -2515,6 +2543,10 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields in upsert
           if (model === "Evidence" && args.update && typeof args.update === "object") {
             checkEvidenceImmutability(args.update as Record<string, unknown>)
+          }
+
+          if (model === "Artifact") {
+            throw new ArtifactImmutabilityError("upsert")
           }
 
           if (model in PERIOD_LOCK_MODELS) {

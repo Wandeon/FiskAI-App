@@ -28,7 +28,7 @@ export function PlanSettingsForm({ company }: { company: Company }) {
       return company.entitlements as ModuleKey[]
     }
     // Default set if null or invalid
-    return ["invoicing", "e-invoicing", "expenses", "reports-basic", "documents"]
+    return ["platform-core", "invoicing", "e-invoicing", "expenses", "reports-basic", "documents"]
   })
 
   const [isPending, startTransition] = useTransition()
@@ -187,8 +187,8 @@ export function PlanSettingsForm({ company }: { company: Company }) {
               pravne forme imaju različite porezne obveze
             </li>
             <li>
-              <strong className="text-[var(--foreground)]">Postojeće fakture:</strong> Ranije
-              izdane fakture ostaju pod starom pravnom formom
+              <strong className="text-[var(--foreground)]">Postojeće fakture:</strong> Ranije izdane
+              fakture ostaju pod starom pravnom formom
             </li>
             <li>
               <strong className="text-[var(--foreground)]">PDV status:</strong> Promjena može
