@@ -114,6 +114,33 @@ export async function deleteContact(contactId: string) {
       return { error: "Contact not found" }
     }
 
+    // Check for related invoices (as buyer or seller)
+    const invoiceCount = await db.eInvoice.count({
+      where: {
+        OR: [
+          { buyerId: contactId },
+          { sellerId: contactId }
+        ]
+      }
+    })
+
+    if (invoiceCount > 0) {
+      return {
+        error: `Nije moguće obrisati kontakt koji je referenciran u ${invoiceCount} račun${invoiceCount === 1 ? 'u' : 'a'}. Brisanje bi narušilo integritet podataka i fiskalne zahtjeve za čuvanjem podataka.`
+      }
+    }
+
+    // Check for related expenses
+    const expenseCount = await db.expense.count({
+      where: { vendorId: contactId }
+    })
+
+    if (expenseCount > 0) {
+      return {
+        error: `Nije moguće obrisati kontakt koji je referenciran u ${expenseCount} trošk${expenseCount === 1 ? 'u' : 'a'}. Brisanje bi narušilo integritet podataka i fiskalne zahtjeve za čuvanjem podataka.`
+      }
+    }
+
     await db.contact.delete({
       where: { id: contactId },
     })
