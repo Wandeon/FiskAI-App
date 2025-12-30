@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 import { db } from "@/lib/db"
 import { buildBankInstructions } from "./bank"
 import { runPayrollCalculation, type PayrollRulesEngine } from "./calculations"
@@ -124,4 +126,68 @@ export async function buildPayoutOutputs(payoutId: string): Promise<{
   const bankInstructions = buildBankInstructions(payout.lines, calculationByLine)
 
   return { joppdItems, bankInstructions }
+}
+
+export async function generateBankPaymentExport(params: {
+  payoutId: string
+  createdById?: string | null
+  format?: string
+}) {
+  const payout = await db.payout.findUnique({
+    where: { id: params.payoutId },
+    select: {
+      id: true,
+      companyId: true,
+      status: true,
+      lines: { select: { id: true } },
+    },
+  })
+
+  if (!payout) {
+    throw new Error("Payout not found.")
+  }
+
+  if (payout.status === "DRAFT") {
+    throw new Error("Payout must be locked before generating bank exports.")
+  }
+
+  const { bankInstructions } = await buildPayoutOutputs(params.payoutId)
+  const payoutLineIds = payout.lines.map((line) => line.id)
+
+  const joppdLines = payoutLineIds.length
+    ? await db.joppdSubmissionLine.findMany({
+        where: { payoutLineId: { in: payoutLineIds } },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, payoutLineId: true },
+      })
+    : []
+
+  const joppdLineByPayoutLine = new Map<string, string>()
+  for (const line of joppdLines) {
+    if (!joppdLineByPayoutLine.has(line.payoutLineId)) {
+      joppdLineByPayoutLine.set(line.payoutLineId, line.id)
+    }
+  }
+
+  return db.bankPaymentExport.create({
+    data: {
+      companyId: payout.companyId,
+      payoutId: payout.id,
+      format: params.format ?? "SEPA_CT",
+      createdById: params.createdById ?? undefined,
+      lines: {
+        create: bankInstructions.map((instruction) => ({
+          companyId: payout.companyId,
+          payoutLineId: instruction.payoutLineId,
+          joppdSubmissionLineId: joppdLineByPayoutLine.get(instruction.payoutLineId) ?? undefined,
+          recipientName: instruction.recipientName,
+          recipientIban: instruction.recipientIban ?? null,
+          amount: new Prisma.Decimal(instruction.amount),
+          currency: instruction.currency,
+          reference: instruction.reference ?? null,
+          description: instruction.description ?? null,
+        })),
+      },
+    },
+  })
 }

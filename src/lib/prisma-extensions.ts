@@ -398,10 +398,13 @@ const TENANT_MODELS = [
   "OperationalEvent",
   "Payout",
   "PayoutLine",
+  "Payslip",
   "JoppdSubmission",
   "JoppdSubmissionLine",
   "PayslipArtifact",
   "CalculationSnapshot",
+  "BankPaymentExport",
+  "BankPaymentLine",
   "Employee",
   "EmployeeRole",
   "EmploymentContract",
@@ -1755,6 +1758,40 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "Payslip") {
+            const existing = await prismaBase.payslip.findUnique({
+              where: args.where as Prisma.PayslipWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot edit payslip: payslip not found.")
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit payslips in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "Payslip") {
+            const existing = await prismaBase.payslip.findUnique({
+              where: args.where as Prisma.PayslipWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot delete payslip: payslip not found.")
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payslips in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
           if (model === "PayslipArtifact") {
             const existing = await prismaBase.payslipArtifact.findUnique({
               where: args.where as Prisma.PayslipArtifactWhereUniqueInput,
@@ -1770,6 +1807,44 @@ export function withTenantIsolation(prisma: PrismaClient) {
             if (existing.payout.status !== "DRAFT") {
               throw new PayoutStatusTransitionError(
                 `Cannot edit payslip artifacts in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "BankPaymentExport") {
+            const existing = await prismaBase.bankPaymentExport.findUnique({
+              where: args.where as Prisma.BankPaymentExportWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit bank payment export: export not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit bank payment exports in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "BankPaymentLine") {
+            const existing = await prismaBase.bankPaymentLine.findUnique({
+              where: args.where as Prisma.BankPaymentLineWhereUniqueInput,
+              select: { export: { select: { payout: { select: { status: true } } } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit bank payment line: payment line not found."
+              )
+            }
+
+            if (existing.export.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit bank payment lines in ${existing.export.payout.status} state. Locked payouts are immutable.`
               )
             }
           }
@@ -1911,6 +1986,44 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "BankPaymentExport") {
+            const existing = await prismaBase.bankPaymentExport.findUnique({
+              where: args.where as Prisma.BankPaymentExportWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete bank payment export: export not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete bank payment exports in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "BankPaymentLine") {
+            const existing = await prismaBase.bankPaymentLine.findUnique({
+              where: args.where as Prisma.BankPaymentLineWhereUniqueInput,
+              select: { export: { select: { payout: { select: { status: true } } } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete bank payment line: payment line not found."
+              )
+            }
+
+            if (existing.export.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete bank payment lines in ${existing.export.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
           if (model === "CashDayClose") {
             throw new CashDayCloseImmutableError("delete")
           }
@@ -2034,9 +2147,15 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
-          if (model === "PayoutLine" || model === "PayslipArtifact") {
+          if (
+            model === "PayoutLine" ||
+            model === "Payslip" ||
+            model === "PayslipArtifact" ||
+            model === "BankPaymentExport" ||
+            model === "BankPaymentLine"
+          ) {
             throw new PayoutStatusTransitionError(
-              "Cannot update payout lines or payslip artifacts using updateMany. Use per-record updates."
+              "Cannot update payout lines, payslips, bank payment exports, or payslip artifacts using updateMany. Use per-record updates."
             )
           }
 
@@ -2099,9 +2218,15 @@ export function withTenantIsolation(prisma: PrismaClient) {
             throw new CalculationSnapshotImmutabilityError()
           }
 
-          if (model === "PayoutLine" || model === "PayslipArtifact") {
+          if (
+            model === "PayoutLine" ||
+            model === "Payslip" ||
+            model === "PayslipArtifact" ||
+            model === "BankPaymentExport" ||
+            model === "BankPaymentLine"
+          ) {
             throw new PayoutStatusTransitionError(
-              "Cannot delete payout lines or payslip artifacts in bulk. Use per-record deletes."
+              "Cannot delete payout lines, payslips, bank payment exports, or payslip artifacts in bulk. Use per-record deletes."
             )
           }
 

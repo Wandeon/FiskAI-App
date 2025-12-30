@@ -11,7 +11,8 @@ const toNumber = (value: unknown): number => {
 
 type PayoutLineLike = {
   id: string
-  employeeName: string
+  employeeName?: string | null
+  recipientName?: string | null
   employeeIban?: string | null
   netAmount: unknown
   currency: string
@@ -24,9 +25,11 @@ export function buildBankInstructions(
   return lines.map((line) => {
     const calculated = calculationByLine.get(line.id)
     const netAmount = calculated?.netAmount ?? line.netAmount
+    const recipientName = line.employeeName ?? line.recipientName ?? "Unknown recipient"
 
     return {
-      recipientName: line.employeeName,
+      payoutLineId: line.id,
+      recipientName,
       recipientIban: line.employeeIban ?? undefined,
       amount: toNumber(netAmount),
       currency: line.currency,

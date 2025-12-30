@@ -40,6 +40,12 @@ model User {
   generatedTravelPdfs  TravelPdf[]            @relation("TravelPdfGeneratedBy")
   closedAccountingPeriods AccountingPeriod[]
   journalEntriesCreated   JournalEntry[]
+  payoutsLocked        Payout[]              @relation("PayoutLockedBy")
+  payoutsReported      Payout[]              @relation("PayoutReportedBy")
+  calculationSnapshotsCreated CalculationSnapshot[] @relation("CalculationSnapshotCreator")
+  payslipArtifactsCreated PayslipArtifact[]  @relation("PayslipArtifactCreator")
+  bankPaymentExportsCreated BankPaymentExport[] @relation("BankPaymentExportCreator")
+  bankPaymentExportsExported BankPaymentExport[] @relation("BankPaymentExportExporter")
 }
 
 model Account {
@@ -183,6 +189,12 @@ model Company {
   statementPages                 StatementPage[]
   supportTickets                 SupportTicket[]
   joppdSubmissions               JoppdSubmission[]
+  payoutLines                    PayoutLine[]
+  calculationSnapshots           CalculationSnapshot[]
+  payslips                       Payslip[]
+  payslipArtifacts               PayslipArtifact[]
+  bankPaymentExports             BankPaymentExport[]
+  bankPaymentLines               BankPaymentLine[]
   statementTransactions          Transaction[]
   travelOrders                   TravelOrder[]
   travelPdfs                     TravelPdf[]
@@ -2205,37 +2217,188 @@ model generated_form {
 }
 
 model Payout {
-  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId   String       @map("company_id")
-  payoutDate  DateTime     @map("payout_date") @db.Date
-  periodYear  Int          @map("period_year")
-  periodMonth Int          @map("period_month")
-  description String?      @map("description") @db.VarChar(255)
-  createdAt   DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt   DateTime?    @updatedAt @map("updated_at") @db.Timestamp(6)
-  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  lines       PayoutLine[]
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId    String       @map("company_id")
+  payoutDate   DateTime     @map("payout_date") @db.Date
+  periodYear   Int          @map("period_year")
+  periodMonth  Int          @map("period_month")
+  periodFrom   DateTime     @map("period_from") @db.Date
+  periodTo     DateTime     @map("period_to") @db.Date
+  currency     String       @default("EUR") @map("currency") @db.VarChar(3)
+  description  String?      @map("description") @db.VarChar(255)
+  status       PayoutStatus @default(DRAFT)
+  lockedAt     DateTime?    @map("locked_at") @db.Timestamp(6)
+  lockedById   String?      @map("locked_by_id")
+  reportedAt   DateTime?    @map("reported_at") @db.Timestamp(6)
+  reportedById String?      @map("reported_by_id")
+  createdAt    DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime?    @updatedAt @map("updated_at") @db.Timestamp(6)
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  lockedBy     User?        @relation("PayoutLockedBy", fields: [lockedById], references: [id], onDelete: SetNull)
+  reportedBy   User?        @relation("PayoutReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  lines        PayoutLine[]
+  payslips     Payslip[]
+  payslipArtifacts PayslipArtifact[]
+  snapshots    CalculationSnapshot[]
+  bankPaymentExports BankPaymentExport[]
 
   @@index([companyId, periodYear, periodMonth], map: "payout_period_idx")
+  @@index([companyId, status], map: "payout_status_idx")
   @@map("payout")
 }
 
 model PayoutLine {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId     String   @map("company_id")
   payoutId      String   @map("payout_id")
+  employeeId    String?  @map("employee_id")
   lineNumber    Int      @map("line_number")
+  employeeName  String?  @map("employee_name") @db.VarChar(200)
+  employeeOib   String?  @map("employee_oib") @db.VarChar(11)
+  employeeIban  String?  @map("employee_iban") @db.VarChar(34)
   recipientName String?  @map("recipient_name") @db.VarChar(200)
   recipientOib  String?  @map("recipient_oib") @db.VarChar(11)
   grossAmount   Decimal? @map("gross_amount") @db.Decimal(12, 2)
   netAmount     Decimal? @map("net_amount") @db.Decimal(12, 2)
   taxAmount     Decimal? @map("tax_amount") @db.Decimal(12, 2)
+  currency      String   @default("EUR") @map("currency") @db.VarChar(3)
   joppdData     Json?    @map("joppd_data")
   createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   payout        Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   submissions   JoppdSubmissionLine[]
+  payslips      Payslip[]
+  snapshots     CalculationSnapshot[]
+  bankPaymentLines BankPaymentLine[]
 
+  @@index([companyId], map: "payout_line_company_idx")
   @@index([payoutId], map: "payout_line_payout_idx")
+  @@index([employeeId], map: "payout_line_employee_idx")
   @@map("payout_line")
+}
+
+model Payslip {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId             String   @map("company_id")
+  payoutId              String   @map("payout_id")
+  payoutLineId          String   @map("payout_line_id")
+  employeeId            String?  @map("employee_id")
+  employeeName          String?  @map("employee_name") @db.VarChar(200)
+  employeeOib           String?  @map("employee_oib") @db.VarChar(11)
+  employeeIban          String?  @map("employee_iban") @db.VarChar(34)
+  currency              String   @default("EUR") @map("currency") @db.VarChar(3)
+  grossAmount           Decimal? @map("gross_amount") @db.Decimal(12, 2)
+  netAmount             Decimal? @map("net_amount") @db.Decimal(12, 2)
+  taxAmount             Decimal? @map("tax_amount") @db.Decimal(12, 2)
+  calculationSnapshotId String?  @map("calculation_snapshot_id")
+  issuedAt              DateTime? @map("issued_at") @db.Date
+  createdAt             DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  payout                Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine            PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
+  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee              Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  calculationSnapshot   CalculationSnapshot? @relation(fields: [calculationSnapshotId], references: [id], onDelete: SetNull)
+  artifacts             PayslipArtifact[]
+
+  @@index([companyId], map: "payslip_company_idx")
+  @@index([payoutId], map: "payslip_payout_idx")
+  @@index([payoutLineId], map: "payslip_line_idx")
+  @@index([employeeId], map: "payslip_employee_idx")
+  @@map("payslip")
+}
+
+model PayslipArtifact {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String   @map("company_id")
+  payoutId    String   @map("payout_id")
+  payoutLineId String? @map("payout_line_id")
+  payslipId   String?  @map("payslip_id")
+  storageKey  String   @map("storage_key") @db.VarChar(500)
+  fileHash    String?  @map("file_hash") @db.VarChar(64)
+  fileName    String?  @map("file_name") @db.VarChar(255)
+  contentType String?  @map("content_type") @db.VarChar(100)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  createdById String?  @map("created_by_id")
+  payout      Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine  PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: SetNull)
+  payslip     Payslip? @relation(fields: [payslipId], references: [id], onDelete: SetNull)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy   User?    @relation("PayslipArtifactCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([companyId], map: "payslip_artifact_company_idx")
+  @@index([payoutId], map: "payslip_artifact_payout_idx")
+  @@index([payoutLineId], map: "payslip_artifact_line_idx")
+  @@index([payslipId], map: "payslip_artifact_payslip_idx")
+  @@map("payslip_artifact")
+}
+
+model CalculationSnapshot {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId            String   @map("company_id")
+  payoutId             String   @map("payout_id")
+  payoutLineId          String?  @map("payout_line_id")
+  rulesEngineSnapshot  Json     @map("rules_engine_snapshot")
+  employmentSnapshot   Json     @map("employment_snapshot")
+  inputSnapshot        Json     @map("input_snapshot")
+  outputSnapshot       Json     @map("output_snapshot")
+  createdAt            DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  createdById          String?  @map("created_by_id")
+  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout               Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine           PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: SetNull)
+  createdBy            User?    @relation("CalculationSnapshotCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  payslips             Payslip[]
+
+  @@index([companyId], map: "calculation_snapshot_company_idx")
+  @@index([payoutId], map: "calculation_snapshot_payout_idx")
+  @@index([payoutLineId], map: "calculation_snapshot_line_idx")
+  @@map("calculation_snapshot")
+}
+
+model BankPaymentExport {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId    String   @map("company_id")
+  payoutId     String   @map("payout_id")
+  format       String   @default("SEPA_CT") @map("format") @db.VarChar(50)
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  createdById  String?  @map("created_by_id")
+  exportedAt   DateTime? @map("exported_at") @db.Timestamp(6)
+  exportedById String?  @map("exported_by_id")
+  payout       Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy    User?    @relation("BankPaymentExportCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  exportedBy   User?    @relation("BankPaymentExportExporter", fields: [exportedById], references: [id], onDelete: SetNull)
+  lines        BankPaymentLine[]
+
+  @@index([companyId], map: "bank_payment_export_company_idx")
+  @@index([payoutId], map: "bank_payment_export_payout_idx")
+  @@map("bank_payment_export")
+}
+
+model BankPaymentLine {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId              String   @map("company_id")
+  exportId               String   @map("export_id")
+  payoutLineId           String   @map("payout_line_id")
+  joppdSubmissionLineId  String?  @map("joppd_submission_line_id")
+  recipientName          String   @map("recipient_name") @db.VarChar(200)
+  recipientIban          String?  @map("recipient_iban") @db.VarChar(34)
+  amount                 Decimal  @map("amount") @db.Decimal(12, 2)
+  currency               String   @default("EUR") @map("currency") @db.VarChar(3)
+  reference              String?  @map("reference") @db.VarChar(50)
+  description            String?  @map("description") @db.VarChar(255)
+  createdAt              DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  export                 BankPaymentExport @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  payoutLine             PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
+  joppdSubmissionLine    JoppdSubmissionLine? @relation(fields: [joppdSubmissionLineId], references: [id], onDelete: SetNull)
+  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId], map: "bank_payment_line_company_idx")
+  @@index([exportId], map: "bank_payment_line_export_idx")
+  @@index([payoutLineId], map: "bank_payment_line_payout_idx")
+  @@index([joppdSubmissionLineId], map: "bank_payment_line_joppd_idx")
+  @@map("bank_payment_line")
 }
 
 model JoppdSubmission {
@@ -2277,6 +2440,7 @@ model JoppdSubmissionLine {
   payoutLine     PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
   originalLine   JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
   corrections    JoppdSubmissionLine[] @relation("JoppdLineCorrections")
+  bankPaymentLines BankPaymentLine[]
 
   @@index([submissionId], map: "joppd_submission_line_submission_idx")
   @@index([payoutLineId], map: "joppd_submission_line_payout_idx")
@@ -2825,6 +2989,12 @@ enum JoppdSubmissionStatus {
   SUBMITTED
   ACCEPTED
   REJECTED
+}
+
+enum PayoutStatus {
+  DRAFT
+  LOCKED
+  REPORTED
 }
 
 enum TierType {
