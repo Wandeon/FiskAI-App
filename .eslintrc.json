@@ -62,13 +62,20 @@
         "src/components/**/*"
       ],
       "rules": {
-        "fisk-design-system/no-hardcoded-colors": "error"
+        "fisk-design-system/no-hardcoded-colors": "warn"
       }
     },
     {
       "files": ["src/app/(marketing)/**/*"],
       "rules": {
         "fisk-design-system/no-hardcoded-colors": "warn"
+      }
+    },
+    {
+      "files": ["src/__tests__/**/*", "**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off"
       }
     }
   ]

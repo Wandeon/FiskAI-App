@@ -358,6 +358,9 @@ const TENANT_MODELS = [
   "EInvoice",
   "EInvoiceLine",
   "AuditLog",
+  "CashIn",
+  "CashOut",
+  "CashDayClose",
   "BankAccount",
   "BankTransaction",
   "BankImport",
@@ -366,6 +369,11 @@ const TENANT_MODELS = [
   "StatementPage",
   "Transaction",
   "Expense",
+  "ExpenseLine",
+  "UraInput",
+  "Attachment",
+  "ExpenseCorrection",
+  "FixedAssetCandidate",
   "ExpenseCategory",
   "RecurringExpense",
   "SavedReport",
@@ -381,6 +389,20 @@ const TENANT_MODELS = [
   "TrialBalance",
   "PostingRule",
   "OperationalEvent",
+  "Payout",
+  "PayoutLine",
+  "JoppdSubmission",
+  "JoppdSubmissionLine",
+  "PayslipArtifact",
+  "CalculationSnapshot",
+  "Employee",
+  "EmployeeRole",
+  "EmploymentContract",
+  "EmploymentContractVersion",
+  "EmploymentTerminationEvent",
+  "Dependent",
+  "Allowance",
+  "PensionPillar",
   // Note: CompanyUser intentionally NOT included - it's filtered by userId, not companyId
   // Including it breaks getCurrentCompany() which queries CompanyUser before tenant context exists
 ] as const
@@ -391,8 +413,16 @@ const AUDITED_MODELS = [
   "Product",
   "EInvoice",
   "Company",
+  "CashIn",
+  "CashOut",
+  "CashDayClose",
   "BankAccount",
   "Expense",
+  "ExpenseLine",
+  "UraInput",
+  "Attachment",
+  "ExpenseCorrection",
+  "FixedAssetCandidate",
   "ExpenseCategory",
   "RecurringExpense",
   "BusinessPremises",
@@ -409,6 +439,17 @@ type AuditedModel = (typeof AUDITED_MODELS)[number]
 // Once created, it MUST NOT be modified to preserve audit integrity.
 
 const EVIDENCE_IMMUTABLE_FIELDS = ["rawContent", "contentHash", "fetchedAt"] as const
+
+// ============================================
+// PAYOUT SNAPSHOT IMMUTABILITY PROTECTION
+// ============================================
+
+export class CalculationSnapshotImmutabilityError extends Error {
+  constructor() {
+    super("Cannot modify CalculationSnapshot records. Snapshots are immutable once created.")
+    this.name = "CalculationSnapshotImmutabilityError"
+  }
+}
 
 /**
  * Error thrown when attempting to modify immutable evidence fields.
@@ -431,6 +472,39 @@ function checkEvidenceImmutability(data: Record<string, unknown>): void {
     if (field in data) {
       throw new EvidenceImmutabilityError(field)
     }
+  }
+}
+
+// ============================================
+// ATTACHMENT IMMUTABILITY PROTECTION
+// ============================================
+// Source attachments (email/import) must remain immutable for audit integrity.
+
+/**
+ * Error thrown when attempting to modify immutable attachments.
+ */
+export class AttachmentImmutabilityError extends Error {
+  constructor(id: string) {
+    super(
+      `Cannot modify Attachment ${id}: source attachments are immutable once stored. ` +
+        "Create a new attachment record for corrections."
+    )
+    this.name = "AttachmentImmutabilityError"
+  }
+}
+
+async function ensureAttachmentMutable(
+  prismaBase: PrismaClient,
+  where: Prisma.AttachmentWhereInput | Prisma.AttachmentWhereUniqueInput
+) {
+  const baseWhere = (where ?? {}) as Prisma.AttachmentWhereInput
+  const immutable = await prismaBase.attachment.findFirst({
+    where: { ...baseWhere, isSourceImmutable: true },
+    select: { id: true },
+  })
+
+  if (immutable) {
+    throw new AttachmentImmutabilityError(immutable.id)
   }
 }
 
@@ -492,6 +566,243 @@ export class RegulatoryRuleUpdateManyStatusNotAllowedError extends Error {
   }
 }
 
+// ============================================
+// CASH OPERATIONS: BALANCE + DAY CLOSE PROTECTION
+// ============================================
+export class CashDayClosedError extends Error {
+  constructor(action: string, businessDate: Date) {
+    super(`Cannot ${action}: cash day ${businessDate.toISOString().slice(0, 10)} is closed.`)
+    this.name = "CashDayClosedError"
+  }
+}
+
+export class CashBalanceNegativeError extends Error {
+  constructor() {
+    super("Cannot complete cash operation: cash balance cannot be negative.")
+    this.name = "CashBalanceNegativeError"
+  }
+}
+
+export class CashAmountNegativeError extends Error {
+  constructor() {
+    super("Cash amount must be non-negative.")
+    this.name = "CashAmountNegativeError"
+  }
+}
+
+export class CashBulkMutationNotAllowedError extends Error {
+  constructor(model: string, action: string) {
+    super(`Cannot ${action} ${model} in bulk. Use individual operations for cash integrity.`)
+    this.name = "CashBulkMutationNotAllowedError"
+  }
+}
+
+export class CashDayCloseImmutableError extends Error {
+  constructor(action: string) {
+    super(`Cannot ${action} CashDayClose: close events are immutable.`)
+    this.name = "CashDayCloseImmutableError"
+  }
+}
+
+const CASH_MODELS = ["CashIn", "CashOut"] as const
+
+type CashModel = (typeof CASH_MODELS)[number]
+
+function getPrismaFieldValue(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value
+  if ("set" in value) {
+    return (value as { set?: unknown }).set
+  }
+  return value
+}
+
+function getDateValue(value: unknown): Date | null {
+  const raw = getPrismaFieldValue(value)
+  if (!raw) return null
+  if (raw instanceof Date) return raw
+  if (typeof raw === "string" || typeof raw === "number") {
+    const parsed = new Date(raw)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
+  return null
+}
+
+function toDecimal(value: Prisma.Decimal | number | string | null | undefined): Prisma.Decimal {
+  if (value instanceof Prisma.Decimal) return value
+  return new Prisma.Decimal(value ?? 0)
+}
+
+function getDecimalValue(value: unknown): Prisma.Decimal | null {
+  const raw = getPrismaFieldValue(value)
+  if (raw === null || typeof raw === "undefined") return null
+  if (raw instanceof Prisma.Decimal) return raw
+  if (typeof raw === "number" || typeof raw === "string") return new Prisma.Decimal(raw)
+  return null
+}
+
+function assertAmountNonNegative(amount: Prisma.Decimal) {
+  if (amount.lessThan(0)) {
+    throw new CashAmountNegativeError()
+  }
+}
+
+async function isCashDayClosed(
+  prismaBase: PrismaClient,
+  companyId: string,
+  businessDate: Date
+): Promise<boolean> {
+  const closed = await prismaBase.cashDayClose.findUnique({
+    where: { companyId_businessDate: { companyId, businessDate } },
+    select: { id: true },
+  })
+  return Boolean(closed)
+}
+
+async function assertCashDayOpen(
+  prismaBase: PrismaClient,
+  companyId: string,
+  businessDate: Date,
+  action: string
+): Promise<void> {
+  if (await isCashDayClosed(prismaBase, companyId, businessDate)) {
+    throw new CashDayClosedError(action, businessDate)
+  }
+}
+
+async function getCashBalance(
+  prismaBase: PrismaClient,
+  companyId: string
+): Promise<Prisma.Decimal> {
+  const [cashInSum, cashOutSum] = await Promise.all([
+    prismaBase.cashIn.aggregate({
+      where: { companyId },
+      _sum: { amount: true },
+    }),
+    prismaBase.cashOut.aggregate({
+      where: { companyId },
+      _sum: { amount: true },
+    }),
+  ])
+
+  return toDecimal(cashInSum._sum.amount).minus(toDecimal(cashOutSum._sum.amount))
+}
+
+type CashRecord = {
+  amount: Prisma.Decimal
+  businessDate: Date
+  companyId: string
+}
+
+async function getCashRecord(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  where: Prisma.CashInWhereUniqueInput | Prisma.CashOutWhereUniqueInput
+): Promise<CashRecord | null> {
+  if (model === "CashIn") {
+    return prismaBase.cashIn.findUnique({
+      where: where as Prisma.CashInWhereUniqueInput,
+      select: { amount: true, businessDate: true, companyId: true },
+    })
+  }
+
+  return prismaBase.cashOut.findUnique({
+    where: where as Prisma.CashOutWhereUniqueInput,
+    select: { amount: true, businessDate: true, companyId: true },
+  })
+}
+
+async function enforceCashTransactionCreate(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  data: Record<string, unknown>,
+  companyId: string
+) {
+  const businessDate = getDateValue(data.businessDate)
+  const amount = getDecimalValue(data.amount)
+
+  if (!businessDate || !amount) return
+
+  assertAmountNonNegative(amount)
+  await assertCashDayOpen(prismaBase, companyId, businessDate, "create cash entry")
+
+  const balance = await getCashBalance(prismaBase, companyId)
+  const newBalance = model === "CashIn" ? balance.plus(amount) : balance.minus(amount)
+
+  if (newBalance.lessThan(0)) {
+    throw new CashBalanceNegativeError()
+  }
+}
+
+async function enforceCashTransactionUpdate(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  args: { where: unknown; data: unknown }
+) {
+  const existing = await getCashRecord(
+    prismaBase,
+    model,
+    args.where as Prisma.CashInWhereUniqueInput
+  )
+
+  if (!existing) return
+
+  await assertCashDayOpen(
+    prismaBase,
+    existing.companyId,
+    existing.businessDate,
+    "update cash entry"
+  )
+
+  const data = (args.data ?? {}) as Record<string, unknown>
+  const requestedDate = getDateValue(data.businessDate)
+
+  if (requestedDate && requestedDate.getTime() !== existing.businessDate.getTime()) {
+    await assertCashDayOpen(prismaBase, existing.companyId, requestedDate, "update cash entry")
+  }
+
+  const nextAmount = getDecimalValue(data.amount) ?? existing.amount
+  assertAmountNonNegative(nextAmount)
+
+  const balance = await getCashBalance(prismaBase, existing.companyId)
+  const newBalance =
+    model === "CashIn"
+      ? balance.minus(existing.amount).plus(nextAmount)
+      : balance.plus(existing.amount).minus(nextAmount)
+
+  if (newBalance.lessThan(0)) {
+    throw new CashBalanceNegativeError()
+  }
+}
+
+async function enforceCashTransactionDelete(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  args: { where: unknown }
+) {
+  const existing = await getCashRecord(
+    prismaBase,
+    model,
+    args.where as Prisma.CashInWhereUniqueInput
+  )
+
+  if (!existing) return
+
+  await assertCashDayOpen(
+    prismaBase,
+    existing.companyId,
+    existing.businessDate,
+    "delete cash entry"
+  )
+
+  const balance = await getCashBalance(prismaBase, existing.companyId)
+  const newBalance =
+    model === "CashIn" ? balance.minus(existing.amount) : balance.plus(existing.amount)
+
+  if (newBalance.lessThan(0)) {
+    throw new CashBalanceNegativeError()
+  }
+}
+
 /**
  * Safely extract status from update data if present.
  *
@@ -516,6 +827,55 @@ function getRequestedRuleStatus(data: unknown): string | null {
   }
 
   return null
+}
+
+function getRequestedPayoutStatus(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null
+  const d = data as Record<string, unknown>
+  const s = d.status
+
+  if (typeof s === "string") return s
+
+  if (s && typeof s === "object") {
+    const setObj = s as Record<string, unknown>
+    if (typeof setObj.set === "string") return setObj.set
+  }
+
+  return null
+}
+
+const PAYOUT_ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ["LOCKED"],
+  LOCKED: ["REPORTED"],
+  REPORTED: [],
+}
+
+export class PayoutStatusTransitionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "PayoutStatusTransitionError"
+  }
+}
+
+function validatePayoutTransition(
+  currentStatus: string,
+  newStatus: string
+): { allowed: boolean; error?: string } {
+  if (currentStatus === newStatus) {
+    return { allowed: true }
+  }
+
+  const allowedTargets = PAYOUT_ALLOWED_TRANSITIONS[currentStatus] ?? []
+  if (!allowedTargets.includes(newStatus)) {
+    return {
+      allowed: false,
+      error:
+        `Illegal payout status transition: ${currentStatus} → ${newStatus}. ` +
+        `Allowed transitions from ${currentStatus}: [${allowedTargets.join(", ") || "none"}].`,
+    }
+  }
+
+  return { allowed: true }
 }
 
 /**
@@ -786,6 +1146,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
             })
           }
 
+          if (model === "CashIn" || model === "CashOut") {
+            const data = args.data as Record<string, unknown>
+            const companyId = data.companyId as string | undefined
+            if (companyId) {
+              await enforceCashTransactionCreate(prismaBase, model, data, companyId)
+            }
+          }
+
           const result = await query(args)
 
           // Audit logging for create operations
@@ -844,6 +1212,17 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields
           if (model === "Evidence" && args.data && typeof args.data === "object") {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
+          }
+
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "Attachment") {
+            await ensureAttachmentMutable(
+              prismaBase,
+              args.where as Prisma.AttachmentWhereUniqueInput
+            )
           }
 
           // REGULATORY RULE STATUS TRANSITIONS: enforce allowed transitions (hard backstop)
@@ -968,6 +1347,99 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "Payout") {
+            const newStatus = getRequestedPayoutStatus(args.data)
+            const existing = await prismaBase.payout.findUnique({
+              where: args.where as Prisma.PayoutWhereUniqueInput,
+              select: { status: true },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot transition payout: payout not found.")
+            }
+
+            if (!newStatus || newStatus === existing.status) {
+              if (existing.status !== "DRAFT") {
+                throw new PayoutStatusTransitionError(
+                  `Cannot edit payout in ${existing.status} state. Locked payouts are immutable.`
+                )
+              }
+            } else {
+              const transition = validatePayoutTransition(existing.status, newStatus)
+              if (!transition.allowed) {
+                throw new PayoutStatusTransitionError(
+                  transition.error ?? "Payout status transition not allowed."
+                )
+              }
+
+              const allowedKeys =
+                existing.status === "DRAFT" && newStatus === "LOCKED"
+                  ? new Set(["status", "lockedAt", "lockedById"])
+                  : new Set(["status", "reportedAt", "reportedById"])
+
+              const disallowedKeys = Object.keys(args.data ?? {}).filter(
+                (key) => !allowedKeys.has(key)
+              )
+
+              if (disallowedKeys.length > 0) {
+                throw new PayoutStatusTransitionError(
+                  `Payout updates during ${existing.status} → ${newStatus} may only set ${Array.from(
+                    allowedKeys
+                  ).join(", ")}. Disallowed: ${disallowedKeys.join(", ")}.`
+                )
+              }
+            }
+          }
+
+          if (model === "PayoutLine") {
+            const existing = await prismaBase.payoutLine.findUnique({
+              where: args.where as Prisma.PayoutLineWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit payout line: payout line not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit payout lines in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "PayslipArtifact") {
+            const existing = await prismaBase.payslipArtifact.findUnique({
+              where: args.where as Prisma.PayslipArtifactWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot edit payslip artifact: payslip artifact not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot edit payslip artifacts in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("update")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            await enforceCashTransactionUpdate(prismaBase, model, {
+              where: args.where,
+              data: args.data,
+            })
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -1019,6 +1491,80 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "Payout") {
+            const existing = await prismaBase.payout.findUnique({
+              where: args.where as Prisma.PayoutWhereUniqueInput,
+              select: { status: true },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError("Cannot delete payout: payout not found.")
+            }
+
+            if (existing.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payout in ${existing.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "PayoutLine") {
+            const existing = await prismaBase.payoutLine.findUnique({
+              where: args.where as Prisma.PayoutLineWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete payout line: payout line not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payout lines in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "PayslipArtifact") {
+            const existing = await prismaBase.payslipArtifact.findUnique({
+              where: args.where as Prisma.PayslipArtifactWhereUniqueInput,
+              select: { payout: { select: { status: true } } },
+            })
+
+            if (!existing) {
+              throw new PayoutStatusTransitionError(
+                "Cannot delete payslip artifact: payslip artifact not found."
+              )
+            }
+
+            if (existing.payout.status !== "DRAFT") {
+              throw new PayoutStatusTransitionError(
+                `Cannot delete payslip artifacts in ${existing.payout.status} state. Locked payouts are immutable.`
+              )
+            }
+          }
+
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("delete")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            await enforceCashTransactionDelete(prismaBase, model, { where: args.where })
+          }
+
+          if (model === "Attachment") {
+            await ensureAttachmentMutable(
+              prismaBase,
+              args.where as Prisma.AttachmentWhereUniqueInput
+            )
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -1041,6 +1587,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
         },
         // === Missing operations for full tenant isolation ===
         async createMany({ model, args, query }) {
+          if (model === "CashDayClose") {
+            throw new CashBulkMutationNotAllowedError(model, "createMany")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            throw new CashBulkMutationNotAllowedError(model, "createMany")
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             // Add companyId to each record being created
@@ -1064,6 +1618,29 @@ export function withTenantIsolation(prisma: PrismaClient) {
             checkEvidenceImmutability(args.data as Record<string, unknown>)
           }
 
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "Payout") {
+            const newStatus = getRequestedPayoutStatus(args.data)
+            if (newStatus) {
+              throw new PayoutStatusTransitionError(
+                "Cannot update Payout.status using updateMany. Use explicit status transition methods."
+              )
+            }
+          }
+
+          if (model === "PayoutLine" || model === "PayslipArtifact") {
+            throw new PayoutStatusTransitionError(
+              "Cannot update payout lines or payslip artifacts using updateMany. Use per-record updates."
+            )
+          }
+
+          if (model === "Attachment") {
+            await ensureAttachmentMutable(prismaBase, args.where as Prisma.AttachmentWhereInput)
+          }
+
           // REGULATORY RULE: forbid updateMany for status transitions
           // updateMany bypasses per-rule validation (conflicts, provenance, tier checks)
           if (model === "RegulatoryRule") {
@@ -1071,6 +1648,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
             if (newStatus) {
               throw new RegulatoryRuleUpdateManyStatusNotAllowedError()
             }
+          }
+
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("updateMany")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            throw new CashBulkMutationNotAllowedError(model, "updateMany")
           }
 
           const context = getTenantContext()
@@ -1083,6 +1668,28 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return query(args)
         },
         async deleteMany({ model, args, query }) {
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "PayoutLine" || model === "PayslipArtifact") {
+            throw new PayoutStatusTransitionError(
+              "Cannot delete payout lines or payslip artifacts in bulk. Use per-record deletes."
+            )
+          }
+
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("deleteMany")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            throw new CashBulkMutationNotAllowedError(model, "deleteMany")
+          }
+
+          if (model === "Attachment") {
+            await ensureAttachmentMutable(prismaBase, args.where as Prisma.AttachmentWhereInput)
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -1096,6 +1703,43 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields in upsert
           if (model === "Evidence" && args.update && typeof args.update === "object") {
             checkEvidenceImmutability(args.update as Record<string, unknown>)
+          }
+
+          if (model === "CalculationSnapshot") {
+            throw new CalculationSnapshotImmutabilityError()
+          }
+
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("upsert")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            const existing = await getCashRecord(
+              prismaBase,
+              model,
+              args.where as Prisma.CashInWhereUniqueInput
+            )
+
+            if (existing) {
+              await enforceCashTransactionUpdate(prismaBase, model, {
+                where: args.where,
+                data: args.update,
+              })
+            } else {
+              const data = args.create as Record<string, unknown>
+              const context = getTenantContext()
+              const companyId = (data.companyId ?? context?.companyId) as string | undefined
+              if (companyId) {
+                await enforceCashTransactionCreate(prismaBase, model, data, companyId)
+              }
+            }
+          }
+
+          if (model === "Attachment") {
+            await ensureAttachmentMutable(
+              prismaBase,
+              args.where as Prisma.AttachmentWhereUniqueInput
+            )
           }
 
           const context = getTenantContext()

@@ -55,13 +55,26 @@ const PLAN_LIMITS: Record<
 }
 
 /**
+ * Options for InMemoryRateLimiter
+ */
+interface InMemoryRateLimiterOptions {
+  windowMs?: number
+  maxRequests?: number
+}
+
+/**
  * In-memory rate limiter for short-term rate limiting (per-minute)
  * This prevents abuse by limiting requests per minute per company
  */
-class InMemoryRateLimiter {
+export class InMemoryRateLimiter {
   private requests: Map<string, { count: number; resetAt: number }> = new Map()
-  private readonly windowMs = 60 * 1000 // 1 minute
-  private readonly maxRequestsPerWindow = 10 // 10 requests per minute
+  private readonly windowMs: number
+  private readonly maxRequestsPerWindow: number
+
+  constructor(options: InMemoryRateLimiterOptions = {}) {
+    this.windowMs = options.windowMs ?? 60 * 1000 // 1 minute default
+    this.maxRequestsPerWindow = options.maxRequests ?? 10 // 10 requests per minute default
+  }
 
   check(companyId: string): { allowed: boolean; retryAfter?: number } {
     const now = Date.now()
@@ -103,7 +116,10 @@ class InMemoryRateLimiter {
   }
 }
 
-const inMemoryLimiter = new InMemoryRateLimiter()
+const inMemoryLimiter = new InMemoryRateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 10,
+})
 
 /**
  * Check if a company can make an AI request

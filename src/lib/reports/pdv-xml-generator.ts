@@ -122,14 +122,29 @@ export async function fetchVatReportData(
   })
 
   // Get expenses (input VAT)
-  const expenses = await db.expense.findMany({
+  const uraInputs = await db.uraInput.findMany({
     where: {
       companyId,
       date: { gte: dateFrom, lte: dateTo },
-      status: { in: ["PAID", "PENDING"] },
     },
-    select: { netAmount: true, vatAmount: true, totalAmount: true, vatDeductible: true },
+    select: {
+      deductibleVatAmount: true,
+      nonDeductibleVatAmount: true,
+      vatAmount: true,
+    },
   })
+
+  const expenses =
+    uraInputs.length === 0
+      ? await db.expense.findMany({
+          where: {
+            companyId,
+            date: { gte: dateFrom, lte: dateTo },
+            status: { in: ["PAID", "PENDING"] },
+          },
+          select: { netAmount: true, vatAmount: true, totalAmount: true, vatDeductible: true },
+        })
+      : []
 
   const outputVat = {
     net: invoices.reduce((sum, i) => sum + Number(i.netAmount), 0),
@@ -137,15 +152,24 @@ export async function fetchVatReportData(
     total: invoices.reduce((sum, i) => sum + Number(i.totalAmount), 0),
   }
 
-  const inputVat = {
-    deductible: expenses
-      .filter((e) => e.vatDeductible)
-      .reduce((sum, e) => sum + Number(e.vatAmount), 0),
-    nonDeductible: expenses
-      .filter((e) => !e.vatDeductible)
-      .reduce((sum, e) => sum + Number(e.vatAmount), 0),
-    total: expenses.reduce((sum, e) => sum + Number(e.vatAmount), 0),
-  }
+  const inputVat = uraInputs.length
+    ? {
+        deductible: uraInputs.reduce((sum, input) => sum + Number(input.deductibleVatAmount), 0),
+        nonDeductible: uraInputs.reduce(
+          (sum, input) => sum + Number(input.nonDeductibleVatAmount),
+          0
+        ),
+        total: uraInputs.reduce((sum, input) => sum + Number(input.vatAmount), 0),
+      }
+    : {
+        deductible: expenses
+          .filter((e) => e.vatDeductible)
+          .reduce((sum, e) => sum + Number(e.vatAmount), 0),
+        nonDeductible: expenses
+          .filter((e) => !e.vatDeductible)
+          .reduce((sum, e) => sum + Number(e.vatAmount), 0),
+        total: expenses.reduce((sum, e) => sum + Number(e.vatAmount), 0),
+      }
 
   return {
     outputVat,
@@ -183,8 +207,7 @@ export async function preparePdvFormData(
 
   // Determine period type (monthly vs quarterly)
   const monthDiff =
-    (dateTo.getFullYear() - dateFrom.getFullYear()) * 12 +
-    (dateTo.getMonth() - dateFrom.getMonth())
+    (dateTo.getFullYear() - dateFrom.getFullYear()) * 12 + (dateTo.getMonth() - dateFrom.getMonth())
   const isQuarterly = monthDiff >= 2
 
   // Calculate period

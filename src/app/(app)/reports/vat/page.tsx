@@ -39,15 +39,29 @@ export default async function VatReportPage({
     select: { netAmount: true, vatAmount: true, totalAmount: true },
   })
 
-  // Get expenses (input VAT)
-  const expenses = await db.expense.findMany({
+  const uraInputs = await db.uraInput.findMany({
     where: {
       companyId: company.id,
       date: { gte: dateFrom, lte: dateTo },
-      status: "PAID",
     },
-    select: { netAmount: true, vatAmount: true, totalAmount: true, vatDeductible: true },
+    select: {
+      deductibleVatAmount: true,
+      nonDeductibleVatAmount: true,
+      vatAmount: true,
+    },
   })
+
+  const expenses =
+    uraInputs.length === 0
+      ? await db.expense.findMany({
+          where: {
+            companyId: company.id,
+            date: { gte: dateFrom, lte: dateTo },
+            status: "PAID",
+          },
+          select: { netAmount: true, vatAmount: true, totalAmount: true, vatDeductible: true },
+        })
+      : []
 
   // Calculate totals
   const outputVat = {
@@ -56,15 +70,24 @@ export default async function VatReportPage({
     total: invoices.reduce((sum, i) => sum + Number(i.totalAmount), 0),
   }
 
-  const inputVat = {
-    deductible: expenses
-      .filter((e) => e.vatDeductible)
-      .reduce((sum, e) => sum + Number(e.vatAmount), 0),
-    nonDeductible: expenses
-      .filter((e) => !e.vatDeductible)
-      .reduce((sum, e) => sum + Number(e.vatAmount), 0),
-    total: expenses.reduce((sum, e) => sum + Number(e.vatAmount), 0),
-  }
+  const inputVat = uraInputs.length
+    ? {
+        deductible: uraInputs.reduce((sum, input) => sum + Number(input.deductibleVatAmount), 0),
+        nonDeductible: uraInputs.reduce(
+          (sum, input) => sum + Number(input.nonDeductibleVatAmount),
+          0
+        ),
+        total: uraInputs.reduce((sum, input) => sum + Number(input.vatAmount), 0),
+      }
+    : {
+        deductible: expenses
+          .filter((e) => e.vatDeductible)
+          .reduce((sum, e) => sum + Number(e.vatAmount), 0),
+        nonDeductible: expenses
+          .filter((e) => !e.vatDeductible)
+          .reduce((sum, e) => sum + Number(e.vatAmount), 0),
+        total: expenses.reduce((sum, e) => sum + Number(e.vatAmount), 0),
+      }
 
   const vatPayable = outputVat.vat - inputVat.deductible
 
@@ -171,9 +194,7 @@ export default async function VatReportPage({
               </div>
               <div className="flex justify-between">
                 <dt className="text-secondary">Nepriznati PDV:</dt>
-                <dd className="font-mono text-muted">
-                  {formatCurrency(inputVat.nonDeductible)}
-                </dd>
+                <dd className="font-mono text-muted">{formatCurrency(inputVat.nonDeductible)}</dd>
               </div>
               <div className="flex justify-between border-t pt-2">
                 <dt className="text-secondary">Ukupno PDV:</dt>
@@ -186,7 +207,11 @@ export default async function VatReportPage({
 
       {/* Summary */}
       <Card
-        className={vatPayable >= 0 ? "border-danger-border bg-danger-bg" : "border-success-border bg-success-bg"}
+        className={
+          vatPayable >= 0
+            ? "border-danger-border bg-danger-bg"
+            : "border-success-border bg-success-bg"
+        }
       >
         <CardHeader>
           <CardTitle className="text-base">Obveza PDV-a</CardTitle>

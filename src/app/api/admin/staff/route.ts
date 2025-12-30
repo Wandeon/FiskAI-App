@@ -19,10 +19,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!confirmationToken || typeof confirmationToken !== "string") {
-      return NextResponse.json({ error: "Confirmation token is required for role changes" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Confirmation token is required for role changes" },
+        { status: 400 }
+      )
     }
 
-    const expectedToken = \`PROMOTE_\${email.toLowerCase()}_\${user.id}\`
+    const expectedToken = `PROMOTE_${email.toLowerCase()}_${user.id}`
     if (confirmationToken !== expectedToken) {
       return NextResponse.json({ error: "Invalid confirmation token" }, { status: 400 })
     }
@@ -81,9 +84,16 @@ export async function POST(request: NextRequest) {
         console.error("Failed to send role change notification email:", emailError)
       }
 
-      return NextResponse.json({ success: true, user: updatedUser, message: "User promoted to staff. Notification email sent." })
+      return NextResponse.json({
+        success: true,
+        user: updatedUser,
+        message: "User promoted to staff. Notification email sent.",
+      })
     } else {
-      return NextResponse.json({ error: "User not found. Please ensure the user has registered first." }, { status: 404 })
+      return NextResponse.json(
+        { error: "User not found. Please ensure the user has registered first." },
+        { status: 404 }
+      )
     }
   } catch (error) {
     console.error("Error adding staff member:", error)
@@ -100,7 +110,13 @@ export async function GET() {
   try {
     const staff = await db.user.findMany({
       where: { systemRole: "STAFF" },
-      select: { id: true, email: true, name: true, createdAt: true, _count: { select: { staffAssignments: true } } },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        _count: { select: { staffAssignments: true } },
+      },
       orderBy: { createdAt: "desc" },
     })
 
