@@ -5,15 +5,37 @@ import { promises as fs } from "fs"
 import { XMLParser } from "fast-xml-parser"
 import { deepseekJson } from "@/lib/ai/deepseek"
 import { BANK_STATEMENT_SYSTEM_PROMPT, INVOICE_SYSTEM_PROMPT } from "@/lib/banking/import/prompt"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { setTenantContext } from "@/lib/prisma-extensions"
 
 export async function POST(request: Request) {
+  // Add authentication and authorization
+  const user = await requireAuth()
+  const company = await requireCompany(user.id!)
+
+  // Set tenant context for automatic tenant isolation
+  setTenantContext({
+    companyId: company.id,
+    userId: user.id!,
+  })
+
   const body = await request.json().catch(() => ({}))
   const targetJobId = body.jobId
 
-  // Get next pending job or specific job
+  // Get next pending job or specific job, restricted to user's company
   const job = targetJobId
-    ? await db.importJob.findUnique({ where: { id: targetJobId } })
-    : await db.importJob.findFirst({ where: { status: JobStatus.PENDING } })
+    ? await db.importJob.findFirst({
+        where: {
+          id: targetJobId,
+          companyId: company.id, // Tenant isolation
+        },
+      })
+    : await db.importJob.findFirst({
+        where: {
+          status: JobStatus.PENDING,
+          companyId: company.id, // Tenant isolation
+        },
+      })
 
   if (!job) {
     return NextResponse.json({ status: "idle", message: "No pending jobs" })
