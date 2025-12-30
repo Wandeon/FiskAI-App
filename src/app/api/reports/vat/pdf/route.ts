@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { VatPdfDocument } from "@/lib/reports/vat-pdf"
 import { renderToBuffer } from "@react-pdf/renderer"
+import { lockAccountingPeriodsForRange } from "@/lib/period-locking/service"
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,6 +64,8 @@ export async function GET(request: NextRequest) {
     }
 
     const vatPayable = outputVat.vat - inputVat.deductible
+
+    await lockAccountingPeriodsForRange(company.id, dateFrom, dateTo, user.id!, "export_vat_pdf")
 
     // Generate PDF
     const pdfBuffer = await renderToBuffer(

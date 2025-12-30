@@ -137,9 +137,10 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
         }
       : undefined
 
-  const uraInputs = await db.uraInput.findMany({
+  const inputs = await db.uraInput.findMany({
     where: {
       companyId,
+      expense: { status: { not: "DRAFT" } },
       ...(dateFilter ? { date: dateFilter } : {}),
     },
     include: {
@@ -148,6 +149,7 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
           id: true,
           date: true,
           description: true,
+          supplierBill: { select: { documentNumber: true } },
           vendor: { select: { name: true, oib: true } },
         },
       },
@@ -160,68 +162,104 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
     orderBy: { date: "asc" },
   })
 
-  const aggregated = new Map<string, UraRow & { deductibleVat: number; nonDeductibleVat: number }>()
+  const grouped = new Map<
+    string,
+    {
+      date: Date
+      documentRef: string
+      vendorName: string | null
+      vendorOib: string | null
+      netAmount: number
+      vatAmount: number
+      totalAmount: number
+      deductibleVat: number
+      nonDeductibleVat: number
+      base25: number
+      vat25: number
+      base13: number
+      vat13: number
+      base5: number
+      vat5: number
+      base0: number
+    }
+  >()
 
-  for (const input of uraInputs) {
-    const expense = input.expense
-    const key = expense.id
-    const rate = Number(input.vatRate)
+  for (const input of inputs) {
+    const existing = grouped.get(input.expenseId)
     const net = Number(input.netAmount)
     const vat = Number(input.vatAmount)
+    const total = Number(input.totalAmount)
+    const rate = Number(input.vatRate)
 
-    const existing =
-      aggregated.get(key) ??
-      (() => {
-        const entry: UraRow & { deductibleVat: number; nonDeductibleVat: number } = {
-          date: expense.date,
-          documentRef: expense.description,
-          vendorName: expense.vendor?.name ?? null,
-          vendorOib: expense.vendor?.oib ?? null,
-          netAmount: 0,
-          vatAmount: 0,
-          totalAmount: 0,
-          vatDeductible: true,
-          base25: 0,
-          vat25: 0,
-          base13: 0,
-          vat13: 0,
-          base5: 0,
-          vat5: 0,
-          base0: 0,
-          deductibleVat: 0,
-          nonDeductibleVat: 0,
-        }
-        aggregated.set(key, entry)
-        return entry
-      })()
-
-    existing.netAmount += net
-    existing.vatAmount += vat
-    existing.totalAmount += Number(input.totalAmount)
-    existing.deductibleVat += Number(input.deductibleVatAmount)
-    existing.nonDeductibleVat += Number(input.nonDeductibleVatAmount)
-
-    if (Math.abs(rate - 25) < 0.1) {
-      existing.base25 += net
-      existing.vat25 += vat
-    } else if (Math.abs(rate - 13) < 0.1) {
-      existing.base13 += net
-      existing.vat13 += vat
-    } else if (Math.abs(rate - 5) < 0.1) {
-      existing.base5 += net
-      existing.vat5 += vat
-    } else {
-      existing.base0 += net
+    if (!existing) {
+      grouped.set(input.expenseId, {
+        date: input.expense?.date ?? input.date,
+        documentRef:
+          input.expense?.supplierBill?.documentNumber ||
+          input.expense?.description ||
+          "Bez reference",
+        vendorName: input.vendorName ?? input.expense?.vendor?.name ?? null,
+        vendorOib: input.vendorVatNumber ?? input.expense?.vendor?.oib ?? null,
+        netAmount: 0,
+        vatAmount: 0,
+        totalAmount: 0,
+        deductibleVat: 0,
+        nonDeductibleVat: 0,
+        base25: 0,
+        vat25: 0,
+        base13: 0,
+        vat13: 0,
+        base5: 0,
+        vat5: 0,
+        base0: 0,
+      })
     }
 
-    if (input.expenseLine?.description && input.expenseLine.description !== expense.description) {
-      existing.documentRef = `${expense.description} - ${input.expenseLine.description}`
+    const record = grouped.get(input.expenseId)!
+    record.netAmount += net
+    record.vatAmount += vat
+    record.totalAmount += total
+    record.deductibleVat += Number(input.deductibleVatAmount)
+    record.nonDeductibleVat += Number(input.nonDeductibleVatAmount)
+
+    if (Math.abs(rate - 25) < 0.1) {
+      record.base25 += net
+      record.vat25 += vat
+    } else if (Math.abs(rate - 13) < 0.1) {
+      record.base13 += net
+      record.vat13 += vat
+    } else if (Math.abs(rate - 5) < 0.1) {
+      record.base5 += net
+      record.vat5 += vat
+    } else {
+      record.base0 += net
+    }
+
+    // Append expense line description if different from expense description
+    if (
+      input.expenseLine?.description &&
+      input.expenseLine.description !== input.expense?.description
+    ) {
+      record.documentRef = `${record.documentRef} - ${input.expenseLine.description}`
     }
   }
 
-  return Array.from(aggregated.values()).map(({ deductibleVat, nonDeductibleVat, ...row }) => ({
-    ...row,
-    vatDeductible: nonDeductibleVat <= 0 && deductibleVat > 0,
+  return Array.from(grouped.values()).map((record) => ({
+    date: record.date,
+    documentRef: record.documentRef,
+    vendorName: record.vendorName,
+    vendorOib: record.vendorOib,
+    netAmount: record.netAmount,
+    vatAmount: record.vatAmount,
+    totalAmount: record.totalAmount,
+    vatDeductible: record.nonDeductibleVat <= 0 && record.deductibleVat > 0,
+    base25: record.base25,
+    vat25: record.vat25,
+    base13: record.base13,
+    vat13: record.vat13,
+    base5: record.base5,
+    vat5: record.vat5,
+    base0: record.base0,
   }))
 }
 

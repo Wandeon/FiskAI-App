@@ -3,6 +3,7 @@ import { z } from "zod"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { createControlSum } from "@/lib/exports/control-sum"
+import { lockAccountingPeriodsForRange } from "@/lib/period-locking/service"
 
 const querySchema = z.object({
   from: z.string().optional(),
@@ -54,6 +55,7 @@ function buildExpensesXml(expenses: any[]): string {
     <Expense>
       <Date>${formatDate(exp.date)}</Date>
       <Description>${escapeXml(exp.description || "")}</Description>
+      <DocumentNumber>${escapeXml(exp.supplierBill?.documentNumber || "")}</DocumentNumber>
       <Vendor>
         <Name>${escapeXml(exp.vendor?.name || "")}</Name>
         <OIB>${escapeXml(exp.vendor?.oib || "")}</OIB>
@@ -68,6 +70,22 @@ function buildExpensesXml(expenses: any[]): string {
       <PaymentMethod>${escapeXml(exp.paymentMethod || "")}</PaymentMethod>
       <ReceiptUrl>${escapeXml(exp.receiptUrl || "")}</ReceiptUrl>
       <Notes>${escapeXml(exp.notes || "")}</Notes>
+      <Lines>
+        ${(exp.lines || [])
+          .map(
+            (line: any) => `
+        <Line>
+          <Description>${escapeXml(line.description || "")}</Description>
+          <Quantity>${money(line.quantity)}</Quantity>
+          <UnitPrice>${money(line.unitPrice)}</UnitPrice>
+          <NetAmount>${money(line.netAmount)}</NetAmount>
+          <VATRate>${money(line.vatRate)}</VATRate>
+          <VATAmount>${money(line.vatAmount)}</VATAmount>
+          <TotalAmount>${money(line.totalAmount)}</TotalAmount>
+        </Line>`
+          )
+          .join("")}
+      </Lines>
     </Expense>`
     )
     .join("")
@@ -129,9 +147,25 @@ export async function GET(request: Request) {
     include: {
       vendor: { select: { name: true, oib: true } },
       category: { select: { name: true, code: true } },
+      supplierBill: { select: { documentNumber: true } },
+      lines: {
+        select: {
+          description: true,
+          quantity: true,
+          unitPrice: true,
+          netAmount: true,
+          vatRate: true,
+          vatAmount: true,
+          totalAmount: true,
+        },
+      },
     },
     orderBy: { date: "asc" },
   })
+
+  if (fromDate && toDate) {
+    await lockAccountingPeriodsForRange(company.id, fromDate, toDate, user.id!, "export_expenses")
+  }
 
   const header = [
     "Datum",
@@ -179,6 +213,7 @@ export async function GET(request: Request) {
       expenses: expenses.map((exp) => ({
         date: formatDate(exp.date),
         description: exp.description,
+        documentNumber: exp.supplierBill?.documentNumber ?? null,
         vendor: exp.vendor ? { name: exp.vendor.name, oib: exp.vendor.oib } : null,
         category: exp.category?.name || exp.category?.code || null,
         status: exp.status,
@@ -190,6 +225,15 @@ export async function GET(request: Request) {
         paymentMethod: exp.paymentMethod || null,
         receiptUrl: exp.receiptUrl || null,
         notes: exp.notes || null,
+        lines: exp.lines.map((line) => ({
+          description: line.description,
+          quantity: money(line.quantity),
+          unitPrice: money(line.unitPrice),
+          netAmount: money(line.netAmount),
+          vatRate: money(line.vatRate),
+          vatAmount: money(line.vatAmount),
+          totalAmount: money(line.totalAmount),
+        })),
       })),
     }
     const filename = `fiskai-troskovi-${rangeLabel}.json`

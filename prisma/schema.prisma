@@ -7,51 +7,51 @@ datasource db {
 }
 
 model User {
-  id                  String               @id @default(cuid())
-  email               String               @unique
-  name                String?
-  emailVerified       DateTime?
-  image               String?
-  passwordHash        String?
-  checksum            String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  systemRole          SystemRole           @default(USER)
-  intendedBusinessType String?             // Business type selected during registration (OBRT_PAUSAL, OBRT_REAL, OBRT_VAT, JDOO, DOO)
-  betaOptIn           Boolean              @default(false)
-  betaOptInAt         DateTime?
-  accounts            Account[]
-  companies           CompanyUser[]
-  passwordResetTokens PasswordResetToken[]
-  sessions            Session[]
-  assignmentsMade     StaffAssignment[]    @relation("AssignmentsMade")
-  staffAssignments    StaffAssignment[]    @relation("StaffAssignments")
-  verificationCodes   VerificationCode[]
-  webAuthnCredentials WebAuthnCredential[]
-  clientInvitations    ClientInvitation[]     @relation("ClientInvitations")
-  betaFeedback         BetaFeedback[]
-  staffReviews         StaffReview[]          @relation("StaffReviews")
-  experimentAssignments ExperimentAssignment[]
-  experimentEvents     ExperimentEvent[]
-  artifactsCreated     Artifact[]             @relation("ArtifactCreator")
-  personSnapshots      PersonSnapshot[]       @relation("PersonSnapshotAuthor")
-  travelOrders         TravelOrder[]          @relation("TravelOrderTraveler")
-  mileageLogs          MileageLog[]           @relation("MileageLogTraveler")
-  generatedTravelPdfs  TravelPdf[]            @relation("TravelPdfGeneratedBy")
-  closedAccountingPeriods AccountingPeriod[]
-  lockedAccountingPeriods AccountingPeriod[]  @relation("AccountingPeriodLockedBy")
-  journalEntriesCreated   JournalEntry[]
-  payoutsLocked        Payout[]              @relation("PayoutLockedBy")
-  payoutsReported      Payout[]              @relation("PayoutReportedBy")
-  calculationSnapshotsCreated CalculationSnapshot[] @relation("CalculationSnapshotCreator")
-  payslipArtifactsCreated PayslipArtifact[]  @relation("PayslipArtifactCreator")
-  bankPaymentExportsCreated BankPaymentExport[] @relation("BankPaymentExportCreator")
-  bankPaymentExportsExported BankPaymentExport[] @relation("BankPaymentExportExporter")
-  reviewQueueRequested    ReviewQueueItem[]   @relation("ReviewQueueRequestedBy")
-  reviewQueueAssigned     ReviewQueueItem[]   @relation("ReviewQueueAssignedTo")
-  reviewQueueCompleted    ReviewQueueItem[]   @relation("ReviewQueueCompletedBy")
-  reviewDecisions         ReviewDecision[]    @relation("ReviewDecisionDecider")
-  reportingApprovals      ReportingStatus[]   @relation("ReportingStatusApprover")
+  id                          String                 @id @default(cuid())
+  email                       String                 @unique
+  name                        String?
+  emailVerified               DateTime?
+  image                       String?
+  passwordHash                String?
+  checksum                    String?
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
+  systemRole                  SystemRole             @default(USER)
+  intendedBusinessType        String? // Business type selected during registration (OBRT_PAUSAL, OBRT_REAL, OBRT_VAT, JDOO, DOO)
+  betaOptIn                   Boolean                @default(false)
+  betaOptInAt                 DateTime?
+  accounts                    Account[]
+  companies                   CompanyUser[]
+  passwordResetTokens         PasswordResetToken[]
+  sessions                    Session[]
+  assignmentsMade             StaffAssignment[]      @relation("AssignmentsMade")
+  staffAssignments            StaffAssignment[]      @relation("StaffAssignments")
+  verificationCodes           VerificationCode[]
+  webAuthnCredentials         WebAuthnCredential[]
+  clientInvitations           ClientInvitation[]     @relation("ClientInvitations")
+  betaFeedback                BetaFeedback[]
+  staffReviews                StaffReview[]          @relation("StaffReviews")
+  experimentAssignments       ExperimentAssignment[]
+  experimentEvents            ExperimentEvent[]
+  artifactsCreated            Artifact[]             @relation("ArtifactCreator")
+  personSnapshots             PersonSnapshot[]       @relation("PersonSnapshotAuthor")
+  travelOrders                TravelOrder[]          @relation("TravelOrderTraveler")
+  mileageLogs                 MileageLog[]           @relation("MileageLogTraveler")
+  generatedTravelPdfs         TravelPdf[]            @relation("TravelPdfGeneratedBy")
+  closedAccountingPeriods     AccountingPeriod[]
+  lockedAccountingPeriods     AccountingPeriod[]     @relation("AccountingPeriodLockedBy")
+  journalEntriesCreated       JournalEntry[]
+  payoutsLocked               Payout[]               @relation("PayoutLockedBy")
+  payoutsReported             Payout[]               @relation("PayoutReportedBy")
+  calculationSnapshotsCreated CalculationSnapshot[]  @relation("CalculationSnapshotCreator")
+  payslipArtifactsCreated     PayslipArtifact[]      @relation("PayslipArtifactCreator")
+  bankPaymentExportsCreated   BankPaymentExport[]    @relation("BankPaymentExportCreator")
+  bankPaymentExportsExported  BankPaymentExport[]    @relation("BankPaymentExportExporter")
+  reviewQueueRequested        ReviewQueueItem[]      @relation("ReviewQueueRequestedBy")
+  reviewQueueAssigned         ReviewQueueItem[]      @relation("ReviewQueueAssignedTo")
+  reviewQueueCompleted        ReviewQueueItem[]      @relation("ReviewQueueCompletedBy")
+  reviewDecisions             ReviewDecision[]       @relation("ReviewDecisionDecider")
+  reportingApprovals          ReportingStatus[]      @relation("ReportingStatusApprover")
 }
 
 model Account {
@@ -115,42 +115,42 @@ model PasswordResetToken {
 }
 
 model Company {
-  id                             String                @id @default(cuid())
+  id                             String                       @id @default(cuid())
   name                           String
-  oib                            String                @unique
+  oib                            String                       @unique
   vatNumber                      String?
   address                        String
   city                           String
   postalCode                     String
-  country                        String                @default("HR")
+  country                        String                       @default("HR")
   email                          String?
   phone                          String?
   iban                           String?
   checksum                       String?
-  isVatPayer                     Boolean               @default(false)
+  isVatPayer                     Boolean                      @default(false)
   eInvoiceProvider               String?
-  createdAt                      DateTime              @default(now())
-  updatedAt                      DateTime              @updatedAt
+  createdAt                      DateTime                     @default(now())
+  updatedAt                      DateTime                     @updatedAt
   eInvoiceApiKeyEncrypted        String?
   legalForm                      String?
   entitlements                   Json?
   featureFlags                   Json?
-  deviceCode                     String                @default("1")
-  fiscalEnabled                  Boolean               @default(false)
-  fiscalEnvironment              FiscalEnv             @default(PROD)
-  premisesCode                   String                @default("1")
-  stripeCustomerId               String?               @unique
-  stripeSubscriptionId           String?               @unique
-  subscriptionStatus             String?               @default("trialing")
-  subscriptionPlan               String?               @default("pausalni")
+  deviceCode                     String                       @default("1")
+  fiscalEnabled                  Boolean                      @default(false)
+  fiscalEnvironment              FiscalEnv                    @default(PROD)
+  premisesCode                   String                       @default("1")
+  stripeCustomerId               String?                      @unique
+  stripeSubscriptionId           String?                      @unique
+  subscriptionStatus             String?                      @default("trialing")
+  subscriptionPlan               String?                      @default("pausalni")
   trialEndsAt                    DateTime?
   subscriptionCurrentPeriodStart DateTime?
   subscriptionCurrentPeriodEnd   DateTime?
-  invoiceLimit                   Int                   @default(50)
-  userLimit                      Int                   @default(1)
+  invoiceLimit                   Int                          @default(50)
+  userLimit                      Int                          @default(1)
   stripeTerminalLocationId       String?
   stripeTerminalReaderId         String?
-  stockValuationMethod           StockValuationMethod  @default(WEIGHTED_AVERAGE)
+  stockValuationMethod           StockValuationMethod         @default(WEIGHTED_AVERAGE)
   aiUsage                        AIUsage[]
   auditLogs                      AuditLog[]
   bankAccounts                   BankAccount[]
@@ -170,6 +170,7 @@ model Company {
   emailImportRules               EmailImportRule[]
   expenses                       Expense[]
   expenseLines                   ExpenseLine[]
+  supplierBills                  SupplierBill[]
   uraInputs                      UraInput[]
   attachments                    Attachment[]
   expenseCorrections             ExpenseCorrection[]
@@ -190,7 +191,7 @@ model Company {
   valuationSnapshots             ValuationSnapshot[]
   recurringExpenses              RecurringExpense[]
   savedReports                   SavedReport[]
-  assignedStaff                  StaffAssignment[]     @relation("AssignedStaff")
+  assignedStaff                  StaffAssignment[]            @relation("AssignedStaff")
   statements                     Statement[]
   statementPages                 StatementPage[]
   supportTickets                 SupportTicket[]
@@ -204,7 +205,7 @@ model Company {
   statementTransactions          Transaction[]
   travelOrders                   TravelOrder[]
   travelPdfs                     TravelPdf[]
-  clientInvitations              ClientInvitation[]    @relation("InvitedClients")
+  clientInvitations              ClientInvitation[]           @relation("InvitedClients")
   entitlementHistory             EntitlementHistory[]
   featureFlagOverrides           FeatureFlagOverride[]
   staffReviews                   StaffReview[]
@@ -240,26 +241,29 @@ model Company {
   reviewQueueItems               ReviewQueueItem[]
   reviewDecisions                ReviewDecision[]
   reportingStatuses              ReportingStatus[]
+  addresses                      Address[]
+  organizations                  Organization[]
+  taxIdentities                  TaxIdentity[]
 }
 
 model ChartOfAccounts {
-  id            String             @id @default(cuid())
-  companyId     String
-  code          String
-  name          String
-  description   String?
-  normalBalance AccountNormalBalance
-  statementType StatementType
-  lockLevel     AccountLockLevel   @default(USER)
-  isActive      Boolean            @default(true)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  journalLines  JournalLine[]
-  trialBalances TrialBalance[]
-  debitRules    PostingRule[]      @relation("DebitPostingRules")
-  creditRules   PostingRule[]      @relation("CreditPostingRules")
-  vatRules      PostingRule[]      @relation("VatPostingRules")
+  id              String               @id @default(cuid())
+  companyId       String
+  code            String
+  name            String
+  description     String?
+  normalBalance   AccountNormalBalance
+  statementType   StatementType
+  lockLevel       AccountLockLevel     @default(USER)
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines    JournalLine[]
+  trialBalances   TrialBalance[]
+  debitRules      PostingRule[]        @relation("DebitPostingRules")
+  creditRules     PostingRule[]        @relation("CreditPostingRules")
+  vatRules        PostingRule[]        @relation("VatPostingRules")
   accountMappings AccountMapping[]
 
   @@unique([companyId, code])
@@ -268,26 +272,26 @@ model ChartOfAccounts {
 }
 
 model AccountingPeriod {
-  id             String         @id @default(cuid())
-  companyId      String
-  fiscalYear     Int
-  periodNumber   Int
-  periodType     PeriodType     @default(MONTHLY)
-  startDate      DateTime
-  endDate        DateTime
-  status         PeriodStatus   @default(OPEN)
-  closedAt       DateTime?
-  closedById     String?
-  lockedAt       DateTime?
-  lockedById     String?
-  lockReason     String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  closedBy       User?          @relation(fields: [closedById], references: [id])
-  lockedBy       User?          @relation("AccountingPeriodLockedBy", fields: [lockedById], references: [id])
-  journalEntries JournalEntry[]
-  trialBalances  TrialBalance[]
+  id                String            @id @default(cuid())
+  companyId         String
+  fiscalYear        Int
+  periodNumber      Int
+  periodType        PeriodType        @default(MONTHLY)
+  startDate         DateTime
+  endDate           DateTime
+  status            PeriodStatus      @default(OPEN)
+  closedAt          DateTime?
+  closedById        String?
+  lockedAt          DateTime?
+  lockedById        String?
+  lockReason        String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  closedBy          User?             @relation(fields: [closedById], references: [id])
+  lockedBy          User?             @relation("AccountingPeriodLockedBy", fields: [lockedById], references: [id])
+  journalEntries    JournalEntry[]
+  trialBalances     TrialBalance[]
   reportingStatuses ReportingStatus[]
 
   @@unique([companyId, fiscalYear, periodNumber])
@@ -296,21 +300,21 @@ model AccountingPeriod {
 
 model ReportingStatus {
   id                String           @id @default(cuid())
-  companyId          String
-  periodId           String
-  reportType         ReportType
-  status             ReportingState  @default(DRAFT)
-  reviewQueueItemId  String?         @unique
-  submittedAt        DateTime?
-  approvedAt         DateTime?
-  approvedById       String?
-  notes              String?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  period             AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
-  approvedBy         User?            @relation("ReportingStatusApprover", fields: [approvedById], references: [id])
-  reviewQueueItem    ReviewQueueItem? @relation("ReportingStatusReviewQueue", fields: [reviewQueueItemId], references: [id], onDelete: SetNull)
+  companyId         String
+  periodId          String
+  reportType        ReportType
+  status            ReportingState   @default(DRAFT)
+  reviewQueueItemId String?          @unique
+  submittedAt       DateTime?
+  approvedAt        DateTime?
+  approvedById      String?
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period            AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  approvedBy        User?            @relation("ReportingStatusApprover", fields: [approvedById], references: [id])
+  reviewQueueItem   ReviewQueueItem? @relation("ReportingStatusReviewQueue", fields: [reviewQueueItemId], references: [id], onDelete: SetNull)
 
   @@unique([companyId, periodId, reportType])
   @@index([companyId, status])
@@ -318,27 +322,27 @@ model ReportingStatus {
 }
 
 model ReviewQueueItem {
-  id           String              @id @default(cuid())
-  companyId    String
-  entityType   ReviewQueueEntityType
-  entityId     String
-  status       ReviewQueueStatus   @default(PENDING)
-  priority     ReviewQueuePriority @default(NORMAL)
-  requestedById String?
-  requestedAt DateTime            @default(now())
-  assignedToId String?
-  assignedAt  DateTime?
-  dueAt       DateTime?
-  completedAt DateTime?
-  completedById String?
-  notes       String?
-  metadata    Json?
-  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  requestedBy User?               @relation("ReviewQueueRequestedBy", fields: [requestedById], references: [id])
-  assignedTo  User?               @relation("ReviewQueueAssignedTo", fields: [assignedToId], references: [id])
-  completedBy User?               @relation("ReviewQueueCompletedBy", fields: [completedById], references: [id])
-  decisions   ReviewDecision[]
-  reportingStatus ReportingStatus? @relation("ReportingStatusReviewQueue")
+  id              String                @id @default(cuid())
+  companyId       String
+  entityType      ReviewQueueEntityType
+  entityId        String
+  status          ReviewQueueStatus     @default(PENDING)
+  priority        ReviewQueuePriority   @default(NORMAL)
+  requestedById   String?
+  requestedAt     DateTime              @default(now())
+  assignedToId    String?
+  assignedAt      DateTime?
+  dueAt           DateTime?
+  completedAt     DateTime?
+  completedById   String?
+  notes           String?
+  metadata        Json?
+  company         Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedBy     User?                 @relation("ReviewQueueRequestedBy", fields: [requestedById], references: [id])
+  assignedTo      User?                 @relation("ReviewQueueAssignedTo", fields: [assignedToId], references: [id])
+  completedBy     User?                 @relation("ReviewQueueCompletedBy", fields: [completedById], references: [id])
+  decisions       ReviewDecision[]
+  reportingStatus ReportingStatus?      @relation("ReportingStatusReviewQueue")
 
   @@index([companyId, status])
   @@index([entityType, entityId])
@@ -363,24 +367,24 @@ model ReviewDecision {
 }
 
 model JournalEntry {
-  id                     String         @id @default(cuid())
+  id                     String              @id @default(cuid())
   companyId              String
   entryNumber            Int
   fiscalYear             Int
   entryDate              DateTime
   periodId               String
-  status                 EntryStatus    @default(DRAFT)
+  status                 EntryStatus         @default(DRAFT)
   description            String
   reference              String?
   contentHash            String
-  hashAlgoVersion        Int            @default(1)
-  canonicalFormatVersion Int            @default(1)
+  hashAlgoVersion        Int                 @default(1)
+  canonicalFormatVersion Int                 @default(1)
   createdById            String?
-  createdAt              DateTime       @default(now())
+  createdAt              DateTime            @default(now())
   postedAt               DateTime?
-  company                Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  period                 AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict)
-  createdBy              User?          @relation(fields: [createdById], references: [id])
+  company                Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period                 AccountingPeriod    @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  createdBy              User?               @relation(fields: [createdById], references: [id])
   lines                  JournalLine[]
   depreciationEntries    DepreciationEntry[]
   operationalEvents      OperationalEvent[]
@@ -409,18 +413,18 @@ model JournalLine {
 }
 
 model TrialBalance {
-  id          String          @id @default(cuid())
+  id          String           @id @default(cuid())
   companyId   String
   periodId    String
   accountId   String
-  debitTotal  Decimal         @db.Decimal(14, 2)
-  creditTotal Decimal         @db.Decimal(14, 2)
-  netBalance  Decimal         @db.Decimal(14, 2)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  debitTotal  Decimal          @db.Decimal(14, 2)
+  creditTotal Decimal          @db.Decimal(14, 2)
+  netBalance  Decimal          @db.Decimal(14, 2)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   period      AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
-  account     ChartOfAccounts @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  account     ChartOfAccounts  @relation(fields: [accountId], references: [id], onDelete: Restrict)
 
   @@unique([companyId, periodId, accountId])
   @@index([companyId, periodId])
@@ -428,21 +432,21 @@ model TrialBalance {
 }
 
 model PostingRule {
-  id              String               @id @default(cuid())
+  id              String                @id @default(cuid())
   companyId       String
   sourceType      OperationalSourceType
   eventType       OperationalEventType
   debitAccountId  String
   creditAccountId String
-  vatAccountId    String?              // New field for Tax account (e.g. Output/Input VAT)
+  vatAccountId    String? // New field for Tax account (e.g. Output/Input VAT)
   description     String?
-  isActive        Boolean              @default(true)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  debitAccount    ChartOfAccounts      @relation("DebitPostingRules", fields: [debitAccountId], references: [id], onDelete: Restrict)
-  creditAccount   ChartOfAccounts      @relation("CreditPostingRules", fields: [creditAccountId], references: [id], onDelete: Restrict)
-  vatAccount      ChartOfAccounts?     @relation("VatPostingRules", fields: [vatAccountId], references: [id], onDelete: Restrict)
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  company         Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  debitAccount    ChartOfAccounts       @relation("DebitPostingRules", fields: [debitAccountId], references: [id], onDelete: Restrict)
+  creditAccount   ChartOfAccounts       @relation("CreditPostingRules", fields: [creditAccountId], references: [id], onDelete: Restrict)
+  vatAccount      ChartOfAccounts?      @relation("VatPostingRules", fields: [vatAccountId], references: [id], onDelete: Restrict)
 
   @@unique([companyId, sourceType, eventType])
   @@index([companyId])
@@ -473,35 +477,35 @@ model OperationalEvent {
 // ============================================================================
 
 model ExportProfile {
-  id            String              @id @default(cuid())
-  companyId     String
-  name          String
-  targetSystem  ExportTargetSystem
-  isDefault     Boolean             @default(false)
-  settings      Json?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  company       Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id              String             @id @default(cuid())
+  companyId       String
+  name            String
+  targetSystem    ExportTargetSystem
+  isDefault       Boolean            @default(false)
+  settings        Json?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
   accountMappings AccountMapping[]
-  exportJobs    ExportJob[]
+  exportJobs      ExportJob[]
 
   @@index([companyId])
   @@index([companyId, targetSystem])
 }
 
 model AccountMapping {
-  id                 String         @id @default(cuid())
-  companyId          String
-  exportProfileId    String
-  chartOfAccountsId  String
+  id                  String          @id @default(cuid())
+  companyId           String
+  exportProfileId     String
+  chartOfAccountsId   String
   externalAccountCode String
   externalAccountName String?
-  notes              String?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  company            Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  exportProfile      ExportProfile  @relation(fields: [exportProfileId], references: [id], onDelete: Cascade)
-  chartOfAccounts    ChartOfAccounts @relation(fields: [chartOfAccountsId], references: [id], onDelete: Restrict)
+  notes               String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  company             Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  exportProfile       ExportProfile   @relation(fields: [exportProfileId], references: [id], onDelete: Cascade)
+  chartOfAccounts     ChartOfAccounts @relation(fields: [chartOfAccountsId], references: [id], onDelete: Restrict)
 
   @@unique([exportProfileId, chartOfAccountsId])
   @@index([companyId])
@@ -509,22 +513,22 @@ model AccountMapping {
 }
 
 model ExportJob {
-  id             String           @id @default(cuid())
-  companyId      String
-  exportProfileId String
-  status         ExportJobStatus  @default(PENDING)
-  periodFrom     DateTime?
-  periodTo       DateTime?
-  recordCount    Int              @default(0)
-  fileName       String?
-  controlSum     String?
+  id               String          @id @default(cuid())
+  companyId        String
+  exportProfileId  String
+  status           ExportJobStatus @default(PENDING)
+  periodFrom       DateTime?
+  periodTo         DateTime?
+  recordCount      Int             @default(0)
+  fileName         String?
+  controlSum       String?
   validationReport Json?
-  errorMessage   String?
-  completedAt    DateTime?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  exportProfile  ExportProfile    @relation(fields: [exportProfileId], references: [id], onDelete: Cascade)
+  errorMessage     String?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  exportProfile    ExportProfile   @relation(fields: [exportProfileId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([exportProfileId])
@@ -536,7 +540,7 @@ model ExportJob {
 // ============================================================================
 
 model Employee {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   companyId   String
   firstName   String
   lastName    String
@@ -544,16 +548,18 @@ model Employee {
   dateOfBirth DateTime?
   email       String?
   phone       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  company             Company                      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  employmentContracts EmploymentContract[]
-  roles               EmployeeRole[]
-  dependents          Dependent[]
-  allowances          Allowance[]
-  pensionPillars      PensionPillar[]
+  company                     Company                      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employmentContracts         EmploymentContract[]
+  roles                       EmployeeRole[]
+  dependents                  Dependent[]
+  allowances                  Allowance[]
+  pensionPillars              PensionPillar[]
   employmentTerminationEvents EmploymentTerminationEvent[]
+  payoutLines                 PayoutLine[]
+  payslips                    Payslip[]
 
   @@unique([companyId, oib])
   @@index([companyId])
@@ -561,15 +567,15 @@ model Employee {
 }
 
 model EmployeeRole {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   companyId     String
   employeeId    String
   title         String
   description   String?
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -579,18 +585,18 @@ model EmployeeRole {
 }
 
 model EmploymentContract {
-  id           String   @id @default(cuid())
+  id           String                   @id @default(cuid())
   companyId    String
   employeeId   String
   contractCode String?
   startedAt    DateTime
   endedAt      DateTime?
   status       EmploymentContractStatus @default(ACTIVE)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
 
-  company           Company                     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  employee          Employee                    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company           Company                      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee          Employee                     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   versions          EmploymentContractVersion[]
   terminationEvents EmploymentTerminationEvent[]
 
@@ -601,7 +607,7 @@ model EmploymentContract {
 }
 
 model EmploymentContractVersion {
-  id             String   @id @default(cuid())
+  id             String          @id @default(cuid())
   companyId      String
   contractId     String
   version        Int
@@ -610,9 +616,9 @@ model EmploymentContractVersion {
   roleTitle      String?
   employmentType EmploymentType?
   hoursPerWeek   Int?
-  salaryAmount   Decimal? @db.Decimal(12, 2)
-  salaryCurrency String   @default("EUR")
-  createdAt      DateTime @default(now())
+  salaryAmount   Decimal?        @db.Decimal(12, 2)
+  salaryCurrency String          @default("EUR")
+  createdAt      DateTime        @default(now())
 
   company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
   contract EmploymentContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
@@ -623,14 +629,14 @@ model EmploymentContractVersion {
 }
 
 model EmploymentTerminationEvent {
-  id           String             @id @default(cuid())
+  id           String            @id @default(cuid())
   companyId    String
   contractId   String
   employeeId   String
   terminatedAt DateTime
   reason       TerminationReason
   notes        String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime          @default(now())
 
   company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
   contract EmploymentContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
@@ -643,18 +649,18 @@ model EmploymentTerminationEvent {
 }
 
 model Dependent {
-  id            String   @id @default(cuid())
+  id            String            @id @default(cuid())
   companyId     String
   employeeId    String
   fullName      String
   relation      DependentRelation
   birthDate     DateTime?
   oib           String?
-  isDisabled    Boolean  @default(false)
+  isDisabled    Boolean           @default(false)
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -664,17 +670,17 @@ model Dependent {
 }
 
 model Allowance {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   companyId     String
   employeeId    String
   type          AllowanceType
-  amount        Decimal  @db.Decimal(12, 2)
-  currency      String   @default("EUR")
-  taxable       Boolean  @default(false)
+  amount        Decimal       @db.Decimal(12, 2)
+  currency      String        @default("EUR")
+  taxable       Boolean       @default(false)
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -684,16 +690,16 @@ model Allowance {
 }
 
 model PensionPillar {
-  id               String   @id @default(cuid())
+  id               String            @id @default(cuid())
   companyId        String
   employeeId       String
   pillar           PensionPillarType
   fundName         String?
-  contributionRate Decimal? @db.Decimal(5, 2)
+  contributionRate Decimal?          @db.Decimal(5, 2)
   effectiveFrom    DateTime
   effectiveTo      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -781,15 +787,15 @@ model ClientInvitation {
 
 // Staff review tracking for accountant workflow (Pregledano feature)
 model StaffReview {
-  id           String           @id @default(cuid())
-  companyId    String
-  reviewerId   String
-  entityType   StaffReviewEntity
-  entityId     String
-  reviewedAt   DateTime         @default(now())
-  notes        String?
-  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  reviewer     User             @relation("StaffReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  id         String            @id @default(cuid())
+  companyId  String
+  reviewerId String
+  entityType StaffReviewEntity
+  entityId   String
+  reviewedAt DateTime          @default(now())
+  notes      String?
+  company    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reviewer   User              @relation("StaffReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, entityType, entityId])
   @@index([companyId])
@@ -798,7 +804,7 @@ model StaffReview {
 }
 
 model Contact {
-  id                String      @id @default(cuid())
+  id                String        @id @default(cuid())
   companyId         String
   type              ContactType
   name              String
@@ -807,18 +813,18 @@ model Contact {
   address           String?
   city              String?
   postalCode        String?
-  country           String      @default("HR")
+  country           String        @default("HR")
   email             String?
   phone             String?
   organizationId    String?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  paymentTermsDays  Int         @default(15)
-  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  paymentTermsDays  Int           @default(15)
+  company           Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   organization      Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  eInvoicesAsBuyer  EInvoice[]  @relation("EInvoiceBuyer")
-  eInvoicesAsSeller EInvoice[]  @relation("EInvoiceSeller")
-  expensesAsVendor  Expense[]   @relation("ExpenseVendor")
+  eInvoicesAsBuyer  EInvoice[]    @relation("EInvoiceBuyer")
+  eInvoicesAsSeller EInvoice[]    @relation("EInvoiceSeller")
+  expensesAsVendor  Expense[]     @relation("ExpenseVendor")
 
   @@unique([companyId, oib])
   @@index([companyId])
@@ -827,16 +833,16 @@ model Contact {
 }
 
 model Address {
-  id         String   @id @default(cuid())
-  companyId  String
-  line1      String
-  line2      String?
-  city       String
-  postalCode String?
-  country    String   @default("HR")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id            String         @id @default(cuid())
+  companyId     String
+  line1         String
+  line2         String?
+  city          String
+  postalCode    String?
+  country       String         @default("HR")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   organizations Organization[] @relation("OrganizationPrimaryAddress")
 
   @@unique([companyId, line1, line2, city, postalCode, country])
@@ -845,23 +851,23 @@ model Address {
 }
 
 model Organization {
-  id                   String        @id @default(cuid())
-  companyId            String
-  legalName            String
-  normalizedLegalName  String
-  email                String?
-  phone                String?
-  primaryAddressId     String?
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-  company              Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  primaryAddress       Address?      @relation("OrganizationPrimaryAddress", fields: [primaryAddressId], references: [id], onDelete: SetNull)
-  taxIdentities        TaxIdentity[]
-  contacts             Contact[]
-  bankAccounts         BankAccount[]
-  buyerInvoices        EInvoice[]    @relation("EInvoiceBuyerOrganization")
-  sellerInvoices       EInvoice[]    @relation("EInvoiceSellerOrganization")
-  vendorExpenses       Expense[]     @relation("ExpenseVendorOrganization")
+  id                       String            @id @default(cuid())
+  companyId                String
+  legalName                String
+  normalizedLegalName      String
+  email                    String?
+  phone                    String?
+  primaryAddressId         String?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  company                  Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  primaryAddress           Address?          @relation("OrganizationPrimaryAddress", fields: [primaryAddressId], references: [id], onDelete: SetNull)
+  taxIdentities            TaxIdentity[]
+  contacts                 Contact[]
+  bankAccounts             BankAccount[]
+  buyerInvoices            EInvoice[]        @relation("EInvoiceBuyerOrganization")
+  sellerInvoices           EInvoice[]        @relation("EInvoiceSellerOrganization")
+  vendorExpenses           Expense[]         @relation("ExpenseVendorOrganization")
   counterpartyTransactions BankTransaction[] @relation("BankTransactionCounterpartyOrganization")
 
   @@unique([companyId, normalizedLegalName])
@@ -915,6 +921,7 @@ model Person {
   directorRoles      PersonDirectorRole[]
   snapshots          PersonSnapshot[]
   events             PersonEvent[]
+  taxIdentities      TaxIdentity[]
 
   @@unique([companyId, normalizedFullName])
   @@unique([companyId, oib])
@@ -942,16 +949,16 @@ model PersonContactRole {
 }
 
 model PersonEmployeeRole {
-  id         String    @id @default(cuid())
-  companyId  String
-  personId   String
-  jobTitle   String?
-  startDate  DateTime?
-  endDate    DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  person     Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  companyId String
+  personId  String
+  jobTitle  String?
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  person    Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, personId])
   @@index([companyId])
@@ -959,15 +966,15 @@ model PersonEmployeeRole {
 }
 
 model PersonDirectorRole {
-  id               String    @id @default(cuid())
-  companyId        String
-  personId         String
-  appointmentDate  DateTime?
-  resignationDate  DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  person           Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  id              String    @id @default(cuid())
+  companyId       String
+  personId        String
+  appointmentDate DateTime?
+  resignationDate DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  person          Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, personId])
   @@index([companyId])
@@ -1008,21 +1015,21 @@ model PersonEvent {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  companyId   String
-  name        String
-  description String?
-  sku         String?
-  unit        String   @default("C62")
-  price       Decimal  @db.Decimal(10, 2)
-  vatRate     Decimal  @default(25) @db.Decimal(5, 2)
-  vatCategory String   @default("S")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  stockItems  StockItem[]
-  stockMovements StockMovement[]
+  id                 String              @id @default(cuid())
+  companyId          String
+  name               String
+  description        String?
+  sku                String?
+  unit               String              @default("C62")
+  price              Decimal             @db.Decimal(10, 2)
+  vatRate            Decimal             @default(25) @db.Decimal(5, 2)
+  vatCategory        String              @default("S")
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stockItems         StockItem[]
+  stockMovements     StockMovement[]
   valuationSnapshots ValuationSnapshot[]
 
   @@unique([companyId, sku])
@@ -1030,20 +1037,20 @@ model Product {
 }
 
 model Warehouse {
-  id         String   @id @default(cuid())
-  companyId  String
-  name       String
-  code       String?
-  address    String?
-  city       String?
-  postalCode String?
-  country    String   @default("HR")
-  isDefault  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  stockItems StockItem[]
-  stockMovements StockMovement[]
+  id                 String              @id @default(cuid())
+  companyId          String
+  name               String
+  code               String?
+  address            String?
+  city               String?
+  postalCode         String?
+  country            String              @default("HR")
+  isDefault          Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stockItems         StockItem[]
+  stockMovements     StockMovement[]
   valuationSnapshots ValuationSnapshot[]
 
   @@unique([companyId, name])
@@ -1052,19 +1059,19 @@ model Warehouse {
 }
 
 model StockItem {
-  id               String   @id @default(cuid())
-  companyId        String
-  warehouseId      String
-  productId        String
-  quantityOnHand   Decimal  @default(0) @db.Decimal(14, 3)
-  averageCost      Decimal? @db.Decimal(10, 2)
-  lastMovementAt   DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  warehouse        Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
-  movements        StockMovement[]
+  id                 String              @id @default(cuid())
+  companyId          String
+  warehouseId        String
+  productId          String
+  quantityOnHand     Decimal             @default(0) @db.Decimal(14, 3)
+  averageCost        Decimal?            @db.Decimal(10, 2)
+  lastMovementAt     DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  warehouse          Warehouse           @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product            Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  movements          StockMovement[]
   valuationSnapshots ValuationSnapshot[]
 
   @@unique([warehouseId, productId])
@@ -1073,25 +1080,25 @@ model StockItem {
 }
 
 model StockMovement {
-  id              String             @id @default(cuid())
-  companyId       String
-  warehouseId     String
-  productId       String
-  stockItemId     String?
-  movementType    StockMovementType
-  quantity        Decimal            @db.Decimal(14, 3)
-  unitCost        Decimal?           @db.Decimal(10, 2)
-  movementDate    DateTime           @default(now())
-  referenceNumber String?
-  eInvoiceLineId  String?
-  expenseId       String?
-  createdAt       DateTime           @default(now())
-  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  product         Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
-  stockItem       StockItem?         @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
-  eInvoiceLine    EInvoiceLine?      @relation(fields: [eInvoiceLineId], references: [id], onDelete: SetNull)
-  expense         Expense?           @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  id                 String              @id @default(cuid())
+  companyId          String
+  warehouseId        String
+  productId          String
+  stockItemId        String?
+  movementType       StockMovementType
+  quantity           Decimal             @db.Decimal(14, 3)
+  unitCost           Decimal?            @db.Decimal(10, 2)
+  movementDate       DateTime            @default(now())
+  referenceNumber    String?
+  eInvoiceLineId     String?
+  expenseId          String?
+  createdAt          DateTime            @default(now())
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  warehouse          Warehouse           @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product            Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  stockItem          StockItem?          @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
+  eInvoiceLine       EInvoiceLine?       @relation(fields: [eInvoiceLineId], references: [id], onDelete: SetNull)
+  expense            Expense?            @relation(fields: [expenseId], references: [id], onDelete: SetNull)
   valuationSnapshots ValuationSnapshot[]
 
   @@index([companyId])
@@ -1103,22 +1110,22 @@ model StockMovement {
 }
 
 model ValuationSnapshot {
-  id               String               @id @default(cuid())
-  companyId        String
-  warehouseId      String
-  productId        String
-  stockItemId      String?
-  movementId       String?
-  valuationMethod  StockValuationMethod
-  quantityOnHand   Decimal              @db.Decimal(14, 3)
-  value            Decimal              @db.Decimal(14, 2)
-  asOfDate         DateTime
-  createdAt        DateTime             @default(now())
-  company          Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  warehouse        Warehouse            @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  product          Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
-  stockItem        StockItem?           @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
-  movement         StockMovement?       @relation(fields: [movementId], references: [id], onDelete: SetNull)
+  id              String               @id @default(cuid())
+  companyId       String
+  warehouseId     String
+  productId       String
+  stockItemId     String?
+  movementId      String?
+  valuationMethod StockValuationMethod
+  quantityOnHand  Decimal              @db.Decimal(14, 3)
+  value           Decimal              @db.Decimal(14, 2)
+  asOfDate        DateTime
+  createdAt       DateTime             @default(now())
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  warehouse       Warehouse            @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product         Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  stockItem       StockItem?           @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
+  movement        StockMovement?       @relation(fields: [movementId], references: [id], onDelete: SetNull)
 
   @@index([companyId])
   @@index([warehouseId])
@@ -1127,73 +1134,73 @@ model ValuationSnapshot {
 }
 
 model EInvoice {
-  id                String            @id @default(cuid())
-  companyId         String
-  direction         EInvoiceDirection
-  sellerId          String?
-  buyerId           String?
-  sellerOrganizationId String?
-  buyerOrganizationId  String?
-  invoiceNumber     String
-  issueDate         DateTime
-  dueDate           DateTime?
-  currency          String            @default("EUR")
-  buyerReference    String?
-  netAmount         Decimal           @db.Decimal(10, 2)
-  vatAmount         Decimal           @db.Decimal(10, 2)
-  totalAmount       Decimal           @db.Decimal(10, 2)
-  status            EInvoiceStatus    @default(DRAFT)
-  jir               String?
-  zki               String?
-  fiscalizedAt      DateTime?
-  ublXml            String?
-  providerRef       String?
-  providerStatus    String?
-  providerError     String?
-  archivedAt        DateTime?
-  archiveRef        String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  sentAt            DateTime?
-  receivedAt        DateTime?
-  type              InvoiceType       @default(E_INVOICE)
-  internalReference String?
-  notes             String?
-  convertedFromId   String?
-  correctsInvoiceId String?
-  paidAt            DateTime?
-  bankAccount       String?
-  includeBarcode    Boolean           @default(true)
-  importJobId       String?           @unique
-  paymentModel      String?
-  paymentReference  String?
-  vendorBankName    String?
-  vendorIban        String?
-  fiscalStatus      String?
-  operatorOib       String?
-  paymentMethod     PaymentMethod?
-  emailMessageId    String?
-  emailDeliveredAt  DateTime?
-  emailOpenedAt     DateTime?
-  emailClickedAt    DateTime?
-  emailBouncedAt    DateTime?
-  emailBounceReason String?
-  bankTransactions  BankTransaction[]
-  buyer             Contact?          @relation("EInvoiceBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
-  buyerOrganization Organization?     @relation("EInvoiceBuyerOrganization", fields: [buyerOrganizationId], references: [id], onDelete: SetNull)
-  company           Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  convertedFrom     EInvoice?         @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
-  convertedTo       EInvoice[]        @relation("InvoiceConversion")
-  correctsInvoice   EInvoice?         @relation("InvoiceCorrections", fields: [correctsInvoiceId], references: [id])
-  creditNotes       EInvoice[]        @relation("InvoiceCorrections")
-  importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
-  seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: SetNull)
-  sellerOrganization Organization?    @relation("EInvoiceSellerOrganization", fields: [sellerOrganizationId], references: [id], onDelete: SetNull)
-  lines             EInvoiceLine[]
-  fiscalRequests    FiscalRequest[]
+  id                     String                 @id @default(cuid())
+  companyId              String
+  direction              EInvoiceDirection
+  sellerId               String?
+  buyerId                String?
+  sellerOrganizationId   String?
+  buyerOrganizationId    String?
+  invoiceNumber          String
+  issueDate              DateTime
+  dueDate                DateTime?
+  currency               String                 @default("EUR")
+  buyerReference         String?
+  netAmount              Decimal                @db.Decimal(10, 2)
+  vatAmount              Decimal                @db.Decimal(10, 2)
+  totalAmount            Decimal                @db.Decimal(10, 2)
+  status                 EInvoiceStatus         @default(DRAFT)
+  jir                    String?
+  zki                    String?
+  fiscalizedAt           DateTime?
+  ublXml                 String?
+  providerRef            String?
+  providerStatus         String?
+  providerError          String?
+  archivedAt             DateTime?
+  archiveRef             String?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  sentAt                 DateTime?
+  receivedAt             DateTime?
+  type                   InvoiceType            @default(E_INVOICE)
+  internalReference      String?
+  notes                  String?
+  convertedFromId        String?
+  correctsInvoiceId      String?
+  paidAt                 DateTime?
+  bankAccount            String?
+  includeBarcode         Boolean                @default(true)
+  importJobId            String?                @unique
+  paymentModel           String?
+  paymentReference       String?
+  vendorBankName         String?
+  vendorIban             String?
+  fiscalStatus           String?
+  operatorOib            String?
+  paymentMethod          PaymentMethod?
+  emailMessageId         String?
+  emailDeliveredAt       DateTime?
+  emailOpenedAt          DateTime?
+  emailClickedAt         DateTime?
+  emailBouncedAt         DateTime?
+  emailBounceReason      String?
+  bankTransactions       BankTransaction[]
+  buyer                  Contact?               @relation("EInvoiceBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
+  buyerOrganization      Organization?          @relation("EInvoiceBuyerOrganization", fields: [buyerOrganizationId], references: [id], onDelete: SetNull)
+  company                Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  convertedFrom          EInvoice?              @relation("InvoiceConversion", fields: [convertedFromId], references: [id])
+  convertedTo            EInvoice[]             @relation("InvoiceConversion")
+  correctsInvoice        EInvoice?              @relation("InvoiceCorrections", fields: [correctsInvoiceId], references: [id])
+  creditNotes            EInvoice[]             @relation("InvoiceCorrections")
+  importJob              ImportJob?             @relation(fields: [importJobId], references: [id])
+  seller                 Contact?               @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: SetNull)
+  sellerOrganization     Organization?          @relation("EInvoiceSellerOrganization", fields: [sellerOrganizationId], references: [id], onDelete: SetNull)
+  lines                  EInvoiceLine[]
+  fiscalRequests         FiscalRequest[]
   revenueRegisterEntries RevenueRegisterEntry[]
-  invoiceEvents     InvoiceEvent[]
-  matchRecords      MatchRecord[]
+  invoiceEvents          InvoiceEvent[]
+  matchRecords           MatchRecord[]
 
   @@unique([companyId, invoiceNumber])
   @@index([companyId])
@@ -1210,20 +1217,20 @@ model EInvoice {
 }
 
 model EInvoiceLine {
-  id          String   @id @default(cuid())
-  eInvoiceId  String
-  lineNumber  Int
-  description String
-  quantity    Decimal  @db.Decimal(10, 3)
-  unit        String   @default("C62")
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  netAmount   Decimal  @db.Decimal(10, 2)
-  vatRate     Decimal  @db.Decimal(5, 2)
-  vatCategory String   @default("S")
-  vatAmount   Decimal  @db.Decimal(10, 2)
-  vatRuleId   String?
-  eInvoice    EInvoice @relation(fields: [eInvoiceId], references: [id], onDelete: Cascade)
-  vatRule     RegulatoryRule? @relation(fields: [vatRuleId], references: [id])
+  id             String          @id @default(cuid())
+  eInvoiceId     String
+  lineNumber     Int
+  description    String
+  quantity       Decimal         @db.Decimal(10, 3)
+  unit           String          @default("C62")
+  unitPrice      Decimal         @db.Decimal(10, 2)
+  netAmount      Decimal         @db.Decimal(10, 2)
+  vatRate        Decimal         @db.Decimal(5, 2)
+  vatCategory    String          @default("S")
+  vatAmount      Decimal         @db.Decimal(10, 2)
+  vatRuleId      String?
+  eInvoice       EInvoice        @relation(fields: [eInvoiceId], references: [id], onDelete: Cascade)
+  vatRule        RegulatoryRule? @relation(fields: [vatRuleId], references: [id])
   stockMovements StockMovement[]
 
   @@index([eInvoiceId])
@@ -1278,7 +1285,6 @@ model InvoiceEvent {
   @@index([companyId])
   @@index([type])
 }
-
 
 model AuditLog {
   id        String      @id @default(cuid())
@@ -1409,40 +1415,41 @@ model InvoiceSequence {
 }
 
 model Expense {
-  id               String            @id @default(cuid())
-  companyId        String
-  vendorId         String?
+  id                   String                @id @default(cuid())
+  companyId            String
+  vendorId             String?
   vendorOrganizationId String?
-  categoryId       String
-  description      String
-  date             DateTime
-  dueDate          DateTime?
-  netAmount        Decimal           @db.Decimal(10, 2)
-  vatAmount        Decimal           @db.Decimal(10, 2)
-  vatRate          Decimal           @db.Decimal(5, 2)
-  totalAmount      Decimal           @db.Decimal(10, 2)
-  vatDeductible    Boolean           @default(true)
-  currency         String            @default("EUR")
-  status           ExpenseStatus     @default(DRAFT)
-  statusBeforeMatch ExpenseStatus?
-  paymentMethod    PaymentMethod?
-  paymentDate      DateTime?
-  receiptUrl       String?
-  notes            String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  bankTransactions BankTransaction[]
-  lines            ExpenseLine[]
-  attachments      Attachment[]
-  uraInputs        UraInput[]
-  corrections      ExpenseCorrection[]
-  assetCandidates  FixedAssetCandidate[]
-  category         ExpenseCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  vendor           Contact?          @relation("ExpenseVendor", fields: [vendorId], references: [id])
-  vendorOrganization Organization?   @relation("ExpenseVendorOrganization", fields: [vendorOrganizationId], references: [id])
-  stockMovements   StockMovement[]
-  matchRecords     MatchRecord[]
+  categoryId           String
+  description          String
+  date                 DateTime
+  dueDate              DateTime?
+  netAmount            Decimal               @db.Decimal(10, 2)
+  vatAmount            Decimal               @db.Decimal(10, 2)
+  vatRate              Decimal               @db.Decimal(5, 2)
+  totalAmount          Decimal               @db.Decimal(10, 2)
+  vatDeductible        Boolean               @default(true)
+  currency             String                @default("EUR")
+  status               ExpenseStatus         @default(DRAFT)
+  statusBeforeMatch    ExpenseStatus?
+  paymentMethod        PaymentMethod?
+  paymentDate          DateTime?
+  receiptUrl           String?
+  notes                String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  bankTransactions     BankTransaction[]
+  lines                ExpenseLine[]
+  supplierBill         SupplierBill?
+  attachments          Attachment[]
+  uraInputs            UraInput[]
+  corrections          ExpenseCorrection[]
+  assetCandidates      FixedAssetCandidate[]
+  category             ExpenseCategory       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  company              Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vendor               Contact?              @relation("ExpenseVendor", fields: [vendorId], references: [id])
+  vendorOrganization   Organization?         @relation("ExpenseVendorOrganization", fields: [vendorOrganizationId], references: [id])
+  stockMovements       StockMovement[]
+  matchRecords         MatchRecord[]
 
   @@index([companyId])
   @@index([date])
@@ -1452,49 +1459,71 @@ model Expense {
 }
 
 model ExpenseLine {
-  id          String   @id @default(cuid())
-  companyId   String
-  expenseId   String
-  description String
-  quantity    Decimal  @db.Decimal(10, 2)
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  netAmount   Decimal  @db.Decimal(10, 2)
-  vatRate     Decimal  @db.Decimal(5, 2)
-  vatAmount   Decimal  @db.Decimal(10, 2)
-  totalAmount Decimal  @db.Decimal(10, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  uraInputs   UraInput[]
+  id             String               @id @default(cuid())
+  companyId      String
+  expenseId      String
+  description    String
+  quantity       Decimal              @db.Decimal(10, 2)
+  unitPrice      Decimal              @db.Decimal(10, 2)
+  netAmount      Decimal              @db.Decimal(10, 2)
+  vatRate        Decimal              @db.Decimal(5, 2)
+  vatAmount      Decimal              @db.Decimal(10, 2)
+  totalAmount    Decimal              @db.Decimal(10, 2)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  expense        Expense              @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  company        Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  attachments    Attachment[]
+  uraInputs      UraInput[]
   assetCandidate FixedAssetCandidate?
 
   @@index([companyId])
   @@index([expenseId])
 }
 
+model SupplierBill {
+  id              String    @id @default(cuid())
+  companyId       String
+  expenseId       String    @unique
+  documentNumber  String?
+  issueDate       DateTime
+  dueDate         DateTime?
+  vendorName      String?
+  vendorVatNumber String?
+  netAmount       Decimal   @db.Decimal(10, 2)
+  vatAmount       Decimal   @db.Decimal(10, 2)
+  totalAmount     Decimal   @db.Decimal(10, 2)
+  currency        String    @default("EUR")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  expense         Expense   @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([issueDate])
+}
+
 model UraInput {
-  id                   String   @id @default(cuid())
-  companyId            String
-  expenseId            String
-  expenseLineId        String
-  date                 DateTime
-  vendorName           String?
-  vendorVatNumber      String?
-  netAmount            Decimal  @db.Decimal(10, 2)
-  vatRate              Decimal  @db.Decimal(5, 2)
-  vatAmount            Decimal  @db.Decimal(10, 2)
-  totalAmount          Decimal  @db.Decimal(10, 2)
-  deductibleVatAmount  Decimal  @db.Decimal(10, 2)
-  nonDeductibleVatAmount Decimal @db.Decimal(10, 2)
-  ruleReferences       Json?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  expense              Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  expenseLine          ExpenseLine @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
-  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  attachments          Attachment[]
+  id                     String       @id @default(cuid())
+  companyId              String
+  expenseId              String
+  expenseLineId          String
+  date                   DateTime
+  vendorName             String?
+  vendorVatNumber        String?
+  netAmount              Decimal      @db.Decimal(10, 2)
+  vatRate                Decimal      @db.Decimal(5, 2)
+  vatAmount              Decimal      @db.Decimal(10, 2)
+  totalAmount            Decimal      @db.Decimal(10, 2)
+  deductibleVatAmount    Decimal      @db.Decimal(10, 2)
+  nonDeductibleVatAmount Decimal      @db.Decimal(10, 2)
+  ruleReferences         Json?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  expense                Expense      @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseLine            ExpenseLine  @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
+  company                Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  attachments            Attachment[]
 
   @@index([companyId])
   @@index([expenseId])
@@ -1502,7 +1531,7 @@ model UraInput {
 }
 
 model Attachment {
-  id               String           @id @default(cuid())
+  id                String           @id @default(cuid())
   companyId         String
   expenseId         String?
   expenseLineId     String?
@@ -1513,13 +1542,13 @@ model Attachment {
   size              Int?
   sourceType        AttachmentSource @default(UPLOAD)
   sourceExternalId  String?
-  isSourceImmutable Boolean         @default(false)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  expense           Expense?        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  expenseLine       ExpenseLine?    @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
-  uraInput          UraInput?       @relation(fields: [uraInputId], references: [id], onDelete: Cascade)
-  company           Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  isSourceImmutable Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  expense           Expense?         @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseLine       ExpenseLine?     @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
+  uraInput          UraInput?        @relation(fields: [uraInputId], references: [id], onDelete: Cascade)
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([expenseId])
@@ -1543,21 +1572,21 @@ model ExpenseCorrection {
 }
 
 model FixedAssetCandidate {
-  id             String                 @id @default(cuid())
+  id             String                    @id @default(cuid())
   companyId      String
   expenseId      String
-  expenseLineId  String                 @unique
+  expenseLineId  String                    @unique
   description    String
-  amount         Decimal                @db.Decimal(10, 2)
-  currency       String                 @default("EUR")
-  thresholdValue Decimal                @db.Decimal(10, 2)
+  amount         Decimal                   @db.Decimal(10, 2)
+  currency       String                    @default("EUR")
+  thresholdValue Decimal                   @db.Decimal(10, 2)
   status         FixedAssetCandidateStatus @default(PENDING)
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
   reviewedAt     DateTime?
-  expense        Expense                @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  expenseLine    ExpenseLine            @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
-  company        Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  expense        Expense                   @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseLine    ExpenseLine               @relation(fields: [expenseLineId], references: [id], onDelete: Cascade)
+  company        Company                   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
   @@index([expenseId])
@@ -1624,36 +1653,36 @@ enum MileageLogSource {
 }
 
 model TravelOrder {
-  id                    String            @id @default(cuid())
-  companyId             String
-  travelerUserId        String?
-  orderNumber           String
-  purpose               String
-  origin                String?
-  destination           String
-  departureDate         DateTime
-  returnDate            DateTime
-  vehicleType           TravelVehicleType
-  distanceKm            Decimal?          @db.Decimal(10, 2)
-  perDiemDays           Decimal?          @db.Decimal(8, 2)
-  perDiemRate           Decimal?          @db.Decimal(10, 2)
-  perDiemAmount         Decimal?          @db.Decimal(12, 2)
-  mileageRate           Decimal?          @db.Decimal(10, 2)
-  mileageAmount         Decimal?          @db.Decimal(12, 2)
-  totalAmount           Decimal           @db.Decimal(12, 2)
-  currency              String            @default("EUR")
-  perDiemRuleVersionId  String?
-  mileageRuleVersionId  String?
-  status                TravelOrderStatus @default(DRAFT)
-  notes                 String?
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
-  company               Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  travelerUser          User?             @relation("TravelOrderTraveler", fields: [travelerUserId], references: [id], onDelete: SetNull)
-  mileageLogs           MileageLog[]
-  pdfs                  TravelPdf[]
-  perDiemRuleVersion    RuleVersion?      @relation("TravelOrderPerDiemRuleVersion", fields: [perDiemRuleVersionId], references: [id])
-  mileageRuleVersion    RuleVersion?      @relation("TravelOrderMileageRuleVersion", fields: [mileageRuleVersionId], references: [id])
+  id                   String            @id @default(cuid())
+  companyId            String
+  travelerUserId       String?
+  orderNumber          String
+  purpose              String
+  origin               String?
+  destination          String
+  departureDate        DateTime
+  returnDate           DateTime
+  vehicleType          TravelVehicleType
+  distanceKm           Decimal?          @db.Decimal(10, 2)
+  perDiemDays          Decimal?          @db.Decimal(8, 2)
+  perDiemRate          Decimal?          @db.Decimal(10, 2)
+  perDiemAmount        Decimal?          @db.Decimal(12, 2)
+  mileageRate          Decimal?          @db.Decimal(10, 2)
+  mileageAmount        Decimal?          @db.Decimal(12, 2)
+  totalAmount          Decimal           @db.Decimal(12, 2)
+  currency             String            @default("EUR")
+  perDiemRuleVersionId String?
+  mileageRuleVersionId String?
+  status               TravelOrderStatus @default(DRAFT)
+  notes                String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  company              Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  travelerUser         User?             @relation("TravelOrderTraveler", fields: [travelerUserId], references: [id], onDelete: SetNull)
+  mileageLogs          MileageLog[]
+  pdfs                 TravelPdf[]
+  perDiemRuleVersion   RuleVersion?      @relation("TravelOrderPerDiemRuleVersion", fields: [perDiemRuleVersionId], references: [id])
+  mileageRuleVersion   RuleVersion?      @relation("TravelOrderMileageRuleVersion", fields: [mileageRuleVersionId], references: [id])
 
   @@unique([companyId, orderNumber])
   @@index([companyId])
@@ -1691,24 +1720,24 @@ model MileageLog {
 }
 
 model TravelPdf {
-  id                String     @id @default(cuid())
+  id                String      @id @default(cuid())
   companyId         String
   travelOrderId     String
-  version           Int        @default(1)
+  version           Int         @default(1)
   fileName          String
-  mimeType          String     @default("application/pdf")
+  mimeType          String      @default("application/pdf")
   sizeBytes         Int
   r2Key             String
   sha256            String
   sourceSnapshot    Json
-  isImmutable       Boolean    @default(true)
-  lockedAt          DateTime   @default(now())
-  generatedAt       DateTime   @default(now())
+  isImmutable       Boolean     @default(true)
+  lockedAt          DateTime    @default(now())
+  generatedAt       DateTime    @default(now())
   generatedByUserId String?
-  createdAt         DateTime   @default(now())
-  company           Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now())
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
   travelOrder       TravelOrder @relation(fields: [travelOrderId], references: [id], onDelete: Cascade)
-  generatedByUser   User?      @relation("TravelPdfGeneratedBy", fields: [generatedByUserId], references: [id], onDelete: SetNull)
+  generatedByUser   User?       @relation("TravelPdfGeneratedBy", fields: [generatedByUserId], references: [id], onDelete: SetNull)
 
   @@unique([travelOrderId, version])
   @@index([companyId])
@@ -1766,34 +1795,34 @@ model BankAccount {
 }
 
 model BankTransaction {
-  id               String            @id @default(cuid())
-  companyId        String
-  bankAccountId    String
-  statementImportId String?
-  date             DateTime
-  description      String
-  amount           Decimal           @db.Decimal(12, 2)
-  balance          Decimal           @db.Decimal(12, 2)
-  currency         String            @default("EUR")
-  reference        String?
-  counterpartyName String?
-  counterpartyIban String?
+  id                         String            @id @default(cuid())
+  companyId                  String
+  bankAccountId              String
+  statementImportId          String?
+  date                       DateTime
+  description                String
+  amount                     Decimal           @db.Decimal(12, 2)
+  balance                    Decimal           @db.Decimal(12, 2)
+  currency                   String            @default("EUR")
+  reference                  String?
+  counterpartyName           String?
+  counterpartyIban           String?
   counterpartyOrganizationId String?
-  matchedInvoiceId String?
-  matchedExpenseId String?
-  matchStatus      MatchStatus       @default(UNMATCHED)
-  matchedAt        DateTime?
-  matchedBy        String?
-  createdAt        DateTime          @default(now())
-  confidenceScore  Int?
-  externalId       String?
-  source           TransactionSource @default(MANUAL)
-  bankAccount      BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  statementImport  StatementImport?  @relation(fields: [statementImportId], references: [id], onDelete: SetNull)
-  matchedExpense   Expense?          @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
-  matchedInvoice   EInvoice?         @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
-  counterpartyOrganization Organization? @relation("BankTransactionCounterpartyOrganization", fields: [counterpartyOrganizationId], references: [id], onDelete: SetNull)
-  matchRecords     MatchRecord[]
+  matchedInvoiceId           String?
+  matchedExpenseId           String?
+  matchStatus                MatchStatus       @default(UNMATCHED)
+  matchedAt                  DateTime?
+  matchedBy                  String?
+  createdAt                  DateTime          @default(now())
+  confidenceScore            Int?
+  externalId                 String?
+  source                     TransactionSource @default(MANUAL)
+  bankAccount                BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  statementImport            StatementImport?  @relation(fields: [statementImportId], references: [id], onDelete: SetNull)
+  matchedExpense             Expense?          @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
+  matchedInvoice             EInvoice?         @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
+  counterpartyOrganization   Organization?     @relation("BankTransactionCounterpartyOrganization", fields: [counterpartyOrganizationId], references: [id], onDelete: SetNull)
+  matchRecords               MatchRecord[]
 
   @@index([companyId])
   @@index([bankAccountId])
@@ -1805,23 +1834,23 @@ model BankTransaction {
 }
 
 model MatchRecord {
-  id                String      @id @default(cuid())
-  companyId          String
-  bankTransactionId  String
-  matchStatus        MatchStatus
-  matchKind          MatchKind
-  matchedInvoiceId   String?
-  matchedExpenseId   String?
-  confidenceScore    Int?
-  reason             String?
-  source             MatchSource @default(MANUAL)
-  metadata           Json?
-  createdAt          DateTime    @default(now())
-  createdBy          String?
-  company            Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  bankTransaction    BankTransaction @relation(fields: [bankTransactionId], references: [id], onDelete: Cascade)
-  matchedInvoice     EInvoice?   @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
-  matchedExpense     Expense?    @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
+  id                String          @id @default(cuid())
+  companyId         String
+  bankTransactionId String
+  matchStatus       MatchStatus
+  matchKind         MatchKind
+  matchedInvoiceId  String?
+  matchedExpenseId  String?
+  confidenceScore   Int?
+  reason            String?
+  source            MatchSource     @default(MANUAL)
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+  createdBy         String?
+  company           Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bankTransaction   BankTransaction @relation(fields: [bankTransactionId], references: [id], onDelete: Cascade)
+  matchedInvoice    EInvoice?       @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
+  matchedExpense    Expense?        @relation(fields: [matchedExpenseId], references: [id], onDelete: SetNull)
 
   @@index([companyId])
   @@index([bankTransactionId])
@@ -1941,20 +1970,20 @@ model EmailAttachment {
 }
 
 model StatementImport {
-  id               String        @id @default(cuid())
+  id               String            @id @default(cuid())
   companyId        String
   bankAccountId    String
-  importJobId      String?       @unique
+  importJobId      String?           @unique
   fileName         String
   fileChecksum     String
   format           ImportFormat
   transactionCount Int
-  importedAt       DateTime      @default(now())
+  importedAt       DateTime          @default(now())
   importedBy       String
   metadata         Json?
-  bankAccount      BankAccount   @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  importJob        ImportJob?    @relation(fields: [importJobId], references: [id], onDelete: SetNull)
+  bankAccount      BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importJob        ImportJob?        @relation(fields: [importJobId], references: [id], onDelete: SetNull)
   transactions     BankTransaction[]
 
   @@unique([bankAccountId, fileChecksum])
@@ -2089,25 +2118,25 @@ model SupportTicket {
 }
 
 model SupportTicketMessage {
-  id          String                     @id @default(cuid())
+  id          String                    @id @default(cuid())
   ticketId    String
   authorId    String?
   body        String
-  createdAt   DateTime                   @default(now())
-  ticket      SupportTicket              @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdAt   DateTime                  @default(now())
+  ticket      SupportTicket             @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   attachments SupportTicketAttachment[]
 
   @@index([ticketId])
 }
 
 model SupportTicketAttachment {
-  id        String                @id @default(cuid())
+  id        String               @id @default(cuid())
   messageId String
   fileName  String
   fileType  String
   fileSize  Int
   r2Key     String
-  createdAt DateTime              @default(now())
+  createdAt DateTime             @default(now())
   message   SupportTicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
@@ -2143,8 +2172,8 @@ model FiscalCertificate {
   encryptedDataKey          String
   status                    CertStatus      @default(PENDING)
   lastUsedAt                DateTime?
-  lastExpiryNotificationAt  DateTime?       // When last expiry notification was sent
-  lastExpiryNotificationDay Int?            // Days remaining when notification was sent (30, 14, 7, 1)
+  lastExpiryNotificationAt  DateTime? // When last expiry notification was sent
+  lastExpiryNotificationDay Int? // Days remaining when notification was sent (30, 14, 7, 1)
   createdAt                 DateTime        @default(now())
   updatedAt                 DateTime        @updatedAt
   company                   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -2160,7 +2189,7 @@ model CertificateNotification {
   id              String                        @id @default(cuid())
   certificateId   String
   companyId       String
-  notificationDay Int                           // Days before expiry (30, 14, 7, 1)
+  notificationDay Int // Days before expiry (30, 14, 7, 1)
   status          CertificateNotificationStatus @default(PENDING)
   attemptCount    Int                           @default(0)
   maxAttempts     Int                           @default(3)
@@ -2176,19 +2205,19 @@ model CertificateNotification {
 }
 
 model FiscalRequest {
-  id             String            @id @default(cuid())
-  companyId      String
-  certificateId  String
-  invoiceId      String?
-  messageType    FiscalMessageType
-  status         FiscalStatus      @default(QUEUED)
-  attemptCount   Int               @default(0)
-  maxAttempts    Int               @default(5)
-  nextRetryAt    DateTime          @default(now())
-  lockedAt       DateTime?
-  lockedBy       String?
-  jir            String?
-  zki            String?
+  id                   String            @id @default(cuid())
+  companyId            String
+  certificateId        String
+  invoiceId            String?
+  messageType          FiscalMessageType
+  status               FiscalStatus      @default(QUEUED)
+  attemptCount         Int               @default(0)
+  maxAttempts          Int               @default(5)
+  nextRetryAt          DateTime          @default(now())
+  lockedAt             DateTime?
+  lockedBy             String?
+  jir                  String?
+  zki                  String?
   certificateSubject   String?
   certificateSerial    String?
   certificateNotBefore DateTime?
@@ -2199,19 +2228,19 @@ model FiscalRequest {
   qrInvoiceNumber      String?
   qrIssuerOib          String?
   qrIssueDate          DateTime?
-  qrAmount             Decimal?         @db.Decimal(10, 2)
-  errorCode      String?
-  errorMessage   String?
-  lastHttpStatus Int?
-  requestXml     String?
-  signedXml      String?
-  responseXml    String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  certificate    FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
-  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invoice        EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  responses      FiscalResponse[]
+  qrAmount             Decimal?          @db.Decimal(10, 2)
+  errorCode            String?
+  errorMessage         String?
+  lastHttpStatus       Int?
+  requestXml           String?
+  signedXml            String?
+  responseXml          String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  certificate          FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
+  company              Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoice              EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  responses            FiscalResponse[]
 
   @@unique([companyId, invoiceId, messageType])
   @@index([status, nextRetryAt])
@@ -2236,7 +2265,7 @@ model FiscalResponse {
   qrDateTime        DateTime?
   qrAmount          Decimal?             @db.Decimal(10, 2)
   createdAt         DateTime             @default(now())
-  request           FiscalRequest         @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  request           FiscalRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([requestId])
   @@index([status])
@@ -2464,29 +2493,29 @@ model generated_form {
 }
 
 model Payout {
-  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId    String       @map("company_id")
-  payoutDate   DateTime     @map("payout_date") @db.Date
-  periodYear   Int          @map("period_year")
-  periodMonth  Int          @map("period_month")
-  periodFrom   DateTime     @map("period_from") @db.Date
-  periodTo     DateTime     @map("period_to") @db.Date
-  currency     String       @default("EUR") @map("currency") @db.VarChar(3)
-  description  String?      @map("description") @db.VarChar(255)
-  status       PayoutStatus @default(DRAFT)
-  lockedAt     DateTime?    @map("locked_at") @db.Timestamp(6)
-  lockedById   String?      @map("locked_by_id")
-  reportedAt   DateTime?    @map("reported_at") @db.Timestamp(6)
-  reportedById String?      @map("reported_by_id")
-  createdAt    DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt    DateTime?    @updatedAt @map("updated_at") @db.Timestamp(6)
-  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  lockedBy     User?        @relation("PayoutLockedBy", fields: [lockedById], references: [id], onDelete: SetNull)
-  reportedBy   User?        @relation("PayoutReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
-  lines        PayoutLine[]
-  payslips     Payslip[]
-  payslipArtifacts PayslipArtifact[]
-  snapshots    CalculationSnapshot[]
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId          String                @map("company_id")
+  payoutDate         DateTime              @map("payout_date") @db.Date
+  periodYear         Int                   @map("period_year")
+  periodMonth        Int                   @map("period_month")
+  periodFrom         DateTime              @map("period_from") @db.Date
+  periodTo           DateTime              @map("period_to") @db.Date
+  currency           String                @default("EUR") @map("currency") @db.VarChar(3)
+  description        String?               @map("description") @db.VarChar(255)
+  status             PayoutStatus          @default(DRAFT)
+  lockedAt           DateTime?             @map("locked_at") @db.Timestamp(6)
+  lockedById         String?               @map("locked_by_id")
+  reportedAt         DateTime?             @map("reported_at") @db.Timestamp(6)
+  reportedById       String?               @map("reported_by_id")
+  createdAt          DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime?             @updatedAt @map("updated_at") @db.Timestamp(6)
+  company            Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  lockedBy           User?                 @relation("PayoutLockedBy", fields: [lockedById], references: [id], onDelete: SetNull)
+  reportedBy         User?                 @relation("PayoutReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  lines              PayoutLine[]
+  payslips           Payslip[]
+  payslipArtifacts   PayslipArtifact[]
+  snapshots          CalculationSnapshot[]
   bankPaymentExports BankPaymentExport[]
 
   @@index([companyId, periodYear, periodMonth], map: "payout_period_idx")
@@ -2495,31 +2524,32 @@ model Payout {
 }
 
 model PayoutLine {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId     String   @map("company_id")
-  payoutId      String   @map("payout_id")
-  employeeId    String?  @map("employee_id")
-  lineNumber    Int      @map("line_number")
-  employeeName  String?  @map("employee_name") @db.VarChar(200)
-  employeeOib   String?  @map("employee_oib") @db.VarChar(11)
-  employeeIban  String?  @map("employee_iban") @db.VarChar(34)
-  recipientName String?  @map("recipient_name") @db.VarChar(200)
-  recipientOib  String?  @map("recipient_oib") @db.VarChar(11)
-  grossAmount   Decimal? @map("gross_amount") @db.Decimal(12, 2)
-  netAmount     Decimal? @map("net_amount") @db.Decimal(12, 2)
-  taxAmount     Decimal? @map("tax_amount") @db.Decimal(12, 2)
-  currency      String   @default("EUR") @map("currency") @db.VarChar(3)
-  joppdData     Json?    @map("joppd_data")
-  ruleVersionId String?  @map("rule_version_id")
-  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  payout        Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  ruleVersion   RuleVersion? @relation("PayoutLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
-  submissions   JoppdSubmissionLine[]
-  payslips      Payslip[]
-  snapshots     CalculationSnapshot[]
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId        String                @map("company_id")
+  payoutId         String                @map("payout_id")
+  employeeId       String?               @map("employee_id")
+  lineNumber       Int                   @map("line_number")
+  employeeName     String?               @map("employee_name") @db.VarChar(200)
+  employeeOib      String?               @map("employee_oib") @db.VarChar(11)
+  employeeIban     String?               @map("employee_iban") @db.VarChar(34)
+  recipientName    String?               @map("recipient_name") @db.VarChar(200)
+  recipientOib     String?               @map("recipient_oib") @db.VarChar(11)
+  grossAmount      Decimal?              @map("gross_amount") @db.Decimal(12, 2)
+  netAmount        Decimal?              @map("net_amount") @db.Decimal(12, 2)
+  taxAmount        Decimal?              @map("tax_amount") @db.Decimal(12, 2)
+  currency         String                @default("EUR") @map("currency") @db.VarChar(3)
+  joppdData        Json?                 @map("joppd_data")
+  ruleVersionId    String?               @map("rule_version_id")
+  createdAt        DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  payout           Payout                @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  ruleVersion      RuleVersion?          @relation("PayoutLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
+  company          Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee         Employee?             @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  submissions      JoppdSubmissionLine[]
+  payslips         Payslip[]
+  snapshots        CalculationSnapshot[]
   bankPaymentLines BankPaymentLine[]
+  payslipArtifacts PayslipArtifact[]
 
   @@index([companyId], map: "payout_line_company_idx")
   @@index([payoutId], map: "payout_line_payout_idx")
@@ -2529,25 +2559,25 @@ model PayoutLine {
 }
 
 model Payslip {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId             String   @map("company_id")
-  payoutId              String   @map("payout_id")
-  payoutLineId          String   @map("payout_line_id")
-  employeeId            String?  @map("employee_id")
-  employeeName          String?  @map("employee_name") @db.VarChar(200)
-  employeeOib           String?  @map("employee_oib") @db.VarChar(11)
-  employeeIban          String?  @map("employee_iban") @db.VarChar(34)
-  currency              String   @default("EUR") @map("currency") @db.VarChar(3)
-  grossAmount           Decimal? @map("gross_amount") @db.Decimal(12, 2)
-  netAmount             Decimal? @map("net_amount") @db.Decimal(12, 2)
-  taxAmount             Decimal? @map("tax_amount") @db.Decimal(12, 2)
-  calculationSnapshotId String?  @map("calculation_snapshot_id")
-  issuedAt              DateTime? @map("issued_at") @db.Date
-  createdAt             DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  payout                Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  payoutLine            PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
-  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  employee              Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId             String               @map("company_id")
+  payoutId              String               @map("payout_id")
+  payoutLineId          String               @map("payout_line_id")
+  employeeId            String?              @map("employee_id")
+  employeeName          String?              @map("employee_name") @db.VarChar(200)
+  employeeOib           String?              @map("employee_oib") @db.VarChar(11)
+  employeeIban          String?              @map("employee_iban") @db.VarChar(34)
+  currency              String               @default("EUR") @map("currency") @db.VarChar(3)
+  grossAmount           Decimal?             @map("gross_amount") @db.Decimal(12, 2)
+  netAmount             Decimal?             @map("net_amount") @db.Decimal(12, 2)
+  taxAmount             Decimal?             @map("tax_amount") @db.Decimal(12, 2)
+  calculationSnapshotId String?              @map("calculation_snapshot_id")
+  issuedAt              DateTime?            @map("issued_at") @db.Date
+  createdAt             DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  payout                Payout               @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine            PayoutLine           @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
+  company               Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee              Employee?            @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   calculationSnapshot   CalculationSnapshot? @relation(fields: [calculationSnapshotId], references: [id], onDelete: SetNull)
   artifacts             PayslipArtifact[]
 
@@ -2559,22 +2589,22 @@ model Payslip {
 }
 
 model PayslipArtifact {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId   String   @map("company_id")
-  payoutId    String   @map("payout_id")
-  payoutLineId String? @map("payout_line_id")
-  payslipId   String?  @map("payslip_id")
-  storageKey  String   @map("storage_key") @db.VarChar(500)
-  fileHash    String?  @map("file_hash") @db.VarChar(64)
-  fileName    String?  @map("file_name") @db.VarChar(255)
-  contentType String?  @map("content_type") @db.VarChar(100)
-  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  createdById String?  @map("created_by_id")
-  payout      Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  payoutLine  PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: SetNull)
-  payslip     Payslip? @relation(fields: [payslipId], references: [id], onDelete: SetNull)
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdBy   User?    @relation("PayslipArtifactCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId    String      @map("company_id")
+  payoutId     String      @map("payout_id")
+  payoutLineId String?     @map("payout_line_id")
+  payslipId    String?     @map("payslip_id")
+  storageKey   String      @map("storage_key") @db.VarChar(500)
+  fileHash     String?     @map("file_hash") @db.VarChar(64)
+  fileName     String?     @map("file_name") @db.VarChar(255)
+  contentType  String?     @map("content_type") @db.VarChar(100)
+  createdAt    DateTime?   @default(now()) @map("created_at") @db.Timestamp(6)
+  createdById  String?     @map("created_by_id")
+  payout       Payout      @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine   PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: SetNull)
+  payslip      Payslip?    @relation(fields: [payslipId], references: [id], onDelete: SetNull)
+  company      Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy    User?       @relation("PayslipArtifactCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([companyId], map: "payslip_artifact_company_idx")
   @@index([payoutId], map: "payslip_artifact_payout_idx")
@@ -2584,21 +2614,21 @@ model PayslipArtifact {
 }
 
 model CalculationSnapshot {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId            String   @map("company_id")
-  payoutId             String   @map("payout_id")
-  payoutLineId          String?  @map("payout_line_id")
-  rulesEngineSnapshot  Json     @map("rules_engine_snapshot")
-  employmentSnapshot   Json     @map("employment_snapshot")
-  inputSnapshot        Json     @map("input_snapshot")
-  outputSnapshot       Json     @map("output_snapshot")
-  createdAt            DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  createdById          String?  @map("created_by_id")
-  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  payout               Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  payoutLine           PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: SetNull)
-  createdBy            User?    @relation("CalculationSnapshotCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  payslips             Payslip[]
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId           String      @map("company_id")
+  payoutId            String      @map("payout_id")
+  payoutLineId        String?     @map("payout_line_id")
+  rulesEngineSnapshot Json        @map("rules_engine_snapshot")
+  employmentSnapshot  Json        @map("employment_snapshot")
+  inputSnapshot       Json        @map("input_snapshot")
+  outputSnapshot      Json        @map("output_snapshot")
+  createdAt           DateTime?   @default(now()) @map("created_at") @db.Timestamp(6)
+  createdById         String?     @map("created_by_id")
+  company             Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout              Payout      @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine          PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: SetNull)
+  createdBy           User?       @relation("CalculationSnapshotCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  payslips            Payslip[]
 
   @@index([companyId], map: "calculation_snapshot_company_idx")
   @@index([payoutId], map: "calculation_snapshot_payout_idx")
@@ -2607,18 +2637,18 @@ model CalculationSnapshot {
 }
 
 model BankPaymentExport {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId    String   @map("company_id")
-  payoutId     String   @map("payout_id")
-  format       String   @default("SEPA_CT") @map("format") @db.VarChar(50)
-  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  createdById  String?  @map("created_by_id")
-  exportedAt   DateTime? @map("exported_at") @db.Timestamp(6)
-  exportedById String?  @map("exported_by_id")
-  payout       Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdBy    User?    @relation("BankPaymentExportCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  exportedBy   User?    @relation("BankPaymentExportExporter", fields: [exportedById], references: [id], onDelete: SetNull)
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId    String            @map("company_id")
+  payoutId     String            @map("payout_id")
+  format       String            @default("SEPA_CT") @map("format") @db.VarChar(50)
+  createdAt    DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
+  createdById  String?           @map("created_by_id")
+  exportedAt   DateTime?         @map("exported_at") @db.Timestamp(6)
+  exportedById String?           @map("exported_by_id")
+  payout       Payout            @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy    User?             @relation("BankPaymentExportCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  exportedBy   User?             @relation("BankPaymentExportExporter", fields: [exportedById], references: [id], onDelete: SetNull)
   lines        BankPaymentLine[]
 
   @@index([companyId], map: "bank_payment_export_company_idx")
@@ -2627,22 +2657,22 @@ model BankPaymentExport {
 }
 
 model BankPaymentLine {
-  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId              String   @map("company_id")
-  exportId               String   @map("export_id")
-  payoutLineId           String   @map("payout_line_id")
-  joppdSubmissionLineId  String?  @map("joppd_submission_line_id")
-  recipientName          String   @map("recipient_name") @db.VarChar(200)
-  recipientIban          String?  @map("recipient_iban") @db.VarChar(34)
-  amount                 Decimal  @map("amount") @db.Decimal(12, 2)
-  currency               String   @default("EUR") @map("currency") @db.VarChar(3)
-  reference              String?  @map("reference") @db.VarChar(50)
-  description            String?  @map("description") @db.VarChar(255)
-  createdAt              DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  export                 BankPaymentExport @relation(fields: [exportId], references: [id], onDelete: Cascade)
-  payoutLine             PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
-  joppdSubmissionLine    JoppdSubmissionLine? @relation(fields: [joppdSubmissionLineId], references: [id], onDelete: SetNull)
-  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId             String               @map("company_id")
+  exportId              String               @map("export_id")
+  payoutLineId          String               @map("payout_line_id")
+  joppdSubmissionLineId String?              @map("joppd_submission_line_id")
+  recipientName         String               @map("recipient_name") @db.VarChar(200)
+  recipientIban         String?              @map("recipient_iban") @db.VarChar(34)
+  amount                Decimal              @map("amount") @db.Decimal(12, 2)
+  currency              String               @default("EUR") @map("currency") @db.VarChar(3)
+  reference             String?              @map("reference") @db.VarChar(50)
+  description           String?              @map("description") @db.VarChar(255)
+  createdAt             DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  export                BankPaymentExport    @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  payoutLine            PayoutLine           @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
+  joppdSubmissionLine   JoppdSubmissionLine? @relation(fields: [joppdSubmissionLineId], references: [id], onDelete: SetNull)
+  company               Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId], map: "bank_payment_line_company_idx")
   @@index([exportId], map: "bank_payment_line_export_idx")
@@ -2652,25 +2682,25 @@ model BankPaymentLine {
 }
 
 model JoppdSubmission {
-  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId             String                @map("company_id")
-  periodYear            Int                   @map("period_year")
-  periodMonth           Int                   @map("period_month")
-  status                JoppdSubmissionStatus @default(PREPARED)
-  submissionReference   String?               @map("submission_reference") @db.VarChar(100)
-  isCorrection          Boolean               @default(false) @map("is_correction")
-  correctedSubmissionId String?               @map("corrected_submission_id")
-  signedXmlStorageKey   String?               @map("signed_xml_storage_key") @db.VarChar(500)
-  signedXmlHash         String?               @map("signed_xml_hash") @db.VarChar(64)
-  createdAt             DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt             DateTime?             @updatedAt @map("updated_at") @db.Timestamp(6)
-  submittedAt           DateTime?             @map("submitted_at") @db.Timestamp(6)
-  acceptedAt            DateTime?             @map("accepted_at") @db.Timestamp(6)
-  rejectedAt            DateTime?             @map("rejected_at") @db.Timestamp(6)
-  rejectionReason       String?               @map("rejection_reason") @db.VarChar(500)
-  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  correctedSubmission   JoppdSubmission?      @relation("JoppdSubmissionCorrections", fields: [correctedSubmissionId], references: [id], onDelete: SetNull)
-  corrections           JoppdSubmission[]     @relation("JoppdSubmissionCorrections")
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId             String                 @map("company_id")
+  periodYear            Int                    @map("period_year")
+  periodMonth           Int                    @map("period_month")
+  status                JoppdSubmissionStatus  @default(PREPARED)
+  submissionReference   String?                @map("submission_reference") @db.VarChar(100)
+  isCorrection          Boolean                @default(false) @map("is_correction")
+  correctedSubmissionId String?                @map("corrected_submission_id")
+  signedXmlStorageKey   String?                @map("signed_xml_storage_key") @db.VarChar(500)
+  signedXmlHash         String?                @map("signed_xml_hash") @db.VarChar(64)
+  createdAt             DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime?              @updatedAt @map("updated_at") @db.Timestamp(6)
+  submittedAt           DateTime?              @map("submitted_at") @db.Timestamp(6)
+  acceptedAt            DateTime?              @map("accepted_at") @db.Timestamp(6)
+  rejectedAt            DateTime?              @map("rejected_at") @db.Timestamp(6)
+  rejectionReason       String?                @map("rejection_reason") @db.VarChar(500)
+  company               Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  correctedSubmission   JoppdSubmission?       @relation("JoppdSubmissionCorrections", fields: [correctedSubmissionId], references: [id], onDelete: SetNull)
+  corrections           JoppdSubmission[]      @relation("JoppdSubmissionCorrections")
   lines                 JoppdSubmissionLine[]
   events                JoppdSubmissionEvent[]
 
@@ -2680,21 +2710,20 @@ model JoppdSubmission {
 }
 
 model JoppdSubmissionLine {
-  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  submissionId   String                @map("submission_id")
-  payoutLineId   String                @map("payout_line_id")
-  lineNumber     Int                   @map("line_number")
-  lineData       Json?                 @map("line_data")
-  originalLineId String?               @map("original_line_id")
-  ruleVersionId  String?               @map("rule_version_id")
-  createdAt      DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
-  submission     JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  payoutLine     PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
-  ruleVersion    RuleVersion?          @relation("JoppdSubmissionLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
-  originalLine   JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
-  corrections    JoppdSubmissionLine[] @relation("JoppdLineCorrections")
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submissionId     String                @map("submission_id")
+  payoutLineId     String                @map("payout_line_id")
+  lineNumber       Int                   @map("line_number")
+  lineData         Json?                 @map("line_data")
+  originalLineId   String?               @map("original_line_id")
+  ruleVersionId    String?               @map("rule_version_id")
+  createdAt        DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  submission       JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  payoutLine       PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
+  ruleVersion      RuleVersion?          @relation("JoppdSubmissionLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
+  originalLine     JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
+  corrections      JoppdSubmissionLine[] @relation("JoppdLineCorrections")
   bankPaymentLines BankPaymentLine[]
-  ruleVersion    RuleVersion?          @relation(fields: [ruleVersionId], references: [id], onDelete: SetNull)
 
   @@index([submissionId], map: "joppd_submission_line_submission_idx")
   @@index([payoutLineId], map: "joppd_submission_line_payout_idx")
@@ -3473,10 +3502,10 @@ enum FiscalResponseStatus {
 }
 
 enum CertificateNotificationStatus {
-  PENDING     // Initial state, waiting to send
-  SENT        // Successfully sent
-  FAILED      // All retries exhausted
-  RETRYING    // Failed but will retry
+  PENDING // Initial state, waiting to send
+  SENT // Successfully sent
+  FAILED // All retries exhausted
+  RETRYING // Failed but will retry
 }
 
 enum ArticleType {
@@ -3836,11 +3865,10 @@ model Evidence {
   changeSummary String?
   deletedAt     DateTime?
 
-
   // Staleness tracking for regulatory compliance (GitHub issue #893)
   lastVerifiedAt  DateTime? // Last time source URL was checked and content confirmed unchanged
   expiresAt       DateTime? // Explicit expiration date for evidence (e.g., from effectiveUntil in rules)
-  sourceEtag      String?   // ETag from source for change detection
+  sourceEtag      String? // ETag from source for change detection
   sourceLastMod   DateTime? // Last-Modified header from source
   verifyCount     Int       @default(0) // Number of times verified unchanged
   stalenessStatus String    @default("FRESH") // FRESH, AGING, STALE, UNAVAILABLE, EXPIRED
@@ -3854,11 +3882,11 @@ model Evidence {
   primaryTextArtifactId String? // Points to canonical text artifact for Extractor
 
   // Semantic similarity support for duplicate detection (GitHub issue #828)
-  embedding           Unsupported("vector(768)")? // Vector embedding for semantic duplicate detection
-  embeddingStatus     String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
-  embeddingError      String?   // Error message if embedding generation failed
-  embeddingAttempts   Int       @default(0) // Number of embedding generation attempts
-  embeddingUpdatedAt  DateTime? // Last embedding status update
+  embedding          Unsupported("vector(768)")? // Vector embedding for semantic duplicate detection
+  embeddingStatus    String                      @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  embeddingError     String? // Error message if embedding generation failed
+  embeddingAttempts  Int                         @default(0) // Number of embedding generation attempts
+  embeddingUpdatedAt DateTime? // Last embedding status update
 
   source                 RegulatorySource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   sourcePointers         SourcePointer[]
@@ -3959,58 +3987,58 @@ model Concept {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  parent   Concept?         @relation("ConceptHierarchy", fields: [parentId], references: [id])
-  children Concept[]        @relation("ConceptHierarchy")
-  rules    RegulatoryRule[]
+  parent    Concept?          @relation("ConceptHierarchy", fields: [parentId], references: [id])
+  children  Concept[]         @relation("ConceptHierarchy")
+  rules     RegulatoryRule[]
   embedding ConceptEmbedding?
 
   @@index([parentId])
 }
 
 model ConceptEmbedding {
-  id          String   @id @default(cuid())
-  conceptId   String   @unique
-  embedding   Unsupported("vector(768)")? // pgvector embedding (768 dims for nomic-embed-text)
-  embeddingText String @db.Text // Text that was embedded (nameHr + aliases)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String                      @id @default(cuid())
+  conceptId     String                      @unique
+  embedding     Unsupported("vector(768)")? // pgvector embedding (768 dims for nomic-embed-text)
+  embeddingText String                      @db.Text // Text that was embedded (nameHr + aliases)
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
 
-  concept     Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
 
   @@index([conceptId])
 }
 
 model RegulatoryRule {
-  id               String           @id @default(cuid())
-  conceptSlug      String // e.g., "pausalni-revenue-threshold"
-  conceptId        String?
-  titleHr          String
-  titleEn          String?
-  riskTier         RiskTier
-  authorityLevel   AuthorityLevel   @default(GUIDANCE) // LAW, GUIDANCE, PROCEDURE, PRACTICE
-  automationPolicy AutomationPolicy @default(CONFIRM) // ALLOW, CONFIRM, BLOCK
-  ruleStability    RuleStability    @default(STABLE) // STABLE, VOLATILE
-  appliesWhen      String           @db.Text // AppliesWhen DSL expression
-  value            String // The regulatory value (stored as string)
-  valueType        String // percentage, currency_hrk, currency_eur, count, date, text
-  obligationType   ObligationType   @default(OBLIGATION) // OBLIGATION, NO_OBLIGATION, CONDITIONAL, INFORMATIONAL
-  outcome          Json? // Structured outcome (VALUE, OBLIGATION, PROCEDURE)
-  explanationHr    String?          @db.Text
-  explanationEn    String?          @db.Text
-  effectiveFrom    DateTime
-  effectiveUntil   DateTime?
-  supersedesId     String? // Previous rule this supersedes
-  status           RuleStatus       @default(DRAFT)
-  confidence       Float            @default(0.8) // DEPRECATED: Use derivedConfidence instead (kept for backward compatibility)
-  llmConfidence    Float            @default(0.8) // LLM's self-assessed confidence in composition
-  derivedConfidence Float           @default(0.8) // Confidence derived from source pointer quality (Issue #770)
-  composerNotes    String?
-  reviewerNotes    String?
-  approvedBy       String? // User ID who approved (for T0/T1)
-  approvedAt       DateTime?
-  meaningSignature String? // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                String           @id @default(cuid())
+  conceptSlug       String // e.g., "pausalni-revenue-threshold"
+  conceptId         String?
+  titleHr           String
+  titleEn           String?
+  riskTier          RiskTier
+  authorityLevel    AuthorityLevel   @default(GUIDANCE) // LAW, GUIDANCE, PROCEDURE, PRACTICE
+  automationPolicy  AutomationPolicy @default(CONFIRM) // ALLOW, CONFIRM, BLOCK
+  ruleStability     RuleStability    @default(STABLE) // STABLE, VOLATILE
+  appliesWhen       String           @db.Text // AppliesWhen DSL expression
+  value             String // The regulatory value (stored as string)
+  valueType         String // percentage, currency_hrk, currency_eur, count, date, text
+  obligationType    ObligationType   @default(OBLIGATION) // OBLIGATION, NO_OBLIGATION, CONDITIONAL, INFORMATIONAL
+  outcome           Json? // Structured outcome (VALUE, OBLIGATION, PROCEDURE)
+  explanationHr     String?          @db.Text
+  explanationEn     String?          @db.Text
+  effectiveFrom     DateTime
+  effectiveUntil    DateTime?
+  supersedesId      String? // Previous rule this supersedes
+  status            RuleStatus       @default(DRAFT)
+  confidence        Float            @default(0.8) // DEPRECATED: Use derivedConfidence instead (kept for backward compatibility)
+  llmConfidence     Float            @default(0.8) // LLM's self-assessed confidence in composition
+  derivedConfidence Float            @default(0.8) // Confidence derived from source pointer quality (Issue #770)
+  composerNotes     String?
+  reviewerNotes     String?
+  approvedBy        String? // User ID who approved (for T0/T1)
+  approvedAt        DateTime?
+  meaningSignature  String? // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   concept        Concept?             @relation(fields: [conceptId], references: [id])
   supersedes     RegulatoryRule?      @relation("RuleSupersession", fields: [supersedesId], references: [id])
@@ -4041,47 +4069,47 @@ model RegulatoryRule {
 // ============================================================================
 
 model RuleTable {
-  id          String        @id @default(cuid())
-  key         String        @unique // VAT, MUNICIPALITY_INCOME_TAX, CONTRIBUTIONS, PER_DIEM, MILEAGE, JOPPD_CODEBOOK
+  id          String   @id @default(cuid())
+  key         String   @unique // VAT, MUNICIPALITY_INCOME_TAX, CONTRIBUTIONS, PER_DIEM, MILEAGE, JOPPD_CODEBOOK
   name        String
   description String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  versions    RuleVersion[]
+  versions RuleVersion[]
 
   @@index([key])
 }
 
 model RuleVersion {
-  id            String         @id @default(cuid())
-  tableId       String
-  version       String
-  effectiveFrom DateTime
+  id             String    @id @default(cuid())
+  tableId        String
+  version        String
+  effectiveFrom  DateTime
   effectiveUntil DateTime?
-  data          Json
-  dataHash      String
-  publishedAt   DateTime       @default(now())
-  createdAt     DateTime       @default(now())
+  data           Json
+  dataHash       String
+  publishedAt    DateTime  @default(now())
+  createdAt      DateTime  @default(now())
 
-  table     RuleTable     @relation(fields: [tableId], references: [id], onDelete: Cascade)
-  snapshots RuleSnapshot[]
-  calculations RuleCalculation[]
-  payoutLines PayoutLine[] @relation("PayoutLineRuleVersion")
+  table                RuleTable             @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  snapshots            RuleSnapshot[]
+  calculations         RuleCalculation[]
+  payoutLines          PayoutLine[]          @relation("PayoutLineRuleVersion")
   joppdSubmissionLines JoppdSubmissionLine[] @relation("JoppdSubmissionLineRuleVersion")
-  travelOrdersPerDiem TravelOrder[] @relation("TravelOrderPerDiemRuleVersion")
-  travelOrdersMileage TravelOrder[] @relation("TravelOrderMileageRuleVersion")
+  travelOrdersPerDiem  TravelOrder[]         @relation("TravelOrderPerDiemRuleVersion")
+  travelOrdersMileage  TravelOrder[]         @relation("TravelOrderMileageRuleVersion")
 
   @@unique([tableId, version])
   @@index([tableId, effectiveFrom])
 }
 
 model RuleSnapshot {
-  id            String       @id @default(cuid())
+  id            String   @id @default(cuid())
   ruleVersionId String
   data          Json
   dataHash      String
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime @default(now())
 
   ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
 
@@ -4089,13 +4117,13 @@ model RuleSnapshot {
 }
 
 model RuleCalculation {
-  id            String       @id @default(cuid())
+  id            String   @id @default(cuid())
   ruleVersionId String
   tableKey      String
   input         Json
   result        Json
   referenceDate DateTime
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime @default(now())
 
   ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
 
@@ -4581,7 +4609,6 @@ model ConflictResolutionAudit {
 // CONFLICT RESOLUTION AUDIT - Detailed conflict resolution tracking (Issue #789)
 // =============================================================================
 
-
 // =============================================================================
 // HUMAN REVIEW QUEUE - Centralized review management (Issue #884)
 // =============================================================================
@@ -4602,19 +4629,19 @@ enum HumanReviewStatus {
 
 model HumanReviewQueue {
   id          String              @id @default(cuid())
-  entityType  String              // EVIDENCE, RULE, CONFLICT, SOURCE_POINTER
+  entityType  String // EVIDENCE, RULE, CONFLICT, SOURCE_POINTER
   entityId    String
-  reason      String              // HumanReviewReason enum value
+  reason      String // HumanReviewReason enum value
   priority    HumanReviewPriority @default(NORMAL)
   status      HumanReviewStatus   @default(PENDING)
-  context     Json?               // Additional context for the reviewer
-  requestedBy String              // Source of the request (e.g., "ocr-worker", "arbiter")
+  context     Json? // Additional context for the reviewer
+  requestedBy String // Source of the request (e.g., "ocr-worker", "arbiter")
   requestedAt DateTime            @default(now())
-  slaDeadline DateTime            // When review should be completed by
-  assignedTo  String?             // User ID assigned to review
+  slaDeadline DateTime // When review should be completed by
+  assignedTo  String? // User ID assigned to review
   completedAt DateTime?
-  completedBy String?             // User ID who completed the review
-  resolution  Json?               // Resolution details
+  completedBy String? // User ID who completed the review
+  resolution  Json? // Resolution details
 
   @@index([status])
   @@index([priority])
@@ -4769,16 +4796,16 @@ enum AdminAlertStatus {
 }
 
 model AdminAlert {
-  id           String           @id @default(cuid())
-  type         String // onboarding-stuck, approaching-limit, critical-limit, cert-expiring, cert-expired, inactive, support-ticket
-  level        String // critical, warning, info
-  companyId    String
-  status       AdminAlertStatus @default(ACTIVE)
-  title        String
-  description  String           @db.Text
-  autoAction   String?
-  metadata     Json? // Store additional context (e.g., revenue, days remaining)
-  createdAt    DateTime         @default(now())
+  id             String           @id @default(cuid())
+  type           String // onboarding-stuck, approaching-limit, critical-limit, cert-expiring, cert-expired, inactive, support-ticket
+  level          String // critical, warning, info
+  companyId      String
+  status         AdminAlertStatus @default(ACTIVE)
+  title          String
+  description    String           @db.Text
+  autoAction     String?
+  metadata       Json? // Store additional context (e.g., revenue, days remaining)
+  createdAt      DateTime         @default(now())
   acknowledgedAt DateTime?
   acknowledgedBy String? // User ID who acknowledged
   dismissedAt    DateTime?
@@ -5090,8 +5117,8 @@ model FeatureFlag {
   tags     String[] // For filtering/searching
 
   // Audit trail
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   createdBy String? // User ID who created
   updatedBy String? // User ID who last updated
   deletedAt DateTime? // Soft-delete timestamp
@@ -5125,7 +5152,7 @@ enum ArtifactType {
 
 model Artifact {
   id                String       @id @default(cuid())
-  companyId          String
+  companyId         String
   type              ArtifactType
   fileName          String
   contentType       String
@@ -5145,12 +5172,12 @@ model Artifact {
 }
 
 model Permission {
-  id          String   @id @default(cuid())
-  key         String   @unique
+  id          String           @id @default(cuid())
+  key         String           @unique
   description String?
   checksum    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   roles       RolePermission[]
 
   @@index([key])
@@ -5407,11 +5434,11 @@ enum ExperimentStatus {
 
 // User experiment assignments for sticky sessions
 model ExperimentAssignment {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   experimentId String
   userId       String
   variantId    String
-  assignedAt   DateTime @default(now())
+  assignedAt   DateTime  @default(now())
   exposedAt    DateTime? // First time user was exposed to variant
   convertedAt  DateTime? // If user completed success metric
 
@@ -5455,7 +5482,7 @@ model ExperimentEvent {
 
 // Webhook subscriptions for regulatory sources
 model WebhookSubscription {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   sourceId    String? // Link to RegulatorySource if applicable
   provider    String // e.g., "narodne-novine", "porezna-uprava", "fina", "custom"
   webhookType String // RSS_FEED, EMAIL_ALERT, HTTP_WEBHOOK, API_POLLING
@@ -5467,9 +5494,9 @@ model WebhookSubscription {
   filterPatterns String[] // URL patterns to filter incoming notifications
 
   // Webhook security
-  secretKey      String? // HMAC secret for signature verification
-  authToken      String? // Bearer token or API key
-  verifySSL      Boolean  @default(true)
+  secretKey String? // HMAC secret for signature verification
+  authToken String? // Bearer token or API key
+  verifySSL Boolean @default(true)
 
   // Metadata
   lastTriggeredAt DateTime?
@@ -5493,15 +5520,15 @@ model WebhookSubscription {
 
 // Webhook event log for received notifications
 model WebhookEvent {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   subscriptionId String
 
   // Event details
-  eventType     String // RSS_ITEM, EMAIL_NOTIFICATION, HTTP_POST, API_RESPONSE
-  sourceUrl     String? // Original URL from notification
-  contentUrl    String? // URL to fetch content from
-  title         String?
-  publishedAt   DateTime?
+  eventType   String // RSS_ITEM, EMAIL_NOTIFICATION, HTTP_POST, API_RESPONSE
+  sourceUrl   String? // Original URL from notification
+  contentUrl  String? // URL to fetch content from
+  title       String?
+  publishedAt DateTime?
 
   // Raw payload
   rawPayload String @db.Text // Full payload for debugging
@@ -5538,7 +5565,6 @@ enum WebhookEventStatus {
   FILTERED
 }
 
-
 // Dead Letter Queue for cron job failures
 model CronJobError {
   id           String    @id @default(cuid())
@@ -5566,25 +5592,25 @@ model CronJobError {
 // ============================================================================
 
 model FixedAsset {
-  id                 String              @id @default(cuid())
+  id                 String             @id @default(cuid())
   companyId          String
   name               String
   category           AssetCategory
   acquisitionDate    DateTime
-  acquisitionCost    Decimal             @db.Decimal(12, 2)
-  salvageValue       Decimal             @default(0) @db.Decimal(12, 2)
+  acquisitionCost    Decimal            @db.Decimal(12, 2)
+  salvageValue       Decimal            @default(0) @db.Decimal(12, 2)
   usefulLifeMonths   Int
   depreciationMethod DepreciationMethod
-  status             AssetStatus         @default(ACTIVE)
+  status             AssetStatus        @default(ACTIVE)
   disposedAt         DateTime?
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  depreciationSchedule  DepreciationSchedule?
-  depreciationEntries   DepreciationEntry[]
-  disposalEvents        DisposalEvent[]
-  assetCandidates       AssetCandidate[]
+  company              Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  depreciationSchedule DepreciationSchedule?
+  depreciationEntries  DepreciationEntry[]
+  disposalEvents       DisposalEvent[]
+  assetCandidates      AssetCandidate[]
 
   @@index([companyId])
   @@index([status])
@@ -5592,16 +5618,16 @@ model FixedAsset {
 }
 
 model DepreciationSchedule {
-  id               String                     @id @default(cuid())
-  assetId          String                     @unique
-  method           DepreciationMethod
-  periodMonths     Int                        @default(1)
-  startDate        DateTime
-  endDate          DateTime
-  totalDepreciation Decimal                   @db.Decimal(12, 2)
-  status           DepreciationScheduleStatus @default(LOCKED)
-  lockedAt         DateTime?
-  createdAt        DateTime                   @default(now())
+  id                String                     @id @default(cuid())
+  assetId           String                     @unique
+  method            DepreciationMethod
+  periodMonths      Int                        @default(1)
+  startDate         DateTime
+  endDate           DateTime
+  totalDepreciation Decimal                    @db.Decimal(12, 2)
+  status            DepreciationScheduleStatus @default(LOCKED)
+  lockedAt          DateTime?
+  createdAt         DateTime                   @default(now())
 
   asset   FixedAsset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
   entries DepreciationEntry[]
@@ -5612,20 +5638,20 @@ model DepreciationSchedule {
 }
 
 model DepreciationEntry {
-  id                 String   @id @default(cuid())
-  scheduleId         String
-  assetId            String
-  periodStart        DateTime
-  periodEnd          DateTime
-  sequence           Int
-  amount             Decimal  @db.Decimal(12, 2)
-  accumulatedAmount  Decimal  @db.Decimal(12, 2)
-  journalEntryId     String?
-  createdAt          DateTime @default(now())
+  id                String   @id @default(cuid())
+  scheduleId        String
+  assetId           String
+  periodStart       DateTime
+  periodEnd         DateTime
+  sequence          Int
+  amount            Decimal  @db.Decimal(12, 2)
+  accumulatedAmount Decimal  @db.Decimal(12, 2)
+  journalEntryId    String?
+  createdAt         DateTime @default(now())
 
-  schedule DepreciationSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  asset    FixedAsset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  journalEntry JournalEntry?     @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  schedule     DepreciationSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  asset        FixedAsset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry?        @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
 
   @@unique([scheduleId, sequence])
   @@index([assetId, periodStart])
@@ -5658,10 +5684,10 @@ model AssetCandidate {
   acquisitionCost  Decimal              @db.Decimal(12, 2)
   usefulLifeMonths Int?
   metadata         Json?
-  status           AssetCandidateStatus  @default(PENDING)
-  convertedAssetId String?               @unique
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
+  status           AssetCandidateStatus @default(PENDING)
+  convertedAssetId String?              @unique
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
   company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
   convertedAsset FixedAsset? @relation(fields: [convertedAssetId], references: [id])

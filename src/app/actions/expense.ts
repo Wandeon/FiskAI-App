@@ -158,6 +158,22 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
           include: { lines: true },
         })
 
+        await tx.supplierBill.create({
+          data: {
+            companyId: company.id,
+            expenseId: createdExpense.id,
+            documentNumber: null,
+            issueDate: createdExpense.date,
+            dueDate: createdExpense.dueDate,
+            vendorName: vendor?.name ?? null,
+            vendorVatNumber: vendor?.vatNumber ?? vendor?.oib ?? null,
+            netAmount: createdExpense.netAmount,
+            vatAmount: createdExpense.vatAmount,
+            totalAmount: createdExpense.totalAmount,
+            currency: createdExpense.currency,
+          },
+        })
+
         if (input.receiptUrl) {
           await tx.attachment.create({
             data: {
@@ -323,6 +339,33 @@ export async function updateExpense(
           where: { id },
           data: updateData,
           include: { lines: true, category: true, vendor: true },
+        })
+
+        await tx.supplierBill.upsert({
+          where: { expenseId: updatedExpense.id },
+          create: {
+            companyId: updatedExpense.companyId,
+            expenseId: updatedExpense.id,
+            documentNumber: null,
+            issueDate: updatedExpense.date,
+            dueDate: updatedExpense.dueDate,
+            vendorName: updatedExpense.vendor?.name ?? null,
+            vendorVatNumber: updatedExpense.vendor?.vatNumber ?? updatedExpense.vendor?.oib ?? null,
+            netAmount: updatedExpense.netAmount,
+            vatAmount: updatedExpense.vatAmount,
+            totalAmount: updatedExpense.totalAmount,
+            currency: updatedExpense.currency,
+          },
+          update: {
+            issueDate: updatedExpense.date,
+            dueDate: updatedExpense.dueDate,
+            vendorName: updatedExpense.vendor?.name ?? null,
+            vendorVatNumber: updatedExpense.vendor?.vatNumber ?? updatedExpense.vendor?.oib ?? null,
+            netAmount: updatedExpense.netAmount,
+            vatAmount: updatedExpense.vatAmount,
+            totalAmount: updatedExpense.totalAmount,
+            currency: updatedExpense.currency,
+          },
         })
 
         if (Object.keys(changes).length > 0) {
