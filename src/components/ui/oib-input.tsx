@@ -5,6 +5,7 @@ import { Input } from "./input"
 import { Loader2, Check, AlertCircle, Search } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
+import { validateOib } from "@/lib/validations/oib"
 
 export interface OibLookupData {
   name?: string
@@ -36,8 +37,38 @@ export function OibInput({
   const [isLookingUp, setIsLookingUp] = useState(false)
   const [lookupSuccess, setLookupSuccess] = useState(false)
   const [lookupError, setLookupError] = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [progress, setProgress] = useState<string | null>(null)
   const [lastLookupValue, setLastLookupValue] = useState<string | null>(null)
+
+  // Validate OIB checksum when value changes
+  useEffect(() => {
+    if (!value) {
+      setValidationError(null)
+      return
+    }
+
+    // Check format first (11 digits)
+    if (!/^\d{11}$/.test(value)) {
+      if (value.length === 11) {
+        setValidationError("OIB mora sadržavati samo znamenke")
+      } else if (value.length > 0) {
+        setValidationError("OIB mora imati točno 11 znamenki")
+      } else {
+        setValidationError(null)
+      }
+      return
+    }
+
+    // Check checksum (ISO 7064 MOD 11,10)
+    if (!validateOib(value)) {
+      setValidationError("Neispravan OIB - kontrolna znamenka ne odgovara")
+      return
+    }
+
+    // OIB is valid
+    setValidationError(null)
+  }, [value])
 
   const performLookup = useCallback(
     async (oib: string) => {
@@ -101,6 +132,14 @@ export function OibInput({
       setLookupSuccess(false)
       return
     }
+
+    // Validate checksum before lookup
+    if (!validateOib(value)) {
+      setLookupError("Neispravan OIB - kontrolna znamenka ne odgovara")
+      setLookupSuccess(false)
+      return
+    }
+
     setLastLookupValue(value)
     performLookup(value)
   }
@@ -112,12 +151,16 @@ export function OibInput({
       value.length === 11 &&
       !isLookingUp &&
       value !== lastLookupValue &&
-      /^\d{11}$/.test(value)
+      /^\d{11}$/.test(value) &&
+      validateOib(value) // Only auto-fetch if checksum is valid
     ) {
       setLastLookupValue(value)
       performLookup(value)
     }
   }, [isLookingUp, lastLookupValue, performLookup, value])
+
+  // Combine all error messages
+  const displayError = error || validationError || lookupError
 
   return (
     <div className={cn("space-y-1", className)}>
@@ -130,20 +173,22 @@ export function OibInput({
             placeholder="12345678901"
             maxLength={11}
             disabled={disabled || isLookingUp}
-            error={error || lookupError || undefined}
+            error={displayError || undefined}
             className="pr-10"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             {isLookingUp && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
             {!isLookingUp && lookupSuccess && <Check className="h-4 w-4 text-green-500" />}
-            {!isLookingUp && lookupError && <AlertCircle className="h-4 w-4 text-yellow-500" />}
+            {!isLookingUp && (lookupError || validationError) && (
+              <AlertCircle className="h-4 w-4 text-yellow-500" />
+            )}
           </div>
         </div>
         <Button
           type="button"
           variant="outline"
           onClick={handleLookup}
-          disabled={disabled || isLookingUp}
+          disabled={disabled || isLookingUp || !!validationError}
           className="shrink-0 h-10 min-h-0"
         >
           {isLookingUp ? (
@@ -164,7 +209,10 @@ export function OibInput({
       {lookupSuccess && !error && (
         <p className="text-xs text-green-600">Pronađeno! Podaci su automatski popunjeni.</p>
       )}
-      {lookupError && !error && <p className="text-xs text-yellow-600">{lookupError}</p>}
+      {validationError && !error && <p className="text-xs text-yellow-600">{validationError}</p>}
+      {lookupError && !error && !validationError && (
+        <p className="text-xs text-yellow-600">{lookupError}</p>
+      )}
     </div>
   )
 }

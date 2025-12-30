@@ -3,6 +3,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { LegalForm } from "@/lib/capabilities"
 import type { CompetenceLevel } from "@/lib/visibility/rules"
+import { validateOib } from "@/lib/validations/oib"
 
 export type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6
 
@@ -86,7 +87,8 @@ export const useOnboardingStore = create<OnboardingState>()(
         switch (step) {
           case 1:
             // Step 1: Required - Basic company info (name, OIB, legal form)
-            return !!(data.name?.trim() && data.oib?.match(/^\d{11}$/) && data.legalForm)
+            // Validate OIB format AND checksum (ISO 7064 MOD 11,10)
+            return !!(data.name?.trim() && data.oib && validateOib(data.oib) && data.legalForm)
           case 2:
             // Step 2: Optional - Competence level (can be skipped)
             return !!data.competence
