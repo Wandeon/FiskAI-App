@@ -25,6 +25,7 @@ import {
   validateSourceConsistency,
   logCrossSourceReferences,
 } from "../utils/source-consistency"
+import { computeDerivedConfidence } from "../utils/derived-confidence"
 
 // =============================================================================
 // COMPOSER AGENT
@@ -321,6 +322,13 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
     effectiveUntil: effectiveUntilDate,
   })
 
+  // Issue #770: Compute derived confidence from source pointer quality
+  // This prevents high LLM-confidence rules backed by low-quality extractions
+  const derivedConfidence = computeDerivedConfidence(
+    sourcePointers.map((sp) => ({ confidence: sp.confidence })),
+    draftRule.confidence
+  )
+
   // PHASE 4: Validate explanation against source evidence
   // This prevents hallucination by ensuring modal verbs and values come from sources
   // Fetch the actual source pointers with exactQuote
@@ -372,7 +380,9 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       effectiveUntil: effectiveUntilDate,
       supersedesId: draftRule.supersedes,
       status: "DRAFT",
-      confidence: draftRule.confidence,
+      confidence: draftRule.confidence, // LLM self-assessment (deprecated, kept for backward compatibility)
+      llmConfidence: draftRule.confidence, // LLM self-assessment
+      derivedConfidence, // Issue #770: Evidence-based confidence from source pointers
       composerNotes: draftRule.composer_notes,
       meaningSignature,
       sourcePointers: {
@@ -454,6 +464,8 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
       conceptSlug: rule.conceptSlug,
       riskTier: draftRule.risk_tier,
       confidence: draftRule.confidence,
+      llmConfidence: draftRule.confidence, // LLM self-assessment
+      derivedConfidence, // Issue #770: Evidence-based confidence
       sourcePointerCount: sourcePointerIds.length,
       conflictsDetected: conflicts.length,
       // Issue #906: Source attribution integrity
