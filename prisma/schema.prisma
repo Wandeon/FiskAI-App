@@ -2291,6 +2291,70 @@ model RegulatoryRule {
 }
 
 // ============================================================================
+// FISCAL RULE TABLES (Deterministic Calculations)
+// ============================================================================
+
+model RuleTable {
+  id          String        @id @default(cuid())
+  key         String        @unique // VAT, MUNICIPALITY_INCOME_TAX, CONTRIBUTIONS, PER_DIEM, MILEAGE, JOPPD_CODEBOOK
+  name        String
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  versions    RuleVersion[]
+
+  @@index([key])
+}
+
+model RuleVersion {
+  id            String         @id @default(cuid())
+  tableId       String
+  version       String
+  effectiveFrom DateTime
+  effectiveUntil DateTime?
+  data          Json
+  dataHash      String
+  publishedAt   DateTime       @default(now())
+  createdAt     DateTime       @default(now())
+
+  table     RuleTable     @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  snapshots RuleSnapshot[]
+  calculations RuleCalculation[]
+
+  @@unique([tableId, version])
+  @@index([tableId, effectiveFrom])
+}
+
+model RuleSnapshot {
+  id            String       @id @default(cuid())
+  ruleVersionId String
+  data          Json
+  dataHash      String
+  createdAt     DateTime     @default(now())
+
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+
+  @@index([ruleVersionId])
+}
+
+model RuleCalculation {
+  id            String       @id @default(cuid())
+  ruleVersionId String
+  tableKey      String
+  input         Json
+  result        Json
+  referenceDate DateTime
+  createdAt     DateTime     @default(now())
+
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+
+  @@index([tableKey])
+  @@index([ruleVersionId])
+  @@index([referenceDate])
+}
+
+// ============================================================================
 // SHAPE 1: ATOMIC CLAIMS (Logic Frames)
 // ============================================================================
 
@@ -3685,4 +3749,3 @@ model CronJobError {
   @@index([resolvedAt])
   @@index([createdAt])
 }
-
