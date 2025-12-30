@@ -137,62 +137,114 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
         }
       : undefined
 
-  const expenses = await db.expense.findMany({
+  const inputs = await db.uraInput.findMany({
     where: {
       companyId,
-      status: { not: "DRAFT" },
+      expense: { status: { not: "DRAFT" } },
       ...(dateFilter ? { date: dateFilter } : {}),
     },
     include: {
-      vendor: { select: { name: true, oib: true } },
+      expense: {
+        select: {
+          description: true,
+          supplierBill: { select: { documentNumber: true } },
+        },
+      },
     },
     orderBy: { date: "asc" },
   })
 
-  return expenses.map((exp) => {
-    const rate = Number(exp.vatRate)
-    const net = Number(exp.netAmount)
-    const vat = Number(exp.vatAmount)
+  const grouped = new Map<
+    string,
+    {
+      date: Date
+      documentRef: string
+      vendorName: string | null
+      vendorOib: string | null
+      netAmount: number
+      vatAmount: number
+      totalAmount: number
+      deductibleVat: number
+      nonDeductibleVat: number
+      base25: number
+      vat25: number
+      base13: number
+      vat13: number
+      base5: number
+      vat5: number
+      base0: number
+    }
+  >()
 
-    let base25 = 0,
-      vat25 = 0
-    let base13 = 0,
-      vat13 = 0
-    let base5 = 0,
-      vat5 = 0
-    let base0 = 0
+  for (const input of inputs) {
+    const existing = grouped.get(input.expenseId)
+    const net = Number(input.netAmount)
+    const vat = Number(input.vatAmount)
+    const total = Number(input.totalAmount)
+    const rate = Number(input.vatRate)
+
+    if (!existing) {
+      grouped.set(input.expenseId, {
+        date: input.date,
+        documentRef:
+          input.expense?.supplierBill?.documentNumber ||
+          input.expense?.description ||
+          "Bez reference",
+        vendorName: input.vendorName ?? null,
+        vendorOib: input.vendorVatNumber ?? null,
+        netAmount: 0,
+        vatAmount: 0,
+        totalAmount: 0,
+        deductibleVat: 0,
+        nonDeductibleVat: 0,
+        base25: 0,
+        vat25: 0,
+        base13: 0,
+        vat13: 0,
+        base5: 0,
+        vat5: 0,
+        base0: 0,
+      })
+    }
+
+    const record = grouped.get(input.expenseId)!
+    record.netAmount += net
+    record.vatAmount += vat
+    record.totalAmount += total
+    record.deductibleVat += Number(input.deductibleVatAmount)
+    record.nonDeductibleVat += Number(input.nonDeductibleVatAmount)
 
     if (Math.abs(rate - 25) < 0.1) {
-      base25 = net
-      vat25 = vat
+      record.base25 += net
+      record.vat25 += vat
     } else if (Math.abs(rate - 13) < 0.1) {
-      base13 = net
-      vat13 = vat
+      record.base13 += net
+      record.vat13 += vat
     } else if (Math.abs(rate - 5) < 0.1) {
-      base5 = net
-      vat5 = vat
+      record.base5 += net
+      record.vat5 += vat
     } else {
-      base0 = net
+      record.base0 += net
     }
+  }
 
-    return {
-      date: exp.date,
-      documentRef: exp.description,
-      vendorName: exp.vendor?.name ?? null,
-      vendorOib: exp.vendor?.oib ?? null,
-      netAmount: Number(exp.netAmount),
-      vatAmount: Number(exp.vatAmount),
-      totalAmount: Number(exp.totalAmount),
-      vatDeductible: exp.vatDeductible,
-      base25,
-      vat25,
-      base13,
-      vat13,
-      base5,
-      vat5,
-      base0,
-    }
-  })
+  return Array.from(grouped.values()).map((record) => ({
+    date: record.date,
+    documentRef: record.documentRef,
+    vendorName: record.vendorName,
+    vendorOib: record.vendorOib,
+    netAmount: record.netAmount,
+    vatAmount: record.vatAmount,
+    totalAmount: record.totalAmount,
+    vatDeductible: record.nonDeductibleVat === 0,
+    base25: record.base25,
+    vat25: record.vat25,
+    base13: record.base13,
+    vat13: record.vat13,
+    base5: record.base5,
+    vat5: record.vat5,
+    base0: record.base0,
+  }))
 }
 
 function formatDate(value?: Date | null) {

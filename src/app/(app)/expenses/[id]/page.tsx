@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ExpenseActions } from "./expense-actions"
@@ -33,6 +34,7 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
     include: {
       vendor: true,
       category: true,
+      assetCandidates: true,
     },
   })
 
@@ -67,9 +69,14 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
             <dl className="grid grid-cols-2 gap-2 text-sm">
               <dt className="text-secondary">Status:</dt>
               <dd>
-                <span className="px-2 py-1 rounded-full text-xs font-medium bg-surface-1">
-                  {STATUS_LABELS[expense.status]}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-surface-1">
+                    {STATUS_LABELS[expense.status]}
+                  </span>
+                  {expense.assetCandidates.length > 0 && (
+                    <Badge variant="outline">Kandidat za osnovno sredstvo</Badge>
+                  )}
+                </div>
               </dd>
               <dt className="text-secondary">Datum:</dt>
               <dd>{new Date(expense.date).toLocaleDateString("hr-HR")}</dd>

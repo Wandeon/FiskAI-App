@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { createControlSum } from "@/lib/exports/control-sum"
 import { fetchUraRows, uraToCsv } from "@/lib/reports/ura-ira"
+import { lockAccountingPeriodsForRange } from "@/lib/period-locking/service"
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,6 +25,10 @@ export async function GET(request: NextRequest) {
     }
 
     const rows = await fetchUraRows(company.id, from, to)
+
+    if (from && to) {
+      await lockAccountingPeriodsForRange(company.id, from, to, user.id!, "export_ura")
+    }
     const csv = uraToCsv(rows)
     const controlSum = createControlSum(csv)
 

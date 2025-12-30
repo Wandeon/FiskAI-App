@@ -9,6 +9,7 @@ import {
   summaryToCsv,
 } from "@/lib/reports/accountant-export"
 import { createControlSum } from "@/lib/exports/control-sum"
+import { lockAccountingPeriodsForRange } from "@/lib/period-locking/service"
 import archiver from "archiver"
 
 const querySchema = z.object({
@@ -52,6 +53,16 @@ export async function GET(request: NextRequest) {
 
     // Fetch all data
     const exportData = await fetchAccountantExportData(company.id, fromDate, toDate)
+
+    if (fromDate && toDate) {
+      await lockAccountingPeriodsForRange(
+        company.id,
+        fromDate,
+        toDate,
+        user.id!,
+        "export_season_pack"
+      )
+    }
 
     // Determine filename range label
     const rangeLabel =

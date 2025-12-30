@@ -3,6 +3,7 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { vatToExcel } from "@/lib/reports/vat-excel"
+import { lockAccountingPeriodsForRange } from "@/lib/period-locking/service"
 
 export async function GET(request: NextRequest) {
   try {
@@ -62,6 +63,8 @@ export async function GET(request: NextRequest) {
     }
 
     const vatPayable = outputVat.vat - inputVat.deductible
+
+    await lockAccountingPeriodsForRange(company.id, dateFrom, dateTo, user.id!, "export_vat_excel")
 
     // Generate Excel CSV
     const excel = vatToExcel({

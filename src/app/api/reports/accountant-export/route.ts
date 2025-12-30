@@ -8,6 +8,7 @@ import {
   kprToCsv,
   summaryToCsv,
 } from "@/lib/reports/accountant-export"
+import { lockAccountingPeriodsForRange } from "@/lib/period-locking/service"
 
 const querySchema = z.object({
   from: z.string().optional(),
@@ -52,6 +53,16 @@ export async function GET(request: NextRequest) {
 
     // Fetch all data
     const exportData = await fetchAccountantExportData(company.id, fromDate, toDate)
+
+    if (fromDate && toDate) {
+      await lockAccountingPeriodsForRange(
+        company.id,
+        fromDate,
+        toDate,
+        user.id!,
+        "export_accountant"
+      )
+    }
 
     // Determine filename range label
     const rangeLabel =
