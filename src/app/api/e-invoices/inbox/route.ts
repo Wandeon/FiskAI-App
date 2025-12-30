@@ -104,6 +104,12 @@ export async function POST(request: Request) {
       providerStatus = "REJECTED"
     }
 
+    // Validate status transition
+    const transitionValidation = validateTransition(invoice.status, newStatus)
+    if (!transitionValidation.valid) {
+      return NextResponse.json({ error: transitionValidation.error }, { status: 400 })
+    }
+
     const updatedInvoice = await db.eInvoice.update({
       where: { id: invoiceId },
       data: {
@@ -179,6 +185,12 @@ export async function PATCH(request: Request) {
 
     let updatedInvoice
     if (action === "archive") {
+      // Validate status transition
+      const transitionValidation = validateTransition(invoice.status, "ARCHIVED")
+      if (!transitionValidation.valid) {
+        return NextResponse.json({ error: transitionValidation.error }, { status: 400 })
+      }
+
       // Archive the invoice
       updatedInvoice = await db.eInvoice.update({
         where: { id: invoiceId },
@@ -189,6 +201,12 @@ export async function PATCH(request: Request) {
         },
       })
     } else {
+      // Validate status transition (unarchiving is not allowed per the state machine)
+      const transitionValidation = validateTransition(invoice.status, "DELIVERED")
+      if (!transitionValidation.valid) {
+        return NextResponse.json({ error: transitionValidation.error }, { status: 400 })
+      }
+
       // Unarchive the invoice - restore to original status
       updatedInvoice = await db.eInvoice.update({
         where: { id: invoiceId },

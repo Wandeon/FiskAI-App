@@ -7,6 +7,7 @@ import {
   flagTenant,
   exportTenantData,
 } from "@/lib/admin/actions"
+import { apiError, ApiErrors } from "@/lib/api-error"
 
 const actionSchema = z.discriminatedUnion("action", [
   z.object({
@@ -16,7 +17,7 @@ const actionSchema = z.discriminatedUnion("action", [
   }),
   z.object({
     action: z.literal("gift-module"),
-    moduleKey: z.string().min(1, "Module key is required"),
+    moduleKey: z.string().min(1, "Module key required"),
   }),
   z.object({
     action: z.literal("flag"),
@@ -37,7 +38,7 @@ export async function POST(
 
   // Check ADMIN role
   if (!user || user.systemRole !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden: ADMIN role required" }, { status: 403 })
+    return ApiErrors.forbidden("Forbidden: ADMIN role required")
   }
 
   const { companyId } = await params
@@ -99,10 +100,6 @@ export async function POST(
         return NextResponse.json({ error: "Unknown action" }, { status: 400 })
     }
   } catch (error) {
-    console.error("Error executing tenant action:", error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
-    )
+    return apiError(error)
   }
 }
