@@ -32,8 +32,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Missing status" }, { status: 400 })
   }
 
+  // Verify job ownership - SECURITY: Prevent IDOR vulnerability
+  const job = await db.importJob.findFirst({
+    where: {
+      id: jobId,
+      companyId: company.id
+    }
+  })
+
+  if (!job) {
+    return NextResponse.json({ error: "Job not found" }, { status: 404 })
+  }
+
   await db.importJob.update({
-    where: { id: jobId },
+    where: { id: job.id },
     data: { status },
   })
 

@@ -99,14 +99,14 @@ describe("ZKI Calculation", () => {
       )
     })
 
-    it("should reject zero or negative amounts", () => {
+    it("should reject zero amounts", () => {
       const result = validateZKIInput({
         ...validInput,
         totalAmount: 0,
       })
 
       assert.strictEqual(result.valid, false, "Zero amount should fail validation")
-      assert.ok(result.errors.includes("Total amount must be positive"), "Should have amount error")
+      assert.ok(result.errors.includes("Total amount cannot be zero"), "Should have amount error")
     })
 
     it("should reject invalid date", () => {

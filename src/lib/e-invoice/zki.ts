@@ -79,7 +79,7 @@ function formatDateTime(date: Date): string {
 function formatAmount(amount: number): string {
   // Amount should be in smallest currency unit (cents for EUR)
   // Convert to decimal with 2 places
-  const decimalAmount = amount / 100
+  const decimalAmount = Math.abs(amount) / 100
   return decimalAmount.toFixed(2).replace(".", ",")
 }
 
@@ -110,8 +110,8 @@ export function validateZKIInput(input: ZKIInput): { valid: boolean; errors: str
   }
 
   // Validate amount (must be positive)
-  if (input.totalAmount <= 0) {
-    errors.push("Total amount must be positive")
+  if (input.totalAmount === 0) {
+    errors.push("Total amount cannot be zero")
   }
 
   // Validate date
