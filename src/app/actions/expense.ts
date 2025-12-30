@@ -38,7 +38,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "expense:create", async (company) => {
       // Verify category exists
       // Note: ExpenseCategory requires explicit companyId because:
       // 1. Global categories (companyId: null) must be accessible to all tenants
@@ -113,7 +113,7 @@ export async function updateExpense(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async () => {
       const existing = await db.expense.findFirst({
         where: { id },
       })
@@ -229,7 +229,7 @@ export async function markExpenseAsPaid(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async () => {
       const expense = await db.expense.findFirst({
         where: { id },
       })
@@ -273,7 +273,7 @@ export async function updateExpenseInline(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async () => {
       const existing = await db.expense.findFirst({
         where: { id },
       })
@@ -324,7 +324,7 @@ export async function createExpenseCategory(input: {
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "expense_category:create", async (company) => {
       // Check for duplicate code
       const existing = await db.expenseCategory.findUnique({
         where: { companyId_code: { companyId: company.id, code: input.code } },
@@ -363,7 +363,7 @@ export async function updateExpenseCategory(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "expense_category:update", async (company) => {
       const category = await db.expenseCategory.findFirst({
         where: { id },
       })
@@ -452,7 +452,7 @@ export async function seedDefaultCategories(): Promise<ActionResult> {
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "expense_category:create", async (company) => {
       const defaults = [
         { code: "OFFICE", name: "Uredski materijal", vatDeductibleDefault: true },
         { code: "TRAVEL", name: "Putni troškovi", vatDeductibleDefault: true },
@@ -500,7 +500,7 @@ export async function createRecurringExpense(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "expense:create", async (company) => {
       // Verify category exists
       const category = await db.expenseCategory.findFirst({
         where: {
@@ -556,7 +556,7 @@ export async function updateRecurringExpense(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async (company) => {
       const existing = await db.recurringExpense.findFirst({
         where: { id },
       })
@@ -640,7 +640,7 @@ export async function toggleRecurringExpense(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async () => {
       const recurringExpense = await db.recurringExpense.findFirst({
         where: { id },
       })

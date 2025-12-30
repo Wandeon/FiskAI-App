@@ -24,7 +24,7 @@ const productInlineSchema = productSchema.pick({
 export async function createProduct(formData: z.infer<typeof productSchema>) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "product:create", async () => {
     const validatedFields = productSchema.safeParse(formData)
 
     if (!validatedFields.success) {
@@ -57,7 +57,7 @@ export async function createProduct(formData: z.infer<typeof productSchema>) {
 export async function updateProduct(productId: string, formData: z.infer<typeof productSchema>) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "product:update", async () => {
     const existingProduct = await db.product.findFirst({
       where: { id: productId },
     })
@@ -94,7 +94,7 @@ export async function updateProductInline(
 ) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "product:update", async () => {
     const existing = await db.product.findFirst({
       where: { id: productId },
     })
@@ -175,7 +175,7 @@ export async function getProducts(
   const user = await requireAuth()
   const { page = 1, limit = 50 } = options ?? {}
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "product:read", async () => {
     return db.product.findMany({
       where: {
         ...(activeOnly && { isActive: true }),
@@ -190,7 +190,7 @@ export async function getProducts(
 export async function searchProducts(query: string) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "product:read", async () => {
     return db.product.findMany({
       where: {
         isActive: true,

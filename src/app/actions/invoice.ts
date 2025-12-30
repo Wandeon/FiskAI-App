@@ -48,7 +48,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "invoice:create", async (company) => {
       // Check invoice limit before creating
       const canCreate = await canCreateInvoice(company.id)
       if (!canCreate) {
@@ -150,7 +150,7 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async (company) => {
+    return requireCompanyWithPermission(user.id!, "invoice:create", async (company) => {
       // Check invoice limit before converting
       const canCreate = await canCreateInvoice(company.id)
       if (!canCreate) {
@@ -249,7 +249,7 @@ export async function updateInvoice(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithPermission(user.id!, "invoice:update", async () => {
       const existing = await db.eInvoice.findFirst({
         where: { id, status: "DRAFT" },
       })

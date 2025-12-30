@@ -13,7 +13,7 @@ import { revalidatePath } from "next/cache"
 export async function createContact(formData: z.infer<typeof contactSchema>) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "contact:create", async () => {
     const validatedFields = contactSchema.safeParse(formData)
 
     if (!validatedFields.success) {
@@ -60,7 +60,7 @@ export async function createContact(formData: z.infer<typeof contactSchema>) {
 export async function updateContact(contactId: string, formData: z.infer<typeof contactSchema>) {
   const user = await requireAuth()
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "contact:update", async () => {
     // Verify contact belongs to company (automatically filtered by tenant context)
     const existingContact = await db.contact.findFirst({
       where: { id: contactId },
@@ -157,7 +157,7 @@ export async function getContacts(
   const user = await requireAuth()
   const { page = 1, limit = 50 } = options ?? {}
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "contact:read", async () => {
     return db.contact.findMany({
       where: {
         ...(type && { type }),
@@ -198,7 +198,7 @@ export async function searchContacts(query: string) {
     return []
   }
 
-  return requireCompanyWithContext(user.id!, async () => {
+  return requireCompanyWithPermission(user.id!, "contact:read", async () => {
     return db.contact.findMany({
       where: {
         OR: [
