@@ -502,13 +502,20 @@ export function verifyQuoteWithDetails(
 }
 
 // Validate a complete extraction before it goes to AI review
-export function validateExtraction(extraction: {
-  domain: string
-  value_type: string
-  extracted_value: string | number
-  exact_quote: string
-  confidence: number
-}): ExtractionValidationResult {
+export function validateExtraction(
+  extraction: {
+    domain: string
+    value_type: string
+    extracted_value: string | number
+    exact_quote: string
+    confidence: number
+  },
+  options?: {
+    originalContent?: string
+    cleanedContent?: string
+    requireBothMatch?: boolean
+  }
+): ExtractionValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
 
@@ -579,6 +586,42 @@ export function validateExtraction(extraction: {
     const quoteCheck = validateValueInQuote(extraction.extracted_value, extraction.exact_quote)
     if (!quoteCheck.valid) {
       errors.push(quoteCheck.error!)
+    }
+  }
+
+  // QUOTE VERIFICATION: Ensure quote exists in the content that was sent to LLM
+  // This addresses issue #750: validate against cleaned content (what LLM sees)
+  if (options?.cleanedContent) {
+    const cleanedQuoteCheck = validateQuoteInEvidence(
+      extraction.exact_quote,
+      options.cleanedContent
+    )
+    if (!cleanedQuoteCheck.valid) {
+      errors.push(
+        `Quote not found in cleaned content (sent to LLM): ${cleanedQuoteCheck.error}`
+      )
+    }
+
+    // If requireBothMatch is true, also verify against original content
+    if (options.requireBothMatch && options.originalContent) {
+      const originalQuoteCheck = validateQuoteInEvidence(
+        extraction.exact_quote,
+        options.originalContent
+      )
+      if (!originalQuoteCheck.valid) {
+        warnings.push(
+          `Quote found in cleaned content but not in original content. This may indicate content transformation issues.`
+        )
+      }
+    }
+  } else if (options?.originalContent) {
+    // Fallback: if only original content provided, validate against it
+    const originalQuoteCheck = validateQuoteInEvidence(
+      extraction.exact_quote,
+      options.originalContent
+    )
+    if (!originalQuoteCheck.valid) {
+      errors.push(`Quote not found in original content: ${originalQuoteCheck.error}`)
     }
   }
 
