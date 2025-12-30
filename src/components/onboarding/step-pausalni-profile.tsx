@@ -113,6 +113,13 @@ export function StepPausalniProfile() {
         phone: data.phone || undefined,
         iban: data.iban!,
         isVatPayer: data.isVatPayer ?? false,
+        // Pausalni profile fields
+        acceptsCash: data.acceptsCash,
+        hasEmployees: data.hasEmployees,
+        employedElsewhere: data.employedElsewhere,
+        hasEuVatId: data.hasEuVatId,
+        taxBracket: data.taxBracket,
+        prirezRate: data.prirezRate,
       })
       // Navigate to billing step (step 6)
       setStep(6)

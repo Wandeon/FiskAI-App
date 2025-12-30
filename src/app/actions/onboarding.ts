@@ -6,7 +6,7 @@ import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
 import type { LegalForm } from "@/lib/capabilities"
 import type { CompetenceLevel } from "@/lib/visibility/rules"
-import { DEFAULT_ENTITLEMENTS, getEntitlementsForLegalForm } from "@/lib/modules/definitions"
+import { getEntitlementsForLegalForm } from "@/lib/modules/definitions"
 import { oibSchema } from "@/lib/validations/oib"
 
 // Onboarding data schema matching what the wizard collects
@@ -31,12 +31,13 @@ export interface OnboardingData {
   iban: string | null
   isVatPayer: boolean
 
-  // Step 5: Paušalni Profile (only for OBRT_PAUSAL, stored in featureFlags)
+  // Step 5: Pausalni Profile (only for OBRT_PAUSAL, stored in featureFlags)
   acceptsCash?: boolean
   hasEmployees?: boolean
   employedElsewhere?: boolean
   hasEuVatId?: boolean
-  taxBracket?: string
+  taxBracket?: number
+  prirezRate?: number
 }
 
 /**
@@ -91,12 +92,13 @@ export async function getOnboardingData(): Promise<OnboardingData | null> {
     phone: company.phone,
     iban: company.iban,
     isVatPayer: company.isVatPayer,
-    // Paušalni profile fields from featureFlags
+    // Pausalni profile fields from featureFlags
     acceptsCash: featureFlags?.acceptsCash as boolean | undefined,
     hasEmployees: featureFlags?.hasEmployees as boolean | undefined,
     employedElsewhere: featureFlags?.employedElsewhere as boolean | undefined,
     hasEuVatId: featureFlags?.hasEuVatId as boolean | undefined,
-    taxBracket: featureFlags?.taxBracket as string | undefined,
+    taxBracket: featureFlags?.taxBracket as number | undefined,
+    prirezRate: featureFlags?.prirezRate as number | undefined,
   }
 }
 
@@ -113,6 +115,13 @@ const saveOnboardingSchema = z.object({
   phone: z.string().optional(),
   iban: z.string().min(1),
   isVatPayer: z.boolean(),
+  // Pausalni profile fields (step 5)
+  acceptsCash: z.boolean().optional(),
+  hasEmployees: z.boolean().optional(),
+  employedElsewhere: z.boolean().optional(),
+  hasEuVatId: z.boolean().optional(),
+  taxBracket: z.number().optional(),
+  prirezRate: z.number().optional(),
 })
 
 const minimalCompanySchema = z.object({
@@ -195,7 +204,8 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
         return { success: true, companyId: oibExists.id }
       } else {
         return {
-          error: "Tvrtka s ovim OIB-om je već registrirana. Ako ste zaposlenik, zamolite administratora za pozivnicu.",
+          error:
+            "Tvrtka s ovim OIB-om je vec registrirana. Ako ste zaposlenik, zamolite administratora za pozivnicu.",
         }
       }
     }
@@ -227,9 +237,9 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
     revalidatePath("/dashboard")
     revalidatePath("/onboarding")
     return { success: true, companyId: newCompany.id }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Onboarding] createMinimalCompany failed:", error)
-    return { error: "Došlo je do greške pri kreiranju tvrtke. Molimo pokušajte ponovno." }
+    return { error: "Doslo je do greske pri kreiranju tvrtke. Molimo pokusajte ponovno." }
   }
 }
 
@@ -252,11 +262,18 @@ export async function saveOnboardingData(formData: z.input<typeof saveOnboarding
 
   const data = validated.data
 
-  // Get existing featureFlags and merge competence
+  // Get existing featureFlags and merge competence + pausalni profile data
   const existingFlags = (company.featureFlags as Record<string, unknown>) || {}
   const featureFlags = {
     ...existingFlags,
     competence: data.competence,
+    // Pausalni profile fields
+    acceptsCash: data.acceptsCash,
+    hasEmployees: data.hasEmployees,
+    employedElsewhere: data.employedElsewhere,
+    hasEuVatId: data.hasEuVatId,
+    taxBracket: data.taxBracket,
+    prirezRate: data.prirezRate,
   }
 
   await db.company.update({
