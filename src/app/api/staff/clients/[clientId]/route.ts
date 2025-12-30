@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
-import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: Promise<{ clientId: string }> }
 ) {
   const user = await getCurrentUser()
 
@@ -17,7 +16,7 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const { companyId } = await params
+  const { clientId } = await params
 
   // Verify staff is assigned to this company (unless they're ADMIN)
   if (user.systemRole !== "ADMIN") {
@@ -25,7 +24,7 @@ export async function GET(
       where: {
         staffId_companyId: {
           staffId: user.id,
-          companyId: companyId,
+          companyId: clientId,
         },
       },
     })
@@ -36,7 +35,7 @@ export async function GET(
   }
 
   const company = await db.company.findUnique({
-    where: { id: companyId },
+    where: { id: clientId },
     select: {
       id: true,
       name: true,
