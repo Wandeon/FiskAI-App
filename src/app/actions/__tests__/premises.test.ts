@@ -37,7 +37,12 @@ vi.mock("next/cache", () => ({
 
 import { db } from "@/lib/db"
 import { requireAuth, requireCompanyWithContext } from "@/lib/auth-utils"
-import { createPremises, createDevice, updatePremises } from "@/app/actions/premises"
+import {
+  createPremises,
+  createDevice,
+  updatePremises,
+  deletePremises,
+} from "@/app/actions/premises"
 
 const user = { id: "user-1" }
 const company = { id: "company-1" }
@@ -107,5 +112,24 @@ describe("premises actions auth", () => {
     expect(db.businessPremises.findFirst).toHaveBeenCalledWith({
       where: { id: "prem-1", companyId: "company-1" },
     })
+  })
+
+  it("deletePremises scopes counts and delete by company", async () => {
+    vi.mocked(db.paymentDevice.count).mockResolvedValue(0)
+    vi.mocked(db.invoiceSequence.count).mockResolvedValue(0)
+    vi.mocked(db.businessPremises.deleteMany).mockResolvedValue({ count: 0 } as any)
+
+    const result = await deletePremises("prem-1")
+
+    expect(db.paymentDevice.count).toHaveBeenCalledWith({
+      where: { businessPremisesId: "prem-1", companyId: "company-1" },
+    })
+    expect(db.invoiceSequence.count).toHaveBeenCalledWith({
+      where: { businessPremisesId: "prem-1", companyId: "company-1" },
+    })
+    expect(db.businessPremises.deleteMany).toHaveBeenCalledWith({
+      where: { id: "prem-1", companyId: "company-1" },
+    })
+    expect(result.success).toBe(false)
   })
 })

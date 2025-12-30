@@ -132,34 +132,44 @@ export async function updatePremises(
 
 export async function deletePremises(id: string): Promise<ActionResult> {
   try {
-    // Check if premises has any devices
-    const deviceCount = await db.paymentDevice.count({
-      where: { businessPremisesId: id },
-    })
+    const user = await requireAuth()
 
-    if (deviceCount > 0) {
-      return {
-        success: false,
-        error: "Nije moguće obrisati poslovni prostor koji ima naplatne uređaje",
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Check if premises has any devices
+      const deviceCount = await db.paymentDevice.count({
+        where: { businessPremisesId: id, companyId: company.id },
+      })
+
+      if (deviceCount > 0) {
+        return {
+          success: false,
+          error: "Nije moguće obrisati poslovni prostor koji ima naplatne uređaje",
+        }
       }
-    }
 
-    // Check if premises has any invoice sequences
-    const sequenceCount = await db.invoiceSequence.count({
-      where: { businessPremisesId: id },
-    })
+      // Check if premises has any invoice sequences
+      const sequenceCount = await db.invoiceSequence.count({
+        where: { businessPremisesId: id, companyId: company.id },
+      })
 
-    if (sequenceCount > 0) {
-      return {
-        success: false,
-        error: "Nije moguće obrisati poslovni prostor koji ima povijesne račune",
+      if (sequenceCount > 0) {
+        return {
+          success: false,
+          error: "Nije moguće obrisati poslovni prostor koji ima povijesne račune",
+        }
       }
-    }
 
-    await db.businessPremises.delete({ where: { id } })
+      const deleted = await db.businessPremises.deleteMany({
+        where: { id, companyId: company.id },
+      })
 
-    revalidatePath("/settings/premises")
-    return { success: true }
+      if (deleted.count === 0) {
+        return { success: false, error: "Poslovni prostor nije pronađen" }
+      }
+
+      revalidatePath("/settings/premises")
+      return { success: true }
+    })
   } catch (error) {
     console.error("Failed to delete premises:", error)
     return { success: false, error: "Greška pri brisanju poslovnog prostora" }
