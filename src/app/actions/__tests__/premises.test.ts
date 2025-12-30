@@ -44,6 +44,7 @@ import {
   deletePremises,
   updateDevice,
   deleteDevice,
+  getDefaultPremisesAndDevice,
 } from "@/app/actions/premises"
 
 const user = { id: "user-1" }
@@ -160,5 +161,16 @@ describe("premises actions auth", () => {
       where: { id: "dev-1", companyId: "company-1" },
     })
     expect(result.success).toBe(false)
+  })
+
+  it("getDefaultPremisesAndDevice uses auth company", async () => {
+    vi.mocked(db.businessPremises.findFirst).mockResolvedValue(null as any)
+
+    await getDefaultPremisesAndDevice("company-999")
+
+    expect(db.businessPremises.findFirst).toHaveBeenCalledWith({
+      where: { companyId: "company-1", isDefault: true, isActive: true },
+      select: { id: true, code: true, name: true },
+    })
   })
 })

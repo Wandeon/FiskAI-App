@@ -322,23 +322,27 @@ export async function deleteDevice(id: string): Promise<ActionResult> {
   }
 }
 
-export async function getDefaultPremisesAndDevice(companyId: string): Promise<{
+export async function getDefaultPremisesAndDevice(_companyId: string): Promise<{
   premises: { id: string; code: number; name: string } | null
   device: { id: string; code: number; name: string } | null
 }> {
-  const premises = await db.businessPremises.findFirst({
-    where: { companyId, isDefault: true, isActive: true },
-    select: { id: true, code: true, name: true },
+  const user = await requireAuth()
+
+  return requireCompanyWithContext(user.id!, async (company) => {
+    const premises = await db.businessPremises.findFirst({
+      where: { companyId: company.id, isDefault: true, isActive: true },
+      select: { id: true, code: true, name: true },
+    })
+
+    if (!premises) {
+      return { premises: null, device: null }
+    }
+
+    const device = await db.paymentDevice.findFirst({
+      where: { businessPremisesId: premises.id, isDefault: true, isActive: true },
+      select: { id: true, code: true, name: true },
+    })
+
+    return { premises, device }
   })
-
-  if (!premises) {
-    return { premises: null, device: null }
-  }
-
-  const device = await db.paymentDevice.findFirst({
-    where: { businessPremisesId: premises.id, isDefault: true, isActive: true },
-    select: { id: true, code: true, name: true },
-  })
-
-  return { premises, device }
 }
