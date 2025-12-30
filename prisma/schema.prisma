@@ -162,6 +162,177 @@ model Company {
   staffReviews                   StaffReview[]
   adminAlerts                    AdminAlert[]
   bankImports                    BankImport[]
+  employees                      Employee[]
+}
+
+// ============================================================================
+// EMPLOYMENT & PAYROLL
+// ============================================================================
+
+model Employee {
+  id          String   @id @default(cuid())
+  companyId   String
+  firstName   String
+  lastName    String
+  oib         String?
+  dateOfBirth DateTime?
+  email       String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company             Company                      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employmentContracts EmploymentContract[]
+  roles               EmployeeRole[]
+  dependents          Dependent[]
+  allowances          Allowance[]
+  pensionPillars      PensionPillar[]
+
+  @@unique([companyId, oib])
+  @@index([companyId])
+  @@index([lastName])
+}
+
+model EmployeeRole {
+  id            String   @id @default(cuid())
+  companyId     String
+  employeeId    String
+  title         String
+  description   String?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
+}
+
+model EmploymentContract {
+  id           String   @id @default(cuid())
+  companyId    String
+  employeeId   String
+  contractCode String?
+  startedAt    DateTime
+  endedAt      DateTime?
+  status       EmploymentContractStatus @default(ACTIVE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company           Company                     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee          Employee                    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  versions          EmploymentContractVersion[]
+  terminationEvents EmploymentTerminationEvent[]
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([startedAt])
+  @@index([endedAt])
+}
+
+model EmploymentContractVersion {
+  id             String   @id @default(cuid())
+  companyId      String
+  contractId     String
+  version        Int
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  roleTitle      String?
+  employmentType EmploymentType?
+  hoursPerWeek   Int?
+  salaryAmount   Decimal? @db.Decimal(12, 2)
+  salaryCurrency String   @default("EUR")
+  createdAt      DateTime @default(now())
+
+  company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contract EmploymentContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, version])
+  @@index([companyId])
+  @@index([contractId, effectiveFrom])
+}
+
+model EmploymentTerminationEvent {
+  id           String             @id @default(cuid())
+  companyId    String
+  contractId   String
+  employeeId   String
+  terminatedAt DateTime
+  reason       TerminationReason
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contract EmploymentContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  employee Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([contractId])
+  @@index([employeeId])
+  @@index([terminatedAt])
+}
+
+model Dependent {
+  id            String   @id @default(cuid())
+  companyId     String
+  employeeId    String
+  fullName      String
+  relation      DependentRelation
+  birthDate     DateTime?
+  oib           String?
+  isDisabled    Boolean  @default(false)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
+}
+
+model Allowance {
+  id            String   @id @default(cuid())
+  companyId     String
+  employeeId    String
+  type          AllowanceType
+  amount        Decimal  @db.Decimal(12, 2)
+  currency      String   @default("EUR")
+  taxable       Boolean  @default(false)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
+}
+
+model PensionPillar {
+  id               String   @id @default(cuid())
+  companyId        String
+  employeeId       String
+  pillar           PensionPillarType
+  fundName         String?
+  contributionRate Decimal? @db.Decimal(5, 2)
+  effectiveFrom    DateTime
+  effectiveTo      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId, effectiveFrom])
 }
 
 // Audit trail for module entitlement changes
@@ -1428,6 +1599,50 @@ enum SystemRole {
   USER
   STAFF
   ADMIN
+}
+
+enum EmploymentContractStatus {
+  ACTIVE
+  TERMINATED
+  SUSPENDED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  FIXED_TERM
+  TEMPORARY
+  CONTRACTOR
+}
+
+enum TerminationReason {
+  RESIGNATION
+  DISMISSAL
+  END_OF_CONTRACT
+  RETIREMENT
+  MUTUAL_AGREEMENT
+  OTHER
+}
+
+enum DependentRelation {
+  CHILD
+  SPOUSE
+  PARENT
+  OTHER
+}
+
+enum AllowanceType {
+  MEAL
+  TRANSPORT
+  HOUSING
+  BONUS
+  OTHER
+}
+
+enum PensionPillarType {
+  FIRST
+  SECOND
+  THIRD
 }
 
 enum ClientInvitationStatus {
@@ -3685,4 +3900,3 @@ model CronJobError {
   @@index([resolvedAt])
   @@index([createdAt])
 }
-

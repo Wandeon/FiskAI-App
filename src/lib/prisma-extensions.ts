@@ -128,6 +128,14 @@ const TENANT_MODELS = [
   "BusinessPremises",
   "PaymentDevice",
   "InvoiceSequence",
+  "Employee",
+  "EmployeeRole",
+  "EmploymentContract",
+  "EmploymentContractVersion",
+  "EmploymentTerminationEvent",
+  "Dependent",
+  "Allowance",
+  "PensionPillar",
   // Note: CompanyUser intentionally NOT included - it's filtered by userId, not companyId
   // Including it breaks getCurrentCompany() which queries CompanyUser before tenant context exists
 ] as const
