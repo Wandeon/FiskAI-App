@@ -89,7 +89,7 @@ export const DraftRuleSchema = z.object({
   effective_from: effectiveFromSchema,
   effective_until: ISODateSchema.nullable(),
   supersedes: z.string().nullable(),
-  confidence: ConfidenceSchema,
+  llm_confidence: ConfidenceSchema, // LLM's self-assessed confidence (Issue #770)
   composer_notes: z.string(),
 })
 export type DraftRule = z.infer<typeof DraftRuleSchema>

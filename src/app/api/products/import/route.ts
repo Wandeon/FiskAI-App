@@ -34,6 +34,30 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Prazan CSV" }, { status: 400 })
       }
 
+      // Check for duplicate SKUs in existing products (fixes #727)
+      const skusToImport = rows.filter((r) => r.sku).map((r) => r.sku!)
+      if (skusToImport.length > 0) {
+        const existingSkus = await db.product.findMany({
+          where: {
+            // companyId auto-filtered by tenant isolation extension
+            sku: { in: skusToImport },
+          },
+          select: { sku: true },
+        })
+        const existingSkuSet = new Set(existingSkus.map((p) => p.sku))
+        const duplicates = rows.filter((r) => r.sku && existingSkuSet.has(r.sku))
+        if (duplicates.length > 0) {
+          return NextResponse.json(
+            {
+              error: `Proizvodi s duplikatnim SKU-ovima već postoje: ${duplicates
+                .map((d) => d.sku)
+                .join(", ")}`,
+            },
+            { status: 400 }
+          )
+        }
+      }
+
       await db.$transaction(
         rows.map((row) =>
           db.product.create({

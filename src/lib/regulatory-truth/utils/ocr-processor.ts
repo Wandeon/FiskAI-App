@@ -5,9 +5,11 @@ import { renderPdfToImages } from "./pdf-renderer"
 import { runTesseract } from "./tesseract"
 import { runVisionOcr } from "./vision-ocr"
 
-const TESSERACT_CONFIDENCE_THRESHOLD = 70
-const GARBAGE_TEXT_THRESHOLD = 0.2
-const MANUAL_REVIEW_THRESHOLD = 50
+// OCR quality thresholds aligned with RTL architecture documentation
+// See: docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md:315-317
+const TESSERACT_CONFIDENCE_THRESHOLD = 70 // ≥70% confidence skips vision fallback
+const GARBAGE_TEXT_THRESHOLD = 0.2 // >20% non-letter/number/space triggers vision
+const MANUAL_REVIEW_THRESHOLD = 50 // <50% avg confidence flags for human review
 
 export interface PageResult {
   pageNum: number
@@ -28,8 +30,14 @@ export interface OcrResult {
 
 function isGarbageText(text: string): boolean {
   if (!text || text.length < 20) return true
-  const letters = text.match(/[\p{L}]/gu) || []
-  return letters.length / text.length < 1 - GARBAGE_TEXT_THRESHOLD
+
+  // Count non-letter, non-number, non-whitespace characters
+  // Aligns with RTL documentation: ">20% non-letters triggers vision fallback"
+  // This catches OCR artifacts like: ░▒▓█▄▀■□●◆★☆
+  const garbageChars = text.match(/[^\p{L}\p{N}\s]/gu) || []
+  const garbageRatio = garbageChars.length / text.length
+
+  return garbageRatio > GARBAGE_TEXT_THRESHOLD
 }
 
 async function processPage(imageBuffer: Buffer, pageNum: number): Promise<PageResult> {

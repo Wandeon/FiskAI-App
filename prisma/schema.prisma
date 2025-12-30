@@ -2234,7 +2234,9 @@ model RegulatoryRule {
   effectiveUntil   DateTime?
   supersedesId     String? // Previous rule this supersedes
   status           RuleStatus       @default(DRAFT)
-  confidence       Float            @default(0.8)
+  confidence       Float            @default(0.8) // DEPRECATED: Use derivedConfidence instead (kept for backward compatibility)
+  llmConfidence    Float            @default(0.8) // LLM's self-assessed confidence in composition
+  derivedConfidence Float           @default(0.8) // Confidence derived from source pointer quality (Issue #770)
   composerNotes    String?
   reviewerNotes    String?
   approvedBy       String? // User ID who approved (for T0/T1)
@@ -2716,6 +2718,27 @@ model RegulatoryAuditLog {
   @@index([entityType, entityId])
   @@index([performedAt])
   @@index([action])
+}
+
+// =============================================================================
+// CONFLICT RESOLUTION AUDIT - Detailed conflict resolution tracking (Issue #789)
+// =============================================================================
+
+model ConflictResolutionAudit {
+  id         String   @id @default(cuid())
+  conflictId String
+  ruleAId    String?
+  ruleBId    String?
+  resolution String // RULE_A_PREVAILS, RULE_B_PREVAILS, MERGE_RULES, ESCALATE_TO_HUMAN
+  reason     String   @db.Text
+  resolvedBy String // ARBITER_AGENT, HUMAN, SYSTEM
+  resolvedAt DateTime @default(now())
+  metadata   Json? // { authorityComparison, sourceComparison, temporalAnalysis, aiArbitration }
+
+  @@index([conflictId])
+  @@index([ruleAId])
+  @@index([ruleBId])
+  @@index([resolvedAt])
 }
 
 // =============================================================================

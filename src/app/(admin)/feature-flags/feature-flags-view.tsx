@@ -3,153 +3,294 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
- Flag,
- Plus,
- Search,
- Trash2,
- Edit,
- ToggleLeft,
- ToggleRight,
- Users,
- Building2,
- Globe,
- Percent,
- Clock,
+  Flag,
+  Plus,
+  Search,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Users,
+  Building2,
+  Globe,
+  Percent,
+  AlertTriangle,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import type { FeatureFlagWithOverrides, FeatureFlagStats } from "@/lib/feature-flags"
 
 interface FeatureFlagsViewProps {
- initialFlags: FeatureFlagWithOverrides[]
- initialStats: FeatureFlagStats
+  initialFlags: FeatureFlagWithOverrides[]
+  initialStats: FeatureFlagStats
 }
 
 export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsViewProps) {
- const router = useRouter()
- const [flags, setFlags] = useState(initialFlags)
- const [stats] = useState(initialStats)
- const [search, setSearch] = useState("")
- const [statusFilter, setStatusFilter] = useState<string>("all")
- const [isCreating, setIsCreating] = useState(false)
- const [editingId, setEditingId] = useState<string | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ flag: FeatureFlagWithOverrides; reason: string } | null>(null)
+  const router = useRouter()
+  const [flags, setFlags] = useState(initialFlags)
+  const [stats] = useState(initialStats)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [isCreating, setIsCreating] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [flagToDelete, setFlagToDelete] = useState<FeatureFlagWithOverrides | null>(null)
+  const [deleteReason, setDeleteReason] = useState("")
+  const [deleteError, setDeleteError] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
 
- // New flag form state
- const [newFlag, setNewFlag] = useState({
- key: "",
- name: "",
- description: "",
- category: "",
- scope: "GLOBAL" as "GLOBAL" | "TENANT" | "USER",
- })
+  // New flag form state
+  const [newFlag, setNewFlag] = useState({
+    key: "",
+    name: "",
+    description: "",
+    category: "",
+    scope: "GLOBAL" as "GLOBAL" | "TENANT" | "USER",
+  })
 
- const filteredFlags = flags.filter((flag) => {
- const matchesSearch =
- !search ||
- flag.key.toLowerCase().includes(search.toLowerCase()) ||
- flag.name.toLowerCase().includes(search.toLowerCase())
- const matchesStatus = statusFilter === "all" || flag.status === statusFilter
- return matchesSearch && matchesStatus
- })
+  const filteredFlags = flags.filter((flag) => {
+    const matchesSearch =
+      !search ||
+      flag.key.toLowerCase().includes(search.toLowerCase()) ||
+      flag.name.toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = statusFilter === "all" || flag.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
- const handleCreate = async () => {
- if (!newFlag.key || !newFlag.name) return
+  const handleCreate = async () => {
+    if (!newFlag.key || !newFlag.name) return
 
- try {
- const res = await fetch("/api/admin/feature-flags", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify(newFlag),
- })
+    try {
+      const res = await fetch("/api/admin/feature-flags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newFlag),
+      })
 
- if (!res.ok) {
- const error = await res.json()
- alert(error.error || "Failed to create flag")
- return
- }
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error || "Failed to create flag")
+        return
+      }
 
- setIsCreating(false)
- setNewFlag({ key: "", name: "", description: "", category: "", scope: "GLOBAL" })
- router.refresh()
- } catch (error) {
- console.error("Failed to create flag:", error)
- }
- }
+      setIsCreating(false)
+      setNewFlag({ key: "", name: "", description: "", category: "", scope: "GLOBAL" })
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to create flag:", error)
+    }
+  }
 
- const handleToggle = async (flag: FeatureFlagWithOverrides) => {
- const newStatus = flag.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+  const handleToggle = async (flag: FeatureFlagWithOverrides) => {
+    const newStatus = flag.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
 
- try {
- await fetch(`/api/admin/feature-flags/${flag.id}`, {
- method: "PATCH",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ status: newStatus }),
- })
+    try {
+      await fetch(`/api/admin/feature-flags/${flag.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
 
- setFlags((prev) => prev.map((f) => (f.id === flag.id ? { ...f, status: newStatus } : f)))
- } catch (error) {
- console.error("Failed to toggle flag:", error)
- }
- }
+      setFlags((prev) => prev.map((f) => (f.id === flag.id ? { ...f, status: newStatus } : f)))
+    } catch (error) {
+      console.error("Failed to toggle flag:", error)
+    }
+  }
 
- const handleDelete = async (flag: FeatureFlagWithOverrides) => {
- if (!confirm(`Are you sure you want to delete "${flag.name}"?`)) return
+  const handleDeleteClick = (flag: FeatureFlagWithOverrides) => {
+    setFlagToDelete(flag)
+    setDeleteReason("")
+    setDeleteError("")
+    setDeleteDialogOpen(true)
+  }
 
- try {
- await fetch(`/api/admin/feature-flags/${flag.id}`, { method: "DELETE" })
- setFlags((prev) => prev.filter((f) => f.id !== flag.id))
- } catch (error) {
- console.error("Failed to delete flag:", error)
- }
- }
+  const handleDeleteConfirm = async () => {
+    if (!flagToDelete) return
 
- const handleUpdateRollout = async (flag: FeatureFlagWithOverrides, percentage: number) => {
- try {
- await fetch(`/api/admin/feature-flags/${flag.id}`, {
- method: "PATCH",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ rolloutPercentage: percentage }),
- })
+    // Validate reason
+    if (!deleteReason.trim()) {
+      setDeleteError("Razlog brisanja je obavezan")
+      return
+    }
 
- setFlags((prev) =>
- prev.map((f) => (f.id === flag.id ? { ...f, rolloutPercentage: percentage } : f))
- )
- setEditingId(null)
- } catch (error) {
- console.error("Failed to update rollout:", error)
- }
- }
+    if (deleteReason.trim().length < 10) {
+      setDeleteError("Razlog mora sadržavati najmanje 10 znakova")
+      return
+    }
 
- const getScopeIcon = (scope: string) => {
- switch (scope) {
- case "GLOBAL":
- return <Globe className="h-4 w-4" />
- case "TENANT":
- return <Building2 className="h-4 w-4" />
- case "USER":
- return <Users className="h-4 w-4" />
- default:
- return <Flag className="h-4 w-4" />
- }
- }
+    setIsDeleting(true)
+    setDeleteError("")
 
- const getStatusBadge = (status: string) => {
- switch (status) {
- case "ACTIVE":
- return <Badge variant="success">Active</Badge>
- case "INACTIVE":
- return <Badge variant="secondary">Inactive</Badge>
- case "ARCHIVED":
- return <Badge variant="warning">Archived</Badge>
- default:
- return <Badge variant="secondary">{status}</Badge>
- }
- }
+    try {
+      const res = await fetch(`/api/admin/feature-flags/${flagToDelete.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: deleteReason }),
+      })
 
- return (
- <div className="space-y-6">
+      if (!res.ok) {
+        const error = await res.json()
+        setDeleteError(error.error || "Brisanje nije uspjelo")
+        setIsDeleting(false)
+        return
+      }
+
+      // Remove flag from list
+      setFlags((prev) => prev.filter((f) => f.id !== flagToDelete.id))
+
+      // Close dialog
+      setDeleteDialogOpen(false)
+      setFlagToDelete(null)
+      setDeleteReason("")
+    } catch (error) {
+      console.error("Failed to delete flag:", error)
+      setDeleteError("Došlo je do greške pri brisanju")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setFlagToDelete(null)
+    setDeleteReason("")
+    setDeleteError("")
+  }
+
+  const handleUpdateRollout = async (flag: FeatureFlagWithOverrides, percentage: number) => {
+    try {
+      await fetch(`/api/admin/feature-flags/${flag.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rolloutPercentage: percentage }),
+      })
+
+      setFlags((prev) =>
+        prev.map((f) => (f.id === flag.id ? { ...f, rolloutPercentage: percentage } : f))
+      )
+      setEditingId(null)
+    } catch (error) {
+      console.error("Failed to update rollout:", error)
+    }
+  }
+
+  const getScopeIcon = (scope: string) => {
+    switch (scope) {
+      case "GLOBAL":
+        return <Globe className="h-4 w-4" />
+      case "TENANT":
+        return <Building2 className="h-4 w-4" />
+      case "USER":
+        return <Users className="h-4 w-4" />
+      default:
+        return <Flag className="h-4 w-4" />
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return <Badge variant="success">Active</Badge>
+      case "INACTIVE":
+        return <Badge variant="secondary">Inactive</Badge>
+      case "ARCHIVED":
+        return <Badge variant="warning">Archived</Badge>
+      default:
+        return <Badge variant="secondary">{status}</Badge>
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-danger-text">
+              <AlertTriangle className="h-5 w-5" />
+              Potvrda brisanja feature flag-a
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Jeste li sigurni da želite obrisati feature flag{" "}
+              <strong className="text-foreground">{flagToDelete?.name}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="rounded-md bg-warning-bg border border-warning-border p-3">
+              <p className="text-sm text-warning-text">
+                <strong>Upozorenje:</strong> Brisanje feature flag-a je trajna akcija. Flag će biti
+                označen kao obrisan i neće više biti dostupan za korištenje.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-secondary">
+                Razlog brisanja <span className="text-danger-text">*</span>
+              </label>
+              <Textarea
+                placeholder="Unesite razlog brisanja (npr. 'Flag više nije potreban', 'Zamijenjen novim flag-om', itd.)"
+                value={deleteReason}
+                onChange={(e) => {
+                  setDeleteReason(e.target.value)
+                  setDeleteError("")
+                }}
+                className="min-h-[100px]"
+                error={!!deleteError}
+              />
+              {deleteError && (
+                <p className="mt-1 text-sm text-danger-text">{deleteError}</p>
+              )}
+              <p className="mt-1 text-xs text-tertiary">
+                Razlog mora sadržavati najmanje 10 znakova
+              </p>
+            </div>
+
+            {flagToDelete && (
+              <div className="rounded-md bg-surface-1 p-3 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-tertiary">Key:</span>
+                  <span className="font-mono text-foreground">{flagToDelete.key}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-tertiary">Status:</span>
+                  {getStatusBadge(flagToDelete.status)}
+                </div>
+                {flagToDelete.overrides.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-tertiary">Overrides:</span>
+                    <span className="text-foreground">{flagToDelete.overrides.length}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDeleteCancel} disabled={isDeleting}>
+              Odustani
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting || !deleteReason.trim()}
+            >
+              {isDeleting ? "Brisanje..." : "Obriši feature flag"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rest of the component continues here... */}
  {/* Stats Cards */}
  <div className="grid grid-cols-4 gap-4">
  <div className="rounded-lg border border-default bg-white p-4">
@@ -372,7 +513,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
  )}
  </button>
  <button
- onClick={() => handleDelete(flag)}
+ onClick={() => handleDeleteClick(flag)}
  className="rounded p-1 text-secondary hover:bg-danger-bg hover:text-danger-icon"
  title="Delete"
  >
@@ -399,4 +540,5 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
  </div>
  </div>
  )
+}
 }
