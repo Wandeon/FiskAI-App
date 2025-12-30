@@ -74,6 +74,31 @@ export async function sendEmail(options: SendEmailOptions) {
       }
     }
 
+    // Check suppression list before sending
+    const { db } = await import("@/lib/db")
+    const recipientEmail = emails[0] // Check first recipient
+
+    const suppressed = await db.emailSuppression.findUnique({
+      where: { email: recipientEmail },
+    })
+
+    if (suppressed) {
+      // Check if suppression has expired
+      if (suppressed.expiresAt && suppressed.expiresAt < new Date()) {
+        // Suppression has expired, delete it and proceed
+        await db.emailSuppression.delete({
+          where: { id: suppressed.id },
+        })
+      } else {
+        // Email is suppressed
+        console.warn(`Email suppressed: ${recipientEmail} (${suppressed.reason})`)
+        return {
+          success: false,
+          error: `Email address is suppressed due to ${suppressed.reason}. Details: ${suppressed.details || "N/A"}`,
+        }
+      }
+    }
+
     const from = options.from || process.env.RESEND_FROM_EMAIL || "noreply@fiskai.app"
 
     const result = await resend.emails.send({

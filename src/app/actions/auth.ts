@@ -228,7 +228,11 @@ export async function requestPasswordReset(email: string) {
   }
 }
 
-export async function resetPassword(token: string, newPassword: string) {
+/**
+ * Validates a password reset token and returns a session identifier
+ * This prevents the token from being exposed in URL query parameters
+ */
+export async function validatePasswordResetToken(token: string) {
   try {
     // Find token and validate it hasn't expired
     const resetToken = await db.passwordResetToken.findUnique({
@@ -248,6 +252,56 @@ export async function resetPassword(token: string, newPassword: string) {
       return { error: "Token je istekao. Molimo zatražite novo resetiranje lozinke." }
     }
 
+    // Generate a secure session identifier
+    const crypto = await import("crypto")
+    const sessionId = crypto.randomBytes(32).toString("hex")
+
+    // Store the session ID in the token record (we'll use it to validate the reset)
+    // We don't delete the token yet - we'll delete it when password is actually reset
+    // This creates a short-lived, one-time-use session
+    await db.passwordResetToken.update({
+      where: { id: resetToken.id },
+      data: {
+        // Store session ID in the token field temporarily
+        // The original token is no longer valid after this point
+        token: sessionId,
+      },
+    })
+
+    return {
+      success: true,
+      sessionId,
+      userId: resetToken.userId,
+    }
+  } catch (error) {
+    console.error("Password reset token validation error:", error)
+    return { error: "Došlo je do greške prilikom validacije tokena" }
+  }
+}
+
+/**
+ * Resets password using a validated session ID (not the original token)
+ */
+export async function resetPassword(sessionId: string, newPassword: string) {
+  try {
+    // Find the session by the session ID (which is now stored in the token field)
+    const resetToken = await db.passwordResetToken.findUnique({
+      where: { token: sessionId },
+      include: { user: true },
+    })
+
+    if (!resetToken) {
+      return { error: "Sesija je nevažeća ili je istekla" }
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      // Delete expired token
+      await db.passwordResetToken.delete({
+        where: { id: resetToken.id },
+      })
+      return { error: "Sesija je istekla. Molimo zatražite novo resetiranje lozinke." }
+    }
+
     // Hash the new password
     const passwordHash = await bcrypt.hash(newPassword, 10)
 
@@ -257,7 +311,7 @@ export async function resetPassword(token: string, newPassword: string) {
       data: { passwordHash },
     })
 
-    // Delete the used token
+    // Delete the used token/session
     await db.passwordResetToken.delete({
       where: { id: resetToken.id },
     })

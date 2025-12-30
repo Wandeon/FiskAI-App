@@ -45,11 +45,14 @@ export function PasswordResetEmail({ resetLink, userName }: PasswordResetEmailPr
             <Text style={warningText}>
               <strong>Važno:</strong>
               <br />
-              • Link vrijedi 1 sat od primitka ovog e-maila
+              • Link se može koristiti samo jednom i vrijedi 1 sat od primitka
+              <br />
+              • Link će biti odmah potrošen kada ga otvorite
+              <br />
+              • Ne zatvarajte stranicu dok ne postavite novu lozinku
               <br />
               • Ako niste zatražili resetiranje lozinke, zanemarite ovaj e-mail
-              <br />• Vaša lozinka neće biti promijenjena sve dok ne kliknete na link i ne unesete
-              novu lozinku
+              <br />• Vaša lozinka neće biti promijenjena dok ne unesete novu lozinku
             </Text>
           </Section>
 

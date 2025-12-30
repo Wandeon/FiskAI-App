@@ -148,6 +148,17 @@ export async function deleteProduct(productId: string) {
       return { error: "Proizvod nije pronađen" }
     }
 
+    // Note: Products are not directly referenced in invoice lines (data is stored inline for fiscal compliance).
+    // However, we prevent deletion of products that may have historical usage.
+    // Check if the product was created more than 24 hours ago - if so, it may have been used in invoices.
+    const createdMoreThan24HoursAgo = new Date(product.createdAt).getTime() < Date.now() - (24 * 60 * 60 * 1000)
+
+    if (createdMoreThan24HoursAgo) {
+      return {
+        error: "Nije moguće obrisati proizvod koji postoji duže od 24 sata. Proizvod bi mogao biti korišten u računima. Umjesto brisanja, deaktivirajte proizvod."
+      }
+    }
+
     await db.product.delete({
       where: { id: productId },
     })

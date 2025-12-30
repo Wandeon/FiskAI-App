@@ -178,6 +178,7 @@ export async function POST(request: NextRequest) {
           "Invoice email bounced - added to suppression list"
         )
         break
+        break
 
       case "email.complained":
         // Treat spam complaints as bounces
@@ -203,6 +204,7 @@ export async function POST(request: NextRequest) {
           { invoiceId: invoice.id, emailId, email: data.to[0] },
           "Invoice email marked as spam - added to suppression list"
         )
+        break
         break
 
       case "email.delivery_delayed":

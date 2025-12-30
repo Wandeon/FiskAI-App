@@ -389,6 +389,22 @@ model EInvoiceLine {
   @@index([eInvoiceId])
 }
 
+model EmailSuppression {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  reason       String
+  details      String?
+  suppressedAt DateTime  @default(now())
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email])
+  @@index([suppressedAt])
+  @@index([expiresAt])
+}
+
+
 model AuditLog {
   id        String      @id @default(cuid())
   companyId String
