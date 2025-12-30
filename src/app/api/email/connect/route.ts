@@ -1,6 +1,7 @@
 // src/app/api/email/connect/route.ts
 
 import { NextResponse } from "next/server"
+import { createHmac } from "crypto"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { getEmailProvider, isEmailProviderConfigured } from "@/lib/email-sync/providers"
@@ -31,9 +32,30 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.fiskai.hr"
     const redirectUri = `${baseUrl}/api/email/callback`
 
-    // State contains provider and company info for callback
+    // Verify STATE_SECRET is configured
+    const stateSecret = process.env.STATE_SECRET
+    if (!stateSecret) {
+      console.error("[email/connect] STATE_SECRET not configured")
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      )
+    }
+
+    // State contains provider, company info, and timestamp for callback
+    const statePayload = {
+      provider: providerName,
+      companyId: company.id,
+      timestamp: Date.now(),
+    }
+
+    // Sign the state with HMAC to prevent tampering
+    const signature = createHmac("sha256", stateSecret)
+      .update(JSON.stringify(statePayload))
+      .digest("hex")
+
     const state = Buffer.from(
-      JSON.stringify({ provider: providerName, companyId: company.id })
+      JSON.stringify({ ...statePayload, signature })
     ).toString("base64url")
 
     const authUrl = provider.getAuthUrl(redirectUri, state)

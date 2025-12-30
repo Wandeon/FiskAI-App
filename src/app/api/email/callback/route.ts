@@ -1,9 +1,13 @@
 // src/app/api/email/callback/route.ts
 
 import { redirect } from "next/navigation"
+import { createHmac, timingSafeEqual } from "crypto"
 import { db } from "@/lib/db"
 import { getEmailProvider } from "@/lib/email-sync/providers"
 import { encryptSecret } from "@/lib/secrets"
+
+// State is valid for 10 minutes (600000 ms)
+const STATE_EXPIRY_MS = 10 * 60 * 1000
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -23,9 +27,40 @@ export async function GET(request: Request) {
   try {
     // Decode state
     const stateData = JSON.parse(Buffer.from(state, "base64url").toString())
-    const { provider: providerName, companyId } = stateData
+    const { provider: providerName, companyId, timestamp, signature: providedSignature } = stateData
 
-    if (!providerName || !companyId) {
+    if (!providerName || !companyId || !timestamp || !providedSignature) {
+      console.error("[email/callback] Invalid state: missing required fields")
+      redirect("/settings/email?error=invalid_state")
+    }
+
+    // Verify STATE_SECRET is configured
+    const stateSecret = process.env.STATE_SECRET
+    if (!stateSecret) {
+      console.error("[email/callback] STATE_SECRET not configured")
+      redirect("/settings/email?error=server_error")
+    }
+
+    // Verify timestamp hasn't expired
+    const now = Date.now()
+    const age = now - timestamp
+    if (age > STATE_EXPIRY_MS) {
+      console.error("[email/callback] State expired:", { age, limit: STATE_EXPIRY_MS })
+      redirect("/settings/email?error=state_expired")
+    }
+
+    // Verify HMAC signature to prevent tampering
+    const statePayload = { provider: providerName, companyId, timestamp }
+    const expectedSignature = createHmac("sha256", stateSecret)
+      .update(JSON.stringify(statePayload))
+      .digest("hex")
+
+    // Use timing-safe comparison to prevent timing attacks
+    const providedBuffer = Buffer.from(providedSignature, "hex")
+    const expectedBuffer = Buffer.from(expectedSignature, "hex")
+
+    if (providedBuffer.length !== expectedBuffer.length || !timingSafeEqual(providedBuffer, expectedBuffer)) {
+      console.error("[email/callback] Invalid signature - state may have been tampered with")
       redirect("/settings/email?error=invalid_state")
     }
 
