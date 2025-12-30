@@ -17,5 +17,6 @@ export interface UserInfo {
   hasPasskey?: boolean
   name?: string
   systemRole?: "USER" | "STAFF" | "ADMIN"
+  loginToken?: string
   error?: string
 }

@@ -243,20 +243,17 @@ export async function checkRateLimit(
       return { allowed: false, error: "service_unavailable" }
     }
 
-    // For critical limit types, use in-memory fallback to maintain rate limiting
-    // This provides degraded but still functional protection
+    // For critical limit types, fail closed to avoid weakening authentication protections
     if (CRITICAL_LIMIT_TYPES.includes(limitType)) {
       console.warn(
-        `[rate-limit] Redis unavailable for critical limit type ${limitType}, using in-memory fallback`
+        `[rate-limit] Redis unavailable for critical limit type ${limitType}, failing closed`
       )
-      return checkRateLimitInMemory(identifier, limitType)
+      return { allowed: false, error: "service_unavailable" }
     }
 
     // For non-critical limit types, also use in-memory fallback
     // This maintains rate limiting even without Redis
-    console.warn(
-      `[rate-limit] Redis unavailable for ${limitType}, using in-memory fallback`
-    )
+    console.warn(`[rate-limit] Redis unavailable for ${limitType}, using in-memory fallback`)
     return checkRateLimitInMemory(identifier, limitType)
   }
 }

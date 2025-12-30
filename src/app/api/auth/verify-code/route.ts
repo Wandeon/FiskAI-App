@@ -40,10 +40,7 @@ export async function POST(request: Request) {
     })
 
     if (!verificationCode) {
-      return NextResponse.json(
-        { error: "Kod je istekao ili ne postoji" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Kod je istekao ili ne postoji" }, { status: 400 })
     }
 
     // Check attempts
@@ -94,10 +91,17 @@ export async function POST(request: Request) {
         select: { id: true, systemRole: true },
       })
 
+      const { generateLoginToken } = await import("@/lib/auth/login-token")
+      const loginToken = await generateLoginToken({
+        userId: user.id,
+        email: emailLower,
+        type: "otp",
+      })
+
       return NextResponse.json({
         success: true,
         verified: true,
-        userId: user.id,
+        loginToken,
         systemRole: user.systemRole,
       })
     }
@@ -109,11 +113,22 @@ export async function POST(request: Request) {
         select: { id: true, systemRole: true },
       })
 
+      if (!user) {
+        return NextResponse.json({ error: "Korisnik nije pronađen" }, { status: 404 })
+      }
+
+      const { generateLoginToken } = await import("@/lib/auth/login-token")
+      const loginToken = await generateLoginToken({
+        userId: user.id,
+        email: emailLower,
+        type: "otp",
+      })
+
       return NextResponse.json({
         success: true,
         verified: true,
-        userId: user?.id,
-        systemRole: user?.systemRole,
+        loginToken,
+        systemRole: user.systemRole,
       })
     }
 

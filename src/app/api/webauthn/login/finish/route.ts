@@ -62,13 +62,16 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    const { generateLoginToken } = await import("@/lib/auth/login-token")
+    const loginToken = await generateLoginToken({
+      userId: credential.user.id,
+      email: credential.user.email,
+      type: "passkey",
+    })
+
     return NextResponse.json({
       success: true,
-      user: {
-        id: credential.user.id,
-        email: credential.user.email,
-        name: credential.user.name,
-      },
+      loginToken,
     })
   } catch (error) {
     console.error("WebAuthn login finish error:", error)

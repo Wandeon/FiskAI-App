@@ -344,11 +344,16 @@ export async function loginWithPasskey(userId: string) {
       return { error: "Korisnik nije pronađen" }
     }
 
-    // Use signIn with a special passkey identifier
-    // We need to bypass password check for passkey auth
+    const { generateLoginToken } = await import("@/lib/auth/login-token")
+    const loginToken = await generateLoginToken({
+      userId: user.id,
+      email: user.email,
+      type: "passkey",
+    })
+
     await signIn("credentials", {
       email: user.email,
-      password: `__PASSKEY__${userId}`,
+      loginToken,
       redirect: false,
     })
 

@@ -78,7 +78,7 @@ export function useAuthFlow() {
           isLoading: false,
           error: null,
         }))
-      } catch (error) {
+      } catch {
         setError("Greška pri povezivanju")
       }
     },
@@ -108,7 +108,7 @@ export function useAuthFlow() {
         }
 
         setState((s) => ({ ...s, step: "verify", isLoading: false }))
-      } catch (error) {
+      } catch {
         setError("Greška pri slanju koda")
       }
     },
@@ -138,7 +138,7 @@ export function useAuthFlow() {
               window.location.href = url.toString()
               return
             }
-          } catch (e) {
+          } catch {
             // Invalid URL, fall through to role-based redirect
           }
         }
@@ -164,7 +164,7 @@ export function useAuthFlow() {
         } else {
           router.push(destUrl.pathname + destUrl.search)
         }
-      } catch (error) {
+      } catch {
         // Fallback to simple dashboard redirect
         router.push("/dashboard")
       }
@@ -195,7 +195,7 @@ export function useAuthFlow() {
 
         // Success - redirect based on role
         handleSuccess()
-      } catch (error) {
+      } catch {
         setError("Greška pri prijavi")
       }
     },
@@ -229,7 +229,7 @@ export function useAuthFlow() {
 
         // Send verification code
         await sendVerificationCode("EMAIL_VERIFY", data.userId)
-      } catch (error) {
+      } catch {
         setError("Greška pri registraciji")
       }
     },
@@ -261,14 +261,14 @@ export function useAuthFlow() {
 
         // Sign in the user after successful OTP verification
         if (type === "EMAIL_VERIFY" || type === "LOGIN_VERIFY") {
-          if (!data.userId) {
+          if (!data.loginToken) {
             setError("Greška pri prijavi")
             return false
           }
 
           const result = await signIn("credentials", {
             email: state.email,
-            password: `__OTP_VERIFIED__${data.userId}`,
+            loginToken: data.loginToken,
             redirect: false,
           })
 
@@ -280,7 +280,7 @@ export function useAuthFlow() {
 
         handleSuccess()
         return true
-      } catch (error) {
+      } catch {
         setError("Greška pri verifikaciji")
         return false
       }
@@ -309,7 +309,7 @@ export function useAuthFlow() {
       }
 
       setState((s) => ({ ...s, step: "reset", isLoading: false }))
-    } catch (error) {
+    } catch {
       setError("Greška pri slanju koda")
     }
   }, [state.email, setLoading, setError])
@@ -351,7 +351,7 @@ export function useAuthFlow() {
 
         handleSuccess()
         return true
-      } catch (error) {
+      } catch {
         setError("Greška pri resetiranju lozinke")
         return false
       }
@@ -387,9 +387,10 @@ export function useAuthFlow() {
         return
       }
 
-      const { userId, ...options } = (await startResponse.json()) as PublicKeyCredentialRequestOptionsJSON & {
-        userId: string
-      }
+      const { userId, ...options } =
+        (await startResponse.json()) as PublicKeyCredentialRequestOptionsJSON & {
+          userId: string
+        }
 
       // Prompt user for passkey
       const authenticationResponse = await startAuthentication(options)
@@ -410,12 +411,16 @@ export function useAuthFlow() {
         return
       }
 
-      const { user } = await finishResponse.json()
+      const { loginToken } = await finishResponse.json()
 
       // Sign in with the special passkey token
+      if (!loginToken) {
+        setError("Greška pri prijavi")
+        return
+      }
       const result = await signIn("credentials", {
         email: state.email,
-        password: `__PASSKEY__${user.id}`,
+        loginToken,
         redirect: false,
       })
 
