@@ -113,10 +113,10 @@ export function runWithTenant<T>(context: TenantContext, fn: () => T): T {
 
 const LOCKED_PERIOD_STATUSES = new Set(["CLOSED", "LOCKED"])
 
-export class AccountingPeriodLockedError extends Error {
+export class PeriodStatusLockedError extends Error {
   constructor(periodId: string) {
     super(`AccountingPeriod ${periodId} is locked and cannot accept entries.`)
-    this.name = "AccountingPeriodLockedError"
+    this.name = "PeriodStatusLockedError"
   }
 }
 
@@ -322,7 +322,7 @@ async function assertPeriodOpen(prismaBase: PrismaClient, periodId: string): Pro
   }
 
   if (LOCKED_PERIOD_STATUSES.has(period.status)) {
-    throw new AccountingPeriodLockedError(periodId)
+    throw new PeriodStatusLockedError(periodId)
   }
 }
 
@@ -916,11 +916,6 @@ function getDateValue(value: unknown): Date | null {
     return Number.isNaN(parsed.getTime()) ? null : parsed
   }
   return null
-}
-
-function toDecimal(value: Prisma.Decimal | number | string | null | undefined): Prisma.Decimal {
-  if (value instanceof Prisma.Decimal) return value
-  return new Prisma.Decimal(value ?? 0)
 }
 
 function getDecimalValue(value: unknown): Prisma.Decimal | null {
