@@ -8,7 +8,7 @@ import {
   requireCompanyWithPermission,
 } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
-import { Prisma, InvoiceType } from "@prisma/client"
+import { Prisma, InvoiceType, type Company, type EInvoice } from "@prisma/client"
 import { getNextInvoiceNumber } from "@/lib/invoice-numbering"
 import { canCreateInvoice, getUsageStats } from "@/lib/billing/stripe"
 import { eInvoiceSchema } from "@/lib/validations"
@@ -20,6 +20,7 @@ import { validateStatusTransition, getTransitionError } from "@/lib/e-invoice-st
 import { validateTransition } from "@/lib/invoice-status-validation"
 import { buildVatLineTotals } from "@/lib/vat/output-calculator"
 import { emitInvoiceEvent, recordRevenueRegisterEntry } from "@/lib/invoicing/events"
+import type { FiscalDecision } from "@/lib/fiscal/should-fiscalize"
 
 const Decimal = Prisma.Decimal
 
@@ -44,6 +45,52 @@ interface CreateInvoiceInput {
     vatRate: number
     vatCategory?: string
   }>
+}
+
+async function queueFiscalizationOrThrow(params: {
+  invoice: EInvoice & {
+    companyId: string
+    invoiceNumber: string | null
+    issueDate: Date
+    totalAmount: Prisma.Decimal
+  }
+  company: Company
+  context: string
+}): Promise<FiscalDecision> {
+  const fiscalDecision = await shouldFiscalizeInvoice({
+    ...params.invoice,
+    company: params.company,
+  })
+
+  if (!fiscalDecision.shouldFiscalize) {
+    return fiscalDecision
+  }
+
+  const requestId = await queueFiscalRequest(
+    params.invoice,
+    { id: params.company.id, oib: params.company.oib },
+    fiscalDecision
+  )
+
+  if (!requestId) {
+    throw new Error(
+      `${params.context}: Neuspješno pokretanje fiskalizacije. Provjerite certifikat i pokušajte ponovno.`
+    )
+  }
+
+  await db.eInvoice.update({
+    where: { id: params.invoice.id },
+    data: { fiscalStatus: "PENDING" },
+  })
+
+  await emitInvoiceEvent({
+    companyId: params.company.id,
+    invoiceId: params.invoice.id,
+    type: "FISCALIZATION_TRIGGERED",
+    payload: fiscalDecision,
+  })
+
+  return fiscalDecision
 }
 
 export async function createCreditNote(
@@ -190,29 +237,21 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
         include: { lines: true, buyer: true },
       })
 
-      // Check if invoice should be fiscalized automatically
       try {
-        const fiscalDecision = await shouldFiscalizeInvoice({
-          ...invoice,
+        await queueFiscalizationOrThrow({
+          invoice,
           company,
+          context: "Kreiranje računa",
         })
-
-        if (fiscalDecision.shouldFiscalize) {
-          await queueFiscalRequest(invoice, company, fiscalDecision)
-          await db.eInvoice.update({
-            where: { id: invoice.id },
-            data: { fiscalStatus: "PENDING" },
-          })
-          await emitInvoiceEvent({
-            companyId: company.id,
-            invoiceId: invoice.id,
-            type: "FISCALIZATION_TRIGGERED",
-            payload: fiscalDecision,
-          })
-        }
       } catch (fiscalError) {
-        // Log but don't fail invoice creation if fiscalization queueing fails
-        console.error("[createInvoice] Fiscalization queueing error:", fiscalError)
+        await db.eInvoice.delete({ where: { id: invoice.id } })
+        return {
+          success: false,
+          error:
+            fiscalError instanceof Error
+              ? fiscalError.message
+              : "Neuspješno pokretanje fiskalizacije.",
+        }
       }
 
       revalidatePath("/invoices")
@@ -292,29 +331,21 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
         include: { lines: true, buyer: true },
       })
 
-      // Check if invoice should be fiscalized automatically
       try {
-        const fiscalDecision = await shouldFiscalizeInvoice({
-          ...invoice,
+        await queueFiscalizationOrThrow({
+          invoice,
           company,
+          context: "Pretvaranje u račun",
         })
-
-        if (fiscalDecision.shouldFiscalize) {
-          await queueFiscalRequest(invoice, company, fiscalDecision)
-          await db.eInvoice.update({
-            where: { id: invoice.id },
-            data: { fiscalStatus: "PENDING" },
-          })
-          await emitInvoiceEvent({
-            companyId: company.id,
-            invoiceId: invoice.id,
-            type: "FISCALIZATION_TRIGGERED",
-            payload: fiscalDecision,
-          })
-        }
       } catch (fiscalError) {
-        // Log but don't fail invoice creation if fiscalization queueing fails
-        console.error("[convertToInvoice] Fiscalization queueing error:", fiscalError)
+        await db.eInvoice.delete({ where: { id: invoice.id } })
+        return {
+          success: false,
+          error:
+            fiscalError instanceof Error
+              ? fiscalError.message
+              : "Neuspješno pokretanje fiskalizacije.",
+        }
       }
 
       revalidatePath("/invoices")
@@ -596,29 +627,20 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
       },
     })
 
-    // Check if invoice should be fiscalized automatically
     try {
-      const fiscalDecision = await shouldFiscalizeInvoice({
-        ...eInvoice,
+      await queueFiscalizationOrThrow({
+        invoice: eInvoice,
         company,
+        context: "Kreiranje e-računa",
       })
-
-      if (fiscalDecision.shouldFiscalize) {
-        await queueFiscalRequest(eInvoice, company, fiscalDecision)
-        await db.eInvoice.update({
-          where: { id: eInvoice.id },
-          data: { fiscalStatus: "PENDING" },
-        })
-        await emitInvoiceEvent({
-          companyId: company.id,
-          invoiceId: eInvoice.id,
-          type: "FISCALIZATION_TRIGGERED",
-          payload: fiscalDecision,
-        })
-      }
     } catch (fiscalError) {
-      // Log but don't fail invoice creation if fiscalization queueing fails
-      console.error("[createEInvoice] Fiscalization queueing error:", fiscalError)
+      await db.eInvoice.delete({ where: { id: eInvoice.id } })
+      return {
+        error:
+          fiscalError instanceof Error
+            ? fiscalError.message
+            : "Neuspješno pokretanje fiskalizacije.",
+      }
     }
 
     revalidatePath("/e-invoices")
@@ -701,29 +723,23 @@ export async function sendEInvoice(eInvoiceId: string) {
       },
     })
 
-    // After invoice is sent, check if it needs fiscalization
     try {
-      const fiscalDecision = await shouldFiscalizeInvoice({
-        ...updatedInvoice,
+      await queueFiscalizationOrThrow({
+        invoice: updatedInvoice,
         company,
+        context: "Slanje e-računa",
       })
-
-      if (fiscalDecision.shouldFiscalize) {
-        await queueFiscalRequest(updatedInvoice, company, fiscalDecision)
-        await db.eInvoice.update({
-          where: { id: updatedInvoice.id },
-          data: { fiscalStatus: "PENDING" },
-        })
-        await emitInvoiceEvent({
-          companyId: company.id,
-          invoiceId: updatedInvoice.id,
-          type: "FISCALIZATION_TRIGGERED",
-          payload: fiscalDecision,
-        })
-      }
     } catch (fiscalError) {
-      // Log but don't fail the invoice send if fiscalization queueing fails
-      console.error("[sendEInvoice] Fiscalization queueing error:", fiscalError)
+      const message =
+        fiscalError instanceof Error ? fiscalError.message : "Neuspješno pokretanje fiskalizacije."
+      await db.eInvoice.update({
+        where: { id: eInvoiceId },
+        data: {
+          status: "ERROR",
+          providerError: message,
+        },
+      })
+      return { error: message }
     }
 
     await recordRevenueRegisterEntry(updatedInvoice.id)
