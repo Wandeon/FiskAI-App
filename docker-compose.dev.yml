@@ -24,7 +24,9 @@ services:
       - NEXT_PUBLIC_APP_NAME=FiskAI Dev
       - NEXT_PUBLIC_APP_URL=http://localhost:3002
       - EINVOICE_KEY_SECRET=dev_einvoice_secret_32_chars_minimum
-      # AUTH_TRUST_HOST safe in dev since localhost only
+      # AUTH_TRUST_HOST: Safe in dev since localhost only.
+      # WARNING: Port 3002 is exposed - NEVER use this config in production!
+      # Production requires network isolation. See: docs/04_OPERATIONS/NETWORK_ISOLATION_SECURITY.md
       - AUTH_TRUST_HOST=true
     ports:
       - "3002:3000"

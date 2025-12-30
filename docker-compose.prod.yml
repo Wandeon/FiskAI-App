@@ -14,8 +14,13 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL:?NEXTAUTH_URL required}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?NEXTAUTH_SECRET required}
       # AUTH_TRUST_HOST: Required when behind reverse proxy (Traefik).
-      # Traefik validates Host header via routing rules before forwarding.
-      # Internal network (fiskai_internal) prevents direct container access.
+      # SECURITY: This setting is safe ONLY because:
+      #   1. No 'ports:' directive - container is NOT exposed to host network
+      #   2. fiskai_internal network isolates container from external access
+      #   3. Only Traefik (via coolify network) can reach the app
+      #   4. Traefik validates Host header via routing rules before forwarding
+      # VERIFY: Run 'curl -H "Host: evil.com" http://server-ip:3000' - should FAIL
+      # See: docs/04_OPERATIONS/NETWORK_ISOLATION_SECURITY.md
       - AUTH_TRUST_HOST=true
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-FiskAI}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL required}
