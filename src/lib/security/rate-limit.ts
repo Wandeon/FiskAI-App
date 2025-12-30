@@ -75,6 +75,10 @@ export const RATE_LIMITS = {
     window: 60 * 60 * 1000, // 1 hour
     blockDuration: 60 * 60 * 1000, // 1 hour block
   },
+  ADMIN_EXPORT: {
+    attempts: 10, // 10 tenant data exports per hour per admin
+    window: 60 * 60 * 1000, // 1 hour
+    blockDuration: 60 * 60 * 1000, // 1 hour block
   },
   EXPORT: {
     attempts: 3, // 3 exports per hour

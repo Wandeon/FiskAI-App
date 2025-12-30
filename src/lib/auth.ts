@@ -36,18 +36,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
 
-        // Rate limiting for login attempts
+        // Get client IP address
         const email = credentials.email as string
-        const identifier = `login_${email.toLowerCase()}`
-        const rateLimitResult = await checkRateLimit(identifier, "LOGIN")
+        const clientIp =
+          request.headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+          request.headers?.get("x-real-ip") ||
+          "unknown"
 
-        if (!rateLimitResult.allowed) {
-          console.log(`Rate limited login attempt for ${credentials.email}`)
+        // Rate limiting by IP+email combination (prevents locking out legitimate users)
+        const ipEmailIdentifier = `login_${clientIp}_${email.toLowerCase()}`
+        const ipEmailRateLimit = await checkRateLimit(ipEmailIdentifier, "LOGIN")
+
+        // Also rate limit by IP only (prevents distributed attacks on same email)
+        const ipOnlyIdentifier = `login_ip_${clientIp}`
+        const ipOnlyRateLimit = await checkRateLimit(ipOnlyIdentifier, "LOGIN_IP")
+
+        if (!ipEmailRateLimit.allowed || !ipOnlyRateLimit.allowed) {
+          console.log(
+            `Rate limited login attempt for ${credentials.email} from IP ${clientIp}`,
+            {
+              ipEmailAllowed: ipEmailRateLimit.allowed,
+              ipOnlyAllowed: ipOnlyRateLimit.allowed,
+            }
+          )
           return null // Don't reveal that account exists
         }
 
