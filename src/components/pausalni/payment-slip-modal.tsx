@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Modal, ModalFooter } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Loader2, Download, Copy, Mail, Check } from "lucide-react"
@@ -40,12 +40,7 @@ export function PaymentSlipModal({ obligation, onClose }: Props) {
   const [isLoading, setIsLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    fetchPaymentSlip()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [obligation])
-
-  async function fetchPaymentSlip() {
+  const fetchPaymentSlip = useCallback(async () => {
     try {
       // Map obligation type to payment slip type
       const typeMap: Record<string, string> = {
@@ -82,7 +77,11 @@ export function PaymentSlipModal({ obligation, onClose }: Props) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [obligation])
+
+  useEffect(() => {
+    fetchPaymentSlip()
+  }, [fetchPaymentSlip])
 
   async function copyToClipboard() {
     if (!slip) return
