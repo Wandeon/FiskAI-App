@@ -370,6 +370,8 @@ model EInvoice {
   @@index([direction])
   @@index([type])
   @@index([emailMessageId])
+  @@index([sellerId])
+  @@index([buyerId])
 }
 
 model EInvoiceLine {
