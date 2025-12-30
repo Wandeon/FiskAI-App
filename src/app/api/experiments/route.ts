@@ -35,10 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ experiments })
   } catch (error) {
     console.error("Error listing experiments:", error)
-    return NextResponse.json(
-      { error: "Failed to list experiments" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to list experiments" }, { status: 500 })
   }
 }
 

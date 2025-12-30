@@ -112,6 +112,9 @@ const TENANT_MODELS = [
   "EInvoice",
   "EInvoiceLine",
   "AuditLog",
+  "CashIn",
+  "CashOut",
+  "CashDayClose",
   "BankAccount",
   "BankTransaction",
   "BankImport",
@@ -151,6 +154,9 @@ const AUDITED_MODELS = [
   "Product",
   "EInvoice",
   "Company",
+  "CashIn",
+  "CashOut",
+  "CashDayClose",
   "BankAccount",
   "Expense",
   "ExpenseLine",
@@ -287,6 +293,243 @@ export class RegulatoryRuleUpdateManyStatusNotAllowedError extends Error {
         "Use the rule status service (approve/publish) so per-rule gates are enforced."
     )
     this.name = "RegulatoryRuleUpdateManyStatusNotAllowedError"
+  }
+}
+
+// ============================================
+// CASH OPERATIONS: BALANCE + DAY CLOSE PROTECTION
+// ============================================
+export class CashDayClosedError extends Error {
+  constructor(action: string, businessDate: Date) {
+    super(`Cannot ${action}: cash day ${businessDate.toISOString().slice(0, 10)} is closed.`)
+    this.name = "CashDayClosedError"
+  }
+}
+
+export class CashBalanceNegativeError extends Error {
+  constructor() {
+    super("Cannot complete cash operation: cash balance cannot be negative.")
+    this.name = "CashBalanceNegativeError"
+  }
+}
+
+export class CashAmountNegativeError extends Error {
+  constructor() {
+    super("Cash amount must be non-negative.")
+    this.name = "CashAmountNegativeError"
+  }
+}
+
+export class CashBulkMutationNotAllowedError extends Error {
+  constructor(model: string, action: string) {
+    super(`Cannot ${action} ${model} in bulk. Use individual operations for cash integrity.`)
+    this.name = "CashBulkMutationNotAllowedError"
+  }
+}
+
+export class CashDayCloseImmutableError extends Error {
+  constructor(action: string) {
+    super(`Cannot ${action} CashDayClose: close events are immutable.`)
+    this.name = "CashDayCloseImmutableError"
+  }
+}
+
+const CASH_MODELS = ["CashIn", "CashOut"] as const
+
+type CashModel = (typeof CASH_MODELS)[number]
+
+function getPrismaFieldValue(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value
+  if ("set" in value) {
+    return (value as { set?: unknown }).set
+  }
+  return value
+}
+
+function getDateValue(value: unknown): Date | null {
+  const raw = getPrismaFieldValue(value)
+  if (!raw) return null
+  if (raw instanceof Date) return raw
+  if (typeof raw === "string" || typeof raw === "number") {
+    const parsed = new Date(raw)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
+  return null
+}
+
+function toDecimal(value: Prisma.Decimal | number | string | null | undefined): Prisma.Decimal {
+  if (value instanceof Prisma.Decimal) return value
+  return new Prisma.Decimal(value ?? 0)
+}
+
+function getDecimalValue(value: unknown): Prisma.Decimal | null {
+  const raw = getPrismaFieldValue(value)
+  if (raw === null || typeof raw === "undefined") return null
+  if (raw instanceof Prisma.Decimal) return raw
+  if (typeof raw === "number" || typeof raw === "string") return new Prisma.Decimal(raw)
+  return null
+}
+
+function assertAmountNonNegative(amount: Prisma.Decimal) {
+  if (amount.lessThan(0)) {
+    throw new CashAmountNegativeError()
+  }
+}
+
+async function isCashDayClosed(
+  prismaBase: PrismaClient,
+  companyId: string,
+  businessDate: Date
+): Promise<boolean> {
+  const closed = await prismaBase.cashDayClose.findUnique({
+    where: { companyId_businessDate: { companyId, businessDate } },
+    select: { id: true },
+  })
+  return Boolean(closed)
+}
+
+async function assertCashDayOpen(
+  prismaBase: PrismaClient,
+  companyId: string,
+  businessDate: Date,
+  action: string
+): Promise<void> {
+  if (await isCashDayClosed(prismaBase, companyId, businessDate)) {
+    throw new CashDayClosedError(action, businessDate)
+  }
+}
+
+async function getCashBalance(
+  prismaBase: PrismaClient,
+  companyId: string
+): Promise<Prisma.Decimal> {
+  const [cashInSum, cashOutSum] = await Promise.all([
+    prismaBase.cashIn.aggregate({
+      where: { companyId },
+      _sum: { amount: true },
+    }),
+    prismaBase.cashOut.aggregate({
+      where: { companyId },
+      _sum: { amount: true },
+    }),
+  ])
+
+  return toDecimal(cashInSum._sum.amount).minus(toDecimal(cashOutSum._sum.amount))
+}
+
+type CashRecord = {
+  amount: Prisma.Decimal
+  businessDate: Date
+  companyId: string
+}
+
+async function getCashRecord(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  where: Prisma.CashInWhereUniqueInput | Prisma.CashOutWhereUniqueInput
+): Promise<CashRecord | null> {
+  if (model === "CashIn") {
+    return prismaBase.cashIn.findUnique({
+      where: where as Prisma.CashInWhereUniqueInput,
+      select: { amount: true, businessDate: true, companyId: true },
+    })
+  }
+
+  return prismaBase.cashOut.findUnique({
+    where: where as Prisma.CashOutWhereUniqueInput,
+    select: { amount: true, businessDate: true, companyId: true },
+  })
+}
+
+async function enforceCashTransactionCreate(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  data: Record<string, unknown>,
+  companyId: string
+) {
+  const businessDate = getDateValue(data.businessDate)
+  const amount = getDecimalValue(data.amount)
+
+  if (!businessDate || !amount) return
+
+  assertAmountNonNegative(amount)
+  await assertCashDayOpen(prismaBase, companyId, businessDate, "create cash entry")
+
+  const balance = await getCashBalance(prismaBase, companyId)
+  const newBalance = model === "CashIn" ? balance.plus(amount) : balance.minus(amount)
+
+  if (newBalance.lessThan(0)) {
+    throw new CashBalanceNegativeError()
+  }
+}
+
+async function enforceCashTransactionUpdate(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  args: { where: unknown; data: unknown }
+) {
+  const existing = await getCashRecord(
+    prismaBase,
+    model,
+    args.where as Prisma.CashInWhereUniqueInput
+  )
+
+  if (!existing) return
+
+  await assertCashDayOpen(
+    prismaBase,
+    existing.companyId,
+    existing.businessDate,
+    "update cash entry"
+  )
+
+  const data = (args.data ?? {}) as Record<string, unknown>
+  const requestedDate = getDateValue(data.businessDate)
+
+  if (requestedDate && requestedDate.getTime() !== existing.businessDate.getTime()) {
+    await assertCashDayOpen(prismaBase, existing.companyId, requestedDate, "update cash entry")
+  }
+
+  const nextAmount = getDecimalValue(data.amount) ?? existing.amount
+  assertAmountNonNegative(nextAmount)
+
+  const balance = await getCashBalance(prismaBase, existing.companyId)
+  const newBalance =
+    model === "CashIn"
+      ? balance.minus(existing.amount).plus(nextAmount)
+      : balance.plus(existing.amount).minus(nextAmount)
+
+  if (newBalance.lessThan(0)) {
+    throw new CashBalanceNegativeError()
+  }
+}
+
+async function enforceCashTransactionDelete(
+  prismaBase: PrismaClient,
+  model: CashModel,
+  args: { where: unknown }
+) {
+  const existing = await getCashRecord(
+    prismaBase,
+    model,
+    args.where as Prisma.CashInWhereUniqueInput
+  )
+
+  if (!existing) return
+
+  await assertCashDayOpen(
+    prismaBase,
+    existing.companyId,
+    existing.businessDate,
+    "delete cash entry"
+  )
+
+  const balance = await getCashBalance(prismaBase, existing.companyId)
+  const newBalance =
+    model === "CashIn" ? balance.minus(existing.amount) : balance.plus(existing.amount)
+
+  if (newBalance.lessThan(0)) {
+    throw new CashBalanceNegativeError()
   }
 }
 
@@ -545,6 +788,15 @@ export function withTenantIsolation(prisma: PrismaClient) {
               companyId: context.companyId,
             } as typeof args.data
           }
+
+          if (model === "CashIn" || model === "CashOut") {
+            const data = args.data as Record<string, unknown>
+            const companyId = data.companyId as string | undefined
+            if (companyId) {
+              await enforceCashTransactionCreate(prismaBase, model, data, companyId)
+            }
+          }
+
           const result = await query(args)
 
           // Audit logging for create operations
@@ -603,6 +855,17 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("update")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            await enforceCashTransactionUpdate(prismaBase, model, {
+              where: args.where,
+              data: args.data,
+            })
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -624,6 +887,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return result
         },
         async delete({ model, args, query }) {
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("delete")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            await enforceCashTransactionDelete(prismaBase, model, { where: args.where })
+          }
+
           if (model === "Attachment") {
             await ensureAttachmentMutable(
               prismaBase,
@@ -653,6 +924,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
         },
         // === Missing operations for full tenant isolation ===
         async createMany({ model, args, query }) {
+          if (model === "CashDayClose") {
+            throw new CashBulkMutationNotAllowedError(model, "createMany")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            throw new CashBulkMutationNotAllowedError(model, "createMany")
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             // Add companyId to each record being created
@@ -689,6 +968,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
             }
           }
 
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("updateMany")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            throw new CashBulkMutationNotAllowedError(model, "updateMany")
+          }
+
           const context = getTenantContext()
           if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
@@ -699,6 +986,14 @@ export function withTenantIsolation(prisma: PrismaClient) {
           return query(args)
         },
         async deleteMany({ model, args, query }) {
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("deleteMany")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            throw new CashBulkMutationNotAllowedError(model, "deleteMany")
+          }
+
           if (model === "Attachment") {
             await ensureAttachmentMutable(prismaBase, args.where as Prisma.AttachmentWhereInput)
           }
@@ -716,6 +1011,32 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // EVIDENCE IMMUTABILITY: Block updates to immutable fields in upsert
           if (model === "Evidence" && args.update && typeof args.update === "object") {
             checkEvidenceImmutability(args.update as Record<string, unknown>)
+          }
+
+          if (model === "CashDayClose") {
+            throw new CashDayCloseImmutableError("upsert")
+          }
+
+          if (model === "CashIn" || model === "CashOut") {
+            const existing = await getCashRecord(
+              prismaBase,
+              model,
+              args.where as Prisma.CashInWhereUniqueInput
+            )
+
+            if (existing) {
+              await enforceCashTransactionUpdate(prismaBase, model, {
+                where: args.where,
+                data: args.update,
+              })
+            } else {
+              const data = args.create as Record<string, unknown>
+              const context = getTenantContext()
+              const companyId = (data.companyId ?? context?.companyId) as string | undefined
+              if (companyId) {
+                await enforceCashTransactionCreate(prismaBase, model, data, companyId)
+              }
+            }
           }
 
           if (model === "Attachment") {

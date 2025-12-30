@@ -9,10 +9,7 @@ interface MarketingSkeletonProps {
 /**
  * Skeleton component for marketing pages
  */
-export function MarketingSkeleton({
-  variant = "landing",
-  className,
-}: MarketingSkeletonProps) {
+export function MarketingSkeleton({ variant = "landing", className }: MarketingSkeletonProps) {
   return (
     <div className={cn("min-h-screen", className)}>
       {variant === "landing" && <LandingSkeletonContent />}

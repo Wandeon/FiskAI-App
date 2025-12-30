@@ -75,29 +75,14 @@ export {
 export type { HarvesterResult, FullHarvestResult, HarvesterError } from "./harvesters"
 
 // Drift detection exports
-export {
-  computeDrift,
-  enforceRules,
-  formatDriftMarkdown,
-} from "./compute-drift"
+export { computeDrift, enforceRules, formatDriftMarkdown } from "./compute-drift"
 
-export type {
-  DriftResult,
-  EnforcementResult,
-  EnforcementFailure,
-} from "./compute-drift"
+export type { DriftResult, EnforcementResult, EnforcementFailure } from "./compute-drift"
 
 // Dependency graph exports
-export {
-  buildGraph,
-  reverseReachable,
-  MAX_NODES,
-} from "./dependency-graph"
+export { buildGraph, reverseReachable, MAX_NODES } from "./dependency-graph"
 
-export type {
-  DependencyGraph,
-  ReverseReachableResult,
-} from "./dependency-graph"
+export type { DependencyGraph, ReverseReachableResult } from "./dependency-graph"
 
 // Blast radius exports
 export {
@@ -139,7 +124,5 @@ export function getCriticalPathComponents(pathId: string) {
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { DECLARED_COMPONENTS } = require("./declarations")
-  return path.components
-    .map((id: string) => getComponent(id))
-    .filter(Boolean)
+  return path.components.map((id: string) => getComponent(id)).filter(Boolean)
 }

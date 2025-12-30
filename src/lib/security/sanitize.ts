@@ -156,19 +156,21 @@ export function sanitizeIpAddress(ipAddress: string | null | undefined): string 
 export function sanitizePII(text: string): string {
   if (!text) return ""
 
-  return text
-    // Email addresses
-    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]")
-    // Croatian phone numbers (mobile and landline)
-    .replace(/(\+385|0)[\s.-]?\d{2}[\s.-]?\d{3}[\s.-]?\d{3,4}/g, "[PHONE]")
-    // International phone numbers
-    .replace(/\+\d{1,3}[\s.-]?\d{2,4}[\s.-]?\d{3,4}[\s.-]?\d{3,4}/g, "[PHONE]")
-    // OIB (Croatian tax ID - exactly 11 digits, possibly with spaces)
-    .replace(/\b\d{11}\b/g, "[OIB]")
-    // Credit card numbers (16 digits with optional spaces/dashes)
-    .replace(/\b\d{4}[\s.-]?\d{4}[\s.-]?\d{4}[\s.-]?\d{4}\b/g, "[CARD]")
-    // IBAN (starts with 2 letters, then up to 32 alphanumeric)
-    .replace(/\b[A-Z]{2}\d{2}[A-Z0-9]{4,30}\b/gi, "[IBAN]")
+  return (
+    text
+      // Email addresses
+      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]")
+      // Croatian phone numbers (mobile and landline)
+      .replace(/(\+385|0)[\s.-]?\d{2}[\s.-]?\d{3}[\s.-]?\d{3,4}/g, "[PHONE]")
+      // International phone numbers
+      .replace(/\+\d{1,3}[\s.-]?\d{2,4}[\s.-]?\d{3,4}[\s.-]?\d{3,4}/g, "[PHONE]")
+      // OIB (Croatian tax ID - exactly 11 digits, possibly with spaces)
+      .replace(/\b\d{11}\b/g, "[OIB]")
+      // Credit card numbers (16 digits with optional spaces/dashes)
+      .replace(/\b\d{4}[\s.-]?\d{4}[\s.-]?\d{4}[\s.-]?\d{4}\b/g, "[CARD]")
+      // IBAN (starts with 2 letters, then up to 32 alphanumeric)
+      .replace(/\b[A-Z]{2}\d{2}[A-Z0-9]{4,30}\b/gi, "[IBAN]")
+  )
 }
 
 export function sanitizeUserAgent(userAgent: string | null | undefined): string {

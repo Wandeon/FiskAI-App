@@ -27,6 +27,6 @@ export function validateTransition(
 
   return {
     valid: false,
-    error: getTransitionError(from, to)
+    error: getTransitionError(from, to),
   }
 }

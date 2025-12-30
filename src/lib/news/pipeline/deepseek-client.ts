@@ -284,10 +284,24 @@ export async function callDeepSeek(
 
   const provider = resolveProvider()
   if (provider === "ollama") {
-    return callOllamaCloud(prompt, { systemPrompt, temperature, maxTokens, jsonMode, retries, operation })
+    return callOllamaCloud(prompt, {
+      systemPrompt,
+      temperature,
+      maxTokens,
+      jsonMode,
+      retries,
+      operation,
+    })
   }
   if (provider === "openai") {
-    return callOpenAI(prompt, { systemPrompt, temperature, maxTokens, jsonMode, retries, operation })
+    return callOpenAI(prompt, {
+      systemPrompt,
+      temperature,
+      maxTokens,
+      jsonMode,
+      retries,
+      operation,
+    })
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY
