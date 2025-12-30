@@ -32,6 +32,9 @@ model User {
   staffReviews         StaffReview[]          @relation("StaffReviews")
   experimentAssignments ExperimentAssignment[]
   experimentEvents     ExperimentEvent[]
+  payoutsLocked        Payout[]               @relation("PayoutLockedBy")
+  payoutsReported      Payout[]               @relation("PayoutReportedBy")
+  calculationSnapshots CalculationSnapshot[]  @relation("CalculationSnapshotCreatedBy")
 }
 
 model Account {
@@ -146,6 +149,8 @@ model Company {
   fiscalRequests                 FiscalRequest[]
   importJobs                     ImportJob[]
   invoiceSequences               InvoiceSequence[]
+  payouts                        Payout[]
+  payoutLines                    PayoutLine[]
   paymentDevices                 PaymentDevice[]
   potentialDuplicates            PotentialDuplicate[]
   products                       Product[]
@@ -3575,6 +3580,114 @@ model ExperimentEvent {
 }
 
 // ============================================================================
+// PAYROLL & PAYOUTS
+// ============================================================================
+
+model Payout {
+  id         String       @id @default(cuid())
+  companyId  String
+  status     PayoutStatus @default(DRAFT)
+  periodFrom DateTime
+  periodTo   DateTime
+  currency   String       @default("EUR")
+
+  lockedAt   DateTime?
+  lockedById String?
+  reportedAt DateTime?
+  reportedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  lockedBy      User?              @relation("PayoutLockedBy", fields: [lockedById], references: [id])
+  reportedBy    User?              @relation("PayoutReportedBy", fields: [reportedById], references: [id])
+  lines         PayoutLine[]
+  artifacts     PayslipArtifact[]
+  snapshots     CalculationSnapshot[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([periodFrom, periodTo])
+}
+
+model PayoutLine {
+  id           String   @id @default(cuid())
+  companyId    String
+  payoutId     String
+  employmentId String
+  employeeName String
+  employeeOib  String?
+  employeeIban String?
+  grossAmount  Decimal  @db.Decimal(19, 4)
+  netAmount    Decimal  @db.Decimal(19, 4)
+  taxAmount    Decimal  @db.Decimal(19, 4)
+  currency     String   @default("EUR")
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout    Payout  @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  artifacts PayslipArtifact[]
+  snapshots CalculationSnapshot[]
+
+  @@index([companyId])
+  @@index([payoutId])
+  @@index([employmentId])
+}
+
+model PayslipArtifact {
+  id          String   @id @default(cuid())
+  companyId   String
+  payoutId    String
+  payoutLineId String
+  storageKey  String
+  fileName    String
+  contentType String
+  sizeBytes   Int
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout    Payout    @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([payoutId])
+  @@index([payoutLineId])
+}
+
+model CalculationSnapshot {
+  id                 String   @id @default(cuid())
+  companyId          String
+  payoutId           String
+  payoutLineId       String?
+  rulesEngineSnapshot Json
+  employmentSnapshot Json
+  inputSnapshot      Json
+  outputSnapshot     Json
+  createdById        String?
+  createdAt          DateTime @default(now())
+
+  company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payout     Payout     @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payoutLine PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
+  createdBy  User?      @relation("CalculationSnapshotCreatedBy", fields: [createdById], references: [id])
+
+  @@index([companyId])
+  @@index([payoutId])
+  @@index([payoutLineId])
+}
+
+enum PayoutStatus {
+  DRAFT
+  LOCKED
+  REPORTED
+}
+
+// ============================================================================
 // WEBHOOK & PUSH NOTIFICATION INFRASTRUCTURE
 // ============================================================================
 
@@ -3685,4 +3798,3 @@ model CronJobError {
   @@index([resolvedAt])
   @@index([createdAt])
 }
-
