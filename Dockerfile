@@ -28,8 +28,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Provide dummy DATABASE_URL for Prisma generate
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+# Prisma needs a DATABASE_URL at generation time but doesn't use it.
+# This dummy URL is only for schema parsing, not database connection.
+# Using ARG instead of ENV ensures this value doesn't leak to the final image.
+ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
 
 # Generate Prisma client
 RUN npx prisma generate
