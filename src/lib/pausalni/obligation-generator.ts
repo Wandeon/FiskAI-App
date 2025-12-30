@@ -7,7 +7,13 @@ import {
 } from "@/lib/db/schema/pausalni"
 import { DOPRINOSI_2025, DEADLINES, HOK_CONFIG, CROATIAN_MONTHS } from "./constants"
 import { eq, and } from "drizzle-orm"
-import { THRESHOLDS, exceedsPausalniLimit } from "@/lib/fiscal-data"
+import {
+  THRESHOLDS,
+  exceedsPausalniLimit,
+  lookupPostalCode,
+  calculatePausalTaxWithPrirez,
+} from "@/lib/fiscal-data"
+import { prisma } from "@/lib/db/prisma"
 
 /**
  * Custom error for when annual income exceeds paušalni threshold
@@ -19,7 +25,7 @@ export class PausalniThresholdExceededError extends Error {
   constructor(income: number) {
     const threshold = THRESHOLDS.pausalni.value
     super(
-      `Godišnji primitak (${income.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (${threshold.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.`
+      \`Godišnji primitak (\${income.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (\${threshold.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.\`
     )
     this.name = "PausalniThresholdExceededError"
     this.income = income
@@ -37,7 +43,12 @@ interface GenerateOptions {
 /**
  * Generate all payment obligations for a paušalni obrt company
  */
-export async function generateObligations({ companyId, year, month }: GenerateOptions) {
+export async function generateObligations({
+  companyId,
+  year,
+  month,
+  annualIncome,
+}: GenerateOptions) {
   // Get company's paušalni profile
   const profile = await drizzleDb
     .select()
@@ -48,6 +59,21 @@ export async function generateObligations({ companyId, year, month }: GenerateOp
   const hasProfile = profile.length > 0
   const hasPdvId = hasProfile && profile[0].hasPdvId
   const hokMemberSince = hasProfile ? profile[0].hokMemberSince : null
+
+  // Get company details for prirez calculation
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: { postalCode: true, city: true },
+  })
+
+  // Look up prirez rate based on postal code
+  let prirezRate = 0
+  if (company?.postalCode) {
+    const postalCodeData = lookupPostalCode(company.postalCode)
+    if (postalCodeData) {
+      prirezRate = postalCodeData.prirezRate
+    }
+  }
 
   const obligations: Array<{
     companyId: string
@@ -126,12 +152,24 @@ export async function generateObligations({ companyId, year, month }: GenerateOp
   for (const { q, deadline } of quarters) {
     if (!month || (month <= deadline.month && month >= (q - 1) * 3 + 1)) {
       const dueDate = new Date(year, deadline.month - 1, deadline.day)
+
+      // Calculate quarterly tax amount with prirez
+      let quarterlyTaxAmount = "0.00"
+      if (annualIncome !== undefined) {
+        const taxWithPrirez = calculatePausalTaxWithPrirez(annualIncome, prirezRate)
+        quarterlyTaxAmount = taxWithPrirez.quarterly.toFixed(2)
+      } else {
+        // If annualIncome not provided, use the lowest bracket but still apply prirez
+        const taxWithPrirez = calculatePausalTaxWithPrirez(0, prirezRate)
+        quarterlyTaxAmount = taxWithPrirez.quarterly.toFixed(2)
+      }
+
       obligations.push({
         companyId,
         obligationType: OBLIGATION_TYPES.POREZ_DOHODAK,
         periodMonth: q, // Q1, Q2, Q3, Q4
         periodYear: year,
-        amount: "0.00", // Will be calculated based on income bracket
+        amount: quarterlyTaxAmount,
         dueDate: dueDate.toISOString().split("T")[0],
         status: OBLIGATION_STATUS.PENDING,
       })
