@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { CorporateTaxDashboard } from "@/components/corporate-tax/corporate-tax-dashboard"
+import { fetchCorporateTaxBaseInputs } from "@/lib/reports/corporate-tax"
 
 export const metadata: Metadata = {
   title: "Porez na dobit | FiskAI",
@@ -17,5 +18,10 @@ export default async function CorporateTaxPage() {
     redirect("/dashboard")
   }
 
-  return <CorporateTaxDashboard companyId={company.id} companyName={company.name} />
+  const now = new Date()
+  const periodFrom = new Date(now.getFullYear(), 0, 1)
+  const periodTo = now
+  const taxBaseInputs = await fetchCorporateTaxBaseInputs(company.id, periodFrom, periodTo)
+
+  return <CorporateTaxDashboard companyName={company.name} taxBaseInputs={taxBaseInputs} />
 }

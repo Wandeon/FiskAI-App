@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import { createControlSum } from "@/lib/exports/control-sum"
 
 const querySchema = z.object({
   from: z.string().optional(),
@@ -201,33 +202,40 @@ export async function GET(request: Request) {
       })),
     }
     const filename = `fiskai-racuni-${rangeLabel}.json`
-    return new NextResponse(JSON.stringify(jsonData, null, 2), {
+    const body = JSON.stringify(jsonData, null, 2)
+    const controlSum = createControlSum(body)
+    return new NextResponse(body, {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        "X-Export-Control-Sum": controlSum,
       },
     })
   }
 
   if (format === "xml") {
     const xml = buildInvoicesXml(invoices)
+    const controlSum = createControlSum(xml)
     const filename = `fiskai-racuni-${rangeLabel}.xml`
     return new NextResponse(xml, {
       headers: {
         "Content-Type": "application/xml; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        "X-Export-Control-Sum": controlSum,
       },
     })
   }
 
   // Default: CSV format
   const csv = "\uFEFF" + buildCsv([header, ...rows])
+  const controlSum = createControlSum(csv)
   const filename = `fiskai-racuni-${rangeLabel}.csv`
 
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="${filename}"`,
+      "X-Export-Control-Sum": controlSum,
     },
   })
 }
