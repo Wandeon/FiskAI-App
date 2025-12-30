@@ -7,6 +7,7 @@ import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { Prisma } from "@prisma/client"
 import { bankingLogger } from "@/lib/logger"
+import { scanBuffer } from "@/lib/security/virus-scanner"
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024 // 20MB safety cap
 const ALLOWED_EXTENSIONS = ["pdf", "xml"]
@@ -62,6 +63,24 @@ export async function POST(request: Request) {
 
   const buffer = Buffer.from(arrayBuffer)
   const checksum = createHash("sha256").update(buffer).digest("hex")
+
+  // Scan for viruses before processing
+  const scanResult = await scanBuffer(buffer, fileName)
+  if (scanResult.isInfected) {
+    bankingLogger.warn(
+      { viruses: scanResult.viruses, fileName, accountId },
+      "Infected bank statement blocked"
+    )
+    return NextResponse.json(
+      {
+        error: scanResult.error
+          ? "Sigurnosno skeniranje nije uspjelo. Pokušajte ponovno kasnije."
+          : "Datoteka je odbijena sigurnosnim skeniranjem.",
+        viruses: scanResult.viruses,
+      },
+      { status: 400 }
+    )
+  }
 
   const storageDir = path.join(process.cwd(), "uploads", "bank-statements")
   await fs.mkdir(storageDir, { recursive: true })

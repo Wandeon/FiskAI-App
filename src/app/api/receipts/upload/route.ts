@@ -7,6 +7,7 @@ import { requireCompany } from "@/lib/auth-utils"
 import { uploadToR2, generateR2Key } from "@/lib/r2-client"
 import { createHash } from "crypto"
 import { logger } from "@/lib/logger"
+import { scanBuffer } from "@/lib/security/virus-scanner"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"]
@@ -46,6 +47,21 @@ export async function POST(request: NextRequest) {
     // Read file content
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+
+    // Scan for viruses before processing
+    const scanResult = await scanBuffer(buffer, file.name)
+    if (scanResult.isInfected) {
+      logger.warn({ viruses: scanResult.viruses, fileName: file.name }, "Infected receipt blocked")
+      return NextResponse.json(
+        {
+          error: scanResult.error
+            ? "Sigurnosno skeniranje nije uspjelo. Pokušajte ponovno kasnije."
+            : "Datoteka je odbijena sigurnosnim skeniranjem.",
+          viruses: scanResult.viruses,
+        },
+        { status: 400 }
+      )
+    }
 
     // Generate content hash for deduplication
     const contentHash = createHash("sha256").update(buffer).digest("hex").substring(0, 16)
