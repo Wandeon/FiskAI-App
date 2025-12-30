@@ -3,6 +3,7 @@ import { z } from "zod"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { SupportTicketStatus } from "@prisma/client"
+import { notifyStatusChanged } from "@/lib/support/notifications"
 
 const statusSchema = z.object({
   status: z.nativeEnum(SupportTicketStatus),
@@ -40,7 +41,7 @@ export async function PATCH(
 
   const ticket = await db.supportTicket.findFirst({
     where: { id: params.id, companyId: company.id },
-    select: { id: true, status: true },
+    select: { id: true, status: true, title: true },
   })
 
   if (!ticket) {
@@ -70,6 +71,23 @@ export async function PATCH(
     where: { id: ticket.id },
     data: { status: newStatus },
   })
+
+  // Send email notification asynchronously (only if status actually changed)
+  if (currentStatus !== newStatus) {
+    notifyStatusChanged({
+      ticketId: ticket.id,
+      ticketTitle: ticket.title,
+      oldStatus: currentStatus,
+      newStatus: newStatus,
+      changedByUserId: user.id!,
+      changedByName: user.name,
+      changedByEmail: user.email,
+      companyId: company.id,
+      companyName: company.name,
+    }).catch((error) => {
+      console.error("Failed to send status change notification:", error)
+    })
+  }
 
   return NextResponse.json({ ticket: updated })
 }

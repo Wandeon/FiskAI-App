@@ -88,6 +88,16 @@ export async function createSupportTicket(input: CreateSupportTicketInput) {
     return requireCompanyWithContext(user.id!, async (company) => {
       const validated = createSupportTicketSchema.parse(input)
 
+      // Calculate SLA deadline based on priority
+      const SLA_HOURS = {
+        URGENT: 1,
+        HIGH: 4,
+        NORMAL: 24,
+        LOW: 48,
+      }
+      const slaHours = SLA_HOURS[validated.priority] || SLA_HOURS.NORMAL
+      const slaDeadline = new Date(Date.now() + slaHours * 60 * 60 * 1000)
+
       const ticket = await db.supportTicket.create({
         data: {
           companyId: company.id,
@@ -97,6 +107,7 @@ export async function createSupportTicket(input: CreateSupportTicketInput) {
           body: validated.body?.trim() || null,
           priority: validated.priority,
           status: SupportTicketStatus.OPEN,
+          slaDeadline,
         },
         include: {
           messages: {

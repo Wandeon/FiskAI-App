@@ -92,12 +92,13 @@ export const GET = withApiLogging(async (request: NextRequest) => {
 
     // Generate barcode
     const barcodeDataUrl = await generateBarcodeDataUrl(slipData)
-    const hub3aString = formatHub3aData(slipData)
+    const hub3aResult = formatHub3aData(slipData)
 
     return NextResponse.json({
       slip: slipData,
       barcode: barcodeDataUrl,
-      hub3aData: hub3aString,
+      hub3aData: hub3aResult.data,
+      warnings: hub3aResult.warnings,
     })
   } catch (error) {
     console.error("Error generating payment slip:", error)
@@ -149,11 +150,13 @@ export const POST = withApiLogging(async (request: NextRequest) => {
     for (const type of ["MIO_I", "MIO_II", "ZDRAVSTVENO"] as const) {
       const slipData = generateDoprinosiSlip(type, company.oib, payer, month, year)
       const barcodeDataUrl = await generateBarcodeDataUrl(slipData)
+      const hub3aResult = formatHub3aData(slipData)
 
       slips.push({
         type,
         slip: slipData,
         barcode: barcodeDataUrl,
+        warnings: hub3aResult.warnings,
       })
     }
 
