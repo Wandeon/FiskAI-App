@@ -64,6 +64,9 @@ export const PERMISSIONS = {
   "expense_category:read": ["OWNER", "ADMIN", "MEMBER", "ACCOUNTANT", "VIEWER"],
   "expense_category:update": ["OWNER", "ADMIN"],
   "expense_category:delete": ["OWNER", "ADMIN"],
+
+  // Company data export
+  "company:export": ["OWNER", "ADMIN"],
 } as const
 
 export type Permission = keyof typeof PERMISSIONS

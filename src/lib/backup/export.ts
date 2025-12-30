@@ -5,6 +5,8 @@ import { db } from "@/lib/db"
 import { EInvoice, Contact, Product, Expense, Company } from "@prisma/client"
 import { logger } from "@/lib/logger"
 import { backupQueue } from "@/lib/regulatory-truth/workers/queues"
+import { requirePermission } from "@/lib/rbac"
+import { checkRateLimit } from "@/lib/security/rate-limit"
 
 export type BackupFrequency = "daily" | "weekly" | "monthly"
 
@@ -39,11 +41,53 @@ export interface ExportOptions {
   dateRange?: { from: Date; to: Date }
 }
 
+// Maximum records per entity to prevent memory exhaustion
+const MAX_RECORDS_PER_ENTITY = 10000
+
+// Batch size for fetching records
+const BATCH_SIZE = 1000
+
+/**
+ * Fetch records in batches to prevent memory issues
+ */
+async function fetchInBatches<T>(
+  fetcher: (skip: number, take: number) => Promise<T[]>,
+  maxRecords: number = MAX_RECORDS_PER_ENTITY
+): Promise<T[]> {
+  const results: T[] = []
+  let skip = 0
+
+  while (skip < maxRecords) {
+    const batch = await fetcher(skip, BATCH_SIZE)
+    if (batch.length === 0) break
+    results.push(...batch)
+    skip += batch.length
+    if (batch.length < BATCH_SIZE) break
+  }
+
+  return results
+}
+
 /**
  * Export all company data for backup or GDPR data portability
  */
 export async function exportCompanyData(options: ExportOptions): Promise<BackupData> {
-  const { companyId, includeSensitive = false, dateRange } = options
+  const { userId, companyId, includeSensitive = false, dateRange } = options
+
+  // Permission check - only OWNER and ADMIN can export company data
+  if (userId) {
+    await requirePermission(userId, companyId, "company:export")
+  }
+
+  // Rate limiting - prevent abuse of expensive export operations
+  const rateLimitKey = `export:${companyId}`
+  const rateLimitResult = await checkRateLimit(rateLimitKey, "EXPORT")
+  if (!rateLimitResult.allowed) {
+    const resetTime = rateLimitResult.blockedUntil || rateLimitResult.resetAt
+    throw new Error(
+      `Export rate limit exceeded. Please try again after ${resetTime ? new Date(resetTime).toISOString() : "some time"}.`
+    )
+  }
 
   logger.info({ companyId, operation: "data_export_start" }, "Starting company data export")
 
@@ -57,46 +101,66 @@ export async function exportCompanyData(options: ExportOptions): Promise<BackupD
       throw new Error(`Company with id ${companyId} not found`)
     }
 
-    // Get related data with tenant isolation
+    // Get related data with tenant isolation using batched fetching
     const [contacts, products, expenses] = await Promise.all([
-      db.contact.findMany({
-        where: {
-          companyId,
-          ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
-        },
-      }),
-      db.product.findMany({
-        where: {
-          companyId,
-          ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
-        },
-      }),
-      db.expense.findMany({
-        where: {
-          companyId,
-          ...(dateRange ? { date: { gte: dateRange.from, lte: dateRange.to } } : {}),
-        },
-        include: {
-          category: true,
-          vendor: true,
-        },
-      }),
+      fetchInBatches((skip, take) =>
+        db.contact.findMany({
+          where: {
+            companyId,
+            ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
+          },
+          skip,
+          take,
+          orderBy: { createdAt: "asc" },
+        })
+      ),
+      fetchInBatches((skip, take) =>
+        db.product.findMany({
+          where: {
+            companyId,
+            ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
+          },
+          skip,
+          take,
+          orderBy: { createdAt: "asc" },
+        })
+      ),
+      fetchInBatches((skip, take) =>
+        db.expense.findMany({
+          where: {
+            companyId,
+            ...(dateRange ? { date: { gte: dateRange.from, lte: dateRange.to } } : {}),
+          },
+          include: {
+            category: true,
+            vendor: true,
+          },
+          skip,
+          take,
+          orderBy: { date: "asc" },
+        })
+      ),
     ])
 
-    // Get invoices with lines
-    const invoices = await db.eInvoice.findMany({
-      where: {
-        companyId,
-        ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
-      },
-      include: {
-        lines: {
-          orderBy: { lineNumber: "asc" },
+    // Get invoices with lines using batched fetching
+    const invoices = await fetchInBatches((skip, take) =>
+      db.eInvoice.findMany({
+        where: {
+          companyId,
+          ...(dateRange ? { createdAt: { gte: dateRange.from, lte: dateRange.to } } : {}),
         },
-        buyer: true,
-        seller: true,
-      },
-    })
+        include: {
+          lines: {
+            orderBy: { lineNumber: "asc" },
+          },
+          buyer: true,
+          seller: true,
+        },
+        skip,
+        take,
+        orderBy: { createdAt: "asc" },
+      })
+    )
 
     const backupData: BackupData = {
       company,
@@ -106,9 +170,8 @@ export async function exportCompanyData(options: ExportOptions): Promise<BackupD
         ...inv,
         lines: inv.lines.map((line) => ({
           ...line,
-          // Ensure sensitive data is handled properly if not included
-          description: includeSensitive ? line.description : line.description,
-          // Remove any sensitive details if needed
+          // Redact sensitive data if not explicitly included
+          description: includeSensitive ? line.description : "[REDACTED]",
         })),
       })),
       expenses,
