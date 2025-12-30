@@ -121,7 +121,7 @@ export default async function VatThresholdReportPage() {
   const daysLeftInYear = Math.max(0, daysInYear - daysIntoYear)
 
   const projectedAnnualRevenue =
-    daysInYear > 0 ? (vatThresholdData.annualRevenue / daysIntoYear) * daysInYear : 0
+    daysIntoYear > 0 ? (vatThresholdData.annualRevenue / daysIntoYear) * daysInYear : 0
 
   const remainingUntilThreshold = Math.max(
     0,
