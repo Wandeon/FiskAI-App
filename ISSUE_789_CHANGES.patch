@@ -1,0 +1,39 @@
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index original..modified
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -2669,12 +2669,33 @@ model RegulatoryConflict {
+   resolvedAt          DateTime?
+   createdAt           DateTime       @default(now())
+
+-  itemA RegulatoryRule? @relation("ConflictItemA", fields: [itemAId], references: [id])
+-  itemB RegulatoryRule? @relation("ConflictItemB", fields: [itemAId], references: [id])
++  itemA              RegulatoryRule?            @relation("ConflictItemA", fields: [itemAId], references: [id])
++  itemB              RegulatoryRule?            @relation("ConflictItemB", fields: [itemBId], references: [id])
++  resolutionAudits   ConflictResolutionAudit[]
+
+   @@index([status])
+   @@index([conflictType])
+   @@index([createdAt])
+ }
+
++model ConflictResolutionAudit {
++  id                String   @id @default(cuid())
++  conflictId        String
++  ruleAId           String?
++  ruleBId           String?
++  resolution        String // "RULE_A_PREVAILS" | "RULE_B_PREVAILS" | "MERGE_RULES" | "ESCALATE_TO_HUMAN"
++  reason            String   @db.Text // Detailed explanation why this resolution was chosen
++  resolvedBy        String // "ARBITER_AGENT" | "HUMAN" | user ID
++  metadata          Json? // { sourceComparison, temporalAnalysis, authorityComparison, etc. }
++  createdAt         DateTime @default(now())
++
++  conflict RegulatoryConflict @relation(fields: [conflictId], references: [id], onDelete: Cascade)
++
++  @@index([conflictId])
++  @@index([createdAt])
++  @@index([resolvedBy])
++}
++
+ model MonitoringAlert {
+   id                  String        @id @default(cuid())
