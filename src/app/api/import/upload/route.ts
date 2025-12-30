@@ -6,6 +6,7 @@ import { setTenantContext } from "@/lib/prisma-extensions"
 import { detectDocumentType } from "@/lib/import/detect-document-type"
 import { DocumentType } from "@prisma/client"
 import { uploadToR2, generateR2Key } from "@/lib/r2-client"
+import { scanBuffer } from "@/lib/security/virus-scanner"
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 const ALLOWED_EXTENSIONS = ["pdf", "xml", "csv", "jpg", "jpeg", "png", "heic", "webp"]
@@ -50,6 +51,20 @@ export async function POST(request: Request) {
 
   const buffer = Buffer.from(arrayBuffer)
   const checksum = createHash("sha256").update(buffer).digest("hex")
+
+  // Scan for viruses before processing
+  const scanResult = await scanBuffer(buffer, fileName)
+  if (scanResult.isInfected) {
+    return NextResponse.json(
+      {
+        error: scanResult.error
+          ? "Sigurnosno skeniranje nije uspjelo. Pokušajte ponovno kasnije."
+          : "Datoteka je odbijena sigurnosnim skeniranjem.",
+        viruses: scanResult.viruses,
+      },
+      { status: 400 }
+    )
+  }
 
   // Upload file to R2 storage
   const key = generateR2Key(company.id, checksum, fileName)
