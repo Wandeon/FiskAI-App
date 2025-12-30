@@ -536,6 +536,7 @@ model SavedReport {
 
   @@index([companyId])
   @@index([type])
+  @@index([userId])
 }
 
 model BankAccount {
