@@ -95,8 +95,42 @@ export async function middleware(request: NextRequest) {
   const realHost = getRealHost(request)
   const subdomain = getSubdomain(realHost)
 
-  // Marketing subdomain - allow all traffic
+  // Marketing subdomain - apply rate limiting for unauthenticated traffic
   if (subdomain === "marketing") {
+    // Rate limit unauthenticated traffic by IP address
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "anonymous"
+
+    const rateLimitResult = await checkRateLimit(
+      `unauthenticated_${ip}`,
+      "UNAUTHENTICATED_TRAFFIC"
+    )
+
+    if (!rateLimitResult.allowed) {
+      logger.warn(
+        {
+          requestId,
+          ip,
+          pathname,
+          blockedUntil: rateLimitResult.blockedUntil,
+        },
+        "Rate limit exceeded for unauthenticated traffic"
+      )
+
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: {
+          "Retry-After": "60",
+          "X-RateLimit-Limit": "100",
+          "X-RateLimit-Remaining": "0",
+          "Content-Type": "text/plain",
+          "x-request-id": requestId,
+        },
+      })
+    }
+
     const response = NextResponse.next()
     response.headers.set("x-request-id", requestId)
     response.headers.set("x-subdomain", subdomain)
