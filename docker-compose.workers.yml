@@ -17,8 +17,10 @@ services:
     networks:
       - default
       - coolify
-    ports:
-      - "6379:6379"
+    # Port mapping removed - Redis accessible only within Docker network
+    # Workers connect via internal hostname: redis://fiskai-redis:6379
+    # For external access (e.g., queue-status.ts), use: docker exec fiskai-redis redis-cli
+    # or SSH tunnel: ssh -L 6379:localhost:6379 admin@server
 
   # Bull Board disabled - no ARM64 support
   # Use scripts/queue-status.ts for monitoring instead

@@ -1,5 +1,11 @@
 // scripts/queue-status.ts
 // CLI tool to monitor queue status (replaces Bull Board)
+//
+// Usage:
+//   Local dev: REDIS_URL=redis://localhost:6379 npx tsx scripts/queue-status.ts
+//   Production (SSH tunnel): ssh -L 6379:localhost:6379 admin@server
+//     then in another terminal: REDIS_URL=redis://localhost:6379 npx tsx scripts/queue-status.ts
+//   Production (Docker exec): docker exec fiskai-redis redis-cli (for manual queries)
 
 import IORedis from "ioredis"
 import { PrismaClient } from "@prisma/client"
