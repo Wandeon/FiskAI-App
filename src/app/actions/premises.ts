@@ -1,6 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
+import { requireAuth, requireCompanyWithContext } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
 
 interface CreatePremisesInput {
@@ -27,46 +28,50 @@ interface ActionResult {
 
 export async function createPremises(input: CreatePremisesInput): Promise<ActionResult> {
   try {
-    // Validate code is positive
-    if (input.code < 1) {
-      return { success: false, error: "Kod mora biti pozitivan broj" }
-    }
+    const user = await requireAuth()
 
-    // Check for duplicate code
-    const existing = await db.businessPremises.findUnique({
-      where: {
-        companyId_code: {
-          companyId: input.companyId,
-          code: input.code,
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Validate code is positive
+      if (input.code < 1) {
+        return { success: false, error: "Kod mora biti pozitivan broj" }
+      }
+
+      // Check for duplicate code
+      const existing = await db.businessPremises.findUnique({
+        where: {
+          companyId_code: {
+            companyId: company.id,
+            code: input.code,
+          },
         },
-      },
-    })
-
-    if (existing) {
-      return { success: false, error: `Poslovni prostor s kodom ${input.code} već postoji` }
-    }
-
-    // If this should be default, unset other defaults first
-    if (input.isDefault) {
-      await db.businessPremises.updateMany({
-        where: { companyId: input.companyId, isDefault: true },
-        data: { isDefault: false },
       })
-    }
 
-    const premises = await db.businessPremises.create({
-      data: {
-        companyId: input.companyId,
-        code: input.code,
-        name: input.name,
-        address: input.address,
-        isDefault: input.isDefault ?? false,
-        isActive: true,
-      },
+      if (existing) {
+        return { success: false, error: `Poslovni prostor s kodom ${input.code} već postoji` }
+      }
+
+      // If this should be default, unset other defaults first
+      if (input.isDefault) {
+        await db.businessPremises.updateMany({
+          where: { companyId: company.id, isDefault: true },
+          data: { isDefault: false },
+        })
+      }
+
+      const premises = await db.businessPremises.create({
+        data: {
+          companyId: company.id,
+          code: input.code,
+          name: input.name,
+          address: input.address,
+          isDefault: input.isDefault ?? false,
+          isActive: true,
+        },
+      })
+
+      revalidatePath("/settings/premises")
+      return { success: true, data: premises }
     })
-
-    revalidatePath("/settings/premises")
-    return { success: true, data: premises }
   } catch (error) {
     console.error("Failed to create premises:", error)
     return { success: false, error: "Greška pri stvaranju poslovnog prostora" }
