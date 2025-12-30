@@ -160,6 +160,17 @@ async function getStaffDocuments(
  }
  }
 
+ // Validate clientId filter
+ if (clientId && !companyIds.includes(clientId)) {
+ return {
+ documents: [],
+ total: 0,
+ counts: { all: 0, invoice: 0, eInvoice: 0, bankStatement: 0, expense: 0 },
+ clients: [],
+ error: "Client not assigned",
+ }
+ }
+
  // Filter by specific client if requested
  const targetCompanyIds = clientId ? [clientId] : companyIds
 
@@ -316,7 +327,7 @@ export default async function StaffDocumentsPage({ searchParams }: PageProps) {
 
  const category = categoryParam as StaffDocumentCategory | undefined
 
- const { documents, total, counts, clients } = await getStaffDocuments(session.user.id, {
+ const { documents, total, counts, clients, error } = await getStaffDocuments(session.user.id, {
  category,
  search: searchTerm,
  clientId: clientIdParam,
@@ -583,9 +594,11 @@ export default async function StaffDocumentsPage({ searchParams }: PageProps) {
  <div className="py-12">
  <EmptyState
  icon={searchTerm ? <Search className="h-8 w-8" /> : <FolderOpen className="h-8 w-8" />}
- title={searchTerm ? "No results found" : "No documents"}
+ title={error ? "Access Denied" : searchTerm ? "No results found" : "No documents"}
  description={
- searchTerm
+ error
+ ? "The selected client is not assigned to you. Please select a client from your assigned list."
+ : searchTerm
  ? `No documents match "${searchTerm}". Try a different search term or remove filters.`
  : "No documents found for your assigned clients."
  }
