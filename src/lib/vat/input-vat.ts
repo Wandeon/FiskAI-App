@@ -105,13 +105,36 @@ export async function evaluateVatInputRules(
   return { references }
 }
 
-export function calculateVatInputAmounts(expense: Expense, line: ExpenseLine) {
+export function calculateVatInputAmounts(
+  expense: Expense,
+  line: ExpenseLine,
+  references: VatInputRuleReference[] = []
+) {
   const vatAmount = Number(line.vatAmount)
-  const deductibleVatAmount = expense.vatDeductible ? vatAmount : 0
-  const nonDeductibleVatAmount = expense.vatDeductible ? 0 : vatAmount
+
+  if (!expense.vatDeductible) {
+    return {
+      deductibleVatAmount: 0,
+      nonDeductibleVatAmount: vatAmount,
+    }
+  }
+
+  // Check for partial deduction rules
+  const has50PercentRule = references.some(
+    (r) => r.conceptSlug.includes("50-percent") || r.conceptSlug.includes("deductibility-50")
+  )
+
+  if (has50PercentRule) {
+    const deductible = vatAmount * 0.5
+    const nonDeductible = vatAmount - deductible
+    return {
+      deductibleVatAmount: deductible,
+      nonDeductibleVatAmount: nonDeductible,
+    }
+  }
 
   return {
-    deductibleVatAmount,
-    nonDeductibleVatAmount,
+    deductibleVatAmount: vatAmount,
+    nonDeductibleVatAmount: 0,
   }
 }

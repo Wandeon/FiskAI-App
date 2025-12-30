@@ -175,7 +175,8 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
           )
           const { deductibleVatAmount, nonDeductibleVatAmount } = calculateVatInputAmounts(
             createdExpense,
-            line
+            line,
+            references
           )
 
           await tx.uraInput.create({
@@ -382,7 +383,8 @@ export async function updateExpense(
           )
           const { deductibleVatAmount, nonDeductibleVatAmount } = calculateVatInputAmounts(
             updatedExpense,
-            line
+            line,
+            references
           )
 
           await tx.uraInput.create({
