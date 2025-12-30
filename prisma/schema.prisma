@@ -1525,6 +1525,9 @@ enum AuditAction {
   STAFF_EXPORT_DATA
   STAFF_MARK_REVIEWED
   STAFF_REVIEW_UNMARKED
+
+  // Admin Portal - System Operations
+  CIRCUIT_BREAKER_RESET
 }
 
 enum ExpenseStatus {

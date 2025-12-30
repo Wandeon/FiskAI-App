@@ -10,6 +10,7 @@ export const EVENT_TYPES = [
   "UNKNOWN_INTEGRATION",
   "REFRESH_FAILED",
   "REFRESH_DEGRADED",
+  "CIRCUIT_BREAKER_RESET",
 ] as const
 
 export type HeadlineStatus = (typeof HEADLINE_STATUSES)[number]
