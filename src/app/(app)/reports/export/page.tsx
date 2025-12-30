@@ -2,8 +2,12 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AccountingExportForm } from "@/components/reports/accounting-export-form"
 import Link from "next/link"
+import { protectRoute } from "@/lib/visibility/route-protection"
 
 export default async function ExportPage() {
+  // Visibility system route protection
+  await protectRoute("page:reports")
+
   const user = await requireAuth()
   await requireCompany(user.id!)
 

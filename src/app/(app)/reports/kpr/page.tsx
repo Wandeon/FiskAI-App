@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Suspense } from "react"
 import { FileSpreadsheet, FileText, Download } from "lucide-react"
+import { protectRoute } from "@/lib/visibility/route-protection"
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("hr-HR", { style: "currency", currency: "EUR" }).format(value || 0)
@@ -14,6 +15,9 @@ function formatCurrency(value: number) {
 type SearchParams = { from?: string; to?: string; preset?: string }
 
 export default async function KprPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
+  // Visibility system route protection - KPR is for pausalni obrt
+  await protectRoute("page:reports")
+
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const resolvedSearchParams = await searchParams

@@ -74,6 +74,11 @@ export async function POST(request: Request) {
   const sanitizedTitle = sanitizeUserContent(data.title.trim())
   const sanitizedBody = data.body ? sanitizeUserContent(data.body.trim()) : null
 
+  // Validate content after sanitization to prevent empty submissions
+  if (!sanitizedTitle || sanitizedTitle.length < 3) {
+    return NextResponse.json({ error: "Naslov je prekratak ili sadrzi nedozvoljeni sadrzaj" }, { status: 400 })
+  }
+
   const ticket = await db.supportTicket.create({
     data: {
       companyId: company.id,

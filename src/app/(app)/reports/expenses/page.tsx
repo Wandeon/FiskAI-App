@@ -80,7 +80,7 @@ export default async function ExpensesByCategoryPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Troskovi po kategoriji</h1>
+          <h1 className="text-2xl font-bold">Troškovi po kategoriji</h1>
           <p className="text-secondary">
             {dateFrom.toLocaleDateString("hr-HR")} - {dateTo.toLocaleDateString("hr-HR")}
           </p>
@@ -140,7 +140,7 @@ export default async function ExpensesByCategoryPage({
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold font-mono text-danger-text">{formatCurrency(totalExpenses)}</p>
-            <p className="text-sm text-secondary">{expenses.length} troskova</p>
+            <p className="text-sm text-secondary">{expenses.length} troškova</p>
           </CardContent>
         </Card>
       </div>
@@ -152,7 +152,7 @@ export default async function ExpensesByCategoryPage({
         </CardHeader>
         <CardContent>
           {categoryStats.length === 0 ? (
-            <p className="text-secondary text-center py-8">Nema troskova u odabranom razdoblju</p>
+            <p className="text-secondary text-center py-8">Nema troškova u odabranom razdoblju</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

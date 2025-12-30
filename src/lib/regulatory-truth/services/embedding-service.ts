@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { sourceChunkEmbeddings } from "@/lib/db/drizzle/schema/embeddings"
 import { embedBatch, embedText } from "@/lib/article-agent/verification/embedder"
-import { eq } from "drizzle-orm"
+import { count, countDistinct, eq } from "drizzle-orm"
 
 export interface EmbeddingResult {
   success: boolean
@@ -140,29 +140,46 @@ export async function deleteEmbeddingsForRule(ruleId: string): Promise<void> {
 
 /**
  * Get embedding statistics for monitoring.
+ * Uses database-level aggregation to avoid loading full table into memory.
  */
 export async function getEmbeddingStats(): Promise<{
   totalChunks: number
   rulesWithEmbeddings: number
   publishedRulesWithoutEmbeddings: number
 }> {
-  // Count total chunks
-  const chunks = await drizzleDb.select().from(sourceChunkEmbeddings)
-  const totalChunks = chunks.length
+  // Use database aggregation instead of loading all rows
+  const [totalChunksResult, rulesWithEmbeddingsResult] = await Promise.all([
+    // COUNT(*) for total chunks
+    drizzleDb.select({ count: count() }).from(sourceChunkEmbeddings),
+    // COUNT(DISTINCT factSheetId) for unique rules with embeddings
+    drizzleDb
+      .select({ count: countDistinct(sourceChunkEmbeddings.factSheetId) })
+      .from(sourceChunkEmbeddings),
+  ])
 
-  // Count unique rules with embeddings
-  const uniqueRules = new Set(chunks.map((c) => c.factSheetId))
-  const rulesWithEmbeddings = uniqueRules.size
+  const totalChunks = Number(totalChunksResult[0]?.count ?? 0)
+  const rulesWithEmbeddings = Number(rulesWithEmbeddingsResult[0]?.count ?? 0)
 
-  // Count published rules without embeddings
-  const publishedRules = await db.regulatoryRule.findMany({
-    where: { status: "PUBLISHED" },
-    select: { id: true },
-  })
+  // Get IDs of rules that have embeddings (only IDs, not full rows)
+  const rulesWithEmbeddingsIds = await drizzleDb
+    .selectDistinct({ factSheetId: sourceChunkEmbeddings.factSheetId })
+    .from(sourceChunkEmbeddings)
 
-  const publishedRulesWithoutEmbeddings = publishedRules.filter(
-    (r) => !uniqueRules.has(r.id)
-  ).length
+  const embeddedRuleIds = rulesWithEmbeddingsIds.map((r) => r.factSheetId)
+
+  // Count published rules that don't have embeddings using Prisma count()
+  // Use NOT IN query if there are embedded rules, otherwise count all published
+  const publishedRulesWithoutEmbeddings =
+    embeddedRuleIds.length > 0
+      ? await db.regulatoryRule.count({
+          where: {
+            status: "PUBLISHED",
+            id: { notIn: embeddedRuleIds },
+          },
+        })
+      : await db.regulatoryRule.count({
+          where: { status: "PUBLISHED" },
+        })
 
   return {
     totalChunks,

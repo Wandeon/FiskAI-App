@@ -3,6 +3,25 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { pausalniProfile } from "@/lib/db/schema/pausalni"
 import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
+import { THRESHOLDS, exceedsPausalniLimit } from "@/lib/fiscal-data"
+
+/**
+ * Custom error for when annual income exceeds paušalni threshold
+ */
+export class PausalniThresholdExceededError extends Error {
+  public readonly income: number
+  public readonly threshold: number
+
+  constructor(income: number) {
+    const threshold = THRESHOLDS.pausalni.value
+    super(
+      `Godišnji primitak (${income.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (${threshold.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.`
+    )
+    this.name = "PausalniThresholdExceededError"
+    this.income = income
+    this.threshold = threshold
+  }
+}
 
 // Expense brackets for paušalni obrt (based on Croatian tax law)
 export const EXPENSE_BRACKETS = [
@@ -294,6 +313,13 @@ export function validatePosdFormData(data: PosdFormData): {
   // Validate amounts
   if (data.grossIncome < 0) {
     errors.push("Ukupan primitak ne može biti negativan")
+  }
+
+  // Validate 60,000 EUR paušalni threshold (critical tax compliance check)
+  if (exceedsPausalniLimit(data.grossIncome)) {
+    errors.push(
+      `Godišnji primitak (${data.grossIncome.toLocaleString("hr-HR")} EUR) prelazi granicu za paušalno oporezivanje (${THRESHOLDS.pausalni.value.toLocaleString("hr-HR")} EUR). Morate prijeći na obrt na dohodak i registrirati se za PDV.`
+    )
   }
 
   // Validate expense calculation

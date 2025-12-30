@@ -5,6 +5,14 @@ import { db } from "@/lib/db"
 import { withApiLogging } from "@/lib/api-logging"
 import { updateContext } from "@/lib/context"
 import { logger } from "@/lib/logger"
+import { InMemoryRateLimiter } from "@/lib/ai/rate-limiter"
+
+// Simple rate limiting for category suggestions (no AI calls, just DB queries)
+// 60 requests per minute (1 per second average)
+const inMemoryLimiter = new InMemoryRateLimiter({
+  windowMs: 60_000,
+  maxRequests: 60,
+})
 
 export const POST = withApiLogging(async (req: NextRequest) => {
   const session = await auth()
@@ -29,6 +37,16 @@ export const POST = withApiLogging(async (req: NextRequest) => {
 
     const companyId = companyUser.company.id
     updateContext({ companyId })
+
+    // Check rate limit
+    const rateLimitCheck = inMemoryLimiter.check(companyId)
+    if (!rateLimitCheck.allowed) {
+      logger.warn({ companyId }, "Category suggestion rate limit exceeded")
+      return NextResponse.json(
+        { error: "Too many requests", retryAfter: rateLimitCheck.retryAfter },
+        { status: 429 }
+      )
+    }
 
     const suggestions = []
 
