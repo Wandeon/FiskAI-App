@@ -59,7 +59,7 @@ function parseErste(line: string, options: CsvParserOptions): ParsedTransaction 
   const parts = splitCsv(line)
   if (parts.length < 4) return null
 
-  const [dateStr, description, debitStr, creditStr] = parts
+  const [dateStr, description, debitStr, creditStr, currencyStr] = parts
   const date = parseDate(dateStr, options.dateFormat)
   if (!date) return null
 
@@ -75,7 +75,7 @@ function parseErste(line: string, options: CsvParserOptions): ParsedTransaction 
     amount: Math.abs(amount),
     description,
     type: debitStr ? "debit" : "credit",
-    currency: options.currencySymbol || "EUR",
+    currency,
   }
 }
 
@@ -83,7 +83,7 @@ function parseRaiffeisenbank(line: string, options: CsvParserOptions): ParsedTra
   const parts = splitCsv(line, ";")
   if (parts.length < 4) return null
 
-  const [dateStr, description, debitStr, creditStr] = parts
+  const [dateStr, description, debitStr, creditStr, currencyStr] = parts
   const date = parseDate(dateStr, options.dateFormat)
   if (!date) return null
 
@@ -99,7 +99,7 @@ function parseRaiffeisenbank(line: string, options: CsvParserOptions): ParsedTra
     amount: Math.abs(amount),
     description,
     type: debitStr ? "debit" : "credit",
-    currency: options.currencySymbol || "EUR",
+    currency,
   }
 }
 
@@ -122,7 +122,7 @@ function parseGeneric(line: string, options: CsvParserOptions): ParsedTransactio
     amount: Math.abs(amount),
     description: description || referenceOrDesc,
     type: amount < 0 ? "credit" : "debit",
-    currency: options.currencySymbol || "EUR",
+    currency,
   }
 }
 

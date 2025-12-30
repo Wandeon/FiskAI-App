@@ -284,6 +284,10 @@ function buildExpenseMatches(
 }
 
 function calculateMatchScore(transaction: ParsedTransaction, invoice: EInvoice): number {
+  const transactionCurrency = transaction.currency || "EUR"
+  const invoiceCurrency = invoice.currency || "EUR"
+  if (transactionCurrency !== invoiceCurrency) return 0
+
   const invoiceNumber = invoice.invoiceNumber || ""
   const reference = transaction.reference || ""
 
@@ -310,6 +314,10 @@ function calculateMatchScore(transaction: ParsedTransaction, invoice: EInvoice):
 }
 
 function calculateExpenseMatchScore(transaction: ParsedTransaction, expense: Expense): number {
+  const transactionCurrency = transaction.currency || "EUR"
+  const expenseCurrency = expense.currency || "EUR"
+  if (transactionCurrency !== expenseCurrency) return 0
+
   const expenseAmount = Number(expense.totalAmount)
   const transactionAmount = Math.abs(transaction.amount) // Use absolute value for debit transactions
   const delta = Math.abs(expenseAmount - transactionAmount)

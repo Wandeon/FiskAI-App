@@ -12,6 +12,7 @@ export interface ProviderTransaction {
   date: Date
   amount: number // positive = credit, negative = debit
   description: string
+  currency?: string
   reference?: string
   counterpartyName?: string
   counterpartyIban?: string
