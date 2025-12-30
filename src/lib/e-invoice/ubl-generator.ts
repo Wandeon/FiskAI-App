@@ -43,7 +43,7 @@ function generatePaymentTermsNote(issueDate: Date, dueDate: Date): string {
   }
 }
 
-function generatePartyXml(party: Contact | Company, isSupplier: boolean): string{
+function generatePartyXml(party: Contact | Company, isSupplier: boolean): string {
   const oib = "oib" in party ? party.oib : null
   const vatNumber = "vatNumber" in party ? party.vatNumber : null
 
@@ -165,6 +165,15 @@ export function generateUBLInvoice(invoice: EInvoiceWithRelations): string {
       <cbc:ID>${escapeXml(company.iban)}</cbc:ID>
     </cac:PayeeFinancialAccount>
   </cac:PaymentMeans>`
+      : ""
+  }
+
+  ${
+    invoice.dueDate
+      ? `
+  <cac:PaymentTerms>
+    <cbc:Note>${escapeXml(generatePaymentTermsNote(invoice.issueDate, invoice.dueDate))}</cbc:Note>
+  </cac:PaymentTerms>`
       : ""
   }
 
