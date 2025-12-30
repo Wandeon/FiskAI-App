@@ -57,7 +57,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
           success: true,
           invoice: {
             id: `offline-${Date.now()}`,
-            invoiceNumber: "Na cekanju",
+            invoiceNumber: "Na čekanju",
             totalAmount: total,
             issueDate: new Date().toISOString(),
             paymentMethod: "CASH",
@@ -89,7 +89,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
       } else {
         // If server error, offer to queue offline
         const shouldQueue = window.confirm(
-          `${result.error}\n\nZelite li spremiti prodaju za kasniju sinkronizaciju?`
+          `${result.error}\n\nŽelite li spremiti prodaju za kasniju sinkronizaciju?`
         )
         if (shouldQueue) {
           await queueOfflineSale({
@@ -102,7 +102,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
             success: true,
             invoice: {
               id: `offline-${Date.now()}`,
-              invoiceNumber: "Na cekanju",
+              invoiceNumber: "Na čekanju",
               totalAmount: total,
               issueDate: new Date().toISOString(),
               paymentMethod: "CASH",
@@ -116,7 +116,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
             },
           })
         } else {
-          toast.error(result.error || "Greska pri obradi")
+          toast.error(result.error || "Greška pri obradi")
         }
       }
     } catch (error) {
@@ -131,7 +131,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
         success: true,
         invoice: {
           id: `offline-${Date.now()}`,
-          invoiceNumber: "Na cekanju",
+          invoiceNumber: "Na čekanju",
           totalAmount: total,
           issueDate: new Date().toISOString(),
           paymentMethod: "CASH",
