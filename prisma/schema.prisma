@@ -162,6 +162,9 @@ model Company {
   staffReviews                   StaffReview[]
   adminAlerts                    AdminAlert[]
   bankImports                    BankImport[]
+  cashIns                        CashIn[]
+  cashOuts                       CashOut[]
+  cashDayCloses                  CashDayClose[]
 }
 
 // Audit trail for module entitlement changes
@@ -423,6 +426,51 @@ model AuditLog {
   @@index([companyId])
   @@index([entity, entityId])
   @@index([timestamp])
+}
+
+model CashIn {
+  id           String   @id @default(cuid())
+  companyId    String
+  businessDate DateTime @db.Date
+  amount       Decimal  @db.Decimal(14, 2)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([businessDate])
+}
+
+model CashOut {
+  id           String   @id @default(cuid())
+  companyId    String
+  businessDate DateTime @db.Date
+  amount       Decimal  @db.Decimal(14, 2)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([businessDate])
+}
+
+model CashDayClose {
+  id             String   @id @default(cuid())
+  companyId      String
+  businessDate   DateTime @db.Date
+  openingBalance Decimal  @db.Decimal(14, 2)
+  totalIn        Decimal  @db.Decimal(14, 2)
+  totalOut       Decimal  @db.Decimal(14, 2)
+  closingBalance Decimal  @db.Decimal(14, 2)
+  note           String?
+  closedAt       DateTime @default(now())
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, businessDate])
+  @@index([companyId])
+  @@index([businessDate])
 }
 
 model BusinessPremises {
@@ -3685,4 +3733,3 @@ model CronJobError {
   @@index([resolvedAt])
   @@index([createdAt])
 }
-
