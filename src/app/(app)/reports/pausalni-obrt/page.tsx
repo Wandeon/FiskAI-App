@@ -218,7 +218,7 @@ export default async function PausalniObrtReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success-icon">
-              {formatCurrency(Number(annualSummary._sum?.totalAmount || 0), "HRK")}
+              {formatCurrency(Number(annualSummary._sum?.totalAmount || 0), "EUR")}
             </div>
             <p className="text-xs text-muted-foreground">{annualSummary._count._all} računa</p>
           </CardContent>
@@ -236,7 +236,7 @@ export default async function PausalniObrtReportsPage() {
             <div className="text-2xl font-bold text-link">
               {formatCurrency(
                 Number(taxSeasonPack.totalExpensesAmount._sum?.totalAmount || 0),
-                "HRK"
+                "EUR"
               )}
             </div>
             <p className="text-xs text-muted-foreground">{taxSeasonPack.totalExpenses} troškova</p>
@@ -256,7 +256,7 @@ export default async function PausalniObrtReportsPage() {
               {formatCurrency(
                 Number(annualSummary._sum.totalAmount || 0) -
                   Number(taxSeasonPack.totalExpensesAmount._sum?.totalAmount || 0),
-                "HRK"
+                "EUR"
               )}
             </div>
             <p className="text-xs text-muted-foreground">Osnova za oporezivanje</p>
@@ -273,7 +273,7 @@ export default async function PausalniObrtReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">
-              {formatCurrency(Number(annualSummary._sum.vatAmount || 0), "HRK")}
+              {formatCurrency(Number(annualSummary._sum.vatAmount || 0), "EUR")}
             </div>
             <p className="text-xs text-muted-foreground">Obveza prema Poreznoj upravi</p>
           </CardContent>
@@ -300,7 +300,7 @@ export default async function PausalniObrtReportsPage() {
                     height: `${Math.min((month.total / Math.max(...monthlyIncome.map((m) => m.total))) * 60, 60)}px`,
                   }}
                 ></div>
-                <div className="text-xs mt-1">{formatCurrency(month.total, "HRK")}</div>
+                <div className="text-xs mt-1">{formatCurrency(month.total, "EUR")}</div>
               </div>
             ))}
           </div>
@@ -402,7 +402,7 @@ export default async function PausalniObrtReportsPage() {
                           ? Number(category._sum.totalAmount)
                           : 0
                         ).toFixed(2)}{" "}
-                        HRK
+                        EUR
                       </p>
                     </div>
                   </div>
