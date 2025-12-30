@@ -10,6 +10,7 @@ import { DashboardBackground } from "@/components/layout/DashboardBackground"
 // REMOVED: Legacy AssistantPopup - replaced by assistant-v2 at /asistent route
 // import { AssistantPopup } from "@/components/assistant/AssistantPopup"
 import { VisibilityProvider } from "@/lib/visibility"
+import { GuidanceProvider } from "@/contexts"
 import { getVisibilityProviderProps } from "@/lib/visibility/server"
 import { DashboardSkipLinks } from "@/components/a11y/skip-link"
 import { WhatsNewModal } from "@/components/announcements/WhatsNewModal"
@@ -40,58 +41,60 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="flex min-h-screen flex-col relative">
-      <DashboardSkipLinks />
-      <DashboardBackground />
-      <Header />
-      <div className="flex flex-1">
-        {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden md:block" id="primary-nav">
-          <Sidebar
-            user={{
-              name: session.user.name,
-              email: session.user.email,
-              image: session.user.image,
-            }}
-            company={
-              currentCompany
-                ? {
-                    name: currentCompany.name,
-                    eInvoiceProvider: currentCompany.eInvoiceProvider,
-                    isVatPayer: currentCompany.isVatPayer,
-                    legalForm: currentCompany.legalForm,
-                    entitlements: currentCompany.entitlements as string[] | undefined,
-                  }
-                : undefined
-            }
+    <GuidanceProvider>
+      <div className="flex min-h-screen flex-col relative">
+        <DashboardSkipLinks />
+        <DashboardBackground />
+        <Header />
+        <div className="flex flex-1">
+          {/* Desktop Sidebar - hidden on mobile */}
+          <div className="hidden md:block" id="primary-nav">
+            <Sidebar
+              user={{
+                name: session.user.name,
+                email: session.user.email,
+                image: session.user.image,
+              }}
+              company={
+                currentCompany
+                  ? {
+                      name: currentCompany.name,
+                      eInvoiceProvider: currentCompany.eInvoiceProvider,
+                      isVatPayer: currentCompany.isVatPayer,
+                      legalForm: currentCompany.legalForm,
+                      entitlements: currentCompany.entitlements as string[] | undefined,
+                    }
+                  : undefined
+              }
+            />
+          </div>
+
+          {/* Mobile Navigation */}
+          <MobileNav
+            companyName={currentCompany?.name}
+            userName={session.user.name || session.user.email || undefined}
           />
+
+          {/* Main Content - add bottom padding for mobile FAB */}
+          <main id="main-content" className="flex-1 p-4 md:p-6 pb-24 md:pb-6" tabIndex={-1}>
+            <div className="mx-auto w-full max-w-6xl">
+              {visibilityProps ? (
+                <VisibilityProvider {...visibilityProps}>{children}</VisibilityProvider>
+              ) : (
+                children
+              )}
+            </div>
+          </main>
         </div>
 
-        {/* Mobile Navigation */}
-        <MobileNav
-          companyName={currentCompany?.name}
-          userName={session.user.name || session.user.email || undefined}
-        />
+        {/* REMOVED: Legacy AssistantPopup - users now use /asistent route for v2 assistant */}
 
-        {/* Main Content - add bottom padding for mobile FAB */}
-        <main id="main-content" className="flex-1 p-4 md:p-6 pb-24 md:pb-6" tabIndex={-1}>
-          <div className="mx-auto w-full max-w-6xl">
-            {visibilityProps ? (
-              <VisibilityProvider {...visibilityProps}>{children}</VisibilityProvider>
-            ) : (
-              children
-            )}
-          </div>
-        </main>
+        {/* Mobile bottom navigation */}
+        <BottomNav />
+
+        {/* What's New modal for feature announcements */}
+        <WhatsNewModal />
       </div>
-
-      {/* REMOVED: Legacy AssistantPopup - users now use /asistent route for v2 assistant */}
-
-      {/* Mobile bottom navigation */}
-      <BottomNav />
-
-      {/* What's New modal for feature announcements */}
-      <WhatsNewModal />
-    </div>
+    </GuidanceProvider>
   )
 }
