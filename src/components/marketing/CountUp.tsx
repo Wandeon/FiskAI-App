@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useAnimatedNumber } from "@/hooks/use-animated-number"
 
@@ -21,10 +21,15 @@ export function CountUp({
 }) {
   const ref = useRef<HTMLSpanElement | null>(null)
   const [active, setActive] = useState(!startOnView)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(true)
 
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return true
-    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
+  useEffect(() => {
+    const mediaQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    setPrefersReducedMotion(mediaQuery?.matches ?? false)
+
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery?.addEventListener?.("change", handler)
+    return () => mediaQuery?.removeEventListener?.("change", handler)
   }, [])
 
   useEffect(() => {
