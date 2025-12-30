@@ -1,0 +1,231 @@
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
+import { logger } from "./lib/logger"
+import {
+  getSubdomain,
+  getRedirectUrlForSystemRole,
+  canAccessSubdomain,
+} from "@/lib/middleware/subdomain"
+import { getCacheHeaders } from "@/lib/cache-headers"
+import {
+  detectAIBot,
+  shouldSkipPath,
+  shouldTrackCrawl,
+  buildCrawlEvent,
+  trackCrawlerHit,
+} from "@/lib/ai-crawler"
+
+// Routes to skip (API, static assets, etc.)
+function shouldSkipRoute(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/favicon") ||
+    /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname)
+  )
+}
+
+// Get the real host from forwarded headers (for reverse proxy setups)
+function getRealHost(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host
+  )
+}
+
+// Build external URL from forwarded headers
+function getExternalUrl(request: NextRequest): URL {
+  const proto = request.headers.get("x-forwarded-proto") || "https"
+  const host = getRealHost(request)
+  const url = new URL(request.nextUrl.pathname + request.nextUrl.search, `${proto}://${host}`)
+  return url
+}
+
+export async function middleware(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id") || crypto.randomUUID()
+  const startTime = Date.now()
+  const pathname = request.nextUrl.pathname
+
+  // Log incoming request
+  logger.info(
+    {
+      requestId,
+      method: request.method,
+      path: pathname,
+      host: getRealHost(request),
+      userAgent: request.headers.get("user-agent")?.slice(0, 100),
+    },
+    "Incoming request"
+  )
+
+  // AI Crawler Detection - fire and forget (non-blocking)
+  const userAgent = request.headers.get("user-agent") || ""
+  if (!shouldSkipPath(pathname)) {
+    const botName = detectAIBot(userAgent)
+    if (botName && shouldTrackCrawl(botName, pathname)) {
+      const crawlEvent = buildCrawlEvent(botName, pathname, request.method)
+      // Fire and forget - don't await
+      trackCrawlerHit(crawlEvent).catch(() => {
+        // Silently ignore errors
+      })
+      logger.debug(
+        {
+          requestId,
+          botName,
+          path: pathname,
+        },
+        "AI crawler detected"
+      )
+    }
+  }
+
+  // Skip static files and API routes
+  if (shouldSkipRoute(pathname)) {
+    const response = NextResponse.next()
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
+  // Detect subdomain using real host
+  const realHost = getRealHost(request)
+  const subdomain = getSubdomain(realHost)
+
+  // Marketing subdomain - allow all traffic
+  if (subdomain === "marketing") {
+    const response = NextResponse.next()
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-subdomain", subdomain)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+
+    // Apply cache headers for public KB pages
+    const cacheHeaders = getCacheHeaders(pathname)
+    if (cacheHeaders) {
+      for (const [key, value] of Object.entries(cacheHeaders)) {
+        response.headers.set(key, value)
+      }
+    }
+
+    return response
+  }
+
+  // Protected subdomains require authentication
+  const token = await getToken({ req: request })
+
+  if (!token) {
+    // Redirect to login on marketing subdomain
+    const externalUrl = getExternalUrl(request)
+    const loginUrl = new URL("/login", externalUrl)
+    loginUrl.hostname = externalUrl.hostname.replace(/^(app|staff|admin)\./, "")
+    loginUrl.searchParams.set("callbackUrl", externalUrl.toString())
+
+    logger.info(
+      {
+        requestId,
+        subdomain,
+        pathname,
+      },
+      "Redirecting unauthenticated user to login"
+    )
+
+    const response = NextResponse.redirect(loginUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
+  // Check subdomain access based on user's system role
+  const systemRole = (token.systemRole as string) || "USER"
+
+  if (!canAccessSubdomain(systemRole, subdomain)) {
+    // Redirect to correct subdomain for user's role
+    const externalUrl = getExternalUrl(request)
+    const redirectUrl = getRedirectUrlForSystemRole(
+      systemRole as "USER" | "STAFF" | "ADMIN",
+      externalUrl.toString()
+    )
+
+    logger.info(
+      {
+        requestId,
+        systemRole,
+        currentSubdomain: subdomain,
+        redirectUrl,
+      },
+      "Redirecting user to correct subdomain for their role"
+    )
+
+    const response = NextResponse.redirect(redirectUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
+  // Rewrite to appropriate route group based on subdomain
+  const url = request.nextUrl.clone()
+
+  // Map subdomain to route group
+  // Note: "marketing" is handled above and returns early, so subdomain here is only "staff" | "app" | "admin"
+  let routeGroup = ""
+  switch (subdomain) {
+    case "admin":
+      routeGroup = "/(admin)"
+      break
+    case "staff":
+      routeGroup = "/(staff)"
+      break
+    case "app":
+    default:
+      routeGroup = "/(app)"
+  }
+
+  // Don't rewrite if already in the correct route group
+  if (!pathname.startsWith(routeGroup)) {
+    url.pathname = `${routeGroup}${pathname}`
+
+    const response = NextResponse.rewrite(url)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-subdomain", subdomain)
+    response.headers.set("x-route-group", routeGroup)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+
+    logger.info(
+      {
+        requestId,
+        subdomain,
+        systemRole,
+        pathname,
+        rewrittenPath: url.pathname,
+      },
+      "Request rewritten to route group"
+    )
+
+    return response
+  }
+
+  // Add subdomain to headers for route group selection
+  const response = NextResponse.next()
+  response.headers.set("x-request-id", requestId)
+  response.headers.set("x-subdomain", subdomain)
+  response.headers.set("x-route-group", routeGroup)
+  response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+
+  logger.info(
+    {
+      requestId,
+      subdomain,
+      systemRole,
+      pathname,
+    },
+    "Request allowed"
+  )
+
+  return response
+}
+
+export const config = {
+  matcher: [
+    // Skip static files and internal Next.js routes
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+}

@@ -1,6 +1,7 @@
 import OpenAI from "openai"
 import { ExtractionResult, ExtractedReceipt } from "./types"
 import { trackAIUsage } from "./usage-tracking"
+import { extractedReceiptSchema } from "./schemas"
 
 // Lazy-load OpenAI client to avoid build errors when API key is not set
 function getOpenAI() {

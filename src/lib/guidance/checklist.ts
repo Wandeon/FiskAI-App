@@ -616,11 +616,32 @@ export async function getChecklist(params: GetChecklistParams): Promise<{
     const patterns = await getAllPatternInsights(companyId)
 
     for (const pattern of patterns) {
-      const reference = `pattern-${pattern.type}-${Date.now()}`
+      // Generate stable reference based on pattern type and data
+      // This allows proper tracking of dismissed/completed suggestions
+      let reference: string
+      if (pattern.type === "invoice_reminder") {
+        // For invoice reminders: pattern-invoice_reminder-{buyerId}
+        reference = `pattern-invoice_reminder-${pattern.data?.buyerId || "unknown"}`
+      } else if (pattern.type === "expense_pattern") {
+        // For expense patterns: pattern-expense_pattern-{categoryId}-{monthKey}
+        const monthKey = pattern.data?.thisMonthAmount
+          ? new Date().toISOString().slice(0, 7) // YYYY-MM format
+          : "unknown"
+        reference = `pattern-expense_pattern-${pattern.data?.categoryId || "unknown"}-${monthKey}`
+      } else if (pattern.type === "revenue_trend") {
+        // For revenue trends: pattern-revenue_trend-{direction}-{monthKey}
+        const direction = (pattern.data?.trend || 0) > 0 ? "up" : "down"
+        const monthKey = new Date().toISOString().slice(0, 7) // YYYY-MM format
+        reference = `pattern-revenue_trend-${direction}-${monthKey}`
+      } else {
+        // Fallback for unknown pattern types
+        reference = `pattern-${pattern.type}-unknown`
+      }
+
       if (excludeRefs.has(reference)) continue
 
       allItems.push({
-        id: `pattern-${pattern.type}-${Date.now()}`,
+        id: reference,
         category: pattern.type === "invoice_reminder" ? "fakturiranje" : "financije",
         type: CHECKLIST_ITEM_TYPES.SUGGESTION,
         title: pattern.title,

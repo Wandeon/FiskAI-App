@@ -3202,6 +3202,7 @@ enum FeatureFlagStatus {
   INACTIVE
   ARCHIVED
 }
+  DELETED
 
 model FeatureFlag {
   id          String            @id @default(cuid())

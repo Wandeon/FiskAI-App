@@ -464,6 +464,180 @@ export function checkEscalationCriteria(
 }
 
 /**
+ * Compare source hierarchy when authority levels are equal.
+ * Returns the rule that should prevail based on source hierarchy, or null if they're equal.
+ *
+ * Source hierarchy (lower = higher authority):
+ * 1 = Ustav (Constitution)
+ * 2 = Zakon (Law)
+ * 3 = Podzakonski akt (Regulation)
+ * 4 = Pravilnik (Ordinance)
+ * 5 = Uputa (Instruction)
+ * 6 = Mišljenje (Opinion)
+ * 7 = Praksa (Practice)
+ */
+async function compareSourceHierarchy(
+  ruleA: {
+    id: string
+    sourcePointers: Array<{
+      evidence: {
+        source: {
+          hierarchy: number
+          name: string
+        }
+      }
+    }>
+  },
+  ruleB: {
+    id: string
+    sourcePointers: Array<{
+      evidence: {
+        source: {
+          hierarchy: number
+          name: string
+        }
+      }
+    }>
+  }
+): Promise<{
+  winningRuleId: string | null
+  sourceAHierarchy: number | null
+  sourceBHierarchy: number | null
+  sourceAName: string | null
+  sourceBName: string | null
+  reason: string
+}> {
+  // Get the highest authority source for each rule (lowest hierarchy number)
+  const sourceA = ruleA.sourcePointers.reduce(
+    (highest, sp) =>
+      !highest || sp.evidence.source.hierarchy < highest.hierarchy ? sp.evidence.source : highest,
+    null as { hierarchy: number; name: string } | null
+  )
+
+  const sourceB = ruleB.sourcePointers.reduce(
+    (highest, sp) =>
+      !highest || sp.evidence.source.hierarchy < highest.hierarchy ? sp.evidence.source : highest,
+    null as { hierarchy: number; name: string } | null
+  )
+
+  if (!sourceA || !sourceB) {
+    return {
+      winningRuleId: null,
+      sourceAHierarchy: sourceA?.hierarchy ?? null,
+      sourceBHierarchy: sourceB?.hierarchy ?? null,
+      sourceAName: sourceA?.name ?? null,
+      sourceBName: sourceB?.name ?? null,
+      reason: "One or both rules lack source evidence",
+    }
+  }
+
+  if (sourceA.hierarchy < sourceB.hierarchy) {
+    return {
+      winningRuleId: ruleA.id,
+      sourceAHierarchy: sourceA.hierarchy,
+      sourceBHierarchy: sourceB.hierarchy,
+      sourceAName: sourceA.name,
+      sourceBName: sourceB.name,
+      reason: `Source hierarchy: ${sourceA.name} (hierarchy ${sourceA.hierarchy}) prevails over ${sourceB.name} (hierarchy ${sourceB.hierarchy})`,
+    }
+  } else if (sourceB.hierarchy < sourceA.hierarchy) {
+    return {
+      winningRuleId: ruleB.id,
+      sourceAHierarchy: sourceA.hierarchy,
+      sourceBHierarchy: sourceB.hierarchy,
+      sourceAName: sourceA.name,
+      sourceBName: sourceB.name,
+      reason: `Source hierarchy: ${sourceB.name} (hierarchy ${sourceB.hierarchy}) prevails over ${sourceA.name} (hierarchy ${sourceA.hierarchy})`,
+    }
+  }
+
+  return {
+    winningRuleId: null,
+    sourceAHierarchy: sourceA.hierarchy,
+    sourceBHierarchy: sourceB.hierarchy,
+    sourceAName: sourceA.name,
+    sourceBName: sourceB.name,
+    reason: `Equal source hierarchy: both from ${sourceA.name} (hierarchy ${sourceA.hierarchy})`,
+  }
+}
+
+/**
+ * Apply lex posterior (newer law wins) as tiebreaker.
+ */
+function applyLexPosterior(
+  ruleA: {
+    id: string
+    effectiveFrom: Date
+    titleHr: string
+  },
+  ruleB: {
+    id: string
+    effectiveFrom: Date
+    titleHr: string
+  }
+): {
+  winningRuleId: string
+  reason: string
+} {
+  if (ruleA.effectiveFrom.getTime() > ruleB.effectiveFrom.getTime()) {
+    return {
+      winningRuleId: ruleA.id,
+      reason: `Lex posterior: "${ruleA.titleHr}" effective from ${ruleA.effectiveFrom.toISOString().split("T")[0]} is newer than "${ruleB.titleHr}" from ${ruleB.effectiveFrom.toISOString().split("T")[0]}`,
+    }
+  } else if (ruleB.effectiveFrom.getTime() > ruleA.effectiveFrom.getTime()) {
+    return {
+      winningRuleId: ruleB.id,
+      reason: `Lex posterior: "${ruleB.titleHr}" effective from ${ruleB.effectiveFrom.toISOString().split("T")[0]} is newer than "${ruleA.titleHr}" from ${ruleA.effectiveFrom.toISOString().split("T")[0]}`,
+    }
+  } else {
+    // Same effective date - fall back to alphabetical by ID for determinism
+    return {
+      winningRuleId: ruleA.id < ruleB.id ? ruleA.id : ruleB.id,
+      reason: `Same effective date (${ruleA.effectiveFrom.toISOString().split("T")[0]}), using deterministic ID ordering as final tiebreaker`,
+    }
+  }
+}
+
+/**
+ * Create audit trail for conflict resolution.
+ */
+async function createConflictResolutionAudit(
+  conflictId: string,
+  resolution: "RULE_A_PREVAILS" | "RULE_B_PREVAILS" | "MERGE_RULES" | "ESCALATE_TO_HUMAN",
+  ruleAId: string | null,
+  ruleBId: string | null,
+  reason: string,
+  metadata: {
+    authorityComparison?: { scoreA: number; scoreB: number }
+    sourceComparison?: {
+      sourceAHierarchy: number | null
+      sourceBHierarchy: number | null
+      sourceAName: string | null
+      sourceBName: string | null
+    }
+    temporalAnalysis?: { effectiveFromA: string; effectiveFromB: string }
+    aiArbitration?: {
+      strategy: string
+      confidence: number
+      rationaleHr: string
+      rationaleEn: string
+    }
+  }
+): Promise<void> {
+  await db.conflictResolutionAudit.create({
+    data: {
+      conflictId,
+      ruleAId,
+      ruleBId,
+      resolution,
+      reason,
+      resolvedBy: "ARBITER_AGENT",
+      metadata,
+    },
+  })
+}
+
+/**
  * Get all open conflicts that need arbitration
  */
 export async function getPendingConflicts(): Promise<
