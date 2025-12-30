@@ -18,6 +18,8 @@ import { generateInvoicePDF } from "@/lib/pdf/generate-invoice-pdf"
 import { shouldFiscalizeInvoice, queueFiscalRequest } from "@/lib/fiscal/should-fiscalize"
 import { validateStatusTransition, getTransitionError } from "@/lib/e-invoice-status"
 import { validateTransition } from "@/lib/invoice-status-validation"
+import { buildVatLineTotals } from "@/lib/vat/output-calculator"
+import { emitInvoiceEvent, recordRevenueRegisterEntry } from "@/lib/invoicing/events"
 
 const Decimal = Prisma.Decimal
 
@@ -42,6 +44,81 @@ interface CreateInvoiceInput {
     vatRate: number
     vatCategory?: string
   }>
+}
+
+export async function createCreditNote(
+  originalInvoiceId: string,
+  reason?: string
+): Promise<ActionResult> {
+  try {
+    const user = await requireAuth()
+
+    return requireCompanyWithPermission(user.id!, "invoice:create", async (company) => {
+      const original = await db.eInvoice.findFirst({
+        where: { id: originalInvoiceId },
+        include: { lines: true },
+      })
+
+      if (!original) {
+        return { success: false, error: "Originalni račun nije pronađen" }
+      }
+
+      if (original.status === "DRAFT") {
+        return {
+          success: false,
+          error: "Storno je moguće tek nakon izdavanja računa",
+        }
+      }
+
+      const issueDate = new Date()
+      const numbering = await getNextInvoiceNumber(company.id, undefined, undefined, issueDate)
+
+      const lineItems = original.lines.map((line) => ({
+        lineNumber: line.lineNumber,
+        description: line.description,
+        quantity: line.quantity.mul(-1),
+        unit: line.unit,
+        unitPrice: line.unitPrice,
+        netAmount: line.netAmount.mul(-1),
+        vatRate: line.vatRate,
+        vatCategory: line.vatCategory,
+        vatAmount: line.vatAmount.mul(-1),
+        vatRuleId: line.vatRuleId,
+      }))
+
+      const netAmount = lineItems.reduce((sum, l) => sum.add(l.netAmount), new Decimal(0))
+      const vatAmount = lineItems.reduce((sum, l) => sum.add(l.vatAmount), new Decimal(0))
+      const totalAmount = netAmount.add(vatAmount)
+
+      const creditNote = await db.eInvoice.create({
+        data: {
+          companyId: company.id,
+          type: "CREDIT_NOTE",
+          direction: "OUTBOUND",
+          invoiceNumber: numbering.invoiceNumber,
+          internalReference: numbering.internalReference,
+          buyerId: original.buyerId,
+          issueDate,
+          dueDate: null,
+          currency: original.currency,
+          notes: reason ?? `Storno za račun ${original.invoiceNumber}`,
+          netAmount,
+          vatAmount,
+          totalAmount,
+          status: "DRAFT",
+          correctsInvoiceId: original.id,
+          lines: { create: lineItems },
+        },
+        include: { lines: true, buyer: true },
+      })
+
+      revalidatePath("/invoices")
+      return { success: true, data: creditNote }
+    })
+  } catch (error) {
+    console.error("Failed to create credit note:", error)
+    return { success: false, error: "Greška pri kreiranju storna" }
+  }
 }
 
 export async function createInvoice(input: CreateInvoiceInput): Promise<ActionResult> {
@@ -69,28 +146,23 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
       }
 
       // Generate invoice number
-      const numbering = await getNextInvoiceNumber(company.id)
+      const numbering = await getNextInvoiceNumber(
+        company.id,
+        undefined,
+        undefined,
+        input.issueDate
+      )
 
       // Calculate line totals
-      const lineItems = input.lines.map((line, index) => {
-        const quantity = new Decimal(line.quantity)
-        const unitPrice = new Decimal(line.unitPrice)
-        const vatRate = new Decimal(line.vatRate)
-        const netAmount = quantity.mul(unitPrice)
-        const vatAmount = netAmount.mul(vatRate).div(100)
-
-        return {
-          lineNumber: index + 1,
-          description: line.description,
-          quantity,
-          unit: line.unit,
-          unitPrice,
-          netAmount,
-          vatRate,
-          vatCategory: line.vatCategory || "S",
-          vatAmount,
-        }
-      })
+      const lineItems = await Promise.all(
+        input.lines.map(async (line, index) => {
+          const totals = await buildVatLineTotals(line, input.issueDate)
+          return {
+            lineNumber: index + 1,
+            ...totals,
+          }
+        })
+      )
 
       // Calculate totals
       const netAmount = lineItems.reduce((sum, l) => sum.add(l.netAmount), new Decimal(0))
@@ -130,6 +202,12 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<ActionRe
           await db.eInvoice.update({
             where: { id: invoice.id },
             data: { fiscalStatus: "PENDING" },
+          })
+          await emitInvoiceEvent({
+            companyId: company.id,
+            invoiceId: invoice.id,
+            type: "FISCALIZATION_TRIGGERED",
+            payload: fiscalDecision,
           })
         }
       } catch (fiscalError) {
@@ -176,7 +254,7 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
       }
 
       // Generate new invoice number
-      const numbering = await getNextInvoiceNumber(company.id)
+      const numbering = await getNextInvoiceNumber(company.id, undefined, undefined, new Date())
 
       // Create new invoice from source
       const invoice = await db.eInvoice.create({
@@ -207,6 +285,7 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
               vatRate: line.vatRate,
               vatCategory: line.vatCategory,
               vatAmount: line.vatAmount,
+              vatRuleId: line.vatRuleId,
             })),
           },
         },
@@ -225,6 +304,12 @@ export async function convertToInvoice(id: string): Promise<ActionResult<{ id: s
           await db.eInvoice.update({
             where: { id: invoice.id },
             data: { fiscalStatus: "PENDING" },
+          })
+          await emitInvoiceEvent({
+            companyId: company.id,
+            invoiceId: invoice.id,
+            type: "FISCALIZATION_TRIGGERED",
+            payload: fiscalDecision,
           })
         }
       } catch (fiscalError) {
@@ -252,10 +337,15 @@ export async function updateInvoice(
     return requireCompanyWithPermission(user.id!, "invoice:update", async () => {
       const existing = await db.eInvoice.findFirst({
         where: { id, status: "DRAFT" },
+        select: { id: true, issueDate: true },
       })
 
       if (!existing) {
-        return { success: false, error: "Dokument nije pronađen ili nije nacrt" }
+        return {
+          success: false,
+          error:
+            "Dokument nije pronađen ili nije nacrt. Korekcije se rade isključivo kroz storno (kreditnu notu).",
+        }
       }
 
       if (existing.jir || existing.fiscalizedAt) {
@@ -276,25 +366,16 @@ export async function updateInvoice(
         await db.eInvoiceLine.deleteMany({ where: { eInvoiceId: id } })
 
         // Create new lines
-        const lineItems = input.lines.map((line, index) => {
-          const quantity = new Decimal(line.quantity)
-          const unitPrice = new Decimal(line.unitPrice)
-          const vatRate = new Decimal(line.vatRate)
-          const netAmount = quantity.mul(unitPrice)
-          const vatAmount = netAmount.mul(vatRate).div(100)
-
-          return {
-            lineNumber: index + 1,
-            description: line.description,
-            quantity,
-            unit: line.unit,
-            unitPrice,
-            netAmount,
-            vatRate,
-            vatCategory: line.vatCategory || "S",
-            vatAmount,
-          }
-        })
+        const effectiveIssueDate = input.issueDate ?? existing.issueDate
+        const lineItems = await Promise.all(
+          input.lines.map(async (line, index) => {
+            const totals = await buildVatLineTotals(line, effectiveIssueDate)
+            return {
+              lineNumber: index + 1,
+              ...totals,
+            }
+          })
+        )
 
         const netAmount = lineItems.reduce((sum, l) => sum.add(l.netAmount), new Decimal(0))
         const vatAmount = lineItems.reduce((sum, l) => sum.add(l.vatAmount), new Decimal(0))
@@ -461,33 +542,26 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
     let internalReference: string | undefined
 
     if (!invoiceNumber || invoiceNumber.trim() === "") {
-      const numbering = await getNextInvoiceNumber(company.id)
+      const numbering = await getNextInvoiceNumber(
+        company.id,
+        undefined,
+        undefined,
+        invoiceData.issueDate
+      )
       invoiceNumber = numbering.invoiceNumber
       internalReference = numbering.internalReference
     }
 
     // Calculate totals using Decimal for all money calculations
-    const lineItems = lines.map((line, index) => {
-      // Use Decimal for all money calculations
-      const quantity = new Decimal(line.quantity)
-      const unitPrice = new Decimal(line.unitPrice)
-      const vatRate = new Decimal(line.vatRate)
-
-      const netAmount = quantity.mul(unitPrice)
-      const vatAmount = netAmount.mul(vatRate).div(100)
-
-      return {
-        lineNumber: index + 1,
-        description: line.description,
-        quantity,
-        unit: line.unit,
-        unitPrice,
-        netAmount,
-        vatRate,
-        vatCategory: line.vatCategory,
-        vatAmount,
-      }
-    })
+    const lineItems = await Promise.all(
+      lines.map(async (line, index) => {
+        const totals = await buildVatLineTotals(line, invoiceData.issueDate)
+        return {
+          lineNumber: index + 1,
+          ...totals,
+        }
+      })
+    )
 
     // Calculate totals using Decimal
     const netAmount = lineItems.reduce((sum, line) => sum.add(line.netAmount), new Decimal(0))
@@ -534,6 +608,12 @@ export async function createEInvoice(formData: z.input<typeof eInvoiceSchema>) {
         await db.eInvoice.update({
           where: { id: eInvoice.id },
           data: { fiscalStatus: "PENDING" },
+        })
+        await emitInvoiceEvent({
+          companyId: company.id,
+          invoiceId: eInvoice.id,
+          type: "FISCALIZATION_TRIGGERED",
+          payload: fiscalDecision,
         })
       }
     } catch (fiscalError) {
@@ -634,11 +714,19 @@ export async function sendEInvoice(eInvoiceId: string) {
           where: { id: updatedInvoice.id },
           data: { fiscalStatus: "PENDING" },
         })
+        await emitInvoiceEvent({
+          companyId: company.id,
+          invoiceId: updatedInvoice.id,
+          type: "FISCALIZATION_TRIGGERED",
+          payload: fiscalDecision,
+        })
       }
     } catch (fiscalError) {
       // Log but don't fail the invoice send if fiscalization queueing fails
       console.error("[sendEInvoice] Fiscalization queueing error:", fiscalError)
     }
+
+    await recordRevenueRegisterEntry(updatedInvoice.id)
 
     revalidatePath("/e-invoices")
     return { success: "E-Invoice sent successfully", data: result }

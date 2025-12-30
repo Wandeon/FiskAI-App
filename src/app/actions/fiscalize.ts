@@ -7,6 +7,7 @@ import type { FiscalInvoice, PaymentMethodCode } from "@/lib/e-invoice"
 import { revalidatePath } from "next/cache"
 import { validateTransition } from "@/lib/invoice-status-validation"
 import { validateStatusTransition, getTransitionError } from "@/lib/e-invoice-status"
+import { recordRevenueRegisterEntry } from "@/lib/invoicing/events"
 
 /**
  * Fiscalize an invoice with Croatian Tax Authority (CIS)
@@ -196,6 +197,8 @@ export async function fiscalizeInvoice(invoiceId: string) {
         providerError: null, // Clear any previous errors
       },
     })
+
+    await recordRevenueRegisterEntry(invoiceId)
 
     revalidatePath("/e-invoices")
     revalidatePath(`/e-invoices/${invoiceId}`)

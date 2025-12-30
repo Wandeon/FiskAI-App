@@ -37,9 +37,10 @@ export interface InvoiceNumber {
 export async function getNextInvoiceNumber(
   companyId: string,
   businessPremisesId?: string,
-  paymentDeviceId?: string
+  paymentDeviceId?: string,
+  issueDate: Date = new Date()
 ): Promise<InvoiceNumber> {
-  const currentYear = new Date().getFullYear()
+  const currentYear = issueDate.getFullYear()
 
   // Get or create default business premises
   let premises = businessPremisesId
@@ -89,40 +90,58 @@ export async function getNextInvoiceNumber(
 
   // Get next sequential number using atomic increment
   // This uses upsert to handle the case where sequence doesn't exist yet
-  const sequence = await db.invoiceSequence.upsert({
-    where: {
-      businessPremisesId_year: {
+  const maxAttempts = 5
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const sequence = await db.invoiceSequence.upsert({
+      where: {
+        businessPremisesId_year: {
+          businessPremisesId: premises.id,
+          year: currentYear,
+        },
+      },
+      update: {
+        lastNumber: { increment: 1 },
+      },
+      create: {
+        companyId,
         businessPremisesId: premises.id,
         year: currentYear,
+        lastNumber: 1,
       },
-    },
-    update: {
-      lastNumber: { increment: 1 },
-    },
-    create: {
-      companyId,
-      businessPremisesId: premises.id,
-      year: currentYear,
-      lastNumber: 1,
-    },
-  })
+    })
 
-  const sequentialNumber = sequence.lastNumber
-  const premisesCode = premises.code
-  const deviceCode = device.code
+    const sequentialNumber = sequence.lastNumber
+    const premisesCode = premises.code
+    const deviceCode = device.code
 
-  // Format: broj-poslovni_prostor-naplatni_uređaj
-  const invoiceNumber = `${sequentialNumber}-${premisesCode}-${deviceCode}`
-  const internalReference = `${currentYear}/${invoiceNumber}`
+    // Format: broj-poslovni_prostor-naplatni_uređaj
+    const invoiceNumber = `${sequentialNumber}-${premisesCode}-${deviceCode}`
+    const internalReference = `${currentYear}/${invoiceNumber}`
 
-  return {
-    invoiceNumber,
-    internalReference,
-    sequentialNumber,
-    premisesCode,
-    deviceCode,
-    year: currentYear,
+    const existing = await db.eInvoice.findUnique({
+      where: {
+        companyId_invoiceNumber: {
+          companyId,
+          invoiceNumber,
+        },
+      },
+      select: { id: true },
+    })
+
+    if (!existing) {
+      return {
+        invoiceNumber,
+        internalReference,
+        sequentialNumber,
+        premisesCode,
+        deviceCode,
+        year: currentYear,
+      }
+    }
   }
+
+  throw new Error("Failed to allocate a unique invoice number after multiple attempts.")
 }
 
 /**
@@ -132,9 +151,10 @@ export async function getNextInvoiceNumber(
 export async function previewNextInvoiceNumber(
   companyId: string,
   businessPremisesId?: string,
-  paymentDeviceId?: string
+  paymentDeviceId?: string,
+  issueDate: Date = new Date()
 ): Promise<InvoiceNumber> {
-  const currentYear = new Date().getFullYear()
+  const currentYear = issueDate.getFullYear()
 
   let premises = businessPremisesId
     ? await db.businessPremises.findUnique({ where: { id: businessPremisesId } })
