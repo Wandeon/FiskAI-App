@@ -157,6 +157,11 @@ export type CalculationInputByTableKey =
       code?: string
     }
 
+export type CalculationRequest = CalculationInputByTableKey & {
+  referenceDate?: string | Date
+  ruleVersionId?: string
+}
+
 export interface CalculationResponse<T> {
   ruleVersionId: string
   ruleTableKey: RuleTableKey

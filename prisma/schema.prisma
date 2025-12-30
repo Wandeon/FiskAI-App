@@ -1399,8 +1399,8 @@ model TravelOrder {
   travelerUser          User?             @relation("TravelOrderTraveler", fields: [travelerUserId], references: [id], onDelete: SetNull)
   mileageLogs           MileageLog[]
   pdfs                  TravelPdf[]
-  perDiemRuleVersion    RegulatoryRule?   @relation("TravelOrderPerDiemRule", fields: [perDiemRuleVersionId], references: [id])
-  mileageRuleVersion    RegulatoryRule?   @relation("TravelOrderMileageRule", fields: [mileageRuleVersionId], references: [id])
+  perDiemRuleVersion    RuleVersion?      @relation("TravelOrderPerDiemRuleVersion", fields: [perDiemRuleVersionId], references: [id])
+  mileageRuleVersion    RuleVersion?      @relation("TravelOrderMileageRuleVersion", fields: [mileageRuleVersionId], references: [id])
 
   @@unique([companyId, orderNumber])
   @@index([companyId])
@@ -2230,11 +2230,14 @@ model PayoutLine {
   netAmount     Decimal? @map("net_amount") @db.Decimal(12, 2)
   taxAmount     Decimal? @map("tax_amount") @db.Decimal(12, 2)
   joppdData     Json?    @map("joppd_data")
+  ruleVersionId String?  @map("rule_version_id")
   createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   payout        Payout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  ruleVersion   RuleVersion? @relation("PayoutLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
   submissions   JoppdSubmissionLine[]
 
   @@index([payoutId], map: "payout_line_payout_idx")
+  @@index([ruleVersionId], map: "payout_line_rule_version_idx")
   @@map("payout_line")
 }
 
@@ -2272,14 +2275,17 @@ model JoppdSubmissionLine {
   lineNumber     Int                   @map("line_number")
   lineData       Json?                 @map("line_data")
   originalLineId String?               @map("original_line_id")
+  ruleVersionId  String?               @map("rule_version_id")
   createdAt      DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
   submission     JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   payoutLine     PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
+  ruleVersion    RuleVersion?          @relation("JoppdSubmissionLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
   originalLine   JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
   corrections    JoppdSubmissionLine[] @relation("JoppdLineCorrections")
 
   @@index([submissionId], map: "joppd_submission_line_submission_idx")
   @@index([payoutLineId], map: "joppd_submission_line_payout_idx")
+  @@index([ruleVersionId], map: "joppd_submission_line_rule_version_idx")
   @@map("joppd_submission_line")
 }
 
@@ -3521,8 +3527,6 @@ model RegulatoryRule {
   incomingEdges  GraphEdge[]          @relation("EdgeTo")
   atomicClaims   AtomicClaim[]
   eInvoiceLines  EInvoiceLine[]
-  travelOrdersPerDiem  TravelOrder[] @relation("TravelOrderPerDiemRule")
-  travelOrdersMileage  TravelOrder[] @relation("TravelOrderMileageRule")
 
   // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
   // This enables conflict candidates to be stored before arbiter resolution
@@ -3566,6 +3570,10 @@ model RuleVersion {
   table     RuleTable     @relation(fields: [tableId], references: [id], onDelete: Cascade)
   snapshots RuleSnapshot[]
   calculations RuleCalculation[]
+  payoutLines PayoutLine[] @relation("PayoutLineRuleVersion")
+  joppdSubmissionLines JoppdSubmissionLine[] @relation("JoppdSubmissionLineRuleVersion")
+  travelOrdersPerDiem TravelOrder[] @relation("TravelOrderPerDiemRuleVersion")
+  travelOrdersMileage TravelOrder[] @relation("TravelOrderMileageRuleVersion")
 
   @@unique([tableId, version])
   @@index([tableId, effectiveFrom])
