@@ -23,8 +23,9 @@ async function checkConflicts() {
         console.log("  Item B:", c.itemB?.id)
       }
     }
-  } catch (error: any) {
-    console.log("RegulatoryConflict table check failed:", error.message)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.log("RegulatoryConflict table check failed:", errorMessage)
   }
 
   // Check for rules with overlapping concepts that might conflict

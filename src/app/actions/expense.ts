@@ -127,6 +127,7 @@ export async function updateExpense(
       if (input.netAmount !== undefined) updateData.netAmount = new Decimal(input.netAmount)
       if (input.vatAmount !== undefined) updateData.vatAmount = new Decimal(input.vatAmount)
       if (input.totalAmount !== undefined) updateData.totalAmount = new Decimal(input.totalAmount)
+      if (input.vatRate !== undefined) updateData.vatRate = new Decimal(input.vatRate)
       if (input.vatDeductible !== undefined) updateData.vatDeductible = input.vatDeductible
       if (input.notes !== undefined) updateData.notes = input.notes
       if (input.paymentMethod !== undefined) {

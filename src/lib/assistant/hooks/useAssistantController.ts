@@ -189,18 +189,21 @@ export function useAssistantController({ surface, companyId }: UseAssistantContr
 
         const data = (await response.json()) as AssistantResponse
         dispatch({ type: "COMPLETE", response: data })
-      } catch (error: any) {
-        if (error.name === "AbortError") {
+      } catch (error: unknown) {
+        // Check if error is an AbortError
+        if (error instanceof Error && error.name === "AbortError") {
           // Request was cancelled, don't dispatch error
           return
         }
 
-        const assistantError: AssistantError = error.type
-          ? error
-          : {
-              type: "NETWORK_FAILURE" as ErrorType,
-              message: error.message || "Network request failed",
-            }
+        // Type guard for error objects with type property
+        const assistantError: AssistantError =
+          typeof error === "object" && error !== null && "type" in error
+            ? (error as AssistantError)
+            : {
+                type: "NETWORK_FAILURE" as ErrorType,
+                message: error instanceof Error ? error.message : "Network request failed",
+              }
 
         dispatch({ type: "ERROR", error: assistantError })
       }

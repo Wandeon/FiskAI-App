@@ -146,18 +146,28 @@ export async function fiscalizePosSale(input: PosFiscalInput): Promise<PosFiscal
       zki: result.zki || zki,
       error: result.errorMessage,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POS fiscalization error:", error)
 
+    // Type guard for error objects with poreznaCode property
+    const shouldRetry =
+      typeof error === "object" &&
+      error !== null &&
+      "poreznaCode" in error &&
+      (error as { poreznaCode: string }).poreznaCode !== "p001" &&
+      (error as { poreznaCode: string }).poreznaCode !== "p002"
+
     // Queue for retry if it's a temporary failure
-    if (error?.poreznaCode !== "p001" && error?.poreznaCode !== "p002") {
+    if (shouldRetry) {
       await queueFiscalRetry(invoice.id)
     }
+
+    const errorMessage = error instanceof Error ? error.message : "Greška kod fiskalizacije"
 
     return {
       success: false,
       zki,
-      error: error?.message || "Greška kod fiskalizacije",
+      error: errorMessage,
     }
   }
 }
