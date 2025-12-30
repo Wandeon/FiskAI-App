@@ -6,8 +6,9 @@ import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Info } from "lucide-react"
+import { ArrowLeft, ArrowRight, Info, AlertTriangle } from "lucide-react"
 import { lookupPostalCode, TAX_RATES, CONTRIBUTIONS, CHAMBER_FEES } from "@/lib/fiscal-data"
 import { saveOnboardingData } from "@/app/actions/onboarding"
 import { useRouter } from "next/navigation"
@@ -23,6 +24,7 @@ export function StepPausalniProfile() {
   const router = useRouter()
   const { data, updateData, setStep, isStepValid } = useOnboardingStore()
   const [isSaving, setIsSaving] = useState(false)
+  const [postalLookupFailed, setPostalLookupFailed] = useState(false)
 
   // Auto-fill from postal code
   useEffect(() => {
@@ -34,6 +36,10 @@ export function StepPausalniProfile() {
           county: postalData.county,
           prirezRate: postalData.prirezRate,
         })
+        setPostalLookupFailed(false)
+      } else {
+        // Postal code not found - allow manual entry
+        setPostalLookupFailed(true)
       }
     }
   }, [data.postalCode, updateData])
@@ -145,24 +151,87 @@ export function StepPausalniProfile() {
           <CardTitle className="text-base">Lokacija</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm text-muted-foreground">Općina</Label>
-              <p className="font-medium">{data.municipality || "—"}</p>
+          {postalLookupFailed && (
+            <div className="rounded-md bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-900">
+                  Poštanski broj nije pronađen u bazi
+                </p>
+                <p className="text-amber-700 mt-1">
+                  Molimo unesite podatke o lokaciji ručno
+                </p>
+              </div>
             </div>
-            <div>
-              <Label className="text-sm text-muted-foreground">Županija</Label>
-              <p className="font-medium">{data.county || "—"}</p>
-            </div>
-          </div>
-          <div>
-            <Label className="text-sm text-muted-foreground">Stopa prireza</Label>
-            <p className="font-medium">{((data.prirezRate || 0) * 100).toFixed(0)}%</p>
-          </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Info className="h-3 w-3" />
-            Automatski popunjeno iz poštanskog broja
-          </p>
+          )}
+
+          {postalLookupFailed ? (
+            <>
+              <div>
+                <Label htmlFor="municipality">Općina</Label>
+                <Input
+                  id="municipality"
+                  type="text"
+                  value={data.municipality || ""}
+                  onChange={(e) => updateData({ municipality: e.target.value })}
+                  placeholder="npr. Grad Zagreb"
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="county">Županija</Label>
+                <Input
+                  id="county"
+                  type="text"
+                  value={data.county || ""}
+                  onChange={(e) => updateData({ county: e.target.value })}
+                  placeholder="npr. Grad Zagreb"
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="prirezRate">Stopa prireza (%)</Label>
+                <Input
+                  id="prirezRate"
+                  type="number"
+                  min="0"
+                  max="18"
+                  step="0.01"
+                  value={data.prirezRate ? (data.prirezRate * 100).toFixed(2) : ""}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value)
+                    updateData({ prirezRate: isNaN(value) ? 0 : value / 100 })
+                  }}
+                  placeholder="npr. 18"
+                  className="mt-1.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Stopa prireza za vašu općinu (0-18%)
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Općina</Label>
+                  <p className="font-medium">{data.municipality || "—"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">Županija</Label>
+                  <p className="font-medium">{data.county || "—"}</p>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Stopa prireza</Label>
+                <p className="font-medium">{((data.prirezRate || 0) * 100).toFixed(0)}%</p>
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                Automatski popunjeno iz poštanskog broja
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -293,7 +362,7 @@ export function StepPausalniProfile() {
       {/* Pro Module Upsell */}
       <div className="rounded-lg border border-brand-200 bg-gradient-to-r from-brand-50 to-white p-4">
         <p className="text-sm">
-          <span className="font-semibold">📈 FiskAI Pro:</span> Praćenje prihoda u realnom vremenu,
+          <span className="font-semibold">FiskAI Pro:</span> Praćenje prihoda u realnom vremenu,
           projekcije razreda, optimizacija poreza
         </p>
       </div>
