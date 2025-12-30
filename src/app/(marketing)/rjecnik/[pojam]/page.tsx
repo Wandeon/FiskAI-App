@@ -32,6 +32,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `${BASE_URL}/rjecnik/${pojam}`,
     },
+    openGraph: {
+      title: `${term.frontmatter.term} - Što je? | FiskAI Rječnik`,
+      description: term.frontmatter.shortDefinition,
+      url: `${BASE_URL}/rjecnik/${pojam}`,
+      siteName: "FiskAI",
+      locale: "hr_HR",
+      type: "website",
+      images: [
+        {
+          url: `${BASE_URL}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${term.frontmatter.term} - FiskAI Rječnik`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${term.frontmatter.term} - Što je? | FiskAI Rječnik`,
+      description: term.frontmatter.shortDefinition,
+      images: [`${BASE_URL}/opengraph-image`],
+    },
   }
 }
 

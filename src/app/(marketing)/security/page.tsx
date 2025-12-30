@@ -22,6 +22,30 @@ export const metadata: Metadata = {
   alternates: {
     canonical: `${BASE_URL}/security`,
   },
+  openGraph: {
+    title: "FiskAI — Sigurnost i Trust Center",
+    description:
+      "Detaljna sigurnosna politika, podaci o privatnosti, rezidenciji podataka, incidentima i dostupnosti za FiskAI.",
+    url: `${BASE_URL}/security`,
+    siteName: "FiskAI",
+    locale: "hr_HR",
+    type: "website",
+    images: [
+      {
+        url: `${BASE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "FiskAI - Sigurnost i zaštita podataka",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FiskAI — Sigurnost i Trust Center",
+    description:
+      "Detaljna sigurnosna politika, podaci o privatnosti, rezidenciji podataka, incidentima i dostupnosti za FiskAI.",
+    images: [`${BASE_URL}/opengraph-image`],
+  },
 }
 
 export default function SecurityPage() {

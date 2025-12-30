@@ -10,6 +10,28 @@ export const metadata: Metadata = {
   alternates: {
     canonical: `${BASE_URL}/about`,
   },
+  openGraph: {
+    title: "FiskAI — O nama",
+    description: "Saznajte više o FiskAI platformi: naša misija, vrijednosti i zašto nas odabrati za vaše računovodstvo.",
+    url: `${BASE_URL}/about`,
+    siteName: "FiskAI",
+    locale: "hr_HR",
+    type: "website",
+    images: [
+      {
+        url: `${BASE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "FiskAI - AI-first platforma za računovodstvo u Hrvatskoj",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FiskAI — O nama",
+    description: "Saznajte više o FiskAI platformi: naša misija, vrijednosti i zašto nas odabrati za vaše računovodstvo.",
+    images: [`${BASE_URL}/opengraph-image`],
+  },
 }
 
 export default function AboutPage() {

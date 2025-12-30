@@ -10,6 +10,28 @@ export const metadata: Metadata = {
   alternates: {
     canonical: `${BASE_URL}/status`,
   },
+  openGraph: {
+    title: "FiskAI — Status",
+    description: "Status sustava i informacije o dostupnosti FiskAI platforme.",
+    url: `${BASE_URL}/status`,
+    siteName: "FiskAI",
+    locale: "hr_HR",
+    type: "website",
+    images: [
+      {
+        url: `${BASE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "FiskAI - Status sustava",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FiskAI — Status",
+    description: "Status sustava i informacije o dostupnosti FiskAI platforme.",
+    images: [`${BASE_URL}/opengraph-image`],
+  },
 }
 
 // Force dynamic rendering - this page needs database access
