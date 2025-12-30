@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { drizzleDb } from "@/lib/db/drizzle"
-import { euTransaction } from "@/lib/db/schema/pausalni"
+import { euTransaction, euVendor } from "@/lib/db/schema/pausalni"
 import { eq, and } from "drizzle-orm"
-import { confirmEuTransaction } from "@/lib/pausalni/eu-detection"
+import { TRANSACTION_TYPES } from "@/lib/pausalni/constants"
 
 /**
  * POST /api/pausalni/eu-transactions/[id]/confirm
- * Confirm/reject a transaction as EU (learns vendor)
+ * Confirm/reject a transaction as EU with goods/services classification
+ * Supports VIES validation results and Intrastat tracking
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -22,15 +23,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "No company selected" }, { status: 400 })
     }
 
-    // Check if company is paušalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
       return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
     }
 
     const body = await request.json()
-    const { isEu, country, vendorName } = body
+    const { isEu, country, vendorName, transactionType, vatId, viesValidated, viesValid } = body
 
-    // Validate required fields
     if (typeof isEu !== "boolean") {
       return NextResponse.json({ error: "isEu is required and must be boolean" }, { status: 400 })
     }
@@ -42,7 +41,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       )
     }
 
-    // Check if transaction exists and belongs to the company
     const transaction = await drizzleDb
       .select()
       .from(euTransaction)
@@ -53,10 +51,46 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }
 
-    // Confirm the transaction (this will also learn the vendor if provided)
-    await confirmEuTransaction(id, isEu, country, vendorName)
+    const updateData: Record<string, unknown> = {
+      userConfirmed: true,
+      counterpartyCountry: country,
+    }
 
-    // Fetch the updated transaction
+    if (isEu) {
+      updateData.transactionType = transactionType || TRANSACTION_TYPES.SERVICES
+
+      if (transactionType === TRANSACTION_TYPES.GOODS) {
+        updateData.intrastatReportable = true
+      }
+
+      if (vatId) {
+        updateData.counterpartyVatId = vatId
+      }
+
+      if (typeof viesValidated === "boolean") {
+        updateData.viesValidated = viesValidated
+        updateData.viesValidatedAt = viesValidated ? new Date() : null
+        updateData.viesValid = viesValid ?? null
+      }
+
+      if (vendorName && country) {
+        await drizzleDb
+          .insert(euVendor)
+          .values({
+            namePattern: vendorName.toUpperCase().replace(/[^A-Z0-9\s]/g, ".*"),
+            displayName: vendorName,
+            countryCode: country,
+            vendorType: "OTHER",
+            isEu: true,
+            confidenceScore: 80,
+            isSystem: false,
+          })
+          .onConflictDoNothing()
+      }
+    }
+
+    await drizzleDb.update(euTransaction).set(updateData).where(eq(euTransaction.id, id))
+
     const updated = await drizzleDb
       .select()
       .from(euTransaction)
