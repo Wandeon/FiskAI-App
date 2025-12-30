@@ -34,14 +34,12 @@ model User {
   experimentAssignments ExperimentAssignment[]
   experimentEvents     ExperimentEvent[]
   artifactsCreated     Artifact[]             @relation("ArtifactCreator")
-  accountingLocks      AccountingPeriod[]     @relation("AccountingPeriodLocks")
   personSnapshots      PersonSnapshot[]       @relation("PersonSnapshotAuthor")
-  payoutsLocked        Payout[]               @relation("PayoutLockedBy")
-  payoutsReported      Payout[]               @relation("PayoutReportedBy")
-  calculationSnapshots CalculationSnapshot[]  @relation("CalculationSnapshotCreatedBy")
   travelOrders         TravelOrder[]          @relation("TravelOrderTraveler")
   mileageLogs          MileageLog[]           @relation("MileageLogTraveler")
   generatedTravelPdfs  TravelPdf[]            @relation("TravelPdfGeneratedBy")
+  closedAccountingPeriods AccountingPeriod[]
+  journalEntriesCreated   JournalEntry[]
 }
 
 model Account {
@@ -170,7 +168,6 @@ model Company {
   importJobs                     ImportJob[]
   invoiceSequences               InvoiceSequence[]
   payouts                        Payout[]
-  payoutLines                    PayoutLine[]
   mileageLogs                    MileageLog[]
   paymentDevices                 PaymentDevice[]
   potentialDuplicates            PotentialDuplicate[]
@@ -208,6 +205,15 @@ model Company {
   cashDayCloses                  CashDayClose[]
   employees                      Employee[]
   artifacts                      Artifact[]
+  employeeRoles                  EmployeeRole[]
+  employmentContracts            EmploymentContract[]
+  employmentContractVersions     EmploymentContractVersion[]
+  employmentTerminationEvents    EmploymentTerminationEvent[]
+  dependents                     Dependent[]
+  allowances                     Allowance[]
+  pensionPillars                 PensionPillar[]
+  revenueRegisterEntries         RevenueRegisterEntry[]
+  invoiceEvents                  InvoiceEvent[]
 }
 
 model ChartOfAccounts {
@@ -383,6 +389,7 @@ model Employee {
   dependents          Dependent[]
   allowances          Allowance[]
   pensionPillars      PensionPillar[]
+  employmentTerminationEvents EmploymentTerminationEvent[]
 
   @@unique([companyId, oib])
   @@index([companyId])
@@ -948,6 +955,8 @@ model EInvoice {
   seller            Contact?          @relation("EInvoiceSeller", fields: [sellerId], references: [id], onDelete: SetNull)
   lines             EInvoiceLine[]
   fiscalRequests    FiscalRequest[]
+  revenueRegisterEntries RevenueRegisterEntry[]
+  invoiceEvents     InvoiceEvent[]
 
   @@unique([companyId, invoiceNumber])
   @@index([companyId])
@@ -3456,6 +3465,9 @@ model RegulatoryRule {
   outgoingEdges  GraphEdge[]          @relation("EdgeFrom")
   incomingEdges  GraphEdge[]          @relation("EdgeTo")
   atomicClaims   AtomicClaim[]
+  eInvoiceLines  EInvoiceLine[]
+  travelOrdersPerDiem  TravelOrder[] @relation("TravelOrderPerDiemRule")
+  travelOrdersMileage  TravelOrder[] @relation("TravelOrderMileageRule")
 
   // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
   // This enables conflict candidates to be stored before arbiter resolution
@@ -4551,27 +4563,6 @@ enum ArtifactType {
   XML
 }
 
-model AccountingPeriod {
-  id          String                 @id @default(cuid())
-  companyId   String
-  startDate   DateTime
-  endDate     DateTime
-  status      AccountingPeriodStatus @default(OPEN)
-  lockedAt    DateTime?
-  lockedById  String?
-  lockReason  String?
-  checksum    String?
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
-  company     Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  lockedBy    User?                  @relation("AccountingPeriodLocks", fields: [lockedById], references: [id])
-
-  @@unique([companyId, startDate, endDate])
-  @@index([companyId])
-  @@index([status])
-  @@index([startDate, endDate])
-}
-
 model Artifact {
   id                String       @id @default(cuid())
   companyId          String
@@ -4899,114 +4890,6 @@ model ExperimentEvent {
 }
 
 // ============================================================================
-// PAYROLL & PAYOUTS
-// ============================================================================
-
-model Payout {
-  id         String       @id @default(cuid())
-  companyId  String
-  status     PayoutStatus @default(DRAFT)
-  periodFrom DateTime
-  periodTo   DateTime
-  currency   String       @default("EUR")
-
-  lockedAt   DateTime?
-  lockedById String?
-  reportedAt DateTime?
-  reportedById String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  lockedBy      User?              @relation("PayoutLockedBy", fields: [lockedById], references: [id])
-  reportedBy    User?              @relation("PayoutReportedBy", fields: [reportedById], references: [id])
-  lines         PayoutLine[]
-  artifacts     PayslipArtifact[]
-  snapshots     CalculationSnapshot[]
-
-  @@index([companyId])
-  @@index([status])
-  @@index([periodFrom, periodTo])
-}
-
-model PayoutLine {
-  id           String   @id @default(cuid())
-  companyId    String
-  payoutId     String
-  employmentId String
-  employeeName String
-  employeeOib  String?
-  employeeIban String?
-  grossAmount  Decimal  @db.Decimal(19, 4)
-  netAmount    Decimal  @db.Decimal(19, 4)
-  taxAmount    Decimal  @db.Decimal(19, 4)
-  currency     String   @default("EUR")
-  metadata     Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  payout    Payout  @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  artifacts PayslipArtifact[]
-  snapshots CalculationSnapshot[]
-
-  @@index([companyId])
-  @@index([payoutId])
-  @@index([employmentId])
-}
-
-model PayslipArtifact {
-  id          String   @id @default(cuid())
-  companyId   String
-  payoutId    String
-  payoutLineId String
-  storageKey  String
-  fileName    String
-  contentType String
-  sizeBytes   Int
-  metadata    Json?
-  createdAt   DateTime @default(now())
-
-  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  payout    Payout    @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  payoutLine PayoutLine @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-  @@index([payoutId])
-  @@index([payoutLineId])
-}
-
-model CalculationSnapshot {
-  id                 String   @id @default(cuid())
-  companyId          String
-  payoutId           String
-  payoutLineId       String?
-  rulesEngineSnapshot Json
-  employmentSnapshot Json
-  inputSnapshot      Json
-  outputSnapshot     Json
-  createdById        String?
-  createdAt          DateTime @default(now())
-
-  company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  payout     Payout     @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  payoutLine PayoutLine? @relation(fields: [payoutLineId], references: [id], onDelete: Cascade)
-  createdBy  User?      @relation("CalculationSnapshotCreatedBy", fields: [createdById], references: [id])
-
-  @@index([companyId])
-  @@index([payoutId])
-  @@index([payoutLineId])
-}
-
-enum PayoutStatus {
-  DRAFT
-  LOCKED
-  REPORTED
-}
-
-// ============================================================================
 // WEBHOOK & PUSH NOTIFICATION INFRASTRUCTURE
 // ============================================================================
 
@@ -5141,6 +5024,7 @@ model FixedAsset {
   depreciationSchedule  DepreciationSchedule?
   depreciationEntries   DepreciationEntry[]
   disposalEvents        DisposalEvent[]
+  assetCandidates       AssetCandidate[]
 
   @@index([companyId])
   @@index([status])
