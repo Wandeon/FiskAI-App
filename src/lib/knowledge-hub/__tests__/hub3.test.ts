@@ -20,12 +20,12 @@ describe("Hub3 Barcode Generator", () => {
   })
 
   describe("formatHub3Amount", () => {
-    it("should format 262.51 as 000000026251", () => {
-      assert.strictEqual(formatHub3Amount(262.51), "000000026251")
+    it("should format 262.51 as 000000000026251", () => {
+      assert.strictEqual(formatHub3Amount(262.51), "000000000026251")
     })
 
-    it("should format 1000 as 000000100000", () => {
-      assert.strictEqual(formatHub3Amount(1000), "000000100000")
+    it("should format 1000 as 000000000100000", () => {
+      assert.strictEqual(formatHub3Amount(1000), "000000000100000")
     })
   })
 

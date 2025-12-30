@@ -39,7 +39,7 @@ export function validateOIB(oib: string): boolean {
  */
 export function formatHub3Amount(amount: number): string {
   const cents = Math.round(amount * 100)
-  return cents.toString().padStart(12, "0")
+  return cents.toString().padStart(15, "0")
 }
 
 /**
