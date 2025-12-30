@@ -9,7 +9,13 @@ interface CardSkeletonProps {
 export function CardSkeleton({ variant = "default", className }: CardSkeletonProps) {
   if (variant === "stat") {
     return (
-      <div className={cn("card p-6 space-y-3", className)}>
+      <div
+        className={cn("card p-6 space-y-3", className)}
+        role="status"
+        aria-label="Učitavanje statistike"
+        aria-busy="true"
+      >
+        <span className="sr-only">Učitavanje...</span>
         <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-5 rounded" />
           <Skeleton className="h-4 w-24" />
@@ -22,7 +28,13 @@ export function CardSkeleton({ variant = "default", className }: CardSkeletonPro
 
   if (variant === "list") {
     return (
-      <div className={cn("card p-6 space-y-4", className)}>
+      <div
+        className={cn("card p-6 space-y-4", className)}
+        role="status"
+        aria-label="Učitavanje popisa"
+        aria-busy="true"
+      >
+        <span className="sr-only">Učitavanje...</span>
         <Skeleton className="h-6 w-40" />
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
@@ -41,7 +53,13 @@ export function CardSkeleton({ variant = "default", className }: CardSkeletonPro
 
   if (variant === "chart") {
     return (
-      <div className={cn("card p-6 space-y-4", className)}>
+      <div
+        className={cn("card p-6 space-y-4", className)}
+        role="status"
+        aria-label="Učitavanje grafikona"
+        aria-busy="true"
+      >
+        <span className="sr-only">Učitavanje...</span>
         <div className="flex items-center justify-between">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-8 w-24" />
@@ -58,7 +76,13 @@ export function CardSkeleton({ variant = "default", className }: CardSkeletonPro
 
   // Default variant
   return (
-    <div className={cn("card p-6 space-y-4", className)}>
+    <div
+      className={cn("card p-6 space-y-4", className)}
+      role="status"
+      aria-label="Učitavanje kartice"
+      aria-busy="true"
+    >
+      <span className="sr-only">Učitavanje...</span>
       <Skeleton className="h-6 w-1/3" />
       <Skeleton className="h-4 w-2/3" />
       <Skeleton className="h-4 w-full" />
@@ -88,7 +112,13 @@ export function CardGridSkeleton({
   }[columns]
 
   return (
-    <div className={cn("grid gap-6", gridColsClass)}>
+    <div
+      className={cn("grid gap-6", gridColsClass)}
+      role="status"
+      aria-label="Učitavanje kartica"
+      aria-busy="true"
+    >
+      <span className="sr-only">Učitavanje...</span>
       {Array.from({ length: count }).map((_, i) => (
         <CardSkeleton key={i} variant={variant} />
       ))}

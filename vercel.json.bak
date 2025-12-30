@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/bank-sync",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/certificate-check",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/email-sync",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/fiscal-processor",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/fiscal-retry",
+      "schedule": "*/10 * * * *"
+    }
+  ]
+}

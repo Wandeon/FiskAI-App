@@ -300,6 +300,7 @@ export async function createExpenseCategory(input: {
 
       const category = await db.expenseCategory.create({
         data: {
+          companyId: company.id,
           name: input.name,
           code: input.code.toUpperCase(),
           vatDeductibleDefault: input.vatDeductibleDefault ?? true,
