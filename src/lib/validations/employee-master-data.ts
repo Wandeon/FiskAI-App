@@ -7,50 +7,68 @@ import {
   PensionPillarType,
 } from "@prisma/client"
 
-const dateRangeSchema = z
-  .object({
-    effectiveFrom: z.coerce.date(),
-    effectiveTo: z.coerce.date().nullable().optional(),
+// Base schema without refinement for extending (Zod 4 breaking change)
+const dateRangeBaseSchema = z.object({
+  effectiveFrom: z.coerce.date(),
+  effectiveTo: z.coerce.date().nullable().optional(),
+})
+
+// Refinement function to apply after extending
+function withDateRangeValidation<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  return schema.refine(
+    (data: { effectiveFrom: Date; effectiveTo?: Date | null }) =>
+      !data.effectiveTo || data.effectiveFrom <= data.effectiveTo,
+    {
+      message: "effectiveFrom must be before or equal to effectiveTo",
+      path: ["effectiveTo"],
+    }
+  )
+}
+
+export const employeeRoleSchema = withDateRangeValidation(
+  dateRangeBaseSchema.extend({
+    title: z.string().min(1, "Role title is required"),
+    description: z.string().optional().nullable(),
   })
-  .refine((data) => !data.effectiveTo || data.effectiveFrom <= data.effectiveTo, {
-    message: "effectiveFrom must be before or equal to effectiveTo",
-    path: ["effectiveTo"],
+)
+
+export const dependentSchema = withDateRangeValidation(
+  dateRangeBaseSchema.extend({
+    fullName: z.string().min(2, "Dependent full name is required"),
+    relation: z.nativeEnum(DependentRelation),
+    birthDate: z.coerce.date().optional().nullable(),
+    oib: z.string().optional().nullable(),
+    isDisabled: z.boolean().optional().default(false),
   })
+)
 
-export const employeeRoleSchema = dateRangeSchema.extend({
-  title: z.string().min(1, "Role title is required"),
-  description: z.string().optional().nullable(),
-})
+export const allowanceSchema = withDateRangeValidation(
+  dateRangeBaseSchema.extend({
+    type: z.nativeEnum(AllowanceType),
+    amount: z.coerce.number().min(0),
+    currency: z.string().default("EUR"),
+    taxable: z.boolean().optional().default(false),
+  })
+)
 
-export const dependentSchema = dateRangeSchema.extend({
-  fullName: z.string().min(2, "Dependent full name is required"),
-  relation: z.nativeEnum(DependentRelation),
-  birthDate: z.coerce.date().optional().nullable(),
-  oib: z.string().optional().nullable(),
-  isDisabled: z.boolean().optional().default(false),
-})
+export const pensionPillarSchema = withDateRangeValidation(
+  dateRangeBaseSchema.extend({
+    pillar: z.nativeEnum(PensionPillarType),
+    fundName: z.string().optional().nullable(),
+    contributionRate: z.coerce.number().min(0).max(100).optional().nullable(),
+  })
+)
 
-export const allowanceSchema = dateRangeSchema.extend({
-  type: z.nativeEnum(AllowanceType),
-  amount: z.coerce.number().min(0),
-  currency: z.string().default("EUR"),
-  taxable: z.boolean().optional().default(false),
-})
-
-export const pensionPillarSchema = dateRangeSchema.extend({
-  pillar: z.nativeEnum(PensionPillarType),
-  fundName: z.string().optional().nullable(),
-  contributionRate: z.coerce.number().min(0).max(100).optional().nullable(),
-})
-
-export const employmentContractVersionSchema = dateRangeSchema.extend({
-  version: z.coerce.number().int().min(1),
-  roleTitle: z.string().optional().nullable(),
-  employmentType: z.nativeEnum(EmploymentType).optional().nullable(),
-  hoursPerWeek: z.coerce.number().int().min(1).max(168).optional().nullable(),
-  salaryAmount: z.coerce.number().min(0).optional().nullable(),
-  salaryCurrency: z.string().default("EUR"),
-})
+export const employmentContractVersionSchema = withDateRangeValidation(
+  dateRangeBaseSchema.extend({
+    version: z.coerce.number().int().min(1),
+    roleTitle: z.string().optional().nullable(),
+    employmentType: z.nativeEnum(EmploymentType).optional().nullable(),
+    hoursPerWeek: z.coerce.number().int().min(1).max(168).optional().nullable(),
+    salaryAmount: z.coerce.number().min(0).optional().nullable(),
+    salaryCurrency: z.string().default("EUR"),
+  })
+)
 
 export const employmentContractSchema = z
   .object({
