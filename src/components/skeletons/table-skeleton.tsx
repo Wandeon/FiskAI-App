@@ -14,7 +14,13 @@ export function TableSkeleton({
   showActions = true,
 }: TableSkeletonProps) {
   return (
-    <div className="space-y-4">
+    <div
+      className="space-y-4"
+      role="status"
+      aria-label="Učitavanje tablice"
+      aria-busy="true"
+    >
+      <span className="sr-only">Učitavanje...</span>
       {/* Header */}
       {showHeader && (
         <div className="flex items-center justify-between">

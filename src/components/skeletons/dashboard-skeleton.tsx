@@ -2,7 +2,13 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      role="status"
+      aria-label="Učitavanje nadzorne ploče"
+      aria-busy="true"
+    >
+      <span className="sr-only">Učitavanje...</span>
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         {/* Left Column */}
         <div className="space-y-6">
