@@ -37,7 +37,7 @@ vi.mock("next/cache", () => ({
 
 import { db } from "@/lib/db"
 import { requireAuth, requireCompanyWithContext } from "@/lib/auth-utils"
-import { createPremises } from "@/app/actions/premises"
+import { createPremises, createDevice } from "@/app/actions/premises"
 
 const user = { id: "user-1" }
 const company = { id: "company-1" }
@@ -76,5 +76,21 @@ describe("premises actions auth", () => {
         companyId: "company-1",
       }),
     })
+  })
+
+  it("createDevice rejects when premises is not owned", async () => {
+    vi.mocked(db.businessPremises.findFirst).mockResolvedValue(null as any)
+    vi.mocked(db.paymentDevice.findUnique).mockResolvedValue(null as any)
+    vi.mocked(db.paymentDevice.create).mockResolvedValue({ id: "dev-1" } as any)
+
+    const result = await createDevice({
+      companyId: "company-999",
+      businessPremisesId: "prem-9",
+      code: 1,
+      name: "POS 1",
+    })
+
+    expect(result.success).toBe(false)
+    expect(db.paymentDevice.create).not.toHaveBeenCalled()
   })
 })

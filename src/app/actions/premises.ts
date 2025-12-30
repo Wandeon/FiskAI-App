@@ -162,49 +162,65 @@ export async function deletePremises(id: string): Promise<ActionResult> {
 
 export async function createDevice(input: CreateDeviceInput): Promise<ActionResult> {
   try {
-    // Validate code is positive
-    if (input.code < 1) {
-      return { success: false, error: "Kod mora biti pozitivan broj" }
-    }
+    const user = await requireAuth()
 
-    // Check for duplicate code within premises
-    const existing = await db.paymentDevice.findUnique({
-      where: {
-        businessPremisesId_code: {
+    return requireCompanyWithContext(user.id!, async (company) => {
+      // Validate code is positive
+      if (input.code < 1) {
+        return { success: false, error: "Kod mora biti pozitivan broj" }
+      }
+
+      const premises = await db.businessPremises.findFirst({
+        where: { id: input.businessPremisesId, companyId: company.id },
+      })
+
+      if (!premises) {
+        return { success: false, error: "Poslovni prostor nije pronađen" }
+      }
+
+      // Check for duplicate code within premises
+      const existing = await db.paymentDevice.findUnique({
+        where: {
+          businessPremisesId_code: {
+            businessPremisesId: input.businessPremisesId,
+            code: input.code,
+          },
+        },
+      })
+
+      if (existing) {
+        return {
+          success: false,
+          error: `Naplatni uređaj s kodom ${input.code} već postoji u ovom poslovnom prostoru`,
+        }
+      }
+
+      // If this should be default, unset other defaults first
+      if (input.isDefault) {
+        await db.paymentDevice.updateMany({
+          where: {
+            businessPremisesId: input.businessPremisesId,
+            companyId: company.id,
+            isDefault: true,
+          },
+          data: { isDefault: false },
+        })
+      }
+
+      const device = await db.paymentDevice.create({
+        data: {
+          companyId: company.id,
           businessPremisesId: input.businessPremisesId,
           code: input.code,
+          name: input.name,
+          isDefault: input.isDefault ?? false,
+          isActive: true,
         },
-      },
-    })
-
-    if (existing) {
-      return {
-        success: false,
-        error: `Naplatni uređaj s kodom ${input.code} već postoji u ovom poslovnom prostoru`,
-      }
-    }
-
-    // If this should be default, unset other defaults first
-    if (input.isDefault) {
-      await db.paymentDevice.updateMany({
-        where: { businessPremisesId: input.businessPremisesId, isDefault: true },
-        data: { isDefault: false },
       })
-    }
 
-    const device = await db.paymentDevice.create({
-      data: {
-        companyId: input.companyId,
-        businessPremisesId: input.businessPremisesId,
-        code: input.code,
-        name: input.name,
-        isDefault: input.isDefault ?? false,
-        isActive: true,
-      },
+      revalidatePath("/settings/premises")
+      return { success: true, data: device }
     })
-
-    revalidatePath("/settings/premises")
-    return { success: true, data: device }
   } catch (error) {
     console.error("Failed to create device:", error)
     return { success: false, error: "Greška pri stvaranju naplatnog uređaja" }
