@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import { verifyOTP } from "@/lib/auth/otp"
 import { checkRateLimit, resetRateLimit } from "@/lib/security/rate-limit"
+import { apiError } from "@/lib/api-error"
 
 const schema = z.object({
   email: z.string().email(),
@@ -157,7 +158,10 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Nevažeći podaci" }, { status: 400 })
     }
-    console.error("Verify code error:", error)
-    return NextResponse.json({ error: "Greška pri verifikaciji" }, { status: 500 })
+    return apiError(error, {
+      status: 500,
+      code: "OPERATION_FAILED",
+      message: "Greška pri verifikaciji",
+    })
   }
 }

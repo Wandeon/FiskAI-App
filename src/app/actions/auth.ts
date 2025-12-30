@@ -186,6 +186,8 @@ export async function requestPasswordReset(email: string) {
     const crypto = await import("crypto")
     const tokenBytes = crypto.randomBytes(32)
     const token = tokenBytes.toString("hex")
+    // Hash the token before storing (security best practice)
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
 
     // Token expires in 1 hour
     const expiresAt = new Date()
@@ -199,7 +201,7 @@ export async function requestPasswordReset(email: string) {
     // Create new reset token
     await db.passwordResetToken.create({
       data: {
-        token,
+        token: tokenHash,  // Store hash, not plain token
         userId: user.id,
         expiresAt,
       },
@@ -232,7 +234,7 @@ export async function resetPassword(token: string, newPassword: string) {
   try {
     // Find token and validate it hasn't expired
     const resetToken = await db.passwordResetToken.findUnique({
-      where: { token },
+      where: { token: tokenHash },
       include: { user: true },
     })
 
