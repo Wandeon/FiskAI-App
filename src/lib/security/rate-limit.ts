@@ -55,6 +55,16 @@ export const RATE_LIMITS = {
     window: 15 * 60 * 1000, // 15 minutes
     blockDuration: 15 * 60 * 1000,
   },
+  NEWSLETTER_EMAIL: {
+    attempts: 3, // 3 attempts per email per hour
+    window: 60 * 60 * 1000, // 1 hour
+    blockDuration: 60 * 60 * 1000, // 1 hour block
+  },
+  NEWSLETTER_IP: {
+    attempts: 10, // 10 attempts per IP per hour
+    window: 60 * 60 * 1000, // 1 hour
+    blockDuration: 60 * 60 * 1000, // 1 hour block
+  },
 }
 
 /**

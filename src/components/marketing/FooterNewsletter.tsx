@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast"
 
 export function FooterNewsletter() {
   const [email, setEmail] = useState("")
+  const [honeypot, setHoneypot] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -19,11 +20,12 @@ export function FooterNewsletter() {
     }
 
     startTransition(async () => {
-      const result = await subscribeToNewsletter(email, "marketing_footer")
+      const result = await subscribeToNewsletter(email, "marketing_footer", honeypot)
 
       if (result.success) {
         setIsSubmitted(true)
         setEmail("")
+        setHoneypot("")
         toast.success(result.message)
       } else {
         toast.error(result.message)
@@ -45,6 +47,16 @@ export function FooterNewsletter() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-2">
+          <input
+            type="text"
+            name="website"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            className="absolute left-0 top-0 h-0 w-0 opacity-0"
+            aria-hidden="true"
+          />
           <div>
             <input
               type="email"

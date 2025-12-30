@@ -3,6 +3,8 @@
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsletterSubscriptions } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { checkRateLimit } from "@/lib/security/rate-limit"
+import { headers } from "next/headers"
 
 export interface NewsletterSubscribeResult {
   success: boolean
@@ -10,12 +12,32 @@ export interface NewsletterSubscribeResult {
   alreadySubscribed?: boolean
 }
 
+function getClientIp(headersList: Headers): string {
+  return (
+    headersList.get("cf-connecting-ip") ??
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
+    headersList.get("x-real-ip") ??
+    "unknown"
+  )
+}
+
 export async function subscribeToNewsletter(
   email: string,
-  source: string = "footer"
+  source: string = "footer",
+  honeypot?: string
 ): Promise<NewsletterSubscribeResult> {
   try {
-    // Validate email format
+    if (honeypot) {
+      console.warn("[newsletter] Bot detected via honeypot field")
+      return {
+        success: true,
+        message: "Uspješno ste se pretplatili! Uskoro ćete primiti potvrdu na email.",
+      }
+    }
+
+    const headersList = await headers()
+    const clientIp = getClientIp(headersList)
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return {
@@ -24,10 +46,27 @@ export async function subscribeToNewsletter(
       }
     }
 
-    // Normalize email
     const normalizedEmail = email.toLowerCase().trim()
 
-    // Check if already subscribed
+    const ipRateLimit = await checkRateLimit(`newsletter_ip:${clientIp}`, "NEWSLETTER_IP")
+    if (!ipRateLimit.allowed) {
+      return {
+        success: false,
+        message: "Previše pokušaja s ove IP adrese. Molimo pokušajte ponovno kasnije.",
+      }
+    }
+
+    const emailRateLimit = await checkRateLimit(
+      `newsletter_email:${normalizedEmail}`,
+      "NEWSLETTER_EMAIL"
+    )
+    if (!emailRateLimit.allowed) {
+      return {
+        success: false,
+        message: "Previše pokušaja s ovom email adresom. Molimo pokušajte ponovno kasnije.",
+      }
+    }
+
     const existing = await drizzleDb
       .select()
       .from(newsletterSubscriptions)
@@ -37,7 +76,6 @@ export async function subscribeToNewsletter(
     if (existing.length > 0) {
       const subscription = existing[0]
 
-      // If previously unsubscribed, reactivate
       if (!subscription.isActive || subscription.unsubscribedAt) {
         await drizzleDb
           .update(newsletterSubscriptions)
@@ -61,7 +99,6 @@ export async function subscribeToNewsletter(
       }
     }
 
-    // Create new subscription
     await drizzleDb.insert(newsletterSubscriptions).values({
       email: normalizedEmail,
       source: source,
