@@ -176,8 +176,8 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
       const userMembership = oibExists.users.find((u) => u.userId === user.id)
       const isOrphaned = oibExists.users.length === 0
 
-      if (userMembership || isOrphaned) {
-        // Update existing company with recalculated entitlements
+      if (userMembership) {
+        // User already has access, update company details
         await db.company.update({
           where: { id: oibExists.id },
           data: {
@@ -187,25 +187,19 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
           },
         })
 
-        // Link user if not already linked
-        if (!userMembership) {
-          await db.companyUser.create({
-            data: {
-              userId: user.id!,
-              companyId: oibExists.id,
-              role: "OWNER",
-              isDefault: true,
-            },
-          })
-        }
-
         revalidatePath("/dashboard")
         revalidatePath("/onboarding")
         return { success: true, companyId: oibExists.id }
+      } else if (isOrphaned) {
+        // SECURITY: Orphaned company - require admin intervention
+        return {
+          error:
+            "Ova tvrtka već postoji u sustavu ali nema aktivnih korisnika. Molimo kontaktirajte podršku.",
+        }
       } else {
         return {
           error:
-            "Tvrtka s ovim OIB-om je vec registrirana. Ako ste zaposlenik, zamolite administratora za pozivnicu.",
+            "Tvrtka s ovim OIB-om je već registrirana. Ako ste zaposlenik, zamolite administratora za pozivnicu.",
         }
       }
     }

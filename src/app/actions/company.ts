@@ -37,8 +37,8 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
       const userMembership = existingCompany.users.find((u) => u.userId === user.id)
       const isOrphaned = existingCompany.users.length === 0
 
-      if (userMembership || isOrphaned) {
-        // Safe to update
+      if (userMembership) {
+        // User already has access, update company details
         // Merge competence into existing featureFlags
         const existingFlags = (existingCompany.featureFlags as Record<string, unknown>) || {}
         const newFeatureFlags = data.competence
@@ -64,17 +64,11 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
         })
 
         companyId = updated.id
-
-        // Link user if not already linked
-        if (!userMembership) {
-          await db.companyUser.create({
-            data: {
-              userId: user.id!,
-              companyId: updated.id,
-              role: "OWNER",
-              isDefault: true,
-            },
-          })
+      } else if (isOrphaned) {
+        // SECURITY: Orphaned company - require admin intervention
+        return {
+          error:
+            "Ova tvrtka već postoji u sustavu ali nema aktivnih korisnika. Molimo kontaktirajte podršku.",
         }
       } else {
         return {
