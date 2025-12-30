@@ -3,6 +3,7 @@ import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
+import { getRequestMetadata } from "@/lib/staff-audit"
 
 const batchReviewSchema = z.object({
   companyId: z.string(),
@@ -81,6 +82,24 @@ export async function POST(request: NextRequest) {
         })
       )
     )
+
+    // Create audit log for batch review
+    const { ipAddress, userAgent } = getRequestMetadata(request.headers)
+    await db.auditLog.create({
+      data: {
+        companyId,
+        userId: user.id,
+        action: "STAFF_BATCH_REVIEW",
+        entity: "StaffReview",
+        entityId: "batch",
+        changes: {
+          reviewedCount: results.length,
+          entityTypes: reviews.map((r) => r.entityType),
+        },
+        ipAddress,
+        userAgent,
+      },
+    })
 
     return NextResponse.json({
       success: true,

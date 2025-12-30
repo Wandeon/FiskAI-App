@@ -3,6 +3,7 @@ import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
+import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
 
 const querySchema = z.object({
   from: z.string().optional(),
@@ -67,6 +68,20 @@ export async function GET(request: NextRequest) {
         reportType: parsed.data.reportType,
         totalClients: 0,
         clients: [],
+      })
+    }
+
+    // Log staff access for all accessed companies
+    const { ipAddress, userAgent } = getRequestMetadata(request.headers)
+    for (const companyId of companyIds) {
+      await logStaffAccess({
+        staffUserId: user.id,
+        clientCompanyId: companyId,
+        action: "STAFF_VIEW_REPORTS",
+        resourceType: "MultiClientReport",
+        metadata: { reportType: parsed.data.reportType },
+        ipAddress,
+        userAgent,
       })
     }
 
