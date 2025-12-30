@@ -8,7 +8,21 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // SECURITY: Require CRON_SECRET to be configured
+  if (!cronSecret) {
+    console.error("[cron] CRON_SECRET not configured")
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
+  }
+
+  const cronSecret = process.env.CRON_SECRET
+
+  // SECURITY: Require CRON_SECRET to be configured
+  if (!cronSecret) {
+    console.error("[cron] CRON_SECRET not configured")
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
+  }
+
+  if (authHeader !== `Bearer `) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
