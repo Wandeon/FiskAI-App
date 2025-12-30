@@ -1,16 +1,42 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+
+/**
+ * Card variants for different visual styles
+ */
+export const cardVariants = cva(
+  "rounded-lg border shadow-card transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "border-border bg-surface",
+        glass: "border-white/10 bg-white/5 backdrop-blur-sm",
+        elevated: "border-border bg-surface shadow-lg",
+      },
+      padding: {
+        none: "",
+        sm: "p-4",
+        default: "p-6",
+        lg: "p-8",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      padding: "default",
+    },
+  }
+);
+
+export type CardVariants = VariantProps<typeof cardVariants>;
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & CardVariants
+>(({ className, variant, padding, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      "rounded-lg border border-border bg-surface shadow-card",
-      className
-    )}
+    className={cn(cardVariants({ variant, padding }), className)}
     {...props}
   />
 ));
