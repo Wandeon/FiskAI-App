@@ -232,12 +232,29 @@ export async function flagTenant(
 
 /**
  * Export tenant data as JSON
+ * Security features:
+ * - Rate limiting (10 exports/hour per admin)
+ * - Audit logging with admin user tracking
+ * - Redacted bank account balances
+ * - Tenant notification on data export
  */
 export async function exportTenantData(
   companyId: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
-    await requireAdmin()
+    const admin = await requireAdmin()
+
+    // Check rate limit (10 exports per hour per admin)
+    const rateLimitCheck = await checkRateLimit(admin.id, "ADMIN_EXPORT")
+    if (!rateLimitCheck.allowed) {
+      const resetIn = rateLimitCheck.resetAt
+        ? Math.ceil((rateLimitCheck.resetAt - Date.now()) / 60000)
+        : 60
+      return {
+        success: false,
+        error: `Ograničenje brzine: Previše zahtjeva za izvoz. Pokušajte ponovno za ${resetIn} minuta.`,
+      }
+    }
 
     // Fetch comprehensive tenant data
     const company = await db.company.findUnique({
@@ -286,7 +303,7 @@ export async function exportTenantData(
             name: true,
             iban: true,
             currency: true,
-            currentBalance: true,
+            // currentBalance excluded for security - sensitive financial data
           },
         },
       },
@@ -305,6 +322,11 @@ export async function exportTenantData(
 
     const exportData = {
       exportedAt: new Date().toISOString(),
+      exportedBy: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+      },
       company: {
         id: company.id,
         name: company.name,
@@ -334,7 +356,76 @@ export async function exportTenantData(
       invoices: company.eInvoices,
       expenses: company.expenses,
       contacts: company.contacts,
-      bankAccounts: company.bankAccounts,
+      bankAccounts: company.bankAccounts.map((account) => ({
+        id: account.id,
+        name: account.name,
+        iban: account.iban,
+        currency: account.currency,
+        // currentBalance intentionally excluded - sensitive financial data
+      })),
+    }
+
+    // Log audit event (fire-and-forget)
+    logAudit({
+      companyId,
+      userId: admin.id,
+      action: "EXPORT",
+      entity: "TenantData",
+      entityId: companyId,
+      changes: {
+        after: {
+          exportedBy: admin.email,
+          exportedAt: exportData.exportedAt,
+          recordCounts: {
+            users: company.users.length,
+            invoices: company.eInvoices.length,
+            expenses: company.expenses.length,
+            contacts: company.contacts.length,
+            bankAccounts: company.bankAccounts.length,
+          },
+        },
+      },
+    })
+
+    // Send notification to tenant owner (fire-and-forget)
+    const owner = company.users.find((cu) => cu.role === "OWNER")?.user
+    if (owner && resend) {
+      resend.emails
+        .send({
+          from: process.env.RESEND_FROM_EMAIL || "FiskAI <noreply@fiskai.hr>",
+          to: owner.email,
+          subject: "Obavijest o izvozu podataka / Data Export Notification",
+          text: `Poštovani,
+
+Obavještavamo Vas da je administrator FiskAI platforme izvezao podatke Vaše tvrtke ${company.name}.
+
+Detalji izvoza:
+- Izvezao: ${admin.email}
+- Vrijeme: ${new Date(exportData.exportedAt).toLocaleString("hr-HR")}
+- Broj zapisa: ${company.users.length} korisnika, ${company.eInvoices.length} računa, ${company.expenses.length} troškova
+
+Ako imate pitanja ili primjedbe vezane uz ovaj izvoz, molimo kontaktirajte FiskAI podršku.
+
+---
+
+Dear User,
+
+This is to notify you that a FiskAI platform administrator has exported data for your company ${company.name}.
+
+Export details:
+- Exported by: ${admin.email}
+- Time: ${new Date(exportData.exportedAt).toLocaleString("en-US")}
+- Record counts: ${company.users.length} users, ${company.eInvoices.length} invoices, ${company.expenses.length} expenses
+
+If you have any questions or concerns about this export, please contact FiskAI support.
+
+Srdačno / Best regards,
+FiskAI Tim / Team`,
+        })
+        .catch((error) => {
+          console.error("Failed to send tenant notification:", error)
+          // Don't fail the export if notification fails
+        })
     }
 
     return { success: true, data: exportData }
