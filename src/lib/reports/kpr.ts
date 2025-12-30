@@ -218,7 +218,7 @@ export function kprToCsv(summary: KprSummary): string {
     "Primitak (Prihod)",
     "Izdatak (Trošak)",
     "Saldo",
-  ].join(",")
+  ].join(";")
 
   const lines = summary.rows.map((r, idx) =>
     [
@@ -229,7 +229,7 @@ export function kprToCsv(summary: KprSummary): string {
       r.income.toFixed(2),
       r.expense.toFixed(2),
       r.balance.toFixed(2),
-    ].join(",")
+    ].join(";")
   )
 
   const totals = [
@@ -240,7 +240,7 @@ export function kprToCsv(summary: KprSummary): string {
     summary.totalIncome.toFixed(2),
     summary.totalExpense.toFixed(2),
     summary.netIncome.toFixed(2),
-  ].join(",")
+  ].join(";")
 
   return [header, ...lines, totals].join("\n")
 }
@@ -255,7 +255,7 @@ export function kprToCsvLegacy(summary: KprSummary): string {
     "Osnovica",
     "PDV",
     "Ukupno",
-  ].join(",")
+  ].join(";")
   const lines = summary.rows
     .filter((r) => r.type === "INCOME")
     .map((r) =>
@@ -267,7 +267,7 @@ export function kprToCsvLegacy(summary: KprSummary): string {
         (r.netAmount || 0).toFixed(2),
         (r.vatAmount || 0).toFixed(2),
         (r.totalAmount || 0).toFixed(2),
-      ].join(",")
+      ].join(";")
     )
   const totals = [
     "",
@@ -277,7 +277,7 @@ export function kprToCsvLegacy(summary: KprSummary): string {
     (summary.totalNet || 0).toFixed(2),
     (summary.totalVat || 0).toFixed(2),
     (summary.totalGross || 0).toFixed(2),
-  ].join(",")
+  ].join(";")
   return [header, ...lines, totals].join("\n")
 }
 
@@ -314,7 +314,7 @@ function formatDate(date: Date | null): string {
 }
 
 function escapeCsv(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+  if (value.includes(";") || value.includes('"') || value.includes("\n")) {
     return `"${value.replace(/"/g, '""')}"`
   }
   return value
