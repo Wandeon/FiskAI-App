@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 
 export type IraRow = {
   issueDate: Date
@@ -9,6 +10,14 @@ export type IraRow = {
   vatAmount: number
   totalAmount: number
   paidAt: Date | null
+  // Tax breakdown
+  base25: number
+  vat25: number
+  base13: number
+  vat13: number
+  base5: number
+  vat5: number
+  base0: number
 }
 
 export type UraRow = {
@@ -20,6 +29,14 @@ export type UraRow = {
   vatAmount: number
   totalAmount: number
   vatDeductible: boolean
+  // Tax breakdown
+  base25: number
+  vat25: number
+  base13: number
+  vat13: number
+  base5: number
+  vat5: number
+  base0: number
 }
 
 export async function fetchIraRows(companyId: string, from?: Date, to?: Date): Promise<IraRow[]> {
@@ -48,20 +65,59 @@ export async function fetchIraRows(companyId: string, from?: Date, to?: Date): P
     },
     include: {
       buyer: { select: { name: true, oib: true } },
+      lines: { select: { netAmount: true, vatAmount: true, vatRate: true } },
     },
     orderBy: { issueDate: "asc" },
   })
 
-  return invoices.map((inv) => ({
-    issueDate: inv.issueDate,
-    invoiceNumber: inv.invoiceNumber,
-    buyerName: inv.buyer?.name ?? null,
-    buyerOib: inv.buyer?.oib ?? null,
-    netAmount: Number(inv.netAmount),
-    vatAmount: Number(inv.vatAmount),
-    totalAmount: Number(inv.totalAmount),
-    paidAt: inv.paidAt,
-  }))
+  return invoices.map((inv) => {
+    // Initialize buckets
+    let base25 = 0,
+      vat25 = 0
+    let base13 = 0,
+      vat13 = 0
+    let base5 = 0,
+      vat5 = 0
+    let base0 = 0
+
+    // Aggregate lines
+    for (const line of inv.lines) {
+      const rate = Number(line.vatRate)
+      const net = Number(line.netAmount)
+      const vat = Number(line.vatAmount)
+
+      if (Math.abs(rate - 25) < 0.1) {
+        base25 += net
+        vat25 += vat
+      } else if (Math.abs(rate - 13) < 0.1) {
+        base13 += net
+        vat13 += vat
+      } else if (Math.abs(rate - 5) < 0.1) {
+        base5 += net
+        vat5 += vat
+      } else {
+        base0 += net
+      }
+    }
+
+    return {
+      issueDate: inv.issueDate,
+      invoiceNumber: inv.invoiceNumber,
+      buyerName: inv.buyer?.name ?? null,
+      buyerOib: inv.buyer?.oib ?? null,
+      netAmount: Number(inv.netAmount),
+      vatAmount: Number(inv.vatAmount),
+      totalAmount: Number(inv.totalAmount),
+      paidAt: inv.paidAt,
+      base25,
+      vat25,
+      base13,
+      vat13,
+      base5,
+      vat5,
+      base0,
+    }
+  })
 }
 
 export async function fetchUraRows(companyId: string, from?: Date, to?: Date): Promise<UraRow[]> {
@@ -93,16 +149,50 @@ export async function fetchUraRows(companyId: string, from?: Date, to?: Date): P
     orderBy: { date: "asc" },
   })
 
-  return expenses.map((exp) => ({
-    date: exp.date,
-    documentRef: exp.description,
-    vendorName: exp.vendor?.name ?? null,
-    vendorOib: exp.vendor?.oib ?? null,
-    netAmount: Number(exp.netAmount),
-    vatAmount: Number(exp.vatAmount),
-    totalAmount: Number(exp.totalAmount),
-    vatDeductible: exp.vatDeductible,
-  }))
+  return expenses.map((exp) => {
+    const rate = Number(exp.vatRate)
+    const net = Number(exp.netAmount)
+    const vat = Number(exp.vatAmount)
+
+    let base25 = 0,
+      vat25 = 0
+    let base13 = 0,
+      vat13 = 0
+    let base5 = 0,
+      vat5 = 0
+    let base0 = 0
+
+    if (Math.abs(rate - 25) < 0.1) {
+      base25 = net
+      vat25 = vat
+    } else if (Math.abs(rate - 13) < 0.1) {
+      base13 = net
+      vat13 = vat
+    } else if (Math.abs(rate - 5) < 0.1) {
+      base5 = net
+      vat5 = vat
+    } else {
+      base0 = net
+    }
+
+    return {
+      date: exp.date,
+      documentRef: exp.description,
+      vendorName: exp.vendor?.name ?? null,
+      vendorOib: exp.vendor?.oib ?? null,
+      netAmount: Number(exp.netAmount),
+      vatAmount: Number(exp.vatAmount),
+      totalAmount: Number(exp.totalAmount),
+      vatDeductible: exp.vatDeductible,
+      base25,
+      vat25,
+      base13,
+      vat13,
+      base5,
+      vat5,
+      base0,
+    }
+  })
 }
 
 function formatDate(value?: Date | null) {
@@ -127,6 +217,13 @@ export function iraToCsv(rows: IraRow[]): string {
     "Osnovica (EUR)",
     "PDV (EUR)",
     "Ukupno (EUR)",
+    "Osnovica 25%",
+    "PDV 25%",
+    "Osnovica 13%",
+    "PDV 13%",
+    "Osnovica 5%",
+    "PDV 5%",
+    "Oslobođeno/0%",
     "Plaćeno",
     "Datum plaćanja",
   ].join(";")
@@ -140,6 +237,13 @@ export function iraToCsv(rows: IraRow[]): string {
       row.netAmount.toFixed(2),
       row.vatAmount.toFixed(2),
       row.totalAmount.toFixed(2),
+      row.base25.toFixed(2),
+      row.vat25.toFixed(2),
+      row.base13.toFixed(2),
+      row.vat13.toFixed(2),
+      row.base5.toFixed(2),
+      row.vat5.toFixed(2),
+      row.base0.toFixed(2),
       row.paidAt ? "DA" : "NE",
       formatDate(row.paidAt),
     ]
@@ -159,6 +263,13 @@ export function uraToCsv(rows: UraRow[]): string {
     "Osnovica (EUR)",
     "PDV (EUR)",
     "Ukupno (EUR)",
+    "Osnovica 25%",
+    "PDV 25%",
+    "Osnovica 13%",
+    "PDV 13%",
+    "Osnovica 5%",
+    "PDV 5%",
+    "Oslobođeno/0%",
     "Pretporez",
   ].join(";")
 
@@ -171,6 +282,13 @@ export function uraToCsv(rows: UraRow[]): string {
       row.netAmount.toFixed(2),
       row.vatAmount.toFixed(2),
       row.totalAmount.toFixed(2),
+      row.base25.toFixed(2),
+      row.vat25.toFixed(2),
+      row.base13.toFixed(2),
+      row.vat13.toFixed(2),
+      row.base5.toFixed(2),
+      row.vat5.toFixed(2),
+      row.base0.toFixed(2),
       row.vatDeductible ? "DA" : "NE",
     ]
       .map(escapeCsv)
