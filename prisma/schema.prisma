@@ -733,7 +733,8 @@ model ImportJob {
   bankAccountId   String?
   fileChecksum    String
   originalName    String
-  storagePath     String
+  storagePath     String?
+  storageKey      String?
   status          JobStatus        @default(PENDING)
   tierUsed        TierType?
   failureReason   String?

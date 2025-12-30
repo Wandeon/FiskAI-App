@@ -7,6 +7,7 @@ import { deepseekJson } from "@/lib/ai/deepseek"
 import { BANK_STATEMENT_SYSTEM_PROMPT, INVOICE_SYSTEM_PROMPT } from "@/lib/banking/import/prompt"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import { downloadFromR2 } from "@/lib/r2-client"
 
 export async function POST(request: Request) {
   // Add authentication and authorization
@@ -59,18 +60,18 @@ export async function POST(request: Request) {
     if (documentType === DocumentType.INVOICE) {
       // Process as invoice
       if (["pdf", "jpg", "jpeg", "png", "heic", "webp"].includes(extension)) {
-        extractedData = await processInvoice(job.storagePath, extension)
+        extractedData = await processInvoice(job, extension)
       } else {
         throw new Error("Invoice processing only supports PDF and images")
       }
     } else {
       // Process as bank statement
       if (extension === "xml") {
-        extractedData = await processXml(job.storagePath)
+        extractedData = await processXml(job)
       } else if (extension === "csv") {
-        extractedData = await processCsv(job.storagePath)
+        extractedData = await processCsv(job)
       } else if (["pdf", "jpg", "jpeg", "png", "heic", "webp"].includes(extension)) {
-        extractedData = await processPdfOrImage(job.storagePath, extension)
+        extractedData = await processPdfOrImage(job, extension)
       }
     }
 
@@ -98,8 +99,22 @@ export async function POST(request: Request) {
   }
 }
 
-async function processXml(filePath: string) {
-  const xmlBuffer = await fs.readFile(filePath, "utf-8")
+// Helper function to get file buffer from either R2 or local storage
+async function getFileBuffer(job: any): Promise<Buffer> {
+  if (job.storageKey) {
+    // New R2 storage
+    return await downloadFromR2(job.storageKey)
+  } else if (job.storagePath) {
+    // Legacy local storage
+    return await fs.readFile(job.storagePath)
+  } else {
+    throw new Error("No storage location found for import job")
+  }
+}
+
+async function processXml(job: any) {
+  const buffer = await getFileBuffer(job)
+  const xmlBuffer = buffer.toString("utf-8")
   const parser = new XMLParser({ ignoreAttributes: false, parseTagValue: true })
   const parsed = parser.parse(xmlBuffer)
 
@@ -149,8 +164,9 @@ async function processXml(filePath: string) {
   return { transactions, openingBalance: openingBal, closingBalance: closingBal, mathValid }
 }
 
-async function processCsv(filePath: string) {
-  const csvText = await fs.readFile(filePath, "utf-8")
+async function processCsv(job: any) {
+  const buffer = await getFileBuffer(job)
+  const csvText = buffer.toString("utf-8")
   const lines = csvText.trim().split("\n")
   if (lines.length < 2) throw new Error("CSV file is empty")
 
@@ -184,8 +200,8 @@ async function processCsv(filePath: string) {
   return { transactions, openingBalance: null, closingBalance: null, mathValid: true }
 }
 
-async function processPdfOrImage(filePath: string, ext: string) {
-  const buffer = await fs.readFile(filePath)
+async function processPdfOrImage(job: any, ext: string) {
+  const buffer = await getFileBuffer(job)
   let response: string
 
   if (ext === "pdf") {
@@ -312,8 +328,8 @@ function extractAmount(amt: any): number {
   return 0
 }
 
-async function processInvoice(filePath: string, ext: string) {
-  const buffer = await fs.readFile(filePath)
+async function processInvoice(job: any, ext: string) {
+  const buffer = await getFileBuffer(job)
   let response: string
 
   if (ext === "pdf") {
