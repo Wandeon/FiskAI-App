@@ -129,6 +129,8 @@ model Company {
   userLimit                      Int                   @default(1)
   stripeTerminalLocationId       String?
   stripeTerminalReaderId         String?
+  lastPaymentFailedAt            DateTime?
+  paymentFailureCount            Int                   @default(0)
   aiUsage                        AIUsage[]
   auditLogs                      AuditLog[]
   bankAccounts                   BankAccount[]
@@ -3268,7 +3270,6 @@ enum FeatureFlagStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
-  DELETED
   DELETED
 }
 

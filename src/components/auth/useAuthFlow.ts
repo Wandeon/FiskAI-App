@@ -410,12 +410,12 @@ export function useAuthFlow() {
         return
       }
 
-      const { user } = await finishResponse.json()
+      const { verificationToken } = await finishResponse.json()
 
-      // Sign in with the special passkey token
+      // Sign in with the signed verification token
       const result = await signIn("credentials", {
         email: state.email,
-        password: `__PASSKEY__${user.id}`,
+        password: `__PASSKEY__${verificationToken}`,
         redirect: false,
       })
 
