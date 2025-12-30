@@ -476,14 +476,14 @@ export default async function PausalniObrtReportsPage() {
               <div className="w-full bg-muted rounded-full h-2.5">
                 <div
                   className={`h-2.5 rounded-full ${
-                    Number(annualSummary._sum.totalAmount || 0) / 300000 >= 1
+                    Number(annualSummary._sum.totalAmount || 0) / 40000 >= 1
                       ? "bg-red-500"
-                      : Number(annualSummary._sum.totalAmount || 0) / 300000 >= 0.85
+                      : Number(annualSummary._sum.totalAmount || 0) / 40000 >= 0.85
                         ? "bg-amber-500"
                         : "bg-blue-500"
                   }`}
                   style={{
-                    width: `${Math.min((Number(annualSummary._sum.totalAmount || 0) / 300000) * 100, 100)}%`,
+                    width: `${Math.min((Number(annualSummary._sum.totalAmount || 0) / 40000) * 100, 100)}%`,
                   }}
                 ></div>
               </div>
