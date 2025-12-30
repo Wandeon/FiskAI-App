@@ -7,6 +7,7 @@ import {
   resetAllCircuitBreakers,
   getCircuitBreakerStatus,
 } from "@/lib/regulatory-truth/workers/circuit-breaker"
+import { auditCircuitBreakerReset } from "@/lib/admin/circuit-breaker-audit"
 
 /**
  * POST /api/admin/workers/circuit-breaker/reset
@@ -17,6 +18,7 @@ import {
  *
  * Request body:
  * - name (optional): Specific circuit breaker to reset. If omitted, resets all open breakers.
+ * - reason (optional): Reason for the manual reset (for audit trail).
  *
  * Response:
  * - success: boolean
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json().catch(() => ({}))
-    const { name } = body
+    const { name, reason } = body
 
     let resetBreakers: string[] = []
 
@@ -82,6 +84,16 @@ export async function POST(request: NextRequest) {
         })
       }
     }
+
+    // Audit log and notify ops team (Issue #835)
+    await auditCircuitBreakerReset({
+      resetItems: resetBreakers,
+      adminEmail: user.email,
+      adminId: user.id,
+      reason,
+      component: "worker",
+      resetType: name ? "specific" : "all",
+    })
 
     return NextResponse.json({
       success: true,

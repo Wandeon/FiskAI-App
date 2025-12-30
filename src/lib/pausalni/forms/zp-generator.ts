@@ -235,7 +235,7 @@ export function generateZpXml(data: ZpFormData): string {
   xml += `    <VrstaPrijave>O</VrstaPrijave>\n` // O = Original (can be O, I = Izmjena/Amendment)
   xml += `    <PdvId>${escapeXml(data.companyPdvId)}</PdvId>\n`
   xml += `    <Oib>${data.companyOib}</Oib>\n`
-  xml += `    <NazivPoreznika>${escapeXml(data.companyName)}</NazivPorezujuci>\n`
+  xml += `    <NazivPoreznika>${escapeXml(data.companyName)}</NazivPoreznika>\n`
   xml += `    <Adresa>${escapeXml(data.companyAddress)}</Adresa>\n`
   xml += `    <Mjesto>${escapeXml(data.companyCity)}</Mjesto>\n`
   xml += `    <PostanskiBroj>${escapeXml(data.companyPostalCode)}</PostanskiBroj>\n`

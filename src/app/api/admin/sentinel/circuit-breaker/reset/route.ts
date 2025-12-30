@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { rateLimiter } from "@/lib/regulatory-truth/utils/rate-limiter"
+import { auditCircuitBreakerReset } from "@/lib/admin/circuit-breaker-audit"
 
 /**
  * POST /api/admin/sentinel/circuit-breaker/reset
@@ -13,6 +14,7 @@ import { rateLimiter } from "@/lib/regulatory-truth/utils/rate-limiter"
  *
  * Request body:
  * - domain (optional): Specific domain to reset. If omitted, resets all domains.
+ * - reason (optional): Reason for the manual reset (for audit trail).
  *
  * Response:
  * - success: boolean
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json().catch(() => ({}))
-    const { domain } = body
+    const { domain, reason } = body
 
     const resetDomains: string[] = []
 
