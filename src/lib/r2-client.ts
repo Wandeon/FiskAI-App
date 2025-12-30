@@ -12,6 +12,8 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  PutObjectRetentionCommand,
+  ObjectLockRetentionMode,
 } from "@aws-sdk/client-s3"
 import { createHmac, timingSafeEqual } from "crypto"
 
