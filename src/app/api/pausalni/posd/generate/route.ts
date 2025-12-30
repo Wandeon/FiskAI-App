@@ -20,7 +20,7 @@ import { PosdPDFDocument } from "@/lib/pausalni/forms/posd-pdf-template"
  * Body:
  * {
  *   year: number (required)
- *   expenseBracket: 25 | 30 | 34 | 40 (required)
+ *   expenseBracket: 25 | 30 | 34 | 40 | 85 (required)
  *   grossIncome?: number (optional, override calculated income)
  *   format: "pdf" | "xml" | "both" (default: "pdf")
  * }
@@ -48,9 +48,9 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       return NextResponse.json({ error: "Invalid year" }, { status: 400 })
     }
 
-    if (![25, 30, 34, 40].includes(expenseBracket)) {
+    if (![25, 30, 34, 40, 85].includes(expenseBracket)) {
       return NextResponse.json(
-        { error: "expenseBracket must be one of: 25, 30, 34, 40" },
+        { error: "expenseBracket must be one of: 25, 30, 34, 40, 85" },
         { status: 400 }
       )
     }

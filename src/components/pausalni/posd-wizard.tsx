@@ -41,6 +41,7 @@ const EXPENSE_BRACKETS = [
   { value: 30, label: "30% - Proizvodne i trgovačke djelatnosti" },
   { value: 34, label: "34% - Trgovina na malo" },
   { value: 40, label: "40% - Promet na veliko" },
+  { value: 85, label: "85% - Ugostiteljstvo i turizam" },
 ]
 
 export function PosdWizard({ companyId }: Props) {

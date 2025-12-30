@@ -29,6 +29,7 @@ export const EXPENSE_BRACKETS = [
   { value: 30, label: "Proizvodne i trgovačke djelatnosti" },
   { value: 34, label: "Trgovina na malo" },
   { value: 40, label: "Promet na veliko" },
+  { value: 85, label: "Ugostiteljstvo i turizam" },
 ] as const
 
 export type ExpenseBracket = (typeof EXPENSE_BRACKETS)[number]["value"]
@@ -306,8 +307,8 @@ export function validatePosdFormData(data: PosdFormData): {
   }
 
   // Validate expense bracket
-  if (![25, 30, 34, 40].includes(data.expenseBracket)) {
-    errors.push("Stopa priznatih troškova mora biti 25%, 30%, 34% ili 40%")
+  if (![25, 30, 34, 40, 85].includes(data.expenseBracket)) {
+    errors.push("Stopa priznatih troškova mora biti 25%, 30%, 34%, 40% ili 85%")
   }
 
   // Validate amounts
