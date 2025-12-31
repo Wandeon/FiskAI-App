@@ -31,6 +31,10 @@ export default defineConfig({
       "src/lib/assistant/query-engine/__tests__/answer-synthesizer.test.ts",
       "src/lib/regulatory-truth/graph/__tests__/cycle-detection.test.ts",
       "src/lib/pausalni/__tests__/threshold-validation.test.ts",
+      // Integration tests requiring infrastructure (database, Redis)
+      "src/lib/regulatory-truth/content-sync/__tests__/integration.test.ts",
+      "src/lib/regulatory-truth/workers/__tests__/integration.test.ts",
+      "src/lib/assistant/__tests__/fail-closed-integration.test.ts",
     ],
   },
   resolve: {
