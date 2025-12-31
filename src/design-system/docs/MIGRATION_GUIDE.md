@@ -36,7 +36,7 @@ Always verify your changes in both light and dark mode:
 
 ```tsx
 // Toggle dark mode in DevTools
-document.documentElement.classList.toggle('dark');
+document.documentElement.classList.toggle("dark")
 ```
 
 ### Step 4: Commit
@@ -47,20 +47,20 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ### Text Colors
 
-| Hardcoded Color | Semantic Token | Usage |
-|----------------|----------------|-------|
-| `text-foreground` | `text-foreground` | Headings, primary text |
-| `text-foreground` | `text-foreground` | Headings, primary text |
-| `text-foreground` | `text-foreground` | Headings, primary text |
-| `text-secondary` | `text-secondary` | Body text, labels |
-| `text-tertiary` | `text-tertiary` | Captions, metadata |
-| `text-muted` | `text-muted` | Disabled text, placeholders |
-| `text-secondary` | `text-muted` | Disabled text (dark bg) |
-| `text-gray-*` | Use `slate` equivalents | Same as slate |
-| `text-white` | `text-inverse` or keep `text-white` | Text on dark backgrounds |
-| `text-link` | `text-link` | Interactive text, links |
-| `text-link` | `text-link` | Links |
-| `text-blue-500` | `text-link` | Links |
+| Hardcoded Color   | Semantic Token                      | Usage                       |
+| ----------------- | ----------------------------------- | --------------------------- |
+| `text-foreground` | `text-foreground`                   | Headings, primary text      |
+| `text-foreground` | `text-foreground`                   | Headings, primary text      |
+| `text-foreground` | `text-foreground`                   | Headings, primary text      |
+| `text-secondary`  | `text-secondary`                    | Body text, labels           |
+| `text-tertiary`   | `text-tertiary`                     | Captions, metadata          |
+| `text-muted`      | `text-muted`                        | Disabled text, placeholders |
+| `text-secondary`  | `text-muted`                        | Disabled text (dark bg)     |
+| `text-gray-*`     | Use `slate` equivalents             | Same as slate               |
+| `text-white`      | `text-inverse` or keep `text-white` | Text on dark backgrounds    |
+| `text-link`       | `text-link`                         | Interactive text, links     |
+| `text-link`       | `text-link`                         | Links                       |
+| `text-blue-500`   | `text-link`                         | Links                       |
 
 **Example migration:**
 
@@ -78,21 +78,21 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ### Background Colors
 
-| Hardcoded Color | Semantic Token | Usage |
-|----------------|----------------|-------|
-| `bg-slate-25` | `bg-base` | Page background |
-| `bg-surface-1` | `bg-surface-1` | Subtle backgrounds |
-| `bg-surface-2` | `bg-surface-2` | More elevated |
-| `bg-slate-200` | `bg-surface-2` | More elevated |
-| `bg-surface` | `bg-surface` | Cards, panels |
-| `bg-gray-*` | Use `slate` equivalents | Same as slate |
-| `bg-interactive` | `bg-interactive` | Primary buttons |
-| `bg-blue-700` | `bg-interactive-hover` | Primary button hover |
-| `bg-interactive` | `bg-interactive` | Primary buttons |
-| `bg-info-bg` | `bg-info-bg` | Info alerts |
-| `bg-emerald-50` | `bg-success-bg` | Success alerts |
-| `bg-amber-50` | `bg-warning-bg` | Warning alerts |
-| `bg-danger-bg` | `bg-danger-bg` | Error alerts |
+| Hardcoded Color  | Semantic Token          | Usage                |
+| ---------------- | ----------------------- | -------------------- |
+| `bg-slate-25`    | `bg-base`               | Page background      |
+| `bg-surface-1`   | `bg-surface-1`          | Subtle backgrounds   |
+| `bg-surface-2`   | `bg-surface-2`          | More elevated        |
+| `bg-slate-200`   | `bg-surface-2`          | More elevated        |
+| `bg-surface`     | `bg-surface`            | Cards, panels        |
+| `bg-gray-*`      | Use `slate` equivalents | Same as slate        |
+| `bg-interactive` | `bg-interactive`        | Primary buttons      |
+| `bg-blue-700`    | `bg-interactive-hover`  | Primary button hover |
+| `bg-interactive` | `bg-interactive`        | Primary buttons      |
+| `bg-info-bg`     | `bg-info-bg`            | Info alerts          |
+| `bg-emerald-50`  | `bg-success-bg`         | Success alerts       |
+| `bg-amber-50`    | `bg-warning-bg`         | Warning alerts       |
+| `bg-danger-bg`   | `bg-danger-bg`          | Error alerts         |
 
 **Example migration:**
 
@@ -110,18 +110,18 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ### Border Colors
 
-| Hardcoded Color | Semantic Token | Usage |
-|----------------|----------------|-------|
-| `border-default` | `border-default` | Standard borders |
-| `border-default` | `border-default` | Standard borders |
-| `border-slate-100` | `border-subtle` | Dividers, subtle lines |
-| `border-slate-400` | `border-strong` | Emphasized borders |
-| `border-gray-*` | Use `slate` equivalents | Same as slate |
-| `border-focus` | `border-focus` | Focus rings |
-| `border-focus` | `border-focus` | Focus rings |
-| `border-emerald-200` | `border-success-border` | Success outlines |
-| `border-amber-200` | `border-warning-border` | Warning outlines |
-| `border-danger-border` | `border-danger-border` | Error outlines |
+| Hardcoded Color        | Semantic Token          | Usage                  |
+| ---------------------- | ----------------------- | ---------------------- |
+| `border-default`       | `border-default`        | Standard borders       |
+| `border-default`       | `border-default`        | Standard borders       |
+| `border-slate-100`     | `border-subtle`         | Dividers, subtle lines |
+| `border-slate-400`     | `border-strong`         | Emphasized borders     |
+| `border-gray-*`        | Use `slate` equivalents | Same as slate          |
+| `border-focus`         | `border-focus`          | Focus rings            |
+| `border-focus`         | `border-focus`          | Focus rings            |
+| `border-emerald-200`   | `border-success-border` | Success outlines       |
+| `border-amber-200`     | `border-warning-border` | Warning outlines       |
+| `border-danger-border` | `border-danger-border`  | Error outlines         |
 
 **Example migration:**
 
@@ -137,14 +137,14 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 #### Success
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-emerald-50` | `bg-success-bg` |
-| `bg-emerald-100` | `bg-success-bg` |
-| `text-emerald-700` | `text-success-text` |
-| `text-emerald-600` | `text-success-text` |
-| `border-emerald-200` | `border-success-border` |
-| `text-emerald-600` (icons) | `text-success-icon` |
+| Hardcoded Color            | Semantic Token          |
+| -------------------------- | ----------------------- |
+| `bg-emerald-50`            | `bg-success-bg`         |
+| `bg-emerald-100`           | `bg-success-bg`         |
+| `text-emerald-700`         | `text-success-text`     |
+| `text-emerald-600`         | `text-success-text`     |
+| `border-emerald-200`       | `border-success-border` |
+| `text-emerald-600` (icons) | `text-success-icon`     |
 
 **Example:**
 
@@ -162,36 +162,36 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 #### Warning
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-amber-50` | `bg-warning-bg` |
-| `bg-amber-100` | `bg-warning-bg` |
-| `text-amber-700` | `text-warning-text` |
-| `text-amber-600` | `text-warning-text` |
-| `border-amber-200` | `border-warning-border` |
-| `text-amber-600` (icons) | `text-warning-icon` |
+| Hardcoded Color          | Semantic Token          |
+| ------------------------ | ----------------------- |
+| `bg-amber-50`            | `bg-warning-bg`         |
+| `bg-amber-100`           | `bg-warning-bg`         |
+| `text-amber-700`         | `text-warning-text`     |
+| `text-amber-600`         | `text-warning-text`     |
+| `border-amber-200`       | `border-warning-border` |
+| `text-amber-600` (icons) | `text-warning-icon`     |
 
 #### Danger/Error
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-danger-bg` | `bg-danger-bg` |
-| `bg-danger-bg` | `bg-danger-bg` |
-| `text-danger-text` | `text-danger-text` |
-| `text-danger-text` | `text-danger-text` |
-| `border-danger-border` | `border-danger-border` |
-| `text-danger-text` (icons) | `text-danger-icon` |
+| Hardcoded Color            | Semantic Token         |
+| -------------------------- | ---------------------- |
+| `bg-danger-bg`             | `bg-danger-bg`         |
+| `bg-danger-bg`             | `bg-danger-bg`         |
+| `text-danger-text`         | `text-danger-text`     |
+| `text-danger-text`         | `text-danger-text`     |
+| `border-danger-border`     | `border-danger-border` |
+| `text-danger-text` (icons) | `text-danger-icon`     |
 
 #### Info
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-info-bg` | `bg-info-bg` |
-| `bg-info-bg` | `bg-info-bg` |
-| `text-link` | `text-info-text` |
-| `text-link` | `text-info-text` |
-| `border-blue-200` | `border-info-border` |
-| `text-link` (icons) | `text-info-icon` |
+| Hardcoded Color     | Semantic Token       |
+| ------------------- | -------------------- |
+| `bg-info-bg`        | `bg-info-bg`         |
+| `bg-info-bg`        | `bg-info-bg`         |
+| `text-link`         | `text-info-text`     |
+| `text-link`         | `text-info-text`     |
+| `border-blue-200`   | `border-info-border` |
+| `text-link` (icons) | `text-info-icon`     |
 
 ### Interactive Elements
 
@@ -435,6 +435,7 @@ npm run migrate-colors
 ```
 
 This script:
+
 1. Backs up your files
 2. Replaces common hardcoded colors with semantic tokens
 3. Reports any patterns it couldn't migrate
@@ -502,6 +503,7 @@ npm run lint 2>&1 | grep "no-hardcoded-colors" | cut -d':' -f1 | sort -u
 ```
 
 Current status (as of 2025-12-29):
+
 - **Total files with hardcoded colors:** 249
 - **Files migrated:** 0
 - **Remaining:** 249

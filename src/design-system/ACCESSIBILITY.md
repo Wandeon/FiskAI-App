@@ -322,7 +322,6 @@ Always test your components with `prefers-reduced-motion: reduce`:
 
 ```tsx
 import { Reveal } from "@/components/motion/Reveal"
-
 ;<Reveal>
   <div>Content fades in when scrolled into view</div>
 </Reveal>
@@ -332,7 +331,6 @@ import { Reveal } from "@/components/motion/Reveal"
 
 ```tsx
 import { Stagger, StaggerItem } from "@/components/motion/Stagger"
-
 ;<Stagger>
   {items.map((item) => (
     <StaggerItem key={item.id}>

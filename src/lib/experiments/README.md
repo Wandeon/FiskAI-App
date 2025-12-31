@@ -191,8 +191,8 @@ import { calculateRequiredSampleSize } from "@/lib/experiments"
 const requiredN = calculateRequiredSampleSize(
   0.03, // baseline conversion rate (3%)
   0.15, // minimum detectable effect (15% relative increase)
-  0.8,  // power (80%)
-  0.05  // alpha (5%)
+  0.8, // power (80%)
+  0.05 // alpha (5%)
 )
 // Returns: ~4,000 users per variant
 ```
@@ -256,6 +256,7 @@ Focus on business metrics, not vanity metrics:
 ### 5. Wait for Statistical Significance
 
 Don't declare a winner until:
+
 - p-value < 0.05
 - Minimum sample size reached
 - Test run for full business cycle (1-2 weeks)

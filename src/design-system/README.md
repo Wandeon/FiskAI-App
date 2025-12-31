@@ -43,6 +43,7 @@ import type { ButtonVariant, StatusVariant } from "@/design-system"
 - `bg-info-bg`, `text-info-text`, `border-info-border`
 
 ### Typography
+
 - Display: `text-display-xl`, `text-display-lg`, `text-display-md`, `text-display-sm`
 - Headings: `text-heading-xl`, `text-heading-lg`, `text-heading-md`, `text-heading-sm`, `text-heading-xs`
 - Body: `text-body-lg`, `text-body-md`, `text-body-sm`, `text-body-xs`

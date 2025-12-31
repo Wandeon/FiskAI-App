@@ -53,6 +53,7 @@ npx tsx scripts/list-unmapped-concepts.ts
 ```
 
 Output shows:
+
 - Which concepts are unmapped
 - How many rules are affected
 - Sample rule titles and dates
@@ -67,6 +68,7 @@ npx tsx scripts/generate-concept-stubs.ts pdv-new-threshold capital-gains-tax
 ```
 
 Copy the output and add it to `concept-registry.ts`, then fill in:
+
 - Actual MDX paths that reference this concept
 - Accurate description
 - Tool IDs (if applicable)
@@ -86,11 +88,13 @@ This runs automatically in CI and pre-commit hooks.
 When you create a new `RegulatoryRule` with a new `conceptId`:
 
 1. **Run the unmapped concepts script**:
+
    ```bash
    npx tsx scripts/list-unmapped-concepts.ts
    ```
 
 2. **Generate stub code**:
+
    ```bash
    npx tsx scripts/generate-concept-stubs.ts <conceptId>
    ```
@@ -102,6 +106,7 @@ When you create a new `RegulatoryRule` with a new `conceptId`:
    - Add tool IDs if applicable
 
 4. **Validate**:
+
    ```bash
    npx tsx scripts/validate-concept-registry.ts
    ```
