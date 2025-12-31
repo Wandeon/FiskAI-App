@@ -10,18 +10,9 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { contentSyncEvents } from "@/lib/db/schema/content-sync"
 import type { ContentSyncEventType } from "@/lib/db/schema/content-sync"
 import type { RiskTier } from "../schemas/common"
-import {
-  buildEventSignature,
-  generateEventId,
-  determineSeverity,
-} from "./event-id"
+import { buildEventSignature, generateEventId, determineSeverity } from "./event-id"
 import { MissingPointersError } from "./errors"
-import type {
-  ContentDomain,
-  ContentSyncEventV1,
-  ChangeType,
-  ValueType,
-} from "./types"
+import type { ContentDomain, ContentSyncEventV1, ChangeType, ValueType } from "./types"
 
 // Re-export for backwards compatibility
 export { MissingPointersError } from "./errors"
@@ -125,9 +116,7 @@ export interface EmitEventResult {
  *   console.log("Event already exists:", result.eventId)
  * }
  */
-export async function emitContentSyncEvent(
-  params: EmitEventParams
-): Promise<EmitEventResult> {
+export async function emitContentSyncEvent(params: EmitEventParams): Promise<EmitEventResult> {
   // Validate sourcePointerIds is not empty
   if (!params.sourcePointerIds || params.sourcePointerIds.length === 0) {
     throw new MissingPointersError(params.ruleId)

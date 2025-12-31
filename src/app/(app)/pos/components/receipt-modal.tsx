@@ -8,11 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Modal, ModalFooter } from "@/components/ui/modal"
 import type { ProcessPosSaleResult } from "@/types/pos"
 import { generateFiscalQRCode, type FiscalQRData } from "@/lib/fiscal/qr-generator"
-import {
-  WebUSBPrinter,
-  BrowserPrintFallback,
-  type ThermalPrinter,
-} from "@/lib/pos/thermal-printer"
+import { WebUSBPrinter, BrowserPrintFallback, type ThermalPrinter } from "@/lib/pos/thermal-printer"
 import {
   generateEscPosReceipt,
   generateHtmlReceipt,
@@ -218,9 +214,7 @@ export function ReceiptModal({ isOpen, result, companyInfo, onNewSale, onClose }
       <ModalFooter>
         <div className="w-full space-y-3">
           {/* Print error message */}
-          {printError && (
-            <p className="text-sm text-destructive text-center">{printError}</p>
-          )}
+          {printError && <p className="text-sm text-destructive text-center">{printError}</p>}
 
           {/* Thermal printer connection */}
           <div className="flex items-center justify-center gap-2 text-sm">
@@ -240,11 +234,7 @@ export function ReceiptModal({ isOpen, result, companyInfo, onNewSale, onClose }
 
           {/* Print buttons */}
           <div className="flex justify-center gap-2">
-            <Button
-              variant="outline"
-              onClick={printThermal}
-              disabled={isPrinting}
-            >
+            <Button variant="outline" onClick={printThermal} disabled={isPrinting}>
               {isPrinting ? "Ispisuje..." : printerConnected ? "Ispisi termal" : "Ispisi racun"}
             </Button>
             {result.pdfUrl && (

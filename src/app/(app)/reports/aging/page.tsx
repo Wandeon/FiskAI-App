@@ -102,9 +102,7 @@ export default async function AgingReportPage() {
         </Card>
       </div>
 
-      {unpaidInvoices.length > 0 && (
-        <AgingReportTable invoices={unpaidInvoices} />
-      )}
+      {unpaidInvoices.length > 0 && <AgingReportTable invoices={unpaidInvoices} />}
     </div>
   )
 }

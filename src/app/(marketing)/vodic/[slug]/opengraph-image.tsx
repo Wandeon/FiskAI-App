@@ -35,166 +35,162 @@ export default async function OGImage({ params }: Props) {
 
   if (!guide) {
     return new ImageResponse(
-      (
-        <div
-          style={{
-            height: "100%",
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#0f172a",
-            fontSize: "40px",
-            color: "white",
-          }}
-        >
-          FiskAI Vodič
-        </div>
-      ),
-      { ...size }
-    )
-  }
-
-  return new ImageResponse(
-    (
       <div
         style={{
           height: "100%",
           width: "100%",
           display: "flex",
-          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           backgroundColor: "#0f172a",
-          backgroundImage:
-            "radial-gradient(circle at 0% 0%, rgba(34, 197, 94, 0.15) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.15) 0%, transparent 50%)",
-          padding: "60px",
+          fontSize: "40px",
+          color: "white",
         }}
       >
-        {/* Type badge */}
+        FiskAI Vodič
+      </div>,
+      { ...size }
+    )
+  }
+
+  return new ImageResponse(
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#0f172a",
+        backgroundImage:
+          "radial-gradient(circle at 0% 0%, rgba(34, 197, 94, 0.15) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.15) 0%, transparent 50%)",
+        padding: "60px",
+      }}
+    >
+      {/* Type badge */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "30px",
+        }}
+      >
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "30px",
+            padding: "8px 20px",
+            borderRadius: "999px",
+            background: "rgba(34, 197, 94, 0.2)",
+            border: "1px solid rgba(34, 197, 94, 0.5)",
+            fontSize: "18px",
+            color: "#86efac",
           }}
         >
-          <div
-            style={{
-              padding: "8px 20px",
-              borderRadius: "999px",
-              background: "rgba(34, 197, 94, 0.2)",
-              border: "1px solid rgba(34, 197, 94, 0.5)",
-              fontSize: "18px",
-              color: "#86efac",
-            }}
-          >
-            Vodič
-          </div>
-          <div
-            style={{
-              padding: "8px 20px",
-              borderRadius: "999px",
-              background: "rgba(255, 255, 255, 0.1)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              fontSize: "18px",
-              color: "rgba(255, 255, 255, 0.8)",
-            }}
-          >
-            Baza znanja
-          </div>
+          Vodič
         </div>
-
-        {/* Title */}
         <div
           style={{
-            fontSize: "56px",
-            fontWeight: "bold",
-            color: "white",
-            lineHeight: 1.2,
-            marginBottom: "24px",
+            padding: "8px 20px",
+            borderRadius: "999px",
+            background: "rgba(255, 255, 255, 0.1)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            fontSize: "18px",
+            color: "rgba(255, 255, 255, 0.8)",
+          }}
+        >
+          Baza znanja
+        </div>
+      </div>
+
+      {/* Title */}
+      <div
+        style={{
+          fontSize: "56px",
+          fontWeight: "bold",
+          color: "white",
+          lineHeight: 1.2,
+          marginBottom: "24px",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}
+      >
+        {guide.title}
+      </div>
+
+      {/* Description */}
+      {guide.description && (
+        <div
+          style={{
+            fontSize: "26px",
+            color: "rgba(255, 255, 255, 0.7)",
+            lineHeight: 1.4,
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
+            marginBottom: "auto",
           }}
         >
-          {guide.title}
+          {guide.description}
         </div>
+      )}
 
-        {/* Description */}
-        {guide.description && (
-          <div
-            style={{
-              fontSize: "26px",
-              color: "rgba(255, 255, 255, 0.7)",
-              lineHeight: 1.4,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              marginBottom: "auto",
-            }}
-          >
-            {guide.description}
-          </div>
-        )}
-
-        {/* Footer */}
+      {/* Footer */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: "auto",
+        }}
+      >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            marginTop: "auto",
+            gap: "16px",
           }}
         >
           <div
             style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #22c55e 0%, #38bdf8 100%)",
               display: "flex",
               alignItems: "center",
-              gap: "16px",
+              justifyContent: "center",
+              fontSize: "24px",
+              fontWeight: "bold",
+              color: "white",
             }}
           >
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "12px",
-                background: "linear-gradient(135deg, #22c55e 0%, #38bdf8 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "white",
-              }}
-            >
-              F
-            </div>
-            <span
-              style={{
-                fontSize: "28px",
-                fontWeight: "bold",
-                background: "linear-gradient(90deg, #22c55e, #38bdf8)",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              FiskAI
-            </span>
+            F
           </div>
-
-          <div
+          <span
             style={{
-              fontSize: "20px",
-              color: "rgba(255, 255, 255, 0.5)",
+              fontSize: "28px",
+              fontWeight: "bold",
+              background: "linear-gradient(90deg, #22c55e, #38bdf8)",
+              backgroundClip: "text",
+              color: "transparent",
             }}
           >
-            fiskai.hr/vodic
-          </div>
+            FiskAI
+          </span>
+        </div>
+
+        <div
+          style={{
+            fontSize: "20px",
+            color: "rgba(255, 255, 255, 0.5)",
+          }}
+        >
+          fiskai.hr/vodic
         </div>
       </div>
-    ),
+    </div>,
     { ...size }
   )
 }

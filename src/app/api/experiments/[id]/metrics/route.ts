@@ -8,10 +8,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { getExperimentReport } from "@/lib/experiments"
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const session = await auth()
@@ -29,9 +26,6 @@ export async function GET(
     return NextResponse.json(report)
   } catch (error) {
     console.error("Error getting experiment metrics:", error)
-    return NextResponse.json(
-      { error: "Failed to get experiment metrics" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to get experiment metrics" }, { status: 500 })
   }
 }

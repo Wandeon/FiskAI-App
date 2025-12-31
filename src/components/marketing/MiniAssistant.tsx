@@ -95,9 +95,7 @@ export function MiniAssistant() {
               className={cn(
                 "relative rounded-xl transition-all duration-300",
                 "bg-surface-dark border",
-                isFocused
-                  ? "border-focus shadow-focus"
-                  : "border-border"
+                isFocused ? "border-focus shadow-focus" : "border-border"
               )}
               animate={
                 isFocused

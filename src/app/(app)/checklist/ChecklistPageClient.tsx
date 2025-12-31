@@ -138,9 +138,7 @@ export function ChecklistPageClient({
           <div className="text-sm text-[var(--muted)]">Uskoro</div>
         </GlassCard>
         <GlassCard hover={false} padding="sm">
-          <div className="text-2xl font-bold text-success">
-            {initialStats.total - stats.total}
-          </div>
+          <div className="text-2xl font-bold text-success">{initialStats.total - stats.total}</div>
           <div className="text-sm text-[var(--muted)]">Dovršeno</div>
         </GlassCard>
       </div>

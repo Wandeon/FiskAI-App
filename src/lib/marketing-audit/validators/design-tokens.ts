@@ -1,9 +1,4 @@
-export type DesignTokenIssueKind =
-  | "hex"
-  | "rgb"
-  | "hsl"
-  | "inline-style"
-  | "tailwind-arbitrary"
+export type DesignTokenIssueKind = "hex" | "rgb" | "hsl" | "inline-style" | "tailwind-arbitrary"
 
 export interface DesignTokenIssue {
   kind: DesignTokenIssueKind
@@ -17,8 +12,7 @@ const hexPattern = /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/g
 const rgbPattern = /\brgba?\([^)]*\)/gi
 const hslPattern = /\bhsla?\([^)]*\)/gi
 const inlineStylePattern = /style\s*=\s*{?\{[^}]*\}?/gi
-const tailwindArbitraryPattern =
-  /\b(?:bg|text|border|from|to|via|stroke|fill)-\[[^\]]+\]/g
+const tailwindArbitraryPattern = /\b(?:bg|text|border|from|to|via|stroke|fill)-\[[^\]]+\]/g
 
 function buildContext(text: string, index: number, match: string) {
   const start = Math.max(0, index - 40)
@@ -31,7 +25,7 @@ function pushIssue(
   kind: DesignTokenIssueKind,
   text: string,
   match: RegExpMatchArray,
-  reason: string,
+  reason: string
 ) {
   const index = match.index ?? 0
   issues.push({
@@ -73,7 +67,7 @@ export function detectNonTokenColors(text: string) {
         "tailwind-arbitrary",
         text,
         match,
-        "Arbitrary Tailwind color detected; prefer design tokens.",
+        "Arbitrary Tailwind color detected; prefer design tokens."
       )
     }
   }
@@ -85,7 +79,7 @@ export function detectNonTokenColors(text: string) {
         "inline-style",
         text,
         match,
-        "Inline styles detected; ensure design tokens are used.",
+        "Inline styles detected; ensure design tokens are used."
       )
     }
   }

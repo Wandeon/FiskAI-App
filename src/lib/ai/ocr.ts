@@ -76,7 +76,7 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
-    }    // Parse and validate JSON response
+    } // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(jsonMatch[0])
@@ -223,7 +223,7 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
-    }    // Parse and validate JSON response
+    } // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(jsonMatch[0])

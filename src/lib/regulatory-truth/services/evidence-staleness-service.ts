@@ -106,9 +106,7 @@ function calculateStalenessStatus(
  * - Only mark EXPIRED after MAX_CONSECUTIVE_FAILURES failures
  * - Does not update lastVerifiedAt on failure to allow sooner retries
  */
-export async function checkEvidenceStaleness(
-  evidenceId: string
-): Promise<EvidenceStalenessCheck> {
+export async function checkEvidenceStaleness(evidenceId: string): Promise<EvidenceStalenessCheck> {
   const evidence = await db.evidence.findUnique({
     where: { id: evidenceId },
     include: {
@@ -173,9 +171,7 @@ export async function checkEvidenceStaleness(
   }
 
   // Calculate new consecutive failure count
-  const newConsecutiveFailures = sourceStillAvailable
-    ? 0
-    : currentConsecutiveFailures + 1
+  const newConsecutiveFailures = sourceStillAvailable ? 0 : currentConsecutiveFailures + 1
 
   // Determine status - GitHub issue #1021: Use grace period for transient failures
   let status = calculateStalenessStatus(daysSinceVerification, threshold)

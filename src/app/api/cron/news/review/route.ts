@@ -81,11 +81,14 @@ export async function GET(request: NextRequest) {
     const pipelineCheck = await checkAndStartStage("review")
     if (!pipelineCheck.canProceed) {
       console.log(`[CRON 2] Cannot proceed: ${pipelineCheck.reason}`)
-      return NextResponse.json({
-        success: false,
-        error: "Pipeline stage blocked",
-        reason: pipelineCheck.reason,
-      }, { status: 409 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Pipeline stage blocked",
+          reason: pipelineCheck.reason,
+        },
+        { status: 409 }
+      )
     }
     pipelineRunId = pipelineCheck.runId
 
@@ -116,7 +119,7 @@ export async function GET(request: NextRequest) {
       )
 
     // Combine both sets
-    const postsMap = new Map<string, typeof newDraftPosts[0]>()
+    const postsMap = new Map<string, (typeof newDraftPosts)[0]>()
     for (const post of newDraftPosts) {
       postsMap.set(post.id, post)
     }
@@ -127,7 +130,9 @@ export async function GET(request: NextRequest) {
 
     result.summary.totalDrafts = newDraftPosts.length
     result.summary.retryPosts = retryPosts.length
-    console.log(`[CRON 2] Found ${newDraftPosts.length} new drafts + ${retryPosts.length} retry posts to review`)
+    console.log(
+      `[CRON 2] Found ${newDraftPosts.length} new drafts + ${retryPosts.length} retry posts to review`
+    )
 
     if (draftPosts.length === 0) {
       result.success = true
@@ -220,11 +225,18 @@ export async function GET(request: NextRequest) {
 
         // Record the error for retry tracking
         try {
-          const { shouldRetry, attempts } = await recordNewsPostError(post.id, error instanceof Error ? error : String(error))
+          const { shouldRetry, attempts } = await recordNewsPostError(
+            post.id,
+            error instanceof Error ? error : String(error)
+          )
           if (shouldRetry) {
-            console.log(`[CRON 2] Post ${post.id} will be retried (attempt ${attempts}/${MAX_PROCESSING_ATTEMPTS})`)
+            console.log(
+              `[CRON 2] Post ${post.id} will be retried (attempt ${attempts}/${MAX_PROCESSING_ATTEMPTS})`
+            )
           } else {
-            console.log(`[CRON 2] Post ${post.id} moved to dead-letter queue after ${attempts} attempts`)
+            console.log(
+              `[CRON 2] Post ${post.id} moved to dead-letter queue after ${attempts} attempts`
+            )
             result.summary.failedPosts++
           }
         } catch (recordError) {

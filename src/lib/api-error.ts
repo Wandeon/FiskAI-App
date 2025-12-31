@@ -55,10 +55,7 @@ export interface ApiErrorOptions {
  * }
  * ```
  */
-export function apiError(
-  error: unknown,
-  options: ApiErrorOptions = {}
-): NextResponse {
+export function apiError(error: unknown, options: ApiErrorOptions = {}): NextResponse {
   const {
     status = 500,
     code = "INTERNAL_ERROR",
@@ -74,11 +71,14 @@ export function apiError(
   // Log full error server-side (pino will redact sensitive fields)
   logger.error(
     {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      } : error,
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+              name: error.name,
+            }
+          : error,
       code,
       status,
       requestId,
@@ -118,30 +118,21 @@ export const ApiErrors = {
    * Unauthorized (401)
    */
   unauthorized(message = "Unauthorized") {
-    return NextResponse.json(
-      { error: message, code: "UNAUTHORIZED" },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: message, code: "UNAUTHORIZED" }, { status: 401 })
   },
 
   /**
    * Forbidden (403)
    */
   forbidden(message = "Forbidden") {
-    return NextResponse.json(
-      { error: message, code: "FORBIDDEN" },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: message, code: "FORBIDDEN" }, { status: 403 })
   },
 
   /**
    * Not found (404)
    */
   notFound(message = "Not found") {
-    return NextResponse.json(
-      { error: message, code: "NOT_FOUND" },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: message, code: "NOT_FOUND" }, { status: 404 })
   },
 
   /**

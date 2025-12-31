@@ -24,30 +24,30 @@
  */
 export const shadows = {
   /** No shadow */
-  none: 'none',
+  none: "none",
   /** Subtle shadow - inputs, subtle buttons */
-  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
   /** Medium shadow - cards, dropdowns */
-  md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+  md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
   /** Large shadow - modals, elevated content */
-  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+  lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
   /** Extra large shadow - prominent floating elements */
-  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+  xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
   /** Maximum shadow - tooltips, highest elevation */
-  '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   /** Focus ring shadow - accessibility focus states */
-  focus: '0 0 0 3px rgba(59, 130, 246, 0.5)',
+  focus: "0 0 0 3px rgba(59, 130, 246, 0.5)",
   /** Focus ring shadow for dark mode */
-  focusDark: '0 0 0 3px rgba(96, 165, 250, 0.5)',
+  focusDark: "0 0 0 3px rgba(96, 165, 250, 0.5)",
   /** Glow effect - hover states, emphasis */
-  glow: '0 0 20px rgba(59, 130, 246, 0.3)',
+  glow: "0 0 20px rgba(59, 130, 246, 0.3)",
   /** Card default shadow */
-  card: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+  card: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
   /** Card hover shadow */
-  cardHover: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+  cardHover: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
   /** Elevated component shadow */
-  elevated: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-} as const;
+  elevated: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
+} as const
 
 /**
  * Dark mode shadow variants
@@ -55,58 +55,58 @@ export const shadows = {
  */
 export const shadowsDark = {
   /** No shadow */
-  none: 'none',
+  none: "none",
   /** Subtle shadow */
-  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+  sm: "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
   /** Medium shadow */
-  md: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3)',
+  md: "0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3)",
   /** Large shadow */
-  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3)',
+  lg: "0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3)",
   /** Extra large shadow */
-  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+  xl: "0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3)",
   /** Maximum shadow */
-  '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+  "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.6)",
   /** Focus ring shadow */
-  focus: '0 0 0 3px rgba(96, 165, 250, 0.5)',
+  focus: "0 0 0 3px rgba(96, 165, 250, 0.5)",
   /** Focus ring shadow (same as light in dark mode) */
-  focusDark: '0 0 0 3px rgba(96, 165, 250, 0.5)',
+  focusDark: "0 0 0 3px rgba(96, 165, 250, 0.5)",
   /** Glow effect */
-  glow: '0 0 20px rgba(96, 165, 250, 0.3)',
+  glow: "0 0 20px rgba(96, 165, 250, 0.3)",
   /** Card default shadow */
-  card: '0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3)',
+  card: "0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3)",
   /** Card hover shadow */
-  cardHover: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3)',
+  cardHover: "0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3)",
   /** Elevated component shadow */
-  elevated: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3)',
-} as const;
+  elevated: "0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3)",
+} as const
 
 /**
  * Z-index scale for stacking contexts
  */
 export const zIndex = {
   /** Below default stacking */
-  behind: '-1',
+  behind: "-1",
   /** Default stacking context */
-  base: '0',
+  base: "0",
   /** Slightly elevated */
-  raised: '1',
+  raised: "1",
   /** Dropdown menus */
-  dropdown: '1000',
+  dropdown: "1000",
   /** Sticky headers */
-  sticky: '1100',
+  sticky: "1100",
   /** Fixed navigation */
-  fixed: '1200',
+  fixed: "1200",
   /** Modal backdrop */
-  modalBackdrop: '1300',
+  modalBackdrop: "1300",
   /** Modal dialog */
-  modal: '1400',
+  modal: "1400",
   /** Popover/Tooltip */
-  popover: '1500',
+  popover: "1500",
   /** Toast notifications */
-  toast: '1600',
+  toast: "1600",
   /** Tooltip (highest) */
-  tooltip: '1700',
-} as const;
+  tooltip: "1700",
+} as const
 
 /**
  * Combined elevation tokens
@@ -117,10 +117,10 @@ export const elevation = {
     dark: shadowsDark,
   },
   zIndex,
-} as const;
+} as const
 
-export type ShadowToken = keyof typeof shadows;
-export type ZIndexToken = keyof typeof zIndex;
-export type Shadows = typeof shadows;
-export type ZIndex = typeof zIndex;
-export type Elevation = typeof elevation;
+export type ShadowToken = keyof typeof shadows
+export type ZIndexToken = keyof typeof zIndex
+export type Shadows = typeof shadows
+export type ZIndex = typeof zIndex
+export type Elevation = typeof elevation

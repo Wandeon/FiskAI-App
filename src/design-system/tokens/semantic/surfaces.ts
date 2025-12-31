@@ -13,7 +13,7 @@
  * - overlay: Modal/dialog backdrop overlay
  */
 
-import { slate, white, black } from '../primitives';
+import { slate, white, black } from "../primitives"
 
 /**
  * Light mode surface colors
@@ -31,8 +31,8 @@ export const surfacesLight = {
   /** Floating elements like dropdowns */
   elevated: white,
   /** Modal/dialog backdrop */
-  overlay: 'rgba(15, 23, 42, 0.5)',
-} as const;
+  overlay: "rgba(15, 23, 42, 0.5)",
+} as const
 
 /**
  * Dark mode surface colors
@@ -50,8 +50,8 @@ export const surfacesDark = {
   /** Floating elements like dropdowns */
   elevated: slate[700],
   /** Modal/dialog backdrop */
-  overlay: 'rgba(0, 0, 0, 0.7)',
-} as const;
+  overlay: "rgba(0, 0, 0, 0.7)",
+} as const
 
 /**
  * Combined surface tokens with light/dark variants
@@ -59,7 +59,7 @@ export const surfacesDark = {
 export const surfaces = {
   light: surfacesLight,
   dark: surfacesDark,
-} as const;
+} as const
 
-export type SurfaceToken = keyof typeof surfacesLight;
-export type Surfaces = typeof surfaces;
+export type SurfaceToken = keyof typeof surfacesLight
+export type Surfaces = typeof surfaces

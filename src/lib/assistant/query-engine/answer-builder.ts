@@ -404,7 +404,8 @@ export async function buildAnswer(
       clientContext = {
         used: usedFields,
         completeness: {
-          status: missingFields.length === 0 ? "COMPLETE" : usedFields.length > 0 ? "PARTIAL" : "NONE",
+          status:
+            missingFields.length === 0 ? "COMPLETE" : usedFields.length > 0 ? "PARTIAL" : "NONE",
           score: usedFields.length / Math.max(requiredFields.length, 1),
         },
         ...(missingFields.length > 0 && {

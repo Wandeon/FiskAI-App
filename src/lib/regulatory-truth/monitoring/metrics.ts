@@ -413,9 +413,7 @@ export async function collectContentSyncMetrics(): Promise<ContentSyncMetrics> {
     .from(contentSyncEvents)
     .where(sql`${contentSyncEvents.createdAt} >= ${weekAgo}`)
 
-  const totalCount = await drizzleDb
-    .select({ count: count() })
-    .from(contentSyncEvents)
+  const totalCount = await drizzleDb.select({ count: count() }).from(contentSyncEvents)
 
   const avgAttempts = await drizzleDb
     .select({ avg: avg(contentSyncEvents.attempts) })
@@ -554,16 +552,15 @@ export async function getPendingContentSyncPRs(limit: number = 50): Promise<
       prCreatedAt: contentSyncEvents.prCreatedAt,
     })
     .from(contentSyncEvents)
-    .where(
-      sql`${contentSyncEvents.status} = 'DONE' AND ${contentSyncEvents.prUrl} IS NOT NULL`
-    )
+    .where(sql`${contentSyncEvents.status} = 'DONE' AND ${contentSyncEvents.prUrl} IS NOT NULL`)
     .orderBy(sql`${contentSyncEvents.prCreatedAt} ASC`)
     .limit(limit)
 
   const now = new Date()
   return events
-    .filter((e): e is typeof e & { prUrl: string; prCreatedAt: Date } =>
-      e.prUrl !== null && e.prCreatedAt !== null
+    .filter(
+      (e): e is typeof e & { prUrl: string; prCreatedAt: Date } =>
+        e.prUrl !== null && e.prCreatedAt !== null
     )
     .map((e) => {
       const ageInMs = now.getTime() - e.prCreatedAt.getTime()

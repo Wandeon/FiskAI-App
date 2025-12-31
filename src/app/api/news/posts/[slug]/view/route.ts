@@ -8,10 +8,7 @@ import { eq, sql } from "drizzle-orm"
  * POST /api/news/posts/[slug]/view
  * Increment view count for a news post (privacy-friendly - no user tracking)
  */
-export async function POST(
-  _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function POST(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params
 

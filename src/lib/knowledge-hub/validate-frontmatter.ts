@@ -1,8 +1,4 @@
-import type {
-  ChangelogEntry,
-  RtlFrontmatter,
-  ValidationResult,
-} from "./types"
+import type { ChangelogEntry, RtlFrontmatter, ValidationResult } from "./types"
 import { isRtlChangelogEntry, isLegacyChangelogEntry } from "./types"
 
 /**

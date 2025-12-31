@@ -16,9 +16,7 @@ export interface EvidenceEmbeddingJobData {
 
 const MAX_ATTEMPTS = 3
 
-async function processEvidenceEmbeddingJob(
-  job: Job<EvidenceEmbeddingJobData>
-): Promise<JobResult> {
+async function processEvidenceEmbeddingJob(job: Job<EvidenceEmbeddingJobData>): Promise<JobResult> {
   const start = Date.now()
   const { evidenceId } = job.data
   const attempt = job.attemptsMade + 1
@@ -121,6 +119,4 @@ const worker = createWorker<EvidenceEmbeddingJobData>(
 
 setupGracefulShutdown([worker])
 
-console.log(
-  "[evidence-embedding-worker] Worker started, listening for evidence embedding jobs"
-)
+console.log("[evidence-embedding-worker] Worker started, listening for evidence embedding jobs")

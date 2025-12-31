@@ -21,7 +21,9 @@ export function BetaSettingsForm({ initialBetaOptIn, initialBetaOptInAt }: BetaS
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
   const [feedbackText, setFeedbackText] = useState("")
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<"bug" | "suggestion" | "praise" | "other" | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<
+    "bug" | "suggestion" | "praise" | "other" | null
+  >(null)
 
   const handleToggle = (checked: boolean) => {
     startTransition(async () => {
@@ -79,7 +81,8 @@ export function BetaSettingsForm({ initialBetaOptIn, initialBetaOptInAt }: BetaS
               )}
             </div>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Pristupite novim funkcionalnostima prije ostalih korisnika. Beta verzije mogu sadrzavati bugove.
+              Pristupite novim funkcionalnostima prije ostalih korisnika. Beta verzije mogu
+              sadrzavati bugove.
             </p>
             {betaOptIn && initialBetaOptInAt && (
               <p className="mt-2 text-xs text-[var(--muted)]">
@@ -126,7 +129,9 @@ export function BetaSettingsForm({ initialBetaOptIn, initialBetaOptInAt }: BetaS
             className="flex w-full items-center justify-between text-left"
           >
             <div>
-              <p className="font-semibold text-[var(--foreground)]">Posaljite povratnu informaciju</p>
+              <p className="font-semibold text-[var(--foreground)]">
+                Posaljite povratnu informaciju
+              </p>
               <p className="text-sm text-[var(--muted)]">
                 Pomozite nam poboljsati beta funkcionalnosti
               </p>

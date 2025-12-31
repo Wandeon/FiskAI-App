@@ -155,7 +155,9 @@ export async function fetchNNArticleMetadata(
  * Fetch JSON-LD metadata from a NN URL (supports both ELI and legacy formats).
  * This is useful when you have a URL from sources.ts and need to fetch its metadata.
  */
-export async function fetchNNArticleMetadataFromUrl(url: string): Promise<NNArticleMetadata | null> {
+export async function fetchNNArticleMetadataFromUrl(
+  url: string
+): Promise<NNArticleMetadata | null> {
   const parsed = parseNNUrl(url)
   if (!parsed) {
     console.error(`[nn-fetcher] Could not parse NN URL: ${url}`)

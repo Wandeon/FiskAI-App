@@ -107,9 +107,7 @@ async function processArticleJob(job: Job<ArticleJobData>): Promise<JobResult> {
     jobsProcessed.inc({ worker: "article", status: "success", queue: "article" })
     jobDuration.observe({ worker: "article", queue: "article" }, duration / 1000)
 
-    console.log(
-      "[article-worker] Job " + articleJobId + " completed with status: " + result.status
-    )
+    console.log("[article-worker] Job " + articleJobId + " completed with status: " + result.status)
 
     return {
       success: true,

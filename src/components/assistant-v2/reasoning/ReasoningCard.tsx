@@ -129,7 +129,9 @@ function ApplicabilityDetails({ data }: { data: unknown }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4 text-sm">
-        <span className="text-success-text">✓ {appData?.eligibleCount || 0} primjenjivih pravila</span>
+        <span className="text-success-text">
+          ✓ {appData?.eligibleCount || 0} primjenjivih pravila
+        </span>
       </div>
 
       {appData?.exclusions && appData.exclusions.length > 0 && (

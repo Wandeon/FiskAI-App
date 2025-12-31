@@ -225,10 +225,7 @@ export function AnswerSection({
       >
         <div className="flex items-start gap-3">
           <span
-            className={cn(
-              "mt-0.5 flex-shrink-0",
-              isDark ? "text-muted" : "text-muted-foreground"
-            )}
+            className={cn("mt-0.5 flex-shrink-0", isDark ? "text-muted" : "text-muted-foreground")}
           >
             {config.icon}
           </span>

@@ -37,7 +37,9 @@ export function RecurringExpenseActions({ expense }: { expense: RecurringExpense
     setIsToggling(false)
 
     if (result.success) {
-      toast.success(expense.isActive ? "Ponavljajući trošak deaktiviran" : "Ponavljajući trošak aktiviran")
+      toast.success(
+        expense.isActive ? "Ponavljajući trošak deaktiviran" : "Ponavljajući trošak aktiviran"
+      )
       router.refresh()
     } else {
       toast.error(result.error || "Greška pri promjeni statusa")
@@ -46,21 +48,13 @@ export function RecurringExpenseActions({ expense }: { expense: RecurringExpense
 
   return (
     <div className="relative">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 p-0"
-      >
+      <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className="h-8 w-8 p-0">
         <MoreVertical className="h-4 w-4" />
       </Button>
 
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-lg z-50">
             <div className="p-1">
               <button

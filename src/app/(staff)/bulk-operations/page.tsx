@@ -5,9 +5,9 @@ import { BulkOperations } from "@/components/staff/bulk-operations"
 export const dynamic = "force-dynamic"
 
 export default function BulkOperationsPage() {
- return (
- <Suspense fallback={<LoadingSpinner />}>
- <BulkOperations />
- </Suspense>
- )
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <BulkOperations />
+    </Suspense>
+  )
 }

@@ -126,9 +126,7 @@ export function WhatsNewModal() {
               <h2 id="whats-new-title" className="text-xl font-bold">
                 Sto je novo?
               </h2>
-              <p className="text-sm text-white/80">
-                Verzija {CURRENT_VERSION}
-              </p>
+              <p className="text-sm text-white/80">Verzija {CURRENT_VERSION}</p>
             </div>
           </div>
         </div>
@@ -136,15 +134,20 @@ export function WhatsNewModal() {
         {/* Content */}
         <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
           {CHANGELOG_ENTRIES.map((entry, entryIndex) => (
-            <div key={entry.version} className={cn(entryIndex > 0 && "mt-6 pt-6 border-t border-[var(--border)]")}>
+            <div
+              key={entry.version}
+              className={cn(entryIndex > 0 && "mt-6 pt-6 border-t border-[var(--border)]")}
+            >
               <div className="flex items-center gap-2 text-sm text-[var(--muted)] mb-3">
                 <span className="font-medium text-[var(--foreground)]">v{entry.version}</span>
                 <span>-</span>
-                <span>{new Date(entry.date).toLocaleDateString("hr-HR", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                })}</span>
+                <span>
+                  {new Date(entry.date).toLocaleDateString("hr-HR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
               </div>
               <div className="space-y-3">
                 {entry.highlights.map((highlight, index) => (

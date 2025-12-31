@@ -285,7 +285,9 @@ export async function* buildAnswerWithReasoning(
     // Check primary source quality
     const primaryRule = finalRules[0]
     if (primaryRule.evidence?.url) {
-      analysisResults.push(`Primary source: ${primaryRule.evidence.sourceType || "Official document"}`)
+      analysisResults.push(
+        `Primary source: ${primaryRule.evidence.sourceType || "Official document"}`
+      )
     }
 
     // Check for multiple authority levels

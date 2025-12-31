@@ -22,7 +22,7 @@ interface BackfillOptions {
 
 async function backfillEmbeddings(options: BackfillOptions) {
   console.log("🚀 RTL Embedding Backfill")
-  console.log("=" .repeat(60))
+  console.log("=".repeat(60))
 
   // Get initial stats
   const initialStats = await getEmbeddingStats()

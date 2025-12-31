@@ -324,8 +324,7 @@ export function validatePosdFormData(data: PosdFormData): {
   }
 
   // Validate expense calculation
-  const expectedExpenses =
-    Math.round(data.grossIncome * (data.expenseBracket / 100) * 100) / 100
+  const expectedExpenses = Math.round(data.grossIncome * (data.expenseBracket / 100) * 100) / 100
   if (Math.abs(expectedExpenses - data.calculatedExpenses) > 0.02) {
     errors.push(
       `Iznos priznatih troškova (${data.calculatedExpenses}) ne odgovara očekivanom iznosu (${expectedExpenses})`
@@ -333,12 +332,9 @@ export function validatePosdFormData(data: PosdFormData): {
   }
 
   // Validate net income calculation
-  const expectedNetIncome =
-    Math.round((data.grossIncome - data.calculatedExpenses) * 100) / 100
+  const expectedNetIncome = Math.round((data.grossIncome - data.calculatedExpenses) * 100) / 100
   if (Math.abs(expectedNetIncome - data.netIncome) > 0.02) {
-    errors.push(
-      `Dohodak (${data.netIncome}) ne odgovara očekivanom iznosu (${expectedNetIncome})`
-    )
+    errors.push(`Dohodak (${data.netIncome}) ne odgovara očekivanom iznosu (${expectedNetIncome})`)
   }
 
   // Validate company info
@@ -373,8 +369,7 @@ export function generatePosdPdfData(data: PosdFormData) {
     income: {
       grossIncome: data.grossIncome,
       expenseRate: data.expenseBracket,
-      expenseRateLabel:
-        EXPENSE_BRACKETS.find((b) => b.value === data.expenseBracket)?.label || "",
+      expenseRateLabel: EXPENSE_BRACKETS.find((b) => b.value === data.expenseBracket)?.label || "",
       calculatedExpenses: data.calculatedExpenses,
       netIncome: data.netIncome,
     },

@@ -8,10 +8,7 @@ import { ViewTracker } from "@/components/news/ViewTracker"
 import { NewsMarkdown } from "@/components/news/NewsMarkdown"
 import { PostCard } from "@/components/news/PostCard"
 import { JsonLd } from "@/components/seo/JsonLd"
-import {
-  generateNewsArticleSchema,
-  generateBreadcrumbSchema,
-} from "@/lib/schema/generators"
+import { generateNewsArticleSchema, generateBreadcrumbSchema } from "@/lib/schema/generators"
 import { format } from "date-fns"
 import { hr } from "date-fns/locale"
 import Link from "next/link"

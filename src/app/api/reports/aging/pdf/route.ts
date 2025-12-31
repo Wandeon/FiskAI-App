@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
 
     // Get unpaid invoices
     const unpaidInvoices = await db.eInvoice.findMany({
-      where: { companyId: company.id, status: { in: ["SENT", "DELIVERED"] }, dueDate: { not: null } },
+      where: {
+        companyId: company.id,
+        status: { in: ["SENT", "DELIVERED"] },
+        dueDate: { not: null },
+      },
       include: { buyer: { select: { name: true } } },
       orderBy: { dueDate: "asc" },
     })
@@ -61,6 +65,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Aging PDF export error:", error)
-    return NextResponse.json({ error: "Neuspješan izvoz starost potraživanja PDF-a" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Neuspješan izvoz starost potraživanja PDF-a" },
+      { status: 500 }
+    )
   }
 }

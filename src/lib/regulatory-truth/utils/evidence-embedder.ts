@@ -227,9 +227,7 @@ export async function findSimilarEvidence(
   }>
 > {
   // Get the evidence embedding
-  const evidence = await prisma.$queryRaw<
-    Array<{ embedding: string }>
-  >`
+  const evidence = await prisma.$queryRaw<Array<{ embedding: string }>>`
     SELECT "embedding"::text as embedding
     FROM "Evidence"
     WHERE "id" = ${evidenceId}

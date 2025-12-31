@@ -4,12 +4,7 @@
  * Generates ESC/POS commands and HTML for thermal receipt printing
  */
 
-import {
-  ESC_POS,
-  PAPER_CONFIGS,
-  encodeCP852,
-  type PrinterPaperWidth,
-} from "./thermal-printer"
+import { ESC_POS, PAPER_CONFIGS, encodeCP852, type PrinterPaperWidth } from "./thermal-printer"
 import type { ProcessPosSaleResult } from "@/types/pos"
 
 export interface ReceiptItem {
@@ -78,19 +73,13 @@ function separatorLine(width: number, char = "-"): string {
   return char.repeat(width)
 }
 
-
 /**
  * Format item line with name on left, price on right
  */
-function formatItemLine(
-  name: string,
-  price: string,
-  width: number
-): string {
+function formatItemLine(name: string, price: string, width: number): string {
   const priceWidth = price.length
   const nameWidth = width - priceWidth - 1
-  const truncatedName =
-    name.length > nameWidth ? name.substring(0, nameWidth - 2) + ".." : name
+  const truncatedName = name.length > nameWidth ? name.substring(0, nameWidth - 2) + ".." : name
   const padding = width - truncatedName.length - priceWidth
   return truncatedName + " ".repeat(padding) + price
 }

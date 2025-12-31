@@ -16,10 +16,7 @@ import { eq } from "drizzle-orm"
  * @param maxRetries - Maximum number of retry attempts (default: 5)
  * @returns A unique slug guaranteed not to exist in the database
  */
-export async function generateUniqueSlug(
-  title: string,
-  maxRetries: number = 5
-): Promise<string> {
+export async function generateUniqueSlug(title: string, maxRetries: number = 5): Promise<string> {
   const baseSlug = title
     .toLowerCase()
     .normalize("NFD")

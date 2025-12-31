@@ -41,8 +41,14 @@ export const extractedInvoiceSchema = extractedReceiptSchema.extend({
 
 // Schema for synthesized answers from the AI Assistant
 export const synthesizedAnswerSchema = z.object({
-  headline: z.string().min(1, "Headline is required").max(120, "Headline must not exceed 120 characters"),
-  directAnswer: z.string().min(1, "Direct answer is required").max(240, "Direct answer must not exceed 240 characters"),
+  headline: z
+    .string()
+    .min(1, "Headline is required")
+    .max(120, "Headline must not exceed 120 characters"),
+  directAnswer: z
+    .string()
+    .min(1, "Direct answer is required")
+    .max(240, "Direct answer must not exceed 240 characters"),
   explanation: z.string().max(300, "Explanation must not exceed 300 characters").optional(),
 })
 

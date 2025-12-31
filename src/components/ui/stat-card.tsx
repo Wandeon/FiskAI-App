@@ -40,7 +40,11 @@ export function StatCard({ title, value, description, icon, trend, className }: 
             </div>
           )}
         </div>
-        {icon && <div className="rounded-lg bg-brand-50 p-3 text-brand-600" aria-hidden="true">{icon}</div>}
+        {icon && (
+          <div className="rounded-lg bg-brand-50 p-3 text-brand-600" aria-hidden="true">
+            {icon}
+          </div>
+        )}
       </div>
     </div>
   )

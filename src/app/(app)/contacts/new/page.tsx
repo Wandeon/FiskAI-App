@@ -138,7 +138,9 @@ export default function NewContactPage() {
       <h1 className="text-2xl font-bold">Novi kontakt</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
+        {error && (
+          <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+        )}
 
         <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
           <section className="grid gap-4 p-6 md:grid-cols-2">

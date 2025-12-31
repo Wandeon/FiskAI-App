@@ -121,7 +121,9 @@ export default function FormsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Obrasci</h1>
-          <p className="text-muted-foreground mt-1">Povijest generiranih poreznih obrazaca za pausalni obrt</p>
+          <p className="text-muted-foreground mt-1">
+            Povijest generiranih poreznih obrazaca za pausalni obrt
+          </p>
         </div>
         <Button onClick={() => setShowGenerateDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />

@@ -3,24 +3,18 @@ import { getCurrentSnapshot, getRecentEvents, getCurrentLock } from "@/lib/syste
 import { SystemStatusPage } from "./system-status-page"
 
 export const metadata = {
- title: "System Status | Admin | FiskAI",
- description: "Monitor system registry status and integrations",
+  title: "System Status | Admin | FiskAI",
+  description: "Monitor system registry status and integrations",
 }
 
 export default async function Page() {
- await requireAdmin()
+  await requireAdmin()
 
- const [snapshot, events, lock] = await Promise.all([
- getCurrentSnapshot(),
- getRecentEvents(20),
- getCurrentLock(),
- ])
+  const [snapshot, events, lock] = await Promise.all([
+    getCurrentSnapshot(),
+    getRecentEvents(20),
+    getCurrentLock(),
+  ])
 
- return (
- <SystemStatusPage
- initialSnapshot={snapshot}
- initialEvents={events}
- initialLock={lock}
- />
- )
+  return <SystemStatusPage initialSnapshot={snapshot} initialEvents={events} initialLock={lock} />
 }

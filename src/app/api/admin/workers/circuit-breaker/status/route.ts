@@ -46,9 +46,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("[workers-circuit-breaker-status] Error fetching status:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch circuit breaker status" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch circuit breaker status" }, { status: 500 })
   }
 }

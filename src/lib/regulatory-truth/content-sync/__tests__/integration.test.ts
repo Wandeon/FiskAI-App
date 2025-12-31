@@ -34,10 +34,7 @@ import type { ContentSyncEventV1 } from "../types"
 const hasDatabase = !!process.env.DATABASE_URL
 
 // Content directory path (relative to project root)
-const CONTENT_DIR = path.resolve(
-  process.cwd(),
-  "content"
-)
+const CONTENT_DIR = path.resolve(process.cwd(), "content")
 
 // =============================================================================
 // Test Fixtures
@@ -123,9 +120,7 @@ describe("Content Sync Integration", () => {
     // Cleanup: delete test events from database
     for (const eventId of createdEventIds) {
       try {
-        await drizzleDb
-          .delete(contentSyncEvents)
-          .where(eq(contentSyncEvents.eventId, eventId))
+        await drizzleDb.delete(contentSyncEvents).where(eq(contentSyncEvents.eventId, eventId))
       } catch {
         // Ignore cleanup errors
       }
@@ -309,7 +304,9 @@ describe("Content Sync Integration", () => {
 
       // Verify original content is preserved
       expect(patchedContent).toContain("# Test Guide")
-      expect(patchedContent).toContain("This is test content that should be preserved after patching.")
+      expect(patchedContent).toContain(
+        "This is test content that should be preserved after patching."
+      )
       expect(patchedContent).toContain("## Section 1")
     })
 

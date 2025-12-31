@@ -306,12 +306,16 @@ export function validateConfigOnStartup(): { valid: boolean; warnings: string[] 
   }
 
   if (config.reasoning.mode === "shadow" && !config.reasoning.enabled) {
-    warnings.push("Reasoning mode is 'shadow' but REASONING_UX_ENABLED is false - inconsistent config")
+    warnings.push(
+      "Reasoning mode is 'shadow' but REASONING_UX_ENABLED is false - inconsistent config"
+    )
   }
 
   // Threshold validation
   if (config.articleAgent.failThreshold >= config.articleAgent.passThreshold) {
-    warnings.push("Article agent fail threshold >= pass threshold - paragraphs cannot pass verification")
+    warnings.push(
+      "Article agent fail threshold >= pass threshold - paragraphs cannot pass verification"
+    )
   }
 
   if (config.watchdog.confidenceCritical >= config.watchdog.confidenceWarning) {

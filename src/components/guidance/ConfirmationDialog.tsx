@@ -89,11 +89,7 @@ export function ConfirmationDialog({
           </DialogHeader>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
+            <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
               {cancelLabel}
             </Button>
             <Button

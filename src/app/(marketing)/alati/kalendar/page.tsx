@@ -26,10 +26,7 @@ const formatDayMonth = (dateString: string, year: number) => {
   })
 }
 
-const posdQ4Deadline = formatDayMonth(
-  ADDITIONAL_DEADLINES.posdQuarterly.dates[0],
-  calendarYear + 1
-)
+const posdQ4Deadline = formatDayMonth(ADDITIONAL_DEADLINES.posdQuarterly.dates[0], calendarYear + 1)
 const contributionsDay = DEADLINES.contributions.monthly.dates[0]
 const dohodakDeadline = formatDayMonth(DEADLINES.annualFiling.dohodak.dates[0], calendarYear)
 const posdAnnualDeadline = formatDayMonth(ADDITIONAL_DEADLINES.posd.dates[0], calendarYear)

@@ -25,7 +25,7 @@
 // Types
 // =============================================================================
 
-export type Locale = "hr" | "en";
+export type Locale = "hr" | "en"
 
 export type ChangeFrequency =
   | "always"
@@ -34,21 +34,21 @@ export type ChangeFrequency =
   | "weekly"
   | "monthly"
   | "yearly"
-  | "never";
+  | "never"
 
 export interface RouteDef {
   /** Localized paths - Croatian is canonical */
-  path: Record<Locale, string>;
+  path: Record<Locale, string>
   /** SEO priority 0.0 - 1.0 */
-  priority: number;
+  priority: number
   /** How often content changes */
-  changeFreq: ChangeFrequency;
+  changeFreq: ChangeFrequency
   /** Include in public sitemap.xml */
-  sitemap: boolean;
+  sitemap: boolean
   /** Route category for organization */
-  category: RouteCategory;
+  category: RouteCategory
   /** Optional: Croatian page title for nav/breadcrumbs */
-  title?: string;
+  title?: string
 }
 
 export type RouteCategory =
@@ -60,7 +60,7 @@ export type RouteCategory =
   | "legal" // Privacy, terms, DPA
   | "auth" // Login, register, password reset
   | "app" // Authenticated app routes (excluded from sitemap)
-  | "internal"; // Staff/admin portals
+  | "internal" // Staff/admin portals
 
 // =============================================================================
 // Route IDs - Add new routes here
@@ -121,7 +121,7 @@ export type RouteId =
   // AI
   | "assistant"
   | "assistant_demo"
-  | "wizard";
+  | "wizard"
 
 // =============================================================================
 // Route Definitions
@@ -530,7 +530,7 @@ export const routes: Record<RouteId, RouteDef> = {
     category: "marketing",
     title: "Čarobnjak za odabir",
   },
-};
+}
 
 // =============================================================================
 // Helper Functions
@@ -540,47 +540,38 @@ export const routes: Record<RouteId, RouteDef> = {
  * Get the path for a route in a specific locale
  */
 export function getRoutePath(routeId: RouteId, locale: Locale = "hr"): string {
-  return routes[routeId].path[locale];
+  return routes[routeId].path[locale]
 }
 
 /**
  * Get all routes that should be in the sitemap
  */
 export function getSitemapRoutes(): Array<[RouteId, RouteDef]> {
-  return Object.entries(routes).filter(
-    ([, def]) => def.sitemap
-  ) as Array<[RouteId, RouteDef]>;
+  return Object.entries(routes).filter(([, def]) => def.sitemap) as Array<[RouteId, RouteDef]>
 }
 
 /**
  * Get routes by category
  */
-export function getRoutesByCategory(
-  category: RouteCategory
-): Array<[RouteId, RouteDef]> {
-  return Object.entries(routes).filter(
-    ([, def]) => def.category === category
-  ) as Array<[RouteId, RouteDef]>;
+export function getRoutesByCategory(category: RouteCategory): Array<[RouteId, RouteDef]> {
+  return Object.entries(routes).filter(([, def]) => def.category === category) as Array<
+    [RouteId, RouteDef]
+  >
 }
 
 /**
  * Check if a path exists in the registry (for validation)
  */
 export function isValidRoute(path: string, locale: Locale = "hr"): boolean {
-  return Object.values(routes).some((def) => def.path[locale] === path);
+  return Object.values(routes).some((def) => def.path[locale] === path)
 }
 
 /**
  * Get RouteId from a path (reverse lookup)
  */
-export function getRouteIdFromPath(
-  path: string,
-  locale: Locale = "hr"
-): RouteId | null {
-  const entry = Object.entries(routes).find(
-    ([, def]) => def.path[locale] === path
-  );
-  return entry ? (entry[0] as RouteId) : null;
+export function getRouteIdFromPath(path: string, locale: Locale = "hr"): RouteId | null {
+  const entry = Object.entries(routes).find(([, def]) => def.path[locale] === path)
+  return entry ? (entry[0] as RouteId) : null
 }
 
 // =============================================================================
@@ -592,11 +583,11 @@ export function getRouteIdFromPath(
  * Use this to prevent staging/dev sitemaps from being indexed
  */
 export function isProductionSitemap(): boolean {
-  const env = process.env.NODE_ENV;
-  const url = process.env.NEXT_PUBLIC_APP_URL || "";
+  const env = process.env.NODE_ENV
+  const url = process.env.NEXT_PUBLIC_APP_URL || ""
 
   // Must be production AND on the canonical domain
-  return env === "production" && url.includes("fiskai.hr");
+  return env === "production" && url.includes("fiskai.hr")
 }
 
 /**
@@ -605,7 +596,7 @@ export function isProductionSitemap(): boolean {
 export function getCanonicalBaseUrl(): string {
   if (!isProductionSitemap()) {
     // Return empty to signal "don't generate sitemap"
-    return "";
+    return ""
   }
-  return "https://fiskai.hr";
+  return "https://fiskai.hr"
 }

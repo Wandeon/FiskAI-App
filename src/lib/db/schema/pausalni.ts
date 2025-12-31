@@ -141,10 +141,7 @@ export const euTransaction = pgTable(
       table.reportingYear,
       table.reportingMonth
     ),
-    transactionTypeIdx: index("eu_transaction_type_idx").on(
-      table.companyId,
-      table.transactionType
-    ),
+    transactionTypeIdx: index("eu_transaction_type_idx").on(table.companyId, table.transactionType),
   })
 )
 

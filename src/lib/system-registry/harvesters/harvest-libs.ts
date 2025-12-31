@@ -76,7 +76,12 @@ function hasTsFiles(dirPath: string, depth: number, state: ScanState): boolean {
       // Skip symlinks to prevent loops
       if (entry.isSymbolicLink()) continue
 
-      if (entry.isDirectory() && !entry.name.startsWith("__") && !entry.name.startsWith(".") && entry.name !== "node_modules") {
+      if (
+        entry.isDirectory() &&
+        !entry.name.startsWith("__") &&
+        !entry.name.startsWith(".") &&
+        entry.name !== "node_modules"
+      ) {
         if (hasTsFiles(join(dirPath, entry.name), depth + 1, state)) {
           return true
         }
@@ -129,12 +134,19 @@ function countTsFiles(dirPath: string, depth: number, state: ScanState): number 
 
       if (entry.isFile()) {
         // Count .ts/.tsx but not .d.ts (type definitions are not real code)
-        if ((entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) && !entry.name.endsWith(".d.ts")) {
+        if (
+          (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) &&
+          !entry.name.endsWith(".d.ts")
+        ) {
           count++
         }
       } else if (entry.isDirectory()) {
         // Same exclusions as hasTsFiles()
-        if (entry.name.startsWith("__") || entry.name.startsWith(".") || entry.name === "node_modules") {
+        if (
+          entry.name.startsWith("__") ||
+          entry.name.startsWith(".") ||
+          entry.name === "node_modules"
+        ) {
           continue
         }
         count += countTsFiles(join(dirPath, entry.name), depth + 1, state)

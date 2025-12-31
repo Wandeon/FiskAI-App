@@ -41,7 +41,6 @@ function isPublicApiRoute(pathname: string): boolean {
   return PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route))
 }
 
-
 // Routes to skip (API, static assets, etc.)
 function shouldSkipRoute(pathname: string): boolean {
   return (
@@ -127,10 +126,7 @@ export async function middleware(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       "anonymous"
 
-    const rateLimitResult = await checkRateLimit(
-      `unauthenticated_${ip}`,
-      "UNAUTHENTICATED_TRAFFIC"
-    )
+    const rateLimitResult = await checkRateLimit(`unauthenticated_${ip}`, "UNAUTHENTICATED_TRAFFIC")
 
     if (!rateLimitResult.allowed) {
       logger.warn(
@@ -167,7 +163,6 @@ export async function middleware(request: NextRequest) {
         response.headers.set(key, value)
       }
     }
-
 
     // Apply CSP with nonce
     response.headers.set("Content-Security-Policy", generateCSP(nonce))
@@ -255,7 +250,6 @@ export async function middleware(request: NextRequest) {
     response.headers.set("Content-Security-Policy", generateCSP(nonce))
     return response
   }
-
 
   // Rewrite to appropriate route group based on subdomain
   const url = request.nextUrl.clone()

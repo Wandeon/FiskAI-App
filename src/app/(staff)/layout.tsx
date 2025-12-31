@@ -6,30 +6,30 @@ import { StaffHeader } from "@/components/staff/header"
 import { StaffClientProvider } from "@/components/staff/staff-client-provider"
 
 export default async function StaffLayout({ children }: { children: ReactNode }) {
- const session = await auth()
+  const session = await auth()
 
- if (!session?.user) {
- redirect("/login")
- }
+  if (!session?.user) {
+    redirect("/login")
+  }
 
- // Check for STAFF or ADMIN role
- if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
- redirect("/dashboard")
- }
+  // Check for STAFF or ADMIN role
+  if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
+    redirect("/dashboard")
+  }
 
- return (
- <StaffClientProvider>
- <div className="flex h-screen bg-[var(--background)]">
- <StaffSidebar />
+  return (
+    <StaffClientProvider>
+      <div className="flex h-screen bg-[var(--background)]">
+        <StaffSidebar />
 
- {/* Main content */}
- <div className="flex-1 flex flex-col overflow-hidden">
- <StaffHeader />
+        {/* Main content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <StaffHeader />
 
- {/* Main content area */}
- <main className="flex-1 overflow-auto p-6">{children}</main>
- </div>
- </div>
- </StaffClientProvider>
- )
+          {/* Main content area */}
+          <main className="flex-1 overflow-auto p-6">{children}</main>
+        </div>
+      </div>
+    </StaffClientProvider>
+  )
 }

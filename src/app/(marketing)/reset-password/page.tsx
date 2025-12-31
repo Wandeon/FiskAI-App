@@ -164,7 +164,9 @@ export default function ResetPasswordPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
+          {error && (
+            <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+          )}
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">

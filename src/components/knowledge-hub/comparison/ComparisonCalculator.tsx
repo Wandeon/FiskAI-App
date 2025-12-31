@@ -206,10 +206,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <th
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/20"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/20")}
                 >
                   {r.label}
                   {r.isRecommended && (
@@ -225,10 +222,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.contributions} />
                 </td>
@@ -239,10 +233,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.tax} />
                 </td>
@@ -253,10 +244,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.bookkeeping} />
                 </td>
@@ -267,10 +255,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.other} />
                 </td>
@@ -281,10 +266,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.total} />
                 </td>
@@ -312,9 +294,7 @@ export function ComparisonCalculator({
             key={r.type}
             className={cn(
               "border rounded-lg p-4",
-              r.isRecommended
-                ? "border-emerald-500 bg-chart-4/10"
-                : "border-white/20 bg-surface/5"
+              r.isRecommended ? "border-emerald-500 bg-chart-4/10" : "border-white/20 bg-surface/5"
             )}
           >
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/20">

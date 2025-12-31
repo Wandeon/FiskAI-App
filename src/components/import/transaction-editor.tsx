@@ -177,7 +177,9 @@ export function TransactionEditor({
                   </td>
                   <td
                     className={`p-2 text-sm text-right font-medium ${
-                      transaction.direction === "INCOMING" ? "text-success-text" : "text-danger-text"
+                      transaction.direction === "INCOMING"
+                        ? "text-success-text"
+                        : "text-danger-text"
                     }`}
                   >
                     {isEditing ? (

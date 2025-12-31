@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font,
-} from "@react-pdf/renderer"
+import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer"
 import type { PosdFormData } from "./posd-generator"
 import { EXPENSE_BRACKETS } from "./posd-generator"
 
@@ -28,10 +21,7 @@ const CROATIAN_MONTHS = [
 // Register fonts (using Helvetica as fallback since it's built-in)
 Font.register({
   family: "Helvetica",
-  fonts: [
-    { src: "Helvetica" },
-    { src: "Helvetica-Bold", fontWeight: "bold" },
-  ],
+  fonts: [{ src: "Helvetica" }, { src: "Helvetica-Bold", fontWeight: "bold" }],
 })
 
 const styles = StyleSheet.create({
@@ -195,8 +185,7 @@ function formatCurrency(amount: number): string {
 }
 
 export function PosdPDFDocument({ data }: Props) {
-  const expenseLabel =
-    EXPENSE_BRACKETS.find((b) => b.value === data.expenseBracket)?.label || ""
+  const expenseLabel = EXPENSE_BRACKETS.find((b) => b.value === data.expenseBracket)?.label || ""
   const generatedDate = new Date().toLocaleDateString("hr-HR", {
     day: "numeric",
     month: "long",
@@ -270,12 +259,8 @@ export function PosdPDFDocument({ data }: Props) {
               <Text style={styles.summaryLabel}>
                 II. Priznati troškovi ({data.expenseBracket}%)
               </Text>
-              <Text style={styles.summaryValue}>
-                {formatCurrency(data.calculatedExpenses)}
-              </Text>
-              <Text style={{ fontSize: 8, color: "#64748b", marginTop: 2 }}>
-                {expenseLabel}
-              </Text>
+              <Text style={styles.summaryValue}>{formatCurrency(data.calculatedExpenses)}</Text>
+              <Text style={{ fontSize: 8, color: "#64748b", marginTop: 2 }}>{expenseLabel}</Text>
             </View>
             <View style={styles.summaryBoxLast}>
               <Text style={styles.summaryLabel}>Broj izdanih računa</Text>
@@ -317,9 +302,9 @@ export function PosdPDFDocument({ data }: Props) {
         {/* Warning */}
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
-            NAPOMENA: Ovaj dokument služi kao priprema za podnošenje PO-SD obrasca. Za
-            službenu prijavu morate pristupiti portalu ePorezna i unijeti podatke iz ovog
-            dokumenta. Rok za podnošenje je 31. siječnja za prethodnu godinu.
+            NAPOMENA: Ovaj dokument služi kao priprema za podnošenje PO-SD obrasca. Za službenu
+            prijavu morate pristupiti portalu ePorezna i unijeti podatke iz ovog dokumenta. Rok za
+            podnošenje je 31. siječnja za prethodnu godinu.
           </Text>
         </View>
 

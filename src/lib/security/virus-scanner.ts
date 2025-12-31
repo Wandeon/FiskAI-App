@@ -90,10 +90,7 @@ export async function scanBuffer(buffer: Buffer, fileName: string): Promise<Scan
     const { isInfected, viruses } = await clam.scanBuffer(buffer)
 
     if (isInfected) {
-      logger.warn(
-        { fileName, viruses, size: buffer.length },
-        "Infected file detected and blocked"
-      )
+      logger.warn({ fileName, viruses, size: buffer.length }, "Infected file detected and blocked")
     } else {
       logger.debug({ fileName, size: buffer.length }, "File scan clean")
     }

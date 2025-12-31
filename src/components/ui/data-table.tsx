@@ -27,7 +27,7 @@ interface DataTableProps<T> {
   emptyMessage?: string
   className?: string
   getRowKey: (item: T) => string
-/** Callback when a row is activated (Enter key or double-click) */
+  /** Callback when a row is activated (Enter key or double-click) */
   onRowActivate?: (item: T) => void
   /** Enable keyboard navigation */
   keyboardNavigation?: boolean
@@ -44,7 +44,7 @@ export function DataTable<T>({
   emptyMessage = "Nema podataka",
   className,
   getRowKey,
-onRowActivate,
+  onRowActivate,
   keyboardNavigation = true,
   sort,
   onSort,
@@ -108,14 +108,20 @@ onRowActivate,
                     isSortable && "cursor-pointer hover:bg-surface-2",
                     column.className
                   )}
-                  aria-sort={isSorted ? (sort.order === "asc" ? "ascending" : "descending") : undefined}
+                  aria-sort={
+                    isSorted ? (sort.order === "asc" ? "ascending" : "descending") : undefined
+                  }
                   onClick={isSortable ? () => onSort(column.key) : undefined}
-                  onKeyDown={isSortable ? (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      onSort(column.key)
-                    }
-                  } : undefined}
+                  onKeyDown={
+                    isSortable
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            onSort(column.key)
+                          }
+                        }
+                      : undefined
+                  }
                   tabIndex={isSortable ? 0 : undefined}
                   role={isSortable ? "button" : undefined}
                   aria-label={sortAriaLabel}
@@ -137,7 +143,8 @@ onRowActivate,
               key={getRowKey(item)}
               className={cn(
                 "border-b last:border-b-0 hover:bg-surface-1 cursor-pointer transition-colors",
-                selectedIndex === index && "bg-interactive-secondary ring-2 ring-inset ring-border-focus"
+                selectedIndex === index &&
+                  "bg-interactive-secondary ring-2 ring-inset ring-border-focus"
               )}
               onClick={() => setSelectedIndex(index)}
               onDoubleClick={() => handleActivate(index)}

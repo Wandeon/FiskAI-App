@@ -145,16 +145,16 @@ export function ClientDataPanel({
                   {clientContext.computedResult.label}
                 </p>
                 <p
-                  className={cn("text-xl font-semibold", isDark ? "text-accent-light" : "text-primary")}
+                  className={cn(
+                    "text-xl font-semibold",
+                    isDark ? "text-accent-light" : "text-primary"
+                  )}
                 >
                   {clientContext.computedResult.value}
                 </p>
                 {clientContext.computedResult.explanation && (
                   <p
-                    className={cn(
-                      "text-xs mt-1",
-                      isDark ? "text-muted" : "text-muted-foreground"
-                    )}
+                    className={cn("text-xs mt-1", isDark ? "text-muted" : "text-muted-foreground")}
                   >
                     {clientContext.computedResult.explanation}
                   </p>
@@ -207,7 +207,9 @@ export function ClientDataPanel({
               <div
                 className={cn(
                   "p-3 rounded-lg border",
-                  isDark ? "bg-amber-900/20 border-warning/30" : "bg-warning-bg border-warning-border"
+                  isDark
+                    ? "bg-amber-900/20 border-warning/30"
+                    : "bg-warning-bg border-warning-border"
                 )}
               >
                 <div className="flex items-start gap-2">

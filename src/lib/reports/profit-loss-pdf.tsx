@@ -107,11 +107,13 @@ function formatDate(date: Date): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("hr-HR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    currency: "EUR",
-  }).format(amount) + " €"
+  return (
+    new Intl.NumberFormat("hr-HR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      currency: "EUR",
+    }).format(amount) + " €"
+  )
 }
 
 export function ProfitLossPdfDocument({
@@ -179,7 +181,9 @@ export function ProfitLossPdfDocument({
           </Text>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
             <Text>Ukupni prihodi:</Text>
-            <Text style={[styles.positive, { fontFamily: "Courier" }]}>{formatCurrency(revenue)}</Text>
+            <Text style={[styles.positive, { fontFamily: "Courier" }]}>
+              {formatCurrency(revenue)}
+            </Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
             <Text>Ukupni rashodi:</Text>

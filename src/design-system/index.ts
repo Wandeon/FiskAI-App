@@ -154,7 +154,7 @@ export {
   type DivergingPalette,
   type ChartElement,
   type DataVis,
-} from './tokens';
+} from "./tokens"
 
 // ============================================================================
 // Types
@@ -226,4 +226,4 @@ export type {
   PolymorphicProps,
   PolymorphicRef,
   PolymorphicPropsWithRef,
-} from './types';
+} from "./types"

@@ -35,12 +35,7 @@ export function CustomItemModal({ onClose, onAdd }: Props) {
   }
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
-      title="Prilagođena stavka"
-      size="md"
-    >
+    <Modal isOpen={true} onClose={onClose} title="Prilagođena stavka" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Opis</label>

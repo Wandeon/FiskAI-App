@@ -24,11 +24,7 @@ interface JobInfo {
 /**
  * Recursively finds all job directories with route.ts files.
  */
-function findJobs(
-  dirPath: string,
-  projectRoot: string,
-  prefix: string = ""
-): JobInfo[] {
+function findJobs(dirPath: string, projectRoot: string, prefix: string = ""): JobInfo[] {
   const jobs: JobInfo[] = []
 
   if (!existsSync(dirPath)) {
@@ -38,9 +34,7 @@ function findJobs(
   const entries = readdirSync(dirPath, { withFileTypes: true })
 
   // Check if this directory has a route.ts
-  const hasRoute = entries.some(
-    (e) => e.name === "route.ts" || e.name === "route.tsx"
-  )
+  const hasRoute = entries.some((e) => e.name === "route.ts" || e.name === "route.tsx")
 
   if (hasRoute && prefix) {
     // This is a job directory

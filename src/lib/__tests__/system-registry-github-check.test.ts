@@ -293,9 +293,7 @@ describe("formatGitHubCheck", () => {
 
     it("includes critical path count", () => {
       const analysis = makeEmptyAnalysis()
-      analysis.criticalPathImpacts = [
-        makeCriticalPathImpact("path-billing", "Billing", 0),
-      ]
+      analysis.criticalPathImpacts = [makeCriticalPathImpact("path-billing", "Billing", 0)]
       const result = formatGitHubCheck(analysis, "warn")
       assert.ok(result.summary.includes("1 critical path(s) affected"))
     })
@@ -360,9 +358,7 @@ describe("formatGitHubCheck", () => {
 
     it("shows critical paths", () => {
       const analysis = makeEmptyAnalysis()
-      analysis.criticalPathImpacts = [
-        makeCriticalPathImpact("path-billing", "Billing Flow", 1),
-      ]
+      analysis.criticalPathImpacts = [makeCriticalPathImpact("path-billing", "Billing Flow", 1)]
       const result = formatGitHubCheck(analysis, "warn")
 
       assert.ok(result.text.includes("### Critical Paths Impacted"))
@@ -482,16 +478,12 @@ describe("formatGitHubCheck", () => {
           makeDirectImpact("route-group-users", "MEDIUM"),
         ],
         transitiveImpacts: [
-          makeTransitiveImpact("worker-subscription-sync", "CRITICAL", 1, [
-            "lib-auth",
-          ]),
+          makeTransitiveImpact("worker-subscription-sync", "CRITICAL", 1, ["lib-auth"]),
           makeTransitiveImpact("integration-stripe", "HIGH", 2, ["lib-billing"]),
           makeTransitiveImpact("util-format", "LOW", 3, []),
         ],
         criticalPathImpacts: [
-          makeCriticalPathImpact("path-billing", "Billing", 1, [
-            "integration-stripe",
-          ]),
+          makeCriticalPathImpact("path-billing", "Billing", 1, ["integration-stripe"]),
         ],
         score: makeBlastScore("CRITICAL", "HIGH", [
           { from: "HIGH", to: "CRITICAL", reason: "Security team owns component" },

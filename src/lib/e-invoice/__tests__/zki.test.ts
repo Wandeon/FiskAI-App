@@ -67,10 +67,7 @@ describe("ZKI Calculation", () => {
       })
 
       assert.strictEqual(result.valid, false, "Invalid OIB should fail validation")
-      assert.ok(
-        result.errors.includes("Invalid OIB format or checksum"),
-        "Should have OIB error"
-      )
+      assert.ok(result.errors.includes("Invalid OIB format or checksum"), "Should have OIB error")
     })
 
     it("should reject OIB with invalid checksum", () => {
@@ -80,10 +77,7 @@ describe("ZKI Calculation", () => {
       })
 
       assert.strictEqual(result.valid, false, "Invalid OIB checksum should fail validation")
-      assert.ok(
-        result.errors.includes("Invalid OIB format or checksum"),
-        "Should have OIB error"
-      )
+      assert.ok(result.errors.includes("Invalid OIB format or checksum"), "Should have OIB error")
     })
 
     it("should reject empty invoice number", () => {

@@ -44,7 +44,11 @@ export async function recordCronError(params: CronErrorParams): Promise<void> {
   }
 }
 
-export async function resolveCronError(jobName: string, entityId: string, resolvedBy?: string): Promise<void> {
+export async function resolveCronError(
+  jobName: string,
+  entityId: string,
+  resolvedBy?: string
+): Promise<void> {
   try {
     await db.cronJobError.update({
       where: { jobName_entityId: { jobName, entityId } },
@@ -76,6 +80,10 @@ export async function getCronErrorStats() {
   return {
     total,
     unresolved,
-    byJob: byJob.map((j) => ({ jobName: j.jobName, count: j._count.id, maxAttempts: j._max.attemptCount })),
+    byJob: byJob.map((j) => ({
+      jobName: j.jobName,
+      count: j._count.id,
+      maxAttempts: j._max.attemptCount,
+    })),
   }
 }

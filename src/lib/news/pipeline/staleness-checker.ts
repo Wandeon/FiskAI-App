@@ -24,7 +24,7 @@ export const STALENESS_THRESHOLDS: Record<string, number> = {
 
   // Compliance content
   fiskalizacija: 60,
-  "racunovodstvo": 90,
+  racunovodstvo: 90,
 
   // General business news
   poslovanje: 90,
@@ -77,7 +77,9 @@ export function determineFreshnessStatus(
     return {
       status: "expired",
       reason: `Content expired on ${expiresAt.toISOString().split("T")[0]}`,
-      daysSincePublished: publishedAt ? Math.floor((now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60 * 24)) : null,
+      daysSincePublished: publishedAt
+        ? Math.floor((now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60 * 24))
+        : null,
     }
   }
 
@@ -240,9 +242,7 @@ export async function checkAllPostsStaleness(): Promise<{
 /**
  * Get posts that need review (stale or approaching staleness)
  */
-export async function getPostsNeedingReview(
-  limit: number = 50
-): Promise<StalenessCheckResult[]> {
+export async function getPostsNeedingReview(limit: number = 50): Promise<StalenessCheckResult[]> {
   const now = new Date()
 
   // Get stale and expired posts
@@ -259,10 +259,7 @@ export async function getPostsNeedingReview(
     .where(
       and(
         eq(newsPosts.status, "published"),
-        or(
-          eq(newsPosts.freshnessStatus, "stale"),
-          eq(newsPosts.freshnessStatus, "expired")
-        )
+        or(eq(newsPosts.freshnessStatus, "stale"), eq(newsPosts.freshnessStatus, "expired"))
       )
     )
     .orderBy(desc(newsPosts.publishedAt))
@@ -308,10 +305,7 @@ export async function markPostAsVerified(postId: string): Promise<void> {
 /**
  * Set expiration date for time-sensitive content
  */
-export async function setPostExpiration(
-  postId: string,
-  expiresAt: Date
-): Promise<void> {
+export async function setPostExpiration(postId: string, expiresAt: Date): Promise<void> {
   await drizzleDb
     .update(newsPosts)
     .set({
@@ -324,9 +318,7 @@ export async function setPostExpiration(
 /**
  * Archive old posts (bulk operation)
  */
-export async function archiveOldPosts(
-  olderThanDays: number = 180
-): Promise<{ archived: number }> {
+export async function archiveOldPosts(olderThanDays: number = 180): Promise<{ archived: number }> {
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - olderThanDays)
 
@@ -396,12 +388,7 @@ export async function getFreshnessStats(): Promise<{
       avgAge: sql<number>`avg(extract(epoch from (now() - ${newsPosts.publishedAt})) / 86400)::numeric(10,1)`,
     })
     .from(newsPosts)
-    .where(
-      and(
-        eq(newsPosts.status, "published"),
-        sql`${newsPosts.publishedAt} is not null`
-      )
-    )
+    .where(and(eq(newsPosts.status, "published"), sql`${newsPosts.publishedAt} is not null`))
 
   if (ageResult[0]?.avgAge) {
     result.averageAge = parseFloat(ageResult[0].avgAge.toString())

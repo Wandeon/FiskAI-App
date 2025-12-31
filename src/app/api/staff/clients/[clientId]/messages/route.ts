@@ -33,10 +33,7 @@ async function verifyStaffAccess(userId: string, companyId: string, systemRole: 
 }
 
 // GET - List all tickets/messages for a client
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ clientId: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ clientId: string }> }) {
   const params = await context.params
   const session = await auth()
 
@@ -83,14 +80,14 @@ export async function GET(
     }
 
     // Get author names for messages
-    const authorIds = [...new Set(ticket.messages.map(m => m.authorId).filter(Boolean))]
+    const authorIds = [...new Set(ticket.messages.map((m) => m.authorId).filter(Boolean))]
     const authors = await db.user.findMany({
       where: { id: { in: authorIds as string[] } },
       select: { id: true, name: true, email: true, systemRole: true },
     })
-    const authorMap = new Map(authors.map(a => [a.id, a]))
+    const authorMap = new Map(authors.map((a) => [a.id, a]))
 
-    const messagesWithAuthors = ticket.messages.map(m => ({
+    const messagesWithAuthors = ticket.messages.map((m) => ({
       ...m,
       author: m.authorId ? authorMap.get(m.authorId) : null,
     }))
@@ -125,10 +122,7 @@ export async function GET(
 }
 
 // POST - Create new ticket or add message
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ clientId: string }> }
-) {
+export async function POST(request: Request, context: { params: Promise<{ clientId: string }> }) {
   const params = await context.params
   const session = await auth()
 
@@ -156,7 +150,10 @@ export async function POST(
   if (body.ticketId) {
     const parsed = addMessageSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data", details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: "Invalid data", details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const ticket = await db.supportTicket.findFirst({
@@ -190,7 +187,10 @@ export async function POST(
   // Create new ticket
   const parsed = createTicketSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid data", details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid data", details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const ticket = await db.supportTicket.create({
@@ -220,10 +220,7 @@ export async function POST(
 }
 
 // PATCH - Update ticket status
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ clientId: string }> }
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ clientId: string }> }) {
   const params = await context.params
   const session = await auth()
 

@@ -88,10 +88,7 @@ describe("computeDirectImpact", () => {
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("lib-auth")
-      expect(result[0].matchedFiles).toEqual([
-        "src/lib/auth/session.ts",
-        "src/lib/auth/utils.ts",
-      ])
+      expect(result[0].matchedFiles).toEqual(["src/lib/auth/session.ts", "src/lib/auth/utils.ts"])
     })
 
     it("matches file to multiple components (overlapping codeRefs)", () => {
@@ -99,10 +96,7 @@ describe("computeDirectImpact", () => {
         makeComponent("lib-auth", "LIB", "src/lib/auth/"),
         makeComponent("lib-auth-utils", "LIB", "src/lib/auth/utils/"),
       ]
-      const result = computeDirectImpact(
-        ["src/lib/auth/utils/helpers.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/auth/utils/helpers.ts"], components)
 
       expect(result).toHaveLength(2)
       const componentIds = result.map((r) => r.component.componentId).sort()
@@ -119,16 +113,9 @@ describe("computeDirectImpact", () => {
 
     it("handles exact file match for single-file codeRefs", () => {
       const components = [
-        makeComponent(
-          "integration-fina-cis",
-          "INTEGRATION",
-          "src/lib/fiscal/porezna-client.ts"
-        ),
+        makeComponent("integration-fina-cis", "INTEGRATION", "src/lib/fiscal/porezna-client.ts"),
       ]
-      const result = computeDirectImpact(
-        ["src/lib/fiscal/porezna-client.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/fiscal/porezna-client.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("integration-fina-cis")
@@ -188,10 +175,7 @@ describe("computeDirectImpact", () => {
         }),
       ]
 
-      const result = computeDirectImpact(
-        ["src/lib/a/file.ts", "src/lib/c/file.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/a/file.ts", "src/lib/c/file.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].matchedFiles).toEqual(["src/lib/a/file.ts", "src/lib/c/file.ts"])
@@ -200,9 +184,7 @@ describe("computeDirectImpact", () => {
 
   describe("ROUTE_GROUP matching", () => {
     it("extracts group name from route-group-auth", () => {
-      const components = [
-        makeComponent("route-group-auth", "ROUTE_GROUP", "src/app/api/auth/"),
-      ]
+      const components = [makeComponent("route-group-auth", "ROUTE_GROUP", "src/app/api/auth/")]
       const result = computeDirectImpact(["src/app/api/auth/route.ts"], components)
 
       expect(result).toHaveLength(1)
@@ -214,10 +196,7 @@ describe("computeDirectImpact", () => {
       const components = [
         makeComponent("route-group-e-invoices", "ROUTE_GROUP", "src/app/api/e-invoices/"),
       ]
-      const result = computeDirectImpact(
-        ["src/app/api/e-invoices/[id]/route.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/app/api/e-invoices/[id]/route.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("route-group-e-invoices")
@@ -225,9 +204,7 @@ describe("computeDirectImpact", () => {
 
     it("matches route group via computed path, not just codeRef", () => {
       // Even if codeRef is null, route groups should match via ID pattern
-      const components = [
-        makeComponent("route-group-billing", "ROUTE_GROUP", null),
-      ]
+      const components = [makeComponent("route-group-billing", "ROUTE_GROUP", null)]
       const result = computeDirectImpact(["src/app/api/billing/route.ts"], components)
 
       expect(result).toHaveLength(1)
@@ -235,22 +212,15 @@ describe("computeDirectImpact", () => {
     })
 
     it("does not match route group for wrong API path", () => {
-      const components = [
-        makeComponent("route-group-auth", "ROUTE_GROUP", "src/app/api/auth/"),
-      ]
+      const components = [makeComponent("route-group-auth", "ROUTE_GROUP", "src/app/api/auth/")]
       const result = computeDirectImpact(["src/app/api/billing/route.ts"], components)
 
       expect(result).toEqual([])
     })
 
     it("matches nested route files", () => {
-      const components = [
-        makeComponent("route-group-admin", "ROUTE_GROUP", "src/app/api/admin/"),
-      ]
-      const result = computeDirectImpact(
-        ["src/app/api/admin/users/[id]/route.ts"],
-        components
-      )
+      const components = [makeComponent("route-group-admin", "ROUTE_GROUP", "src/app/api/admin/")]
+      const result = computeDirectImpact(["src/app/api/admin/users/[id]/route.ts"], components)
 
       expect(result).toHaveLength(1)
     })
@@ -307,16 +277,9 @@ describe("computeDirectImpact", () => {
   describe("QUEUE matching", () => {
     it("matches queue via allowed factory path and codeRef", () => {
       const components = [
-        makeComponent(
-          "queue-sentinel",
-          "QUEUE",
-          "src/lib/regulatory-truth/workers/queues.ts"
-        ),
+        makeComponent("queue-sentinel", "QUEUE", "src/lib/regulatory-truth/workers/queues.ts"),
       ]
-      const result = computeDirectImpact(
-        ["src/lib/regulatory-truth/workers/queues.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/regulatory-truth/workers/queues.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("queue-sentinel")
@@ -325,26 +288,11 @@ describe("computeDirectImpact", () => {
 
     it("matches all queues when queues.ts is changed", () => {
       const components = [
-        makeComponent(
-          "queue-sentinel",
-          "QUEUE",
-          "src/lib/regulatory-truth/workers/queues.ts"
-        ),
-        makeComponent(
-          "queue-extract",
-          "QUEUE",
-          "src/lib/regulatory-truth/workers/queues.ts"
-        ),
-        makeComponent(
-          "queue-compose",
-          "QUEUE",
-          "src/lib/regulatory-truth/workers/queues.ts"
-        ),
+        makeComponent("queue-sentinel", "QUEUE", "src/lib/regulatory-truth/workers/queues.ts"),
+        makeComponent("queue-extract", "QUEUE", "src/lib/regulatory-truth/workers/queues.ts"),
+        makeComponent("queue-compose", "QUEUE", "src/lib/regulatory-truth/workers/queues.ts"),
       ]
-      const result = computeDirectImpact(
-        ["src/lib/regulatory-truth/workers/queues.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/regulatory-truth/workers/queues.ts"], components)
 
       expect(result).toHaveLength(3)
       const ids = result.map((r) => r.component.componentId).sort()
@@ -353,16 +301,9 @@ describe("computeDirectImpact", () => {
 
     it("does not match queue for non-allowed path", () => {
       const components = [
-        makeComponent(
-          "queue-sentinel",
-          "QUEUE",
-          "src/lib/regulatory-truth/workers/queues.ts"
-        ),
+        makeComponent("queue-sentinel", "QUEUE", "src/lib/regulatory-truth/workers/queues.ts"),
       ]
-      const result = computeDirectImpact(
-        ["src/lib/other/queues.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/other/queues.ts"], components)
 
       expect(result).toEqual([])
     })
@@ -370,9 +311,7 @@ describe("computeDirectImpact", () => {
 
   describe("INTEGRATION matching", () => {
     it("matches integration via codeRef", () => {
-      const components = [
-        makeComponent("integration-stripe", "INTEGRATION", "src/lib/stripe/"),
-      ]
+      const components = [makeComponent("integration-stripe", "INTEGRATION", "src/lib/stripe/")]
       const result = computeDirectImpact(["src/lib/stripe/client.ts"], components)
 
       expect(result).toHaveLength(1)
@@ -386,10 +325,7 @@ describe("computeDirectImpact", () => {
           codeRefs: ["src/lib/integrations/foo/", "src/app/api/foo/webhooks/"],
         }),
       ]
-      const result = computeDirectImpact(
-        ["src/app/api/foo/webhooks/route.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/app/api/foo/webhooks/route.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].matchType).toBe("integration")
@@ -423,10 +359,7 @@ describe("computeDirectImpact", () => {
       const components = [
         makeComponent("module-invoicing", "MODULE", "src/lib/modules/definitions.ts"),
       ]
-      const result = computeDirectImpact(
-        ["src/lib/modules/definitions.ts"],
-        components
-      )
+      const result = computeDirectImpact(["src/lib/modules/definitions.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("module-invoicing")
@@ -436,10 +369,7 @@ describe("computeDirectImpact", () => {
   describe("UI matching", () => {
     it("matches UI component via codeRef", () => {
       const components = [makeComponent("ui-portal-app", "UI", "src/app/(app)/")]
-      const result = computeDirectImpact(
-        ["src/app/(app)/dashboard/page.tsx"],
-        components
-      )
+      const result = computeDirectImpact(["src/app/(app)/dashboard/page.tsx"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("ui-portal-app")
@@ -448,13 +378,8 @@ describe("computeDirectImpact", () => {
 
   describe("JOB matching", () => {
     it("matches job via codeRef", () => {
-      const components = [
-        makeComponent("job-fiscal-processor", "JOB", "src/app/api/cron/fiscal/"),
-      ]
-      const result = computeDirectImpact(
-        ["src/app/api/cron/fiscal/route.ts"],
-        components
-      )
+      const components = [makeComponent("job-fiscal-processor", "JOB", "src/app/api/cron/fiscal/")]
+      const result = computeDirectImpact(["src/app/api/cron/fiscal/route.ts"], components)
 
       expect(result).toHaveLength(1)
       expect(result[0].component.componentId).toBe("job-fiscal-processor")
@@ -463,9 +388,7 @@ describe("computeDirectImpact", () => {
 
   describe("STORE matching", () => {
     it("matches store via codeRef", () => {
-      const components = [
-        makeComponent("store-postgresql", "STORE", "prisma/schema.prisma"),
-      ]
+      const components = [makeComponent("store-postgresql", "STORE", "prisma/schema.prisma")]
       const result = computeDirectImpact(["prisma/schema.prisma"], components)
 
       expect(result).toHaveLength(1)
@@ -482,9 +405,7 @@ describe("computeDirectImpact", () => {
     })
 
     it("handles empty codeRefs array", () => {
-      const components = [
-        makeComponent("lib-empty", "LIB", null, { codeRefs: [] }),
-      ]
+      const components = [makeComponent("lib-empty", "LIB", null, { codeRefs: [] })]
       const result = computeDirectImpact(["src/lib/empty/file.ts"], components)
 
       expect(result).toEqual([])
@@ -511,11 +432,7 @@ describe("computeDirectImpact", () => {
         makeComponent("lib-middle", "LIB", "src/lib/middle/"),
       ]
       const result = computeDirectImpact(
-        [
-          "src/lib/zebra/file.ts",
-          "src/lib/alpha/file.ts",
-          "src/lib/middle/file.ts",
-        ],
+        ["src/lib/zebra/file.ts", "src/lib/alpha/file.ts", "src/lib/middle/file.ts"],
         components
       )
 
@@ -590,9 +507,7 @@ describe("computeTransitiveImpact", () => {
       expect(result.impacts).toHaveLength(1)
       expect(result.impacts[0].component.componentId).toBe("A")
       // B should not be in results
-      expect(result.impacts.some((i) => i.component.componentId === "B")).toBe(
-        false
-      )
+      expect(result.impacts.some((i) => i.component.componentId === "B")).toBe(false)
     })
   })
 
@@ -630,12 +545,8 @@ describe("computeTransitiveImpact", () => {
 
       expect(result.impacts).toHaveLength(2)
 
-      const impactB = result.impacts.find(
-        (i) => i.component.componentId === "B"
-      )
-      const impactA = result.impacts.find(
-        (i) => i.component.componentId === "A"
-      )
+      const impactB = result.impacts.find((i) => i.component.componentId === "B")
+      const impactA = result.impacts.find((i) => i.component.componentId === "A")
 
       expect(impactB?.distance).toBe(1) // B directly depends on C
       expect(impactA?.distance).toBe(2) // A depends on B which depends on C
@@ -666,15 +577,9 @@ describe("computeTransitiveImpact", () => {
 
       expect(result.impacts).toHaveLength(3)
 
-      const impactB = result.impacts.find(
-        (i) => i.component.componentId === "B"
-      )
-      const impactC = result.impacts.find(
-        (i) => i.component.componentId === "C"
-      )
-      const impactA = result.impacts.find(
-        (i) => i.component.componentId === "A"
-      )
+      const impactB = result.impacts.find((i) => i.component.componentId === "B")
+      const impactC = result.impacts.find((i) => i.component.componentId === "C")
+      const impactA = result.impacts.find((i) => i.component.componentId === "A")
 
       expect(impactB?.distance).toBe(1)
       expect(impactC?.distance).toBe(1)
@@ -713,12 +618,8 @@ describe("computeTransitiveImpact", () => {
 
       const result = computeTransitiveImpact(["C"], graph, components)
 
-      const impactB = result.impacts.find(
-        (i) => i.component.componentId === "B"
-      )
-      const impactA = result.impacts.find(
-        (i) => i.component.componentId === "A"
-      )
+      const impactB = result.impacts.find((i) => i.component.componentId === "B")
+      const impactA = result.impacts.find((i) => i.component.componentId === "A")
 
       expect(impactB?.pathThrough).toEqual(["C"])
       expect(impactA?.pathThrough).toEqual(["C", "B"])
@@ -745,9 +646,7 @@ describe("computeTransitiveImpact", () => {
 
       const result = computeTransitiveImpact(["D"], graph, components)
 
-      const impactA = result.impacts.find(
-        (i) => i.component.componentId === "A"
-      )
+      const impactA = result.impacts.find((i) => i.component.componentId === "A")
 
       // A's path should be either ["D", "B"] or ["D", "C"]
       // It should have length 2 (distance is 2)
@@ -798,12 +697,8 @@ describe("computeTransitiveImpact", () => {
 
       // B and C should be found, but A is direct (excluded)
       expect(result.impacts).toHaveLength(2)
-      expect(
-        result.impacts.some((i) => i.component.componentId === "B")
-      ).toBe(true)
-      expect(
-        result.impacts.some((i) => i.component.componentId === "C")
-      ).toBe(true)
+      expect(result.impacts.some((i) => i.component.componentId === "B")).toBe(true)
+      expect(result.impacts.some((i) => i.component.componentId === "C")).toBe(true)
       expect(result.truncated).toBe(false)
     })
   })
@@ -811,9 +706,7 @@ describe("computeTransitiveImpact", () => {
   describe("truncation", () => {
     it("truncates at maxNodes limit", () => {
       // Create a star pattern: many components depend on ROOT
-      const components: SystemComponent[] = [
-        makeComponent("ROOT", "LIB", "src/lib/root/"),
-      ]
+      const components: SystemComponent[] = [makeComponent("ROOT", "LIB", "src/lib/root/")]
 
       for (let i = 0; i < 100; i++) {
         components.push(
@@ -831,9 +724,7 @@ describe("computeTransitiveImpact", () => {
     })
 
     it("respects custom maxNodes parameter", () => {
-      const components: SystemComponent[] = [
-        makeComponent("ROOT", "LIB", "src/lib/root/"),
-      ]
+      const components: SystemComponent[] = [makeComponent("ROOT", "LIB", "src/lib/root/")]
 
       for (let i = 0; i < 20; i++) {
         components.push(
@@ -851,9 +742,7 @@ describe("computeTransitiveImpact", () => {
     })
 
     it("does not truncate when under limit", () => {
-      const components: SystemComponent[] = [
-        makeComponent("ROOT", "LIB", "src/lib/root/"),
-      ]
+      const components: SystemComponent[] = [makeComponent("ROOT", "LIB", "src/lib/root/")]
 
       for (let i = 0; i < 10; i++) {
         components.push(
@@ -889,12 +778,8 @@ describe("computeTransitiveImpact", () => {
       const result = computeTransitiveImpact(["X", "Y"], graph, components)
 
       expect(result.impacts).toHaveLength(2)
-      expect(
-        result.impacts.some((i) => i.component.componentId === "A")
-      ).toBe(true)
-      expect(
-        result.impacts.some((i) => i.component.componentId === "B")
-      ).toBe(true)
+      expect(result.impacts.some((i) => i.component.componentId === "A")).toBe(true)
+      expect(result.impacts.some((i) => i.component.componentId === "B")).toBe(true)
     })
 
     it("handles overlapping transitive impacts from multiple direct components", () => {
@@ -1026,11 +911,7 @@ function makeTransitiveImpact(
 describe("computeCriticalPathImpacts", () => {
   describe("basic cases", () => {
     it("returns empty array when no critical paths provided", () => {
-      const result = computeCriticalPathImpacts(
-        ["lib-auth"],
-        [],
-        []
-      )
+      const result = computeCriticalPathImpacts(["lib-auth"], [], [])
       expect(result).toEqual([])
     })
 
@@ -1060,11 +941,7 @@ describe("computeCriticalPathImpacts", () => {
       const criticalPaths = [
         makeCriticalPath("path-billing", "Billing Path", ["lib-billing", "integration-stripe"]),
       ]
-      const result = computeCriticalPathImpacts(
-        ["lib-billing"],
-        [],
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts(["lib-billing"], [], criticalPaths)
 
       expect(result).toHaveLength(1)
       expect(result[0].pathId).toBe("path-billing")
@@ -1075,7 +952,11 @@ describe("computeCriticalPathImpacts", () => {
 
     it("lists all direct impact components on the path", () => {
       const criticalPaths = [
-        makeCriticalPath("path-billing", "Billing Path", ["lib-billing", "integration-stripe", "route-group-webhooks"]),
+        makeCriticalPath("path-billing", "Billing Path", [
+          "lib-billing",
+          "integration-stripe",
+          "route-group-webhooks",
+        ]),
       ]
       const result = computeCriticalPathImpacts(
         ["lib-billing", "route-group-webhooks"],
@@ -1113,14 +994,8 @@ describe("computeCriticalPathImpacts", () => {
       const criticalPaths = [
         makeCriticalPath("path-auth", "Authentication Path", ["lib-auth", "store-postgresql"]),
       ]
-      const transitiveImpacts = [
-        makeTransitiveImpact("lib-auth", 3, ["A", "B", "C"]),
-      ]
-      const result = computeCriticalPathImpacts(
-        [],
-        transitiveImpacts,
-        criticalPaths
-      )
+      const transitiveImpacts = [makeTransitiveImpact("lib-auth", 3, ["A", "B", "C"])]
+      const result = computeCriticalPathImpacts([], transitiveImpacts, criticalPaths)
 
       expect(result).toHaveLength(1)
       expect(result[0].pathId).toBe("path-auth")
@@ -1130,18 +1005,18 @@ describe("computeCriticalPathImpacts", () => {
 
     it("returns minimum distance when multiple path components have different distances", () => {
       const criticalPaths = [
-        makeCriticalPath("path-fiscal", "Fiscalization Path", ["lib-fiscal", "integration-fina-cis", "job-fiscal-processor"]),
+        makeCriticalPath("path-fiscal", "Fiscalization Path", [
+          "lib-fiscal",
+          "integration-fina-cis",
+          "job-fiscal-processor",
+        ]),
       ]
       const transitiveImpacts = [
         makeTransitiveImpact("lib-fiscal", 1, ["direct"]),
         makeTransitiveImpact("integration-fina-cis", 4, ["A", "B", "C", "D"]),
         makeTransitiveImpact("job-fiscal-processor", 2, ["X", "Y"]),
       ]
-      const result = computeCriticalPathImpacts(
-        [],
-        transitiveImpacts,
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts([], transitiveImpacts, criticalPaths)
 
       expect(result).toHaveLength(1)
       expect(result[0].distance).toBe(1) // Minimum of 1, 4, 2
@@ -1160,14 +1035,10 @@ describe("computeCriticalPathImpacts", () => {
         makeCriticalPath("path-billing", "Billing Path", ["lib-billing"]),
         makeCriticalPath("path-fiscal", "Fiscalization Path", ["lib-fiscal"]),
       ]
-      const result = computeCriticalPathImpacts(
-        ["lib-auth", "lib-billing"],
-        [],
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts(["lib-auth", "lib-billing"], [], criticalPaths)
 
       expect(result).toHaveLength(2)
-      expect(result.map(r => r.pathId)).toEqual(["path-auth", "path-billing"])
+      expect(result.map((r) => r.pathId)).toEqual(["path-auth", "path-billing"])
     })
 
     it("only returns affected paths", () => {
@@ -1176,11 +1047,7 @@ describe("computeCriticalPathImpacts", () => {
         makeCriticalPath("path-billing", "Billing Path", ["lib-billing"]),
         makeCriticalPath("path-fiscal", "Fiscalization Path", ["lib-fiscal"]),
       ]
-      const result = computeCriticalPathImpacts(
-        ["lib-auth"],
-        [],
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts(["lib-auth"], [], criticalPaths)
 
       expect(result).toHaveLength(1)
       expect(result[0].pathId).toBe("path-auth")
@@ -1191,9 +1058,7 @@ describe("computeCriticalPathImpacts", () => {
         makeCriticalPath("path-auth", "Authentication Path", ["lib-auth"]),
         makeCriticalPath("path-billing", "Billing Path", ["lib-billing"]),
       ]
-      const transitiveImpacts = [
-        makeTransitiveImpact("lib-billing", 2, ["X", "Y"]),
-      ]
+      const transitiveImpacts = [makeTransitiveImpact("lib-billing", 2, ["X", "Y"])]
       const result = computeCriticalPathImpacts(
         ["lib-auth"], // Direct impact to auth
         transitiveImpacts, // Transitive impact to billing
@@ -1202,8 +1067,8 @@ describe("computeCriticalPathImpacts", () => {
 
       expect(result).toHaveLength(2)
 
-      const authImpact = result.find(r => r.pathId === "path-auth")
-      const billingImpact = result.find(r => r.pathId === "path-billing")
+      const authImpact = result.find((r) => r.pathId === "path-auth")
+      const billingImpact = result.find((r) => r.pathId === "path-billing")
 
       expect(authImpact?.distance).toBe(0) // Direct
       expect(billingImpact?.distance).toBe(2) // Transitive
@@ -1212,19 +1077,13 @@ describe("computeCriticalPathImpacts", () => {
 
   describe("edge cases", () => {
     it("handles duplicate components in transitive impacts", () => {
-      const criticalPaths = [
-        makeCriticalPath("path-test", "Test Path", ["lib-test"]),
-      ]
+      const criticalPaths = [makeCriticalPath("path-test", "Test Path", ["lib-test"])]
       // Same component with different distances (shouldn't happen normally, but handle gracefully)
       const transitiveImpacts = [
         makeTransitiveImpact("lib-test", 3, ["A", "B", "C"]),
         makeTransitiveImpact("lib-test", 1, ["X"]),
       ]
-      const result = computeCriticalPathImpacts(
-        [],
-        transitiveImpacts,
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts([], transitiveImpacts, criticalPaths)
 
       expect(result).toHaveLength(1)
       expect(result[0].distance).toBe(1) // Should use minimum
@@ -1236,54 +1095,32 @@ describe("computeCriticalPathImpacts", () => {
         makeCriticalPath("path-alpha", "Alpha Path", ["lib-a"]),
         makeCriticalPath("path-middle", "Middle Path", ["lib-m"]),
       ]
-      const result = computeCriticalPathImpacts(
-        ["lib-z", "lib-a", "lib-m"],
-        [],
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts(["lib-z", "lib-a", "lib-m"], [], criticalPaths)
 
       expect(result).toHaveLength(3)
-      expect(result.map(r => r.pathId)).toEqual([
-        "path-alpha",
-        "path-middle",
-        "path-zebra",
-      ])
+      expect(result.map((r) => r.pathId)).toEqual(["path-alpha", "path-middle", "path-zebra"])
     })
 
     it("returns sorted impactedComponents within each result", () => {
       const criticalPaths = [
         makeCriticalPath("path-test", "Test Path", ["lib-z", "lib-a", "lib-m"]),
       ]
-      const result = computeCriticalPathImpacts(
-        ["lib-z", "lib-a", "lib-m"],
-        [],
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts(["lib-z", "lib-a", "lib-m"], [], criticalPaths)
 
       expect(result).toHaveLength(1)
       expect(result[0].impactedComponents).toEqual(["lib-a", "lib-m", "lib-z"])
     })
 
     it("handles path with no components", () => {
-      const criticalPaths = [
-        makeCriticalPath("path-empty", "Empty Path", []),
-      ]
-      const result = computeCriticalPathImpacts(
-        ["lib-auth"],
-        [],
-        criticalPaths
-      )
+      const criticalPaths = [makeCriticalPath("path-empty", "Empty Path", [])]
+      const result = computeCriticalPathImpacts(["lib-auth"], [], criticalPaths)
 
       expect(result).toEqual([])
     })
 
     it("handles component that is both direct and transitive (direct wins)", () => {
-      const criticalPaths = [
-        makeCriticalPath("path-test", "Test Path", ["lib-test"]),
-      ]
-      const transitiveImpacts = [
-        makeTransitiveImpact("lib-test", 5, ["A", "B", "C", "D", "E"]),
-      ]
+      const criticalPaths = [makeCriticalPath("path-test", "Test Path", ["lib-test"])]
+      const transitiveImpacts = [makeTransitiveImpact("lib-test", 5, ["A", "B", "C", "D", "E"])]
       const result = computeCriticalPathImpacts(
         ["lib-test"], // Also a direct impact
         transitiveImpacts,
@@ -1328,20 +1165,14 @@ describe("computeCriticalPathImpacts", () => {
       ]
 
       // Simulate: lib-fiscal is directly changed, and integration-stripe is transitively affected
-      const transitiveImpacts = [
-        makeTransitiveImpact("integration-stripe", 2, ["A", "B"]),
-      ]
+      const transitiveImpacts = [makeTransitiveImpact("integration-stripe", 2, ["A", "B"])]
 
-      const result = computeCriticalPathImpacts(
-        ["lib-fiscal"],
-        transitiveImpacts,
-        criticalPaths
-      )
+      const result = computeCriticalPathImpacts(["lib-fiscal"], transitiveImpacts, criticalPaths)
 
       expect(result).toHaveLength(2)
 
-      const fiscalImpact = result.find(r => r.pathId === "path-fiscalization")
-      const billingImpact = result.find(r => r.pathId === "path-billing")
+      const fiscalImpact = result.find((r) => r.pathId === "path-fiscalization")
+      const billingImpact = result.find((r) => r.pathId === "path-billing")
 
       expect(fiscalImpact).toBeDefined()
       expect(fiscalImpact?.distance).toBe(0)

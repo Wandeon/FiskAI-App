@@ -113,7 +113,9 @@ export function ReasoningAssistantContainer({
 
         {/* Error message */}
         {error && (
-          <div className="mt-2 p-2 bg-danger-bg text-danger-text text-sm rounded">{error.message}</div>
+          <div className="mt-2 p-2 bg-danger-bg text-danger-text text-sm rounded">
+            {error.message}
+          </div>
         )}
       </div>
     </div>

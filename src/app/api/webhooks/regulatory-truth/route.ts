@@ -25,14 +25,12 @@ export async function POST(req: NextRequest) {
 
   try {
     // Get provider from query params or headers
-    const provider = req.nextUrl.searchParams.get("provider") || req.headers.get("x-webhook-provider")
+    const provider =
+      req.nextUrl.searchParams.get("provider") || req.headers.get("x-webhook-provider")
     const subscriptionId = req.nextUrl.searchParams.get("subscription_id")
 
     if (!provider) {
-      return NextResponse.json(
-        { error: "Missing provider parameter" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Missing provider parameter" }, { status: 400 })
     }
 
     // Parse request body
@@ -41,28 +39,19 @@ export async function POST(req: NextRequest) {
 
     // Find webhook subscription
     const subscription = await db.webhookSubscription.findFirst({
-      where: subscriptionId
-        ? { id: subscriptionId }
-        : { provider, isActive: true },
+      where: subscriptionId ? { id: subscriptionId } : { provider, isActive: true },
       orderBy: { createdAt: "desc" },
     })
 
     if (!subscription) {
       console.warn(`[webhook] No active subscription found for provider: ${provider}`)
-      return NextResponse.json(
-        { error: "No active subscription found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "No active subscription found" }, { status: 404 })
     }
 
     // Verify webhook signature if secret key is configured
     if (subscription.secretKey) {
       const signature = headers["x-webhook-signature"] || headers["x-hub-signature-256"]
-      const isValid = verifyWebhookSignature(
-        rawBody,
-        signature || "",
-        subscription.secretKey
-      )
+      const isValid = verifyWebhookSignature(rawBody, signature || "", subscription.secretKey)
 
       if (!isValid) {
         console.error(`[webhook] Invalid signature for subscription: ${subscription.id}`)
@@ -74,10 +63,7 @@ export async function POST(req: NextRequest) {
           },
         })
 
-        return NextResponse.json(
-          { error: "Invalid signature" },
-          { status: 401 }
-        )
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
       }
     }
 
@@ -88,10 +74,7 @@ export async function POST(req: NextRequest) {
 
       if (authHeader !== expectedAuth) {
         console.error(`[webhook] Invalid auth token for subscription: ${subscription.id}`)
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        )
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       }
     }
 
@@ -204,10 +187,7 @@ export async function GET(req: NextRequest) {
     })
 
     if (!subscription) {
-      return NextResponse.json(
-        { error: "Subscription not found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Subscription not found" }, { status: 404 })
     }
 
     return NextResponse.json({

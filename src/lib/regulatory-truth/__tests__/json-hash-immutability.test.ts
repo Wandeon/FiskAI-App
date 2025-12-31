@@ -34,7 +34,8 @@ describe("JSON Hash Immutability", () => {
     })
 
     it("preserves hex strings in JSON", () => {
-      const json = '{"contentHash": "ca5ece5976e2dc082d3a5ec4acfdf5502a37c45f6c6617c054d14939d83ea70d"}'
+      const json =
+        '{"contentHash": "ca5ece5976e2dc082d3a5ec4acfdf5502a37c45f6c6617c054d14939d83ea70d"}'
       const hash = hashRawContent(json)
 
       // Re-hash should match

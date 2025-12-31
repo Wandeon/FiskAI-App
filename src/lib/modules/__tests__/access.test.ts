@@ -137,7 +137,14 @@ describe("createModuleAccess", () => {
 
   describe("getDependentModules", () => {
     it("returns modules that depend on invoicing", () => {
-      const access = createModuleAccess(["invoicing", "e-invoicing", "contacts", "fiscalization", "reconciliation", "banking"])
+      const access = createModuleAccess([
+        "invoicing",
+        "e-invoicing",
+        "contacts",
+        "fiscalization",
+        "reconciliation",
+        "banking",
+      ])
       const dependents = access.getDependentModules("invoicing")
       expect(dependents).toContain("e-invoicing")
       expect(dependents).toContain("fiscalization")

@@ -21,7 +21,9 @@ import {
 
 async function main() {
   const args = process.argv.slice(2)
-  const batchSize = parseInt(args.find((arg) => arg.startsWith("--batch-size="))?.split("=")[1] ?? "10")
+  const batchSize = parseInt(
+    args.find((arg) => arg.startsWith("--batch-size="))?.split("=")[1] ?? "10"
+  )
   const limit = parseInt(args.find((arg) => arg.startsWith("--limit="))?.split("=")[1] ?? "0")
   const dryRun = args.includes("--dry-run")
 
@@ -36,7 +38,9 @@ async function main() {
   const initialStats = await getEmbeddingStats()
   console.log("Initial Statistics:")
   console.log(`  Total Evidence: ${initialStats.total}`)
-  console.log(`  With embeddings: ${initialStats.withEmbedding} (${initialStats.percentage.toFixed(1)}%)`)
+  console.log(
+    `  With embeddings: ${initialStats.withEmbedding} (${initialStats.percentage.toFixed(1)}%)`
+  )
   console.log(`  Without embeddings: ${initialStats.withoutEmbedding}`)
   console.log()
 
@@ -112,7 +116,9 @@ async function main() {
   const finalStats = await getEmbeddingStats()
   console.log("Final Statistics:")
   console.log(`  Total Evidence: ${finalStats.total}`)
-  console.log(`  With embeddings: ${finalStats.withEmbedding} (${finalStats.percentage.toFixed(1)}%)`)
+  console.log(
+    `  With embeddings: ${finalStats.withEmbedding} (${finalStats.percentage.toFixed(1)}%)`
+  )
   console.log(`  Without embeddings: ${finalStats.withoutEmbedding}`)
   console.log()
   console.log("Summary:")

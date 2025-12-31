@@ -101,10 +101,7 @@ export function ErrorDisplay({
         <div className="mt-6">
           <p className="text-sm text-tertiary">
             Ako se problem nastavi, molimo{" "}
-            <Link
-              href="/kontakt"
-              className="font-medium text-link hover:text-link hover:underline"
-            >
+            <Link href="/kontakt" className="font-medium text-link hover:text-link hover:underline">
               kontaktirajte našu podršku
             </Link>
             .

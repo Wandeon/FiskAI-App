@@ -55,12 +55,7 @@ async function getAllTags() {
       tags: newsPosts.tags,
     })
     .from(newsPosts)
-    .where(
-      and(
-        eq(newsPosts.status, "published"),
-        lte(newsPosts.publishedAt, new Date())
-      )
-    )
+    .where(and(eq(newsPosts.status, "published"), lte(newsPosts.publishedAt, new Date())))
 
   // Extract and count unique tags
   const tagCounts = new Map<string, number>()
@@ -110,10 +105,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function TagPage({ params }: PageProps) {
   const { slug } = await params
-  const [posts, allTags] = await Promise.all([
-    getPostsByTag(slug),
-    getAllTags(),
-  ])
+  const [posts, allTags] = await Promise.all([getPostsByTag(slug), getAllTags()])
 
   if (posts.length === 0) {
     notFound()

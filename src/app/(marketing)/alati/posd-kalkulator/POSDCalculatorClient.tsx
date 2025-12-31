@@ -433,7 +433,9 @@ export function POSDCalculatorClient() {
                       </label>
                       <select
                         value={expenseBracket}
-                        onChange={(e) => setExpenseBracket(Number(e.target.value) as ExpenseBracket)}
+                        onChange={(e) =>
+                          setExpenseBracket(Number(e.target.value) as ExpenseBracket)
+                        }
                         className="w-full rounded-lg border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white"
                       >
                         {EXPENSE_BRACKETS.map((bracket) => (
@@ -526,7 +528,9 @@ export function POSDCalculatorClient() {
                             <div
                               className={cn(
                                 "flex h-5 w-5 items-center justify-center rounded border-2",
-                                isSelected ? "border-success-border bg-success-bg0" : "border-white/30"
+                                isSelected
+                                  ? "border-success-border bg-success-bg0"
+                                  : "border-white/30"
                               )}
                             >
                               {isSelected && <CheckCircle2 className="h-3 w-3 text-white" />}

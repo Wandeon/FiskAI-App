@@ -542,7 +542,8 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
               Pomozite nam izgraditi najbolji računovodstveni softver
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">
-              FiskAI je u aktivnom razvoju. Pridružite nam se kao rani korisnik i oblikujte budućnost moderne računovodstvene platforme za Hrvatsku.
+              FiskAI je u aktivnom razvoju. Pridružite nam se kao rani korisnik i oblikujte
+              budućnost moderne računovodstvene platforme za Hrvatsku.
             </p>
           </Reveal>
 
@@ -655,8 +656,8 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                     kategorija za troškove
                   </p>
                   <p className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> Izvoz podataka
-                    (računi, troškovi, kontakti)
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> Izvoz podataka (računi,
+                    troškovi, kontakti)
                   </p>
                   <p className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> Priprema za e-račune /

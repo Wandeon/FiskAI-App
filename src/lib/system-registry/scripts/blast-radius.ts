@@ -129,7 +129,9 @@ function parseArgs(): CLIOptions | null {
       case "--output-format": {
         const format = args[++i]
         if (!["pr-comment", "github-check", "json"].includes(format)) {
-          console.error(`Error: Invalid --output-format "${format}". Must be: pr-comment, github-check, json`)
+          console.error(
+            `Error: Invalid --output-format "${format}". Must be: pr-comment, github-check, json`
+          )
           return null
         }
         options.outputFormat = format as OutputFormat

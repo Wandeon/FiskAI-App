@@ -88,7 +88,7 @@ export async function extractReceipt(
         })
       }
       return { success: false, error: "No response from AI" }
-    }    // Parse and validate JSON response
+    } // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(content)
@@ -210,7 +210,7 @@ export async function extractInvoice(
         })
       }
       return { success: false, error: "No response from AI" }
-    }    // Parse and validate JSON response
+    } // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(content)

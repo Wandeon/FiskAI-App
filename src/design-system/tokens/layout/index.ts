@@ -12,7 +12,7 @@ export {
   type SpacingToken,
   type SpacingSemanticToken,
   type Spacing,
-} from './spacing';
+} from "./spacing"
 
 export {
   radius,
@@ -20,7 +20,7 @@ export {
   type RadiusToken,
   type RadiusSemanticToken,
   type Radius,
-} from './radius';
+} from "./radius"
 
 export {
   shadows,
@@ -32,25 +32,14 @@ export {
   type Shadows,
   type ZIndex,
   type Elevation,
-} from './elevation';
+} from "./elevation"
 
 // Import values for combined layout object
-import {
-  spacing,
-  spacingSemantics,
-  componentSpacing,
-} from './spacing';
+import { spacing, spacingSemantics, componentSpacing } from "./spacing"
 
-import {
-  radius,
-  radiusSemantics,
-} from './radius';
+import { radius, radiusSemantics } from "./radius"
 
-import {
-  shadows,
-  shadowsDark,
-  zIndex,
-} from './elevation';
+import { shadows, shadowsDark, zIndex } from "./elevation"
 
 /**
  * Combined layout tokens object for convenience
@@ -64,6 +53,6 @@ export const layout = {
   shadows,
   shadowsDark,
   zIndex,
-} as const;
+} as const
 
-export type Layout = typeof layout;
+export type Layout = typeof layout

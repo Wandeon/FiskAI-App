@@ -4,9 +4,7 @@ import { diffSnapshots } from "../system-status/diff"
 import type { SystemStatusSnapshot } from "../system-status/refresh"
 
 // Helper to create snapshot with defaults
-function createSnapshot(
-  overrides: Partial<SystemStatusSnapshot> = {}
-): SystemStatusSnapshot {
+function createSnapshot(overrides: Partial<SystemStatusSnapshot> = {}): SystemStatusSnapshot {
   return {
     headlineStatus: "OK",
     refreshQuality: "FULL",

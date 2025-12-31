@@ -5,22 +5,22 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 // Dynamic import for heavy DigestPage component
 const DigestPage = dynamic(
- () => import("./digest-page").then((mod) => ({ default: mod.DigestPage })),
- {
- loading: () => <LoadingSpinner />,
- ssr: true,
- }
+  () => import("./digest-page").then((mod) => ({ default: mod.DigestPage })),
+  {
+    loading: () => <LoadingSpinner />,
+    ssr: true,
+  }
 )
 
 export const metadata = {
- title: "Weekly Digest Preview | Admin | FiskAI",
- description: "Preview and send weekly digest email",
+  title: "Weekly Digest Preview | Admin | FiskAI",
+  description: "Preview and send weekly digest email",
 }
 
 export default async function AdminDigestPage() {
- await requireAdmin()
+  await requireAdmin()
 
- const digestData = await generateWeeklyDigest()
+  const digestData = await generateWeeklyDigest()
 
- return <DigestPage digestData={digestData} />
+  return <DigestPage digestData={digestData} />
 }

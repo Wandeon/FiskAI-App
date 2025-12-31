@@ -15,10 +15,7 @@ export async function POST(request: NextRequest) {
     const validation = acceptInvitationSchema.safeParse(body)
 
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error.errors[0].message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: validation.error.errors[0].message }, { status: 400 })
     }
 
     const { token, name, password } = validation.data
@@ -37,10 +34,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!invitation) {
-      return NextResponse.json(
-        { error: "Poziv nije pronađen" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Poziv nije pronađen" }, { status: 404 })
     }
 
     // Check if invitation is expired
@@ -144,9 +138,6 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error("Error accepting invitation:", error)
-    return NextResponse.json(
-      { error: "Greška prilikom prihvaćanja poziva" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Greška prilikom prihvaćanja poziva" }, { status: 500 })
   }
 }

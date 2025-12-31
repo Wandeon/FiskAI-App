@@ -59,7 +59,10 @@ export async function GET(request: Request) {
     const providedBuffer = Buffer.from(providedSignature, "hex")
     const expectedBuffer = Buffer.from(expectedSignature, "hex")
 
-    if (providedBuffer.length !== expectedBuffer.length || !timingSafeEqual(providedBuffer, expectedBuffer)) {
+    if (
+      providedBuffer.length !== expectedBuffer.length ||
+      !timingSafeEqual(providedBuffer, expectedBuffer)
+    ) {
       console.error("[email/callback] Invalid signature - state may have been tampered with")
       redirect("/settings/email?error=invalid_state")
     }

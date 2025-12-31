@@ -109,10 +109,7 @@ export function NotificationCenter({
             )}
           </div>
           <div className="border-t border-[var(--border)] px-5 py-3 text-center">
-            <Link
-              href="/notifications"
-              className="text-sm font-semibold text-link hover:underline"
-            >
+            <Link href="/notifications" className="text-sm font-semibold text-link hover:underline">
               Prikaži sve obavijesti
             </Link>
           </div>

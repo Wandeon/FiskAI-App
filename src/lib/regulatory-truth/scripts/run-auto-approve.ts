@@ -48,9 +48,9 @@ Examples:
     process.exit(0)
   }
 
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log("Auto-Approve Eligible Rules")
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
 
   const gracePeriodHours = parseInt(process.env.AUTO_APPROVE_GRACE_HOURS || "24")
   const minConfidence = parseFloat(process.env.AUTO_APPROVE_MIN_CONFIDENCE || "0.90")
@@ -62,9 +62,9 @@ Examples:
   try {
     const result = await autoApproveEligibleRules()
 
-    console.log("\n" + "=" .repeat(72))
+    console.log("\n" + "=".repeat(72))
     console.log("Auto-Approval Complete")
-    console.log("=" .repeat(72))
+    console.log("=".repeat(72))
     console.log(`Approved: ${result.approved}`)
     console.log(`Skipped: ${result.skipped}`)
     console.log(`Errors: ${result.errors.length}`)

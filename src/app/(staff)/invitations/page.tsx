@@ -5,9 +5,9 @@ import { InvitationsList } from "@/components/staff/invitations-list"
 export const dynamic = "force-dynamic"
 
 export default function InvitationsPage() {
- return (
- <Suspense fallback={<LoadingSpinner />}>
- <InvitationsList />
- </Suspense>
- )
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <InvitationsList />
+    </Suspense>
+  )
 }

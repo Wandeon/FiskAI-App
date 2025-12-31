@@ -22,7 +22,10 @@ export function ComplianceStatusCard({ certificate, stats }: ComplianceStatusCar
       case "active":
         return { text: "Aktivan", desc: "Certifikat je aktivan i valjan" }
       case "expiring":
-        return { text: `${certificate.daysRemaining}d`, desc: `Certifikat ističe za ${certificate.daysRemaining} dana` }
+        return {
+          text: `${certificate.daysRemaining}d`,
+          desc: `Certifikat ističe za ${certificate.daysRemaining} dana`,
+        }
       case "expired":
         return { text: "Istekao", desc: "Certifikat je istekao, potrebna obnova" }
       default:

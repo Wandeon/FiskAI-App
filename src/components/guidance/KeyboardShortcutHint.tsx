@@ -65,14 +65,10 @@ export function KeyboardShortcutHint({
           >
             {key}
           </kbd>
-          {index < keys.length - 1 && (
-            <span className="text-white/40 text-xs mx-0.5">+</span>
-          )}
+          {index < keys.length - 1 && <span className="text-white/40 text-xs mx-0.5">+</span>}
         </span>
       ))}
-      {description && (
-        <span className="text-xs text-white/50 ml-1">{description}</span>
-      )}
+      {description && <span className="text-xs text-white/50 ml-1">{description}</span>}
     </span>
   )
 }

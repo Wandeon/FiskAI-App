@@ -40,7 +40,11 @@ interface UseOfflinePosReturn {
   /** Whether sync is currently in progress */
   syncing: boolean
   /** Queue a sale for offline processing */
-  queueSale: (items: CartItem[], paymentMethod: "CASH" | "CARD", total: number) => Promise<PendingSale>
+  queueSale: (
+    items: CartItem[],
+    paymentMethod: "CASH" | "CARD",
+    total: number
+  ) => Promise<PendingSale>
   /** Manually trigger sync */
   syncNow: () => Promise<void>
   /** Backup cart items to IndexedDB */
@@ -103,7 +107,10 @@ export function useOfflinePos(options: UseOfflinePosOptions = {}): UseOfflinePos
           }
         } catch (error) {
           console.error(`Failed to sync sale ${sale.id}:`, error)
-          optionsRef.current.onSyncError?.(sale.id, error instanceof Error ? error.message : "Network error")
+          optionsRef.current.onSyncError?.(
+            sale.id,
+            error instanceof Error ? error.message : "Network error"
+          )
         }
       }
 
@@ -135,7 +142,11 @@ export function useOfflinePos(options: UseOfflinePosOptions = {}): UseOfflinePos
   }, [updatePendingCount])
 
   const queueSale = useCallback(
-    async (items: CartItem[], paymentMethod: "CASH" | "CARD", total: number): Promise<PendingSale> => {
+    async (
+      items: CartItem[],
+      paymentMethod: "CASH" | "CARD",
+      total: number
+    ): Promise<PendingSale> => {
       const sale = await queueOfflineSale({ items, paymentMethod, total })
       await updatePendingCount()
       return sale

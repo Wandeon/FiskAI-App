@@ -31,19 +31,18 @@ export function Dialog({ children, open: controlledOpen, onOpenChange }: DialogP
   const [internalOpen, setInternalOpen] = useState(false)
 
   const open = controlledOpen ?? internalOpen
-  const setOpen = useCallback((value: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(value)
-    } else {
-      setInternalOpen(value)
-    }
-  }, [onOpenChange])
-
-  return (
-    <DialogContext.Provider value={{ open, setOpen }}>
-      {children}
-    </DialogContext.Provider>
+  const setOpen = useCallback(
+    (value: boolean) => {
+      if (onOpenChange) {
+        onOpenChange(value)
+      } else {
+        setInternalOpen(value)
+      }
+    },
+    [onOpenChange]
   )
+
+  return <DialogContext.Provider value={{ open, setOpen }}>{children}</DialogContext.Provider>
 }
 
 // Trigger button that opens the dialog
@@ -58,18 +57,10 @@ export function DialogTrigger({ children, asChild }: DialogTriggerProps) {
   if (asChild && children) {
     // Clone the child element and add onClick
     const child = children as React.ReactElement
-    return (
-      <span onClick={() => setOpen(true)}>
-        {child}
-      </span>
-    )
+    return <span onClick={() => setOpen(true)}>{child}</span>
   }
 
-  return (
-    <button onClick={() => setOpen(true)}>
-      {children}
-    </button>
-  )
+  return <button onClick={() => setOpen(true)}>{children}</button>
 }
 
 // Dialog content (the actual modal)
@@ -158,7 +149,12 @@ interface DialogTitleProps {
 
 export function DialogTitle({ children, className }: DialogTitleProps) {
   return (
-    <h2 className={cn("text-lg font-semibold leading-none tracking-tight text-[var(--text-primary)]", className)}>
+    <h2
+      className={cn(
+        "text-lg font-semibold leading-none tracking-tight text-[var(--text-primary)]",
+        className
+      )}
+    >
       {children}
     </h2>
   )
@@ -171,11 +167,7 @@ interface DialogDescriptionProps {
 }
 
 export function DialogDescription({ children, className }: DialogDescriptionProps) {
-  return (
-    <p className={cn("text-sm text-[var(--text-disabled)]", className)}>
-      {children}
-    </p>
-  )
+  return <p className={cn("text-sm text-[var(--text-disabled)]", className)}>{children}</p>
 }
 
 // Dialog footer
@@ -186,7 +178,12 @@ interface DialogFooterProps {
 
 export function DialogFooter({ children, className }: DialogFooterProps) {
   return (
-    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-6", className)}>
+    <div
+      className={cn(
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-6",
+        className
+      )}
+    >
       {children}
     </div>
   )

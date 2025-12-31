@@ -35,7 +35,8 @@ const DEFAULT_STEPS: FeatureStoryStep[] = [
   },
   {
     title: "E-računi i fiskalizacija 2.0",
-    subtitle: "Priprema za IE-Račune/posrednike i praćenje statusa e-računa end-to-end. Dolazi uskoro.",
+    subtitle:
+      "Priprema za IE-Račune/posrednike i praćenje statusa e-računa end-to-end. Dolazi uskoro.",
     bullets: [
       "Jedinstveni tok: izrada → slanje → status",
       "Povijest promjena i dokazivost",

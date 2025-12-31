@@ -153,7 +153,9 @@ export function calculatePOSD(input: POSDInput): POSDResult {
 
   if (totalIncome > VAT_THRESHOLD) {
     warnings.push(
-      "Presli ste PDV prag od " + formatFiscalCurrency(VAT_THRESHOLD) + "! Morate se registrirati za PDV."
+      "Presli ste PDV prag od " +
+        formatFiscalCurrency(VAT_THRESHOLD) +
+        "! Morate se registrirati za PDV."
     )
   } else if (isNearVATThreshold) {
     warnings.push(

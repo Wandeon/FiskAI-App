@@ -131,10 +131,7 @@ describe("ContentNotFoundError", () => {
 
 describe("FrontmatterParseError", () => {
   it("should have correct kind and deadLetterReason", () => {
-    const error = new FrontmatterParseError(
-      "/content/vodici/pdv.mdx",
-      "Invalid YAML"
-    )
+    const error = new FrontmatterParseError("/content/vodici/pdv.mdx", "Invalid YAML")
 
     expect(error.kind).toBe("PERMANENT")
     expect(error.deadLetterReason).toBe("FRONTMATTER_PARSE_ERROR")

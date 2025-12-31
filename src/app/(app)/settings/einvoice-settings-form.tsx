@@ -109,9 +109,15 @@ export function EInvoiceSettingsForm({ company }: EInvoiceSettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {error && <div className="rounded-md bg-danger-bg border border-danger-border p-3 text-sm text-danger-text">{error}</div>}
+      {error && (
+        <div className="rounded-md bg-danger-bg border border-danger-border p-3 text-sm text-danger-text">
+          {error}
+        </div>
+      )}
       {success && (
-        <div className="rounded-md bg-success-bg border border-success-border p-3 text-sm text-success-text">{success}</div>
+        <div className="rounded-md bg-success-bg border border-success-border p-3 text-sm text-success-text">
+          {success}
+        </div>
       )}
 
       <div className="space-y-4">

@@ -47,10 +47,13 @@ export async function POST(request: Request) {
     if (isValid) {
       // Connection is still valid, just update the UI state
       // This shouldn't happen if the UI is correctly showing status, but handle it gracefully
-      return NextResponse.json({
-        error: "Connection is still valid, no refresh needed",
-        stillValid: true
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Connection is still valid, no refresh needed",
+          stillValid: true,
+        },
+        { status: 400 }
+      )
     }
 
     // Connection is expired/invalid, create a new connection

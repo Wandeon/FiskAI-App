@@ -221,9 +221,7 @@ export async function approveJob(jobId: string): Promise<ActionResult> {
  * For NEWS type: Creates entry in news_posts table
  * For other types: Creates MDX file in appropriate content directory
  */
-export async function publishJob(
-  jobId: string
-): Promise<
+export async function publishJob(jobId: string): Promise<
   ActionResult<{
     slug: string
     publishedAt: string

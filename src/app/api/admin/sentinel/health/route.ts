@@ -155,7 +155,8 @@ export async function GET(request: NextRequest) {
       sources: {
         total: totalSources,
         needingCheck: needsCheckCount,
-        percentageOverdue: totalSources > 0 ? Math.round((needsCheckCount / totalSources) * 100) : 0,
+        percentageOverdue:
+          totalSources > 0 ? Math.round((needsCheckCount / totalSources) * 100) : 0,
       },
       discovery: {
         last7days: recentDiscoveries,

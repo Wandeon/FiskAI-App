@@ -51,14 +51,7 @@ const englishWords = new Set([
   "trial",
 ])
 
-const placeholderPhrases = [
-  "lorem",
-  "ipsum",
-  "todo",
-  "tbd",
-  "coming soon",
-  "placeholder",
-]
+const placeholderPhrases = ["lorem", "ipsum", "todo", "tbd", "coming soon", "placeholder"]
 
 function stripDiacritics(input: string) {
   return input.normalize("NFD").replace(/\p{Diacritic}/gu, "")
@@ -84,9 +77,7 @@ export function detectEnglishLeakage(text: string, threshold = 0.02) {
     })
   }
 
-  const placeholderHits = placeholderPhrases.filter((phrase) =>
-    normalized.includes(phrase),
-  )
+  const placeholderHits = placeholderPhrases.filter((phrase) => normalized.includes(phrase))
 
   if (placeholderHits.length > 0) {
     issues.push({

@@ -17,7 +17,11 @@ const sizes = {
   lg: "h-8 w-8",
 }
 
-export function LoadingSpinner({ size = "md", className, label = "Učitavanje" }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  size = "md",
+  className,
+  label = "Učitavanje",
+}: LoadingSpinnerProps) {
   return (
     <Loader2
       className={cn("animate-spin text-brand-600", sizes[size], className)}
@@ -44,7 +48,11 @@ export function LoadingOverlay({ message = "Učitavanje...", className }: Loadin
       aria-label={message}
     >
       <LoadingSpinner size="lg" label={message} />
-      {message && <p className="mt-3 text-sm font-medium text-[var(--muted)]" aria-hidden="true">{message}</p>}
+      {message && (
+        <p className="mt-3 text-sm font-medium text-[var(--muted)]" aria-hidden="true">
+          {message}
+        </p>
+      )}
     </div>
   )
 }
@@ -57,8 +65,14 @@ interface LoadingDotsProps {
 export function LoadingDots({ className, label = "Učitavanje" }: LoadingDotsProps) {
   return (
     <span className={cn("inline-flex gap-1", className)} role="status" aria-label={label}>
-      <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" aria-hidden="true" />
-      <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" aria-hidden="true" />
+      <span
+        className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]"
+        aria-hidden="true"
+      />
+      <span
+        className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]"
+        aria-hidden="true"
+      />
       <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" aria-hidden="true" />
     </span>
   )

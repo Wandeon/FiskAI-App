@@ -10,11 +10,7 @@ interface PageSkeletonProps {
 /**
  * Reusable page-level skeleton component for loading states
  */
-export function PageSkeleton({
-  variant = "list",
-  title = true,
-  className,
-}: PageSkeletonProps) {
+export function PageSkeleton({ variant = "list", title = true, className }: PageSkeletonProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* Page Header */}
@@ -127,7 +123,10 @@ function DetailContentSkeleton() {
         <Skeleton className="h-6 w-40" />
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex justify-between py-2 border-b border-[var(--border)] last:border-0">
+            <div
+              key={i}
+              className="flex justify-between py-2 border-b border-[var(--border)] last:border-0"
+            >
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-4 w-48" />
             </div>

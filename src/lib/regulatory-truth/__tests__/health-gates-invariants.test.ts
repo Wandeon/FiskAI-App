@@ -192,7 +192,11 @@ describe("Health Gates Invariants", () => {
       const violations = 1
       const status = violations > 0 ? "critical" : "healthy"
 
-      assert.strictEqual(status, "critical", "Any violation should be critical for zero-tolerance gates")
+      assert.strictEqual(
+        status,
+        "critical",
+        "Any violation should be critical for zero-tolerance gates"
+      )
     })
   })
 
@@ -217,17 +221,11 @@ describe("Health Gates Invariants", () => {
       const validatorSet = new Set(VALIDATOR_REJECTION_TYPES)
 
       for (const parseType of PARSE_FAILURE_TYPES) {
-        assert.ok(
-          !validatorSet.has(parseType),
-          `${parseType} should not be in validator types`
-        )
+        assert.ok(!validatorSet.has(parseType), `${parseType} should not be in validator types`)
       }
 
       for (const validatorType of VALIDATOR_REJECTION_TYPES) {
-        assert.ok(
-          !parseSet.has(validatorType),
-          `${validatorType} should not be in parse types`
-        )
+        assert.ok(!parseSet.has(validatorType), `${validatorType} should not be in parse types`)
       }
     })
 
@@ -235,14 +233,20 @@ describe("Health Gates Invariants", () => {
       const parseSet = new Set(PARSE_FAILURE_TYPES)
 
       assert.ok(parseSet.has("NO_QUOTE_MATCH"), "NO_QUOTE_MATCH should be parse failure")
-      assert.ok(parseSet.has("QUOTE_NOT_IN_EVIDENCE"), "QUOTE_NOT_IN_EVIDENCE should be parse failure")
+      assert.ok(
+        parseSet.has("QUOTE_NOT_IN_EVIDENCE"),
+        "QUOTE_NOT_IN_EVIDENCE should be parse failure"
+      )
     })
 
     it("domain validation failures are classified as validator rejections", () => {
       const validatorSet = new Set(VALIDATOR_REJECTION_TYPES)
 
       assert.ok(validatorSet.has("OUT_OF_RANGE"), "OUT_OF_RANGE should be validator rejection")
-      assert.ok(validatorSet.has("INVALID_CURRENCY"), "INVALID_CURRENCY should be validator rejection")
+      assert.ok(
+        validatorSet.has("INVALID_CURRENCY"),
+        "INVALID_CURRENCY should be validator rejection"
+      )
       assert.ok(validatorSet.has("INVALID_DATE"), "INVALID_DATE should be validator rejection")
     })
   })

@@ -32,10 +32,7 @@ export function BetaBadge({ className, showIcon = true, variant = "default" }: B
   return (
     <Badge
       variant="info"
-      className={cn(
-        "bg-info-bg text-info-text border-info-border hover:bg-info-bg",
-        className
-      )}
+      className={cn("bg-info-bg text-info-text border-info-border hover:bg-info-bg", className)}
     >
       {showIcon && <FlaskConical className="mr-1 h-3 w-3" />}
       Beta

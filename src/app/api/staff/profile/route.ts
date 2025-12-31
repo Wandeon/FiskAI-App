@@ -31,10 +31,7 @@ export async function PATCH(req: NextRequest) {
     const validation = updateProfileSchema.safeParse(body)
 
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error.errors[0].message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: validation.error.errors[0].message }, { status: 400 })
     }
 
     const { name } = validation.data
@@ -57,9 +54,6 @@ export async function PATCH(req: NextRequest) {
     })
   } catch (error) {
     console.error("Error updating staff profile:", error)
-    return NextResponse.json(
-      { error: "Failed to update profile" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
   }
 }

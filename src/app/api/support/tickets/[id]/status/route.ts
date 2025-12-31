@@ -24,10 +24,7 @@ const VALID_TRANSITIONS: Record<SupportTicketStatus, SupportTicketStatus[]> = {
   CLOSED: [SupportTicketStatus.OPEN],
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params
   const user = await getCurrentUser()
   if (!user) {

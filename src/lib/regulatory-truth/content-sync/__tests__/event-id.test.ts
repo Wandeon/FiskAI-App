@@ -67,8 +67,7 @@ describe("generateEventId", () => {
     conceptId: "pdv-threshold",
     type: "RULE_RELEASED",
     effectiveFrom: "2024-01-01",
-    sourcePointerIdsHash:
-      "abc123def456abc123def456abc123def456abc123def456abc123def456abc1",
+    sourcePointerIdsHash: "abc123def456abc123def456abc123def456abc123def456abc123def456abc1",
   }
 
   it("should produce deterministic ID for same signature", () => {
@@ -116,13 +115,11 @@ describe("generateEventId", () => {
   it("should produce different IDs for different sourcePointerIdsHash", () => {
     const sig1 = {
       ...baseSignature,
-      sourcePointerIdsHash:
-        "abc123def456abc123def456abc123def456abc123def456abc123def456abc1",
+      sourcePointerIdsHash: "abc123def456abc123def456abc123def456abc123def456abc123def456abc1",
     }
     const sig2 = {
       ...baseSignature,
-      sourcePointerIdsHash:
-        "xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz7",
+      sourcePointerIdsHash: "xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz789xyz7",
     }
 
     expect(generateEventId(sig1)).not.toBe(generateEventId(sig2))
@@ -152,9 +149,7 @@ describe("generateEventId", () => {
       "CONFIDENCE_DROPPED",
     ] as const
 
-    const ids = types.map((type) =>
-      generateEventId({ ...baseSignature, type })
-    )
+    const ids = types.map((type) => generateEventId({ ...baseSignature, type }))
 
     // All IDs should be unique
     const uniqueIds = new Set(ids)
@@ -235,9 +230,7 @@ describe("determineSeverity", () => {
 
       for (const tier of tiers) {
         for (const changeType of changeTypes) {
-          expect(determineSeverity(tier, changeType)).toBe(
-            expectedResults[tier][changeType]
-          )
+          expect(determineSeverity(tier, changeType)).toBe(expectedResults[tier][changeType])
         }
       }
     })

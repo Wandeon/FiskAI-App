@@ -169,7 +169,9 @@ export default function VerifyEmailPage() {
                   </div>
                 )}
                 {resendError && (
-                  <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{resendError}</div>
+                  <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">
+                    {resendError}
+                  </div>
                 )}
                 <Button className="w-full" onClick={handleResend} disabled={resending || resent}>
                   {resending ? (
@@ -205,7 +207,9 @@ export default function VerifyEmailPage() {
                   </div>
                 )}
                 {resendError && (
-                  <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{resendError}</div>
+                  <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">
+                    {resendError}
+                  </div>
                 )}
                 <Button
                   className="w-full"

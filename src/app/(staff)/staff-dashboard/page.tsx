@@ -5,9 +5,9 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 export const dynamic = "force-dynamic"
 
 export default function StaffDashboardPage() {
- return (
- <Suspense fallback={<LoadingSpinner />}>
- <StaffDashboard />
- </Suspense>
- )
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <StaffDashboard />
+    </Suspense>
+  )
 }

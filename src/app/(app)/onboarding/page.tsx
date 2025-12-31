@@ -118,7 +118,8 @@ export default function OnboardingPage() {
               phone: serverData.phone || undefined,
               iban: serverData.iban || undefined,
               isVatPayer: serverData.isVatPayer ?? false,
-              employedElsewhere: serverData.employedElsewhere ?? wizardData.employedElsewhere ?? false,
+              employedElsewhere:
+                serverData.employedElsewhere ?? wizardData.employedElsewhere ?? false,
             },
             startStep
           )

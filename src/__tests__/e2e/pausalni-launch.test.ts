@@ -208,7 +208,11 @@ describe("Pausalni Launch E2E Tests", () => {
 
       // Step 1 incomplete
       expect(
-        !!((incompleteStep1.name as string | null)?.trim() && incompleteStep1.oib && incompleteStep1.legalForm)
+        !!(
+          (incompleteStep1.name as string | null)?.trim() &&
+          incompleteStep1.oib &&
+          incompleteStep1.legalForm
+        )
       ).toBe(false)
 
       // Step 1 complete, Step 2 incomplete

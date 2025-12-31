@@ -165,9 +165,7 @@ export interface ContentSyncEventV1 {
 /**
  * Type guard to check if a payload is a valid ContentSyncEventV1.
  */
-export function isContentSyncEventV1(
-  payload: unknown
-): payload is ContentSyncEventV1 {
+export function isContentSyncEventV1(payload: unknown): payload is ContentSyncEventV1 {
   if (typeof payload !== "object" || payload === null) {
     return false
   }

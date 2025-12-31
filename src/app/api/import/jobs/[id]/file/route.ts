@@ -35,10 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           },
           "File integrity check failed"
         )
-        return NextResponse.json(
-          { error: "File integrity verification failed" },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: "File integrity verification failed" }, { status: 500 })
       }
     }
 

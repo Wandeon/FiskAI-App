@@ -174,10 +174,9 @@ export function AdminUserManagementEmail(props: AdminUserManagementEmailProps) {
             <Text style={warningText}>
               <strong>Vazna napomena:</strong>
               <br />
-              Ova akcija je izvrsena od strane administratora FiskAI platforme.
-              Ako smatrate da je ova akcija izvrsena bez vaseg pristanka ili je
-              neovlastena, molimo vas da nas odmah kontaktirate na
-              podrska@fiskai.hr.
+              Ova akcija je izvrsena od strane administratora FiskAI platforme. Ako smatrate da je
+              ova akcija izvrsena bez vaseg pristanka ili je neovlastena, molimo vas da nas odmah
+              kontaktirate na podrska@fiskai.hr.
             </Text>
           </Section>
           <Hr style={hr} />
@@ -187,8 +186,8 @@ export function AdminUserManagementEmail(props: AdminUserManagementEmailProps) {
             <strong>FiskAI Tim</strong>
           </Text>
           <Text style={footerSmall}>
-            Ovo je automatska obavijest o administrativnoj akciji na vasem
-            racunu. Ne mozete odgovoriti na ovu poruku.
+            Ovo je automatska obavijest o administrativnoj akciji na vasem racunu. Ne mozete
+            odgovoriti na ovu poruku.
           </Text>
         </Container>
       </Body>
@@ -198,8 +197,7 @@ export function AdminUserManagementEmail(props: AdminUserManagementEmailProps) {
 
 const main = {
   backgroundColor: "#f6f9fc",
-  fontFamily:
-    "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif",
+  fontFamily: "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif",
 }
 
 const container = {

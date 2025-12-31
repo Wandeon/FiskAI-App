@@ -18,8 +18,7 @@ const totalMonthlyLabel = formatCurrency(CONTRIBUTIONS.monthly.total, { decimals
 
 export const metadata: Metadata = {
   title: `Kalkulator doprinosa ${contributionsYear} | FiskAI`,
-  description:
-    `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
+  description: `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
   alternates: {
     canonical: `${BASE_URL}/alati/kalkulator-doprinosa`,
   },
@@ -43,8 +42,7 @@ const faq = [
 export default function ContributionCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "Kalkulator Doprinosa",
-    description:
-      `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
+    description: `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
     url: "https://fiskai.hr/alati/kalkulator-doprinosa",
   })
 

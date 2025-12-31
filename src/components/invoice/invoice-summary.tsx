@@ -106,9 +106,7 @@ export function InvoiceSummary({
                 </span>
               </div>
             ))}
-            {lines.length > 3 && (
-              <p className="text-xs text-muted">+{lines.length - 3} više...</p>
-            )}
+            {lines.length > 3 && <p className="text-xs text-muted">+{lines.length - 3} više...</p>}
           </div>
         </div>
 

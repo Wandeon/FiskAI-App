@@ -1,10 +1,10 @@
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from "next"
 import {
   routes,
   getCanonicalBaseUrl,
   isProductionSitemap,
   type RouteCategory,
-} from "@/config/routes";
+} from "@/config/routes"
 
 /**
  * Enterprise Robots.txt Generator
@@ -15,7 +15,7 @@ import {
  * - Environment-safe (blocks everything in non-production)
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getCanonicalBaseUrl();
+  const baseUrl = getCanonicalBaseUrl()
 
   // Safety: Block everything in non-production environments
   if (!isProductionSitemap() || !baseUrl) {
@@ -24,7 +24,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         disallow: "/",
       },
-    };
+    }
   }
 
   // Categories that should be indexed
@@ -35,12 +35,12 @@ export default function robots(): MetadataRoute.Robots {
     "content",
     "news",
     "legal",
-  ];
+  ]
 
   // Get all indexable routes from registry
   const allowedPaths = Object.values(routes)
     .filter((r) => r.sitemap && indexableCategories.includes(r.category))
-    .map((r) => r.path.hr);
+    .map((r) => r.path.hr)
 
   return {
     rules: [
@@ -116,5 +116,5 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-  };
+  }
 }

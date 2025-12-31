@@ -241,7 +241,8 @@ async function retryPendingNotifications(results: {
         })
       } else {
         // Schedule next retry with exponential backoff
-        const retryDelay = RETRY_DELAYS[newAttemptCount - 1] || RETRY_DELAYS[RETRY_DELAYS.length - 1]
+        const retryDelay =
+          RETRY_DELAYS[newAttemptCount - 1] || RETRY_DELAYS[RETRY_DELAYS.length - 1]
         const nextRetryAt = new Date(Date.now() + retryDelay)
 
         await db.certificateNotification.update({
@@ -329,7 +330,10 @@ async function sendNewNotification(
     })
 
     // If the record already existed (not PENDING or attemptCount > 0), another instance owns it
-    if (notification.status !== CertificateNotificationStatus.PENDING || notification.attemptCount > 0) {
+    if (
+      notification.status !== CertificateNotificationStatus.PENDING ||
+      notification.attemptCount > 0
+    ) {
       results.skipped.push({
         companyId: cert.companyId,
         daysRemaining: cert.daysRemaining,
@@ -339,7 +343,9 @@ async function sendNewNotification(
     }
   } catch (claimError) {
     // Unique constraint violation means another instance claimed it
-    console.warn(`Could not claim notification for ${cert.companyId} (${notificationDay} days): already claimed`)
+    console.warn(
+      `Could not claim notification for ${cert.companyId} (${notificationDay} days): already claimed`
+    )
     results.skipped.push({
       companyId: cert.companyId,
       daysRemaining: cert.daysRemaining,

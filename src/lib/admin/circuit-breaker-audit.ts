@@ -25,16 +25,32 @@ export async function auditCircuitBreakerReset(params: CircuitBreakerResetParams
       entityType: "SYSTEM",
       entityId: "circuit-breaker-" + component,
       performedBy: adminId || adminEmail || "UNKNOWN_ADMIN",
-      metadata: { component, resetType, resetItems, resetCount: resetItems.length, reason: reason || "No reason provided", adminEmail, timestamp: new Date().toISOString() },
+      metadata: {
+        component,
+        resetType,
+        resetItems,
+        resetCount: resetItems.length,
+        reason: reason || "No reason provided",
+        adminEmail,
+        timestamp: new Date().toISOString(),
+      },
     })
   } catch (error) {
     console.error("[circuit-breaker-audit] Failed to log audit event:", error)
   }
 
   try {
-    const message = resetType === "specific"
-      ? componentLabel + " circuit breaker manually reset: " + resetItems.join(", ")
-      : "All " + componentLabel + " " + itemLabel + " manually reset (" + resetItems.length + " total): " + resetItems.join(", ")
+    const message =
+      resetType === "specific"
+        ? componentLabel + " circuit breaker manually reset: " + resetItems.join(", ")
+        : "All " +
+          componentLabel +
+          " " +
+          itemLabel +
+          " manually reset (" +
+          resetItems.length +
+          " total): " +
+          resetItems.join(", ")
 
     const alertEvent: SystemStatusEventInput = {
       eventType: "CIRCUIT_BREAKER_RESET" as const,

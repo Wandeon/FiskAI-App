@@ -149,11 +149,13 @@ function formatDate(date: Date | null | undefined): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("hr-HR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    currency: "EUR",
-  }).format(amount) + " €"
+  return (
+    new Intl.NumberFormat("hr-HR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      currency: "EUR",
+    }).format(amount) + " €"
+  )
 }
 
 function getDaysOverdue(dueDate: Date | null): number {
@@ -223,7 +225,9 @@ export function AgingPdfDocument({
           </View>
           <View style={[styles.summaryCard, styles.red]}>
             <Text style={styles.summaryCardTitle}>61-90 dana</Text>
-            <Text style={[styles.summaryCardValue, styles.red]}>{formatCurrency(totals.days90)}</Text>
+            <Text style={[styles.summaryCardValue, styles.red]}>
+              {formatCurrency(totals.days90)}
+            </Text>
             <Text style={styles.summaryCardSubtext}>{aging.days90.length} računa</Text>
           </View>
           <View style={[styles.summaryCard, styles.darkRed]}>

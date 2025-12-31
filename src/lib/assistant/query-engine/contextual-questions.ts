@@ -136,7 +136,7 @@ Surface: ${context.surface}
       {
         query: context.userQuery,
         generated: validQuestions.length,
-        tokensUsed: response.usage?.total_tokens || 0
+        tokensUsed: response.usage?.total_tokens || 0,
       },
       "Generated contextual questions"
     )
@@ -221,7 +221,7 @@ Return ONLY a JSON array of question strings, nothing else.`
       {
         query: userQuery,
         generated: validQuestions.length,
-        tokensUsed: response.usage?.total_tokens || 0
+        tokensUsed: response.usage?.total_tokens || 0,
       },
       "Generated contextual clarifications"
     )
@@ -276,9 +276,6 @@ function getDefaultClarifications(topic: string): string[] {
       "Koje funkcije nudi FiskAI?",
     ]
   } else {
-    return [
-      "Kako prijaviti tehnički problem?",
-      "Gdje mogu dobiti pomoć?",
-    ]
+    return ["Kako prijaviti tehnički problem?", "Gdje mogu dobiti pomoć?"]
   }
 }

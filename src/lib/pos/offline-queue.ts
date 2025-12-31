@@ -57,7 +57,9 @@ function openDB(): Promise<IDBDatabase> {
 /**
  * Add a sale to the offline queue
  */
-export async function queueOfflineSale(sale: Omit<PendingSale, "id" | "createdAt" | "syncAttempts">): Promise<PendingSale> {
+export async function queueOfflineSale(
+  sale: Omit<PendingSale, "id" | "createdAt" | "syncAttempts">
+): Promise<PendingSale> {
   const db = await openDB()
 
   const pendingSale: PendingSale = {

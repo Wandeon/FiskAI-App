@@ -55,7 +55,8 @@ export default function CheckEmailPage() {
         <p className="text-secondary">Poslali smo vam 6-znamenkasti kod za potvrdu na:</p>
         <p className="font-medium text-lg break-all">{email}</p>
         <p className="text-sm text-secondary">
-          Unesite kod u obrascu za registraciju kako biste potvrdili svoju adresu i aktivirali račun.
+          Unesite kod u obrascu za registraciju kako biste potvrdili svoju adresu i aktivirali
+          račun.
         </p>
 
         <div className="rounded-md bg-warning-bg border border-warning-border p-4 text-left">
@@ -73,7 +74,9 @@ export default function CheckEmailPage() {
           </div>
         )}
 
-        {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
+        {error && (
+          <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+        )}
 
         <Button
           variant="outline"

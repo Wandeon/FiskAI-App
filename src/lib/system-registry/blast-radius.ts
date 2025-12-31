@@ -37,13 +37,7 @@ import type { DependencyGraph } from "./dependency-graph"
  * Type of match that linked a file to a component.
  * Useful for debugging and understanding why a component was matched.
  */
-export type MatchType =
-  | "codeRef"
-  | "codeRefs"
-  | "route_group"
-  | "worker"
-  | "integration"
-  | "queue"
+export type MatchType = "codeRef" | "codeRefs" | "route_group" | "worker" | "integration" | "queue"
 
 /**
  * A component directly impacted by file changes.
@@ -333,9 +327,7 @@ export function computeDirectImpact(
   }
 
   // Sort by component ID for deterministic output
-  return results.sort((a, b) =>
-    a.component.componentId.localeCompare(b.component.componentId)
-  )
+  return results.sort((a, b) => a.component.componentId.localeCompare(b.component.componentId))
 }
 
 /**
@@ -407,8 +399,7 @@ export function computeTransitiveImpact(
 
   // BFS queue: [componentId, distance, pathThrough]
   // pathThrough is the chain of component IDs from direct impact to this node
-  const queue: Array<{ id: string; distance: number; pathThrough: string[] }> =
-    []
+  const queue: Array<{ id: string; distance: number; pathThrough: string[] }> = []
 
   // Seed queue with components that directly depend on direct components
   for (const directId of directComponents) {
@@ -478,9 +469,7 @@ export function computeTransitiveImpact(
   }
 
   return {
-    impacts: result.sort((a, b) =>
-      a.component.componentId.localeCompare(b.component.componentId)
-    ),
+    impacts: result.sort((a, b) => a.component.componentId.localeCompare(b.component.componentId)),
     truncated: false,
   }
 }

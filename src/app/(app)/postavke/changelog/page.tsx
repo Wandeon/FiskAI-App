@@ -21,8 +21,15 @@ const FULL_CHANGELOG: ChangelogEntry[] = [
     version: "1.2.0",
     date: "2024-12-29",
     changes: [
-      { type: "added", description: "Sustav obavijesti o novostima - saznajte o novim funkcijama izravno u aplikaciji" },
-      { type: "added", description: "\"Sto je novo\" modal koji se prikazuje nakon prijave za nove verzije" },
+      {
+        type: "added",
+        description:
+          "Sustav obavijesti o novostima - saznajte o novim funkcijama izravno u aplikaciji",
+      },
+      {
+        type: "added",
+        description: '"Sto je novo" modal koji se prikazuje nakon prijave za nove verzije',
+      },
       { type: "added", description: "Stranica s punim changelogom u postavkama" },
       { type: "changed", description: "Poboljsane performanse ucitavanja nadzorne ploce" },
     ],
@@ -88,9 +95,7 @@ export default function ChangelogPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Changelog</h1>
-          <p className="text-sm text-[var(--muted)]">
-            Popis svih promjena i novih funkcionalnosti
-          </p>
+          <p className="text-sm text-[var(--muted)]">Popis svih promjena i novih funkcionalnosti</p>
         </div>
       </div>
 

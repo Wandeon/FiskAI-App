@@ -47,11 +47,7 @@ export async function harvestStores(projectRoot: string): Promise<HarvesterResul
   }
 
   // Check for Drizzle
-  const drizzlePaths = [
-    "drizzle.config.ts",
-    "drizzle.config.js",
-    "src/db/schema.ts",
-  ]
+  const drizzlePaths = ["drizzle.config.ts", "drizzle.config.js", "src/db/schema.ts"]
   for (const drizzlePath of drizzlePaths) {
     const fullPath = join(projectRoot, drizzlePath)
     if (existsSync(fullPath)) {
@@ -88,10 +84,7 @@ export async function harvestStores(projectRoot: string): Promise<HarvesterResul
       if (compose?.services) {
         for (const [serviceName, service] of Object.entries(compose.services)) {
           // Check for Redis
-          if (
-            serviceName.includes("redis") ||
-            service?.image?.includes("redis")
-          ) {
+          if (serviceName.includes("redis") || service?.image?.includes("redis")) {
             if (!stores.some((s) => s.name === "redis")) {
               stores.push({
                 name: "redis",

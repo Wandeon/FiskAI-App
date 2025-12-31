@@ -69,7 +69,9 @@ export default function NewProductPage() {
       <h1 className="text-2xl font-bold">Novi proizvod</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
+        {error && (
+          <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+        )}
 
         <Card>
           <CardHeader>

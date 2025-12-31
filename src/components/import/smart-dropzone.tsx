@@ -50,9 +50,7 @@ export function SmartDropzone({ onFilesDropped, disabled }: SmartDropzoneProps) 
           ${isDragActive ? "bg-info-bg" : "bg-surface-2"}
         `}
         >
-          <UploadCloud
-            className={`h-10 w-10 ${isDragActive ? "text-link" : "text-tertiary"}`}
-          />
+          <UploadCloud className={`h-10 w-10 ${isDragActive ? "text-link" : "text-tertiary"}`} />
         </div>
 
         <div>

@@ -144,7 +144,10 @@ export async function GET() {
               const trashPath = path.join(trashDir, `${Date.now()}-${file}`)
               await fs.rename(filePath, trashPath)
 
-              bankingLogger.info({ originalPath: filePath, trashPath }, "Moved orphaned file to trash")
+              bankingLogger.info(
+                { originalPath: filePath, trashPath },
+                "Moved orphaned file to trash"
+              )
               results.orphanedFilesMoved++
             }
           } catch (error) {

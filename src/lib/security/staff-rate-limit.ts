@@ -15,11 +15,14 @@ export async function checkStaffRateLimit(
   if (!rateLimitResult.allowed) {
     const retryAfter = rateLimitResult.resetAt
       ? String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000))
-      : limitType === "STAFF_BULK_EXPORT" ? "3600" : "60"
+      : limitType === "STAFF_BULK_EXPORT"
+        ? "3600"
+        : "60"
 
-    const message = limitType === "STAFF_BULK_EXPORT"
-      ? "Too many requests. Bulk exports are limited to prevent data extraction."
-      : "Too many requests"
+    const message =
+      limitType === "STAFF_BULK_EXPORT"
+        ? "Too many requests. Bulk exports are limited to prevent data extraction."
+        : "Too many requests"
 
     return NextResponse.json(
       { error: message },

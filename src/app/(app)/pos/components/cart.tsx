@@ -18,10 +18,7 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
     }).format(price)
 
   // Calculate totals
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.unitPrice * item.quantity,
-    0
-  )
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
 
   // Group VAT by rate
   const vatByRate = items.reduce(
@@ -59,9 +56,7 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
                     {formatPrice(item.unitPrice)} × {item.quantity}
                   </p>
                 </div>
-                <p className="font-bold">
-                  {formatPrice(item.unitPrice * item.quantity)}
-                </p>
+                <p className="font-bold">{formatPrice(item.unitPrice * item.quantity)}</p>
               </div>
 
               {/* Quantity controls */}

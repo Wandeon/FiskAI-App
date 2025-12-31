@@ -8,7 +8,10 @@ import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
 const querySchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
-  reportType: z.enum(["overview", "kpr", "pending-review", "deadlines"]).optional().default("overview"),
+  reportType: z
+    .enum(["overview", "kpr", "pending-review", "deadlines"])
+    .optional()
+    .default("overview"),
 })
 
 function parseDate(value?: string) {
@@ -105,7 +108,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Multi-client report error:", error)
     return NextResponse.json(
-      { error: "Report generation failed", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Report generation failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }
@@ -125,12 +131,13 @@ async function generateOverviewReport(
       })()
     : undefined
 
-  const dateFilter = fromDate || toDateInclusive
-    ? {
-        gte: fromDate,
-        lte: toDateInclusive,
-      }
-    : undefined
+  const dateFilter =
+    fromDate || toDateInclusive
+      ? {
+          gte: fromDate,
+          lte: toDateInclusive,
+        }
+      : undefined
 
   const clientReports = await Promise.all(
     assignments.map(async (assignment) => {
@@ -179,7 +186,7 @@ async function generateOverviewReport(
             db.expense.count({ where: { companyId: assignment.company.id } }),
             db.staffReview.count({ where: { companyId: assignment.company.id } }),
           ])
-          return (invoiceCount + expenseCount) - reviewedCount
+          return invoiceCount + expenseCount - reviewedCount
         })(),
       ])
 
@@ -201,7 +208,8 @@ async function generateOverviewReport(
         },
         openTickets: ticketStats,
         pendingReview,
-        netProfit: Number(invoiceStats._sum.totalAmount || 0) - Number(expenseStats._sum.totalAmount || 0),
+        netProfit:
+          Number(invoiceStats._sum.totalAmount || 0) - Number(expenseStats._sum.totalAmount || 0),
       }
     })
   )
@@ -246,16 +254,19 @@ async function generateKprReport(
   fromDate?: Date,
   toDate?: Date
 ) {
-  const kprDateFilter = fromDate || toDate
-    ? {
-        gte: fromDate,
-        lte: toDate ? (() => {
-          const d = new Date(toDate)
-          d.setHours(23, 59, 59, 999)
-          return d
-        })() : undefined,
-      }
-    : undefined
+  const kprDateFilter =
+    fromDate || toDate
+      ? {
+          gte: fromDate,
+          lte: toDate
+            ? (() => {
+                const d = new Date(toDate)
+                d.setHours(23, 59, 59, 999)
+                return d
+              })()
+            : undefined,
+        }
+      : undefined
 
   const clientKprData = await Promise.all(
     assignments.map(async (assignment) => {
@@ -461,7 +472,9 @@ async function generateDeadlinesReport(
           dueDate: inv.dueDate,
           amount: Number(inv.totalAmount),
           status: inv.status,
-          daysUntilDue: inv.dueDate ? Math.floor((inv.dueDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)) : null,
+          daysUntilDue: inv.dueDate
+            ? Math.floor((inv.dueDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
+            : null,
         })),
         overdue: overdueInvoices.map((inv) => ({
           id: inv.id,
@@ -469,7 +482,9 @@ async function generateDeadlinesReport(
           dueDate: inv.dueDate,
           amount: Number(inv.totalAmount),
           status: inv.status,
-          daysOverdue: inv.dueDate ? Math.floor((now.getTime() - inv.dueDate.getTime()) / (24 * 60 * 60 * 1000)) : null,
+          daysOverdue: inv.dueDate
+            ? Math.floor((now.getTime() - inv.dueDate.getTime()) / (24 * 60 * 60 * 1000))
+            : null,
         })),
       }
     })

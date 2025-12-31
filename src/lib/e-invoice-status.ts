@@ -28,15 +28,24 @@ export function validateStatusTransition(from: EInvoiceStatus, to: EInvoiceStatu
 
 export function getTransitionError(from: EInvoiceStatus, to: EInvoiceStatus): string {
   const statusNames: Record<EInvoiceStatus, string> = {
-    DRAFT: "Nacrt", PENDING_FISCALIZATION: "Čeka fiskalizaciju", FISCALIZED: "Fiskaliziran",
-    SENT: "Poslan", DELIVERED: "Dostavljen", ACCEPTED: "Prihvaćen",
-    REJECTED: "Odbijen", ARCHIVED: "Arhiviran", ERROR: "Greška",
+    DRAFT: "Nacrt",
+    PENDING_FISCALIZATION: "Čeka fiskalizaciju",
+    FISCALIZED: "Fiskaliziran",
+    SENT: "Poslan",
+    DELIVERED: "Dostavljen",
+    ACCEPTED: "Prihvaćen",
+    REJECTED: "Odbijen",
+    ARCHIVED: "Arhiviran",
+    ERROR: "Greška",
   }
-  
-  if (from === "ARCHIVED") return `Nije moguće promijeniti status arhiviranog računa. Status: ${statusNames[from]}`
-  if (from === "FISCALIZED" && to === "DRAFT") return "Nije moguće vratiti fiskalizirani račun u nacrt. Koristite storno račun umjesto toga."
-  if (from === "DRAFT" && to === "ACCEPTED") return "Račun mora biti fiskaliziran prije prihvaćanja."
-  
+
+  if (from === "ARCHIVED")
+    return `Nije moguće promijeniti status arhiviranog računa. Status: ${statusNames[from]}`
+  if (from === "FISCALIZED" && to === "DRAFT")
+    return "Nije moguće vratiti fiskalizirani račun u nacrt. Koristite storno račun umjesto toga."
+  if (from === "DRAFT" && to === "ACCEPTED")
+    return "Račun mora biti fiskaliziran prije prihvaćanja."
+
   return `Neispravan prijelaz statusa: ${statusNames[from]} → ${statusNames[to]}. Provjerite životni ciklus računa.`
 }
 

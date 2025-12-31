@@ -155,9 +155,7 @@ export async function createMRMSEvidence(newsItem: MRMSNewsItem): Promise<string
   // SKIP: Labor law is not part of the core tax domains (pausalni, pdv, etc.)
   // This prevents domain leakage into the regulatory database
   // Labor law content should be handled separately if needed
-  console.log(
-    `[mrms-fetcher] Skipping SourcePointer creation for labor-law - not in DomainSchema`
-  )
+  console.log(`[mrms-fetcher] Skipping SourcePointer creation for labor-law - not in DomainSchema`)
 
   // Log audit event
   await logAuditEvent({

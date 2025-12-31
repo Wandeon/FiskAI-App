@@ -16,7 +16,7 @@
  * - danger: Error/danger state borders
  */
 
-import { slate, blue, emerald, amber, red } from '../primitives';
+import { slate, blue, emerald, amber, red } from "../primitives"
 
 /**
  * Light mode border colors
@@ -36,7 +36,7 @@ export const bordersLight = {
   warning: amber[500],
   /** Danger state border */
   danger: red[500],
-} as const;
+} as const
 
 /**
  * Dark mode border colors
@@ -56,7 +56,7 @@ export const bordersDark = {
   warning: amber[500],
   /** Danger state border */
   danger: red[500],
-} as const;
+} as const
 
 /**
  * Combined border tokens with light/dark variants
@@ -64,7 +64,7 @@ export const bordersDark = {
 export const borders = {
   light: bordersLight,
   dark: bordersDark,
-} as const;
+} as const
 
-export type BorderToken = keyof typeof bordersLight;
-export type Borders = typeof borders;
+export type BorderToken = keyof typeof bordersLight
+export type Borders = typeof borders

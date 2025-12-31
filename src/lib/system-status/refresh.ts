@@ -70,11 +70,7 @@ export async function computeSystemStatusSnapshot({
     }
 
     // Compute drift against declared components
-    const driftResult = computeDrift(
-      harvestResult.components,
-      DECLARED_COMPONENTS,
-      projectRoot
-    )
+    const driftResult = computeDrift(harvestResult.components, DECLARED_COMPONENTS, projectRoot)
 
     // Determine headline status based on drift
     const headlineStatus = determineHeadlineStatus(driftResult)

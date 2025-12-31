@@ -90,7 +90,11 @@ export async function readMdxFrontmatter(filePath: string): Promise<MdxReadResul
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       // Extract conceptId from path for error message
-      const conceptId = filePath.split("/").pop()?.replace(/\.mdx?$/, "") ?? "unknown"
+      const conceptId =
+        filePath
+          .split("/")
+          .pop()
+          ?.replace(/\.mdx?$/, "") ?? "unknown"
       throw new ContentNotFoundError(filePath, conceptId)
     }
     throw err

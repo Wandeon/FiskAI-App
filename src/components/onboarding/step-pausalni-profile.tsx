@@ -156,12 +156,8 @@ export function StepPausalniProfile() {
             <div className="rounded-md bg-warning-bg border border-warning-border p-3 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-warning-text mt-0.5 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-warning-text">
-                  Poštanski broj nije pronađen u bazi
-                </p>
-                <p className="text-warning-text mt-1">
-                  Molimo unesite podatke o lokaciji ručno
-                </p>
+                <p className="font-medium text-warning-text">Poštanski broj nije pronađen u bazi</p>
+                <p className="text-warning-text mt-1">Molimo unesite podatke o lokaciji ručno</p>
               </div>
             </div>
           )}

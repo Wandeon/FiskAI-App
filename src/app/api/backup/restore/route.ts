@@ -134,15 +134,9 @@ export async function POST(request: Request) {
     logger.error({ error }, "Backup restore failed")
 
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: "Restore failed", details: error.message },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: "Restore failed", details: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(
-      { error: "Restore failed due to unknown error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Restore failed due to unknown error" }, { status: 500 })
   }
 }

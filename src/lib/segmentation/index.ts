@@ -31,7 +31,12 @@ export type {
 export { SEGMENTABLE_FIELDS, SYSTEM_SEGMENTS } from "./types"
 
 // Evaluation
-export { evaluateRules, evaluateSegment, evaluateSegments, filterCompaniesBySegment } from "./evaluator"
+export {
+  evaluateRules,
+  evaluateSegment,
+  evaluateSegments,
+  filterCompaniesBySegment,
+} from "./evaluator"
 
 // Service
 export {

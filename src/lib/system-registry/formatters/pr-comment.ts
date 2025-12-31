@@ -356,14 +356,8 @@ ${sections.join("\n\n")}
  * @returns Markdown string for PR comment
  */
 export function formatPRComment(analysis: BlastAnalysis): string {
-  const {
-    directImpacts,
-    transitiveImpacts,
-    criticalPathImpacts,
-    score,
-    owners,
-    truncated,
-  } = analysis
+  const { directImpacts, transitiveImpacts, criticalPathImpacts, score, owners, truncated } =
+    analysis
 
   // Get critical path component IDs for filtering
   const criticalPathComponentIds = getCriticalPathComponentIds(criticalPathImpacts)

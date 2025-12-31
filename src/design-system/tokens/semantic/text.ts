@@ -18,7 +18,7 @@
  * - danger: Error/danger messages
  */
 
-import { slate, white, blue, emerald, amber, red } from '../primitives';
+import { slate, white, blue, emerald, amber, red } from "../primitives"
 
 /**
  * Light mode text colors
@@ -44,7 +44,7 @@ export const textLight = {
   warning: amber[700],
   /** Danger/error text */
   danger: red[600],
-} as const;
+} as const
 
 /**
  * Dark mode text colors
@@ -70,7 +70,7 @@ export const textDark = {
   warning: amber[400],
   /** Danger/error text */
   danger: red[400],
-} as const;
+} as const
 
 /**
  * Combined text tokens with light/dark variants
@@ -78,7 +78,7 @@ export const textDark = {
 export const text = {
   light: textLight,
   dark: textDark,
-} as const;
+} as const
 
-export type TextToken = keyof typeof textLight;
-export type Text = typeof text;
+export type TextToken = keyof typeof textLight
+export type Text = typeof text

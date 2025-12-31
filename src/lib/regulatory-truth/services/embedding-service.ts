@@ -78,7 +78,9 @@ export async function generateEmbeddingsForRule(ruleId: string): Promise<Embeddi
     const embeddings = await embedBatch(contents)
 
     // Delete existing embeddings for this rule (incremental update)
-    await drizzleDb.delete(sourceChunkEmbeddings).where(eq(sourceChunkEmbeddings.factSheetId, ruleId))
+    await drizzleDb
+      .delete(sourceChunkEmbeddings)
+      .where(eq(sourceChunkEmbeddings.factSheetId, ruleId))
 
     // Insert new embeddings
     for (let i = 0; i < chunks.length; i++) {

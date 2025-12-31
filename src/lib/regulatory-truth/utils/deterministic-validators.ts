@@ -597,9 +597,7 @@ export function validateExtraction(
       options.cleanedContent
     )
     if (!cleanedQuoteCheck.valid) {
-      errors.push(
-        `Quote not found in cleaned content (sent to LLM): ${cleanedQuoteCheck.error}`
-      )
+      errors.push(`Quote not found in cleaned content (sent to LLM): ${cleanedQuoteCheck.error}`)
     }
 
     // If requireBothMatch is true, also verify against original content

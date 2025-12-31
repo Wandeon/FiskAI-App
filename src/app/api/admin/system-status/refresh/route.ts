@@ -85,10 +85,7 @@ export async function POST(request: NextRequest) {
         error: "Could not acquire lock",
         finishedAt: new Date(),
       })
-      return NextResponse.json(
-        { error: "Could not acquire refresh lock" },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: "Could not acquire refresh lock" }, { status: 409 })
     }
 
     // If async mode requested, return immediately with job ID

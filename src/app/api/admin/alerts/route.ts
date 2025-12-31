@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth-utils"
-import {
-  dismissAlert,
-  resolveAlert,
-  acknowledgeAlert,
-  snoozeAlert,
-} from "@/lib/admin/alerts"
+import { dismissAlert, resolveAlert, acknowledgeAlert, snoozeAlert } from "@/lib/admin/alerts"
 
 export async function POST(request: NextRequest) {
   try {

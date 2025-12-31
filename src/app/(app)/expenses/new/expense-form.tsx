@@ -247,14 +247,16 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
                 </option>
               ))}
             </select>
-            {categoryId && categories.find((c) => c.id === categoryId)?.receiptRequired && !receiptUrl && (
-              <div className="mt-2 flex items-start gap-2 text-sm text-warning-text bg-warning-bg border border-warning-border px-3 py-2 rounded-md">
-                <Paperclip className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>
-                  Račun je obavezan za ovu kategoriju. Molimo skenirajte ili priložite račun.
-                </span>
-              </div>
-            )}
+            {categoryId &&
+              categories.find((c) => c.id === categoryId)?.receiptRequired &&
+              !receiptUrl && (
+                <div className="mt-2 flex items-start gap-2 text-sm text-warning-text bg-warning-bg border border-warning-border px-3 py-2 rounded-md">
+                  <Paperclip className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    Račun je obavezan za ovu kategoriju. Molimo skenirajte ili priložite račun.
+                  </span>
+                </div>
+              )}
             {suggestions.length > 0 && (
               <div className="mt-2 space-y-2">
                 <span className="text-xs text-secondary flex items-center">

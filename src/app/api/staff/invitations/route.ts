@@ -39,10 +39,7 @@ export async function GET() {
     return NextResponse.json(invitations)
   } catch (error) {
     console.error("Error fetching invitations:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch invitations" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch invitations" }, { status: 500 })
   }
 }
 
@@ -63,10 +60,7 @@ export async function POST(request: NextRequest) {
     const validation = createInvitationSchema.safeParse(body)
 
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error.errors[0].message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: validation.error.errors[0].message }, { status: 400 })
     }
 
     const { email, companyName, message } = validation.data
@@ -107,10 +101,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (existingAssignment) {
-        return NextResponse.json(
-          { error: "This user is already your client" },
-          { status: 409 }
-        )
+        return NextResponse.json({ error: "This user is already your client" }, { status: 409 })
       }
     }
 
@@ -150,9 +141,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(invitation, { status: 201 })
   } catch (error) {
     console.error("Error creating invitation:", error)
-    return NextResponse.json(
-      { error: "Failed to create invitation" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to create invitation" }, { status: 500 })
   }
 }

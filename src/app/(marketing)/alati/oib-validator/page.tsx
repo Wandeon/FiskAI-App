@@ -128,7 +128,9 @@ export default function OIBValidatorPage() {
             {hasValidated && result && (
               <div
                 className={`rounded-lg p-4 flex items-center gap-3 ${
-                  result === "valid" ? "bg-success-bg border-success-border" : "bg-danger-bg border-danger-border"
+                  result === "valid"
+                    ? "bg-success-bg border-success-border"
+                    : "bg-danger-bg border-danger-border"
                 } border`}
               >
                 {result === "valid" ? (

@@ -28,9 +28,7 @@ export function SupportingSources({
   const isDark = theme === "dark"
 
   return (
-    <div
-      className={cn("border-t pt-4", isDark ? "border-subtle/50" : "border-border", className)}
-    >
+    <div className={cn("border-t pt-4", isDark ? "border-subtle/50" : "border-border", className)}>
       <button
         type="button"
         onClick={onToggle}

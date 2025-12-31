@@ -42,23 +42,34 @@ import { sanitizePII } from "@/lib/security/sanitize"
 function sanitizeRuleContent(text: string): string {
   if (!text) return text
 
-  return text
-    // Remove role markers that could confuse the model
-    .replace(/^(system|user|assistant):/gim, '')
-    // Remove attempts to override instructions
-    .replace(/ignore\s+(all\s+)?(previous\s+|above\s+|prior\s+)?(instructions?|prompts?|rules?)/gi, '')
-    .replace(/disregard\s+(all\s+)?(previous\s+|above\s+|prior\s+)?(instructions?|prompts?|rules?)/gi, '')
-    .replace(/forget\s+(all\s+)?(previous\s+|above\s+|prior\s+)?(instructions?|prompts?|rules?)/gi, '')
-    // Remove attempts to extract system prompts
-    .replace(/repeat\s+(the\s+)?(system\s+)?(prompt|instructions?|rules?)/gi, '')
-    .replace(/show\s+(me\s+)?(the\s+)?(system\s+)?(prompt|instructions?|rules?)/gi, '')
-    // Remove attempts to change role or behavior
-    .replace(/you\s+are\s+now/gi, '')
-    .replace(/act\s+as\s+(if\s+)?(you|a)/gi, '')
-    .replace(/pretend\s+(to\s+be|that)/gi, '')
-    // Trim excessive whitespace that might be used for obfuscation
-    .replace(/\s+/g, ' ')
-    .trim()
+  return (
+    text
+      // Remove role markers that could confuse the model
+      .replace(/^(system|user|assistant):/gim, "")
+      // Remove attempts to override instructions
+      .replace(
+        /ignore\s+(all\s+)?(previous\s+|above\s+|prior\s+)?(instructions?|prompts?|rules?)/gi,
+        ""
+      )
+      .replace(
+        /disregard\s+(all\s+)?(previous\s+|above\s+|prior\s+)?(instructions?|prompts?|rules?)/gi,
+        ""
+      )
+      .replace(
+        /forget\s+(all\s+)?(previous\s+|above\s+|prior\s+)?(instructions?|prompts?|rules?)/gi,
+        ""
+      )
+      // Remove attempts to extract system prompts
+      .replace(/repeat\s+(the\s+)?(system\s+)?(prompt|instructions?|rules?)/gi, "")
+      .replace(/show\s+(me\s+)?(the\s+)?(system\s+)?(prompt|instructions?|rules?)/gi, "")
+      // Remove attempts to change role or behavior
+      .replace(/you\s+are\s+now/gi, "")
+      .replace(/act\s+as\s+(if\s+)?(you|a)/gi, "")
+      .replace(/pretend\s+(to\s+be|that)/gi, "")
+      // Trim excessive whitespace that might be used for obfuscation
+      .replace(/\s+/g, " ")
+      .trim()
+  )
 }
 
 // Lazy-load OpenAI client
@@ -105,12 +116,13 @@ export async function synthesizeAnswer(
 ): Promise<SynthesizedAnswer | null> {
   try {
     // Build rules context for LLM with sanitized content
-    const rulesContext = context.rules.map((rule, idx) => {
-      const authority = getAuthorityLabel(rule.authority)
-      const sanitizedTitle = sanitizeRuleContent(rule.titleHr)
-      const sanitizedBody = sanitizeRuleContent(rule.bodyHr || rule.explanationHr || "")
+    const rulesContext = context.rules
+      .map((rule, idx) => {
+        const authority = getAuthorityLabel(rule.authority)
+        const sanitizedTitle = sanitizeRuleContent(rule.titleHr)
+        const sanitizedBody = sanitizeRuleContent(rule.bodyHr || rule.explanationHr || "")
 
-      return `
+        return `
 [Pravilo ${idx + 1}]
 Naslov: ${sanitizedTitle}
 Tekst: ${sanitizedBody}
@@ -121,7 +133,8 @@ Concept: ${rule.conceptSlug}
 ${rule.effectiveFrom ? `Vrijedi od: ${rule.effectiveFrom}` : ""}
 ${rule.effectiveUntil ? `Vrijedi do: ${rule.effectiveUntil}` : ""}
 `.trim()
-    }).join("\n\n")
+      })
+      .join("\n\n")
 
     const systemPrompt = `Ti si stručni asistent za hrvatsko zakonodavstvo i propise koji pomaže poduzetnicima da razumiju svoje obveze.
 
@@ -208,7 +221,7 @@ ${context.companyContext.vatStatus ? `PDV status: ${context.companyContext.vatSt
         assistantLogger.warn(
           {
             parsed,
-            errors: validationResult.error.errors.map(e => e.message)
+            errors: validationResult.error.errors.map((e) => e.message),
           },
           "Invalid LLM response: schema validation failed"
         )
@@ -265,9 +278,10 @@ export async function synthesizeMultiRuleAnswer(
   }
 
   try {
-    const rulesContext = context.rules.map((rule, idx) => {
-      const authority = getAuthorityLabel(rule.authority)
-      return `
+    const rulesContext = context.rules
+      .map((rule, idx) => {
+        const authority = getAuthorityLabel(rule.authority)
+        return `
 [Pravilo ${idx + 1}]
 Naslov: ${rule.titleHr}
 Tekst: ${rule.bodyHr || rule.explanationHr || ""}
@@ -276,7 +290,8 @@ Autoritet: ${authority}
 Uvjeti primjene: ${rule.appliesWhen ? "DA (postoje uvjeti)" : "Uvijek vrijedi"}
 Concept: ${rule.conceptSlug}
 `.trim()
-    }).join("\n\n")
+      })
+      .join("\n\n")
 
     const systemPrompt = `Ti si stručni asistent za hrvatsko zakonodavstvo koji pomaže poduzetnicima razumjeti složene regulatorne situacije.
 
@@ -345,7 +360,7 @@ GENERIRAJ sveobuhvatan odgovor koji objašnjava kako se ova pravila primjenjuju:
       assistantLogger.warn(
         {
           parsed,
-          errors: validationResult.error.errors.map(e => e.message)
+          errors: validationResult.error.errors.map((e) => e.message),
         },
         "Invalid multi-rule LLM response: schema validation failed"
       )

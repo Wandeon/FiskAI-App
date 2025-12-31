@@ -17,10 +17,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
         companyId,
         entity: "Company",
         entityId: companyId,
-        OR: [
-          { action: "UPDATE" },
-          { action: "CREATE" },
-        ],
+        OR: [{ action: "UPDATE" }, { action: "CREATE" }],
       },
       orderBy: { timestamp: "desc" },
       take: 100,

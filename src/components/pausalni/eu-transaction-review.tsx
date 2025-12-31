@@ -57,9 +57,9 @@ export function EuTransactionReview({ companyId }: Props) {
   const [selectedCountries, setSelectedCountries] = useState<Record<string, string>>({})
   const [selectedTypes, setSelectedTypes] = useState<Record<string, string>>({})
   const [vatIds, setVatIds] = useState<Record<string, string>>({})
-  const [viesResults, setViesResults] = useState<
-    Record<string, { valid: boolean; name?: string }>
-  >({})
+  const [viesResults, setViesResults] = useState<Record<string, { valid: boolean; name?: string }>>(
+    {}
+  )
 
   useEffect(() => {
     fetchUnconfirmedTransactions()
@@ -184,7 +184,11 @@ export function EuTransactionReview({ companyId }: Props) {
 
   function getConfidenceBadge(score: number) {
     if (score >= 90) {
-      return <Badge variant="default" className="bg-success">Visoka sigurnost</Badge>
+      return (
+        <Badge variant="default" className="bg-success">
+          Visoka sigurnost
+        </Badge>
+      )
     } else if (score >= 70) {
       return <Badge className="bg-warning">Srednja sigurnost</Badge>
     } else {
@@ -366,9 +370,7 @@ export function EuTransactionReview({ companyId }: Props) {
                           variant="outline"
                           onClick={() => handleValidateVies(tx.id)}
                           disabled={
-                            processingId === tx.id ||
-                            validatingViesId === tx.id ||
-                            !vatIds[tx.id]
+                            processingId === tx.id || validatingViesId === tx.id || !vatIds[tx.id]
                           }
                         >
                           {validatingViesId === tx.id ? (

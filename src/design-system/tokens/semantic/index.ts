@@ -5,29 +5,11 @@
  * These are the primary tokens that components should use.
  */
 
-export {
-  surfaces,
-  surfacesLight,
-  surfacesDark,
-  type SurfaceToken,
-  type Surfaces,
-} from './surfaces';
+export { surfaces, surfacesLight, surfacesDark, type SurfaceToken, type Surfaces } from "./surfaces"
 
-export {
-  text,
-  textLight,
-  textDark,
-  type TextToken,
-  type Text,
-} from './text';
+export { text, textLight, textDark, type TextToken, type Text } from "./text"
 
-export {
-  borders,
-  bordersLight,
-  bordersDark,
-  type BorderToken,
-  type Borders,
-} from './borders';
+export { borders, bordersLight, bordersDark, type BorderToken, type Borders } from "./borders"
 
 export {
   interactive,
@@ -35,7 +17,7 @@ export {
   interactiveDark,
   type InteractiveToken,
   type Interactive,
-} from './interactive';
+} from "./interactive"
 
 export {
   statusColors,
@@ -50,14 +32,14 @@ export {
   type StatusColorBundle,
   type StatusVariant,
   type StatusColors,
-} from './colors';
+} from "./colors"
 
 // Import values for combined object
-import { surfacesLight, surfacesDark } from './surfaces';
-import { textLight, textDark } from './text';
-import { bordersLight, bordersDark } from './borders';
-import { interactiveLight, interactiveDark } from './interactive';
-import { statusColors as statusColorsImport } from './colors';
+import { surfacesLight, surfacesDark } from "./surfaces"
+import { textLight, textDark } from "./text"
+import { bordersLight, bordersDark } from "./borders"
+import { interactiveLight, interactiveDark } from "./interactive"
+import { statusColors as statusColorsImport } from "./colors"
 
 /**
  * Combined semantic tokens object for convenience
@@ -83,4 +65,4 @@ export const semantic = {
     light: statusColorsImport.light,
     dark: statusColorsImport.dark,
   },
-} as const;
+} as const

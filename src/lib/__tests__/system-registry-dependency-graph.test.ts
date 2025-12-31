@@ -103,9 +103,7 @@ describe("buildGraph", () => {
 
   it("handles dependencies on undeclared components", () => {
     // A depends on X, but X is not in the component list
-    const graph = buildGraph([
-      makeComponent("A", [{ componentId: "X", type: "HARD" }]),
-    ])
+    const graph = buildGraph([makeComponent("A", [{ componentId: "X", type: "HARD" }])])
 
     expect(graph.dependsOn.get("A")).toEqual(["X"])
     expect(graph.usedBy.get("X")).toEqual(["A"])
@@ -115,9 +113,7 @@ describe("buildGraph", () => {
 
   it("does not add duplicate reverse edges", () => {
     // If component A has duplicate dependencies to B (shouldn't happen but test defensively)
-    const componentA = makeComponent("A", [
-      { componentId: "B", type: "HARD" },
-    ])
+    const componentA = makeComponent("A", [{ componentId: "B", type: "HARD" }])
     // Manually add duplicate to test dedup
     componentA.dependencies.push({ componentId: "B", type: "SOFT" })
 
@@ -260,9 +256,7 @@ describe("reverseReachable", () => {
     const components: SystemComponent[] = [makeComponent("ROOT")]
 
     for (let i = 0; i < 100; i++) {
-      components.push(
-        makeComponent(`DEP${i}`, [{ componentId: "ROOT", type: "HARD" }])
-      )
+      components.push(makeComponent(`DEP${i}`, [{ componentId: "ROOT", type: "HARD" }]))
     }
 
     const graph = buildGraph(components)
@@ -278,9 +272,7 @@ describe("reverseReachable", () => {
     const components: SystemComponent[] = [makeComponent("ROOT")]
 
     for (let i = 0; i < 20; i++) {
-      components.push(
-        makeComponent(`DEP${i}`, [{ componentId: "ROOT", type: "HARD" }])
-      )
+      components.push(makeComponent(`DEP${i}`, [{ componentId: "ROOT", type: "HARD" }]))
     }
 
     const graph = buildGraph(components)
@@ -296,9 +288,7 @@ describe("reverseReachable", () => {
     const components: SystemComponent[] = [makeComponent("ROOT")]
 
     for (let i = 0; i < 10; i++) {
-      components.push(
-        makeComponent(`DEP${i}`, [{ componentId: "ROOT", type: "HARD" }])
-      )
+      components.push(makeComponent(`DEP${i}`, [{ componentId: "ROOT", type: "HARD" }]))
     }
 
     const graph = buildGraph(components)

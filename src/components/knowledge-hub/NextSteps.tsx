@@ -25,12 +25,11 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
   const { stage } = useVisitorStore()
 
   // Show more compelling CTA if user came from wizard
-  const ctaText = stage === "recommendation"
-    ? "Započni s FiskAI"
-    : "Započni besplatno"
-  const ctaDescription = stage === "recommendation"
-    ? "Završite registraciju i postavite tvrtku koja odgovara vašim potrebama."
-    : "FiskAI automatski prati prihode, rashode i rokove. Bez ručnog rada."
+  const ctaText = stage === "recommendation" ? "Započni s FiskAI" : "Započni besplatno"
+  const ctaDescription =
+    stage === "recommendation"
+      ? "Završite registraciju i postavite tvrtku koja odgovara vašim potrebama."
+      : "FiskAI automatski prati prihode, rashode i rokove. Bez ručnog rada."
 
   if (!hasTools && !hasComparisons) {
     return null
@@ -107,9 +106,7 @@ export function NextSteps({ tools, comparisons, className }: NextStepsProps) {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white">Spremni za automatizaciju?</h3>
-              <p className="mt-1 text-sm text-white/70">
-                {ctaDescription}
-              </p>
+              <p className="mt-1 text-sm text-white/70">{ctaDescription}</p>
             </div>
             <Link
               href="/auth"

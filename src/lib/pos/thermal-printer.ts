@@ -85,8 +85,7 @@ export const ESC_POS = {
 
   // QR Code commands
   QR_MODEL: new Uint8Array([0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]), // Model 2
-  QR_SIZE: (size: number) =>
-    new Uint8Array([0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, size]),
+  QR_SIZE: (size: number) => new Uint8Array([0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, size]),
   QR_ERROR: new Uint8Array([0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, 0x31]), // Error correction L
   QR_STORE: (data: Uint8Array) => {
     const len = data.length + 3
@@ -306,9 +305,7 @@ export class BrowserPrintFallback implements ThermalPrinter {
     // Convert ESC/POS data to HTML and open print dialog
     // This is a fallback - actual ESC/POS commands are ignored
     // The receipt should be pre-rendered as HTML
-    throw new Error(
-      "BrowserPrintFallback requires HTML content. Use printHtml() instead."
-    )
+    throw new Error("BrowserPrintFallback requires HTML content. Use printHtml() instead.")
   }
 
   getPaperWidth(): PrinterPaperWidth {
