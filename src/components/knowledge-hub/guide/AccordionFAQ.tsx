@@ -81,11 +81,11 @@ export function AccordionFAQ({
   }
 
   return (
-    <div className="my-6 rounded-xl border border-white/10 bg-white/5">
+    <div className="my-6 rounded-xl border border-white/10 bg-surface/5">
       <div className="flex items-center gap-2 border-b border-white/10 px-6 py-4">
         <HelpCircle className="h-5 w-5 text-accent" />
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/70">
+        <span className="ml-auto rounded-full bg-surface/10 px-2 py-0.5 text-xs font-medium text-white/70">
           {items.length} pitanja
         </span>
       </div>
@@ -109,10 +109,10 @@ export function Accordion({ children, title }: { children: React.ReactNode; titl
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="my-4 rounded-lg border border-white/10 bg-white/5">
+    <div className="my-4 rounded-lg border border-white/10 bg-surface/5">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-white/10"
+        className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-surface/10"
         aria-expanded={isOpen}
       >
         <span className="text-sm font-medium text-white">{title}</span>

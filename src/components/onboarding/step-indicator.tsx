@@ -66,9 +66,9 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors",
                     isActive && "border-focus bg-interactive text-white",
-                    isPast && "border-green-600 bg-green-600 text-white",
-                    !isActive && !isPast && "border-default bg-white text-tertiary",
-                    canClick && !isActive && "cursor-pointer hover:border-blue-400",
+                    isPast && "border-green-600 bg-success text-white",
+                    !isActive && !isPast && "border-default bg-surface text-tertiary",
+                    canClick && !isActive && "cursor-pointer hover:border-focus",
                     !canClick && "cursor-not-allowed opacity-50"
                   )}
                   aria-current={isActive ? "step" : undefined}
@@ -95,7 +95,7 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div className={cn("mx-4 h-0.5 w-12", isPast ? "bg-green-600" : "bg-surface-2")} />
+                <div className={cn("mx-4 h-0.5 w-12", isPast ? "bg-success" : "bg-surface-2")} />
               )}
             </li>
           )

@@ -31,14 +31,16 @@ export async function GET() {
     },
   }
 
-  const isConfigured = config.slack.configured || config.webhook.configured || config.email.configured
+  const isConfigured =
+    config.slack.configured || config.webhook.configured || config.email.configured
 
   return NextResponse.json({
     configured: isConfigured,
     channels: config,
     documentation: {
       slack: "Set SLACK_WEBHOOK_URL and optionally SLACK_CHANNEL",
-      webhook: "Set SYSTEM_STATUS_WEBHOOK_URL for external monitoring services (Uptime Robot, Better Uptime, PagerDuty)",
+      webhook:
+        "Set SYSTEM_STATUS_WEBHOOK_URL for external monitoring services (Uptime Robot, Better Uptime, PagerDuty)",
       email: "Set RESEND_API_KEY and ADMIN_ALERT_EMAIL for critical email alerts",
     },
   })

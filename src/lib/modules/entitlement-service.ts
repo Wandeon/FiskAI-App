@@ -32,7 +32,9 @@ export interface EntitlementUpdateContext {
 /**
  * Get current entitlements for a company
  */
-export async function getCompanyEntitlements(companyId: string): Promise<CompanyEntitlements | null> {
+export async function getCompanyEntitlements(
+  companyId: string
+): Promise<CompanyEntitlements | null> {
   const company = await prisma.company.findUnique({
     where: { id: companyId },
     select: { entitlements: true },
@@ -115,7 +117,13 @@ export async function enableModule(
   const previous = { ...entitlements }
 
   // Update entitlements
-  const updated = updateModulePermissions(entitlements, moduleKey, permissions, context.userId, context.reason)
+  const updated = updateModulePermissions(
+    entitlements,
+    moduleKey,
+    permissions,
+    context.userId,
+    context.reason
+  )
 
   // Detect changes and create audit entries
   const changes = detectEntitlementChanges(previous, updated, context.userId, companyId, {
@@ -283,11 +291,17 @@ export async function changeSubscriptionPlan(
   const updated = createPlanEntitlements(newPlan, context.userId)
 
   // Detect changes and create audit entries
-  const changes = detectEntitlementChanges(previousEntitlements, updated, context.userId, companyId, {
-    ipAddress: context.ipAddress,
-    userAgent: context.userAgent,
-    reason: context.reason ?? `Plan changed to ${newPlan}`,
-  })
+  const changes = detectEntitlementChanges(
+    previousEntitlements,
+    updated,
+    context.userId,
+    companyId,
+    {
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      reason: context.reason ?? `Plan changed to ${newPlan}`,
+    }
+  )
 
   // Persist changes
   await prisma.$transaction([

@@ -189,7 +189,7 @@ export function POSDCalculatorClient() {
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-14">
         {/* Header */}
         <Reveal className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-chart-2/10 px-4 py-2 text-sm font-medium text-chart-2">
             <Calculator className="h-4 w-4" />
             Besplatni alat
           </div>
@@ -206,9 +206,9 @@ export function POSDCalculatorClient() {
             className={cn(
               "flex items-center justify-between rounded-xl border p-4",
               deadlineInfo.daysLeft <= 7
-                ? "border-red-500/50 bg-red-500/10"
+                ? "border-danger-border/50 bg-danger-bg0/10"
                 : deadlineInfo.daysLeft <= 14
-                  ? "border-amber-500/50 bg-amber-500/10"
+                  ? "border-warning/50 bg-warning-bg0/10"
                   : "border-focus bg-interactive/10"
             )}
           >
@@ -217,9 +217,9 @@ export function POSDCalculatorClient() {
                 className={cn(
                   "h-5 w-5",
                   deadlineInfo.daysLeft <= 7
-                    ? "text-red-400"
+                    ? "text-danger-text"
                     : deadlineInfo.daysLeft <= 14
-                      ? "text-amber-400"
+                      ? "text-warning"
                       : "text-primary"
                 )}
               />
@@ -240,9 +240,9 @@ export function POSDCalculatorClient() {
               className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-semibold",
                 deadlineInfo.daysLeft <= 7
-                  ? "bg-red-500/20 text-red-300"
+                  ? "bg-danger-bg0/20 text-red-300"
                   : deadlineInfo.daysLeft <= 14
-                    ? "bg-amber-500/20 text-amber-300"
+                    ? "bg-warning-bg0/20 text-amber-300"
                     : "bg-interactive/20 text-primary"
               )}
             >
@@ -274,13 +274,13 @@ export function POSDCalculatorClient() {
                       "flex flex-col items-center justify-center border-2 border-dashed p-12 transition-colors",
                       isDragging
                         ? "border-focus bg-info-bg"
-                        : "border-white/20 bg-white/5 hover:border-focus hover:bg-interactive/5"
+                        : "border-white/20 bg-surface/5 hover:border-focus hover:bg-interactive/5"
                     )}
                   >
                     <div
                       className={cn(
                         "mb-4 flex h-16 w-16 items-center justify-center rounded-full",
-                        isDragging ? "bg-info-bg" : "bg-white/10"
+                        isDragging ? "bg-info-bg" : "bg-surface/10"
                       )}
                     >
                       <Upload
@@ -306,12 +306,12 @@ export function POSDCalculatorClient() {
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-3 border-t border-red-200 bg-red-50 p-4 text-red-700">
+                    <div className="flex items-center gap-3 border-t border-danger-border bg-danger-bg p-4 text-danger-text">
                       <AlertTriangle className="h-5 w-5 flex-shrink-0" />
                       <p className="text-sm">{error}</p>
                       <button
                         onClick={() => setError(null)}
-                        className="ml-auto text-red-500 hover:text-red-700"
+                        className="ml-auto text-danger hover:text-danger-text"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -333,7 +333,7 @@ export function POSDCalculatorClient() {
                     {supportedBanks.map((bank) => (
                       <div
                         key={bank.name}
-                        className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2"
+                        className="flex items-center gap-2 rounded-lg bg-surface/5 px-3 py-2"
                       >
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
                         <span className="text-sm font-medium text-white">{bank.name}</span>
@@ -349,7 +349,7 @@ export function POSDCalculatorClient() {
               </Card>
 
               {/* How to export */}
-              <details className="mt-6 rounded-xl border border-white/20 bg-white/5">
+              <details className="mt-6 rounded-xl border border-white/20 bg-surface/5">
                 <summary className="flex cursor-pointer items-center justify-between p-4 font-medium text-white">
                   <span className="flex items-center gap-2">
                     <HelpCircle className="h-5 w-5 text-white/60" />
@@ -397,22 +397,22 @@ export function POSDCalculatorClient() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="rounded-lg bg-white/5 p-3">
+                    <div className="rounded-lg bg-surface/5 p-3">
                       <p className="text-xs text-white/60">Banka</p>
                       <p className="font-medium text-white">{statement.bankName}</p>
                     </div>
-                    <div className="rounded-lg bg-white/5 p-3">
+                    <div className="rounded-lg bg-surface/5 p-3">
                       <p className="text-xs text-white/60">IBAN</p>
                       <p className="font-mono text-sm text-white">{statement.accountIBAN}</p>
                     </div>
-                    <div className="rounded-lg bg-white/5 p-3">
+                    <div className="rounded-lg bg-surface/5 p-3">
                       <p className="text-xs text-white/60">Period</p>
                       <p className="font-medium text-white">
                         {statement.periodStart.toLocaleDateString("hr-HR")} -{" "}
                         {statement.periodEnd.toLocaleDateString("hr-HR")}
                       </p>
                     </div>
-                    <div className="rounded-lg bg-white/5 p-3">
+                    <div className="rounded-lg bg-surface/5 p-3">
                       <p className="text-xs text-white/60">Ukupno transakcija</p>
                       <p className="font-medium text-white">{statement.transactions.length}</p>
                     </div>
@@ -433,8 +433,10 @@ export function POSDCalculatorClient() {
                       </label>
                       <select
                         value={expenseBracket}
-                        onChange={(e) => setExpenseBracket(Number(e.target.value) as ExpenseBracket)}
-                        className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
+                        onChange={(e) =>
+                          setExpenseBracket(Number(e.target.value) as ExpenseBracket)
+                        }
+                        className="w-full rounded-lg border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white"
                       >
                         {EXPENSE_BRACKETS.map((bracket) => (
                           <option key={bracket.value} value={bracket.value}>
@@ -450,7 +452,7 @@ export function POSDCalculatorClient() {
                       <select
                         value={municipality}
                         onChange={(e) => setMunicipality(e.target.value)}
-                        className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
+                        className="w-full rounded-lg border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white"
                       >
                         {municipalityOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -496,7 +498,7 @@ export function POSDCalculatorClient() {
                       Primitci ({incomeTransactions.length} od{" "}
                       {statement.transactions.filter((tx) => tx.isIncome).length})
                     </span>
-                    <span className="text-green-600">
+                    <span className="text-success-text">
                       {formatCurrency(incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0))}
                     </span>
                   </CardTitle>
@@ -519,14 +521,16 @@ export function POSDCalculatorClient() {
                             className={cn(
                               "flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors",
                               isSelected
-                                ? "border-green-500/50 bg-green-500/10"
-                                : "border-white/10 bg-white/5 opacity-60"
+                                ? "border-success-border/50 bg-success-bg0/10"
+                                : "border-white/10 bg-surface/5 opacity-60"
                             )}
                           >
                             <div
                               className={cn(
                                 "flex h-5 w-5 items-center justify-center rounded border-2",
-                                isSelected ? "border-green-500 bg-green-500" : "border-white/30"
+                                isSelected
+                                  ? "border-success-border bg-success-bg0"
+                                  : "border-white/30"
                               )}
                             >
                               {isSelected && <CheckCircle2 className="h-3 w-3 text-white" />}
@@ -554,14 +558,14 @@ export function POSDCalculatorClient() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={handleReset}
-                  className="rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white hover:bg-white/10"
+                  className="rounded-lg border border-white/20 bg-surface/5 px-6 py-3 font-medium text-white hover:bg-surface/10"
                 >
                   Ponisti
                 </button>
                 <button
                   onClick={handleCalculate}
                   disabled={incomeTransactions.length === 0}
-                  className="rounded-lg bg-interactive px-6 py-3 font-medium text-white hover:bg-interactive-hover disabled:bg-white/10 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-interactive px-6 py-3 font-medium text-white hover:bg-interactive-hover disabled:bg-surface/10 disabled:cursor-not-allowed"
                 >
                   Izračunaj PO-SD
                 </button>
@@ -582,10 +586,10 @@ export function POSDCalculatorClient() {
                   {result.warnings.map((warning, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4"
+                      className="flex items-start gap-3 rounded-xl border border-warning-border bg-warning-bg p-4"
                     >
-                      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
-                      <p className="text-sm text-amber-800">{warning}</p>
+                      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-warning-text" />
+                      <p className="text-sm text-warning-text">{warning}</p>
                     </div>
                   ))}
                 </div>
@@ -593,10 +597,10 @@ export function POSDCalculatorClient() {
 
               {/* Summary Cards */}
               <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="border-green-200 bg-green-50">
+                <Card className="border-success-border bg-success-bg">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-green-700">Ukupni primitci</p>
-                    <p className="text-2xl font-bold text-green-800">
+                    <p className="text-sm text-success-text">Ukupni primitci</p>
+                    <p className="text-2xl font-bold text-success-text">
                       {formatCurrency(result.totalIncome)}
                     </p>
                   </CardContent>
@@ -613,16 +617,16 @@ export function POSDCalculatorClient() {
                 </Card>
                 <Card className="border-purple-200 bg-purple-50">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-purple-700">Porezna osnovica</p>
-                    <p className="text-2xl font-bold text-purple-800">
+                    <p className="text-sm text-chart-2">Porezna osnovica</p>
+                    <p className="text-2xl font-bold text-chart-1">
                       {formatCurrency(result.taxBase)}
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="border-amber-200 bg-amber-50">
+                <Card className="border-warning-border bg-warning-bg">
                   <CardContent className="pt-6">
-                    <p className="text-sm text-amber-700">Porez + prirez</p>
-                    <p className="text-2xl font-bold text-amber-800">
+                    <p className="text-sm text-warning-text">Porez + prirez</p>
+                    <p className="text-2xl font-bold text-warning-text">
                       {formatCurrency(result.totalTax)}
                     </p>
                   </CardContent>
@@ -639,7 +643,7 @@ export function POSDCalculatorClient() {
                     {result.quarterlyBreakdown.map((q) => (
                       <div
                         key={q.quarter}
-                        className="rounded-lg border border-white/20 bg-white/5 p-4"
+                        className="rounded-lg border border-white/20 bg-surface/5 p-4"
                       >
                         <p className="mb-1 text-sm font-medium text-white/60">{q.quarter}</p>
                         <p className="text-xl font-bold text-white">{formatCurrency(q.income)}</p>
@@ -710,7 +714,7 @@ export function POSDCalculatorClient() {
                       <span className="font-bold text-white">
                         Ukupne obveze (porez + doprinosi)
                       </span>
-                      <span className="font-bold text-red-400">
+                      <span className="font-bold text-danger-text">
                         {formatCurrency(result.totalObligations)}
                       </span>
                     </div>
@@ -726,20 +730,20 @@ export function POSDCalculatorClient() {
 
               {/* VAT Warning */}
               {result.isNearVATThreshold && (
-                <Card className="mb-6 border-amber-200 bg-amber-50">
+                <Card className="mb-6 border-warning-border bg-warning-bg">
                   <CardContent className="flex items-start gap-3 pt-6">
-                    <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+                    <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-warning-text" />
                     <div>
-                      <p className="font-medium text-amber-800">
+                      <p className="font-medium text-warning-text">
                         Blizu PDV praga ({result.vatThresholdPercentage.toFixed(1)}% od{" "}
                         {vatThresholdLabel})
                       </p>
-                      <p className="mt-1 text-sm text-amber-700">
+                      <p className="mt-1 text-sm text-warning-text">
                         Pratite prihode pažljivo. Ako prijeđete prag, morate se registrirati za PDV.
                       </p>
                       <Link
                         href="/alati/pdv-kalkulator"
-                        className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-amber-800 underline"
+                        className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-warning-text underline"
                       >
                         Otvori PDV kalkulator
                       </Link>
@@ -759,7 +763,7 @@ export function POSDCalculatorClient() {
                 <CardContent>
                   <ol className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-primary">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-info-bg text-xs font-bold text-primary">
                         1
                       </span>
                       <div>
@@ -777,7 +781,7 @@ export function POSDCalculatorClient() {
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-primary">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-info-bg text-xs font-bold text-primary">
                         2
                       </span>
                       <div>
@@ -787,7 +791,7 @@ export function POSDCalculatorClient() {
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-primary">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-info-bg text-xs font-bold text-primary">
                         3
                       </span>
                       <div>
@@ -797,7 +801,7 @@ export function POSDCalculatorClient() {
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-primary">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-info-bg text-xs font-bold text-primary">
                         4
                       </span>
                       <div>
@@ -815,14 +819,14 @@ export function POSDCalculatorClient() {
               <div className="flex flex-wrap justify-between gap-4">
                 <button
                   onClick={handleReset}
-                  className="rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white hover:bg-white/10"
+                  className="rounded-lg border border-white/20 bg-surface/5 px-6 py-3 font-medium text-white hover:bg-surface/10"
                 >
                   Novi izračun
                 </button>
                 <div className="flex gap-3">
                   <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white hover:bg-white/10"
+                    className="flex items-center gap-2 rounded-lg border border-white/20 bg-surface/5 px-6 py-3 font-medium text-white hover:bg-surface/10"
                   >
                     <Download className="h-4 w-4" />
                     Isprintaj
@@ -831,7 +835,7 @@ export function POSDCalculatorClient() {
               </div>
 
               {/* Upsell */}
-              <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className="mt-10 rounded-2xl border border-white/10 bg-surface/5 p-6 backdrop-blur-sm">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-interactive-hover">
                     <Rocket className="h-6 w-6 text-white" />
@@ -852,7 +856,7 @@ export function POSDCalculatorClient() {
                       </Link>
                       <Link
                         href="/features"
-                        className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white hover:bg-white/15"
+                        className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-surface/10 px-6 py-2.5 text-sm font-medium text-white hover:bg-surface/15"
                       >
                         Saznaj više
                       </Link>

@@ -9,7 +9,7 @@ const batchReviewSchema = z.object({
   companyId: z.string(),
   reviews: z.array(
     z.object({
-      entityType: z.enum(["INVOICE", "EXPENSE"]),
+      entityType: z.enum(["EINVOICE", "EXPENSE", "DOCUMENT"]),
       entityId: z.string(),
       notes: z.string().optional(),
     })
@@ -51,10 +51,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!assignment) {
-      return NextResponse.json(
-        { error: "Access denied to this client" },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: "Access denied to this client" }, { status: 403 })
     }
 
     // Create reviews in a transaction
@@ -109,7 +106,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Batch review error:", error)
     return NextResponse.json(
-      { error: "Batch review failed", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Batch review failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }

@@ -45,11 +45,13 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
   return (
     <div>
       {/* COCKPIT HERO SECTION */}
+      {/* @design-override: Hero uses hardcoded dark gradient for consistent cockpit aesthetic */}
       <section className="relative min-h-[90vh] overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
         {/* Animated background effects */}
         <PlexusBackground className="opacity-40" />
 
         {/* Multiple glow orbs for cockpit effect */}
+        {/* @design-override: Decorative orbs use vibrant raw colors for visual impact */}
         <div className="pointer-events-none absolute inset-0">
           <motion.div
             className="absolute left-[10%] top-[20%] h-[500px] w-[500px] rounded-full bg-blue-500/20 blur-[120px]"
@@ -105,6 +107,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
             <Stagger className="space-y-8">
               {/* Tech credibility badge */}
               <StaggerItem>
+                {/* @design-override: Badge on dark hero uses cyan for visibility */}
                 <motion.div
                   className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 backdrop-blur-sm"
                   whileHover={{ scale: 1.02, borderColor: "rgba(34, 211, 238, 0.5)" }}
@@ -115,6 +118,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
               </StaggerItem>
 
               {/* Main headline - REBELLIOUS */}
+              {/* @design-override: Hero text uses white for dark background contrast */}
               <StaggerItem>
                 <h1 className="text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl">
                   <span className="block">Dok drugi kompliciraju,</span>
@@ -147,6 +151,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
               </StaggerItem>
 
               {/* CTAs */}
+              {/* @design-override: Hero CTAs use vibrant cyan/blue for dark background */}
               <StaggerItem>
                 <div className="flex flex-wrap gap-4">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -190,13 +195,13 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                     return (
                       <motion.div
                         key={item.text}
-                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
+                        className="flex items-center gap-2 rounded-lg border border-border bg-surface/5 px-4 py-2 text-sm text-secondary"
                         whileHover={{
                           borderColor: "rgba(255,255,255,0.25)",
                           backgroundColor: "rgba(255,255,255,0.1)",
                         }}
                       >
-                        <Icon className="h-4 w-4 text-cyan-400" />
+                        <Icon className="h-4 w-4 text-accent-light" />
                         {item.text}
                       </motion.div>
                     )
@@ -237,7 +242,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
         </div>
 
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-base to-transparent" />
       </section>
 
       {/* MINI ASSISTANT - Bridge between hero and features */}
@@ -253,13 +258,13 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-3">
                       <span className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-blue-600" />
+                        <FileText className="h-5 w-5 text-link" />
                         Računi i e-računi
                       </span>
-                      <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm text-[var(--muted)]">
+                  <CardContent className="text-sm text-muted">
                     Izdavanje, slanje i praćenje računa uz jasan status i audit trag.
                   </CardContent>
                 </Card>
@@ -272,13 +277,13 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-3">
                       <span className="flex items-center gap-2">
-                        <ScanText className="h-5 w-5 text-blue-600" />
+                        <ScanText className="h-5 w-5 text-link" />
                         Troškovi + skeniranje
                       </span>
-                      <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm text-[var(--muted)]">
+                  <CardContent className="text-sm text-muted">
                     Slikajte račun, izvucite podatke i potvrdite unos u par klikova.
                   </CardContent>
                 </Card>
@@ -291,13 +296,13 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-3">
                       <span className="flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-blue-600" />
+                        <Shield className="h-5 w-5 text-link" />
                         Sigurnost i kontrola
                       </span>
-                      <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm text-[var(--muted)]">
+                  <CardContent className="text-sm text-muted">
                     Podaci pripadaju klijentu: izvoz, audit log i jasna pravila obrade.
                   </CardContent>
                 </Card>
@@ -308,33 +313,33 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
       </Reveal>
 
       {/* Knowledge Hub - Wizard CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800">
+      <section className="relative overflow-hidden bg-gradient-to-br from-interactive to-blue-800">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_20%,rgba(96,165,250,0.35),transparent_55%),radial-gradient(700px_circle_at_80%_10%,rgba(99,102,241,0.35),transparent_52%)]" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 md:px-6">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
-            <Reveal className="space-y-6 text-white">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-sm font-medium">
+            <Reveal className="space-y-6 text-foreground">
+              <div className="inline-flex items-center gap-2 rounded-full bg-surface/20 px-4 py-1.5 text-sm font-medium">
                 <HelpCircle className="h-4 w-4" />
                 Centar znanja
               </div>
               <h2 className="text-3xl font-bold md:text-4xl text-balance">
                 Ne znate koji oblik poslovanja vam treba?
               </h2>
-              <p className="text-lg text-white/85">
+              <p className="text-lg text-foreground/85">
                 Paušalni obrt, obrt na dohodak, j.d.o.o., d.o.o.? Odgovorite na 4 jednostavna
                 pitanja i saznajte koja opcija je najbolja za vas.
               </p>
               <div className="mobile-stack">
                 <Link
                   href="/wizard"
-                  className="btn-press inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-blue-700 hover:bg-white/95"
+                  className="btn-press inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-surface px-6 py-3 text-sm font-semibold text-link hover:bg-surface/95"
                 >
                   Pokreni čarobnjak
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/baza-znanja"
-                  className="btn-press inline-flex min-h-[44px] items-center justify-center rounded-md border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/20"
+                  className="btn-press inline-flex min-h-[44px] items-center justify-center rounded-md border border-border bg-surface/10 px-6 py-3 text-sm font-semibold text-foreground hover:bg-surface/20"
                 >
                   Otvori bazu znanja
                 </Link>
@@ -372,13 +377,13 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                 return (
                   <StaggerItem key={item.href}>
                     <Link href={item.href} className="group block">
-                      <div className="rounded-xl bg-white/10 p-5 transition-all hover:bg-white/20 hover:-translate-y-0.5">
+                      <div className="rounded-xl bg-surface/10 p-5 transition-all hover:bg-surface/20 hover:-translate-y-0.5">
                         <div className="flex items-start justify-between gap-3">
-                          <Icon className="mb-3 h-8 w-8 text-white" />
-                          <ArrowRight className="h-4 w-4 text-white/70 transition-transform group-hover:translate-x-0.5" />
+                          <Icon className="mb-3 h-8 w-8 text-foreground" />
+                          <ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
                         </div>
-                        <h3 className="font-semibold text-white">{item.title}</h3>
-                        <p className="mt-1 text-sm text-white/70">{item.subtitle}</p>
+                        <h3 className="font-semibold text-foreground">{item.title}</h3>
+                        <p className="mt-1 text-sm text-muted">{item.subtitle}</p>
                       </div>
                     </Link>
                   </StaggerItem>
@@ -394,7 +399,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
         <section className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <div className="mb-10 text-center">
             <h2 className="text-display text-3xl font-semibold">Vodiči za poslovanje</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--muted)]">
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">
               Detaljni vodiči o svakom obliku poslovanja u Hrvatskoj — porezi, doprinosi,
               registracija i obveze.
             </p>
@@ -434,8 +439,8 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                       <CardTitle className="text-base">{card.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-xs text-[var(--muted)]">{card.description}</p>
-                      <p className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-blue-700 group-hover:underline">
+                      <p className="text-xs text-muted">{card.description}</p>
+                      <p className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-link group-hover:underline">
                         Saznaj više <ArrowRight className="h-3 w-3" />
                       </p>
                     </CardContent>
@@ -445,7 +450,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
             ))}
           </Stagger>
           <div className="mt-8 text-center">
-            <Link href="/vodic" className="text-sm font-semibold text-blue-700 hover:underline">
+            <Link href="/vodic" className="text-sm font-semibold text-link hover:underline">
               Pregledaj sve vodiče →
             </Link>
           </div>
@@ -453,11 +458,11 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
       </Reveal>
 
       {/* Free Tools Section */}
-      <section className="bg-[var(--surface)]">
+      <section className="bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <Reveal className="mb-10 text-center">
             <h2 className="text-display text-3xl font-semibold">Besplatni alati</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--muted)]">
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">
               Koristite naše besplatne alate za izračun poreza, generiranje uplatnica i praćenje
               rokova.
             </p>
@@ -498,14 +503,14 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between gap-3">
                           <span className="flex items-center gap-2">
-                            <Icon className="h-5 w-5 text-blue-600" />
+                            <Icon className="h-5 w-5 text-link" />
                             {tool.title}
                           </span>
-                          <ArrowRight className="h-4 w-4 text-[var(--muted)] transition-transform group-hover:translate-x-0.5" />
+                          <ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-[var(--muted)]">{tool.description}</p>
+                        <p className="text-sm text-muted">{tool.description}</p>
                       </CardContent>
                     </Card>
                   </Link>
@@ -515,7 +520,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
           </Stagger>
 
           <div className="mt-8 text-center">
-            <Link href="/alati" className="text-sm font-semibold text-blue-700 hover:underline">
+            <Link href="/alati" className="text-sm font-semibold text-link hover:underline">
               Svi alati →
             </Link>
           </div>
@@ -526,18 +531,19 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
       <LatestNewsSection posts={latestNews} />
 
       {/* Early Access Program Section */}
-      <section className="bg-gradient-to-b from-white to-blue-50">
+      <section className="bg-gradient-to-b from-base to-blue-50">
         <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <Reveal className="mb-10 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-700">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-info-bg px-4 py-1.5 text-sm font-medium text-link">
               <Sparkles className="h-4 w-4" />
               Program ranog pristupa
             </div>
             <h2 className="text-display text-3xl font-semibold">
               Pomozite nam izgraditi najbolji računovodstveni softver
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm text-[var(--muted)]">
-              FiskAI je u aktivnom razvoju. Pridružite nam se kao rani korisnik i oblikujte budućnost moderne računovodstvene platforme za Hrvatsku.
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">
+              FiskAI je u aktivnom razvoju. Pridružite nam se kao rani korisnik i oblikujte
+              budućnost moderne računovodstvene platforme za Hrvatsku.
             </p>
           </Reveal>
 
@@ -546,21 +552,21 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
               {
                 icon: CheckCircle2,
                 title: "Utjecaj na razvoj",
-                color: "bg-blue-100 text-blue-700",
+                color: "bg-info-bg text-link",
                 description:
                   "Vaš feedback direktno oblikuje prioritete razvoja. Predložite značajke koje vam trebaju.",
               },
               {
                 icon: Zap,
                 title: "Rani pristup novim značajkama",
-                color: "bg-green-100 text-green-700",
+                color: "bg-success-bg text-success-text",
                 description:
                   "Budite prvi koji testiraju nove module: e-fakturiranje, fiskalizacija 2.0, AI asistent i više.",
               },
               {
                 icon: Shield,
                 title: "Transparentnost i povjerenje",
-                color: "bg-purple-100 text-purple-700",
+                color: "bg-surface-2 text-foreground",
                 description:
                   "100% GDPR usklađeno, s potpunom kontrolom nad vašim podacima. Izvoz i migracija uvijek dostupni.",
               },
@@ -568,7 +574,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
               const Icon = item.icon
               return (
                 <StaggerItem key={item.title}>
-                  <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm transition-transform hover:-translate-y-0.5">
+                  <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm transition-transform hover:-translate-y-0.5">
                     <div className="mb-4 flex items-center gap-2">
                       <div
                         className={`h-10 w-10 rounded-full flex items-center justify-center ${item.color}`}
@@ -577,7 +583,7 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                       </div>
                     </div>
                     <h3 className="mb-2 font-semibold">{item.title}</h3>
-                    <p className="text-sm text-[var(--muted)]">{item.description}</p>
+                    <p className="text-sm text-muted">{item.description}</p>
                   </div>
                 </StaggerItem>
               )
@@ -588,24 +594,24 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
             <div className="mb-8">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all hover:shadow-xl hover:shadow-cyan-500/30"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-interactive px-8 py-3.5 text-base font-semibold text-foreground shadow-lg shadow-accent/25 transition-all hover:shadow-xl hover:shadow-accent/30"
               >
                 Pridružite se beta programu
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
 
-            <div className="inline-flex flex-wrap items-center justify-center gap-8 text-sm text-[var(--muted)]">
+            <div className="inline-flex flex-wrap items-center justify-center gap-8 text-sm text-muted">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-success-text" />
                 Besplatan pristup tijekom beta razdoblja
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-success-text" />
                 Bez obveze
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-success-text" />
                 Vaši podaci pod vašom kontrolom
               </div>
             </div>
@@ -614,21 +620,21 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
       </section>
 
       {/* Paušalni obrt section */}
-      <section className="bg-[var(--surface)]">
+      <section className="bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <Reveal className="space-y-4">
               <h2 className="text-display text-3xl font-semibold">
                 Za paušalni obrt: jednostavno i kompletno
               </h2>
-              <p className="text-sm text-[var(--muted)]">
+              <p className="text-sm text-muted">
                 Cilj je da najjednostavniji korisnici dobiju sve što im treba: izdavanje računa,
                 evidenciju troškova i &quot;paket za knjigovođu&quot; bez ručnog rada.
               </p>
               <div className="pt-2">
                 <Link
                   href="/for/pausalni-obrt"
-                  className="btn-press inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 min-h-[44px] md:min-h-0"
+                  className="btn-press inline-flex items-center justify-center rounded-md bg-interactive px-5 py-3 text-sm font-semibold text-foreground hover:bg-interactive-hover min-h-[44px] md:min-h-0"
                 >
                   Pogledaj landing za paušalni obrt <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -640,21 +646,21 @@ export function MarketingHomeClient({ latestNews }: MarketingHomeClientProps) {
                 <CardHeader>
                   <CardTitle className="text-lg">Što dobivate odmah</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm text-[var(--muted)]">
+                <CardContent className="space-y-2 text-sm text-muted">
                   <p className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-blue-600" /> Brzi onboarding s
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> Brzi onboarding s
                     checklistom
                   </p>
                   <p className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-blue-600" /> OCR + AI prijedlozi
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> OCR + AI prijedlozi
                     kategorija za troškove
                   </p>
                   <p className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-blue-600" /> Izvoz podataka
-                    (računi, troškovi, kontakti)
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> Izvoz podataka (računi,
+                    troškovi, kontakti)
                   </p>
                   <p className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-blue-600" /> Priprema za e-račune /
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-link" /> Priprema za e-račune /
                     fiskalizaciju 2.0
                   </p>
                 </CardContent>

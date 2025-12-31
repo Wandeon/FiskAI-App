@@ -83,14 +83,14 @@ export function QuickDecisionQuiz({
   const progress = ((currentQuestion + (showResult ? 1 : 0)) / questions.length) * 100
 
   return (
-    <div className="my-6 rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6 shadow-sm">
+    <div className="my-6 rounded-xl border border-accent-light/30 bg-gradient-to-br from-accent/10 to-interactive/10 p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-2">
         <Sparkles className="h-5 w-5 text-accent" />
         <h3 className="text-lg font-semibold text-white">{title}</h3>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-6 h-2 overflow-hidden rounded-full bg-white/10">
+      <div className="mb-6 h-2 overflow-hidden rounded-full bg-surface/10">
         <motion.div
           className="h-full bg-chart-7"
           initial={{ width: 0 }}
@@ -124,8 +124,8 @@ export function QuickDecisionQuiz({
                   className={cn(
                     "flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-all text-white",
                     answers[questions[currentQuestion].id] === option.value
-                      ? "border-cyan-400 bg-chart-7/20"
-                      : "border-white/20 bg-white/5 hover:border-cyan-400/50 hover:bg-chart-7/10"
+                      ? "border-accent-light bg-chart-7/20"
+                      : "border-white/20 bg-surface/5 hover:border-accent-light/50 hover:bg-chart-7/10"
                   )}
                 >
                   <span>{option.label}</span>
@@ -158,7 +158,7 @@ export function QuickDecisionQuiz({
                   {winner.link && (
                     <a
                       href={winner.link}
-                      className="mb-4 inline-block rounded-lg bg-chart-7 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-600"
+                      className="mb-4 inline-block rounded-lg bg-chart-7 px-4 py-2 text-sm font-medium text-white hover:bg-interactive"
                     >
                       Saznaj više o {winner.title}
                     </a>

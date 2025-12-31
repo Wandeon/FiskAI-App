@@ -82,7 +82,10 @@ describe("RBAC Permission System", () => {
 
         // All roles that can delete should also be able to update
         deleteRoles.forEach((role) => {
-          assert.ok(updateRoles.includes(role as any), `${resource}: ${role} can delete but cannot update`)
+          assert.ok(
+            updateRoles.includes(role as any),
+            `${resource}: ${role} can delete but cannot update`
+          )
         })
       })
     })
@@ -96,7 +99,10 @@ describe("RBAC Permission System", () => {
         // All roles should be able to read
         const allRoles: Role[] = ["OWNER", "ADMIN", "MEMBER", "ACCOUNTANT", "VIEWER"]
         allRoles.forEach((role) => {
-          assert.ok(readRoles.includes(role as any), `${resource}: ${role} should have read permission`)
+          assert.ok(
+            readRoles.includes(role as any),
+            `${resource}: ${role} should have read permission`
+          )
         })
       })
     })

@@ -93,7 +93,7 @@ export function MigrationPageClient() {
         <div className="mx-auto max-w-5xl px-4 py-16 md:px-6 md:py-24">
           <Stagger className="space-y-6 text-center">
             <StaggerItem>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-rose-300">
+              <div className="inline-flex items-center gap-2 rounded-full bg-surface/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-rose-300">
                 <Heart className="h-4 w-4" />
                 Razumijemo te
               </div>
@@ -128,7 +128,7 @@ export function MigrationPageClient() {
                 </motion.div>
                 <Link
                   href="#kako"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-surface/5 backdrop-blur-sm px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-surface/10"
                 >
                   Kako to funkcionira?
                 </Link>
@@ -149,7 +149,7 @@ export function MigrationPageClient() {
             {painPoints.map((point, i) => (
               <StaggerItem key={i}>
                 <motion.div
-                  className="rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm text-white/60"
+                  className="rounded-full border border-white/10 bg-surface/5 backdrop-blur-sm px-4 py-2 text-sm text-white/60"
                   whileHover={{
                     scale: 1.05,
                     borderColor: "rgba(244,63,94,0.5)",
@@ -175,7 +175,7 @@ export function MigrationPageClient() {
       <SectionBackground variant="subtle" id="kako">
         <div className="mx-auto max-w-5xl px-4 py-16 md:px-6">
           <Reveal className="mb-12 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-green-500/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-green-300">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-success-bg0/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-green-300">
               <Clock className="h-4 w-4" />5 minuta ukupno
             </div>
             <h2 className="text-3xl font-bold text-white md:text-4xl">Tri koraka. To je sve.</h2>
@@ -186,21 +186,21 @@ export function MigrationPageClient() {
               const Icon = step.icon
               return (
                 <StaggerItem key={step.step}>
-                  <Card className="relative h-full border-white/10 bg-white/5 backdrop-blur-sm">
+                  <Card className="relative h-full border-white/10 bg-surface/5 backdrop-blur-sm">
                     <div className="absolute -top-3 left-6">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-interactive text-sm font-bold text-white">
                         {step.step}
                       </span>
                     </div>
                     <CardHeader className="pt-8">
-                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-surface/10">
                         <Icon className="h-6 w-6 text-primary" />
                       </div>
                       <CardTitle className="text-lg text-white">{step.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="mb-3 text-sm text-white/60">{step.description}</p>
-                      <p className="text-xs font-medium text-green-400">⏱️ {step.time}</p>
+                      <p className="text-xs font-medium text-success-text">⏱️ {step.time}</p>
                     </CardContent>
                   </Card>
                 </StaggerItem>
@@ -229,7 +229,7 @@ export function MigrationPageClient() {
                 {supportedFormats.map((format) => (
                   <div
                     key={format.name}
-                    className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-3"
+                    className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-3"
                   >
                     <p className="font-medium text-white">{format.name}</p>
                     <p className="text-xs text-white/60">{format.description}</p>
@@ -253,7 +253,7 @@ export function MigrationPageClient() {
                   <button className="rounded-lg bg-interactive px-4 py-2 text-sm font-medium text-white">
                     Da, pregledaj
                   </button>
-                  <button className="rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
+                  <button className="rounded-lg border border-white/20 bg-surface/5 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
                     Uvezi odmah
                   </button>
                 </div>
@@ -285,7 +285,7 @@ export function MigrationPageClient() {
               const Icon = item.icon
               return (
                 <StaggerItem key={item.title}>
-                  <Card className="h-full border-white/10 bg-white/5 backdrop-blur-sm text-center">
+                  <Card className="h-full border-white/10 bg-surface/5 backdrop-blur-sm text-center">
                     <CardContent className="pt-6">
                       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-interactive/10">
                         <Icon className="h-6 w-6 text-primary" />
@@ -305,7 +305,7 @@ export function MigrationPageClient() {
       <SectionBackground variant="dark">
         <div className="mx-auto max-w-3xl px-4 py-16 md:px-6">
           <Reveal className="mb-10 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-500/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-amber-300">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-bg0/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-amber-300">
               <HelpCircle className="h-4 w-4" />
               Česta pitanja
             </div>
@@ -315,7 +315,7 @@ export function MigrationPageClient() {
           <Stagger className="space-y-4">
             {faqs.map((faq, i) => (
               <StaggerItem key={i}>
-                <details className="group rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
+                <details className="group rounded-xl border border-white/10 bg-surface/5 backdrop-blur-sm">
                   <summary className="flex cursor-pointer items-center justify-between p-4 font-medium text-white">
                     {faq.question}
                     <span className="ml-4 text-white/40 transition-transform group-open:rotate-45">
@@ -336,7 +336,7 @@ export function MigrationPageClient() {
       <SectionBackground variant="hero">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center md:px-6">
           <Reveal className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
+            <div className="inline-flex items-center gap-2 rounded-full bg-surface/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
               <MessageCircle className="h-4 w-4" />
               Ljudski support
             </div>
@@ -349,14 +349,14 @@ export function MigrationPageClient() {
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-foreground transition-colors hover:bg-white/90"
+                className="inline-flex items-center gap-2 rounded-xl bg-surface px-8 py-4 text-base font-semibold text-foreground transition-colors hover:bg-surface/90"
               >
                 <Zap className="h-5 w-5" />
                 Započni besplatno
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-surface/5 backdrop-blur-sm px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-surface/10"
               >
                 Razgovaraj s nama
               </Link>

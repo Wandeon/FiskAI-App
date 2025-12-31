@@ -19,7 +19,7 @@ export default async function NewRecurringExpensePage() {
   const vendors = await db.contact.findMany({
     where: {
       companyId: company.id,
-      isSupplier: true,
+      type: { in: ["SUPPLIER", "BOTH"] },
     },
     select: {
       id: true,

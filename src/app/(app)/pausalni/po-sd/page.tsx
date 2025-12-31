@@ -40,23 +40,23 @@ export default async function PoSDPage() {
       <Card
         className={`${
           isBeforeDeadline
-            ? "border-amber-500/50 bg-amber-500/10"
-            : "border-focus/50 bg-blue-500/10"
+            ? "border-warning/50 bg-warning-bg0/10"
+            : "border-focus/50 bg-interactive/10"
         }`}
       >
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
             <Calendar
               className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                isBeforeDeadline ? "text-amber-600" : "text-link"
+                isBeforeDeadline ? "text-warning-text" : "text-link"
               }`}
             />
             <div>
               <p
                 className={`font-semibold ${
                   isBeforeDeadline
-                    ? "text-amber-900 dark:text-amber-200"
-                    : "text-blue-900 dark:text-blue-200"
+                    ? "text-warning-text dark:text-warning"
+                    : "text-info-text dark:text-info"
                 }`}
               >
                 {isBeforeDeadline ? "Nadolazeći rok!" : "Važna informacija"}
@@ -64,8 +64,8 @@ export default async function PoSDPage() {
               <p
                 className={`text-sm mt-1 ${
                   isBeforeDeadline
-                    ? "text-amber-800 dark:text-amber-300"
-                    : "text-info-text dark:text-blue-300"
+                    ? "text-warning-text dark:text-warning"
+                    : "text-info-text dark:text-info"
                 }`}
               >
                 PO-SD obrazac za {currentYear - 1}. godinu mora biti podnesen do{" "}

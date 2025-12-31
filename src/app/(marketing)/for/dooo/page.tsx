@@ -49,7 +49,7 @@ export default function DooPage() {
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 px-6 py-3 text-sm font-semibold text-white hover:bg-surface/10"
             >
               Zatraži poslovni demo
             </Link>
@@ -64,7 +64,7 @@ export default function DooPage() {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <Calculator className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -77,7 +77,7 @@ export default function DooPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -90,7 +90,7 @@ export default function DooPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <BarChart className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -103,7 +103,7 @@ export default function DooPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <Users className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -123,7 +123,7 @@ export default function DooPage() {
             Sve što vaš d.o.o. treba
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <FileText className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -133,25 +133,25 @@ export default function DooPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Automatska numeracija po serijama</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>E-računi (XML) prema EN 16931</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Fiskalizacija 2.0 integracija</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Primanje e-računa od dobavljača</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -161,25 +161,25 @@ export default function DooPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>PDV obračun po stopama (25%, 13%, 5%, 0%)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>PDV prijava (obrazac PDV-O) izvoz</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Obračun PDV-a za EU transakcije</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Knjiženje PDV-a po kontima</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <BarChart className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -189,25 +189,25 @@ export default function DooPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Glavna knjiga (automatsko knjiženje)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Potporačuna (analitička evidencija)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Bilanca i izvještaji po MSFI</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Arhiviranje 11+ godina</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <TrendingUp className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -217,25 +217,25 @@ export default function DooPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>AI OCR za skeniranje računa</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Automatska kategorizacija troškova</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Povezivanje s bankovnim transakcijama</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Pregled po troškovnim centrima</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Users className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -245,25 +245,25 @@ export default function DooPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Uloge: vlasnik, računovođa, zaposlenik</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Odobrenje računa (workflow)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Kompletan audit trag</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>VPN/SSO integracije (opcionalno)</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Shield className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -273,19 +273,19 @@ export default function DooPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Multi-tenant izolacija podataka</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Izvoz svih podataka za reviziju</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Arhiviranje po zakonskim zahtjevima</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>SLA 99.5% dostupnosti</span>
                 </li>
               </ul>
@@ -299,7 +299,7 @@ export default function DooPage() {
             Cijene prilagođene d.o.o. potrebama
           </h2>
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+            <div className="rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
               <div className="mb-4">
                 <div className="inline-flex items-center gap-2 rounded-full bg-interactive/10 px-3 py-1 text-sm font-semibold text-primary">
                   D.O.O. Standard
@@ -314,23 +314,23 @@ export default function DooPage() {
               </div>
               <ul className="space-y-3 text-sm mb-8 text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Do 200 računa mjesečno</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>PDV obrada i JOPPD</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>E-računi (send/receive)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Do 3 korisnika</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Glavna knjiga i izvještaji</span>
                 </li>
               </ul>
@@ -357,27 +357,27 @@ export default function DooPage() {
               </div>
               <ul className="space-y-3 text-sm mb-8 text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Neograničeno računa</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Više tvrtki u grupi</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Do 10 korisnika</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Napredno knjigovodstvo</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Dedicated account manager</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>SLA 99.9% dostupnosti</span>
                 </li>
               </ul>
@@ -392,7 +392,7 @@ export default function DooPage() {
         </div>
 
         {/* Implementation process */}
-        <div className="mb-16 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+        <div className="mb-16 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
           <h2 className="text-2xl font-semibold mb-6 text-center text-white">
             Implementacija za d.o.o. tvrtke
           </h2>
@@ -431,7 +431,7 @@ export default function DooPage() {
         </div>
 
         {/* Integration partners */}
-        <div className="mb-12 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+        <div className="mb-12 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
           <h2 className="text-2xl font-semibold mb-6 text-white">Integracije i partneri</h2>
           <div className="grid gap-4 md:grid-cols-3 text-sm">
             <div>
@@ -467,7 +467,7 @@ export default function DooPage() {
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-8 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 px-8 py-3 text-sm font-semibold text-white hover:bg-surface/10"
             >
               Dogovori poslovni demo
             </Link>

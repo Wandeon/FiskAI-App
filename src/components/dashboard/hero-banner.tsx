@@ -31,7 +31,7 @@ export function HeroBanner({
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_60%)]" />
       <div className="relative z-10 flex flex-col gap-6 p-6 sm:p-8">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-wider text-white/80">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-surface/10 px-3 py-1 text-xs uppercase tracking-wider text-white/80">
             <Sparkles className="icon-sm" />
             FiskAI asistent
           </div>
@@ -45,7 +45,7 @@ export function HeroBanner({
         <div className="grid gap-4 sm:grid-cols-3">
           <Link
             href="/e-invoices/new"
-            className="surface-glass rounded-2xl border-white/20 p-4 transition hover:bg-white/20 text-foreground"
+            className="surface-glass rounded-2xl border-white/20 p-4 transition hover:bg-surface/20 text-foreground"
           >
             <p className="text-xs uppercase tracking-wide text-secondary">Sljedeći korak</p>
             <p className="text-lg font-semibold text-foreground">Kreirajte e-račun</p>
@@ -97,7 +97,7 @@ export function HeroBanner({
           <div className="flex flex-wrap gap-2">
             <Link
               href="/assistant"
-              className={cn(buttonBaseStyles, "bg-white text-brand-700 hover:bg-white/90")}
+              className={cn(buttonBaseStyles, "bg-surface text-brand-700 hover:bg-surface/90")}
             >
               <Sparkles className="icon-md mr-2" />
               Pitaj FiskAI asistenta
@@ -106,7 +106,7 @@ export function HeroBanner({
               href="mailto:?subject=Poziv%20na%20FiskAI&body=Pridru%C5%BEi%20se%20mojoj%20tvrtki%20na%20FiskAI%20platformi."
               className={cn(
                 buttonBaseStyles,
-                "border border-white/40 text-white hover:bg-white/10"
+                "border border-white/40 text-white hover:bg-surface/10"
               )}
             >
               <Users className="icon-md mr-2" />

@@ -114,10 +114,7 @@ export interface EnforcementFailure {
 /**
  * Infers criticality based on component ID and known critical lists.
  */
-function inferCriticality(
-  componentId: string,
-  type: ComponentType
-): ComponentCriticality {
+function inferCriticality(componentId: string, type: ComponentType): ComponentCriticality {
   // Check against known critical lists
   if (CRITICAL_ROUTE_GROUPS.includes(componentId)) return "CRITICAL"
   if (CRITICAL_JOBS.includes(componentId)) return "CRITICAL"
@@ -171,9 +168,7 @@ function verifyCodeRef(projectRoot: string, codeRef: string): boolean {
   try {
     const entries = readdirSync(fullPath)
     // Filter out hidden files and common non-code files
-    const codeFiles = entries.filter(
-      (e) => !e.startsWith(".") && e !== "node_modules"
-    )
+    const codeFiles = entries.filter((e) => !e.startsWith(".") && e !== "node_modules")
     return codeFiles.length > 0
   } catch {
     // If it's a file (not a directory), it exists and that's enough
@@ -343,9 +338,7 @@ export function computeDrift(
       const criticality = inferCriticality(obs.componentId, obs.type)
 
       // Check if this is an unknown integration
-      const isUnknownIntegration =
-        obs.type === "INTEGRATION" &&
-        obs.metadata?.isUnknown === true
+      const isUnknownIntegration = obs.type === "INTEGRATION" && obs.metadata?.isUnknown === true
 
       if (isUnknownIntegration) {
         // Unknown integrations get their own list with HIGH risk
@@ -670,9 +663,7 @@ export function formatDriftMarkdown(
   lines.push(
     `| Observed (Total) | ${driftResult.summary.observedTotal} | Components found by harvesters |`
   )
-  lines.push(
-    `| Declared (Total) | ${driftResult.summary.declaredTotal} | Components in registry |`
-  )
+  lines.push(`| Declared (Total) | ${driftResult.summary.declaredTotal} | Components in registry |`)
   lines.push(
     `| Observed Not Declared | ${driftResult.summary.observedNotDeclaredCount} | Shadow systems |`
   )
@@ -682,8 +673,12 @@ export function formatDriftMarkdown(
   lines.push(
     `| CodeRef Invalid | ${driftResult.summary.codeRefInvalidCount} | Declared paths that don't exist |`
   )
-  lines.push(`| Metadata Gaps | ${driftResult.summary.metadataGapCount} | Missing owner/docs/deps |`)
-  lines.push(`| Unknown Integrations | ${driftResult.summary.unknownIntegrationCount} | External services needing triage |`)
+  lines.push(
+    `| Metadata Gaps | ${driftResult.summary.metadataGapCount} | Missing owner/docs/deps |`
+  )
+  lines.push(
+    `| Unknown Integrations | ${driftResult.summary.unknownIntegrationCount} | External services needing triage |`
+  )
   lines.push(`| Critical Issues | ${driftResult.summary.criticalIssues} | Requires immediate fix |`)
   lines.push(`| High Issues | ${driftResult.summary.highIssues} | Should fix soon |`)
   lines.push("")
@@ -753,7 +748,9 @@ export function formatDriftMarkdown(
     lines.push("| Component ID | Observed At | Action Required |")
     lines.push("|--------------|-------------|-----------------|")
     for (const d of driftResult.unknownIntegrations) {
-      lines.push(`| ${d.componentId} | ${d.observedAt?.join(", ") || "-"} | Declare in governance.ts or add to registry |`)
+      lines.push(
+        `| ${d.componentId} | ${d.observedAt?.join(", ") || "-"} | Declare in governance.ts or add to registry |`
+      )
     }
     lines.push("")
   }
@@ -779,7 +776,9 @@ export function formatDriftMarkdown(
     lines.push("| Component ID | Type | Risk | Path | Reason |")
     lines.push("|--------------|------|------|------|--------|")
     for (const d of driftResult.codeRefInvalid) {
-      lines.push(`| ${d.componentId} | ${d.type} | ${d.risk} | ${d.declaredSource || "-"} | ${d.reason || ""} |`)
+      lines.push(
+        `| ${d.componentId} | ${d.type} | ${d.risk} | ${d.declaredSource || "-"} | ${d.reason || ""} |`
+      )
     }
     lines.push("")
   }

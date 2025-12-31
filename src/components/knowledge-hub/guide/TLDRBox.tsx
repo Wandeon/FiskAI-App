@@ -9,19 +9,19 @@ interface TLDRBoxProps {
 
 const variantStyles = {
   default: {
-    container: "border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-indigo-500/10",
-    icon: "bg-purple-500/20 text-purple-400",
+    container: "border-chart-2/20 bg-gradient-to-br from-chart-2/10 to-chart-1/10",
+    icon: "bg-chart-2/20 text-chart-2",
     title: "text-purple-300",
   },
   success: {
     container: "border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-green-500/10",
-    icon: "bg-chart-4/20 text-emerald-400",
-    title: "text-emerald-300",
+    icon: "bg-chart-4/20 text-success",
+    title: "text-success-text",
   },
   warning: {
-    container: "border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/10",
-    icon: "bg-warning/20 text-amber-400",
-    title: "text-amber-300",
+    container: "border-warning/20 bg-gradient-to-br from-amber-500/10 to-orange-500/10",
+    icon: "bg-warning/20 text-warning",
+    title: "text-warning-text",
   },
 }
 
@@ -57,7 +57,7 @@ export function TLDRBox({
 // Simpler inline version for use within content
 export function QuickAnswer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 rounded-lg border-l-4 border-purple-500 bg-purple-500/10 p-4">
+    <div className="my-4 rounded-lg border-l-4 border-chart-2 bg-chart-2/10 p-4">
       <p className="text-sm font-medium text-white">
         <span className="mr-2">⚡</span>
         {children}

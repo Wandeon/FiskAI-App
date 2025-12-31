@@ -55,14 +55,14 @@ export function EmptyState({ type, surface, className, variant = "light" }: Empt
     <div
       className={cn(
         "p-6 border rounded-lg border-dashed",
-        isDark ? "bg-slate-800/20 border-slate-700/50 backdrop-blur-sm" : "bg-background",
+        isDark ? "bg-surface-elevated/20 border-subtle/50 backdrop-blur-sm" : "bg-background",
         className
       )}
     >
-      <h3 className={cn("font-medium", isDark ? "text-slate-400" : "text-muted-foreground")}>
+      <h3 className={cn("font-medium", isDark ? "text-muted" : "text-muted-foreground")}>
         {copy.title}
       </h3>
-      <p className={cn("text-sm mt-1", isDark ? "text-slate-500" : "text-muted-foreground/70")}>
+      <p className={cn("text-sm mt-1", isDark ? "text-tertiary" : "text-muted-foreground/70")}>
         {copy.subtitle}
       </p>
     </div>

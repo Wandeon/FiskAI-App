@@ -24,7 +24,7 @@ export function PersonalizedSection() {
     <Card className="mb-8 border-focus/20 bg-interactive/10">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-interactive/20 text-blue-400">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-interactive/20 text-link">
             <Target className="h-5 w-5" />
           </span>
           <span className="text-white">Vaš personalizirani pregled</span>
@@ -33,19 +33,19 @@ export function PersonalizedSection() {
       <CardContent>
         <p className="text-sm text-white/70 mb-4">Na temelju vaših odgovora iz čarobnjaka:</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+          <div className="bg-surface/10 p-4 rounded-lg border border-white/10">
             <p className="text-sm text-white/70">Očekivani godišnji prihod</p>
             <p className="text-xl font-bold text-white">{formatEUR(annualRevenue)}</p>
           </div>
-          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+          <div className="bg-surface/10 p-4 rounded-lg border border-white/10">
             <p className="text-sm text-white/70">Kvartalni porez</p>
             <p className="text-xl font-bold text-white">{formatEUR(bracket.quarterlyTax)}</p>
           </div>
-          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+          <div className="bg-surface/10 p-4 rounded-lg border border-white/10">
             <p className="text-sm text-white/70">Mjesečni doprinosi</p>
             <p className="text-xl font-bold text-white">{formatEUR(costs.contributions)}</p>
           </div>
-          <div className="bg-white/10 p-4 rounded-lg border border-white/10">
+          <div className="bg-surface/10 p-4 rounded-lg border border-white/10">
             <p className="text-sm text-white/70">Fiskalizacija</p>
             <p className="text-xl font-bold text-white">
               {gotovina === "da" ? "Potrebna" : "Nije potrebna"}
@@ -53,8 +53,8 @@ export function PersonalizedSection() {
           </div>
         </div>
         {zaposlenje === "da" && (
-          <div className="mt-4 flex gap-3 rounded border border-yellow-500/20 bg-warning/10 p-3 text-sm text-white/90">
-            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-warning/20 text-yellow-400">
+          <div className="mt-4 flex gap-3 rounded border border-warning/20 bg-warning/10 p-3 text-sm text-white/90">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-warning/20 text-warning-text">
               <Lightbulb className="h-4 w-4" />
             </span>
             <p className="m-0">

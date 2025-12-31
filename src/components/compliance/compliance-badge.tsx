@@ -47,7 +47,7 @@ export function ComplianceBadge({ variant = "footer", showDetails = false }: Com
       >
         <CheckCircle className="h-5 w-5 text-success-text" aria-hidden="true" />
         <div>
-          <p className="text-sm font-medium text-green-900">Fiskalizacija 2.0 Certificirano</p>
+          <p className="text-sm font-medium text-success-text">Fiskalizacija 2.0 Certificirano</p>
           <p className="text-xs text-success-text">Usklađeno s Poreznom upravom</p>
         </div>
       </div>

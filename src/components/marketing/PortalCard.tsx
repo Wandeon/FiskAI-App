@@ -81,8 +81,8 @@ export function PortalCard({
       >
         <motion.div
           className={cn(
-            "relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition-colors",
-            "hover:border-accent-border hover:bg-white/10",
+            "relative overflow-hidden rounded-xl border border-white/10 bg-surface/5 p-4 backdrop-blur-sm transition-colors",
+            "hover:border-accent-border hover:bg-surface/10",
             featured && "border-accent-border bg-accent-light"
           )}
           style={{
@@ -131,7 +131,7 @@ export function PortalCard({
 
           <div className="relative z-10 flex items-start gap-3">
             {icon && (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-accent-icon">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface/10 text-accent-icon">
                 {icon}
               </span>
             )}
@@ -140,7 +140,7 @@ export function PortalCard({
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-white truncate">{title}</span>
                 {badge && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-400">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg0/20 px-2 py-0.5 text-[10px] font-semibold text-danger-text">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
                     {badge}
                   </span>
@@ -174,7 +174,7 @@ export function PortalLink({ href, children, onClick, className }: PortalLinkPro
       onClick={onClick}
       className={cn(
         "group flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 transition-all",
-        "hover:bg-white/5 hover:text-white",
+        "hover:bg-surface/5 hover:text-white",
         className
       )}
     >

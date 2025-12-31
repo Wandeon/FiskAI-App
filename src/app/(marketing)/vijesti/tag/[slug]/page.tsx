@@ -55,12 +55,7 @@ async function getAllTags() {
       tags: newsPosts.tags,
     })
     .from(newsPosts)
-    .where(
-      and(
-        eq(newsPosts.status, "published"),
-        lte(newsPosts.publishedAt, new Date())
-      )
-    )
+    .where(and(eq(newsPosts.status, "published"), lte(newsPosts.publishedAt, new Date())))
 
   // Extract and count unique tags
   const tagCounts = new Map<string, number>()
@@ -110,10 +105,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function TagPage({ params }: PageProps) {
   const { slug } = await params
-  const [posts, allTags] = await Promise.all([
-    getPostsByTag(slug),
-    getAllTags(),
-  ])
+  const [posts, allTags] = await Promise.all([getPostsByTag(slug), getAllTags()])
 
   if (posts.length === 0) {
     notFound()
@@ -164,7 +156,7 @@ export default async function TagPage({ params }: PageProps) {
 
       {/* Related Tags */}
       {allTags.length > 0 && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-xl border border-white/10 bg-surface/5 p-6">
           <h2 className="mb-4 text-xl font-semibold text-white">Popularne oznake</h2>
           <div className="flex flex-wrap gap-2">
             {allTags.map(({ tag, count }) => (
@@ -174,7 +166,7 @@ export default async function TagPage({ params }: PageProps) {
                 className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                   tag === slug
                     ? "bg-interactive/30 text-blue-200"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                    : "bg-surface/10 text-white/70 hover:bg-surface/20"
                 }`}
               >
                 #{tag} ({count})

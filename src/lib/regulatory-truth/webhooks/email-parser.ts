@@ -231,8 +231,7 @@ function extractCategory(subject: string, body: string): string | undefined {
   if (text.includes("e-račun") || text.includes("e-invoice")) return "e-racun"
 
   // Employment
-  if (text.includes("plaća") || text.includes("salary") || text.includes("payroll"))
-    return "place"
+  if (text.includes("plaća") || text.includes("salary") || text.includes("payroll")) return "place"
 
   return undefined
 }

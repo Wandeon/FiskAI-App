@@ -20,8 +20,7 @@ const averageSurtaxLabel = formatPercentage(TAX_RATES.income.averageSurtax)
 
 export const metadata: Metadata = {
   title: `Kalkulator paušalnog poreza ${pausalYear} | FiskAI`,
-  description:
-    `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
+  description: `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
   alternates: {
     canonical: `${BASE_URL}/alati/kalkulator-poreza`,
   },
@@ -45,8 +44,7 @@ const faq = [
 export default function TaxCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "Kalkulator Poreza",
-    description:
-      `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
+    description: `Izračunajte kvartalni i godišnji paušalni porez na temelju očekivanog prihoda. Svi porezni razredi za ${pausalYear}.`,
     url: "https://fiskai.hr/alati/kalkulator-poreza",
   })
 
@@ -81,7 +79,7 @@ export default function TaxCalculatorPage() {
           <TaxCalculator embedded={false} />
         </div>
 
-        <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+        <div className="mt-10 rounded-2xl border border-white/10 bg-surface/5 p-6 backdrop-blur-sm">
           <h2 className="text-lg font-semibold">Povezani sadržaj</h2>
           <ul className="mt-4 space-y-2 text-sm">
             <li>

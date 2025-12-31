@@ -37,7 +37,7 @@ export function TaxCalculator({ embedded = true }: Props) {
           step={100}
           value={revenue}
           onChange={(e) => setRevenue(Number(e.target.value))}
-          className="w-full accent-cyan-400"
+          className="w-full accent-interactive"
         />
         <div className="flex items-center gap-3">
           <Input
@@ -50,7 +50,7 @@ export function TaxCalculator({ embedded = true }: Props) {
             }}
             min={0}
             max={THRESHOLDS.pausalni.value}
-            className="font-mono bg-slate-800 border-white/20 text-white placeholder:text-white/40"
+            className="font-mono bg-surface-elevated border-white/20 text-white placeholder:text-white/40"
           />
           <span className="text-xs text-white/50 whitespace-nowrap">
             max {formatEUR(THRESHOLDS.pausalni.value)}
@@ -61,7 +61,7 @@ export function TaxCalculator({ embedded = true }: Props) {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+      <div className="rounded-2xl border border-white/10 bg-surface/5 p-4 space-y-3">
         <h4 className="font-semibold text-white">Godišnji troškovi (procjena)</h4>
         <div className="grid gap-2 text-sm">
           <div className="flex justify-between gap-3">
@@ -97,11 +97,11 @@ export function TaxCalculator({ embedded = true }: Props) {
       </div>
 
       {revenue >= THRESHOLDS.pausalni.value * 0.9 && (
-        <div className="rounded-xl border border-amber-500/30 bg-warning/10 p-3 text-sm text-amber-300">
+        <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-text">
           Blizu ste limita {formatEUR(THRESHOLDS.pausalni.value)}. Ako očekujete rast, otvorite{" "}
           <Link
             href="/usporedba/preko-praga"
-            className="font-semibold underline underline-offset-4 text-amber-200"
+            className="font-semibold underline underline-offset-4 text-warning"
           >
             što kada prijeđem prag
           </Link>

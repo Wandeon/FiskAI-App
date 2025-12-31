@@ -391,10 +391,10 @@ describe("Component Integration Tests", () => {
 
     it("validates Step 2 (Competence) data", () => {
       const step2Data = {
-        competence: "BEGINNER",
+        competence: "beginner",
       }
 
-      const validCompetenceLevels = ["BEGINNER", "INTERMEDIATE", "ADVANCED"]
+      const validCompetenceLevels = ["beginner", "average", "pro"]
       const isValid = validCompetenceLevels.includes(step2Data.competence)
 
       expect(isValid).toBe(true)

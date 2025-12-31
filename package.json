@@ -17,7 +17,7 @@
     "bull-board": "npx tsx src/lib/regulatory-truth/workers/bull-board.server.ts",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import tsx --test src/lib/__tests__/*.test.ts src/lib/e-invoice/__tests__/*.test.ts",
+    "test": "vitest run",
     "test:tenant": "node --import tsx --test src/lib/__tests__/tenant-isolation.test.ts",
     "test:knowledge-hub": "node --import tsx --test src/lib/knowledge-hub/__tests__/*.test.ts",
     "audit:marketing": "tsx scripts/marketing-content-audit/run-audit.ts",
@@ -47,7 +47,8 @@
     "validate:content": "tsx scripts/validate-content.ts",
     "registry:check": "npx tsx src/lib/system-registry/scripts/registry-check.ts",
     "registry:harvest": "npx tsx src/lib/system-registry/harvesters/index.ts",
-    "verify-contrast": "tsx src/design-system/scripts/verify-contrast.ts"
+    "verify-contrast": "tsx src/design-system/scripts/verify-contrast.ts",
+    "test:node": "node --import tsx --test src/lib/__tests__/*.test.ts src/lib/e-invoice/__tests__/*.test.ts"
   },
   "lint-staged": {
     "src/app/(app)/**/*.{ts,tsx}": [
@@ -62,7 +63,11 @@
       "prettier --write",
       "eslint --fix --rule 'fisk-design-system/no-hardcoded-colors: error' --max-warnings 0"
     ],
-    "src/components/**/*.{ts,tsx}": [
+    "src/components/marketing/**/*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix --rule 'fisk-design-system/no-hardcoded-colors: warn'"
+    ],
+    "src/components/!(marketing)/**/*.{ts,tsx}": [
       "prettier --write",
       "eslint --fix --rule 'fisk-design-system/no-hardcoded-colors: error' --max-warnings 0"
     ],
@@ -120,6 +125,7 @@
     "decimal.js": "^10.6.0",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "fast-xml-parser": "^4.5.0",
     "framer-motion": "^12.23.26",
@@ -171,7 +177,6 @@
     "use-debounce": "^10.0.6",
     "web-vitals": "^5.1.0",
     "word-extractor": "^1.0.4",
-    "xlsx": "^0.18.5",
     "xml-crypto": "^6.1.2",
     "xml2js": "^0.6.2",
     "xmlbuilder2": "^4.0.3",

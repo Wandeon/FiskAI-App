@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client"
+import type { TransactionClient } from "@/lib/db"
 import { normalizeAddress, normalizeName, normalizeOptionalName } from "@/lib/people/normalization"
 
 export type OrganizationSeed = {
@@ -38,7 +38,7 @@ function normalizeOrganizationSeed(input: OrganizationSeed) {
 }
 
 async function findOrganizationByTaxId(
-  tx: Prisma.TransactionClient,
+  tx: TransactionClient,
   companyId: string,
   type: "OIB" | "VAT",
   value: string
@@ -61,7 +61,7 @@ async function findOrganizationByTaxId(
 }
 
 async function upsertAddress(
-  tx: Prisma.TransactionClient,
+  tx: TransactionClient,
   companyId: string,
   input: ReturnType<typeof normalizeOrganizationSeed>
 ) {
@@ -101,7 +101,7 @@ async function upsertAddress(
 }
 
 async function upsertTaxIdentity(
-  tx: Prisma.TransactionClient,
+  tx: TransactionClient,
   companyId: string,
   organizationId: string,
   type: "OIB" | "VAT",
@@ -131,7 +131,7 @@ async function upsertTaxIdentity(
 }
 
 export async function upsertOrganizationFromContact(
-  tx: Prisma.TransactionClient,
+  tx: TransactionClient,
   companyId: string,
   input: OrganizationSeed,
   existingOrganizationId?: string | null

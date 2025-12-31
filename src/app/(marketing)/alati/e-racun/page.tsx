@@ -123,7 +123,11 @@ function validateParty(party: Party, role: "seller" | "buyer"): ValidationError[
   if (!party.oib) {
     errors.push({ field: `${prefix}.oib`, message: `${role} OIB is required`, code: "REQUIRED" })
   } else if (!validateOIB(party.oib)) {
-    errors.push({ field: `${prefix}.oib`, message: `Invalid OIB: ${party.oib}`, code: "INVALID_OIB" })
+    errors.push({
+      field: `${prefix}.oib`,
+      message: `Invalid OIB: ${party.oib}`,
+      code: "INVALID_OIB",
+    })
   }
 
   return errors
@@ -143,7 +147,11 @@ function validateInvoice(invoice: EInvoice): ValidationResult {
   errors.push(...validateParty(invoice.buyer, "buyer"))
 
   if (!invoice.lines?.length) {
-    errors.push({ field: "lines", message: "At least one invoice line is required", code: "REQUIRED" })
+    errors.push({
+      field: "lines",
+      message: "At least one invoice line is required",
+      code: "REQUIRED",
+    })
   }
 
   return { valid: errors.length === 0, errors }
@@ -225,7 +233,7 @@ ${ind}    <cbc:PriceAmount currencyID="${currencyCode}">${line.unitPrice.toFixed
 ${ind}  </cac:Price>
 ${ind}</cac:InvoiceLine>`
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
@@ -240,7 +248,9 @@ ${generateParty(invoice.seller, "supplier", indent)}
 ${generateParty(invoice.buyer, "customer", indent)}
 ${indent}<cac:TaxTotal>
 ${indent}  <cbc:TaxAmount currencyID="${currencyCode}">${invoice.taxTotal.taxAmount.toFixed(2)}</cbc:TaxAmount>
-${invoice.taxTotal.taxSubtotals.map(s => `${indent}  <cac:TaxSubtotal>
+${invoice.taxTotal.taxSubtotals
+  .map(
+    (s) => `${indent}  <cac:TaxSubtotal>
 ${indent}    <cbc:TaxableAmount currencyID="${currencyCode}">${s.taxableAmount.toFixed(2)}</cbc:TaxableAmount>
 ${indent}    <cbc:TaxAmount currencyID="${currencyCode}">${s.taxAmount.toFixed(2)}</cbc:TaxAmount>
 ${indent}    <cac:TaxCategory>
@@ -250,7 +260,9 @@ ${indent}      <cac:TaxScheme>
 ${indent}        <cbc:ID>VAT</cbc:ID>
 ${indent}      </cac:TaxScheme>
 ${indent}    </cac:TaxCategory>
-${indent}  </cac:TaxSubtotal>`).join("\n")}
+${indent}  </cac:TaxSubtotal>`
+  )
+  .join("\n")}
 ${indent}</cac:TaxTotal>
 ${indent}<cac:LegalMonetaryTotal>
 ${indent}  <cbc:LineExtensionAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
@@ -258,7 +270,7 @@ ${indent}  <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${invoice.legalM
 ${indent}  <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>
 ${indent}  <cbc:PayableAmount currencyID="${currencyCode}">${invoice.legalMonetaryTotal.payableAmount.toFixed(2)}</cbc:PayableAmount>
 ${indent}</cac:LegalMonetaryTotal>
-${invoice.lines.map(l => generateLine(l, indent)).join("\n")}
+${invoice.lines.map((l) => generateLine(l, indent)).join("\n")}
 </Invoice>`
 
   return xml
@@ -303,7 +315,7 @@ const initialLine: InvoiceLine = {
 }
 
 const textInputClassName =
-  "w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+  "w-full rounded border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
 
 export default function ERacunGeneratorPage() {
   const webAppSchema = generateWebApplicationSchema({
@@ -505,14 +517,14 @@ export default function ERacunGeneratorPage() {
           </div>
 
           {/* 2026 Warning Banner */}
-          <div className="mb-6 rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-4">
+          <div className="mb-6 rounded-lg border border-danger-border bg-gradient-to-r from-red-50 to-orange-50 p-4">
             <div className="flex items-start gap-3">
-              <Rocket className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+              <Rocket className="mt-0.5 h-5 w-5 flex-shrink-0 text-danger-text" />
               <div className="text-sm">
                 <p className="mb-1 font-bold text-red-900">
                   Od 1. siječnja 2026. e-računi su OBVEZNI za B2B transakcije
                 </p>
-                <p className="text-red-800">
+                <p className="text-danger-text">
                   PDF računi više neće biti prihvaćeni. Ovaj alat generira pravilan UBL 2.1 XML
                   format koji će zahtijevati FINA.{" "}
                   <a href="/register" className="font-medium underline">
@@ -527,7 +539,7 @@ export default function ERacunGeneratorPage() {
             {/* Left Column - Form */}
             <div className="space-y-4">
               {/* Basic Info */}
-              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+              <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                 <h2 className="mb-4 font-semibold text-white">Osnovni podaci</h2>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div>
@@ -539,7 +551,7 @@ export default function ERacunGeneratorPage() {
                       value={invoiceNumber}
                       onChange={(e) => setInvoiceNumber(e.target.value)}
                       placeholder="2025-001"
-                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+                      className="w-full rounded border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
                     />
                   </div>
                   <div>
@@ -550,7 +562,7 @@ export default function ERacunGeneratorPage() {
                       type="date"
                       value={issueDate}
                       onChange={(e) => setIssueDate(e.target.value)}
-                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
+                      className="w-full rounded border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white"
                     />
                   </div>
                   <div>
@@ -561,14 +573,14 @@ export default function ERacunGeneratorPage() {
                       type="date"
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
-                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white"
+                      className="w-full rounded border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Seller */}
-              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+              <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                 <h2 className="mb-4 font-semibold text-white">Prodavatelj (vi)</h2>
                 <div className="grid gap-3">
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -597,11 +609,11 @@ export default function ERacunGeneratorPage() {
                         maxLength={11}
                         className={cn(
                           textInputClassName,
-                          oibErrors.seller && "border-red-500"
+                          oibErrors.seller && "border-danger-border"
                         )}
                       />
                       {oibErrors.seller && (
-                        <p className="mt-1 text-xs text-red-600">{oibErrors.seller}</p>
+                        <p className="mt-1 text-xs text-danger-text">{oibErrors.seller}</p>
                       )}
                     </div>
                   </div>
@@ -612,7 +624,7 @@ export default function ERacunGeneratorPage() {
                       value={sellerAddress}
                       onChange={(e) => setSellerAddress(e.target.value)}
                       placeholder="Ulica i kućni broj"
-                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+                      className="w-full rounded border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
                     />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -643,7 +655,7 @@ export default function ERacunGeneratorPage() {
               </div>
 
               {/* Buyer */}
-              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+              <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                 <h2 className="mb-4 font-semibold text-white">Kupac</h2>
                 <div className="grid gap-3">
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -672,11 +684,11 @@ export default function ERacunGeneratorPage() {
                         maxLength={11}
                         className={cn(
                           textInputClassName,
-                          oibErrors.buyer && "border-red-500"
+                          oibErrors.buyer && "border-danger-border"
                         )}
                       />
                       {oibErrors.buyer && (
-                        <p className="mt-1 text-xs text-red-600">{oibErrors.buyer}</p>
+                        <p className="mt-1 text-xs text-danger-text">{oibErrors.buyer}</p>
                       )}
                     </div>
                   </div>
@@ -687,7 +699,7 @@ export default function ERacunGeneratorPage() {
                       value={buyerAddress}
                       onChange={(e) => setBuyerAddress(e.target.value)}
                       placeholder="Ulica i kućni broj"
-                      className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+                      className="w-full rounded border border-white/20 bg-surface/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
                     />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -718,7 +730,7 @@ export default function ERacunGeneratorPage() {
               </div>
 
               {/* Lines */}
-              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+              <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="font-semibold text-white">Stavke računa</h2>
                   <button
@@ -733,7 +745,7 @@ export default function ERacunGeneratorPage() {
                   {lines.map((line, index) => (
                     <div
                       key={index}
-                      className="grid gap-2 rounded border border-white/20 bg-white/5 p-3"
+                      className="grid gap-2 rounded border border-white/20 bg-surface/5 p-3"
                     >
                       <div className="flex items-start justify-between">
                         <input
@@ -741,12 +753,12 @@ export default function ERacunGeneratorPage() {
                           value={line.description}
                           onChange={(e) => updateLine(index, "description", e.target.value)}
                           placeholder="Opis usluge/proizvoda"
-                          className="flex-1 rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-white placeholder:text-white/40"
+                          className="flex-1 rounded border border-white/20 bg-surface/5 px-2 py-1.5 text-sm text-white placeholder:text-white/40"
                         />
                         {lines.length > 1 && (
                           <button
                             onClick={() => removeLine(index)}
-                            className="ml-2 p-1 text-red-500 hover:text-red-700"
+                            className="ml-2 p-1 text-danger hover:text-danger-text"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -760,7 +772,7 @@ export default function ERacunGeneratorPage() {
                             value={line.quantity}
                             onChange={(e) => updateLine(index, "quantity", e.target.value)}
                             min={1}
-                            className="w-full rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-white"
+                            className="w-full rounded border border-white/20 bg-surface/5 px-2 py-1.5 text-sm text-white"
                           />
                         </div>
                         <div>
@@ -771,12 +783,12 @@ export default function ERacunGeneratorPage() {
                             onChange={(e) => updateLine(index, "unitPrice", e.target.value)}
                             min={0}
                             step={0.01}
-                            className="w-full rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-white"
+                            className="w-full rounded border border-white/20 bg-surface/5 px-2 py-1.5 text-sm text-white"
                           />
                         </div>
                         <div>
                           <label className="mb-1 block text-xs text-white/60">Ukupno</label>
-                          <div className="rounded bg-white/10 px-2 py-1.5 text-sm font-medium text-white">
+                          <div className="rounded bg-surface/10 px-2 py-1.5 text-sm font-medium text-white">
                             {(line.quantity * line.unitPrice).toFixed(2)} EUR
                           </div>
                         </div>
@@ -816,32 +828,32 @@ export default function ERacunGeneratorPage() {
             <div className="space-y-4">
               {/* Validation */}
               {validationResult && (
-                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                   <h3 className="mb-3 font-semibold text-white">Validacija</h3>
                   {validationResult.valid ? (
-                    <div className="flex items-start gap-3 rounded border border-green-200 bg-green-50 p-3">
-                      <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+                    <div className="flex items-start gap-3 rounded border border-success-border bg-success-bg p-3">
+                      <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-success-text" />
                       <div>
                         <p className="font-semibold text-green-900">Račun je valjan!</p>
-                        <p className="text-sm text-green-700">Spreman za FINA sustav e-računa</p>
+                        <p className="text-sm text-success-text">Spreman za FINA sustav e-računa</p>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="flex items-start gap-3 rounded border border-red-200 bg-red-50 p-3">
-                        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+                      <div className="flex items-start gap-3 rounded border border-danger-border bg-danger-bg p-3">
+                        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-danger-text" />
                         <div>
                           <p className="font-semibold text-red-900">Pronađene greške</p>
-                          <p className="text-sm text-red-700">
+                          <p className="text-sm text-danger-text">
                             {validationResult.errors.length} greška/e
                           </p>
                         </div>
                       </div>
                       <div className="max-h-40 space-y-1 overflow-y-auto">
                         {validationResult.errors.map((e, i) => (
-                          <div key={i} className="rounded bg-red-50 p-2 text-xs">
+                          <div key={i} className="rounded bg-danger-bg p-2 text-xs">
                             <span className="font-medium text-red-900">{e.field}:</span>{" "}
-                            <span className="text-red-700">{e.message}</span>
+                            <span className="text-danger-text">{e.message}</span>
                           </div>
                         ))}
                       </div>
@@ -852,13 +864,13 @@ export default function ERacunGeneratorPage() {
 
               {/* XML Output */}
               {xmlOutput && (
-                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm">
+                <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm">
                   <div className="flex items-center justify-between border-b border-white/10 p-4">
                     <h3 className="font-semibold text-white">UBL 2.1 XML</h3>
                     <div className="flex gap-2">
                       <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10"
+                        className="flex items-center gap-1 rounded border border-white/20 bg-surface/5 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-surface/10"
                       >
                         <Copy className="h-3 w-3" />
                         {copySuccess ? "Kopirano!" : "Kopiraj"}
@@ -873,7 +885,7 @@ export default function ERacunGeneratorPage() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <pre className="max-h-96 overflow-auto rounded bg-gray-900 p-4 text-xs text-green-400">
+                    <pre className="max-h-96 overflow-auto rounded bg-base p-4 text-xs text-success-text">
                       <code>{xmlOutput}</code>
                     </pre>
                   </div>
@@ -881,7 +893,7 @@ export default function ERacunGeneratorPage() {
               )}
 
               {/* Upsell */}
-              <div className="rounded-lg border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+              <div className="rounded-lg border border-white/10 bg-surface/5 p-5 backdrop-blur-sm">
                 <div className="flex items-start gap-3">
                   <Rocket className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                   <div>
@@ -902,7 +914,7 @@ export default function ERacunGeneratorPage() {
 
               {/* Info */}
               {!xmlOutput && (
-                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+                <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                   <div className="mb-3 flex items-start gap-3">
                     <Info className="h-5 w-5 flex-shrink-0 text-white/60" />
                     <h3 className="font-semibold text-white">Zašto UBL 2.1 XML?</h3>
@@ -918,7 +930,7 @@ export default function ERacunGeneratorPage() {
                       <li>Validacija prema EN 16931 normi</li>
                       <li>Kompatibilnost s EU Peppol mrežom</li>
                     </ul>
-                    <p className="mt-3 rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+                    <p className="mt-3 rounded bg-warning-bg p-2 text-xs text-warning-text">
                       <strong>Napomena:</strong> Ovaj alat radi 100% u pregledniku. Vaši podaci se
                       NE šalju na server.
                     </p>

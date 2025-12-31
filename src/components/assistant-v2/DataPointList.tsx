@@ -22,7 +22,7 @@ export function DataPointList({ dataPoints, className, theme = "light" }: DataPo
       <h4
         className={cn(
           "text-xs font-medium uppercase mb-2",
-          isDark ? "text-slate-500" : "text-muted-foreground"
+          isDark ? "text-tertiary" : "text-muted-foreground"
         )}
       >
         Data used
@@ -40,7 +40,7 @@ export function DataPointList({ dataPoints, className, theme = "light" }: DataPo
               <p className={cn("font-medium", isDark ? "text-white" : "text-foreground")}>
                 {point.label}
               </p>
-              <p className={cn("text-xs", isDark ? "text-slate-400" : "text-muted-foreground")}>
+              <p className={cn("text-xs", isDark ? "text-muted" : "text-muted-foreground")}>
                 {point.source}
                 {point.asOfDate && <span> • {new Date(point.asOfDate).toLocaleDateString()}</span>}
               </p>
@@ -48,7 +48,7 @@ export function DataPointList({ dataPoints, className, theme = "light" }: DataPo
             <p
               className={cn(
                 "font-medium text-right shrink-0",
-                isDark ? "text-cyan-400" : "text-foreground"
+                isDark ? "text-accent-light" : "text-foreground"
               )}
             >
               {point.value}

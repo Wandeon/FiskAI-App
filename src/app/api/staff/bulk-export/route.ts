@@ -79,10 +79,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (assignments.length !== clientIds.length) {
-      return NextResponse.json(
-        { error: "Access denied to one or more clients" },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: "Access denied to one or more clients" }, { status: 403 })
     }
 
     // Log bulk export access for audit trail (GDPR compliance)
@@ -231,11 +228,7 @@ export async function GET(request: NextRequest) {
         userAgent,
       })
 
-      const exportData = await fetchAccountantExportData(
-        assignment.company.id,
-        fromDate,
-        toDate
-      )
+      const exportData = await fetchAccountantExportData(assignment.company.id, fromDate, toDate)
 
       const clientFolder = `${assignment.company.name.replace(/[^a-zA-Z0-9-]/g, "_")}_${assignment.company.oib}`
 
@@ -277,7 +270,7 @@ export async function GET(request: NextRequest) {
     // Generate ZIP file
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" })
 
-    return new NextResponse(zipBuffer, {
+    return new NextResponse(new Uint8Array(zipBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
@@ -287,7 +280,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Bulk export error:", error)
     return NextResponse.json(
-      { error: "Bulk export failed", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Bulk export failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     )
   }
@@ -345,9 +341,7 @@ function generateAggregateSummary(
   lines.push("")
 
   lines.push("PREGLED PO KLIJENTIMA")
-  lines.push(
-    "Naziv;OIB;Prihodi (EUR);PDV prihodi;Rashodi (EUR);PDV rashodi;Neto dobit/gubitak"
-  )
+  lines.push("Naziv;OIB;Prihodi (EUR);PDV prihodi;Rashodi (EUR);PDV rashodi;Neto dobit/gubitak")
 
   for (const client of data.clients) {
     lines.push(

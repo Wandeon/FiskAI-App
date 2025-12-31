@@ -22,8 +22,8 @@ npm run lint
 You'll see errors like:
 
 ```
-error  Avoid hardcoded color "text-slate-800". Use semantic tokens instead: text-foreground
-error  Avoid hardcoded color "bg-blue-600". Use semantic tokens instead: bg-interactive
+error  Avoid hardcoded color "text-foreground". Use semantic tokens instead: text-foreground
+error  Avoid hardcoded color "bg-interactive". Use semantic tokens instead: bg-interactive
 ```
 
 ### Step 2: Replace With Semantic Tokens
@@ -36,7 +36,7 @@ Always verify your changes in both light and dark mode:
 
 ```tsx
 // Toggle dark mode in DevTools
-document.documentElement.classList.toggle('dark');
+document.documentElement.classList.toggle("dark")
 ```
 
 ### Step 4: Commit
@@ -47,28 +47,28 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ### Text Colors
 
-| Hardcoded Color | Semantic Token | Usage |
-|----------------|----------------|-------|
-| `text-slate-900` | `text-foreground` | Headings, primary text |
-| `text-slate-800` | `text-foreground` | Headings, primary text |
-| `text-slate-700` | `text-foreground` | Headings, primary text |
-| `text-slate-600` | `text-secondary` | Body text, labels |
-| `text-slate-500` | `text-tertiary` | Captions, metadata |
-| `text-slate-400` | `text-muted` | Disabled text, placeholders |
-| `text-slate-300` | `text-muted` | Disabled text (dark bg) |
-| `text-gray-*` | Use `slate` equivalents | Same as slate |
-| `text-white` | `text-inverse` or keep `text-white` | Text on dark backgrounds |
-| `text-blue-600` | `text-link` | Interactive text, links |
-| `text-blue-700` | `text-link` | Links |
-| `text-blue-500` | `text-link` | Links |
+| Hardcoded Color   | Semantic Token                      | Usage                       |
+| ----------------- | ----------------------------------- | --------------------------- |
+| `text-foreground` | `text-foreground`                   | Headings, primary text      |
+| `text-foreground` | `text-foreground`                   | Headings, primary text      |
+| `text-foreground` | `text-foreground`                   | Headings, primary text      |
+| `text-secondary`  | `text-secondary`                    | Body text, labels           |
+| `text-tertiary`   | `text-tertiary`                     | Captions, metadata          |
+| `text-muted`      | `text-muted`                        | Disabled text, placeholders |
+| `text-secondary`  | `text-muted`                        | Disabled text (dark bg)     |
+| `text-gray-*`     | Use `slate` equivalents             | Same as slate               |
+| `text-white`      | `text-inverse` or keep `text-white` | Text on dark backgrounds    |
+| `text-link`       | `text-link`                         | Interactive text, links     |
+| `text-link`       | `text-link`                         | Links                       |
+| `text-blue-500`   | `text-link`                         | Links                       |
 
 **Example migration:**
 
 ```tsx
 // Before
-<h1 className="text-slate-900">Welcome</h1>
-<p className="text-slate-600">Description</p>
-<span className="text-slate-400">Metadata</span>
+<h1 className="text-foreground">Welcome</h1>
+<p className="text-secondary">Description</p>
+<span className="text-muted">Metadata</span>
 
 // After
 <h1 className="text-foreground">Welcome</h1>
@@ -78,28 +78,28 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ### Background Colors
 
-| Hardcoded Color | Semantic Token | Usage |
-|----------------|----------------|-------|
-| `bg-slate-25` | `bg-base` | Page background |
-| `bg-slate-50` | `bg-surface-1` | Subtle backgrounds |
-| `bg-slate-100` | `bg-surface-2` | More elevated |
-| `bg-slate-200` | `bg-surface-2` | More elevated |
-| `bg-white` | `bg-surface` | Cards, panels |
-| `bg-gray-*` | Use `slate` equivalents | Same as slate |
-| `bg-blue-600` | `bg-interactive` | Primary buttons |
-| `bg-blue-700` | `bg-interactive-hover` | Primary button hover |
-| `bg-blue-500` | `bg-interactive` | Primary buttons |
-| `bg-blue-50` | `bg-info-bg` | Info alerts |
-| `bg-emerald-50` | `bg-success-bg` | Success alerts |
-| `bg-amber-50` | `bg-warning-bg` | Warning alerts |
-| `bg-red-50` | `bg-danger-bg` | Error alerts |
+| Hardcoded Color  | Semantic Token          | Usage                |
+| ---------------- | ----------------------- | -------------------- |
+| `bg-slate-25`    | `bg-base`               | Page background      |
+| `bg-surface-1`   | `bg-surface-1`          | Subtle backgrounds   |
+| `bg-surface-2`   | `bg-surface-2`          | More elevated        |
+| `bg-slate-200`   | `bg-surface-2`          | More elevated        |
+| `bg-surface`     | `bg-surface`            | Cards, panels        |
+| `bg-gray-*`      | Use `slate` equivalents | Same as slate        |
+| `bg-interactive` | `bg-interactive`        | Primary buttons      |
+| `bg-blue-700`    | `bg-interactive-hover`  | Primary button hover |
+| `bg-interactive` | `bg-interactive`        | Primary buttons      |
+| `bg-info-bg`     | `bg-info-bg`            | Info alerts          |
+| `bg-emerald-50`  | `bg-success-bg`         | Success alerts       |
+| `bg-amber-50`    | `bg-warning-bg`         | Warning alerts       |
+| `bg-danger-bg`   | `bg-danger-bg`          | Error alerts         |
 
 **Example migration:**
 
 ```tsx
 // Before
-<div className="bg-white border rounded-lg">
-  <button className="bg-blue-600 hover:bg-blue-700">Click</button>
+<div className="bg-surface border rounded-lg">
+  <button className="bg-interactive hover:bg-interactive-hover">Click</button>
 </div>
 
 // After
@@ -110,24 +110,24 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ### Border Colors
 
-| Hardcoded Color | Semantic Token | Usage |
-|----------------|----------------|-------|
-| `border-slate-200` | `border-default` | Standard borders |
-| `border-slate-300` | `border-default` | Standard borders |
-| `border-slate-100` | `border-subtle` | Dividers, subtle lines |
-| `border-slate-400` | `border-strong` | Emphasized borders |
-| `border-gray-*` | Use `slate` equivalents | Same as slate |
-| `border-blue-500` | `border-focus` | Focus rings |
-| `border-blue-600` | `border-focus` | Focus rings |
-| `border-emerald-200` | `border-success-border` | Success outlines |
-| `border-amber-200` | `border-warning-border` | Warning outlines |
-| `border-red-200` | `border-danger-border` | Error outlines |
+| Hardcoded Color        | Semantic Token          | Usage                  |
+| ---------------------- | ----------------------- | ---------------------- |
+| `border-default`       | `border-default`        | Standard borders       |
+| `border-default`       | `border-default`        | Standard borders       |
+| `border-slate-100`     | `border-subtle`         | Dividers, subtle lines |
+| `border-slate-400`     | `border-strong`         | Emphasized borders     |
+| `border-gray-*`        | Use `slate` equivalents | Same as slate          |
+| `border-focus`         | `border-focus`          | Focus rings            |
+| `border-focus`         | `border-focus`          | Focus rings            |
+| `border-emerald-200`   | `border-success-border` | Success outlines       |
+| `border-amber-200`     | `border-warning-border` | Warning outlines       |
+| `border-danger-border` | `border-danger-border`  | Error outlines         |
 
 **Example migration:**
 
 ```tsx
 // Before
-<input className="border border-slate-300 focus:border-blue-500" />
+<input className="border border-default focus:border-focus" />
 
 // After
 <input className="border border-default focus:border-focus" />
@@ -137,14 +137,14 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 #### Success
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-emerald-50` | `bg-success-bg` |
-| `bg-emerald-100` | `bg-success-bg` |
-| `text-emerald-700` | `text-success-text` |
-| `text-emerald-600` | `text-success-text` |
-| `border-emerald-200` | `border-success-border` |
-| `text-emerald-600` (icons) | `text-success-icon` |
+| Hardcoded Color            | Semantic Token          |
+| -------------------------- | ----------------------- |
+| `bg-emerald-50`            | `bg-success-bg`         |
+| `bg-emerald-100`           | `bg-success-bg`         |
+| `text-emerald-700`         | `text-success-text`     |
+| `text-emerald-600`         | `text-success-text`     |
+| `border-emerald-200`       | `border-success-border` |
+| `text-emerald-600` (icons) | `text-success-icon`     |
 
 **Example:**
 
@@ -162,36 +162,36 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 #### Warning
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-amber-50` | `bg-warning-bg` |
-| `bg-amber-100` | `bg-warning-bg` |
-| `text-amber-700` | `text-warning-text` |
-| `text-amber-600` | `text-warning-text` |
-| `border-amber-200` | `border-warning-border` |
-| `text-amber-600` (icons) | `text-warning-icon` |
+| Hardcoded Color          | Semantic Token          |
+| ------------------------ | ----------------------- |
+| `bg-amber-50`            | `bg-warning-bg`         |
+| `bg-amber-100`           | `bg-warning-bg`         |
+| `text-amber-700`         | `text-warning-text`     |
+| `text-amber-600`         | `text-warning-text`     |
+| `border-amber-200`       | `border-warning-border` |
+| `text-amber-600` (icons) | `text-warning-icon`     |
 
 #### Danger/Error
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-red-50` | `bg-danger-bg` |
-| `bg-red-100` | `bg-danger-bg` |
-| `text-red-700` | `text-danger-text` |
-| `text-red-600` | `text-danger-text` |
-| `border-red-200` | `border-danger-border` |
-| `text-red-600` (icons) | `text-danger-icon` |
+| Hardcoded Color            | Semantic Token         |
+| -------------------------- | ---------------------- |
+| `bg-danger-bg`             | `bg-danger-bg`         |
+| `bg-danger-bg`             | `bg-danger-bg`         |
+| `text-danger-text`         | `text-danger-text`     |
+| `text-danger-text`         | `text-danger-text`     |
+| `border-danger-border`     | `border-danger-border` |
+| `text-danger-text` (icons) | `text-danger-icon`     |
 
 #### Info
 
-| Hardcoded Color | Semantic Token |
-|----------------|----------------|
-| `bg-blue-50` | `bg-info-bg` |
-| `bg-blue-100` | `bg-info-bg` |
-| `text-blue-700` | `text-info-text` |
-| `text-blue-600` | `text-info-text` |
-| `border-blue-200` | `border-info-border` |
-| `text-blue-600` (icons) | `text-info-icon` |
+| Hardcoded Color     | Semantic Token       |
+| ------------------- | -------------------- |
+| `bg-info-bg`        | `bg-info-bg`         |
+| `bg-info-bg`        | `bg-info-bg`         |
+| `text-link`         | `text-info-text`     |
+| `text-link`         | `text-info-text`     |
+| `border-blue-200`   | `border-info-border` |
+| `text-link` (icons) | `text-info-icon`     |
 
 ### Interactive Elements
 
@@ -199,7 +199,7 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ```tsx
 // Before - Primary
-<button className="bg-blue-600 hover:bg-blue-700 text-white">
+<button className="bg-interactive hover:bg-interactive-hover text-white">
   Primary
 </button>
 
@@ -209,7 +209,7 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 </button>
 
 // Before - Secondary
-<button className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700">
+<button className="bg-surface hover:bg-surface-1 border border-default text-foreground">
   Secondary
 </button>
 
@@ -219,7 +219,7 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 </button>
 
 // Before - Ghost
-<button className="hover:bg-slate-100 text-slate-700">
+<button className="hover:bg-surface-2 text-foreground">
   Ghost
 </button>
 
@@ -233,7 +233,7 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ```tsx
 // Before
-<a href="#" className="text-blue-600 hover:text-blue-700 hover:underline">
+<a href="#" className="text-link hover:text-link hover:underline">
   Learn more
 </a>
 
@@ -248,7 +248,7 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 ```tsx
 // Before
 <input
-  className="bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500"
+  className="bg-surface border border-default text-foreground placeholder:text-muted focus:border-focus focus:ring-focus"
   placeholder="Enter text..."
 />
 
@@ -265,10 +265,10 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ```tsx
 // Before
-<div className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md">
+<div className="bg-surface border border-default rounded-lg shadow-sm hover:shadow-md">
   <div className="p-6">
-    <h3 className="text-slate-900 font-semibold">Card Title</h3>
-    <p className="text-slate-600 mt-2">Card description</p>
+    <h3 className="text-foreground font-semibold">Card Title</h3>
+    <p className="text-secondary mt-2">Card description</p>
   </div>
 </div>
 
@@ -311,7 +311,7 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ```tsx
 // Before
-<span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+<span className="inline-flex items-center rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-medium text-info-text">
   New
 </span>
 
@@ -325,15 +325,15 @@ Once all ESLint errors are resolved and both modes look correct, commit your cha
 
 ```tsx
 // Before
-<div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm">
-  <div className="bg-white rounded-lg shadow-xl p-6">
-    <h2 className="text-slate-900 text-lg font-semibold">Dialog Title</h2>
-    <p className="text-slate-600 mt-2">Dialog content</p>
+<div className="fixed inset-0 bg-surface/50 backdrop-blur-sm">
+  <div className="bg-surface rounded-lg shadow-xl p-6">
+    <h2 className="text-foreground text-lg font-semibold">Dialog Title</h2>
+    <p className="text-secondary mt-2">Dialog content</p>
     <div className="mt-4 flex gap-2">
-      <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      <button className="bg-interactive hover:bg-interactive-hover text-white px-4 py-2 rounded">
         Confirm
       </button>
-      <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded">
+      <button className="bg-surface-2 hover:bg-slate-200 text-foreground px-4 py-2 rounded">
         Cancel
       </button>
     </div>
@@ -373,7 +373,7 @@ If you need dark-mode-specific overrides:
 
 ```tsx
 // Before
-<div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+<div className="bg-surface dark:bg-surface text-foreground dark:text-white">
   Content
 </div>
 
@@ -394,7 +394,7 @@ Tailwind opacity modifiers work with semantic tokens:
 
 ```tsx
 // Before
-<div className="bg-blue-600/20">Content</div>
+<div className="bg-interactive/20">Content</div>
 
 // After
 <div className="bg-interactive/20">Content</div>
@@ -435,6 +435,7 @@ npm run migrate-colors
 ```
 
 This script:
+
 1. Backs up your files
 2. Replaces common hardcoded colors with semantic tokens
 3. Reports any patterns it couldn't migrate
@@ -502,6 +503,7 @@ npm run lint 2>&1 | grep "no-hardcoded-colors" | cut -d':' -f1 | sort -u
 ```
 
 Current status (as of 2025-12-29):
+
 - **Total files with hardcoded colors:** 249
 - **Files migrated:** 0
 - **Remaining:** 249

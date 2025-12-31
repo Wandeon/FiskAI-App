@@ -67,28 +67,27 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "modal-title" : undefined}
-        aria-describedby={description ? "modal-description" : undefined}
         className={cn(
-          "relative w-full rounded-card bg-[var(--surface-0)] shadow-elevated animate-scale-in",
+          "relative w-full rounded-lg bg-surface shadow-lg animate-scale-in",
           sizes[size],
           className
         )}
       >
         {/* Header */}
         {(title || showClose) && (
-          <div className="flex items-start justify-between border-b border-[var(--border-default)] px-6 py-4">
+          <div className="flex items-start justify-between border-b border-border px-6 py-4">
             {title && (
               <div>
-                <h2 id="modal-title" className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 id="modal-title" className="text-lg font-semibold text-[var(--foreground)]">
                   {title}
                 </h2>
-                {description && <p id="modal-description" className="mt-1 text-sm text-[var(--text-disabled)]">{description}</p>}
+                {description && <p className="mt-1 text-sm text-[var(--muted)]">{description}</p>}
               </div>
             )}
             {showClose && (
               <button
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-[var(--text-disabled)] hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2"
+                className="rounded-lg p-1.5 text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] transition-colors"
                 aria-label="Zatvori"
               >
                 <X className="h-5 w-5" />
@@ -114,7 +113,7 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
     <div
       className={cn(
-        "flex justify-end gap-3 border-t border-[var(--border-default)] px-6 py-4 -mx-6 -mb-4 mt-4 bg-[var(--surface-1)] rounded-b-card",
+        "flex justify-end gap-3 border-t border-[var(--border)] px-6 py-4 -mx-6 -mb-4 mt-4 bg-[var(--surface-secondary)] rounded-b-card",
         className
       )}
     >

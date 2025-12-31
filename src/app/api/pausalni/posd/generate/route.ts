@@ -56,10 +56,7 @@ export const POST = withApiLogging(async (request: NextRequest) => {
     }
 
     if (!["pdf", "xml", "both"].includes(format)) {
-      return NextResponse.json(
-        { error: "format must be one of: pdf, xml, both" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "format must be one of: pdf, xml, both" }, { status: 400 })
     }
 
     // Generate form data
@@ -108,7 +105,7 @@ export const POST = withApiLogging(async (request: NextRequest) => {
 
     // Return based on format
     if (format === "pdf") {
-      return new NextResponse(pdfBuffer, {
+      return new NextResponse(pdfBuffer ? new Uint8Array(pdfBuffer) : null, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",

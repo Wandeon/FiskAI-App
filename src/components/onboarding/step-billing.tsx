@@ -99,7 +99,9 @@ export function StepBilling() {
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
           <Sparkles className="h-6 w-6 text-brand-600" />
         </div>
-        <h2 className="text-2xl font-bold text-[var(--foreground)]">Počnite s besplatnim probnim razdobljem</h2>
+        <h2 className="text-2xl font-bold text-[var(--foreground)]">
+          Počnite s besplatnim probnim razdobljem
+        </h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Isprobajte FiskAI besplatno 14 dana. Bez obveze, kreditna kartica nije potrebna.
         </p>
@@ -114,10 +116,11 @@ export function StepBilling() {
           <div className="flex-1">
             <p className="font-semibold text-brand-900">14-dnevno probno razdoblje</p>
             <p className="text-sm text-brand-700">
-              Istječe {trialEndDate.toLocaleDateString("hr-HR", {
+              Istječe{" "}
+              {trialEndDate.toLocaleDateString("hr-HR", {
                 day: "numeric",
                 month: "long",
-                year: "numeric"
+                year: "numeric",
               })}
             </p>
           </div>
@@ -134,7 +137,7 @@ export function StepBilling() {
             <div
               key={plan.id}
               className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
-                (selectedPlan === plan.id || (defaultPlan === plan.id && !selectedPlan))
+                selectedPlan === plan.id || (defaultPlan === plan.id && !selectedPlan)
                   ? "border-brand-500 bg-brand-50"
                   : "border-[var(--border)] bg-[var(--surface)] hover:border-brand-300"
               }`}
@@ -144,12 +147,17 @@ export function StepBilling() {
                 <div className="flex-1">
                   <h4 className="font-semibold text-[var(--foreground)]">{plan.name}</h4>
                   <div className="mt-1 flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-[var(--foreground)]">{plan.priceEur}</span>
+                    <span className="text-2xl font-bold text-[var(--foreground)]">
+                      {plan.priceEur}
+                    </span>
                     <span className="text-[var(--muted)]">EUR/mjesec</span>
                   </div>
                   <ul className="mt-3 space-y-1.5">
                     {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+                      <li
+                        key={idx}
+                        className="flex items-center gap-2 text-sm text-[var(--foreground)]"
+                      >
                         <Check className="h-4 w-4 text-brand-600" />
                         {feature}
                       </li>
@@ -158,7 +166,7 @@ export function StepBilling() {
                 </div>
                 <div
                   className={`h-5 w-5 rounded-full border-2 transition-colors ${
-                    (selectedPlan === plan.id || (defaultPlan === plan.id && !selectedPlan))
+                    selectedPlan === plan.id || (defaultPlan === plan.id && !selectedPlan)
                       ? "border-brand-500 bg-brand-500"
                       : "border-default"
                   }`}
@@ -175,7 +183,9 @@ export function StepBilling() {
 
       {/* What happens after trial */}
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] p-4">
-        <h4 className="mb-2 text-sm font-medium text-[var(--foreground)]">Što se događa nakon probnog razdoblja?</h4>
+        <h4 className="mb-2 text-sm font-medium text-[var(--foreground)]">
+          Što se događa nakon probnog razdoblja?
+        </h4>
         <ul className="space-y-2 text-sm text-[var(--foreground)]">
           <li className="flex items-start gap-2">
             <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--surface)] border border-[var(--border)] text-xs font-medium">
@@ -200,11 +210,7 @@ export function StepBilling() {
 
       {/* Action buttons */}
       <div className="flex flex-col gap-3">
-        <Button
-          onClick={handleContinueWithTrial}
-          className="w-full"
-          size="lg"
-        >
+        <Button onClick={handleContinueWithTrial} className="w-full" size="lg">
           Započni besplatno probno razdoblje
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
@@ -216,11 +222,7 @@ export function StepBilling() {
           >
             Natrag
           </Button>
-          <Button
-            variant="ghost"
-            onClick={handleSkipForNow}
-            className="flex-1"
-          >
+          <Button variant="ghost" onClick={handleSkipForNow} className="flex-1">
             Preskoči za sada
           </Button>
         </div>

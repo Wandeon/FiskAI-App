@@ -74,9 +74,7 @@ export function ContactFormEmail({
               <Text style={detailValue}>{businessTypeLabels[businessType] || businessType}</Text>
 
               <Text style={detailLabel}>Broj računa mjesečno:</Text>
-              <Text style={detailValue}>
-                {invoiceVolumeLabels[invoiceVolume] || invoiceVolume}
-              </Text>
+              <Text style={detailValue}>{invoiceVolumeLabels[invoiceVolume] || invoiceVolume}</Text>
 
               {message && (
                 <>
@@ -93,9 +91,7 @@ export function ContactFormEmail({
               </Link>
             </Section>
 
-            <Text style={footerNote}>
-              Preporučeno vrijeme odgovora: unutar 24h radnim danima
-            </Text>
+            <Text style={footerNote}>Preporučeno vrijeme odgovora: unutar 24h radnim danima</Text>
           </Section>
 
           {/* Footer */}

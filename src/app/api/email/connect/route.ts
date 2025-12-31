@@ -36,10 +36,7 @@ export async function POST(request: Request) {
     const stateSecret = process.env.STATE_SECRET
     if (!stateSecret) {
       console.error("[email/connect] STATE_SECRET not configured")
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
     // State contains provider, company info, and timestamp for callback
@@ -54,9 +51,7 @@ export async function POST(request: Request) {
       .update(JSON.stringify(statePayload))
       .digest("hex")
 
-    const state = Buffer.from(
-      JSON.stringify({ ...statePayload, signature })
-    ).toString("base64url")
+    const state = Buffer.from(JSON.stringify({ ...statePayload, signature })).toString("base64url")
 
     const authUrl = provider.getAuthUrl(redirectUri, state)
 

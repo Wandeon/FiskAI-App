@@ -65,13 +65,15 @@ describe("AnswerCard", () => {
 
   it("renders Why? button when why data exists", () => {
     render(<AnswerCard answer={mockAnswer} />)
-    expect(screen.getByRole("button", { name: /why/i })).toBeInTheDocument()
+    // Croatian aria-label: "Saznajte zašto"
+    expect(screen.getByRole("button", { name: /saznajte zašto/i })).toBeInTheDocument()
   })
 
   it("does not render Why? button when no why data", () => {
     const answerWithoutWhy = { ...mockAnswer, why: undefined }
     render(<AnswerCard answer={answerWithoutWhy} />)
-    expect(screen.queryByRole("button", { name: /why/i })).not.toBeInTheDocument()
+    // Croatian aria-label: "Saznajte zašto"
+    expect(screen.queryByRole("button", { name: /saznajte zašto/i })).not.toBeInTheDocument()
   })
 
   it("does not render key details when empty", () => {

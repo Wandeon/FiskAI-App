@@ -55,9 +55,7 @@ export interface EnqueueResult {
  *   ruleId: rule.id,
  * })
  */
-export async function enqueueArticleJob(
-  params: EnqueueArticleJobParams
-): Promise<EnqueueResult> {
+export async function enqueueArticleJob(params: EnqueueArticleJobParams): Promise<EnqueueResult> {
   try {
     const job = await articleQueue.add(
       "article.generate",
@@ -81,7 +79,10 @@ export async function enqueueArticleJob(
     )
 
     console.log(
-      "[article-queue] Enqueued article job: " + job.id + " for " + (params.topic || params.sourceUrls[0])
+      "[article-queue] Enqueued article job: " +
+        job.id +
+        " for " +
+        (params.topic || params.sourceUrls[0])
     )
 
     return {
@@ -151,7 +152,7 @@ function simpleHash(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash // Convert to 32bit integer
   }
   return Math.abs(hash).toString(36).substring(0, 8)

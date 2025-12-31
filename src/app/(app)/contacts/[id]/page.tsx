@@ -154,7 +154,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 <span
                   className={cn(
                     "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                    isCustomer ? "bg-emerald-100 text-emerald-700" : "bg-purple-100 text-purple-700"
+                    isCustomer ? "bg-success-bg text-success-text" : "bg-chart-2/10 text-chart-2"
                   )}
                 >
                   {isCustomer ? "Kupac" : "Dobavljac"}
@@ -217,8 +217,8 @@ export default async function ContactOverviewPage({ params }: PageProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-                <Euro className="h-5 w-5 text-emerald-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success-bg">
+                <Euro className="h-5 w-5 text-success-text" />
               </div>
               <div>
                 <p className="text-sm text-secondary">
@@ -238,13 +238,13 @@ export default async function ContactOverviewPage({ params }: PageProps) {
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  outstandingBalance > 0 ? "bg-amber-100" : "bg-surface-1"
+                  outstandingBalance > 0 ? "bg-warning-bg" : "bg-surface-1"
                 )}
               >
                 <Receipt
                   className={cn(
                     "h-5 w-5",
-                    outstandingBalance > 0 ? "text-amber-600" : "text-muted"
+                    outstandingBalance > 0 ? "text-warning-text" : "text-muted"
                   )}
                 />
               </div>
@@ -253,7 +253,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 <p
                   className={cn(
                     "text-2xl font-semibold",
-                    outstandingBalance > 0 && "text-amber-600"
+                    outstandingBalance > 0 && "text-warning-text"
                   )}
                 >
                   {formatCurrency(outstandingBalance)}
@@ -270,11 +270,11 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",
                   paymentBehavior === "excellent"
-                    ? "bg-emerald-100"
+                    ? "bg-success-bg"
                     : paymentBehavior === "good"
                       ? "bg-info-bg"
                       : paymentBehavior === "fair"
-                        ? "bg-amber-100"
+                        ? "bg-warning-bg"
                         : "bg-danger-bg"
                 )}
               >
@@ -282,11 +282,11 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                   className={cn(
                     "h-5 w-5",
                     paymentBehavior === "excellent"
-                      ? "text-emerald-600"
+                      ? "text-success-text"
                       : paymentBehavior === "good"
                         ? "text-link"
                         : paymentBehavior === "fair"
-                          ? "text-amber-600"
+                          ? "text-warning-text"
                           : "text-danger-text"
                   )}
                 />
@@ -335,12 +335,12 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                   className={cn(
                     "h-full rounded-full transition-all",
                     onTimePercentage >= 80
-                      ? "bg-emerald-500"
+                      ? "bg-success-bg0"
                       : onTimePercentage >= 60
-                        ? "bg-blue-500"
+                        ? "bg-interactive"
                         : onTimePercentage >= 40
-                          ? "bg-amber-500"
-                          : "bg-red-500"
+                          ? "bg-warning-bg0"
+                          : "bg-danger-bg0"
                   )}
                   style={{ width: `${onTimePercentage}%` }}
                 />
@@ -349,8 +349,8 @@ export default async function ContactOverviewPage({ params }: PageProps) {
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="text-center p-3 rounded-lg bg-emerald-50">
-                <p className="text-2xl font-semibold text-emerald-600">{onTimePayments}</p>
+              <div className="text-center p-3 rounded-lg bg-success-bg">
+                <p className="text-2xl font-semibold text-success-text">{onTimePayments}</p>
                 <p className="text-xs text-secondary">Na vrijeme</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-danger-bg">
@@ -375,11 +375,11 @@ export default async function ContactOverviewPage({ params }: PageProps) {
               className={cn(
                 "flex items-center gap-2 p-3 rounded-lg text-sm",
                 paymentBehavior === "excellent"
-                  ? "bg-emerald-50 text-emerald-700"
+                  ? "bg-success-bg text-success-text"
                   : paymentBehavior === "good"
                     ? "bg-info-bg text-link"
                     : paymentBehavior === "fair"
-                      ? "bg-amber-50 text-amber-700"
+                      ? "bg-warning-bg text-warning-text"
                       : "bg-danger-bg text-danger-text"
               )}
             >
@@ -440,11 +440,11 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                         <div
                           className={cn(
                             "flex h-8 w-8 items-center justify-center rounded-full",
-                            isPaid ? "bg-emerald-100" : isOverdue ? "bg-danger-bg" : "bg-surface-1"
+                            isPaid ? "bg-success-bg" : isOverdue ? "bg-danger-bg" : "bg-surface-1"
                           )}
                         >
                           {isPaid ? (
-                            <CheckCircle className="h-4 w-4 text-emerald-600" />
+                            <CheckCircle className="h-4 w-4 text-success-text" />
                           ) : isOverdue ? (
                             <AlertCircle className="h-4 w-4 text-danger-text" />
                           ) : (
@@ -464,7 +464,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
                           className={cn(
                             "text-xs",
                             isPaid
-                              ? "text-emerald-600"
+                              ? "text-success-text"
                               : isOverdue
                                 ? "text-danger-text"
                                 : "text-secondary"
@@ -504,7 +504,7 @@ export default async function ContactOverviewPage({ params }: PageProps) {
               {
                 label: "Placeno",
                 count: paidInvoices.length,
-                color: "bg-emerald-100 text-emerald-600",
+                color: "bg-success-bg text-success-text",
               },
               {
                 label: "Dospjelo",

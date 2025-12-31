@@ -43,7 +43,7 @@ export function InvoiceFunnelCard({ stages }: InvoiceFunnelCardProps) {
               <div className="w-24 text-sm font-medium text-[var(--foreground)]">{stage.label}</div>
               <div className="flex-1 overflow-hidden rounded-full bg-[var(--surface-secondary)]">
                 <div
-                  className="h-3 rounded-full bg-gradient-to-r from-brand-500 via-indigo-500 to-purple-500 transition-all"
+                  className="h-3 rounded-full bg-gradient-to-r from-brand-500 via-chart-1 to-chart-2 transition-all"
                   style={{ width: `${width}%` }}
                 />
               </div>

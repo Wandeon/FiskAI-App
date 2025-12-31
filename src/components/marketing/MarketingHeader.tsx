@@ -43,6 +43,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
 
   return (
     <>
+      {/* @design-override: Marketing header always uses dark colors for cockpit aesthetic */}
       <motion.header
         className={cn(
           "fixed left-0 right-0 top-0 z-30 transition-all duration-300",
@@ -88,7 +89,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
                       )}
                     />
 
-                    {/* Animated underline */}
+                    {/* Animated underline - @design-override: dark header cyan colors */}
                     <motion.span
                       className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-cyan-400 to-blue-400"
                       initial={false}
@@ -110,7 +111,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
               {/* Search - CommandPalette */}
               <CommandPalette />
 
-              {/* Istraži button - Desktop */}
+              {/* Istraži button - Desktop - @design-override: Dark header button uses hardcoded values */}
               <motion.button
                 onClick={() => setPortalOpen(true)}
                 className="group relative hidden items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 transition-all hover:border-transparent hover:bg-white/10 md:inline-flex"
@@ -141,14 +142,14 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
                   <span className="absolute inset-px rounded-[7px] bg-slate-950/90" />
                 </span>
 
-                {/* Glow on hover */}
+                {/* Glow on hover - @design-override */}
                 <span className="absolute -inset-1 -z-20 rounded-xl bg-gradient-to-r from-cyan-500/40 via-blue-500/40 to-indigo-500/40 opacity-0 blur-md transition-opacity group-hover:opacity-100" />
 
                 <Grid3X3 className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
                 <span>Istraži</span>
               </motion.button>
 
-              {/* Mobile menu button */}
+              {/* Mobile menu button - @design-override: dark header */}
               <button
                 onClick={() => setPortalOpen(true)}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/5 text-white/90 transition-colors hover:bg-white/10 md:hidden"
@@ -158,6 +159,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
               </button>
 
               {/* Primary CTA - changes based on login state */}
+              {/* @design-override: Header CTAs use vibrant colors for visibility */}
               {isLoggedIn ? (
                 <a
                   href="https://app.fiskai.hr/dashboard"

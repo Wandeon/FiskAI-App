@@ -71,7 +71,12 @@ export function TerminalAnswerCard({ outcome, payload, className }: TerminalAnsw
 // === ANSWER ===
 function AnswerCard({ payload, className }: { payload: AnswerPayloadUI; className?: string }) {
   return (
-    <div className={cn("bg-surface rounded-xl border border-success-border overflow-hidden", className)}>
+    <div
+      className={cn(
+        "bg-surface rounded-xl border border-success-border overflow-hidden",
+        className
+      )}
+    >
       {/* Header */}
       <div className="px-4 py-3 bg-success-bg border-b border-success-border flex items-center gap-2">
         <CheckCircle className="w-5 h-5 text-success-icon" />
@@ -110,7 +115,12 @@ function QualifiedAnswerCard({
   const citations = payload.citations ?? []
 
   return (
-    <div className={cn("bg-surface rounded-xl border border-warning-border overflow-hidden", className)}>
+    <div
+      className={cn(
+        "bg-surface rounded-xl border border-warning-border overflow-hidden",
+        className
+      )}
+    >
       {/* Header */}
       <div className="px-4 py-3 bg-warning-bg border-b border-warning-border flex items-center gap-2">
         <AlertTriangle className="w-5 h-5 text-warning-icon" />
@@ -119,7 +129,10 @@ function QualifiedAnswerCard({
 
       {/* Conflict warnings */}
       {conflictWarnings.map((warning, i) => (
-        <div key={i} className="mx-4 mt-4 p-3 bg-warning-bg border border-warning-border rounded-lg">
+        <div
+          key={i}
+          className="mx-4 mt-4 p-3 bg-warning-bg border border-warning-border rounded-lg"
+        >
           <p className="text-sm font-medium text-warning-text">{warning.description}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
             <div className="p-2 bg-surface rounded">
@@ -203,7 +216,9 @@ function RefusalCard({ payload, className }: { payload: RefusalPayloadUI; classN
 // === ERROR ===
 function ErrorCard({ payload, className }: { payload: ErrorPayload; className?: string }) {
   return (
-    <div className={cn("bg-surface rounded-xl border border-danger-border overflow-hidden", className)}>
+    <div
+      className={cn("bg-surface rounded-xl border border-danger-border overflow-hidden", className)}
+    >
       {/* Header */}
       <div className="px-4 py-3 bg-danger-bg border-b border-danger-border flex items-center gap-2">
         <AlertCircle className="w-5 h-5 text-danger-icon" />
@@ -215,7 +230,7 @@ function ErrorCard({ payload, className }: { payload: ErrorPayload; className?: 
       <div className="p-4">
         <p className="text-secondary">{payload.message}</p>
 
-        {payload.retryable && (
+        {payload.retriable && (
           <button className="mt-4 px-4 py-2 bg-interactive text-white rounded-lg hover:bg-interactive-hover transition-colors">
             Pokušaj ponovo
           </button>

@@ -217,11 +217,11 @@ export function AssistantContainer({
             className={cn(
               "lg:col-span-2 p-4 border border-dashed rounded-lg",
               isDark
-                ? "bg-cyan-500/5 border-cyan-500/20 text-white/70"
-                : "bg-primary/5 border-slate-300"
+                ? "bg-accent/5 border-cyan-500/20 text-white/70"
+                : "bg-primary/5 border-default"
             )}
           >
-            <p className={cn("text-sm", isDark ? "text-slate-300" : "text-muted-foreground")}>
+            <p className={cn("text-sm", isDark ? "text-secondary" : "text-muted-foreground")}>
               <strong className={isDark ? "text-white" : "text-foreground"}>
                 Personalizirani izračun:
               </strong>{" "}

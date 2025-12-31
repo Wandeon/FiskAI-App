@@ -121,7 +121,9 @@ export default function FormsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Obrasci</h1>
-          <p className="text-muted-foreground mt-1">Povijest generiranih poreznih obrazaca za pausalni obrt</p>
+          <p className="text-muted-foreground mt-1">
+            Povijest generiranih poreznih obrazaca za pausalni obrt
+          </p>
         </div>
         <Button onClick={() => setShowGenerateDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -162,7 +164,7 @@ export default function FormsPage() {
                         className="flex items-center justify-between p-4 rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] hover:bg-[var(--surface)] transition-colors"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="p-2 rounded-lg bg-blue-500/10">
+                          <div className="p-2 rounded-lg bg-interactive/10">
                             <FileText className="h-5 w-5 text-link" />
                           </div>
                           <div>

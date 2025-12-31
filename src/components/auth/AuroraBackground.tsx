@@ -12,10 +12,10 @@ interface AuroraBackgroundProps {
 // CSS fallback gradient for when Rive isn't loaded or reduced motion is preferred
 function CSSFallback({ state }: { state: AuthState }) {
   const gradients: Record<AuthState, string> = {
-    identify: "from-cyan-500/20 via-teal-500/15 to-purple-500/10",
-    authenticate: "from-cyan-500/25 via-cyan-400/20 to-blue-500/15",
-    register: "from-cyan-500/20 via-amber-400/15 to-teal-500/10",
-    verify: "from-blue-500/25 via-cyan-500/20 to-indigo-500/15",
+    identify: "from-accent/20 via-teal-500/15 to-chart-2/10",
+    authenticate: "from-accent/25 via-accent-light/20 to-interactive/15",
+    register: "from-accent/20 via-amber-400/15 to-teal-500/10",
+    verify: "from-interactive/25 via-cyan-500/20 to-chart-1/15",
     success: "from-amber-400/30 via-yellow-400/25 to-orange-400/20",
     error: "from-red-500/20 via-rose-400/15 to-pink-500/10",
   }

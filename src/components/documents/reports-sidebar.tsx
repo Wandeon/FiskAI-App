@@ -88,7 +88,7 @@ export function ReportsSidebar({
       {/* Sidebar */}
       <div
         className={`
-          fixed right-0 top-0 h-full w-80 bg-white border-l border-default shadow-xl z-50
+          fixed right-0 top-0 h-full w-80 bg-surface border-l border-default shadow-xl z-50
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "translate-x-full"}
           lg:relative lg:transform-none lg:shadow-none lg:z-auto

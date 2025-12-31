@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Reveal } from "@/components/motion/Reveal"
 
-export interface SectionHeadingProps {
+interface SectionHeadingProps {
   /** Optional small label above the title */
   label?: string
   /** Main heading text */

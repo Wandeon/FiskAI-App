@@ -47,10 +47,7 @@ export async function PUT(request: NextRequest) {
 
     // Verify the reader belongs to this company
     if (company.stripeTerminalReaderId !== input.readerId) {
-      return NextResponse.json(
-        { error: "Reader not authorized for this company" },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: "Reader not authorized for this company" }, { status: 403 })
     }
 
     const result = await processPaymentOnReader({

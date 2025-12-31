@@ -1,4 +1,5 @@
-import type { Expense, ExpenseLine, Prisma } from "@prisma/client"
+import type { Expense, ExpenseLine } from "@prisma/client"
+import type { TransactionClient } from "@/lib/db"
 import { shouldCapitalizeAsset, THRESHOLDS } from "@/lib/fiscal-data/data/thresholds"
 
 type AssetCandidateInput = {
@@ -7,7 +8,7 @@ type AssetCandidateInput = {
 }
 
 export async function emitAssetCandidates(
-  tx: Prisma.TransactionClient,
+  tx: TransactionClient,
   { expense, lines }: AssetCandidateInput
 ) {
   const thresholdValue = THRESHOLDS.assetCapitalization.value

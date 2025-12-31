@@ -104,7 +104,16 @@ async function publishMdxArticle(
 
   let content = draft.contentMdx
   if (!content.startsWith("---")) {
-    const frontmatter = "---\ntitle: \"" + title + "\"\ndescription: \"" + generateExcerpt(content) + "\"\nlastUpdated: " + new Date().toISOString().split("T")[0] + "\nsources:\n" + job.sourceUrls.map((url) => "  - name: Source\n    url: " + url).join("\n") + "\n---\n\n"
+    const frontmatter =
+      '---\ntitle: "' +
+      title +
+      '"\ndescription: "' +
+      generateExcerpt(content) +
+      '"\nlastUpdated: ' +
+      new Date().toISOString().split("T")[0] +
+      "\nsources:\n" +
+      job.sourceUrls.map((url) => "  - name: Source\n    url: " + url).join("\n") +
+      "\n---\n\n"
     content = frontmatter + content
   }
 

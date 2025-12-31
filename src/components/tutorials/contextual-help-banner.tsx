@@ -19,9 +19,9 @@ const ICONS = {
 }
 
 const VARIANTS = {
-  success: "border-success-border bg-success-bg text-green-900",
-  warning: "border-warning-border bg-warning-bg text-amber-900",
-  info: "border-info-border bg-info-bg text-blue-900",
+  success: "border-success-border bg-success-bg text-success-text",
+  warning: "border-warning-border bg-warning-bg text-warning-text",
+  info: "border-info-border bg-info-bg text-info-text",
 }
 
 export function ContextualHelpBanner({ triggers, onDismiss }: ContextualHelpBannerProps) {

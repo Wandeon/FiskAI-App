@@ -76,7 +76,7 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
-    }    // Parse and validate JSON response
+    } // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(jsonMatch[0])
@@ -113,7 +113,7 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
       }
       return {
         success: false,
-        error: `Invalid extraction format: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+        error: `Invalid extraction format: ${validationResult.error.issues.map((e) => e.message).join(", ")}`,
         rawText: content,
       }
     }
@@ -223,7 +223,7 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
-    }    // Parse and validate JSON response
+    } // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(jsonMatch[0])
@@ -260,7 +260,7 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
       }
       return {
         success: false,
-        error: `Invalid extraction format: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
+        error: `Invalid extraction format: ${validationResult.error.issues.map((e) => e.message).join(", ")}`,
         rawText: content,
       }
     }

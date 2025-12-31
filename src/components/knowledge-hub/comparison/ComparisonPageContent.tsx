@@ -147,7 +147,7 @@ export function ComparisonPageContent({ comparison, searchParams }: ComparisonPa
             {missingDeepDiveCount > 0 && (
               <HoverScale>
                 <Link href="/wizard" className="block h-full">
-                  <GlassCard className="h-full p-4 border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10">
+                  <GlassCard className="h-full p-4 border-interactive/30 bg-gradient-to-br from-accent/10 to-interactive/10">
                     <span className="font-medium">Ne možete naći svoj slučaj?</span>
                     <span className="block text-sm text-white/60">
                       Pokrenite čarobnjak i dobijte personaliziranu preporuku.

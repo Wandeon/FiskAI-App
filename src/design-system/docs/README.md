@@ -5,6 +5,7 @@ Welcome to the comprehensive documentation for the FiskAI design system. This do
 ## 📚 Documentation Index
 
 ### 1. [Color System Reference](./COLOR_SYSTEM.md)
+
 **Start here** for complete color token documentation.
 
 - Overview of the semantic token architecture
@@ -14,6 +15,7 @@ Welcome to the comprehensive documentation for the FiskAI design system. This do
 - ESLint enforcement guide
 
 ### 2. [Spacing System Reference](./SPACING_SYSTEM.md)
+
 **Start here** for complete spacing system documentation.
 
 - 4px base unit spacing scale
@@ -23,6 +25,7 @@ Welcome to the comprehensive documentation for the FiskAI design system. This do
 - Responsive spacing strategies
 
 ### 3. [Migration Guide](./MIGRATION_GUIDE.md)
+
 **Use this** when converting components from hardcoded colors to semantic tokens.
 
 - Step-by-step migration process
@@ -32,6 +35,7 @@ Welcome to the comprehensive documentation for the FiskAI design system. This do
 - Troubleshooting guide
 
 ### 4. [Contrast Audit Report](./CONTRAST_AUDIT.md)
+
 **Review this** to understand accessibility compliance.
 
 - WCAG 2.1 compliance status
@@ -40,6 +44,7 @@ Welcome to the comprehensive documentation for the FiskAI design system. This do
 - Testing methodology
 
 ### 5. [Contrast Report (JSON)](./contrast-report.json)
+
 **Auto-generated** by the verification script.
 
 - Machine-readable test results
@@ -67,7 +72,7 @@ Welcome to the comprehensive documentation for the FiskAI design system. This do
 
 **Issue #235** identified that while the design system has a comprehensive semantic token architecture, adoption was poor:
 
-- 249 files used hardcoded Tailwind colors (e.g., `text-blue-600`, `bg-slate-800`)
+- 249 files used hardcoded Tailwind colors (e.g., `text-link`, `bg-surface-elevated`)
 - Core UI components didn't use semantic tokens
 - No documented contrast ratios
 - No automated enforcement
@@ -93,6 +98,7 @@ npm run lint
 ```
 
 **Configuration:** `.eslintrc.json`
+
 - `error` for app routes and components
 - `warn` for marketing pages
 
@@ -107,6 +113,7 @@ npm run verify-contrast
 ```
 
 Outputs:
+
 - Console report with pass/fail status
 - JSON report at `docs/contrast-report.json`
 - Exit code 1 if critical tests fail (CI/CD integration)
@@ -114,6 +121,7 @@ Outputs:
 ## 📊 Current Status
 
 ### Color System Architecture
+
 ✅ **Primitive palettes** - Complete 50-950 scales for all colors
 ✅ **Semantic tokens** - Meaningful names for all use cases
 ✅ **CSS variables** - Defined in `variables.css` with light/dark modes
@@ -121,12 +129,14 @@ Outputs:
 ✅ **WCAG compliance** - 85% pass rate, all critical combinations passing
 
 ### Adoption Status
+
 - **Total files with hardcoded colors:** 249
 - **Files migrated:** 0 (migration in progress)
 - **ESLint enforcement:** Active (errors in app routes, warnings in marketing)
 - **Documentation:** Complete
 
 ### Priority Migration Order
+
 1. Core UI components (`src/components/ui/`)
 2. Patterns (`src/components/patterns/`)
 3. Sections (`src/components/sections/`)
@@ -147,42 +157,56 @@ Components
 
 ### Why Semantic Tokens?
 
-Instead of `bg-blue-600`, use `bg-interactive` because:
+Instead of `bg-interactive`, use `bg-interactive` because:
 
 1. **Automatic dark mode** - No need for `dark:` variants
 2. **Consistent meaning** - Same token = same purpose everywhere
 3. **Easy theming** - Change one value, update entire app
 4. **Better accessibility** - Guaranteed contrast ratios
-5. **Self-documenting** - `text-foreground` is clearer than `text-slate-900`
+5. **Self-documenting** - `text-foreground` is clearer than `text-foreground`
 
 ## 📖 Token Categories
 
 ### Surface Tokens
+
 Background colors for pages, cards, and containers.
+
 - `bg-base`, `bg-surface`, `bg-surface-1`, `bg-surface-2`, `bg-surface-elevated`, `bg-overlay`
 
 ### Text Tokens
+
 Text colors with guaranteed readability.
+
 - `text-foreground`, `text-secondary`, `text-tertiary`, `text-muted`, `text-inverse`, `text-link`
 
 ### Border Tokens
+
 Border colors for separators and focus states.
+
 - `border-default`, `border-subtle`, `border-strong`, `border-focus`
 
 ### Interactive Tokens
+
 Colors for buttons and interactive elements.
+
 - `bg-interactive`, `bg-interactive-hover`, `bg-interactive-secondary`, etc.
 
 ### Status Tokens
+
 Complete bundles for success/warning/danger/info states.
+
 - Each has: `bg`, `text`, `border`, `icon` variants
 
 ### Accent Tokens
+
 Marketing/brand accent colors.
+
 - `bg-accent`, `bg-accent-light`, `bg-accent-dark`
 
 ### Chart Tokens
+
 Data visualization colors.
+
 - `bg-chart-1` through `bg-chart-8`, `border-chart-grid`, `text-chart-axis`
 
 ## 🔍 Finding the Right Token

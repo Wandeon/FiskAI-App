@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { Mail, Loader2, Check } from "lucide-react"
-import { subscribeToNewsletter } from "@/app/actions/newsletter"
+import { subscribeToNewsletter } from "@/lib/actions/newsletter"
 import { toast } from "@/lib/toast"
 import { Badge } from "@/components/ui/badge"
 import { GlassCard } from "@/components/ui/patterns/GlassCard"
@@ -48,7 +48,7 @@ export function NewsletterSignup() {
         </p>
 
         {isSubmitted ? (
-          <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-success/10 px-4 py-3 text-sm text-green-300">
+          <div className="flex items-center gap-2 rounded-lg border border-success-border/20 bg-success/10 px-4 py-3 text-sm text-success">
             <Check className="h-4 w-4 flex-shrink-0" />
             <span>Uspješno ste se pretplatili!</span>
           </div>
@@ -61,14 +61,14 @@ export function NewsletterSignup() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vas.email@example.com"
                 disabled={isPending}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/40 transition-colors focus:border-cyan-500/50 focus:bg-white/10 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg border border-white/10 bg-surface/5 px-4 py-2.5 text-sm text-white placeholder-white/40 transition-colors focus:border-cyan-500/50 focus:bg-surface/10 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 required
               />
             </div>
             <button
               type="submit"
               disabled={isPending}
-              className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-gradient-to-r from-accent to-interactive px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-accent-light hover:to-focus disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? (
                 <span className="flex items-center justify-center gap-2">
@@ -82,9 +82,7 @@ export function NewsletterSignup() {
           </form>
         )}
 
-        <p className="mt-3 text-xs text-white/40">
-          Bez spama. Možete se odjaviti bilo kada.
-        </p>
+        <p className="mt-3 text-xs text-white/40">Bez spama. Možete se odjaviti bilo kada.</p>
       </GlassCard>
     </FadeIn>
   )

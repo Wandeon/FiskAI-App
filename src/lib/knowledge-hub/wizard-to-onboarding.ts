@@ -28,30 +28,30 @@ export function mapWizardToOnboarding(wizardAnswers: WizardAnswers): WizardToOnb
   if (employment === "retired" || employment === "student") {
     // Retirees and students -> recommend pausalni obrt
     result.legalForm = "OBRT_PAUSAL"
-    result.competence = "BEGINNER"
+    result.competence = "beginner"
   } else if (intent === "side") {
     // Additional income alongside employment -> pausalni obrt
     result.legalForm = "OBRT_PAUSAL"
-    result.competence = "BEGINNER"
+    result.competence = "beginner"
     result.employedElsewhere = true
   } else if (intent === "partners") {
     // Multiple partners -> d.o.o.
     result.legalForm = "DOO"
-    result.competence = "BEGINNER"
+    result.competence = "beginner"
   } else if (revenue === "high") {
     // High revenue (over 60k EUR) -> can't use pausal, suggest real income or d.o.o.
     // Default to real income obrt for solo entrepreneurs
     result.legalForm = "OBRT_REAL"
-    result.competence = "INTERMEDIATE"
+    result.competence = "average"
   } else if (revenue === "low" || revenue === "medium") {
     // Low/medium revenue with main income intent -> pausalni obrt is ideal
     result.legalForm = "OBRT_PAUSAL"
 
     // Determine competence based on activity type
     if (activity === "it" || activity === "kreativa") {
-      result.competence = "INTERMEDIATE" // IT/creative professionals tend to be more tech-savvy
+      result.competence = "average" // IT/creative professionals tend to be more tech-savvy
     } else {
-      result.competence = "BEGINNER"
+      result.competence = "beginner"
     }
   }
 

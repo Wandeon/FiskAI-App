@@ -75,7 +75,7 @@ function parseErste(line: string, options: CsvParserOptions): ParsedTransaction 
     amount: Math.abs(amount),
     description,
     type: debitStr ? "debit" : "credit",
-    currency,
+    currency: currencyStr || "EUR",
   }
 }
 
@@ -99,7 +99,7 @@ function parseRaiffeisenbank(line: string, options: CsvParserOptions): ParsedTra
     amount: Math.abs(amount),
     description,
     type: debitStr ? "debit" : "credit",
-    currency,
+    currency: currencyStr || "EUR",
   }
 }
 
@@ -122,7 +122,7 @@ function parseGeneric(line: string, options: CsvParserOptions): ParsedTransactio
     amount: Math.abs(amount),
     description: description || referenceOrDesc,
     type: amount < 0 ? "credit" : "debit",
-    currency,
+    currency: "EUR",
   }
 }
 

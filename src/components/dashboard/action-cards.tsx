@@ -46,7 +46,7 @@ export function ActionCards() {
           href="/accountant"
           className={cn(
             buttonBaseStyles,
-            "border border-emerald-100 bg-white text-success-text hover:bg-success-bg"
+            "border border-success-border bg-surface text-success-text hover:bg-success-bg"
           )}
         >
           Otvori workspace

@@ -192,7 +192,7 @@ function mapToLegacyResponse(
       },
       error: {
         message: error.message,
-        retryable: error.retryable,
+        retriable: error.retriable,
       },
     }
   }

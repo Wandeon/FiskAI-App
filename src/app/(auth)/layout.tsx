@@ -12,7 +12,7 @@ export default function AuthLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="min-h-screen bg-slate-950 font-sans antialiased">
+    <div className="min-h-screen bg-base font-sans antialiased">
       <MarketingAnalyticsInit />
       {/* We can add a simple absolute positioned logo here if needed, 
           but AuthFlow seems to handle its own full-page design. 

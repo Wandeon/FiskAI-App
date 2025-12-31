@@ -36,7 +36,7 @@ export function OfflineIndicator() {
     return (
       <div
         className={cn(
-          "fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg"
+          "fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-success px-4 py-2 text-sm font-semibold text-white shadow-lg"
         )}
         role="status"
         aria-live="polite"
@@ -68,7 +68,7 @@ export function OfflineIndicator() {
   return (
     <div
       className={cn(
-        "fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-lg"
+        "fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-warning px-4 py-2 text-sm font-semibold text-white shadow-lg"
       )}
       role="status"
       aria-live="polite"
@@ -76,7 +76,7 @@ export function OfflineIndicator() {
       <WifiOff className="h-4 w-4" />
       Izvan mreže: izmjene će se spremiti kada se veza vrati.
       {pendingSyncCount > 0 && (
-        <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">
+        <span className="ml-2 rounded-full bg-surface/20 px-2 py-0.5 text-xs">
           {pendingSyncCount} na čekanju
         </span>
       )}

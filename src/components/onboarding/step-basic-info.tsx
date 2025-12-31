@@ -9,7 +9,7 @@ import { OibInput } from "@/components/ui/oib-input"
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 import { toast } from "@/lib/toast"
 import type { LegalForm } from "@/lib/capabilities"
-import { createMinimalCompany } from "@/app/actions/onboarding"
+import { createMinimalCompany } from "@/lib/actions/onboarding"
 
 const LEGAL_FORM_OPTIONS: { value: LegalForm; label: string; description: string }[] = [
   { value: "OBRT_PAUSAL", label: "Paušalni obrt", description: "Do 60.000 € godišnje, bez PDV-a" },

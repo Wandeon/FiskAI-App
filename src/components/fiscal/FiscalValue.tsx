@@ -45,7 +45,7 @@ export function FiscalValue({
 
   if (rawValue === undefined || rawValue === null) {
     console.warn(`[FiscalValue] Path not found: ${path}`)
-    return <span className={cn("text-rose-400", className)}>{fallback}</span>
+    return <span className={cn("text-danger", className)}>{fallback}</span>
   }
 
   // Handle objects with value property (like ThresholdValue)
@@ -65,7 +65,7 @@ export function FiscalValue({
 
   return (
     <span
-      className={cn("font-mono text-cyan-400", className)}
+      className={cn("font-mono text-accent-light", className)}
       data-fiscal-path={path}
       title={`Izvor: ${path}`}
     >
@@ -133,11 +133,11 @@ export function LastVerified({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400",
+        "inline-flex items-center gap-1.5 rounded-full bg-success-bg0/10 px-3 py-1 text-xs font-medium text-success",
         className
       )}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+      <span className="h-1.5 w-1.5 rounded-full bg-success" />
       Podaci verificirani: {formatted}
     </span>
   )

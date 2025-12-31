@@ -35,57 +35,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        loginToken: { label: "Login token", type: "text" },
       },
-      async authorize(credentials, request) {
-        if (!credentials?.email || (!credentials?.password && !credentials?.loginToken)) {
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
           return null
         }
 
-        // Get client IP address
+        // Rate limiting for login attempts
         const email = credentials.email as string
-        const clientIp =
-          request.headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-          request.headers?.get("x-real-ip") ||
-          "unknown"
+        const identifier = `login_${email.toLowerCase()}`
+        const rateLimitResult = await checkRateLimit(identifier, "LOGIN")
 
-        // Rate limiting by IP+email combination (prevents locking out legitimate users)
-        const ipEmailIdentifier = `login_${clientIp}_${email.toLowerCase()}`
-        const ipEmailRateLimit = await checkRateLimit(ipEmailIdentifier, "LOGIN")
-
-        // Also rate limit by IP only (prevents distributed attacks on same email)
-        const ipOnlyIdentifier = `login_ip_${clientIp}`
-        const ipOnlyRateLimit = await checkRateLimit(ipOnlyIdentifier, "LOGIN_IP")
-
-        if (!ipEmailRateLimit.allowed || !ipOnlyRateLimit.allowed) {
-          console.log(`Rate limited login attempt for ${credentials.email} from IP ${clientIp}`, {
-            ipEmailAllowed: ipEmailRateLimit.allowed,
-            ipOnlyAllowed: ipOnlyRateLimit.allowed,
-          })
+        if (!rateLimitResult.allowed) {
+          console.log(`Rate limited login attempt for ${credentials.email}`)
           return null // Don't reveal that account exists
         }
 
-        const loginToken = credentials.loginToken as string | undefined
-        if (loginToken) {
-          const { verifyLoginToken } = await import("@/lib/auth/login-token")
-          const payload = await verifyLoginToken(loginToken)
-          if (!payload || payload.email !== email.toLowerCase()) {
-            return null
-          }
+        const password = credentials.password as string
+
+        // Check for passkey authentication
+        if (password.startsWith("__PASSKEY__")) {
+          const userId = password.replace("__PASSKEY__", "")
           const user = await db.user.findUnique({
-            where: { id: payload.userId, email: credentials.email as string },
+            where: { id: userId, email: credentials.email as string },
           })
-          if (!user) {
-            return null
+          if (user) {
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+            }
           }
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-          }
+          return null
         }
 
-        const password = credentials.password as string
+        // Check for OTP verification authentication
+        if (password.startsWith("__OTP_VERIFIED__")) {
+          const userId = password.replace("__OTP_VERIFIED__", "")
+          const user = await db.user.findUnique({
+            where: { id: userId, email: credentials.email as string },
+          })
+          if (user) {
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+            }
+          }
+          return null
+        }
 
         const user = await db.user.findUnique({
           where: { email: credentials.email as string },

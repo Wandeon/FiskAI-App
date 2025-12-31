@@ -72,7 +72,7 @@ export function GlossaryTerm({ term, children, className, showIcon = true }: Glo
       {showIcon && (
         <button
           type="button"
-          className="inline-flex text-[var(--muted)] hover:text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded-full"
+          className="inline-flex text-[var(--muted)] hover:text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-1 rounded-full"
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
           onFocus={() => setIsOpen(true)}

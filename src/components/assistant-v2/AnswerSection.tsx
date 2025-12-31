@@ -30,31 +30,31 @@ const REFUSAL_CONFIG: Record<
     title: "Nema verificiranih pravila",
     icon: <HelpCircle className="w-5 h-5" />,
     lightBg: "bg-muted/30",
-    darkBg: "bg-slate-800/40 border-slate-700/50",
+    darkBg: "bg-surface-elevated/40 border-subtle/50",
   },
   OUT_OF_SCOPE: {
     title: "Izvan našeg opsega",
     icon: <AlertCircle className="w-5 h-5" />,
     lightBg: "bg-muted/30",
-    darkBg: "bg-slate-800/40 border-slate-700/50",
+    darkBg: "bg-surface-elevated/40 border-subtle/50",
   },
   MISSING_CLIENT_DATA: {
     title: "Potrebni dodatni podaci",
     icon: <Database className="w-5 h-5" />,
-    lightBg: "bg-blue-50 dark:bg-blue-950/20",
-    darkBg: "bg-blue-900/20 border-blue-500/30",
+    lightBg: "bg-info-bg dark:bg-blue-950/20",
+    darkBg: "bg-blue-900/20 border-focus/30",
   },
   UNRESOLVED_CONFLICT: {
     title: "Proturječne informacije",
     icon: <AlertTriangle className="w-5 h-5" />,
-    lightBg: "bg-amber-50 dark:bg-amber-950/20",
-    darkBg: "bg-amber-900/20 border-amber-500/30",
+    lightBg: "bg-warning-bg dark:bg-amber-950/20",
+    darkBg: "bg-amber-900/20 border-warning/30",
   },
   NEEDS_CLARIFICATION: {
     title: "Molimo pojasnite pitanje",
     icon: <MessageCircle className="w-5 h-5" />,
-    lightBg: "bg-blue-50 dark:bg-blue-950/20",
-    darkBg: "bg-cyan-900/20 border-cyan-500/30",
+    lightBg: "bg-info-bg dark:bg-blue-950/20",
+    darkBg: "bg-cyan-900/20 border-interactive/30",
   },
   UNSUPPORTED_JURISDICTION: {
     title: "Nepodržana jurisdikcija",
@@ -73,7 +73,7 @@ function ScanLineOverlay() {
       animate={{ opacity: 1 }}
     >
       <motion.div
-        className="absolute inset-x-0 h-8 bg-gradient-to-b from-cyan-500/5 to-transparent"
+        className="absolute inset-x-0 h-8 bg-gradient-to-b from-accent/5 to-transparent"
         initial={{ y: "-100%" }}
         animate={{ y: "100%" }}
         transition={{ duration: 1.5, ease: "linear" }}
@@ -93,7 +93,7 @@ export function AnswerSection({
   const isDark = variant === "dark"
 
   const baseCardClass = isDark
-    ? "bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-xl"
+    ? "bg-surface-elevated/40 backdrop-blur-md border border-subtle/50 rounded-xl"
     : "border rounded-lg"
 
   // Empty state
@@ -104,10 +104,10 @@ export function AnswerSection({
         animate={{ opacity: 1, y: 0 }}
         className={cn("p-6", baseCardClass, className)}
       >
-        <p className={isDark ? "text-slate-400" : "text-muted-foreground"}>
+        <p className={isDark ? "text-muted" : "text-muted-foreground"}>
           Verificirani odgovor će se pojaviti ovdje
         </p>
-        <p className={cn("text-sm mt-2", isDark ? "text-slate-500" : "text-muted-foreground")}>
+        <p className={cn("text-sm mt-2", isDark ? "text-tertiary" : "text-muted-foreground")}>
           Svaki odgovor uključuje verificirane citate iz službenih izvora
         </p>
       </motion.div>
@@ -125,26 +125,26 @@ export function AnswerSection({
         <div
           className={cn(
             "h-6 rounded w-3/4",
-            isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+            isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
           )}
         />
         <div className="space-y-2">
           <div
             className={cn(
               "h-4 rounded",
-              isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+              isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
             )}
           />
           <div
             className={cn(
               "h-4 rounded w-5/6",
-              isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+              isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
             )}
           />
         </div>
         {isDark && (
           <motion.span
-            className="text-cyan-400/70 text-sm"
+            className="text-accent-light/70 text-sm"
             animate={{ opacity: [1, 0.5, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
@@ -164,22 +164,22 @@ export function AnswerSection({
         className={cn(
           "p-6",
           isDark
-            ? "bg-red-950/30 border border-red-500/40 backdrop-blur-md rounded-xl"
+            ? "bg-red-950/30 border border-danger-border/40 backdrop-blur-md rounded-xl"
             : "border border-destructive/50 rounded-lg bg-destructive/5",
           className
         )}
       >
-        <h2 className={cn("font-medium", isDark ? "text-red-400" : "text-destructive")}>
+        <h2 className={cn("font-medium", isDark ? "text-danger-text" : "text-destructive")}>
           Nešto je pošlo krivo
         </h2>
-        <p className={cn("text-sm mt-1", isDark ? "text-slate-400" : "text-muted-foreground")}>
+        <p className={cn("text-sm mt-1", isDark ? "text-muted" : "text-muted-foreground")}>
           {error.message}
         </p>
         {error.type !== "CLIENT_ERROR" && (
           <button
             className={cn(
               "mt-3 text-sm hover:underline",
-              isDark ? "text-cyan-400" : "text-primary"
+              isDark ? "text-accent-light" : "text-primary"
             )}
           >
             Pokušaj ponovo
@@ -197,7 +197,7 @@ export function AnswerSection({
         <div
           className={cn(
             "h-6 rounded w-3/4",
-            isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+            isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
           )}
         />
       </div>
@@ -225,10 +225,7 @@ export function AnswerSection({
       >
         <div className="flex items-start gap-3">
           <span
-            className={cn(
-              "mt-0.5 flex-shrink-0",
-              isDark ? "text-slate-400" : "text-muted-foreground"
-            )}
+            className={cn("mt-0.5 flex-shrink-0", isDark ? "text-muted" : "text-muted-foreground")}
           >
             {config.icon}
           </span>
@@ -239,7 +236,7 @@ export function AnswerSection({
             >
               {activeAnswer.headline || config.title}
             </h2>
-            <p className={cn("text-sm mt-2", isDark ? "text-slate-300" : "text-muted-foreground")}>
+            <p className={cn("text-sm mt-2", isDark ? "text-secondary" : "text-muted-foreground")}>
               {activeAnswer.refusal?.message}
             </p>
           </div>
@@ -256,7 +253,7 @@ export function AnswerSection({
                   className={cn(
                     "text-sm px-3 py-1.5 rounded-md transition-colors",
                     isDark
-                      ? "bg-slate-800/60 border border-slate-600/50 text-slate-200 hover:bg-slate-700/60"
+                      ? "bg-surface-elevated/60 border border-subtle/50 text-foreground hover:bg-surface-elevated/60"
                       : "bg-background border hover:bg-muted"
                   )}
                 >
@@ -272,7 +269,7 @@ export function AnswerSection({
             <h3
               className={cn(
                 "text-xs font-medium uppercase mb-2",
-                isDark ? "text-slate-500" : "text-muted-foreground"
+                isDark ? "text-tertiary" : "text-muted-foreground"
               )}
             >
               {reason === "NEEDS_CLARIFICATION" ? "Probajte jedno od ovih" : "Povezane teme"}
@@ -292,8 +289,8 @@ export function AnswerSection({
                     "text-sm px-3 py-1.5 rounded-full transition-all",
                     isDark
                       ? [
-                          "bg-slate-800/30 border border-cyan-500/20",
-                          "text-cyan-200 hover:bg-cyan-500/10 hover:border-cyan-400/40",
+                          "bg-surface-elevated/30 border border-cyan-500/20",
+                          "text-cyan-200 hover:bg-accent/10 hover:border-accent-light/40",
                           "hover:shadow-[0_0_10px_rgba(6,182,212,0.15)]",
                         ]
                       : "bg-background border hover:bg-muted"
@@ -323,7 +320,7 @@ export function AnswerSection({
       >
         {activeAnswer.headline}
       </h2>
-      <p className={cn("mt-2", isDark ? "text-slate-300" : "text-muted-foreground")}>
+      <p className={cn("mt-2", isDark ? "text-secondary" : "text-muted-foreground")}>
         {activeAnswer.directAnswer}
       </p>
 
@@ -337,10 +334,10 @@ export function AnswerSection({
               transition={{ delay: 0.3 + i * 0.1 }}
               className={cn(
                 "text-sm flex items-start gap-2",
-                isDark ? "text-slate-300" : "text-foreground"
+                isDark ? "text-secondary" : "text-foreground"
               )}
             >
-              <span className={isDark ? "text-cyan-400" : "text-primary"}>•</span>
+              <span className={isDark ? "text-accent-light" : "text-primary"}>•</span>
               {detail}
             </motion.li>
           ))}
@@ -352,7 +349,7 @@ export function AnswerSection({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className={cn("mt-4 text-sm font-medium", isDark ? "text-cyan-400" : "text-primary")}
+          className={cn("mt-4 text-sm font-medium", isDark ? "text-accent-light" : "text-primary")}
         >
           Sljedeći korak: {activeAnswer.nextStep}
         </motion.p>
@@ -366,7 +363,7 @@ export function AnswerSection({
             className={cn(
               "text-sm px-3 py-1.5 rounded transition-all",
               isDark
-                ? "border border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:border-slate-500/50"
+                ? "border border-subtle/50 text-secondary hover:bg-surface-elevated/50 hover:border-strong/50"
                 : "border hover:bg-muted"
             )}
           >
@@ -380,7 +377,7 @@ export function AnswerSection({
             className={cn(
               "text-sm px-3 py-1.5 rounded transition-all",
               isDark
-                ? "border border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:border-slate-500/50"
+                ? "border border-subtle/50 text-secondary hover:bg-surface-elevated/50 hover:border-strong/50"
                 : "border hover:bg-muted"
             )}
           >

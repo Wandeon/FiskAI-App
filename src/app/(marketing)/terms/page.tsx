@@ -230,7 +230,7 @@ export default function TermsPage() {
           <p>Adresa: [Adresa tvrtke], Zagreb, Hrvatska</p>
         </div>
 
-        <div className="mt-12 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-4">
+        <div className="mt-12 rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-4">
           <p className="text-sm text-white/60">
             <strong>Povezane politike:</strong>{" "}
             <Link href="/privacy" className="text-primary hover:underline">

@@ -69,34 +69,41 @@ const stageMetrics: Record<string, StageMetrics> = {
 }
 
 const stageCircuitBreakers = {
-  "pending-items": createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-pending-items", errorThresholdPercentage: 30 }
-  ),
-  "pending-ocr": createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-pending-ocr", errorThresholdPercentage: 30 }
-  ),
-  "fetched-evidence": createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-fetched-evidence", errorThresholdPercentage: 30 }
-  ),
-  "source-pointers": createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-source-pointers", errorThresholdPercentage: 30 }
-  ),
-  "draft-rules": createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-draft-rules", errorThresholdPercentage: 30 }
-  ),
-  conflicts: createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-conflicts", errorThresholdPercentage: 30 }
-  ),
-  "approved-rules": createCircuitBreaker(
-    async (fn: () => Promise<number>) => fn(),
-    { timeout: 300000, name: "drainer-approved-rules", errorThresholdPercentage: 30 }
-  ),
+  "pending-items": createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-pending-items",
+    errorThresholdPercentage: 30,
+  }),
+  "pending-ocr": createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-pending-ocr",
+    errorThresholdPercentage: 30,
+  }),
+  "fetched-evidence": createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-fetched-evidence",
+    errorThresholdPercentage: 30,
+  }),
+  "source-pointers": createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-source-pointers",
+    errorThresholdPercentage: 30,
+  }),
+  "draft-rules": createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-draft-rules",
+    errorThresholdPercentage: 30,
+  }),
+  conflicts: createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-conflicts",
+    errorThresholdPercentage: 30,
+  }),
+  "approved-rules": createCircuitBreaker(async (fn: () => Promise<number>) => fn(), {
+    timeout: 300000,
+    name: "drainer-approved-rules",
+    errorThresholdPercentage: 30,
+  }),
 }
 
 async function executeStage(
@@ -147,7 +154,6 @@ async function executeStage(
     throw error
   }
 }
-
 
 // Backoff configuration
 const BACKOFF = {

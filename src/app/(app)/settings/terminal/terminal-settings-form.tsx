@@ -41,9 +41,7 @@ export function TerminalSettingsForm({ initialData }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Terminal Location ID
-        </label>
+        <label className="block text-sm font-medium mb-1">Terminal Location ID</label>
         <Input
           value={locationId}
           onChange={(e) => setLocationId(e.target.value)}
@@ -55,9 +53,7 @@ export function TerminalSettingsForm({ initialData }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Reader ID
-        </label>
+        <label className="block text-sm font-medium mb-1">Reader ID</label>
         <Input
           value={readerId}
           onChange={(e) => setReaderId(e.target.value)}

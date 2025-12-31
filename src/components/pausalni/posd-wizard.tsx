@@ -93,7 +93,7 @@ export function PosdWizard({ companyId }: Props) {
     // Show error state
     if (error) {
       return (
-        <div className="rounded-lg border border-red-500/50 bg-danger/10 p-4">
+        <div className="rounded-lg border border-danger-border/50 bg-danger/10 p-4">
           <p className="text-danger-text">{error}</p>
           <Button variant="outline" onClick={() => setYear(year)} className="mt-3">
             Pokušaj ponovno
@@ -111,7 +111,7 @@ export function PosdWizard({ companyId }: Props) {
         <div className="rounded-lg border border-focus/50 bg-interactive/10 p-4">
           <div className="flex gap-3">
             <Info className="h-5 w-5 text-link flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900 dark:text-blue-200">
+            <div className="text-sm text-info-text dark:text-info">
               <p className="font-medium mb-1">O PO-SD obrascu</p>
               <p>
                 PO-SD obrazac je godišnja prijava za paušalne obrte. Rok za podnošenje je 15.
@@ -128,14 +128,14 @@ export function PosdWizard({ companyId }: Props) {
           </CardHeader>
           <CardContent className="space-y-4">
             {!hasData && (
-              <div className="rounded-lg border border-amber-500/50 bg-warning/10 p-4 mb-4">
+              <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 mb-4">
                 <div className="flex gap-3">
                   <AlertCircle className="h-5 w-5 text-warning-text flex-shrink-0 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">
+                    <p className="font-medium text-warning-text dark:text-warning mb-1">
                       Nema evidentiranih računa
                     </p>
-                    <p className="text-amber-800 dark:text-amber-300">
+                    <p className="text-warning-text dark:text-warning">
                       Za {year}. godinu nema evidentiranih računa u sustavu. Možete nastaviti s
                       ručnim unosom prihoda ili prvo unesite račune u sustav.
                     </p>
@@ -185,12 +185,12 @@ export function PosdWizard({ companyId }: Props) {
               </div>
             )}
 
-            <div className="rounded-lg border border-amber-500/50 bg-warning/10 p-4">
+            <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
               <div className="flex gap-3">
                 <AlertCircle className="h-5 w-5 text-warning-text flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">Napomena</p>
-                  <p className="text-amber-800 dark:text-amber-300">
+                  <p className="font-medium text-warning-text dark:text-warning mb-1">Napomena</p>
+                  <p className="text-warning-text dark:text-warning">
                     {hasData
                       ? "Prikazani su prihodi temeljem računa evidentiranih u sustavu. Provjerite je li sve ispravno prije nastavka."
                       : "Ako ne vodite evidenciju prihoda, procjenite ukupan prihod na temelju izdanih računa i primitaka. Budite realni - prema ovom prihodu će se odrediti vaši doprinosi."}
@@ -233,7 +233,7 @@ export function PosdWizard({ companyId }: Props) {
             <div className="rounded-lg border border-focus/50 bg-interactive/10 p-4">
               <div className="flex gap-3">
                 <Info className="h-5 w-5 text-link flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900 dark:text-blue-200">
+                <div className="text-sm text-info-text dark:text-info">
                   <p>
                     Odaberite stopu priznatih troškova koja odgovara vašoj djelatnosti. Ova stopa će
                     se koristiti za izračun neto prihoda na koji se plaćaju doprinosi i porezi.
@@ -376,7 +376,7 @@ export function PosdWizard({ companyId }: Props) {
                   <span className="text-muted-foreground">Zdravstveno (16.5%)</span>
                   <span className="font-medium">{formatCurrency(estimatedHealth)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 rounded bg-warning/10 border border-amber-500/50 font-semibold">
+                <div className="flex justify-between items-center p-3 rounded bg-warning/10 border border-warning/50 font-semibold">
                   <span>Ukupno mjesečno</span>
                   <span>{formatCurrency(estimatedTotal)}</span>
                 </div>
@@ -386,7 +386,7 @@ export function PosdWizard({ companyId }: Props) {
             <div className="rounded-lg border border-focus/50 bg-interactive/10 p-4">
               <div className="flex gap-3">
                 <Info className="h-5 w-5 text-link flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900 dark:text-blue-200">
+                <div className="text-sm text-info-text dark:text-info">
                   <p className="font-medium mb-1">Napomena</p>
                   <p>
                     Ovo su samo procjene za planiranje. Stvarni iznos doprinosa će odrediti porezna
@@ -425,8 +425,8 @@ export function PosdWizard({ companyId }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="rounded-lg bg-success/10 border border-green-500/50 p-4">
-              <p className="font-medium text-green-900 dark:text-green-200">
+            <div className="rounded-lg bg-success/10 border border-success-border/50 p-4">
+              <p className="font-medium text-success-text dark:text-green-200">
                 Pripremili smo za vas sve potrebne podatke za podnošenje PO-SD obrasca!
               </p>
             </div>
@@ -503,12 +503,12 @@ export function PosdWizard({ companyId }: Props) {
               </div>
             </div>
 
-            <div className="rounded-lg border border-amber-500/50 bg-warning/10 p-4">
+            <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
               <div className="flex gap-3">
                 <AlertCircle className="h-5 w-5 text-warning-text flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium text-amber-900 dark:text-amber-200 mb-1">Važan rok!</p>
-                  <p className="text-amber-800 dark:text-amber-300">
+                  <p className="font-medium text-warning-text dark:text-warning mb-1">Važan rok!</p>
+                  <p className="text-warning-text dark:text-warning">
                     PO-SD obrazac mora biti podnesen do <strong>31. siječnja {year + 1}.</strong>{" "}
                     godine. Kašnjenje može rezultirati kaznama.
                   </p>
@@ -518,7 +518,7 @@ export function PosdWizard({ companyId }: Props) {
 
             {/* Generation Error */}
             {generationError && (
-              <div className="rounded-lg border border-red-500/50 bg-danger/10 p-4">
+              <div className="rounded-lg border border-danger-border/50 bg-danger/10 p-4">
                 <p className="text-danger-text text-sm">{generationError}</p>
               </div>
             )}
@@ -565,7 +565,7 @@ export function PosdWizard({ companyId }: Props) {
             <div className="rounded-lg border border-focus/50 bg-interactive/10 p-3">
               <div className="flex gap-3">
                 <Info className="h-4 w-4 text-link flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900 dark:text-blue-200">
+                <div className="text-sm text-info-text dark:text-info">
                   <p>
                     <strong>PDF</strong> - Pregledni dokument za vašu evidenciju
                   </p>

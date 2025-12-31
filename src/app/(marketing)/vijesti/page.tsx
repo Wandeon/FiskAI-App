@@ -399,7 +399,7 @@ export default async function VijestiPage({ searchParams }: PageProps) {
                       href={item.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg px-3 py-3 transition-colors hover:bg-white/5"
+                      className="block rounded-lg px-3 py-3 transition-colors hover:bg-surface/5"
                     >
                       <p className="text-sm font-medium text-white line-clamp-2">{item.title}</p>
                       {item.preview && (
@@ -438,7 +438,7 @@ export default async function VijestiPage({ searchParams }: PageProps) {
                   <li key={post.id}>
                     <Link
                       href={`/vijesti/${post.slug}`}
-                      className="block rounded-lg px-2 py-1 transition-colors hover:bg-white/5"
+                      className="block rounded-lg px-2 py-1 transition-colors hover:bg-surface/5"
                     >
                       <p className="text-sm font-medium text-white line-clamp-2">{post.title}</p>
                       <p className="mt-1 text-xs text-white/50">
@@ -477,7 +477,7 @@ export default async function VijestiPage({ searchParams }: PageProps) {
             {upcomingDeadlines.length > 0 ? (
               <ul className="space-y-3">
                 {upcomingDeadlines.map((deadline) => (
-                  <li key={deadline.id} className="rounded-lg bg-white/5 px-3 py-2">
+                  <li key={deadline.id} className="rounded-lg bg-surface/5 px-3 py-2">
                     <p className="text-sm font-medium text-white line-clamp-2">{deadline.title}</p>
                     <p className="mt-1 text-xs text-white/50">
                       {format(new Date(deadline.deadlineDate), "d. MMM", { locale: hr })}

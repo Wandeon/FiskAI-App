@@ -87,14 +87,14 @@ function Table(props: any) {
 function Th(props: any) {
   return (
     <th
-      className="border-b border-white/10 bg-slate-800/80 px-4 py-2 text-left font-medium text-white"
+      className="border-b border-white/10 bg-surface-elevated/80 px-4 py-2 text-left font-medium text-white"
       {...props}
     />
   )
 }
 
 function Td(props: any) {
-  return <td className="border-b border-white/10 bg-white/5 px-4 py-2 text-white/90" {...props} />
+  return <td className="border-b border-white/10 bg-surface/5 px-4 py-2 text-white/90" {...props} />
 }
 
 export const mdxComponents = {

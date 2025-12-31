@@ -52,6 +52,8 @@ model User {
   reviewQueueCompleted        ReviewQueueItem[]      @relation("ReviewQueueCompletedBy")
   reviewDecisions             ReviewDecision[]       @relation("ReviewDecisionDecider")
   reportingApprovals          ReportingStatus[]      @relation("ReportingStatusApprover")
+  supportTicketsCreated       SupportTicket[]        @relation("SupportTicketCreatedBy")
+  supportTicketsAssigned      SupportTicket[]        @relation("SupportTicketAssignedTo")
 }
 
 model Account {
@@ -151,6 +153,7 @@ model Company {
   stripeTerminalLocationId       String?
   stripeTerminalReaderId         String?
   stockValuationMethod           StockValuationMethod         @default(WEIGHTED_AVERAGE)
+  onboardingStep                 Int                          @default(1)
   aiUsage                        AIUsage[]
   auditLogs                      AuditLog[]
   bankAccounts                   BankAccount[]
@@ -244,6 +247,7 @@ model Company {
   addresses                      Address[]
   organizations                  Organization[]
   taxIdentities                  TaxIdentity[]
+  documents                      Document[]
 }
 
 model ChartOfAccounts {
@@ -1556,6 +1560,34 @@ model Attachment {
   @@index([uraInputId])
 }
 
+enum DocumentStatus {
+  PENDING
+  PROCESSED
+  REVIEWED
+  REJECTED
+}
+
+model Document {
+  id          String         @id @default(cuid())
+  companyId   String
+  name        String
+  category    String         // expense, invoice, contract, other
+  status      DocumentStatus @default(PENDING)
+  totalAmount Decimal?       @db.Decimal(10, 2)
+  currency    String?        @default("EUR")
+  mimeType    String?
+  url         String?
+  uploadedAt  DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  company     Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([category])
+  @@index([status])
+  @@index([uploadedAt])
+}
+
 model ExpenseCorrection {
   id        String   @id @default(cuid())
   companyId String
@@ -2104,10 +2136,14 @@ model SupportTicket {
   body         String?
   status       SupportTicketStatus    @default(OPEN)
   priority     SupportTicketPriority  @default(NORMAL)
+  slaDeadline  DateTime?
+  escalatedAt  DateTime?
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
   category     TicketCategory         @default(GENERAL)
   company      Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy    User?                  @relation("SupportTicketCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignedTo   User?                  @relation("SupportTicketAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   messages     SupportTicketMessage[]
 
   @@index([companyId])
@@ -2115,6 +2151,7 @@ model SupportTicket {
   @@index([priority])
   @@index([createdById])
   @@index([assignedToId])
+  @@index([slaDeadline])
 }
 
 model SupportTicketMessage {
@@ -3265,9 +3302,24 @@ enum AuditAction {
   STAFF_EXPORT_DATA
   STAFF_MARK_REVIEWED
   STAFF_REVIEW_UNMARKED
+  STAFF_REVIEW_MARKED
+  STAFF_BATCH_REVIEW
+
+  // Webhooks
+  WEBHOOK_RECEIVED
 
   // Admin Portal - System Operations
   CIRCUIT_BREAKER_RESET
+
+  // Human Review System
+  HUMAN_REVIEW_COMPLETED
+  HUMAN_REVIEW_ASSIGNED
+
+  // Cross-source validation
+  CROSS_SOURCE_REFERENCE
+
+  // Webhook events
+  EVIDENCE_CREATED_VIA_WEBHOOK
 }
 
 enum ExpenseStatus {
@@ -4734,6 +4786,7 @@ enum SystemStatusEventType {
   UNKNOWN_INTEGRATION
   REFRESH_FAILED
   REFRESH_DEGRADED
+  CIRCUIT_BREAKER_RESET
 }
 
 enum SystemStatusJobStatus {

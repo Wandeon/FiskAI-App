@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
         changes: {
           after: {
             oib,
-            businessName: result.data?.businessName,
-            address: result.data?.address,
+            businessName: result.name,
+            address: result.address,
           },
         },
         ipAddress: getIpFromHeaders(request.headers),

@@ -43,7 +43,7 @@ export function PostCard({
 }: PostCardProps) {
   return (
     <Link href={`/vijesti/${slug}`} className={cn("group block", className)}>
-      <article className="overflow-hidden rounded-xl border border-white/10 bg-white/5 transition-all hover:border-white/20 hover:bg-white/10">
+      <article className="overflow-hidden rounded-xl border border-white/10 bg-surface/5 transition-all hover:border-white/20 hover:bg-surface/10">
         {/* Featured Image */}
         <div className="relative aspect-[16/9]">
           <ImageWithAttribution
@@ -77,7 +77,7 @@ export function PostCard({
           </div>
 
           {/* Title */}
-          <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-white group-hover:text-blue-400">
+          <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-white group-hover:text-link">
             {title}
           </h3>
 

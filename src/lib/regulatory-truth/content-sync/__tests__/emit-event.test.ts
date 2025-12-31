@@ -1,10 +1,6 @@
 // src/lib/regulatory-truth/content-sync/__tests__/emit-event.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import {
-  emitContentSyncEvent,
-  MissingPointersError,
-  type EmitEventParams,
-} from "../emit-event"
+import { emitContentSyncEvent, MissingPointersError, type EmitEventParams } from "../emit-event"
 import { generateEventId, buildEventSignature } from "../event-id"
 import type { ContentSyncEventV1 } from "../types"
 
@@ -44,8 +40,8 @@ vi.mock("@/lib/db/schema/content-sync", () => ({
 
 // Access mocks for assertions
 const getMocks = async () => {
-  const module = await import("@/lib/db/drizzle")
-  return (module as any).__mocks
+  const drizzleModule = await import("@/lib/db/drizzle")
+  return (drizzleModule as unknown as { __mocks: unknown }).__mocks
 }
 
 describe("emit-event", () => {

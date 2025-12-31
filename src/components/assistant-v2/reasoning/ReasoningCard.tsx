@@ -129,7 +129,9 @@ function ApplicabilityDetails({ data }: { data: unknown }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4 text-sm">
-        <span className="text-green-600">✓ {appData?.eligibleCount || 0} primjenjivih pravila</span>
+        <span className="text-success-text">
+          ✓ {appData?.eligibleCount || 0} primjenjivih pravila
+        </span>
       </div>
 
       {appData?.exclusions && appData.exclusions.length > 0 && (
@@ -164,20 +166,20 @@ function ConfidenceDetails({ data }: { data: unknown }) {
         <span
           className={cn(
             "px-2 py-1 rounded text-xs font-medium",
-            confData?.label === "HIGH" && "bg-green-100 text-green-800",
-            confData?.label === "MEDIUM" && "bg-yellow-100 text-yellow-800",
-            confData?.label === "LOW" && "bg-red-100 text-red-800"
+            confData?.label === "HIGH" && "bg-success-bg text-success-text",
+            confData?.label === "MEDIUM" && "bg-warning-bg text-warning-text",
+            confData?.label === "LOW" && "bg-danger-bg text-danger-text"
           )}
         >
           {confData?.label || "N/A"}
         </span>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-tertiary">
           {confData?.score ? `${Math.round(confData.score * 100)}%` : ""}
         </span>
       </div>
 
       {confData?.drivers && confData.drivers.length > 0 && (
-        <ul className="text-sm text-gray-600 space-y-1">
+        <ul className="text-sm text-secondary space-y-1">
           {confData.drivers.map((driver, i) => (
             <li key={i}>• {driver}</li>
           ))}

@@ -22,7 +22,7 @@ export function DemoInvoice({ reduce }: { reduce: boolean }) {
         <div className="flex items-center gap-2">
           <motion.span
             aria-hidden
-            className="h-2 w-2 rounded-full bg-blue-600"
+            className="h-2 w-2 rounded-full bg-interactive"
             animate={pulse as any}
           />
           <span className="text-[10px] font-semibold text-interactive">Spremno</span>
@@ -69,12 +69,12 @@ export function DemoScan({ reduce }: { reduce: boolean }) {
     <div className="grid gap-3 md:grid-cols-[1fr_0.9fr]">
       <div className="relative overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] p-3">
         <div className="space-y-2">
-          <div className="h-3 w-3/5 rounded bg-white/70" />
-          <div className="h-2.5 w-4/5 rounded bg-white/60" />
-          <div className="h-2.5 w-2/3 rounded bg-white/60" />
-          <div className="h-2.5 w-5/6 rounded bg-white/60" />
-          <div className="mt-3 h-2.5 w-1/2 rounded bg-white/60" />
-          <div className="h-2.5 w-3/4 rounded bg-white/60" />
+          <div className="h-3 w-3/5 rounded bg-surface/70" />
+          <div className="h-2.5 w-4/5 rounded bg-surface/60" />
+          <div className="h-2.5 w-2/3 rounded bg-surface/60" />
+          <div className="h-2.5 w-5/6 rounded bg-surface/60" />
+          <div className="mt-3 h-2.5 w-1/2 rounded bg-surface/60" />
+          <div className="h-2.5 w-3/4 rounded bg-surface/60" />
         </div>
 
         {!reduce && (
@@ -222,7 +222,7 @@ export function DemoStatusFlow({ reduce }: { reduce: boolean }) {
 
       <div className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-2">
         <span className="text-xs font-semibold">Praćenje</span>
-        <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white">
+        <span className="rounded-full bg-interactive px-2 py-1 text-[10px] font-semibold text-white">
           Status live
         </span>
       </div>

@@ -43,9 +43,7 @@ export async function getActiveAlerts(): Promise<Alert[]> {
     },
   })
 
-  const dismissedMap = new Map(
-    dismissedAlerts.map((a) => [`${a.type}-${a.companyId}`, a])
-  )
+  const dismissedMap = new Map(dismissedAlerts.map((a) => [`${a.type}-${a.companyId}`, a]))
 
   // Stuck in onboarding >7 days
   const sevenDaysAgo = new Date()
@@ -166,11 +164,7 @@ export async function getActiveAlerts(): Promise<Alert[]> {
   })
 }
 
-export async function dismissAlert(
-  companyId: string,
-  type: string,
-  userId: string
-): Promise<void> {
+export async function dismissAlert(companyId: string, type: string, userId: string): Promise<void> {
   await db.adminAlert.upsert({
     where: {
       companyId_type: {
@@ -196,11 +190,7 @@ export async function dismissAlert(
   })
 }
 
-export async function resolveAlert(
-  companyId: string,
-  type: string,
-  userId: string
-): Promise<void> {
+export async function resolveAlert(companyId: string, type: string, userId: string): Promise<void> {
   await db.adminAlert.upsert({
     where: {
       companyId_type: {

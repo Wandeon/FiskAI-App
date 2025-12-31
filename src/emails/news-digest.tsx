@@ -1,13 +1,4 @@
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Section,
-  Text,
-  Link,
-  Heading,
-} from "@react-email/components"
+import { Html, Head, Body, Container, Section, Text, Link, Heading } from "@react-email/components"
 import React from "react"
 
 export interface NewsDigestPost {
@@ -38,7 +29,9 @@ export default function NewsDigestEmail({ posts, unsubscribeToken }: NewsDigestE
           {/* Header */}
           <Section style={styles.header}>
             <Heading style={styles.headerTitle}>FiskAI Vijesti</Heading>
-            <Text style={styles.headerSubtitle}>Najnovije vijesti iz svijeta poreza i fiskalizacije</Text>
+            <Text style={styles.headerSubtitle}>
+              Najnovije vijesti iz svijeta poreza i fiskalizacije
+            </Text>
             <Text style={styles.headerDate}>{today}</Text>
           </Section>
 
@@ -56,10 +49,7 @@ export default function NewsDigestEmail({ posts, unsubscribeToken }: NewsDigestE
                       <Text style={styles.categoryBadge}>{post.categoryName}</Text>
                     )}
                     <Heading style={styles.postTitle}>
-                      <Link
-                        href={`https://fiskai.hr/vijesti/${post.slug}`}
-                        style={styles.postLink}
-                      >
+                      <Link href={`https://fiskai.hr/vijesti/${post.slug}`} style={styles.postLink}>
                         {post.title}
                       </Link>
                     </Heading>

@@ -50,12 +50,12 @@ export function InvoicePdfPreview({
   return (
     <div
       className={cn(
-        "relative w-full rounded-2xl border border-[var(--border)] bg-white shadow-card overflow-hidden",
+        "relative w-full rounded-2xl border border-[var(--border)] bg-surface shadow-card overflow-hidden",
         "aspect-[210/297] max-h-[600px]",
         className
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-white to-slate-50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white to-surface-1" />
       <div className="relative z-10 flex h-full flex-col px-6 py-6">
         <header className="flex items-start justify-between border-b border-default pb-4">
           <div>
@@ -144,7 +144,7 @@ export function InvoicePdfPreview({
           </table>
         </section>
 
-        <footer className="mt-4 rounded-xl bg-slate-900 text-white p-4 space-y-2">
+        <footer className="mt-4 rounded-xl bg-surface text-white p-4 space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">Neto</span>
             <span>

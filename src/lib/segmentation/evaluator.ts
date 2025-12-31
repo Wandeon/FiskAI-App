@@ -150,15 +150,11 @@ function applyOperator(
 
     case "CONTAINS":
       if (typeof normalizedActual !== "string") return false
-      return normalizedActual
-        .toLowerCase()
-        .includes((normalizedExpected as string).toLowerCase())
+      return normalizedActual.toLowerCase().includes((normalizedExpected as string).toLowerCase())
 
     case "NOT_CONTAINS":
       if (typeof normalizedActual !== "string") return true
-      return !normalizedActual
-        .toLowerCase()
-        .includes((normalizedExpected as string).toLowerCase())
+      return !normalizedActual.toLowerCase().includes((normalizedExpected as string).toLowerCase())
 
     default:
       console.warn(`[segment-evaluator] Unknown operator: ${operator}`)

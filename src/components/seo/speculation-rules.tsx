@@ -13,32 +13,29 @@ export function SpeculationRules() {
       {
         where: {
           and: [
-            { href_matches: '/*' },
-            { not: { href_matches: '/app/*' } },
-            { not: { href_matches: '/staff/*' } },
-            { not: { href_matches: '/admin/*' } },
-            { not: { href_matches: '/api/*' } },
-            { not: { href_matches: '/tools/*' } },
+            { href_matches: "/*" },
+            { not: { href_matches: "/app/*" } },
+            { not: { href_matches: "/staff/*" } },
+            { not: { href_matches: "/admin/*" } },
+            { not: { href_matches: "/api/*" } },
+            { not: { href_matches: "/tools/*" } },
             { not: { selector_matches: "[href*='?']" } },
           ],
         },
-        eagerness: 'moderate',
+        eagerness: "moderate",
       },
     ],
     prefetch: [
       {
         where: {
-          href_matches: ['/vodic/*', '/pojmovnik/*', '/faq/*', '/vijesti/*'],
+          href_matches: ["/vodic/*", "/pojmovnik/*", "/faq/*", "/vijesti/*"],
         },
-        eagerness: 'moderate',
+        eagerness: "moderate",
       },
     ],
   }
 
   return (
-    <script
-      type="speculationrules"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(rules) }}
-    />
+    <script type="speculationrules" dangerouslySetInnerHTML={{ __html: JSON.stringify(rules) }} />
   )
 }

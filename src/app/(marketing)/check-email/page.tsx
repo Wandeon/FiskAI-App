@@ -46,7 +46,7 @@ export default function CheckEmailPage() {
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-info-bg">
           <Mail className="h-8 w-8 text-link" />
         </div>
         <CardTitle className="text-2xl">Provjerite svoj email</CardTitle>
@@ -55,11 +55,12 @@ export default function CheckEmailPage() {
         <p className="text-secondary">Poslali smo vam 6-znamenkasti kod za potvrdu na:</p>
         <p className="font-medium text-lg break-all">{email}</p>
         <p className="text-sm text-secondary">
-          Unesite kod u obrascu za registraciju kako biste potvrdili svoju adresu i aktivirali račun.
+          Unesite kod u obrascu za registraciju kako biste potvrdili svoju adresu i aktivirali
+          račun.
         </p>
 
-        <div className="rounded-md bg-amber-50 border border-amber-200 p-4 text-left">
-          <p className="text-sm text-amber-800">
+        <div className="rounded-md bg-warning-bg border border-warning-border p-4 text-left">
+          <p className="text-sm text-warning-text">
             <strong>Ne vidite email?</strong>
             <br />
             Provjerite spam/neželjenu poštu. Kod vrijedi 10 minuta.
@@ -67,13 +68,15 @@ export default function CheckEmailPage() {
         </div>
 
         {resent && (
-          <div className="flex items-center justify-center gap-2 text-green-600">
+          <div className="flex items-center justify-center gap-2 text-success-text">
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm">Email je ponovno poslan!</span>
           </div>
         )}
 
-        {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+        {error && (
+          <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+        )}
 
         <Button
           variant="outline"

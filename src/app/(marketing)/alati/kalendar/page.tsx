@@ -26,10 +26,7 @@ const formatDayMonth = (dateString: string, year: number) => {
   })
 }
 
-const posdQ4Deadline = formatDayMonth(
-  ADDITIONAL_DEADLINES.posdQuarterly.dates[0],
-  calendarYear + 1
-)
+const posdQ4Deadline = formatDayMonth(ADDITIONAL_DEADLINES.posdQuarterly.dates[0], calendarYear + 1)
 const contributionsDay = DEADLINES.contributions.monthly.dates[0]
 const dohodakDeadline = formatDayMonth(DEADLINES.annualFiling.dohodak.dates[0], calendarYear)
 const posdAnnualDeadline = formatDayMonth(ADDITIONAL_DEADLINES.posd.dates[0], calendarYear)
@@ -87,7 +84,7 @@ export default function CalendarPage() {
         {/* Upsell Section */}
         <section className="mt-12 rounded-xl border border-info-border bg-gradient-to-r from-interactive to-interactive p-6 text-white">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-surface/20">
               <Bell className="h-6 w-6" />
             </div>
             <div className="flex-1">
@@ -109,7 +106,7 @@ export default function CalendarPage() {
               </ul>
               <Link
                 href="/register"
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-primary hover:bg-info-bg"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-surface px-5 py-2.5 text-sm font-semibold text-primary hover:bg-info-bg"
               >
                 Aktiviraj podsjetnike <ArrowRight className="h-4 w-4" />
               </Link>

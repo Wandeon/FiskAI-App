@@ -100,11 +100,17 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
                       <Badge variant="outline">{group.rows.length} transakcija</Badge>
                     </div>
                     <div className="text-sm font-semibold text-foreground">
-                      <span className="text-success-icon">+{formatCurrency(group.totalIncome)}</span>
+                      <span className="text-success-icon">
+                        +{formatCurrency(group.totalIncome)}
+                      </span>
                       {" / "}
-                      <span className="text-danger-text">-{formatCurrency(group.totalExpense)}</span>
+                      <span className="text-danger-text">
+                        -{formatCurrency(group.totalExpense)}
+                      </span>
                       {" = "}
-                      <span className={group.netIncome >= 0 ? "text-success-icon" : "text-danger-text"}>
+                      <span
+                        className={group.netIncome >= 0 ? "text-success-icon" : "text-danger-text"}
+                      >
                         {formatCurrency(group.netIncome)}
                       </span>
                     </div>
@@ -187,7 +193,7 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
               className={`space-y-2 rounded-lg border px-3 py-2 ${
                 summary.netIncome >= 0
                   ? "border-info-border bg-info-bg"
-                  : "border-orange-200 bg-orange-50"
+                  : "border-warning-border bg-orange-50"
               }`}
             >
               <p
@@ -214,7 +220,9 @@ export default async function KprPage({ searchParams }: { searchParams?: Promise
                 {Object.entries(summary.byQuarter).map(([quarter, data]) => (
                   <div key={quarter} className="flex items-center justify-between text-xs">
                     <span className="font-medium">{quarter}</span>
-                    <span className={data.netIncome >= 0 ? "text-success-icon" : "text-danger-text"}>
+                    <span
+                      className={data.netIncome >= 0 ? "text-success-icon" : "text-danger-text"}
+                    >
                       {formatCurrency(data.netIncome)}
                     </span>
                   </div>

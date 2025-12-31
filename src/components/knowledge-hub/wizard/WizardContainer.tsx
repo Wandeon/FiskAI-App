@@ -146,7 +146,7 @@ export function WizardContainer() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Progress bar */}
-      <div className="h-2 overflow-hidden rounded-full bg-white/10 mb-8">
+      <div className="h-2 overflow-hidden rounded-full bg-surface/10 mb-8">
         <motion.div
           className="h-2 rounded-full bg-chart-7"
           animate={{ width: `${progress}%` }}
@@ -181,7 +181,7 @@ export function WizardContainer() {
                         "focus:outline-none focus:ring-2 focus:ring-cyan-500/30",
                         selected
                           ? "border-cyan-500 bg-chart-7/10 ring-2 ring-cyan-500/40"
-                          : "border-white/10 hover:border-white/20 hover:bg-white/5",
+                          : "border-white/10 hover:border-white/20 hover:bg-surface/5",
                         isThinking && "opacity-70 cursor-not-allowed"
                       )}
                     >
@@ -190,8 +190,8 @@ export function WizardContainer() {
                           className={cn(
                             "mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border",
                             selected
-                              ? "border-cyan-400/30 bg-white/10 text-accent"
-                              : "border-white/10 bg-white/5 text-white/70"
+                              ? "border-accent-light/30 bg-surface/10 text-accent"
+                              : "border-white/10 bg-surface/5 text-white/70"
                           )}
                         >
                           <Icon className="h-5 w-5" />

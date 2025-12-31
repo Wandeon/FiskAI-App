@@ -43,7 +43,7 @@ function AssistantPageContent() {
           }}
         />
         <motion.div
-          className="absolute bottom-[20%] left-[40%] h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-[80px]"
+          className="absolute bottom-[20%] left-[40%] h-[300px] w-[300px] rounded-full bg-chart-1/10 blur-[80px]"
           animate={{
             x: [0, 30, 0],
             opacity: [0.1, 0.15, 0.1],

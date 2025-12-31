@@ -28,15 +28,15 @@ async function fixPublicationPipeline(dryRun = false): Promise<PipelineStats> {
     errors: [],
   }
 
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log("RTL Publication Pipeline Fix - Issue #162")
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"}`)
   console.log("")
 
   // Step 1: Get current state
   console.log("Step 1: Analyzing current state...")
-  console.log("-" .repeat(72))
+  console.log("-".repeat(72))
 
   const statusCounts = await db.regulatoryRule.groupBy({
     by: ["status"],
@@ -71,7 +71,7 @@ async function fixPublicationPipeline(dryRun = false): Promise<PipelineStats> {
   // Step 2: Process DRAFT rules through reviewer (T2/T3 only, high confidence)
   // We'll do T2/T3 first as they can auto-approve, T0/T1 require human review
   console.log("Step 2: Processing DRAFT rules (T2/T3, confidence >= 0.95)...")
-  console.log("-" .repeat(72))
+  console.log("-".repeat(72))
 
   const draftRules = await db.regulatoryRule.findMany({
     where: {
@@ -116,7 +116,7 @@ async function fixPublicationPipeline(dryRun = false): Promise<PipelineStats> {
 
   // Step 3: Auto-approve eligible PENDING_REVIEW rules
   console.log("Step 3: Auto-approving eligible PENDING_REVIEW rules...")
-  console.log("-" .repeat(72))
+  console.log("-".repeat(72))
 
   try {
     const autoApproveResult = await autoApproveEligibleRules()
@@ -138,7 +138,7 @@ async function fixPublicationPipeline(dryRun = false): Promise<PipelineStats> {
 
   // Step 4: Check how many APPROVED rules are ready for release
   console.log("Step 4: Checking APPROVED rules ready for release...")
-  console.log("-" .repeat(72))
+  console.log("-".repeat(72))
 
   const approvedRules = await db.regulatoryRule.findMany({
     where: {
@@ -179,7 +179,7 @@ async function fixPublicationPipeline(dryRun = false): Promise<PipelineStats> {
 
   // Step 5: Release all APPROVED rules
   console.log("Step 5: Releasing APPROVED rules...")
-  console.log("-" .repeat(72))
+  console.log("-".repeat(72))
 
   try {
     const ruleIds = approvedRules.map((r) => r.id)
@@ -249,9 +249,9 @@ For very large datasets, you may need to run it multiple times.
 
   const stats = await fixPublicationPipeline(dryRun)
 
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log("Pipeline Fix Complete")
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log(`DRAFT processed: ${stats.draftProcessed}`)
   console.log(`Auto-approved: ${stats.autoApproved}`)
   console.log(`Ready for release: ${stats.readyForRelease}`)
@@ -285,7 +285,9 @@ For very large datasets, you may need to run it multiple times.
   const publishedCount = finalCounts.find((s) => s.status === "PUBLISHED")?._count || 0
   const totalCount = finalCounts.reduce((sum, s) => sum + s._count, 0)
 
-  console.log(`Publication rate: ${publishedCount}/${totalCount} (${((publishedCount / totalCount) * 100).toFixed(1)}%)`)
+  console.log(
+    `Publication rate: ${publishedCount}/${totalCount} (${((publishedCount / totalCount) * 100).toFixed(1)}%)`
+  )
   console.log("")
 
   await closeCliDb()

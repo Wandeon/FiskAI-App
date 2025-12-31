@@ -20,16 +20,14 @@ interface EvidenceRow {
  * Normalize HTML content (same as content-hash.ts normalizeHtmlContent)
  */
 function normalizeHtmlContent(content: string): string {
-  return (
-    content
-      .replace(/<!--[\s\S]*?-->/g, "")
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-      .replace(/\s+/g, " ")
-      .replace(/\b\d{10,13}\b/g, "")
-      .replace(/[a-f0-9]{32,}/gi, "")
-      .trim()
-  )
+  return content
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+    .replace(/\s+/g, " ")
+    .replace(/\b\d{10,13}\b/g, "")
+    .replace(/[a-f0-9]{32,}/gi, "")
+    .trim()
 }
 
 /**

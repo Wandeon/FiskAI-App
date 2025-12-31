@@ -24,7 +24,13 @@ async function validateStep(company: any, step: number): Promise<boolean> {
       return !!company.email?.includes("@")
     case 5:
       if (company.legalForm !== "OBRT_PAUSAL") return true
-      return !!(typeof featureFlags?.acceptsCash === "boolean" && typeof featureFlags?.hasEmployees === "boolean" && typeof featureFlags?.employedElsewhere === "boolean" && typeof featureFlags?.hasEuVatId === "boolean" && featureFlags?.taxBracket)
+      return !!(
+        typeof featureFlags?.acceptsCash === "boolean" &&
+        typeof featureFlags?.hasEmployees === "boolean" &&
+        typeof featureFlags?.employedElsewhere === "boolean" &&
+        typeof featureFlags?.hasEuVatId === "boolean" &&
+        featureFlags?.taxBracket
+      )
     case 6:
       return true
     default:
@@ -32,7 +38,9 @@ async function validateStep(company: any, step: number): Promise<boolean> {
   }
 }
 
-export async function advanceOnboardingStep(targetStep: number): Promise<{ success: boolean; error?: string }> {
+export async function advanceOnboardingStep(
+  targetStep: number
+): Promise<{ success: boolean; error?: string }> {
   const user = await requireAuth()
   const company = await getCurrentCompany(user.id!)
   if (!company) return { success: false, error: "No company found" }

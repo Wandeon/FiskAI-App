@@ -74,7 +74,7 @@ export function CategoryCards({ counts, activeCategory, compact = true }: Catego
               <span
                 className={cn(
                   "px-2 py-0.5 rounded-full text-xs font-bold",
-                  active ? "bg-white/20 text-white" : "bg-white text-secondary"
+                  active ? "bg-surface/20 text-white" : "bg-surface text-secondary"
                 )}
               >
                 {count}

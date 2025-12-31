@@ -74,7 +74,7 @@ async function main() {
     console.log()
 
     // 2.5. RTL Verification - cross-reference with Regulatory Truth Layer
-    let rtlResults: RTLVerificationResult[] = []
+    const rtlResults: RTLVerificationResult[] = []
     if (pool) {
       console.log("🔍 Cross-referencing with Regulatory Truth Layer...")
       console.log()

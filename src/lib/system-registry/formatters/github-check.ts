@@ -247,9 +247,7 @@ function generateText(analysis: BlastAnalysis): string {
 
   // Score breakdown
   if (score.bumps.length > 0) {
-    const bumpList = score.bumps
-      .map((b) => `- ${b.from} -> ${b.to}: ${b.reason}`)
-      .join("\n")
+    const bumpList = score.bumps.map((b) => `- ${b.from} -> ${b.to}: ${b.reason}`).join("\n")
 
     sections.push(
       `### Score Breakdown\n\nBase: **${score.baseScore}** | Final: **${score.score}**\n\n${bumpList}`

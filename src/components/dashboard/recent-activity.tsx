@@ -23,7 +23,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   DRAFT: { label: "Nacrt", className: "bg-[var(--surface-secondary)] text-[var(--muted)]" },
   PENDING_FISCALIZATION: { label: "Fiskalizacija", className: "bg-warning-100 text-warning-700" },
   FISCALIZED: { label: "Fiskalizirano", className: "bg-brand-100 text-brand-700" },
-  SENT: { label: "Poslano", className: "bg-purple-100 text-purple-700" },
+  SENT: { label: "Poslano", className: "bg-chart-2/10 text-chart-2" },
   DELIVERED: { label: "Dostavljeno", className: "bg-success-100 text-success-700" },
   ACCEPTED: { label: "Prihvaćeno", className: "bg-success-100 text-success-700" },
   REJECTED: { label: "Odbijeno", className: "bg-danger-100 text-danger-700" },

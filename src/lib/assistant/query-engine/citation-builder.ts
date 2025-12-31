@@ -39,11 +39,7 @@ function ruleToSourceCard(rule: RuleCandidate): SourceCard | null {
   const authority = rule.authorityLevel as AuthorityLevel
 
   // Check evidence freshness (GitHub issue #158)
-  const freshnessCheck = checkEvidenceFreshness(
-    evidence.fetchedAt,
-    authority,
-    evidence.hasChanged
-  )
+  const freshnessCheck = checkEvidenceFreshness(evidence.fetchedAt, authority, evidence.hasChanged)
 
   // Apply freshness penalty to confidence
   const freshnessPenalty = calculateFreshnessPenalty(freshnessCheck)

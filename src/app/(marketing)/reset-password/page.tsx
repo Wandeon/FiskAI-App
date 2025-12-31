@@ -141,7 +141,7 @@ export default function ResetPasswordPage() {
           <CardTitle className="text-2xl">Nevažeći link</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+          <div className="rounded-md bg-danger-bg p-4 text-sm text-danger-text">
             <p className="font-medium">{error || "Token nedostaje ili je nevažeći"}</p>
             <p className="mt-1">Molimo zatražite novo resetiranje lozinke.</p>
           </div>
@@ -164,7 +164,9 @@ export default function ResetPasswordPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+          {error && (
+            <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+          )}
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">

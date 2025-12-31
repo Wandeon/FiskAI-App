@@ -41,7 +41,7 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
   }
 
   const buttonBaseClass =
-    "flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-all hover:border-white/20 hover:bg-white/10"
+    "flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-surface/5 transition-all hover:border-white/20 hover:bg-surface/10"
 
   return (
     <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
           title={copied ? "Link kopiran!" : "Kopiraj link"}
         >
           {copied ? (
-            <Check className="h-4 w-4 text-emerald-400" />
+            <Check className="h-4 w-4 text-success" />
           ) : (
             <Link2 className="h-4 w-4 text-white/70 hover:text-white" />
           )}

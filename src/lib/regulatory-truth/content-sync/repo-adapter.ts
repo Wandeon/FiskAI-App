@@ -76,10 +76,7 @@ export class GitContentRepoAdapter implements ContentRepoAdapter {
         stdio: ["pipe", "pipe", "pipe"],
       }).trim()
     } catch (err) {
-      throw new RepoWriteFailedError(
-        operation,
-        err instanceof Error ? err : new Error(String(err))
-      )
+      throw new RepoWriteFailedError(operation, err instanceof Error ? err : new Error(String(err)))
     }
   }
 
@@ -148,10 +145,7 @@ export class GitContentRepoAdapter implements ContentRepoAdapter {
   }
 
   pushBranch(branchName: string): void {
-    this.exec(
-      `git push -u origin "${branchName}"`,
-      `pushBranch(${branchName})`
-    )
+    this.exec(`git push -u origin "${branchName}"`, `pushBranch(${branchName})`)
   }
 
   createPR(params: CreatePRParams): string {
@@ -207,16 +201,8 @@ export function generateBranchName(eventId: string, conceptId: string): string {
  * generatePRTitle("pdv-threshold", "update")
  * // => "docs: Update pdv-threshold content from RTL"
  */
-export function generatePRTitle(
-  conceptId: string,
-  changeType: ChangeType
-): string {
-  const action =
-    changeType === "create"
-      ? "Add"
-      : changeType === "update"
-        ? "Update"
-        : "Remove"
+export function generatePRTitle(conceptId: string, changeType: ChangeType): string {
+  const action = changeType === "create" ? "Add" : changeType === "update" ? "Update" : "Remove"
 
   return `docs: ${action} ${conceptId} content from RTL`
 }

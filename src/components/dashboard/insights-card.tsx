@@ -48,7 +48,7 @@ export function InsightsCard({
       title: "Iskoristite FiskAI asistenta",
       description:
         "Pitajte asistenta da pronađe račune u nacrtu, kreira draft e-računa iz ponude ili pripremi podsjetnik za kupca.",
-      icon: <Sparkles className="h-4 w-4 text-purple-600" />,
+      icon: <Sparkles className="h-4 w-4 text-chart-1" />,
     },
   ]
 
@@ -75,7 +75,7 @@ export function InsightsCard({
             key={insight.title}
             className="flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-3"
           >
-            <div className="rounded-full bg-white/70 p-2 shadow-sm dark:bg-[var(--surface)]">
+            <div className="rounded-full bg-surface/70 p-2 shadow-sm dark:bg-[var(--surface)]">
               {insight.icon}
             </div>
             <div className="space-y-1">

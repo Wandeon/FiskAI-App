@@ -400,7 +400,12 @@ export class HumanReviewService {
       total: pending + inProgress,
       byPriority,
       byReason,
-      byStatus: { PENDING: pending, IN_PROGRESS: inProgress, COMPLETED: completed, EXPIRED: expired },
+      byStatus: {
+        PENDING: pending,
+        IN_PROGRESS: inProgress,
+        COMPLETED: completed,
+        EXPIRED: expired,
+      },
       slaBreaches,
       avgResolutionHours,
     }
@@ -541,7 +546,8 @@ export async function requestRuleReview(
     entityType: "RULE",
     entityId: ruleId,
     reason,
-    priority: options.riskTier === "T0" ? "CRITICAL" : options.riskTier === "T1" ? "HIGH" : undefined,
+    priority:
+      options.riskTier === "T0" ? "CRITICAL" : options.riskTier === "T1" ? "HIGH" : undefined,
     context: {
       riskTier: options.riskTier,
       confidence: options.confidence,

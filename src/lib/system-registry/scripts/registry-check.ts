@@ -17,12 +17,7 @@
 import { writeFileSync, mkdirSync } from "fs"
 import { join, dirname } from "path"
 import { harvestAll } from "../harvesters"
-import {
-  computeDrift,
-  enforceRules,
-  formatDriftMarkdown,
-  HARVESTED_TYPES,
-} from "../compute-drift"
+import { computeDrift, enforceRules, formatDriftMarkdown, HARVESTED_TYPES } from "../compute-drift"
 import { ALL_COMPONENTS as DECLARED_COMPONENTS } from "../declarations"
 import { shouldFailRegistryCheck } from "./registry-check-utils"
 

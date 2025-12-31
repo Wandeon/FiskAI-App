@@ -67,7 +67,9 @@ export function BetaFeedbackWidget({ feature, className }: BetaFeedbackWidgetPro
               <div className="rounded-lg bg-info-bg p-1.5 text-info-text">
                 <MessageSquare className="h-4 w-4" />
               </div>
-              <span className="font-semibold text-[var(--foreground)]">Beta povratna informacija</span>
+              <span className="font-semibold text-[var(--foreground)]">
+                Beta povratna informacija
+              </span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -98,7 +100,7 @@ export function BetaFeedbackWidget({ feature, className }: BetaFeedbackWidgetPro
                         "rounded p-1.5 transition-colors",
                         selectedRating && selectedRating >= rating
                           ? "text-amber-500"
-                          : "text-gray-300 hover:text-amber-400"
+                          : "text-muted hover:text-warning"
                       )}
                       aria-label={`Ocjena ${rating} od 5`}
                     >
@@ -113,7 +115,9 @@ export function BetaFeedbackWidget({ feature, className }: BetaFeedbackWidgetPro
 
               {/* Feedback Text */}
               <div>
-                <p className="mb-1.5 text-xs font-medium text-[var(--muted)]">Vasa poruka (opcionalno)</p>
+                <p className="mb-1.5 text-xs font-medium text-[var(--muted)]">
+                  Vasa poruka (opcionalno)
+                </p>
                 <Textarea
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}

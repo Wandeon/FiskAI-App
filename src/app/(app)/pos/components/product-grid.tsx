@@ -61,9 +61,7 @@ export function ProductGrid({ products, onProductClick, onCustomItem }: Props) {
             >
               <div className="font-medium truncate">{product.name}</div>
               {product.sku && <div className="text-xs text-[var(--muted)]">{product.sku}</div>}
-              <div className="mt-2 text-lg font-bold text-link">
-                {formatPrice(product.price)}
-              </div>
+              <div className="mt-2 text-lg font-bold text-link">{formatPrice(product.price)}</div>
               <div className="text-xs text-[var(--muted)]">PDV {product.vatRate}%</div>
             </button>
           ))}

@@ -28,12 +28,7 @@ export interface DLQStats {
  * Get comprehensive DLQ statistics
  */
 export async function getDLQStats(): Promise<DLQStats> {
-  const counts = await deadletterQueue.getJobCounts(
-    "waiting",
-    "active",
-    "completed",
-    "failed"
-  )
+  const counts = await deadletterQueue.getJobCounts("waiting", "active", "completed", "failed")
 
   // Get jobs to analyze by original queue
   const waitingJobs = await deadletterQueue.getJobs(["waiting", "active"], 0, 1000)
@@ -176,19 +171,27 @@ export async function purgeDLQOldJobs(): Promise<number> {
 /**
  * Get error summary from DLQ jobs for analysis
  */
-export async function getDLQErrorSummary(): Promise<Record<string, {
-  count: number
-  queues: string[]
-  latestError: string
-  latestTimestamp: string
-}>> {
+export async function getDLQErrorSummary(): Promise<
+  Record<
+    string,
+    {
+      count: number
+      queues: string[]
+      latestError: string
+      latestTimestamp: string
+    }
+  >
+> {
   const jobs = await getDLQJobs({ limit: 1000 })
-  const summary: Record<string, {
-    count: number
-    queues: Set<string>
-    latestError: string
-    latestTimestamp: string
-  }> = {}
+  const summary: Record<
+    string,
+    {
+      count: number
+      queues: Set<string>
+      latestError: string
+      latestTimestamp: string
+    }
+  > = {}
 
   for (const job of jobs) {
     const data = job.data as DeadLetterJobData
@@ -215,12 +218,15 @@ export async function getDLQErrorSummary(): Promise<Record<string, {
   }
 
   // Convert Sets to arrays for JSON serialization
-  const result: Record<string, {
-    count: number
-    queues: string[]
-    latestError: string
-    latestTimestamp: string
-  }> = {}
+  const result: Record<
+    string,
+    {
+      count: number
+      queues: string[]
+      latestError: string
+      latestTimestamp: string
+    }
+  > = {}
 
   for (const [key, value] of Object.entries(summary)) {
     result[key] = {

@@ -1,13 +1,5 @@
 // src/lib/db/schema/content-sync.ts
-import {
-  pgTable,
-  pgEnum,
-  text,
-  integer,
-  timestamp,
-  jsonb,
-  index,
-} from "drizzle-orm/pg-core"
+import { pgTable, pgEnum, text, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core"
 
 // ============================================================================
 // Enums

@@ -32,7 +32,7 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
         "rounded-lg border",
         isSuperseded && "opacity-60",
         isExpanded ? "p-4" : "p-3",
-        isDark ? "bg-slate-800/30 border-slate-700/50" : "bg-background border-border",
+        isDark ? "bg-surface-elevated/30 border-subtle/50" : "bg-background border-border",
         className
       )}
     >
@@ -50,7 +50,7 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
             {title}
           </h4>
           {reference && (
-            <p className={cn("text-sm", isDark ? "text-slate-400" : "text-muted-foreground")}>
+            <p className={cn("text-sm", isDark ? "text-muted" : "text-muted-foreground")}>
               {reference}
             </p>
           )}
@@ -60,8 +60,8 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
             className={cn(
               "text-xs px-2 py-0.5 rounded",
               isDark
-                ? "bg-amber-900/30 text-amber-400 border border-amber-500/30"
-                : "bg-yellow-100 text-yellow-800"
+                ? "bg-amber-900/30 text-warning border border-warning/30"
+                : "bg-warning-bg text-warning-text"
             )}
           >
             Superseded
@@ -74,7 +74,7 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
         <blockquote
           className={cn(
             "mt-3 pl-3 border-l-2 text-sm italic",
-            isDark ? "border-cyan-500/30 text-slate-400" : "border-muted text-muted-foreground"
+            isDark ? "border-interactive/30 text-muted" : "border-muted text-muted-foreground"
           )}
         >
           &ldquo;{quote}&rdquo;
@@ -86,11 +86,13 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
         <div
           className={cn(
             "mt-3 flex items-center justify-between text-xs",
-            isDark ? "text-slate-400" : "text-muted-foreground"
+            isDark ? "text-muted" : "text-muted-foreground"
           )}
         >
           <div className="flex items-center gap-3">
-            <span>Effective: {effectiveFrom ? new Date(effectiveFrom).toLocaleDateString() : "Unknown"}</span>
+            <span>
+              Effective: {effectiveFrom ? new Date(effectiveFrom).toLocaleDateString() : "Unknown"}
+            </span>
             <span>Confidence: {Math.round(confidence * 100)}%</span>
           </div>
 
@@ -100,13 +102,13 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
             rel="noopener noreferrer"
             className={cn(
               "inline-flex items-center gap-1 hover:underline",
-              isDark ? "text-cyan-400" : "text-primary"
+              isDark ? "text-accent-light" : "text-primary"
             )}
           >
             View source
             <ExternalLink className="w-3 h-3" />
             {pageNumber && (
-              <span className={isDark ? "text-slate-500" : "text-muted-foreground"}>
+              <span className={isDark ? "text-tertiary" : "text-muted-foreground"}>
                 (page {pageNumber})
               </span>
             )}
@@ -123,7 +125,7 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
             rel="noopener noreferrer"
             className={cn(
               "text-xs hover:underline inline-flex items-center gap-1",
-              isDark ? "text-cyan-400" : "text-primary"
+              isDark ? "text-accent-light" : "text-primary"
             )}
           >
             View source

@@ -71,6 +71,33 @@ const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   // Regulatory Truth Layer - Status Transitions & Pipeline
   RULE_STATUS_CHANGED: "Status pravila promijenjen",
   PIPELINE_STAGE_COMPLETE: "Faza cjevovoda završena",
+
+  // Staff Portal - Client Data Access (GDPR compliance)
+  STAFF_VIEW_CLIENT: "Pregled klijenta",
+  STAFF_VIEW_INVOICES: "Pregled računa klijenta",
+  STAFF_VIEW_DOCUMENTS: "Pregled dokumenata klijenta",
+  STAFF_VIEW_REPORTS: "Pregled izvještaja klijenta",
+  STAFF_EXPORT_DATA: "Izvoz podataka klijenta",
+  STAFF_MARK_REVIEWED: "Označeno pregledanim",
+  STAFF_REVIEW_UNMARKED: "Pregled poništen",
+  STAFF_REVIEW_MARKED: "Pregled označen",
+  STAFF_BATCH_REVIEW: "Skupni pregled",
+
+  // Webhooks
+  WEBHOOK_RECEIVED: "Webhook primljen",
+
+  // Admin Portal - System Operations
+  CIRCUIT_BREAKER_RESET: "Circuit breaker resetiran",
+
+  // Human Review System
+  HUMAN_REVIEW_COMPLETED: "Ljudski pregled završen",
+  HUMAN_REVIEW_ASSIGNED: "Ljudski pregled dodijeljen",
+
+  // Cross-source validation
+  CROSS_SOURCE_REFERENCE: "Unakrsna referenca izvora",
+
+  // Webhook events
+  EVIDENCE_CREATED_VIA_WEBHOOK: "Dokaz kreiran putem webhoka",
 }
 
 const ENTITY_LABELS: Record<string, string> = {

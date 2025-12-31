@@ -21,10 +21,7 @@ import {
 import { computeMeaningSignature } from "../utils/meaning-signature"
 import { validateExplanation, createQuoteOnlyExplanation } from "../utils/explanation-validator"
 import { createEdgeWithCycleCheck, CycleDetectedError } from "../graph/cycle-detection"
-import {
-  validateSourceConsistency,
-  logCrossSourceReferences,
-} from "../utils/source-consistency"
+import { validateSourceConsistency, logCrossSourceReferences } from "../utils/source-consistency"
 import { computeDerivedConfidence } from "../utils/derived-confidence"
 
 // =============================================================================
@@ -530,9 +527,7 @@ export async function markOrphanedPointersForReview(
     },
   })
 
-  console.log(
-    `[composer] Marked ${pointerIds.length} orphaned pointers for review: ${reason}`
-  )
+  console.log(`[composer] Marked ${pointerIds.length} orphaned pointers for review: ${reason}`)
 }
 
 /**

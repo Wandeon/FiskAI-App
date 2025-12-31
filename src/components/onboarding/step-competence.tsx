@@ -120,7 +120,7 @@ export function StepCompetence() {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">{option.label}</span>
                   {option.value === "average" && (
-                    <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-info-bg text-info-text px-2 py-0.5 rounded-full">
                       Preporučeno
                     </span>
                   )}
@@ -137,7 +137,9 @@ export function StepCompetence() {
                 </ul>
 
                 <div className="mt-3 pt-3 border-t border-default">
-                  <p className="text-xs font-medium text-foreground mb-1">Kako će to utjecati na sučelje:</p>
+                  <p className="text-xs font-medium text-foreground mb-1">
+                    Kako će to utjecati na sučelje:
+                  </p>
                   <p className="text-xs text-secondary leading-relaxed">{option.uiChanges}</p>
                 </div>
               </div>

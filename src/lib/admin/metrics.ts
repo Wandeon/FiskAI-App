@@ -119,7 +119,7 @@ export async function getComplianceHealth(): Promise<ComplianceHealth> {
 export interface RecentSignup {
   id: string
   name: string
-  legalForm: string
+  legalForm: string | null
   createdAt: Date
   subscriptionStatus: string | null
 }

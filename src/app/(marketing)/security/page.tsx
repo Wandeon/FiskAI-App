@@ -62,7 +62,7 @@ export default function SecurityPage() {
 
         <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-8">
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="mt-1">
                   <Shield className="h-6 w-6 text-primary" />
@@ -76,28 +76,28 @@ export default function SecurityPage() {
               </div>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
-                  <Lock className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Lock className="h-4 w-4 text-success-text mt-0.5 flex-shrink-0" />
                   <span>
                     <strong>Kontrola ostaje kod klijenta:</strong> jasni izvozi, audit tragovi i
                     potpuna transparentnost promjena.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Users className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Users className="h-4 w-4 text-success-text mt-0.5 flex-shrink-0" />
                   <span>
                     <strong>Najmanje privilegije:</strong> multi-tenant izolacija, role-based
                     pristupi po tvrtki.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Eye className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Eye className="h-4 w-4 text-success-text mt-0.5 flex-shrink-0" />
                   <span>
                     <strong>Auditabilnost:</strong> kompletan trag tko je što promijenio, kada i
                     zašto.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="h-4 w-4 text-success-text mt-0.5 flex-shrink-0" />
                   <span>
                     <strong>AI je opcionalan i kontroliran:</strong> korisnik uvijek potvrđuje AI
                     prijedloge, nikad &quot;tiho&quot; mijenjanje.
@@ -106,7 +106,7 @@ export default function SecurityPage() {
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="mt-1">
                   <Database className="h-6 w-6 text-primary" />
@@ -156,7 +156,7 @@ export default function SecurityPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="mt-1">
                   <Clock className="h-6 w-6 text-primary" />
@@ -202,7 +202,7 @@ export default function SecurityPage() {
           </div>
 
           <div className="space-y-8">
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="mt-1">
                   <Download className="h-6 w-6 text-primary" />
@@ -250,7 +250,7 @@ export default function SecurityPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="mt-1">
                   <AlertTriangle className="h-6 w-6 text-primary" />
@@ -302,7 +302,7 @@ export default function SecurityPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="mt-1">
                   <Globe className="h-6 w-6 text-primary" />

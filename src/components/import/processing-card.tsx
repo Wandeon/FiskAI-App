@@ -64,7 +64,7 @@ export function ProcessingCard({
     <div
       className={`
       rounded-lg border p-4 transition-all
-      ${isCurrentForReview ? "border-focus bg-info-bg ring-2 ring-blue-200" : "border-default bg-white"}
+      ${isCurrentForReview ? "border-focus bg-info-bg ring-2 ring-blue-200" : "border-default bg-surface"}
       ${isDone ? "opacity-60" : ""}
     `}
     >
@@ -84,7 +84,7 @@ export function ProcessingCard({
               <select
                 value={job.documentType || "INVOICE"}
                 onChange={(e) => onTypeChange(job.id, e.target.value as DocumentType)}
-                className="mt-1 text-xs border border-default rounded px-2 py-1 bg-white focus:ring-2 focus:ring-border-focus"
+                className="mt-1 text-xs border border-default rounded px-2 py-1 bg-surface focus:ring-2 focus:ring-border-focus"
                 onClick={(e) => e.stopPropagation()}
               >
                 <option value="BANK_STATEMENT">Bankovni izvod</option>

@@ -126,11 +126,13 @@ function formatDate(date: Date): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("hr-HR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    currency: "EUR",
-  }).format(amount) + " €"
+  return (
+    new Intl.NumberFormat("hr-HR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      currency: "EUR",
+    }).format(amount) + " €"
+  )
 }
 
 export function VatPdfDocument({
@@ -179,7 +181,9 @@ export function VatPdfDocument({
           <Text style={styles.sectionTitle}>Ulazni PDV (iz troškova)</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Priznati PDV:</Text>
-            <Text style={[styles.value, styles.positive]}>{formatCurrency(inputVat.deductible)}</Text>
+            <Text style={[styles.value, styles.positive]}>
+              {formatCurrency(inputVat.deductible)}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Nepriznati PDV:</Text>

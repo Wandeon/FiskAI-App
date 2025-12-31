@@ -58,7 +58,7 @@ export default async function GlossaryPage() {
             <a
               key={letter}
               href={`#${letter}`}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 font-semibold text-white hover:bg-interactive/10 hover:text-primary hover:border-focus"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface/5 backdrop-blur-sm border border-white/10 font-semibold text-white hover:bg-interactive/10 hover:text-primary hover:border-focus"
             >
               {letter}
             </a>
@@ -75,7 +75,7 @@ export default async function GlossaryPage() {
                   <Link
                     key={term.slug}
                     href={`/rjecnik/${term.slug}`}
-                    className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-4 transition-all hover:border-focus hover:bg-white/10"
+                    className="group flex items-center justify-between rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-4 transition-all hover:border-focus hover:bg-surface/10"
                   >
                     <div>
                       <h3 className="font-semibold text-white group-hover:text-primary">

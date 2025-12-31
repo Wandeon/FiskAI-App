@@ -32,7 +32,8 @@ describe("AnswerSection", () => {
   it("renders empty state when IDLE with no answer", () => {
     render(<AnswerSection state={idleState} surface="MARKETING" />)
 
-    expect(screen.getByText(/verified answer will appear here/i)).toBeInTheDocument()
+    // Croatian: "Verificirani odgovor će se pojaviti ovdje"
+    expect(screen.getByText(/verificirani odgovor/i)).toBeInTheDocument()
   })
 
   it("renders loading skeleton when LOADING", () => {
@@ -61,8 +62,9 @@ describe("AnswerSection", () => {
       ...mockResponse,
       kind: "REFUSAL",
       refusalReason: "OUT_OF_SCOPE",
+      headline: "Izvan našeg opsega", // Set headline explicitly since component uses headline || config.title
       refusal: {
-        message: "This question is outside our coverage.",
+        message: "Ovo pitanje je izvan našeg opsega.",
       },
     }
     const refusalState: AssistantControllerState = {
@@ -73,8 +75,9 @@ describe("AnswerSection", () => {
 
     render(<AnswerSection state={refusalState} surface="MARKETING" />)
 
-    expect(screen.getByRole("heading", { name: /outside our coverage/i })).toBeInTheDocument()
-    expect(screen.getByText("This question is outside our coverage.")).toBeInTheDocument()
+    // Croatian: "Izvan našeg opsega" (from response.headline)
+    expect(screen.getByRole("heading", { name: /izvan našeg opsega/i })).toBeInTheDocument()
+    expect(screen.getByText("Ovo pitanje je izvan našeg opsega.")).toBeInTheDocument()
   })
 
   it("renders error card when status is ERROR", () => {

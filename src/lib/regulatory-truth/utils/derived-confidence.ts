@@ -18,8 +18,7 @@ export function computeDerivedConfidence(
   if (pointers.length === 0) return 0
 
   // Calculate average pointer confidence
-  const avgPointerConfidence =
-    pointers.reduce((sum, p) => sum + p.confidence, 0) / pointers.length
+  const avgPointerConfidence = pointers.reduce((sum, p) => sum + p.confidence, 0) / pointers.length
 
   // Find minimum pointer confidence (weakest evidence)
   const minPointerConfidence = Math.min(...pointers.map((p) => p.confidence))

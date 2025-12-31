@@ -140,13 +140,13 @@ export default function AcceptInvitationPage() {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <XCircle className="h-10 w-10 text-red-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-bg">
+              <XCircle className="h-10 w-10 text-danger-text" />
             </div>
             <CardTitle className="text-2xl">Nevažeći poziv</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+            <div className="rounded-md bg-danger-bg p-4 text-sm text-danger-text">
               <p className="font-medium">{error}</p>
               <p className="mt-1">Molimo kontaktirajte vašeg računovođu za novi poziv.</p>
             </div>
@@ -199,7 +199,9 @@ export default function AcceptInvitationPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+            {error && (
+              <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>
+            )}
 
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">

@@ -52,7 +52,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
         />
         <span
           className={cn(
-            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+            "inline-block h-4 w-4 transform rounded-full bg-surface transition-transform",
             checked ? "translate-x-6" : "translate-x-1"
           )}
           aria-hidden="true"

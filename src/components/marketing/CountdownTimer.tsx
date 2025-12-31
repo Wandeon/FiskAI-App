@@ -90,8 +90,8 @@ export function CountdownTimer({
 
   if (!mounted) {
     return (
-      <div className={cn("rounded-xl border border-white/10 bg-white/5 p-4", className)}>
-        <div className="h-16 animate-pulse rounded bg-white/10" />
+      <div className={cn("rounded-xl border border-white/10 bg-surface/5 p-4", className)}>
+        <div className="h-16 animate-pulse rounded bg-surface/10" />
       </div>
     )
   }
@@ -121,7 +121,7 @@ export function CountdownTimer({
         </div>
 
         {/* Progress bar */}
-        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-surface/10">
           <motion.div
             className={cn("h-full rounded-full", styles.bar)}
             initial={{ width: 0 }}
@@ -177,7 +177,7 @@ export function CountdownTimer({
           <span>Napredak godine</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+        <div className="h-2 overflow-hidden rounded-full bg-surface/10">
           <motion.div
             className={cn("h-full rounded-full", styles.bar)}
             initial={{ width: 0 }}
@@ -192,7 +192,7 @@ export function CountdownTimer({
           href="/fiskalizacija"
           className={cn(
             "flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition-all",
-            "bg-white/10 text-white hover:bg-white/20"
+            "bg-surface/10 text-white hover:bg-surface/20"
           )}
         >
           Provjeri svoju spremnost →
@@ -212,7 +212,7 @@ function TimeBox({
   highlight?: boolean
 }) {
   return (
-    <div className={cn("rounded-lg p-2 text-center", highlight ? "bg-white/15" : "bg-white/5")}>
+    <div className={cn("rounded-lg p-2 text-center", highlight ? "bg-surface/15" : "bg-surface/5")}>
       <div className={cn("text-xl font-bold", highlight ? "text-white" : "text-white/80")}>
         {value.toString().padStart(2, "0")}
       </div>

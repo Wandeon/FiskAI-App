@@ -255,10 +255,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       }
 
       if (companyUser.role === "OWNER") {
-        return NextResponse.json(
-          { error: "Cannot remove owner from company" },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: "Cannot remove owner from company" }, { status: 400 })
       }
 
       await logAudit({

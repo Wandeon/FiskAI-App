@@ -132,7 +132,7 @@ export default async function GlossaryTermPage({ params }: Props) {
                     <Link
                       key={i}
                       href={`/rjecnik/${related}`}
-                      className="rounded-full bg-white/10 px-3 py-1 text-sm hover:bg-white/20"
+                      className="rounded-full bg-surface/10 px-3 py-1 text-sm hover:bg-surface/20"
                     >
                       {related}
                     </Link>

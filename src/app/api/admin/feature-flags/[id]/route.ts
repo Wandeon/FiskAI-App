@@ -34,8 +34,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { id } = await params
   const body = await request.json()
 
-  const { name, description, scope, status, defaultValue, rolloutPercentage, category, tags, reason } =
-    body
+  const {
+    name,
+    description,
+    scope,
+    status,
+    defaultValue,
+    rolloutPercentage,
+    category,
+    tags,
+    reason,
+  } = body
 
   const flag = await getFlagById(id)
   if (!flag) {

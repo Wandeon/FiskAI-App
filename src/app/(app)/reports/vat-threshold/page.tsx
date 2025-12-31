@@ -215,7 +215,7 @@ export default async function VatThresholdReportPage() {
           <CardContent>
             <div
               className={`text-2xl font-bold ${
-                reportData.remainingUntilThreshold > 0 ? "text-amber-600" : "text-success-icon"
+                reportData.remainingUntilThreshold > 0 ? "text-warning-text" : "text-success-icon"
               }`}
             >
               {formatCurrency(reportData.remainingUntilThreshold, "EUR")}
@@ -239,7 +239,7 @@ export default async function VatThresholdReportPage() {
               className={`text-2xl font-bold ${
                 reportData.projectedAnnualRevenue >= reportData.vatThreshold
                   ? "text-danger-text"
-                  : "text-purple-600"
+                  : "text-chart-1"
               }`}
             >
               {formatCurrency(reportData.projectedAnnualRevenue, "EUR")}
@@ -334,7 +334,7 @@ export default async function VatThresholdReportPage() {
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
                   <div
-                    className="h-2 rounded-full bg-blue-500"
+                    className="h-2 rounded-full bg-interactive"
                     style={{
                       width: `${Math.min(month.percentageOfThreshold * 2.5, 100)}%`,
                       backgroundColor:
@@ -380,12 +380,12 @@ export default async function VatThresholdReportPage() {
               )}
 
               {reportData.status === "WARNING" && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <h4 className="font-medium text-amber-800 flex items-center gap-1">
+                <div className="p-3 bg-warning-bg border border-warning-border rounded-lg">
+                  <h4 className="font-medium text-warning-text flex items-center gap-1">
                     <AlertTriangle className="h-4 w-4" />
                     Opasna zona
                   </h4>
-                  <p className="text-sm text-amber-700 mt-1">
+                  <p className="text-sm text-warning-text mt-1">
                     Na putu ste da prekoračite prag od 40.000 €. Procijenjeno{" "}
                     {formatCurrency(reportData.projectedAnnualRevenue, "EUR")}
                   </p>
@@ -463,8 +463,8 @@ export default async function VatThresholdReportPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-purple-100 p-1">
-                  <Target className="h-4 w-4 text-purple-600" />
+                <div className="mt-0.5 rounded-full bg-chart-2/10 p-1">
+                  <Target className="h-4 w-4 text-chart-1" />
                 </div>
                 <div>
                   <h4 className="font-medium">Planiranje rasta</h4>
@@ -475,8 +475,8 @@ export default async function VatThresholdReportPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-amber-100 p-1">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <div className="mt-0.5 rounded-full bg-warning-bg p-1">
+                  <AlertTriangle className="h-4 w-4 text-warning-text" />
                 </div>
                 <div>
                   <h4 className="font-medium">Revizija poslovanja</h4>

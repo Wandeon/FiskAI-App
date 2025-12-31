@@ -8,17 +8,10 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import {
-  getExperiment,
-  updateExperiment,
-  deleteExperiment,
-} from "@/lib/experiments"
+import { getExperiment, updateExperiment, deleteExperiment } from "@/lib/experiments"
 import type { UpdateExperimentInput } from "@/lib/experiments/types"
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const session = await auth()
@@ -41,17 +34,11 @@ export async function GET(
     return NextResponse.json({ experiment })
   } catch (error) {
     console.error("Error getting experiment:", error)
-    return NextResponse.json(
-      { error: "Failed to get experiment" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to get experiment" }, { status: 500 })
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const session = await auth()

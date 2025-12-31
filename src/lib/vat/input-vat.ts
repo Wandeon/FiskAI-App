@@ -1,4 +1,5 @@
-import type { Company, Expense, ExpenseCategory, ExpenseLine, Prisma } from "@prisma/client"
+import type { Company, Expense, ExpenseCategory, ExpenseLine } from "@prisma/client"
+import type { TransactionClient } from "@/lib/db"
 import { parseAppliesWhen, evaluateAppliesWhen } from "@/lib/regulatory-truth/dsl/applies-when"
 
 type VatInputRuleReference = {
@@ -58,7 +59,7 @@ function buildVatInputContext(
 }
 
 export async function evaluateVatInputRules(
-  tx: Prisma.TransactionClient,
+  tx: TransactionClient,
   company: Company,
   expense: Expense,
   line: ExpenseLine,

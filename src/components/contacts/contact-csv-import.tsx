@@ -177,7 +177,7 @@ export function ContactCsvImport({ onParsed, onImportComplete }: ContactCsvImpor
 
           <div className="mt-3 flex items-center gap-2 text-xs">
             {error ? (
-              <span className="inline-flex items-center gap-1 text-rose-600">
+              <span className="inline-flex items-center gap-1 text-danger">
                 <AlertCircle className="h-4 w-4" />
                 {error}
               </span>
@@ -185,7 +185,7 @@ export function ContactCsvImport({ onParsed, onImportComplete }: ContactCsvImpor
               <span
                 className={cn(
                   "inline-flex items-center gap-1",
-                  rowCount > 0 ? "text-emerald-600" : "text-[var(--muted)]"
+                  rowCount > 0 ? "text-success-text" : "text-[var(--muted)]"
                 )}
               >
                 <CheckCircle2 className="h-4 w-4" />

@@ -94,7 +94,7 @@ export function SwitchProviderCTA({ className, showAfterScroll = 600 }: SwitchPr
               {/* Dismiss button */}
               <button
                 onClick={handleDismiss}
-                className="ml-1 rounded-full p-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white/70"
+                className="ml-1 rounded-full p-1 text-white/40 transition-colors hover:bg-surface/10 hover:text-white/70"
                 aria-label="Zatvori"
               >
                 <X className="h-3.5 w-3.5" />

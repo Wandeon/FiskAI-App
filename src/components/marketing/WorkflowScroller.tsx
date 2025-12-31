@@ -243,7 +243,7 @@ export function WorkflowScroller({
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold",
                     isActive
-                      ? "border-info-border bg-white text-interactive"
+                      ? "border-info-border bg-surface text-interactive"
                       : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]"
                   )}
                 >

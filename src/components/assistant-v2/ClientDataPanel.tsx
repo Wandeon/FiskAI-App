@@ -25,7 +25,7 @@ function ScanLineOverlay() {
       animate={{ opacity: 1 }}
     >
       <motion.div
-        className="absolute inset-x-0 h-6 bg-gradient-to-b from-cyan-500/5 to-transparent"
+        className="absolute inset-x-0 h-6 bg-gradient-to-b from-accent/5 to-transparent"
         initial={{ y: "-100%" }}
         animate={{ y: "100%" }}
         transition={{ duration: 1.8, ease: "linear", repeat: Infinity }}
@@ -47,7 +47,7 @@ export function ClientDataPanel({
   const isDark = variant === "dark"
 
   const baseCardClass = isDark
-    ? "bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-xl"
+    ? "bg-surface-elevated/40 backdrop-blur-md border border-subtle/50 rounded-xl"
     : "border rounded-lg"
 
   return (
@@ -59,12 +59,12 @@ export function ClientDataPanel({
       <header
         className={cn(
           "p-4 border-b flex items-center justify-between",
-          isDark ? "border-slate-700/50" : "border-border"
+          isDark ? "border-subtle/50" : "border-border"
         )}
       >
         <h3 className={cn("font-medium", isDark ? "text-white" : "text-foreground")}>Your data</h3>
         {clientContext?.completeness && (
-          <span className={cn("text-xs", isDark ? "text-slate-400" : "text-muted-foreground")}>
+          <span className={cn("text-xs", isDark ? "text-muted" : "text-muted-foreground")}>
             {Math.round(clientContext.completeness.score * 100)}% complete
           </span>
         )}
@@ -78,24 +78,24 @@ export function ClientDataPanel({
             <div
               className={cn(
                 "h-4 rounded w-1/2",
-                isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+                isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
               )}
             />
             <div
               className={cn(
                 "h-8 rounded",
-                isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+                isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
               )}
             />
             <div
               className={cn(
                 "h-4 rounded w-3/4",
-                isDark ? "bg-slate-700/50 animate-pulse" : "bg-muted animate-pulse"
+                isDark ? "bg-surface-elevated/50 animate-pulse" : "bg-muted animate-pulse"
               )}
             />
             {isDark && (
               <motion.span
-                className="text-cyan-400/70 text-xs"
+                className="text-accent-light/70 text-xs"
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
@@ -107,7 +107,7 @@ export function ClientDataPanel({
 
         {/* Empty state */}
         {isEmpty && (
-          <p className={cn("text-sm", isDark ? "text-slate-400" : "text-muted-foreground")}>
+          <p className={cn("text-sm", isDark ? "text-muted" : "text-muted-foreground")}>
             Your data will appear here
           </p>
         )}
@@ -117,7 +117,7 @@ export function ClientDataPanel({
           <div
             className={cn(
               "flex items-center gap-2 text-sm mb-4",
-              isDark ? "text-cyan-400" : "text-muted-foreground"
+              isDark ? "text-accent-light" : "text-muted-foreground"
             )}
           >
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -138,23 +138,23 @@ export function ClientDataPanel({
               <div
                 className={cn(
                   "p-3 rounded-lg border",
-                  isDark ? "bg-cyan-500/10 border-cyan-500/30" : "bg-primary/5 border-primary/20"
+                  isDark ? "bg-accent/10 border-interactive/30" : "bg-primary/5 border-primary/20"
                 )}
               >
-                <p className={cn("text-xs", isDark ? "text-slate-400" : "text-muted-foreground")}>
+                <p className={cn("text-xs", isDark ? "text-muted" : "text-muted-foreground")}>
                   {clientContext.computedResult.label}
                 </p>
                 <p
-                  className={cn("text-xl font-semibold", isDark ? "text-cyan-400" : "text-primary")}
+                  className={cn(
+                    "text-xl font-semibold",
+                    isDark ? "text-accent-light" : "text-primary"
+                  )}
                 >
                   {clientContext.computedResult.value}
                 </p>
                 {clientContext.computedResult.explanation && (
                   <p
-                    className={cn(
-                      "text-xs mt-1",
-                      isDark ? "text-slate-400" : "text-muted-foreground"
-                    )}
+                    className={cn("text-xs mt-1", isDark ? "text-muted" : "text-muted-foreground")}
                   >
                     {clientContext.computedResult.explanation}
                   </p>
@@ -169,7 +169,7 @@ export function ClientDataPanel({
 
             {/* Completeness notes */}
             {clientContext.completeness.notes && (
-              <p className={cn("text-xs", isDark ? "text-slate-400" : "text-muted-foreground")}>
+              <p className={cn("text-xs", isDark ? "text-muted" : "text-muted-foreground")}>
                 {clientContext.completeness.notes}
               </p>
             )}
@@ -180,7 +180,7 @@ export function ClientDataPanel({
                 <p
                   className={cn(
                     "font-medium mb-1",
-                    isDark ? "text-slate-400" : "text-muted-foreground"
+                    isDark ? "text-muted" : "text-muted-foreground"
                   )}
                 >
                   Assumptions:
@@ -191,7 +191,7 @@ export function ClientDataPanel({
                       key={i}
                       className={cn(
                         "flex gap-1",
-                        isDark ? "text-slate-500" : "text-muted-foreground"
+                        isDark ? "text-tertiary" : "text-muted-foreground"
                       )}
                     >
                       <span>•</span>
@@ -207,21 +207,23 @@ export function ClientDataPanel({
               <div
                 className={cn(
                   "p-3 rounded-lg border",
-                  isDark ? "bg-amber-900/20 border-amber-500/30" : "bg-yellow-50 border-yellow-200"
+                  isDark
+                    ? "bg-amber-900/20 border-warning/30"
+                    : "bg-warning-bg border-warning-border"
                 )}
               >
                 <div className="flex items-start gap-2">
                   <AlertCircle
                     className={cn(
                       "w-4 h-4 mt-0.5 shrink-0",
-                      isDark ? "text-amber-400" : "text-yellow-600"
+                      isDark ? "text-warning" : "text-warning-text"
                     )}
                   />
                   <div className="flex-1">
                     <p
                       className={cn(
                         "text-sm font-medium",
-                        isDark ? "text-amber-300" : "text-yellow-800"
+                        isDark ? "text-warning-text" : "text-warning-text"
                       )}
                     >
                       Missing data
@@ -232,7 +234,7 @@ export function ClientDataPanel({
                           key={i}
                           className={cn(
                             "text-xs",
-                            isDark ? "text-amber-400/80" : "text-yellow-700"
+                            isDark ? "text-warning/80" : "text-warning-text"
                           )}
                         >
                           <strong>{item.label}</strong>
@@ -249,7 +251,7 @@ export function ClientDataPanel({
                         className={cn(
                           "mt-2 text-xs px-3 py-1.5 rounded transition-colors",
                           isDark
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
+                            ? "bg-warning-bg0/20 text-warning-text border border-warning/30 hover:bg-warning-bg0/30"
                             : "bg-yellow-600 text-white hover:bg-yellow-700"
                         )}
                       >

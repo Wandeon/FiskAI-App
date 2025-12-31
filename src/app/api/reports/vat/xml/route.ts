@@ -12,10 +12,7 @@ export async function GET(request: NextRequest) {
     const toParam = searchParams.get("to")
 
     if (!fromParam || !toParam) {
-      return NextResponse.json(
-        { error: "Datumi 'from' i 'to' su obavezni" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Datumi 'from' i 'to' su obavezni" }, { status: 400 })
     }
 
     const dateFrom = new Date(fromParam)
@@ -23,10 +20,7 @@ export async function GET(request: NextRequest) {
 
     // Validate dates
     if (isNaN(dateFrom.getTime()) || isNaN(dateTo.getTime())) {
-      return NextResponse.json(
-        { error: "Nevaljani datumi" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Nevaljani datumi" }, { status: 400 })
     }
 
     if (dateFrom > dateTo) {
@@ -61,9 +55,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("PDV XML export error:", error)
-    return NextResponse.json(
-      { error: "Neuspjesan PDV XML izvoz" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Neuspjesan PDV XML izvoz" }, { status: 500 })
   }
 }

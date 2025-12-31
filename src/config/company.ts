@@ -70,8 +70,7 @@ export const companyInfo: CompanyInfo = {
   bank: process.env.NEXT_PUBLIC_COMPANY_BANK || "PBZ",
   vatId: process.env.NEXT_PUBLIC_COMPANY_VAT_ID || `HR${FISKAI_OIB}`,
   phone: process.env.NEXT_PUBLIC_COMPANY_PHONE || FISKAI_PHONE,
-  phoneEmergency:
-    process.env.NEXT_PUBLIC_COMPANY_PHONE_EMERGENCY || FISKAI_PHONE_EMERGENCY,
+  phoneEmergency: process.env.NEXT_PUBLIC_COMPANY_PHONE_EMERGENCY || FISKAI_PHONE_EMERGENCY,
   address: process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "Ulica grada Vukovara 269a",
   city: process.env.NEXT_PUBLIC_COMPANY_CITY || "10000 Zagreb",
   country: "Hrvatska",

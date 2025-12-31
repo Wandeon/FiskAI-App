@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { auth } from "@/lib/auth"
-import { getUserCompanies } from "@/app/actions/company-switch"
+import { getUserCompanies } from "@/lib/actions/company-switch"
 import { getCurrentCompany } from "@/lib/auth-utils"
 import { Button } from "@/components/ui/button"
 import { CompanySwitcher } from "./company-switcher"
@@ -34,7 +34,7 @@ export async function Header() {
   let capabilities = deriveCapabilities(null)
 
   if (session?.user?.id && currentCompany) {
-    const [feed, companyUser, contactCount, productCount, eInvoiceCount] = await Promise.all([
+    const [feed, companyUser] = await Promise.all([
       getNotificationCenterFeed({
         userId: session.user.id,
         company: {
@@ -47,9 +47,6 @@ export async function Header() {
         where: { userId: session.user.id, companyId: currentCompany.id },
         select: { notificationSeenAt: true },
       }),
-      db.contact.count({ where: { companyId: currentCompany.id } }),
-      db.product.count({ where: { companyId: currentCompany.id } }),
-      db.eInvoice.count({ where: { companyId: currentCompany.id } }),
     ])
     notificationItems = feed.items
     notificationUnreadCount = countUnreadNotifications(

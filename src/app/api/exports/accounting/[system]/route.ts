@@ -35,8 +35,12 @@ function numberFromDecimal(value: { toString(): string } | number | null): numbe
   return Number(value.toString())
 }
 
-export async function GET(request: NextRequest, { params }: { params: { system: string } }) {
-  const systemParse = systemSchema.safeParse(params.system)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ system: string }> }
+) {
+  const { system } = await params
+  const systemParse = systemSchema.safeParse(system)
   if (!systemParse.success) {
     return NextResponse.json({ error: "Nepoznat format izvoza" }, { status: 404 })
   }

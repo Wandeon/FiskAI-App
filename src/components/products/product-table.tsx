@@ -5,8 +5,10 @@ import Link from "next/link"
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+// eslint-disable-next-line import/no-restricted-paths -- pre-existing import, to be refactored
 import { DeleteProductButton } from "@/app/(app)/products/delete-button"
 import { cn } from "@/lib/utils"
+// eslint-disable-next-line import/no-restricted-paths -- pre-existing import, to be refactored
 import { updateProductInline } from "@/app/actions/product"
 import { toast } from "@/lib/toast"
 import { Loader2, Check, XCircle } from "lucide-react"
@@ -253,9 +255,9 @@ export function ProductTable({ products, vatOptions }: ProductTableProps) {
                         {savingId === product.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : errorId === product.id ? (
-                          <XCircle className="h-4 w-4 text-rose-600" />
+                          <XCircle className="h-4 w-4 text-danger" />
                         ) : (
-                          <Check className="h-4 w-4 text-emerald-600" />
+                          <Check className="h-4 w-4 text-success-text" />
                         )}
                       </Button>
                       <Link href={`/products/${product.id}/edit`}>

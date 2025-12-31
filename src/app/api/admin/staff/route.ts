@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
             userEmail: existingUser.email,
             oldRole,
             newRole: "STAFF",
-            changedBy: user.email,
+            changedBy: user.email ?? "admin@fiskai.hr",
             timestamp: new Date(),
             reason: reason || undefined,
           }),

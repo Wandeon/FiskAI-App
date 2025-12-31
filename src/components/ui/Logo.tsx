@@ -26,7 +26,7 @@ export const Logo = ({ showBeta = true, size = "md", variant = "default" }: Logo
           className={`${s.icon} text-cyan-500 transition-all duration-300 group-hover:brightness-110`}
         />
         {/* Subtle backdrop glow for dark mode */}
-        <div className="absolute inset-0 bg-cyan-500/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-accent/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
 
       {/* The Wordmark */}
@@ -41,7 +41,7 @@ export const Logo = ({ showBeta = true, size = "md", variant = "default" }: Logo
         {showBeta && (
           <span
             className={`${s.beta} uppercase tracking-widest font-medium leading-none ${
-              variant === "white" ? "text-white/50" : "text-slate-500"
+              variant === "white" ? "text-white/50" : "text-tertiary"
             }`}
           >
             Beta

@@ -217,7 +217,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             <Link
               key={subcategory.id}
               href={`/vijesti/kategorija/${subcategory.slug}`}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+              className="rounded-lg bg-surface/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-surface/20 hover:text-white"
             >
               {subcategory.nameHr}
             </Link>
@@ -230,7 +230,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         <div className="mb-8 flex flex-wrap gap-2">
           <Link
             href={`/vijesti/kategorija/${parent.slug}`}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+            className="rounded-lg bg-surface/10 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-surface/20 hover:text-white"
           >
             ← {parent.nameHr}
           </Link>
@@ -242,7 +242,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
                 sibling.id === category.id
                   ? "bg-interactive text-white"
-                  : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                  : "bg-surface/10 text-white/70 hover:bg-surface/20 hover:text-white"
               )}
             >
               {sibling.nameHr}
@@ -253,7 +253,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
       {/* Posts Grid */}
       {posts.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center">
+        <div className="rounded-xl border border-white/10 bg-surface/5 p-12 text-center">
           <p className="text-lg text-white/60">Nema vijesti u ovoj kategoriji.</p>
           <Link
             href="/vijesti"
@@ -288,7 +288,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               {page > 1 && (
                 <Link
                   href={`/vijesti/kategorija/${slug}?page=${page - 1}`}
-                  className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
+                  className="rounded-lg bg-surface/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface/20"
                 >
                   Prethodna
                 </Link>
@@ -301,7 +301,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                       pageNum === page
                         ? "bg-interactive text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                        : "bg-surface/10 text-white/70 hover:bg-surface/20 hover:text-white"
                     }`}
                   >
                     {pageNum}
@@ -311,7 +311,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               {page < totalPages && (
                 <Link
                   href={`/vijesti/kategorija/${slug}?page=${page + 1}`}
-                  className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
+                  className="rounded-lg bg-surface/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface/20"
                 >
                   Sljedeća
                 </Link>

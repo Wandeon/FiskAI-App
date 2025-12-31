@@ -4,7 +4,8 @@
  * Enforces design token usage, blocks hardcoded colors.
  */
 
-const noHardcodedColors = require("./no-hardcoded-colors");
+/* eslint-disable @typescript-eslint/no-require-imports, @next/next/no-assign-module-variable */
+const noHardcodedColors = require("./no-hardcoded-colors")
 
 module.exports = {
   rules: {
@@ -24,4 +25,4 @@ module.exports = {
       },
     },
   },
-};
+}

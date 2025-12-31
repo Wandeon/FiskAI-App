@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
       <CardContent>
         {success ? (
           <div className="space-y-4">
-            <div className="rounded-md bg-green-50 p-4 text-sm text-green-600">
+            <div className="rounded-md bg-success-bg p-4 text-sm text-success-text">
               <p className="font-medium">Email poslan!</p>
               <p className="mt-1">
                 Ako postoji račun s tom email adresom, poslali smo link za resetiranje lozinke.

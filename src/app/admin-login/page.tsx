@@ -44,8 +44,8 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-            <Shield className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-info-bg">
+            <Shield className="h-6 w-6 text-link" />
           </div>
           <CardTitle className="text-2xl">Admin pristup</CardTitle>
           <p className="text-sm text-[var(--muted)]">Unesite administratorsku lozinku za pristup</p>
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 rounded-md bg-red-50 p-3 text-sm text-red-600">
+              <div className="flex items-center gap-2 rounded-md bg-danger-bg p-3 text-sm text-danger-text">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {error}
               </div>

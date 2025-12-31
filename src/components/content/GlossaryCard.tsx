@@ -11,7 +11,7 @@ interface GlossaryCardProps {
 
 export function GlossaryCard({ term, definition, relatedTerms, className }: GlossaryCardProps) {
   return (
-    <div className={cn("rounded-xl border border-white/10 bg-white/5 p-6", className)}>
+    <div className={cn("rounded-xl border border-white/10 bg-surface/5 p-6", className)}>
       <div className="mb-3 flex items-center gap-2">
         <BookOpen className="h-5 w-5 text-accent" />
         <h2 className="text-2xl font-bold text-white">{term}</h2>
@@ -26,7 +26,7 @@ export function GlossaryCard({ term, definition, relatedTerms, className }: Glos
               <Link
                 key={relatedTerm}
                 href={`/rjecnik/${relatedTerm.toLowerCase().replace(/\s+/g, "-")}`}
-                className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90 hover:bg-white/20"
+                className="inline-flex items-center gap-1 rounded-full bg-surface/10 px-3 py-1 text-sm text-white/90 hover:bg-surface/20"
               >
                 {relatedTerm}
                 <ArrowRight className="h-3 w-3" />

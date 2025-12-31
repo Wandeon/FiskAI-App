@@ -45,7 +45,7 @@ export {
   type RedPalette,
   type CyanPalette,
   type Primitives,
-} from './primitives';
+} from "./primitives"
 
 // Semantic tokens
 export {
@@ -82,7 +82,7 @@ export {
   type StatusColorBundle,
   type StatusVariant,
   type StatusColors,
-} from './semantic';
+} from "./semantic"
 
 // Layout tokens
 export {
@@ -108,7 +108,7 @@ export {
   type ZIndex,
   type Elevation,
   type Layout,
-} from './layout';
+} from "./layout"
 
 // Typography tokens
 export {
@@ -127,7 +127,7 @@ export {
   type LetterSpacing,
   type TextStyleName,
   type Typography,
-} from './typography';
+} from "./typography"
 
 // Motion tokens
 export {
@@ -142,7 +142,7 @@ export {
   type MotionIntent,
   type Keyframe,
   type Motion,
-} from './motion';
+} from "./motion"
 
 // Data visualization tokens
 export {
@@ -158,15 +158,15 @@ export {
   type DivergingPalette,
   type ChartElement,
   type DataVis,
-} from './data-vis';
+} from "./data-vis"
 
 // Import values for combined tokens object
-import { primitives as primitivesImport } from './primitives';
-import { semantic as semanticImport } from './semantic';
-import { layout as layoutImport } from './layout';
-import { typography as typographyImport } from './typography';
-import { motion as motionImport } from './motion';
-import { dataVis as dataVisImport } from './data-vis';
+import { primitives as primitivesImport } from "./primitives"
+import { semantic as semanticImport } from "./semantic"
+import { layout as layoutImport } from "./layout"
+import { typography as typographyImport } from "./typography"
+import { motion as motionImport } from "./motion"
+import { dataVis as dataVisImport } from "./data-vis"
 
 /**
  * Complete tokens object combining all token categories
@@ -178,6 +178,6 @@ export const tokens = {
   typography: typographyImport,
   motion: motionImport,
   dataVis: dataVisImport,
-} as const;
+} as const
 
-export type Tokens = typeof tokens;
+export type Tokens = typeof tokens

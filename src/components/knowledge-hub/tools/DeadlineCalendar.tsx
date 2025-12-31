@@ -91,18 +91,18 @@ function buildStaticDeadlines(year: number): Deadline[] {
 const typeColors = {
   doprinosi: "bg-interactive",
   pdv: "bg-purple-600",
-  dohodak: "bg-green-600",
+  dohodak: "bg-success",
   porez: "bg-warning",
   joppd: "bg-red-600",
 }
 
 // Status colors for database-driven obligations
 const statusColors = {
-  PAID: "bg-green-600",
+  PAID: "bg-success",
   OVERDUE: "bg-red-600",
   DUE_SOON: "bg-warning",
   PENDING: "bg-interactive",
-  SKIPPED: "bg-gray-600",
+  SKIPPED: "bg-neutral",
 }
 
 interface DeadlineCalendarProps {
@@ -223,7 +223,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "all"
               ? "border-focus bg-interactive text-white"
-              : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
+              : "border-white/20 bg-surface/5 text-white/90 hover:bg-surface/10"
           )}
         >
           Svi rokovi
@@ -235,7 +235,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "pausalni"
               ? "border-focus bg-interactive text-white"
-              : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
+              : "border-white/20 bg-surface/5 text-white/90 hover:bg-surface/10"
           )}
         >
           Paušalni obrt
@@ -247,7 +247,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             "btn-press rounded-full border px-3 py-1.5 text-sm font-medium",
             filter === "doo"
               ? "border-focus bg-interactive text-white"
-              : "border-white/20 bg-white/5 text-white/90 hover:bg-white/10"
+              : "border-white/20 bg-surface/5 text-white/90 hover:bg-surface/10"
           )}
         >
           D.O.O.
@@ -259,7 +259,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         <button
           type="button"
           onClick={() => setSelectedMonth((m) => Math.max(0, m - 1))}
-          className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 p-2 hover:bg-white/10 text-white"
+          className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 p-2 hover:bg-surface/10 text-white"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -269,16 +269,16 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         <button
           type="button"
           onClick={() => setSelectedMonth((m) => Math.min(11, m + 1))}
-          className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 p-2 hover:bg-white/10 text-white"
+          className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 p-2 hover:bg-surface/10 text-white"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* Calendar grid */}
-      <div className="rounded-2xl border border-white/20 overflow-hidden bg-slate-800/80">
+      <div className="rounded-2xl border border-white/20 overflow-hidden bg-surface-elevated/80">
         {/* Day headers */}
-        <div className="grid grid-cols-7 bg-white/10">
+        <div className="grid grid-cols-7 bg-surface/10">
           {["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"].map((day) => (
             <div key={day} className="p-2 text-center text-sm font-semibold text-white/70">
               {day}
@@ -290,7 +290,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
         <div className="grid grid-cols-7">
           {/* Empty cells for days before month starts */}
           {Array.from({ length: firstDay }, (_, i) => (
-            <div key={`empty-${i}`} className="p-2 border-t border-white/10 bg-white/5" />
+            <div key={`empty-${i}`} className="p-2 border-t border-white/10 bg-surface/5" />
           ))}
 
           {/* Month days */}
@@ -368,7 +368,7 @@ export function DeadlineCalendar({ year }: DeadlineCalendarProps) {
             <button
               type="button"
               onClick={() => setSelectedDeadline(null)}
-              className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 p-2 hover:bg-white/10 text-white"
+              className="btn-press inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 p-2 hover:bg-surface/10 text-white"
               aria-label="Zatvori detalje"
             >
               <X className="h-4 w-4" />

@@ -49,14 +49,14 @@ LAYER 3: SPECIALIZED
 
 ### Token Naming Rules
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Surface | `surface{level}` | `surface0`, `surface1` |
-| Text | `{purpose}` | `primary`, `secondary`, `link` |
-| Interactive | `{variant}{State}` | `primaryHover`, `dangerHover` |
-| Status | `{status}{property}` | `successBg`, `dangerText` |
-| Spacing | Number (4px units) | `4` = 16px, `6` = 24px |
-| Chart | `series{n}` | `series1`, `series2` |
+| Type        | Pattern              | Example                        |
+| ----------- | -------------------- | ------------------------------ |
+| Surface     | `surface{level}`     | `surface0`, `surface1`         |
+| Text        | `{purpose}`          | `primary`, `secondary`, `link` |
+| Interactive | `{variant}{State}`   | `primaryHover`, `dangerHover`  |
+| Status      | `{status}{property}` | `successBg`, `dangerText`      |
+| Spacing     | Number (4px units)   | `4` = 16px, `6` = 24px         |
+| Chart       | `series{n}`          | `series1`, `series2`           |
 
 ## Modifying Tokens
 
@@ -84,12 +84,14 @@ LAYER 3: SPECIALIZED
 Use `// @design-override: <reason>` ONLY when:
 
 **Acceptable:**
+
 - Third-party component requires specific color
 - Brand partner requirement with specific hex
 - One-off marketing campaign with approval
 - Canvas/SVG rendering that can't use CSS variables
 
 **NOT Acceptable:**
+
 - "It looks better this way"
 - "Faster than finding the right token"
 - "I don't know which token to use"
@@ -105,17 +107,18 @@ Use `// @design-override: <reason>` ONLY when:
 
 ### ESLint Rules
 
-| Path | Level | Rule |
-|------|-------|------|
-| `src/app/(app)/**` | ERROR | Block hardcoded colors |
-| `src/app/(admin)/**` | ERROR | Block hardcoded colors |
-| `src/app/(staff)/**` | ERROR | Block hardcoded colors |
-| `src/components/**` | ERROR | Block hardcoded colors |
-| `src/app/(marketing)/**` | WARN | Warn about hardcoded colors |
+| Path                     | Level | Rule                        |
+| ------------------------ | ----- | --------------------------- |
+| `src/app/(app)/**`       | ERROR | Block hardcoded colors      |
+| `src/app/(admin)/**`     | ERROR | Block hardcoded colors      |
+| `src/app/(staff)/**`     | ERROR | Block hardcoded colors      |
+| `src/components/**`      | ERROR | Block hardcoded colors      |
+| `src/app/(marketing)/**` | WARN  | Warn about hardcoded colors |
 
 ### Pre-commit Hook
 
 Commits are blocked if:
+
 - Hardcoded colors in app/admin/staff/components
 - No escape hatch comment provided
 
@@ -128,6 +131,7 @@ ESLint runs in CI with same rules as pre-commit.
 ### Q: Which token should I use for X?
 
 Check the token files in order:
+
 1. `semantic/` - Most UI needs are here
 2. `layout/` - Spacing, radius, shadows
 3. `typography.ts` - Text styles

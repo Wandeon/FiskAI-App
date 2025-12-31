@@ -32,12 +32,7 @@ export function SkeletonCard({ className }: SkeletonProps) {
 
 export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
-    <div
-      className="space-y-3"
-      role="status"
-      aria-label="Učitavanje tablice"
-      aria-busy="true"
-    >
+    <div className="space-y-3" role="status" aria-label="Učitavanje tablice" aria-busy="true">
       <span className="sr-only">Učitavanje...</span>
       <Skeleton className="h-10 w-full" />
       {Array.from({ length: rows }).map((_, i) => (

@@ -26,7 +26,9 @@ async function processEmbeddingJob(job: Job<EmbeddingJobData>): Promise<JobResul
     jobDuration.observe({ worker: "embedding", queue: "embedding" }, duration / 1000)
 
     if (!result.success) {
-      console.error(`[embedding-worker] Embedding generation failed for rule ${ruleId}: ${result.error}`)
+      console.error(
+        `[embedding-worker] Embedding generation failed for rule ${ruleId}: ${result.error}`
+      )
       return {
         success: false,
         duration,
@@ -34,7 +36,9 @@ async function processEmbeddingJob(job: Job<EmbeddingJobData>): Promise<JobResul
       }
     }
 
-    console.log(`[embedding-worker] Successfully generated ${result.chunkCount} embeddings for rule ${ruleId}`)
+    console.log(
+      `[embedding-worker] Successfully generated ${result.chunkCount} embeddings for rule ${ruleId}`
+    )
 
     return {
       success: true,

@@ -48,7 +48,7 @@ export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>
         ref={ref}
         className={cn(
           "relative inline-flex h-12 w-full items-center justify-center rounded-xl font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 disabled:pointer-events-none",
-          state === "success" ? "bg-chart-4" : "bg-cyan-600 hover:bg-cyan-700",
+          state === "success" ? "bg-chart-4" : "bg-interactive hover:bg-cyan-700",
           state === "error" && "bg-danger",
           className
         )}

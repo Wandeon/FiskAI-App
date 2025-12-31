@@ -58,7 +58,7 @@ export function MetodologijaPageClient() {
             posljednjeg ažuriranja prikazan je na svakom alatu.
           </p>
 
-          <div className="mt-8 rounded-lg bg-amber-500/10 backdrop-blur-sm border border-amber-500/20 p-4 text-amber-200">
+          <div className="mt-8 rounded-lg bg-warning-bg0/10 backdrop-blur-sm border border-warning/20 p-4 text-amber-200">
             <strong>Napomena:</strong> FiskAI pruža informativne izračune. Za službene potrebe
             konzultirajte ovlaštenog poreznog savjetnika ili računovođu.
           </div>

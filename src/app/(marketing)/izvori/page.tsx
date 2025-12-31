@@ -93,7 +93,7 @@ export default function IzvoriPage() {
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 transition-colors hover:bg-white/10"
+                    className="group rounded-xl border border-white/10 bg-surface/5 backdrop-blur-sm p-5 transition-colors hover:bg-surface/10"
                   >
                     <div className="mb-2 flex items-start justify-between">
                       <h3 className="font-semibold text-white">{source.name}</h3>
@@ -107,7 +107,7 @@ export default function IzvoriPage() {
           </div>
         ))}
 
-        <div className="mt-12 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+        <div className="mt-12 rounded-xl border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
           <h2 className="mb-2 font-semibold text-white">Kako pratimo promjene?</h2>
           <p className="text-sm text-white/60">
             Automatizirano pratimo RSS feedove ključnih izvora. Svaka promjena propisa okida pregled

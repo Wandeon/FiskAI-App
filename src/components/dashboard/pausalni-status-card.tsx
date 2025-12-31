@@ -43,7 +43,7 @@ export function PausalniStatusCard({
   const isOverThreshold = vatPercentage >= 100
 
   return (
-    <Card className="border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
+    <Card className="border-interactive/20 bg-gradient-to-br from-accent/5 to-interactive/5">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -79,9 +79,9 @@ export function PausalniStatusCard({
           <div
             className={`rounded-lg p-3 ${
               nextDeadline.daysLeft <= 3
-                ? "bg-danger/10 border border-red-500/20"
+                ? "bg-danger/10 border border-danger-border/20"
                 : nextDeadline.daysLeft <= 7
-                  ? "bg-warning/10 border border-amber-500/20"
+                  ? "bg-warning/10 border border-warning/20"
                   : "bg-muted/50"
             }`}
           >

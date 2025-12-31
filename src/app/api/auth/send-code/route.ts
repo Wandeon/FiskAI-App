@@ -67,7 +67,8 @@ export async function POST(request: Request) {
     }
 
     // Send email
-    const emailType = type === "EMAIL_VERIFY" ? "verify" : type === "LOGIN_VERIFY" ? "login" : "reset"
+    const emailType =
+      type === "EMAIL_VERIFY" ? "verify" : type === "LOGIN_VERIFY" ? "login" : "reset"
 
     await sendEmail({
       to: email,

@@ -105,9 +105,7 @@ export default function SupportTicketCreatedEmail({
             Otvori tiket
           </Link>
 
-          <Text style={footer}>
-            Ovaj email je automatski generiran iz FiskAI sustava.
-          </Text>
+          <Text style={footer}>Ovaj email je automatski generiran iz FiskAI sustava.</Text>
         </Container>
       </Body>
     </Html>

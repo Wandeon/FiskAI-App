@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Mail, Phone, MapPin, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ContactType } from "@prisma/client"
-import { DeleteContactButton } from "@/app/(app)/contacts/delete-button"
+import { DeleteContactButton } from "@/components/contacts/delete-contact-button"
 
 interface ContactCardProps {
   contact: {
@@ -22,7 +22,7 @@ interface ContactCardProps {
 
 const typeConfig: Record<ContactType, { label: string; className: string }> = {
   CUSTOMER: { label: "Kupac", className: "bg-brand-100 text-brand-700" },
-  SUPPLIER: { label: "Dobavljač", className: "bg-purple-100 text-purple-700" },
+  SUPPLIER: { label: "Dobavljač", className: "bg-chart-2/10 text-chart-2" },
   BOTH: { label: "Kupac/Dobavljač", className: "bg-success-100 text-success-700" },
 }
 
@@ -120,7 +120,7 @@ export function ContactCard({ contact }: ContactCardProps) {
             {contact.email && (
               <a
                 href={`mailto:${contact.email}`}
-                className="rounded-full bg-white/70 p-2 text-[var(--muted)] hover:text-brand-600 transition-colors"
+                className="rounded-full bg-surface/70 p-2 text-[var(--muted)] hover:text-brand-600 transition-colors"
                 title="Pošalji email"
               >
                 <Mail className="h-4 w-4" />
@@ -129,7 +129,7 @@ export function ContactCard({ contact }: ContactCardProps) {
             {contact.phone && (
               <a
                 href={`tel:${contact.phone}`}
-                className="rounded-full bg-white/70 p-2 text-[var(--muted)] hover:text-brand-600 transition-colors"
+                className="rounded-full bg-surface/70 p-2 text-[var(--muted)] hover:text-brand-600 transition-colors"
                 title="Nazovi"
               >
                 <Phone className="h-4 w-4" />
@@ -137,7 +137,7 @@ export function ContactCard({ contact }: ContactCardProps) {
             )}
             <Link
               href={`/e-invoices/new?contactId=${contact.id}`}
-              className="rounded-full bg-white/70 p-2 text-[var(--muted)] hover:text-brand-600 transition-colors"
+              className="rounded-full bg-surface/70 p-2 text-[var(--muted)] hover:text-brand-600 transition-colors"
               title="Novi račun"
             >
               <FileText className="h-4 w-4" />

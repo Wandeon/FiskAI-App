@@ -47,10 +47,7 @@ async function getOrCreateTracking(companyId: string, year: number) {
     return existing[0]
   }
 
-  const inserted = await drizzleDb
-    .insert(intrastatTracking)
-    .values({ companyId, year })
-    .returning()
+  const inserted = await drizzleDb.insert(intrastatTracking).values({ companyId, year }).returning()
 
   return inserted[0]
 }
@@ -78,7 +75,10 @@ async function calculateGoodsTotal(
   return parseFloat(result[0]?.total || "0")
 }
 
-export async function getIntrastatStatus(companyId: string, year: number): Promise<IntrastatStatus> {
+export async function getIntrastatStatus(
+  companyId: string,
+  year: number
+): Promise<IntrastatStatus> {
   const tracking = await getOrCreateTracking(companyId, year)
 
   const arrivalsTotal = await calculateGoodsTotal(companyId, year, "RECEIVED")
@@ -88,7 +88,8 @@ export async function getIntrastatStatus(companyId: string, year: number): Promi
   const dispatchesPercentage = (dispatchesTotal / INTRASTAT_THRESHOLDS.DISPATCHES) * 100
 
   const arrivalsWarningReached = arrivalsPercentage >= INTRASTAT_THRESHOLDS.WARNING_THRESHOLD * 100
-  const dispatchesWarningReached = dispatchesPercentage >= INTRASTAT_THRESHOLDS.WARNING_THRESHOLD * 100
+  const dispatchesWarningReached =
+    dispatchesPercentage >= INTRASTAT_THRESHOLDS.WARNING_THRESHOLD * 100
   const arrivalsThresholdBreached = arrivalsTotal >= INTRASTAT_THRESHOLDS.ARRIVALS
   const dispatchesThresholdBreached = dispatchesTotal >= INTRASTAT_THRESHOLDS.DISPATCHES
 

@@ -22,16 +22,16 @@ interface BatchReviewOptions {
 
 async function batchReviewDrafts(options: BatchReviewOptions = {}) {
   const {
-    minConfidence = 0.90,
+    minConfidence = 0.9,
     maxRules = 100,
     dryRun = false,
     autoPublish = false,
     riskTiers = ["T0", "T1", "T2", "T3"],
   } = options
 
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log("Batch Review DRAFT Rules")
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log(`Mode: ${dryRun ? "DRY RUN" : "LIVE"}`)
   console.log(`Min confidence: ${minConfidence}`)
   console.log(`Max rules to process: ${maxRules}`)
@@ -166,9 +166,9 @@ async function batchReviewDrafts(options: BatchReviewOptions = {}) {
     }
   }
 
-  console.log("\n" + "=" .repeat(72))
+  console.log("\n" + "=".repeat(72))
   console.log("Review Complete")
-  console.log("=" .repeat(72))
+  console.log("=".repeat(72))
   console.log(`Processed: ${stats.processed}/${draftRules.length}`)
   console.log(`Approved: ${stats.approved}`)
   console.log(`Pending Review: ${stats.pendingReview}`)
@@ -178,9 +178,9 @@ async function batchReviewDrafts(options: BatchReviewOptions = {}) {
 
   // Auto-publish if requested and we have approved rules
   if (autoPublish && approvedRuleIds.length > 0) {
-    console.log("=" .repeat(72))
+    console.log("=".repeat(72))
     console.log(`Publishing ${approvedRuleIds.length} approved rules...`)
-    console.log("=" .repeat(72))
+    console.log("=".repeat(72))
 
     try {
       const releaseResult = await runReleaser(approvedRuleIds)
@@ -258,7 +258,7 @@ Examples:
     process.exit(0)
   }
 
-  const minConfidence = minConfidenceArg ? parseFloat(minConfidenceArg) : 0.90
+  const minConfidence = minConfidenceArg ? parseFloat(minConfidenceArg) : 0.9
   const maxRules = maxRulesArg ? parseInt(maxRulesArg, 10) : 100
   const riskTiers = tiersArg ? tiersArg.split(",").map((t) => t.trim()) : ["T0", "T1", "T2", "T3"]
 

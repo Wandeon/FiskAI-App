@@ -37,6 +37,7 @@ typography.ts
 The system uses three font families with comprehensive fallback stacks:
 
 ### Sans-Serif (Primary)
+
 - **Token:** `fonts.sans`
 - **Font:** Inter (via CSS variable)
 - **Usage:** Body text, UI elements, general content
@@ -49,12 +50,14 @@ font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
 ```
 
 ### Heading
+
 - **Token:** `fonts.heading`
 - **Font:** Inter (via CSS variable)
 - **Usage:** Headlines, section titles, display text
 - **Note:** Currently uses same font as sans, but structured for future customization
 
 ### Monospace
+
 - **Token:** `fonts.mono`
 - **Font:** JetBrains Mono (via CSS variable)
 - **Usage:** Code blocks, technical content, fixed-width data
@@ -68,6 +71,7 @@ font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, "SF Mono",
 ### Zero CLS (Cumulative Layout Shift)
 
 Fonts are loaded via `next/font` and use CSS variables, ensuring:
+
 - Self-hosted fonts for performance and privacy
 - Zero layout shift during font loading
 - Optimal subset loading
@@ -76,58 +80,58 @@ Fonts are loaded via `next/font` and use CSS variables, ensuring:
 
 A comprehensive 14-size scale from 10px to 128px:
 
-| Token | Size (rem) | Size (px) | Usage |
-|-------|-----------|-----------|-------|
-| `2xs` | 0.625rem | 10px | Fine print, legal text |
-| `xs` | 0.75rem | 12px | Captions, metadata |
-| `sm` | 0.875rem | 14px | Small body text, labels |
-| `base` | 1rem | 16px | Default body text |
-| `lg` | 1.125rem | 18px | Large body, subheadings |
-| `xl` | 1.25rem | 20px | Small headings |
-| `2xl` | 1.5rem | 24px | Medium headings |
-| `3xl` | 1.875rem | 30px | Large headings |
-| `4xl` | 2.25rem | 36px | Section headings |
-| `5xl` | 3rem | 48px | Page titles |
-| `6xl` | 3.75rem | 60px | Hero text |
-| `7xl` | 4.5rem | 72px | Large displays |
-| `8xl` | 6rem | 96px | Extra large displays |
-| `9xl` | 8rem | 128px | Hero banners |
+| Token  | Size (rem) | Size (px) | Usage                   |
+| ------ | ---------- | --------- | ----------------------- |
+| `2xs`  | 0.625rem   | 10px      | Fine print, legal text  |
+| `xs`   | 0.75rem    | 12px      | Captions, metadata      |
+| `sm`   | 0.875rem   | 14px      | Small body text, labels |
+| `base` | 1rem       | 16px      | Default body text       |
+| `lg`   | 1.125rem   | 18px      | Large body, subheadings |
+| `xl`   | 1.25rem    | 20px      | Small headings          |
+| `2xl`  | 1.5rem     | 24px      | Medium headings         |
+| `3xl`  | 1.875rem   | 30px      | Large headings          |
+| `4xl`  | 2.25rem    | 36px      | Section headings        |
+| `5xl`  | 3rem       | 48px      | Page titles             |
+| `6xl`  | 3.75rem    | 60px      | Hero text               |
+| `7xl`  | 4.5rem     | 72px      | Large displays          |
+| `8xl`  | 6rem       | 96px      | Extra large displays    |
+| `9xl`  | 8rem       | 128px     | Hero banners            |
 
 ### Font Weights
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `thin` | 100 | Rarely used |
-| `extralight` | 200 | Decorative |
-| `light` | 300 | Subtle text |
-| `normal` | 400 | Body text (default) |
-| `medium` | 500 | Subtle emphasis |
-| `semibold` | 600 | Headings, buttons |
-| `bold` | 700 | Strong emphasis |
-| `extrabold` | 800 | Extra emphasis |
-| `black` | 900 | Maximum weight |
+| Token        | Value | Usage               |
+| ------------ | ----- | ------------------- |
+| `thin`       | 100   | Rarely used         |
+| `extralight` | 200   | Decorative          |
+| `light`      | 300   | Subtle text         |
+| `normal`     | 400   | Body text (default) |
+| `medium`     | 500   | Subtle emphasis     |
+| `semibold`   | 600   | Headings, buttons   |
+| `bold`       | 700   | Strong emphasis     |
+| `extrabold`  | 800   | Extra emphasis      |
+| `black`      | 900   | Maximum weight      |
 
 ### Line Heights
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `none` | 1 | No leading |
-| `tight` | 1.25 | Headings, display text |
-| `snug` | 1.375 | Subheadings |
-| `normal` | 1.5 | Body text (default) |
-| `relaxed` | 1.625 | Comfortable reading |
-| `loose` | 2 | Spacious layouts |
+| Token     | Value | Usage                  |
+| --------- | ----- | ---------------------- |
+| `none`    | 1     | No leading             |
+| `tight`   | 1.25  | Headings, display text |
+| `snug`    | 1.375 | Subheadings            |
+| `normal`  | 1.5   | Body text (default)    |
+| `relaxed` | 1.625 | Comfortable reading    |
+| `loose`   | 2     | Spacious layouts       |
 
 ### Letter Spacing
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `tighter` | -0.05em | Large display text |
-| `tight` | -0.025em | Headings |
-| `normal` | 0em | Body text (default) |
-| `wide` | 0.025em | All caps, labels |
-| `wider` | 0.05em | Loose tracking |
-| `widest` | 0.1em | Extra spacing |
+| Token     | Value    | Usage               |
+| --------- | -------- | ------------------- |
+| `tighter` | -0.05em  | Large display text  |
+| `tight`   | -0.025em | Headings            |
+| `normal`  | 0em      | Body text (default) |
+| `wide`    | 0.025em  | All caps, labels    |
+| `wider`   | 0.05em   | Loose tracking      |
+| `widest`  | 0.1em    | Extra spacing       |
 
 ## Text Styles
 
@@ -137,14 +141,15 @@ Pre-composed typography presets that combine font family, size, weight, line hei
 
 Large, attention-grabbing text for hero sections and major headings.
 
-| Style | Size | Weight | Line Height | Letter Spacing | Usage |
-|-------|------|--------|-------------|----------------|-------|
-| `display-xl` | 60px | bold | tight | tight | Hero sections, landing pages |
-| `display-lg` | 48px | bold | tight | tight | Page titles, major sections |
-| `display-md` | 36px | bold | tight | tight | Section headings |
-| `display-sm` | 30px | semibold | tight | normal | Subsection headings |
+| Style        | Size | Weight   | Line Height | Letter Spacing | Usage                        |
+| ------------ | ---- | -------- | ----------- | -------------- | ---------------------------- |
+| `display-xl` | 60px | bold     | tight       | tight          | Hero sections, landing pages |
+| `display-lg` | 48px | bold     | tight       | tight          | Page titles, major sections  |
+| `display-md` | 36px | bold     | tight       | tight          | Section headings             |
+| `display-sm` | 30px | semibold | tight       | normal         | Subsection headings          |
 
 **Example:**
+
 ```tsx
 <h1 className="text-display-xl">Welcome to FiskAI</h1>
 ```
@@ -153,15 +158,16 @@ Large, attention-grabbing text for hero sections and major headings.
 
 Semantic heading hierarchy for content structure.
 
-| Style | Size | Weight | Line Height | Letter Spacing | HTML Equivalent |
-|-------|------|--------|-------------|----------------|-----------------|
-| `heading-xl` | 24px | semibold | snug | normal | `<h1>` |
-| `heading-lg` | 20px | semibold | snug | normal | `<h2>` |
-| `heading-md` | 18px | semibold | snug | normal | `<h3>` |
-| `heading-sm` | 16px | semibold | snug | normal | `<h4>` |
-| `heading-xs` | 14px | semibold | snug | wide | `<h5>`, small caps |
+| Style        | Size | Weight   | Line Height | Letter Spacing | HTML Equivalent    |
+| ------------ | ---- | -------- | ----------- | -------------- | ------------------ |
+| `heading-xl` | 24px | semibold | snug        | normal         | `<h1>`             |
+| `heading-lg` | 20px | semibold | snug        | normal         | `<h2>`             |
+| `heading-md` | 18px | semibold | snug        | normal         | `<h3>`             |
+| `heading-sm` | 16px | semibold | snug        | normal         | `<h4>`             |
+| `heading-xs` | 14px | semibold | snug        | wide           | `<h5>`, small caps |
 
 **Example:**
+
 ```tsx
 <h2 className="text-heading-lg">Section Title</h2>
 <h3 className="text-heading-md">Subsection</h3>
@@ -171,14 +177,15 @@ Semantic heading hierarchy for content structure.
 
 Body text for readable content.
 
-| Style | Size | Weight | Line Height | Letter Spacing | Usage |
-|-------|------|--------|-------------|----------------|-------|
-| `body-lg` | 18px | normal | relaxed | normal | Large body, introductions |
-| `body-md` | 16px | normal | normal | normal | Default body text |
-| `body-sm` | 14px | normal | normal | normal | Small body, descriptions |
-| `body-xs` | 12px | normal | normal | normal | Fine print, metadata |
+| Style     | Size | Weight | Line Height | Letter Spacing | Usage                     |
+| --------- | ---- | ------ | ----------- | -------------- | ------------------------- |
+| `body-lg` | 18px | normal | relaxed     | normal         | Large body, introductions |
+| `body-md` | 16px | normal | normal      | normal         | Default body text         |
+| `body-sm` | 14px | normal | normal      | normal         | Small body, descriptions  |
+| `body-xs` | 12px | normal | normal      | normal         | Fine print, metadata      |
 
 **Example:**
+
 ```tsx
 <p className="text-body-md">This is the default paragraph text.</p>
 <p className="text-body-sm text-secondary">Additional context.</p>
@@ -188,13 +195,14 @@ Body text for readable content.
 
 Medium-weight text for form labels, UI elements, and navigation.
 
-| Style | Size | Weight | Line Height | Letter Spacing | Usage |
-|-------|------|--------|-------------|----------------|-------|
-| `label-lg` | 16px | medium | normal | normal | Large labels, tabs |
-| `label-md` | 14px | medium | normal | normal | Form labels, buttons |
-| `label-sm` | 12px | medium | normal | normal | Small labels, tags |
+| Style      | Size | Weight | Line Height | Letter Spacing | Usage                |
+| ---------- | ---- | ------ | ----------- | -------------- | -------------------- |
+| `label-lg` | 16px | medium | normal      | normal         | Large labels, tabs   |
+| `label-md` | 14px | medium | normal      | normal         | Form labels, buttons |
+| `label-sm` | 12px | medium | normal      | normal         | Small labels, tags   |
 
 **Example:**
+
 ```tsx
 <label className="text-label-md">Email Address</label>
 <span className="text-label-sm text-accent">NEW</span>
@@ -204,13 +212,14 @@ Medium-weight text for form labels, UI elements, and navigation.
 
 Monospace text for code and technical content.
 
-| Style | Size | Weight | Line Height | Letter Spacing | Usage |
-|-------|------|--------|-------------|----------------|-------|
-| `code-lg` | 16px | normal | relaxed | normal | Large code blocks |
-| `code-md` | 14px | normal | relaxed | normal | Default code |
-| `code-sm` | 12px | normal | relaxed | normal | Inline code, small snippets |
+| Style     | Size | Weight | Line Height | Letter Spacing | Usage                       |
+| --------- | ---- | ------ | ----------- | -------------- | --------------------------- |
+| `code-lg` | 16px | normal | relaxed     | normal         | Large code blocks           |
+| `code-md` | 14px | normal | relaxed     | normal         | Default code                |
+| `code-sm` | 12px | normal | relaxed     | normal         | Inline code, small snippets |
 
 **Example:**
+
 ```tsx
 <code className="text-code-md">const example = "code";</code>
 <pre className="text-code-sm">{ JSON.stringify(data) }</pre>
@@ -223,6 +232,7 @@ Monospace text for code and technical content.
 The typography system is used consistently throughout the application:
 
 #### Card Component
+
 ```tsx
 // src/components/ui/card.tsx
 <h3 className="text-heading-md text-foreground">Card Title</h3>
@@ -230,6 +240,7 @@ The typography system is used consistently throughout the application:
 ```
 
 #### Section Heading Pattern
+
 ```tsx
 // src/components/patterns/SectionHeading.tsx
 <span className="text-label-sm text-accent uppercase tracking-wider">
@@ -239,11 +250,10 @@ The typography system is used consistently throughout the application:
 ```
 
 #### Button Component
+
 ```tsx
 // src/components/ui/button.tsx
-<button className="text-label-md font-medium">
-  Click Me
-</button>
+<button className="text-label-md font-medium">Click Me</button>
 ```
 
 ### Complete Example
@@ -251,24 +261,17 @@ The typography system is used consistently throughout the application:
 ```tsx
 <article className="bg-surface p-6 rounded-lg">
   {/* Category Label */}
-  <span className="text-label-sm text-accent uppercase">
-    Announcement
-  </span>
+  <span className="text-label-sm text-accent uppercase">Announcement</span>
 
   {/* Article Title */}
-  <h1 className="text-display-md text-foreground mt-2">
-    New Features Released
-  </h1>
+  <h1 className="text-display-md text-foreground mt-2">New Features Released</h1>
 
   {/* Meta Information */}
-  <p className="text-body-xs text-tertiary mt-2">
-    Published on December 29, 2025
-  </p>
+  <p className="text-body-xs text-tertiary mt-2">Published on December 29, 2025</p>
 
   {/* Introduction */}
   <p className="text-body-lg text-secondary mt-4">
-    We're excited to announce several new features that will improve
-    your workflow.
+    We're excited to announce several new features that will improve your workflow.
   </p>
 
   {/* Body Content */}
@@ -280,9 +283,7 @@ The typography system is used consistently throughout the application:
     <p>More detailed information...</p>
 
     {/* Code Example */}
-    <code className="text-code-md bg-surface-1 px-2 py-1 rounded">
-      npm install @fiskai/sdk
-    </code>
+    <code className="text-code-md bg-surface-1 px-2 py-1 rounded">npm install @fiskai/sdk</code>
   </div>
 </article>
 ```
@@ -323,10 +324,10 @@ Text styles are automatically exposed as Tailwind utility classes through a cust
 TypeScript types ensure autocomplete for all text styles:
 
 ```tsx
-import type { TextStyleName } from '@/design-system';
+import type { TextStyleName } from "@/design-system"
 
 // TextStyleName = "display-xl" | "display-lg" | ... | "code-sm"
-const style: TextStyleName = "heading-md"; // ✓ Type-safe
+const style: TextStyleName = "heading-md" // ✓ Type-safe
 ```
 
 ## Best Practices
@@ -356,7 +357,7 @@ Always pair typography styles with semantic color tokens:
 <span className="text-label-sm text-muted">Disabled</span>
 
 // AVOID - Mixing systems
-<h2 className="text-heading-lg text-gray-900">Heading</h2>
+<h2 className="text-heading-lg text-foreground">Heading</h2>
 ```
 
 ### 3. Maintain Hierarchy
@@ -435,22 +436,17 @@ Always verify typography in both light and dark modes, especially when combined 
 
 ```tsx
 // Color tokens handle dark mode automatically
-<p className="text-body-md text-foreground">
-  Readable in both modes
-</p>
+<p className="text-body-md text-foreground">Readable in both modes</p>
 ```
 
 ## Common Patterns
 
 ### Hero Section
+
 ```tsx
 <section className="text-center">
-  <span className="text-label-sm text-accent uppercase tracking-wider">
-    New Release
-  </span>
-  <h1 className="text-display-xl text-foreground mt-4">
-    Welcome to FiskAI
-  </h1>
+  <span className="text-label-sm text-accent uppercase tracking-wider">New Release</span>
+  <h1 className="text-display-xl text-foreground mt-4">Welcome to FiskAI</h1>
   <p className="text-body-lg text-secondary mt-6 max-w-2xl mx-auto">
     Modern accounting software for Croatian businesses
   </p>
@@ -458,12 +454,11 @@ Always verify typography in both light and dark modes, especially when combined 
 ```
 
 ### Card with Content
+
 ```tsx
 <div className="bg-surface rounded-lg p-6">
   <h3 className="text-heading-md text-foreground">Feature Name</h3>
-  <p className="text-body-sm text-secondary mt-2">
-    Description of the feature and its benefits.
-  </p>
+  <p className="text-body-sm text-secondary mt-2">Description of the feature and its benefits.</p>
   <a href="#" className="text-label-md text-link mt-4 inline-block">
     Learn More
   </a>
@@ -471,31 +466,21 @@ Always verify typography in both light and dark modes, especially when combined 
 ```
 
 ### Form Field
+
 ```tsx
 <div className="space-y-2">
-  <label className="text-label-md text-foreground">
-    Email Address
-  </label>
-  <input
-    type="email"
-    className="text-body-md"
-    placeholder="you@example.com"
-  />
-  <p className="text-body-xs text-tertiary">
-    We'll never share your email.
-  </p>
+  <label className="text-label-md text-foreground">Email Address</label>
+  <input type="email" className="text-body-md" placeholder="you@example.com" />
+  <p className="text-body-xs text-tertiary">We'll never share your email.</p>
 </div>
 ```
 
 ### Status Message
+
 ```tsx
 <div className="bg-success-bg border border-success-border rounded-lg p-4">
-  <p className="text-label-md text-success-text">
-    Success!
-  </p>
-  <p className="text-body-sm text-success-text mt-1">
-    Your changes have been saved.
-  </p>
+  <p className="text-label-md text-success-text">Success!</p>
+  <p className="text-body-sm text-success-text mt-1">Your changes have been saved.</p>
 </div>
 ```
 
@@ -505,15 +490,15 @@ All typography tokens are fully typed for IDE autocomplete and type safety:
 
 ```tsx
 import type {
-  FontFamily,      // "sans" | "heading" | "mono"
-  FontWeight,      // "thin" | "extralight" | ... | "black"
-  FontSize,        // "2xs" | "xs" | ... | "9xl"
-  LineHeight,      // "none" | "tight" | ... | "loose"
-  LetterSpacing,   // "tighter" | "tight" | ... | "widest"
-  TextStyleName,   // "display-xl" | "heading-lg" | "body-md" | ...
-  TextStyle,       // Full text style interface
-  Typography,      // Complete typography system type
-} from '@/design-system';
+  FontFamily, // "sans" | "heading" | "mono"
+  FontWeight, // "thin" | "extralight" | ... | "black"
+  FontSize, // "2xs" | "xs" | ... | "9xl"
+  LineHeight, // "none" | "tight" | ... | "loose"
+  LetterSpacing, // "tighter" | "tight" | ... | "widest"
+  TextStyleName, // "display-xl" | "heading-lg" | "body-md" | ...
+  TextStyle, // Full text style interface
+  Typography, // Complete typography system type
+} from "@/design-system"
 ```
 
 ## Migration Guide
@@ -521,6 +506,7 @@ import type {
 If migrating from manual font sizing to the typography system:
 
 ### Before
+
 ```tsx
 <h1 className="text-4xl font-bold leading-tight tracking-tight">
   Title
@@ -531,6 +517,7 @@ If migrating from manual font sizing to the typography system:
 ```
 
 ### After
+
 ```tsx
 <h1 className="text-display-md">
   Title
@@ -541,6 +528,7 @@ If migrating from manual font sizing to the typography system:
 ```
 
 Benefits:
+
 - Single class instead of 3-4 classes
 - Consistent with design system
 - Semantic naming

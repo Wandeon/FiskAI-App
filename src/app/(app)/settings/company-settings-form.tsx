@@ -67,9 +67,15 @@ export function CompanySettingsForm({ company }: CompanySettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {error && <div className="rounded-md bg-danger-bg border border-danger-border p-3 text-sm text-danger-text">{error}</div>}
+      {error && (
+        <div className="rounded-md bg-danger-bg border border-danger-border p-3 text-sm text-danger-text">
+          {error}
+        </div>
+      )}
       {success && (
-        <div className="rounded-md bg-success-bg border border-success-border p-3 text-sm text-success-text">{success}</div>
+        <div className="rounded-md bg-success-bg border border-success-border p-3 text-sm text-success-text">
+          {success}
+        </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -80,7 +86,12 @@ export function CompanySettingsForm({ company }: CompanySettingsFormProps) {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">OIB *</label>
-          <Input {...register("oib")} error={errors.oib?.message} disabled className="bg-surface-1" />
+          <Input
+            {...register("oib")}
+            error={errors.oib?.message}
+            disabled
+            className="bg-surface-1"
+          />
           <p className="text-xs text-secondary">OIB se ne može mijenjati nakon kreiranja tvrtke</p>
         </div>
 
@@ -118,7 +129,7 @@ export function CompanySettingsForm({ company }: CompanySettingsFormProps) {
           <label className="flex items-center gap-2 pt-6">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-gray-300"
+              className="h-4 w-4 rounded border-default"
               {...register("isVatPayer")}
             />
             <span className="text-sm font-medium">PDV obveznik</span>

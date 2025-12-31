@@ -24,10 +24,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!invitation) {
-      return NextResponse.json(
-        { error: "Poziv nije pronađen" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Poziv nije pronađen" }, { status: 404 })
     }
 
     // Check if invitation is expired
@@ -57,9 +54,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error verifying invitation:", error)
-    return NextResponse.json(
-      { error: "Greška prilikom provjere poziva" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Greška prilikom provjere poziva" }, { status: 500 })
   }
 }

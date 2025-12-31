@@ -36,8 +36,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const job = await db.importJob.findFirst({
     where: {
       id: jobId,
-      companyId: company.id
-    }
+      companyId: company.id,
+    },
   })
 
   if (!job) {

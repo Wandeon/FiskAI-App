@@ -19,7 +19,7 @@ export default async function SupportPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-default bg-white p-8 text-center">
+      <div className="rounded-lg border border-default bg-surface p-8 text-center">
         <MessageSquare className="mx-auto h-12 w-12 text-secondary" />
         <h2 className="mt-4 text-lg font-medium text-foreground">Coming Soon</h2>
         <p className="mt-2 text-sm text-tertiary">

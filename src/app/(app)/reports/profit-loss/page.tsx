@@ -120,7 +120,13 @@ export default async function ProfitLossPage({
             <p className="text-sm text-secondary">{expenses.length} troškova</p>
           </CardContent>
         </Card>
-        <Card className={profit >= 0 ? "border-green-500 bg-success-bg" : "border-red-500 bg-danger-bg"}>
+        <Card
+          className={
+            profit >= 0
+              ? "border-success-border bg-success-bg"
+              : "border-danger-border bg-danger-bg"
+          }
+        >
           <CardHeader>
             <CardTitle className="text-base">{profit >= 0 ? "Dobit" : "Gubitak"}</CardTitle>
           </CardHeader>

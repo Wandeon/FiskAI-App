@@ -137,9 +137,10 @@ function calculateQuoteQuality(hasExactQuote: boolean): { score: number; hasExac
  * Calculate temporal margin score.
  * Rules approaching effectiveUntil get lower scores.
  */
-function calculateTemporalMargin(
-  effectiveUntil: Date | null
-): { score: number; daysRemaining: number | null } {
+function calculateTemporalMargin(effectiveUntil: Date | null): {
+  score: number
+  daysRemaining: number | null
+} {
   if (!effectiveUntil) {
     // No expiration date = assume permanent
     return { score: 1.0, daysRemaining: null }
@@ -180,7 +181,8 @@ export function calculateEvidenceQuality(rule: RuleCandidate): EvidenceQualitySc
     .map((sp) => sp.evidence.fetchedAt)
     .filter((d): d is Date => d !== null)
 
-  const mostRecentFetchedAt = fetchedDates.length > 0 ? new Date(Math.max(...fetchedDates.map((d) => d.getTime()))) : null
+  const mostRecentFetchedAt =
+    fetchedDates.length > 0 ? new Date(Math.max(...fetchedDates.map((d) => d.getTime()))) : null
 
   const freshness = calculateFreshnessScore(mostRecentFetchedAt)
   const sourceCount = calculateSourceCountScore(rule.sourcePointers.length)
@@ -223,10 +225,7 @@ export function calculateEvidenceQuality(rule: RuleCandidate): EvidenceQualitySc
  * Query confidence (30%): How well we understood the question
  * Evidence quality (70%): How strong the evidence is
  */
-export function calculateFinalConfidence(
-  queryConfidence: number,
-  evidenceQuality: number
-): number {
+export function calculateFinalConfidence(queryConfidence: number, evidenceQuality: number): number {
   return queryConfidence * 0.3 + evidenceQuality * 0.7
 }
 

@@ -89,7 +89,7 @@ export default function OIBValidatorPage() {
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-chart-2 to-pink-500 mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold mb-3 text-white">OIB Validator</h1>
@@ -99,7 +99,7 @@ export default function OIBValidatorPage() {
           </div>
 
           {/* Validator Card */}
-          <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-8 mb-6">
+          <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-8 mb-6">
             <label htmlFor="oib-input" className="block text-sm font-medium mb-2 text-white/90">
               Unesite OIB (11 znamenki)
             </label>
@@ -112,13 +112,13 @@ export default function OIBValidatorPage() {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="12345678901"
-                className="flex-1 px-4 py-3 rounded-md border border-white/20 bg-white/5 font-mono text-lg text-white placeholder:text-white/40"
+                className="flex-1 px-4 py-3 rounded-md border border-white/20 bg-surface/5 font-mono text-lg text-white placeholder:text-white/40"
                 maxLength={11}
               />
               <button
                 onClick={handleValidate}
                 disabled={oib.length !== 11}
-                className="px-6 py-3 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-interactive-hover text-white hover:bg-interactive-hover disabled:bg-white/10"
+                className="px-6 py-3 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-interactive-hover text-white hover:bg-interactive-hover disabled:bg-surface/10"
               >
                 Provjeri
               </button>
@@ -128,25 +128,27 @@ export default function OIBValidatorPage() {
             {hasValidated && result && (
               <div
                 className={`rounded-lg p-4 flex items-center gap-3 ${
-                  result === "valid" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                  result === "valid"
+                    ? "bg-success-bg border-success-border"
+                    : "bg-danger-bg border-danger-border"
                 } border`}
               >
                 {result === "valid" ? (
                   <>
-                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 text-success-text flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-green-900">OIB je valjan</p>
-                      <p className="text-sm text-green-700">
+                      <p className="text-sm text-success-text">
                         OIB {oib} je prošao ISO 7064, MOD 11-10 validaciju
                       </p>
                     </div>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
+                    <XCircle className="w-6 h-6 text-danger-text flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-red-900">OIB nije valjan</p>
-                      <p className="text-sm text-red-700">
+                      <p className="text-sm text-danger-text">
                         OIB {oib} nije prošao ISO 7064, MOD 11-10 validaciju
                       </p>
                     </div>
@@ -160,7 +162,7 @@ export default function OIBValidatorPage() {
           </div>
 
           {/* Info Section */}
-          <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+          <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
             <div className="flex items-start gap-3 mb-3">
               <Info className="w-5 h-5 flex-shrink-0 text-white/60" />
               <h3 className="font-semibold text-white/90">O OIB-u</h3>

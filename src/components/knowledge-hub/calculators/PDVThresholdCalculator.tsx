@@ -68,14 +68,14 @@ export function PDVThresholdCalculator() {
             step={100}
             value={currentRevenue}
             onChange={(e) => setCurrentRevenue(Number(e.target.value))}
-            className="w-full accent-cyan-400"
+            className="w-full accent-interactive"
           />
           <div className="flex items-center justify-between gap-3">
             <input
               type="number"
               value={currentRevenue}
               onChange={(e) => setCurrentRevenue(Number(e.target.value))}
-              className="w-full rounded-md border border-white/20 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-white/40 min-h-[44px] md:min-h-0"
+              className="w-full rounded-md border border-white/20 bg-surface-elevated px-3 py-2 text-sm text-white placeholder:text-white/40 min-h-[44px] md:min-h-0"
             />
             <span className="text-xs text-white/50 whitespace-nowrap">max 80k</span>
           </div>
@@ -90,14 +90,14 @@ export function PDVThresholdCalculator() {
             step={100}
             value={monthlyAverage}
             onChange={(e) => setMonthlyAverage(Number(e.target.value))}
-            className="w-full accent-cyan-400"
+            className="w-full accent-interactive"
           />
           <div className="flex items-center justify-between gap-3">
             <input
               type="number"
               value={monthlyAverage}
               onChange={(e) => setMonthlyAverage(Number(e.target.value))}
-              className="w-full rounded-md border border-white/20 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-white/40 min-h-[44px] md:min-h-0"
+              className="w-full rounded-md border border-white/20 bg-surface-elevated px-3 py-2 text-sm text-white placeholder:text-white/40 min-h-[44px] md:min-h-0"
             />
             <span className="text-xs text-white/50 whitespace-nowrap">max 20k</span>
           </div>
@@ -108,7 +108,7 @@ export function PDVThresholdCalculator() {
           <select
             value={currentMonth}
             onChange={(e) => setCurrentMonth(Number(e.target.value))}
-            className="w-full rounded-md border border-white/20 bg-slate-800 px-3 py-2 text-sm text-white min-h-[44px] md:min-h-0"
+            className="w-full rounded-md border border-white/20 bg-surface-elevated px-3 py-2 text-sm text-white min-h-[44px] md:min-h-0"
           >
             {monthNames.map((name, idx) => (
               <option key={name} value={idx + 1}>
@@ -126,7 +126,7 @@ export function PDVThresholdCalculator() {
           <span>Napredak prema pragu</span>
           <span>{animatedPercentage.toFixed(1)}%</span>
         </div>
-        <div className="h-4 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-4 bg-surface/10 rounded-full overflow-hidden">
           <div
             className={cn(
               "h-full transition-all duration-500",
@@ -151,14 +151,14 @@ export function PDVThresholdCalculator() {
         className={cn(
           "p-4 rounded-xl transition-colors animate-fade-in",
           analysis.willCrossThreshold
-            ? "bg-warning/10 border border-amber-500/30"
+            ? "bg-warning/10 border border-warning/30"
             : "bg-chart-4/10 border border-emerald-500/30"
         )}
       >
         {analysis.willCrossThreshold ? (
           <>
-            <h3 className="font-semibold text-amber-300 mb-2">Prelazite prag!</h3>
-            <p className="text-sm text-amber-200">
+            <h3 className="font-semibold text-warning-text mb-2">Prelazite prag!</h3>
+            <p className="text-sm text-warning">
               Projekcija do kraja godine: <strong>{formatEUR(animatedProjected)}</strong>
               {analysis.monthToCross && (
                 <span className="block mt-1">
@@ -169,8 +169,8 @@ export function PDVThresholdCalculator() {
           </>
         ) : (
           <>
-            <h3 className="font-semibold text-emerald-300 mb-2">Ispod praga</h3>
-            <p className="text-sm text-emerald-200">
+            <h3 className="font-semibold text-success-text mb-2">Ispod praga</h3>
+            <p className="text-sm text-success">
               Projekcija do kraja godine: <strong>{formatEUR(animatedProjected)}</strong>
               {analysis.safeMonthlyRevenue > 0 && (
                 <span className="block mt-1">

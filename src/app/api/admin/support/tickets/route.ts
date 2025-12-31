@@ -123,7 +123,7 @@ export async function PATCH(request: Request) {
         }
         await db.supportTicket.updateMany({
           where: { id: { in: ticketIds } },
-          data: { assignedToId },
+          data: { assignedToId: assignToId },
         })
         break
 

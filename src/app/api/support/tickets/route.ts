@@ -86,7 +86,10 @@ export async function POST(request: Request) {
 
   // Validate content after sanitization to prevent empty submissions
   if (!sanitizedTitle || sanitizedTitle.length < 3) {
-    return NextResponse.json({ error: "Naslov je prekratak ili sadrzi nedozvoljeni sadrzaj" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Naslov je prekratak ili sadrzi nedozvoljeni sadrzaj" },
+      { status: 400 }
+    )
   }
 
   const ticket = await db.supportTicket.create({

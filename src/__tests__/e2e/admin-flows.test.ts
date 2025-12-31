@@ -310,7 +310,7 @@ describe("Admin Flows E2E Tests", () => {
         phone: "+385911234567",
         iban: "HR1234567890123456789",
         fiscalEnabled: true,
-        competence: "BEGINNER",
+        competence: "beginner",
         acceptsCash: true,
         hasEmployees: false,
         taxBracket: "A",

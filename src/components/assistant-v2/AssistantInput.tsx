@@ -87,17 +87,17 @@ export const AssistantInput = forwardRef<AssistantInputHandle, AssistantInputPro
           "relative rounded-2xl transition-all duration-300",
           isDark
             ? [
-                "bg-slate-900/60 backdrop-blur-xl",
-                "border border-cyan-500/30",
+                "bg-surface/60 backdrop-blur-xl",
+                "border border-interactive/30",
                 "shadow-[0_0_30px_rgba(6,182,212,0.15)]",
                 isFocused && [
-                  "border-cyan-400/60",
+                  "border-accent-light/60",
                   "shadow-[0_0_40px_rgba(6,182,212,0.25)]",
                   "ring-2 ring-cyan-500/20",
                 ],
               ]
             : [
-                "bg-white border-2 border-slate-200",
+                "bg-surface border-2 border-default",
                 "shadow-sm",
                 isFocused && "border-primary ring-2 ring-primary/20",
               ],
@@ -132,7 +132,7 @@ export const AssistantInput = forwardRef<AssistantInputHandle, AssistantInputPro
             "focus:outline-none",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             isDark
-              ? "text-white placeholder:text-slate-400"
+              ? "text-white placeholder:text-muted"
               : "text-foreground placeholder:text-muted-foreground"
           )}
         />
@@ -149,7 +149,7 @@ export const AssistantInput = forwardRef<AssistantInputHandle, AssistantInputPro
             "focus:outline-none focus:ring-2 focus:ring-offset-2",
             isDark
               ? [
-                  "bg-gradient-to-r from-cyan-500 to-blue-600",
+                  "bg-gradient-to-r from-accent to-interactive",
                   "text-white",
                   "shadow-lg shadow-cyan-500/25",
                   "hover:shadow-xl hover:shadow-cyan-500/30",

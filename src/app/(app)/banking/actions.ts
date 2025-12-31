@@ -223,7 +223,7 @@ export async function importBankStatement(formData: FormData) {
       const checksumPayload = JSON.stringify({
         bankAccountId: accountId,
         format: "CSV",
-        transactions: validatedTransactions.map((txn) => ({
+        transactions: validatedTransactions.map((txn: z.infer<typeof importTransactionSchema>) => ({
           date: txn.date,
           description: txn.description,
           amount: txn.amount,

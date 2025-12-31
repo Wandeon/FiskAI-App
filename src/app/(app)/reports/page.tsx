@@ -98,7 +98,7 @@ export default async function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Izvještaji</h1>
-        <p className="text-gray-500">Financijski izvještaji i analize</p>
+        <p className="text-tertiary">Financijski izvještaji i analize</p>
       </div>
 
       {/* Monthly Summary */}
@@ -111,25 +111,25 @@ export default async function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Prihodi</p>
-              <p className="text-xl font-bold text-green-600">
+              <p className="text-sm text-tertiary">Prihodi</p>
+              <p className="text-xl font-bold text-success-text">
                 {formatCurrency(Number(invoiceStats._sum.totalAmount))}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Izlazni PDV</p>
+              <p className="text-sm text-tertiary">Izlazni PDV</p>
               <p className="text-xl font-bold">
                 {formatCurrency(Number(invoiceStats._sum.vatAmount))}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Rashodi</p>
-              <p className="text-xl font-bold text-red-600">
+              <p className="text-sm text-tertiary">Rashodi</p>
+              <p className="text-xl font-bold text-danger-text">
                 {formatCurrency(Number(expenseStats._sum.totalAmount))}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Ulazni PDV</p>
+              <p className="text-sm text-tertiary">Ulazni PDV</p>
               <p className="text-xl font-bold">
                 {formatCurrency(Number(expenseStats._sum.vatAmount))}
               </p>

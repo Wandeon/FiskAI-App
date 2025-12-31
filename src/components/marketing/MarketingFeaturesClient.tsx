@@ -27,13 +27,13 @@ export function MarketingFeaturesClient() {
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/pricing"
-                className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
+                className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-accent to-interactive px-6 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
               >
                 Pogledaj cijene <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold transition-colors hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 px-6 py-3 text-sm font-semibold transition-colors hover:bg-surface/10"
               >
                 Započni besplatnu probu
               </Link>
@@ -42,9 +42,9 @@ export function MarketingFeaturesClient() {
         </Stagger>
 
         <Reveal className="mt-12">
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 md:p-8">
+          <div className="rounded-3xl border border-white/10 bg-surface/5 backdrop-blur-sm p-6 md:p-8">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-semibold text-cyan-400">Scrolly-telling</p>
+              <p className="text-xs font-semibold text-accent-light">Scrolly-telling</p>
               <h2 className="mt-2 text-2xl font-semibold md:text-3xl">
                 Pokažimo vrijednost u akciji
               </h2>
@@ -64,7 +64,7 @@ export function MarketingFeaturesClient() {
             <HoverScale>
               <GlassCard className="h-full">
                 <div className="flex items-center gap-2 text-lg font-semibold mb-4">
-                  <Sparkles className="h-5 w-5 text-cyan-400" />
+                  <Sparkles className="h-5 w-5 text-accent-light" />
                   AI-first princip
                 </div>
                 <div className="text-sm text-white/60">
@@ -79,7 +79,7 @@ export function MarketingFeaturesClient() {
             <HoverScale>
               <GlassCard className="h-full">
                 <div className="flex items-center gap-2 text-lg font-semibold mb-4">
-                  <Shield className="h-5 w-5 text-cyan-400" />
+                  <Shield className="h-5 w-5 text-accent-light" />
                   Sigurnost i privatnost
                 </div>
                 <div className="text-sm text-white/60">
@@ -88,7 +88,7 @@ export function MarketingFeaturesClient() {
                   <div className="mt-3">
                     <Link
                       href="/security"
-                      className="text-sm font-semibold text-cyan-400 hover:underline"
+                      className="text-sm font-semibold text-accent-light hover:underline"
                     >
                       Pročitaj više
                     </Link>
@@ -102,7 +102,7 @@ export function MarketingFeaturesClient() {
             <HoverScale>
               <GlassCard className="h-full">
                 <div className="flex items-center gap-2 text-lg font-semibold mb-4">
-                  <FileText className="h-5 w-5 text-cyan-400" />
+                  <FileText className="h-5 w-5 text-accent-light" />
                   Računi (core)
                 </div>
                 <div className="text-sm text-white/60">
@@ -116,7 +116,7 @@ export function MarketingFeaturesClient() {
             <HoverScale>
               <GlassCard className="h-full">
                 <div className="flex items-center gap-2 text-lg font-semibold mb-4">
-                  <ScanText className="h-5 w-5 text-cyan-400" />
+                  <ScanText className="h-5 w-5 text-accent-light" />
                   Troškovi + skeniranje
                 </div>
                 <div className="text-sm text-white/60">
@@ -131,10 +131,10 @@ export function MarketingFeaturesClient() {
               <GlassCard>
                 <div className="flex items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-2 text-lg font-semibold">
-                    <Landmark className="h-5 w-5 text-cyan-400" />
+                    <Landmark className="h-5 w-5 text-accent-light" />
                     E-računi i fiskalizacija 2.0
                   </div>
-                  <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-400">
+                  <span className="rounded-full bg-warning-bg0/10 border border-warning/20 px-3 py-1 text-xs font-semibold text-warning">
                     Dolazi uskoro
                   </span>
                 </div>
@@ -150,7 +150,7 @@ export function MarketingFeaturesClient() {
             <HoverScale>
               <GlassCard>
                 <div className="flex items-center gap-2 text-lg font-semibold mb-4">
-                  <Users className="h-5 w-5 text-cyan-400" />
+                  <Users className="h-5 w-5 text-accent-light" />
                   Suradnja s knjigovođom
                 </div>
                 <div className="text-sm text-white/60">

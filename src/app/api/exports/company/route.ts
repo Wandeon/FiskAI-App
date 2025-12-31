@@ -46,7 +46,7 @@ function buildCompanyXml(data: BackupData): string {
       (p) => `
       <Product>
         <Name>${escapeXml(p.name)}</Name>
-        <Code>${escapeXml(p.code)}</Code>
+        <Code>${escapeXml(p.sku || "")}</Code>
         <Description>${escapeXml(p.description)}</Description>
         <Unit>${escapeXml(p.unit)}</Unit>
         <Price>${formatDecimal(p.price)}</Price>

@@ -227,14 +227,14 @@ export function ImportClient({ bankAccounts, initialJobs }: ImportClientProps) {
   return (
     <>
       {/* Bank account selector */}
-      <div className="flex items-center gap-4 p-4 bg-slate-900 rounded-xl text-white">
+      <div className="flex items-center gap-4 p-4 bg-surface rounded-xl text-white">
         <div>
-          <p className="text-sm text-slate-300">Bankovni račun za izvode:</p>
+          <p className="text-sm text-secondary">Bankovni račun za izvode:</p>
         </div>
         <select
           value={selectedAccountId}
           onChange={(e) => setSelectedAccountId(e.target.value)}
-          className="rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-sm"
+          className="rounded-md border border-subtle bg-surface-elevated px-3 py-2 text-sm"
         >
           {bankAccounts.map((acc) => (
             <option key={acc.id} value={acc.id}>

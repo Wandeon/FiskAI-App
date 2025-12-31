@@ -87,28 +87,28 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
     switch (certificateStatus.status) {
       case "active":
         return (
-          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">
+          <Badge className="bg-success-bg text-success-text border-success-border">
             <CheckCircle className="h-3 w-3 mr-1" />
             Aktivan
           </Badge>
         )
       case "expiring":
         return (
-          <Badge className="bg-amber-50 text-amber-700 border-amber-200">
+          <Badge className="bg-warning-bg text-warning-text border-warning-border">
             <Clock className="h-3 w-3 mr-1" />
             Ističe uskoro
           </Badge>
         )
       case "expired":
         return (
-          <Badge className="bg-red-50 text-red-700 border-red-200">
+          <Badge className="bg-danger-bg text-danger-text border-danger-border">
             <XCircle className="h-3 w-3 mr-1" />
             Istekao
           </Badge>
         )
       case "missing":
         return (
-          <Badge className="bg-gray-50 text-gray-700 border-gray-200">
+          <Badge className="bg-surface-1 text-foreground border-default">
             <AlertTriangle className="h-3 w-3 mr-1" />
             Nedostaje
           </Badge>
@@ -150,19 +150,19 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
   }
 
   const reportStatusStyles: Record<string, string> = {
-    DRAFT: "bg-gray-50 text-gray-700 border-gray-200",
-    READY_FOR_REVIEW: "bg-amber-50 text-amber-700 border-amber-200",
-    APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    SUBMITTED: "bg-blue-50 text-blue-700 border-blue-200",
-    REJECTED: "bg-red-50 text-red-700 border-red-200",
+    DRAFT: "bg-surface-1 text-foreground border-default",
+    READY_FOR_REVIEW: "bg-warning-bg text-warning-text border-warning-border",
+    APPROVED: "bg-success-bg text-success-text border-success-border",
+    SUBMITTED: "bg-info-bg text-link border-info-border",
+    REJECTED: "bg-danger-bg text-danger-text border-danger-border",
   }
 
   const periodStatusStyles: Record<string, string> = {
-    OPEN: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    SOFT_CLOSE: "bg-amber-50 text-amber-700 border-amber-200",
-    CLOSED: "bg-gray-100 text-gray-600 border-gray-200",
-    LOCKED: "bg-red-50 text-red-700 border-red-200",
-    FUTURE: "bg-blue-50 text-blue-700 border-blue-200",
+    OPEN: "bg-success-bg text-success-text border-success-border",
+    SOFT_CLOSE: "bg-warning-bg text-warning-text border-warning-border",
+    CLOSED: "bg-surface-2 text-secondary border-default",
+    LOCKED: "bg-danger-bg text-danger-text border-danger-border",
+    FUTURE: "bg-info-bg text-link border-info-border",
   }
 
   const handleReportAction = async (statusId: string, action: "request" | "approve" | "reject") => {
@@ -371,7 +371,7 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
                 >
                   <div
                     className={`rounded-full p-1 ${
-                      item.completed ? "bg-emerald-50 text-emerald-600" : "bg-gray-50 text-gray-400"
+                      item.completed ? "bg-success-bg text-success-text" : "bg-surface-1 text-muted"
                     }`}
                   >
                     {item.completed ? (
@@ -392,12 +392,12 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
                 </Link>
               ))}
 
-              <div className="mt-6 rounded-xl bg-blue-50 p-4">
+              <div className="mt-6 rounded-xl bg-info-bg p-4">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <AlertTriangle className="h-4 w-4 text-link mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-blue-900">Važni datumi</p>
-                    <ul className="mt-2 space-y-1 text-xs text-blue-800">
+                    <p className="text-sm font-semibold text-info-text">Važni datumi</p>
+                    <ul className="mt-2 space-y-1 text-xs text-info-text">
                       <li>
                         • <strong>1. siječnja 2026.</strong> - Obveza e-računa (B2B)
                       </li>
@@ -410,14 +410,14 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
               </div>
 
               {company.fiscalEnabled && (
-                <div className="rounded-xl bg-emerald-50 p-4">
+                <div className="rounded-xl bg-success-bg p-4">
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-success-text mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-emerald-900">
+                      <p className="text-sm font-semibold text-success-text">
                         Fiskalizacija aktivna
                       </p>
-                      <p className="text-xs text-emerald-800 mt-1">
+                      <p className="text-xs text-success-text mt-1">
                         Vaša tvrtka koristi{" "}
                         <strong>
                           {company.fiscalEnvironment === "PROD" ? "produkcijsko" : "sandbox"}
@@ -462,7 +462,7 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
-                      className={`border ${reportStatusStyles[status.status] ?? "border-gray-200"}`}
+                      className={`border ${reportStatusStyles[status.status] ?? "border-default"}`}
                     >
                       {status.status.replace(/_/g, " ")}
                     </Badge>
@@ -536,7 +536,7 @@ export function ComplianceDashboard({ data, company }: ComplianceDashboardProps)
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
-                      className={`border ${periodStatusStyles[period.status] ?? "border-gray-200"}`}
+                      className={`border ${periodStatusStyles[period.status] ?? "border-default"}`}
                     >
                       {period.status.replace(/_/g, " ")}
                     </Badge>

@@ -291,7 +291,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
       {/* Rest of the component continues here... */}
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="rounded-lg border border-default bg-white p-4">
+        <div className="rounded-lg border border-default bg-surface p-4">
           <div className="text-2xl font-bold text-foreground">{stats.total}</div>
           <div className="text-sm text-tertiary">Total Flags</div>
         </div>
@@ -325,7 +325,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-md border border-default bg-white px-3 py-2 text-sm"
+            className="rounded-md border border-default bg-surface px-3 py-2 text-sm"
           >
             <option value="all">All Status</option>
             <option value="ACTIVE">Active</option>
@@ -342,7 +342,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
 
       {/* Create Flag Form */}
       {isCreating && (
-        <div className="rounded-lg border border-default bg-white p-6">
+        <div className="rounded-lg border border-default bg-surface p-6">
           <h3 className="mb-4 text-lg font-medium">Create New Feature Flag</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -390,7 +390,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
                     scope: e.target.value as "GLOBAL" | "TENANT" | "USER",
                   }))
                 }
-                className="w-full rounded-md border border-default bg-white px-3 py-2 text-sm"
+                className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm"
               >
                 <option value="GLOBAL">Global</option>
                 <option value="TENANT">Tenant</option>
@@ -410,7 +410,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
       )}
 
       {/* Flags List */}
-      <div className="rounded-lg border border-default bg-white">
+      <div className="rounded-lg border border-default bg-surface">
         <table className="w-full">
           <thead className="border-b border-default bg-surface-1">
             <tr>
@@ -434,7 +434,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-border-default">
             {filteredFlags.map((flag) => (
               <tr key={flag.id} className="hover:bg-surface-1">
                 <td className="px-4 py-4">

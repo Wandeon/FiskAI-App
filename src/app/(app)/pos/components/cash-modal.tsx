@@ -162,11 +162,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
         {quickAmounts.length > 0 && (
           <div className="flex justify-center gap-2">
             {quickAmounts.map((amount) => (
-              <Button
-                key={amount}
-                variant="outline"
-                onClick={() => setReceived(amount.toString())}
-              >
+              <Button key={amount} variant="outline" onClick={() => setReceived(amount.toString())}>
                 {amount} €
               </Button>
             ))}
@@ -175,9 +171,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
 
         {/* Amount received */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Primljeno (EUR)
-          </label>
+          <label className="block text-sm font-medium mb-1">Primljeno (EUR)</label>
           <Input
             type="number"
             step="0.01"
@@ -194,9 +188,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
         {receivedAmount >= total && (
           <div className="text-center p-4 bg-success-bg rounded-lg">
             <p className="text-sm text-success-text">Vraćeno kupcu</p>
-            <p className="text-3xl font-bold text-success-text">
-              {formatPrice(change)}
-            </p>
+            <p className="text-3xl font-bold text-success-text">{formatPrice(change)}</p>
           </div>
         )}
       </div>
@@ -205,10 +197,7 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
         <Button variant="outline" onClick={onClose} disabled={processing}>
           Odustani
         </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={receivedAmount < total || processing}
-        >
+        <Button onClick={handleSubmit} disabled={receivedAmount < total || processing}>
           {processing ? "Obrada..." : "Završi prodaju"}
         </Button>
       </ModalFooter>

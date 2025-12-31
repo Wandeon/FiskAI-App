@@ -60,7 +60,7 @@ export function NewsList() {
               "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
               category === filter.value
                 ? "bg-interactive text-white"
-                : "bg-white/10 text-white/70 hover:bg-white/20"
+                : "bg-surface/10 text-white/70 hover:bg-surface/20"
             )}
           >
             {filter.label}
@@ -71,10 +71,10 @@ export function NewsList() {
       {/* News Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-link" />
         </div>
       ) : news.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center">
+        <div className="rounded-xl border border-white/10 bg-surface/5 p-8 text-center">
           <p className="text-white/60">Nema vijesti za prikaz.</p>
           <p className="mt-2 text-sm text-white/40">
             Vijesti će biti dostupne uskoro nakon što se pokrene automatsko prikupljanje.

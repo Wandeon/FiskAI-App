@@ -14,7 +14,7 @@ export function Sources({ sources, lastUpdated, lastReviewed, reviewer }: Source
   if (!hasContent) return null
 
   return (
-    <div className="mt-10 rounded-xl border border-white/10 bg-white/5 p-6">
+    <div className="mt-10 rounded-xl border border-white/10 bg-surface/5 p-6">
       {/* Sources */}
       {sources && sources.length > 0 && (
         <div className="mb-4">

@@ -105,8 +105,8 @@ export function StaffProfileForm({ user }: StaffProfileFormProps) {
         <div
           className={`rounded-lg p-3 text-sm ${
             message.type === "success"
-              ? "bg-success-bg text-green-800 border border-success-border"
-              : "bg-danger-bg text-red-800 border border-danger-border"
+              ? "bg-success-bg text-success-text border border-success-border"
+              : "bg-danger-bg text-danger-text border border-danger-border"
           }`}
         >
           {message.text}

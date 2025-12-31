@@ -35,10 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           },
           "File integrity check failed"
         )
-        return NextResponse.json(
-          { error: "File integrity verification failed" },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: "File integrity verification failed" }, { status: 500 })
       }
     }
 
@@ -55,7 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       webp: "image/webp",
     }
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       headers: {
         "Content-Type": mimeTypes[ext] || "application/octet-stream",
         "Content-Disposition": `inline; filename="${job.originalName}"`,

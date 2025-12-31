@@ -152,10 +152,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
+        ...result,
         success: false,
         error: "Internal server error",
         details: errorMsg,
-        ...result,
       },
       { status: 500 }
     )

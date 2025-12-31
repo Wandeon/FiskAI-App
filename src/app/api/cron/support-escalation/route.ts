@@ -130,7 +130,7 @@ export async function GET(request: Request) {
           where: { id: ticket.id },
           data: {
             escalatedAt: now,
-            escalatedTo: admins[0].id, // Assign to first admin
+            assignedToId: admins[0].id, // Assign to first admin
             slaDeadline: slaDeadline,
           },
         })

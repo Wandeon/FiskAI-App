@@ -40,7 +40,14 @@ export default async function ExpensesByCategoryPage({
   // Group expenses by category
   const categoryMap = new Map<
     string,
-    { name: string; code: string; netAmount: number; vatAmount: number; totalAmount: number; count: number }
+    {
+      name: string
+      code: string
+      netAmount: number
+      vatAmount: number
+      totalAmount: number
+      count: number
+    }
   >()
 
   for (const expense of expenses) {
@@ -65,7 +72,9 @@ export default async function ExpensesByCategoryPage({
   }
 
   // Convert to array and sort by total amount descending
-  const categoryStats = Array.from(categoryMap.values()).sort((a, b) => b.totalAmount - a.totalAmount)
+  const categoryStats = Array.from(categoryMap.values()).sort(
+    (a, b) => b.totalAmount - a.totalAmount
+  )
 
   const totalExpenses = categoryStats.reduce((sum, cat) => sum + cat.totalAmount, 0)
   const totalNet = categoryStats.reduce((sum, cat) => sum + cat.netAmount, 0)
@@ -74,7 +83,8 @@ export default async function ExpensesByCategoryPage({
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat("hr-HR", { style: "currency", currency: "EUR" }).format(n)
 
-  const formatPercent = (n: number) => (totalExpenses > 0 ? ((n / totalExpenses) * 100).toFixed(1) : "0.0")
+  const formatPercent = (n: number) =>
+    totalExpenses > 0 ? ((n / totalExpenses) * 100).toFixed(1) : "0.0"
 
   return (
     <div className="space-y-6">
@@ -139,7 +149,9 @@ export default async function ExpensesByCategoryPage({
             <CardTitle className="text-base text-danger-text">Ukupno rashodi</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold font-mono text-danger-text">{formatCurrency(totalExpenses)}</p>
+            <p className="text-3xl font-bold font-mono text-danger-text">
+              {formatCurrency(totalExpenses)}
+            </p>
             <p className="text-sm text-secondary">{expenses.length} troškova</p>
           </CardContent>
         </Card>
@@ -175,13 +187,17 @@ export default async function ExpensesByCategoryPage({
                       </td>
                       <td className="py-3 text-right text-secondary">{cat.count}</td>
                       <td className="py-3 text-right font-mono">{formatCurrency(cat.netAmount)}</td>
-                      <td className="py-3 text-right font-mono text-secondary">{formatCurrency(cat.vatAmount)}</td>
-                      <td className="py-3 text-right font-mono font-medium">{formatCurrency(cat.totalAmount)}</td>
+                      <td className="py-3 text-right font-mono text-secondary">
+                        {formatCurrency(cat.vatAmount)}
+                      </td>
+                      <td className="py-3 text-right font-mono font-medium">
+                        {formatCurrency(cat.totalAmount)}
+                      </td>
                       <td className="py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div className="w-16 bg-surface-2 rounded-full h-2">
                             <div
-                              className="bg-blue-600 h-2 rounded-full"
+                              className="bg-interactive h-2 rounded-full"
                               style={{ width: `${formatPercent(cat.totalAmount)}%` }}
                             />
                           </div>

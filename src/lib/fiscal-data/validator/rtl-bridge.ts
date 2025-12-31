@@ -14,9 +14,19 @@
  */
 
 import type { ValidationResult, ValidationSource } from "../types"
-import type { ContentSyncEventV1, EventSeverity, ChangeType, ValueType } from "@/lib/regulatory-truth/content-sync/types"
+import type {
+  ContentSyncEventV1,
+  EventSeverity,
+  ChangeType,
+  ValueType,
+} from "@/lib/regulatory-truth/content-sync/types"
 import { mapRtlDomainToContentDomain } from "@/lib/regulatory-truth/content-sync/types"
-import { generateEventId, determineSeverity, buildEventSignature, hashSourcePointerIds } from "@/lib/regulatory-truth/content-sync/event-id"
+import {
+  generateEventId,
+  determineSeverity,
+  buildEventSignature,
+  hashSourcePointerIds,
+} from "@/lib/regulatory-truth/content-sync/event-id"
 import { REGULATORY_SOURCES, type SourceDefinition } from "@/lib/regulatory-truth/data/sources"
 import { DATA_POINT_DESCRIPTIONS } from "./data-point-descriptions"
 
@@ -342,7 +352,9 @@ export async function verifyAgainstRTL(
         const p = pointer as any
         const extractedNum = parseFloat(p.extractedValue)
         const foundNum =
-          typeof result.foundValue === "number" ? result.foundValue : parseFloat(String(result.foundValue))
+          typeof result.foundValue === "number"
+            ? result.foundValue
+            : parseFloat(String(result.foundValue))
 
         if (!isNaN(extractedNum) && !isNaN(foundNum) && Math.abs(extractedNum - foundNum) < 0.001) {
           // Found matching RTL data
@@ -407,7 +419,11 @@ export function createContentSyncEvent(
   const eventId = generateEventId(signature)
 
   // Determine severity based on priority and change magnitude
-  const severity = determineSeverityForFiscalChange(mapping.priority, previousValue, result.foundValue)
+  const severity = determineSeverityForFiscalChange(
+    mapping.priority,
+    previousValue,
+    result.foundValue
+  )
 
   const event: ContentSyncEventV1 = {
     version: 1,
@@ -516,7 +532,8 @@ export function createChangeNotification(
     return mapping?.priority === "critical"
   })
 
-  const severity: EventSeverity = criticalChanges.length > 0 ? "breaking" : changes.length > 0 ? "major" : "info"
+  const severity: EventSeverity =
+    criticalChanges.length > 0 ? "breaking" : changes.length > 0 ? "major" : "info"
 
   const dataPointDescriptions = changes.map((r) => {
     const desc = DATA_POINT_DESCRIPTIONS[r.dataPoint]

@@ -72,7 +72,7 @@ export function BottomNav() {
                   key={action.href}
                   href={action.href}
                   onClick={() => setIsQuickOpen(false)}
-                  className="flex items-center gap-3 rounded-2xl bg-white/5 px-3 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white/10"
+                  className="flex items-center gap-3 rounded-2xl bg-surface/5 px-3 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-surface/10"
                 >
                   <action.icon className="icon-md text-[var(--muted)]" />
                   {action.label}

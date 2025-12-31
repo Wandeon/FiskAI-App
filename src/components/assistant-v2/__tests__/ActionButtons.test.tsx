@@ -8,13 +8,15 @@ describe("ActionButtons", () => {
   it("renders Why? button when hasWhy is true", () => {
     render(<ActionButtons hasWhy onWhyClick={vi.fn()} />)
 
-    expect(screen.getByRole("button", { name: /why/i })).toBeInTheDocument()
+    // Button has Croatian aria-label "Saznajte zašto"
+    expect(screen.getByRole("button", { name: /saznajte zašto/i })).toBeInTheDocument()
   })
 
   it("renders How to apply button when hasHowToApply is true", () => {
     render(<ActionButtons hasHowToApply onHowToApplyClick={vi.fn()} />)
 
-    expect(screen.getByRole("button", { name: /how to apply/i })).toBeInTheDocument()
+    // Button has Croatian aria-label "Kako primijeniti ovu preporuku"
+    expect(screen.getByRole("button", { name: /kako primijeniti/i })).toBeInTheDocument()
   })
 
   it("calls onWhyClick when Why? is clicked", async () => {
@@ -23,7 +25,7 @@ describe("ActionButtons", () => {
 
     render(<ActionButtons hasWhy onWhyClick={onWhyClick} />)
 
-    await user.click(screen.getByRole("button", { name: /why/i }))
+    await user.click(screen.getByRole("button", { name: /saznajte zašto/i }))
 
     expect(onWhyClick).toHaveBeenCalledTimes(1)
   })
@@ -34,7 +36,7 @@ describe("ActionButtons", () => {
 
     render(<ActionButtons hasHowToApply onHowToApplyClick={onHowToApplyClick} />)
 
-    await user.click(screen.getByRole("button", { name: /how to apply/i }))
+    await user.click(screen.getByRole("button", { name: /kako primijeniti/i }))
 
     expect(onHowToApplyClick).toHaveBeenCalledTimes(1)
   })
@@ -60,7 +62,7 @@ describe("ActionButtons", () => {
   it("shows expanded state for Why? when whyExpanded is true", () => {
     render(<ActionButtons hasWhy whyExpanded onWhyClick={vi.fn()} />)
 
-    const button = screen.getByRole("button", { name: /why/i })
+    const button = screen.getByRole("button", { name: /saznajte zašto/i })
     expect(button).toHaveAttribute("aria-expanded", "true")
   })
 })

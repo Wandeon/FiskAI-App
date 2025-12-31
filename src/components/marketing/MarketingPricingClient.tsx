@@ -57,7 +57,7 @@ export function MarketingPricingClient() {
       {
         id: "pausalni",
         badge: "Paušalni obrt",
-        badgeClassName: "bg-cyan-500/20 text-cyan-300",
+        badgeClassName: "bg-accent/20 text-cyan-300",
         priceMonthly: 39,
         priceAccent: "blue",
         description: "Savršeno za paušalni obrt do 50 računa mjesečno",
@@ -70,13 +70,13 @@ export function MarketingPricingClient() {
         ],
         ctaLabel: "Započni besplatnu probu",
         ctaHref: "/register",
-        ctaClassName: "bg-gradient-to-r from-cyan-500 to-blue-600",
+        ctaClassName: "bg-gradient-to-r from-accent to-interactive",
         footnote: "Nema kreditne kartice • Možete otkazati bilo kada",
       },
       {
         id: "doo-standard",
         badge: "D.O.O. Standard",
-        badgeClassName: "bg-cyan-500 text-white",
+        badgeClassName: "bg-accent text-white",
         priceMonthly: 99,
         priceAccent: "blue",
         description: "Za d.o.o. i VAT obrt do 200 računa mjesečno",
@@ -90,7 +90,7 @@ export function MarketingPricingClient() {
         ],
         ctaLabel: "Započni besplatnu probu",
         ctaHref: "/register",
-        ctaClassName: "bg-gradient-to-r from-cyan-500 to-blue-600",
+        ctaClassName: "bg-gradient-to-r from-accent to-interactive",
         footnote: "Besplatna migracija podataka za d.o.o.",
         highlighted: true,
       },
@@ -111,7 +111,7 @@ export function MarketingPricingClient() {
         ],
         ctaLabel: "Kontaktirajte prodaju",
         ctaHref: "/contact",
-        ctaClassName: "bg-gradient-to-r from-purple-500 to-indigo-600",
+        ctaClassName: "bg-gradient-to-r from-chart-2 to-indigo-600",
         footnote: "Timska obuka i prilagođena implementacija",
       },
     ],
@@ -137,7 +137,7 @@ export function MarketingPricingClient() {
               </p>
             </StaggerItem>
             <StaggerItem>
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800">
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-info-bg px-4 py-2 text-sm font-semibold text-info-text">
                 <Shield className="h-4 w-4" />
                 14-dnevna besplatna proba za sve pakete
               </div>
@@ -146,7 +146,7 @@ export function MarketingPricingClient() {
         </Reveal>
 
         <Reveal>
-          <div className="mx-auto mb-10 flex max-w-xl flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 text-center">
+          <div className="mx-auto mb-10 flex max-w-xl flex-col items-center gap-3 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-5 text-center">
             <p className="text-sm font-semibold">Odaberite način naplate</p>
             <div className="flex items-center gap-3">
               <span
@@ -166,13 +166,13 @@ export function MarketingPricingClient() {
                 className={cn(
                   "relative h-9 w-16 rounded-full border transition-colors",
                   billing === "annual"
-                    ? "border-cyan-500 bg-cyan-500"
-                    : "border-white/10 bg-white/10"
+                    ? "border-cyan-500 bg-accent"
+                    : "border-white/10 bg-surface/10"
                 )}
               >
                 <span
                   className={cn(
-                    "absolute top-1 h-7 w-7 rounded-full bg-white shadow transition-transform",
+                    "absolute top-1 h-7 w-7 rounded-full bg-surface shadow transition-transform",
                     billing === "annual" ? "translate-x-8" : "translate-x-1"
                   )}
                 />
@@ -207,7 +207,7 @@ export function MarketingPricingClient() {
               const savings = annualSavings(plan.priceMonthly)
 
               const cardBase =
-                "rounded-2xl border bg-white/5 backdrop-blur-sm border-white/10 p-8 transition-shadow will-change-transform"
+                "rounded-2xl border bg-surface/5 backdrop-blur-sm border-white/10 p-8 transition-shadow will-change-transform"
               const hover = "hover:shadow-lg"
 
               return (
@@ -338,7 +338,7 @@ export function MarketingPricingClient() {
         </Reveal>
 
         <Reveal>
-          <div className="mb-16 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+          <div className="mb-16 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
             <h2 className="mb-6 text-center text-2xl font-semibold">Dodaci (opcionalno)</h2>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-white/10 p-6">
@@ -370,7 +370,7 @@ export function MarketingPricingClient() {
         </Reveal>
 
         <Reveal>
-          <div className="mb-12 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+          <div className="mb-12 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
             <h2 className="mb-6 text-2xl font-semibold">Često postavljana pitanja</h2>
             <FaqAccordion
               items={[
@@ -405,24 +405,24 @@ export function MarketingPricingClient() {
         </Reveal>
 
         <Reveal>
-          <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-8">
+          <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-accent/10 to-interactive/10 p-8">
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-                  <Shield className="h-6 w-6 text-cyan-400" />
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface/10">
+                  <Shield className="h-6 w-6 text-accent-light" />
                 </div>
                 <p className="font-semibold">Bez rizika</p>
                 <p className="text-xs text-white/60">14 dana besplatne probe</p>
               </div>
               <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface/10">
                   <Globe className="h-6 w-6 text-accent-icon" />
                 </div>
                 <p className="font-semibold">Podaci u EU</p>
                 <p className="text-xs text-white/60">GDPR usklađeno, podaci u Njemačkoj</p>
               </div>
               <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface/10">
                   <Users className="h-6 w-6 text-accent-icon" />
                 </div>
                 <p className="font-semibold">Podrška na hrvatskom</p>

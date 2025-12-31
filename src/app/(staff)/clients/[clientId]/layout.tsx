@@ -7,95 +7,95 @@ import { StaffClientContextHeader } from "@/components/staff/client-context-head
 import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
 
 interface ClientContextLayoutProps {
- children: ReactNode
- params: Promise<{ clientId: string }>
+  children: ReactNode
+  params: Promise<{ clientId: string }>
 }
 
 async function verifyStaffAccess(userId: string, companyId: string, systemRole: string) {
- // ADMINs can access any client
- if (systemRole === "ADMIN") {
- return true
- }
+  // ADMINs can access any client
+  if (systemRole === "ADMIN") {
+    return true
+  }
 
- // STAFF must be assigned to the client
- const assignment = await db.staffAssignment.findUnique({
- where: {
- staffId_companyId: {
- staffId: userId,
- companyId: companyId,
- },
- },
- })
+  // STAFF must be assigned to the client
+  const assignment = await db.staffAssignment.findUnique({
+    where: {
+      staffId_companyId: {
+        staffId: userId,
+        companyId: companyId,
+      },
+    },
+  })
 
- return !!assignment
+  return !!assignment
 }
 
 async function getClientCompany(companyId: string) {
- return db.company.findUnique({
- where: { id: companyId },
- select: {
- id: true,
- name: true,
- oib: true,
- entitlements: true,
- legalForm: true,
- isVatPayer: true,
- eInvoiceProvider: true,
- },
- })
+  return db.company.findUnique({
+    where: { id: companyId },
+    select: {
+      id: true,
+      name: true,
+      oib: true,
+      entitlements: true,
+      legalForm: true,
+      isVatPayer: true,
+      eInvoiceProvider: true,
+    },
+  })
 }
 
 export default async function ClientContextLayout({ children, params }: ClientContextLayoutProps) {
- const session = await auth()
- const { clientId } = await params
+  const session = await auth()
+  const { clientId } = await params
 
- if (!session?.user) {
- redirect("/login")
- }
+  if (!session?.user) {
+    redirect("/login")
+  }
 
- // Check for STAFF or ADMIN role
- if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
- redirect("/dashboard")
- }
+  // Check for STAFF or ADMIN role
+  if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
+    redirect("/dashboard")
+  }
 
- // Verify staff has access to this client
- const hasAccess = await verifyStaffAccess(session.user.id, clientId, session.user.systemRole)
- if (!hasAccess) {
- redirect("/clients")
- }
+  // Verify staff has access to this client
+  const hasAccess = await verifyStaffAccess(session.user.id, clientId, session.user.systemRole)
+  if (!hasAccess) {
+    redirect("/clients")
+  }
 
- // Get client company details
- const company = await getClientCompany(clientId)
- if (!company) {
- notFound()
- }
+  // Get client company details
+  const company = await getClientCompany(clientId)
+  if (!company) {
+    notFound()
+  }
 
- // Log staff access to client data (GDPR compliance)
- const reqHeaders = await headers()
- const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
- await logStaffAccess({
- staffUserId: session.user.id,
- clientCompanyId: clientId,
- action: "STAFF_VIEW_CLIENT",
- resourceType: "Company",
- resourceId: clientId,
- metadata: {
- clientName: company.name,
- clientOib: company.oib,
- },
- ipAddress,
- userAgent,
- })
+  // Log staff access to client data (GDPR compliance)
+  const reqHeaders = await headers()
+  const { ipAddress, userAgent } = getRequestMetadata(reqHeaders)
+  await logStaffAccess({
+    staffUserId: session.user.id,
+    clientCompanyId: clientId,
+    action: "STAFF_VIEW_CLIENT",
+    resourceType: "Company",
+    resourceId: clientId,
+    metadata: {
+      clientName: company.name,
+      clientOib: company.oib,
+    },
+    ipAddress,
+    userAgent,
+  })
 
- return (
- <div className="space-y-6">
- <StaffClientContextHeader
- clientId={company.id}
- clientName={company.name}
- clientOib={company.oib}
- legalForm={company.legalForm}
- />
- {children}
- </div>
- )
+  return (
+    <div className="space-y-6">
+      <StaffClientContextHeader
+        clientId={company.id}
+        clientName={company.name}
+        clientOib={company.oib}
+        legalForm={company.legalForm}
+      />
+      {children}
+    </div>
+  )
 }

@@ -191,9 +191,7 @@ describe("getCriticalPathComponentIds", () => {
   })
 
   it("extracts component IDs from single path", () => {
-    const paths = [
-      makeCriticalPathImpact("path-1", "Path 1", 0, ["comp-a", "comp-b"]),
-    ]
+    const paths = [makeCriticalPathImpact("path-1", "Path 1", 0, ["comp-a", "comp-b"])]
     const result = getCriticalPathComponentIds(paths)
     assert.equal(result.size, 2)
     assert.ok(result.has("comp-a"))
@@ -333,9 +331,7 @@ describe("formatPRComment", () => {
 
     it("shows on critical path annotation", () => {
       const analysis = makeEmptyAnalysis()
-      analysis.transitiveImpacts = [
-        makeTransitiveImpact("billing-lib", "MEDIUM", 2, []),
-      ]
+      analysis.transitiveImpacts = [makeTransitiveImpact("billing-lib", "MEDIUM", 2, [])]
       analysis.criticalPathImpacts = [
         makeCriticalPathImpact("path-billing", "Billing", 0, ["billing-lib"]),
       ]
@@ -488,15 +484,11 @@ describe("formatPRComment", () => {
           makeDirectImpact("route-group-users", "MEDIUM"),
         ],
         transitiveImpacts: [
-          makeTransitiveImpact("worker-subscription-sync", "CRITICAL", 1, [
-            "lib-auth",
-          ]),
+          makeTransitiveImpact("worker-subscription-sync", "CRITICAL", 1, ["lib-auth"]),
           makeTransitiveImpact("integration-stripe", "HIGH", 2, ["lib-billing"]),
         ],
         criticalPathImpacts: [
-          makeCriticalPathImpact("path-billing", "Billing", 1, [
-            "integration-stripe",
-          ]),
+          makeCriticalPathImpact("path-billing", "Billing", 1, ["integration-stripe"]),
         ],
         score: makeBlastScore("HIGH", "MEDIUM", [
           {
@@ -536,9 +528,7 @@ describe("formatPRComment", () => {
         directImpacts: [makeDirectImpact("lib-auth", "HIGH")],
         transitiveImpacts: [makeTransitiveImpact("worker", "HIGH", 1, [])],
         criticalPathImpacts: [makeCriticalPathImpact("path", "Path", 0, [])],
-        score: makeBlastScore("HIGH", "MEDIUM", [
-          { from: "MEDIUM", to: "HIGH", reason: "test" },
-        ]),
+        score: makeBlastScore("HIGH", "MEDIUM", [{ from: "MEDIUM", to: "HIGH", reason: "test" }]),
         owners: ["team:security"],
         truncated: false,
       }

@@ -150,7 +150,7 @@ export function DocumentScanner({ onCapture, onClose, initialFile }: DocumentSca
             <button
               onClick={() => setFilter("original")}
               className={`px-4 py-2 rounded-full text-sm ${
-                filter === "original" ? "bg-white text-black" : "bg-white/20 text-white"
+                filter === "original" ? "bg-surface text-black" : "bg-surface/20 text-white"
               }`}
             >
               Original
@@ -158,7 +158,7 @@ export function DocumentScanner({ onCapture, onClose, initialFile }: DocumentSca
             <button
               onClick={() => setFilter("enhanced")}
               className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
-                filter === "enhanced" ? "bg-white text-black" : "bg-white/20 text-white"
+                filter === "enhanced" ? "bg-surface text-black" : "bg-surface/20 text-white"
               }`}
             >
               <Wand2 className="h-4 w-4" />
@@ -167,7 +167,7 @@ export function DocumentScanner({ onCapture, onClose, initialFile }: DocumentSca
             <button
               onClick={() => setFilter("bw")}
               className={`px-4 py-2 rounded-full text-sm ${
-                filter === "bw" ? "bg-white text-black" : "bg-white/20 text-white"
+                filter === "bw" ? "bg-surface text-black" : "bg-surface/20 text-white"
               }`}
             >
               C/B
@@ -181,7 +181,7 @@ export function DocumentScanner({ onCapture, onClose, initialFile }: DocumentSca
         <div className="p-4 pb-8 bg-black/80 safe-area-bottom">
           <div className="flex justify-center gap-8">
             <button onClick={onClose} className="flex flex-col items-center gap-1 text-white">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-surface/20 flex items-center justify-center">
                 <RotateCcw className="h-6 w-6" />
               </div>
               <span className="text-xs">Ponovi</span>

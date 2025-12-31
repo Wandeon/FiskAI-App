@@ -9,7 +9,7 @@ import {
   type PersonWithRoles,
 } from "@/lib/people/person-service"
 import { applyPersonRoles } from "@/lib/people/person-role-service"
-import { Prisma } from "@prisma/client"
+import { Prisma, PersonEventType } from "@prisma/client"
 
 export async function GET() {
   const user = await getCurrentUser()
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
             data: roleEvents.map((event) => ({
               companyId: company.id,
               personId: created.id,
-              eventType: event.type as Prisma.PersonEventType,
+              eventType: event.type as PersonEventType,
               payload: event.payload,
             })),
           })

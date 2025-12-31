@@ -8,10 +8,7 @@ import { ViewTracker } from "@/components/news/ViewTracker"
 import { NewsMarkdown } from "@/components/news/NewsMarkdown"
 import { PostCard } from "@/components/news/PostCard"
 import { JsonLd } from "@/components/seo/JsonLd"
-import {
-  generateNewsArticleSchema,
-  generateBreadcrumbSchema,
-} from "@/lib/schema/generators"
+import { generateNewsArticleSchema, generateBreadcrumbSchema } from "@/lib/schema/generators"
 import { format } from "date-fns"
 import { hr } from "date-fns/locale"
 import Link from "next/link"
@@ -80,15 +77,15 @@ function ActionItemsSection({ items }: { items: string[] }) {
   return (
     <div className="my-8 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-green-500/10 p-6 shadow-sm">
       <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/20">
-          <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-success-bg0/20">
+          <CheckCircle2 className="h-5 w-5 text-success" />
         </div>
         <div className="flex-1">
           <h2 className="mb-4 text-lg font-semibold text-emerald-300">Što napraviti</h2>
           <ul className="space-y-2">
             {items.map((item, idx) => (
               <li key={idx} className="flex items-start gap-3 text-sm text-white/90">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
                 <span>{item}</span>
               </li>
             ))}
@@ -114,7 +111,7 @@ function RelatedToolsSection({ tools }: { tools: { title: string; href: string }
               <Link
                 key={idx}
                 href={tool.href}
-                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-surface/5 p-3 text-sm font-medium text-white transition-colors hover:bg-surface/10"
               >
                 <Wrench className="h-4 w-4 text-primary" />
                 <span>{tool.title}</span>
@@ -360,10 +357,10 @@ export default async function PostDetailPage({ params }: PageProps) {
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                   post.impactLevel === "high"
-                    ? "bg-red-500/20 text-red-300"
+                    ? "bg-danger-bg0/20 text-red-300"
                     : post.impactLevel === "medium"
-                      ? "bg-yellow-500/20 text-yellow-300"
-                      : "bg-green-500/20 text-green-300"
+                      ? "bg-warning-bg0/20 text-yellow-300"
+                      : "bg-success-bg0/20 text-green-300"
                 }`}
               >
                 {post.impactLevel === "high"
@@ -436,10 +433,10 @@ export default async function PostDetailPage({ params }: PageProps) {
 
           {/* Source Attribution - Enhanced */}
           {post.sources && post.sources.length > 0 && (
-            <div className="my-8 rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-6 shadow-sm">
+            <div className="my-8 rounded-xl border border-purple-500/20 bg-gradient-to-br from-chart-2/10 to-pink-500/10 p-6 shadow-sm">
               <div className="flex items-start gap-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-500/20">
-                  <ExternalLink className="h-5 w-5 text-purple-400" />
+                  <ExternalLink className="h-5 w-5 text-chart-2" />
                 </div>
                 <div className="flex-1">
                   <h3 className="mb-4 text-lg font-semibold text-purple-300">Izvori</h3>
@@ -450,9 +447,9 @@ export default async function PostDetailPage({ params }: PageProps) {
                         href={source.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4 transition-all hover:border-purple-500/30 hover:bg-white/10"
+                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-surface/5 p-4 transition-all hover:border-purple-500/30 hover:bg-surface/10"
                       >
-                        <ExternalLink className="h-5 w-5 flex-shrink-0 text-purple-400" />
+                        <ExternalLink className="h-5 w-5 flex-shrink-0 text-chart-2" />
                         <div className="flex-1">
                           <p className="font-medium text-white">{source.originalTitle}</p>
                           <p className="mt-1 text-sm text-white/60">

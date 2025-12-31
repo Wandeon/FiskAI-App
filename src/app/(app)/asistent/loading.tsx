@@ -17,10 +17,7 @@ export default function AssistantLoading() {
       {/* Messages area */}
       <div className="flex-1 space-y-4 p-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className={`flex gap-3 ${i % 2 === 0 ? "" : "flex-row-reverse"}`}
-          >
+          <div key={i} className={`flex gap-3 ${i % 2 === 0 ? "" : "flex-row-reverse"}`}>
             <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
             <div className={`space-y-2 max-w-md ${i % 2 === 0 ? "" : "items-end"}`}>
               <Skeleton className="h-20 w-64 rounded-lg" />

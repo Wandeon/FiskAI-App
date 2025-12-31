@@ -80,9 +80,7 @@ function buildDraftPrompt(type: ArticleJob["type"], factSheet: FactSheet, claims
     })
     .join("\n")
 
-  const sourcesText = sourcesList
-    .map((url, idx) => `[^${idx + 1}]: ${url}`)
-    .join("\n")
+  const sourcesText = sourcesList.map((url, idx) => `[^${idx + 1}]: ${url}`).join("\n")
 
   const entitiesText = [
     entities.names.length ? `Imena: ${entities.names.join(", ")}` : "",

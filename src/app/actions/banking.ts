@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { MatchKind, MatchSource, MatchStatus, Prisma, ImportFormat } from "@prisma/client"
 import { createHash } from "crypto"
 import { logAudit } from "@/lib/audit"
+import { runAutoMatchTransactions } from "@/lib/banking/reconciliation-service"
 
 const Decimal = Prisma.Decimal
 

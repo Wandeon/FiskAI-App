@@ -1,13 +1,4 @@
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Section,
-  Text,
-  Link,
-  Heading,
-} from "@react-email/components"
+import { Html, Head, Body, Container, Section, Text, Link, Heading } from "@react-email/components"
 import React from "react"
 
 interface AIQualityDigestProps {

@@ -28,9 +28,7 @@ export function verifyWebhookSignature(
     const expectedBase64 = hmac.digest("base64")
 
     // Extract signature value (remove algorithm prefix if present)
-    const signatureValue = signature.includes("=")
-      ? signature.split("=")[1]
-      : signature
+    const signatureValue = signature.includes("=") ? signature.split("=")[1] : signature
 
     // Compare using timing-safe comparison
     const isValidHex = crypto.timingSafeEqual(

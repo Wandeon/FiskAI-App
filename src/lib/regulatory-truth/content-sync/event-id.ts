@@ -120,10 +120,7 @@ export function generateEventId(signature: ContentSyncEventSignature): string {
  * determineSeverity("T3", "update") // "info"
  * determineSeverity("T3", "repeal") // "breaking"
  */
-export function determineSeverity(
-  ruleTier: RiskTier,
-  changeType: ChangeType
-): EventSeverity {
+export function determineSeverity(ruleTier: RiskTier, changeType: ChangeType): EventSeverity {
   // Repeals are always breaking - content removal is critical
   if (changeType === "repeal") {
     return "breaking"

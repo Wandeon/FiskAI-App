@@ -205,13 +205,13 @@ export function OibInput({
         </Button>
       </div>
 
-      {progress && <p className="text-xs text-blue-700">• {progress} (VIES → Sudski registar)</p>}
+      {progress && <p className="text-xs text-link">• {progress} (VIES → Sudski registar)</p>}
       {lookupSuccess && !error && (
-        <p className="text-xs text-green-600">Pronađeno! Podaci su automatski popunjeni.</p>
+        <p className="text-xs text-success-text">Pronađeno! Podaci su automatski popunjeni.</p>
       )}
-      {validationError && !error && <p className="text-xs text-yellow-600">{validationError}</p>}
+      {validationError && !error && <p className="text-xs text-warning-text">{validationError}</p>}
       {lookupError && !error && !validationError && (
-        <p className="text-xs text-yellow-600">{lookupError}</p>
+        <p className="text-xs text-warning-text">{lookupError}</p>
       )}
     </div>
   )

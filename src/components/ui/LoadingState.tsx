@@ -18,13 +18,13 @@ export const LoadingState = ({ size = "md", text }: LoadingStateProps) => {
     <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <div className="relative">
         {/* Base Logo */}
-        <FiskAILogo className={`${sizes[size]} text-slate-700`} />
+        <FiskAILogo className={`${sizes[size]} text-foreground`} />
         {/* Overlay Logo that pulses */}
         <div className="absolute inset-0 animate-pulse">
           <FiskAILogo className={`${sizes[size]} text-cyan-500 opacity-60`} />
         </div>
       </div>
-      {text && <p className="text-sm text-slate-500 animate-pulse">{text}</p>}
+      {text && <p className="text-sm text-tertiary animate-pulse">{text}</p>}
     </div>
   )
 }

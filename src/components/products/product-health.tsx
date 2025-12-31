@@ -76,12 +76,12 @@ export function ProductHealth({
             <div className="flex items-center justify-between">
               <span className="text-[var(--muted)]">{issue.label}</span>
               {issue.value > 0 ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning-text">
                   <AlertTriangle className="h-3 w-3" />
                   {issue.value}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-xs font-semibold text-success-text">
                   <CheckCircle2 className="h-3 w-3" />0
                 </span>
               )}

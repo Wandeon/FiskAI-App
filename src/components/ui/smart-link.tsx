@@ -1,21 +1,21 @@
-"use client";
+"use client"
 
-import Link, { type LinkProps } from "next/link";
-import { forwardRef, type ComponentPropsWithoutRef } from "react";
-import { routes, type RouteId, type Locale } from "@/config/routes";
+import Link from "next/link"
+import { forwardRef, type ComponentPropsWithoutRef } from "react"
+import { routes, type RouteId, type Locale } from "@/config/routes"
+import { cn } from "@/lib/utils"
 
 // =============================================================================
 // SmartLink - Type-safe route linking
 // =============================================================================
 
-interface SmartLinkProps
-  extends Omit<ComponentPropsWithoutRef<typeof Link>, "href"> {
+interface SmartLinkProps extends Omit<ComponentPropsWithoutRef<typeof Link>, "href"> {
   /** Type-safe route identifier from the registry */
-  to: RouteId;
+  to: RouteId
   /** Locale for the link (defaults to Croatian) */
-  locale?: Locale;
+  locale?: Locale
   /** Additional path segments (for dynamic routes) */
-  params?: Record<string, string>;
+  params?: Record<string, string>
 }
 
 /**
@@ -42,39 +42,40 @@ interface SmartLinkProps
  * // TypeScript will error on invalid routes:
  * <SmartLink to="featurez">...</SmartLink> // ❌ Error!
  */
-export const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
-  function SmartLink({ to, locale = "hr", params, children, ...props }, ref) {
-    const routeDef = routes[to];
+export const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(function SmartLink(
+  { to, locale = "hr", params, children, ...props },
+  ref
+) {
+  const routeDef = routes[to]
 
-    if (!routeDef) {
-      console.error(`SmartLink: Unknown route "${to}"`);
-      return <span>{children}</span>;
-    }
-
-    let href = routeDef.path[locale];
-
-    // Handle dynamic params (for routes like /vodic/[slug])
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        href = href.replace(`[${key}]`, value);
-      });
-    }
-
-    return (
-      <Link
-        ref={ref}
-        href={href}
-        className={cn(
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 rounded-sm",
-          props.className
-        )}
-        {...props}
-      >
-        {children}
-      </Link>
-    );
+  if (!routeDef) {
+    console.error(`SmartLink: Unknown route "${to}"`)
+    return <span>{children}</span>
   }
-);
+
+  let href = routeDef.path[locale]
+
+  // Handle dynamic params (for routes like /vodic/[slug])
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      href = href.replace(`[${key}]`, value)
+    })
+  }
+
+  return (
+    <Link
+      ref={ref}
+      href={href}
+      className={cn(
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 rounded-sm",
+        props.className
+      )}
+      {...props}
+    >
+      {children}
+    </Link>
+  )
+})
 
 // =============================================================================
 // useRoute hook - For programmatic navigation
@@ -88,21 +89,21 @@ export const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
  * router.push(path);
  */
 export function useRoute(routeId: RouteId, locale: Locale = "hr") {
-  const routeDef = routes[routeId];
+  const routeDef = routes[routeId]
 
   return {
     path: routeDef.path[locale],
     title: routeDef.title,
     priority: routeDef.priority,
     category: routeDef.category,
-  };
+  }
 }
 
 /**
  * Get route path without hook (for server components)
  */
 export function getRoute(routeId: RouteId, locale: Locale = "hr"): string {
-  return routes[routeId].path[locale];
+  return routes[routeId].path[locale]
 }
 
 // =============================================================================
@@ -115,7 +116,7 @@ export function getRoute(routeId: RouteId, locale: Locale = "hr"): string {
  */
 export function assertValidRoute(routeId: string): asserts routeId is RouteId {
   if (!(routeId in routes)) {
-    throw new Error(`Invalid route: "${routeId}" is not in the route registry`);
+    throw new Error(`Invalid route: "${routeId}" is not in the route registry`)
   }
 }
 
@@ -123,5 +124,5 @@ export function assertValidRoute(routeId: string): asserts routeId is RouteId {
  * Type guard for runtime route validation
  */
 export function isRouteId(value: string): value is RouteId {
-  return value in routes;
+  return value in routes
 }

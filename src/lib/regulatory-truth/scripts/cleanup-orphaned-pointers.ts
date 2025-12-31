@@ -2,8 +2,13 @@
 // src/lib/regulatory-truth/scripts/cleanup-orphaned-pointers.ts
 // Find and retry composition for orphaned SourcePointers
 
+import * as readline from "readline"
 import { db } from "@/lib/db"
-import { runComposer, groupSourcePointersByDomain, markOrphanedPointersForReview } from "../agents/composer"
+import {
+  runComposer,
+  groupSourcePointersByDomain,
+  markOrphanedPointersForReview,
+} from "../agents/composer"
 
 async function cleanupOrphanedPointers() {
   console.log("=== Orphaned Pointer Cleanup ===\n")
@@ -62,18 +67,15 @@ async function cleanupOrphanedPointers() {
   console.log(`Grouped into ${groups.length} concept groups\n`)
 
   // Ask for confirmation
-  const readline = require("readline").createInterface({
+  const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   })
 
   const answer = await new Promise<string>((resolve) => {
-    readline.question(
-      `Retry composition for ${groups.length} groups? (y/N): `,
-      resolve
-    )
+    rl.question(`Retry composition for ${groups.length} groups? (y/N): `, resolve)
   })
-  readline.close()
+  rl.close()
 
   if (answer.toLowerCase() !== "y") {
     console.log("Cancelled.")

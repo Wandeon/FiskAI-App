@@ -94,12 +94,14 @@ export async function semanticSearch(
       LIMIT ${topK}
     `)
 
-    const matches = (results.rows as unknown as Array<{
-      conceptId: string
-      slug: string
-      nameHr: string
-      similarity: number
-    }>)
+    const matches = (
+      results.rows as unknown as Array<{
+        conceptId: string
+        slug: string
+        nameHr: string
+        similarity: number
+      }>
+    )
       .filter((row) => row.similarity >= minSimilarity)
       .map((row) => ({
         ...row,

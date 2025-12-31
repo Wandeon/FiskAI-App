@@ -58,21 +58,17 @@ export function KeyboardShortcutHint({
             className={cn(
               "inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded",
               "text-xs font-mono font-medium",
-              "bg-white/5 border border-white/10",
+              "bg-surface/5 border border-white/10",
               "text-white/60",
               "shadow-sm"
             )}
           >
             {key}
           </kbd>
-          {index < keys.length - 1 && (
-            <span className="text-white/40 text-xs mx-0.5">+</span>
-          )}
+          {index < keys.length - 1 && <span className="text-white/40 text-xs mx-0.5">+</span>}
         </span>
       ))}
-      {description && (
-        <span className="text-xs text-white/50 ml-1">{description}</span>
-      )}
+      {description && <span className="text-xs text-white/50 ml-1">{description}</span>}
     </span>
   )
 }

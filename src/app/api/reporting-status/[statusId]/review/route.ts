@@ -26,7 +26,11 @@ async function fetchStatusSummary(statusId: string, companyId: string) {
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { statusId: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ statusId: string }> }
+) {
+  const { statusId } = await params
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const body = await req.json()
@@ -39,36 +43,36 @@ export async function POST(req: NextRequest, { params }: { params: { statusId: s
     if (action === "request") {
       await requestReportingReview({
         companyId: company.id,
-        statusId: params.statusId,
+        statusId,
         actorId: user.id!,
         reason,
         notes,
       })
-      const status = await fetchStatusSummary(params.statusId, company.id)
+      const status = await fetchStatusSummary(statusId, company.id)
       return NextResponse.json({ status })
     }
 
     if (action === "approve") {
       await approveReportingStatus({
         companyId: company.id,
-        statusId: params.statusId,
+        statusId: statusId,
         actorId: user.id!,
         reason,
         notes,
       })
-      const status = await fetchStatusSummary(params.statusId, company.id)
+      const status = await fetchStatusSummary(statusId, company.id)
       return NextResponse.json({ status })
     }
 
     if (action === "reject") {
       await rejectReportingStatus({
         companyId: company.id,
-        statusId: params.statusId,
+        statusId: statusId,
         actorId: user.id!,
         reason,
         notes,
       })
-      const status = await fetchStatusSummary(params.statusId, company.id)
+      const status = await fetchStatusSummary(statusId, company.id)
       return NextResponse.json({ status })
     }
 

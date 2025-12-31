@@ -1,6 +1,11 @@
 import { describe, it } from "node:test"
 import assert from "node:assert"
-import { canAccessSubdomain, getAvailableSubdomains, hasMultipleRoles, shouldShowRoleSelection } from "../system-role"
+import {
+  canAccessSubdomain,
+  getAvailableSubdomains,
+  hasMultipleRoles,
+  shouldShowRoleSelection,
+} from "../system-role"
 
 describe("System Role Tests", () => {
   it("ADMIN can access all subdomains", () => {

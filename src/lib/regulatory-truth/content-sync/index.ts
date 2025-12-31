@@ -27,11 +27,7 @@ export {
 } from "./event-id"
 
 // Event emitter
-export {
-  emitContentSyncEvent,
-  type EmitEventParams,
-  type EmitEventResult,
-} from "./emit-event"
+export { emitContentSyncEvent, type EmitEventParams, type EmitEventResult } from "./emit-event"
 
 // Concept registry
 export type { ConceptMapping } from "./concept-registry"
@@ -73,11 +69,7 @@ export {
 } from "./patcher"
 
 // Repository adapter
-export type {
-  ContentRepoAdapter,
-  CreatePRParams,
-  GeneratePRBodyParams,
-} from "./repo-adapter"
+export type { ContentRepoAdapter, CreatePRParams, GeneratePRBodyParams } from "./repo-adapter"
 export {
   GitContentRepoAdapter,
   generateBranchName,

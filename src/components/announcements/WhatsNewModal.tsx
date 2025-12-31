@@ -57,9 +57,9 @@ const CHANGELOG_ENTRIES: ChangelogEntry[] = [
 ]
 
 const typeColors = {
-  added: "bg-success/10 text-success-text border-green-500/20",
+  added: "bg-success/10 text-success-text border-success-border/20",
   changed: "bg-interactive/10 text-link border-focus/20",
-  fixed: "bg-warning/10 text-warning-text border-amber-500/20",
+  fixed: "bg-warning/10 text-warning-text border-warning/20",
 }
 
 const typeLabels = {
@@ -112,23 +112,21 @@ export function WhatsNewModal() {
           <div className="absolute top-4 right-4">
             <button
               onClick={handleDismiss}
-              className="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+              className="rounded-lg p-1.5 text-white/70 hover:bg-surface/10 hover:text-white transition-colors"
               aria-label="Zatvori"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-white/20 p-2.5">
+            <div className="rounded-xl bg-surface/20 p-2.5">
               <Sparkles className="h-6 w-6" />
             </div>
             <div>
               <h2 id="whats-new-title" className="text-xl font-bold">
                 Sto je novo?
               </h2>
-              <p className="text-sm text-white/80">
-                Verzija {CURRENT_VERSION}
-              </p>
+              <p className="text-sm text-white/80">Verzija {CURRENT_VERSION}</p>
             </div>
           </div>
         </div>
@@ -136,15 +134,20 @@ export function WhatsNewModal() {
         {/* Content */}
         <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
           {CHANGELOG_ENTRIES.map((entry, entryIndex) => (
-            <div key={entry.version} className={cn(entryIndex > 0 && "mt-6 pt-6 border-t border-[var(--border)]")}>
+            <div
+              key={entry.version}
+              className={cn(entryIndex > 0 && "mt-6 pt-6 border-t border-[var(--border)]")}
+            >
               <div className="flex items-center gap-2 text-sm text-[var(--muted)] mb-3">
                 <span className="font-medium text-[var(--foreground)]">v{entry.version}</span>
                 <span>-</span>
-                <span>{new Date(entry.date).toLocaleDateString("hr-HR", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                })}</span>
+                <span>
+                  {new Date(entry.date).toLocaleDateString("hr-HR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
               </div>
               <div className="space-y-3">
                 {entry.highlights.map((highlight, index) => (

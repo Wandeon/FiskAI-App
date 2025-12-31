@@ -208,9 +208,9 @@ export interface RefusalPayload {
 
 export interface ErrorPayload {
   correlationId: string
-  code?: string // Error code
+  code: "INTERNAL" | "VALIDATION_FAILED" | "CAPACITY" | "TIMEOUT"
   message: string
-  retryable: boolean
+  retriable: boolean
 }
 
 /**

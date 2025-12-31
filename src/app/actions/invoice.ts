@@ -97,7 +97,7 @@ async function queueFiscalizationOrThrow(params: {
 export async function createCreditNote(
   originalInvoiceId: string,
   reason?: string
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string }>> {
   try {
     const user = await requireAuth()
 

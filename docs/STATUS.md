@@ -24,23 +24,23 @@
 
 ### Core Modules (Company.entitlements[])
 
-| Module             | Code Status | Routes | Tests   | API | Docs    | Notes                              |
-| ------------------ | ----------- | ------ | ------- | --- | ------- | ---------------------------------- |
-| `invoicing`        | [I]         | 3/3    | Yes     | Yes | Yes     | Fully functional                   |
-| `e-invoicing`      | [I]         | 3/3    | Yes     | Yes | Yes     | UBL/XML generation complete        |
-| `fiscalization`    | [I]         | 2/2    | Yes     | Yes | Yes     | CIS integration tested             |
-| `contacts`         | [I]         | 4/4    | Yes     | Yes | Yes     | OIB lookup integrated              |
-| `products`         | [I]         | 3/3    | Yes     | Yes | Yes     | CSV import works                   |
-| `expenses`         | [I]         | 4/4    | Yes     | Yes | Yes     | Receipt scanning works             |
-| `banking`          | [I]         | 5/5    | Yes     | Yes | Yes     | GoCardless/SaltEdge integrated     |
-| `reconciliation`   | [I]         | 1/1    | Yes     | Yes | Yes     | Auto-matching functional           |
-| `reports-basic`    | [I]         | 4/4    | Yes     | Yes | Yes     | KPR, P&L, Aging complete           |
-| `reports-advanced` | [I]         | 2/2    | Yes     | Yes | Yes     | VAT threshold, export              |
-| `pausalni`         | [I]         | 4/4    | Yes     | Yes | Yes     | Full tax management                |
-| `vat`              | [P]         | 1/1    | Partial | Yes | Partial | Report only, no submission         |
-| `corporate-tax`    | [S]         | 0/1    | No      | No  | No      | Route defined, no implementation   |
-| `pos`              | [P]         | 1/1    | Partial | Yes | Partial | Stripe Terminal basic only         |
-| `documents`        | [I]         | 2/2    | Yes     | Yes | Yes     | R2 storage integrated              |
+| Module             | Code Status | Routes | Tests   | API | Docs    | Notes                            |
+| ------------------ | ----------- | ------ | ------- | --- | ------- | -------------------------------- |
+| `invoicing`        | [I]         | 3/3    | Yes     | Yes | Yes     | Fully functional                 |
+| `e-invoicing`      | [I]         | 3/3    | Yes     | Yes | Yes     | UBL/XML generation complete      |
+| `fiscalization`    | [I]         | 2/2    | Yes     | Yes | Yes     | CIS integration tested           |
+| `contacts`         | [I]         | 4/4    | Yes     | Yes | Yes     | OIB lookup integrated            |
+| `products`         | [I]         | 3/3    | Yes     | Yes | Yes     | CSV import works                 |
+| `expenses`         | [I]         | 4/4    | Yes     | Yes | Yes     | Receipt scanning works           |
+| `banking`          | [I]         | 5/5    | Yes     | Yes | Yes     | GoCardless/SaltEdge integrated   |
+| `reconciliation`   | [I]         | 1/1    | Yes     | Yes | Yes     | Auto-matching functional         |
+| `reports-basic`    | [I]         | 4/4    | Yes     | Yes | Yes     | KPR, P&L, Aging complete         |
+| `reports-advanced` | [I]         | 2/2    | Yes     | Yes | Yes     | VAT threshold, export            |
+| `pausalni`         | [I]         | 4/4    | Yes     | Yes | Yes     | Full tax management              |
+| `vat`              | [P]         | 1/1    | Partial | Yes | Partial | Report only, no submission       |
+| `corporate-tax`    | [S]         | 0/1    | No      | No  | No      | Route defined, no implementation |
+| `pos`              | [P]         | 1/1    | Partial | Yes | Partial | Stripe Terminal basic only       |
+| `documents`        | [I]         | 2/2    | Yes     | Yes | Yes     | R2 storage integrated            |
 | `ai-assistant`     | [I]         | 2/2    | Yes     | Yes | Yes     | Architecture doc created (PR #127) |
 
 ### Portal Implementation
@@ -60,48 +60,48 @@
 
 > **Architecture Doc:** [docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md](./01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md)
 
-| Component             | Status | Code Location           | Tests | Documentation             |
-| --------------------- | ------ | ----------------------- | ----- | ------------------------- |
-| Evidence Store        | [I]    | `lib/regulatory-truth/` | Yes   | ✅ Complete               |
-| Sentinel Agent        | [I]    | `agents/sentinel/`      | Yes   | ✅ Complete               |
-| OCR Worker            | [I]    | `workers/ocr/`          | Yes   | ✅ Complete               |
-| Extractor Agent       | [I]    | `agents/extractor/`     | Yes   | ✅ Complete               |
-| Composer Agent        | [I]    | `agents/composer/`      | Yes   | ✅ Complete               |
-| Reviewer Agent        | [I]    | `agents/reviewer/`      | Yes   | ✅ Complete               |
-| Arbiter Agent         | [I]    | `agents/arbiter/`       | Yes   | ✅ Complete               |
-| Releaser Agent        | [I]    | `agents/releaser/`      | Yes   | ✅ Complete               |
-| Graph Cycle Detection | [I]    | `graph/`                | Yes   | ✅ Complete               |
-| DSL AppliesWhen       | [I]    | `dsl/`                  | Yes   | ✅ Complete               |
+| Component             | Status | Code Location           | Tests | Documentation |
+| --------------------- | ------ | ----------------------- | ----- | ------------- |
+| Evidence Store        | [I]    | `lib/regulatory-truth/` | Yes   | ✅ Complete   |
+| Sentinel Agent        | [I]    | `agents/sentinel/`      | Yes   | ✅ Complete   |
+| OCR Worker            | [I]    | `workers/ocr/`          | Yes   | ✅ Complete   |
+| Extractor Agent       | [I]    | `agents/extractor/`     | Yes   | ✅ Complete   |
+| Composer Agent        | [I]    | `agents/composer/`      | Yes   | ✅ Complete   |
+| Reviewer Agent        | [I]    | `agents/reviewer/`      | Yes   | ✅ Complete   |
+| Arbiter Agent         | [I]    | `agents/arbiter/`       | Yes   | ✅ Complete   |
+| Releaser Agent        | [I]    | `agents/releaser/`      | Yes   | ✅ Complete   |
+| Graph Cycle Detection | [I]    | `graph/`                | Yes   | ✅ Complete   |
+| DSL AppliesWhen       | [I]    | `dsl/`                  | Yes   | ✅ Complete   |
 | **Overall RTL**       | [I]    | 22 subdirs              | Yes   | ✅ Consolidated (PR #128) |
 
 ### AI Assistant System
 
 > **Architecture Doc:** [docs/03_ARCHITECTURE/AI_ASSISTANT.md](./03_ARCHITECTURE/AI_ASSISTANT.md)
 
-| Component             | Status | Code Location                      | Tests | Documentation           |
-| --------------------- | ------ | ---------------------------------- | ----- | ----------------------- |
-| Query Engine          | [I]    | `lib/assistant/query-engine/`      | Yes   | ✅ Complete             |
-| Text Utils            | [I]    | `query-engine/text-utils.ts`       | Yes   | ✅ Complete             |
-| Concept Matcher       | [I]    | `query-engine/concept-matcher.ts`  | Yes   | ✅ Complete             |
-| Rule Selector         | [I]    | `query-engine/rule-selector.ts`    | Yes   | ✅ Complete             |
-| Answer Builder        | [I]    | `query-engine/answer-builder.ts`   | Yes   | ✅ Complete             |
-| Citation Builder      | [I]    | `query-engine/citation-builder.ts` | Yes   | ✅ Complete             |
-| Reasoning Pipeline    | [I]    | `reasoning/`                       | Yes   | ✅ Complete             |
-| Shadow Runner         | [I]    | `reasoning/shadow-runner.ts`       | Yes   | ✅ Complete             |
-| Refusal Policy        | [I]    | `reasoning/refusal-policy.ts`      | Yes   | ✅ Complete             |
-| Streaming             | [I]    | `streaming.ts`                     | Yes   | ✅ Complete             |
+| Component             | Status | Code Location                      | Tests | Documentation |
+| --------------------- | ------ | ---------------------------------- | ----- | ------------- |
+| Query Engine          | [I]    | `lib/assistant/query-engine/`      | Yes   | ✅ Complete   |
+| Text Utils            | [I]    | `query-engine/text-utils.ts`       | Yes   | ✅ Complete   |
+| Concept Matcher       | [I]    | `query-engine/concept-matcher.ts`  | Yes   | ✅ Complete   |
+| Rule Selector         | [I]    | `query-engine/rule-selector.ts`    | Yes   | ✅ Complete   |
+| Answer Builder        | [I]    | `query-engine/answer-builder.ts`   | Yes   | ✅ Complete   |
+| Citation Builder      | [I]    | `query-engine/citation-builder.ts` | Yes   | ✅ Complete   |
+| Reasoning Pipeline    | [I]    | `reasoning/`                       | Yes   | ✅ Complete   |
+| Shadow Runner         | [I]    | `reasoning/shadow-runner.ts`       | Yes   | ✅ Complete   |
+| Refusal Policy        | [I]    | `reasoning/refusal-policy.ts`      | Yes   | ✅ Complete   |
+| Streaming             | [I]    | `streaming.ts`                     | Yes   | ✅ Complete   |
 | **Overall Assistant** | [I]    | 90+ files                          | Yes   | ✅ Documented (PR #127) |
 
 ### Guidance System
 
 > **Specification:** [docs/product-bible/09-GUIDANCE-SYSTEM.md](./product-bible/09-GUIDANCE-SYSTEM.md)
 
-| Component            | Status | Code Location                  | Tests   | Documentation          |
-| -------------------- | ------ | ------------------------------ | ------- | ---------------------- |
-| Preferences          | [I]    | `lib/guidance/preferences.ts`  | Yes     | ✅ Complete            |
-| Checklist            | [I]    | `lib/guidance/checklist.ts`    | Yes     | ✅ Complete            |
-| Help Density         | [I]    | `lib/guidance/help-density.ts` | No      | ✅ Complete            |
-| Patterns             | [I]    | `lib/guidance/patterns.ts`     | No      | ✅ Complete            |
+| Component            | Status | Code Location                  | Tests   | Documentation |
+| -------------------- | ------ | ------------------------------ | ------- | ------------- |
+| Preferences          | [I]    | `lib/guidance/preferences.ts`  | Yes     | ✅ Complete   |
+| Checklist            | [I]    | `lib/guidance/checklist.ts`    | Yes     | ✅ Complete   |
+| Help Density         | [I]    | `lib/guidance/help-density.ts` | No      | ✅ Complete   |
+| Patterns             | [I]    | `lib/guidance/patterns.ts`     | No      | ✅ Complete   |
 | **Overall Guidance** | [I]    | 9 files                        | Partial | ✅ Specified (PR #125) |
 
 ### Visibility System
@@ -161,7 +161,6 @@
 **Original Issue:** 90+ files with no architecture documentation.
 
 **Resolution:** PR #127 created `docs/03_ARCHITECTURE/AI_ASSISTANT.md` with:
-
 - Query processing pipeline
 - Reasoning stage flow (13 stages)
 - Component responsibilities matrix
@@ -174,7 +173,6 @@
 **Original Issue:** Not mentioned in Product Bible.
 
 **Resolution:** PR #125 created `docs/product-bible/09-GUIDANCE-SYSTEM.md` with:
-
 - System purpose & architecture
 - Preference model
 - Checklist system
@@ -187,7 +185,6 @@
 **Original Issue:** 22 subdirs with fragmented docs.
 
 **Resolution:** PR #128 created `docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md` with:
-
 - Complete agent state machine
 - Worker deployment architecture
 - AppliesWhen DSL reference
@@ -200,7 +197,6 @@
 **Original Issue:** 108 features all marked "✅" hiding partial implementations.
 
 **Resolution:** PR #124 updated `docs/02_FEATURES/FEATURE_REGISTRY.md` with:
-
 - `[I]/[P]/[S]/[D]` status markers
 - 5 partial features identified (Documents Hub redirects)
 - 1 scaffold feature identified (F036 Recurring Expenses)
@@ -210,32 +206,32 @@
 
 ## Documentation Debt Inventory
 
-| Item                                | Priority | Status  | PR   | Notes                                            |
-| ----------------------------------- | -------- | ------- | ---- | ------------------------------------------------ |
-| AI Assistant architecture doc       | P0       | ✅ Done | #127 | `docs/03_ARCHITECTURE/AI_ASSISTANT.md`           |
-| Guidance system specification       | P0       | ✅ Done | #125 | `docs/product-bible/09-GUIDANCE-SYSTEM.md`       |
-| Staff portal honest status          | P1       | ✅ Done | #126 | `docs/02_FEATURES/features/staff-portal.md`      |
-| RTL consolidated architecture       | P1       | ✅ Done | #128 | `docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md` |
-| Feature Registry status granularity | P2       | ✅ Done | #124 | Status markers `[I]/[P]/[S]/[D]`                 |
-| API route documentation gaps        | P2       | ✅ Done | #130 | Staff APIs added to staff-portal.md              |
-| Component library inventory         | P3       | ✅ Done | #131 | `docs/02_FEATURES/COMPONENT_LIBRARY.md`          |
+| Item                                | Priority | Status | PR    | Notes                                |
+| ----------------------------------- | -------- | ------ | ----- | ------------------------------------ |
+| AI Assistant architecture doc       | P0       | ✅ Done | #127  | `docs/03_ARCHITECTURE/AI_ASSISTANT.md` |
+| Guidance system specification       | P0       | ✅ Done | #125  | `docs/product-bible/09-GUIDANCE-SYSTEM.md` |
+| Staff portal honest status          | P1       | ✅ Done | #126  | `docs/02_FEATURES/features/staff-portal.md` |
+| RTL consolidated architecture       | P1       | ✅ Done | #128  | `docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md` |
+| Feature Registry status granularity | P2       | ✅ Done | #124  | Status markers `[I]/[P]/[S]/[D]` |
+| API route documentation gaps        | P2       | ✅ Done | #130  | Staff APIs added to staff-portal.md  |
+| Component library inventory         | P3       | ✅ Done | #131  | `docs/02_FEATURES/COMPONENT_LIBRARY.md` |
 
 ---
 
 ## Audit Trail
 
-| Date       | Auditor         | Scope                | Findings                   | PRs       |
-| ---------- | --------------- | -------------------- | -------------------------- | --------- |
-| 2025-12-29 | Claude Opus 4.5 | Product Bible v4.3.0 | System Registry, RTL Sync  | #138-#142 |
-| 2025-12-28 | Claude Opus 4.5 | Full codebase        | 5 critical divergences     | #121      |
-| 2025-12-28 | Claude Opus 4.5 | Feature Registry     | 5 partial, 1 scaffold      | #124      |
-| 2025-12-28 | Claude Opus 4.5 | Guidance System      | Full specification created | #125      |
-| 2025-12-28 | Claude Opus 4.5 | Staff Portal         | Gap analysis created       | #126      |
-| 2025-12-28 | Claude Opus 4.5 | AI Assistant         | Architecture doc created   | #127      |
-| 2025-12-28 | Claude Opus 4.5 | RTL Architecture     | Consolidated doc created   | #128      |
-| 2025-12-28 | Claude Opus 4.5 | Cross-references     | DOC-MAP, CLAUDE.md updated | #129      |
-| 2025-12-28 | Claude Opus 4.5 | Staff API Docs       | API reference added        | #130      |
-| 2025-12-28 | Claude Opus 4.5 | Component Library    | Full inventory created     | #131      |
+| Date       | Auditor         | Scope                  | Findings                     | PRs       |
+| ---------- | --------------- | ---------------------- | ---------------------------- | --------- |
+| 2025-12-29 | Claude Opus 4.5 | Product Bible v4.3.0   | System Registry, RTL Sync    | #138-#142 |
+| 2025-12-28 | Claude Opus 4.5 | Full codebase          | 5 critical divergences       | #121      |
+| 2025-12-28 | Claude Opus 4.5 | Feature Registry       | 5 partial, 1 scaffold        | #124      |
+| 2025-12-28 | Claude Opus 4.5 | Guidance System        | Full specification created   | #125      |
+| 2025-12-28 | Claude Opus 4.5 | Staff Portal           | Gap analysis created         | #126      |
+| 2025-12-28 | Claude Opus 4.5 | AI Assistant           | Architecture doc created     | #127      |
+| 2025-12-28 | Claude Opus 4.5 | RTL Architecture       | Consolidated doc created     | #128      |
+| 2025-12-28 | Claude Opus 4.5 | Cross-references       | DOC-MAP, CLAUDE.md updated   | #129      |
+| 2025-12-28 | Claude Opus 4.5 | Staff API Docs         | API reference added          | #130      |
+| 2025-12-28 | Claude Opus 4.5 | Component Library      | Full inventory created       | #131      |
 
 ---
 

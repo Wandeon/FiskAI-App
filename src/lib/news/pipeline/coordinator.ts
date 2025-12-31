@@ -50,10 +50,7 @@ function getPipelineRunDate(stage: PipelineStage): Date {
 /**
  * Check if a previous stage is currently running
  */
-export async function isStageRunning(
-  stage: PipelineStage,
-  runDate: Date
-): Promise<boolean> {
+export async function isStageRunning(stage: PipelineStage, runDate: Date): Promise<boolean> {
   const startOfDay = new Date(runDate)
   startOfDay.setHours(0, 0, 0, 0)
   const endOfDay = new Date(runDate)
@@ -78,10 +75,7 @@ export async function isStageRunning(
 /**
  * Check if a stage completed successfully for the given run date
  */
-export async function didStageComplete(
-  stage: PipelineStage,
-  runDate: Date
-): Promise<boolean> {
+export async function didStageComplete(stage: PipelineStage, runDate: Date): Promise<boolean> {
   const startOfDay = new Date(runDate)
   startOfDay.setHours(0, 0, 0, 0)
   const endOfDay = new Date(runDate)
@@ -152,9 +146,7 @@ export interface PipelineCheckResult {
  * Check if a stage can proceed based on its dependencies
  * Also marks the stage as "running" if it can proceed
  */
-export async function checkAndStartStage(
-  stage: PipelineStage
-): Promise<PipelineCheckResult> {
+export async function checkAndStartStage(stage: PipelineStage): Promise<PipelineCheckResult> {
   const runDate = getPipelineRunDate(stage)
   const now = new Date()
 
@@ -241,10 +233,7 @@ export async function completeStage(
 /**
  * Mark a stage as failed
  */
-export async function failStage(
-  runId: string,
-  errors: string[] = []
-): Promise<void> {
+export async function failStage(runId: string, errors: string[] = []): Promise<void> {
   await drizzleDb
     .update(newsPipelineRuns)
     .set({
@@ -262,7 +251,9 @@ export async function failStage(
  */
 export async function getPipelineStatus(
   runDate: Date
-): Promise<{ stage: PipelineStage; status: PipelineStatus; startedAt: Date; completedAt: Date | null }[]> {
+): Promise<
+  { stage: PipelineStage; status: PipelineStatus; startedAt: Date; completedAt: Date | null }[]
+> {
   const startOfDay = new Date(runDate)
   startOfDay.setHours(0, 0, 0, 0)
   const endOfDay = new Date(runDate)
@@ -271,12 +262,7 @@ export async function getPipelineStatus(
   const runs = await drizzleDb
     .select()
     .from(newsPipelineRuns)
-    .where(
-      and(
-        gte(newsPipelineRuns.runDate, startOfDay),
-        lt(newsPipelineRuns.runDate, endOfDay)
-      )
-    )
+    .where(and(gte(newsPipelineRuns.runDate, startOfDay), lt(newsPipelineRuns.runDate, endOfDay)))
 
   return runs.map((run) => ({
     stage: run.stage as PipelineStage,

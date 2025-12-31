@@ -147,6 +147,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       ? await ensureOrganizationForContact(company.id, vendorContact.id)
       : null
 
+    // Calculate vatRate from subtotal and taxAmount (default to 25% if can't calculate)
+    const calculatedVatRate = subtotal && subtotal > 0 ? ((taxAmount || 0) / subtotal) * 100 : 25
+
     // Create the Expense record
     const expense = await db.expense.create({
       data: {
@@ -159,6 +162,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         dueDate: invoice?.dueDate ? new Date(invoice.dueDate) : null,
         netAmount: new Prisma.Decimal(subtotal || 0),
         vatAmount: new Prisma.Decimal(taxAmount || 0),
+        vatRate: new Prisma.Decimal(calculatedVatRate),
         totalAmount: new Prisma.Decimal(totalAmount || 0),
         vatDeductible: true,
         currency: currency || "EUR",

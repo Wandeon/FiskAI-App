@@ -133,9 +133,9 @@ export function ReviewClient({ job, draft, factSheet }: Props) {
       <div className="border-t px-6 py-4 flex items-center justify-between bg-background">
         <div className="text-sm text-muted-foreground">
           {failCount === 0 ? (
-            <span className="text-green-600">✓ Svi paragrafi prolaze</span>
+            <span className="text-success-text">✓ Svi paragrafi prolaze</span>
           ) : (
-            <span className="text-yellow-600">{failCount} paragraf(a) ispod praga</span>
+            <span className="text-warning-text">{failCount} paragraf(a) ispod praga</span>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -172,12 +172,12 @@ function ParagraphCard({
   const isLocked = paragraph.isLocked
 
   const borderColor = isLocked
-    ? "border-blue-500 bg-blue-50/50"
+    ? "border-focus bg-info-bg/50"
     : confidence >= 0.8
-      ? "border-green-500 bg-green-50/50"
+      ? "border-success-border bg-success-bg/50"
       : confidence >= 0.5
-        ? "border-yellow-500 bg-yellow-50/50"
-        : "border-red-500 bg-red-50/50"
+        ? "border-warning bg-warning-bg/50"
+        : "border-danger-border bg-danger-bg/50"
 
   return (
     <button
@@ -188,7 +188,7 @@ function ParagraphCard({
     >
       <p className="text-sm line-clamp-3">{paragraph.content}</p>
       <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={isLocked ? "text-blue-600" : ""}>
+        <span className={isLocked ? "text-link" : ""}>
           {isLocked ? "Zaključano" : `${Math.round(confidence * 100)}%`}
         </span>
       </div>

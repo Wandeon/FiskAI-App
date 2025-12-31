@@ -1,9 +1,5 @@
 import type { MetadataRoute } from "next"
-import {
-  getSitemapRoutes,
-  getCanonicalBaseUrl,
-  isProductionSitemap,
-} from "@/config/routes"
+import { getSitemapRoutes, getCanonicalBaseUrl, isProductionSitemap } from "@/config/routes"
 import {
   getGuideSlugs,
   getAllComparisonSlugs,

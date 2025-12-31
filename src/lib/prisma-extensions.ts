@@ -365,7 +365,7 @@ function assertLineAmounts(line: { debit?: unknown; credit?: unknown }): void {
 }
 
 function assertBalancedLines(lines: Array<{ debit?: unknown; credit?: unknown }>): void {
-  const totals = lines.reduce(
+  const totals = lines.reduce<{ debit: Prisma.Decimal; credit: Prisma.Decimal }>(
     (acc, line) => {
       const debit = toDecimal(line.debit ?? 0)
       const credit = toDecimal(line.credit ?? 0)

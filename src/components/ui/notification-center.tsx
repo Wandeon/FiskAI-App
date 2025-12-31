@@ -14,7 +14,7 @@ interface NotificationCenterProps {
 }
 
 const glow =
-  "before:absolute before:-inset-px before:rounded-full before:bg-gradient-to-r before:from-brand-500/60 before:via-indigo-500/60 before:to-purple-500/60 before:opacity-0 before:transition before:duration-200 hover:before:opacity-30"
+  "before:absolute before:-inset-px before:rounded-full before:bg-gradient-to-r before:from-brand-500/60 before:via-chart-1/60 before:to-chart-2/60 before:opacity-0 before:transition before:duration-200 hover:before:opacity-30"
 
 export function NotificationCenter({
   items = [],
@@ -109,10 +109,7 @@ export function NotificationCenter({
             )}
           </div>
           <div className="border-t border-[var(--border)] px-5 py-3 text-center">
-            <Link
-              href="/notifications"
-              className="text-sm font-semibold text-link hover:underline"
-            >
+            <Link href="/notifications" className="text-sm font-semibold text-link hover:underline">
               Prikaži sve obavijesti
             </Link>
           </div>

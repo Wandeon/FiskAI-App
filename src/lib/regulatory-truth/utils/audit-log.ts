@@ -13,6 +13,8 @@ export type EntityType =
   | "CONCEPT"
   | "SYSTEM"
   | "PIPELINE"
+  | "SOURCE_POINTER"
+  | "WEBHOOK_EVENT"
 
 interface LogParams {
   action: AuditAction

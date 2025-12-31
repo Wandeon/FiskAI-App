@@ -29,7 +29,7 @@ export default async function HowToListingPage() {
         </nav>
 
         <header className="mb-10 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-surface/10 backdrop-blur-sm border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
             <FileText className="h-4 w-4" />
             Korak po korak
           </div>
@@ -44,7 +44,7 @@ export default async function HowToListingPage() {
             <Link
               key={howto.slug}
               href={`/kako-da/${howto.slug}`}
-              className="group flex flex-col rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 transition-all hover:border-info-border hover:bg-white/10"
+              className="group flex flex-col rounded-xl border border-white/10 bg-surface/5 backdrop-blur-sm p-6 transition-all hover:border-info-border hover:bg-surface/10"
             >
               <h2 className="mb-2 text-lg font-semibold text-white group-hover:text-primary">
                 {howto.frontmatter.title}

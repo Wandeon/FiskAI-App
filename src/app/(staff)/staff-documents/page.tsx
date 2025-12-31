@@ -34,22 +34,22 @@ const CATEGORY_META: Record<
   StaffDocumentCategory,
   { label: string; color: string; icon: typeof FileText }
 > = {
-  invoice: { label: "Invoice", color: "bg-blue-100 text-blue-800", icon: FileText },
-  "e-invoice": { label: "E-Invoice", color: "bg-purple-100 text-purple-800", icon: FileText },
+  invoice: { label: "Invoice", color: "bg-info-bg text-info-text", icon: FileText },
+  "e-invoice": { label: "E-Invoice", color: "bg-chart-2/10 text-chart-1", icon: FileText },
   "bank-statement": {
     label: "Bank Statement",
-    color: "bg-emerald-100 text-emerald-800",
+    color: "bg-success-bg text-success-text",
     icon: File,
   },
-  expense: { label: "Expense", color: "bg-orange-100 text-orange-800", icon: Receipt },
+  expense: { label: "Expense", color: "bg-warning-bg text-warning-text", icon: Receipt },
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  gray: "bg-gray-100 text-secondary",
-  blue: "bg-blue-100 text-info-text",
-  green: "bg-green-100 text-success-text",
-  amber: "bg-amber-100 text-warning-text",
-  red: "bg-red-100 text-danger-text",
+  gray: "bg-surface-2 text-secondary",
+  blue: "bg-info-bg text-info-text",
+  green: "bg-success-bg text-success-text",
+  amber: "bg-warning-bg text-warning-text",
+  red: "bg-danger-bg text-danger-text",
 }
 
 // Status labels

@@ -71,7 +71,7 @@ export const CommandItem = forwardRef<HTMLButtonElement, CommandItemProps>(
         className={cn(
           "group relative w-full rounded-xl px-3 py-2.5 text-left transition-all duration-150",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2",
-          isSelected ? "bg-white/10" : "hover:bg-white/5"
+          isSelected ? "bg-surface/10" : "hover:bg-surface/5"
         )}
       >
         {/* Selection indicator */}
@@ -82,7 +82,7 @@ export const CommandItem = forwardRef<HTMLButtonElement, CommandItemProps>(
             scaleY: isSelected ? 1 : 0.5,
           }}
           transition={{ duration: 0.15 }}
-          className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-cyan-500"
+          className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-accent"
         />
 
         <div className="flex items-center gap-3">
@@ -91,14 +91,14 @@ export const CommandItem = forwardRef<HTMLButtonElement, CommandItemProps>(
             className={cn(
               "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors",
               entry.type === "action"
-                ? "bg-cyan-500/20 text-cyan-400"
+                ? "bg-accent/20 text-accent-light"
                 : entry.type === "tool"
-                  ? "bg-emerald-500/20 text-emerald-400"
+                  ? "bg-success-bg0/20 text-success"
                   : entry.type === "guide"
                     ? "bg-violet-500/20 text-violet-400"
                     : entry.type === "comparison"
-                      ? "bg-amber-500/20 text-amber-400"
-                      : "bg-white/10 text-white/60"
+                      ? "bg-warning-bg0/20 text-warning"
+                      : "bg-surface/10 text-white/60"
             )}
           >
             <Icon className="h-4 w-4" />
@@ -109,7 +109,7 @@ export const CommandItem = forwardRef<HTMLButtonElement, CommandItemProps>(
             <div className="flex items-center gap-2">
               <span className="truncate font-medium text-white">{entry.title}</span>
               {entry.shortcut && (
-                <kbd className="hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/50 sm:inline-block">
+                <kbd className="hidden rounded bg-surface/10 px-1.5 py-0.5 text-[10px] font-medium text-white/50 sm:inline-block">
                   {entry.shortcut}
                 </kbd>
               )}

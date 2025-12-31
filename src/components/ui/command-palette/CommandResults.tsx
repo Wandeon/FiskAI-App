@@ -80,7 +80,7 @@ export function CommandResults({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   onClick={() => onRecentClick(recent.query)}
-                  className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-white/70 transition-colors hover:bg-white/5"
+                  className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-white/70 transition-colors hover:bg-surface/5"
                 >
                   <span className="truncate">{recent.query}</span>
                   <button
@@ -88,7 +88,7 @@ export function CommandResults({
                       e.stopPropagation()
                       onRemoveRecent(recent.query)
                     }}
-                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100"
+                    className="rounded p-1 opacity-0 transition-opacity hover:bg-surface/10 group-hover:opacity-100"
                   >
                     <X className="h-3 w-3 text-white/40" />
                   </button>

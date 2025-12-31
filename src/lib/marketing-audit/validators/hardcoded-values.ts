@@ -56,10 +56,7 @@ function matchesKeywords(context: string) {
   return keywordHints.some((hint) => normalized.includes(hint))
 }
 
-export function detectHardcodedValues(
-  text: string,
-  options?: { canonicalNumbers?: Set<number> },
-) {
+export function detectHardcodedValues(text: string, options?: { canonicalNumbers?: Set<number> }) {
   const hits: HardcodedValueHit[] = []
   const canonical = options?.canonicalNumbers
   const currentYear = new Date().getFullYear()

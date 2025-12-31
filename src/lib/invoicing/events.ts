@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma, InvoiceEventType } from "@prisma/client"
 import { db } from "@/lib/db"
 import { logger } from "@/lib/logger"
 
@@ -7,7 +7,7 @@ const ISSUED_STATUSES = ["FISCALIZED", "SENT", "DELIVERED", "ACCEPTED"] as const
 export async function emitInvoiceEvent(params: {
   companyId: string
   invoiceId: string
-  type: Prisma.InvoiceEventType
+  type: InvoiceEventType
   payload?: Prisma.JsonValue
 }): Promise<void> {
   try {

@@ -1,12 +1,7 @@
 import { db } from "@/lib/db"
 import { Prisma } from "@prisma/client"
 import type { SystemStatusEventInput } from "./diff"
-import type {
-  SystemStatusEventType,
-  HeadlineStatus,
-  RefreshStatus,
-  RefreshQuality,
-} from "./types"
+import type { SystemStatusEventType, HeadlineStatus, RefreshStatus, RefreshQuality } from "./types"
 
 // ============================================================================
 // Snapshot Operations

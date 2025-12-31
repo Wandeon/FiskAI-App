@@ -62,7 +62,7 @@ export function BreakdownBars({
               </div>
               <CountTo value={item.value} formatValue={formatValue} durationMs={520} />
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="h-2 overflow-hidden rounded-full bg-surface/10">
               <motion.div
                 className={cn("h-full rounded-full", item.colorClassName ?? "bg-interactive")}
                 initial={reduce ? false : { width: 0 }}

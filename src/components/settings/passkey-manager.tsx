@@ -132,8 +132,8 @@ export function PasskeyManager() {
 
   if (!isSupported) {
     return (
-      <div className="rounded-md bg-yellow-50 p-4">
-        <p className="text-sm text-yellow-800">
+      <div className="rounded-md bg-warning-bg p-4">
+        <p className="text-sm text-warning-text">
           Passkeys nisu podržani u ovom pregledniku. Molimo koristite noviju verziju Chrome, Safari,
           ili Edge preglednika.
         </p>
@@ -146,7 +146,7 @@ export function PasskeyManager() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium">Upravljanje passkeys</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-tertiary">
             Passkeys omogućuju brzu i sigurnu prijavu bez lozinke
           </p>
         </div>
@@ -157,20 +157,20 @@ export function PasskeyManager() {
       </div>
 
       {passkeys.length === 0 ? (
-        <div className="rounded-md border border-dashed border-gray-300 p-8 text-center">
-          <KeyRound className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Nema registriranih passkeya</h3>
-          <p className="mt-1 text-sm text-gray-500">Dodajte passkey za brzu i sigurnu prijavu</p>
+        <div className="rounded-md border border-dashed border-default p-8 text-center">
+          <KeyRound className="mx-auto h-12 w-12 text-muted" />
+          <h3 className="mt-2 text-sm font-medium text-foreground">Nema registriranih passkeya</h3>
+          <p className="mt-1 text-sm text-tertiary">Dodajte passkey za brzu i sigurnu prijavu</p>
         </div>
       ) : (
         <div className="divide-y divide-gray-200 rounded-md border">
           {passkeys.map((passkey) => (
             <div key={passkey.id} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
-                <KeyRound className="h-5 w-5 text-gray-400" />
+                <KeyRound className="h-5 w-5 text-muted" />
                 <div>
                   <p className="font-medium">{passkey.name || "Passkey"}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-tertiary">
                     Kreiran: {formatDate(passkey.createdAt)}
                     {passkey.lastUsedAt && (
                       <>
@@ -185,7 +185,7 @@ export function PasskeyManager() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDeletePasskey(passkey.id)}
-                className="text-red-600 hover:text-red-700"
+                className="text-danger-text hover:text-danger-text"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

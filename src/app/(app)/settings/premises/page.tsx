@@ -36,7 +36,10 @@ export default async function PremisesPage() {
             Upravljanje poslovnim prostorima i naplatnim uredajima za fiskalizaciju
           </p>
         </div>
-        <Link href="/settings" className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]">
+        <Link
+          href="/settings"
+          className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+        >
           Natrag na postavke
         </Link>
       </div>
@@ -47,7 +50,9 @@ export default async function PremisesPage() {
           <p className="text-sm text-[var(--info-text)]">
             <strong>Broj racuna:</strong> Prema hrvatskim propisima o fiskalizaciji, broj racuna
             mora biti u formatu{" "}
-            <code className="bg-[var(--surface-secondary)] px-1 rounded">broj-poslovni_prostor-naplatni_uredaj</code>{" "}
+            <code className="bg-[var(--surface-secondary)] px-1 rounded">
+              broj-poslovni_prostor-naplatni_uredaj
+            </code>{" "}
             (npr. 43-1-1).
           </p>
         </CardContent>

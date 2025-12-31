@@ -6,7 +6,7 @@
  */
 
 import type { ModuleKey } from "./definitions"
-import type { CompanyEntitlements, ModuleEntitlement } from "./permissions"
+import type { CompanyEntitlements, ModuleEntitlement, PermissionAction } from "./permissions"
 
 /**
  * Types of entitlement changes that can be audited
@@ -179,8 +179,12 @@ export function detectEntitlementChanges(
             ipAddress: metadata?.ipAddress,
             userAgent: metadata?.userAgent,
             metadata: {
-              permissionsAdded: curr.permissions.filter((p) => !prev.permissions.includes(p)),
-              permissionsRemoved: prev.permissions.filter((p) => !curr.permissions.includes(p)),
+              permissionsAdded: curr.permissions.filter(
+                (p: PermissionAction) => !prev.permissions.includes(p)
+              ),
+              permissionsRemoved: prev.permissions.filter(
+                (p: PermissionAction) => !curr.permissions.includes(p)
+              ),
             },
           })
         )

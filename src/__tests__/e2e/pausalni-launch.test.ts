@@ -63,7 +63,7 @@ describe("Pausalni Launch E2E Tests", () => {
         name: "Obrt Test",
         oib: "12345678901",
         legalForm: "OBRT_PAUSAL",
-        competence: "BEGINNER",
+        competence: "beginner",
       }
 
       vi.mocked(db.company.findFirst).mockResolvedValue({
@@ -74,11 +74,11 @@ describe("Pausalni Launch E2E Tests", () => {
 
       // Simulate Step 2 submission
       const competenceData = {
-        competence: "BEGINNER",
+        competence: "beginner",
       }
 
       expect(competenceData.competence).toBeTruthy()
-      expect(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).toContain(competenceData.competence)
+      expect(["beginner", "average", "pro"]).toContain(competenceData.competence)
     })
 
     it("completes Step 3: Address", async () => {
@@ -202,13 +202,17 @@ describe("Pausalni Launch E2E Tests", () => {
         name: "Test",
         oib: "12345678901",
         legalForm: "OBRT_PAUSAL",
-        competence: "BEGINNER",
+        competence: "beginner",
         address: null,
       }
 
       // Step 1 incomplete
       expect(
-        !!((incompleteStep1.name as string | null)?.trim() && incompleteStep1.oib && incompleteStep1.legalForm)
+        !!(
+          (incompleteStep1.name as string | null)?.trim() &&
+          incompleteStep1.oib &&
+          incompleteStep1.legalForm
+        )
       ).toBe(false)
 
       // Step 1 complete, Step 2 incomplete

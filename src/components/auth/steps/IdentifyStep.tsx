@@ -51,10 +51,10 @@ export function IdentifyStep({ onSubmit, onGoogleSignIn, isLoading, error }: Ide
             autoFocus
             className={cn(
               "w-full h-12 px-4 text-base rounded-xl border transition-all",
-              "bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm",
-              "focus:outline-none focus:ring-2 focus:ring-cyan-400/30",
-              showError ? "border-red-400" : "border-white/20 focus:border-cyan-400",
-              isValidEmail && touched && "border-green-400"
+              "bg-surface/10 text-white placeholder:text-white/40 backdrop-blur-sm",
+              "focus:outline-none focus:ring-2 focus:ring-accent-light/30",
+              showError ? "border-danger-border" : "border-white/20 focus:border-accent-light",
+              isValidEmail && touched && "border-success-border"
             )}
           />
         </motion.div>
@@ -63,7 +63,7 @@ export function IdentifyStep({ onSubmit, onGoogleSignIn, isLoading, error }: Ide
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400"
+            className="text-sm text-danger-text"
           >
             Unesite valjanu email adresu
           </motion.p>
@@ -73,7 +73,7 @@ export function IdentifyStep({ onSubmit, onGoogleSignIn, isLoading, error }: Ide
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400"
+            className="text-sm text-danger-text"
           >
             {error}
           </motion.p>
@@ -96,7 +96,7 @@ export function IdentifyStep({ onSubmit, onGoogleSignIn, isLoading, error }: Ide
       <button
         type="button"
         onClick={onGoogleSignIn}
-        className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white transition-all hover:bg-white/20 backdrop-blur-sm"
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-surface/10 px-4 py-3 text-white transition-all hover:bg-surface/20 backdrop-blur-sm"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
           <path

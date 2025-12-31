@@ -3,7 +3,7 @@
 
 import pdf from "pdf-parse"
 import mammoth from "mammoth"
-import * as XLSX from "xlsx"
+import ExcelJS from "exceljs"
 import WordExtractor from "word-extractor"
 
 // word-extractor instance for old DOC files
@@ -198,26 +198,32 @@ async function parseExcel(
   buffer: Buffer
 ): Promise<{ text: string; metadata?: Record<string, unknown> }> {
   try {
-    const workbook = XLSX.read(buffer, { type: "buffer" })
-    const sheets: string[] = []
-    const sheetData: Record<string, string[][]> = {}
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(buffer)
 
-    for (const sheetName of workbook.SheetNames) {
-      const sheet = workbook.Sheets[sheetName]
-      // Convert to array of arrays
-      const data = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: "" })
-      sheetData[sheetName] = data as string[][]
+    const sheets: string[] = []
+    const sheetNames: string[] = []
+
+    workbook.eachSheet((worksheet) => {
+      const sheetName = worksheet.name
+      sheetNames.push(sheetName)
 
       // Convert to readable text
       const lines: string[] = [`=== Sheet: ${sheetName} ===`]
-      for (const row of data as string[][]) {
-        const rowText = row.filter((cell) => cell !== "").join(" | ")
-        if (rowText.trim()) {
-          lines.push(rowText)
+      worksheet.eachRow((row) => {
+        const cells: string[] = []
+        row.eachCell((cell) => {
+          const value = cell.text || String(cell.value || "")
+          if (value.trim()) {
+            cells.push(value)
+          }
+        })
+        if (cells.length > 0) {
+          lines.push(cells.join(" | "))
         }
-      }
+      })
       sheets.push(lines.join("\n"))
-    }
+    })
 
     const rawText = sheets.join("\n\n")
     const sanitized = sanitizeText(rawText)
@@ -225,8 +231,8 @@ async function parseExcel(
     return {
       text: sanitized,
       metadata: {
-        sheetNames: workbook.SheetNames,
-        sheetCount: workbook.SheetNames.length,
+        sheetNames,
+        sheetCount: sheetNames.length,
         originalLength: rawText.length,
         sanitizedLength: sanitized.length,
       },

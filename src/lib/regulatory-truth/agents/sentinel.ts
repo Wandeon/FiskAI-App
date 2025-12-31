@@ -1219,7 +1219,7 @@ async function processSingleItem(item: {
       const similarEvidence = await findSimilarEvidenceByContent(
         content,
         contentType,
-        0.90, // High threshold for duplicates (90% similarity)
+        0.9, // High threshold for duplicates (90% similarity)
         1 // Only need to find one match
       )
 

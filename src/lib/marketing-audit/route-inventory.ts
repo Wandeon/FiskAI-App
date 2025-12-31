@@ -9,9 +9,7 @@ function normalizeRoute(relativeDir: string) {
     return "/"
   }
 
-  const cleaned = relativeDir
-    .replace(/\\/g, "/")
-    .replace(/\(.*?\)\//g, "")
+  const cleaned = relativeDir.replace(/\\/g, "/").replace(/\(.*?\)\//g, "")
 
   return `/${cleaned}`
 }

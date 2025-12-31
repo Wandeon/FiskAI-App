@@ -32,7 +32,7 @@ const tools: ToolCard[] = [
     subtitle: "Generator",
     description: "UBL 2.1 XML • Instant preview",
     href: "/alati/e-racun",
-    color: "text-blue-400",
+    color: "text-link",
     bgGlow: "group-hover:shadow-blue-500/20",
   },
   {
@@ -42,7 +42,7 @@ const tools: ToolCard[] = [
     subtitle: "Kalkulator",
     description: "Provjeri 60.000€ limit",
     href: "/alati/pdv-kalkulator",
-    color: "text-amber-400",
+    color: "text-warning",
     bgGlow: "group-hover:shadow-amber-500/20",
   },
   {
@@ -52,7 +52,7 @@ const tools: ToolCard[] = [
     subtitle: "Kalendar 2025",
     description: "Svi porezni datumi",
     href: "/alati/kalendar",
-    color: "text-green-400",
+    color: "text-success-text",
     bgGlow: "group-hover:shadow-green-500/20",
   },
   {
@@ -62,7 +62,7 @@ const tools: ToolCard[] = [
     subtitle: "Kalkulator",
     description: "Paušal & obrt izračun",
     href: "/alati/kalkulator-poreza",
-    color: "text-purple-400",
+    color: "text-chart-2",
     bgGlow: "group-hover:shadow-purple-500/20",
   },
   {
@@ -96,12 +96,12 @@ export function QuickAccessToolbar({ className, variant = "horizontal" }: QuickA
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm",
+        "rounded-2xl border border-white/10 bg-surface/5 p-4 backdrop-blur-sm",
         className
       )}
     >
       <div className="mb-3 flex items-center gap-2">
-        <Zap className="h-4 w-4 text-yellow-400" />
+        <Zap className="h-4 w-4 text-warning-text" />
         <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
           Brzi pristup
         </span>
@@ -127,8 +127,8 @@ function ToolCardItem({ tool, index }: { tool: ToolCard; index: number }) {
       <Link
         href={tool.href}
         className={cn(
-          "group relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5 p-3 transition-all",
-          "hover:border-white/20 hover:bg-white/10 hover:shadow-lg",
+          "group relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-surface/5 p-3 transition-all",
+          "hover:border-white/20 hover:bg-surface/10 hover:shadow-lg",
           tool.bgGlow
         )}
       >
@@ -144,8 +144,8 @@ function ToolCardItem({ tool, index }: { tool: ToolCard; index: number }) {
           <div className="mb-2 flex items-center justify-between">
             <div
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg bg-white/10",
-                "group-hover:bg-white/15"
+                "flex h-8 w-8 items-center justify-center rounded-lg bg-surface/10",
+                "group-hover:bg-surface/15"
               )}
             >
               <Icon className={cn("h-4 w-4", tool.color)} />
@@ -180,7 +180,7 @@ export function ToolsGrid({ className }: { className?: string }) {
             <div
               className={cn(
                 "mb-3 flex h-12 w-12 items-center justify-center rounded-xl",
-                "bg-gradient-to-br from-blue-500 to-indigo-600"
+                "bg-gradient-to-br from-interactive to-indigo-600"
               )}
             >
               <Icon className="h-6 w-6 text-white" />

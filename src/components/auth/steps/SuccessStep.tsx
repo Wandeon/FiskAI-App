@@ -19,7 +19,7 @@ export function SuccessStep({ isNewUser, userName }: SuccessStepProps) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-        className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 shadow-lg shadow-cyan-500/30"
+        className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-accent shadow-lg shadow-cyan-500/30"
       >
         <svg
           className="h-10 w-10 text-white"

@@ -24,10 +24,7 @@ const VALID_TRANSITIONS: Record<SupportTicketStatus, SupportTicketStatus[]> = {
   CLOSED: [SupportTicketStatus.OPEN],
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params
   const user = await getCurrentUser()
   if (!user) {
@@ -81,7 +78,7 @@ export async function PATCH(
       newStatus: newStatus,
       changedByUserId: user.id!,
       changedByName: user.name,
-      changedByEmail: user.email,
+      changedByEmail: user.email ?? "",
       companyId: company.id,
       companyName: company.name,
     }).catch((error) => {

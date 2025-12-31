@@ -76,7 +76,10 @@ export function hasMultipleRoles(systemRole: SystemRole): boolean {
  * @param systemRole - User's system role (USER, STAFF, or ADMIN)
  * @returns true if role selection page should be shown
  */
-export async function shouldShowRoleSelection(userId: string, systemRole: SystemRole): Promise<boolean> {
+export async function shouldShowRoleSelection(
+  userId: string,
+  systemRole: SystemRole
+): Promise<boolean> {
   // STAFF and ADMIN always see role selection (multiple portal access)
   if (hasMultipleRoles(systemRole)) {
     return true

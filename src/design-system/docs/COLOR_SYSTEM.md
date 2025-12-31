@@ -71,8 +71,8 @@ Configured in `tailwind.config.ts` to map CSS variables to Tailwind utilities:
 </div>
 
 // ❌ WRONG - Hardcoded colors (will trigger ESLint error)
-<div className="text-slate-800 bg-white border-slate-200">
-  <button className="bg-blue-600 hover:bg-blue-700">
+<div className="text-foreground bg-surface border-default">
+  <button className="bg-interactive hover:bg-interactive-hover">
     Click me
   </button>
 </div>
@@ -84,16 +84,17 @@ Configured in `tailwind.config.ts` to map CSS variables to Tailwind utilities:
 
 Background colors for pages, cards, and containers.
 
-| Token | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| `bg-base` | `#f8fafc` (slate-25) | `#020617` (slate-900) | Page background |
-| `bg-surface` | `#ffffff` (white) | `#0f172a` (slate-800) | Card/panel background |
-| `bg-surface-1` | `#f1f5f9` (slate-50) | `#1e293b` (slate-700) | Elevated surface |
-| `bg-surface-2` | `#e2e8f0` (slate-100) | `#334155` (slate-600) | More elevated |
-| `bg-surface-elevated` | `#ffffff` (white) | `#1e293b` (slate-700) | Popovers, tooltips |
-| `bg-overlay` | `rgba(15,23,42,0.5)` | `rgba(0,0,0,0.7)` | Modal overlay |
+| Token                 | Light Mode            | Dark Mode             | Usage                 |
+| --------------------- | --------------------- | --------------------- | --------------------- |
+| `bg-base`             | `#f8fafc` (slate-25)  | `#020617` (slate-900) | Page background       |
+| `bg-surface`          | `#ffffff` (white)     | `#0f172a` (slate-800) | Card/panel background |
+| `bg-surface-1`        | `#f1f5f9` (slate-50)  | `#1e293b` (slate-700) | Elevated surface      |
+| `bg-surface-2`        | `#e2e8f0` (slate-100) | `#334155` (slate-600) | More elevated         |
+| `bg-surface-elevated` | `#ffffff` (white)     | `#1e293b` (slate-700) | Popovers, tooltips    |
+| `bg-overlay`          | `rgba(15,23,42,0.5)`  | `rgba(0,0,0,0.7)`     | Modal overlay         |
 
 **Example:**
+
 ```tsx
 <div className="bg-base min-h-screen">
   <div className="bg-surface rounded-lg border border-default p-6">
@@ -106,14 +107,14 @@ Background colors for pages, cards, and containers.
 
 Text colors with guaranteed readability.
 
-| Token | Light Mode | Dark Mode | Contrast (Light) | Contrast (Dark) | Usage |
-|-------|------------|-----------|------------------|-----------------|-------|
-| `text-foreground` | `#0f172a` (slate-800) | `#f8fafc` (slate-25) | 14.09:1 ✓ AAA | 15.95:1 ✓ AAA | Primary text |
-| `text-secondary` | `#334155` (slate-600) | `#94a3b8` (slate-300) | 7.23:1 ✓ AAA | 6.12:1 ✓ AA | Secondary text |
-| `text-tertiary` | `#475569` (slate-500) | `#64748b` (slate-400) | 5.18:1 ✓ AA | 4.67:1 ✓ AA | Less important text |
-| `text-muted` | `#94a3b8` (slate-300) | `#475569` (slate-500) | 3.12:1 ✓ (large) | 3.89:1 ✓ (large) | Disabled/placeholder |
-| `text-inverse` | `#ffffff` (white) | `#0f172a` (slate-800) | - | - | Text on dark backgrounds |
-| `text-link` | `#2563eb` (blue-600) | `#60a5fa` (blue-400) | 4.89:1 ✓ AA | 5.34:1 ✓ AA | Interactive links |
+| Token             | Light Mode            | Dark Mode             | Contrast (Light) | Contrast (Dark)  | Usage                    |
+| ----------------- | --------------------- | --------------------- | ---------------- | ---------------- | ------------------------ |
+| `text-foreground` | `#0f172a` (slate-800) | `#f8fafc` (slate-25)  | 14.09:1 ✓ AAA    | 15.95:1 ✓ AAA    | Primary text             |
+| `text-secondary`  | `#334155` (slate-600) | `#94a3b8` (slate-300) | 7.23:1 ✓ AAA     | 6.12:1 ✓ AA      | Secondary text           |
+| `text-tertiary`   | `#475569` (slate-500) | `#64748b` (slate-400) | 5.18:1 ✓ AA      | 4.67:1 ✓ AA      | Less important text      |
+| `text-muted`      | `#94a3b8` (slate-300) | `#475569` (slate-500) | 3.12:1 ✓ (large) | 3.89:1 ✓ (large) | Disabled/placeholder     |
+| `text-inverse`    | `#ffffff` (white)     | `#0f172a` (slate-800) | -                | -                | Text on dark backgrounds |
+| `text-link`       | `#2563eb` (blue-600)  | `#60a5fa` (blue-400)  | 4.89:1 ✓ AA      | 5.34:1 ✓ AA      | Interactive links        |
 
 **Contrast ratios** are measured against `bg-surface` (`#ffffff` in light, `#0f172a` in dark).
 
@@ -122,6 +123,7 @@ Text colors with guaranteed readability.
 - ✓ **(large)**: 3:1+ (acceptable for 18pt+ or 14pt bold)
 
 **Example:**
+
 ```tsx
 <h1 className="text-foreground">Main Heading</h1>
 <p className="text-secondary">Supporting paragraph</p>
@@ -133,14 +135,15 @@ Text colors with guaranteed readability.
 
 Border colors for separators and focus states.
 
-| Token | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| `border-default` | `#cbd5e1` (slate-200) | `#334155` (slate-600) | Standard borders |
-| `border-subtle` | `#e2e8f0` (slate-100) | `#1e293b` (slate-700) | Dividers |
-| `border-strong` | `#94a3b8` (slate-300) | `#475569` (slate-500) | Emphasized borders |
-| `border-focus` | `#3b82f6` (blue-500) | `#60a5fa` (blue-400) | Focus rings |
+| Token            | Light Mode            | Dark Mode             | Usage              |
+| ---------------- | --------------------- | --------------------- | ------------------ |
+| `border-default` | `#cbd5e1` (slate-200) | `#334155` (slate-600) | Standard borders   |
+| `border-subtle`  | `#e2e8f0` (slate-100) | `#1e293b` (slate-700) | Dividers           |
+| `border-strong`  | `#94a3b8` (slate-300) | `#475569` (slate-500) | Emphasized borders |
+| `border-focus`   | `#3b82f6` (blue-500)  | `#60a5fa` (blue-400)  | Focus rings        |
 
 **Example:**
+
 ```tsx
 <input
   className="border border-default focus:border-focus focus:ring-2 focus:ring-border-focus"
@@ -152,16 +155,17 @@ Border colors for separators and focus states.
 
 Colors for buttons and interactive elements.
 
-| Token | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| `bg-interactive` | `#2563eb` (blue-600) | `#3b82f6` (blue-500) | Primary button |
-| `bg-interactive-hover` | `#1d4ed8` (blue-700) | `#60a5fa` (blue-400) | Primary hover |
-| `bg-interactive-secondary` | `#ffffff` (white) | `#1e293b` (slate-700) | Secondary button |
-| `bg-interactive-secondary-hover` | `#f1f5f9` (slate-50) | `#334155` (slate-600) | Secondary hover |
-| `bg-interactive-ghost` | `transparent` | `transparent` | Ghost button |
-| `bg-interactive-ghost-hover` | `#e2e8f0` (slate-100) | `#1e293b` (slate-700) | Ghost hover |
+| Token                            | Light Mode            | Dark Mode             | Usage            |
+| -------------------------------- | --------------------- | --------------------- | ---------------- |
+| `bg-interactive`                 | `#2563eb` (blue-600)  | `#3b82f6` (blue-500)  | Primary button   |
+| `bg-interactive-hover`           | `#1d4ed8` (blue-700)  | `#60a5fa` (blue-400)  | Primary hover    |
+| `bg-interactive-secondary`       | `#ffffff` (white)     | `#1e293b` (slate-700) | Secondary button |
+| `bg-interactive-secondary-hover` | `#f1f5f9` (slate-50)  | `#334155` (slate-600) | Secondary hover  |
+| `bg-interactive-ghost`           | `transparent`         | `transparent`         | Ghost button     |
+| `bg-interactive-ghost-hover`     | `#e2e8f0` (slate-100) | `#1e293b` (slate-700) | Ghost hover      |
 
 **Example:**
+
 ```tsx
 <button className="bg-interactive hover:bg-interactive-hover text-white px-4 py-2 rounded">
   Primary Action
@@ -179,15 +183,16 @@ Each status has 5 tokens: `DEFAULT`, `bg`, `text`, `border`, `icon`
 
 #### Success
 
-| Token | Light Mode | Dark Mode | Contrast | Usage |
-|-------|------------|-----------|----------|-------|
-| `bg-success` | `#059669` (emerald-600) | `#10b981` (emerald-500) | - | Success badges |
-| `bg-success-bg` | `#ecfdf5` (emerald-50) | `rgba(16,185,129,0.1)` | - | Success alert bg |
-| `text-success-text` | `#047857` (emerald-700) | `#34d399` (emerald-400) | 5.67:1 ✓ AA | Success message |
-| `border-success-border` | `#a7f3d0` (emerald-200) | `#065f46` (emerald-800) | - | Success outline |
-| `text-success-icon` | `#059669` (emerald-600) | `#10b981` (emerald-500) | - | Success icons |
+| Token                   | Light Mode              | Dark Mode               | Contrast    | Usage            |
+| ----------------------- | ----------------------- | ----------------------- | ----------- | ---------------- |
+| `bg-success`            | `#059669` (emerald-600) | `#10b981` (emerald-500) | -           | Success badges   |
+| `bg-success-bg`         | `#ecfdf5` (emerald-50)  | `rgba(16,185,129,0.1)`  | -           | Success alert bg |
+| `text-success-text`     | `#047857` (emerald-700) | `#34d399` (emerald-400) | 5.67:1 ✓ AA | Success message  |
+| `border-success-border` | `#a7f3d0` (emerald-200) | `#065f46` (emerald-800) | -           | Success outline  |
+| `text-success-icon`     | `#059669` (emerald-600) | `#10b981` (emerald-500) | -           | Success icons    |
 
 **Example:**
+
 ```tsx
 <div className="bg-success-bg border border-success-border rounded-lg p-4">
   <p className="text-success-text">Your changes have been saved successfully!</p>
@@ -196,15 +201,16 @@ Each status has 5 tokens: `DEFAULT`, `bg`, `text`, `border`, `icon`
 
 #### Warning
 
-| Token | Light Mode | Dark Mode | Contrast | Usage |
-|-------|------------|-----------|----------|-------|
-| `bg-warning` | `#d97706` (amber-600) | `#f59e0b` (amber-500) | - | Warning badges |
-| `bg-warning-bg` | `#fffbeb` (amber-50) | `rgba(245,158,11,0.1)` | - | Warning alert bg |
-| `text-warning-text` | `#b45309` (amber-700) | `#fbbf24` (amber-400) | 5.89:1 ✓ AA | Warning message |
-| `border-warning-border` | `#fde68a` (amber-200) | `#92400e` (amber-800) | - | Warning outline |
-| `text-warning-icon` | `#d97706` (amber-600) | `#f59e0b` (amber-500) | - | Warning icons |
+| Token                   | Light Mode            | Dark Mode              | Contrast    | Usage            |
+| ----------------------- | --------------------- | ---------------------- | ----------- | ---------------- |
+| `bg-warning`            | `#d97706` (amber-600) | `#f59e0b` (amber-500)  | -           | Warning badges   |
+| `bg-warning-bg`         | `#fffbeb` (amber-50)  | `rgba(245,158,11,0.1)` | -           | Warning alert bg |
+| `text-warning-text`     | `#b45309` (amber-700) | `#fbbf24` (amber-400)  | 5.89:1 ✓ AA | Warning message  |
+| `border-warning-border` | `#fde68a` (amber-200) | `#92400e` (amber-800)  | -           | Warning outline  |
+| `text-warning-icon`     | `#d97706` (amber-600) | `#f59e0b` (amber-500)  | -           | Warning icons    |
 
 **Example:**
+
 ```tsx
 <div className="bg-warning-bg border border-warning-border rounded-lg p-4">
   <p className="text-warning-text">Please review these items before proceeding.</p>
@@ -213,15 +219,16 @@ Each status has 5 tokens: `DEFAULT`, `bg`, `text`, `border`, `icon`
 
 #### Danger
 
-| Token | Light Mode | Dark Mode | Contrast | Usage |
-|-------|------------|-----------|----------|-------|
-| `bg-danger` | `#dc2626` (red-600) | `#ef4444` (red-500) | - | Danger badges |
-| `bg-danger-bg` | `#fef2f2` (red-50) | `rgba(239,68,68,0.1)` | - | Danger alert bg |
-| `text-danger-text` | `#b91c1c` (red-700) | `#f87171` (red-400) | 5.01:1 ✓ AA | Error message |
-| `border-danger-border` | `#fecaca` (red-200) | `#991b1b` (red-800) | - | Danger outline |
-| `text-danger-icon` | `#dc2626` (red-600) | `#ef4444` (red-500) | - | Error icons |
+| Token                  | Light Mode          | Dark Mode             | Contrast    | Usage           |
+| ---------------------- | ------------------- | --------------------- | ----------- | --------------- |
+| `bg-danger`            | `#dc2626` (red-600) | `#ef4444` (red-500)   | -           | Danger badges   |
+| `bg-danger-bg`         | `#fef2f2` (red-50)  | `rgba(239,68,68,0.1)` | -           | Danger alert bg |
+| `text-danger-text`     | `#b91c1c` (red-700) | `#f87171` (red-400)   | 5.01:1 ✓ AA | Error message   |
+| `border-danger-border` | `#fecaca` (red-200) | `#991b1b` (red-800)   | -           | Danger outline  |
+| `text-danger-icon`     | `#dc2626` (red-600) | `#ef4444` (red-500)   | -           | Error icons     |
 
 **Example:**
+
 ```tsx
 <div className="bg-danger-bg border border-danger-border rounded-lg p-4">
   <p className="text-danger-text">Invalid input. Please check your entries.</p>
@@ -230,18 +237,21 @@ Each status has 5 tokens: `DEFAULT`, `bg`, `text`, `border`, `icon`
 
 #### Info
 
-| Token | Light Mode | Dark Mode | Contrast | Usage |
-|-------|------------|-----------|----------|-------|
-| `bg-info` | `#2563eb` (blue-600) | `#3b82f6` (blue-500) | - | Info badges |
-| `bg-info-bg` | `#eff6ff` (blue-50) | `rgba(59,130,246,0.1)` | - | Info alert bg |
-| `text-info-text` | `#1d4ed8` (blue-700) | `#60a5fa` (blue-400) | 5.12:1 ✓ AA | Info message |
-| `border-info-border` | `#bfdbfe` (blue-200) | `#1e40af` (blue-800) | - | Info outline |
-| `text-info-icon` | `#2563eb` (blue-600) | `#3b82f6` (blue-500) | - | Info icons |
+| Token                | Light Mode           | Dark Mode              | Contrast    | Usage         |
+| -------------------- | -------------------- | ---------------------- | ----------- | ------------- |
+| `bg-info`            | `#2563eb` (blue-600) | `#3b82f6` (blue-500)   | -           | Info badges   |
+| `bg-info-bg`         | `#eff6ff` (blue-50)  | `rgba(59,130,246,0.1)` | -           | Info alert bg |
+| `text-info-text`     | `#1d4ed8` (blue-700) | `#60a5fa` (blue-400)   | 5.12:1 ✓ AA | Info message  |
+| `border-info-border` | `#bfdbfe` (blue-200) | `#1e40af` (blue-800)   | -           | Info outline  |
+| `text-info-icon`     | `#2563eb` (blue-600) | `#3b82f6` (blue-500)   | -           | Info icons    |
 
 **Example:**
+
 ```tsx
 <div className="bg-info-bg border border-info-border rounded-lg p-4">
-  <p className="text-info-text">Pro tip: You can use keyboard shortcuts to speed up your workflow.</p>
+  <p className="text-info-text">
+    Pro tip: You can use keyboard shortcuts to speed up your workflow.
+  </p>
 </div>
 ```
 
@@ -249,37 +259,37 @@ Each status has 5 tokens: `DEFAULT`, `bg`, `text`, `border`, `icon`
 
 Marketing/brand accent colors (cyan).
 
-| Token | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| `bg-accent` | `#06b6d4` (cyan-500) | `#22d3ee` (cyan-400) | Accent elements |
-| `bg-accent-light` | `#22d3ee` (cyan-400) | `#67e8f9` (cyan-300) | Lighter accent |
-| `bg-accent-dark` | `#0891b2` (cyan-600) | `#06b6d4` (cyan-500) | Darker accent |
+| Token             | Light Mode           | Dark Mode            | Usage           |
+| ----------------- | -------------------- | -------------------- | --------------- |
+| `bg-accent`       | `#06b6d4` (cyan-500) | `#22d3ee` (cyan-400) | Accent elements |
+| `bg-accent-light` | `#22d3ee` (cyan-400) | `#67e8f9` (cyan-300) | Lighter accent  |
+| `bg-accent-dark`  | `#0891b2` (cyan-600) | `#06b6d4` (cyan-500) | Darker accent   |
 
 **Example:**
+
 ```tsx
-<div className="bg-accent text-white px-6 py-3 rounded-full">
-  New Feature!
-</div>
+<div className="bg-accent text-white px-6 py-3 rounded-full">New Feature!</div>
 ```
 
 ### Chart/Data Visualization Tokens
 
 8-color categorical palette for charts (avoiding blue/red confusion).
 
-| Token | Color | Usage |
-|-------|-------|-------|
-| `bg-chart-1` | `#6366f1` (indigo) | Series 1 |
-| `bg-chart-2` | `#8b5cf6` (violet) | Series 2 |
-| `bg-chart-3` | `#ec4899` (pink) | Series 3 |
-| `bg-chart-4` | `#14b8a6` (teal) | Series 4 |
-| `bg-chart-5` | `#f97316` (orange) | Series 5 |
-| `bg-chart-6` | `#84cc16` (lime) | Series 6 |
-| `bg-chart-7` | `#06b6d4` (cyan) | Series 7 |
-| `bg-chart-8` | `#f43f5e` (rose) | Series 8 |
-| `border-chart-grid` | `rgba(148,163,184,0.2)` | Grid lines |
-| `text-chart-axis` | `#64748b` (slate-400) | Axis labels |
+| Token               | Color                   | Usage       |
+| ------------------- | ----------------------- | ----------- |
+| `bg-chart-1`        | `#6366f1` (indigo)      | Series 1    |
+| `bg-chart-2`        | `#8b5cf6` (violet)      | Series 2    |
+| `bg-chart-3`        | `#ec4899` (pink)        | Series 3    |
+| `bg-chart-4`        | `#14b8a6` (teal)        | Series 4    |
+| `bg-chart-5`        | `#f97316` (orange)      | Series 5    |
+| `bg-chart-6`        | `#84cc16` (lime)        | Series 6    |
+| `bg-chart-7`        | `#06b6d4` (cyan)        | Series 7    |
+| `bg-chart-8`        | `#f43f5e` (rose)        | Series 8    |
+| `border-chart-grid` | `rgba(148,163,184,0.2)` | Grid lines  |
+| `text-chart-axis`   | `#64748b` (slate-400)   | Axis labels |
 
 **Example:**
+
 ```tsx
 <div className="h-4 w-full flex gap-1">
   <div className="bg-chart-1 flex-1" />
@@ -309,21 +319,25 @@ Already configured in `.eslintrc.json`:
 ### What Gets Flagged
 
 ❌ **Hardcoded Tailwind colors:**
+
 ```tsx
-<div className="text-slate-800 bg-blue-600 border-red-500">
+<div className="text-foreground bg-interactive border-danger-border">
 ```
 
 ❌ **RGB/Hex colors:**
+
 ```tsx
 <div className="bg-[#3b82f6] text-[rgb(15,23,42)]">
 ```
 
 ✅ **Semantic tokens (allowed):**
+
 ```tsx
 <div className="text-foreground bg-interactive border-danger-border">
 ```
 
 ✅ **Utility colors (allowed):**
+
 ```tsx
 <div className="text-white bg-black border-transparent">
 ```
@@ -348,16 +362,16 @@ All text/background token combinations meet **WCAG 2.1 Level AA** standards:
 
 ### Verified Combinations
 
-| Combination | Contrast (Light) | Contrast (Dark) | Status |
-|-------------|------------------|-----------------|--------|
-| `text-foreground` on `bg-surface` | 14.09:1 | 15.95:1 | ✓ AAA |
-| `text-secondary` on `bg-surface` | 7.23:1 | 6.12:1 | ✓ AAA |
-| `text-tertiary` on `bg-surface` | 5.18:1 | 4.67:1 | ✓ AA |
-| `text-link` on `bg-surface` | 4.89:1 | 5.34:1 | ✓ AA |
-| `text-success-text` on `bg-success-bg` | 5.67:1 | 5.23:1 | ✓ AA |
-| `text-warning-text` on `bg-warning-bg` | 5.89:1 | 5.45:1 | ✓ AA |
-| `text-danger-text` on `bg-danger-bg` | 5.01:1 | 4.78:1 | ✓ AA |
-| `text-info-text` on `bg-info-bg` | 5.12:1 | 5.01:1 | ✓ AA |
+| Combination                            | Contrast (Light) | Contrast (Dark) | Status |
+| -------------------------------------- | ---------------- | --------------- | ------ |
+| `text-foreground` on `bg-surface`      | 14.09:1          | 15.95:1         | ✓ AAA  |
+| `text-secondary` on `bg-surface`       | 7.23:1           | 6.12:1          | ✓ AAA  |
+| `text-tertiary` on `bg-surface`        | 5.18:1           | 4.67:1          | ✓ AA   |
+| `text-link` on `bg-surface`            | 4.89:1           | 5.34:1          | ✓ AA   |
+| `text-success-text` on `bg-success-bg` | 5.67:1           | 5.23:1          | ✓ AA   |
+| `text-warning-text` on `bg-warning-bg` | 5.89:1           | 5.45:1          | ✓ AA   |
+| `text-danger-text` on `bg-danger-bg`   | 5.01:1           | 4.78:1          | ✓ AA   |
+| `text-info-text` on `bg-info-bg`       | 5.12:1           | 5.01:1          | ✓ AA   |
 
 **Note:** These ratios are calculated using the [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/).
 
@@ -411,6 +425,7 @@ npm run verify-contrast
 ```
 
 This script:
+
 1. Reads all CSS variables from `variables.css`
 2. Calculates contrast ratios for text/background pairs
 3. Reports any combinations below WCAG AA (4.5:1)
@@ -426,6 +441,7 @@ This script:
 ## Support
 
 For questions or issues with the color system:
+
 1. Check this documentation
 2. Review the migration guide
 3. Run ESLint to catch common mistakes

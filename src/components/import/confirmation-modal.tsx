@@ -110,7 +110,7 @@ export function ConfirmationModal({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white w-[90vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="bg-surface w-[90vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export function ConfirmationModal({
             <select
               value={normalizedDocType}
               onChange={(e) => onDocumentTypeChange?.(e.target.value as DocumentType)}
-              className="text-sm border border-default rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-border-focus"
+              className="text-sm border border-default rounded-lg px-3 py-1.5 bg-surface focus:ring-2 focus:ring-border-focus"
             >
               <option value="BANK_STATEMENT">Bankovni izvod</option>
               <option value="INVOICE">Račun</option>

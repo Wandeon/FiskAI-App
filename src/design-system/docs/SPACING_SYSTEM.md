@@ -34,23 +34,23 @@ The spacing scale uses numeric keys that represent **multipliers of the 4px base
 
 ```tsx
 export const spacing = {
-  '0': '0px',      // 0 × 4px
-  '0.5': '2px',    // 0.5 × 4px
-  '1': '4px',      // 1 × 4px
-  '1.5': '6px',    // 1.5 × 4px
-  '2': '8px',      // 2 × 4px
-  '3': '12px',     // 3 × 4px
-  '4': '16px',     // 4 × 4px
-  '5': '20px',     // 5 × 4px
-  '6': '24px',     // 6 × 4px
-  '8': '32px',     // 8 × 4px
-  '10': '40px',    // 10 × 4px
-  '12': '48px',    // 12 × 4px
-  '16': '64px',    // 16 × 4px
-  '20': '80px',    // 20 × 4px
-  '24': '96px',    // 24 × 4px
-  '28': '112px',   // 28 × 4px
-  '32': '128px',   // 32 × 4px
+  "0": "0px", // 0 × 4px
+  "0.5": "2px", // 0.5 × 4px
+  "1": "4px", // 1 × 4px
+  "1.5": "6px", // 1.5 × 4px
+  "2": "8px", // 2 × 4px
+  "3": "12px", // 3 × 4px
+  "4": "16px", // 4 × 4px
+  "5": "20px", // 5 × 4px
+  "6": "24px", // 6 × 4px
+  "8": "32px", // 8 × 4px
+  "10": "40px", // 10 × 4px
+  "12": "48px", // 12 × 4px
+  "16": "64px", // 16 × 4px
+  "20": "80px", // 20 × 4px
+  "24": "96px", // 24 × 4px
+  "28": "112px", // 28 × 4px
+  "32": "128px", // 32 × 4px
 }
 ```
 
@@ -67,15 +67,15 @@ For improved readability and semantic meaning, the system provides named aliases
 
 ```tsx
 export const spacingSemantics = {
-  none: spacing['0'],     // 0px - No spacing
-  xxs: spacing['0.5'],    // 2px - Extra extra small
-  xs: spacing['1'],       // 4px - Extra small
-  sm: spacing['2'],       // 8px - Small
-  md: spacing['3'],       // 12px - Medium
-  lg: spacing['4'],       // 16px - Large
-  xl: spacing['6'],       // 24px - Extra large
-  '2xl': spacing['8'],    // 32px - 2× extra large
-  '3xl': spacing['12'],   // 48px - 3× extra large
+  none: spacing["0"], // 0px - No spacing
+  xxs: spacing["0.5"], // 2px - Extra extra small
+  xs: spacing["1"], // 4px - Extra small
+  sm: spacing["2"], // 8px - Small
+  md: spacing["3"], // 12px - Medium
+  lg: spacing["4"], // 16px - Large
+  xl: spacing["6"], // 24px - Extra large
+  "2xl": spacing["8"], // 32px - 2× extra large
+  "3xl": spacing["12"], // 48px - 3× extra large
 }
 ```
 
@@ -100,26 +100,26 @@ Pre-defined spacing values for common component patterns:
 ```tsx
 export const componentSpacing = {
   // Button Spacing
-  buttonPaddingX: spacing['4'],        // 16px - Horizontal padding (default)
-  buttonPaddingY: spacing['2'],        // 8px - Vertical padding (default)
-  buttonPaddingXSm: spacing['3'],      // 12px - Small button horizontal
-  buttonPaddingYSm: spacing['1.5'],    // 6px - Small button vertical
+  buttonPaddingX: spacing["4"], // 16px - Horizontal padding (default)
+  buttonPaddingY: spacing["2"], // 8px - Vertical padding (default)
+  buttonPaddingXSm: spacing["3"], // 12px - Small button horizontal
+  buttonPaddingYSm: spacing["1.5"], // 6px - Small button vertical
 
   // Input Spacing
-  inputPaddingX: spacing['3'],         // 12px - Horizontal padding
-  inputPaddingY: spacing['2'],         // 8px - Vertical padding
+  inputPaddingX: spacing["3"], // 12px - Horizontal padding
+  inputPaddingY: spacing["2"], // 8px - Vertical padding
 
   // Card Spacing
-  cardPadding: spacing['6'],           // 24px - Standard card padding
-  cardPaddingCompact: spacing['4'],    // 16px - Compact card padding
+  cardPadding: spacing["6"], // 24px - Standard card padding
+  cardPaddingCompact: spacing["4"], // 16px - Compact card padding
 
   // Modal Spacing
-  modalPadding: spacing['6'],          // 24px - Modal content padding
+  modalPadding: spacing["6"], // 24px - Modal content padding
 
   // Layout Spacing
-  sectionGap: spacing['8'],            // 32px - Gap between major sections
-  stackGap: spacing['4'],              // 16px - Default vertical stack gap
-  inlineGap: spacing['2'],             // 8px - Default horizontal inline gap
+  sectionGap: spacing["8"], // 32px - Gap between major sections
+  stackGap: spacing["4"], // 16px - Default vertical stack gap
+  inlineGap: spacing["2"], // 8px - Default horizontal inline gap
 }
 ```
 
@@ -155,9 +155,9 @@ The spacing scale overrides Tailwind's default spacing to ensure consistency:
 module.exports = {
   theme: {
     extend: {
-      spacing: spacing,  // Overrides default Tailwind spacing
-    }
-  }
+      spacing: spacing, // Overrides default Tailwind spacing
+    },
+  },
 }
 ```
 
@@ -175,17 +175,17 @@ This means all Tailwind spacing utilities use the 4px base scale:
 
 ### Choosing the Right Spacing Value
 
-| Use Case | Recommended Token | Value | Example |
-|----------|------------------|-------|---------|
-| Tight inline spacing | `1` or `xs` | 4px | Icon and text |
-| Standard inline gap | `2` or `sm` | 8px | Button group items |
-| Related items | `3` or `md` | 12px | Form label and input |
-| Comfortable padding | `4` or `lg` | 16px | Button padding, card elements |
-| Section spacing | `6` or `xl` | 24px | Card padding, modal content |
-| Major sections | `8` or `2xl` | 32px | Page sections |
-| Large sections | `12` or `3xl` | 48px | Hero section padding |
-| Extra large sections | `16` | 64px | Landing page sections |
-| Maximum spacing | `32` | 128px | Major page divisions |
+| Use Case             | Recommended Token | Value | Example                       |
+| -------------------- | ----------------- | ----- | ----------------------------- |
+| Tight inline spacing | `1` or `xs`       | 4px   | Icon and text                 |
+| Standard inline gap  | `2` or `sm`       | 8px   | Button group items            |
+| Related items        | `3` or `md`       | 12px  | Form label and input          |
+| Comfortable padding  | `4` or `lg`       | 16px  | Button padding, card elements |
+| Section spacing      | `6` or `xl`       | 24px  | Card padding, modal content   |
+| Major sections       | `8` or `2xl`      | 32px  | Page sections                 |
+| Large sections       | `12` or `3xl`     | 48px  | Hero section padding          |
+| Extra large sections | `16`              | 64px  | Landing page sections         |
+| Maximum spacing      | `32`              | 128px | Major page divisions          |
 
 ### Common Patterns
 
@@ -297,12 +297,12 @@ Use Tailwind's responsive prefixes to adjust spacing at different breakpoints:
 
 ### Responsive Spacing Patterns
 
-| Element Type | Mobile | Tablet | Desktop |
-|--------------|--------|--------|---------|
-| Page padding | `p-4` | `md:p-6` | `lg:p-8` |
-| Card padding | `p-4` | `md:p-6` | `lg:p-6` |
+| Element Type | Mobile      | Tablet         | Desktop         |
+| ------------ | ----------- | -------------- | --------------- |
+| Page padding | `p-4`       | `md:p-6`       | `lg:p-8`        |
+| Card padding | `p-4`       | `md:p-6`       | `lg:p-6`        |
 | Section gaps | `space-y-6` | `md:space-y-8` | `lg:space-y-12` |
-| Grid gaps | `gap-4` | `md:gap-6` | `lg:gap-8` |
+| Grid gaps    | `gap-4`     | `md:gap-6`     | `lg:gap-8`      |
 
 ## Negative Spacing
 
@@ -325,23 +325,27 @@ Use negative values for overlapping layouts:
 ### DO
 
 ✅ **Use the spacing scale consistently**
+
 ```tsx
 <div className="p-6 space-y-4">  // ✓ Using scale values
 ```
 
 ✅ **Use semantic names for clarity**
+
 ```tsx
 <div className="gap-md">  // ✓ Clear intent
 ```
 
 ✅ **Stack responsive spacing**
+
 ```tsx
 <div className="p-4 md:p-6 lg:p-8">  // ✓ Scales with viewport
 ```
 
 ✅ **Use component spacing tokens in custom components**
+
 ```tsx
-import { componentSpacing } from '@/design-system/tokens/layout/spacing'
+import { componentSpacing } from "@/design-system/tokens/layout/spacing"
 
 const CustomButton = styled.button`
   padding: ${componentSpacing.buttonPaddingY} ${componentSpacing.buttonPaddingX};
@@ -351,17 +355,20 @@ const CustomButton = styled.button`
 ### DON'T
 
 ❌ **Use arbitrary values**
+
 ```tsx
 <div className="p-[13px]">  // ✗ Not on the scale
 ```
 
 ❌ **Mix spacing systems**
+
 ```tsx
 <div className="p-5">  // ✗ This is 20px, which is fine, but be consistent
 <div className="p-[1.25rem]">  // ✗ Use spacing tokens instead
 ```
 
 ❌ **Use pixel values in CSS**
+
 ```tsx
 .custom {
   padding: 17px;  // ✗ Use spacing tokens instead
@@ -369,6 +376,7 @@ const CustomButton = styled.button`
 ```
 
 ❌ **Skip responsive considerations**
+
 ```tsx
 <div className="p-12">  // ✗ Too large on mobile
 ```
@@ -415,9 +423,7 @@ Ensure focus indicators have adequate spacing:
 
 ```tsx
 // Focus ring with offset
-<button className="focus:ring-2 focus:ring-offset-2 focus:ring-border-focus">
-  Button
-</button>
+<button className="focus:ring-2 focus:ring-offset-2 focus:ring-border-focus">Button</button>
 ```
 
 ## TypeScript Support
@@ -425,15 +431,15 @@ Ensure focus indicators have adequate spacing:
 The spacing system is fully typed:
 
 ```tsx
-import type { SpacingToken, SpacingSemanticToken } from '@/design-system/tokens/layout/spacing'
+import type { SpacingToken, SpacingSemanticToken } from "@/design-system/tokens/layout/spacing"
 
 // Type-safe spacing usage
-const buttonPadding: SpacingToken = '4'  // ✓ Valid
-const buttonPadding: SpacingToken = '7'  // ✗ TypeScript error
+const buttonPadding: SpacingToken = "4" // ✓ Valid
+const buttonPadding: SpacingToken = "7" // ✗ TypeScript error
 
 // Semantic tokens
-const gap: SpacingSemanticToken = 'md'  // ✓ Valid
-const gap: SpacingSemanticToken = 'large'  // ✗ TypeScript error
+const gap: SpacingSemanticToken = "md" // ✓ Valid
+const gap: SpacingSemanticToken = "large" // ✗ TypeScript error
 ```
 
 ## Migration from Hardcoded Values
@@ -442,13 +448,13 @@ If you're converting components from hardcoded spacing values:
 
 ### Common Conversions
 
-| Old Value | New Token | Reasoning |
-|-----------|-----------|-----------|
-| `p-[10px]` | `p-2` or `p-3` | Use 8px or 12px from scale |
-| `p-[14px]` | `p-3` or `p-4` | Use 12px or 16px from scale |
-| `p-[18px]` | `p-4` or `p-5` | Use 16px or 20px from scale |
-| `gap-[15px]` | `gap-4` | Use 16px (closest scale value) |
-| `space-y-[25px]` | `space-y-6` | Use 24px (closest scale value) |
+| Old Value        | New Token      | Reasoning                      |
+| ---------------- | -------------- | ------------------------------ |
+| `p-[10px]`       | `p-2` or `p-3` | Use 8px or 12px from scale     |
+| `p-[14px]`       | `p-3` or `p-4` | Use 12px or 16px from scale    |
+| `p-[18px]`       | `p-4` or `p-5` | Use 16px or 20px from scale    |
+| `gap-[15px]`     | `gap-4`        | Use 16px (closest scale value) |
+| `space-y-[25px]` | `space-y-6`    | Use 24px (closest scale value) |
 
 ### Migration Steps
 
@@ -462,6 +468,7 @@ If you're converting components from hardcoded spacing values:
 ### Q: Why 4px as the base unit?
 
 **A:** The 4px base unit is an industry standard because:
+
 - It divides evenly into common viewport widths
 - It scales well across different screen densities
 - It provides enough granularity without being too restrictive
@@ -479,6 +486,7 @@ If you're converting components from hardcoded spacing values:
 ### Q: Should I use numeric tokens or semantic names?
 
 **A:**
+
 - **Numeric tokens (`p-4`)**: More common, clearer mapping to pixel values
 - **Semantic names (`gap-md`)**: Better for abstract concepts, easier to understand intent
 
@@ -489,11 +497,11 @@ Use whichever is clearer in context.
 **A:** Import the spacing tokens:
 
 ```tsx
-import { spacing } from '@/design-system/tokens/layout/spacing'
+import { spacing } from "@/design-system/tokens/layout/spacing"
 
 const CustomComponent = styled.div`
-  padding: ${spacing['6']};  // 24px
-  gap: ${spacing['4']};      // 16px
+  padding: ${spacing["6"]}; // 24px
+  gap: ${spacing["4"]}; // 16px
 `
 ```
 
@@ -516,22 +524,16 @@ const CustomComponent = styled.div`
 ```tsx
 <form className="space-y-6">
   <div className="space-y-2">
-    <label className="block text-sm font-medium">
-      Email
-    </label>
+    <label className="block text-sm font-medium">Email</label>
     <input className="px-3 py-2 border rounded" />
   </div>
 
   <div className="space-y-2">
-    <label className="block text-sm font-medium">
-      Password
-    </label>
+    <label className="block text-sm font-medium">Password</label>
     <input className="px-3 py-2 border rounded" />
   </div>
 
-  <button className="px-4 py-2 bg-interactive text-white rounded">
-    Submit
-  </button>
+  <button className="px-4 py-2 bg-interactive text-white rounded">Submit</button>
 </form>
 ```
 
@@ -542,9 +544,7 @@ const CustomComponent = styled.div`
   <div className="p-6 bg-surface border border-default rounded-lg">
     <h3 className="text-lg font-semibold mb-2">Card Title</h3>
     <p className="text-secondary mb-4">Card description text.</p>
-    <button className="px-4 py-2 bg-interactive text-white rounded">
-      Action
-    </button>
+    <button className="px-4 py-2 bg-interactive text-white rounded">Action</button>
   </div>
   {/* More cards... */}
 </div>
@@ -567,9 +567,7 @@ const CustomComponent = styled.div`
     <Button variant="ghost" className="px-3 py-2">
       Login
     </Button>
-    <Button className="px-4 py-2">
-      Sign Up
-    </Button>
+    <Button className="px-4 py-2">Sign Up</Button>
   </div>
 </nav>
 ```
@@ -583,12 +581,8 @@ const CustomComponent = styled.div`
     <h2 className="text-xl font-semibold">Modal Title</h2>
     <p className="text-secondary">Modal content goes here.</p>
     <div className="flex gap-2 justify-end">
-      <button className="px-4 py-2 border border-default rounded">
-        Cancel
-      </button>
-      <button className="px-4 py-2 bg-interactive text-white rounded">
-        Confirm
-      </button>
+      <button className="px-4 py-2 border border-default rounded">Cancel</button>
+      <button className="px-4 py-2 bg-interactive text-white rounded">Confirm</button>
     </div>
   </div>
 </div>
@@ -621,9 +615,9 @@ While there's no specific ESLint rule for spacing (arbitrary values are sometime
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-12-29 | Initial spacing system documentation |
+| Version | Date       | Changes                              |
+| ------- | ---------- | ------------------------------------ |
+| 1.0.0   | 2025-12-29 | Initial spacing system documentation |
 
 ---
 

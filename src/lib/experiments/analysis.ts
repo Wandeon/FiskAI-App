@@ -215,10 +215,7 @@ function normalCDF(x: number): number {
   const t = 1 / (1 + 0.2316419 * Math.abs(x))
   const d = 0.3989423 * Math.exp((-x * x) / 2)
   const prob =
-    d *
-    t *
-    (0.3193815 +
-      t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))))
+    d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))))
   return x > 0 ? 1 - prob : prob
 }
 
@@ -244,10 +241,10 @@ export function calculateRequiredSampleSize(
 
   // Sample size per variant
   const n =
-    ((zAlpha * Math.sqrt(2 * pAvg * (1 - pAvg)) +
+    (zAlpha * Math.sqrt(2 * pAvg * (1 - pAvg)) +
       zBeta * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2))) **
-      2) /
-    ((p2 - p1) ** 2)
+      2 /
+    (p2 - p1) ** 2
 
   return Math.ceil(n)
 }
@@ -277,9 +274,7 @@ export async function getExperimentReport(experimentId: string): Promise<{
  * Compare multiple variants (more than 2)
  * Returns the best performing variant based on conversion rate
  */
-export async function compareMultipleVariants(
-  experimentId: string
-): Promise<{
+export async function compareMultipleVariants(experimentId: string): Promise<{
   variants: VariantMetrics[]
   bestVariant: VariantMetrics
   worstVariant: VariantMetrics

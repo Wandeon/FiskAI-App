@@ -29,7 +29,7 @@ const deprecationNoticeVariants = cva("relative rounded-lg border p-4", {
 export interface DeprecationNoticeProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
-    Partial<DeprecationNoticeOptions>,
+    Omit<Partial<DeprecationNoticeOptions>, "prominence">,
     VariantProps<typeof deprecationNoticeVariants> {
   /** Feature ID to look up deprecation info */
   featureId?: string
@@ -200,7 +200,7 @@ export function DeprecationNotice({
           <button
             type="button"
             onClick={handleDismiss}
-            className="flex-shrink-0 rounded-md p-1 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="flex-shrink-0 rounded-md p-1 hover:bg-black/10 dark:hover:bg-surface/10 transition-colors"
             aria-label="Dismiss deprecation notice"
           >
             <X className="h-4 w-4" aria-hidden="true" />

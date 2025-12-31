@@ -117,11 +117,14 @@ export async function GET(request: NextRequest) {
     const pipelineCheck = await checkAndStartStage("fetch-classify")
     if (!pipelineCheck.canProceed) {
       console.log(`[CRON 1] Cannot proceed: ${pipelineCheck.reason}`)
-      return NextResponse.json({
-        success: false,
-        error: "Pipeline stage blocked",
-        reason: pipelineCheck.reason,
-      }, { status: 409 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Pipeline stage blocked",
+          reason: pipelineCheck.reason,
+        },
+        { status: 409 }
+      )
     }
     pipelineRunId = pipelineCheck.runId
 
@@ -160,7 +163,7 @@ export async function GET(request: NextRequest) {
         )
       )
     // Combine both sets (avoid duplicates by using a Map)
-    const itemsMap = new Map<string, typeof newTodayItems[0]>()
+    const itemsMap = new Map<string, (typeof newTodayItems)[0]>()
     for (const item of newTodayItems) {
       itemsMap.set(item.id, item)
     }
@@ -170,7 +173,9 @@ export async function GET(request: NextRequest) {
     const todayItems = Array.from(itemsMap.values())
     result.summary.todayItems = newTodayItems.length
     result.summary.retryItems = retryItems.length
-    console.log(`[CRON 1] Processing ${newTodayItems.length} new items + ${retryItems.length} retry items...`)
+    console.log(
+      `[CRON 1] Processing ${newTodayItems.length} new items + ${retryItems.length} retry items...`
+    )
     if (todayItems.length === 0) {
       result.success = true
       console.log("[CRON 1] No items to process. Job complete.")
@@ -306,11 +311,18 @@ export async function GET(request: NextRequest) {
         result.errors.push(errorMsg)
         // Record the error for retry tracking
         try {
-          const { shouldRetry, attempts } = await recordNewsItemError(item.id, error instanceof Error ? error : String(error))
+          const { shouldRetry, attempts } = await recordNewsItemError(
+            item.id,
+            error instanceof Error ? error : String(error)
+          )
           if (shouldRetry) {
-            console.log(`[CRON 1] Item ${item.id} will be retried (attempt ${attempts}/${MAX_PROCESSING_ATTEMPTS})`)
+            console.log(
+              `[CRON 1] Item ${item.id} will be retried (attempt ${attempts}/${MAX_PROCESSING_ATTEMPTS})`
+            )
           } else {
-            console.log(`[CRON 1] Item ${item.id} moved to dead-letter queue after ${attempts} attempts`)
+            console.log(
+              `[CRON 1] Item ${item.id} moved to dead-letter queue after ${attempts} attempts`
+            )
             result.summary.failedItems++
           }
         } catch (recordError) {

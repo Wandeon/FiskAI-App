@@ -120,6 +120,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
       const status: ExpenseStatus = input.paymentMethod ? "PAID" : "DRAFT"
       const lineItems = (input.lines?.length ? input.lines : [buildDefaultExpenseLine(input)]).map(
         (line) => ({
+          companyId: company.id,
           description: line.description,
           quantity: new Decimal(line.quantity),
           unitPrice: new Decimal(line.unitPrice),
@@ -177,6 +178,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
         if (input.receiptUrl) {
           await tx.attachment.create({
             data: {
+              companyId: company.id,
               expenseId: createdExpense.id,
               fileName: resolveReceiptFileName(input.receiptUrl),
               contentType: "application/octet-stream",
@@ -203,6 +205,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<ActionRe
 
           await tx.uraInput.create({
             data: {
+              companyId: company.id,
               expenseId: createdExpense.id,
               expenseLineId: line.id,
               date: createdExpense.date,
@@ -371,6 +374,7 @@ export async function updateExpense(
         if (Object.keys(changes).length > 0) {
           await tx.expenseCorrection.create({
             data: {
+              companyId: company.id,
               expenseId: updatedExpense.id,
               userId: user.id,
               changes,
@@ -404,6 +408,7 @@ export async function updateExpense(
         if (input.receiptUrl) {
           await tx.attachment.create({
             data: {
+              companyId: company.id,
               expenseId: updatedExpense.id,
               fileName: resolveReceiptFileName(input.receiptUrl),
               contentType: "application/octet-stream",
@@ -438,6 +443,7 @@ export async function updateExpense(
 
           await tx.uraInput.create({
             data: {
+              companyId: company.id,
               expenseId: updatedExpense.id,
               expenseLineId: line.id,
               date: updatedExpense.date,
@@ -558,7 +564,7 @@ export async function updateExpenseInline(
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithPermission(user.id!, "expense:update", async () => {
+    return requireCompanyWithPermission(user.id!, "expense:update", async (company) => {
       const existing = await db.expense.findFirst({
         where: { id },
       })
@@ -607,6 +613,7 @@ export async function updateExpenseInline(
         if (Object.keys(changes).length > 0) {
           await tx.expenseCorrection.create({
             data: {
+              companyId: company.id,
               expenseId: updatedExpense.id,
               userId: user.id,
               changes,

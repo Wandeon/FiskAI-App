@@ -159,7 +159,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
           }}
           placeholder="12345678901"
           maxLength={11}
-          className="font-mono bg-slate-800 border-white/20 text-white placeholder:text-white/40"
+          className="font-mono bg-surface-elevated border-white/20 text-white placeholder:text-white/40"
           error={oibError}
         />
       </div>
@@ -180,8 +180,8 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               className={cn(
                 "p-3 rounded-xl border text-left transition-colors",
                 selectedPayment === option.value
-                  ? "border-cyan-400/50 bg-chart-7/20"
-                  : "border-white/10 bg-white/5 hover:bg-white/10"
+                  ? "border-accent-light/50 bg-chart-7/20"
+                  : "border-white/10 bg-surface/5 hover:bg-surface/10"
               )}
             >
               <div className="flex items-start gap-3">
@@ -215,7 +215,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
             }}
             min={0}
             step={0.01}
-            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
+            className="bg-surface-elevated border-white/20 text-white placeholder:text-white/40"
           />
           <p className="mt-1 text-xs text-white/70">
             Predloženo prema 2025. iznosima. Možete prilagoditi prije generiranja.
@@ -228,7 +228,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
             type="text"
             value={reference}
             readOnly
-            className="font-mono bg-slate-800/50 border-white/20 text-white"
+            className="font-mono bg-surface-elevated/50 border-white/20 text-white"
           />
           <p className="mt-1 text-xs text-white/70">Format: OIB-GGGGMM</p>
         </div>
@@ -248,7 +248,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               setPayerName(e.target.value)
             }}
             placeholder="Npr. Ivan Horvat / Obrt Horvat"
-            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
+            className="bg-surface-elevated border-white/20 text-white placeholder:text-white/40"
           />
         </div>
         <div className="md:col-span-1">
@@ -262,7 +262,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               setPayerAddress(e.target.value)
             }}
             placeholder="Npr. Radnička cesta 80"
-            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
+            className="bg-surface-elevated border-white/20 text-white placeholder:text-white/40"
           />
         </div>
         <div className="md:col-span-1">
@@ -276,12 +276,12 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               setPayerCity(e.target.value)
             }}
             placeholder="Npr. 10000 Zagreb"
-            className="bg-slate-800 border-white/20 text-white placeholder:text-white/40"
+            className="bg-surface-elevated border-white/20 text-white placeholder:text-white/40"
           />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-2xl border border-white/10 bg-surface/5 p-4">
         <h4 className="text-sm font-semibold text-white">Podaci za uplatu</h4>
         <div className="mt-3 grid gap-2 text-sm">
           <div className="flex items-center justify-between gap-3">
@@ -305,7 +305,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
         </div>
 
         {barcodeError && (
-          <div className="mt-4 rounded-lg border border-rose-400/30 bg-chart-8/10 p-3 text-sm text-rose-300">
+          <div className="mt-4 rounded-lg border border-danger/30 bg-chart-8/10 p-3 text-sm text-danger">
             {barcodeError}
           </div>
         )}
@@ -335,7 +335,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
       </div>
 
       {barcodeDataUrl && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="rounded-2xl border border-white/10 bg-surface/5 p-4">
           <h4 className="text-sm font-semibold text-white">Barkod (PDF417)</h4>
           <div className="mt-4 flex flex-col items-center gap-4">
             <Image
@@ -344,12 +344,12 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
               width={1040}
               height={320}
               unoptimized
-              className="h-auto w-full max-w-[520px] rounded-lg border border-white/20 bg-slate-900 p-3"
+              className="h-auto w-full max-w-[520px] rounded-lg border border-white/20 bg-surface p-3"
             />
             <a
               href={barcodeDataUrl}
               download={`hub3-${selectedPayment}-${oib}.png`}
-              className="inline-flex items-center justify-center rounded-md bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 min-h-[44px] md:min-h-0"
+              className="inline-flex items-center justify-center rounded-md bg-interactive px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 min-h-[44px] md:min-h-0"
             >
               Preuzmi PNG
             </a>

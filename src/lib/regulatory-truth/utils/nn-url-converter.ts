@@ -94,7 +94,10 @@ export function normalizeNNUrl(url: string): string {
  * Get metadata API URL for a Narodne Novine article.
  * Works with both ELI and legacy formats.
  */
-export function getNNMetadataUrl(url: string, format: "json-ld" | "xml" = "json-ld"): string | null {
+export function getNNMetadataUrl(
+  url: string,
+  format: "json-ld" | "xml" = "json-ld"
+): string | null {
   const parsed = parseNNUrl(url)
   if (!parsed) {
     return null

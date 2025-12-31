@@ -109,7 +109,9 @@ async function sendSlackAlert(event: SystemStatusEventInput): Promise<boolean> {
     blocks.push({
       type: "section",
       fields: [
-        ...(event.componentId ? [{ type: "mrkdwn", text: `*Component:*\n${event.componentId}` }] : []),
+        ...(event.componentId
+          ? [{ type: "mrkdwn", text: `*Component:*\n${event.componentId}` }]
+          : []),
         ...(event.owner ? [{ type: "mrkdwn", text: `*Owner:*\n${event.owner}` }] : []),
       ],
     })
@@ -117,7 +119,9 @@ async function sendSlackAlert(event: SystemStatusEventInput): Promise<boolean> {
 
   blocks.push({
     type: "context",
-    elements: [{ type: "mrkdwn", text: `<${origin}/admin/system-status|View System Status Dashboard>` }],
+    elements: [
+      { type: "mrkdwn", text: `<${origin}/admin/system-status|View System Status Dashboard>` },
+    ],
   })
 
   try {
@@ -228,18 +232,26 @@ async function sendEmailAlert(event: SystemStatusEventInput): Promise<boolean> {
         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Time:</strong></td>
         <td style="padding: 8px; border: 1px solid #ddd;">${new Date().toISOString()}</td>
       </tr>
-      ${event.componentId ? `
+      ${
+        event.componentId
+          ? `
       <tr>
         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Component:</strong></td>
         <td style="padding: 8px; border: 1px solid #ddd;">${event.componentId}</td>
       </tr>
-      ` : ""}
-      ${event.owner ? `
+      `
+          : ""
+      }
+      ${
+        event.owner
+          ? `
       <tr>
         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Owner:</strong></td>
         <td style="padding: 8px; border: 1px solid #ddd;">${event.owner}</td>
       </tr>
-      ` : ""}
+      `
+          : ""
+      }
     </table>
 
     <h3>Message</h3>
@@ -309,9 +321,7 @@ export async function sendSystemStatusAlerts(events: SystemStatusEventInput[]): 
       sendEmailAlert(event),
     ])
 
-    const successCount = results.filter(
-      (r) => r.status === "fulfilled" && r.value === true
-    ).length
+    const successCount = results.filter((r) => r.status === "fulfilled" && r.value === true).length
 
     if (successCount > 0) {
       sent++

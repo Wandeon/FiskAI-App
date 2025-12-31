@@ -18,8 +18,7 @@ const totalMonthlyLabel = formatCurrency(CONTRIBUTIONS.monthly.total, { decimals
 
 export const metadata: Metadata = {
   title: `Kalkulator doprinosa ${contributionsYear} | FiskAI`,
-  description:
-    `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
+  description: `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
   alternates: {
     canonical: `${BASE_URL}/alati/kalkulator-doprinosa`,
   },
@@ -43,8 +42,7 @@ const faq = [
 export default function ContributionCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "Kalkulator Doprinosa",
-    description:
-      `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
+    description: `Izračunajte mjesečne doprinose za MIO I, MIO II i HZZO za paušalne obrtnike u ${contributionsYear}. godini.`,
     url: "https://fiskai.hr/alati/kalkulator-doprinosa",
   })
 
@@ -78,7 +76,7 @@ export default function ContributionCalculatorPage() {
           <ContributionCalculator embedded={false} />
         </div>
 
-        <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+        <div className="mt-10 rounded-2xl border border-white/10 bg-surface/5 p-6 backdrop-blur-sm">
           <h2 className="text-lg font-semibold">Povezani vodiči</h2>
           <ul className="mt-4 space-y-2 text-sm">
             <li>
@@ -119,7 +117,7 @@ export default function ContributionCalculatorPage() {
                 </Link>
                 <Link
                   href="/features"
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10 backdrop-blur-sm"
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-surface/5 px-6 py-2.5 text-sm font-medium text-white/90 hover:bg-surface/10 backdrop-blur-sm"
                 >
                   Saznaj više
                 </Link>

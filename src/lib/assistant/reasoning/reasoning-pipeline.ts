@@ -381,8 +381,9 @@ export async function* buildAnswerWithReasoning(
   } catch (error) {
     const errorPayload: ErrorPayload = {
       correlationId: requestId,
+      code: "INTERNAL",
       message: error instanceof Error ? error.message : "Unknown error",
-      retryable: true,
+      retriable: true,
     }
 
     yield emit(requestId, ++seq, {

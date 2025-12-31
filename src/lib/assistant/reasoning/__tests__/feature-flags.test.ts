@@ -7,6 +7,7 @@ import {
   getReasoningModeForUser,
   ReasoningMode,
 } from "../feature-flags"
+import { resetGlobalConfig } from "@/lib/config/features"
 
 describe("Feature Flags", () => {
   const originalEnv = process.env
@@ -14,10 +15,13 @@ describe("Feature Flags", () => {
   beforeEach(() => {
     vi.resetModules()
     process.env = { ...originalEnv }
+    // Reset cached config so new env vars take effect
+    resetGlobalConfig()
   })
 
   afterEach(() => {
     process.env = originalEnv
+    resetGlobalConfig()
   })
 
   describe("isReasoningEnabled", () => {

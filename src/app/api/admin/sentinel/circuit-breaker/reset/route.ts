@@ -18,9 +18,14 @@ export async function POST(request: NextRequest) {
       if (status.isCircuitBroken) {
         rateLimiter.resetCircuitBreaker(domain)
         resetDomains.push(domain)
-        console.log("[circuit-breaker-reset] Manual reset for domain: " + domain + " by admin: " + user.email)
+        console.log(
+          "[circuit-breaker-reset] Manual reset for domain: " + domain + " by admin: " + user.email
+        )
       } else {
-        return NextResponse.json({ success: false, message: "Circuit breaker is not open", reset: [] }, { status: 400 })
+        return NextResponse.json(
+          { success: false, message: "Circuit breaker is not open", reset: [] },
+          { status: 400 }
+        )
       }
     } else {
       const health = rateLimiter.getHealthStatus()
@@ -30,13 +35,33 @@ export async function POST(request: NextRequest) {
           resetDomains.push(domainName)
         }
       }
-      console.log("[circuit-breaker-reset] Manual reset for all domains (" + resetDomains.length + ") by admin: " + user.email)
+      console.log(
+        "[circuit-breaker-reset] Manual reset for all domains (" +
+          resetDomains.length +
+          ") by admin: " +
+          user.email
+      )
       if (resetDomains.length === 0) {
-        return NextResponse.json({ success: true, message: "No circuit breakers are currently open", reset: [] })
+        return NextResponse.json({
+          success: true,
+          message: "No circuit breakers are currently open",
+          reset: [],
+        })
       }
     }
-    await auditCircuitBreakerReset({ resetItems: resetDomains, adminEmail: user.email, adminId: user.id, reason, component: "sentinel", resetType: domain ? "specific" : "all" })
-    return NextResponse.json({ success: true, message: resetDomains.length + " circuit breakers have been reset", reset: resetDomains })
+    await auditCircuitBreakerReset({
+      resetItems: resetDomains,
+      adminEmail: user.email,
+      adminId: user.id,
+      reason,
+      component: "sentinel",
+      resetType: domain ? "specific" : "all",
+    })
+    return NextResponse.json({
+      success: true,
+      message: resetDomains.length + " circuit breakers have been reset",
+      reset: resetDomains,
+    })
   } catch (error) {
     console.error("[circuit-breaker-reset] Error:", error)
     return NextResponse.json({ error: "Failed to reset circuit breaker" }, { status: 500 })

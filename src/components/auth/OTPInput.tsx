@@ -144,12 +144,12 @@ export function OTPInput({
             onPaste={handlePaste}
             onFocus={() => handleFocus(index)}
             className={cn(
-              "h-14 w-11 sm:h-16 sm:w-14 rounded-xl border bg-white/10 backdrop-blur-sm text-center text-2xl font-bold text-white transition-all",
+              "h-14 w-11 sm:h-16 sm:w-14 rounded-xl border bg-surface/10 backdrop-blur-sm text-center text-2xl font-bold text-white transition-all",
               "focus:outline-none focus:ring-0",
               activeIndex === index && !error
-                ? "border-cyan-400 ring-2 ring-cyan-400/30 scale-105"
+                ? "border-accent-light ring-2 ring-cyan-400/30 scale-105"
                 : "border-white/20",
-              error && "border-red-400 bg-danger/20",
+              error && "border-danger-border bg-danger/20",
               disabled && "cursor-not-allowed opacity-50"
             )}
             aria-label={`Digit ${index + 1} of ${length}`}

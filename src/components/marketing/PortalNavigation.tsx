@@ -196,7 +196,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
 
           {/* Portal overlay */}
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-slate-950/95"
+            className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-base/95"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
@@ -215,7 +215,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
               <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
                 <button
                   onClick={onClose}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-surface/10 hover:text-white"
                 >
                   <X className="h-4 w-4" />
                   Zatvori
@@ -223,11 +223,11 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                 {/* Search - opens CommandPalette */}
                 <button
                   onClick={openSearch}
-                  className="relative hidden items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/60 transition-colors hover:border-cyan-400/30 hover:bg-white/10 hover:text-white md:flex"
+                  className="relative hidden items-center gap-2 rounded-lg border border-white/10 bg-surface/5 px-4 py-2 text-sm text-white/60 transition-colors hover:border-accent-light/30 hover:bg-surface/10 hover:text-white md:flex"
                 >
                   <Search className="h-4 w-4" />
                   <span>Pretraži...</span>
-                  <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/50">
+                  <span className="ml-2 rounded bg-surface/10 px-1.5 py-0.5 text-xs text-white/50">
                     ⌘K
                   </span>
                 </button>
@@ -241,7 +241,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                   <div className="grid grid-cols-4 gap-8">
                     {/* Column 1: Proizvod */}
                     <div>
-                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-accent-light">
                         Proizvod
                       </h3>
                       <div className="space-y-2">
@@ -266,7 +266,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
 
                     {/* Column 2: Alati */}
                     <div>
-                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-accent-light">
                         Alati
                       </h3>
                       <div className="space-y-2">
@@ -292,7 +292,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
 
                     {/* Column 3: Baza znanja */}
                     <div>
-                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-accent-light">
                         Baza znanja
                       </h3>
 
@@ -351,7 +351,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
 
                     {/* Column 4: Brzi pristup + Resursi */}
                     <div>
-                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-accent-light">
                         Brzi pristup
                       </h3>
                       <div className="mb-6 space-y-1">
@@ -365,12 +365,12 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                             <Link
                               href={item.href}
                               onClick={onClose}
-                              className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-white/80 transition-all hover:bg-white/5 hover:text-white"
+                              className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-white/80 transition-all hover:bg-surface/5 hover:text-white"
                             >
                               {item.icon && <span className="text-white/50">{item.icon}</span>}
                               <span className="flex-1 font-medium">{item.title}</span>
                               {item.badge && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-400">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg0/20 px-2 py-0.5 text-[10px] font-semibold text-danger-text">
                                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
                                   {item.badge}
                                 </span>
@@ -380,7 +380,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                         ))}
                       </div>
 
-                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-accent-light">
                         Resursi
                       </h3>
                       <div className="space-y-0.5">
@@ -410,7 +410,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                   {/* Mobile search - opens CommandPalette */}
                   <button
                     onClick={openSearch}
-                    className="mb-6 flex w-full items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60 transition-colors hover:border-cyan-400/30 hover:bg-white/10"
+                    className="mb-6 flex w-full items-center gap-3 rounded-lg border border-white/10 bg-surface/5 px-4 py-3 text-sm text-white/60 transition-colors hover:border-accent-light/30 hover:bg-surface/10"
                   >
                     <Search className="h-4 w-4" />
                     <span className="flex-1 text-left">Pretraži...</span>
@@ -443,12 +443,12 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                           key={item.href}
                           href={item.href}
                           onClick={onClose}
-                          className="flex items-center gap-3 rounded-lg px-4 py-3 text-white/80 transition-colors hover:bg-white/5"
+                          className="flex items-center gap-3 rounded-lg px-4 py-3 text-white/80 transition-colors hover:bg-surface/5"
                         >
                           {item.icon}
                           <span className="flex-1 font-medium">{item.title}</span>
                           {item.badge && (
-                            <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-400">
+                            <span className="rounded-full bg-danger-bg0/20 px-2 py-0.5 text-[10px] font-semibold text-danger-text">
                               {item.badge}
                             </span>
                           )}
@@ -473,7 +473,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
                   <Link
                     href="/register"
                     onClick={onClose}
-                    className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all hover:shadow-xl hover:shadow-cyan-500/30"
+                    className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent to-interactive px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all hover:shadow-xl hover:shadow-cyan-500/30"
                   >
                     Započni besplatno
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -507,7 +507,7 @@ function MobileSection({
   defaultOpen?: boolean
 }) {
   return (
-    <details className="group rounded-xl border border-white/10 bg-white/5" open={defaultOpen}>
+    <details className="group rounded-xl border border-white/10 bg-surface/5" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
         <span className="text-sm font-semibold text-white">{title}</span>
         <ChevronDown className="h-4 w-4 text-white/50 transition-transform group-open:rotate-180" />
@@ -519,7 +519,7 @@ function MobileSection({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-white/5",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-surface/5",
               item.featured ? "font-semibold text-white" : "text-white/70"
             )}
           >

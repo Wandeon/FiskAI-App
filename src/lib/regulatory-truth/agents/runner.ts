@@ -296,7 +296,9 @@ export async function runAgent<TInput, TOutput>(
 
       // Check if aborted due to timeout
       if (lastError?.name === "AbortError") {
-        lastError = new Error(`Agent ${agentType} timed out after ${getAgentTimeoutMs(agentType)}ms`)
+        lastError = new Error(
+          `Agent ${agentType} timed out after ${getAgentTimeoutMs(agentType)}ms`
+        )
       }
 
       if (attempt < maxRetries - 1) {

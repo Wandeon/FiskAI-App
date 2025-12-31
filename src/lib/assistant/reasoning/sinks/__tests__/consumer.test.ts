@@ -76,7 +76,7 @@ describe("consumeReasoning", () => {
         code: "INTERNAL",
         message: "Test",
         correlationId: "req_test",
-        retryable: true,
+        retriable: true,
       } as unknown as TerminalPayload
     }
 

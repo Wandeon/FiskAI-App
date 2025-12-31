@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth-utils"
-import {
-  listFlags,
-  createFlag,
-  getFlagStats,
-  type FeatureFlagFilters,
-} from "@/lib/feature-flags"
+import { listFlags, createFlag, getFlagStats, type FeatureFlagFilters } from "@/lib/feature-flags"
 
 /**
  * GET /api/admin/feature-flags

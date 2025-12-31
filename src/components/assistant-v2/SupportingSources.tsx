@@ -28,9 +28,7 @@ export function SupportingSources({
   const isDark = theme === "dark"
 
   return (
-    <div
-      className={cn("border-t pt-4", isDark ? "border-slate-700/50" : "border-border", className)}
-    >
+    <div className={cn("border-t pt-4", isDark ? "border-subtle/50" : "border-border", className)}>
       <button
         type="button"
         onClick={onToggle}
@@ -39,7 +37,7 @@ export function SupportingSources({
           "w-full flex items-center justify-between",
           "text-sm focus:outline-none focus:ring-2 rounded transition-colors",
           isDark
-            ? "text-slate-400 hover:text-white focus:ring-cyan-500/50"
+            ? "text-muted hover:text-white focus:ring-cyan-500/50"
             : "text-muted-foreground hover:text-foreground focus:ring-primary/50"
         )}
       >

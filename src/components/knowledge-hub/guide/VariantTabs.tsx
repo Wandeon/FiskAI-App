@@ -85,14 +85,14 @@ export function VariantTabs({ tabs, defaultTab, children }: VariantTabsProps) {
               "relative flex min-h-[44px] items-center whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/30 sm:px-6",
               activeTab === tab.id
                 ? "text-white"
-                : "text-white/60 hover:text-white/90 active:bg-white/5"
+                : "text-white/60 hover:text-white/90 active:bg-surface/5"
             )}
           >
             {activeTab === tab.id && (
               <motion.span
                 layoutId={`${tabsId}-indicator`}
                 aria-hidden="true"
-                className="absolute inset-x-0 -bottom-px h-0.5 bg-gradient-to-r from-blue-600 to-cyan-400"
+                className="absolute inset-x-0 -bottom-px h-0.5 bg-gradient-to-r from-interactive to-accent-light"
                 transition={reduce ? { duration: 0 } : { duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
               />
             )}

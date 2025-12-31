@@ -9,7 +9,7 @@ export const cardVariants = cva("rounded-lg border shadow-card transition-colors
   variants: {
     variant: {
       default: "border-border bg-surface",
-      glass: "border-white/10 bg-white/5 backdrop-blur-sm",
+      glass: "border-white/10 bg-surface/5 backdrop-blur-sm",
       elevated: "border-border bg-surface shadow-lg",
     },
     padding: {

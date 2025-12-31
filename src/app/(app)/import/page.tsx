@@ -45,7 +45,7 @@ export default async function ImportPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Uvoz dokumenata</h1>
-        <p className="text-gray-500">Uvezite bankovne izvode, račune i druge dokumente</p>
+        <p className="text-tertiary">Uvezite bankovne izvode, račune i druge dokumente</p>
       </div>
 
       <ImportClient

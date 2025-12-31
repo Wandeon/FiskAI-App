@@ -21,8 +21,15 @@ const FULL_CHANGELOG: ChangelogEntry[] = [
     version: "1.2.0",
     date: "2024-12-29",
     changes: [
-      { type: "added", description: "Sustav obavijesti o novostima - saznajte o novim funkcijama izravno u aplikaciji" },
-      { type: "added", description: "\"Sto je novo\" modal koji se prikazuje nakon prijave za nove verzije" },
+      {
+        type: "added",
+        description:
+          "Sustav obavijesti o novostima - saznajte o novim funkcijama izravno u aplikaciji",
+      },
+      {
+        type: "added",
+        description: '"Sto je novo" modal koji se prikazuje nakon prijave za nove verzije',
+      },
       { type: "added", description: "Stranica s punim changelogom u postavkama" },
       { type: "changed", description: "Poboljsane performanse ucitavanja nadzorne ploce" },
     ],
@@ -64,17 +71,17 @@ const typeConfig = {
   added: {
     icon: Plus,
     label: "Novo",
-    className: "bg-green-500/10 text-green-600 border-green-500/20",
+    className: "bg-success-bg0/10 text-success-text border-success-border/20",
   },
   changed: {
     icon: RefreshCw,
     label: "Promjena",
-    className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    className: "bg-interactive/10 text-link border-focus/20",
   },
   fixed: {
     icon: Wrench,
     label: "Ispravak",
-    className: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    className: "bg-warning-bg0/10 text-warning-text border-warning/20",
   },
 }
 
@@ -88,9 +95,7 @@ export default function ChangelogPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Changelog</h1>
-          <p className="text-sm text-[var(--muted)]">
-            Popis svih promjena i novih funkcionalnosti
-          </p>
+          <p className="text-sm text-[var(--muted)]">Popis svih promjena i novih funkcionalnosti</p>
         </div>
       </div>
 

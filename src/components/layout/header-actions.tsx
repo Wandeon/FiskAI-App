@@ -63,7 +63,7 @@ export function QuickActions({ className }: QuickActionsProps) {
                 key={action.href}
                 href={action.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-[var(--foreground)] hover:bg-white/10 transition-colors"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-[var(--foreground)] hover:bg-surface/10 transition-colors"
               >
                 <action.icon className="icon-md text-[var(--muted)]" />
                 {action.name}
@@ -225,7 +225,7 @@ export function UserMenu({ user, className }: UserMenuProps) {
             <Link
               href="/settings/profile"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] hover:bg-white/10 transition-colors"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] hover:bg-surface/10 transition-colors"
             >
               <User className="icon-md text-[var(--muted)]" />
               Moj profil
@@ -233,7 +233,7 @@ export function UserMenu({ user, className }: UserMenuProps) {
             <Link
               href="/settings"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] hover:bg-white/10 transition-colors"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] hover:bg-surface/10 transition-colors"
             >
               <Settings className="icon-md text-[var(--muted)]" />
               Postavke
@@ -241,7 +241,7 @@ export function UserMenu({ user, className }: UserMenuProps) {
             <Link
               href="/support"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] hover:bg-white/10 transition-colors"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--foreground)] hover:bg-surface/10 transition-colors"
             >
               <HelpCircle className="icon-md text-[var(--muted)]" />
               Pomoć i podrška

@@ -135,7 +135,7 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
           {isLoading && <Loader2 className="h-5 w-5 animate-spin text-accent" />}
           <button
             onClick={handleCloseSearch}
-            className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white"
+            className="rounded-lg p-2 text-white/50 hover:bg-surface/10 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -193,7 +193,7 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
                         href={item.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-white/5"
+                        className="group flex items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-surface/5"
                       >
                         <div className="flex-1">
                           <p className="text-sm font-medium text-white line-clamp-2 group-hover:text-cyan-300">

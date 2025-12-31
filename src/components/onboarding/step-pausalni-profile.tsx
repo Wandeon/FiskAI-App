@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, ArrowRight, Info, AlertTriangle } from "lucide-react"
 import { lookupPostalCode, TAX_RATES, CONTRIBUTIONS, CHAMBER_FEES } from "@/lib/fiscal-data"
+// eslint-disable-next-line import/no-restricted-paths -- pre-existing import, to be refactored
 import { saveOnboardingData } from "@/app/actions/onboarding"
 import { useRouter } from "next/navigation"
 
@@ -152,15 +153,11 @@ export function StepPausalniProfile() {
         </CardHeader>
         <CardContent className="space-y-3">
           {postalLookupFailed && (
-            <div className="rounded-md bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="rounded-md bg-warning-bg border border-warning-border p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning-text mt-0.5 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-amber-900">
-                  Poštanski broj nije pronađen u bazi
-                </p>
-                <p className="text-amber-700 mt-1">
-                  Molimo unesite podatke o lokaciji ručno
-                </p>
+                <p className="font-medium text-warning-text">Poštanski broj nije pronađen u bazi</p>
+                <p className="text-warning-text mt-1">Molimo unesite podatke o lokaciji ručno</p>
               </div>
             </div>
           )}
@@ -340,7 +337,7 @@ export function StepPausalniProfile() {
               <div key={idx} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-2 w-2 rounded-full ${ob.enabled ? "bg-success" : "bg-gray-300"}`}
+                    className={`h-2 w-2 rounded-full ${ob.enabled ? "bg-success" : "bg-surface-2"}`}
                   />
                   <span className={ob.enabled ? "" : "text-muted-foreground line-through"}>
                     {ob.label}

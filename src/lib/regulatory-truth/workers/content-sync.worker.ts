@@ -218,9 +218,7 @@ async function markSkipped(eventId: string, note: string): Promise<void> {
  * @param job - The BullMQ job containing the event ID
  * @returns Job result with success status and metadata
  */
-async function processContentSyncJob(
-  job: Job<ContentSyncJobData>
-): Promise<JobResult> {
+async function processContentSyncJob(job: Job<ContentSyncJobData>): Promise<JobResult> {
   const start = Date.now()
   const { eventId } = job.data
 
@@ -289,10 +287,7 @@ async function processContentSyncJob(
 
     // If no files were patched, skip (all files already had this eventId)
     if (patchedFiles.length === 0) {
-      await markSkipped(
-        eventId,
-        `All ${contentPaths.length} files already had eventId`
-      )
+      await markSkipped(eventId, `All ${contentPaths.length} files already had eventId`)
       return {
         success: true,
         data: { skipped: true, reason: "all_files_had_eventId" },
@@ -302,9 +297,7 @@ async function processContentSyncJob(
 
     // Stage and commit changes
     repoAdapter.stageFiles(patchedFiles)
-    repoAdapter.commit(
-      `docs: sync ${event.conceptId} from RTL event ${eventId.slice(0, 8)}`
-    )
+    repoAdapter.commit(`docs: sync ${event.conceptId} from RTL event ${eventId.slice(0, 8)}`)
 
     // Push branch to remote
     repoAdapter.pushBranch(branchName)
@@ -348,9 +341,7 @@ async function processContentSyncJob(
         classification.deadLetterReason ?? "UNKNOWN",
         classification.message
       )
-      console.error(
-        `[content-sync] Dead-lettered ${eventId}: ${classification.message}`
-      )
+      console.error(`[content-sync] Dead-lettered ${eventId}: ${classification.message}`)
       return {
         success: false,
         data: { deadLettered: true },
@@ -369,9 +360,7 @@ async function processContentSyncJob(
 
       // Mark failed for retry
       await markFailed(eventId, classification.message)
-      console.error(
-        `[content-sync] Failed ${eventId} (will retry): ${classification.message}`
-      )
+      console.error(`[content-sync] Failed ${eventId} (will retry): ${classification.message}`)
       // Re-throw for BullMQ retry
       throw err
     }

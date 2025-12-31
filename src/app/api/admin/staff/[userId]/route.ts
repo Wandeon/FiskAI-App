@@ -56,7 +56,7 @@ export async function DELETE(
       select: { id: true, email: true, name: true, systemRole: true },
     })
 
-    await db.staffAssignment.deleteMany({ where: { userId } })
+    await db.staffAssignment.deleteMany({ where: { staffId: userId } })
 
     try {
       console.log("[AUDIT] Role Change:", {
@@ -81,7 +81,7 @@ export async function DELETE(
           userEmail: staffUser.email,
           oldRole,
           newRole: "USER",
-          changedBy: user.email,
+          changedBy: user.email ?? "admin@fiskai.hr",
           timestamp: new Date(),
           reason: reason || undefined,
         }),

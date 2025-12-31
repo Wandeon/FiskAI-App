@@ -145,7 +145,7 @@ export function EditContactForm({ contact }: EditContactFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
-      {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+      {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
 
       <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
         <section className="grid gap-4 p-6 md:grid-cols-2">
@@ -159,20 +159,20 @@ export function EditContactForm({ contact }: EditContactFormProps) {
           <div className="space-y-2">
             <label className="text-sm font-medium">Vrsta kontakta</label>
             <select
-              className="h-10 w-full rounded-md border border-gray-300 px-3"
+              className="h-10 w-full rounded-md border border-default px-3"
               {...register("type")}
             >
               <option value="CUSTOMER">Kupac</option>
               <option value="SUPPLIER">Dobavljač</option>
               <option value="BOTH">Kupac i dobavljač</option>
             </select>
-            {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+            {errors.type && <p className="text-sm text-danger">{errors.type.message}</p>}
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Država</label>
             <select
-              className="h-10 w-full rounded-md border border-gray-300 px-3"
+              className="h-10 w-full rounded-md border border-default px-3"
               {...register("country")}
             >
               <option value="HR">🇭🇷 Hrvatska</option>
@@ -220,7 +220,7 @@ export function EditContactForm({ contact }: EditContactFormProps) {
                 onLookupError={handleOibLookupError}
                 error={errors.oib?.message}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-tertiary">
                 11 znamenaka — kliknite “Dohvati podatke” za automatsko popunjavanje naziva/adrese.
               </p>
             </div>
@@ -236,7 +236,7 @@ export function EditContactForm({ contact }: EditContactFormProps) {
                 }
               />
               {isEuCustomer && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-tertiary">
                   EU PDV identifikacijski broj (npr. {countryValue}123456789)
                 </p>
               )}
@@ -278,11 +278,11 @@ export function EditContactForm({ contact }: EditContactFormProps) {
               {...register("paymentTermsDays", { valueAsNumber: true })}
               placeholder="npr. 15"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-tertiary">
               Standardni rok plaćanja za ovog kupca (koristi se za izračun dospijeća).
             </p>
             {errors.paymentTermsDays && (
-              <p className="text-sm text-red-500">{errors.paymentTermsDays.message}</p>
+              <p className="text-sm text-danger">{errors.paymentTermsDays.message}</p>
             )}
           </div>
 
@@ -290,7 +290,7 @@ export function EditContactForm({ contact }: EditContactFormProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">PDV ID</label>
               <Input {...register("vatNumber")} placeholder="HR12345678901" disabled />
-              <p className="text-xs text-gray-500">Automatski popunjeno iz OIB-a (HR + OIB)</p>
+              <p className="text-xs text-tertiary">Automatski popunjeno iz OIB-a (HR + OIB)</p>
             </div>
           )}
         </section>

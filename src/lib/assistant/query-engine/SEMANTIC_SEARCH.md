@@ -17,16 +17,19 @@ Previously, the AI Assistant relied exclusively on **keyword/token matching** to
 We now support three matching modes:
 
 ### 1. Keyword Mode (Legacy)
+
 - Strict token-level matching
 - Exact matches only
 - Fast but limited recall
 
 ### 2. Semantic Mode (New)
+
 - Vector similarity search using pgvector
 - Understands synonyms and context
 - Better recall, may have lower precision
 
 ### 3. Hybrid Mode (Recommended)
+
 - Combines keyword + semantic approaches
 - Configurable weights (default: 70% semantic, 30% keyword)
 - Best of both worlds
@@ -68,6 +71,7 @@ User Query: "Koji je prag za PDV?"
 ## Components
 
 ### 1. `semantic-search.ts`
+
 Core semantic search module with three main functions:
 
 - **`semanticSearch(query, options)`** - Pure vector similarity search
@@ -75,6 +79,7 @@ Core semantic search module with three main functions:
 - **`rerank(matches, context)`** - Re-rank by additional context (future)
 
 ### 2. `concept-matcher.ts` (Enhanced)
+
 Updated to support three modes:
 
 ```typescript
@@ -87,11 +92,12 @@ const matches = await matchConcepts(keywords, { mode: "semantic" })
 // Hybrid (recommended)
 const matches = await matchConcepts(keywords, {
   mode: "hybrid",
-  weights: { keyword: 0.3, semantic: 0.7 }
+  weights: { keyword: 0.3, semantic: 0.7 },
 })
 ```
 
 ### 3. `ConceptEmbedding` Table
+
 New Prisma model for storing concept embeddings:
 
 ```prisma
@@ -108,6 +114,7 @@ model ConceptEmbedding {
 ```
 
 ### 4. `generate-concept-embeddings.ts`
+
 Script to populate embeddings:
 
 ```bash
@@ -119,6 +126,7 @@ npx tsx src/lib/assistant/scripts/generate-concept-embeddings.ts
 ### Migration: `0014_add_concept_embedding.sql`
 
 Creates:
+
 - `ConceptEmbedding` table with pgvector support
 - `ivfflat` index for fast similarity search
 - Foreign key constraint to `Concept` table
@@ -143,14 +151,15 @@ const matches = await matchConcepts(keywords, {
   minScore: 0.4,
   weights: {
     keyword: 0.5,
-    semantic: 0.5
-  }
+    semantic: 0.5,
+  },
 })
 ```
 
 ### Fallback Behavior
 
 If semantic search fails (e.g., embeddings not populated, API error):
+
 - Automatically falls back to keyword-only matching
 - Logs warning to console
 - Ensures zero downtime
@@ -158,21 +167,25 @@ If semantic search fails (e.g., embeddings not populated, API error):
 ## Deployment Checklist
 
 1. ✅ Run database migration:
+
    ```bash
    npx prisma migrate deploy
    ```
 
 2. ✅ Generate Prisma client:
+
    ```bash
    npx prisma generate
    ```
 
 3. ✅ Populate concept embeddings:
+
    ```bash
    npx tsx src/lib/assistant/scripts/generate-concept-embeddings.ts
    ```
 
 4. ✅ Verify embeddings created:
+
    ```sql
    SELECT COUNT(*) FROM "ConceptEmbedding";
    ```
@@ -186,6 +199,7 @@ If semantic search fails (e.g., embeddings not populated, API error):
 ## Performance Considerations
 
 ### Vector Index
+
 - Uses `ivfflat` index for approximate nearest neighbor search
 - Default: 10 lists (suitable for small-medium datasets)
 - Adjust based on concept count:
@@ -194,11 +208,13 @@ If semantic search fails (e.g., embeddings not populated, API error):
   - > 10000: rows/1000
 
 ### Embedding Generation
+
 - Batch processing (50 concepts at a time)
 - Uses Ollama Cloud API (nomic-embed-text, 768 dims)
 - Approximately 1 second per batch
 
 ### Query Performance
+
 - Semantic search: ~10-50ms (with ivfflat index)
 - Keyword matching: ~5-20ms (in-memory)
 - Hybrid: ~20-70ms (runs both, merges results)

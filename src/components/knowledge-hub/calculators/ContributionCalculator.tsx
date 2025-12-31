@@ -53,7 +53,7 @@ export function ContributionCalculator({ embedded = true }: Props) {
           </div>
           <AnimatedCurrency value={breakdown.hzzo} />
         </div>
-        <div className="flex justify-between items-center py-2 bg-white/10 px-3 rounded-lg border border-white/20">
+        <div className="flex justify-between items-center py-2 bg-surface/10 px-3 rounded-lg border border-white/20">
           <p className="font-bold text-white">Ukupno mjesečno</p>
           <AnimatedCurrency value={breakdown.total} className="text-lg" />
         </div>
@@ -71,7 +71,7 @@ export function ContributionCalculator({ embedded = true }: Props) {
         Osnovica za izračun: {formatEUR(breakdown.base)} (minimalna osnovica 2025.)
       </p>
 
-      <details className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <details className="rounded-xl border border-white/10 bg-surface/5 p-4">
         <summary className="cursor-pointer text-sm font-semibold text-white">
           IBAN-ovi za uplatu (HUB3)
         </summary>

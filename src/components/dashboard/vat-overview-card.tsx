@@ -37,7 +37,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
       </div>
 
       {!isVatPayer && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl bg-warning-bg px-3 py-2 text-sm text-amber-800">
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-warning-bg px-3 py-2 text-sm text-warning-text">
           <ShieldAlert className="h-4 w-4" />
           <span>Provjerite jeste li pravilno označili PDV status i datume obveza.</span>
         </div>
@@ -71,7 +71,7 @@ export function VatOverviewCard({ paidVat, pendingVat, isVatPayer }: VatOverview
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--surface-secondary)]">
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 via-brand-500 to-indigo-500 transition-all"
+            className="h-full bg-gradient-to-r from-success via-brand-500 to-chart-1 transition-all"
             style={{ width: `${paidPercent}%` }}
           />
         </div>

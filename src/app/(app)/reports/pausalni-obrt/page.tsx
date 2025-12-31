@@ -272,7 +272,7 @@ export default async function PausalniObrtReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
+            <div className="text-2xl font-bold text-warning-text">
               {formatCurrency(Number(annualSummary._sum.vatAmount || 0), "EUR")}
             </div>
             <p className="text-xs text-muted-foreground">Obveza prema Poreznoj upravi</p>
@@ -295,7 +295,7 @@ export default async function PausalniObrtReportsPage() {
               <div key={month.month} className="flex flex-col items-center">
                 <div className="text-xs font-medium mb-1">{month.name}</div>
                 <div
-                  className="w-6 bg-blue-500 rounded-t"
+                  className="w-6 bg-interactive rounded-t"
                   style={{
                     height: `${Math.min((month.total / Math.max(...monthlyIncome.map((m) => m.total))) * 60, 60)}px`,
                   }}
@@ -359,8 +359,8 @@ export default async function PausalniObrtReportsPage() {
 
               <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-purple-100 p-2">
-                    <Scale className="h-4 w-4 text-purple-600" />
+                  <div className="rounded-full bg-chart-2/10 p-2">
+                    <Scale className="h-4 w-4 text-chart-1" />
                   </div>
                   <div>
                     <p className="font-medium">PDS Prijava</p>
@@ -392,8 +392,8 @@ export default async function PausalniObrtReportsPage() {
               {expenseBreakdown.map((category) => (
                 <div key={category.categoryId!} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-amber-100 p-2">
-                      <Receipt className="h-4 w-4 text-amber-600" />
+                    <div className="rounded-full bg-warning-bg p-2">
+                      <Receipt className="h-4 w-4 text-warning-text" />
                     </div>
                     <div>
                       <p className="font-medium">{category.categoryId || "Ostalo"}</p>
@@ -436,19 +436,19 @@ export default async function PausalniObrtReportsPage() {
           <CardContent>
             <ul className="space-y-2">
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <div className="h-2 w-2 rounded-full bg-success-bg0"></div>
                 <span className="text-sm">Knjiga prometa (KPR) - generirano</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <div className="h-2 w-2 rounded-full bg-success-bg0"></div>
                 <span className="text-sm">PDV prijave - dostupne</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <div className="h-2 w-2 rounded-full bg-success-bg0"></div>
                 <span className="text-sm">Fiskalizacija - funkcionalna</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <div className="h-2 w-2 rounded-full bg-success-bg0"></div>
                 <span className="text-sm">11-godišnje arhiviranje - operativno</span>
               </li>
             </ul>
@@ -477,10 +477,10 @@ export default async function PausalniObrtReportsPage() {
                 <div
                   className={`h-2.5 rounded-full ${
                     Number(annualSummary._sum.totalAmount || 0) / 40000 >= 1
-                      ? "bg-red-500"
+                      ? "bg-danger-bg0"
                       : Number(annualSummary._sum.totalAmount || 0) / 40000 >= 0.85
-                        ? "bg-amber-500"
-                        : "bg-blue-500"
+                        ? "bg-warning-bg0"
+                        : "bg-interactive"
                   }`}
                   style={{
                     width: `${Math.min((Number(annualSummary._sum.totalAmount || 0) / 40000) * 100, 100)}%`,
@@ -508,19 +508,19 @@ export default async function PausalniObrtReportsPage() {
           <CardContent>
             <ul className="space-y-2">
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <div className="h-2 w-2 rounded-full bg-interactive"></div>
                 <span className="text-sm">Pregledajte kategorije troškova</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <div className="h-2 w-2 rounded-full bg-interactive"></div>
                 <span className="text-sm">Kreirajte šablone za račune</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <div className="h-2 w-2 rounded-full bg-interactive"></div>
                 <span className="text-sm">Pregledajte podatke o kupcima</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <div className="h-2 w-2 rounded-full bg-interactive"></div>
                 <span className="text-sm">Izvezite podatke za knjigovođu</span>
               </li>
             </ul>

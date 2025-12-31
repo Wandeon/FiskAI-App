@@ -29,7 +29,10 @@ describe("query-interpreter", () => {
       }
 
       // A more specific query should have higher confidence
-      const specificResult = await interpretQuery("Koliko iznosi stopa PDV-a u Hrvatskoj?", "MARKETING")
+      const specificResult = await interpretQuery(
+        "Koliko iznosi stopa PDV-a u Hrvatskoj?",
+        "MARKETING"
+      )
       expect(specificResult.confidence).toBeGreaterThan(vagueResult.confidence)
     })
 

@@ -1,9 +1,6 @@
-import type {
-  PersonContactRole,
-  PersonDirectorRole,
-  PersonEmployeeRole,
-  Prisma,
-} from "@prisma/client"
+import type { PersonContactRole, PersonDirectorRole, PersonEmployeeRole } from "@prisma/client"
+import { PersonEventType } from "@prisma/client"
+import type { TransactionClient } from "@/lib/db"
 import type { PersonInput } from "@/lib/validations/person"
 
 export type ExistingPersonRoles = {
@@ -13,7 +10,7 @@ export type ExistingPersonRoles = {
 }
 
 type ApplyPersonRolesInput = {
-  tx: Prisma.TransactionClient
+  tx: TransactionClient
   companyId: string
   personId: string
   roles?: PersonInput["roles"]
@@ -27,7 +24,7 @@ export async function applyPersonRoles({
   roles,
   existingRoles,
 }: ApplyPersonRolesInput) {
-  const roleEvents: Array<{ type: Prisma.PersonEventType; payload: Record<string, unknown> }> = []
+  const roleEvents: Array<{ type: PersonEventType; payload: Record<string, unknown> }> = []
 
   if (roles === undefined) {
     return roleEvents

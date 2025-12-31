@@ -93,8 +93,8 @@ export function RefusalCard({
                 onClick={() => onNextStepClick?.(index)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm",
-                  "bg-white/50 border border-current/20",
-                  "hover:bg-white/80 transition-colors",
+                  "bg-surface/50 border border-current/20",
+                  "hover:bg-surface/80 transition-colors",
                   "focus:outline-none focus:ring-2 focus:ring-current/30"
                 )}
               >

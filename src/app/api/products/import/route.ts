@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithContext(user.id!, async () => {
+    return requireCompanyWithContext(user.id!, async (company) => {
       const body = await request.json()
       const parsed = importSchema.safeParse(body)
       if (!parsed.success) {
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         rows.map((row) =>
           db.product.create({
             data: {
-              // companyId auto-applied by tenant isolation extension
+              companyId: company.id,
               // Sanitize string values to prevent CSV formula injection (fixes #858)
               name: sanitizeCsvValue(row.name),
               sku: row.sku ? sanitizeCsvValue(row.sku) : null,

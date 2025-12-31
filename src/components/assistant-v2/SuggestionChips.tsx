@@ -111,10 +111,10 @@ export function SuggestionChips({
             "focus:outline-none",
             isDark
               ? [
-                  "bg-slate-800/30 backdrop-blur-sm",
+                  "bg-surface-elevated/30 backdrop-blur-sm",
                   "border border-cyan-500/20",
                   "text-cyan-200",
-                  "hover:bg-cyan-500/10 hover:border-cyan-400/40",
+                  "hover:bg-accent/10 hover:border-accent-light/40",
                   "hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]",
                   "hover:text-cyan-100",
                   index === activeIndex &&

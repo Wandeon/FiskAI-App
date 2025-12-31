@@ -64,7 +64,7 @@ export default async function StatusPage() {
         <h1 className="text-display text-4xl font-semibold text-white/90">Status sustava</h1>
 
         {error ? (
-          <div className="mt-6 rounded-lg bg-red-500/10 backdrop-blur-sm border border-red-500/20 p-6 text-red-400">
+          <div className="mt-6 rounded-lg bg-danger-bg0/10 backdrop-blur-sm border border-danger-border/20 p-6 text-danger-text">
             <h2 className="text-xl font-semibold">Greška prilikom provjere statusa</h2>
             <p className="mt-2">{error}</p>
           </div>
@@ -73,10 +73,10 @@ export default async function StatusPage() {
             <div
               className={`rounded-lg p-6 backdrop-blur-sm border ${
                 health.status === "healthy"
-                  ? "bg-green-500/10 border-green-500/20 text-green-400"
+                  ? "bg-success-bg0/10 border-success-border/20 text-success-text"
                   : health.status === "degraded"
-                    ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-400"
-                    : "bg-red-500/10 border-red-500/20 text-red-400"
+                    ? "bg-warning-bg0/10 border-warning/20 text-warning-text"
+                    : "bg-danger-bg0/10 border-danger-border/20 text-danger-text"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -91,10 +91,10 @@ export default async function StatusPage() {
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium ${
                     health.status === "healthy"
-                      ? "bg-green-500/20 text-green-400"
+                      ? "bg-success-bg0/20 text-success-text"
                       : health.status === "degraded"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-red-500/20 text-red-400"
+                        ? "bg-warning-bg0/20 text-warning-text"
+                        : "bg-danger-bg0/20 text-danger-text"
                   }`}
                 >
                   {health.status === "healthy"
@@ -109,7 +109,7 @@ export default async function StatusPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               {health.metrics && (
-                <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+                <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
                   <h3 className="text-lg font-semibold text-white/90">Metrike sustava</h3>
                   <div className="mt-4 space-y-3">
                     <div className="flex justify-between">
@@ -136,7 +136,7 @@ export default async function StatusPage() {
                 </div>
               )}
 
-              <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+              <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
                 <h3 className="text-lg font-semibold text-white/90">Provjere zdravlja</h3>
                 <div className="mt-4 space-y-3">
                   {health.checks.map((check, index) => (
@@ -145,10 +145,10 @@ export default async function StatusPage() {
                       <span
                         className={`font-medium ${
                           check.status === "passed"
-                            ? "text-green-400"
+                            ? "text-success-text"
                             : check.status === "warning"
-                              ? "text-yellow-400"
-                              : "text-red-400"
+                              ? "text-warning-text"
+                              : "text-danger-text"
                         }`}
                       >
                         {check.status === "passed"
@@ -167,23 +167,23 @@ export default async function StatusPage() {
             </div>
           </div>
         ) : (
-          <div className="mt-6 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+          <div className="mt-6 rounded-lg bg-surface/5 backdrop-blur-sm border border-white/10 p-6">
             <p className="text-white/60">Učitavanje statusa...</p>
           </div>
         )}
 
-        <div className="mt-12 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+        <div className="mt-12 rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
           <h3 className="text-lg font-semibold text-white/90">API endpointi za nadgledanje</h3>
           <div className="mt-4 space-y-4">
             <div>
               <h4 className="font-medium text-white/90">Osnovna provjera zdravlja</h4>
-              <code className="mt-1 block rounded bg-white/5 border border-white/10 p-3 font-mono text-sm text-primary">
+              <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
                 GET /api/health
               </code>
             </div>
             <div>
               <h4 className="font-medium text-white/90">Detaljna provjera zdravlja</h4>
-              <code className="mt-1 block rounded bg-white/5 border border-white/10 p-3 font-mono text-sm text-primary">
+              <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
                 GET /api/health?detailed=true
               </code>
             </div>
@@ -191,7 +191,7 @@ export default async function StatusPage() {
               <h4 className="font-medium text-white/90">
                 Izvoz podataka tvrtke (za administratora)
               </h4>
-              <code className="mt-1 block rounded bg-white/5 border border-white/10 p-3 font-mono text-sm text-primary">
+              <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
                 GET /api/exports/company
               </code>
             </div>

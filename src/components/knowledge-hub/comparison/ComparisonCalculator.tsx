@@ -174,7 +174,7 @@ export function ComparisonCalculator({
   }
 
   return (
-    <div className="bg-slate-800/80 border border-white/20 rounded-lg p-4 sm:p-6">
+    <div className="bg-surface-elevated/80 border border-white/20 rounded-lg p-4 sm:p-6">
       {/* Revenue Input */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-white/90 mb-2">
@@ -191,7 +191,7 @@ export function ComparisonCalculator({
             className="flex-1 h-11 sm:h-auto"
             style={{ minHeight: "44px" }}
           />
-          <div className="w-full sm:w-32 text-center sm:text-right font-mono text-lg bg-white/5 sm:bg-transparent p-2 sm:p-0 rounded text-white">
+          <div className="w-full sm:w-32 text-center sm:text-right font-mono text-lg bg-surface/5 sm:bg-transparent p-2 sm:p-0 rounded text-white">
             <AnimatedAmount value={revenue} className="text-lg" />
           </div>
         </div>
@@ -206,14 +206,11 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <th
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/20"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/20")}
                 >
                   {r.label}
                   {r.isRecommended && (
-                    <span className="block text-xs text-emerald-400">✓ Preporučeno</span>
+                    <span className="block text-xs text-success">✓ Preporučeno</span>
                   )}
                 </th>
               ))}
@@ -225,10 +222,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.contributions} />
                 </td>
@@ -239,10 +233,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.tax} />
                 </td>
@@ -253,10 +244,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.bookkeeping} />
                 </td>
@@ -267,10 +255,7 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.other} />
                 </td>
@@ -281,16 +266,13 @@ export function ComparisonCalculator({
               {results.map((r) => (
                 <td
                   key={r.type}
-                  className={cn(
-                    "p-2 text-center text-white",
-                    r.isRecommended && "bg-chart-4/10"
-                  )}
+                  className={cn("p-2 text-center text-white", r.isRecommended && "bg-chart-4/10")}
                 >
                   <AnimatedAmount value={r.total} />
                 </td>
               ))}
             </tr>
-            <tr className="font-semibold text-emerald-400">
+            <tr className="font-semibold text-success">
               <td className="p-2">NETO OSTATAK</td>
               {results.map((r) => (
                 <td
@@ -312,9 +294,7 @@ export function ComparisonCalculator({
             key={r.type}
             className={cn(
               "border rounded-lg p-4",
-              r.isRecommended
-                ? "border-emerald-500 bg-chart-4/10"
-                : "border-white/20 bg-white/5"
+              r.isRecommended ? "border-emerald-500 bg-chart-4/10" : "border-white/20 bg-surface/5"
             )}
           >
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/20">
@@ -357,7 +337,7 @@ export function ComparisonCalculator({
                   <AnimatedAmount value={r.total} />
                 </span>
               </div>
-              <div className="flex justify-between items-center min-h-[44px] py-2 bg-chart-4/20 -mx-4 px-4 -mb-4 rounded-b font-semibold text-emerald-400">
+              <div className="flex justify-between items-center min-h-[44px] py-2 bg-chart-4/20 -mx-4 px-4 -mb-4 rounded-b font-semibold text-success">
                 <span>NETO OSTATAK</span>
                 <span>
                   <AnimatedAmount value={r.netIncome} />

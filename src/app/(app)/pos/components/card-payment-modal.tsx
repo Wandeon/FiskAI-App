@@ -17,20 +17,9 @@ interface Props {
   onComplete: (result: ProcessPosSaleResult) => void
 }
 
-type PaymentState =
-  | "creating"
-  | "waiting_for_card"
-  | "processing"
-  | "success"
-  | "error"
+type PaymentState = "creating" | "waiting_for_card" | "processing" | "success" | "error"
 
-export function CardPaymentModal({
-  items,
-  total,
-  readerId,
-  onClose,
-  onComplete,
-}: Props) {
+export function CardPaymentModal({ items, total, readerId, onClose, onComplete }: Props) {
   const [state, setState] = useState<PaymentState>("creating")
   const [error, setError] = useState<string | null>(null)
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
@@ -142,9 +131,7 @@ export function CardPaymentModal({
           <div className="py-8">
             <div className="text-6xl mb-4">💳</div>
             <p className="text-lg font-medium">Prislonite ili umetnite karticu</p>
-            <p className="text-sm text-secondary mt-2">
-              Čekanje na terminal...
-            </p>
+            <p className="text-sm text-secondary mt-2">Čekanje na terminal...</p>
           </div>
         )}
 

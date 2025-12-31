@@ -181,7 +181,10 @@ function evaluateLegalFormRule(rule: LegalFormRule, ctx: RolloutUserContext): bo
 /**
  * Evaluate a subscription plan rule.
  */
-function evaluateSubscriptionPlanRule(rule: SubscriptionPlanRule, ctx: RolloutUserContext): boolean {
+function evaluateSubscriptionPlanRule(
+  rule: SubscriptionPlanRule,
+  ctx: RolloutUserContext
+): boolean {
   if (!ctx.subscriptionPlan) return false
   return rule.plans.includes(ctx.subscriptionPlan.toLowerCase())
 }

@@ -110,8 +110,7 @@ export async function processWebhookEvent(eventId: string): Promise<void> {
         status: evidenceCreated > 0 ? "COMPLETED" : "FAILED",
         processedAt: new Date(),
         evidenceId,
-        errorMessage:
-          evidenceCreated === 0 ? "Failed to create evidence from URLs" : undefined,
+        errorMessage: evidenceCreated === 0 ? "Failed to create evidence from URLs" : undefined,
       },
     })
 

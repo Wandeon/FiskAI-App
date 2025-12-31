@@ -167,10 +167,10 @@ export default async function AccountantDashboardPage() {
               <div
                 className={`h-2.5 rounded-full ${
                   vatThresholdProgress.status === "EXCEEDED"
-                    ? "bg-red-500"
+                    ? "bg-danger-bg0"
                     : vatThresholdProgress.status === "WARNING"
-                      ? "bg-amber-500"
-                      : "bg-blue-500"
+                      ? "bg-warning-bg0"
+                      : "bg-interactive"
                 }`}
                 style={{ width: `${Math.min(vatThresholdProgress.percentage, 100)}%` }}
               ></div>
@@ -263,8 +263,8 @@ export default async function AccountantDashboardPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-blue-100 p-2">
-                    <FileText className="h-4 w-4 text-blue-600" />
+                  <div className="rounded-full bg-info-bg p-2">
+                    <FileText className="h-4 w-4 text-link" />
                   </div>
                   <div>
                     <p className="font-medium">Računi na odobrenje</p>
@@ -278,8 +278,8 @@ export default async function AccountantDashboardPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-green-100 p-2">
-                    <Receipt className="h-4 w-4 text-green-600" />
+                  <div className="rounded-full bg-success-bg p-2">
+                    <Receipt className="h-4 w-4 text-success-text" />
                   </div>
                   <div>
                     <p className="font-medium">Troškovi na obradu</p>
@@ -293,8 +293,8 @@ export default async function AccountantDashboardPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-purple-100 p-2">
-                    <Mail className="h-4 w-4 text-purple-600" />
+                  <div className="rounded-full bg-chart-2/10 p-2">
+                    <Mail className="h-4 w-4 text-chart-1" />
                   </div>
                   <div>
                     <p className="font-medium">Kartice računovodstva</p>
@@ -308,8 +308,8 @@ export default async function AccountantDashboardPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-amber-100 p-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <div className="rounded-full bg-warning-bg p-2">
+                    <AlertTriangle className="h-4 w-4 text-warning-text" />
                   </div>
                   <div>
                     <p className="font-medium">Podsjetnici</p>
@@ -400,7 +400,7 @@ export default async function AccountantDashboardPage() {
           <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
+                <FileText className="h-5 w-5 text-link" />
                 E-fakture
               </CardTitle>
             </CardHeader>
@@ -420,7 +420,7 @@ export default async function AccountantDashboardPage() {
           <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Receipt className="h-5 w-5 text-green-600" />
+                <Receipt className="h-5 w-5 text-success-text" />
                 Troškovi
               </CardTitle>
             </CardHeader>
@@ -440,7 +440,7 @@ export default async function AccountantDashboardPage() {
           <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-purple-600" />
+                <Shield className="h-5 w-5 text-chart-1" />
                 Sigurnost
               </CardTitle>
             </CardHeader>

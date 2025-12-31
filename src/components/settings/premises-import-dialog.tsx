@@ -54,7 +54,7 @@ export function PremisesImportDialog({ companyId, isOpen, onClose }: PremisesImp
 
     try {
       const text = await file.text()
-      const { rows, errors } = parsePremisesCsv(text)
+      const { rows, errors } = await parsePremisesCsv(text)
 
       setParsedRows(rows)
       setParseErrors(errors)
@@ -152,12 +152,7 @@ export function PremisesImportDialog({ companyId, isOpen, onClose }: PremisesImp
               <code className="bg-[var(--surface)] px-1 rounded">adresa</code> (opcionalno),{" "}
               <code className="bg-[var(--surface)] px-1 rounded">zadani</code> (opcionalno)
             </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mt-2"
-              onClick={handleDownloadTemplate}
-            >
+            <Button variant="ghost" size="sm" className="mt-2" onClick={handleDownloadTemplate}>
               <Download className="mr-2 h-4 w-4" />
               Preuzmi predlozak
             </Button>
@@ -172,7 +167,9 @@ export function PremisesImportDialog({ companyId, isOpen, onClose }: PremisesImp
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-5 w-5 text-[var(--muted)] flex-shrink-0" />
                 <div>
-                  <h4 className="text-sm font-medium text-[var(--foreground)]">Upozorenja pri parsiranju</h4>
+                  <h4 className="text-sm font-medium text-[var(--foreground)]">
+                    Upozorenja pri parsiranju
+                  </h4>
                   <ul className="mt-1 text-xs text-[var(--muted)] list-disc list-inside">
                     {parseErrors.slice(0, 5).map((err, i) => (
                       <li key={i}>{err}</li>
@@ -209,9 +206,7 @@ export function PremisesImportDialog({ companyId, isOpen, onClose }: PremisesImp
                   <tr key={i}>
                     <td className="px-4 py-2 text-sm font-mono">{row.code}</td>
                     <td className="px-4 py-2 text-sm">{row.name}</td>
-                    <td className="px-4 py-2 text-sm text-[var(--muted)]">
-                      {row.address || "-"}
-                    </td>
+                    <td className="px-4 py-2 text-sm text-[var(--muted)]">{row.address || "-"}</td>
                     <td className="px-4 py-2 text-sm">
                       {row.isDefault ? (
                         <CheckCircle className="h-4 w-4 text-[var(--success)]" />
@@ -256,11 +251,15 @@ export function PremisesImportDialog({ companyId, isOpen, onClose }: PremisesImp
 
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="rounded-lg bg-[var(--success-bg)] border border-[var(--success-border)] p-4">
-              <p className="text-2xl font-bold text-[var(--success-text)]">{importResult.created}</p>
+              <p className="text-2xl font-bold text-[var(--success-text)]">
+                {importResult.created}
+              </p>
               <p className="text-sm text-[var(--success-text)]">Kreirano</p>
             </div>
             <div className="rounded-lg bg-[var(--warning-bg)] border border-[var(--warning-border)] p-4">
-              <p className="text-2xl font-bold text-[var(--warning-text)]">{importResult.skipped}</p>
+              <p className="text-2xl font-bold text-[var(--warning-text)]">
+                {importResult.skipped}
+              </p>
               <p className="text-sm text-[var(--warning-text)]">Preskoceno</p>
             </div>
           </div>

@@ -95,12 +95,12 @@ describe("evidence-freshness", () => {
     const authority: AuthorityLevel = "PRACTICE"
     const threshold = FRESHNESS_THRESHOLDS.PRACTICE // 14 days
 
-    it("should mark as fresh when within threshold", () => {
-      const fetchedAt = new Date("2025-01-05T12:00:00Z") // 10 days ago
+    it("should mark as fresh when within threshold (before warning period)", () => {
+      const fetchedAt = new Date("2025-01-10T12:00:00Z") // 5 days ago (within fresh period: 0-6 days)
       const result = checkEvidenceFreshness(fetchedAt, authority, false, now)
 
       expect(result.status).toBe("fresh")
-      expect(result.daysSinceFetch).toBe(10)
+      expect(result.daysSinceFetch).toBe(5)
       expect(result.shouldWarn).toBe(false)
     })
 
@@ -313,7 +313,8 @@ describe("evidence-freshness", () => {
       const result = checkEvidenceFreshness(fetchedAt, "LAW", false, now)
 
       expect(result.daysSinceFetch).toBe(90)
-      expect(result.status).toBe("fresh") // Exactly at threshold is still fresh
+      // 90 days is within the warning period (83-90), so it's aging, not fresh
+      expect(result.status).toBe("aging")
     })
 
     it("should handle threshold + 1 day (LAW = 91 days)", () => {

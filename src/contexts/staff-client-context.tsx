@@ -1,16 +1,9 @@
-'use client'
+"use client"
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-  ReactNode,
-} from 'react'
-import { useRouter } from 'next/navigation'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react"
+import { useRouter } from "next/navigation"
 
-const STORAGE_KEY = 'staffCurrentClient'
+const STORAGE_KEY = "staffCurrentClient"
 
 interface StaffClient {
   id: string
@@ -27,12 +20,10 @@ interface StaffClientContextType {
   isWorkingOnClient: boolean
 }
 
-const StaffClientContext = createContext<StaffClientContextType | undefined>(
-  undefined
-)
+const StaffClientContext = createContext<StaffClientContextType | undefined>(undefined)
 
 function getStoredClient(): StaffClient | null {
-  if (typeof window === 'undefined') return null
+  if (typeof window === "undefined") return null
   try {
     const saved = sessionStorage.getItem(STORAGE_KEY)
     return saved ? JSON.parse(saved) : null
@@ -42,7 +33,7 @@ function getStoredClient(): StaffClient | null {
 }
 
 function persistClient(client: StaffClient | null): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === "undefined") return
   try {
     if (client) {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(client))
@@ -55,9 +46,7 @@ function persistClient(client: StaffClient | null): void {
 }
 
 export function StaffClientProvider({ children }: { children: ReactNode }) {
-  const [currentClient, setCurrentClientState] = useState<StaffClient | null>(
-    null
-  )
+  const [currentClient, setCurrentClientState] = useState<StaffClient | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const router = useRouter()
 
@@ -90,7 +79,7 @@ export function StaffClientProvider({ children }: { children: ReactNode }) {
 
   const clearClient = useCallback(() => {
     setCurrentClient(null)
-    router.push('/staff-dashboard')
+    router.push("/staff-dashboard")
   }, [router, setCurrentClient])
 
   return (
@@ -111,7 +100,7 @@ export function StaffClientProvider({ children }: { children: ReactNode }) {
 export function useStaffClient() {
   const context = useContext(StaffClientContext)
   if (context === undefined) {
-    throw new Error('useStaffClient must be used within a StaffClientProvider')
+    throw new Error("useStaffClient must be used within a StaffClientProvider")
   }
   return context
 }

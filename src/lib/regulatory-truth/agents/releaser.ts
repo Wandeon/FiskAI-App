@@ -13,10 +13,7 @@ import { logAuditEvent } from "../utils/audit-log"
 import { computeReleaseHash, normalizeDate, type RuleSnapshot } from "../utils/release-hash"
 import { checkBatchEvidenceStrength } from "../utils/evidence-strength"
 import { publishRules } from "../services/rule-status-service"
-import {
-  emitContentSyncEvent,
-  mapRtlDomainToContentDomain,
-} from "../content-sync"
+import { emitContentSyncEvent, mapRtlDomainToContentDomain } from "../content-sync"
 import { getConceptMapping } from "../content-sync/concept-registry"
 import type { RiskTier } from "../schemas/common"
 import { verifyEvidenceIntegrity } from "../utils/content-hash"
@@ -122,7 +119,11 @@ export function verifyEvidenceChain(
           pointerId: pointer.id,
           evidenceId: pointer.evidenceId,
           errorType: "orphaned_pointer",
-          message: "Orphaned pointer: " + pointer.id + " references missing evidence " + pointer.evidenceId,
+          message:
+            "Orphaned pointer: " +
+            pointer.id +
+            " references missing evidence " +
+            pointer.evidenceId,
         })
         continue
       }
@@ -142,9 +143,15 @@ export function verifyEvidenceChain(
           evidenceId: pointer.evidenceId,
           errorType: "hash_mismatch",
           message:
-            "Evidence " + pointer.evidenceId + " content hash mismatch - possible corruption. " +
-            "Expected: " + integrityCheck.expectedHash.slice(0, 16) + "..., " +
-            "Got: " + integrityCheck.actualHash.slice(0, 16) + "...",
+            "Evidence " +
+            pointer.evidenceId +
+            " content hash mismatch - possible corruption. " +
+            "Expected: " +
+            integrityCheck.expectedHash.slice(0, 16) +
+            "..., " +
+            "Got: " +
+            integrityCheck.actualHash.slice(0, 16) +
+            "...",
         })
         continue
       }
@@ -163,8 +170,12 @@ export function verifyEvidenceChain(
           evidenceId: pointer.evidenceId,
           errorType: "quote_not_found",
           message:
-            "Quote not found in evidence " + pointer.evidenceId + ". " +
-            "Quote preview: \"" + pointer.exactQuote.slice(0, 60) + "...\"",
+            "Quote not found in evidence " +
+            pointer.evidenceId +
+            ". " +
+            'Quote preview: "' +
+            pointer.exactQuote.slice(0, 60) +
+            '..."',
         })
         continue
       }
@@ -179,7 +190,11 @@ export function verifyEvidenceChain(
           evidenceId: pointer.evidenceId,
           errorType: "quote_match_unacceptable",
           message:
-            "Quote match type \"" + quoteMatch.matchType + "\" not acceptable for " + rule.riskTier + " rule. " +
+            'Quote match type "' +
+            quoteMatch.matchType +
+            '" not acceptable for ' +
+            rule.riskTier +
+            " rule. " +
             matchAcceptable.reason,
         })
       }

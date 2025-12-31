@@ -40,7 +40,14 @@ export default async function RevenueByCustomerPage({
   // Group revenue by customer
   const customerMap = new Map<
     string,
-    { name: string; oib: string | null; netAmount: number; vatAmount: number; totalAmount: number; count: number }
+    {
+      name: string
+      oib: string | null
+      netAmount: number
+      vatAmount: number
+      totalAmount: number
+      count: number
+    }
   >()
 
   for (const invoice of invoices) {
@@ -65,7 +72,9 @@ export default async function RevenueByCustomerPage({
   }
 
   // Convert to array and sort by total amount descending
-  const customerStats = Array.from(customerMap.values()).sort((a, b) => b.totalAmount - a.totalAmount)
+  const customerStats = Array.from(customerMap.values()).sort(
+    (a, b) => b.totalAmount - a.totalAmount
+  )
 
   const totalRevenue = customerStats.reduce((sum, cust) => sum + cust.totalAmount, 0)
   const totalNet = customerStats.reduce((sum, cust) => sum + cust.netAmount, 0)
@@ -74,7 +83,8 @@ export default async function RevenueByCustomerPage({
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat("hr-HR", { style: "currency", currency: "EUR" }).format(n)
 
-  const formatPercent = (n: number) => (totalRevenue > 0 ? ((n / totalRevenue) * 100).toFixed(1) : "0.0")
+  const formatPercent = (n: number) =>
+    totalRevenue > 0 ? ((n / totalRevenue) * 100).toFixed(1) : "0.0"
 
   return (
     <div className="space-y-6">
@@ -139,7 +149,9 @@ export default async function RevenueByCustomerPage({
             <CardTitle className="text-base text-success-icon">Ukupno prihodi</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold font-mono text-success-icon">{formatCurrency(totalRevenue)}</p>
+            <p className="text-3xl font-bold font-mono text-success-icon">
+              {formatCurrency(totalRevenue)}
+            </p>
             <p className="text-sm text-secondary">{invoices.length} računa</p>
           </CardContent>
         </Card>
@@ -171,17 +183,25 @@ export default async function RevenueByCustomerPage({
                     <tr key={idx} className="border-b last:border-0">
                       <td className="py-3">
                         <span className="font-medium">{cust.name}</span>
-                        {cust.oib && <span className="text-secondary text-sm ml-2">(OIB: {cust.oib})</span>}
+                        {cust.oib && (
+                          <span className="text-secondary text-sm ml-2">(OIB: {cust.oib})</span>
+                        )}
                       </td>
                       <td className="py-3 text-right text-secondary">{cust.count}</td>
-                      <td className="py-3 text-right font-mono">{formatCurrency(cust.netAmount)}</td>
-                      <td className="py-3 text-right font-mono text-secondary">{formatCurrency(cust.vatAmount)}</td>
-                      <td className="py-3 text-right font-mono font-medium">{formatCurrency(cust.totalAmount)}</td>
+                      <td className="py-3 text-right font-mono">
+                        {formatCurrency(cust.netAmount)}
+                      </td>
+                      <td className="py-3 text-right font-mono text-secondary">
+                        {formatCurrency(cust.vatAmount)}
+                      </td>
+                      <td className="py-3 text-right font-mono font-medium">
+                        {formatCurrency(cust.totalAmount)}
+                      </td>
                       <td className="py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div className="w-16 bg-surface-2 rounded-full h-2">
                             <div
-                              className="bg-green-600 h-2 rounded-full"
+                              className="bg-success h-2 rounded-full"
                               style={{ width: `${formatPercent(cust.totalAmount)}%` }}
                             />
                           </div>

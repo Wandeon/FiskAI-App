@@ -2,18 +2,16 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { saveOnboardingData } from "@/app/actions/onboarding"
-import { saveCompetenceLevel } from "@/app/actions/guidance"
+import { saveOnboardingData } from "@/lib/actions/onboarding"
+import { saveCompetenceLevel } from "@/lib/actions/guidance"
 import { toast } from "@/lib/toast"
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics"
 
 export function StepContactTax() {
-  const router = useRouter()
-  const { data, updateData, setStep, reset, isStepValid } = useOnboardingStore()
+  const { data, updateData, setStep, isStepValid } = useOnboardingStore()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -78,7 +76,9 @@ export function StepContactTax() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Kontakt i porezni podaci</h2>
-        <p className="mt-1 text-sm text-secondary">Email je obavezan, ostalo možete dodati kasnije</p>
+        <p className="mt-1 text-sm text-secondary">
+          Email je obavezan, ostalo možete dodati kasnije
+        </p>
       </div>
 
       {error && <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">{error}</div>}
@@ -142,8 +142,8 @@ export function StepContactTax() {
         )}
 
         {data.legalForm === "OBRT_PAUSAL" && (
-          <div className="rounded-md bg-info-bg border border-blue-100 p-3">
-            <p className="text-sm text-blue-800">
+          <div className="rounded-md bg-info-bg border border-info-border p-3">
+            <p className="text-sm text-info-text">
               <strong>Paušalni obrt</strong> nije u sustavu PDV-a i ne obračunava PDV na račune.
             </p>
           </div>
@@ -162,10 +162,7 @@ export function StepContactTax() {
           >
             Dovršit ću kasnije
           </Button>
-          <Button
-            onClick={() => handleSubmit(false)}
-            disabled={!isStepValid(4) || isPending}
-          >
+          <Button onClick={() => handleSubmit(false)} disabled={!isStepValid(4) || isPending}>
             {isPending ? "Spremanje..." : "Nastavi"}
           </Button>
         </div>

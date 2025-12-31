@@ -240,7 +240,7 @@ export function Fiskalizacija2Wizard({ className }: { className?: string }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+            className="rounded-2xl border border-white/10 bg-surface/5 p-5 backdrop-blur-sm"
           >
             <div className="mb-4 flex items-center gap-2">
               <FileText className="h-5 w-5 text-info-icon" />
@@ -259,13 +259,13 @@ export function Fiskalizacija2Wizard({ className }: { className?: string }) {
                       "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-all",
                       selected === option.id
                         ? "border-focus bg-interactive-secondary text-white"
-                        : "border-white/10 bg-white/5 text-white/80 hover:border-white/20 hover:bg-white/10"
+                        : "border-white/10 bg-surface/5 text-white/80 hover:border-white/20 hover:bg-surface/10"
                     )}
                   >
                     <div
                       className={cn(
                         "flex h-8 w-8 items-center justify-center rounded-lg",
-                        selected === option.id ? "bg-interactive" : "bg-white/10"
+                        selected === option.id ? "bg-interactive" : "bg-surface/10"
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -296,7 +296,7 @@ export function Fiskalizacija2Wizard({ className }: { className?: string }) {
                 "flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all",
                 selected
                   ? "bg-interactive text-white hover:bg-interactive-hover"
-                  : "bg-white/10 text-white/40 cursor-not-allowed"
+                  : "bg-surface/10 text-white/40 cursor-not-allowed"
               )}
             >
               Pokaži što se mijenja
@@ -311,7 +311,7 @@ export function Fiskalizacija2Wizard({ className }: { className?: string }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+            className="rounded-2xl border border-white/10 bg-surface/5 p-5 backdrop-blur-sm"
           >
             <div className="mb-4 flex items-center justify-between">
               <button
@@ -386,7 +386,7 @@ function Fiskalizacija2Results({
       </div>
 
       {/* TODO List */}
-      <div className="rounded-lg bg-white/5 p-3">
+      <div className="rounded-lg bg-surface/5 p-3">
         <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-white">
           <Clock className="h-3.5 w-3.5 text-info-icon" />
           Tvoj TODO do 2026:
@@ -452,7 +452,7 @@ export function Fiskalizacija2FullPage() {
                 className={cn(
                   "flex items-center gap-3 rounded-xl border p-4 text-left transition-all",
                   selected === option.id
-                    ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/20"
+                    ? "border-focus bg-info-bg ring-2 ring-focus/20"
                     : "border-[var(--border)] bg-[var(--surface)] hover:border-blue-300"
                 )}
               >
@@ -460,7 +460,7 @@ export function Fiskalizacija2FullPage() {
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-lg",
                     selected === option.id
-                      ? "bg-blue-600 text-white"
+                      ? "bg-interactive text-white"
                       : "bg-[var(--surface-secondary)]"
                   )}
                 >
@@ -504,7 +504,7 @@ function Fiskalizacija2FullResults({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 border-b border-[var(--border)] pb-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-interactive">
           {option && <option.icon className="h-6 w-6 text-white" />}
         </div>
         <div>
@@ -514,30 +514,30 @@ function Fiskalizacija2FullResults({
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl bg-green-50 p-5">
-          <h3 className="mb-3 flex items-center gap-2 font-semibold text-green-800">
+        <div className="rounded-xl bg-success-bg p-5">
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-success-text">
             <CheckCircle2 className="h-5 w-5" />
             Što ostaje isto
           </h3>
           <ul className="space-y-2">
             {result.staysTheSame.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-green-700">
-                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-500" />
+              <li key={i} className="flex items-start gap-2 text-sm text-success-text">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-success-bg0" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="rounded-xl bg-amber-50 p-5">
-          <h3 className="mb-3 flex items-center gap-2 font-semibold text-amber-800">
+        <div className="rounded-xl bg-warning-bg p-5">
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-warning-text">
             <AlertTriangle className="h-5 w-5" />
             Što se mijenja
           </h3>
           <ul className="space-y-2">
             {result.changes.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-amber-700">
-                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <li key={i} className="flex items-start gap-2 text-sm text-warning-text">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-warning-bg0" />
                 {item}
               </li>
             ))}
@@ -547,13 +547,13 @@ function Fiskalizacija2FullResults({
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] p-5">
         <h3 className="mb-4 flex items-center gap-2 font-semibold">
-          <Clock className="h-5 w-5 text-blue-600" />
+          <Clock className="h-5 w-5 text-link" />
           Tvoj TODO (do 01.01.2026)
         </h3>
         <ul className="space-y-3">
           {result.todos.map((todo, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="mt-1 flex h-5 w-5 items-center justify-center rounded border border-[var(--border)] bg-white text-xs font-medium">
+              <span className="mt-1 flex h-5 w-5 items-center justify-center rounded border border-[var(--border)] bg-surface text-xs font-medium">
                 {i + 1}
               </span>
               <div>
@@ -565,22 +565,22 @@ function Fiskalizacija2FullResults({
         </ul>
       </div>
 
-      <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5">
-        <h3 className="mb-4 flex items-center gap-2 font-semibold text-blue-900">
+      <div className="rounded-xl border border-info-border bg-gradient-to-br from-blue-50 to-indigo-50 p-5">
+        <h3 className="mb-4 flex items-center gap-2 font-semibold text-info-text">
           <Rocket className="h-5 w-5" />
           Kako FiskAI pomaže
         </h3>
         <ul className="mb-5 grid gap-2 sm:grid-cols-2">
           {result.fiskaiHelps.map((item, i) => (
-            <li key={i} className="flex items-center gap-2 text-sm text-blue-800">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <li key={i} className="flex items-center gap-2 text-sm text-info-text">
+              <CheckCircle2 className="h-4 w-4 text-success-text" />
               {item}
             </li>
           ))}
         </ul>
         <Link
           href="/register"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+          className="inline-flex items-center gap-2 rounded-lg bg-interactive px-6 py-3 font-semibold text-white hover:bg-interactive-hover"
         >
           Započni besplatno s FiskAI
           <ArrowRight className="h-4 w-4" />

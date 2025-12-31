@@ -17,8 +17,7 @@ const vatReducedRate = formatPercentage(TAX_RATES.vat.reduced[0]?.rate ?? 0.13)
 
 export const metadata: Metadata = {
   title: "PDV Kalkulator - Kada prelazim prag? | FiskAI",
-  description:
-    `Izračunajte koliko ste blizu PDV praga od ${pdvThresholdLabel} i što se mijenja kada ga prijeđete.`,
+  description: `Izračunajte koliko ste blizu PDV praga od ${pdvThresholdLabel} i što se mijenja kada ga prijeđete.`,
   alternates: {
     canonical: `${BASE_URL}/alati/pdv-kalkulator`,
   },
@@ -42,8 +41,7 @@ const faq = [
 export default function PDVCalculatorPage() {
   const webAppSchema = generateWebApplicationSchema({
     name: "PDV Kalkulator",
-    description:
-      `Izračunajte koliko ste blizu PDV praga od ${pdvThresholdLabel} i što se mijenja kada ga prijeđete.`,
+    description: `Izračunajte koliko ste blizu PDV praga od ${pdvThresholdLabel} i što se mijenja kada ga prijeđete.`,
     url: "https://fiskai.hr/alati/pdv-kalkulator",
   })
 
@@ -123,10 +121,10 @@ export default function PDVCalculatorPage() {
                   <Bell className="h-4 w-4 text-primary" /> Upozorenje na 80% praga
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">✓</span> Projekcija do kraja godine
+                  <span className="text-success-text">✓</span> Projekcija do kraja godine
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">✓</span> Automatski izvještaj za knjigovođu
+                  <span className="text-success-text">✓</span> Automatski izvještaj za knjigovođu
                 </li>
               </ul>
               <Link

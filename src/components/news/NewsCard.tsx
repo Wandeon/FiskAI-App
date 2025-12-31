@@ -31,7 +31,7 @@ export function NewsCard({
   relevanceScore,
 }: NewsCardProps) {
   return (
-    <article className="rounded-xl border border-white/10 bg-white/5 p-6 transition-colors hover:bg-white/10">
+    <article className="rounded-xl border border-white/10 bg-surface/5 p-6 transition-colors hover:bg-surface/10">
       <div className="mb-3 flex flex-wrap gap-2">
         {categories.slice(0, 3).map((cat) => (
           <span
@@ -59,7 +59,7 @@ export function NewsCard({
           href={sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300"
+          className="text-link hover:text-blue-300"
         >
           Izvor →
         </Link>

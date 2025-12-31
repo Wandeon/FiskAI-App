@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
 const STATUS_COLORS: Record<string, string> = {
-  SYNTHESIZING: "bg-blue-100 text-blue-800",
-  PLANNING: "bg-blue-100 text-blue-800",
-  DRAFTING: "bg-yellow-100 text-yellow-800",
-  VERIFYING: "bg-purple-100 text-purple-800",
-  NEEDS_REVIEW: "bg-orange-100 text-orange-800",
-  APPROVED: "bg-green-100 text-green-800",
-  PUBLISHED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800",
+  SYNTHESIZING: "bg-info-bg text-info-text",
+  PLANNING: "bg-info-bg text-info-text",
+  DRAFTING: "bg-warning-bg text-warning-text",
+  VERIFYING: "bg-chart-2/10 text-chart-1",
+  NEEDS_REVIEW: "bg-warning-bg text-warning-text",
+  APPROVED: "bg-success-bg text-success-text",
+  PUBLISHED: "bg-success-bg text-success-text",
+  REJECTED: "bg-danger-bg text-danger-text",
 }
 
 export default async function ArticleAgentPage() {
@@ -59,7 +59,7 @@ export default async function ArticleAgentPage() {
                 <td className="p-4 text-sm text-muted-foreground">{job.type}</td>
                 <td className="p-4">
                   <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[job.status] || "bg-gray-100"}`}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[job.status] || "bg-surface-2"}`}
                   >
                     {job.status}
                   </span>

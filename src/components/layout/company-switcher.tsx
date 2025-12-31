@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { switchCompany } from "@/app/actions/company-switch"
+import { switchCompany } from "@/lib/actions/company-switch"
 
 type Company = {
   id: string
@@ -38,7 +38,7 @@ export function CompanySwitcher({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-md border border-default bg-white px-3 py-1.5 text-sm hover:bg-surface-1"
+        className="flex items-center gap-2 rounded-md border border-default bg-surface px-3 py-1.5 text-sm hover:bg-surface-1"
         disabled={isPending}
       >
         <span className="max-w-[150px] truncate">{currentCompany?.name}</span>
@@ -53,7 +53,7 @@ export function CompanySwitcher({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-md border border-default bg-white py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-md border border-default bg-surface py-1 shadow-lg">
           {companies.map((company) => (
             <button
               key={company.id}

@@ -107,9 +107,7 @@ export default async function RecurringExpensesPage() {
       render: (expense) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
-            expense.isActive
-              ? "bg-success-bg text-success-text"
-              : "bg-surface-1 text-foreground"
+            expense.isActive ? "bg-success-bg text-success-text" : "bg-surface-1 text-foreground"
           }`}
         >
           {expense.isActive ? "Aktivan" : "Neaktivan"}
@@ -150,8 +148,8 @@ export default async function RecurringExpensesPage() {
               <p className="font-medium">Kako funkcioniraju ponavljajući troškovi?</p>
               <p className="mt-1 text-info-text">
                 Svaki dan u ponoć sustav provjerava ima li ponavljajućih troškova čiji je datum
-                dospio. Za svaki takav trošak automatski se kreira novi trošak u statusu "Nacrt" i
-                postavlja se sljedeći datum prema učestalosti.
+                dospio. Za svaki takav trošak automatski se kreira novi trošak u statusu
+                &quot;Nacrt&quot; i postavlja se sljedeći datum prema učestalosti.
               </p>
             </div>
           </div>

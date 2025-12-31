@@ -10,7 +10,7 @@ describe("generatePosPaymentQR", () => {
     sellerCity: "Zagreb",
     sellerIban: "HR12 3456 7890 1234 5678 9",
     invoiceNumber: "2025-1-1-00001",
-    amount: 125.50,
+    amount: 125.5,
   }
 
   it("should generate a data URL", async () => {

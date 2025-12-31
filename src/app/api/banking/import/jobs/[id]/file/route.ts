@@ -29,7 +29,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     // Retrieve file from R2 storage (new) or local filesystem (legacy)
     let data: Buffer
     let contentType: string
-    
+
     if (job.storageKey) {
       // New: R2 storage
       data = await downloadFromR2(job.storageKey)
@@ -41,18 +41,18 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
         .access(job.storagePath)
         .then(() => true)
         .catch(() => false)
-      
+
       if (!exists) {
         return NextResponse.json({ error: "File missing" }, { status: 404 })
       }
-      
+
       data = await fs.readFile(job.storagePath)
       contentType = mime.lookup(path.extname(job.storagePath)) || "application/octet-stream"
     } else {
       return NextResponse.json({ error: "File missing" }, { status: 404 })
     }
 
-    return new NextResponse(data, {
+    return new NextResponse(new Uint8Array(data), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `inline; filename="${job.originalName}"`,

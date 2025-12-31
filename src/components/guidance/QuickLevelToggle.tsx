@@ -18,8 +18,8 @@ const levelIcons = {
 }
 
 const levelColors = {
-  beginner: "text-emerald-400",
-  average: "text-amber-400",
+  beginner: "text-success",
+  average: "text-warning",
   pro: "text-accent",
 }
 
@@ -108,8 +108,8 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
               className={cn(
                 "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all",
                 isActive
-                  ? `bg-white/10 ${levelColors[level]}`
-                  : "text-white/50 hover:text-white/70 hover:bg-white/5"
+                  ? `bg-surface/10 ${levelColors[level]}`
+                  : "text-white/50 hover:text-white/70 hover:bg-surface/5"
               )}
               title={LEVEL_LABELS[level]}
             >
@@ -129,7 +129,7 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
         disabled={isLoading}
         className={cn(
           "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all",
-          "bg-white/5 hover:bg-white/10 border border-white/10",
+          "bg-surface/5 hover:bg-surface/10 border border-white/10",
           levelColors[currentLevel]
         )}
       >
@@ -141,7 +141,7 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-lg border border-white/10 bg-slate-800 py-1 shadow-xl">
+          <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-lg border border-white/10 bg-surface-elevated py-1 shadow-xl">
             <div className="px-3 py-2 text-xs text-white/50 border-b border-white/10">
               Razina pomoći
             </div>
@@ -155,8 +155,8 @@ export function QuickLevelToggle({ className, variant = "dropdown" }: QuickLevel
                   className={cn(
                     "flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors",
                     isActive
-                      ? `${levelColors[level]} bg-white/5`
-                      : "text-white/70 hover:bg-white/5 hover:text-white"
+                      ? `${levelColors[level]} bg-surface/5`
+                      : "text-white/70 hover:bg-surface/5 hover:text-white"
                   )}
                 >
                   <Icon className="h-4 w-4" />

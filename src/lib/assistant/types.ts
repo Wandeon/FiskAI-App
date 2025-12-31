@@ -276,7 +276,7 @@ export interface AssistantResponse {
   // Error
   error?: {
     message: string
-    retryable: boolean
+    retriable: boolean
   }
 
   // Follow-up

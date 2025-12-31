@@ -50,7 +50,7 @@ export default function AccountantsPage() {
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 px-6 py-3 text-sm font-semibold text-white hover:bg-surface/10"
             >
               Dogovori demo za ured
             </Link>
@@ -65,7 +65,7 @@ export default function AccountantsPage() {
           <div className="grid gap-6 md:grid-cols-3">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <Clock className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -76,7 +76,7 @@ export default function AccountantsPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <Shield className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -89,7 +89,7 @@ export default function AccountantsPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
+                <div className="rounded-full bg-surface/10 p-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -109,7 +109,7 @@ export default function AccountantsPage() {
             Sve što vam treba za suradnju s klijentima
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Download className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -121,25 +121,25 @@ export default function AccountantsPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>CSV/Excel izvozi s prilozima</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>PDF kopije svih računa</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Filtriranje po mjesecu/kvartalu</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Automatizirano slanje na email</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Users className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -149,25 +149,25 @@ export default function AccountantsPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Besplatni pristup za knjigovođe</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Pregled svih klijenata na jednom mjestu</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Komunikacija kroz platformu</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Obavijesti o promjenama</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <BarChart className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -177,25 +177,25 @@ export default function AccountantsPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Kumulativni pregled po klijentima</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Provjera kompletnosti podataka</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Audit trag svih promjena</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Alarmi za nedostajuće podatke</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Shield className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -205,25 +205,25 @@ export default function AccountantsPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Multi-tenant izolacija podataka</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Usklađeno s računovodstvenim standardima</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Arhiviranje 11+ godina</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Pristupi po &quot;least privilege&quot; principu</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <FileText className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -233,25 +233,25 @@ export default function AccountantsPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Podrška za e-račune (EN 16931)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Fiskalizacija 2.0 integracija</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>XML export za poreznu upravu</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Provjera usklađenosti računa</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+            <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
               <div className="flex items-start gap-3 mb-4">
                 <TrendingUp className="h-6 w-6 text-primary flex-shrink-0" />
                 <div>
@@ -261,19 +261,19 @@ export default function AccountantsPage() {
               </div>
               <ul className="space-y-2 text-sm text-white">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Obrada više klijenata istovremeno</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Automatizirani workflow-ovi</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>Integracije s vašim sustavima</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>API za vlastite aplikacije</span>
                 </li>
               </ul>
@@ -303,23 +303,23 @@ export default function AccountantsPage() {
             </div>
             <ul className="space-y-3 text-sm text-left mb-8 text-white">
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                 <span>Neograničen broj klijenata</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                 <span>Pristup svim izvozima i izvještajima</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                 <span>Komunikacija s klijentima</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                 <span>Kumulativni pregledi</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                 <span>Dedicated account manager za uredove</span>
               </li>
             </ul>
@@ -336,7 +336,7 @@ export default function AccountantsPage() {
         </div>
 
         {/* Client onboarding process */}
-        <div className="mb-16 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+        <div className="mb-16 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
           <h2 className="text-2xl font-semibold mb-6 text-center text-white">
             Kako početi surađivati s klijentima
           </h2>
@@ -373,7 +373,7 @@ export default function AccountantsPage() {
         </div>
 
         {/* Case study */}
-        <div className="mb-12 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+        <div className="mb-12 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8">
           <h2 className="text-2xl font-semibold mb-6 text-white">
             Iskustvo računovodstvenog ureda
           </h2>
@@ -402,15 +402,15 @@ export default function AccountantsPage() {
                 <p className="font-medium mb-2 text-white">Prije FiskAI</p>
                 <ul className="space-y-1 text-sm text-white/60">
                   <li className="flex items-start gap-2">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-red-500" />
+                    <div className="mt-1 h-2 w-2 rounded-full bg-danger-bg0" />
                     <span>Fotografije računa na WhatsApp/email</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-red-500" />
+                    <div className="mt-1 h-2 w-2 rounded-full bg-danger-bg0" />
                     <span>Ručno prepisivanje u Excel (3-5h po klijentu mjesečno)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-red-500" />
+                    <div className="mt-1 h-2 w-2 rounded-full bg-danger-bg0" />
                     <span>Greške u prepisivanju (5-10% računa)</span>
                   </li>
                 </ul>
@@ -419,15 +419,15 @@ export default function AccountantsPage() {
                 <p className="font-medium mb-2 text-white">Sada s FiskAI</p>
                 <ul className="space-y-1 text-sm text-white/60">
                   <li className="flex items-start gap-2">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-green-500" />
+                    <div className="mt-1 h-2 w-2 rounded-full bg-success-bg0" />
                     <span>Uredni CSV/Excel izvozi s PDF prilozima</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-green-500" />
+                    <div className="mt-1 h-2 w-2 rounded-full bg-success-bg0" />
                     <span>Automatski unos podataka (30min po klijentu)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-green-500" />
+                    <div className="mt-1 h-2 w-2 rounded-full bg-success-bg0" />
                     <span>Greške {"<"} 1% (AI provjera)</span>
                   </li>
                 </ul>
@@ -454,7 +454,7 @@ export default function AccountantsPage() {
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-8 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-surface/5 px-8 py-3 text-sm font-semibold text-white hover:bg-surface/10"
             >
               Demo za računovodstvene uredove
             </Link>

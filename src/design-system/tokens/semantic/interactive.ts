@@ -11,7 +11,7 @@
  * - ghost: Minimal/transparent actions
  */
 
-import { slate, white, blue, red, transparent } from '../primitives';
+import { slate, white, blue, red, transparent } from "../primitives"
 
 /**
  * Light mode interactive colors
@@ -59,7 +59,7 @@ export const interactiveLight = {
   outlineBorderHover: slate[400],
   /** Outline button text */
   outlineText: slate[700],
-} as const;
+} as const
 
 /**
  * Dark mode interactive colors
@@ -107,7 +107,7 @@ export const interactiveDark = {
   outlineBorderHover: slate[400],
   /** Outline button text */
   outlineText: slate[200],
-} as const;
+} as const
 
 /**
  * Combined interactive tokens with light/dark variants
@@ -115,7 +115,7 @@ export const interactiveDark = {
 export const interactive = {
   light: interactiveLight,
   dark: interactiveDark,
-} as const;
+} as const
 
-export type InteractiveToken = keyof typeof interactiveLight;
-export type Interactive = typeof interactive;
+export type InteractiveToken = keyof typeof interactiveLight
+export type Interactive = typeof interactive

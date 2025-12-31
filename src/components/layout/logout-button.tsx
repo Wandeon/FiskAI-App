@@ -1,6 +1,6 @@
 "use client"
 
-import { logout } from "@/app/actions/auth"
+import { logout } from "@/lib/actions/auth"
 import { useTransition } from "react"
 import { LogOut } from "lucide-react"
 

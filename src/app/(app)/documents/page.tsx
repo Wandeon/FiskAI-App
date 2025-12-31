@@ -33,11 +33,11 @@ function formatDate(date: Date) {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  gray: "bg-gray-100 text-gray-700",
-  blue: "bg-blue-100 text-blue-700",
-  green: "bg-green-100 text-green-700",
-  amber: "bg-amber-100 text-amber-700",
-  red: "bg-red-100 text-red-700",
+  gray: "bg-surface-2 text-foreground",
+  blue: "bg-info-bg text-link",
+  green: "bg-success-bg text-success-text",
+  amber: "bg-warning-bg text-warning-text",
+  red: "bg-danger-bg text-danger-text",
 }
 
 export default async function DocumentsPage({

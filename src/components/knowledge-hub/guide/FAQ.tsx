@@ -54,7 +54,7 @@ export function FAQ({
   return (
     <div
       className={cn(
-        "not-prose my-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5",
+        "not-prose my-6 overflow-hidden rounded-2xl border border-white/10 bg-surface/5",
         className
       )}
     >
@@ -72,14 +72,14 @@ export function FAQ({
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus/30"
+                className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-surface/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus/30"
               >
                 <span className="text-sm font-semibold text-white">{item.question}</span>
                 <motion.span
                   aria-hidden="true"
                   animate={reduce ? undefined : { rotate: isOpen ? 180 : 0 }}
                   transition={reduce ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
-                  className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white/70 transition-colors group-hover:bg-white/20"
+                  className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-surface/10 text-white/70 transition-colors group-hover:bg-surface/20"
                 >
                   <ChevronDown className="h-4 w-4" />
                 </motion.span>

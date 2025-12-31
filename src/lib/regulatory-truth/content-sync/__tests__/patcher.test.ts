@@ -216,10 +216,7 @@ describe("patcher", () => {
       await fs.writeFile(filePath, "---\ntitle: [\n---\n\nContent")
 
       // gray-matter is actually quite forgiving, let's use truly invalid YAML
-      await fs.writeFile(
-        filePath,
-        "---\n  key: value\n key2: value2\n---\n\nContent"
-      )
+      await fs.writeFile(filePath, "---\n  key: value\n key2: value2\n---\n\nContent")
 
       // Note: gray-matter is very permissive - we may need to check actual behavior
       // For now, let's just verify it doesn't throw for valid content
@@ -287,9 +284,7 @@ describe("patcher", () => {
       const filePath = path.join(tempDir, "nonexistent.mdx")
       const event = createMockEvent()
 
-      await expect(patchFrontmatter(filePath, event)).rejects.toThrow(
-        ContentNotFoundError
-      )
+      await expect(patchFrontmatter(filePath, event)).rejects.toThrow(ContentNotFoundError)
     })
 
     it("throws PatchConflictError for duplicate eventId (idempotency)", async () => {
@@ -315,9 +310,7 @@ changelog:
 
       const event = createMockEvent({ id: "evt_test_123" })
 
-      await expect(patchFrontmatter(filePath, event)).rejects.toThrow(
-        PatchConflictError
-      )
+      await expect(patchFrontmatter(filePath, event)).rejects.toThrow(PatchConflictError)
     })
 
     it("preserves existing content", async () => {

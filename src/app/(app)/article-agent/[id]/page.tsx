@@ -133,7 +133,7 @@ function StatusStep({ label, active, done }: { label: string; active: boolean; d
     <div className="flex items-center gap-2">
       <div
         className={`w-3 h-3 rounded-full ${
-          done ? "bg-green-500" : active ? "bg-blue-500 animate-pulse" : "bg-gray-200"
+          done ? "bg-success-bg0" : active ? "bg-interactive animate-pulse" : "bg-surface-2"
         }`}
       />
       <span className={`text-sm ${active ? "font-medium" : "text-muted-foreground"}`}>{label}</span>

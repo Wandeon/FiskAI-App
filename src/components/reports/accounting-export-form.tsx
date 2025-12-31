@@ -51,7 +51,7 @@ export function AccountingExportForm() {
         <a
           href={buildUrl("/api/exports/expenses")}
           download
-          className="justify-center gap-2 inline-flex items-center rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          className="justify-center gap-2 inline-flex items-center rounded-md bg-neutral px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-neutral-hover focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2"
         >
           <Receipt className="h-4 w-4" />
           Izvoz troškova (CSV)
@@ -62,7 +62,7 @@ export function AccountingExportForm() {
         <a
           href={buildUrl("/api/reports/accountant-export?format=kpr")}
           download
-          className="justify-center gap-2 inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          className="justify-center gap-2 inline-flex items-center rounded-md bg-success px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-success/90 focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2"
         >
           <BookOpen className="h-4 w-4" />
           KPR izvoz (CSV)
@@ -70,7 +70,7 @@ export function AccountingExportForm() {
         <a
           href={buildUrl("/api/reports/accountant-export?format=summary")}
           download
-          className="justify-center gap-2 inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+          className="justify-center gap-2 inline-flex items-center rounded-md bg-chart-2 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-chart-2/90 focus:outline-none focus:ring-2 focus:ring-chart-2 focus:ring-offset-2"
         >
           <FileText className="h-4 w-4" />
           Sažetak (CSV)

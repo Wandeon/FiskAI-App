@@ -4,16 +4,16 @@ import { TenantDetailView } from "./tenant-detail-view"
 import { notFound } from "next/navigation"
 
 type PageProps = {
- params: Promise<{ companyId: string }>
+  params: Promise<{ companyId: string }>
 }
 
 export default async function TenantDetailPage({ params }: PageProps) {
- await requireAdmin()
+  await requireAdmin()
 
- const { companyId } = await params
- const tenant = await getTenantDetail(companyId)
+  const { companyId } = await params
+  const tenant = await getTenantDetail(companyId)
 
- if (!tenant) notFound()
+  if (!tenant) notFound()
 
- return <TenantDetailView tenant={tenant} />
+  return <TenantDetailView tenant={tenant} />
 }

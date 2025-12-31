@@ -36,7 +36,7 @@ export function SmartDropzone({ onFilesDropped, disabled }: SmartDropzoneProps) 
         ${
           isDragActive
             ? "border-focus bg-info-bg"
-            : "border-default bg-gradient-to-br from-slate-50 to-white hover:border-strong"
+            : "border-default bg-gradient-to-br from-surface-1 to-white hover:border-strong"
         }
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}
@@ -50,9 +50,7 @@ export function SmartDropzone({ onFilesDropped, disabled }: SmartDropzoneProps) 
           ${isDragActive ? "bg-info-bg" : "bg-surface-2"}
         `}
         >
-          <UploadCloud
-            className={`h-10 w-10 ${isDragActive ? "text-link" : "text-tertiary"}`}
-          />
+          <UploadCloud className={`h-10 w-10 ${isDragActive ? "text-link" : "text-tertiary"}`} />
         </div>
 
         <div>

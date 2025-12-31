@@ -10,13 +10,15 @@ describe("AssistantInput", () => {
 
     const textarea = screen.getByRole("textbox")
     expect(textarea).toBeInTheDocument()
-    expect(textarea).toHaveAttribute("placeholder", expect.stringContaining("Croatian"))
+    // Croatian placeholder: "Postavite pitanje o porezima, PDV-u, doprinosima..."
+    expect(textarea).toHaveAttribute("placeholder", expect.stringContaining("porez"))
   })
 
   it("renders send button", () => {
     render(<AssistantInput surface="MARKETING" onSubmit={vi.fn()} />)
 
-    expect(screen.getByRole("button", { name: /send/i })).toBeInTheDocument()
+    // Croatian aria-label: "Pošalji"
+    expect(screen.getByRole("button", { name: /pošalji/i })).toBeInTheDocument()
   })
 
   it("calls onSubmit when Enter is pressed", async () => {
@@ -56,7 +58,7 @@ describe("AssistantInput", () => {
     const textarea = screen.getByRole("textbox")
     await user.type(textarea, "My question")
 
-    const sendButton = screen.getByRole("button", { name: /send/i })
+    const sendButton = screen.getByRole("button", { name: /pošalji/i })
     await user.click(sendButton)
 
     expect(onSubmit).toHaveBeenCalledWith("My question")
@@ -79,7 +81,7 @@ describe("AssistantInput", () => {
     render(<AssistantInput surface="MARKETING" onSubmit={vi.fn()} disabled />)
 
     expect(screen.getByRole("textbox")).toBeDisabled()
-    expect(screen.getByRole("button", { name: /send/i })).toBeDisabled()
+    expect(screen.getByRole("button", { name: /pošalji/i })).toBeDisabled()
   })
 
   it("does not submit empty query", async () => {
@@ -100,6 +102,7 @@ describe("AssistantInput", () => {
     expect(textarea).toHaveAttribute("aria-describedby")
 
     const hintId = textarea.getAttribute("aria-describedby")
-    expect(document.getElementById(hintId!)).toHaveTextContent(/enter.*send/i)
+    // Croatian hint: "Pritisnite Enter za slanje, Shift+Enter za novi red"
+    expect(document.getElementById(hintId!)).toHaveTextContent(/enter.*slanje/i)
   })
 })

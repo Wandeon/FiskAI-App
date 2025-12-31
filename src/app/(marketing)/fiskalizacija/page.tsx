@@ -76,7 +76,7 @@ export default function FiskalizacijaHubPage() {
 
           {/* Hero */}
           <header className="mb-12 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-red-500/10 backdrop-blur-sm border border-red-500/20 px-4 py-2 text-sm font-medium text-red-400">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-danger-bg0/10 backdrop-blur-sm border border-danger-border/20 px-4 py-2 text-sm font-medium text-danger-text">
               <AlertTriangle className="h-4 w-4" />
               Rok: 31. prosinca 2025.
             </div>
@@ -94,7 +94,7 @@ export default function FiskalizacijaHubPage() {
               {keyDates.map((item, i) => (
                 <div
                   key={i}
-                  className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 text-center"
+                  className="rounded-xl border border-white/10 bg-surface/5 backdrop-blur-sm p-5 text-center"
                 >
                   <Calendar className="mx-auto mb-2 h-6 w-6 text-primary" />
                   <p className="font-bold text-white/90">{item.date}</p>
@@ -118,7 +118,7 @@ export default function FiskalizacijaHubPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Link
                 href="/kako-da/registrirati-informacijskog-posrednika"
-                className="group flex items-center justify-between rounded-xl border border-default bg-white/5 backdrop-blur-sm p-5 hover:border-focus hover:bg-interactive/10 hover:shadow-md"
+                className="group flex items-center justify-between rounded-xl border border-default bg-surface/5 backdrop-blur-sm p-5 hover:border-focus hover:bg-interactive/10 hover:shadow-md"
               >
                 <div>
                   <h3 className="font-semibold text-white/90 group-hover:text-primary">
@@ -132,7 +132,7 @@ export default function FiskalizacijaHubPage() {
               </Link>
               <Link
                 href="/kako-da/registrirati-informacijskog-posrednika"
-                className="group flex items-center justify-between rounded-xl border border-default bg-white/5 backdrop-blur-sm p-5 hover:border-focus hover:bg-interactive/10 hover:shadow-md"
+                className="group flex items-center justify-between rounded-xl border border-default bg-surface/5 backdrop-blur-sm p-5 hover:border-focus hover:bg-interactive/10 hover:shadow-md"
               >
                 <div>
                   <h3 className="font-semibold text-white/90 group-hover:text-primary">
@@ -169,7 +169,7 @@ export default function FiskalizacijaHubPage() {
               </Link>
               <Link
                 href="/features"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white/90 hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-surface/5 px-6 py-3 font-medium text-white/90 hover:bg-surface/10"
               >
                 Saznaj više
               </Link>

@@ -13,7 +13,6 @@
 
 import { prisma } from "@/lib/prisma"
 import { embedBatch } from "@/lib/article-agent/verification/embedder"
-import { sql } from "@prisma/client/runtime/library"
 
 async function generateConceptEmbeddings() {
   console.log("🚀 Starting concept embedding generation...")

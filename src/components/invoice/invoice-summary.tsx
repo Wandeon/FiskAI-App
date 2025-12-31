@@ -47,7 +47,7 @@ export function InvoiceSummary({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border border-subtle shadow-sm sticky top-20",
+        "bg-surface rounded-xl border border-subtle shadow-sm sticky top-20",
         className
       )}
     >
@@ -106,9 +106,7 @@ export function InvoiceSummary({
                 </span>
               </div>
             ))}
-            {lines.length > 3 && (
-              <p className="text-xs text-muted">+{lines.length - 3} više...</p>
-            )}
+            {lines.length > 3 && <p className="text-xs text-muted">+{lines.length - 3} više...</p>}
           </div>
         </div>
 

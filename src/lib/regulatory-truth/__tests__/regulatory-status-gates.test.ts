@@ -4,12 +4,12 @@
 //
 // FIXME(2024-12-29): The simulated validateTransition() function in this test file
 // does NOT match the actual implementation in prisma-extensions.ts. Specifically:
-// - Test allows DRAFT -> APPROVED with bypassApproval (line 37)
+// - Test allows DRAFT → APPROVED with bypassApproval (line 37)
 // - Actual implementation BLOCKS this transition (prisma-extensions.ts lines 323-333)
 // - Test should be updated to match actual behavior including systemAction support
 // See: prisma-extensions.ts validateStatusTransitionInternal()
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import {
   RegulatoryRuleStatusTransitionError,
   RegulatoryRuleUpdateManyStatusNotAllowedError,
@@ -20,7 +20,8 @@ const mockFindUnique = vi.fn()
 const mockUpdate = vi.fn()
 const mockUpdateMany = vi.fn()
 
-// Simulated gate enforcement (mirrors prisma-extensions.ts logic)
+// Simulated gate enforcement (mirrors prisma-extensions.ts logic EXACTLY)
+// CRITICAL: This must match the actual implementation in prisma-extensions.ts
 const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
   DRAFT: ["PENDING_REVIEW"],
   PENDING_REVIEW: ["APPROVED", "REJECTED", "DRAFT"],
@@ -30,22 +31,80 @@ const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
   REJECTED: ["DRAFT"],
 }
 
+type RegulatorySystemAction = "QUARANTINE_DOWNGRADE" | "ROLLBACK"
+
 function validateTransition(
   from: string,
   to: string,
-  context?: { source?: string; bypassApproval?: boolean }
+  context?: { source?: string; bypassApproval?: boolean; systemAction?: RegulatorySystemAction }
 ): { allowed: boolean; error?: string } {
   if (from === to) return { allowed: true }
 
   const allowedTargets = ALLOWED_STATUS_TRANSITIONS[from] ?? []
   if (!allowedTargets.includes(to)) {
-    // Check bypass exceptions
-    if (context?.bypassApproval && context?.source) {
-      if (from === "DRAFT" && to === "APPROVED") return { allowed: true }
-      if (from === "PUBLISHED" && to === "APPROVED" && context.source.includes("rollback")) {
-        return { allowed: true }
+    // ========================================
+    // SYSTEM ACTIONS (preferred over bypassApproval)
+    // ========================================
+    if (context?.systemAction && context?.source) {
+      // QUARANTINE_DOWNGRADE: Only allows → PENDING_REVIEW
+      if (context.systemAction === "QUARANTINE_DOWNGRADE") {
+        if (to === "PENDING_REVIEW") {
+          if (from === "APPROVED" || from === "PUBLISHED") {
+            return { allowed: true }
+          }
+        }
+        return {
+          allowed: false,
+          error: `QUARANTINE_DOWNGRADE only allows APPROVED/PUBLISHED → PENDING_REVIEW`,
+        }
+      }
+
+      // ROLLBACK: Only allows PUBLISHED → APPROVED
+      if (context.systemAction === "ROLLBACK") {
+        if (from === "PUBLISHED" && to === "APPROVED") {
+          return { allowed: true }
+        }
+        return {
+          allowed: false,
+          error: `ROLLBACK only allows PUBLISHED → APPROVED`,
+        }
       }
     }
+
+    // ========================================
+    // DEPRECATED: bypassApproval
+    // Only allows DOWNGRADES (→ PENDING_REVIEW) and rollbacks
+    // NEVER allows approve or publish
+    // ========================================
+    if (context?.bypassApproval && context?.source) {
+      // BLOCK: bypassApproval NEVER allows approval transitions
+      if (to === "APPROVED") {
+        // Exception: rollback (PUBLISHED → APPROVED) still allowed for backward compat
+        if (from === "PUBLISHED" && context.source.toLowerCase().includes("rollback")) {
+          return { allowed: true }
+        }
+        return {
+          allowed: false,
+          error: `bypassApproval cannot be used for approval. Use autoApprove with allowlist.`,
+        }
+      }
+
+      // BLOCK: bypassApproval NEVER allows publish
+      if (to === "PUBLISHED") {
+        return {
+          allowed: false,
+          error: `bypassApproval cannot be used for publishing. Publishing requires normal approval flow.`,
+        }
+      }
+
+      // ALLOW: Downgrades to PENDING_REVIEW (quarantine use case)
+      if (to === "PENDING_REVIEW") {
+        if (from === "APPROVED" || from === "PUBLISHED") {
+          return { allowed: true }
+        }
+      }
+    }
+
     return {
       allowed: false,
       error: `Illegal status transition: ${from} → ${to}. Allowed: [${allowedTargets.join(", ") || "none"}].`,
@@ -158,17 +217,45 @@ describe("RegulatoryRule Status Gates", () => {
   })
 
   describe("bypass exceptions (legitimate paths)", () => {
-    it("allows DRAFT → APPROVED with bypassApproval for trusted sources", () => {
+    it("BLOCKS DRAFT → APPROVED with bypassApproval (must use autoApprove with allowlist)", () => {
+      // bypassApproval is DEPRECATED and NEVER allows approval transitions
+      // This is a security fix - approval must go through the allowlist
       const result = validateTransition("DRAFT", "APPROVED", {
         source: "hnb-fetcher",
+        bypassApproval: true,
+      })
+      expect(result.allowed).toBe(false)
+      expect(result.error).toContain("bypassApproval cannot be used for approval")
+    })
+
+    it("allows PUBLISHED → APPROVED with rollback context (backward compat)", () => {
+      const result = validateTransition("PUBLISHED", "APPROVED", {
+        source: "rollback",
         bypassApproval: true,
       })
       expect(result.allowed).toBe(true)
     })
 
-    it("allows PUBLISHED → APPROVED with rollback context", () => {
+    it("allows PUBLISHED → APPROVED with systemAction ROLLBACK", () => {
       const result = validateTransition("PUBLISHED", "APPROVED", {
-        source: "rollback",
+        source: "manual-rollback",
+        systemAction: "ROLLBACK",
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    it("allows APPROVED → PENDING_REVIEW with systemAction QUARANTINE_DOWNGRADE", () => {
+      const result = validateTransition("APPROVED", "PENDING_REVIEW", {
+        source: "quarantine-script",
+        systemAction: "QUARANTINE_DOWNGRADE",
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    it("allows APPROVED → PENDING_REVIEW with bypassApproval (downgrade)", () => {
+      // Downgrades are still allowed with bypassApproval
+      const result = validateTransition("APPROVED", "PENDING_REVIEW", {
+        source: "quarantine",
         bypassApproval: true,
       })
       expect(result.allowed).toBe(true)
@@ -181,6 +268,16 @@ describe("RegulatoryRule Status Gates", () => {
         bypassApproval: true,
       })
       expect(result.allowed).toBe(false)
+    })
+
+    it("blocks DRAFT → PUBLISHED with bypassApproval", () => {
+      // bypassApproval NEVER allows publishing
+      const result = validateTransition("DRAFT", "PUBLISHED", {
+        source: "test",
+        bypassApproval: true,
+      })
+      expect(result.allowed).toBe(false)
+      expect(result.error).toContain("bypassApproval cannot be used for publishing")
     })
   })
 

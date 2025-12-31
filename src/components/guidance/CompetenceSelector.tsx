@@ -26,9 +26,9 @@ interface CompetenceSelectorProps {
 }
 
 const levelColors: Record<CompetenceLevel, string> = {
-  beginner: "bg-chart-4/20 text-emerald-400 border-emerald-500/30",
-  average: "bg-warning/20 text-amber-400 border-amber-500/30",
-  pro: "bg-chart-7/20 text-accent border-cyan-500/30",
+  beginner: "bg-chart-4/20 text-success border-emerald-500/30",
+  average: "bg-warning/20 text-warning border-warning/30",
+  pro: "bg-chart-7/20 text-accent border-interactive/30",
 }
 
 export function CompetenceSelector({
@@ -52,7 +52,7 @@ export function CompetenceSelector({
               "rounded-md px-3 py-1.5 text-sm font-medium transition-all border",
               globalLevel === level
                 ? levelColors[level]
-                : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
+                : "bg-surface/5 text-white/60 border-white/10 hover:bg-surface/10"
             )}
           >
             {LEVEL_LABELS[level]}
@@ -81,7 +81,7 @@ export function CompetenceSelector({
                     "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all border",
                     isActive
                       ? levelColors[level]
-                      : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
+                      : "bg-surface/5 text-white/60 border-white/10 hover:bg-surface/10"
                   )}
                 >
                   {LEVEL_LABELS[level]}

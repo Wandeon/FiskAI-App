@@ -5,6 +5,7 @@ import {
   Prisma,
   type FixedAsset,
 } from "@prisma/client"
+import type { TransactionClient } from "@/lib/db"
 
 import { postJournalEntry } from "@/lib/gl/posting-service"
 import { prisma } from "@/lib/prisma"
@@ -106,7 +107,7 @@ export const buildDepreciationEntries = (
 export const persistDepreciationSchedule = async (
   asset: FixedAsset,
   options: DepreciationScheduleOptions = {},
-  client: Prisma.TransactionClient = prisma
+  client: TransactionClient = prisma
 ) => {
   const entries = buildDepreciationEntries({
     acquisitionDate: asset.acquisitionDate,

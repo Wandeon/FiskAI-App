@@ -62,11 +62,11 @@ export function FloatingOrbs({ state, className }: FloatingOrbsProps) {
   return (
     // @design-override: Decorative background uses raw slate colors for dark theme consistency
     <div
-      className={`fixed inset-0 -z-10 overflow-hidden bg-slate-950 ${className || ""}`}
+      className={`fixed inset-0 -z-10 overflow-hidden bg-base ${className || ""}`}
       aria-hidden="true"
     >
       {/* Base gradient - @design-override: intentional dark gradient for auth backdrop */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-br from-surface via-slate-950 to-black" />
 
       {/* Floating orbs */}
       {orbs.map((orb, index) => (

@@ -313,25 +313,23 @@ describe("Citation Compliance Suite (Unit Tests)", () => {
 
       const formatted = formatRulesForPrompt(rules)
 
-      assert.ok(
-        formatted.includes("RELEVANT REGULATORY RULES"),
-        "Should include header"
-      )
-      assert.ok(
-        formatted.includes("CITATION INSTRUCTIONS"),
-        "Should include citation instructions"
-      )
-      assert.ok(
-        formatted.includes("Reference rules by number"),
-        "Should explain reference format"
-      )
+      assert.ok(formatted.includes("RELEVANT REGULATORY RULES"), "Should include header")
+      assert.ok(formatted.includes("CITATION INSTRUCTIONS"), "Should include citation instructions")
+      assert.ok(formatted.includes("Reference rules by number"), "Should explain reference format")
     })
   })
 
   describe("RuleContext Interface Validation", () => {
     it("required fields are documented correctly", () => {
       // This test documents the required interface fields
-      const requiredFields = ["ruleId", "conceptSlug", "value", "exactQuote", "sourceUrl", "fetchedAt"]
+      const requiredFields = [
+        "ruleId",
+        "conceptSlug",
+        "value",
+        "exactQuote",
+        "sourceUrl",
+        "fetchedAt",
+      ]
       const optionalFields = ["articleNumber", "lawReference"]
 
       const sampleRule: RuleContext = {

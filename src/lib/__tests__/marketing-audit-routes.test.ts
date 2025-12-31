@@ -9,16 +9,11 @@ describe("Marketing audit route inventory", () => {
     const routes = await buildRouteInventory(fixtureRoot, "src/app/(marketing)")
 
     assert.ok(
-      routes.some(
-        (route) => route.route === "/about" && route.file.endsWith("about/page.tsx")
-      )
+      routes.some((route) => route.route === "/about" && route.file.endsWith("about/page.tsx"))
     )
 
     assert.ok(
-      routes.some(
-        (route) =>
-          route.route === "/pricing" && route.file.endsWith("pricing/page.tsx")
-      )
+      routes.some((route) => route.route === "/pricing" && route.file.endsWith("pricing/page.tsx"))
     )
   })
 })

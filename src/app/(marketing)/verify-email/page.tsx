@@ -90,7 +90,7 @@ export default function VerifyEmailPage() {
       {state === "loading" && (
         <>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-info-bg">
               <Loader2 className="h-8 w-8 text-link animate-spin" />
             </div>
             <CardTitle className="text-2xl">Potvrda email adrese</CardTitle>
@@ -104,8 +104,8 @@ export default function VerifyEmailPage() {
       {state === "success" && (
         <>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-bg">
+              <CheckCircle className="h-8 w-8 text-success-text" />
             </div>
             <CardTitle className="text-2xl">Email potvrđen!</CardTitle>
           </CardHeader>
@@ -124,8 +124,8 @@ export default function VerifyEmailPage() {
       {state === "already_verified" && (
         <>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-bg">
+              <CheckCircle className="h-8 w-8 text-success-text" />
             </div>
             <CardTitle className="text-2xl">Već potvrđeno</CardTitle>
           </CardHeader>
@@ -143,8 +143,8 @@ export default function VerifyEmailPage() {
       {state === "expired" && (
         <>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-              <Clock className="h-8 w-8 text-amber-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning-bg">
+              <Clock className="h-8 w-8 text-warning-text" />
             </div>
             <CardTitle className="text-2xl">Link je istekao</CardTitle>
           </CardHeader>
@@ -163,13 +163,15 @@ export default function VerifyEmailPage() {
             {expiredEmail ? (
               <>
                 {resent && (
-                  <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className="flex items-center justify-center gap-2 text-success-text">
                     <CheckCircle className="h-4 w-4" />
                     <span className="text-sm">Novi kod je poslan na {expiredEmail}</span>
                   </div>
                 )}
                 {resendError && (
-                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{resendError}</div>
+                  <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">
+                    {resendError}
+                  </div>
                 )}
                 <Button className="w-full" onClick={handleResend} disabled={resending || resent}>
                   {resending ? (
@@ -199,13 +201,15 @@ export default function VerifyEmailPage() {
                   onChange={(e) => setResendEmail(e.target.value)}
                 />
                 {resent && (
-                  <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className="flex items-center justify-center gap-2 text-success-text">
                     <CheckCircle className="h-4 w-4" />
                     <span className="text-sm">Novi kod je poslan!</span>
                   </div>
                 )}
                 {resendError && (
-                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{resendError}</div>
+                  <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">
+                    {resendError}
+                  </div>
                 )}
                 <Button
                   className="w-full"
@@ -233,8 +237,8 @@ export default function VerifyEmailPage() {
       {(state === "invalid" || state === "error") && (
         <>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <XCircle className="h-8 w-8 text-red-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-bg">
+              <XCircle className="h-8 w-8 text-danger-text" />
             </div>
             <CardTitle className="text-2xl">
               {state === "invalid" ? "Nevažeći link" : "Došlo je do greške"}
@@ -261,7 +265,7 @@ export default function VerifyEmailPage() {
       {state === "use_otp" && (
         <>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-info-bg">
               <Info className="h-8 w-8 text-link" />
             </div>
             <CardTitle className="text-2xl">Koristite 6-znamenkasti kod</CardTitle>

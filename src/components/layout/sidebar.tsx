@@ -70,7 +70,7 @@ export function Sidebar({ defaultCollapsed = false, user, company }: SidebarProp
       <div className="flex h-full flex-col">
         {!isCollapsed && (
           <div className="border-b border-[var(--border)]/50 p-3">
-            <div className="rounded-2xl bg-white/40 dark:bg-white/5 backdrop-blur-md shadow-sm border border-white/20 px-3 py-3">
+            <div className="rounded-2xl bg-surface/40 dark:bg-surface/5 backdrop-blur-md shadow-sm border border-white/20 px-3 py-3">
               <div className="flex items-center gap-3">
                 {user.image ? (
                   <Image

@@ -23,10 +23,7 @@ export async function POST(request: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "Email je već u upotrebi" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Email je već u upotrebi" }, { status: 400 })
     }
 
     // Hash password

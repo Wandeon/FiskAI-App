@@ -54,7 +54,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
           type="button"
           onClick={onBack}
           layoutId="email-field"
-          className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-sm text-white/80 hover:bg-white/20"
+          className="mt-2 inline-flex items-center gap-1 rounded-full bg-surface/10 px-3 py-1 text-sm text-white/80 hover:bg-surface/20"
         >
           {email}
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +76,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
           placeholder="Ime i prezime"
           autoComplete="name"
           autoFocus
-          className="w-full h-12 px-4 text-base rounded-xl border border-white/20 bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:border-cyan-400"
+          className="w-full h-12 px-4 text-base rounded-xl border border-white/20 bg-surface/10 text-white placeholder:text-white/40 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-accent-light/30 focus:border-accent-light"
         />
 
         <div>
@@ -90,8 +90,8 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
                   businessType === option.value
-                    ? "bg-white/15 border-white/30"
-                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                    ? "bg-surface/15 border-white/30"
+                    : "bg-surface/5 border-white/10 hover:bg-surface/10 hover:border-white/20"
                 )}
               >
                 <input
@@ -100,7 +100,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
                   value={option.value}
                   checked={businessType === option.value}
                   onChange={(e) => setBusinessType(e.target.value)}
-                  className="h-4 w-4 border-white/30 bg-white/10 text-white focus:ring-white/30"
+                  className="h-4 w-4 border-white/30 bg-surface/10 text-white focus:ring-white/30"
                 />
                 <span className="text-sm text-white/90">{option.label}</span>
               </label>
@@ -121,10 +121,10 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
             autoComplete="new-password"
             className={cn(
               "w-full h-12 px-4 pr-12 text-base rounded-xl border transition-all",
-              "bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm",
-              "focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:border-cyan-400",
-              touched.password && !passwordValid ? "border-red-400" : "border-white/20",
-              touched.password && passwordValid && "border-green-400"
+              "bg-surface/10 text-white placeholder:text-white/40 backdrop-blur-sm",
+              "focus:outline-none focus:ring-2 focus:ring-accent-light/30 focus:border-accent-light",
+              touched.password && !passwordValid ? "border-danger-border" : "border-white/20",
+              touched.password && passwordValid && "border-success-border"
             )}
           />
           <button
@@ -170,10 +170,10 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
             autoComplete="new-password"
             className={cn(
               "w-full h-12 px-4 pr-12 text-base rounded-xl border transition-all",
-              "bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm",
-              "focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:border-cyan-400",
-              touched.confirm && !passwordsMatch ? "border-red-400" : "border-white/20",
-              touched.confirm && passwordsMatch && confirmPassword && "border-green-400"
+              "bg-surface/10 text-white placeholder:text-white/40 backdrop-blur-sm",
+              "focus:outline-none focus:ring-2 focus:ring-accent-light/30 focus:border-accent-light",
+              touched.confirm && !passwordsMatch ? "border-danger-border" : "border-white/20",
+              touched.confirm && passwordsMatch && confirmPassword && "border-success-border"
             )}
           />
           <button
@@ -213,7 +213,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400"
+            className="text-sm text-danger-text"
           >
             Lozinke se ne podudaraju
           </motion.p>
@@ -225,7 +225,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
           type="checkbox"
           checked={acceptTerms}
           onChange={(e) => setAcceptTerms(e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-accent focus:ring-cyan-400/30"
+          className="mt-1 h-4 w-4 rounded border-white/30 bg-surface/10 text-accent focus:ring-accent-light/30"
         />
         <span className="text-sm text-white/70">
           Prihvaćam{" "}
@@ -243,7 +243,7 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
         <motion.p
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-red-400"
+          className="text-sm text-danger-text"
         >
           {error}
         </motion.p>

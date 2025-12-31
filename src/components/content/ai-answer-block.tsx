@@ -92,8 +92,8 @@ export function AIAnswerBlock({
             <span
               className={cn(
                 "confidence-badge px-2 py-1 rounded text-xs font-medium",
-                confidence === "medium" && "bg-warning-bg text-yellow-800",
-                confidence === "low" && "bg-danger-bg text-red-800",
+                confidence === "medium" && "bg-warning-bg text-warning-text",
+                confidence === "low" && "bg-danger-bg text-danger-text",
                 confidence === "pending" && "bg-surface-2 text-foreground"
               )}
             >

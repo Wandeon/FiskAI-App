@@ -152,10 +152,9 @@ describe("Blast Radius CLI", () => {
 
   describe("Git Diff Handling", () => {
     it("should fail with clear error when git diff fails (invalid shas)", () => {
-      const result = runCLI(
-        ["--base-sha", "invalidsha123", "--head-sha", "invalidsha456"],
-        { expectFail: true }
-      )
+      const result = runCLI(["--base-sha", "invalidsha123", "--head-sha", "invalidsha456"], {
+        expectFail: true,
+      })
       // Should fail due to git error, not arg parsing
       assert.ok(result.exitCode !== 0)
       assert.ok(

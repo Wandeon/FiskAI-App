@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
             data: {
               correlationId: requestId,
               message: error instanceof Error ? error.message : "Unknown error",
-              retryable: true,
+              retriable: true,
             },
           }
 

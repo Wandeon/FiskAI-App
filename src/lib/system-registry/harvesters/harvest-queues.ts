@@ -53,11 +53,7 @@ function isValidQueueName(name: string): boolean {
 /**
  * Recursively collects .ts/.tsx files under a directory with a scan cap.
  */
-function collectSourceFiles(
-  dirPath: string,
-  fileList: string[],
-  hitLimit: { value: boolean }
-) {
+function collectSourceFiles(dirPath: string, fileList: string[], hitLimit: { value: boolean }) {
   if (hitLimit.value) return
 
   const entries = readdirSync(dirPath, { withFileTypes: true })
@@ -206,7 +202,9 @@ export async function harvestQueues(projectRoot: string): Promise<HarvesterResul
 
     if (
       hasQueueConstructor &&
-      !ALLOWED_QUEUE_CONSTRUCTOR_PATHS.includes(relativePath as (typeof ALLOWED_QUEUE_CONSTRUCTOR_PATHS)[number])
+      !ALLOWED_QUEUE_CONSTRUCTOR_PATHS.includes(
+        relativePath as (typeof ALLOWED_QUEUE_CONSTRUCTOR_PATHS)[number]
+      )
     ) {
       errors.push({
         path: relativePath,

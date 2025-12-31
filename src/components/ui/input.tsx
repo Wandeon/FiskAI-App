@@ -1,14 +1,13 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  error?: string | boolean;
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: string | boolean
   /**
    * ID of the element that describes this input (typically an error message).
    * When provided with error text, screen readers will announce the description.
    */
-  "aria-describedby"?: string;
+  "aria-describedby"?: string
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -36,9 +35,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         {...props}
       />
-    );
+    )
   }
-);
-Input.displayName = "Input";
+)
+Input.displayName = "Input"
 
-export { Input };
+export { Input }

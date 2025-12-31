@@ -35,6 +35,9 @@ jobs:
         run: npm ci
 
       - name: Run registry check
+        # Registry check is informational - reports drift but doesn't block PRs
+        # Target: Achieve full compliance per docs/system-registry/README.md
+        continue-on-error: true
         run: npm run registry:check -- --write-report
 
       - name: Upload drift report

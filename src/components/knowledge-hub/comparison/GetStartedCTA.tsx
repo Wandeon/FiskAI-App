@@ -9,25 +9,21 @@ export function GetStartedCTA() {
   const { stage } = useVisitorStore()
 
   // Show more compelling CTA if user came from wizard
-  const ctaText = stage === "recommendation"
-    ? "Započni s FiskAI"
-    : "Započni besplatno"
-  const ctaTitle = stage === "recommendation"
-    ? "Završite postavljanje tvrtke"
-    : "Spremni za automatizaciju?"
-  const ctaDescription = stage === "recommendation"
-    ? "Sada kada znate koji oblik poslovanja vam odgovara, registrirajte se i FiskAI će vas provesti kroz postavljanje."
-    : "FiskAI automatski prati prihode, rashode i rokove. Bez ručnog rada."
+  const ctaText = stage === "recommendation" ? "Započni s FiskAI" : "Započni besplatno"
+  const ctaTitle =
+    stage === "recommendation" ? "Završite postavljanje tvrtke" : "Spremni za automatizaciju?"
+  const ctaDescription =
+    stage === "recommendation"
+      ? "Sada kada znate koji oblik poslovanja vam odgovara, registrirajte se i FiskAI će vas provesti kroz postavljanje."
+      : "FiskAI automatski prati prihode, rashode i rokove. Bez ručnog rada."
 
   return (
     <section className="mt-12 border-t border-white/10 pt-8">
-      <div className="rounded-xl border border-focus/30 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 p-6">
+      <div className="rounded-xl border border-focus/30 bg-gradient-to-r from-interactive/10 to-chart-1/10 p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-white">{ctaTitle}</h3>
-            <p className="mt-1 text-sm text-white/70">
-              {ctaDescription}
-            </p>
+            <p className="mt-1 text-sm text-white/70">{ctaDescription}</p>
           </div>
           <Link
             href="/auth"

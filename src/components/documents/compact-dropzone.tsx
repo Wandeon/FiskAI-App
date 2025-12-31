@@ -71,7 +71,7 @@ export function CompactDropzone({
         ${
           isDragActive
             ? "border-focus bg-info-bg"
-            : "border-default bg-gradient-to-r from-slate-50 to-white hover:border-strong"
+            : "border-default bg-gradient-to-r from-surface-1 to-white hover:border-strong"
         }
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}
@@ -109,7 +109,7 @@ export function CompactDropzone({
           <select
             value={selectedAccountId}
             onChange={(e) => onAccountChange(e.target.value)}
-            className="text-sm border border-default rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-border-focus focus:border-focus hidden sm:block"
+            className="text-sm border border-default rounded-lg px-3 py-1.5 bg-surface focus:ring-2 focus:ring-border-focus focus:border-focus hidden sm:block"
             onClick={(e) => e.stopPropagation()}
           >
             {bankAccounts.map((acc) => (

@@ -98,7 +98,7 @@ export default async function StaffSettingsPage({ searchParams }: PageProps) {
                 href={`/settings?tab=${tab.id}`}
                 className={cn(
                   "flex items-start gap-3 rounded-lg border border-default p-3 transition-all",
-                  isActive ? "bg-white shadow-sm border-info-border" : "hover:bg-surface-1"
+                  isActive ? "bg-surface shadow-sm border-info-border" : "hover:bg-surface-1"
                 )}
               >
                 <div

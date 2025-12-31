@@ -5,9 +5,7 @@ import { SignJWT, jwtVerify } from "jose"
  * @param email - The subscriber's email address
  * @returns A signed JWT token that expires in 30 days
  */
-export async function generateUnsubscribeToken(
-  email: string
-): Promise<string> {
+export async function generateUnsubscribeToken(email: string): Promise<string> {
   const secret = getUnsubscribeSecret()
 
   const token = await new SignJWT({ email })
@@ -24,9 +22,7 @@ export async function generateUnsubscribeToken(
  * @param token - The JWT token to verify
  * @returns The email address if valid, null if invalid or expired
  */
-export async function verifyUnsubscribeToken(
-  token: string
-): Promise<string | null> {
+export async function verifyUnsubscribeToken(token: string): Promise<string | null> {
   try {
     const secret = getUnsubscribeSecret()
 

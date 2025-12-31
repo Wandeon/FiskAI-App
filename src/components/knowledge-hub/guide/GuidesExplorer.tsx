@@ -86,7 +86,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
     <div className="mt-10">
       {featured && group === "Sve" && query.trim().length === 0 && (
         <Reveal className="mb-10">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 md:p-8">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-surface/5 backdrop-blur-sm p-6 md:p-8">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_circle_at_0%_0%,rgba(6,182,212,0.16),transparent_60%),radial-gradient(700px_circle_at_100%_20%,rgba(99,102,241,0.12),transparent_55%)]" />
             <div className="relative grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-center">
               <div>
@@ -110,7 +110,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+              <div className="rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-5">
                 <p className="text-sm font-semibold text-white/90">Kako koristiti bazu znanja</p>
                 <ul className="mt-3 space-y-2 text-sm text-white/60">
                   <li className="flex items-start gap-2">
@@ -132,7 +132,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
         </Reveal>
       )}
 
-      <div className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 md:grid-cols-[1fr_auto] md:items-center">
+      <div className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-4 md:grid-cols-[1fr_auto] md:items-center">
         <label className="relative">
           <span className="sr-only">Pretraži vodiče</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
@@ -140,7 +140,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Pretraži vodiče (npr. paušalni, d.o.o., freelancer)…"
-            className="h-11 w-full rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm pl-10 pr-3 text-sm text-white/90 placeholder:text-white/40 outline-none transition-shadow focus:ring-2 focus:ring-cyan-500/30"
+            className="h-11 w-full rounded-xl border border-white/10 bg-surface/5 backdrop-blur-sm pl-10 pr-3 text-sm text-white/90 placeholder:text-white/40 outline-none transition-shadow focus:ring-2 focus:ring-cyan-500/30"
           />
         </label>
 
@@ -153,8 +153,8 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
               className={cn(
                 "rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
                 group === filter.id
-                  ? "border-cyan-500/30 bg-chart-7/10 text-accent"
-                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
+                  ? "border-interactive/30 bg-chart-7/10 text-accent"
+                  : "border-white/10 bg-surface/5 text-white/60 hover:bg-surface/10"
               )}
             >
               {filter.label}
@@ -164,7 +164,7 @@ export function GuidesExplorer({ guides }: { guides: GuideListItem[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center">
+        <div className="rounded-2xl border border-white/10 bg-surface/5 backdrop-blur-sm p-8 text-center">
           <p className="text-sm font-semibold text-white/90">Nema rezultata</p>
           <p className="mt-2 text-sm text-white/60">
             Pokušajte s drugim pojmom ili vratite filter na &quot;Sve&quot;.

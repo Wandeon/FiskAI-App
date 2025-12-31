@@ -98,11 +98,7 @@ export function PremisesList({ premises, companyId }: PremisesListProps) {
             onClick={handleSelectAll}
             title={allSelected ? "Odznaci sve" : "Oznaci sve"}
           >
-            {allSelected ? (
-              <CheckSquare className="h-4 w-4" />
-            ) : (
-              <Square className="h-4 w-4" />
-            )}
+            {allSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
           </Button>
         </div>
       </div>
@@ -132,11 +128,7 @@ export function PremisesList({ premises, companyId }: PremisesListProps) {
               <PowerOff className="mr-2 h-4 w-4" />
               Deaktiviraj
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedIds(new Set())}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
               Odustani
             </Button>
           </div>

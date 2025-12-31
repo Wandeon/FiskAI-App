@@ -71,7 +71,8 @@ export async function fetchWithOffline<T>(
 
   // Try network first if online
   if (isOnline()) {
-    const shouldFetchNetwork = forceNetwork || (await isCacheStale(storeName, CACHE_MAX_AGE[storeName]))
+    const shouldFetchNetwork =
+      forceNetwork || (await isCacheStale(storeName, CACHE_MAX_AGE[storeName]))
 
     if (shouldFetchNetwork) {
       try {

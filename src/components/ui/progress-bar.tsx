@@ -41,11 +41,11 @@ export function ProgressBar({
   const clampedValue = Math.min(100, Math.max(0, value))
 
   // Generate aria-label: use prop, or generate from current/total, or use percentage
-  const ariaLabel = ariaLabelProp ?? (
-    current !== undefined && total !== undefined
+  const ariaLabel =
+    ariaLabelProp ??
+    (current !== undefined && total !== undefined
       ? getProgressAriaLabel(current, total, "hr")
-      : `Napredak: ${Math.round(clampedValue)} posto`
-  )
+      : `Napredak: ${Math.round(clampedValue)} posto`)
 
   return (
     <div className={cn("w-full", className)}>
@@ -92,7 +92,12 @@ export function ProgressSteps({ steps, currentStep, className }: ProgressStepsPr
     >
       <ol className="flex items-center gap-2" role="list">
         {steps.map((step, index) => {
-          const stepStatus = index < currentStep ? "završeno" : index === currentStep ? "trenutni korak" : "predstoji"
+          const stepStatus =
+            index < currentStep
+              ? "završeno"
+              : index === currentStep
+                ? "trenutni korak"
+                : "predstoji"
           return (
             <li key={step} className="flex items-center gap-2">
               <div

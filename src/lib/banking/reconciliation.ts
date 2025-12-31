@@ -134,7 +134,12 @@ export function matchTransactionsToBoth(
       const topInvoiceMatch = invoiceMatches[0]
       const secondInvoiceMatch = invoiceMatches[1]
 
-      if (topInvoiceMatch && secondInvoiceMatch && topInvoiceMatch.score > 0 && secondInvoiceMatch.score === topInvoiceMatch.score) {
+      if (
+        topInvoiceMatch &&
+        secondInvoiceMatch &&
+        topInvoiceMatch.score > 0 &&
+        secondInvoiceMatch.score === topInvoiceMatch.score
+      ) {
         return {
           transactionId: transaction.id,
           matchedInvoiceId: null,
@@ -162,7 +167,12 @@ export function matchTransactionsToBoth(
       const topExpenseMatch = expenseMatches[0]
       const secondExpenseMatch = expenseMatches[1]
 
-      if (topExpenseMatch && secondExpenseMatch && topExpenseMatch.score > 0 && secondExpenseMatch.score === topExpenseMatch.score) {
+      if (
+        topExpenseMatch &&
+        secondExpenseMatch &&
+        topExpenseMatch.score > 0 &&
+        secondExpenseMatch.score === topExpenseMatch.score
+      ) {
         return {
           transactionId: transaction.id,
           matchedInvoiceId: null,
@@ -335,7 +345,9 @@ function calculateExpenseMatchScore(transaction: ParsedTransaction, expense: Exp
   // Check for description overlap
   const descWords = description.split(/\s+/).filter((w) => w.length > 3)
   const txnWords = txnDescription.split(/\s+/).filter((w) => w.length > 3)
-  const commonWords = descWords.filter((word) => txnWords.some((txnWord) => txnWord.includes(word) || word.includes(txnWord)))
+  const commonWords = descWords.filter((word) =>
+    txnWords.some((txnWord) => txnWord.includes(word) || word.includes(txnWord))
+  )
 
   if (commonWords.length > 0 && delta < 1 && dateDiffDays <= 3) {
     return 95
