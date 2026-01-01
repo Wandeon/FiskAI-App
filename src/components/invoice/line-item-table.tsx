@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useRef, useEffect, useCallback } from "react"
 import { Trash2, Search } from "lucide-react"
+import { calculateLineDisplay } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 
 export type ProductSuggestion = {
   id: string
@@ -240,9 +241,10 @@ export function LineItemTable({
         </thead>
         <tbody>
           {lines.map((line, index) => {
-            const lineTotal = (line.quantity || 0) * (line.unitPrice || 0)
-            const vatAmount = showVat ? lineTotal * ((line.vatRate || 0) / 100) : 0
-            const total = lineTotal + vatAmount
+            // Use domain-layer adapter for all VAT calculations
+            const display = calculateLineDisplay(line)
+            // When showVat is false, display net amount as total (VAT not applicable)
+            const total = showVat ? display.totalAmount : display.netAmount
             const isActiveSuggestions = searchIndex === index && suggestions.length > 0
             const isMultiline = multilineRows[index] || false
             // When multiline: align-top, otherwise: align-middle

@@ -11,6 +11,10 @@ import { toast } from "@/lib/toast"
 import { createInvoice } from "@/app/actions/invoice"
 import { InvoiceType } from "@prisma/client"
 import { useFormShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import {
+  calculateLineDisplay,
+  calculateInvoiceTotals,
+} from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 
 interface InvoiceFormProps {
   type: string
@@ -100,19 +104,8 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
     ])
   }
 
-  // Calculate totals
-  const totals = lines.reduce(
-    (acc, line) => {
-      const net = line.quantity * line.unitPrice
-      const vat = net * (line.vatRate / 100)
-      return {
-        netAmount: acc.netAmount + net,
-        vatAmount: acc.vatAmount + vat,
-        totalAmount: acc.totalAmount + net + vat,
-      }
-    },
-    { netAmount: 0, vatAmount: 0, totalAmount: 0 }
-  )
+  // Use domain-layer adapter for all VAT calculations
+  const totals = calculateInvoiceTotals(lines)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -236,90 +229,93 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
               </tr>
             </thead>
             <tbody>
-              {lines.map((line, index) => (
-                <tr key={index} className="border-b">
-                  <td className="py-2 pr-2">
-                    <Input
-                      value={line.description}
-                      onChange={(e) => updateLine(index, "description", e.target.value)}
-                      placeholder="Opis stavke"
-                      required
-                    />
-                  </td>
-                  <td className="py-2 pr-2">
-                    <Input
-                      type="number"
-                      min="0.001"
-                      step="0.001"
-                      value={line.quantity}
-                      onChange={(e) =>
-                        updateLine(index, "quantity", parseFloat(e.target.value) || 0)
-                      }
-                      required
-                    />
-                  </td>
-                  <td className="py-2 pr-2">
-                    <select
-                      value={line.unit}
-                      onChange={(e) => updateLine(index, "unit", e.target.value)}
-                      className="w-full rounded-md border-default text-sm"
-                    >
-                      <option value="C62">kom</option>
-                      <option value="HUR">sat</option>
-                      <option value="DAY">dan</option>
-                      <option value="MON">mjesec</option>
-                      <option value="KGM">kg</option>
-                      <option value="MTR">m</option>
-                      <option value="LTR">L</option>
-                    </select>
-                  </td>
-                  <td className="py-2 pr-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={line.unitPrice}
-                      onChange={(e) =>
-                        updateLine(index, "unitPrice", parseFloat(e.target.value) || 0)
-                      }
-                      required
-                    />
-                  </td>
-                  <td className="py-2 pr-2">
-                    <select
-                      value={isPausalni ? 0 : line.vatRate}
-                      onChange={(e) => updateLine(index, "vatRate", parseFloat(e.target.value))}
-                      className="w-full rounded-md border-default text-sm disabled:bg-surface-1"
-                      disabled={isPausalni}
-                      title={isPausalni ? "Paušalni obrt ne obračunava PDV" : undefined}
-                    >
-                      {isPausalni ? (
-                        <option value="0">0% (paušalni)</option>
-                      ) : (
-                        <>
-                          <option value="25">25%</option>
-                          <option value="13">13%</option>
-                          <option value="5">5%</option>
-                          <option value="0">0%</option>
-                        </>
-                      )}
-                    </select>
-                  </td>
-                  <td className="py-2 text-right font-mono">
-                    {formatCurrency(line.quantity * line.unitPrice * (1 + line.vatRate / 100))}
-                  </td>
-                  <td className="py-2">
-                    <button
-                      type="button"
-                      onClick={() => removeLine(index)}
-                      className="text-danger-text hover:text-danger-text px-2"
-                      disabled={lines.length === 1}
-                    >
-                      ×
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {lines.map((line, index) => {
+                const display = calculateLineDisplay(line)
+                return (
+                  <tr key={index} className="border-b">
+                    <td className="py-2 pr-2">
+                      <Input
+                        value={line.description}
+                        onChange={(e) => updateLine(index, "description", e.target.value)}
+                        placeholder="Opis stavke"
+                        required
+                      />
+                    </td>
+                    <td className="py-2 pr-2">
+                      <Input
+                        type="number"
+                        min="0.001"
+                        step="0.001"
+                        value={line.quantity}
+                        onChange={(e) =>
+                          updateLine(index, "quantity", parseFloat(e.target.value) || 0)
+                        }
+                        required
+                      />
+                    </td>
+                    <td className="py-2 pr-2">
+                      <select
+                        value={line.unit}
+                        onChange={(e) => updateLine(index, "unit", e.target.value)}
+                        className="w-full rounded-md border-default text-sm"
+                      >
+                        <option value="C62">kom</option>
+                        <option value="HUR">sat</option>
+                        <option value="DAY">dan</option>
+                        <option value="MON">mjesec</option>
+                        <option value="KGM">kg</option>
+                        <option value="MTR">m</option>
+                        <option value="LTR">L</option>
+                      </select>
+                    </td>
+                    <td className="py-2 pr-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={line.unitPrice}
+                        onChange={(e) =>
+                          updateLine(index, "unitPrice", parseFloat(e.target.value) || 0)
+                        }
+                        required
+                      />
+                    </td>
+                    <td className="py-2 pr-2">
+                      <select
+                        value={isPausalni ? 0 : line.vatRate}
+                        onChange={(e) => updateLine(index, "vatRate", parseFloat(e.target.value))}
+                        className="w-full rounded-md border-default text-sm disabled:bg-surface-1"
+                        disabled={isPausalni}
+                        title={isPausalni ? "Paušalni obrt ne obračunava PDV" : undefined}
+                      >
+                        {isPausalni ? (
+                          <option value="0">0% (paušalni)</option>
+                        ) : (
+                          <>
+                            <option value="25">25%</option>
+                            <option value="13">13%</option>
+                            <option value="5">5%</option>
+                            <option value="0">0%</option>
+                          </>
+                        )}
+                      </select>
+                    </td>
+                    <td className="py-2 text-right font-mono">
+                      {formatCurrency(display.totalAmount)}
+                    </td>
+                    <td className="py-2">
+                      <button
+                        type="button"
+                        onClick={() => removeLine(index)}
+                        className="text-danger-text hover:text-danger-text px-2"
+                        disabled={lines.length === 1}
+                      >
+                        ×
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           <Button type="button" variant="outline" size="sm" onClick={addLine} className="mt-4">

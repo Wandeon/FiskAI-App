@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { getReaderStatus } from "@/lib/stripe/terminal"
 import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
+// Explicit empty schema - GET with no query params
+const querySchema = z.object({})
+
 export async function GET(request: NextRequest) {
+  // Validate query params (none expected)
+  const searchParams = Object.fromEntries(request.nextUrl.searchParams)
+  querySchema.parse(searchParams)
   try {
     const user = await requireAuth()
     const company = await requireCompany(user.id!)

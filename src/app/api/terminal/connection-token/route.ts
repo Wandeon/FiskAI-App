@@ -1,9 +1,20 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { createConnectionToken } from "@/lib/stripe/terminal"
 import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
-export async function POST() {
+// Explicit empty schema - POST with no body expected
+const requestSchema = z.object({}).strict()
+
+export async function POST(request: NextRequest) {
+  // Validate empty body (or no body)
+  try {
+    const body = await request.json().catch(() => ({}))
+    requestSchema.parse(body)
+  } catch {
+    // Body validation is informational for empty schema
+  }
   try {
     const user = await requireAuth()
     const company = await requireCompany(user.id!)

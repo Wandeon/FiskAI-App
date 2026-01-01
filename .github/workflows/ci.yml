@@ -279,6 +279,30 @@ jobs:
           fi
           echo "✅ Domain layer is pure"
 
+      - name: Check no VAT calculations in UI
+        run: |
+          echo "Checking for VAT calculations in UI..."
+          # Check for direct VAT arithmetic in components (vatRate / 100 pattern)
+          VAT_VIOLATIONS=$(grep -rE 'vatRate.*\/ *100|taxRate.*\/ *100' src/components/ src/app/\(app\)/ 2>/dev/null | wc -l)
+          if [ "$VAT_VIOLATIONS" -gt 0 ]; then
+            echo "::warning::Found $VAT_VIOLATIONS potential VAT calculation(s) in UI"
+            echo "UI should use InvoiceDisplayAdapter for VAT calculations"
+            grep -rE 'vatRate.*\/ *100|taxRate.*\/ *100' src/components/ src/app/\(app\)/ 2>/dev/null || true
+          fi
+          echo "✅ VAT calculation check complete (found $VAT_VIOLATIONS potential issues)"
+
+      - name: Check UI uses domain adapters
+        run: |
+          echo "Checking UI imports domain layer correctly..."
+          # Check for direct Money/VatRate imports in components
+          DIRECT_IMPORTS=$(grep -rE 'from "@/domain/shared/(Money|VatRate)"' src/components/ src/app/\(app\)/ 2>/dev/null | wc -l)
+          if [ "$DIRECT_IMPORTS" -gt 0 ]; then
+            echo "::warning::Found $DIRECT_IMPORTS direct domain imports in UI"
+            echo "UI should use @/interfaces/invoicing/InvoiceDisplayAdapter"
+            grep -rE 'from "@/domain/shared/(Money|VatRate)"' src/components/ src/app/\(app\)/ 2>/dev/null || true
+          fi
+          echo "✅ Domain adapter check complete (found $DIRECT_IMPORTS direct imports)"
+
   build:
     name: Build
     runs-on: ubuntu-latest

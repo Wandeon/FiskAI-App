@@ -48,7 +48,7 @@ export const DropdownMenuTrigger = forwardRef<
     return (
       <div
         onClick={() => setOpen(!open)}
-        ref={ref as React.RefObject<HTMLDivElement>}
+        ref={ref as unknown as React.RefObject<HTMLDivElement>}
         aria-expanded={open}
         aria-haspopup="menu"
       >

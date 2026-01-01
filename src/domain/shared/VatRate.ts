@@ -28,6 +28,18 @@ export class VatRate {
   }
 
   /**
+   * Create VatRate from a percentage value.
+   * Useful for UI inputs where rates are entered as percentages (e.g., 25 for 25%).
+   */
+  static fromPercentage(percentage: number): VatRate {
+    if (percentage === 0) {
+      return VatRate.zero()
+    }
+    const rate = new Decimal(percentage).dividedBy(100)
+    return new VatRate(rate, `${percentage}%`, "standard")
+  }
+
+  /**
    * Croatian standard rates
    */
   static HR_STANDARD = VatRate.standard("0.25", "PDV 25%")

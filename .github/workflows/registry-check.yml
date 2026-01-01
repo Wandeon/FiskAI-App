@@ -39,9 +39,8 @@ jobs:
         run: npm ci
 
       - name: Run registry check
-        # Registry check is informational - reports drift but doesn't block PRs
-        # Target: Achieve full compliance per docs/system-registry/README.md
-        continue-on-error: true
+        # Phase 8 Lock-Down: Registry check is now BLOCKING
+        # Zero drift tolerance - all systems must be declared
         run: npm run registry:check -- --write-report
 
       - name: Upload drift report
@@ -58,17 +57,14 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.sha }}
-          # Progressive enforcement rollout:
-          # - Sprint 0-1: 'warn' (comment + neutral check)
-          # - Sprint 2+: Change to 'fail' to block CRITICAL PRs
-          BLAST_RADIUS_ENFORCEMENT_MODE: warn
+          # Phase 8 Lock-Down: Blast radius now BLOCKS critical PRs
+          BLAST_RADIUS_ENFORCEMENT_MODE: fail
         run: |
           npx tsx src/lib/system-registry/scripts/blast-radius.ts \
             --base-sha "$BASE_SHA" \
             --head-sha "$HEAD_SHA" \
             --output-format pr-comment \
             --write-comment
-        continue-on-error: true
 
       - name: Upload blast radius report
         if: github.event_name == 'pull_request'
@@ -79,7 +75,9 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
-      - name: Post Blast Radius PR Comment
+      - name: Post Blast Radius PR Comment (Informational)
+        # Non-blocking: Comment posting failure should not fail the build
+        # This is purely informational output, not a correctness check
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         continue-on-error: true

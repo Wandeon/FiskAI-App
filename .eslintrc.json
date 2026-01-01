@@ -180,8 +180,50 @@
               {
                 "group": ["@/lib/db*"],
                 "message": "UI components cannot import database utilities directly."
+              },
+              {
+                "group": ["@/domain/shared/Money", "@/domain/shared/VatRate", "@/domain/tax/*"],
+                "message": "UI cannot import domain Money/VAT directly. Use @/interfaces/invoicing/InvoiceDisplayAdapter."
               }
             ]
+          }
+        ],
+        "no-restricted-syntax": [
+          "warn",
+          {
+            "selector": "BinaryExpression[operator='*'][right.property.name='vatRate']",
+            "message": "VAT calculation in UI banned. Use calculateLineDisplay() or calculateInvoiceTotals() from InvoiceDisplayAdapter."
+          },
+          {
+            "selector": "BinaryExpression[operator='/'][right.value=100]",
+            "message": "Percentage calculation in UI may indicate VAT calc. Use InvoiceDisplayAdapter for money operations."
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/app/(app)/**/*.ts", "src/app/(app)/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/domain/shared/Money", "@/domain/shared/VatRate", "@/domain/tax/*"],
+                "message": "App routes cannot import domain Money/VAT directly. Use @/interfaces/invoicing/InvoiceDisplayAdapter."
+              }
+            ]
+          }
+        ],
+        "no-restricted-syntax": [
+          "warn",
+          {
+            "selector": "BinaryExpression[operator='*'][right.property.name='vatRate']",
+            "message": "VAT calculation in UI banned. Use calculateLineDisplay() or calculateInvoiceTotals() from InvoiceDisplayAdapter."
+          },
+          {
+            "selector": "BinaryExpression[operator='/'][right.value=100]",
+            "message": "Percentage calculation in UI may indicate VAT calc. Use InvoiceDisplayAdapter for money operations."
           }
         ]
       }

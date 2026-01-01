@@ -1,9 +1,17 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth-utils"
 import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
-export async function GET() {
+// Explicit empty schema - GET with no query params
+const querySchema = z.object({})
+
+export async function GET(request: NextRequest) {
+  // Validate query params (none expected)
+  const searchParams = Object.fromEntries(request.nextUrl.searchParams)
+  querySchema.parse(searchParams)
+
   await requireAdmin()
 
   try {

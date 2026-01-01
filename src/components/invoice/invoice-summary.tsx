@@ -2,17 +2,17 @@
 
 import { cn } from "@/lib/utils"
 import { FileText, User, Calendar } from "lucide-react"
+import {
+  calculateLineDisplay,
+  calculateInvoiceTotals,
+  type RawInvoiceLine,
+} from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 
 interface InvoiceSummaryProps {
   buyer?: { name: string; oib: string | null } | null
   invoiceNumber?: string
   issueDate?: Date
-  lines: Array<{
-    description: string
-    quantity: number
-    unitPrice: number
-    vatRate?: number
-  }>
+  lines: RawInvoiceLine[]
   currency?: string
   className?: string
 }
@@ -25,18 +25,8 @@ export function InvoiceSummary({
   currency = "EUR",
   className,
 }: InvoiceSummaryProps) {
-  const totals = lines.reduce(
-    (acc, line) => {
-      const net = (line.quantity || 0) * (line.unitPrice || 0)
-      const vat = net * ((line.vatRate || 0) / 100)
-      return {
-        net: acc.net + net,
-        vat: acc.vat + vat,
-        total: acc.total + net + vat,
-      }
-    },
-    { net: 0, vat: 0, total: 0 }
-  )
+  // Use domain-layer adapter for all VAT calculations
+  const totals = calculateInvoiceTotals(lines)
 
   const currencySymbol = currency === "EUR" ? "€" : currency
 
@@ -94,18 +84,21 @@ export function InvoiceSummary({
             {lines.length} {lines.length === 1 ? "stavka" : lines.length < 5 ? "stavke" : "stavki"}
           </p>
           <div className="space-y-2 text-sm text-secondary">
-            {lines.slice(0, 3).map((line, i) => (
-              <div key={i} className="flex justify-between gap-3">
-                <span className="truncate flex-1 min-w-0">{line.description || "Stavka"}</span>
-                {/* tabular-nums ensures digits line up perfectly */}
-                <span
-                  className="font-medium text-foreground tabular-nums flex-shrink-0"
-                  style={{ fontVariantNumeric: "tabular-nums" }}
-                >
-                  {formatCurrency((line.quantity || 0) * (line.unitPrice || 0))} {currencySymbol}
-                </span>
-              </div>
-            ))}
+            {lines.slice(0, 3).map((line, i) => {
+              const display = calculateLineDisplay(line)
+              return (
+                <div key={i} className="flex justify-between gap-3">
+                  <span className="truncate flex-1 min-w-0">{line.description || "Stavka"}</span>
+                  {/* tabular-nums ensures digits line up perfectly */}
+                  <span
+                    className="font-medium text-foreground tabular-nums flex-shrink-0"
+                    style={{ fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatCurrency(display.netAmount)} {currencySymbol}
+                  </span>
+                </div>
+              )
+            })}
             {lines.length > 3 && <p className="text-xs text-muted">+{lines.length - 3} više...</p>}
           </div>
         </div>
@@ -118,20 +111,20 @@ export function InvoiceSummary({
           <div className="flex justify-between text-secondary">
             <span>Neto</span>
             <span className="tabular-nums">
-              {formatCurrency(totals.net)} {currencySymbol}
+              {formatCurrency(totals.netAmount)} {currencySymbol}
             </span>
           </div>
           <div className="flex justify-between text-secondary">
             <span>PDV</span>
             <span className="tabular-nums">
-              {formatCurrency(totals.vat)} {currencySymbol}
+              {formatCurrency(totals.vatAmount)} {currencySymbol}
             </span>
           </div>
 
           <div className="flex justify-between items-center text-lg font-bold text-foreground pt-2 border-t border-default">
             <span>Ukupno</span>
             <span className="text-link tabular-nums">
-              {formatCurrency(totals.total)} {currencySymbol}
+              {formatCurrency(totals.totalAmount)} {currencySymbol}
             </span>
           </div>
         </div>

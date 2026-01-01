@@ -1,4 +1,9 @@
 import { cn } from "@/lib/utils"
+import {
+  calculateLineDisplay,
+  calculateInvoiceTotals,
+  type RawInvoiceLine,
+} from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 
 // Local type for contact data (containment: removed @prisma/client import)
 interface ContactData {
@@ -22,13 +27,7 @@ interface InvoicePdfPreviewProps {
   invoiceNumber: string
   issueDate?: Date
   dueDate?: Date
-  lines: Array<{
-    description: string
-    quantity: number
-    unit?: string
-    unitPrice: number
-    vatRate?: number
-  }>
+  lines: RawInvoiceLine[]
   currency: string
   className?: string
 }
@@ -43,18 +42,8 @@ export function InvoicePdfPreview({
   currency,
   className,
 }: InvoicePdfPreviewProps) {
-  const totals = lines.reduce(
-    (acc, line) => {
-      const net = (line.quantity || 0) * (line.unitPrice || 0)
-      const vat = net * ((line.vatRate || 0) / 100)
-      return {
-        net: acc.net + net,
-        vat: acc.vat + vat,
-        total: acc.total + net + vat,
-      }
-    },
-    { net: 0, vat: 0, total: 0 }
-  )
+  // Use domain-layer adapter for all VAT calculations
+  const totals = calculateInvoiceTotals(lines)
 
   return (
     <div
@@ -128,22 +117,24 @@ export function InvoicePdfPreview({
                 </tr>
               )}
               {lines.map((line, index) => {
-                const net = (line.quantity || 0) * (line.unitPrice || 0)
-                const vatAmount = net * ((line.vatRate || 0) / 100)
+                // Use domain-layer adapter for all calculations
+                const display = calculateLineDisplay(line)
                 return (
                   <tr key={index} className="border-t border-subtle text-foreground">
                     <td className="px-3 py-2 font-medium text-foreground">
                       {line.description || `Stavka ${index + 1}`}
                     </td>
-                    <td className="px-3 py-2 text-right">{line.quantity}</td>
+                    <td className="px-3 py-2 text-right">{display.quantity}</td>
                     <td className="px-3 py-2 text-right">
-                      {net.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
+                      {display.netAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })}{" "}
+                      {currency}
                     </td>
                     <td className="px-3 py-2 text-right">
-                      {vatAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
+                      {display.vatAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })}{" "}
+                      {currency}
                     </td>
                     <td className="px-3 py-2 text-right font-semibold text-foreground">
-                      {(net + vatAmount).toLocaleString("hr-HR", { minimumFractionDigits: 2 })}{" "}
+                      {display.totalAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })}{" "}
                       {currency}
                     </td>
                   </tr>
@@ -157,19 +148,19 @@ export function InvoicePdfPreview({
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">Neto</span>
             <span>
-              {totals.net.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
+              {totals.netAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">PDV</span>
             <span>
-              {totals.vat.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
+              {totals.vatAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
             </span>
           </div>
           <div className="flex items-center justify-between text-lg font-semibold">
             <span>Ukupno</span>
             <span>
-              {totals.total.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
+              {totals.totalAmount.toLocaleString("hr-HR", { minimumFractionDigits: 2 })} {currency}
             </span>
           </div>
         </footer>

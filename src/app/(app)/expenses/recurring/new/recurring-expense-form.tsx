@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/lib/toast"
 import { createRecurringExpense } from "@/app/actions/expense"
 import { useFormShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import { calculateVatFromNet } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 import type { ExpenseCategory, Frequency } from "@prisma/client"
 
 interface RecurringExpenseFormProps {
@@ -43,9 +44,11 @@ export function RecurringExpenseForm({ vendors, categories }: RecurringExpenseFo
   const [nextDate, setNextDate] = useState(new Date().toISOString().split("T")[0])
   const [endDate, setEndDate] = useState("")
 
+  // Use domain-layer adapter for VAT calculations
   const net = parseFloat(netAmount) || 0
-  const vat = net * (parseFloat(vatRate) / 100)
-  const total = net + vat
+  const vatCalc = calculateVatFromNet(net, parseFloat(vatRate) || 0)
+  const vat = vatCalc.vatAmount
+  const total = vatCalc.totalAmount
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
