@@ -343,7 +343,7 @@ export async function* buildAnswerWithReasoning(
     })
 
     // Determine terminal outcome using decision coverage
-    const topic = inferTopicFromIntent(resolution.intent, {
+    const topic = inferTopicFromIntent(resolution.intent ?? "general", {
       subjects: resolution.concepts,
       products: resolution.concepts,
     })

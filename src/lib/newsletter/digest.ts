@@ -31,5 +31,8 @@ export async function getRecentNewsForDigest(hoursBack = 24): Promise<NewsDigest
     .orderBy(desc(newsPosts.publishedAt))
     .limit(10)
 
-  return posts
+  return posts.map((post) => ({
+    ...post,
+    excerpt: post.excerpt ?? "",
+  }))
 }

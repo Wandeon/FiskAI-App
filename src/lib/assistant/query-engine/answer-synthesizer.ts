@@ -118,7 +118,7 @@ export async function synthesizeAnswer(
     // Build rules context for LLM with sanitized content
     const rulesContext = context.rules
       .map((rule, idx) => {
-        const authority = getAuthorityLabel(rule.authority)
+        const authority = getAuthorityLabel(rule.authority ?? "LAW")
         const sanitizedTitle = sanitizeRuleContent(rule.titleHr)
         const sanitizedBody = sanitizeRuleContent(rule.bodyHr || rule.explanationHr || "")
 
@@ -280,7 +280,7 @@ export async function synthesizeMultiRuleAnswer(
   try {
     const rulesContext = context.rules
       .map((rule, idx) => {
-        const authority = getAuthorityLabel(rule.authority)
+        const authority = getAuthorityLabel(rule.authority ?? "LAW")
         return `
 [Pravilo ${idx + 1}]
 Naslov: ${rule.titleHr}

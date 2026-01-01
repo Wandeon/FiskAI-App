@@ -369,7 +369,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
             <div className="mb-8 flex flex-wrap items-center gap-2">
               <Tag className="h-4 w-4 text-muted" />
-              {post.tags.map((tag: string) => (
+              {(post.tags as string[]).map((tag: string) => (
                 <Link
                   key={tag}
                   href={`/vijesti/tag/${tag}`}

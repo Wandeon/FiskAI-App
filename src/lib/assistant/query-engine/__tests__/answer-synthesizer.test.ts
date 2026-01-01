@@ -26,7 +26,7 @@ describe("Answer Synthesizer", () => {
     valueType: "percentage",
     authority: "LAW",
     confidence: 0.95,
-    effectiveFrom: "2013-01-01",
+    effectiveFrom: new Date("2013-01-01"),
     effectiveUntil: null,
     appliesWhen: null,
     obligationType: "OBLIGATION",

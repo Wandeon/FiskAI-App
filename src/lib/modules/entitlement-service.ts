@@ -387,7 +387,7 @@ export async function expireTrialEntitlements(): Promise<number> {
             changeType: "TRIAL_EXPIRED",
             moduleKey: key,
             previousValue: value as unknown as Record<string, unknown>,
-            newValue: null,
+            newValue: {} as Record<string, unknown>,
             reason: "Trial period expired",
           },
         })

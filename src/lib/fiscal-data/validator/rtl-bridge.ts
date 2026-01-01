@@ -406,10 +406,11 @@ export function createContentSyncEvent(
   const changeType: ChangeType = previousValue === null ? "create" : "update"
 
   // Build signature
+  // Note: Using SOURCE_CHANGED as VALUE_CHANGE is not in the ContentSyncEventType enum
   const signature = buildEventSignature({
     ruleId: result.ruleId || `fiscal-${result.dataPoint}`,
     conceptId: mapping.conceptId,
-    type: "VALUE_CHANGE",
+    type: "SOURCE_CHANGED",
     effectiveFrom,
     newValue: String(result.foundValue),
     sourcePointerIds: result.sourcePointerIds,
@@ -429,7 +430,7 @@ export function createContentSyncEvent(
     version: 1,
     id: eventId,
     timestamp: now,
-    type: "VALUE_CHANGE",
+    type: "SOURCE_CHANGED",
     ruleId: result.ruleId || `fiscal-${result.dataPoint}`,
     conceptId: mapping.conceptId,
     domain: mapRtlDomainToContentDomain(mapping.rtlDomain),

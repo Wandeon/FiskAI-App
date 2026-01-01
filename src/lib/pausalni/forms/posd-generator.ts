@@ -91,7 +91,7 @@ export async function getAnnualIncomeSummary(
         lt: new Date(year + 1, 0, 1),
       },
       status: {
-        notIn: ["DRAFT", "CANCELLED"],
+        notIn: ["DRAFT", "CANCELLED"] as const,
       },
     },
     select: {
@@ -173,7 +173,7 @@ export async function preparePosdFormData(
     companyAddress: company.address || "",
     companyCity: company.city || "",
     companyPostalCode: company.postalCode || "",
-    activityCode: profile?.activityCode || undefined,
+    activityCode: (profile as { activityCode?: string } | null)?.activityCode || undefined,
     periodYear: year,
     grossIncome,
     expenseBracket,

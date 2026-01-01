@@ -83,7 +83,7 @@ export default function SupportTicketCreatedEmail({
               </span>
               <span style={categoryText}> · {categoryLabels[category] || category}</span>
             </Text>
-            <Text style={ticketTitle}>{ticketTitle}</Text>
+            <Text style={ticketTitleStyle}>{ticketTitle}</Text>
             {ticketBody && <Text style={ticketBody_style}>{ticketBody}</Text>}
           </Section>
 
@@ -168,7 +168,7 @@ const categoryText = {
   fontSize: "12px",
 }
 
-const ticketTitle = {
+const ticketTitleStyle = {
   color: "#0f172a",
   fontSize: "18px",
   fontWeight: "600" as const,
