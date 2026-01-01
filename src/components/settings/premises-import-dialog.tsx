@@ -94,8 +94,8 @@ export function PremisesImportDialog({ companyId, isOpen, onClose }: PremisesImp
     }
   }
 
-  const handleDownloadTemplate = () => {
-    const template = generatePremisesTemplate()
+  const handleDownloadTemplate = async () => {
+    const template = await generatePremisesTemplate()
     const blob = new Blob([template], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
