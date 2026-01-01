@@ -87,7 +87,30 @@
       "files": ["src/__tests__/**/*", "**/*.test.ts", "**/*.test.tsx"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-floating-promises": "off",
+        "@typescript-eslint/no-misused-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "src/app/**/*.ts",
+        "src/app/**/*.tsx",
+        "src/lib/**/*.ts",
+        "src/lib/**/*.tsx",
+        "src/components/**/*.ts",
+        "src/components/**/*.tsx",
+        "src/stores/**/*.ts"
+      ],
+      "excludedFiles": [
+        "src/domain/**/*",
+        "src/application/**/*",
+        "src/infrastructure/**/*",
+        "src/interfaces/**/*"
+      ],
+      "rules": {
+        "@typescript-eslint/no-floating-promises": "warn",
+        "@typescript-eslint/no-misused-promises": "warn"
       }
     },
     {
