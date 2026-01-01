@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { db } from "@/lib/db"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -34,6 +35,9 @@ export async function GET() {
     })
   } catch (error) {
     console.error("[system-status-cleanup] Error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       { error: "Cleanup failed", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

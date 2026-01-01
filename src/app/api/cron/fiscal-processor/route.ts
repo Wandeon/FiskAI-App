@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { FiscalRequest } from "@prisma/client"
 import { executeFiscalRequest } from "@/lib/fiscal/fiscal-pipeline"
 import { buildFiscalResponseCreateInput } from "@/lib/fiscal/response-builder"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -58,6 +59,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("[fiscal-processor] error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json({ error: "Processing failed" }, { status: 500 })
   }
 }

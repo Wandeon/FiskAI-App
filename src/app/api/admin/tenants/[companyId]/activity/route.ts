@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import {
+  parseParams,
+  parseQuery,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { tenantParamsSchema, tenantActivityQuerySchema } from "@/app/api/admin/_schemas"
 
 type RouteContext = {
   params: Promise<{ companyId: string }>
@@ -9,11 +16,12 @@ type RouteContext = {
 export async function GET(req: NextRequest, context: RouteContext) {
   try {
     await requireAdmin()
-    const { companyId } = await context.params
+    const { companyId } = parseParams(await context.params, tenantParamsSchema)
 
     const { searchParams } = new URL(req.url)
-    const limit = parseInt(searchParams.get("limit") || "50")
-    const offset = parseInt(searchParams.get("offset") || "0")
+    const query = parseQuery(searchParams, tenantActivityQuerySchema)
+    const limit = query.limit
+    const offset = (query.page - 1) * query.limit
 
     const [logs, total] = await Promise.all([
       db.auditLog.findMany({
@@ -65,6 +73,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
       hasMore: offset + logs.length < total,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Failed to fetch activity logs:", error)
     return NextResponse.json({ error: "Failed to fetch activity logs" }, { status: 500 })
   }

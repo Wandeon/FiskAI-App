@@ -22,7 +22,7 @@
         }
       }
     ],
-    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-explicit-any": "error",
     "import/no-restricted-paths": [
       "error",
       {
@@ -90,31 +90,6 @@
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-misused-promises": "off"
-      }
-    },
-    {
-      "files": [
-        "src/app/**/*.ts",
-        "src/app/**/*.tsx",
-        "src/lib/**/*.ts",
-        "src/lib/**/*.tsx",
-        "src/components/**/*.ts",
-        "src/components/**/*.tsx",
-        "src/stores/**/*.ts",
-        "src/contexts/**/*.ts",
-        "src/contexts/**/*.tsx",
-        "src/hooks/**/*.ts",
-        "src/hooks/**/*.tsx"
-      ],
-      "excludedFiles": [
-        "src/domain/**/*",
-        "src/application/**/*",
-        "src/infrastructure/**/*",
-        "src/interfaces/**/*"
-      ],
-      "rules": {
-        "@typescript-eslint/no-floating-promises": "warn",
-        "@typescript-eslint/no-misused-promises": "warn"
       }
     },
     {
@@ -205,8 +180,50 @@
               {
                 "group": ["@/lib/db*"],
                 "message": "UI components cannot import database utilities directly."
+              },
+              {
+                "group": ["@/domain/shared/Money", "@/domain/shared/VatRate", "@/domain/tax/*"],
+                "message": "UI cannot import domain Money/VAT directly. Use @/interfaces/invoicing/InvoiceDisplayAdapter."
               }
             ]
+          }
+        ],
+        "no-restricted-syntax": [
+          "warn",
+          {
+            "selector": "BinaryExpression[operator='*'][right.property.name='vatRate']",
+            "message": "VAT calculation in UI banned. Use calculateLineDisplay() or calculateInvoiceTotals() from InvoiceDisplayAdapter."
+          },
+          {
+            "selector": "BinaryExpression[operator='/'][right.value=100]",
+            "message": "Percentage calculation in UI may indicate VAT calc. Use InvoiceDisplayAdapter for money operations."
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/app/(app)/**/*.ts", "src/app/(app)/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/domain/shared/Money", "@/domain/shared/VatRate", "@/domain/tax/*"],
+                "message": "App routes cannot import domain Money/VAT directly. Use @/interfaces/invoicing/InvoiceDisplayAdapter."
+              }
+            ]
+          }
+        ],
+        "no-restricted-syntax": [
+          "warn",
+          {
+            "selector": "BinaryExpression[operator='*'][right.property.name='vatRate']",
+            "message": "VAT calculation in UI banned. Use calculateLineDisplay() or calculateInvoiceTotals() from InvoiceDisplayAdapter."
+          },
+          {
+            "selector": "BinaryExpression[operator='/'][right.value=100]",
+            "message": "Percentage calculation in UI may indicate VAT calc. Use InvoiceDisplayAdapter for money operations."
           }
         ]
       }

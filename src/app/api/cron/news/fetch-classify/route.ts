@@ -25,6 +25,7 @@ import {
 import { eq, and, gte, lt, sql } from "drizzle-orm"
 import { generateUniqueSlug } from "@/lib/news/slug"
 import { enqueueArticleJob } from "@/lib/article-agent/queue"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes
 interface FetchClassifyResult {
@@ -350,6 +351,9 @@ export async function GET(request: NextRequest) {
       await failStage(pipelineRunId, result.errors)
     }
 
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         success: false,

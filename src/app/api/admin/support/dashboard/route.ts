@@ -5,6 +5,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { SupportTicketStatus, SupportTicketPriority } from "@prisma/client"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 interface SupportDashboardData {
   totalTickets: number
@@ -113,6 +114,9 @@ export async function GET() {
 
     return NextResponse.json(dashboardData)
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin support dashboard error:", error)
     return NextResponse.json({ error: "Failed to fetch support dashboard data" }, { status: 500 })
   }

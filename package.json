@@ -18,6 +18,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:property": "vitest run src/domain/shared/__tests__/Money.property.test.ts src/domain/tax/__tests__/VatBreakdown.property.test.ts src/domain/tax/__tests__/VatCalculator.property.test.ts src/domain/invoicing/__tests__/InvoiceStatus.property.test.ts",
+    "test:golden": "vitest run src/lib/fiscal/__tests__/xml-builder.golden.test.ts src/lib/reports/__tests__/pdv-xml.golden.test.ts",
+    "test:e2e": "playwright test",
     "test:tenant": "node --import tsx --test src/lib/__tests__/tenant-isolation.test.ts",
     "test:knowledge-hub": "node --import tsx --test src/lib/knowledge-hub/__tests__/*.test.ts",
     "audit:marketing": "tsx scripts/marketing-content-audit/run-audit.ts",
@@ -48,7 +52,7 @@
     "registry:check": "npx tsx src/lib/system-registry/scripts/registry-check.ts",
     "registry:harvest": "npx tsx src/lib/system-registry/harvesters/index.ts",
     "verify-contrast": "tsx src/design-system/scripts/verify-contrast.ts",
-    "test:node": "node --import tsx --test src/lib/__tests__/*.test.ts src/lib/e-invoice/__tests__/*.test.ts"
+    "test:node": "node --import tsx --test --test-name-pattern='.*' src/lib/__tests__/e-invoice-status.test.ts src/lib/__tests__/joppd-generator.test.ts src/lib/__tests__/login-token.test.ts src/lib/__tests__/marketing-audit-*.test.ts src/lib/__tests__/r2-tenant-isolation.test.ts src/lib/__tests__/rate-limit-fail-closed.test.ts src/lib/__tests__/rbac.test.ts src/lib/__tests__/reports.test.ts src/lib/__tests__/system-registry-blast-score.test.ts src/lib/__tests__/system-registry-enforcement.test.ts src/lib/__tests__/system-registry-github-check.test.ts src/lib/__tests__/system-registry-harvester-errors.test.ts src/lib/__tests__/system-registry-pr-comment.test.ts src/lib/__tests__/system-registry-queues.test.ts src/lib/__tests__/system-registry-workers.test.ts src/lib/__tests__/system-status-*.test.ts src/lib/__tests__/tenant-isolation.test.ts src/lib/e-invoice/__tests__/*.test.ts"
   },
   "lint-staged": {
     "src/app/(app)/**/*.{ts,tsx}": [
@@ -218,6 +222,7 @@
     "eslint": "^8",
     "eslint-config-next": "^15.5.0",
     "eslint-plugin-fisk-design-system": "file:src/design-system/eslint",
+    "fast-check": "^4.5.3",
     "husky": "^9.1.7",
     "jest-axe": "^10.0.0",
     "lint-staged": "^16.2.7",

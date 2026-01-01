@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { recordCronError } from "@/lib/cron-dlq"
 import { Prisma } from "@prisma/client"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 interface ProcessResult {
   companyId: string
@@ -165,6 +166,9 @@ async function handleRecurringExpenses(request: Request) {
     })
   } catch (error) {
     console.error("[cron:recurring-expenses] Fatal error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Unknown error",

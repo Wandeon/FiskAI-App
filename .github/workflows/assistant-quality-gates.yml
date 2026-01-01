@@ -56,11 +56,8 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    # E2E tests are tracked but currently non-blocking due to:
-    # 1. API integration tests need mocked AI responses in CI
-    # 2. Some keyboard/focus tests have timing issues in headless mode
-    # TODO: Set up proper API mocking and fix timing issues (issue #TBD)
-    continue-on-error: true
+    # Phase 8 Lock-Down: E2E tests now BLOCKING
+    # All tests must pass for compliance - no exceptions without ADR
     steps:
       - uses: actions/checkout@v4
 
@@ -114,9 +111,10 @@ jobs:
             exit 1
           fi
 
-          # E2E tests are tracked but non-blocking (continue-on-error: true)
+          # Phase 8 Lock-Down: E2E tests are now BLOCKING
           if [ "${{ needs.e2e-tests.result }}" != "success" ]; then
-            echo "::warning::E2E tests failed but are currently non-blocking"
+            echo "E2E tests failed - blocking deployment"
+            exit 1
           fi
 
-          echo "All quality gates passed (E2E tests are informational)"
+          echo "All quality gates passed"

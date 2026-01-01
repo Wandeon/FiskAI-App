@@ -3,6 +3,16 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts } from "@/lib/db/schema/news"
 import { eq, desc, and, gte, lte, like } from "drizzle-orm"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { z } from "zod"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const newsPostsQuerySchema = z.object({
+  status: z.string().optional(),
+  category: z.string().optional(),
+  fromDate: z.string().optional(),
+  toDate: z.string().optional(),
+  search: z.string().optional(),
+})
 
 export async function GET(request: NextRequest) {
   // Check admin auth
@@ -11,14 +21,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { searchParams } = request.nextUrl
-  const status = searchParams.get("status")
-  const categoryId = searchParams.get("category")
-  const fromDate = searchParams.get("fromDate")
-  const toDate = searchParams.get("toDate")
-  const search = searchParams.get("search")
-
   try {
+    const {
+      status,
+      category: categoryId,
+      fromDate,
+      toDate,
+      search,
+    } = parseQuery(request.nextUrl.searchParams, newsPostsQuerySchema)
     // Build query conditions
     const conditions = []
 
@@ -53,6 +63,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ posts })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching posts:", error)
     return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 })
   }

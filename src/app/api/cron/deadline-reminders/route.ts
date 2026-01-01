@@ -7,6 +7,7 @@ import { updateObligationStatuses } from "@/lib/pausalni/obligation-generator"
 import { OBLIGATION_LABELS, CROATIAN_MONTHS_GENITIVE } from "@/lib/pausalni/constants"
 import { eq, or, and, lte } from "drizzle-orm"
 import { Resend } from "resend"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Vercel cron or external cron calls this endpoint
 export async function GET(request: Request) {
@@ -107,6 +108,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Deadline reminder cron error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

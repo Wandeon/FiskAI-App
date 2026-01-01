@@ -168,6 +168,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
       window.addEventListener("keydown", handleKeyDown)
       return () => window.removeEventListener("keydown", handleKeyDown)
     }
+    return undefined
   }, [isOpen, onClose])
 
   // Lock body scroll
@@ -178,6 +179,7 @@ export function PortalNavigation({ isOpen, onClose }: PortalNavigationProps) {
         document.body.style.overflow = ""
       }
     }
+    return undefined
   }, [isOpen])
 
   return (

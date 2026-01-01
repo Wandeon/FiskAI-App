@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { euTransaction } from "@/lib/db/schema/pausalni"
-import { eq, and, gte, lte, desc } from "drizzle-orm"
+import { eq, and, desc } from "drizzle-orm"
 import { processTransactionsForEu } from "@/lib/pausalni/eu-detection"
 import { db } from "@/lib/db"
+import {
+  parseQuery,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import {
+  euTransactionsQuerySchema,
+  euTransactionsProcessBodySchema,
+} from "@/app/api/pausalni/_schemas"
 
 /**
  * GET /api/pausalni/eu-transactions
@@ -22,17 +32,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No company selected" }, { status: 400 })
     }
 
-    // Check if company is paušalni obrt
+    // Check if company is pausalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const searchParams = request.nextUrl.searchParams
-    const year = searchParams.get("year")
-      ? parseInt(searchParams.get("year")!)
-      : new Date().getFullYear()
-    const month = searchParams.get("month") ? parseInt(searchParams.get("month")!) : undefined
-    const status = searchParams.get("status") // 'confirmed' | 'pending'
+    // Parse and validate query params
+    const { year, month, status } = parseQuery(
+      request.nextUrl.searchParams,
+      euTransactionsQuerySchema
+    )
 
     // Build query conditions
     const conditions = [eq(euTransaction.companyId, company.id)]
@@ -68,6 +77,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ transactions, summary })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching EU transactions:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -89,17 +101,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No company selected" }, { status: 400 })
     }
 
-    // Check if company is paušalni obrt
+    // Check if company is pausalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { year, month, bankAccountId } = body
-
-    if (!year) {
-      return NextResponse.json({ error: "Year is required" }, { status: 400 })
-    }
+    // Parse and validate body
+    const { year, month, bankAccountId } = await parseBody(request, euTransactionsProcessBodySchema)
 
     // Fetch bank transactions for the specified period
     const startDate = new Date(year, month ? month - 1 : 0, 1)
@@ -144,6 +152,9 @@ export async function POST(request: NextRequest) {
       total: transactions.length,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error processing EU transactions:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

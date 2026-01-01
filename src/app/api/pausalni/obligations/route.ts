@@ -6,6 +6,13 @@ import { eq, and, gte, lte, desc } from "drizzle-orm"
 import { generateObligations, updateObligationStatuses } from "@/lib/pausalni/obligation-generator"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import {
+  parseQuery,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { obligationsQuerySchema, obligationsGenerateBodySchema } from "@/app/api/pausalni/_schemas"
 
 export const GET = withApiLogging(async (request: NextRequest) => {
   try {
@@ -17,12 +24,8 @@ export const GET = withApiLogging(async (request: NextRequest) => {
       userId: user.id!,
     })
 
-    const searchParams = request.nextUrl.searchParams
-    const status = searchParams.get("status")
-    const year = searchParams.get("year")
-      ? parseInt(searchParams.get("year")!)
-      : new Date().getFullYear()
-    const month = searchParams.get("month") ? parseInt(searchParams.get("month")!) : undefined
+    // Parse and validate query params
+    const { status, year, month } = parseQuery(request.nextUrl.searchParams, obligationsQuerySchema)
 
     // Update statuses first
     await updateObligationStatuses(company.id)
@@ -83,6 +86,9 @@ export const GET = withApiLogging(async (request: NextRequest) => {
 
     return NextResponse.json({ obligations, summary })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching obligations:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -98,12 +104,8 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       userId: user.id!,
     })
 
-    const body = await request.json()
-    const { year, month } = body
-
-    if (!year) {
-      return NextResponse.json({ error: "Year is required" }, { status: 400 })
-    }
+    // Parse and validate body
+    const { year, month } = await parseBody(request, obligationsGenerateBodySchema)
 
     // Generate obligations
     const obligations = await generateObligations({
@@ -117,6 +119,9 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       count: obligations.length,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error generating obligations:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

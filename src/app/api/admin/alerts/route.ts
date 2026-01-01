@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { dismissAlert, resolveAlert, acknowledgeAlert, snoozeAlert } from "@/lib/admin/alerts"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { alertActionSchema } from "../_schemas"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,16 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
     }
 
-    const body = await request.json()
-    const { action, companyId, type, snoozedUntil } = body
-
-    if (!action || !companyId || !type) {
-      return NextResponse.json(
-        { error: "Missing required fields: action, companyId, type" },
-        { status: 400 }
-      )
-    }
-
+    const { action, companyId, type, snoozedUntil } = await parseBody(request, alertActionSchema)
     const userId = user.id
 
     switch (action) {
@@ -32,20 +25,16 @@ export async function POST(request: NextRequest) {
         await acknowledgeAlert(companyId, type, userId)
         break
       case "snooze":
-        if (!snoozedUntil) {
-          return NextResponse.json(
-            { error: "snoozedUntil is required for snooze action" },
-            { status: 400 }
-          )
-        }
-        await snoozeAlert(companyId, type, userId, new Date(snoozedUntil))
+        // snoozedUntil is guaranteed by schema refine when action is "snooze"
+        await snoozeAlert(companyId, type, userId, snoozedUntil!)
         break
-      default:
-        return NextResponse.json({ error: `Invalid action: ${action}` }, { status: 400 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Alert action error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

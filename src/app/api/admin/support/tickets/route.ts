@@ -2,10 +2,32 @@
 // Admin API for listing all support tickets across companies
 
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { getIpFromHeaders, getUserAgentFromHeaders, logAudit } from "@/lib/audit"
 import { SupportTicketStatus, SupportTicketPriority } from "@prisma/client"
+import {
+  parseQuery,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+
+const ticketQuerySchema = z.object({
+  status: z.string().optional(),
+  priority: z.string().optional(),
+  companyId: z.string().optional(),
+  search: z.string().optional(),
+})
+
+const bulkActionSchema = z.object({
+  ticketIds: z.array(z.string()).min(1, "No ticket IDs provided"),
+  action: z.enum(["assign", "updateStatus", "close"], { message: "Unknown action" }),
+  assignToId: z.string().optional(),
+  status: z.nativeEnum(SupportTicketStatus).optional(),
+  reason: z.string().optional(),
+})
 
 const serializeTicket = (ticket: {
   id: string
@@ -36,11 +58,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get("status")
-    const priority = searchParams.get("priority")
-    const companyId = searchParams.get("companyId")
-    const search = searchParams.get("search")
+    const url = new URL(request.url)
+    const { status, priority, companyId, search } = parseQuery(url.searchParams, ticketQuerySchema)
 
     // Build where clause
     const where: any = {}
@@ -90,6 +109,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ tickets })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin support tickets error:", error)
     return NextResponse.json({ error: "Failed to fetch support tickets" }, { status: 500 })
   }
@@ -103,12 +125,10 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const body = await request.json()
-    const { ticketIds, action, assignToId, status, reason } = body
-
-    if (!ticketIds || !Array.isArray(ticketIds) || ticketIds.length === 0) {
-      return NextResponse.json({ error: "No ticket IDs provided" }, { status: 400 })
-    }
+    const { ticketIds, action, assignToId, status, reason } = await parseBody(
+      request,
+      bulkActionSchema
+    )
 
     const ipAddress = getIpFromHeaders(request.headers)
     const userAgent = getUserAgentFromHeaders(request.headers)
@@ -143,9 +163,6 @@ export async function PATCH(request: Request) {
           data: { status: SupportTicketStatus.CLOSED },
         })
         break
-
-      default:
-        return NextResponse.json({ error: "Unknown action" }, { status: 400 })
     }
 
     const afterTickets = await db.supportTicket.findMany({
@@ -178,6 +195,9 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin bulk action error:", error)
     return NextResponse.json({ error: "Failed to execute bulk action" }, { status: 500 })
   }

@@ -2,7 +2,26 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth-utils"
 import { getIpFromHeaders, getUserAgentFromHeaders, logAudit } from "@/lib/audit"
-import type { ReferenceCategory } from "@prisma/client"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { regulatoryTableIdSchema } from "@/app/api/admin/_schemas"
+import { z } from "zod"
+import { ReferenceCategory } from "@prisma/client"
+
+const updateRegulatoryTableSchema = z.object({
+  name: z.string().optional(),
+  category: z.nativeEnum(ReferenceCategory).optional(),
+  jurisdiction: z.string().optional(),
+  keyColumn: z.string().optional(),
+  valueColumn: z.string().optional(),
+  sourceUrl: z.string().nullable().optional(),
+  evidenceId: z.string().nullable().optional(),
+  reason: z.string().min(1, "Reason is required"),
+})
 
 const serializeTable = (table: {
   id: string
@@ -65,16 +84,11 @@ export async function PATCH(
   { params }: { params: Promise<{ tableId: string }> }
 ) {
   const admin = await requireAdmin()
-  const { tableId } = await params
 
   try {
-    const body = await request.json()
+    const { tableId } = parseParams(await params, regulatoryTableIdSchema)
     const { name, category, jurisdiction, keyColumn, valueColumn, sourceUrl, evidenceId, reason } =
-      body
-    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
-    if (!trimmedReason) {
-      return NextResponse.json({ error: "Reason is required" }, { status: 400 })
-    }
+      await parseBody(request, updateRegulatoryTableSchema)
 
     const table = await db.referenceTable.findUnique({
       where: { id: tableId },
@@ -106,7 +120,7 @@ export async function PATCH(
       action: "UPDATE",
       entity: "ReferenceTable",
       entityId: table.id,
-      reason: trimmedReason,
+      reason: reason.trim(),
       changes: {
         before: serializeTable(table),
         after: serializeTable(updatedTable),
@@ -117,6 +131,9 @@ export async function PATCH(
 
     return NextResponse.json({ table: updatedTable })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin regulatory table update error:", error)
     return NextResponse.json({ error: "Failed to update regulatory table" }, { status: 500 })
   }

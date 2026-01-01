@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email"
 import { generateWeeklyDigest, formatDigestEmail } from "@/lib/admin/weekly-digest"
 import AdminWeeklyDigest from "@/emails/admin-weekly-digest"
 import React from "react"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -63,6 +64,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Weekly digest error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         success: false,

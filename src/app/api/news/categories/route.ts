@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsCategories } from "@/lib/db/schema/news"
-import { asc, isNull, eq } from "drizzle-orm"
+import { asc } from "drizzle-orm"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 
@@ -57,6 +58,9 @@ export async function GET() {
       flat: allCategories,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching categories:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

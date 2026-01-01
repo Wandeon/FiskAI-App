@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const createAssignmentSchema = z.object({
   staffId: z.string().min(1),
@@ -35,67 +36,67 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await getCurrentUser()
+  try {
+    const user = await getCurrentUser()
 
-  if (!user || user.systemRole !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+    if (!user || user.systemRole !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
-  const body = await request.json()
-  const parsed = createAssignmentSchema.safeParse(body)
+    const { staffId, companyId, notes } = await parseBody(request, createAssignmentSchema)
 
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues }, { status: 400 })
-  }
+    // Verify staff user exists and has STAFF role
+    const staffUser = await db.user.findUnique({
+      where: { id: staffId },
+      select: { systemRole: true },
+    })
 
-  const { staffId, companyId, notes } = parsed.data
+    if (!staffUser || staffUser.systemRole !== "STAFF") {
+      return NextResponse.json({ error: "Invalid staff user" }, { status: 400 })
+    }
 
-  // Verify staff user exists and has STAFF role
-  const staffUser = await db.user.findUnique({
-    where: { id: staffId },
-    select: { systemRole: true },
-  })
+    // Verify company exists
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+    })
 
-  if (!staffUser || staffUser.systemRole !== "STAFF") {
-    return NextResponse.json({ error: "Invalid staff user" }, { status: 400 })
-  }
+    if (!company) {
+      return NextResponse.json({ error: "Company not found" }, { status: 404 })
+    }
 
-  // Verify company exists
-  const company = await db.company.findUnique({
-    where: { id: companyId },
-  })
-
-  if (!company) {
-    return NextResponse.json({ error: "Company not found" }, { status: 404 })
-  }
-
-  // Check for duplicate assignments
-  const existing = await db.staffAssignment.findUnique({
-    where: {
-      staffId_companyId: { staffId, companyId },
-    },
-  })
-
-  if (existing) {
-    return NextResponse.json({ error: "Assignment already exists" }, { status: 409 })
-  }
-
-  const assignment = await db.staffAssignment.create({
-    data: {
-      staffId,
-      companyId,
-      assignedBy: user.id,
-      notes,
-    },
-    include: {
-      staff: {
-        select: { id: true, name: true, email: true },
+    // Check for duplicate assignments
+    const existing = await db.staffAssignment.findUnique({
+      where: {
+        staffId_companyId: { staffId, companyId },
       },
-      company: {
-        select: { id: true, name: true },
-      },
-    },
-  })
+    })
 
-  return NextResponse.json(assignment, { status: 201 })
+    if (existing) {
+      return NextResponse.json({ error: "Assignment already exists" }, { status: 409 })
+    }
+
+    const assignment = await db.staffAssignment.create({
+      data: {
+        staffId,
+        companyId,
+        assignedBy: user.id,
+        notes,
+      },
+      include: {
+        staff: {
+          select: { id: true, name: true, email: true },
+        },
+        company: {
+          select: { id: true, name: true },
+        },
+      },
+    })
+
+    return NextResponse.json(assignment, { status: 201 })
+  } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    throw error
+  }
 }

@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsletterSubscriptions } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const querySchema = z.object({
+  token: z.string().min(1, "Missing unsubscribe token"),
+})
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const token = searchParams.get("token")
-
-    if (!token) {
-      return new NextResponse("Missing unsubscribe token", { status: 400 })
-    }
+    const { token } = parseQuery(searchParams, querySchema)
 
     // Decode email from token (simple base64 - in production use signed tokens)
     let email: string
@@ -101,6 +103,12 @@ export async function GET(request: Request) {
       }
     )
   } catch (error) {
+    if (isValidationError(error)) {
+      return new NextResponse(JSON.stringify(formatValidationError(error)), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
     console.error("Unsubscribe error:", error)
     return new NextResponse("An error occurred while unsubscribing", { status: 500 })
   }

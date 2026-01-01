@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email"
 import { getWeeklyAIQualityDigest } from "@/lib/ai/feedback-analytics"
 import AIQualityDigest from "@/emails/ai-quality-digest"
 import React from "react"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization")
@@ -39,6 +40,9 @@ export async function GET(request: Request) {
       digest: { globalAccuracy: digestData.globalStats.accuracy },
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
   }
 }

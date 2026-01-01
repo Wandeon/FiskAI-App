@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { SupportTicketPriority, SupportTicketStatus } from "@prisma/client"
 import { Resend } from "resend"
 import { logger } from "@/lib/logger"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Vercel cron or external cron calls this endpoint
 export async function GET(request: Request) {
@@ -183,6 +184,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     logger.error({ error }, "Support escalation cron error")
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

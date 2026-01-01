@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const schema = z.object({
   email: z.string().email(),
@@ -12,8 +13,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { email, name, password, businessType } = schema.parse(body)
+    const { email, name, password, businessType } = await parseBody(request, schema)
 
     const emailLower = email.toLowerCase()
 
@@ -44,8 +44,8 @@ export async function POST(request: Request) {
       userId: user.id,
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Nevažeći podaci" }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Register error:", error)
     return NextResponse.json({ error: "Greška pri registraciji" }, { status: 500 })

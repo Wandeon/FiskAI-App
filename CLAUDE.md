@@ -105,6 +105,45 @@ docker exec fiskai-db psql -U fiskai -d fiskai -c \
 - Tailwind CSS + CVA design system
 - Resend for transactional email
 
+## Code Architecture (DDD + Clean Architecture)
+
+```
+src/
+├── domain/           # Pure business logic (no external dependencies)
+│   ├── shared/       # Value objects (Money, Quantity, VatRate)
+│   ├── invoicing/    # Invoice aggregate, InvoiceLine entity
+│   ├── tax/          # VatCalculator, VatBreakdown
+│   ├── fiscalization/# FiscalRequest, ZkiCalculator
+│   ├── banking/      # BankTransaction, ReconciliationMatcher
+│   ├── compliance/   # Deadline, ComplianceStatus
+│   └── identity/     # Tenant, Permission
+│
+├── application/      # Use cases (imports domain only)
+│   ├── invoicing/    # CreateInvoice, IssueInvoice, etc.
+│   ├── fiscalization/# SubmitFiscalRequest
+│   └── ...
+│
+├── infrastructure/   # External services, DB, frameworks
+│   ├── persistence/  # Prisma repositories
+│   ├── fiscal/       # XML builders, signing, Porezna client
+│   └── mappers/      # DB ↔ Domain conversion
+│
+└── interfaces/       # API routes, server actions
+    ├── api/          # REST endpoints
+    └── actions/      # Server actions
+```
+
+**Architectural Rules (Enforced by ESLint + CI):**
+
+- **Domain** has NO external dependencies (no Prisma, no Next.js, no DB)
+- **Application** imports from domain only, injects repositories
+- **Infrastructure** implements domain interfaces
+- **UI** calls interfaces only, never domain/application directly
+- **Money** is always a value object (no floats) - use `Money.fromCents()`
+- **Validation** uses Zod at all boundaries (100% coverage)
+
+See `docs/adr/001-ddd-clean-architecture.md` for the full decision record.
+
 ## Key Directories
 
 - `/content/vodici/` - MDX guides
@@ -171,12 +210,14 @@ Key variables configured:
 All AI API keys (`OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `OLLAMA_API_KEY`) are accessed exclusively via `process.env` in server-side code. This is by design.
 
 **Security Rules:**
+
 1. **Never prefix AI keys with `NEXT_PUBLIC_`** - This would expose them to the browser
 2. **All AI code runs server-side** - Located in `/src/lib/ai/` and `/src/lib/assistant/`
 3. **Lazy-load pattern** - OpenAI client uses `getOpenAI()` to avoid build-time errors
 4. **No client-side AI calls** - All AI operations go through API routes
 
 **Verified Locations:**
+
 - `/src/lib/ai/extract.ts` - Server-side `getOpenAI()`
 - `/src/lib/ai/ocr.ts` - Server-side `getOpenAI()`
 - `/src/lib/ai/deepseek.ts` - Server-side `DEEPSEEK_API_KEY`

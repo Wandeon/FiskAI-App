@@ -9,19 +9,37 @@
  * 4. Verify AgentRun record shows completion
  */
 
+// Load environment variables for Node test runner (which doesn't auto-load .env files)
+// Load .env.local first (local overrides), then .env as fallback
+import dotenv from "dotenv"
+dotenv.config({ path: ".env.local" })
+dotenv.config({ path: ".env" })
+
 import { describe, it, before, after } from "node:test"
 import assert from "node:assert"
 import { db } from "@/lib/db"
 import { runArbiter } from "../agents/arbiter"
 
-describe("Arbiter E2E", () => {
+// Check if E2E tests with LLM should run
+// These tests require:
+// 1. OLLAMA_API_KEY and OLLAMA_ENDPOINT to be properly configured
+// 2. RUN_LLM_E2E_TESTS=true to be set (opt-in for CI/local environments)
+// This prevents CI failures when Ollama is not available or API keys are disabled
+const hasOllamaConfig = Boolean(process.env.OLLAMA_API_KEY && process.env.OLLAMA_ENDPOINT)
+const runLlmTests = process.env.RUN_LLM_E2E_TESTS === "true"
+const shouldSkip = !hasOllamaConfig || !runLlmTests
+const skipReason = shouldSkip
+  ? `Skipping: RUN_LLM_E2E_TESTS=${process.env.RUN_LLM_E2E_TESTS || "not set"} (set RUN_LLM_E2E_TESTS=true to enable)`
+  : undefined
+
+describe("Arbiter E2E", { skip: shouldSkip ? skipReason : undefined }, () => {
   let testConceptSlug: string
   let ruleAId: string
   let ruleBId: string
   let conflictId: string
 
   before(async () => {
-    testConceptSlug = `arbiter-e2e-test-${Date.now()}`
+    testConceptSlug = `arbiter-e2e-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     // Create Rule A: An existing published rule from GUIDANCE
     const ruleA = await db.regulatoryRule.create({
@@ -62,11 +80,13 @@ describe("Arbiter E2E", () => {
     ruleBId = ruleB.id
 
     // Create a synthetic conflict
+    // Use TEMPORAL_CONFLICT for rule-to-rule conflicts with overlapping effective dates
+    // SOURCE_CONFLICT is for source pointer conflicts and requires metadata.sourcePointerIds
     const conflict = await db.regulatoryConflict.create({
       data: {
         itemAId: ruleAId,
         itemBId: ruleBId,
-        conflictType: "SOURCE_CONFLICT",
+        conflictType: "TEMPORAL_CONFLICT",
         status: "OPEN",
         description: `[STRUCTURAL] E2E Test: Rules have overlapping effective dates. LAW (Rule B) may supersede GUIDANCE (Rule A).`,
       },

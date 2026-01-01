@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger"
 import { updateContext } from "@/lib/context"
 import { db } from "@/lib/db"
 import { getUsageLimits } from "@/lib/ai/rate-limiter"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const GET = withApiLogging(async (req: NextRequest) => {
   const session = await auth()

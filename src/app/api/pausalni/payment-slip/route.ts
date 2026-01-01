@@ -8,7 +8,14 @@ import {
   generateBarcodeDataUrl,
   formatHub3aData,
 } from "@/lib/pausalni/payment-slips"
-import { DOPRINOSI_2025, PDV_CONFIG, HOK_CONFIG } from "@/lib/pausalni/constants"
+import { DOPRINOSI_2025, HOK_CONFIG } from "@/lib/pausalni/constants"
+import {
+  parseQuery,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { paymentSlipQuerySchema, paymentSlipBatchBodySchema } from "@/app/api/pausalni/_schemas"
 
 /**
  * GET /api/pausalni/payment-slip
@@ -37,15 +44,11 @@ export const GET = withApiLogging(async (request: NextRequest) => {
 
     updateContext({ companyId: company.id })
 
-    const searchParams = request.nextUrl.searchParams
-    const type = searchParams.get("type") // MIO_I, MIO_II, ZDRAVSTVENO, PDV, HOK
-    const month = parseInt(searchParams.get("month") || String(new Date().getMonth() + 1))
-    const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()))
-    const amount = searchParams.get("amount") ? parseFloat(searchParams.get("amount")!) : undefined
-
-    if (!type) {
-      return NextResponse.json({ error: "Type is required" }, { status: 400 })
-    }
+    // Parse and validate query params
+    const { type, month, year, amount } = parseQuery(
+      request.nextUrl.searchParams,
+      paymentSlipQuerySchema
+    )
 
     const payer = {
       name: company.name,
@@ -63,10 +66,7 @@ export const GET = withApiLogging(async (request: NextRequest) => {
         break
 
       case "PDV":
-        if (amount === undefined) {
-          return NextResponse.json({ error: "Amount is required for PDV" }, { status: 400 })
-        }
-        slipData = generatePdvSlip(company.oib, amount, payer, month, year)
+        slipData = generatePdvSlip(company.oib, amount!, payer, month, year)
         break
 
       case "HOK":
@@ -82,7 +82,7 @@ export const GET = withApiLogging(async (request: NextRequest) => {
           model: HOK_CONFIG.model,
           reference: `${HOK_CONFIG.referencePrefix}-${company.oib}`,
           purposeCode: "OTHR",
-          description: `HOK članarina Q${Math.ceil(month / 3)} ${year}`,
+          description: `HOK clanarina Q${Math.ceil(month / 3)} ${year}`,
         }
         break
 
@@ -101,6 +101,9 @@ export const GET = withApiLogging(async (request: NextRequest) => {
       warnings: hub3aResult.warnings,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error generating payment slip:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -131,12 +134,8 @@ export const POST = withApiLogging(async (request: NextRequest) => {
 
     updateContext({ companyId: company.id })
 
-    const body = await request.json()
-    const { month, year } = body
-
-    if (!month || !year) {
-      return NextResponse.json({ error: "Month and year are required" }, { status: 400 })
-    }
+    // Parse and validate body
+    const { month, year } = await parseBody(request, paymentSlipBatchBodySchema)
 
     const payer = {
       name: company.name,
@@ -165,6 +164,9 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       totalAmount: DOPRINOSI_2025.TOTAL,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error generating batch payment slips:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

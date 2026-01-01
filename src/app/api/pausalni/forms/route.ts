@@ -5,6 +5,13 @@ import { generatedForm, pausalniProfile } from "@/lib/db/schema/pausalni"
 import { eq, and, desc } from "drizzle-orm"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import {
+  parseQuery,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { formsQuerySchema, formGenerateBodySchema } from "@/app/api/pausalni/_schemas"
 import { generatePdvFormForPeriod, validatePdvFormData } from "@/lib/pausalni/forms/pdv-generator"
 import {
   generatePdvSFormForPeriod,
@@ -36,15 +43,13 @@ export const GET = withApiLogging(async (request: NextRequest) => {
       userId: user.id!,
     })
 
-    // Check if company is paušalni obrt
+    // Check if company is pausalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const searchParams = request.nextUrl.searchParams
-    const formType = searchParams.get("formType")
-    const year = searchParams.get("year") ? parseInt(searchParams.get("year")!) : undefined
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50
+    // Parse and validate query params
+    const { formType, year, limit } = parseQuery(request.nextUrl.searchParams, formsQuerySchema)
 
     // Build query conditions
     const conditions = [eq(generatedForm.companyId, company.id)]
@@ -66,6 +71,9 @@ export const GET = withApiLogging(async (request: NextRequest) => {
 
     return NextResponse.json({ forms })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching forms:", error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal server error" },
@@ -96,35 +104,16 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       userId: user.id!,
     })
 
-    // Check if company is paušalni obrt
+    // Check if company is pausalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { formType, periodMonth, periodYear, zpFormData } = body
-
-    // Validate required fields
-    if (!formType || !["PDV", "PDV_S", "ZP"].includes(formType)) {
-      return NextResponse.json(
-        { error: "formType must be one of: PDV, PDV_S, ZP" },
-        { status: 400 }
-      )
-    }
-
-    if (!periodYear || periodYear < 2000 || periodYear > 2100) {
-      return NextResponse.json({ error: "Invalid periodYear" }, { status: 400 })
-    }
-
-    if (
-      (formType === "PDV" || formType === "PDV_S") &&
-      (!periodMonth || periodMonth < 1 || periodMonth > 12)
-    ) {
-      return NextResponse.json(
-        { error: "periodMonth is required for PDV and PDV_S forms (1-12)" },
-        { status: 400 }
-      )
-    }
+    // Parse and validate body
+    const { formType, periodMonth, periodYear, zpFormData } = await parseBody(
+      request,
+      formGenerateBodySchema
+    )
 
     // Check if company has PDV-ID registered (required for all forms)
     const [profile] = await drizzleDb
@@ -137,7 +126,7 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       return NextResponse.json(
         {
           error:
-            "Company does not have PDV-ID registered. Please update your paušalni profile first.",
+            "Company does not have PDV-ID registered. Please update your pausalni profile first.",
         },
         { status: 400 }
       )
@@ -196,7 +185,8 @@ export const POST = withApiLogging(async (request: NextRequest) => {
         }
 
         // Validate ZP form data
-        validationErrors = validateZpFormData(zpFormData as ZpFormData)
+        const zpData = zpFormData as unknown as ZpFormData
+        validationErrors = validateZpFormData(zpData)
         if (validationErrors.length > 0) {
           return NextResponse.json(
             { error: "Validation failed", errors: validationErrors },
@@ -204,7 +194,7 @@ export const POST = withApiLogging(async (request: NextRequest) => {
           )
         }
 
-        xml = generateZpXml(zpFormData as ZpFormData)
+        xml = generateZpXml(zpData)
         formData = zpFormData
         break
       }
@@ -245,6 +235,9 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       message: `${formType} form generated successfully`,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error generating form:", error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal server error" },

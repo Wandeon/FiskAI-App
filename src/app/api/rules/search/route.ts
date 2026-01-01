@@ -1,12 +1,26 @@
 // src/app/api/rules/search/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { checkRateLimit, getClientIP } from "@/lib/regulatory-truth/utils/rate-limit"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Valid enum values for validation
 const VALID_RISK_TIERS = ["T0", "T1", "T2", "T3"] as const
 const VALID_AUTHORITY_LEVELS = ["LAW", "GUIDANCE", "PROCEDURE", "PRACTICE"] as const
+
+const searchQuerySchema = z.object({
+  q: z.string().optional().default(""),
+  limit: z.coerce.number().min(1).max(100).optional().default(20),
+  riskTier: z.enum(VALID_RISK_TIERS).optional(),
+  authorityLevel: z.enum(VALID_AUTHORITY_LEVELS).optional(),
+  asOfDate: z.string().optional(),
+  includeExpired: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
+})
 
 /**
  * GET /api/rules/search

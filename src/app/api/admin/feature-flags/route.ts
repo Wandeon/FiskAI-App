@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth-utils"
-import { listFlags, createFlag, getFlagStats, type FeatureFlagFilters } from "@/lib/feature-flags"
+import { listFlags, createFlag, getFlagStats } from "@/lib/feature-flags"
+import {
+  parseQuery,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { featureFlagQuerySchema, createFeatureFlagSchema } from "../_schemas"
 
 /**
  * GET /api/admin/feature-flags
@@ -8,23 +15,21 @@ import { listFlags, createFlag, getFlagStats, type FeatureFlagFilters } from "@/
  * List all feature flags with optional filters
  */
 export async function GET(request: NextRequest) {
-  const user = await requireAdmin()
-  const { searchParams } = new URL(request.url)
+  await requireAdmin()
 
-  const filters: FeatureFlagFilters = {}
-  const status = searchParams.get("status")
-  const scope = searchParams.get("scope")
-  const category = searchParams.get("category")
-  const search = searchParams.get("search")
+  try {
+    const { searchParams } = new URL(request.url)
+    const filters = parseQuery(searchParams, featureFlagQuerySchema)
 
-  if (status) filters.status = status as FeatureFlagFilters["status"]
-  if (scope) filters.scope = scope as FeatureFlagFilters["scope"]
-  if (category) filters.category = category
-  if (search) filters.search = search
+    const [flags, stats] = await Promise.all([listFlags(filters), getFlagStats()])
 
-  const [flags, stats] = await Promise.all([listFlags(filters), getFlagStats()])
-
-  return NextResponse.json({ flags, stats })
+    return NextResponse.json({ flags, stats })
+  } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    throw error
+  }
 }
 
 /**
@@ -34,40 +39,16 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   const user = await requireAdmin()
-  const body = await request.json()
-
-  const { key, name, description, scope, status, defaultValue, rolloutPercentage, category, tags } =
-    body
-
-  if (!key || !name) {
-    return NextResponse.json({ error: "Key and name are required" }, { status: 400 })
-  }
-
-  // Validate key format
-  if (!/^[a-z][a-z0-9_]*$/.test(key)) {
-    return NextResponse.json(
-      { error: "Key must be lowercase alphanumeric with underscores, starting with a letter" },
-      { status: 400 }
-    )
-  }
 
   try {
-    const flag = await createFlag(
-      {
-        key,
-        name,
-        description,
-        scope,
-        status,
-        defaultValue,
-        rolloutPercentage,
-        category,
-        tags,
-      },
-      user.id!
-    )
+    const data = await parseBody(request, createFeatureFlagSchema)
+
+    const flag = await createFlag(data, user.id!)
     return NextResponse.json(flag, { status: 201 })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     if (error instanceof Error && error.message.includes("Unique constraint")) {
       return NextResponse.json({ error: "A flag with this key already exists" }, { status: 409 })
     }

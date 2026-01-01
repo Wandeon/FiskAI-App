@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import {
@@ -10,16 +9,9 @@ import {
   summaryToCsv,
 } from "@/lib/reports/accountant-export"
 import JSZip from "jszip"
-import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
 import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
-
-const querySchema = z.object({
-  clientIds: z.string(), // comma-separated list of client IDs
-  from: z.string().optional(),
-  to: z.string().optional(),
-  format: z.enum(["csv", "summary", "kpr", "combined"]).optional().default("combined"),
-  exportType: z.enum(["invoices", "expenses", "kpr", "summary", "all"]).optional().default("all"),
-})
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { bulkExportQuerySchema } from "../_schemas"
 
 function parseDate(value?: string) {
   if (!value) return undefined
@@ -40,22 +32,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const parsed = querySchema.safeParse({
-      clientIds: searchParams.get("clientIds") || "",
-      from: searchParams.get("from") || undefined,
-      to: searchParams.get("to") || undefined,
-      format: searchParams.get("format") || "combined",
-      exportType: searchParams.get("exportType") || "all",
-    })
+    const parsed = parseQuery(searchParams, bulkExportQuerySchema)
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid query parameters", details: parsed.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const clientIds = parsed.data.clientIds.split(",").filter(Boolean)
+    const clientIds = parsed.clientIds.split(",").filter(Boolean)
 
     if (clientIds.length === 0) {
       return NextResponse.json({ error: "No client IDs provided" }, { status: 400 })
@@ -91,33 +70,32 @@ export async function GET(request: NextRequest) {
       resourceType: "BulkExport",
       metadata: {
         clientCount: clientIds.length,
-        exportType: parsed.data.exportType,
-        format: parsed.data.format,
+        exportType: parsed.exportType,
+        format: parsed.format,
         dateRange: {
-          from: parsed.data.from,
-          to: parsed.data.to,
+          from: parsed.from,
+          to: parsed.to,
         },
       },
       ipAddress,
       userAgent,
     })
 
-    const fromDate = parseDate(parsed.data.from)
-    const toDate = parseDate(parsed.data.to)
+    const fromDate = parseDate(parsed.from)
+    const toDate = parseDate(parsed.to)
 
-    if (parsed.data.from && !fromDate) {
+    if (parsed.from && !fromDate) {
       return NextResponse.json({ error: "Invalid 'from' date" }, { status: 400 })
     }
-    if (parsed.data.to && !toDate) {
+    if (parsed.to && !toDate) {
       return NextResponse.json({ error: "Invalid 'to' date" }, { status: 400 })
     }
 
     // Determine filename range label
-    const rangeLabel =
-      parsed.data.from && parsed.data.to ? `${parsed.data.from}-${parsed.data.to}` : "all"
+    const rangeLabel = parsed.from && parsed.to ? `${parsed.from}-${parsed.to}` : "all"
 
     // For single client, return direct CSV
-    if (clientIds.length === 1 && parsed.data.format !== "combined") {
+    if (clientIds.length === 1 && parsed.format !== "combined") {
       const companyId = clientIds[0]
 
       // Log individual client export
@@ -127,11 +105,11 @@ export async function GET(request: NextRequest) {
         action: "STAFF_EXPORT_DATA",
         resourceType: "SingleClientExport",
         metadata: {
-          exportType: parsed.data.exportType,
-          format: parsed.data.format,
+          exportType: parsed.exportType,
+          format: parsed.format,
           dateRange: {
-            from: parsed.data.from,
-            to: parsed.data.to,
+            from: parsed.from,
+            to: parsed.to,
           },
         },
         ipAddress,
@@ -143,7 +121,7 @@ export async function GET(request: NextRequest) {
       let csv: string
       let filename: string
 
-      switch (parsed.data.exportType) {
+      switch (parsed.exportType) {
         case "invoices":
           csv = invoicesToCsv(exportData.invoices)
           filename = `racuni-${exportData.companyName}-${rangeLabel}.csv`
@@ -215,11 +193,11 @@ export async function GET(request: NextRequest) {
         action: "STAFF_EXPORT_DATA",
         resourceType: "ClientExport",
         metadata: {
-          exportType: parsed.data.exportType,
-          format: parsed.data.format,
+          exportType: parsed.exportType,
+          format: parsed.format,
           dateRange: {
-            from: parsed.data.from,
-            to: parsed.data.to,
+            from: parsed.from,
+            to: parsed.to,
           },
           partOfBulkExport: true,
           bulkClientCount: clientIds.length,
@@ -249,16 +227,16 @@ export async function GET(request: NextRequest) {
       aggregateData.grandTotals.netProfit += exportData.totals.netProfit
 
       // Add files based on export type
-      if (parsed.data.exportType === "all" || parsed.data.exportType === "invoices") {
+      if (parsed.exportType === "all" || parsed.exportType === "invoices") {
         zip.file(`${clientFolder}/racuni.csv`, invoicesToCsv(exportData.invoices))
       }
-      if (parsed.data.exportType === "all" || parsed.data.exportType === "expenses") {
+      if (parsed.exportType === "all" || parsed.exportType === "expenses") {
         zip.file(`${clientFolder}/troskovi.csv`, expensesToCsv(exportData.expenses))
       }
-      if (parsed.data.exportType === "all" || parsed.data.exportType === "kpr") {
+      if (parsed.exportType === "all" || parsed.exportType === "kpr") {
         zip.file(`${clientFolder}/kpr.csv`, kprToCsv(exportData.kprRows))
       }
-      if (parsed.data.exportType === "all" || parsed.data.exportType === "summary") {
+      if (parsed.exportType === "all" || parsed.exportType === "summary") {
         zip.file(`${clientFolder}/sazetak.csv`, summaryToCsv(exportData))
       }
     }
@@ -278,6 +256,9 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Bulk export error:", error)
     return NextResponse.json(
       {

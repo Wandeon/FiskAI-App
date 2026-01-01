@@ -2,18 +2,18 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { verifyOTP } from "@/lib/auth/otp"
 import bcrypt from "bcryptjs"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const schema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6),
+  newPassword: z.string().min(8, "Lozinka mora imati najmanje 8 znakova"),
+})
 
 export async function POST(request: Request) {
   try {
-    const { email, code, newPassword } = await request.json()
-
-    if (!email || !code || !newPassword) {
-      return NextResponse.json({ error: "Nedostaju podaci" }, { status: 400 })
-    }
-
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: "Lozinka mora imati najmanje 8 znakova" }, { status: 400 })
-    }
+    const { email, code, newPassword } = await parseBody(request, schema)
 
     // Find the verification code
     const verificationCode = await db.verificationCode.findFirst({

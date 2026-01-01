@@ -1,10 +1,18 @@
 // src/app/api/news/route.ts
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsItems } from "@/lib/db/schema/news"
 import { eq, desc, and, sql } from "drizzle-orm"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
+
+const querySchema = z.object({
+  limit: z.coerce.number().min(1).max(50).default(10),
+  category: z.string().optional(),
+  status: z.string().default("processed"),
+})
 
 /**
  * GET /api/news
@@ -16,12 +24,7 @@ export const dynamic = "force-dynamic"
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-
-    // Parse and validate parameters
-    const limit = Math.min(parseInt(searchParams.get("limit") || "10", 10), 50)
-    const category = searchParams.get("category") || undefined
-    const status = searchParams.get("status") || "processed"
+    const { limit, category, status } = parseQuery(request.nextUrl.searchParams, querySchema)
 
     // Build query conditions
     const conditions = [eq(newsItems.status, status)]
@@ -52,6 +55,9 @@ export async function GET(request: NextRequest) {
       count,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching news:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
