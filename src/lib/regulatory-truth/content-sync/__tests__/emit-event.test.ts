@@ -39,9 +39,16 @@ vi.mock("@/lib/db/schema/content-sync", () => ({
 }))
 
 // Access mocks for assertions
-const getMocks = async () => {
+interface MockFunctions {
+  mockInsert: ReturnType<typeof vi.fn>
+  mockValues: ReturnType<typeof vi.fn>
+  mockOnConflictDoNothing: ReturnType<typeof vi.fn>
+  mockReturning: ReturnType<typeof vi.fn>
+}
+
+const getMocks = async (): Promise<MockFunctions> => {
   const drizzleModule = await import("@/lib/db/drizzle")
-  return (drizzleModule as unknown as { __mocks: unknown }).__mocks
+  return (drizzleModule as unknown as { __mocks: MockFunctions }).__mocks
 }
 
 describe("emit-event", () => {
