@@ -112,6 +112,60 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+  test-property:
+    name: Property-Based Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run property-based tests
+        run: npm run test:property
+
+  test-golden:
+    name: Golden Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run golden tests
+        run: npm run test:golden
+
+      - name: Check for uncommitted fixture changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "::error::Golden fixtures were updated. Please commit them."
+            echo "Changed files:"
+            git status --porcelain
+            git diff
+            exit 1
+          fi
+
   test-integration:
     name: Integration Tests (DB)
     runs-on: ubuntu-latest
@@ -182,8 +236,9 @@ jobs:
     # Build is the deploy blocker - catches actual compilation errors
     # Added security as dependency per issue #324
     # Added typecheck as dependency per Phase 0 Architecture Containment
+    # Added property and golden tests as dependencies per Phase 7 Testing Expansion
     # Note: test-integration is non-blocking until CI fixtures are added
-    needs: [lint, typecheck, test, security]
+    needs: [lint, typecheck, test, test-property, test-golden, security]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

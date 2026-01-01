@@ -19,7 +19,11 @@ export default defineConfig({
       "src/lib/auth/__tests__/**",
       "src/lib/config/__tests__/**",
       "src/lib/e-invoice/__tests__/**",
-      "src/lib/fiscal/__tests__/**",
+      // Fiscal tests using node:test (golden tests use vitest)
+      "src/lib/fiscal/__tests__/xml-builder.test.ts",
+      "src/lib/fiscal/__tests__/pos-fiscalize.test.ts",
+      "src/lib/fiscal/__tests__/porezna-client.test.ts",
+      "src/lib/fiscal/__tests__/certificate-parser.test.ts",
       "src/lib/guidance/__tests__/**",
       "src/lib/knowledge-hub/__tests__/**",
       "src/lib/pos/__tests__/**",
