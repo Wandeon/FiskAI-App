@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth"
 import { requireCompany } from "@/lib/auth-utils"
 import { createPortalSession } from "@/lib/billing/stripe"
 import { logger } from "@/lib/logger"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: portalUrl })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Failed to create portal session")
     return NextResponse.json({ error: "Failed to create portal session" }, { status: 500 })
   }

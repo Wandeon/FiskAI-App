@@ -3,8 +3,21 @@ import { NextRequest } from "next/server"
 import { nanoid } from "nanoid"
 import { buildAnswerWithReasoning } from "@/lib/assistant/reasoning/reasoning-pipeline"
 import type { UserContext } from "@/lib/assistant/reasoning/types"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
+
+const reasonRequestSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  context: z
+    .object({
+      companyId: z.string().optional(),
+      vatStatus: z.string().optional(),
+      turnoverBand: z.string().optional(),
+    })
+    .optional(),
+})
 
 /**
  * SSE streaming endpoint for reasoning pipeline
@@ -13,15 +26,7 @@ export async function POST(request: NextRequest) {
   const encoder = new TextEncoder()
 
   try {
-    const body = await request.json()
-    const { query, context } = body as { query: string; context?: UserContext }
-
-    if (!query || typeof query !== "string") {
-      return new Response(JSON.stringify({ error: "Query is required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
+    const { query, context } = await parseBody(request, reasonRequestSchema)
 
     const requestId = `req_${nanoid(12)}`
 
@@ -90,6 +95,12 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return new Response(JSON.stringify(formatValidationError(error)), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
     return new Response(
       JSON.stringify({
         error: "Failed to process request",

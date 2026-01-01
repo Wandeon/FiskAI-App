@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsItems } from "@/lib/db/schema/news"
 import { eq, desc, sql } from "drizzle-orm"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 
@@ -35,6 +36,9 @@ export async function GET(request: NextRequest) {
       updatedAt,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching latest news:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

@@ -11,6 +11,8 @@ import {
 } from "@/lib/pausalni/calendar/google-calendar"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/db"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { googleCalendarSyncBodySchema } from "@/app/api/pausalni/_schemas"
 
 /**
  * POST /api/pausalni/calendar/google/sync
@@ -38,8 +40,19 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       )
     }
 
-    // Parse request body for optional filters
-    const body = await request.json().catch(() => ({}))
+    // Parse and validate body (with default empty object for optional body)
+    let body: { year?: number; month?: number; includeAll?: boolean }
+    try {
+      body = await parseBody(request, googleCalendarSyncBodySchema)
+    } catch (e) {
+      // If body parsing fails due to empty body, use defaults
+      if (isValidationError(e)) {
+        body = { includeAll: false }
+      } else {
+        throw e
+      }
+    }
+
     const { year, month, includeAll } = body
 
     // Build query to get obligations
@@ -115,6 +128,9 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       errors: result.errors.length > 0 ? result.errors : undefined,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[calendar/google/sync] Error:", error)
 
     const errorMessage = error instanceof Error ? error.message : "Internal server error"
@@ -171,6 +187,9 @@ export const GET = withApiLogging(async (request: NextRequest) => {
       pendingObligations: pendingCount,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[calendar/google/sync] GET error:", error)
 
     return NextResponse.json(

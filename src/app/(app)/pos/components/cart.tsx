@@ -2,6 +2,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { calculateLineDisplay } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 import type { CartItem } from "../types"
 
 interface Props {
@@ -17,15 +18,24 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
       currency: "EUR",
     }).format(price)
 
-  // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
+  // Use domain-layer adapter for all VAT calculations
+  const displayItems = items.map((item) => ({
+    ...item,
+    display: calculateLineDisplay({
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      vatRate: item.vatRate,
+    }),
+  }))
 
-  // Group VAT by rate
-  const vatByRate = items.reduce(
+  // Calculate totals using adapter results
+  const subtotal = displayItems.reduce((sum, item) => sum + item.display.netAmount, 0)
+
+  // Group VAT by rate (using adapter-calculated VAT amounts)
+  const vatByRate = displayItems.reduce(
     (acc, item) => {
-      const net = item.unitPrice * item.quantity
-      const vat = net * (item.vatRate / 100)
-      acc[item.vatRate] = (acc[item.vatRate] || 0) + vat
+      acc[item.vatRate] = (acc[item.vatRate] || 0) + item.display.vatAmount
       return acc
     },
     {} as Record<number, number>
@@ -44,10 +54,10 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
 
       {/* Items */}
       <div className="flex-1 overflow-auto p-4 space-y-3">
-        {items.length === 0 ? (
+        {displayItems.length === 0 ? (
           <p className="text-center text-tertiary py-8">Košarica je prazna</p>
         ) : (
-          items.map((item) => (
+          displayItems.map((item) => (
             <div key={item.id} className="bg-surface-1 rounded-lg p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1 min-w-0">
@@ -56,7 +66,7 @@ export function Cart({ items, onUpdateQuantity, onRemove }: Props) {
                     {formatPrice(item.unitPrice)} × {item.quantity}
                   </p>
                 </div>
-                <p className="font-bold">{formatPrice(item.unitPrice * item.quantity)}</p>
+                <p className="font-bold">{formatPrice(item.display.netAmount)}</p>
               </div>
 
               {/* Quantity controls */}

@@ -4,6 +4,7 @@ import { z } from "zod"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { closeCashDay } from "@/lib/cash/cash-service"
 import { logServiceBoundarySnapshot } from "@/lib/audit-hooks"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const closeDaySchema = z.object({
   businessDate: z.string().transform((s) => new Date(s)),
@@ -16,8 +17,7 @@ export async function POST(request: NextRequest) {
   const companyId = company.id
 
   try {
-    const body = await request.json()
-    const input = closeDaySchema.parse(body)
+    const input = await parseBody(request, closeDaySchema)
 
     const dayClose = await closeCashDay({
       companyId,
@@ -52,8 +52,8 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input", details: error.issues }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Failed to close cash day:", error)
     return NextResponse.json(

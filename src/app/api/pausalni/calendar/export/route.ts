@@ -6,6 +6,8 @@ import { eq, and, gte, lte } from "drizzle-orm"
 import { generateObligationsICS, generateICSFilename } from "@/lib/pausalni/calendar/ics-generator"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { calendarExportQuerySchema } from "@/app/api/pausalni/_schemas"
 
 export const GET = withApiLogging(async (request: NextRequest) => {
   try {
@@ -17,10 +19,8 @@ export const GET = withApiLogging(async (request: NextRequest) => {
       userId: user.id!,
     })
 
-    const searchParams = request.nextUrl.searchParams
-    const year = searchParams.get("year")
-      ? parseInt(searchParams.get("year")!)
-      : new Date().getFullYear()
+    // Parse and validate query params
+    const { year } = parseQuery(request.nextUrl.searchParams, calendarExportQuerySchema)
 
     // Fetch all obligations for the year
     const startDate = new Date(year, 0, 1)
@@ -82,6 +82,9 @@ export const GET = withApiLogging(async (request: NextRequest) => {
       },
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error generating calendar export:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

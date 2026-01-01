@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { updateContext, runWithContext } from "@/lib/context"
@@ -7,6 +8,11 @@ import { renderToBuffer } from "@react-pdf/renderer"
 import { InvoicePDFDocument } from "@/lib/pdf/invoice-template"
 import { logger } from "@/lib/logger"
 import { generateInvoiceBarcodeDataUrl } from "@/lib/barcode"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const paramsSchema = z.object({
+  id: z.string().min(1, "Invoice ID is required"),
+})
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID()
@@ -39,7 +45,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
           userId: user.id!,
         })
 
-        const { id } = await context.params
+        const rawParams = await context.params
+        const { id } = parseParams(rawParams, paramsSchema)
 
         // Fetch invoice with all related data
         const invoice = await db.eInvoice.findFirst({
@@ -157,6 +164,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
         return response
       } catch (error) {
+        if (isValidationError(error)) {
+          return NextResponse.json(formatValidationError(error), { status: 400 })
+        }
         const durationMs = Date.now() - startedAt
         logger.error({ error, durationMs }, "PDF generation failed")
         throw error

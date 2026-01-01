@@ -4,6 +4,10 @@ import { useState } from "react"
 import { Pencil, Check, X, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  calculateLineDisplay,
+  calculateInvoiceTotals,
+} from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 
 export interface ExtractedLineItem {
   id: string
@@ -49,15 +53,18 @@ interface InvoiceEditorProps {
 export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
   const [editingLineId, setEditingLineId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Partial<ExtractedLineItem>>({})
-  const [editingField, setEditingField] = useState<string | null>(null)
 
-  // Calculate totals from line items
-  const calculatedSubtotal = data.lineItems.reduce((sum, item) => sum + item.amount, 0)
-  const calculatedTax = data.lineItems.reduce(
-    (sum, item) => sum + (item.amount * item.taxRate) / 100,
-    0
-  )
-  const calculatedTotal = calculatedSubtotal + calculatedTax
+  // Calculate totals from line items using domain-layer adapter
+  const rawLines = data.lineItems.map((item) => ({
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    vatRate: item.taxRate,
+  }))
+  const calculatedTotals = calculateInvoiceTotals(rawLines)
+  const calculatedSubtotal = calculatedTotals.netAmount
+  const calculatedTax = calculatedTotals.vatAmount
+  const calculatedTotal = calculatedTotals.totalAmount
 
   // Validate math
   const mathValid = Math.abs(calculatedTotal - data.totalAmount) < 0.01
@@ -83,14 +90,20 @@ export function InvoiceEditor({ data, onChange }: InvoiceEditorProps) {
     }
   }
 
-  const updateLineForm = (field: keyof ExtractedLineItem, value: any) => {
+  const updateLineForm = (field: keyof ExtractedLineItem, value: string | number) => {
     setEditForm((prev) => {
       const updated = { ...prev, [field]: value }
-      // Auto-calculate amount when quantity or unit price changes
+      // Auto-calculate amount when quantity or unit price changes using domain adapter
       if (field === "quantity" || field === "unitPrice") {
         const qty = field === "quantity" ? value : prev.quantity || 0
         const price = field === "unitPrice" ? value : prev.unitPrice || 0
-        updated.amount = qty * price
+        const lineDisplay = calculateLineDisplay({
+          description: "",
+          quantity: qty,
+          unitPrice: price,
+          vatRate: prev.taxRate || 0,
+        })
+        updated.amount = lineDisplay.netAmount
       }
       return updated
     })

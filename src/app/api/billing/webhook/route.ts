@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { handleStripeWebhook } from "@/lib/billing/stripe"
 import { logger } from "@/lib/logger"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Stripe webhook processing failed")
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
   }

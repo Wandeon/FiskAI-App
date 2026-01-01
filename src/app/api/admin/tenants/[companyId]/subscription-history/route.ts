@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { tenantParamsSchema } from "@/app/api/admin/_schemas"
 
 type RouteContext = {
   params: Promise<{ companyId: string }>
@@ -9,7 +11,7 @@ type RouteContext = {
 export async function GET(req: NextRequest, context: RouteContext) {
   try {
     await requireAdmin()
-    const { companyId } = await context.params
+    const { companyId } = parseParams(await context.params, tenantParamsSchema)
 
     // Get subscription changes from audit log
     const subscriptionLogs = await db.auditLog.findMany({
@@ -98,6 +100,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
       })),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Failed to fetch subscription history:", error)
     return NextResponse.json({ error: "Failed to fetch subscription history" }, { status: 500 })
   }

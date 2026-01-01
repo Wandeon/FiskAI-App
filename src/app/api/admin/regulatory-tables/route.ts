@@ -1,8 +1,17 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth-utils"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
-export async function GET() {
+// Explicit empty schema - GET with no query params
+const querySchema = z.object({})
+
+export async function GET(request: NextRequest) {
+  // Validate query params (none expected)
+  const searchParams = Object.fromEntries(request.nextUrl.searchParams)
+  querySchema.parse(searchParams)
+
   await requireAdmin()
 
   try {
@@ -31,6 +40,9 @@ export async function GET() {
       })),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin regulatory tables error:", error)
     return NextResponse.json({ error: "Failed to fetch regulatory tables" }, { status: 500 })
   }

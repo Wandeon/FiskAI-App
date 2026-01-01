@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories, newsItems, newsSources } from "@/lib/db/schema/news"
 import { eq, desc, and, sql, lte, or, ilike, isNotNull } from "drizzle-orm"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
+
+const querySchema = z.object({
+  limit: z.coerce.number().min(1).max(50).default(20),
+  offset: z.coerce.number().min(0).default(0),
+  category: z.string().optional(),
+  type: z.enum(["individual", "digest"]).optional(),
+  q: z.string().optional(),
+  includeItems: z.enum(["true", "false"]).optional(),
+})
 
 /**
  * GET /api/news/posts
@@ -20,15 +31,17 @@ export const dynamic = "force-dynamic"
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
+    const {
+      limit,
+      offset,
+      category: categorySlug,
+      type,
+      q: rawQuery,
+      includeItems: includeItemsParam,
+    } = parseQuery(request.nextUrl.searchParams, querySchema)
 
-    // Parse and validate parameters
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 50)
-    const offset = parseInt(searchParams.get("offset") || "0", 10)
-    const categorySlug = searchParams.get("category") || undefined
-    const type = searchParams.get("type") || undefined
-    const query = searchParams.get("q")?.trim() || undefined
-    const includeItems = searchParams.get("includeItems") === "true"
+    const query = rawQuery?.trim() || undefined
+    const includeItems = includeItemsParam === "true"
 
     // Build query conditions - only published posts
     const conditions = [eq(newsPosts.status, "published"), lte(newsPosts.publishedAt, new Date())]
@@ -162,6 +175,9 @@ export async function GET(request: NextRequest) {
       query: query || null,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching posts:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

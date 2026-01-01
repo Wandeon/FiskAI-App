@@ -9,6 +9,7 @@ import {
 } from "@/lib/compliance/certificate-monitor"
 import { db } from "@/lib/db"
 import { CertificateNotificationStatus } from "@prisma/client"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Retry configuration
 const MAX_RETRY_ATTEMPTS = 3
@@ -139,6 +140,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Certificate check error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         success: false,

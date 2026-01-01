@@ -6,6 +6,12 @@ import { withApiLogging } from "@/lib/api-logging"
 import { updateContext } from "@/lib/context"
 import { logger } from "@/lib/logger"
 import { z } from "zod"
+import {
+  parseBody,
+  parseQuery,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
 
 const feedbackSchema = z.object({
   entityType: z.string().min(1),
@@ -14,6 +20,12 @@ const feedbackSchema = z.object({
   feedback: z.enum(["correct", "incorrect", "partial"]),
   correction: z.record(z.string(), z.unknown()).optional(),
   notes: z.string().optional(),
+})
+
+const feedbackQuerySchema = z.object({
+  type: z.enum(["stats", "recent"]).default("stats"),
+  operation: z.string().optional(),
+  limit: z.coerce.number().min(1).max(100).default(10),
 })
 
 /**
@@ -29,18 +41,7 @@ export const POST = withApiLogging(async (req: NextRequest) => {
   updateContext({ userId: session.user.id })
 
   try {
-    const body = await req.json()
-
-    // Validate input
-    const validation = feedbackSchema.safeParse(body)
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const data = validation.data
+    const data = await parseBody(req, feedbackSchema)
 
     // Get user's company
     const companyUser = await db.companyUser.findFirst({
@@ -68,6 +69,9 @@ export const POST = withApiLogging(async (req: NextRequest) => {
 
     return NextResponse.json(result)
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Failed to submit AI feedback")
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to submit feedback" },
@@ -102,9 +106,7 @@ export const GET = withApiLogging(async (req: NextRequest) => {
     updateContext({ companyId: companyUser.company.id })
 
     const { searchParams } = new URL(req.url)
-    const type = searchParams.get("type") || "stats"
-    const operation = searchParams.get("operation") || undefined
-    const limit = parseInt(searchParams.get("limit") || "10", 10)
+    const { type, operation, limit } = parseQuery(searchParams, feedbackQuerySchema)
 
     if (type === "recent") {
       const feedback = await getRecentFeedback(companyUser.company.id, limit)
@@ -115,6 +117,9 @@ export const GET = withApiLogging(async (req: NextRequest) => {
     const stats = await getFeedbackStats(companyUser.company.id, operation)
     return NextResponse.json({ stats })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Failed to get AI feedback")
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to get feedback" },

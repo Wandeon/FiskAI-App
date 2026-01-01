@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { z } from "zod"
 import { addDays } from "date-fns"
-import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
 import { sendEmail } from "@/lib/email"
 import ClientInvitation from "@/emails/client-invitation"
-
-const createInvitationSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  companyName: z.string().optional(),
-  message: z.string().optional(),
-})
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { createInvitationSchema } from "../_schemas"
 
 // GET - List invitations for current staff
 export async function GET() {
@@ -38,6 +32,9 @@ export async function GET() {
 
     return NextResponse.json(invitations)
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching invitations:", error)
     return NextResponse.json({ error: "Failed to fetch invitations" }, { status: 500 })
   }
@@ -56,14 +53,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const body = await request.json()
-    const validation = createInvitationSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 })
-    }
-
-    const { email, companyName, message } = validation.data
+    const { email, companyName, message } = await parseBody(request, createInvitationSchema)
 
     // Check if there's already a pending invitation for this email from this staff
     const existingInvitation = await db.clientInvitation.findFirst({
@@ -125,7 +115,7 @@ export async function POST(request: NextRequest) {
       subject: "Poziv u FiskAI platformu",
       react: ClientInvitation({
         invitationUrl,
-        staffName: session.user.name || "Vaš računovođa",
+        staffName: session.user.name || "Vas racunovoda",
         message,
       }),
     })
@@ -140,6 +130,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(invitation, { status: 201 })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error creating invitation:", error)
     return NextResponse.json({ error: "Failed to create invitation" }, { status: 500 })
   }

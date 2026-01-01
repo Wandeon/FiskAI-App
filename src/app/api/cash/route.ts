@@ -4,6 +4,7 @@ import { z } from "zod"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { createCashIn, createCashOut } from "@/lib/cash/cash-service"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const createCashEntrySchema = z.object({
   type: z.enum(["in", "out"]),
@@ -51,8 +52,7 @@ export async function POST(request: NextRequest) {
   const companyId = company.id
 
   try {
-    const body = await request.json()
-    const input = createCashEntrySchema.parse(body)
+    const input = await parseBody(request, createCashEntrySchema)
 
     const entry =
       input.type === "in"
@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, entry, type: input.type })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input", details: error.issues }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Failed to create cash entry:", error)
     return NextResponse.json(

@@ -112,13 +112,64 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+  test-property:
+    name: Property-Based Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run property-based tests
+        run: npm run test:property
+
+  test-golden:
+    name: Golden Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run golden tests
+        run: npm run test:golden
+
+      - name: Check for uncommitted fixture changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "::error::Golden fixtures were updated. Please commit them."
+            echo "Changed files:"
+            git status --porcelain
+            git diff
+            exit 1
+          fi
+
   test-integration:
     name: Integration Tests (DB)
     runs-on: ubuntu-latest
-    # TODO: Fix integration tests to work with empty database (need test fixtures)
-    # Currently non-blocking: tests require seed data that doesn't exist in CI
-    # Tracked in: Phase 1 test infrastructure improvements
-    continue-on-error: true
+    # Phase 8: Made blocking - integration tests must pass
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -176,14 +227,91 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/regulatory-truth/evidence-pack-2025-12-23.md\` for full details." >> $GITHUB_STEP_SUMMARY
 
+  architecture-check:
+    name: Architecture Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check no UI imports DB
+        run: |
+          echo "Checking for database imports in UI components..."
+          if grep -r '@prisma/client' src/components/ 2>/dev/null | grep -v "containment: removed"; then
+            echo "::error::UI components cannot import @prisma/client"
+            exit 1
+          fi
+          if grep -r 'from "@/lib/db"' src/components/ 2>/dev/null; then
+            echo "::error::UI components cannot import from @/lib/db"
+            exit 1
+          fi
+          echo "✅ No DB imports in UI components"
+
+      - name: Check no floats in domain/application
+        run: |
+          echo "Checking for float operations in domain/application..."
+          # Check for parseFloat (but not in comments or strings)
+          if grep -rE '^\s*[^/]*parseFloat\(' src/domain/ src/application/ 2>/dev/null; then
+            echo "::error::parseFloat banned in domain/application"
+            exit 1
+          fi
+          # Check for .toFixed() (but allow Decimal.toFixed which is safe)
+          if grep -rE '\.toFixed\(' src/domain/ src/application/ 2>/dev/null | grep -v 'Decimal'; then
+            echo "::error::.toFixed() banned in domain/application"
+            exit 1
+          fi
+          echo "✅ No float operations in domain/application"
+
+      - name: Check domain has no infra imports
+        run: |
+          echo "Checking domain layer purity..."
+          if grep -r '@prisma/client' src/domain/ 2>/dev/null; then
+            echo "::error::Domain cannot import @prisma/client"
+            exit 1
+          fi
+          if grep -r 'from "@/lib/db"' src/domain/ 2>/dev/null; then
+            echo "::error::Domain cannot import from @/lib/db"
+            exit 1
+          fi
+          if grep -rE 'from "next/' src/domain/ 2>/dev/null; then
+            echo "::error::Domain cannot import Next.js"
+            exit 1
+          fi
+          echo "✅ Domain layer is pure"
+
+      - name: Check no VAT calculations in UI
+        run: |
+          echo "Checking for VAT calculations in UI..."
+          # Check for direct VAT arithmetic in components (vatRate / 100 pattern)
+          VAT_VIOLATIONS=$(grep -rE 'vatRate.*\/ *100|taxRate.*\/ *100' src/components/ src/app/\(app\)/ 2>/dev/null | wc -l)
+          if [ "$VAT_VIOLATIONS" -gt 0 ]; then
+            echo "::warning::Found $VAT_VIOLATIONS potential VAT calculation(s) in UI"
+            echo "UI should use InvoiceDisplayAdapter for VAT calculations"
+            grep -rE 'vatRate.*\/ *100|taxRate.*\/ *100' src/components/ src/app/\(app\)/ 2>/dev/null || true
+          fi
+          echo "✅ VAT calculation check complete (found $VAT_VIOLATIONS potential issues)"
+
+      - name: Check UI uses domain adapters
+        run: |
+          echo "Checking UI imports domain layer correctly..."
+          # Check for direct Money/VatRate imports in components
+          DIRECT_IMPORTS=$(grep -rE 'from "@/domain/shared/(Money|VatRate)"' src/components/ src/app/\(app\)/ 2>/dev/null | wc -l)
+          if [ "$DIRECT_IMPORTS" -gt 0 ]; then
+            echo "::warning::Found $DIRECT_IMPORTS direct domain imports in UI"
+            echo "UI should use @/interfaces/invoicing/InvoiceDisplayAdapter"
+            grep -rE 'from "@/domain/shared/(Money|VatRate)"' src/components/ src/app/\(app\)/ 2>/dev/null || true
+          fi
+          echo "✅ Domain adapter check complete (found $DIRECT_IMPORTS direct imports)"
+
   build:
     name: Build
     runs-on: ubuntu-latest
     # Build is the deploy blocker - catches actual compilation errors
     # Added security as dependency per issue #324
     # Added typecheck as dependency per Phase 0 Architecture Containment
-    # Note: test-integration is non-blocking until CI fixtures are added
-    needs: [lint, typecheck, test, security]
+    # Added property and golden tests as dependencies per Phase 7 Testing Expansion
+    # Phase 8: test-integration and architecture-check now blocking
+    needs: [lint, typecheck, test, test-property, test-golden, test-integration, architecture-check, security]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

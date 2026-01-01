@@ -4,6 +4,23 @@ import { newsPosts, newsPostSources, newsItems } from "@/lib/db/schema/news"
 import { eq } from "drizzle-orm"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { classifyNewsItem, writeArticle, reviewArticle, rewriteArticle } from "@/lib/news/pipeline"
+import { z } from "zod"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+
+const reprocessParamsSchema = z.object({
+  id: z.string(),
+})
+
+const reprocessBodySchema = z.object({
+  pass: z.number().refine((val) => [1, 2, 3].includes(val), {
+    message: "Invalid pass number. Must be 1, 2, or 3",
+  }),
+})
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Check admin auth
@@ -12,18 +29,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { id } = await params
-
   try {
-    const body = await request.json()
-    const { pass } = body
-
-    if (!pass || ![1, 2, 3].includes(pass)) {
-      return NextResponse.json(
-        { error: "Invalid pass number. Must be 1, 2, or 3" },
-        { status: 400 }
-      )
-    }
+    const { id } = parseParams(await params, reprocessParamsSchema)
+    const { pass } = await parseBody(request, reprocessBodySchema)
 
     // Fetch post
     const posts = await drizzleDb.select().from(newsPosts).where(eq(newsPosts.id, id)).limit(1)
@@ -155,6 +163,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ post: updatedPosts[0], pass })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error(`Error re-running pass:`, error)
     return NextResponse.json(
       {

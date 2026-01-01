@@ -10,7 +10,7 @@ describe("conflict-detector", () => {
   let newRuleId: string
 
   before(async () => {
-    testConceptSlug = `test-concept-${Date.now()}`
+    testConceptSlug = `test-concept-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     // Create an existing published rule (without concept FK for simplicity)
     const existingRule = await db.regulatoryRule.create({

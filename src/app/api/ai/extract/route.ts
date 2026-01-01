@@ -7,6 +7,13 @@ import { logger } from "@/lib/logger"
 import { updateContext } from "@/lib/context"
 import { db } from "@/lib/db"
 import { checkRateLimit } from "@/lib/ai/rate-limiter"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const extractRequestSchema = z.object({
+  image: z.string().optional(),
+  text: z.string().optional(),
+})
 
 export const POST = withApiLogging(async (req: NextRequest) => {
   const session = await auth()
@@ -30,8 +37,7 @@ export const POST = withApiLogging(async (req: NextRequest) => {
     const companyId = companyUser.company.id
     updateContext({ companyId })
 
-    const body = await req.json()
-    const { image, text } = body
+    const { image, text } = await parseBody(req, extractRequestSchema)
 
     // Check rate limits before processing
     const operation = image ? "ocr_receipt" : "extract_receipt"
@@ -69,6 +75,9 @@ export const POST = withApiLogging(async (req: NextRequest) => {
 
     return NextResponse.json({ error: "No input provided" }, { status: 400 })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "AI extraction error")
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Extraction failed" },

@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server"
 import { syncAllConnections } from "@/lib/email-sync/sync-service"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -36,6 +37,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, summary })
   } catch (error) {
     console.error("[cron/email-sync] error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Sync failed" },
       { status: 500 }

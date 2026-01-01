@@ -39,6 +39,7 @@ export function CommandPalette({ className, triggerType = "button" }: CommandPal
         document.body.style.overflow = ""
       }
     }
+    return undefined
   }, [isOpen])
 
   const handleRecentClick = useCallback(

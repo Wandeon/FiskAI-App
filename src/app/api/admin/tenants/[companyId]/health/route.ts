@@ -2,15 +2,16 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth-utils"
 import { getCertificateStatus, getFiscalizationStats } from "@/lib/compliance/data"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { tenantParamsSchema } from "@/app/api/admin/_schemas"
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
-  await requireAdmin()
-  const { companyId } = await params
-
   try {
+    await requireAdmin()
+    const { companyId } = parseParams(await params, tenantParamsSchema)
     const [
       company,
       userCount,
@@ -80,6 +81,9 @@ export async function GET(
       fiscalization: fiscalStats,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin tenant health error:", error)
     return NextResponse.json({ error: "Failed to fetch tenant health" }, { status: 500 })
   }

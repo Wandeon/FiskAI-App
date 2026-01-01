@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import RoleChangeNotification from "@/emails/role-change-notification"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const promoteStaffSchema = z.object({
+  email: z.string().email("Valid email is required"),
+  confirmationToken: z.string().min(1, "Confirmation token is required for role changes"),
+  reason: z.string().optional(),
+})
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()
@@ -11,19 +19,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json()
-    const { email, confirmationToken, reason } = body
-
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 })
-    }
-
-    if (!confirmationToken || typeof confirmationToken !== "string") {
-      return NextResponse.json(
-        { error: "Confirmation token is required for role changes" },
-        { status: 400 }
-      )
-    }
+    const { email, confirmationToken, reason } = await parseBody(request, promoteStaffSchema)
 
     const expectedToken = `PROMOTE_${email.toLowerCase()}_${user.id}`
     if (confirmationToken !== expectedToken) {
@@ -96,6 +92,9 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error adding staff member:", error)
     return NextResponse.json({ error: "Failed to add staff member" }, { status: 500 })
   }

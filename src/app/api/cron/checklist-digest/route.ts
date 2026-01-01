@@ -7,6 +7,7 @@ import { getChecklist } from "@/lib/guidance/checklist"
 import { sendEmail } from "@/lib/email"
 import ChecklistDigestEmail from "@/lib/email/templates/checklist-digest-email"
 import { eq } from "drizzle-orm"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes
@@ -144,6 +145,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Checklist digest cron error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

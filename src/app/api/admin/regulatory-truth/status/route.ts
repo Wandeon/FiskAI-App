@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 /**
  * GET /api/admin/regulatory-truth/status
@@ -246,6 +247,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response)
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[status] Error fetching pipeline status:", error)
     return NextResponse.json({ error: "Failed to fetch pipeline status" }, { status: 500 })
   }

@@ -10,12 +10,14 @@ import {
 } from "@/lib/assistant/reasoning/sinks"
 import { type UserContextSnapshot } from "@/lib/assistant/reasoning/types"
 import { type Surface } from "@/lib/assistant/types"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
-interface ReasoningRequest {
-  query: string
-  surface: Surface
-  companyId?: string
-}
+const reasoningRequestSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  surface: z.enum(["MARKETING", "APP"], { message: "Invalid surface" }),
+  companyId: z.string().optional(),
+})
 
 const HEARTBEAT_INTERVAL_MS = 10000
 
@@ -39,26 +41,17 @@ const HEARTBEAT_INTERVAL_MS = 10000
 export async function POST(request: NextRequest) {
   const requestId = `req_${nanoid()}`
 
-  let body: ReasoningRequest
+  let body: z.infer<typeof reasoningRequestSchema>
   try {
-    body = await request.json()
-  } catch {
+    body = await parseBody(request, reasoningRequestSchema)
+  } catch (error) {
+    if (isValidationError(error)) {
+      return new Response(JSON.stringify(formatValidationError(error)), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
     return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
-  }
-
-  // Validate request
-  if (!body.query || typeof body.query !== "string" || body.query.trim().length === 0) {
-    return new Response(JSON.stringify({ error: "Query is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
-  }
-
-  if (!body.surface || !["MARKETING", "APP"].includes(body.surface)) {
-    return new Response(JSON.stringify({ error: "Invalid surface" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     })

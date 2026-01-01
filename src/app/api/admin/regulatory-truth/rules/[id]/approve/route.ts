@@ -5,6 +5,8 @@ import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
 import { validateValueInQuote } from "@/lib/regulatory-truth/utils/deterministic-validators"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { ruleIdSchema } from "../../../../_schemas"
 
 /**
  * POST /api/admin/regulatory-truth/rules/[id]/approve
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = parseParams(await params, ruleIdSchema)
 
     // Get the rule with all required data for validation
     const rule = await db.regulatoryRule.findUnique({
@@ -150,6 +152,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       rule: updatedRule,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[approve] Error approving rule:", error)
     return NextResponse.json({ error: "Failed to approve rule" }, { status: 500 })
   }

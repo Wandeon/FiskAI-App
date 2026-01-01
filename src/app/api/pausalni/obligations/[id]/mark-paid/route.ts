@@ -5,21 +5,30 @@ import { paymentObligation, OBLIGATION_STATUS } from "@/lib/db/schema/pausalni"
 import { eq, and } from "drizzle-orm"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { idParamSchema, markPaidBodySchema } from "@/app/api/pausalni/_schemas"
 
 export const POST = withApiLogging(
   async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     try {
       const user = await requireAuth()
       const company = await requireCompany(user.id!)
-      const { id } = await params
+
+      // Parse and validate params
+      const { id } = parseParams(await params, idParamSchema)
 
       setTenantContext({
         companyId: company.id,
         userId: user.id!,
       })
 
-      const body = await request.json()
-      const { paidDate, paidAmount, notes } = body
+      // Parse and validate body
+      const { paidDate, paidAmount, notes } = await parseBody(request, markPaidBodySchema)
 
       // Format date as YYYY-MM-DD string for drizzle date column
       const formattedPaidDate = paidDate
@@ -45,6 +54,9 @@ export const POST = withApiLogging(
 
       return NextResponse.json({ obligation: updated[0] })
     } catch (error) {
+      if (isValidationError(error)) {
+        return NextResponse.json(formatValidationError(error), { status: 400 })
+      }
       console.error("Error marking obligation as paid:", error)
       return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }

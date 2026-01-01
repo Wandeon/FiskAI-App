@@ -109,6 +109,15 @@ export class Money {
     }).format(this.amount.toNumber())
   }
 
+  /**
+   * Convert to a number for display purposes only.
+   * Rounds to 2 decimal places before conversion.
+   * ONLY use this at the UI boundary for display formatting.
+   */
+  toDisplayNumber(): number {
+    return this.round().toDecimal().toNumber()
+  }
+
   private assertSameCurrency(other: Money): void {
     if (this.currency !== other.currency) {
       throw new MoneyError(`Currency mismatch: ${this.currency} vs ${other.currency}`)

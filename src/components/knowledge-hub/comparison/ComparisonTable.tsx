@@ -32,8 +32,10 @@ interface ComparisonTableProps {
   children?: ReactNode
 }
 
+type ComparisonCellType = "pausalni" | "obrt-dohodak" | "jdoo" | "doo" | "freelancer" | "generic"
+
 type ParsedCell = {
-  type?: any
+  type?: ComparisonCellType
   isPositive?: boolean
   isNegative?: boolean
   content: ReactNode
@@ -68,7 +70,6 @@ export function ComparisonTable({
 }: ComparisonTableProps) {
   const tableDomId = `comparison-table-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`
   const [showScrollHint, setShowScrollHint] = useState(true)
-  const compareKey = (compareIds ?? []).join("|")
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,11 +81,12 @@ export function ComparisonTable({
       scrollContainer.addEventListener("scroll", handleScroll, { once: true })
       return () => scrollContainer.removeEventListener("scroll", handleScroll)
     }
+    return undefined
   }, [])
 
   const derivedColumns = useMemo(
     () => (compareIds ?? []).map((id) => ({ id, name: labelForCompareId(id) })),
-    [compareKey]
+    [compareIds]
   )
 
   const parsedRows: ParsedRow[] = useMemo(() => {
@@ -92,12 +94,20 @@ export function ComparisonTable({
 
     return Children.toArray(children)
       .filter(isValidElement)
-      .map((rowEl: any) => {
+      .map(
+        (el) => el as React.ReactElement<{ label?: string; tooltip?: string; children?: ReactNode }>
+      )
+      .map((rowEl) => {
         const label = String(rowEl.props?.label ?? "")
         const tooltip = rowEl.props?.tooltip ? String(rowEl.props.tooltip) : undefined
         const cells: ParsedCell[] = Children.toArray(rowEl.props?.children).map((cellNode) => {
           if (isValidElement(cellNode)) {
-            const props: any = cellNode.props ?? {}
+            const props = cellNode.props as {
+              type?: ComparisonCellType
+              isPositive?: boolean
+              isNegative?: boolean
+              children?: ReactNode
+            }
             return {
               type: props.type,
               isPositive: !!props.isPositive,

@@ -13,6 +13,7 @@ import { toast } from "@/lib/toast"
 import { createExpense } from "@/app/actions/expense"
 import { ReceiptScanner } from "@/components/expense/receipt-scanner"
 import { useFormShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import { calculateVatFromNet } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 import type { ExpenseCategory } from "@prisma/client"
 import type { ExtractedReceipt, CategorySuggestion } from "@/lib/ai/types"
 
@@ -63,9 +64,11 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
   const [notes, setNotes] = useState("")
   const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined)
 
+  // Use domain-layer adapter for VAT calculations
   const net = parseFloat(netAmount) || 0
-  const vat = net * (parseFloat(vatRate) / 100)
-  const total = net + vat
+  const vatCalc = calculateVatFromNet(net, parseFloat(vatRate) || 0)
+  const vat = vatCalc.vatAmount
+  const total = vatCalc.totalAmount
 
   // Auto-suggest category when description or vendor changes
   useEffect(() => {
@@ -98,7 +101,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
       }
     }
 
-    const timeoutId = setTimeout(getSuggestions, 500)
+    const timeoutId = setTimeout(() => void getSuggestions(), 500)
     return () => clearTimeout(timeoutId)
   }, [description, vendorName])
 

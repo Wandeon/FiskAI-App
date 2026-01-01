@@ -8,6 +8,7 @@ import { uploadToR2, generateR2Key } from "@/lib/r2-client"
 import { createHash } from "crypto"
 import { logger } from "@/lib/logger"
 import { scanBuffer } from "@/lib/security/virus-scanner"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"]
@@ -86,6 +87,9 @@ export async function POST(request: NextRequest) {
       contentType: file.type,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Receipt upload failed")
     return NextResponse.json({ error: "Failed to upload receipt" }, { status: 500 })
   }

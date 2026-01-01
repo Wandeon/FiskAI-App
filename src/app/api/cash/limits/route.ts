@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { getCashLimitSetting, upsertCashLimitSetting } from "@/lib/cash/cash-service"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const updateLimitSchema = z.object({
   limitAmount: z.number().positive(),
@@ -42,8 +43,7 @@ export async function PUT(request: NextRequest) {
   const companyId = company.id
 
   try {
-    const body = await request.json()
-    const input = updateLimitSchema.parse(body)
+    const input = await parseBody(request, updateLimitSchema)
 
     const setting = await upsertCashLimitSetting({
       companyId,
@@ -62,8 +62,8 @@ export async function PUT(request: NextRequest) {
       },
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input", details: error.issues }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Failed to update cash limit:", error)
     return NextResponse.json(

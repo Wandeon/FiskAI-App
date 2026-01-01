@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories } from "@/lib/db/schema/news"
 import { eq, and, lte } from "drizzle-orm"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
+
+const paramsSchema = z.object({
+  slug: z.string().min(1, "Slug is required"),
+})
 
 /**
  * GET /api/news/posts/[slug]
@@ -12,11 +18,8 @@ export const dynamic = "force-dynamic"
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { slug } = await params
-
-    if (!slug) {
-      return NextResponse.json({ error: "Slug is required" }, { status: 400 })
-    }
+    const resolvedParams = await params
+    const { slug } = parseParams(resolvedParams, paramsSchema)
 
     // Fetch post with category info - only if published
     const result = await drizzleDb
@@ -58,6 +61,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ post: result[0] })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching post:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

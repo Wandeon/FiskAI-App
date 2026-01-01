@@ -6,6 +6,7 @@ import { generateOTP, hashOTP, OTP_EXPIRY_MINUTES } from "@/lib/auth/otp"
 import { checkRateLimit } from "@/lib/security/rate-limit"
 import { sendEmail } from "@/lib/email"
 import { OTPCodeEmail } from "@/lib/email/templates/otp-code-email"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const schema = z.object({
   email: z.string().email(),
@@ -15,8 +16,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { email, type, userId } = schema.parse(body)
+    const { email, type, userId } = await parseBody(request, schema)
 
     // Rate limit check
     const rateLimitKey = `otp_send_${email.toLowerCase()}`
@@ -78,8 +78,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Nevažeći podaci" }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Send code error:", error)
     return NextResponse.json({ error: "Greška pri slanju koda" }, { status: 500 })

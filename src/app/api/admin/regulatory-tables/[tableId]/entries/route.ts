@@ -2,7 +2,28 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth-utils"
 import { getIpFromHeaders, getUserAgentFromHeaders, logAudit } from "@/lib/audit"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { regulatoryTableIdSchema } from "@/app/api/admin/_schemas"
+import { z } from "zod"
 import type { ReferenceCategory, ReferenceEntry } from "@prisma/client"
+
+const updateEntriesSchema = z.object({
+  entries: z.array(
+    z.object({
+      key: z.string(),
+      value: z.string(),
+      metadata: z.unknown().optional(),
+    })
+  ),
+  sourceUrl: z.string().nullable().optional(),
+  evidenceId: z.string().nullable().optional(),
+  reason: z.string().min(1, "Reason is required"),
+})
 
 const serializeTable = (table: {
   id: string
@@ -71,19 +92,10 @@ const getAuditCompanyId = async (userId: string) => {
 
 export async function PUT(request: Request, { params }: { params: Promise<{ tableId: string }> }) {
   const admin = await requireAdmin()
-  const { tableId } = await params
 
   try {
-    const body = await request.json()
-    const { entries, sourceUrl, evidenceId, reason } = body
-
-    if (!Array.isArray(entries)) {
-      return NextResponse.json({ error: "Entries array is required" }, { status: 400 })
-    }
-    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
-    if (!trimmedReason) {
-      return NextResponse.json({ error: "Reason is required" }, { status: 400 })
-    }
+    const { tableId } = parseParams(await params, regulatoryTableIdSchema)
+    const { entries, sourceUrl, evidenceId, reason } = await parseBody(request, updateEntriesSchema)
 
     const table = await db.referenceTable.findUnique({
       where: { id: tableId },
@@ -137,7 +149,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ tabl
       action: "UPDATE",
       entity: "ReferenceTableEntries",
       entityId: tableId,
-      reason: trimmedReason,
+      reason: reason.trim(),
       changes: {
         before: {
           table: serializeTable(table),
@@ -154,6 +166,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ tabl
 
     return NextResponse.json({ table: updatedTable })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin regulatory table entries update error:", error)
     return NextResponse.json(
       { error: "Failed to update regulatory table entries" },

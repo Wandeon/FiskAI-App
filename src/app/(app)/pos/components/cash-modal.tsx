@@ -8,6 +8,7 @@ import { Modal, ModalFooter } from "@/components/ui/modal"
 import { processPosSale } from "@/app/actions/pos"
 import { toast } from "@/lib/toast"
 import { queueOfflineSale, isOnline } from "@/lib/pos/offline-queue"
+import { calculateLineDisplay } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 import type { CartItem } from "../types"
 import type { ProcessPosSaleResult } from "@/types/pos"
 
@@ -61,13 +62,16 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
             totalAmount: total,
             issueDate: new Date().toISOString(),
             paymentMethod: "CASH",
-            items: items.map((item) => ({
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: item.quantity * item.unitPrice,
-              vatRate: item.vatRate,
-            })),
+            items: items.map((item) => {
+              const display = calculateLineDisplay(item)
+              return {
+                description: item.description,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: display.netAmount,
+                vatRate: item.vatRate,
+              }
+            }),
           },
         })
         return
@@ -106,20 +110,23 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
               totalAmount: total,
               issueDate: new Date().toISOString(),
               paymentMethod: "CASH",
-              items: items.map((item) => ({
-                description: item.description,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                totalPrice: item.quantity * item.unitPrice,
-                vatRate: item.vatRate,
-              })),
+              items: items.map((item) => {
+                const display = calculateLineDisplay(item)
+                return {
+                  description: item.description,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  totalPrice: display.netAmount,
+                  vatRate: item.vatRate,
+                }
+              }),
             },
           })
         } else {
           toast.error(result.error || "Greška pri obradi")
         }
       }
-    } catch (error) {
+    } catch {
       // Network error - queue for offline
       await queueOfflineSale({
         items,
@@ -135,13 +142,16 @@ export function CashModal({ items, total, onClose, onComplete }: Props) {
           totalAmount: total,
           issueDate: new Date().toISOString(),
           paymentMethod: "CASH",
-          items: items.map((item) => ({
-            description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.quantity * item.unitPrice,
-            vatRate: item.vatRate,
-          })),
+          items: items.map((item) => {
+            const display = calculateLineDisplay(item)
+            return {
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: display.netAmount,
+              vatRate: item.vatRate,
+            }
+          }),
         },
       })
     } finally {

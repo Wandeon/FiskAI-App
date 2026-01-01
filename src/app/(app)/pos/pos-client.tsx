@@ -8,6 +8,7 @@ import { CashModal } from "./components/cash-modal"
 import { CardPaymentModal } from "./components/card-payment-modal"
 import { ReceiptModal } from "./components/receipt-modal"
 import { OfflineIndicator } from "./components/offline-indicator"
+import { calculateInvoiceTotals } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 import type { PosProduct, CartItem } from "./types"
 import type { ProcessPosSaleResult } from "@/types/pos"
 import { useOfflinePos } from "@/lib/pos/use-offline-pos"
@@ -18,7 +19,7 @@ interface Props {
   terminalReaderId?: string | null
 }
 
-export function PosClient({ products, companyIban, terminalReaderId }: Props) {
+export function PosClient({ products, companyIban: _companyIban, terminalReaderId }: Props) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const { online, pendingCount, syncing, saveCart, loadCart, clearSavedCart } = useOfflinePos({
     onSyncSuccess: (saleId) => {
@@ -84,10 +85,16 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
     setCartItems([])
   }, [])
 
-  const total = cartItems.reduce(
-    (sum, item) => sum + item.unitPrice * item.quantity * (1 + item.vatRate / 100),
-    0
+  // Use domain-layer adapter for VAT calculations
+  const totals = calculateInvoiceTotals(
+    cartItems.map((item) => ({
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      vatRate: item.vatRate,
+    }))
   )
+  const total = totals.totalAmount
 
   const handleSaleComplete = (result: ProcessPosSaleResult) => {
     setSaleResult(result)
@@ -103,15 +110,15 @@ export function PosClient({ products, companyIban, terminalReaderId }: Props) {
   // Backup cart on changes
   useEffect(() => {
     if (cartItems.length > 0) {
-      saveCart(cartItems)
+      void saveCart(cartItems)
     } else {
-      clearSavedCart()
+      void clearSavedCart()
     }
   }, [cartItems, saveCart, clearSavedCart])
 
   // Restore cart on mount
   useEffect(() => {
-    loadCart().then((saved) => {
+    void loadCart().then((saved) => {
       if (saved && saved.length > 0) {
         setCartItems(saved)
       }

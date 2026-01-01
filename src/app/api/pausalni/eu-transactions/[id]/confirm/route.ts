@@ -4,6 +4,13 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { euTransaction, euVendor } from "@/lib/db/schema/pausalni"
 import { eq, and } from "drizzle-orm"
 import { TRANSACTION_TYPES } from "@/lib/pausalni/constants"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { idParamSchema, euTransactionConfirmBodySchema } from "@/app/api/pausalni/_schemas"
 
 /**
  * POST /api/pausalni/eu-transactions/[id]/confirm
@@ -12,7 +19,6 @@ import { TRANSACTION_TYPES } from "@/lib/pausalni/constants"
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -24,22 +30,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { isEu, country, vendorName, transactionType, vatId, viesValidated, viesValid } = body
+    // Parse and validate params
+    const { id } = parseParams(await params, idParamSchema)
 
-    if (typeof isEu !== "boolean") {
-      return NextResponse.json({ error: "isEu is required and must be boolean" }, { status: 400 })
-    }
-
-    if (isEu && !country) {
-      return NextResponse.json(
-        { error: "country is required when confirming as EU transaction" },
-        { status: 400 }
-      )
-    }
+    // Parse and validate body
+    const { isEu, country, vendorName, transactionType, vatId, viesValidated, viesValid } =
+      await parseBody(request, euTransactionConfirmBodySchema)
 
     const transaction = await drizzleDb
       .select()
@@ -102,6 +101,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       transaction: updated[0],
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error confirming EU transaction:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

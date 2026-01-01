@@ -41,6 +41,26 @@ package.json                             @fiskai/platform @fiskai/security
 .github/workflows/registry-check.yml     @fiskai/platform @fiskai/security
 
 # =============================================================================
+# DOMAIN ARCHITECTURE (DDD/Clean Architecture)
+# =============================================================================
+#
+# The domain layer contains pure business logic and is the foundation of the
+# system's correctness. Changes require architecture review to ensure:
+# - No external dependencies introduced
+# - Value object invariants preserved
+# - Aggregate boundaries respected
+
+# Domain layer - pure business logic
+src/domain/                               @fiskai/architecture @fiskai/platform
+
+# Application layer - use cases
+src/application/                          @fiskai/architecture @fiskai/platform
+
+# Architecture documentation
+docs/adr/                                 @fiskai/architecture @fiskai/platform
+docs/plans/Architecture2/                 @fiskai/architecture @fiskai/platform
+
+# =============================================================================
 # SECURITY-SENSITIVE AREAS
 # =============================================================================
 

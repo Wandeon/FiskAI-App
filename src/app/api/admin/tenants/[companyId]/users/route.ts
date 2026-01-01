@@ -4,6 +4,8 @@ import { db } from "@/lib/db"
 import { logAudit, getIpFromHeaders, getUserAgentFromHeaders } from "@/lib/audit"
 import { sendEmail } from "@/lib/email"
 import { AdminUserManagementEmail } from "@/lib/email/templates/admin-user-management-email"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { tenantParamsSchema } from "@/app/api/admin/_schemas"
 
 type RouteContext = {
   params: Promise<{ companyId: string }>
@@ -88,7 +90,7 @@ async function sendAdminActionNotifications(
 export async function GET(req: NextRequest, context: RouteContext) {
   try {
     await requireAdmin()
-    const { companyId } = await context.params
+    const { companyId } = parseParams(await context.params, tenantParamsSchema)
 
     const users = await db.companyUser.findMany({
       where: { companyId },
@@ -121,6 +123,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
       })),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Failed to fetch tenant users:", error)
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 })
   }
@@ -129,7 +134,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
     const admin = await requireAdmin()
-    const { companyId } = await context.params
+    const { companyId } = parseParams(await context.params, tenantParamsSchema)
     const body = await req.json()
 
     const { action, userId, role, email, reason } = body
@@ -385,6 +390,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Failed to manage tenant users:", error)
     return NextResponse.json({ error: "Failed to manage users" }, { status: 500 })
   }

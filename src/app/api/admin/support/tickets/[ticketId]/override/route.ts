@@ -1,8 +1,35 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { getIpFromHeaders, getUserAgentFromHeaders, logAudit } from "@/lib/audit"
-import type { SupportTicketPriority, SupportTicketStatus } from "@prisma/client"
+import { SupportTicketPriority, SupportTicketStatus } from "@prisma/client"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+
+const ticketIdParamsSchema = z.object({
+  ticketId: z.string().uuid("Invalid ticket ID format"),
+})
+
+const overrideBodySchema = z
+  .object({
+    status: z.nativeEnum(SupportTicketStatus).optional(),
+    priority: z.nativeEnum(SupportTicketPriority).optional(),
+    assignedToId: z.string().uuid().nullable().optional(),
+    reason: z
+      .string()
+      .min(1, "Reason is required")
+      .transform((s) => s.trim()),
+  })
+  .refine(
+    (data) =>
+      data.status !== undefined || data.priority !== undefined || data.assignedToId !== undefined,
+    { message: "At least one override field is required" }
+  )
 
 const serializeTicket = (ticket: {
   id: string
@@ -35,22 +62,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
   }
 
-  const { ticketId } = await params
-
   try {
-    const body = await request.json()
-    const { status, priority, assignedToId, reason } = body
-    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
-
-    if (!status && !priority && typeof assignedToId === "undefined") {
-      return NextResponse.json(
-        { error: "At least one override field is required" },
-        { status: 400 }
-      )
-    }
-    if (!trimmedReason) {
-      return NextResponse.json({ error: "Reason is required" }, { status: 400 })
-    }
+    const { ticketId } = parseParams(await params, ticketIdParamsSchema)
+    const { status, priority, assignedToId, reason } = await parseBody(request, overrideBodySchema)
 
     const ticket = await db.supportTicket.findUnique({
       where: { id: ticketId },
@@ -65,7 +79,7 @@ export async function PATCH(
       data: {
         status: status ?? undefined,
         priority: priority ?? undefined,
-        assignedToId: typeof assignedToId === "undefined" ? undefined : assignedToId,
+        assignedToId: assignedToId === undefined ? undefined : assignedToId,
       },
     })
 
@@ -75,7 +89,7 @@ export async function PATCH(
       action: "UPDATE",
       entity: "SupportTicket",
       entityId: ticket.id,
-      reason: trimmedReason,
+      reason,
       changes: {
         before: serializeTicket(ticket),
         after: serializeTicket(updatedTicket),
@@ -86,6 +100,9 @@ export async function PATCH(
 
     return NextResponse.json({ ticket: updatedTicket })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin support override error:", error)
     return NextResponse.json({ error: "Failed to apply support override" }, { status: 500 })
   }

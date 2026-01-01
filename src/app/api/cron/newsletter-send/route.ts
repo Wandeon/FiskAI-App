@@ -6,6 +6,7 @@ import { getRecentNewsForDigest } from "@/lib/newsletter/digest"
 import NewsDigestEmail from "@/emails/news-digest"
 import React from "react"
 import { eq } from "drizzle-orm"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -81,6 +82,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Newsletter send error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         success: false,

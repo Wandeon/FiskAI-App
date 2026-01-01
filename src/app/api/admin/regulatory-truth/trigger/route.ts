@@ -1,14 +1,20 @@
 // src/app/api/admin/regulatory-truth/trigger/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { runSentinel } from "@/lib/regulatory-truth/agents/sentinel"
 import { runExtractorBatch } from "@/lib/regulatory-truth/agents/extractor"
 import { runComposerBatch } from "@/lib/regulatory-truth/agents/composer"
 import { runReviewer } from "@/lib/regulatory-truth/agents/reviewer"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
-type PipelinePhase = "discovery" | "extraction" | "composition" | "review" | "all"
+const postBodySchema = z.object({
+  phase: z.enum(["discovery", "extraction", "composition", "review", "all"]).default("all"),
+})
+
+type PipelinePhase = z.infer<typeof postBodySchema>["phase"]
 
 /**
  * POST /api/admin/regulatory-truth/trigger
@@ -22,8 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
-    const phase = (body.phase as PipelinePhase) || "all"
+    const { phase } = await parseBody(request, postBodySchema)
 
     const results: Record<string, unknown> = {
       triggeredBy: user.id,
@@ -101,6 +106,9 @@ export async function POST(request: NextRequest) {
       results,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[trigger] Error:", error)
     return NextResponse.json(
       { error: "Failed to trigger pipeline", details: String(error) },

@@ -21,6 +21,7 @@ export default function CheckEmailPage() {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [cooldown])
 
   async function handleResend() {

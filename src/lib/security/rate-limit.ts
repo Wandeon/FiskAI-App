@@ -31,6 +31,11 @@ function isEdgeRuntime(): boolean {
 // In-memory fallback for Edge Runtime and Redis failures
 const inMemoryFallback = new Map<string, RateLimitRecord>()
 
+// Critical limit types that should fail-closed when Redis is unavailable
+// These are security-sensitive operations that should deny access if rate limiting
+// cannot be properly enforced (prevents brute-force attacks when Redis is down)
+const CRITICAL_LIMIT_TYPES = new Set<string>(["LOGIN", "PASSWORD_RESET", "OTP_SEND", "OTP_VERIFY"])
+
 export const RATE_LIMITS = {
   LOGIN: {
     attempts: 5, // 5 attempts
@@ -200,8 +205,15 @@ export async function checkRateLimit(
 
     return { allowed: true, resetAt: record.resetAt }
   } catch (error) {
-    // If Redis is unavailable, fall back to in-memory
     console.error("[rate-limit] Redis error, using in-memory fallback:", error)
+
+    // For critical security-sensitive operations, fail-closed when Redis is unavailable
+    // This prevents brute-force attacks when rate limiting cannot be enforced properly
+    if (CRITICAL_LIMIT_TYPES.has(limitType)) {
+      return { allowed: false }
+    }
+
+    // For non-critical operations, fall back to in-memory
     return checkRateLimitInMemory(identifier, limitType)
   }
 }

@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-
-const updateProfileSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name must be at most 100 characters")
-    .trim()
-    .regex(
-      /^[\p{L}\p{M}\s'-]+$/u,
-      "Name can only contain letters, spaces, hyphens, and apostrophes"
-    ),
-})
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { updateProfileSchema } from "../_schemas"
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -27,14 +16,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const body = await req.json()
-    const validation = updateProfileSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 })
-    }
-
-    const { name } = validation.data
+    const { name } = await parseBody(req, updateProfileSchema)
 
     // Update user profile
     const updatedUser = await db.user.update({
@@ -53,6 +35,9 @@ export async function PATCH(req: NextRequest) {
       user: updatedUser,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error updating staff profile:", error)
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
   }

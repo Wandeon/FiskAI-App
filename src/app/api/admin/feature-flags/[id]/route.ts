@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+import { FeatureFlagScope } from "@prisma/client"
 import { requireAdmin } from "@/lib/auth-utils"
 import { getFlagById, updateFlag, deleteFlag, getFlagAuditLog } from "@/lib/feature-flags"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { updateFeatureFlagSchema } from "@/app/api/admin/_schemas"
+
+const idParamsSchema = z.object({ id: z.string().uuid() })
+
+const updateWithReasonSchema = updateFeatureFlagSchema.extend({
+  scope: z.nativeEnum(FeatureFlagScope).optional(),
+  reason: z.string().optional(),
+})
+
+const deleteBodySchema = z.object({
+  reason: z.string().min(1, "Deletion reason is required"),
+})
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -12,16 +32,23 @@ interface RouteParams {
  * Get a single feature flag with audit log
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
-  await requireAdmin()
-  const { id } = await params
+  try {
+    await requireAdmin()
+    const { id } = parseParams(await params, idParamsSchema)
 
-  const [flag, auditLog] = await Promise.all([getFlagById(id), getFlagAuditLog(id)])
+    const [flag, auditLog] = await Promise.all([getFlagById(id), getFlagAuditLog(id)])
 
-  if (!flag) {
-    return NextResponse.json({ error: "Feature flag not found" }, { status: 404 })
+    if (!flag) {
+      return NextResponse.json({ error: "Feature flag not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({ flag, auditLog })
+  } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    throw error
   }
-
-  return NextResponse.json({ flag, auditLog })
 }
 
 /**
@@ -30,30 +57,12 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
  * Update a feature flag
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  const user = await requireAdmin()
-  const { id } = await params
-  const body = await request.json()
+  try {
+    const user = await requireAdmin()
+    const { id } = parseParams(await params, idParamsSchema)
+    const body = await parseBody(request, updateWithReasonSchema)
 
-  const {
-    name,
-    description,
-    scope,
-    status,
-    defaultValue,
-    rolloutPercentage,
-    category,
-    tags,
-    reason,
-  } = body
-
-  const flag = await getFlagById(id)
-  if (!flag) {
-    return NextResponse.json({ error: "Feature flag not found" }, { status: 404 })
-  }
-
-  const updated = await updateFlag(
-    id,
-    {
+    const {
       name,
       description,
       scope,
@@ -62,12 +71,37 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       rolloutPercentage,
       category,
       tags,
-    },
-    user.id!,
-    reason
-  )
+      reason,
+    } = body
 
-  return NextResponse.json(updated)
+    const flag = await getFlagById(id)
+    if (!flag) {
+      return NextResponse.json({ error: "Feature flag not found" }, { status: 404 })
+    }
+
+    const updated = await updateFlag(
+      id,
+      {
+        name,
+        description,
+        scope,
+        status,
+        defaultValue,
+        rolloutPercentage,
+        category,
+        tags,
+      },
+      user.id!,
+      reason
+    )
+
+    return NextResponse.json(updated)
+  } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    throw error
+  }
 }
 
 /**
@@ -76,22 +110,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Soft-delete a feature flag (requires reason)
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  const user = await requireAdmin()
-  const { id } = await params
+  try {
+    const user = await requireAdmin()
+    const { id } = parseParams(await params, idParamsSchema)
+    const { reason } = await parseBody(request, deleteBodySchema)
 
-  const flag = await getFlagById(id)
-  if (!flag) {
-    return NextResponse.json({ error: "Feature flag not found" }, { status: 404 })
+    const flag = await getFlagById(id)
+    if (!flag) {
+      return NextResponse.json({ error: "Feature flag not found" }, { status: 404 })
+    }
+
+    await deleteFlag(id, user.id!, reason)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    throw error
   }
-
-  // Extract reason from request body
-  const body = await request.json().catch(() => ({}))
-  const { reason } = body
-
-  if (!reason || reason.trim().length === 0) {
-    return NextResponse.json({ error: "Deletion reason is required" }, { status: 400 })
-  }
-
-  await deleteFlag(id, user.id!, reason)
-  return NextResponse.json({ success: true })
 }

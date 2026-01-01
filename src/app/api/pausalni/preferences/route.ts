@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { apiError } from "@/lib/api-error"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { preferencesBodySchema } from "@/app/api/pausalni/_schemas"
 
 export const GET = withApiLogging(async (request: NextRequest) => {
   try {
@@ -48,18 +50,17 @@ export const GET = withApiLogging(async (request: NextRequest) => {
 export const PUT = withApiLogging(async (request: NextRequest) => {
   try {
     const user = await requireAuth()
-    const body = await request.json()
 
     setTenantContext({
       companyId: "", // Not company-specific, user-specific
       userId: user.id!,
     })
 
-    const { channel, enabled, remind7Days, remind3Days, remind1Day, remindDayOf } = body
-
-    if (!channel || !["EMAIL", "CALENDAR"].includes(channel)) {
-      return NextResponse.json({ error: "Invalid channel" }, { status: 400 })
-    }
+    // Parse and validate body
+    const { channel, enabled, remind7Days, remind3Days, remind1Day, remindDayOf } = await parseBody(
+      request,
+      preferencesBodySchema
+    )
 
     // Check if preference exists
     const existing = await drizzleDb
@@ -97,6 +98,9 @@ export const PUT = withApiLogging(async (request: NextRequest) => {
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return apiError(error)
   }
 })

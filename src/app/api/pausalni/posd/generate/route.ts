@@ -6,6 +6,8 @@ import { generatedForm } from "@/lib/db/schema/pausalni"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { withApiLogging } from "@/lib/api-logging"
 import { createHash } from "crypto"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { posdGenerateBodySchema } from "@/app/api/pausalni/_schemas"
 import {
   generatePosdFormForPeriod,
   validatePosdFormData,
@@ -35,29 +37,16 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       userId: user.id!,
     })
 
-    // Check if company is paušalni obrt
+    // Check if company is pausalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { year, expenseBracket, grossIncome, format = "pdf" } = body
-
-    // Validate required fields
-    if (!year || year < 2000 || year > 2100) {
-      return NextResponse.json({ error: "Invalid year" }, { status: 400 })
-    }
-
-    if (![25, 30, 34, 40, 85].includes(expenseBracket)) {
-      return NextResponse.json(
-        { error: "expenseBracket must be one of: 25, 30, 34, 40, 85" },
-        { status: 400 }
-      )
-    }
-
-    if (!["pdf", "xml", "both"].includes(format)) {
-      return NextResponse.json({ error: "format must be one of: pdf, xml, both" }, { status: 400 })
-    }
+    // Parse and validate body
+    const { year, expenseBracket, grossIncome, format } = await parseBody(
+      request,
+      posdGenerateBodySchema
+    )
 
     // Generate form data
     const { xml, data } = await generatePosdFormForPeriod(
@@ -142,6 +131,9 @@ export const POST = withApiLogging(async (request: NextRequest) => {
       pdf: pdfBuffer?.toString("base64"),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error generating PO-SD form:", error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal server error" },
