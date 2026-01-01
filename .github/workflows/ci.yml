@@ -153,7 +153,7 @@ jobs:
           PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS \"test_${{ github.run_id }}\";"
 
       - name: Apply schema
-        run: npx prisma db push --skip-generate
+        run: npx prisma db push --accept-data-loss
 
       - name: Run integration tests
         run: node --import tsx --test src/lib/regulatory-truth/__tests__/*.test.ts

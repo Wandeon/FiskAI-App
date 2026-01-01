@@ -53,7 +53,7 @@ export function CoverageDashboard() {
  }
  }
 
- fetchData()
+ void fetchData()
  }, [])
 
  if (loading) {

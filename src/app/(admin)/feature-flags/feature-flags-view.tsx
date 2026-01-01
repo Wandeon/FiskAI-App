@@ -472,7 +472,7 @@ export function FeatureFlagsView({ initialFlags, initialStats }: FeatureFlagsVie
                         className="w-20"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            handleUpdateRollout(flag, parseInt(e.currentTarget.value))
+                            void handleUpdateRollout(flag, parseInt(e.currentTarget.value))
                           } else if (e.key === "Escape") {
                             setEditingId(null)
                           }
