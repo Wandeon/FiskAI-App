@@ -57,7 +57,8 @@ describe("POST /api/assistant/chat/reasoning", () => {
 
     expect(response.status).toBe(400)
     const body = await response.json()
-    expect(body.error).toBe("Query is required")
+    expect(body.error).toBe("Validation failed")
+    expect(body.details).toBeDefined()
   })
 
   it("returns 400 for invalid surface", async () => {
