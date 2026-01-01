@@ -29,6 +29,8 @@ export default defineConfig({
       // Domain tests using node:test
       "src/domain/compliance/__tests__/**",
       "src/domain/identity/__tests__/**",
+      // API validation tests using node:test
+      "src/lib/api/__tests__/**",
       // Tests needing comprehensive refactoring (run with node:test)
       "tests/lib/tenant-isolation.test.ts",
       "src/lib/assistant/query-engine/__tests__/answer-synthesizer.test.ts",
