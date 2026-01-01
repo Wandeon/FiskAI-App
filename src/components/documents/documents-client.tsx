@@ -32,6 +32,12 @@ type ImportJobPayload = {
   warehouseId?: string
   movementDate?: string
   referenceNumber?: string
+  // Bank statement specific fields
+  openingBalance?: number
+  closingBalance?: number
+  mathValid?: boolean
+  // Allow any additional properties for invoice data
+  [key: string]: unknown
 }
 
 export function DocumentsClient({
