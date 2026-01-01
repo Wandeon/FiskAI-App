@@ -3320,6 +3320,12 @@ enum AuditAction {
 
   // Webhook events
   EVIDENCE_CREATED_VIA_WEBHOOK
+
+  // Evidence staleness and content monitoring
+  EVIDENCE_CONTENT_CHANGED
+  SEMANTIC_DUPLICATE_DETECTED
+  RULE_AUTO_DEPRECATED
+  HUMAN_REVIEW_REQUESTED
 }
 
 enum ExpenseStatus {
@@ -3673,6 +3679,7 @@ enum AgentType {
   TRANSITIONAL_EXTRACTOR
   QUERY_CLASSIFIER
   COMPARISON_EXTRACTOR
+  EXEMPTION_EXTRACTOR
 }
 
 enum RuleStatus {

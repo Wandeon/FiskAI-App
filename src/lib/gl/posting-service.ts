@@ -27,7 +27,9 @@ export type PostingResult = {
   journalLines: JournalLine[]
 }
 
-const OPEN_PERIOD_STATUSES = ["OPEN", "SOFT_CLOSE"] as const
+import type { PeriodStatus } from "@prisma/client"
+
+const OPEN_PERIOD_STATUSES: readonly PeriodStatus[] = ["OPEN", "SOFT_CLOSE"]
 
 function toDecimal(value: Prisma.Decimal | number | string): Prisma.Decimal {
   if (value instanceof Prisma.Decimal) {

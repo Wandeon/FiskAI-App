@@ -45,7 +45,7 @@ function buildVatInputContext(
     entity: {
       type: entity.type,
       obrtSubtype: entity.obrtSubtype,
-      vat: { status: company.isVatPayer ? "IN_VAT" : "OUTSIDE_VAT" },
+      vat: { status: company.isVatPayer ? "IN_VAT" : "OUTSIDE_VAT" } as const,
       location: { country: "HR" },
     },
     txn: {

@@ -1,5 +1,5 @@
 // src/lib/prisma-extensions.ts
-import { PrismaClient, AuditAction, Prisma } from "@prisma/client"
+import { PrismaClient, AuditAction, Prisma, PeriodStatus } from "@prisma/client"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { getAuditContext } from "./audit-context"
 import { computeAuditChecksum } from "./audit-utils"
@@ -111,7 +111,7 @@ export function runWithTenant<T>(context: TenantContext, fn: () => T): T {
 // GENERAL LEDGER (GL) SAFETY GUARDS
 // ============================================
 
-const LOCKED_PERIOD_STATUSES = new Set(["CLOSED", "LOCKED"])
+const LOCKED_PERIOD_STATUSES = new Set<PeriodStatus>(["CLOSED", "LOCKED"])
 
 export class PeriodStatusLockedError extends Error {
   constructor(periodId: string) {
@@ -647,24 +647,26 @@ async function resolvePeriodLockContext(
     return { companyId, date: directDate }
   }
 
-  const modelClient = (prismaBase as Record<string, unknown>)[client] as {
-    findUnique?: (params: unknown) => Promise<Record<string, unknown> | null>
-    findFirst?: (params: unknown) => Promise<Record<string, unknown> | null>
-  }
+  const modelClient = (prismaBase as unknown as Record<string, unknown>)[client] as
+    | {
+        findUnique?: (params: unknown) => Promise<Record<string, unknown> | null>
+        findFirst?: (params: unknown) => Promise<Record<string, unknown> | null>
+      }
+    | undefined
 
   if (!modelClient) {
     return { companyId, date: directDate }
   }
 
-  const existing = modelClient.findUnique
-    ? await modelClient.findUnique({
-        where: args.where,
-        select: { companyId: true, [dateField]: true },
-      })
-    : await modelClient.findFirst({
-        where: args.where,
-        select: { companyId: true, [dateField]: true },
-      })
+  const finder = modelClient.findUnique ?? modelClient.findFirst
+  if (!finder) {
+    return { companyId, date: directDate }
+  }
+
+  const existing = await finder({
+    where: args.where,
+    select: { companyId: true, [dateField]: true },
+  })
 
   if (!existing) {
     return { companyId, date: directDate }
@@ -695,9 +697,11 @@ async function enforcePeriodLockForBulk(
 
   if (lockedPeriods.length === 0) return
 
-  const modelClient = (prismaBase as Record<string, unknown>)[client] as {
-    findFirst?: (params: unknown) => Promise<Record<string, unknown> | null>
-  }
+  const modelClient = (prismaBase as unknown as Record<string, unknown>)[client] as
+    | {
+        findFirst?: (params: unknown) => Promise<Record<string, unknown> | null>
+      }
+    | undefined
 
   if (!modelClient?.findFirst) return
 
@@ -2055,9 +2059,13 @@ export function withTenantIsolation(prisma: PrismaClient) {
           if (AUDITED_MODELS.includes(model as AuditedModel)) {
             try {
               // Use dynamic model access to fetch the current state
-              const modelClient = prismaBase[model.charAt(0).toLowerCase() + model.slice(1)] as {
-                findUnique: (args: { where: unknown }) => Promise<unknown>
-              }
+              const modelClient = (prismaBase as unknown as Record<string, unknown>)[
+                model.charAt(0).toLowerCase() + model.slice(1)
+              ] as
+                | {
+                    findUnique: (args: { where: unknown }) => Promise<unknown>
+                  }
+                | undefined
               if (modelClient?.findUnique) {
                 const existing = await modelClient.findUnique({
                   where: args.where,
@@ -2966,9 +2974,13 @@ export function withTenantIsolation(prisma: PrismaClient) {
           let upsertBeforeState: Record<string, unknown> | null = null
           if (AUDITED_MODELS.includes(model as AuditedModel)) {
             try {
-              const modelClient = prismaBase[model.charAt(0).toLowerCase() + model.slice(1)] as {
-                findUnique: (args: { where: unknown }) => Promise<unknown>
-              }
+              const modelClient = (prismaBase as unknown as Record<string, unknown>)[
+                model.charAt(0).toLowerCase() + model.slice(1)
+              ] as
+                | {
+                    findUnique: (args: { where: unknown }) => Promise<unknown>
+                  }
+                | undefined
               if (modelClient?.findUnique) {
                 const existing = await modelClient.findUnique({
                   where: args.where,

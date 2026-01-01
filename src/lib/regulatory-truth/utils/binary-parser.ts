@@ -199,7 +199,7 @@ async function parseExcel(
 ): Promise<{ text: string; metadata?: Record<string, unknown> }> {
   try {
     const workbook = new ExcelJS.Workbook()
-    await workbook.xlsx.load(buffer)
+    await workbook.xlsx.load(buffer as Buffer)
 
     const sheets: string[] = []
     const sheetNames: string[] = []

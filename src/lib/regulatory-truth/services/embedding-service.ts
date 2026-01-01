@@ -50,8 +50,8 @@ export async function generateEmbeddingsForRule(ruleId: string): Promise<Embeddi
       content: string
     }> = []
 
-    // Chunk 1: Rule title + body
-    const ruleContent = `${rule.titleHr}\n\n${rule.bodyHr}`
+    // Chunk 1: Rule title + explanation
+    const ruleContent = `${rule.titleHr}\n\n${rule.explanationHr || ""}`
     chunks.push({
       id: `${ruleId}-rule-content`,
       factSheetId: ruleId,
@@ -67,7 +67,7 @@ export async function generateEmbeddingsForRule(ruleId: string): Promise<Embeddi
         chunks.push({
           id: `${ruleId}-evidence-${pointer.id}`,
           factSheetId: ruleId,
-          sourceUrl: pointer.lawReference || pointer.evidence.sourceUrl,
+          sourceUrl: pointer.lawReference || pointer.evidence.url,
           content: evidenceSnippet,
         })
       }

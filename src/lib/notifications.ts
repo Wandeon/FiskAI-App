@@ -98,6 +98,12 @@ const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
 
   // Webhook events
   EVIDENCE_CREATED_VIA_WEBHOOK: "Dokaz kreiran putem webhoka",
+
+  // Evidence staleness and content monitoring
+  EVIDENCE_CONTENT_CHANGED: "Sadržaj dokaza promijenjen",
+  SEMANTIC_DUPLICATE_DETECTED: "Otkrivena semantička kopija",
+  RULE_AUTO_DEPRECATED: "Pravilo automatski zastarjelo",
+  HUMAN_REVIEW_REQUESTED: "Zatražen ljudski pregled",
 }
 
 const ENTITY_LABELS: Record<string, string> = {

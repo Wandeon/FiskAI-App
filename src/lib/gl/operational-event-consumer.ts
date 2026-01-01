@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma, OperationalSourceType, OperationalEventType } from "@prisma/client"
 import { db } from "@/lib/db"
 import { postJournalEntry, type PostingLineInput } from "./posting-service"
 
@@ -23,8 +23,8 @@ async function loadPostingRule(event: {
   const rule = await db.postingRule.findFirst({
     where: {
       companyId: event.companyId,
-      sourceType: event.sourceType as Prisma.OperationalSourceType,
-      eventType: event.eventType as Prisma.OperationalEventType,
+      sourceType: event.sourceType as OperationalSourceType,
+      eventType: event.eventType as OperationalEventType,
       isActive: true,
     },
     select: {

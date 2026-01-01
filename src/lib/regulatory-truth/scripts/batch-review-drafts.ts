@@ -6,6 +6,7 @@
 // The bottleneck is that rules need to pass through the reviewer agent
 // to progress from DRAFT → APPROVED/PENDING_REVIEW/REJECTED
 
+import { RiskTier } from "@prisma/client"
 import { cliDb as db } from "../cli-db"
 import { closeCliDb } from "../cli-db"
 import { runReviewer } from "../agents/reviewer"
@@ -44,7 +45,7 @@ async function batchReviewDrafts(options: BatchReviewOptions = {}) {
     where: {
       status: "DRAFT",
       confidence: { gte: minConfidence },
-      riskTier: { in: riskTiers },
+      riskTier: { in: riskTiers as RiskTier[] },
     },
     include: {
       sourcePointers: {
