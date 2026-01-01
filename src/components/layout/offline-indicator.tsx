@@ -29,6 +29,7 @@ export function OfflineIndicator() {
       const timer = setTimeout(() => setShowSyncSuccess(false), 3000)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [lastSyncResult])
 
   // Show sync success toast

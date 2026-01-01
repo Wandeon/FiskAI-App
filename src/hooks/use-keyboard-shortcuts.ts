@@ -3,7 +3,7 @@
 
 "use client"
 
-import { useEffect, useCallback, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 
 export interface KeyboardShortcut {
@@ -139,6 +139,7 @@ export function useKeyboardShortcuts({ shortcuts, global = true }: UseKeyboardSh
       window.addEventListener("keydown", handler)
       return () => window.removeEventListener("keydown", handler)
     }
+    return undefined
   }, [global])
 }
 

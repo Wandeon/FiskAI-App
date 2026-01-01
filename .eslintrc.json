@@ -22,7 +22,7 @@
         }
       }
     ],
-    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-explicit-any": "error",
     "import/no-restricted-paths": [
       "error",
       {
@@ -90,31 +90,6 @@
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-misused-promises": "off"
-      }
-    },
-    {
-      "files": [
-        "src/app/**/*.ts",
-        "src/app/**/*.tsx",
-        "src/lib/**/*.ts",
-        "src/lib/**/*.tsx",
-        "src/components/**/*.ts",
-        "src/components/**/*.tsx",
-        "src/stores/**/*.ts",
-        "src/contexts/**/*.ts",
-        "src/contexts/**/*.tsx",
-        "src/hooks/**/*.ts",
-        "src/hooks/**/*.tsx"
-      ],
-      "excludedFiles": [
-        "src/domain/**/*",
-        "src/application/**/*",
-        "src/infrastructure/**/*",
-        "src/interfaces/**/*"
-      ],
-      "rules": {
-        "@typescript-eslint/no-floating-promises": "warn",
-        "@typescript-eslint/no-misused-promises": "warn"
       }
     },
     {

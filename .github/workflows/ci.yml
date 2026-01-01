@@ -169,10 +169,7 @@ jobs:
   test-integration:
     name: Integration Tests (DB)
     runs-on: ubuntu-latest
-    # TODO: Fix integration tests to work with empty database (need test fixtures)
-    # Currently non-blocking: tests require seed data that doesn't exist in CI
-    # Tracked in: Phase 1 test infrastructure improvements
-    continue-on-error: true
+    # Phase 8: Made blocking - integration tests must pass
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -230,6 +227,58 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/regulatory-truth/evidence-pack-2025-12-23.md\` for full details." >> $GITHUB_STEP_SUMMARY
 
+  architecture-check:
+    name: Architecture Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check no UI imports DB
+        run: |
+          echo "Checking for database imports in UI components..."
+          if grep -r '@prisma/client' src/components/ 2>/dev/null | grep -v "containment: removed"; then
+            echo "::error::UI components cannot import @prisma/client"
+            exit 1
+          fi
+          if grep -r 'from "@/lib/db"' src/components/ 2>/dev/null; then
+            echo "::error::UI components cannot import from @/lib/db"
+            exit 1
+          fi
+          echo "✅ No DB imports in UI components"
+
+      - name: Check no floats in domain/application
+        run: |
+          echo "Checking for float operations in domain/application..."
+          # Check for parseFloat (but not in comments or strings)
+          if grep -rE '^\s*[^/]*parseFloat\(' src/domain/ src/application/ 2>/dev/null; then
+            echo "::error::parseFloat banned in domain/application"
+            exit 1
+          fi
+          # Check for .toFixed() (but allow Decimal.toFixed which is safe)
+          if grep -rE '\.toFixed\(' src/domain/ src/application/ 2>/dev/null | grep -v 'Decimal'; then
+            echo "::error::.toFixed() banned in domain/application"
+            exit 1
+          fi
+          echo "✅ No float operations in domain/application"
+
+      - name: Check domain has no infra imports
+        run: |
+          echo "Checking domain layer purity..."
+          if grep -r '@prisma/client' src/domain/ 2>/dev/null; then
+            echo "::error::Domain cannot import @prisma/client"
+            exit 1
+          fi
+          if grep -r 'from "@/lib/db"' src/domain/ 2>/dev/null; then
+            echo "::error::Domain cannot import from @/lib/db"
+            exit 1
+          fi
+          if grep -rE 'from "next/' src/domain/ 2>/dev/null; then
+            echo "::error::Domain cannot import Next.js"
+            exit 1
+          fi
+          echo "✅ Domain layer is pure"
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -237,8 +286,8 @@ jobs:
     # Added security as dependency per issue #324
     # Added typecheck as dependency per Phase 0 Architecture Containment
     # Added property and golden tests as dependencies per Phase 7 Testing Expansion
-    # Note: test-integration is non-blocking until CI fixtures are added
-    needs: [lint, typecheck, test, test-property, test-golden, security]
+    # Phase 8: test-integration and architecture-check now blocking
+    needs: [lint, typecheck, test, test-property, test-golden, test-integration, architecture-check, security]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

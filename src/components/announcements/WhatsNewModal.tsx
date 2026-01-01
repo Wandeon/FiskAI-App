@@ -81,6 +81,7 @@ export function WhatsNewModal() {
       const timer = setTimeout(() => setIsOpen(true), 1000)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [])
 
   const handleDismiss = () => {

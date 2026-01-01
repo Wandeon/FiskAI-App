@@ -48,7 +48,7 @@ export const DropdownMenuTrigger = forwardRef<
     return (
       <div
         onClick={() => setOpen(!open)}
-        ref={ref as any}
+        ref={ref as React.RefObject<HTMLDivElement>}
         aria-expanded={open}
         aria-haspopup="menu"
       >
@@ -94,6 +94,7 @@ export function DropdownMenuContent({
       document.addEventListener("mousedown", handleClickOutside)
       return () => document.removeEventListener("mousedown", handleClickOutside)
     }
+    return undefined
   }, [open, setOpen])
 
   if (!open) return null

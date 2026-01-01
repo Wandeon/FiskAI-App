@@ -32,6 +32,7 @@ export function ResetStep({ email, onSubmit, onResend, onBack, isLoading, error 
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [resendCooldown])
 
   // Show OTP error animation
@@ -246,7 +247,7 @@ export function ResetStep({ email, onSubmit, onResend, onBack, isLoading, error 
           <motion.button
             type="submit"
             disabled={isLoading || !password || !confirmPassword}
-            className="w-full rounded-xl bg-gradient-to-r from-accent to-cyan-600 py-3 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all hover:shadow-cyan-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl bg-accent py-3 font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:shadow-accent/40 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
