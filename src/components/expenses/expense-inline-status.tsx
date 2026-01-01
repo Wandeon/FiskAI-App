@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils"
 // eslint-disable-next-line import/no-restricted-paths -- pre-existing import, to be refactored
 import { updateExpenseInline } from "@/app/actions/expense"
 import { toast } from "@/lib/toast"
-import type { ExpenseStatus } from "@prisma/client"
+
+// Local type for expense status (containment: removed @prisma/client import)
+type ExpenseStatus = "DRAFT" | "PENDING" | "PAID" | "CANCELLED"
 
 const STATUS_LABELS: Record<ExpenseStatus, string> = {
   DRAFT: "Nacrt",

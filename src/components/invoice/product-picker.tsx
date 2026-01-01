@@ -1,11 +1,21 @@
 "use client"
 
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
-import { Product } from "@prisma/client"
+
+// Local type for product data (containment: removed @prisma/client import)
+interface ProductData {
+  id: string
+  name: string
+  sku: string | null
+  unitPrice: number | null
+  vatRate: number | null
+  unit: string | null
+  description: string | null
+}
 
 interface ProductPickerProps {
-  products: Product[]
-  onSelect: (product: Product) => void
+  products: ProductData[]
+  onSelect: (product: ProductData) => void
 }
 
 export function ProductPicker({ products, onSelect }: ProductPickerProps) {

@@ -1,76 +1,12 @@
-import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Building2, AlertCircle, ChevronRight, ClipboardCheck } from "lucide-react"
 import { ClientsSearch } from "./clients-search"
+import { getAssignedClients } from "@/lib/staff/queries"
 
-async function getAssignedClients(userId: string, searchQuery?: string) {
-  const assignments = await db.staffAssignment.findMany({
-    where: {
-      staffId: userId,
-      ...(searchQuery && {
-        OR: [
-          { company: { name: { contains: searchQuery, mode: "insensitive" } } },
-          { company: { oib: { contains: searchQuery } } },
-          { notes: { contains: searchQuery, mode: "insensitive" } },
-        ],
-      }),
-    },
-    include: {
-      company: {
-        include: {
-          _count: {
-            select: {
-              eInvoices: true,
-              expenses: true,
-              supportTickets: { where: { status: { not: "CLOSED" } } },
-              staffReviews: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: { assignedAt: "desc" },
-  })
-
-  // Get pending review counts for each company
-  const companyIds = assignments.map((a) => a.company.id)
-
-  // Count total reviewable items (invoices + expenses) minus reviewed ones
-  const pendingReviewCounts = await Promise.all(
-    companyIds.map(async (companyId) => {
-      const [invoiceCount, expenseCount, reviewedCount] = await Promise.all([
-        db.eInvoice.count({ where: { companyId } }),
-        db.expense.count({ where: { companyId } }),
-        db.staffReview.count({ where: { companyId } }),
-      ])
-      return {
-        companyId,
-        pendingReview: invoiceCount + expenseCount - reviewedCount,
-      }
-    })
-  )
-
-  const pendingMap = new Map(pendingReviewCounts.map((p) => [p.companyId, p.pendingReview]))
-
-  return assignments.map((a) => ({
-    id: a.company.id,
-    name: a.company.name,
-    oib: a.company.oib,
-    entitlements: a.company.entitlements as string[],
-    assignedAt: a.assignedAt,
-    notes: a.notes,
-    stats: {
-      invoices: a.company._count.eInvoices,
-      expenses: a.company._count.expenses,
-      openTickets: a.company._count.supportTickets,
-      pendingReview: pendingMap.get(a.company.id) || 0,
-    },
-  }))
-}
+// TODO: Database queries moved to @/lib/staff/queries for Clean Architecture compliance
 
 interface ClientsListProps {
   searchQuery?: string

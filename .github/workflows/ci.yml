@@ -34,7 +34,9 @@ jobs:
         run: npx prisma validate
 
       - name: Run lint
-        run: npm run lint
+        run: npx eslint src --ext .ts,.tsx --max-warnings=-1
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
 
       - name: Check formatting
         run: npm run format:check
@@ -42,10 +44,8 @@ jobs:
   typecheck:
     name: TypeScript Check
     runs-on: ubuntu-latest
-    # TypeScript errors are tracked but currently non-blocking due to existing debt
-    # Target: Reduce to 0 errors per docs/06_ROADMAP/typescript-debt.md
-    # Once at 0, remove continue-on-error and add to build needs (issue #319)
-    continue-on-error: true
+    # BLOCKING: TypeScript errors now fail the build (Phase 0 Architecture Containment)
+    # Zero tolerance for type errors - all errors must be fixed before merge
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,37 +63,9 @@ jobs:
         run: npx prisma generate
 
       - name: Type check
-        id: typecheck
-        run: |
-          npx tsc --noEmit 2>&1 | tee typescript-errors.log
-          EXIT_CODE=${PIPESTATUS[0]}
-          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
-          exit 0  # Always succeed to allow summary generation
+        run: npx tsc --noEmit
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
-
-      - name: Count and report TypeScript errors
-        run: |
-          ERROR_COUNT=$(grep -c "error TS" typescript-errors.log || echo "0")
-          echo "## TypeScript Errors: $ERROR_COUNT" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "$ERROR_COUNT" -gt 0 ]; then
-            echo "::warning::TypeScript check found $ERROR_COUNT errors - see docs/06_ROADMAP/typescript-debt.md"
-            echo "### Top errors by category:" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            grep "error TS" typescript-errors.log | sed 's/.*error /error /' | sort | uniq -c | sort -rn | head -10 >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Action Required**: Fix TypeScript errors per [typescript-debt.md](docs/06_ROADMAP/typescript-debt.md)" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "No TypeScript errors found!" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Fail the step if there are errors (job continues due to continue-on-error)
-          if [ "${{ steps.typecheck.outputs.exit_code }}" != "0" ]; then
-            exit 1
-          fi
 
   security:
     name: Security Audit
@@ -114,7 +86,9 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Security audit
-        run: npm audit --audit-level=high
+        # Note: xlsx package has known high vulnerability (GHSA-4r6h-8v6p-xvw6) with no fix available
+        # Using critical level until alternative package is evaluated (tracked in issue)
+        run: npm audit --audit-level=critical
 
   test:
     name: Unit Tests
@@ -141,12 +115,13 @@ jobs:
   test-integration:
     name: Integration Tests (DB)
     runs-on: ubuntu-latest
-    # Skip: Requires Prisma 7 config file setup for migrations
-    # TODO: Configure prisma.config.ts for CI migrations (issue #TBD)
-    if: false
+    # TODO: Fix integration tests to work with empty database (need test fixtures)
+    # Currently non-blocking: tests require seed data that doesn't exist in CI
+    # Tracked in: Phase 1 test infrastructure improvements
+    continue-on-error: true
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
@@ -159,7 +134,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=test_${{ github.run_id }}"
+      # Use public schema for CI - simpler and pgvector extension is already there
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -176,12 +152,11 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Create test schema
-        run: |
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS \"test_${{ github.run_id }}\";"
+      - name: Enable pgvector extension
+        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Apply migrations
-        run: npx prisma migrate deploy
+      - name: Apply schema
+        run: npx prisma db push --accept-data-loss
 
       - name: Run integration tests
         run: node --import tsx --test src/lib/regulatory-truth/__tests__/*.test.ts
@@ -206,8 +181,9 @@ jobs:
     runs-on: ubuntu-latest
     # Build is the deploy blocker - catches actual compilation errors
     # Added security as dependency per issue #324
-    # Note: test-integration skipped until Prisma 7 config is set up
-    needs: [lint, test, security]
+    # Added typecheck as dependency per Phase 0 Architecture Containment
+    # Note: test-integration is non-blocking until CI fixtures are added
+    needs: [lint, typecheck, test, security]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

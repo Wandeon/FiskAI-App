@@ -1,35 +1,8 @@
-import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Users, CreditCard, AlertCircle, CheckCircle } from "lucide-react"
+import { getAdminStats, getRecentSignups } from "@/lib/admin/queries"
 
-async function getAdminStats() {
-  const [totalTenants, activeSubscriptions, totalStaff, pendingTickets] = await Promise.all([
-    db.company.count(),
-    db.company.count({ where: { subscriptionStatus: "active" } }),
-    db.user.count({ where: { systemRole: "STAFF" } }),
-    db.supportTicket.count({ where: { status: { not: "CLOSED" } } }),
-  ])
-
-  return {
-    totalTenants,
-    activeSubscriptions,
-    totalStaff,
-    pendingTickets,
-  }
-}
-
-async function getRecentSignups() {
-  return db.company.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    select: {
-      id: true,
-      name: true,
-      createdAt: true,
-      subscriptionStatus: true,
-    },
-  })
-}
+// TODO: Database queries moved to @/lib/admin/queries for Clean Architecture compliance
 
 export async function AdminDashboard() {
   const stats = await getAdminStats()

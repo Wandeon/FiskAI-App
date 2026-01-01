@@ -24,7 +24,10 @@ import {
   Filter,
   RefreshCw,
 } from "lucide-react"
-import type { SupportTicketStatus, SupportTicketPriority, TicketCategory } from "@prisma/client"
+// Local types for support ticket enums (containment: removed @prisma/client import)
+type SupportTicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
+type SupportTicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT"
+type TicketCategory = "TECHNICAL" | "BILLING" | "ACCOUNTING" | "GENERAL"
 
 interface Ticket {
   id: string

@@ -10,10 +10,23 @@ import { PremisesCloneDialog } from "./premises-clone-dialog"
 import { BulkDevicesDialog } from "./premises-bulk-devices-dialog"
 import { bulkTogglePremisesStatus } from "@/lib/premises/bulk-actions"
 import { Copy, Power, PowerOff, MoreVertical, Layers } from "lucide-react"
-import type { BusinessPremises, PaymentDevice } from "@prisma/client"
+// Local types for premises data (containment: removed @prisma/client import)
+interface BusinessPremisesData {
+  id: string
+  code: number
+  name: string
+  address: string | null
+  isDefault: boolean
+  isActive: boolean
+}
+
+interface PaymentDeviceData {
+  id: string
+  name: string
+}
 
 interface PremisesCardProps {
-  premises: BusinessPremises & { devices: PaymentDevice[] }
+  premises: BusinessPremisesData & { devices: PaymentDeviceData[] }
   companyId: string
   isSelected?: boolean
   onSelect?: (id: string, selected: boolean) => void
@@ -114,7 +127,7 @@ export function PremisesCard({
                       <button
                         onClick={() => {
                           setShowActions(false)
-                          handleToggleStatus()
+                          void handleToggleStatus()
                         }}
                         disabled={isToggling}
                         className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--surface-secondary)]"

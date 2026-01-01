@@ -3,7 +3,67 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronDown, ChevronUp, Save, Eye, X } from "lucide-react"
-import type { NewsPost, NewsItem, NewsCategory } from "@/lib/db/schema/news"
+
+// Local types for news data (containment: removed @/lib/db/schema/news import)
+
+// AI Pass type definitions
+interface AiPassClassification {
+  impact?: string
+  reasoning?: string
+}
+
+interface AiPassBase {
+  timestamp?: string
+  content?: string
+}
+
+interface AiPass1 extends AiPassBase {
+  classification?: AiPassClassification
+}
+
+interface AiPass2 extends AiPassBase {
+  score?: number
+  problems?: string[]
+  suggestions?: string[]
+}
+
+type AiPass3 = AiPassBase
+
+interface AiPasses {
+  pass1?: AiPass1
+  pass2?: AiPass2
+  pass3?: AiPass3
+  [key: string]: AiPass1 | AiPass2 | AiPass3 | undefined
+}
+
+interface NewsPost {
+  id: string
+  slug: string
+  title: string
+  content: string
+  excerpt: string | null
+  categoryId: string | null
+  tags: unknown
+  featuredImageUrl: string | null
+  featuredImageSource: string | null
+  status: string
+  publishedAt: Date | null
+  aiPasses: unknown
+}
+
+interface NewsItem {
+  id: string
+  originalTitle: string
+  originalContent: string | null
+  sourceUrl: string
+}
+
+interface NewsCategory {
+  id: string
+  slug: string
+  nameHr: string
+  parentId: string | null
+}
 
 interface PostEditorClientProps {
   post: NewsPost
@@ -33,7 +93,7 @@ export default function PostEditorClient({ post, sourceItems, categories }: Post
     pass3: false,
   })
 
-  const aiPasses = (post.aiPasses as any) || {}
+  const aiPasses: AiPasses = (post.aiPasses as AiPasses) || {}
 
   const handleSave = async (publish: boolean = false) => {
     setSaving(true)
@@ -238,6 +298,7 @@ export default function PostEditorClient({ post, sourceItems, categories }: Post
               className="mb-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-2 text-sm text-[var(--foreground)]"
             />
             {formData.featuredImageUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={formData.featuredImageUrl}
                 alt="Preview"
@@ -394,7 +455,7 @@ export default function PostEditorClient({ post, sourceItems, categories }: Post
                 <div>
                   <strong>Score:</strong> {aiPasses.pass2.score}/10
                 </div>
-                {aiPasses.pass2.problems?.length > 0 && (
+                {aiPasses.pass2.problems && aiPasses.pass2.problems.length > 0 && (
                   <div>
                     <strong>Problems:</strong>
                     <ul className="ml-4 list-disc text-xs text-[var(--muted)]">
@@ -404,7 +465,7 @@ export default function PostEditorClient({ post, sourceItems, categories }: Post
                     </ul>
                   </div>
                 )}
-                {aiPasses.pass2.suggestions?.length > 0 && (
+                {aiPasses.pass2.suggestions && aiPasses.pass2.suggestions.length > 0 && (
                   <div>
                     <strong>Suggestions:</strong>
                     <ul className="ml-4 list-disc text-xs text-[var(--muted)]">

@@ -5,7 +5,9 @@ import { X, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TransactionEditor, ExtractedTransaction } from "./transaction-editor"
 import { InvoiceEditor, ExtractedInvoice } from "./invoice-editor"
-import { DocumentType } from "@prisma/client"
+
+// Local type for document type enum (containment: removed @prisma/client import)
+type DocumentType = "BANK_STATEMENT" | "INVOICE" | "EXPENSE" | "PRIMKA" | "IZDATNICA"
 
 // Dynamic import PDF/Image viewers to avoid SSR issues with pdfjs-dist
 const PdfViewer = dynamic(() => import("./pdf-viewer").then((mod) => mod.PdfViewer), {
@@ -78,12 +80,10 @@ export function ConfirmationModal({
   // Normalize prop names for backward compatibility
   const displayFilename = filename || fileName || "Untitled"
   const normalizedFileType = fileType.toUpperCase() as "PDF" | "IMAGE"
-  const normalizedDocType = documentType ?? DocumentType.BANK_STATEMENT
-  const isInvoice = normalizedDocType === DocumentType.INVOICE
-  const isBankStatement =
-    normalizedDocType === DocumentType.BANK_STATEMENT || normalizedDocType === DocumentType.EXPENSE
-  const isStockMovement =
-    normalizedDocType === DocumentType.PRIMKA || normalizedDocType === DocumentType.IZDATNICA
+  const normalizedDocType: DocumentType = documentType ?? "BANK_STATEMENT"
+  const isInvoice = normalizedDocType === "INVOICE"
+  const isBankStatement = normalizedDocType === "BANK_STATEMENT" || normalizedDocType === "EXPENSE"
+  const isStockMovement = normalizedDocType === "PRIMKA" || normalizedDocType === "IZDATNICA"
   const bankAccountId = selectedBankAccount || selectedAccountId
   const handleAccountChange = onBankAccountChange || onAccountChange
   const handleDiscard = () => {

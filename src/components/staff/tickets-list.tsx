@@ -1,102 +1,23 @@
-import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { MessageSquare, AlertCircle, Clock, CheckCircle2 } from "lucide-react"
 import { TicketsFilters } from "./tickets-filters"
-import type { SupportTicketStatus, SupportTicketPriority, TicketCategory } from "@prisma/client"
+import { getTickets, getAssignedClientsSimple } from "@/lib/staff/queries"
+
+// TODO: Database queries moved to @/lib/staff/queries for Clean Architecture compliance
+
+// Local types for support ticket enums (containment: removed @prisma/client import)
+type SupportTicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
+type SupportTicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT"
+type TicketCategory = "TECHNICAL" | "BILLING" | "ACCOUNTING" | "GENERAL"
 
 interface TicketsListProps {
   statusFilter?: string
   categoryFilter?: string
   priorityFilter?: string
   clientFilter?: string
-}
-
-async function getTickets(
-  userId: string,
-  statusFilter?: string,
-  categoryFilter?: string,
-  priorityFilter?: string,
-  clientFilter?: string
-) {
-  // Get assigned company IDs
-  const assignments = await db.staffAssignment.findMany({
-    where: { staffId: userId },
-    select: { companyId: true },
-  })
-  const companyIds = assignments.map((a) => a.companyId)
-
-  if (companyIds.length === 0) {
-    return []
-  }
-
-  // Build filter conditions
-  const where: any = {
-    companyId: { in: companyIds },
-  }
-
-  if (statusFilter && statusFilter !== "ALL") {
-    where.status = statusFilter as SupportTicketStatus
-  }
-
-  if (categoryFilter && categoryFilter !== "ALL") {
-    where.category = categoryFilter as TicketCategory
-  }
-
-  if (priorityFilter && priorityFilter !== "ALL") {
-    where.priority = priorityFilter as SupportTicketPriority
-  }
-
-  if (clientFilter) {
-    // Validate clientFilter is in assigned companies
-    if (!companyIds.includes(clientFilter)) {
-      return [] // Return empty if trying to filter by non-assigned client
-    }
-    where.companyId = clientFilter
-  }
-
-  // Fetch tickets with company info and message count
-  const tickets = await db.supportTicket.findMany({
-    where,
-    include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      _count: {
-        select: {
-          messages: true,
-        },
-      },
-    },
-    orderBy: [{ status: "asc" }, { priority: "desc" }, { createdAt: "desc" }],
-  })
-
-  return tickets
-}
-
-async function getAssignedClients(userId: string) {
-  const assignments = await db.staffAssignment.findMany({
-    where: { staffId: userId },
-    include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-    orderBy: { company: { name: "asc" } },
-  })
-
-  return assignments.map((a) => ({
-    id: a.company.id,
-    name: a.company.name,
-  }))
 }
 
 function getStatusIcon(status: SupportTicketStatus) {
@@ -174,7 +95,7 @@ export async function TicketsList({
 
   const [tickets, clients] = await Promise.all([
     getTickets(user.id, statusFilter, categoryFilter, priorityFilter, clientFilter),
-    getAssignedClients(user.id),
+    getAssignedClientsSimple(user.id),
   ])
 
   // Calculate stats

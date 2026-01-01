@@ -7,12 +7,14 @@ import { CompanySwitcher } from "./company-switcher"
 import { QuickActions, Notifications, UserMenu, CompanyStatus } from "./header-actions"
 import { CommandPalette } from "@/components/ui/command-palette"
 import { getNotificationCenterFeed, countUnreadNotifications } from "@/lib/notifications"
-import { db } from "@/lib/db"
+import { getNotificationSeenAt } from "@/lib/layout/queries"
 import { OnboardingProgressPill } from "./onboarding-progress-pill"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { PlanBadge } from "./plan-badge"
 import { QuickLevelToggle } from "@/components/guidance"
 import { FiskAILogo } from "@/components/ui/LogoSymbol"
+
+// TODO: Database queries moved to @/lib/layout/queries for Clean Architecture compliance
 
 export async function Header() {
   const session = await auth()
@@ -34,7 +36,7 @@ export async function Header() {
   let capabilities = deriveCapabilities(null)
 
   if (session?.user?.id && currentCompany) {
-    const [feed, companyUser] = await Promise.all([
+    const [feed, notificationSeenAt] = await Promise.all([
       getNotificationCenterFeed({
         userId: session.user.id,
         company: {
@@ -43,16 +45,10 @@ export async function Header() {
           eInvoiceProvider: currentCompany.eInvoiceProvider,
         },
       }),
-      db.companyUser.findFirst({
-        where: { userId: session.user.id, companyId: currentCompany.id },
-        select: { notificationSeenAt: true },
-      }),
+      getNotificationSeenAt(session.user.id, currentCompany.id),
     ])
     notificationItems = feed.items
-    notificationUnreadCount = countUnreadNotifications(
-      feed.items,
-      companyUser?.notificationSeenAt ?? null
-    )
+    notificationUnreadCount = countUnreadNotifications(feed.items, notificationSeenAt)
 
     // Track the 4-step onboarding wizard completion, not business milestones
     // Step 1: Basic Info (name, oib, legalForm)

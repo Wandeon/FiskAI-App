@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import {
   X,
@@ -13,8 +12,10 @@ import {
   BookOpen,
   ChevronRight,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ProcessingCard, ImportJobState } from "@/components/import/processing-card"
+
+// Local type for document type enum (containment: removed @prisma/client import)
+type DocumentType = "BANK_STATEMENT" | "INVOICE" | "EXPENSE" | "PRIMKA" | "IZDATNICA"
 
 const REPORTS = [
   {
@@ -64,7 +65,7 @@ interface ReportsSidebarProps {
   onViewJob?: (jobId: string) => void
   onRetryJob?: (jobId: string) => void
   onRemoveJob?: (jobId: string) => void
-  onTypeChange?: (jobId: string, newType: import("@prisma/client").DocumentType) => void
+  onTypeChange?: (jobId: string, newType: DocumentType) => void
 }
 
 export function ReportsSidebar({

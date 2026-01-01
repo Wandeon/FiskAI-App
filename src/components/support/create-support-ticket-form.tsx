@@ -4,14 +4,17 @@ import { useTransition, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { SupportTicketPriority, TicketCategory } from "@prisma/client"
 import { toast } from "@/lib/toast"
+
+// Local types for support ticket enums (containment: removed @prisma/client import)
+type SupportTicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT"
+type TicketCategory = "TECHNICAL" | "BILLING" | "ACCOUNTING" | "GENERAL"
 
 export function CreateSupportTicketForm() {
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
-  const [priority, setPriority] = useState<SupportTicketPriority>(SupportTicketPriority.NORMAL)
-  const [category, setCategory] = useState<TicketCategory>(TicketCategory.GENERAL)
+  const [priority, setPriority] = useState<SupportTicketPriority>("NORMAL")
+  const [category, setCategory] = useState<TicketCategory>("GENERAL")
   const [pending, startTransition] = useTransition()
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -41,9 +44,9 @@ export function CreateSupportTicketForm() {
         toast.success("Tiket otvoren", "Računovođa će odgovoriti unutar aplikacije")
         setTitle("")
         setBody("")
-        setPriority(SupportTicketPriority.NORMAL)
-        setCategory(TicketCategory.GENERAL)
-      } catch (error) {
+        setPriority("NORMAL")
+        setCategory("GENERAL")
+      } catch {
         toast.error("Greška", "Nije uspjelo slanje zahtjeva")
       }
     })
@@ -80,10 +83,10 @@ export function CreateSupportTicketForm() {
           onChange={(e) => setCategory(e.target.value as TicketCategory)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value={TicketCategory.GENERAL}>Opće pitanje</option>
-          <option value={TicketCategory.TECHNICAL}>Tehnički problem</option>
-          <option value={TicketCategory.BILLING}>Naplata</option>
-          <option value={TicketCategory.ACCOUNTING}>Računovodstvo</option>
+          <option value="GENERAL">Opće pitanje</option>
+          <option value="TECHNICAL">Tehnički problem</option>
+          <option value="BILLING">Naplata</option>
+          <option value="ACCOUNTING">Računovodstvo</option>
         </select>
       </div>
       <div className="space-y-2">
@@ -94,10 +97,10 @@ export function CreateSupportTicketForm() {
           onChange={(e) => setPriority(e.target.value as SupportTicketPriority)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value={SupportTicketPriority.LOW}>Nizak</option>
-          <option value={SupportTicketPriority.NORMAL}>Standard</option>
-          <option value={SupportTicketPriority.HIGH}>Visok</option>
-          <option value={SupportTicketPriority.URGENT}>Hitno</option>
+          <option value="LOW">Nizak</option>
+          <option value="NORMAL">Standard</option>
+          <option value="HIGH">Visok</option>
+          <option value="URGENT">Hitno</option>
         </select>
       </div>
       <Button type="submit" className="w-full" disabled={pending}>

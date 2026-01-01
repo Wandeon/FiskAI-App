@@ -1,5 +1,14 @@
-import { Contact } from "@prisma/client"
 import { cn } from "@/lib/utils"
+
+// Local type for contact data (containment: removed @prisma/client import)
+interface ContactData {
+  id: string
+  name: string
+  address: string | null
+  postalCode: string | null
+  city: string | null
+  oib: string | null
+}
 
 interface InvoicePdfPreviewProps {
   company: {
@@ -9,7 +18,7 @@ interface InvoicePdfPreviewProps {
     city: string
     iban?: string | null
   }
-  buyer: Contact | null
+  buyer: ContactData | null
   invoiceNumber: string
   issueDate?: Date
   dueDate?: Date

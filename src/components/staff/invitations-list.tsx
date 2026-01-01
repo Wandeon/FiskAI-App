@@ -1,4 +1,3 @@
-import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -6,20 +5,9 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Mail, Clock, CheckCircle, XCircle, Plus } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
+import { getInvitations } from "@/lib/staff/queries"
 
-async function getInvitations(staffId: string) {
-  const invitations = await db.clientInvitation.findMany({
-    where: { staffId },
-    include: {
-      company: {
-        select: { id: true, name: true, oib: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-
-  return invitations
-}
+// TODO: Database queries moved to @/lib/staff/queries for Clean Architecture compliance
 
 function getStatusBadge(status: string, expiresAt: Date) {
   const isExpired = new Date() > expiresAt && status === "PENDING"

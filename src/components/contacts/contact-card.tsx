@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { Mail, Phone, MapPin, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ContactType } from "@prisma/client"
 import { DeleteContactButton } from "@/components/contacts/delete-contact-button"
+
+// Local type for contact type enum (containment: removed @prisma/client import)
+type ContactType = "CUSTOMER" | "SUPPLIER" | "BOTH"
 
 interface ContactCardProps {
   contact: {

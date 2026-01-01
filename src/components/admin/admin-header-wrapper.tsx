@@ -1,9 +1,11 @@
-import { db } from "@/lib/db"
 import { getActiveAlerts } from "@/lib/admin/alerts"
 import { AdminHeader } from "./header"
+import { getAdminHeaderStats } from "@/lib/admin/queries"
+
+// TODO: Database queries moved to @/lib/admin/queries for Clean Architecture compliance
 
 async function getHeaderStats() {
-  const [totalTenants, alerts] = await Promise.all([db.company.count(), getActiveAlerts()])
+  const [totalTenants, alerts] = await Promise.all([getAdminHeaderStats(), getActiveAlerts()])
 
   return {
     totalTenants,

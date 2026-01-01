@@ -1,9 +1,10 @@
-import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, AlertCircle, Clock, CheckCircle2, AlertTriangle } from "lucide-react"
-import { getUpcomingDeadlines } from "@/lib/deadlines/queries"
+import { getStaffDeadlines } from "@/lib/staff/queries"
+
+// TODO: Database queries moved to @/lib/staff/queries for Clean Architecture compliance
 
 interface DeadlineWithClient {
   id: string
@@ -15,84 +16,6 @@ interface DeadlineWithClient {
   clientId?: string
   clientName?: string
   source: "compliance" | "invoice"
-}
-
-async function getStaffDeadlines(userId: string): Promise<DeadlineWithClient[]> {
-  // Get assigned company IDs
-  const assignments = await db.staffAssignment.findMany({
-    where: { staffId: userId },
-    include: { company: true },
-  })
-  const companyIds = assignments.map((a) => a.companyId)
-  const companyMap = new Map(assignments.map((a) => [a.companyId, a.company.name]))
-
-  if (companyIds.length === 0) {
-    return []
-  }
-
-  // Calculate deadline window (next 30 days)
-  const now = new Date()
-  const nextMonth = new Date()
-  nextMonth.setDate(nextMonth.getDate() + 30)
-
-  // Get compliance deadlines (system-wide regulatory deadlines)
-  const complianceDeadlines = await getUpcomingDeadlines(30, undefined, 100)
-
-  // Get client-specific invoice deadlines
-  const invoiceDeadlines = await db.eInvoice.findMany({
-    where: {
-      companyId: { in: companyIds },
-      dueDate: { gte: now, lte: nextMonth },
-      status: { notIn: ["SENT", "ARCHIVED", "ACCEPTED"] },
-    },
-    select: {
-      id: true,
-      companyId: true,
-      invoiceNumber: true,
-      dueDate: true,
-      status: true,
-      totalAmount: true,
-    },
-    orderBy: { dueDate: "asc" },
-  })
-
-  // Combine all deadlines
-  const allDeadlines: DeadlineWithClient[] = [
-    // Compliance deadlines - apply to all clients based on their business type
-    ...complianceDeadlines.map((d) => ({
-      id: `compliance-${d.id}`,
-      title: d.title,
-      deadlineDate: new Date(d.deadlineDate),
-      deadlineType: d.deadlineType,
-      severity: d.severity,
-      description: d.description,
-      source: "compliance" as const,
-    })),
-    // Invoice deadlines - client-specific (filter out invoices with no due date)
-    ...invoiceDeadlines
-      .filter((inv) => inv.dueDate !== null)
-      .map((inv) => ({
-        id: `invoice-${inv.id}`,
-        title: `Invoice ${inv.invoiceNumber} - ${inv.status}`,
-        deadlineDate: inv.dueDate!,
-        deadlineType: "invoice",
-        severity:
-          getDaysUntil(inv.dueDate!) <= 3
-            ? "critical"
-            : getDaysUntil(inv.dueDate!) <= 7
-              ? "high"
-              : "normal",
-        description: `Amount: ${Number(inv.totalAmount).toFixed(2)} EUR`,
-        clientId: inv.companyId,
-        clientName: companyMap.get(inv.companyId),
-        source: "invoice" as const,
-      })),
-  ]
-
-  // Sort by date
-  allDeadlines.sort((a, b) => a.deadlineDate.getTime() - b.deadlineDate.getTime())
-
-  return allDeadlines
 }
 
 function getDaysUntil(date: Date): number {

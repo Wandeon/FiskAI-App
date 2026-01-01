@@ -8,7 +8,18 @@ import { ImportJobState } from "@/components/import/processing-card"
 import { ExtractedTransaction } from "@/components/import/transaction-editor"
 import { ExtractedInvoice } from "@/components/import/invoice-editor"
 import dynamic from "next/dynamic"
-import { JobStatus, DocumentType } from "@prisma/client"
+
+// Local types for import job (containment: removed @prisma/client import)
+type DocumentType = "BANK_STATEMENT" | "INVOICE" | "EXPENSE" | "PRIMKA" | "IZDATNICA"
+type JobStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "READY_FOR_REVIEW"
+  | "CONFIRMED"
+  | "REJECTED"
+  | "VERIFIED"
+  | "NEEDS_REVIEW"
+  | "FAILED"
 
 // Dynamic import confirmation modal to avoid SSR issues
 const ConfirmationModal = dynamic(
@@ -76,35 +87,37 @@ export function DocumentsClient({
 
     if (pendingIds.length === 0) return
 
-    const interval = setInterval(async () => {
-      for (const id of pendingIds) {
-        try {
-          const res = await fetch(`/api/import/jobs/${id}`)
-          const data = await res.json()
-          if (data.success && data.job) {
-            setJobs((prev) =>
-              prev.map((j) =>
-                j.id === id
-                  ? {
-                      ...j,
-                      status: data.job.status,
-                      documentType: data.job.documentType,
-                      progress:
-                        data.job.status === "READY_FOR_REVIEW"
-                          ? 100
-                          : data.job.status === "PROCESSING"
-                            ? 50
-                            : j.progress,
-                      error: data.job.failureReason,
-                    }
-                  : j
+    const interval = setInterval(() => {
+      void (async () => {
+        for (const id of pendingIds) {
+          try {
+            const res = await fetch(`/api/import/jobs/${id}`)
+            const data = await res.json()
+            if (data.success && data.job) {
+              setJobs((prev) =>
+                prev.map((j) =>
+                  j.id === id
+                    ? {
+                        ...j,
+                        status: data.job.status,
+                        documentType: data.job.documentType,
+                        progress:
+                          data.job.status === "READY_FOR_REVIEW"
+                            ? 100
+                            : data.job.status === "PROCESSING"
+                              ? 50
+                              : j.progress,
+                        error: data.job.failureReason,
+                      }
+                    : j
+                )
               )
-            )
+            }
+          } catch (e) {
+            console.error("Poll failed", e)
           }
-        } catch (e) {
-          console.error("Poll failed", e)
         }
-      }
+      })()
     }, 2000)
 
     return () => clearInterval(interval)

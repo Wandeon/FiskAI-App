@@ -14,6 +14,10 @@ concurrency:
   group: registry-check-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
+env:
+  # Required for prisma generate during npm postinstall
+  DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+
 jobs:
   registry-check:
     name: Registry Compliance

@@ -2563,7 +2563,7 @@ model Payout {
 model PayoutLine {
   id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId        String                @map("company_id")
-  payoutId         String                @map("payout_id")
+  payoutId         String                @map("payout_id") @db.Uuid
   employeeId       String?               @map("employee_id")
   lineNumber       Int                   @map("line_number")
   employeeName     String?               @map("employee_name") @db.VarChar(200)
@@ -2598,8 +2598,8 @@ model PayoutLine {
 model Payslip {
   id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId             String               @map("company_id")
-  payoutId              String               @map("payout_id")
-  payoutLineId          String               @map("payout_line_id")
+  payoutId              String               @map("payout_id") @db.Uuid
+  payoutLineId          String               @map("payout_line_id") @db.Uuid
   employeeId            String?              @map("employee_id")
   employeeName          String?              @map("employee_name") @db.VarChar(200)
   employeeOib           String?              @map("employee_oib") @db.VarChar(11)
@@ -2608,7 +2608,7 @@ model Payslip {
   grossAmount           Decimal?             @map("gross_amount") @db.Decimal(12, 2)
   netAmount             Decimal?             @map("net_amount") @db.Decimal(12, 2)
   taxAmount             Decimal?             @map("tax_amount") @db.Decimal(12, 2)
-  calculationSnapshotId String?              @map("calculation_snapshot_id")
+  calculationSnapshotId String?              @map("calculation_snapshot_id") @db.Uuid
   issuedAt              DateTime?            @map("issued_at") @db.Date
   createdAt             DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
   payout                Payout               @relation(fields: [payoutId], references: [id], onDelete: Cascade)
@@ -2628,9 +2628,9 @@ model Payslip {
 model PayslipArtifact {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId    String      @map("company_id")
-  payoutId     String      @map("payout_id")
-  payoutLineId String?     @map("payout_line_id")
-  payslipId    String?     @map("payslip_id")
+  payoutId     String      @map("payout_id") @db.Uuid
+  payoutLineId String?     @map("payout_line_id") @db.Uuid
+  payslipId    String?     @map("payslip_id") @db.Uuid
   storageKey   String      @map("storage_key") @db.VarChar(500)
   fileHash     String?     @map("file_hash") @db.VarChar(64)
   fileName     String?     @map("file_name") @db.VarChar(255)
@@ -2653,8 +2653,8 @@ model PayslipArtifact {
 model CalculationSnapshot {
   id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId           String      @map("company_id")
-  payoutId            String      @map("payout_id")
-  payoutLineId        String?     @map("payout_line_id")
+  payoutId            String      @map("payout_id") @db.Uuid
+  payoutLineId        String?     @map("payout_line_id") @db.Uuid
   rulesEngineSnapshot Json        @map("rules_engine_snapshot")
   employmentSnapshot  Json        @map("employment_snapshot")
   inputSnapshot       Json        @map("input_snapshot")
@@ -2676,7 +2676,7 @@ model CalculationSnapshot {
 model BankPaymentExport {
   id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId    String            @map("company_id")
-  payoutId     String            @map("payout_id")
+  payoutId     String            @map("payout_id") @db.Uuid
   format       String            @default("SEPA_CT") @map("format") @db.VarChar(50)
   createdAt    DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
   createdById  String?           @map("created_by_id")
@@ -2696,9 +2696,9 @@ model BankPaymentExport {
 model BankPaymentLine {
   id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId             String               @map("company_id")
-  exportId              String               @map("export_id")
-  payoutLineId          String               @map("payout_line_id")
-  joppdSubmissionLineId String?              @map("joppd_submission_line_id")
+  exportId              String               @map("export_id") @db.Uuid
+  payoutLineId          String               @map("payout_line_id") @db.Uuid
+  joppdSubmissionLineId String?              @map("joppd_submission_line_id") @db.Uuid
   recipientName         String               @map("recipient_name") @db.VarChar(200)
   recipientIban         String?              @map("recipient_iban") @db.VarChar(34)
   amount                Decimal              @map("amount") @db.Decimal(12, 2)
@@ -2726,7 +2726,7 @@ model JoppdSubmission {
   status                JoppdSubmissionStatus  @default(PREPARED)
   submissionReference   String?                @map("submission_reference") @db.VarChar(100)
   isCorrection          Boolean                @default(false) @map("is_correction")
-  correctedSubmissionId String?                @map("corrected_submission_id")
+  correctedSubmissionId String?                @map("corrected_submission_id") @db.Uuid
   signedXmlStorageKey   String?                @map("signed_xml_storage_key") @db.VarChar(500)
   signedXmlHash         String?                @map("signed_xml_hash") @db.VarChar(64)
   createdAt             DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
@@ -2748,11 +2748,11 @@ model JoppdSubmission {
 
 model JoppdSubmissionLine {
   id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  submissionId     String                @map("submission_id")
-  payoutLineId     String                @map("payout_line_id")
+  submissionId     String                @map("submission_id") @db.Uuid
+  payoutLineId     String                @map("payout_line_id") @db.Uuid
   lineNumber       Int                   @map("line_number")
   lineData         Json?                 @map("line_data")
-  originalLineId   String?               @map("original_line_id")
+  originalLineId   String?               @map("original_line_id") @db.Uuid
   ruleVersionId    String?               @map("rule_version_id")
   createdAt        DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
   submission       JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
@@ -2770,7 +2770,7 @@ model JoppdSubmissionLine {
 
 model JoppdSubmissionEvent {
   id           String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  submissionId String                @map("submission_id")
+  submissionId String                @map("submission_id") @db.Uuid
   status       JoppdSubmissionStatus
   note         String?               @db.VarChar(500)
   createdAt    DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)

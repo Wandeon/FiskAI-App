@@ -2,7 +2,18 @@
 
 import { FileText, CheckCircle2, AlertCircle, Loader2, X, Eye, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { DocumentType, JobStatus } from "@prisma/client"
+
+// Local types for import job (containment: removed @prisma/client import)
+type DocumentType = "BANK_STATEMENT" | "INVOICE" | "EXPENSE" | "PRIMKA" | "IZDATNICA"
+type JobStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "READY_FOR_REVIEW"
+  | "CONFIRMED"
+  | "REJECTED"
+  | "VERIFIED"
+  | "NEEDS_REVIEW"
+  | "FAILED"
 
 export interface ImportJobState {
   id: string

@@ -1,23 +1,11 @@
-import { db } from "@/lib/db"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { Building2, ChevronRight, Search } from "lucide-react"
+import { getTenants } from "@/lib/admin/queries"
 
-async function getTenants() {
-  return db.company.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      _count: {
-        select: {
-          users: true,
-          eInvoices: true,
-        },
-      },
-    },
-  })
-}
+// TODO: Database queries moved to @/lib/admin/queries for Clean Architecture compliance
 
 export async function TenantsList() {
   const tenants = await getTenants()

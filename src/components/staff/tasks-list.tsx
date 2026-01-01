@@ -1,118 +1,21 @@
-import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Clock, AlertCircle, CheckCircle2, XCircle, Filter, MessageSquare } from "lucide-react"
-import type { SupportTicketStatus, SupportTicketPriority, TicketCategory } from "@prisma/client"
+import { getTasks, getTaskStats } from "@/lib/staff/queries"
+
+// TODO: Database queries moved to @/lib/staff/queries for Clean Architecture compliance
+
+// Local types for support ticket enums (containment: removed @prisma/client import)
+type SupportTicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
+type SupportTicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT"
+type TicketCategory = "TECHNICAL" | "BILLING" | "ACCOUNTING" | "GENERAL"
 
 interface TasksListProps {
   statusFilter?: string
   priorityFilter?: string
   categoryFilter?: string
-}
-
-async function getTasks(
-  userId: string,
-  filters: {
-    status?: string
-    priority?: string
-    category?: string
-  }
-) {
-  // Get assigned company IDs
-  const assignments = await db.staffAssignment.findMany({
-    where: { staffId: userId },
-    select: { companyId: true },
-  })
-  const companyIds = assignments.map((a) => a.companyId)
-
-  if (companyIds.length === 0) {
-    return []
-  }
-
-  // Build filter conditions
-  const where: any = {
-    companyId: { in: companyIds },
-  }
-
-  if (filters.status && filters.status !== "all") {
-    where.status = filters.status as SupportTicketStatus
-  }
-
-  if (filters.priority && filters.priority !== "all") {
-    where.priority = filters.priority as SupportTicketPriority
-  }
-
-  if (filters.category && filters.category !== "all") {
-    where.category = filters.category as TicketCategory
-  }
-
-  const tickets = await db.supportTicket.findMany({
-    where,
-    include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      messages: {
-        select: {
-          id: true,
-        },
-      },
-    },
-    orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
-  })
-
-  return tickets
-}
-
-async function getTaskStats(userId: string) {
-  const assignments = await db.staffAssignment.findMany({
-    where: { staffId: userId },
-    select: { companyId: true },
-  })
-  const companyIds = assignments.map((a) => a.companyId)
-
-  if (companyIds.length === 0) {
-    return {
-      total: 0,
-      open: 0,
-      inProgress: 0,
-      resolved: 0,
-    }
-  }
-
-  const [total, open, inProgress, resolved] = await Promise.all([
-    db.supportTicket.count({
-      where: {
-        companyId: { in: companyIds },
-        status: { not: "CLOSED" },
-      },
-    }),
-    db.supportTicket.count({
-      where: {
-        companyId: { in: companyIds },
-        status: "OPEN",
-      },
-    }),
-    db.supportTicket.count({
-      where: {
-        companyId: { in: companyIds },
-        status: "IN_PROGRESS",
-      },
-    }),
-    db.supportTicket.count({
-      where: {
-        companyId: { in: companyIds },
-        status: "RESOLVED",
-      },
-    }),
-  ])
-
-  return { total, open, inProgress, resolved }
 }
 
 function getStatusIcon(status: SupportTicketStatus) {
