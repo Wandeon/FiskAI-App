@@ -183,7 +183,8 @@ export function generateR2Key(companyId: string, contentHash: string, filename: 
   const now = new Date()
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, "0")
-  const ext = filename.split(".").pop() || "bin"
+  // Only extract extension if filename contains a dot; otherwise default to "bin"
+  const ext = filename.includes(".") ? filename.split(".").pop() || "bin" : "bin"
 
   const path = `${year}/${month}/${ext}`
   const signature = generateTenantSignature(companyId, contentHash, path)
