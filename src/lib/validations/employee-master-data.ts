@@ -16,8 +16,10 @@ const dateRangeBaseSchema = z.object({
 // Refinement function to apply after extending
 function withDateRangeValidation<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
   return schema.refine(
-    (data: { effectiveFrom: Date; effectiveTo?: Date | null }) =>
-      !data.effectiveTo || data.effectiveFrom <= data.effectiveTo,
+    (data) => {
+      const d = data as { effectiveFrom: Date; effectiveTo?: Date | null }
+      return !d.effectiveTo || d.effectiveFrom <= d.effectiveTo
+    },
     {
       message: "effectiveFrom must be before or equal to effectiveTo",
       path: ["effectiveTo"],

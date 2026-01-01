@@ -261,10 +261,13 @@ export async function calculateDeterministicRule(
     throw new Error(`Rule version not found for ${input.tableKey}`)
   }
 
-  if ("table" in ruleVersion && ruleVersion.table.key !== input.tableKey) {
-    throw new Error(`Rule version ${ruleVersion.id} does not match table ${input.tableKey}`)
+  if ("table" in ruleVersion) {
+    const table = ruleVersion.table as { key: string } | null
+    if (table && table.key !== input.tableKey) {
+      throw new Error(`Rule version ${ruleVersion.id} does not match table ${input.tableKey}`)
+    }
   }
-  const data = ruleVersion.data as RuleDataByTableKey
+  const data = ruleVersion.data as unknown as RuleDataByTableKey
 
   let result: unknown
 
@@ -287,8 +290,12 @@ export async function calculateDeterministicRule(
     case "JOPPD_CODEBOOK":
       result = calculateJoppdCodebook(data as JoppdCodebookData, input)
       break
-    default:
-      throw new Error(`Unsupported rule table key: ${input.tableKey}`)
+    default: {
+      const _exhaustiveCheck: never = input
+      throw new Error(
+        `Unsupported rule table key: ${(_exhaustiveCheck as { tableKey: string }).tableKey}`
+      )
+    }
   }
 
   await prisma.ruleCalculation.create({

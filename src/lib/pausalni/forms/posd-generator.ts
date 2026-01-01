@@ -1,4 +1,5 @@
 import { Builder } from "xml2js"
+import { EInvoiceStatus } from "@prisma/client"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { pausalniProfile } from "@/lib/db/schema/pausalni"
 import { eq } from "drizzle-orm"
@@ -91,7 +92,7 @@ export async function getAnnualIncomeSummary(
         lt: new Date(year + 1, 0, 1),
       },
       status: {
-        notIn: ["DRAFT", "CANCELLED"] as const,
+        notIn: [EInvoiceStatus.DRAFT],
       },
     },
     select: {

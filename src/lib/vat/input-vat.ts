@@ -45,13 +45,13 @@ function buildVatInputContext(
     entity: {
       type: entity.type,
       obrtSubtype: entity.obrtSubtype,
-      vat: { status: company.isVatPayer ? "IN_VAT" : "OUTSIDE_VAT" } as const,
-      location: { country: "HR" },
+      vat: { status: company.isVatPayer ? ("IN_VAT" as const) : ("OUTSIDE_VAT" as const) },
+      location: { country: "HR" as const },
     },
     txn: {
-      kind: "PURCHASE",
+      kind: "PURCHASE" as const,
       amount: Number(line.totalAmount),
-      currency: expense.currency === "EUR" ? "EUR" : undefined,
+      currency: expense.currency === "EUR" ? ("EUR" as const) : undefined,
       itemCategory: category?.code ?? category?.name ?? expense.categoryId,
       date: expense.date.toISOString(),
     },

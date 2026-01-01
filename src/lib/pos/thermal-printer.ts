@@ -212,7 +212,7 @@ export class WebUSBPrinter implements ThermalPrinter {
       throw new Error("Printer not connected")
     }
 
-    await this.device.transferOut(this.endpointOut, data)
+    await this.device.transferOut(this.endpointOut, data as BufferSource)
   }
 
   getPaperWidth(): PrinterPaperWidth {
