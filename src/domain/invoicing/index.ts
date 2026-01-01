@@ -1,4 +1,5 @@
 // src/domain/invoicing/index.ts
+export { Invoice, type InvoiceProps } from "./Invoice"
 export { InvoiceError } from "./InvoiceError"
 export { InvoiceId } from "./InvoiceId"
 export { InvoiceLine } from "./InvoiceLine"
