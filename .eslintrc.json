@@ -2,6 +2,9 @@
   "root": true,
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
   "settings": {
     "import/resolver": {
       "typescript": {
@@ -10,6 +13,15 @@
     }
   },
   "rules": {
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": {
+          "attributes": false
+        }
+      }
+    ],
     "@typescript-eslint/no-explicit-any": "warn",
     "import/no-restricted-paths": [
       "error",
