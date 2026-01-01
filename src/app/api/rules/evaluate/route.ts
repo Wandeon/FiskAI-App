@@ -1,6 +1,7 @@
 // src/app/api/rules/evaluate/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import {
   parseAppliesWhen,
@@ -10,6 +11,21 @@ import {
 import { checkRateLimit, getClientIP } from "@/lib/regulatory-truth/utils/rate-limit"
 import { apiError } from "@/lib/api-error"
 import { auth } from "@/lib/auth"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const evaluateBodySchema = z.object({
+  context: z
+    .object({
+      entityType: z.string().optional(),
+      jurisdiction: z.string().optional(),
+      activityType: z.string().optional(),
+      revenue: z.number().optional(),
+      employeeCount: z.number().optional(),
+      isVatPayer: z.boolean().optional(),
+      asOf: z.string().optional(),
+    })
+    .passthrough(),
+})
 
 /**
  * POST /api/rules/evaluate
@@ -42,12 +58,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { context } = body as { context: EvaluationContext }
-
-    if (!context) {
-      return NextResponse.json({ error: "Context is required" }, { status: 400 })
-    }
+    const body = await parseBody(request, evaluateBodySchema)
+    const context = body.context as unknown as EvaluationContext
 
     // Ensure asOf is set
     if (!context.asOf) {
@@ -134,6 +146,9 @@ export async function POST(request: NextRequest) {
       evaluationDetails: evaluationResults,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[api/rules/evaluate] Error:", error)
     return NextResponse.json({ error: "Failed to evaluate rules" }, { status: 500 })
   }

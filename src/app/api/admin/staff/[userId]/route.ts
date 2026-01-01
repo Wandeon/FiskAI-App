@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import RoleChangeNotification from "@/emails/role-change-notification"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+
+const userIdParamsSchema = z.object({
+  userId: z.string().uuid("Invalid user ID format"),
+})
+
+const demoteStaffSchema = z.object({
+  confirmationToken: z.string().min(1, "Confirmation token is required for role changes"),
+  reason: z.string().optional(),
+})
 
 export async function DELETE(
   request: NextRequest,
@@ -13,18 +29,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
   }
 
-  const { userId } = await params
-
   try {
-    const body = await request.json().catch(() => ({}))
-    const { confirmationToken, reason } = body
-
-    if (!confirmationToken || typeof confirmationToken !== "string") {
-      return NextResponse.json(
-        { error: "Confirmation token is required for role changes" },
-        { status: 400 }
-      )
-    }
+    const { userId } = parseParams(await params, userIdParamsSchema)
+    const { confirmationToken, reason } = await parseBody(request, demoteStaffSchema)
 
     const staffUser = await db.user.findUnique({
       where: { id: userId },
@@ -96,6 +103,9 @@ export async function DELETE(
       message: "Staff member removed and notification email sent.",
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error removing staff member:", error)
     return NextResponse.json({ error: "Failed to remove staff member" }, { status: 500 })
   }
@@ -110,9 +120,8 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
   }
 
-  const { userId } = await params
-
   try {
+    const { userId } = parseParams(await params, userIdParamsSchema)
     const staffUser = await db.user.findUnique({
       where: { id: userId, systemRole: "STAFF" },
       select: {
@@ -130,6 +139,9 @@ export async function GET(
 
     return NextResponse.json({ user: staffUser })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching staff member:", error)
     return NextResponse.json({ error: "Failed to fetch staff member" }, { status: 500 })
   }

@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import { verifyOTP } from "@/lib/auth/otp"
 import { checkRateLimit, resetRateLimit } from "@/lib/security/rate-limit"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const schema = z.object({
   email: z.string().email(),
@@ -13,8 +14,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { email, code, type } = schema.parse(body)
+    const { email, code, type } = await parseBody(request, schema)
 
     const emailLower = email.toLowerCase()
 
@@ -171,8 +171,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, verified: true })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Nevažeći podaci" }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Verify code error:", error)
     return NextResponse.json({ error: "Greška pri verifikaciji" }, { status: 500 })

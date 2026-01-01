@@ -1,11 +1,17 @@
 // src/app/api/admin/regulatory-truth/revalidation/route.ts
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
 import {
   getRulesNeedingRevalidation,
   applyConfidenceDecay,
 } from "@/lib/regulatory-truth/utils/confidence-decay"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const getQuerySchema = z.object({
+  maxConfidence: z.coerce.number().min(0).max(1).default(0.75),
+})
 
 /**
  * GET /api/admin/regulatory-truth/revalidation
@@ -22,7 +28,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const maxConfidence = parseFloat(req.nextUrl.searchParams.get("maxConfidence") || "0.75")
+    const { maxConfidence } = parseQuery(req.nextUrl.searchParams, getQuerySchema)
     const rules = await getRulesNeedingRevalidation(maxConfidence)
 
     return NextResponse.json({
@@ -30,6 +36,9 @@ export async function GET(req: NextRequest) {
       rules,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[revalidation] Error:", error)
     return NextResponse.json({ error: "Failed to get rules needing revalidation" }, { status: 500 })
   }
@@ -71,6 +80,9 @@ export async function POST(req: NextRequest) {
       details: result.details,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[revalidation] Error:", error)
     return NextResponse.json({ error: "Failed to apply confidence decay" }, { status: 500 })
   }

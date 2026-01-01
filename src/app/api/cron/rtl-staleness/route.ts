@@ -18,6 +18,7 @@ import {
   type StalenessCheckResult,
   type RuleDeprecationResult,
 } from "@/lib/regulatory-truth/services/evidence-staleness-service"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes
@@ -173,6 +174,9 @@ export async function GET(request: NextRequest) {
     console.error("[CRON] RTL staleness fatal error:", errorMsg)
     result.durationMs = Date.now() - startTime
 
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         ...result,

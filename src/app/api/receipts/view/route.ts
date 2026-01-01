@@ -2,10 +2,16 @@
 // Receipt image retrieval from R2 storage with cryptographic tenant isolation
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { requireCompany } from "@/lib/auth-utils"
 import { downloadFromR2, verifyTenantSignature } from "@/lib/r2-client"
 import { logger } from "@/lib/logger"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const querySchema = z.object({
+  key: z.string().min(1, "No key provided"),
+})
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,10 +22,7 @@ export async function GET(request: NextRequest) {
 
     const company = await requireCompany(session.user.id)
 
-    const key = request.nextUrl.searchParams.get("key")
-    if (!key) {
-      return NextResponse.json({ error: "No key provided" }, { status: 400 })
-    }
+    const { key } = parseQuery(request.nextUrl.searchParams, querySchema)
 
     // Security Layer 1: Verify the key path belongs to this company
     // Keys are formatted as: attachments/{companyId}/{year}/{month}/{sig}_{hash}.{ext}
@@ -67,6 +70,9 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Receipt download failed")
     return NextResponse.json({ error: "Failed to retrieve receipt" }, { status: 500 })
   }

@@ -22,6 +22,7 @@ import {
   MAX_PROCESSING_ATTEMPTS,
 } from "@/lib/news/pipeline"
 import { eq, and, lt, sql } from "drizzle-orm"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes
@@ -270,6 +271,9 @@ export async function GET(request: NextRequest) {
       await failStage(pipelineRunId, result.errors)
     }
 
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         success: false,

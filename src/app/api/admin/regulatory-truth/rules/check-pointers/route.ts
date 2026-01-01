@@ -1,9 +1,16 @@
 // src/app/api/admin/regulatory-truth/rules/check-pointers/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const postBodySchema = z.object({
+  action: z.enum(["flag", "delete"]).default("flag"),
+  dryRun: z.boolean().default(true),
+})
 
 /**
  * GET /api/admin/regulatory-truth/rules/check-pointers
@@ -74,6 +81,9 @@ export async function GET(req: NextRequest) {
       })),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
@@ -98,11 +108,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { action = "flag", dryRun = true } = await req.json()
-
-    if (!["flag", "delete"].includes(action)) {
-      return NextResponse.json({ error: "Invalid action. Use 'flag' or 'delete'" }, { status: 400 })
-    }
+    const { action, dryRun } = await parseBody(req, postBodySchema)
 
     // Find rules without source pointers
     const rulesWithoutPointers = await db.regulatoryRule.findMany({
@@ -218,6 +224,9 @@ export async function POST(req: NextRequest) {
       changes: affected,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }

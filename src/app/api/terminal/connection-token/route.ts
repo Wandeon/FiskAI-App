@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { createConnectionToken } from "@/lib/stripe/terminal"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function POST() {
   try {
@@ -11,6 +12,9 @@ export async function POST() {
 
     return NextResponse.json({ secret })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Connection token error:", error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to create token" },

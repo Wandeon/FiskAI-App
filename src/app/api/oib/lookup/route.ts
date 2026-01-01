@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { lookupOib, validateOib } from "@/lib/oib-lookup"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { logAudit, getIpFromHeaders, getUserAgentFromHeaders } from "@/lib/audit"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Simple in-memory rate limiting
 // In production, consider using Redis or a proper rate limiting service
@@ -44,6 +46,10 @@ setInterval(
   5 * 60 * 1000
 )
 
+const oibLookupSchema = z.object({
+  oib: z.string().min(1, "OIB je obavezan"),
+})
+
 export async function POST(request: NextRequest) {
   try {
     // Authentication check - require logged-in user
@@ -73,20 +79,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse request body
-    const body = await request.json()
-    const { oib } = body
-
-    // Validate input
-    if (!oib || typeof oib !== "string") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "OIB je obavezan",
-        },
-        { status: 400 }
-      )
-    }
+    // Parse and validate request body
+    const { oib } = await parseBody(request, oibLookupSchema)
 
     // Quick format validation
     if (!validateOib(oib)) {
@@ -124,6 +118,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("OIB lookup error:", error)
     return NextResponse.json(
       {

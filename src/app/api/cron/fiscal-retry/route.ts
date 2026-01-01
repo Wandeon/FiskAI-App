@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { executeFiscalRequest } from "@/lib/fiscal/fiscal-pipeline"
 import { buildFiscalResponseCreateInput } from "@/lib/fiscal/response-builder"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Croatian law requires fiscalization within 48 hours
 const DEADLINE_HOURS = 48
@@ -208,6 +209,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Fiscal retry cron error:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

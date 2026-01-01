@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { generateHub3DataUrl } from "@/lib/knowledge-hub/hub3"
 import { PAYMENT_IBANS, PAYMENT_MODEL } from "@/lib/knowledge-hub/constants"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const runtime = "nodejs"
-
-type PaymentType = "MIO_I" | "MIO_II" | "HZZO" | "HOK"
-
-type Hub3Request = {
-  oib: string
-  paymentType: PaymentType
-  amount: number
-  payerName?: string
-  payerAddress?: string
-  payerCity?: string
-}
 
 function validateOIB(oib: string): boolean {
   if (!/^\d{11}$/.test(oib)) return false
@@ -29,6 +20,25 @@ function validateOIB(oib: string): boolean {
   return controlDigit === parseInt(oib[10], 10)
 }
 
+const hub3RequestSchema = z.object({
+  oib: z.string().refine(validateOIB, { message: "Neispravan OIB." }),
+  paymentType: z.enum(["MIO_I", "MIO_II", "HZZO", "HOK"]),
+  amount: z.number().positive({ message: "Neispravan iznos." }),
+  payerName: z.string().optional(),
+  payerAddress: z.string().optional(),
+  payerCity: z.string().optional(),
+})
+
+type PaymentType = z.infer<typeof hub3RequestSchema>["paymentType"]
+
+interface PaymentRecipient {
+  iban: string
+  recipientName: string
+  recipientAddress: string
+  recipientCity: string
+  description: string
+}
+
 function buildReference(oib: string) {
   const now = new Date()
   const year = now.getFullYear()
@@ -36,7 +46,7 @@ function buildReference(oib: string) {
   return `${oib}-${year}${month}`
 }
 
-function getRecipient(paymentType: PaymentType) {
+function getRecipient(paymentType: PaymentType): PaymentRecipient {
   switch (paymentType) {
     case "MIO_I":
       return {
@@ -74,32 +84,14 @@ function getRecipient(paymentType: PaymentType) {
 }
 
 export async function POST(request: Request) {
-  let body: Hub3Request
   try {
-    body = (await request.json()) as Hub3Request
-  } catch {
-    return NextResponse.json({ error: "Neispravan JSON." }, { status: 400 })
-  }
+    const body = await parseBody(request, hub3RequestSchema)
 
-  if (!body?.oib || !body.paymentType) {
-    return NextResponse.json({ error: "Nedostaju obavezna polja." }, { status: 400 })
-  }
+    const recipient = getRecipient(body.paymentType)
+    const reference = buildReference(body.oib)
 
-  if (!validateOIB(body.oib)) {
-    return NextResponse.json({ error: "Neispravan OIB." }, { status: 400 })
-  }
-
-  const amount = Number(body.amount)
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return NextResponse.json({ error: "Neispravan iznos." }, { status: 400 })
-  }
-
-  const recipient = getRecipient(body.paymentType)
-  const reference = buildReference(body.oib)
-
-  try {
     const dataUrl = await generateHub3DataUrl({
-      amount,
+      amount: body.amount,
       payerName: body.payerName?.trim() || body.oib,
       payerAddress: body.payerAddress?.trim() || "",
       payerCity: body.payerCity?.trim() || "",
@@ -117,9 +109,12 @@ export async function POST(request: Request) {
       reference,
       iban: recipient.iban,
       model: PAYMENT_MODEL,
-      amount,
+      amount: body.amount,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Hub3 generation error:", error)
     return NextResponse.json({ error: "Greška prilikom generiranja barkoda." }, { status: 500 })
   }

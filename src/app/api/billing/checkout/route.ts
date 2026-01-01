@@ -2,10 +2,16 @@
 // Stripe checkout session creation
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { requireCompany } from "@/lib/auth-utils"
 import { createCheckoutSession, PlanId, PLANS } from "@/lib/billing/stripe"
 import { logger } from "@/lib/logger"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const checkoutSchema = z.object({
+  planId: z.string().refine((val) => val in PLANS, { message: "Invalid plan" }),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,12 +22,7 @@ export async function POST(request: NextRequest) {
 
     const company = await requireCompany(session.user.id)
 
-    const body = await request.json()
-    const { planId } = body as { planId?: string }
-
-    if (!planId || !(planId in PLANS)) {
-      return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
-    }
+    const { planId } = await parseBody(request, checkoutSchema)
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const successUrl = `${baseUrl}/settings/billing?success=true`
@@ -38,6 +39,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: checkoutUrl })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Failed to create checkout session")
     return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
   }

@@ -5,6 +5,8 @@ import { generatedForm } from "@/lib/db/schema/pausalni"
 import { eq, and } from "drizzle-orm"
 import { withApiLogging } from "@/lib/api-logging"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { idParamSchema } from "@/app/api/pausalni/_schemas"
 import { generatePdvXml, type PdvFormData } from "@/lib/pausalni/forms/pdv-generator"
 import { generatePdvSXml, type PdvSFormData } from "@/lib/pausalni/forms/pdv-s-generator"
 import { generateZpXml, type ZpFormData } from "@/lib/pausalni/forms/zp-generator"
@@ -17,28 +19,28 @@ import { generateZpXml, type ZpFormData } from "@/lib/pausalni/forms/zp-generato
  */
 export const GET = withApiLogging(
   async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-    const { id } = await params
     try {
       const user = await requireAuth()
       const company = await requireCompany(user.id!)
+
+      // Parse and validate params
+      const { id } = parseParams(await params, idParamSchema)
 
       setTenantContext({
         companyId: company.id,
         userId: user.id!,
       })
 
-      // Check if company is paušalni obrt
+      // Check if company is pausalni obrt
       if (company.legalForm !== "OBRT_PAUSAL") {
-        return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+        return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
       }
-
-      const formId = id
 
       // Fetch the form from database
       const [form] = await drizzleDb
         .select()
         .from(generatedForm)
-        .where(and(eq(generatedForm.id, formId), eq(generatedForm.companyId, company.id)))
+        .where(and(eq(generatedForm.id, id), eq(generatedForm.companyId, company.id)))
         .limit(1)
 
       if (!form) {
@@ -93,6 +95,9 @@ export const GET = withApiLogging(
         },
       })
     } catch (error) {
+      if (isValidationError(error)) {
+        return NextResponse.json(formatValidationError(error), { status: 400 })
+      }
       console.error("Error downloading form:", error)
       return NextResponse.json(
         { error: error instanceof Error ? error.message : "Internal server error" },

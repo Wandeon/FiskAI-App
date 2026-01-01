@@ -3,6 +3,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { ruleIdSchema, resolveConflictSchema } from "../../../../_schemas"
 
 /**
  * POST /api/admin/regulatory-truth/conflicts/[id]/resolve
@@ -16,9 +23,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
-    const body = await request.json()
-    const { action, winningRuleId, reason } = body
+    const { id } = parseParams(await params, ruleIdSchema)
+    const { action, winningRuleId, reason } = await parseBody(request, resolveConflictSchema)
 
     // Get the conflict
     const conflict = await db.regulatoryConflict.findUnique({
@@ -66,11 +72,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         rationaleHr: reason,
         rationaleEn: reason,
       }
-    } else {
-      return NextResponse.json(
-        { error: "Invalid action. Must be 'accept' or 'override'" },
-        { status: 400 }
-      )
     }
 
     // Update conflict status to resolved
@@ -109,6 +110,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       conflict: updatedConflict,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[resolve] Error resolving conflict:", error)
     return NextResponse.json({ error: "Failed to resolve conflict" }, { status: 500 })
   }

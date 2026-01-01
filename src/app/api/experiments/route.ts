@@ -6,9 +6,42 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { listExperiments, createExperiment } from "@/lib/experiments"
 import type { CreateExperimentInput, ExperimentFilters } from "@/lib/experiments/types"
+import {
+  parseBody,
+  parseQuery,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+
+const experimentFiltersSchema = z.object({
+  status: z.enum(["DRAFT", "RUNNING", "PAUSED", "COMPLETED"]).optional(),
+  search: z.string().optional(),
+  activeOnly: z.coerce.boolean().optional(),
+})
+
+const createExperimentSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  hypothesis: z.string().optional(),
+  trafficPercent: z.number().min(0).max(100).optional(),
+  successMetric: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  variants: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        weight: z.number().min(0).max(100).optional(),
+        isControl: z.boolean().optional(),
+        config: z.record(z.string(), z.unknown()).optional(),
+      })
+    )
+    .optional(),
+})
 
 export async function GET(request: NextRequest) {
   try {

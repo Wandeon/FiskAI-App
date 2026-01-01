@@ -3,12 +3,14 @@ import { buildAnswer } from "@/lib/assistant/query-engine/answer-builder"
 import { validateResponse } from "@/lib/assistant/validation"
 import { SCHEMA_VERSION, type Surface, type AssistantResponse } from "@/lib/assistant/types"
 import { nanoid } from "nanoid"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
-interface ChatRequest {
-  query: string
-  surface: Surface
-  companyId?: string
-}
+const chatRequestSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  surface: z.enum(["MARKETING", "APP"], { message: "Invalid surface" }),
+  companyId: z.string().optional(),
+})
 
 /**
  * FAIL-CLOSED STREAMING ROUTE
@@ -31,10 +33,16 @@ export async function POST(request: NextRequest) {
   const fallbackRequestId = `req_${nanoid()}`
   const fallbackTraceId = `trace_${nanoid()}`
 
-  const body = (await request.json()) as ChatRequest
-
-  // Validate request
-  if (!body.query || !body.surface) {
+  let body: z.infer<typeof chatRequestSchema>
+  try {
+    body = await parseBody(request, chatRequestSchema)
+  } catch (error) {
+    if (isValidationError(error)) {
+      return new Response(JSON.stringify(formatValidationError(error)), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
     return new Response(JSON.stringify({ error: "Invalid request" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

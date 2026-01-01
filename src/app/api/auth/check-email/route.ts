@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
 const schema = z.object({
   email: z.string().email(),
@@ -9,8 +10,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { email } = schema.parse(body)
+    const { email } = await parseBody(request, schema)
 
     const user = await db.user.findUnique({
       where: { email: email.toLowerCase() },
@@ -33,8 +33,8 @@ export async function POST(request: Request) {
       name: user.name,
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid email" }, { status: 400 })
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
     }
     console.error("Check email error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

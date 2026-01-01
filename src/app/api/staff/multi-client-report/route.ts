@@ -1,18 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
-import { checkStaffRateLimit } from "@/lib/security/staff-rate-limit"
 import { logStaffAccess, getRequestMetadata } from "@/lib/staff-audit"
-
-const querySchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-  reportType: z
-    .enum(["overview", "kpr", "pending-review", "deadlines"])
-    .optional()
-    .default("overview"),
-})
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { multiClientReportQuerySchema } from "../_schemas"
 
 function parseDate(value?: string) {
   if (!value) return undefined
@@ -33,21 +24,10 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const parsed = querySchema.safeParse({
-      from: searchParams.get("from") || undefined,
-      to: searchParams.get("to") || undefined,
-      reportType: searchParams.get("reportType") || "overview",
-    })
+    const parsed = parseQuery(searchParams, multiClientReportQuerySchema)
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid query parameters", details: parsed.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const fromDate = parseDate(parsed.data.from)
-    const toDate = parseDate(parsed.data.to)
+    const fromDate = parseDate(parsed.from)
+    const toDate = parseDate(parsed.to)
 
     // Get all assigned clients
     const assignments = await db.staffAssignment.findMany({
@@ -68,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     if (companyIds.length === 0) {
       return NextResponse.json({
-        reportType: parsed.data.reportType,
+        reportType: parsed.reportType,
         totalClients: 0,
         clients: [],
       })
@@ -82,14 +62,14 @@ export async function GET(request: NextRequest) {
         clientCompanyId: companyId,
         action: "STAFF_VIEW_REPORTS",
         resourceType: "MultiClientReport",
-        metadata: { reportType: parsed.data.reportType },
+        metadata: { reportType: parsed.reportType },
         ipAddress,
         userAgent,
       })
     }
 
     // Build report based on type
-    switch (parsed.data.reportType) {
+    switch (parsed.reportType) {
       case "overview":
         return await generateOverviewReport(companyIds, assignments, fromDate, toDate)
 
@@ -106,6 +86,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Invalid report type" }, { status: 400 })
     }
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Multi-client report error:", error)
     return NextResponse.json(
       {

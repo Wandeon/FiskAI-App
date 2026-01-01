@@ -3,6 +3,8 @@ import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { pausalniProfile } from "@/lib/db/schema/pausalni"
 import { eq } from "drizzle-orm"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { profileUpdateBodySchema } from "@/app/api/pausalni/_schemas"
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,9 +18,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No company selected" }, { status: 400 })
     }
 
-    // Check if company is paušalni obrt
+    // Check if company is pausalni obrt
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
     // Get or create profile
@@ -45,7 +47,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ profile: profile[0] })
   } catch (error) {
-    console.error("Error fetching paušalni profile:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    console.error("Error fetching pausalni profile:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -63,19 +68,12 @@ export async function PUT(request: NextRequest) {
     }
 
     if (company.legalForm !== "OBRT_PAUSAL") {
-      return NextResponse.json({ error: "Not a paušalni obrt" }, { status: 400 })
+      return NextResponse.json({ error: "Not a pausalni obrt" }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { hasPdvId, pdvId, pdvIdSince, euActive, hokMemberSince, tourismActivity } = body
-
-    // Validate PDV-ID format if provided
-    if (pdvId && !/^HR\d{11}$/.test(pdvId)) {
-      return NextResponse.json(
-        { error: "Invalid PDV-ID format. Expected: HR + 11 digits" },
-        { status: 400 }
-      )
-    }
+    // Parse and validate body
+    const { hasPdvId, pdvId, pdvIdSince, euActive, hokMemberSince, tourismActivity } =
+      await parseBody(request, profileUpdateBodySchema)
 
     // Format dates as YYYY-MM-DD strings for drizzle date columns
     const formattedPdvIdSince =
@@ -118,7 +116,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ profile: updated[0] })
   } catch (error) {
-    console.error("Error updating paušalni profile:", error)
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+    console.error("Error updating pausalni profile:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

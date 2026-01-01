@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { getCoverageSummary } from "@/lib/regulatory-truth/quality"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 /**
  * GET /api/admin/regulatory-truth/coverage
@@ -77,6 +78,9 @@ export async function GET() {
       })),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[coverage] Error fetching coverage data:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { SupportTicketStatus } from "@prisma/client"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function GET() {
   try {
@@ -64,6 +65,9 @@ export async function GET() {
       companyId: company.id,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Support summary error:", error)
     return NextResponse.json({ error: "Failed to load summary" }, { status: 500 })
   }

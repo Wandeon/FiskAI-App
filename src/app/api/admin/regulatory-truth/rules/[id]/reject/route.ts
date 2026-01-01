@@ -4,6 +4,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { ruleIdSchema, rejectRuleSchema } from "../../../../_schemas"
 
 /**
  * POST /api/admin/regulatory-truth/rules/[id]/reject
@@ -17,13 +24,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
-    const body = await request.json()
-    const { reason } = body
-
-    if (!reason) {
-      return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 })
-    }
+    const { id } = parseParams(await params, ruleIdSchema)
+    const { reason } = await parseBody(request, rejectRuleSchema)
 
     // Get the rule with existing reviewerNotes
     const rule = await db.regulatoryRule.findUnique({
@@ -70,6 +72,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       rule: updatedRule,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[reject] Error rejecting rule:", error)
     return NextResponse.json({ error: "Failed to reject rule" }, { status: 500 })
   }

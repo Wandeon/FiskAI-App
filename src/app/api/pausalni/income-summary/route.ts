@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser, getCurrentCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { incomeSummaryQuerySchema } from "@/app/api/pausalni/_schemas"
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,9 +16,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No company selected" }, { status: 400 })
     }
 
-    // Get year from query params
-    const { searchParams } = new URL(request.url)
-    const year = parseInt(searchParams.get("year") || String(new Date().getFullYear() - 1))
+    // Parse and validate query params
+    const url = new URL(request.url)
+    const { year } = parseQuery(url.searchParams, incomeSummaryQuerySchema)
 
     // Get start and end dates for the year
     const startDate = new Date(year, 0, 1)
@@ -68,6 +70,9 @@ export async function GET(request: NextRequest) {
       hasData: invoices.length > 0,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Error fetching income summary:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

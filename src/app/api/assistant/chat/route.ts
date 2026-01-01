@@ -6,12 +6,14 @@ import { nanoid } from "nanoid"
 import { getReasoningMode } from "@/lib/assistant/reasoning/feature-flags"
 import { runShadowMode } from "@/lib/assistant/reasoning/shadow-runner"
 import { buildAnswerCompat } from "@/lib/assistant/reasoning/compat"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
-interface ChatRequest {
-  query: string
-  surface: Surface
-  companyId?: string
-}
+const chatRequestSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  surface: z.enum(["MARKETING", "APP"], { message: "Invalid surface" }),
+  companyId: z.string().optional(),
+})
 
 /**
  * FAIL-CLOSED API ROUTE
@@ -30,16 +32,7 @@ export async function POST(request: NextRequest) {
   const traceId = `trace_${nanoid()}`
 
   try {
-    const body = (await request.json()) as ChatRequest
-
-    // Validate request
-    if (!body.query || typeof body.query !== "string" || body.query.trim().length === 0) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 })
-    }
-
-    if (!body.surface || !["MARKETING", "APP"].includes(body.surface)) {
-      return NextResponse.json({ error: "Invalid surface" }, { status: 400 })
-    }
+    const body = await parseBody(request, chatRequestSchema)
 
     // Determine which pipeline to use
     const mode = getReasoningMode()
@@ -100,6 +93,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response)
   } catch (error) {
+    // Handle validation errors with proper format
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+
     console.error("[Assistant API] Internal error", {
       requestId,
       traceId,

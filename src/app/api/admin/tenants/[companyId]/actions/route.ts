@@ -8,6 +8,13 @@ import {
   exportTenantData,
 } from "@/lib/admin/actions"
 import { apiError, ApiErrors } from "@/lib/api-error"
+import {
+  parseParams,
+  parseBody,
+  isValidationError,
+  formatValidationError,
+} from "@/lib/api/validation"
+import { tenantParamsSchema } from "@/app/api/admin/_schemas"
 
 const actionSchema = z.discriminatedUnion("action", [
   z.object({
@@ -41,20 +48,9 @@ export async function POST(
     return ApiErrors.forbidden("Forbidden: ADMIN role required")
   }
 
-  const { companyId } = await params
-
   try {
-    const body = await request.json()
-    const parsed = actionSchema.safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: parsed.error.issues },
-        { status: 400 }
-      )
-    }
-
-    const data = parsed.data
+    const { companyId } = parseParams(await params, tenantParamsSchema)
+    const data = await parseBody(request, actionSchema)
 
     // Route to appropriate action handler
     switch (data.action) {
@@ -100,6 +96,9 @@ export async function POST(
         return NextResponse.json({ error: "Unknown action" }, { status: 400 })
     }
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return apiError(error)
   }
 }

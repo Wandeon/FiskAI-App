@@ -1,5 +1,6 @@
 // src/app/api/admin/regulatory-truth/truth-health/route.ts
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import {
   collectTruthHealthMetrics,
@@ -7,6 +8,19 @@ import {
   runConsolidatorHealthCheck,
 } from "@/lib/regulatory-truth/utils/truth-health"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { parseQuery, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const getQuerySchema = z.object({
+  history: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
+  limit: z.coerce.number().min(1).max(100).default(10),
+})
+
+const postQuerySchema = z.object({
+  action: z.enum(["snapshot", "audit"]).default("snapshot"),
+})
 
 /**
  * GET /api/admin/regulatory-truth/truth-health
@@ -19,8 +33,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const includeHistory = req.nextUrl.searchParams.get("history") === "true"
-    const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10")
+    const { history: includeHistory, limit } = parseQuery(req.nextUrl.searchParams, getQuerySchema)
 
     // Get current metrics
     const currentMetrics = await collectTruthHealthMetrics()
@@ -41,6 +54,9 @@ export async function GET(req: NextRequest) {
       history: includeHistory ? history : undefined,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[truth-health] Error:", error)
     return NextResponse.json({ error: "Failed to get truth health metrics" }, { status: 500 })
   }
@@ -57,7 +73,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const action = req.nextUrl.searchParams.get("action") || "snapshot"
+    const { action } = parseQuery(req.nextUrl.searchParams, postQuerySchema)
 
     if (action === "audit") {
       // Run consolidator health check (dry-run)
@@ -81,6 +97,9 @@ export async function POST(req: NextRequest) {
       alerts: snapshot.alerts,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[truth-health] Error:", error)
     return NextResponse.json({ error: "Failed to run truth health check" }, { status: 500 })
   }

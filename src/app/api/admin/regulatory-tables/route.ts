@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth-utils"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export async function GET() {
   await requireAdmin()
@@ -31,6 +32,9 @@ export async function GET() {
       })),
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("Admin regulatory tables error:", error)
     return NextResponse.json({ error: "Failed to fetch regulatory tables" }, { status: 500 })
   }

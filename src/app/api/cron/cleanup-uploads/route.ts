@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { promises as fs } from "fs"
 import path from "path"
 import { bankingLogger } from "@/lib/logger"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes for file operations
@@ -205,6 +206,9 @@ export async function GET() {
     })
   } catch (error) {
     bankingLogger.error({ error }, "Upload cleanup job failed")
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     return NextResponse.json(
       {
         error: "Cleanup failed",
