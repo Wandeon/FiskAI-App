@@ -39,7 +39,7 @@ describe("Arbiter E2E", { skip: shouldSkip ? skipReason : undefined }, () => {
   let conflictId: string
 
   before(async () => {
-    testConceptSlug = `arbiter-e2e-test-${Date.now()}`
+    testConceptSlug = `arbiter-e2e-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     // Create Rule A: An existing published rule from GUIDANCE
     const ruleA = await db.regulatoryRule.create({

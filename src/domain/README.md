@@ -12,15 +12,129 @@ This is the heart of the system - it knows nothing about databases, HTTP, or fra
 - **CAN import:** Other domain modules, standard library, pure utility libraries (e.g., `decimal.js`)
 - **CANNOT import:** `@prisma/client`, `next`, `react`, database utilities, infrastructure, application layer
 
-## Structure
+## Bounded Contexts
 
-- `shared/` - Shared value objects (Money, Quantity, VatRate)
-- `invoicing/` - Invoice aggregate and related entities
-- `tax/` - VAT calculation domain logic
-- `fiscalization/` - Fiscal request state machine
-- `banking/` - Bank transaction domain
-- `compliance/` - Deadline and compliance status
-- `identity/` - Tenant and permission models
+FiskAI is organized into 7 bounded contexts with clear ownership boundaries:
+
+### 1. shared/ - Core Value Objects
+
+**Owner:** Platform Team
+**Purpose:** Foundational value objects used across all contexts
+
+| Type       | Description                                  |
+| ---------- | -------------------------------------------- |
+| `Money`    | Arbitrary precision currency with Decimal.js |
+| `VatRate`  | VAT rate with calculation methods            |
+| `Quantity` | Non-negative quantities with units           |
+
+### 2. invoicing/ - Invoice Context
+
+**Owner:** Invoicing Team
+**Purpose:** Invoice lifecycle management
+
+| Type            | Description                                    |
+| --------------- | ---------------------------------------------- |
+| `Invoice`       | Aggregate root - line management, calculations |
+| `InvoiceLine`   | Entity - quantity × price calculations         |
+| `InvoiceId`     | Value object - formatted invoice identifiers   |
+| `InvoiceStatus` | State machine - DRAFT→ISSUED→FISCALIZED        |
+
+### 3. fiscalization/ - Fiscal Context
+
+**Owner:** Compliance Team
+**Purpose:** Croatian tax authority integration
+
+| Type            | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `FiscalRequest` | Aggregate root - submission state machine         |
+| `FiscalStatus`  | State machine - QUEUED→SUBMITTED→COMPLETED/FAILED |
+| `ZkiCalculator` | Domain service - ZKI hash generation              |
+
+### 4. tax/ - Tax Calculation Context
+
+**Owner:** Compliance Team
+**Purpose:** VAT and tax calculation logic
+
+| Type            | Description                         |
+| --------------- | ----------------------------------- |
+| `VatCalculator` | Domain service - VAT calculations   |
+| `VatBreakdown`  | Value object - itemized VAT by rate |
+
+### 5. banking/ - Banking Context
+
+**Owner:** Banking Team
+**Purpose:** Bank transactions and reconciliation
+
+| Type                    | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `BankTransaction`       | Aggregate root - transaction with status |
+| `ReconciliationMatcher` | Domain service - matching algorithm      |
+| `ImportDeduplicator`    | Domain service - idempotent imports      |
+
+### 6. compliance/ - Compliance Context
+
+**Owner:** Compliance Team
+**Purpose:** Regulatory deadlines and obligations
+
+| Type                 | Description                            |
+| -------------------- | -------------------------------------- |
+| `ComplianceDeadline` | Aggregate root - deadline scheduling   |
+| `Recurrence`         | Value object - recurrence patterns     |
+| `ApplicabilityRule`  | Value object - business type targeting |
+
+### 7. identity/ - Identity Context
+
+**Owner:** Platform Team
+**Purpose:** Multi-tenancy and access control
+
+| Type              | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| `Tenant`          | Aggregate root - company with members               |
+| `StaffAssignment` | Entity - staff-to-tenant assignments                |
+| `OIB`             | Value object - Croatian tax ID with checksum        |
+| `TenantRole`      | Value object - OWNER/ADMIN/MEMBER/ACCOUNTANT/VIEWER |
+
+## Context Map
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           IDENTITY                                   │
+│                    (Tenant, StaffAssignment)                        │
+│                         [Platform Team]                              │
+└─────────────────────────────────┬───────────────────────────────────┘
+                                  │
+                                  │ Company ID flows to all contexts
+                                  ▼
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  INVOICING  │───▶│FISCALIZATION│───▶│COMPLIANCE   │◀───│   BANKING   │
+│  (Invoice)  │    │(FiscalReq)  │    │(Deadline)   │    │(BankTxn)    │
+│[Invoicing]  │    │[Compliance] │    │[Compliance] │    │[Banking]    │
+└──────┬──────┘    └─────────────┘    └─────────────┘    └──────┬──────┘
+       │                                                        │
+       │                                                        │
+       └────────────────────┬───────────────────────────────────┘
+                            │
+                            ▼
+                    ┌─────────────┐
+                    │     TAX     │
+                    │(VatCalc)    │
+                    │[Compliance] │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   SHARED    │
+                    │(Money,Qty)  │
+                    │[Platform]   │
+                    └─────────────┘
+```
+
+## Cross-Context Rules
+
+1. **Upstream/Downstream**: Identity is upstream (provides tenant context), others are downstream
+2. **Anti-Corruption Layer**: Infrastructure layer translates between contexts
+3. **Shared Kernel**: shared/ contains types used by all contexts (Money, Quantity, VatRate)
+4. **Event-Driven**: Contexts communicate via domain events where needed
 
 ## Principles
 
