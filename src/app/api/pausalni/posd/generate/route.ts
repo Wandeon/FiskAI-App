@@ -87,7 +87,7 @@ export const POST = withApiLogging(async (request: NextRequest) => {
         periodYear: year,
         format: format === "xml" ? "XML" : "PDF",
         fileHash,
-        formData: data as Record<string, unknown>,
+        formData: data as unknown as Record<string, unknown>,
         submittedToPorezna: false,
       })
       .returning()

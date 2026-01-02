@@ -182,11 +182,9 @@ export async function PATCH(request: Request) {
           entity: "SupportTicket",
           entityId: ticket.id,
           changes: {
-            before: serializeTicket(ticket),
-            after: serializeTicket(updatedTicket),
-            action,
-            reason: reason || "Admin bulk action",
-          } as Prisma.JsonValue,
+            before: serializeTicket(ticket) as Record<string, unknown>,
+            after: serializeTicket(updatedTicket) as Record<string, unknown>,
+          },
           ipAddress,
           userAgent,
         })

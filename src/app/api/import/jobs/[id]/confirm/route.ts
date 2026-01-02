@@ -5,6 +5,15 @@ import { setTenantContext } from "@/lib/prisma-extensions"
 import { ensureOrganizationForContact } from "@/lib/master-data/contact-master-data"
 import { ImportFormat, Prisma } from "@prisma/client"
 
+interface BankTransaction {
+  date: string
+  description: string
+  amount: number
+  reference?: string
+  counterpartyName?: string
+  counterpartyIban?: string
+}
+
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
@@ -64,7 +73,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     // Write transactions to database
     if (transactions && transactions.length > 0) {
       await db.bankTransaction.createMany({
-        data: transactions.map((t: any) => ({
+        data: transactions.map((t: BankTransaction) => ({
           companyId: company.id,
           bankAccountId,
           statementImportId: statementImport.id,

@@ -12,10 +12,11 @@ import {
   formatValidationError,
 } from "@/lib/api/validation"
 import { formsQuerySchema, formGenerateBodySchema } from "@/app/api/pausalni/_schemas"
-import { generatePdvFormForPeriod, validatePdvFormData } from "@/lib/pausalni/forms/pdv-generator"
+import { generatePdvFormForPeriod, validatePdvFormData, type PdvFormData } from "@/lib/pausalni/forms/pdv-generator"
 import {
   generatePdvSFormForPeriod,
   validatePdvSFormData,
+  type PdvSFormData,
 } from "@/lib/pausalni/forms/pdv-s-generator"
 import {
   generateZpXml,
@@ -133,7 +134,7 @@ export const POST = withApiLogging(async (request: NextRequest) => {
     }
 
     let xml: string
-    let formData: Record<string, unknown>
+    let formData: PdvFormData | PdvSFormData | ZpFormData | undefined
     let validationErrors: string[] = []
 
     // Generate form based on type

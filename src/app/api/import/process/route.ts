@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     await db.importJob.update({
       where: { id: job.id },
       data: {
-        status: "READY_FOR_REVIEW" as any,
+        status: JobStatus.READY_FOR_REVIEW,
         extractedData,
         pagesProcessed: 1,
       },

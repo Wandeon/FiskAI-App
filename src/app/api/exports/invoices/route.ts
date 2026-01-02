@@ -21,7 +21,7 @@ function formatDate(value?: Date | null) {
   return value.toISOString().slice(0, 10)
 }
 
-function money(value: any) {
+function money(value: number | string | null | undefined) {
   const num = Number(value || 0)
   return Number.isFinite(num) ? num.toFixed(2) : ""
 }
@@ -47,7 +47,23 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;")
 }
 
-function buildInvoicesXml(invoices: any[]): string {
+interface InvoiceForExport {
+  invoiceNumber: string | null
+  issueDate: Date | null
+  dueDate: Date | null
+  buyer: { name: string; oib: string | null; email: string | null } | null
+  direction: string
+  type: string
+  status: string
+  netAmount: unknown
+  vatAmount: unknown
+  totalAmount: unknown
+  paidAt: Date | null
+  providerRef: string | null
+  internalReference: string | null
+}
+
+function buildInvoicesXml(invoices: InvoiceForExport[]): string {
   const lines = invoices
     .map(
       (inv) => `

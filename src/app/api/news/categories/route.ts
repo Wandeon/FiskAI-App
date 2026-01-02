@@ -35,7 +35,7 @@ export async function GET() {
       parentId: string | null
       icon: string | null
       color: string | null
-      sortOrder: number
+      sortOrder: number | null
       children: CategoryNode[]
     }
 
@@ -54,6 +54,8 @@ export async function GET() {
     // Second pass: build tree structure
     allCategories.forEach((category) => {
       const categoryWithChildren = categoryMap.get(category.id)
+      if (!categoryWithChildren) return
+
       if (category.parentId) {
         const parent = categoryMap.get(category.parentId)
         if (parent) {

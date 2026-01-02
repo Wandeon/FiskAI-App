@@ -55,7 +55,7 @@ export function DemoInvoice({ reduce }: { reduce: boolean }) {
         </div>
         <motion.div
           className="inline-flex items-center rounded-md bg-interactive px-3 py-2 text-xs font-semibold text-white"
-          animate={pulse as any}
+          animate={pulse}
         >
           Pošalji PDF
         </motion.div>

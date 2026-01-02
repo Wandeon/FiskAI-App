@@ -4,7 +4,8 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { euTransaction } from "@/lib/db/schema/pausalni"
 import { eq, and, desc } from "drizzle-orm"
 import { processTransactionsForEu } from "@/lib/pausalni/eu-detection"
-import { db, Prisma } from "@/lib/db"
+import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import {
   parseQuery,
   parseBody,

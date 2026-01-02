@@ -8,7 +8,7 @@ import type { Company } from "@prisma/client"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { getFiscalProvider, testFiscalProvider } from "@/lib/e-invoice/fiscal-provider"
 import { FiscalConfig } from "@/lib/e-invoice/fiscal-types"
-import { validateCroatianCompliance } from "@/lib/compliance/en16931-validator"
+import { validateCroatianCompliance, type EN16931Invoice } from "@/lib/compliance/en16931-validator"
 import { logger } from "@/lib/logger"
 import { oibSchema } from "@/lib/validations/oib"
 
@@ -175,8 +175,7 @@ async function testInvoice(company: Company, invoiceData: InvoiceData) {
         oib: invoiceData.buyerOib,
       },
       // Add other required fields with default values
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- temp invoice object for validation only
-    } as Record<string, unknown>
+    } as unknown as EN16931Invoice
 
     // Validate compliance
     const complianceResult = validateCroatianCompliance(tempInvoice)

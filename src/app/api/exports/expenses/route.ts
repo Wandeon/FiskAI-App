@@ -22,7 +22,7 @@ function formatDate(value?: Date | null) {
   return value.toISOString().slice(0, 10)
 }
 
-function money(value: any) {
+function money(value: number | string | null | undefined) {
   const num = Number(value || 0)
   return Number.isFinite(num) ? num.toFixed(2) : ""
 }
@@ -48,7 +48,34 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;")
 }
 
-function buildExpensesXml(expenses: any[]): string {
+interface ExpenseLine {
+  description: string | null
+  quantity: number | null
+  unitPrice: number | null
+  netAmount: number | null
+  vatRate: number | null
+  vatAmount: number | null
+  totalAmount: number | null
+}
+
+interface ExpenseForExport {
+  date: Date | null
+  description: string | null
+  supplierBill: { documentNumber: string | null } | null
+  vendor: { name: string; oib: string | null } | null
+  category: { name: string | null; code: string | null } | null
+  status: string
+  netAmount: unknown
+  vatAmount: unknown
+  totalAmount: unknown
+  paymentDate: Date | null
+  paymentMethod: string | null
+  receiptUrl: string | null
+  notes: string | null
+  lines: ExpenseLine[]
+}
+
+function buildExpensesXml(expenses: ExpenseForExport[]): string {
   const lines = expenses
     .map(
       (exp) => `
@@ -73,7 +100,7 @@ function buildExpensesXml(expenses: any[]): string {
       <Lines>
         ${(exp.lines || [])
           .map(
-            (line: any) => `
+            (line) => `
         <Line>
           <Description>${escapeXml(line.description || "")}</Description>
           <Quantity>${money(line.quantity)}</Quantity>

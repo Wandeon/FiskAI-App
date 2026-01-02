@@ -65,8 +65,9 @@ function extractImageFromRSS(item: Record<string, unknown>): { url?: string; sou
       }
     }
     // Priority 2: enclosure
-    if (item.enclosure && item.enclosure.url) {
-      return { url: item.enclosure.url, source: "enclosure" }
+    const enclosure = item.enclosure as { url?: string } | undefined
+    if (enclosure && enclosure.url) {
+      return { url: enclosure.url, source: "enclosure" }
     }
     // Priority 3: Parse content:encoded or description for <img> tags
     const content = item["content:encoded"] || item.description || ""

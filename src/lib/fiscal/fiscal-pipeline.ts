@@ -150,8 +150,8 @@ interface InvoiceForFiscalization {
   invoiceNumber: string
   issueDate: Date
   totalAmount: number | string | { toString(): string }
-  paymentMethod?: string
-  operatorOib?: string
+  paymentMethod?: string | null
+  operatorOib?: string | null
   lines: Array<{
     vatRate: number | string | { toString(): string }
     netAmount: number | string | { toString(): string }

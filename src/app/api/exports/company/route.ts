@@ -20,7 +20,7 @@ function formatDate(date: Date | null | undefined): string {
   return date.toISOString().split("T")[0]
 }
 
-function formatDecimal(value: any): string {
+function formatDecimal(value: number | string | null | undefined): string {
   const num = Number(value || 0)
   return Number.isFinite(num) ? num.toFixed(2) : "0.00"
 }

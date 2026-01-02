@@ -80,7 +80,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { id },
       data: {
         status: "RESOLVED",
-        resolution: resolutionData,
+        resolution: resolutionData as Prisma.InputJsonValue,
         resolvedBy: user.id,
         resolvedAt: new Date(),
       },

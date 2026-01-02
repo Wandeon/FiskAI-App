@@ -3,7 +3,8 @@
 
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { db, Prisma } from "@/lib/db"
+import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { IncomingInvoice } from "@/lib/e-invoice/types"
 import { logger } from "@/lib/logger"
