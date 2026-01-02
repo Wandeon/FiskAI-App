@@ -144,8 +144,8 @@ async function parseDoc(
     const body = doc.getBody() || ""
     const headers = doc.getHeaders() || ""
     const footers = doc.getFooters() || ""
-    const footnotes = (doc as any).getFootnotes?.() || ""
-    const endnotes = (doc as any).getEndnotes?.() || ""
+    const footnotes = (doc as unknown as Record<string, (() => string) | undefined>).getFootnotes?.() || ""
+    const endnotes = (doc as unknown as Record<string, (() => string) | undefined>).getEndnotes?.() || ""
 
     // Combine all text parts
     const allText = [body, headers, footers, footnotes, endnotes].filter(Boolean).join("\n\n")

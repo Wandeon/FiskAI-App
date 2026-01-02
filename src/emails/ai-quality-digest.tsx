@@ -12,9 +12,9 @@ interface AIQualityDigestProps {
       partial: number
       accuracy: number
     }
-    byOperation: Record<string, any>
-    lowAccuracyCompanies: any[]
-    recentCorrections: any[]
+    byOperation: Record<string, unknown>
+    lowAccuracyCompanies: unknown[]
+    recentCorrections: unknown[]
     improvementSuggestions: string[]
   }
 }

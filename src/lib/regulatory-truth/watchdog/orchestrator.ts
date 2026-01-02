@@ -104,7 +104,7 @@ async function runScoutPhase(): Promise<PhaseResult> {
 
       try {
         // Run sentinel for this endpoint's hierarchy
-        const result = await runSentinel(endpoint.hierarchy as any)
+        const result = await runSentinel(endpoint.hierarchy as string)
         itemsProcessed += result.endpointsChecked
         console.log(`[watchdog] Scouted ${endpoint.name}: ${result.newItemsDiscovered} new items`)
       } catch (error) {

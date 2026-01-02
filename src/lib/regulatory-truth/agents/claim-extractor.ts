@@ -1,6 +1,7 @@
 // src/lib/regulatory-truth/agents/claim-extractor.ts
 
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import { runAgent } from "./runner"
 import { AtomicClaimSchema, type AtomicClaim } from "../schemas/atomic-claim"
 import { getExtractableContent } from "../utils/content-provider"
@@ -132,7 +133,7 @@ export async function runClaimExtractor(evidenceId: string): Promise<ClaimExtrac
         data: {
           evidenceId: evidence.id,
           rejectionType: validation.rejectionType || "VALIDATION_FAILED",
-          rawOutput: claim as any,
+          rawOutput: claim as unknown as Prisma.JsonValue,
           errorDetails: validation.errors.join("; "),
         },
       })

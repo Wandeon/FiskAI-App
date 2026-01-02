@@ -373,10 +373,12 @@ export async function getNotificationCenterFeed({
     const checklistAlerts: NotificationItem[] = []
     try {
       const urgentItems = (checklistItems?.items || []).filter(
-        (item) =>
-          !(item as any).completedAt &&
-          !(item as any).dismissedAt &&
-          (item.urgency === "critical" || item.urgency === "soon")
+        (item) => {
+          const itemRecord = item as unknown as Record<string, unknown>
+          return !itemRecord.completedAt &&
+            !itemRecord.dismissedAt &&
+            (item.urgency === "critical" || item.urgency === "soon")
+        }
       )
 
       for (const item of urgentItems.slice(0, 3)) {

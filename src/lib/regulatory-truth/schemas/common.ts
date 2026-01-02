@@ -177,7 +177,7 @@ export const URLSchema = z.string().url()
  */
 export function isValidDomain(domain: string): boolean {
   const validDomains = DomainSchema.options
-  return validDomains.includes(domain as any)
+  return (validDomains as readonly string[]).includes(domain)
 }
 
 /**

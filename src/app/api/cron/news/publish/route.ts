@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
 
         const aiPasses =
           typeof post.aiPasses === "object" && post.aiPasses !== null
-            ? (post.aiPasses as Record<string, any>)
+            ? (post.aiPasses as Record<string, unknown>)
             : {}
 
         const reviewData = aiPasses.review as ReviewFeedback | undefined

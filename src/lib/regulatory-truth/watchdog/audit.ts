@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/watchdog/audit.ts
 
 import { db } from "@/lib/db"
-import type { AuditResult } from "@prisma/client"
+import { Prisma, type AuditResult } from "@prisma/client"
 import type { AuditReport, RuleAuditResult, AuditCheckResult } from "./types"
 import { notifyAuditResult } from "./alerting"
 import { createHash } from "crypto"
@@ -258,7 +258,7 @@ export async function runRandomAudit(): Promise<AuditReport | null> {
       rulesFailed: report.rulesFailed,
       overallScore: report.overallScore,
       result: report.result,
-      findings: report.findings as any,
+      findings: report.findings as unknown as Prisma.JsonValue,
       alertsRaised: [],
     },
   })

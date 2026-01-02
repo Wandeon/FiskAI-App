@@ -9,7 +9,7 @@ const lokiEnabled = !!lokiUrl && !isDev
 // Detect Edge runtime (middleware runs in Edge)
 // Edge runtime doesn't support pino.transport() which uses Node.js worker threads
 const isEdgeRuntime =
-  typeof (globalThis as any).EdgeRuntime !== "undefined" ||
+  typeof (globalThis as Record<string, unknown>).EdgeRuntime !== "undefined" ||
   (typeof process !== "undefined" && process.env.NEXT_RUNTIME === "edge")
 
 // Build transport targets for log aggregation
