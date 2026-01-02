@@ -42,8 +42,10 @@ const MAX_LIBRARY_SCAN_DEPTH = 3
 
 /**
  * Maximum files to scan per directory level to prevent performance issues.
+ * Set to 100 to accommodate large libraries like regulatory-truth (~264 files)
+ * and assistant (~106 files). Total limit = 100 * 3 = 300 files.
  */
-const MAX_FILES_PER_LEVEL = 50
+const MAX_FILES_PER_LEVEL = 100
 
 /**
  * Checks if a directory contains TypeScript files, with bounded recursion.
@@ -260,7 +262,7 @@ export async function harvestLibs(projectRoot: string): Promise<HarvesterResult>
 // CLI entry point
 if (require.main === module) {
   const projectRoot = process.argv[2] || process.cwd()
-  harvestLibs(projectRoot).then((result) => {
+  void harvestLibs(projectRoot).then((result) => {
     console.log(JSON.stringify(result, null, 2))
   })
 }
