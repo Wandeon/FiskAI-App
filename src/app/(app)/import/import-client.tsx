@@ -167,32 +167,35 @@ export function ImportClient({ bankAccounts, initialJobs }: ImportClientProps) {
   )
 
   const handleConfirm = useCallback(
-    async (jobId: string, editedData: ExtractedData) => {
-      const res = await fetch(`/api/import/jobs/${jobId}/confirm`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transactions: editedData.transactions,
-          bankAccountId: selectedAccountId,
-        }),
-      })
+    (jobId: string, editedData?: unknown) => {
+      const extracted = editedData as ExtractedData | undefined
+      void (async () => {
+        const res = await fetch(`/api/import/jobs/${jobId}/confirm`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transactions: extracted?.transactions,
+            bankAccountId: selectedAccountId,
+          }),
+        })
 
-      const data = await res.json()
-      if (data.success) {
-        setJobs((prev) =>
-          prev.map((j) =>
-            j.id === jobId
-              ? {
-                  ...j,
-                  status: "CONFIRMED" as JobStatus,
-                  transactionCount: data.transactionCount,
-                }
-              : j
+        const result = await res.json()
+        if (result.success) {
+          setJobs((prev) =>
+            prev.map((j) =>
+              j.id === jobId
+                ? {
+                    ...j,
+                    status: "CONFIRMED" as JobStatus,
+                    transactionCount: result.transactionCount,
+                  }
+                : j
+            )
           )
-        )
-        setModalJob(null)
-        setModalData(null)
-      }
+          setModalJob(null)
+          setModalData(null)
+        }
+      })()
     },
     [selectedAccountId]
   )
