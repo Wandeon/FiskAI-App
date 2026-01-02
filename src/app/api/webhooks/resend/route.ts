@@ -5,38 +5,49 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { logger } from "@/lib/logger"
 import { createHmac, timingSafeEqual } from "crypto"
+import { z } from "zod"
+import { ValidationError, formatValidationError } from "@/lib/api/validation"
 
 // Resend webhook secret for signature verification
 const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET
 
-// Event types from Resend
-type ResendEventType =
-  | "email.sent"
-  | "email.delivered"
-  | "email.delivery_delayed"
-  | "email.complained"
-  | "email.bounced"
-  | "email.opened"
-  | "email.clicked"
+// Zod schema for Resend webhook payload validation
+const resendEventTypeSchema = z.enum([
+  "email.sent",
+  "email.delivered",
+  "email.delivery_delayed",
+  "email.complained",
+  "email.bounced",
+  "email.opened",
+  "email.clicked",
+])
 
-interface ResendWebhookPayload {
-  type: ResendEventType
-  created_at: string
-  data: {
-    created_at: string
-    email_id: string
-    from: string
-    to: string[]
-    subject: string
-    click?: {
-      link: string
-      timestamp: string
-    }
-    bounce?: {
-      message: string
-    }
-  }
-}
+const resendWebhookSchema = z.object({
+  type: resendEventTypeSchema,
+  created_at: z.string(),
+  data: z.object({
+    created_at: z.string(),
+    email_id: z.string().min(1, "email_id is required"),
+    from: z.string().email("from must be a valid email"),
+    to: z
+      .array(z.string().email("to must contain valid emails"))
+      .min(1, "to must have at least one recipient"),
+    subject: z.string(),
+    click: z
+      .object({
+        link: z.string().url("click.link must be a valid URL"),
+        timestamp: z.string(),
+      })
+      .optional(),
+    bounce: z
+      .object({
+        message: z.string(),
+      })
+      .optional(),
+  }),
+})
+
+type ResendWebhookPayload = z.infer<typeof resendWebhookSchema>
 
 /**
  * Verify Resend webhook signature using Svix format
@@ -108,7 +119,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const payload: ResendWebhookPayload = JSON.parse(body)
+    // Parse and validate the webhook payload
+    let parsedBody: unknown
+    try {
+      parsedBody = JSON.parse(body)
+    } catch {
+      logger.warn("Resend webhook received invalid JSON")
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: { formErrors: ["Invalid JSON in request body"], fieldErrors: {} },
+        },
+        { status: 400 }
+      )
+    }
+
+    const validationResult = resendWebhookSchema.safeParse(parsedBody)
+    if (!validationResult.success) {
+      const validationError = new ValidationError(validationResult.error.flatten())
+      logger.warn({ errors: validationError.errors }, "Resend webhook payload validation failed")
+      return NextResponse.json(formatValidationError(validationError), { status: 400 })
+    }
+
+    const payload: ResendWebhookPayload = validationResult.data
     const { type, data } = payload
     const emailId = data.email_id
 
