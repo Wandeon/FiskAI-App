@@ -59,6 +59,14 @@ export class Invoice {
   get sellerId(): string {
     return this.props.sellerId
   }
+
+  /**
+   * Canonical tenant identity for this invoice.
+   * Used by infrastructure for tenant scope enforcement.
+   */
+  get companyId(): string {
+    return this.sellerId
+  }
   get issueDate(): Date | undefined {
     return this.props.issueDate
   }

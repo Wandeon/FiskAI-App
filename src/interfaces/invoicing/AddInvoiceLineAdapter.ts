@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { AddInvoiceLine } from "@/application/invoicing"
 import { PrismaInvoiceRepository } from "@/infrastructure/invoicing"
+import { TenantScopedContext } from "@/infrastructure/shared/TenantScopedContext"
 
 const AddInvoiceLineSchema = z.object({
   invoiceId: z.string().min(1, "Invoice ID is required"),
@@ -13,9 +14,15 @@ const AddInvoiceLineSchema = z.object({
 
 export type AddInvoiceLineRequest = z.infer<typeof AddInvoiceLineSchema>
 
-export async function handleAddInvoiceLine(input: unknown) {
+/**
+ * Handle adding a line to an invoice.
+ *
+ * @param ctx - TenantScopedContext for the current request
+ * @param input - The request data
+ */
+export async function handleAddInvoiceLine(ctx: TenantScopedContext, input: unknown) {
   const validated = AddInvoiceLineSchema.parse(input)
-  const repo = new PrismaInvoiceRepository()
+  const repo = new PrismaInvoiceRepository(ctx)
   const useCase = new AddInvoiceLine(repo)
   await useCase.execute(validated)
   return { success: true }
