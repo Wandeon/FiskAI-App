@@ -12,10 +12,10 @@
  * Capability state - what can the user do right now?
  */
 export type CapabilityState =
-  | "READY" // All conditions met, action can be taken
-  | "BLOCKED" // External blocker prevents action (e.g., locked period)
-  | "MISSING_INPUTS" // Required inputs are not provided
-  | "UNAUTHORIZED" // User lacks permission for this action
+  | "READY"           // All conditions met, action can be taken
+  | "BLOCKED"         // External blocker prevents action (e.g., locked period)
+  | "MISSING_INPUTS"  // Required inputs are not provided
+  | "UNAUTHORIZED"    // User lacks permission for this action
 
 /**
  * Input status for a capability.

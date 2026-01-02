@@ -122,14 +122,8 @@ async function resolveDirectEntityDate(
   if (where) {
     const modelClient = (prisma as unknown as Record<string, unknown>)[entity.client] as
       | {
-          findUnique?: (args: {
-            where: unknown
-            select: unknown
-          }) => Promise<Record<string, unknown> | null>
-          findFirst?: (args: {
-            where: unknown
-            select: unknown
-          }) => Promise<Record<string, unknown> | null>
+          findUnique?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
+          findFirst?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
         }
       | undefined
 
@@ -189,14 +183,8 @@ async function resolveDerivedEntityDate(
   if (!parentId && where) {
     const modelClient = (prisma as unknown as Record<string, unknown>)[entity.client] as
       | {
-          findUnique?: (args: {
-            where: unknown
-            select: unknown
-          }) => Promise<Record<string, unknown> | null>
-          findFirst?: (args: {
-            where: unknown
-            select: unknown
-          }) => Promise<Record<string, unknown> | null>
+          findUnique?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
+          findFirst?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
         }
       | undefined
 
@@ -227,10 +215,7 @@ async function resolveDerivedEntityDate(
     parentModel.charAt(0).toLowerCase() + parentModel.slice(1)
   ] as
     | {
-        findUnique?: (args: {
-          where: unknown
-          select: unknown
-        }) => Promise<Record<string, unknown> | null>
+        findUnique?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
       }
     | undefined
 
@@ -297,14 +282,8 @@ async function resolveCompanyId(
   if (where) {
     const modelClient = (prisma as unknown as Record<string, unknown>)[entity.client] as
       | {
-          findUnique?: (args: {
-            where: unknown
-            select: unknown
-          }) => Promise<Record<string, unknown> | null>
-          findFirst?: (args: {
-            where: unknown
-            select: unknown
-          }) => Promise<Record<string, unknown> | null>
+          findUnique?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
+          findFirst?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
         }
       | undefined
 
@@ -516,10 +495,7 @@ export async function assertPeriodWritableBulk(
 
   const modelClient = (prisma as unknown as Record<string, unknown>)[entity.client] as
     | {
-        findFirst?: (args: {
-          where: unknown
-          select: unknown
-        }) => Promise<Record<string, unknown> | null>
+        findFirst?: (args: { where: unknown; select: unknown }) => Promise<Record<string, unknown> | null>
       }
     | undefined
 

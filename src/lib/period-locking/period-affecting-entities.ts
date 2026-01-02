@@ -335,8 +335,10 @@ export const PERIOD_AFFECTING_ENTITIES: readonly PeriodAffectingEntity[] = [
 /**
  * Index by model name for O(1) lookup.
  */
-export const PERIOD_AFFECTING_ENTITIES_BY_MODEL: ReadonlyMap<string, PeriodAffectingEntity> =
-  new Map(PERIOD_AFFECTING_ENTITIES.map((e) => [e.model, e]))
+export const PERIOD_AFFECTING_ENTITIES_BY_MODEL: ReadonlyMap<
+  string,
+  PeriodAffectingEntity
+> = new Map(PERIOD_AFFECTING_ENTITIES.map((e) => [e.model, e]))
 
 /**
  * Set of all model names for quick membership check.
@@ -363,7 +365,9 @@ export const DERIVED_PERIOD_AFFECTING_ENTITIES: readonly PeriodAffectingEntity[]
  * @param model - Prisma model name
  * @returns Entity configuration or undefined if not period-affecting
  */
-export function getEntityConfig(model: string): PeriodAffectingEntity | undefined {
+export function getEntityConfig(
+  model: string
+): PeriodAffectingEntity | undefined {
   return PERIOD_AFFECTING_ENTITIES_BY_MODEL.get(model)
 }
 

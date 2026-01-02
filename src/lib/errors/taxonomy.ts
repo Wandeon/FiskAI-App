@@ -12,13 +12,13 @@
  * Error domains for categorization.
  */
 export type ErrorDomain =
-  | "PERIOD" // Accounting period related
-  | "ENTITY" // Entity state/immutability related
-  | "AUTH" // Authentication/authorization
-  | "VALIDATION" // Input validation
-  | "WORKFLOW" // Business workflow state
-  | "EXTERNAL" // External service/dependency
-  | "SYSTEM" // Internal system errors
+  | "PERIOD"      // Accounting period related
+  | "ENTITY"      // Entity state/immutability related
+  | "AUTH"        // Authentication/authorization
+  | "VALIDATION"  // Input validation
+  | "WORKFLOW"    // Business workflow state
+  | "EXTERNAL"    // External service/dependency
+  | "SYSTEM"      // Internal system errors
 
 /**
  * Standardized error codes.
@@ -97,15 +97,12 @@ export interface MachineReadableError {
 /**
  * Error metadata registry.
  */
-export const ERROR_METADATA: Record<
-  ErrorCode,
-  {
-    domain: ErrorDomain
-    httpStatus: number
-    defaultMessage: string
-    defaultResolution?: string
-  }
-> = {
+export const ERROR_METADATA: Record<ErrorCode, {
+  domain: ErrorDomain
+  httpStatus: number
+  defaultMessage: string
+  defaultResolution?: string
+}> = {
   // Period errors
   PERIOD_LOCKED: {
     domain: "PERIOD",
@@ -368,7 +365,10 @@ export class ValidationError extends ApplicationError {
 /**
  * Convert any error to a machine-readable format.
  */
-export function toMachineReadableError(error: unknown, requestId?: string): MachineReadableError {
+export function toMachineReadableError(
+  error: unknown,
+  requestId?: string
+): MachineReadableError {
   if (error instanceof ApplicationError) {
     return {
       ...error.toJSON(),

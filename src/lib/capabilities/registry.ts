@@ -275,6 +275,8 @@ export function getCapabilitiesByDomain(
 /**
  * Get all capabilities that affect a given entity type.
  */
-export function getCapabilitiesAffectingEntity(entityType: string): readonly CapabilityMetadata[] {
+export function getCapabilitiesAffectingEntity(
+  entityType: string
+): readonly CapabilityMetadata[] {
   return CAPABILITY_REGISTRY.filter((c) => c.affectedEntities.includes(entityType))
 }

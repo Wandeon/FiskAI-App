@@ -14,9 +14,8 @@
  */
 
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@/auth"
 import { db } from "@/lib/db"
-import type { PrismaClient } from "@prisma/client"
 import {
   resolveCapability,
   resolveCapabilities,
@@ -51,9 +50,7 @@ interface ApiResponse {
  *
  * Resolve capabilities to determine what actions are available.
  */
-export async function POST(
-  request: Request
-): Promise<NextResponse<ApiResponse | { error: string }>> {
+export async function POST(request: Request): Promise<NextResponse<ApiResponse | { error: string }>> {
   try {
     // Authenticate
     const session = await auth()
@@ -62,12 +59,13 @@ export async function POST(
     }
 
     // Get user's company and permissions
-    const userWithCompanies = await db.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: session.user.id },
       select: {
         id: true,
         systemRole: true,
-        companies: {
+        companyMemberships: {
+          where: { isActive: true },
           select: {
             companyId: true,
             role: true,
@@ -78,20 +76,20 @@ export async function POST(
       },
     })
 
-    if (!userWithCompanies) {
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const membership = userWithCompanies.companies[0]
+    const membership = user.companyMemberships[0]
     if (!membership) {
       return NextResponse.json({ error: "No active company membership" }, { status: 403 })
     }
 
     // Build user context with permissions
-    const permissions = buildPermissions(userWithCompanies.systemRole, membership.role)
+    const permissions = buildPermissions(user.systemRole, membership.role)
 
     const userContext = {
-      userId: userWithCompanies.id,
+      userId: user.id,
       companyId: membership.companyId,
       permissions,
     }
@@ -101,21 +99,13 @@ export async function POST(
 
     // Handle batch mode
     if (body.capabilities && Array.isArray(body.capabilities)) {
-      const results = await resolveCapabilities(
-        db as unknown as PrismaClient,
-        body.capabilities,
-        userContext
-      )
+      const results = await resolveCapabilities(db, body.capabilities, userContext)
       return NextResponse.json({ results })
     }
 
     // Handle single capability
     if (body.capability) {
-      const result = await resolveCapability(
-        db as unknown as PrismaClient,
-        body.capability,
-        userContext
-      )
+      const result = await resolveCapability(db, body.capability, userContext)
       return NextResponse.json({ result })
     }
 
@@ -183,7 +173,11 @@ function buildPermissions(systemRole: string, companyRole: string): string[] {
       break
 
     case "MEMBER":
-      permissions.push("invoicing:write", "expenses:write", "banking:write")
+      permissions.push(
+        "invoicing:write",
+        "expenses:write",
+        "banking:write"
+      )
       break
 
     case "VIEWER":
@@ -193,7 +187,11 @@ function buildPermissions(systemRole: string, companyRole: string): string[] {
 
   // System role overrides
   if (systemRole === "ADMIN" || systemRole === "STAFF") {
-    permissions.push("admin:periods", "admin:users", "admin:system")
+    permissions.push(
+      "admin:periods",
+      "admin:users",
+      "admin:system"
+    )
   }
 
   return [...new Set(permissions)] // Deduplicate

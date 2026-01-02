@@ -34,12 +34,14 @@ export async function resolveCapability(
   const metadata = getCapabilityMetadata(request.capability)
 
   if (!metadata) {
-    return createErrorResponse(request.capability, "BLOCKED", [
-      {
+    return createErrorResponse(
+      request.capability,
+      "BLOCKED",
+      [{
         type: "MISSING_PREREQUISITE",
         message: `Unknown capability: ${request.capability}`,
-      },
-    ])
+      }]
+    )
   }
 
   const blockers: CapabilityBlocker[] = []
@@ -52,13 +54,15 @@ export async function resolveCapability(
   )
 
   if (missingPermissions.length > 0) {
-    return createErrorResponse(request.capability, "UNAUTHORIZED", [
-      {
+    return createErrorResponse(
+      request.capability,
+      "UNAUTHORIZED",
+      [{
         type: "MISSING_PREREQUISITE",
         message: `Missing permissions: ${missingPermissions.join(", ")}`,
         details: { missingPermissions },
-      },
-    ])
+      }]
+    )
   }
 
   // Check required inputs
@@ -106,7 +110,9 @@ export async function resolveCapability(
   }
 
   // Check period locks for affected entities
-  const targetDate = request.context.targetDate ? new Date(request.context.targetDate) : null
+  const targetDate = request.context.targetDate
+    ? new Date(request.context.targetDate)
+    : null
 
   for (const entityType of metadata.affectedEntities) {
     if (!isPeriodAffectingModel(entityType)) {
@@ -215,7 +221,7 @@ async function checkEntityConditions(
       })
 
       if (expense) {
-        if (expense.status === "PAID") {
+        if (expense.status === "MATCHED" || expense.status === "PAID") {
           blockers.push({
             type: "WORKFLOW_STATE",
             message: `Expense in ${expense.status} status cannot be modified`,
@@ -283,29 +289,27 @@ function buildActions(
       { id: "send_email", label: "Send via Email", enabled, disabledReason, primary: true },
       { id: "send_einvoice", label: "Send as E-Invoice", enabled, disabledReason },
     ],
-    "INV-003": [{ id: "fiscalize", label: "Fiscalize", enabled, disabledReason, primary: true }],
+    "INV-003": [
+      { id: "fiscalize", label: "Fiscalize", enabled, disabledReason, primary: true },
+    ],
     "INV-004": [
-      {
-        id: "create_credit_note",
-        label: "Create Credit Note",
-        enabled,
-        disabledReason,
-        primary: true,
-      },
+      { id: "create_credit_note", label: "Create Credit Note", enabled, disabledReason, primary: true },
     ],
     "EXP-001": [
       { id: "record", label: "Record Expense", enabled, disabledReason, primary: true },
       { id: "save_draft", label: "Save as Draft", enabled, disabledReason },
     ],
-    "GL-001": [{ id: "create", label: "Create Entry", enabled, disabledReason, primary: true }],
-    "GL-002": [{ id: "post", label: "Post Entry", enabled, disabledReason, primary: true }],
+    "GL-001": [
+      { id: "create", label: "Create Entry", enabled, disabledReason, primary: true },
+    ],
+    "GL-002": [
+      { id: "post", label: "Post Entry", enabled, disabledReason, primary: true },
+    ],
   }
 
-  return (
-    actionsByCapability[capabilityId] ?? [
-      { id: "execute", label: "Execute", enabled, disabledReason, primary: true },
-    ]
-  )
+  return actionsByCapability[capabilityId] ?? [
+    { id: "execute", label: "Execute", enabled, disabledReason, primary: true },
+  ]
 }
 
 /**
@@ -338,5 +342,7 @@ export async function resolveCapabilities(
     permissions: string[]
   }
 ): Promise<CapabilityResponse[]> {
-  return Promise.all(requests.map((request) => resolveCapability(prisma, request, userContext)))
+  return Promise.all(
+    requests.map((request) => resolveCapability(prisma, request, userContext))
+  )
 }
