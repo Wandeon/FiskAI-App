@@ -14,7 +14,7 @@
  */
 
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import {
   resolveCapability,
@@ -64,7 +64,7 @@ export async function POST(request: Request): Promise<NextResponse<ApiResponse |
       select: {
         id: true,
         systemRole: true,
-        companyMemberships: {
+        companies: {
           where: { isActive: true },
           select: {
             companyId: true,
@@ -80,7 +80,7 @@ export async function POST(request: Request): Promise<NextResponse<ApiResponse |
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const membership = user.companyMemberships[0]
+    const membership = user.companies[0]
     if (!membership) {
       return NextResponse.json({ error: "No active company membership" }, { status: 403 })
     }

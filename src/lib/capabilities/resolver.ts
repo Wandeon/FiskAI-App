@@ -221,7 +221,7 @@ async function checkEntityConditions(
       })
 
       if (expense) {
-        if (expense.status === "MATCHED" || expense.status === "PAID") {
+        if (expense.status === "PAID") {
           blockers.push({
             type: "WORKFLOW_STATE",
             message: `Expense in ${expense.status} status cannot be modified`,

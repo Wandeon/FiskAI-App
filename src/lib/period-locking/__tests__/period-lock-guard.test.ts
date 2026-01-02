@@ -20,9 +20,10 @@ import {
 } from "../period-affecting-entities"
 
 // Mock Prisma client
+const mockAccountingPeriodFindFirst = vi.fn()
 const mockPrisma = {
   accountingPeriod: {
-    findFirst: vi.fn(),
+    findFirst: mockAccountingPeriodFindFirst,
   },
   eInvoice: {
     findUnique: vi.fn(),
@@ -101,7 +102,7 @@ describe("assertPeriodWritable", () => {
   })
 
   it("should allow operations when no locked period exists", async () => {
-    mockPrisma.accountingPeriod.findFirst.mockResolvedValue(null)
+    mockAccountingPeriodFindFirst.mockResolvedValue(null)
 
     await expect(
       assertPeriodWritable(mockPrisma, "EInvoice", "create", {
@@ -112,7 +113,7 @@ describe("assertPeriodWritable", () => {
   })
 
   it("should block operations when period is locked", async () => {
-    mockPrisma.accountingPeriod.findFirst.mockResolvedValue({
+    mockAccountingPeriodFindFirst.mockResolvedValue({
       id: "period-1",
       status: "LOCKED",
     })
@@ -126,7 +127,7 @@ describe("assertPeriodWritable", () => {
   })
 
   it("should block operations when period is closed", async () => {
-    mockPrisma.accountingPeriod.findFirst.mockResolvedValue({
+    mockAccountingPeriodFindFirst.mockResolvedValue({
       id: "period-1",
       status: "CLOSED",
     })
@@ -151,7 +152,7 @@ describe("checkPeriodWritable", () => {
   })
 
   it("should return allowed=true when period is open", async () => {
-    mockPrisma.accountingPeriod.findFirst.mockResolvedValue(null)
+    mockAccountingPeriodFindFirst.mockResolvedValue(null)
 
     const result = await checkPeriodWritable(mockPrisma, "EInvoice", "create", {
       companyId: "company-1",
@@ -162,7 +163,7 @@ describe("checkPeriodWritable", () => {
   })
 
   it("should return allowed=false with reason when period is locked", async () => {
-    mockPrisma.accountingPeriod.findFirst.mockResolvedValue({
+    mockAccountingPeriodFindFirst.mockResolvedValue({
       id: "period-1",
       status: "LOCKED",
     })
