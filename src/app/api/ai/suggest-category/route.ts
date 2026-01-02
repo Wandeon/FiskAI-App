@@ -6,6 +6,23 @@ import { withApiLogging } from "@/lib/api-logging"
 import { updateContext } from "@/lib/context"
 import { logger } from "@/lib/logger"
 import { InMemoryRateLimiter } from "@/lib/ai/rate-limiter"
+import { z } from "zod"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+/**
+ * Schema for category suggestion requests
+ * - description: transaction description text for AI categorization (max 500 chars)
+ * - vendor: vendor name for vendor-based category lookup (max 200 chars)
+ * At least one of description or vendor should be provided
+ */
+const suggestCategorySchema = z
+  .object({
+    description: z.string().max(500, "Description must be 500 characters or less").optional(),
+    vendor: z.string().max(200, "Vendor name must be 200 characters or less").optional(),
+  })
+  .refine((data) => data.description || data.vendor, {
+    message: "Either description or vendor is required",
+  })
 
 // Simple rate limiting for category suggestions (no AI calls, just DB queries)
 // 60 requests per minute (1 per second average)
@@ -23,8 +40,7 @@ export const POST = withApiLogging(async (req: NextRequest) => {
   updateContext({ userId: session.user.id })
 
   try {
-    const body = await req.json()
-    const { description, vendor } = body
+    const { description, vendor } = await parseBody(req, suggestCategorySchema)
 
     const companyUser = await db.companyUser.findFirst({
       where: { userId: session.user.id, isDefault: true },
@@ -72,6 +88,9 @@ export const POST = withApiLogging(async (req: NextRequest) => {
 
     return NextResponse.json({ suggestions: uniqueSuggestions })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     logger.error({ error }, "Category suggestion error")
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Suggestion failed" },

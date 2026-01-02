@@ -10,10 +10,18 @@ import { checkRateLimit } from "@/lib/ai/rate-limiter"
 import { z } from "zod"
 import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
-const extractRequestSchema = z.object({
-  image: z.string().optional(),
-  text: z.string().optional(),
-})
+/**
+ * Schema for document extraction requests
+ * - image: base64-encoded image data for OCR (max 10MB base64, ~7.5MB raw)
+ * - text: raw text content for extraction (max 50000 chars for long receipts/invoices)
+ * At least one of image or text must be provided
+ */
+const extractRequestSchema = z
+  .object({
+    image: z.string().max(10_000_000, "Image data must be 10MB or less").optional(),
+    text: z.string().max(50_000, "Text must be 50000 characters or less").optional(),
+  })
+  .refine((data) => data.image || data.text, { message: "Either image or text is required" })
 
 export const POST = withApiLogging(async (req: NextRequest) => {
   const session = await auth()

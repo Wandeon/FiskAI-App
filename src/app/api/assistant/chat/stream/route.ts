@@ -6,10 +6,16 @@ import { nanoid } from "nanoid"
 import { z } from "zod"
 import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 
+/**
+ * Schema for streaming chat requests
+ * - query: user's question for the AI assistant (max 4000 chars to prevent abuse)
+ * - surface: context where the request originates
+ * - companyId: optional company context for personalized responses
+ */
 const chatRequestSchema = z.object({
-  query: z.string().min(1, "Query is required"),
+  query: z.string().min(1, "Query is required").max(4000, "Query must be 4000 characters or less"),
   surface: z.enum(["MARKETING", "APP"], { message: "Invalid surface" }),
-  companyId: z.string().optional(),
+  companyId: z.string().uuid("Invalid company ID format").optional(),
 })
 
 /**

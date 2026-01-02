@@ -13,13 +13,29 @@ import {
   formatValidationError,
 } from "@/lib/api/validation"
 
+/**
+ * Schema for AI feedback submission
+ * - entityType: type of entity being reviewed (max 50 chars)
+ * - entityId: ID of the entity being reviewed (UUID format)
+ * - operation: the AI operation that generated the result
+ * - feedback: user's assessment of the result
+ * - correction: optional correction data as key-value pairs
+ * - notes: optional free-text notes from user (max 2000 chars)
+ */
 const feedbackSchema = z.object({
-  entityType: z.string().min(1),
-  entityId: z.string().min(1),
-  operation: z.enum(["ocr_receipt", "ocr_invoice", "category_suggestion"]),
-  feedback: z.enum(["correct", "incorrect", "partial"]),
+  entityType: z
+    .string()
+    .min(1, "Entity type is required")
+    .max(50, "Entity type must be 50 characters or less"),
+  entityId: z.string().min(1, "Entity ID is required").uuid("Invalid entity ID format"),
+  operation: z.enum(["ocr_receipt", "ocr_invoice", "category_suggestion"], {
+    message: "Invalid operation type",
+  }),
+  feedback: z.enum(["correct", "incorrect", "partial"], {
+    message: "Invalid feedback value",
+  }),
   correction: z.record(z.string(), z.unknown()).optional(),
-  notes: z.string().optional(),
+  notes: z.string().max(2000, "Notes must be 2000 characters or less").optional(),
 })
 
 const feedbackQuerySchema = z.object({
