@@ -13,6 +13,7 @@ import {
   FileCode,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { calculateVatFromNet } from "@/interfaces/invoicing/InvoiceDisplayAdapter"
 
 // ============================================================================
 // Demo Types (inlined for client-side demo page)
@@ -358,14 +359,15 @@ export default function ERacunGeneratorPage() {
   const [copySuccess, setCopySuccess] = useState(false)
   const [oibErrors, setOibErrors] = useState<{ seller?: string; buyer?: string }>({})
 
-  // Calculate totals
+  // Calculate totals using domain layer for VAT calculations
   const calculateTotals = useCallback(() => {
     const lineExtension = lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0)
-    const taxAmount = lineExtension * 0.25 // 25% PDV
+    // Use domain adapter instead of direct float multiplication
+    const vatResult = calculateVatFromNet(lineExtension, 25) // 25% PDV
     return {
-      lineExtension,
-      taxAmount,
-      total: lineExtension + taxAmount,
+      lineExtension: vatResult.netAmount,
+      taxAmount: vatResult.vatAmount,
+      total: vatResult.totalAmount,
     }
   }, [lines])
 
