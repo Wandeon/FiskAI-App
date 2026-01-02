@@ -37,3 +37,6 @@ export {
   resolveCapabilityForUser,
   resolveCapabilitiesByDomain,
 } from "./server"
+
+// Actions module
+export * from "./actions"
