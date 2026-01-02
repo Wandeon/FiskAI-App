@@ -8,6 +8,10 @@
  */
 
 import type { PrismaClient } from "@prisma/client"
+
+// Accept any Prisma-like client (base or extended)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrismaLike = PrismaClient | any
 import {
   type CapabilityRequest,
   type CapabilityResponse,
@@ -23,7 +27,7 @@ import { checkPeriodWritable, isPeriodAffectingModel } from "../period-locking"
  * Resolve a capability to determine its current state.
  */
 export async function resolveCapability(
-  prisma: PrismaClient,
+  prisma: PrismaLike,
   request: CapabilityRequest,
   userContext: {
     userId: string
@@ -116,7 +120,7 @@ export async function resolveCapability(
     // If we have a target date, check if the period is writable
     if (targetDate) {
       const periodCheck = await checkPeriodWritable(
-        prisma,
+        prisma as unknown as PrismaClient,
         entityType,
         "create", // Default to create, could be parameterized
         targetDate ? { date: targetDate, issueDate: targetDate, entryDate: targetDate } : undefined
@@ -168,7 +172,7 @@ export async function resolveCapability(
  * Check entity-specific conditions.
  */
 async function checkEntityConditions(
-  prisma: PrismaClient,
+  prisma: PrismaLike,
   entityType: string,
   entityId: string,
   capabilityId: string
@@ -330,7 +334,7 @@ function createErrorResponse(
  * Batch resolve multiple capabilities.
  */
 export async function resolveCapabilities(
-  prisma: PrismaClient,
+  prisma: PrismaLike,
   requests: CapabilityRequest[],
   userContext: {
     userId: string

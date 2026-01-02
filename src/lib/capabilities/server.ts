@@ -27,8 +27,8 @@ async function buildUserContext() {
     select: {
       id: true,
       systemRole: true,
-      companyMemberships: {
-        where: { isActive: true },
+      companies: {
+        where: { isDefault: true },
         select: {
           companyId: true,
           role: true,
@@ -43,7 +43,8 @@ async function buildUserContext() {
     return null
   }
 
-  const membership = user.companyMemberships[0]
+  // Fall back to first company if no default set
+  const membership = user.companies[0]
   if (!membership) {
     return null
   }
