@@ -75,14 +75,24 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
     // For new drafts without invoice number, use a placeholder
     const invoiceNumberStr = invoice.invoiceNumber?.format() ?? `DRAFT-${invoice.id.toString()}`
 
+    // Note: In the domain model, sellerId represents the tenant (company) identity,
+    // but in the database schema, sellerId/buyerId are FK references to Contact table.
+    // The domain's sellerId is used for tenant scope via invoice.companyId getter.
+    // For the database, we store tenant identity in companyId, and leave seller/buyer
+    // Contact references as null unless they're valid Contact IDs.
+    // An empty string or company ID in buyerId/sellerId should be stored as null.
+    const sellerContactId =
+      invoice.sellerId && invoice.sellerId !== this.ctx.companyId ? invoice.sellerId : null
+    const buyerContactId = invoice.buyerId || null
+
     await this.ctx.prisma.eInvoice.upsert({
       where: { id: invoice.id.toString() },
       create: {
         id: invoice.id.toString(),
         companyId: this.ctx.companyId,
         direction: "OUTBOUND",
-        sellerId: invoice.sellerId,
-        buyerId: invoice.buyerId,
+        sellerId: sellerContactId,
+        buyerId: buyerContactId,
         invoiceNumber: invoiceNumberStr,
         issueDate: invoice.issueDate ?? new Date(),
         dueDate: invoice.dueDate ?? null,
@@ -107,7 +117,7 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
         },
       },
       update: {
-        buyerId: invoice.buyerId,
+        buyerId: buyerContactId,
         invoiceNumber: invoiceNumberStr,
         issueDate: invoice.issueDate ?? new Date(),
         dueDate: invoice.dueDate ?? null,

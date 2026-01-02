@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import { PrismaInvoiceRepository } from "../invoicing/PrismaInvoiceRepository"
 
 export interface TenantIdentity {
   companyId: string
@@ -28,6 +29,11 @@ export class TenantScopedContext {
     return this._prisma
   }
 
-  // Repository factory methods will be added here
-  // invoices(): PrismaInvoiceRepository { ... }
+  /**
+   * Factory method for tenant-scoped invoice repository.
+   * All operations are automatically scoped to this context's companyId.
+   */
+  invoices(): PrismaInvoiceRepository {
+    return new PrismaInvoiceRepository(this)
+  }
 }

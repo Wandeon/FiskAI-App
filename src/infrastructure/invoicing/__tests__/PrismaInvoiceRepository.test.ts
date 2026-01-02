@@ -62,7 +62,8 @@ describe("PrismaInvoiceRepository", () => {
           where: { id: invoice.id.toString() },
           create: expect.objectContaining({
             buyerId: "buyer-123",
-            sellerId: testCompanyId,
+            // sellerId is null when it equals companyId (domain sellerId represents tenant, not Contact)
+            sellerId: null,
             companyId: testCompanyId,
             status: EInvoiceStatus.DRAFT,
           }),
