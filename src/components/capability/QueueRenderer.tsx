@@ -21,6 +21,8 @@ interface Props {
   showDiagnostics?: boolean
   /** Empty state message */
   emptyMessage?: string
+  /** Callback when any action completes - parent can trigger refresh */
+  onActionComplete?: () => void
 }
 
 export function QueueRenderer({
@@ -28,6 +30,7 @@ export function QueueRenderer({
   items,
   showDiagnostics = false,
   emptyMessage = "No items in this queue",
+  onActionComplete,
 }: Props) {
   return (
     <div className="space-y-4">
@@ -46,7 +49,12 @@ export function QueueRenderer({
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <QueueItemCard key={item.id} item={item} showDiagnostics={showDiagnostics} />
+            <QueueItemCard
+              key={item.id}
+              item={item}
+              showDiagnostics={showDiagnostics}
+              onActionComplete={onActionComplete}
+            />
           ))}
         </div>
       )}

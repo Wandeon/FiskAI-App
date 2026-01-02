@@ -17,11 +17,18 @@ vi.mock("../executor", () => ({
   executeCapabilityAction: vi.fn(),
 }))
 
-// Import the mocked function
-import { executeCapabilityAction } from "../executor"
+// Mock the revalidateCapabilityResolution function
+vi.mock("@/hooks/use-capability-resolution", () => ({
+  revalidateCapabilityResolution: vi.fn().mockResolvedValue(undefined),
+}))
 
-// Cast mock for type safety
+// Import the mocked functions
+import { executeCapabilityAction } from "../executor"
+import { revalidateCapabilityResolution } from "@/hooks/use-capability-resolution"
+
+// Cast mocks for type safety
 const mockExecuteCapabilityAction = executeCapabilityAction as ReturnType<typeof vi.fn>
+const mockRevalidateCapabilities = revalidateCapabilityResolution as ReturnType<typeof vi.fn>
 
 // Import hook after mocks are set up
 import { useCapabilityAction } from "../useCapabilityAction"
@@ -604,6 +611,162 @@ describe("useCapabilityAction", () => {
       // TypeScript should allow accessing typed properties
       expect(result.current.data?.jir).toBe("jir-123")
       expect(result.current.data?.zki).toBe("zki-456")
+    })
+  })
+
+  describe("capability revalidation", () => {
+    it("should trigger revalidateCapabilities on successful execution with entityId", async () => {
+      mockExecuteCapabilityAction.mockResolvedValue({
+        success: true,
+        data: { jir: "jir-123" },
+      })
+
+      const { result } = renderHook(() =>
+        useCapabilityAction({
+          capabilityId: "INV-003",
+          actionId: "fiscalize",
+          entityId: "invoice-123",
+        })
+      )
+
+      await act(async () => {
+        await result.current.execute()
+      })
+
+      expect(mockRevalidateCapabilities).toHaveBeenCalledWith("invoice-123")
+    })
+
+    it("should trigger revalidateCapabilities on successful execution without entityId", async () => {
+      mockExecuteCapabilityAction.mockResolvedValue({
+        success: true,
+        data: { newId: "new-123" },
+      })
+
+      const { result } = renderHook(() =>
+        useCapabilityAction({
+          capabilityId: "INV-001",
+          actionId: "create",
+        })
+      )
+
+      await act(async () => {
+        await result.current.execute()
+      })
+
+      expect(mockRevalidateCapabilities).toHaveBeenCalledWith(undefined)
+    })
+
+    it("should NOT trigger revalidateCapabilities on failed execution", async () => {
+      mockRevalidateCapabilities.mockClear()
+      mockExecuteCapabilityAction.mockResolvedValue({
+        success: false,
+        error: "Action failed",
+      })
+
+      const { result } = renderHook(() =>
+        useCapabilityAction({
+          capabilityId: "INV-003",
+          actionId: "fiscalize",
+          entityId: "invoice-123",
+        })
+      )
+
+      await act(async () => {
+        await result.current.execute()
+      })
+
+      expect(mockRevalidateCapabilities).not.toHaveBeenCalled()
+    })
+
+    it("should NOT trigger revalidateCapabilities on exception", async () => {
+      mockRevalidateCapabilities.mockClear()
+      mockExecuteCapabilityAction.mockRejectedValue(new Error("Network error"))
+
+      const { result } = renderHook(() =>
+        useCapabilityAction({
+          capabilityId: "INV-003",
+          actionId: "fiscalize",
+          entityId: "invoice-123",
+        })
+      )
+
+      await act(async () => {
+        await result.current.execute()
+      })
+
+      expect(mockRevalidateCapabilities).not.toHaveBeenCalled()
+    })
+
+    it("should call revalidateCapabilities before onSuccess callback", async () => {
+      const callOrder: string[] = []
+
+      mockRevalidateCapabilities.mockImplementation(async () => {
+        callOrder.push("revalidate")
+      })
+
+      const onSuccess = vi.fn().mockImplementation(() => {
+        callOrder.push("onSuccess")
+      })
+
+      mockExecuteCapabilityAction.mockResolvedValue({
+        success: true,
+        data: { jir: "jir-123" },
+      })
+
+      const { result } = renderHook(() =>
+        useCapabilityAction({
+          capabilityId: "INV-003",
+          actionId: "fiscalize",
+          entityId: "invoice-123",
+          onSuccess,
+        })
+      )
+
+      await act(async () => {
+        await result.current.execute()
+      })
+
+      expect(callOrder).toEqual(["revalidate", "onSuccess"])
+    })
+
+    it("should still complete successfully if revalidateCapabilities fails", async () => {
+      // Revalidation fails
+      mockRevalidateCapabilities.mockRejectedValueOnce(new Error("SWR error"))
+
+      // Action succeeds
+      mockExecuteCapabilityAction.mockResolvedValue({
+        success: true,
+        data: { jir: "jir-123" },
+      })
+
+      const onSuccess = vi.fn()
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+
+      const { result } = renderHook(() =>
+        useCapabilityAction({
+          capabilityId: "INV-003",
+          actionId: "fiscalize",
+          entityId: "invoice-123",
+          onSuccess,
+        })
+      )
+
+      await act(async () => {
+        await result.current.execute()
+      })
+
+      // Action should still be successful
+      expect(result.current.data).toEqual({ jir: "jir-123" })
+      expect(result.current.error).toBeNull()
+      expect(onSuccess).toHaveBeenCalled()
+
+      // Warning should have been logged
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Failed to revalidate capabilities:",
+        expect.any(Error)
+      )
+
+      consoleSpy.mockRestore()
     })
   })
 })

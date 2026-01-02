@@ -40,3 +40,9 @@ export {
 
 // Actions module
 export * from "./actions"
+
+// Client-side hooks and utilities for capability resolution
+export {
+  useCapabilityResolution,
+  revalidateCapabilityResolution,
+} from "@/hooks/use-capability-resolution"
