@@ -11,11 +11,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import {
-  ControlCenterShell,
-  QueueRenderer,
-  type QueueItem,
-} from "@/components/capability"
+import { ControlCenterShell, QueueRenderer, type QueueItem } from "@/components/capability"
 import { resolveCapabilitiesForUser } from "@/lib/capabilities/server"
 import { ACCOUNTANT_QUEUES } from "./queues"
 
@@ -89,13 +85,10 @@ async function getQueueItems(
   // Resolve capabilities for each entity
   const items: QueueItem[] = await Promise.all(
     entities.map(async (entity) => {
-      const capabilities = await resolveCapabilitiesForUser(
-        queue.capabilityIds,
-        {
-          entityId: entity.id,
-          entityType: queue.entityType,
-        }
-      )
+      const capabilities = await resolveCapabilitiesForUser(queue.capabilityIds, {
+        entityId: entity.id,
+        entityType: queue.entityType,
+      })
       return {
         id: entity.id,
         type: queue.entityType,

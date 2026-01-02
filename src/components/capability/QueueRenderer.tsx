@@ -42,17 +42,11 @@ export function QueueRenderer({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4 text-center">
-          {emptyMessage}
-        </p>
+        <p className="text-sm text-muted-foreground py-4 text-center">{emptyMessage}</p>
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <QueueItemCard
-              key={item.id}
-              item={item}
-              showDiagnostics={showDiagnostics}
-            />
+            <QueueItemCard key={item.id} item={item} showDiagnostics={showDiagnostics} />
           ))}
         </div>
       )}

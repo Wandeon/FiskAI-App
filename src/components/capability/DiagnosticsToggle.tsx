@@ -43,11 +43,7 @@ export function DiagnosticsToggle() {
 
   return (
     <div className="flex items-center space-x-2 text-sm">
-      <Switch
-        id="diagnostics"
-        checked={showDiagnostics}
-        onCheckedChange={setShowDiagnostics}
-      />
+      <Switch id="diagnostics" checked={showDiagnostics} onCheckedChange={setShowDiagnostics} />
       <Label htmlFor="diagnostics" className="font-mono text-xs">
         Show capability diagnostics
       </Label>

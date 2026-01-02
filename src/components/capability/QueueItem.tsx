@@ -34,9 +34,7 @@ export function QueueItemCard({ item, showDiagnostics = false }: Props) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{item.title}</CardTitle>
-          {primaryCapability && (
-            <CapabilityStateIndicator state={primaryCapability.state} />
-          )}
+          {primaryCapability && <CapabilityStateIndicator state={primaryCapability.state} />}
         </div>
         <p className="text-sm text-muted-foreground">
           Status: {item.status} | {new Date(item.timestamp).toLocaleDateString()}
