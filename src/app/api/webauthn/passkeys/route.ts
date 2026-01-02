@@ -2,6 +2,14 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
+/**
+ * GET /api/webauthn/passkeys
+ *
+ * Lists all passkeys registered for the authenticated user.
+ * No request parameters required - uses session to identify the user.
+ *
+ * This endpoint is protected by session authentication.
+ */
 export async function GET() {
   try {
     const session = await auth()
