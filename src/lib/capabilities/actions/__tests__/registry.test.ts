@@ -10,12 +10,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest"
 import type { ActionRegistryEntry, ActionHandler } from "../types"
-import {
-  registerActionHandler,
-  getActionHandler,
-  getAllHandlers,
-  clearRegistry,
-} from "../registry"
+import { registerActionHandler, getActionHandler, getAllHandlers, clearRegistry } from "../registry"
 
 // Helper to create mock handlers
 function createMockHandler(): ActionHandler {
@@ -211,10 +206,7 @@ describe("Action Handler Registry", () => {
 
   describe("handler execution", () => {
     it("should store callable handlers", async () => {
-      const handler: ActionHandler<{ result: string }> = async (
-        context,
-        params
-      ) => ({
+      const handler: ActionHandler<{ result: string }> = async (context, params) => ({
         success: true,
         data: { result: `Processed ${params?.id}` },
       })
@@ -237,9 +229,7 @@ describe("Action Handler Registry", () => {
       )
 
       expect(result.success).toBe(true)
-      expect((result.data as { result: string }).result).toBe(
-        "Processed test-123"
-      )
+      expect((result.data as { result: string }).result).toBe("Processed test-123")
     })
   })
 })

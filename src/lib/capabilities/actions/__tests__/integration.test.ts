@@ -48,12 +48,7 @@ import { db } from "@/lib/db"
 import { resolveCapabilityForUser } from "../../server"
 import { sendInvoiceEmail, sendEInvoice, createCreditNote } from "@/app/actions/invoice"
 import { fiscalizeInvoice } from "@/app/actions/fiscalize"
-import {
-  registerActionHandler,
-  getActionHandler,
-  getAllHandlers,
-  clearRegistry,
-} from "../registry"
+import { registerActionHandler, getActionHandler, getAllHandlers, clearRegistry } from "../registry"
 import { executeCapabilityAction } from "../executor"
 
 // Cast mocks for type safety

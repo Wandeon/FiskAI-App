@@ -10,7 +10,11 @@
 export * from "./types"
 export * from "./registry"
 export { executeCapabilityAction, type ExecuteActionInput } from "./executor"
-export { useCapabilityAction, type UseCapabilityActionOptions, type UseCapabilityActionReturn } from "./useCapabilityAction"
+export {
+  useCapabilityAction,
+  type UseCapabilityActionOptions,
+  type UseCapabilityActionReturn,
+} from "./useCapabilityAction"
 
 // Import handlers to ensure registration
 import "./handlers/invoice"

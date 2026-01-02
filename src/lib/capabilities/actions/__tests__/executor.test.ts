@@ -579,7 +579,10 @@ describe("executeCapabilityAction", () => {
     it("should handle missing entityId and entityType", async () => {
       mockAuth.mockResolvedValue(createMockSession())
       mockGetActionHandler.mockReturnValue(
-        createMockHandlerEntry("INV-001", "create", async () => ({ success: true, data: { id: "new-123" } }))
+        createMockHandlerEntry("INV-001", "create", async () => ({
+          success: true,
+          data: { id: "new-123" },
+        }))
       )
       mockUserFindUnique.mockResolvedValue(createMockUser())
       mockResolveCapabilityForUser.mockResolvedValue(

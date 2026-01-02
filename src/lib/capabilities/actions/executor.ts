@@ -136,9 +136,7 @@ function buildPermissions(systemRole: string, companyRole: string): string[] {
  * }
  * ```
  */
-export async function executeCapabilityAction(
-  input: ExecuteActionInput
-): Promise<ActionResult> {
+export async function executeCapabilityAction(input: ExecuteActionInput): Promise<ActionResult> {
   const { capabilityId, actionId, entityId, entityType, params } = input
 
   // 1. Validate session

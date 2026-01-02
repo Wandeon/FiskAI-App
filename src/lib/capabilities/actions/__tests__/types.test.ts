@@ -185,10 +185,7 @@ describe("ActionRegistryEntry", () => {
     expect(typeof entry.handler).toBe("function")
 
     // Verify handler is callable
-    const result = await entry.handler(
-      { userId: "u", companyId: "c", permissions: [] },
-      {}
-    )
+    const result = await entry.handler({ userId: "u", companyId: "c", permissions: [] }, {})
     expect(result.success).toBe(true)
   })
 })
