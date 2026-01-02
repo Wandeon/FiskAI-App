@@ -52,7 +52,7 @@ const emailPayloadSchema = z
   })
 
 // Generic HTTP POST payload - allows any JSON object for flexibility
-const genericPayloadSchema = z.record(z.unknown())
+const genericPayloadSchema = z.record(z.string(), z.unknown())
 
 // Raw text wrapper (when JSON parsing fails)
 const rawPayloadSchema = z.object({
