@@ -5,6 +5,67 @@ import { db } from "@/lib/db"
 import { verifyWebhookSignature } from "@/lib/regulatory-truth/webhooks/signature-verification"
 import { logAuditEvent } from "@/lib/regulatory-truth/utils/audit-log"
 import { publishEvent, OutboxEventTypes } from "@/lib/outbox"
+import { z } from "zod"
+import { ValidationError, formatValidationError } from "@/lib/api/validation"
+
+/**
+ * Zod schemas for regulatory truth webhook payloads
+ *
+ * The webhook accepts multiple payload formats:
+ * - RSS feed notifications (feed_url, items)
+ * - Email notifications (email_subject, from_email)
+ * - Generic HTTP POST (any JSON object)
+ * - Raw text (when JSON parsing fails)
+ */
+
+// RSS feed notification payload
+const rssPayloadSchema = z
+  .object({
+    feed_url: z.string().url().optional(),
+    rss_url: z.string().url().optional(),
+    items: z
+      .array(
+        z.object({
+          title: z.string().optional(),
+          link: z.string().url().optional(),
+          pubDate: z.string().optional(),
+          description: z.string().optional(),
+          content: z.string().optional(),
+        })
+      )
+      .optional(),
+  })
+  .refine((data) => data.feed_url || data.rss_url || data.items, {
+    message: "RSS payload must have feed_url, rss_url, or items",
+  })
+
+// Email notification payload
+const emailPayloadSchema = z
+  .object({
+    email_subject: z.string().optional(),
+    from_email: z.string().email().optional(),
+    body: z.string().optional(),
+    received_at: z.string().optional(),
+  })
+  .refine((data) => data.email_subject || data.from_email, {
+    message: "Email payload must have email_subject or from_email",
+  })
+
+// Generic HTTP POST payload - allows any JSON object for flexibility
+const genericPayloadSchema = z.record(z.unknown())
+
+// Raw text wrapper (when JSON parsing fails)
+const rawPayloadSchema = z.object({
+  raw: z.string().min(1, "Raw payload cannot be empty"),
+})
+
+// Union of all valid payload types
+const regulatoryWebhookPayloadSchema = z.union([
+  rssPayloadSchema,
+  emailPayloadSchema,
+  rawPayloadSchema,
+  genericPayloadSchema, // Most permissive - must be last
+])
 
 /**
  * Webhook receiver endpoint for regulatory truth notifications
@@ -78,17 +139,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Parse payload based on content type
-    let payload: unknown
+    // Parse payload - try JSON first, fall back to raw text
+    let parsedPayload: unknown
     try {
-      payload = JSON.parse(rawBody)
+      parsedPayload = JSON.parse(rawBody)
     } catch {
-      // If not JSON, treat as plain text
-      payload = { raw: rawBody }
+      // If not JSON, treat as plain text with validation
+      parsedPayload = { raw: rawBody }
     }
 
-    // Determine event type based on provider and payload structure
-    const eventType = determineEventType(provider, payload)
+    // Validate the payload against our schema
+    const validationResult = regulatoryWebhookPayloadSchema.safeParse(parsedPayload)
+    if (!validationResult.success) {
+      const validationError = new ValidationError(validationResult.error.flatten())
+      console.warn(
+        `[webhook] Payload validation failed for provider ${provider}:`,
+        validationError.errors
+      )
+      return NextResponse.json(formatValidationError(validationError), { status: 400 })
+    }
+
+    const validatedPayload = validationResult.data
+
+    // Determine event type based on provider and validated payload structure
+    const eventType = determineEventType(provider, validatedPayload)
 
     // Create webhook event record
     const webhookEvent = await db.webhookEvent.create({
