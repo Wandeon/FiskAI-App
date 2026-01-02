@@ -12,7 +12,7 @@
 
 import { useState, useCallback } from "react"
 import { executeCapabilityAction } from "./executor"
-import { revalidateCapabilities } from "@/hooks/use-capabilities"
+import { revalidateCapabilityResolution } from "@/hooks/use-capability-resolution"
 import type { ActionResult } from "./types"
 
 /**
@@ -126,7 +126,7 @@ export function useCapabilityAction<T = unknown>(
           // Trigger capability revalidation so UI updates
           // Best-effort: don't fail the action if revalidation fails
           try {
-            await revalidateCapabilities(entityId)
+            await revalidateCapabilityResolution(entityId)
           } catch (revalidateError) {
             console.warn("Failed to revalidate capabilities:", revalidateError)
           }

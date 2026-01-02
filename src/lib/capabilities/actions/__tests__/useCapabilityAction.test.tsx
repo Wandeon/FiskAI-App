@@ -17,18 +17,18 @@ vi.mock("../executor", () => ({
   executeCapabilityAction: vi.fn(),
 }))
 
-// Mock the revalidateCapabilities function
-vi.mock("@/hooks/use-capabilities", () => ({
-  revalidateCapabilities: vi.fn().mockResolvedValue(undefined),
+// Mock the revalidateCapabilityResolution function
+vi.mock("@/hooks/use-capability-resolution", () => ({
+  revalidateCapabilityResolution: vi.fn().mockResolvedValue(undefined),
 }))
 
 // Import the mocked functions
 import { executeCapabilityAction } from "../executor"
-import { revalidateCapabilities } from "@/hooks/use-capabilities"
+import { revalidateCapabilityResolution } from "@/hooks/use-capability-resolution"
 
 // Cast mocks for type safety
 const mockExecuteCapabilityAction = executeCapabilityAction as ReturnType<typeof vi.fn>
-const mockRevalidateCapabilities = revalidateCapabilities as ReturnType<typeof vi.fn>
+const mockRevalidateCapabilities = revalidateCapabilityResolution as ReturnType<typeof vi.fn>
 
 // Import hook after mocks are set up
 import { useCapabilityAction } from "../useCapabilityAction"
