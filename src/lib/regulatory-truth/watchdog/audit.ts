@@ -258,7 +258,7 @@ export async function runRandomAudit(): Promise<AuditReport | null> {
       rulesFailed: report.rulesFailed,
       overallScore: report.overallScore,
       result: report.result,
-      findings: report.findings as unknown as Prisma.JsonValue,
+      findings: report.findings as unknown as Prisma.InputJsonValue,
       alertsRaised: [],
     },
   })
