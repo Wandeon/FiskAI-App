@@ -3,6 +3,14 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { generateWebAuthnRegistrationOptions } from "@/lib/webauthn"
 
+/**
+ * POST /api/webauthn/register/start
+ *
+ * Generates WebAuthn registration options for the authenticated user.
+ * No request body required - uses session to identify the user.
+ *
+ * This endpoint is protected by session authentication.
+ */
 export async function POST() {
   try {
     const session = await auth()

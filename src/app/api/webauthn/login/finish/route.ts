@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { verifyWebAuthnAuthentication } from "@/lib/webauthn"
-import type { AuthenticationResponseJSON } from "@simplewebauthn/types"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { loginFinishSchema } from "@/lib/api/webauthn-schemas"
 
+/**
+ * POST /api/webauthn/login/finish
+ *
+ * Completes WebAuthn authentication by verifying the assertion response
+ * and generating a login token for the user.
+ *
+ * Request body:
+ * - userId: User ID from the login/start response
+ * - response: AuthenticationResponseJSON from navigator.credentials.get()
+ */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { userId, response } = body as {
-      userId: string
-      response: AuthenticationResponseJSON
-    }
-
-    if (!userId || !response) {
-      return NextResponse.json({ error: "UserId and response are required" }, { status: 400 })
-    }
+    // Validate request body with Zod schema
+    const { userId, response } = await parseBody(req, loginFinishSchema)
 
     // Normalize the credential ID (rawId is base64url from the browser)
     const rawIdBase64url =
@@ -74,6 +78,11 @@ export async function POST(req: NextRequest) {
       loginToken,
     })
   } catch (error) {
+    // Handle validation errors
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+
     console.error("WebAuthn login finish error:", error)
     return NextResponse.json(
       {

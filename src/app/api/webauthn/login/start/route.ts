@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { generateWebAuthnAuthenticationOptions } from "@/lib/webauthn"
+import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { loginStartSchema } from "@/lib/api/webauthn-schemas"
 
+/**
+ * POST /api/webauthn/login/start
+ *
+ * Generates WebAuthn authentication options for login.
+ * Requires the user's email to look up their registered passkeys.
+ *
+ * Request body:
+ * - email: User's email address
+ */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { email } = body as { email: string }
-
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 })
-    }
+    // Validate request body with Zod schema
+    const { email } = await parseBody(req, loginStartSchema)
 
     const user = await db.user.findUnique({
       where: { email },
@@ -38,6 +45,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ...options, userId: user.id })
   } catch (error) {
+    // Handle validation errors
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
+
     console.error("WebAuthn login start error:", error)
     return NextResponse.json(
       { error: "Failed to generate authentication options" },
