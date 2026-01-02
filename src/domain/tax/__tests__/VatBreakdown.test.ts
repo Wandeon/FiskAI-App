@@ -5,12 +5,12 @@ import { Money, VatRate } from "@/domain/shared"
 describe("VatBreakdown", () => {
   describe("addLine", () => {
     it("adds line with calculated VAT", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
       const baseAmount = Money.fromString("100.00")
 
-      breakdown.addLine(baseAmount, VatRate.HR_STANDARD)
+      const updated = breakdown.addLine(baseAmount, VatRate.HR_STANDARD)
 
-      const lines = breakdown.getLines()
+      const lines = updated.getLines()
       expect(lines).toHaveLength(1)
       expect(lines[0].baseAmount.equals(baseAmount)).toBe(true)
       expect(lines[0].vatRate.equals(VatRate.HR_STANDARD)).toBe(true)
@@ -18,20 +18,30 @@ describe("VatBreakdown", () => {
     })
 
     it("adds multiple lines with different rates", () => {
-      const breakdown = new VatBreakdown()
-
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5)
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5)
 
       expect(breakdown.getLines()).toHaveLength(3)
+    })
+
+    it("returns a new instance (immutability)", () => {
+      const original = VatBreakdown.empty()
+      const updated = original.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+
+      expect(original.lineCount()).toBe(0)
+      expect(updated.lineCount()).toBe(1)
+      expect(original).not.toBe(updated)
     })
   })
 
   describe("getLines", () => {
     it("returns copy of lines (not the original array)", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+      const breakdown = VatBreakdown.empty().addLine(
+        Money.fromString("100.00"),
+        VatRate.HR_STANDARD
+      )
 
       const lines1 = breakdown.getLines()
       const lines2 = breakdown.getLines()
@@ -41,17 +51,17 @@ describe("VatBreakdown", () => {
     })
 
     it("returns empty array for new breakdown", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
       expect(breakdown.getLines()).toHaveLength(0)
     })
   })
 
   describe("totalBase", () => {
     it("sums all base amounts", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
-      breakdown.addLine(Money.fromString("200.00"), VatRate.HR_REDUCED_13)
-      breakdown.addLine(Money.fromString("50.00"), VatRate.HR_REDUCED_5)
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+        .addLine(Money.fromString("200.00"), VatRate.HR_REDUCED_13)
+        .addLine(Money.fromString("50.00"), VatRate.HR_REDUCED_5)
 
       const totalBase = breakdown.totalBase()
 
@@ -59,17 +69,17 @@ describe("VatBreakdown", () => {
     })
 
     it("returns zero for empty breakdown", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
       expect(breakdown.totalBase().isZero()).toBe(true)
     })
   })
 
   describe("totalVat", () => {
     it("sums all VAT amounts", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD) // 25 VAT
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13) // 13 VAT
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5) // 5 VAT
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD) // 25 VAT
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13) // 13 VAT
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5) // 5 VAT
 
       const totalVat = breakdown.totalVat()
 
@@ -77,14 +87,14 @@ describe("VatBreakdown", () => {
     })
 
     it("returns zero for empty breakdown", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
       expect(breakdown.totalVat().isZero()).toBe(true)
     })
 
     it("returns zero for zero-rate items", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.zero())
-      breakdown.addLine(Money.fromString("200.00"), VatRate.zero())
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.zero())
+        .addLine(Money.fromString("200.00"), VatRate.zero())
 
       expect(breakdown.totalVat().isZero()).toBe(true)
     })
@@ -92,9 +102,9 @@ describe("VatBreakdown", () => {
 
   describe("totalGross", () => {
     it("equals base plus VAT", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD) // 100 + 25 = 125
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13) // 100 + 13 = 113
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD) // 100 + 25 = 125
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13) // 100 + 13 = 113
 
       const totalGross = breakdown.totalGross()
 
@@ -103,9 +113,9 @@ describe("VatBreakdown", () => {
     })
 
     it("equals sum of base and VAT totals", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
-      breakdown.addLine(Money.fromString("200.00"), VatRate.HR_REDUCED_13)
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+        .addLine(Money.fromString("200.00"), VatRate.HR_REDUCED_13)
 
       const totalBase = breakdown.totalBase()
       const totalVat = breakdown.totalVat()
@@ -115,17 +125,17 @@ describe("VatBreakdown", () => {
     })
 
     it("returns zero for empty breakdown", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
       expect(breakdown.totalGross().isZero()).toBe(true)
     })
   })
 
   describe("byRate", () => {
     it("groups lines by VAT rate correctly", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
-      breakdown.addLine(Money.fromString("200.00"), VatRate.HR_STANDARD)
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+        .addLine(Money.fromString("200.00"), VatRate.HR_STANDARD)
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
 
       const grouped = breakdown.byRate()
 
@@ -141,18 +151,18 @@ describe("VatBreakdown", () => {
     })
 
     it("returns empty map for empty breakdown", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
       const grouped = breakdown.byRate()
 
       expect(grouped.size).toBe(0)
     })
 
     it("handles all Croatian rates", () => {
-      const breakdown = new VatBreakdown()
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5)
-      breakdown.addLine(Money.fromString("100.00"), VatRate.zero())
+      const breakdown = VatBreakdown.empty()
+        .addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
+        .addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5)
+        .addLine(Money.fromString("100.00"), VatRate.zero())
 
       const grouped = breakdown.byRate()
 
@@ -166,24 +176,24 @@ describe("VatBreakdown", () => {
 
   describe("lineCount", () => {
     it("returns number of lines added", () => {
-      const breakdown = new VatBreakdown()
+      let breakdown = VatBreakdown.empty()
 
       expect(breakdown.lineCount()).toBe(0)
 
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
+      breakdown = breakdown.addLine(Money.fromString("100.00"), VatRate.HR_STANDARD)
       expect(breakdown.lineCount()).toBe(1)
 
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
+      breakdown = breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_13)
       expect(breakdown.lineCount()).toBe(2)
 
-      breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5)
+      breakdown = breakdown.addLine(Money.fromString("100.00"), VatRate.HR_REDUCED_5)
       expect(breakdown.lineCount()).toBe(3)
     })
   })
 
   describe("empty breakdown", () => {
     it("has zero totals", () => {
-      const breakdown = new VatBreakdown()
+      const breakdown = VatBreakdown.empty()
 
       expect(breakdown.totalBase().isZero()).toBe(true)
       expect(breakdown.totalVat().isZero()).toBe(true)
@@ -191,6 +201,29 @@ describe("VatBreakdown", () => {
       expect(breakdown.lineCount()).toBe(0)
       expect(breakdown.getLines()).toHaveLength(0)
       expect(breakdown.byRate().size).toBe(0)
+    })
+  })
+
+  describe("fromLines", () => {
+    it("creates VatBreakdown from array of lines", () => {
+      const lines = [
+        {
+          vatRate: VatRate.HR_STANDARD,
+          baseAmount: Money.fromString("100.00"),
+          vatAmount: Money.fromString("25.00"),
+        },
+        {
+          vatRate: VatRate.HR_REDUCED_13,
+          baseAmount: Money.fromString("100.00"),
+          vatAmount: Money.fromString("13.00"),
+        },
+      ]
+
+      const breakdown = VatBreakdown.fromLines(lines)
+
+      expect(breakdown.lineCount()).toBe(2)
+      expect(breakdown.totalBase().toDecimal().toString()).toBe("200")
+      expect(breakdown.totalVat().toDecimal().toString()).toBe("38")
     })
   })
 })

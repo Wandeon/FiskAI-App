@@ -1,6 +1,11 @@
 import { FiscalStatus, canTransitionFiscal } from "./FiscalStatus"
 import { FiscalError } from "./FiscalError"
 
+/**
+ * Default fiscal deadline in hours (Croatian regulation: 48 hours)
+ */
+export const DEFAULT_FISCAL_DEADLINE_HOURS = 48
+
 export interface FiscalRequestProps {
   id: string
   invoiceId: string
@@ -15,6 +20,11 @@ export interface FiscalRequestProps {
   errorMessage?: string
   createdAt: Date
   fiscalizedAt?: Date
+  /**
+   * Custom deadline in hours. If not set, uses DEFAULT_FISCAL_DEADLINE_HOURS (48h).
+   * This is useful for testing or different regulatory jurisdictions.
+   */
+  deadlineHours?: number
 }
 
 export class FiscalRequest {
@@ -24,7 +34,20 @@ export class FiscalRequest {
     this.props = props
   }
 
-  static create(invoiceId: string, commandId: string, zki: string): FiscalRequest {
+  /**
+   * Create a new FiscalRequest
+   * @param invoiceId - The invoice ID
+   * @param commandId - The command ID (idempotency key)
+   * @param zki - The ZKI (Zastitni Kod Izdavatelja)
+   * @param options - Optional configuration
+   * @param options.deadlineHours - Custom deadline in hours (default: 48h per Croatian regulation)
+   */
+  static create(
+    invoiceId: string,
+    commandId: string,
+    zki: string,
+    options?: { deadlineHours?: number }
+  ): FiscalRequest {
     if (!invoiceId || invoiceId.trim() === "") {
       throw new FiscalError("Invoice ID cannot be empty")
     }
@@ -43,6 +66,7 @@ export class FiscalRequest {
       zki,
       attemptCount: 0,
       createdAt: new Date(),
+      deadlineHours: options?.deadlineHours,
     })
   }
 
@@ -84,6 +108,9 @@ export class FiscalRequest {
   get errorMessage(): string | undefined {
     return this.props.errorMessage
   }
+  get deadlineHours(): number {
+    return this.props.deadlineHours ?? DEFAULT_FISCAL_DEADLINE_HOURS
+  }
 
   // Business methods
   markSubmitting(): void {
@@ -116,10 +143,15 @@ export class FiscalRequest {
     this.transitionTo(FiscalStatus.RETRY_SCHEDULED)
   }
 
-  isDeadlineExceeded(): boolean {
+  /**
+   * Check if the fiscal deadline has been exceeded.
+   * @param nowOverride - Optional date to use instead of current time (useful for testing)
+   */
+  isDeadlineExceeded(nowOverride?: Date): boolean {
     const deadline = new Date(this.props.createdAt)
-    deadline.setHours(deadline.getHours() + 48)
-    return new Date() > deadline
+    deadline.setHours(deadline.getHours() + this.deadlineHours)
+    const now = nowOverride ?? new Date()
+    return now > deadline
   }
 
   private transitionTo(newStatus: FiscalStatus): void {

@@ -2,17 +2,43 @@
 import { Money, VatRate } from "@/domain/shared"
 
 export interface VatBreakdownLine {
-  vatRate: VatRate
-  baseAmount: Money
-  vatAmount: Money
+  readonly vatRate: VatRate
+  readonly baseAmount: Money
+  readonly vatAmount: Money
 }
 
+/**
+ * VatBreakdown is an immutable value object that represents a collection
+ * of VAT breakdown lines. Use the static factory methods to create instances.
+ */
 export class VatBreakdown {
-  private lines: VatBreakdownLine[] = []
+  private readonly lines: readonly VatBreakdownLine[]
 
-  addLine(baseAmount: Money, vatRate: VatRate): void {
+  private constructor(lines: readonly VatBreakdownLine[]) {
+    this.lines = lines
+  }
+
+  /**
+   * Create an empty VatBreakdown
+   */
+  static empty(): VatBreakdown {
+    return new VatBreakdown([])
+  }
+
+  /**
+   * Create a VatBreakdown from an array of lines
+   */
+  static fromLines(lines: readonly VatBreakdownLine[]): VatBreakdown {
+    return new VatBreakdown([...lines])
+  }
+
+  /**
+   * Add a line and return a new VatBreakdown (immutable)
+   */
+  addLine(baseAmount: Money, vatRate: VatRate): VatBreakdown {
     const vatAmount = vatRate.calculateVat(baseAmount)
-    this.lines.push({ vatRate, baseAmount, vatAmount })
+    const newLine: VatBreakdownLine = { vatRate, baseAmount, vatAmount }
+    return new VatBreakdown([...this.lines, newLine])
   }
 
   getLines(): readonly VatBreakdownLine[] {

@@ -163,7 +163,9 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
 
     const invoiceNumber = record.invoiceNumber.startsWith("DRAFT-")
       ? undefined
-      : InvoiceNumber.parse(record.invoiceNumber)
+      : InvoiceNumber.parse(record.invoiceNumber, {
+          inferFromDate: record.issueDate ?? undefined,
+        })
 
     return Invoice.reconstitute({
       id: InvoiceId.fromString(record.id),

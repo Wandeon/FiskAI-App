@@ -109,6 +109,36 @@ describe("InvoiceNumber", () => {
       expect(() => InvoiceNumber.parse("43/1/1")).toThrow(InvoiceError)
       expect(() => InvoiceNumber.parse("43_1_1")).toThrow(InvoiceError)
     })
+
+    it("uses explicit year option", () => {
+      const invoiceNumber = InvoiceNumber.parse("43-1-1", { year: 2022 })
+      expect(invoiceNumber.year).toBe(2022)
+    })
+
+    it("infers year from date option", () => {
+      const historicalDate = new Date(2021, 3, 15) // April 15, 2021
+      const invoiceNumber = InvoiceNumber.parse("43-1-1", { inferFromDate: historicalDate })
+      expect(invoiceNumber.year).toBe(2021)
+    })
+
+    it("explicit year takes precedence over inferFromDate", () => {
+      const historicalDate = new Date(2021, 3, 15) // April 15, 2021
+      const invoiceNumber = InvoiceNumber.parse("43-1-1", {
+        year: 2019,
+        inferFromDate: historicalDate,
+      })
+      expect(invoiceNumber.year).toBe(2019)
+    })
+
+    it("defaults to current year when no options provided", () => {
+      const invoiceNumber = InvoiceNumber.parse("43-1-1")
+      expect(invoiceNumber.year).toBe(2024) // Mocked system time
+    })
+
+    it("defaults to current year when empty options provided", () => {
+      const invoiceNumber = InvoiceNumber.parse("43-1-1", {})
+      expect(invoiceNumber.year).toBe(2024) // Mocked system time
+    })
   })
 
   describe("format", () => {

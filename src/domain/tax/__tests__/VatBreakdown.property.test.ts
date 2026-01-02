@@ -9,9 +9,9 @@ describe("VatBreakdown property tests", () => {
       fc.property(
         fc.array(fc.integer({ min: 1, max: 1000000 }), { minLength: 1, maxLength: 10 }),
         (centAmounts) => {
-          const breakdown = new VatBreakdown()
+          let breakdown = VatBreakdown.empty()
           for (const cents of centAmounts) {
-            breakdown.addLine(Money.fromCents(cents), VatRate.HR_STANDARD)
+            breakdown = breakdown.addLine(Money.fromCents(cents), VatRate.HR_STANDARD)
           }
           const totalBase = breakdown.totalBase()
           const totalVat = breakdown.totalVat()
@@ -25,8 +25,7 @@ describe("VatBreakdown property tests", () => {
   it("VAT is always non-negative", () => {
     fc.assert(
       fc.property(fc.integer({ min: 0, max: 1000000 }), (cents) => {
-        const breakdown = new VatBreakdown()
-        breakdown.addLine(Money.fromCents(cents), VatRate.HR_STANDARD)
+        const breakdown = VatBreakdown.empty().addLine(Money.fromCents(cents), VatRate.HR_STANDARD)
         expect(breakdown.totalVat().isNegative()).toBe(false)
       })
     )
@@ -36,8 +35,7 @@ describe("VatBreakdown property tests", () => {
     fc.assert(
       fc.property(fc.integer({ min: 100, max: 100000 }), (cents) => {
         const base = Money.fromCents(cents)
-        const breakdown = new VatBreakdown()
-        breakdown.addLine(base, VatRate.HR_STANDARD)
+        const breakdown = VatBreakdown.empty().addLine(base, VatRate.HR_STANDARD)
         const vat = breakdown.totalVat()
         const expectedVat = base.multiply("0.25").round()
         expect(vat.equals(expectedVat)).toBe(true)
@@ -48,9 +46,9 @@ describe("VatBreakdown property tests", () => {
   it("lineCount matches number of addLine calls", () => {
     fc.assert(
       fc.property(fc.integer({ min: 0, max: 20 }), (count) => {
-        const breakdown = new VatBreakdown()
+        let breakdown = VatBreakdown.empty()
         for (let i = 0; i < count; i++) {
-          breakdown.addLine(Money.fromCents(100), VatRate.HR_STANDARD)
+          breakdown = breakdown.addLine(Money.fromCents(100), VatRate.HR_STANDARD)
         }
         expect(breakdown.lineCount()).toBe(count)
       })
@@ -60,9 +58,9 @@ describe("VatBreakdown property tests", () => {
   it("getLines length matches lineCount", () => {
     fc.assert(
       fc.property(fc.integer({ min: 0, max: 20 }), (count) => {
-        const breakdown = new VatBreakdown()
+        let breakdown = VatBreakdown.empty()
         for (let i = 0; i < count; i++) {
-          breakdown.addLine(Money.fromCents(100), VatRate.HR_STANDARD)
+          breakdown = breakdown.addLine(Money.fromCents(100), VatRate.HR_STANDARD)
         }
         expect(breakdown.getLines().length).toBe(breakdown.lineCount())
       })
@@ -74,12 +72,12 @@ describe("VatBreakdown property tests", () => {
       fc.property(
         fc.array(fc.integer({ min: 1, max: 10000 }), { minLength: 1, maxLength: 10 }),
         (centAmounts) => {
-          const breakdown = new VatBreakdown()
+          let breakdown = VatBreakdown.empty()
           let expectedBase = Money.zero()
 
           for (const cents of centAmounts) {
             const amount = Money.fromCents(cents)
-            breakdown.addLine(amount, VatRate.HR_STANDARD)
+            breakdown = breakdown.addLine(amount, VatRate.HR_STANDARD)
             expectedBase = expectedBase.add(amount)
           }
 
@@ -98,12 +96,12 @@ describe("VatBreakdown property tests", () => {
       fc.property(
         fc.array(fc.integer({ min: 1, max: 10000 }), { minLength: 0, maxLength: 15 }),
         (centAmounts) => {
-          const breakdown = new VatBreakdown()
+          let breakdown = VatBreakdown.empty()
           let expectedTotal = Money.zero()
 
           for (const cents of centAmounts) {
             const amount = Money.fromCents(cents)
-            breakdown.addLine(amount, VatRate.HR_STANDARD)
+            breakdown = breakdown.addLine(amount, VatRate.HR_STANDARD)
             expectedTotal = expectedTotal.add(amount)
           }
 
@@ -126,10 +124,10 @@ describe("VatBreakdown property tests", () => {
           { minLength: 1, maxLength: 10 }
         ),
         (items) => {
-          const breakdown = new VatBreakdown()
+          let breakdown = VatBreakdown.empty()
 
           for (const item of items) {
-            breakdown.addLine(Money.fromCents(item.cents), rates[item.rateIndex])
+            breakdown = breakdown.addLine(Money.fromCents(item.cents), rates[item.rateIndex])
           }
 
           // Total gross should always equal base + VAT
@@ -144,9 +142,20 @@ describe("VatBreakdown property tests", () => {
   it("zero-rate VAT contributes zero to totalVat", () => {
     fc.assert(
       fc.property(fc.integer({ min: 1, max: 1000000 }), (cents) => {
-        const breakdown = new VatBreakdown()
-        breakdown.addLine(Money.fromCents(cents), VatRate.zero())
+        const breakdown = VatBreakdown.empty().addLine(Money.fromCents(cents), VatRate.zero())
         expect(breakdown.totalVat().isZero()).toBe(true)
+      })
+    )
+  })
+
+  it("addLine returns new instance (immutability)", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 1, max: 1000000 }), (cents) => {
+        const original = VatBreakdown.empty()
+        const updated = original.addLine(Money.fromCents(cents), VatRate.HR_STANDARD)
+        expect(original).not.toBe(updated)
+        expect(original.lineCount()).toBe(0)
+        expect(updated.lineCount()).toBe(1)
       })
     )
   })

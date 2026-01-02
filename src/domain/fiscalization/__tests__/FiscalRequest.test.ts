@@ -1,4 +1,4 @@
-import { FiscalRequest, FiscalRequestProps } from "../FiscalRequest"
+import { FiscalRequest, FiscalRequestProps, DEFAULT_FISCAL_DEADLINE_HOURS } from "../FiscalRequest"
 import { FiscalStatus } from "../FiscalStatus"
 import { FiscalError } from "../FiscalError"
 
@@ -297,6 +297,57 @@ describe("FiscalRequest", () => {
       const request = FiscalRequest.reconstitute(props)
 
       expect(request.isDeadlineExceeded()).toBe(false)
+    })
+
+    it("respects custom deadline from create options", () => {
+      // Create with 1-hour deadline
+      const request = FiscalRequest.create("inv-123", "cmd-456", "zki-789", { deadlineHours: 1 })
+
+      expect(request.deadlineHours).toBe(1)
+
+      // Just created, should not be exceeded
+      expect(request.isDeadlineExceeded()).toBe(false)
+
+      // 2 hours later, should be exceeded
+      const twoHoursLater = new Date()
+      twoHoursLater.setHours(twoHoursLater.getHours() + 2)
+      expect(request.isDeadlineExceeded(twoHoursLater)).toBe(true)
+    })
+
+    it("respects custom deadline from reconstitute", () => {
+      const createdAt = new Date()
+      createdAt.setHours(createdAt.getHours() - 3) // 3 hours ago
+
+      const props: FiscalRequestProps = {
+        id: "req-123",
+        invoiceId: "inv-456",
+        commandId: "cmd-789",
+        status: FiscalStatus.PENDING,
+        zki: "zki-abc",
+        attemptCount: 0,
+        createdAt,
+        deadlineHours: 2, // 2-hour deadline
+      }
+      const request = FiscalRequest.reconstitute(props)
+
+      // 3 hours elapsed, 2-hour deadline -> exceeded
+      expect(request.isDeadlineExceeded()).toBe(true)
+      expect(request.deadlineHours).toBe(2)
+    })
+
+    it("uses nowOverride for testing", () => {
+      const request = FiscalRequest.create("inv-123", "cmd-456", "zki-789")
+
+      const futureTime = new Date()
+      futureTime.setHours(futureTime.getHours() + 100)
+
+      expect(request.isDeadlineExceeded(futureTime)).toBe(true)
+    })
+
+    it("defaults to DEFAULT_FISCAL_DEADLINE_HOURS", () => {
+      const request = FiscalRequest.create("inv-123", "cmd-456", "zki-789")
+      expect(request.deadlineHours).toBe(DEFAULT_FISCAL_DEADLINE_HOURS)
+      expect(request.deadlineHours).toBe(48)
     })
   })
 
