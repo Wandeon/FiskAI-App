@@ -99,7 +99,7 @@ export function DocumentScanner({ onCapture, onClose, initialFile }: DocumentSca
     setProcessing(true)
 
     canvasRef.current.toBlob(
-      async (blob) => {
+      (blob) => {
         if (!blob) {
           setProcessing(false)
           return

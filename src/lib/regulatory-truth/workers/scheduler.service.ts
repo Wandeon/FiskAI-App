@@ -115,16 +115,14 @@ async function startScheduler(): Promise<void> {
 }
 
 // Graceful shutdown
-process.on("SIGTERM", async () => {
+process.on("SIGTERM", () => {
   console.log("[scheduler] Shutting down...")
-  await closeRedis()
-  process.exit(0)
+  void closeRedis().then(() => process.exit(0))
 })
 
-process.on("SIGINT", async () => {
+process.on("SIGINT", () => {
   console.log("[scheduler] Shutting down...")
-  await closeRedis()
-  process.exit(0)
+  void closeRedis().then(() => process.exit(0))
 })
 
 // Start

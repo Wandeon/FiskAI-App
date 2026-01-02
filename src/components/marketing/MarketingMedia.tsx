@@ -32,9 +32,8 @@ export function MarketingVideo({
       }
 
       const promise = video.play()
-      if (promise && typeof (promise as Promise<void>).catch === "function") {
-        void (promise as Promise<void>).catch(() => {})
-      }
+      // video.play() returns Promise<void> in modern browsers
+      void promise.catch(() => {})
     }
 
     const handleVisibilityChange = () => {

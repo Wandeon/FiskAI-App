@@ -15,7 +15,7 @@ interface UseReasoningStreamReturn {
   terminal: TerminalPayload | null
   isStreaming: boolean
   error: Error | null
-  startStream: (query: string, context?: UserContext) => void
+  startStream: (query: string, context?: UserContext) => Promise<void>
   cancelStream: () => void
 }
 

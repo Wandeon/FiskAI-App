@@ -59,7 +59,7 @@ export function usePendingSyncCount() {
     void updateCount()
 
     // Update count periodically
-    const interval = setInterval(updateCount, 5000)
+    const interval = setInterval(() => void updateCount(), 5000)
     return () => clearInterval(interval)
   }, [])
 
