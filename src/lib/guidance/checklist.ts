@@ -627,7 +627,7 @@ export async function getChecklist(params: GetChecklistParams): Promise<{
         reference = `pattern-expense_pattern-${pattern.data?.categoryId || "unknown"}-${monthKey}`
       } else if (pattern.type === "revenue_trend") {
         // For revenue trends: pattern-revenue_trend-{direction}-{monthKey}
-        const direction = (pattern.data?.trend || 0) > 0 ? "up" : "down"
+        const direction = (Number(pattern.data?.trend) || 0) > 0 ? "up" : "down"
         const monthKey = new Date().toISOString().slice(0, 7) // YYYY-MM format
         reference = `pattern-revenue_trend-${direction}-${monthKey}`
       } else {

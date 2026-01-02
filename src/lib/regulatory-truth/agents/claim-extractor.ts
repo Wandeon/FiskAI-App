@@ -133,7 +133,7 @@ export async function runClaimExtractor(evidenceId: string): Promise<ClaimExtrac
         data: {
           evidenceId: evidence.id,
           rejectionType: validation.rejectionType || "VALIDATION_FAILED",
-          rawOutput: claim as unknown as Prisma.JsonValue,
+          rawOutput: claim as unknown as Prisma.InputJsonValue,
           errorDetails: validation.errors.join("; "),
         },
       })
