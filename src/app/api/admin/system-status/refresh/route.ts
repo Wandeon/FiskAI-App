@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { computeSystemStatusSnapshot } from "@/lib/system-status/refresh"
 import { diffSnapshots } from "@/lib/system-status/diff"
@@ -29,6 +30,10 @@ const SYNC_TIMEOUT_SECONDS = 15
 const ASYNC_TIMEOUT_SECONDS = 120
 const DEDUPE_KEY = "system-status-refresh"
 
+const bodySchema = z.object({
+  mode: z.enum(["sync", "async"]).optional().default("sync"),
+})
+
 export async function POST(request: NextRequest) {
   try {
     // Check admin auth
@@ -37,14 +42,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Parse request body for mode preference
+    // Parse request body for mode preference with Zod validation
     let mode: "sync" | "async" = "sync"
     try {
-      const body = await request.json()
-      if (body.mode === "async") {
-        mode = "async"
+      const text = await request.text()
+      if (text) {
+        const body = JSON.parse(text)
+        const parsed = bodySchema.parse(body)
+        mode = parsed.mode
       }
-    } catch {
+    } catch (error) {
+      // If it's a Zod error, format it properly
+      if (error instanceof z.ZodError) {
+        const validationError = {
+          error: "Validation failed",
+          details: error.flatten(),
+        }
+        return NextResponse.json(validationError, { status: 400 })
+      }
       // No body or invalid JSON, use default mode
     }
 

@@ -1,8 +1,14 @@
 // src/app/api/admin/regulatory-truth/sources/[id]/check/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth-utils"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const paramsSchema = z.object({
+  id: z.string().min(1, "Source ID is required"),
+})
 
 /**
  * POST /api/admin/regulatory-truth/sources/[id]/check
@@ -16,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = parseParams(await params, paramsSchema)
 
     // Get the source
     const source = await db.regulatorySource.findUnique({
@@ -62,6 +68,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[check] Error triggering source check:", error)
     return NextResponse.json({ error: "Failed to trigger source check" }, { status: 500 })
   }

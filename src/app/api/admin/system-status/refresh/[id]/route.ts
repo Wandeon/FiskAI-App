@@ -6,8 +6,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { getRefreshJob, getSnapshotById } from "@/lib/system-status/store"
+import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const paramsSchema = z.object({
+  id: z.string().min(1, "Job ID is required"),
+})
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -21,11 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
-
-    if (!id) {
-      return NextResponse.json({ error: "Job ID required" }, { status: 400 })
-    }
+    const { id } = parseParams(await params, paramsSchema)
 
     const job = await getRefreshJob(id)
 
@@ -69,6 +71,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json(response)
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[system-status-refresh-status] Error:", error)
     return NextResponse.json(
       {

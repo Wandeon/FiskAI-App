@@ -1,5 +1,6 @@
 // src/app/api/admin/workers/circuit-breaker/reset/route.ts
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth-utils"
 import {
   resetCircuitBreaker,
@@ -7,6 +8,12 @@ import {
   getCircuitBreakerStatus,
 } from "@/lib/regulatory-truth/workers/circuit-breaker"
 import { auditCircuitBreakerReset } from "@/lib/admin/circuit-breaker-audit"
+import { isValidationError, formatValidationError } from "@/lib/api/validation"
+
+const bodySchema = z.object({
+  name: z.string().min(1).optional(),
+  reason: z.string().min(1).optional(),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +21,24 @@ export async function POST(request: NextRequest) {
     if (!user || user.systemRole !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const body = await request.json().catch(() => ({}))
+
+    // Parse body with fallback to empty object, then validate
+    let body: z.infer<typeof bodySchema> = {}
+    try {
+      const text = await request.text()
+      if (text) {
+        const rawBody = JSON.parse(text)
+        body = bodySchema.parse(rawBody)
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: "Validation failed", details: error.flatten() },
+          { status: 400 }
+        )
+      }
+      // Empty body or invalid JSON, use default empty object
+    }
     const { name, reason } = body
     let resetBreakers: string[] = []
     if (name) {
@@ -68,6 +92,9 @@ export async function POST(request: NextRequest) {
       reset: resetBreakers,
     })
   } catch (error) {
+    if (isValidationError(error)) {
+      return NextResponse.json(formatValidationError(error), { status: 400 })
+    }
     console.error("[workers-circuit-breaker-reset] Error:", error)
     return NextResponse.json({ error: "Failed to reset circuit breaker" }, { status: 500 })
   }
