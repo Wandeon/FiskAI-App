@@ -13,6 +13,11 @@ interface BankAccount {
   iban: string
 }
 
+interface ExtractedData {
+  transactions: unknown[]
+  [key: string]: unknown
+}
+
 interface ImportClientProps {
   bankAccounts: BankAccount[]
   initialJobs: ImportJobState[]
@@ -22,7 +27,7 @@ export function ImportClient({ bankAccounts, initialJobs }: ImportClientProps) {
   const [jobs, setJobs] = useState<ImportJobState[]>(initialJobs)
   const [selectedAccountId, setSelectedAccountId] = useState<string>(bankAccounts[0]?.id || "")
   const [modalJob, setModalJob] = useState<ImportJobState | null>(null)
-  const [modalData, setModalData] = useState<any>(null)
+  const [modalData, setModalData] = useState<ExtractedData | null>(null)
 
   // Poll for job status updates
   useEffect(() => {
@@ -127,7 +132,7 @@ export function ImportClient({ bankAccounts, initialJobs }: ImportClientProps) {
               )
             )
           }
-        } catch (e) {
+        } catch {
           setJobs((prev) =>
             prev.map((j) =>
               j.id === tempId
@@ -162,7 +167,7 @@ export function ImportClient({ bankAccounts, initialJobs }: ImportClientProps) {
   )
 
   const handleConfirm = useCallback(
-    async (jobId: string, editedData: any) => {
+    async (jobId: string, editedData: ExtractedData) => {
       const res = await fetch(`/api/import/jobs/${jobId}/confirm`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

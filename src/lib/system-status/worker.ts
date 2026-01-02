@@ -123,6 +123,7 @@ export async function processRefreshJob(
     const events = prevSnapshot ? diffSnapshots(prevSnapshot as any, snapshot) : []
 
     // Save snapshot and events
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma type mismatch
     const savedSnapshot = await saveSnapshot(snapshot as unknown as any)
     if (events.length > 0) {
       await saveEvents(
@@ -276,9 +277,7 @@ export function createSystemStatusWorker(): Worker<RefreshJobPayload> {
           error: err.message,
           failedAt: new Date().toISOString(),
         })
-        .then(() =>
-          console.log(`[system-status-worker] Job ${job.id} moved to dead letter queue`)
-        )
+        .then(() => console.log(`[system-status-worker] Job ${job.id} moved to dead letter queue`))
     } else if (isTransientError(err)) {
       console.log(`[system-status-worker] Job ${job.id} will be retried (transient error)`)
     } else {

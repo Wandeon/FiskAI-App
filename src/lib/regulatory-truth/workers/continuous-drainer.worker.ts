@@ -68,9 +68,9 @@ const stageMetrics: Record<string, StageMetrics> = {
   "approved-rules": { itemsProcessed: 0, totalDurationMs: 0 },
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DrainerFunction = (fn: () => Promise<number>) => Promise<number>
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- Circuit breaker requires type cast for curried functions */
 const stageCircuitBreakers = {
   "pending-items": createCircuitBreaker<number>(
     (async (fn: () => Promise<number>) => fn()) as any,
@@ -120,6 +120,7 @@ const stageCircuitBreakers = {
     }
   ),
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 async function executeStage(
   stageName: string,
