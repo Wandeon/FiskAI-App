@@ -3,6 +3,7 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { euTransaction, pausalniProfile } from "@/lib/db/schema/pausalni"
 import { eq, and } from "drizzle-orm"
 import { PDV_CONFIG } from "../constants"
+import { Money } from "@/domain/shared"
 
 export interface PdvFormData {
   companyOib: string
@@ -57,23 +58,29 @@ export async function getEuTransactionsForMonth(
     counterpartyCountry: tx.counterpartyCountry,
     counterpartyVatId: tx.counterpartyVatId,
     transactionDate: new Date(tx.transactionDate),
-    baseAmount: parseFloat(tx.amount),
-    pdvAmount: parseFloat(tx.pdvAmount || "0"),
+    baseAmount: Money.fromString(tx.amount).toDisplayNumber(),
+    pdvAmount: Money.fromString(tx.pdvAmount || "0").toDisplayNumber(),
   }))
 }
 
 /**
- * Calculate totals from EU transactions
+ * Calculate totals from EU transactions using Money class for precision
  */
 export function calculatePdvTotals(transactions: PdvFormData["transactions"]) {
-  const baseAmount = transactions.reduce((sum, tx) => sum + tx.baseAmount, 0)
-  const pdvAmount = transactions.reduce((sum, tx) => sum + tx.pdvAmount, 0)
-  const totalAmount = baseAmount + pdvAmount
+  let baseAmountMoney = Money.zero()
+  let pdvAmountMoney = Money.zero()
+
+  for (const tx of transactions) {
+    baseAmountMoney = baseAmountMoney.add(Money.fromString(String(tx.baseAmount)))
+    pdvAmountMoney = pdvAmountMoney.add(Money.fromString(String(tx.pdvAmount)))
+  }
+
+  const totalAmountMoney = baseAmountMoney.add(pdvAmountMoney)
 
   return {
-    baseAmount: Math.round(baseAmount * 100) / 100,
-    pdvAmount: Math.round(pdvAmount * 100) / 100,
-    totalAmount: Math.round(totalAmount * 100) / 100,
+    baseAmount: baseAmountMoney.toDisplayNumber(),
+    pdvAmount: pdvAmountMoney.toDisplayNumber(),
+    totalAmount: totalAmountMoney.toDisplayNumber(),
   }
 }
 
@@ -263,13 +270,19 @@ export function validatePdvFormData(data: PdvFormData): {
     errors.push("PDV iznos ne može biti negativan")
   }
 
-  // Check if PDV amount matches calculation (25% of base)
-  const expectedPdv = Math.round(data.totals.baseAmount * 0.25 * 100) / 100
-  const actualPdv = data.totals.pdvAmount
-  const tolerance = 0.02 // 2 cent tolerance for rounding
+  // Check if PDV amount matches calculation (25% of base) using Money for precision
+  const expectedPdvMoney = Money.fromString(String(data.totals.baseAmount)).multiply("0.25")
+  const actualPdvMoney = Money.fromString(String(data.totals.pdvAmount))
+  const differenceMoney = expectedPdvMoney.subtract(actualPdvMoney)
+  const toleranceMoney = Money.fromString("0.02") // 2 cent tolerance for rounding
 
-  if (Math.abs(expectedPdv - actualPdv) > tolerance) {
-    errors.push(`PDV iznos (${actualPdv}) ne odgovara očekivanom iznosu (${expectedPdv})`)
+  if (
+    differenceMoney.toDisplayNumber() > toleranceMoney.toDisplayNumber() ||
+    differenceMoney.toDisplayNumber() < -toleranceMoney.toDisplayNumber()
+  ) {
+    errors.push(
+      `PDV iznos (${actualPdvMoney.toDisplayNumber()}) ne odgovara očekivanom iznosu (${expectedPdvMoney.toDisplayNumber()})`
+    )
   }
 
   // Validate transactions

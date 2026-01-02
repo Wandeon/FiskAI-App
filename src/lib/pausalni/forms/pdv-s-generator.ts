@@ -3,6 +3,7 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { euTransaction, pausalniProfile } from "@/lib/db/schema/pausalni"
 import { eq, and, sql } from "drizzle-orm"
 import { PDV_CONFIG, EU_COUNTRY_NAMES } from "../constants"
+import { Money } from "@/domain/shared"
 
 export interface CountryBreakdown {
   countryCode: string
@@ -54,8 +55,17 @@ export async function getEuTransactionsByCountry(
       )
     )
 
-  // Group by country and calculate totals
-  const countryMap = new Map<string, CountryBreakdown>()
+  // Group by country and calculate totals using Money for precision
+  const countryMap = new Map<
+    string,
+    {
+      countryCode: string
+      countryName: string
+      transactionCount: number
+      baseAmount: Money
+      pdvAmount: Money
+    }
+  >()
 
   for (const tx of transactions) {
     const countryCode = tx.counterpartyCountry || "XX"
@@ -65,46 +75,54 @@ export async function getEuTransactionsByCountry(
         countryCode,
         countryName: EU_COUNTRY_NAMES[countryCode] || countryCode,
         transactionCount: 0,
-        baseAmount: 0,
-        pdvAmount: 0,
+        baseAmount: Money.zero(),
+        pdvAmount: Money.zero(),
       })
     }
 
     const breakdown = countryMap.get(countryCode)!
     breakdown.transactionCount++
-    breakdown.baseAmount += parseFloat(tx.amount)
-    breakdown.pdvAmount += parseFloat(tx.pdvAmount || "0")
+    breakdown.baseAmount = breakdown.baseAmount.add(Money.fromString(tx.amount))
+    breakdown.pdvAmount = breakdown.pdvAmount.add(Money.fromString(tx.pdvAmount || "0"))
   }
 
-  // Convert to array and sort by country code
-  const breakdowns = Array.from(countryMap.values())
-  breakdowns.sort((a, b) => a.countryCode.localeCompare(b.countryCode))
-
-  // Round amounts to 2 decimal places
-  breakdowns.forEach((bd) => {
-    bd.baseAmount = Math.round(bd.baseAmount * 100) / 100
-    bd.pdvAmount = Math.round(bd.pdvAmount * 100) / 100
-  })
+  // Convert to array, sort by country code, and convert Money to numbers
+  const breakdowns: CountryBreakdown[] = Array.from(countryMap.values())
+    .map((bd) => ({
+      countryCode: bd.countryCode,
+      countryName: bd.countryName,
+      transactionCount: bd.transactionCount,
+      baseAmount: bd.baseAmount.toDisplayNumber(),
+      pdvAmount: bd.pdvAmount.toDisplayNumber(),
+    }))
+    .sort((a, b) => a.countryCode.localeCompare(b.countryCode))
 
   return breakdowns
 }
 
 /**
- * Calculate totals from country breakdowns
+ * Calculate totals from country breakdowns using Money for precision
  */
 export function calculatePdvSTotals(breakdowns: CountryBreakdown[]) {
   const totalCountries = breakdowns.length
-  const totalTransactions = breakdowns.reduce((sum, bd) => sum + bd.transactionCount, 0)
-  const baseAmount = breakdowns.reduce((sum, bd) => sum + bd.baseAmount, 0)
-  const pdvAmount = breakdowns.reduce((sum, bd) => sum + bd.pdvAmount, 0)
-  const totalAmount = baseAmount + pdvAmount
+  let totalTransactions = 0
+  let baseAmountMoney = Money.zero()
+  let pdvAmountMoney = Money.zero()
+
+  for (const bd of breakdowns) {
+    totalTransactions += bd.transactionCount
+    baseAmountMoney = baseAmountMoney.add(Money.fromString(String(bd.baseAmount)))
+    pdvAmountMoney = pdvAmountMoney.add(Money.fromString(String(bd.pdvAmount)))
+  }
+
+  const totalAmountMoney = baseAmountMoney.add(pdvAmountMoney)
 
   return {
     totalCountries,
     totalTransactions,
-    baseAmount: Math.round(baseAmount * 100) / 100,
-    pdvAmount: Math.round(pdvAmount * 100) / 100,
-    totalAmount: Math.round(totalAmount * 100) / 100,
+    baseAmount: baseAmountMoney.toDisplayNumber(),
+    pdvAmount: pdvAmountMoney.toDisplayNumber(),
+    totalAmount: totalAmountMoney.toDisplayNumber(),
   }
 }
 
@@ -286,13 +304,19 @@ export function validatePdvSFormData(data: PdvSFormData): {
     errors.push("Ukupni PDV iznos ne može biti negativan")
   }
 
-  // Check if PDV amount matches calculation (25% of base)
-  const expectedPdv = Math.round(data.totals.baseAmount * 0.25 * 100) / 100
-  const actualPdv = data.totals.pdvAmount
-  const tolerance = 0.02 // 2 cent tolerance for rounding
+  // Check if PDV amount matches calculation (25% of base) using Money for precision
+  const expectedPdvMoney = Money.fromString(String(data.totals.baseAmount)).multiply("0.25")
+  const actualPdvMoney = Money.fromString(String(data.totals.pdvAmount))
+  const differenceMoney = expectedPdvMoney.subtract(actualPdvMoney)
+  const toleranceMoney = Money.fromString("0.02") // 2 cent tolerance for rounding
 
-  if (Math.abs(expectedPdv - actualPdv) > tolerance) {
-    errors.push(`Ukupni PDV iznos (${actualPdv}) ne odgovara očekivanom iznosu (${expectedPdv})`)
+  if (
+    differenceMoney.toDisplayNumber() > toleranceMoney.toDisplayNumber() ||
+    differenceMoney.toDisplayNumber() < -toleranceMoney.toDisplayNumber()
+  ) {
+    errors.push(
+      `Ukupni PDV iznos (${actualPdvMoney.toDisplayNumber()}) ne odgovara očekivanom iznosu (${expectedPdvMoney.toDisplayNumber()})`
+    )
   }
 
   // Validate country breakdowns
@@ -311,27 +335,46 @@ export function validatePdvSFormData(data: PdvSFormData): {
       errors.push(`Država ${bd.countryName}: broj transakcija mora biti pozitivan`)
     }
 
-    // Check if country PDV matches calculation
-    const expectedCountryPdv = Math.round(bd.baseAmount * 0.25 * 100) / 100
-    const actualCountryPdv = bd.pdvAmount
+    // Check if country PDV matches calculation using Money for precision
+    const expectedCountryPdvMoney = Money.fromString(String(bd.baseAmount)).multiply("0.25")
+    const actualCountryPdvMoney = Money.fromString(String(bd.pdvAmount))
+    const countryDifferenceMoney = expectedCountryPdvMoney.subtract(actualCountryPdvMoney)
 
-    if (Math.abs(expectedCountryPdv - actualCountryPdv) > tolerance) {
+    if (
+      countryDifferenceMoney.toDisplayNumber() > toleranceMoney.toDisplayNumber() ||
+      countryDifferenceMoney.toDisplayNumber() < -toleranceMoney.toDisplayNumber()
+    ) {
       errors.push(
-        `Država ${bd.countryName}: PDV iznos (${actualCountryPdv}) ne odgovara očekivanom (${expectedCountryPdv})`
+        `Država ${bd.countryName}: PDV iznos (${actualCountryPdvMoney.toDisplayNumber()}) ne odgovara očekivanom (${expectedCountryPdvMoney.toDisplayNumber()})`
       )
     }
   }
 
-  // Verify totals match sum of breakdowns
-  const sumBase = data.countryBreakdowns.reduce((sum, bd) => sum + bd.baseAmount, 0)
-  const sumPdv = data.countryBreakdowns.reduce((sum, bd) => sum + bd.pdvAmount, 0)
-  const sumTransactions = data.countryBreakdowns.reduce((sum, bd) => sum + bd.transactionCount, 0)
+  // Verify totals match sum of breakdowns using Money for precision
+  let sumBaseMoney = Money.zero()
+  let sumPdvMoney = Money.zero()
+  let sumTransactions = 0
 
-  if (Math.abs(sumBase - data.totals.baseAmount) > tolerance) {
+  for (const bd of data.countryBreakdowns) {
+    sumBaseMoney = sumBaseMoney.add(Money.fromString(String(bd.baseAmount)))
+    sumPdvMoney = sumPdvMoney.add(Money.fromString(String(bd.pdvAmount)))
+    sumTransactions += bd.transactionCount
+  }
+
+  const baseDiffMoney = sumBaseMoney.subtract(Money.fromString(String(data.totals.baseAmount)))
+  const pdvDiffMoney = sumPdvMoney.subtract(Money.fromString(String(data.totals.pdvAmount)))
+
+  if (
+    baseDiffMoney.toDisplayNumber() > toleranceMoney.toDisplayNumber() ||
+    baseDiffMoney.toDisplayNumber() < -toleranceMoney.toDisplayNumber()
+  ) {
     errors.push("Zbroj osnovica po državama ne odgovara ukupnoj osnovici")
   }
 
-  if (Math.abs(sumPdv - data.totals.pdvAmount) > tolerance) {
+  if (
+    pdvDiffMoney.toDisplayNumber() > toleranceMoney.toDisplayNumber() ||
+    pdvDiffMoney.toDisplayNumber() < -toleranceMoney.toDisplayNumber()
+  ) {
     errors.push("Zbroj PDV-a po državama ne odgovara ukupnom PDV-u")
   }
 

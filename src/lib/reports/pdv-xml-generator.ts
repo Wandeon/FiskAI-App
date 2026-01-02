@@ -4,6 +4,7 @@
 
 import { Builder } from "xml2js"
 import { db } from "@/lib/db"
+import { Money } from "@/domain/shared"
 
 // VAT rate in Croatia (25%)
 const VAT_RATE = 25
@@ -146,35 +147,60 @@ export async function fetchVatReportData(
         })
       : []
 
-  const outputVat = {
-    net: invoices.reduce((sum, i) => sum + Number(i.netAmount), 0),
-    vat: invoices.reduce((sum, i) => sum + Number(i.vatAmount), 0),
-    total: invoices.reduce((sum, i) => sum + Number(i.totalAmount), 0),
+  // Calculate output VAT using Money class for precision
+  let outputNet = Money.zero()
+  let outputVatAmount = Money.zero()
+  let outputTotal = Money.zero()
+  for (const i of invoices) {
+    outputNet = outputNet.add(Money.fromString(String(i.netAmount)))
+    outputVatAmount = outputVatAmount.add(Money.fromString(String(i.vatAmount)))
+    outputTotal = outputTotal.add(Money.fromString(String(i.totalAmount)))
   }
 
-  const inputVat = uraInputs.length
-    ? {
-        deductible: uraInputs.reduce((sum, input) => sum + Number(input.deductibleVatAmount), 0),
-        nonDeductible: uraInputs.reduce(
-          (sum, input) => sum + Number(input.nonDeductibleVatAmount),
-          0
-        ),
-        total: uraInputs.reduce((sum, input) => sum + Number(input.vatAmount), 0),
+  const outputVat = {
+    net: outputNet.toDisplayNumber(),
+    vat: outputVatAmount.toDisplayNumber(),
+    total: outputTotal.toDisplayNumber(),
+  }
+
+  // Calculate input VAT using Money class for precision
+  let inputDeductible = Money.zero()
+  let inputNonDeductible = Money.zero()
+  let inputTotal = Money.zero()
+
+  if (uraInputs.length) {
+    for (const input of uraInputs) {
+      inputDeductible = inputDeductible.add(Money.fromString(String(input.deductibleVatAmount)))
+      inputNonDeductible = inputNonDeductible.add(
+        Money.fromString(String(input.nonDeductibleVatAmount))
+      )
+      inputTotal = inputTotal.add(Money.fromString(String(input.vatAmount)))
+    }
+  } else {
+    for (const e of expenses) {
+      const vatAmount = Money.fromString(String(e.vatAmount))
+      if (e.vatDeductible) {
+        inputDeductible = inputDeductible.add(vatAmount)
+      } else {
+        inputNonDeductible = inputNonDeductible.add(vatAmount)
       }
-    : {
-        deductible: expenses
-          .filter((e) => e.vatDeductible)
-          .reduce((sum, e) => sum + Number(e.vatAmount), 0),
-        nonDeductible: expenses
-          .filter((e) => !e.vatDeductible)
-          .reduce((sum, e) => sum + Number(e.vatAmount), 0),
-        total: expenses.reduce((sum, e) => sum + Number(e.vatAmount), 0),
-      }
+      inputTotal = inputTotal.add(vatAmount)
+    }
+  }
+
+  const inputVat = {
+    deductible: inputDeductible.toDisplayNumber(),
+    nonDeductible: inputNonDeductible.toDisplayNumber(),
+    total: inputTotal.toDisplayNumber(),
+  }
+
+  // Calculate VAT payable using Money for precision
+  const vatPayable = outputVatAmount.subtract(inputDeductible)
 
   return {
     outputVat,
     inputVat,
-    vatPayable: outputVat.vat - inputVat.deductible,
+    vatPayable: vatPayable.toDisplayNumber(),
   }
 }
 
@@ -248,7 +274,10 @@ export async function preparePdvFormData(
       domestic: {
         standard: {
           rate: VAT_RATES.STANDARD,
-          baseAmount: vatData.inputVat.deductible / 0.25, // Reverse calculate base
+          // Reverse calculate base: vatAmount / 0.25 = vatAmount * 4
+          baseAmount: Money.fromString(String(vatData.inputVat.deductible))
+            .multiply("4")
+            .toDisplayNumber(),
           vatAmount: vatData.inputVat.deductible,
         },
         reduced: { rate: VAT_RATES.REDUCED, baseAmount: 0, vatAmount: 0 },
@@ -261,7 +290,9 @@ export async function preparePdvFormData(
       imports: { rate: VAT_RATES.STANDARD, baseAmount: 0, vatAmount: 0 },
       nonDeductible: vatData.inputVat.nonDeductible,
       totalInputVat: vatData.inputVat.deductible,
-      totalBaseInput: vatData.inputVat.deductible / 0.25,
+      totalBaseInput: Money.fromString(String(vatData.inputVat.deductible))
+        .multiply("4")
+        .toDisplayNumber(),
     },
 
     section3: {
@@ -274,9 +305,10 @@ export async function preparePdvFormData(
 
 /**
  * Format amount for XML (2 decimal places)
+ * Uses Money class for proper rounding
  */
 function formatAmount(amount: number): string {
-  return Math.round(amount * 100) / 100 + ""
+  return Money.fromString(String(amount)).round().toDisplayNumber().toFixed(2)
 }
 
 /**
