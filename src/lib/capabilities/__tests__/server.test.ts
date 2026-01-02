@@ -48,7 +48,7 @@ describe("resolveCapabilitiesForUser", () => {
     vi.mocked(db.user.findUnique).mockResolvedValue({
       id: "user-1",
       systemRole: "USER",
-      companyMemberships: [{ companyId: "company-1", role: "OWNER" }],
+      companies: [{ companyId: "company-1", role: "OWNER", isDefault: true }],
     } as any)
 
     vi.mocked(resolveCapabilities).mockResolvedValue([
@@ -79,7 +79,7 @@ describe("resolveCapabilitiesForUser", () => {
     vi.mocked(db.user.findUnique).mockResolvedValue({
       id: "user-1",
       systemRole: "USER",
-      companyMemberships: [],
+      companies: [],
     } as any)
 
     const result = await resolveCapabilitiesForUser(["INV-001"])
