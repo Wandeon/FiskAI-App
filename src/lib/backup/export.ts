@@ -4,6 +4,7 @@
 import { db } from "@/lib/db"
 import {
   EInvoice,
+  EInvoiceLine,
   Contact,
   Product,
   Expense,
@@ -41,7 +42,7 @@ export interface BackupData {
   warehouses: Warehouse[]
   stockItems: StockItem[]
   stockMovements: StockMovement[]
-  invoices: (EInvoice & { lines: any[] })[] // Including invoice lines
+  invoices: (EInvoice & { lines: EInvoiceLine[] })[] // Including invoice lines
   expenses: Expense[]
   createdAt: Date
 }

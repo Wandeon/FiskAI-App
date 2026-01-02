@@ -187,7 +187,9 @@ async function verifyFiscalData(): Promise<VerificationResult[]> {
       }
 
       if (pointers.length > 0) {
-        result.sourcePointerIds = pointers.map((p: any) => p.id)
+        result.sourcePointerIds = pointers.map(
+          (p: { id: string; extractedValue: string; confidence: number }) => p.id
+        )
 
         // Try to find a matching value
         for (const pointer of pointers) {

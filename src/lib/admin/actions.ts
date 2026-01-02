@@ -189,8 +189,8 @@ export async function flagTenant(
     }
 
     // Get current feature flags
-    const currentFlags = (company.featureFlags as Record<string, any>) || {}
-    const adminFlags = (currentFlags.adminFlags as string[]) || []
+    const currentFlags = (company.featureFlags as Record<string, unknown>) || {}
+    const adminFlags = (currentFlags.adminFlags as string[] | undefined) || []
 
     let updatedAdminFlags: string[]
 
@@ -239,9 +239,36 @@ export async function flagTenant(
  * - Redacted bank account balances
  * - Tenant notification on data export
  */
+interface TenantExportData {
+  exportedAt: string
+  exportedBy: {
+    id: string
+    email: string
+    name: string | null
+  }
+  company: Record<string, unknown>
+  users: Array<{
+    email: string
+    name: string | null
+    role: string
+    createdAt: Date
+    lastLogin: Date
+  }>
+  statistics: {
+    totalInvoices: number
+    totalExpenses: number
+    totalContacts: number
+    yearlyRevenue: number
+  }
+  invoices: unknown[]
+  expenses: unknown[]
+  contacts: unknown[]
+  bankAccounts: unknown[]
+}
+
 export async function exportTenantData(
   companyId: string
-): Promise<{ success: boolean; data?: any; error?: string }> {
+): Promise<{ success: boolean; data?: TenantExportData; error?: string }> {
   try {
     const admin = await requireAdmin()
 

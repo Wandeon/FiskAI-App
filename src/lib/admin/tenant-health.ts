@@ -115,7 +115,8 @@ export async function getTenantDetail(companyId: string): Promise<TenantDetail |
       onboardingComplete,
       onboardingStep,
       tutorialProgress: 0, // TODO: Calculate from tutorial_progress table
-      competenceLevel: (company.featureFlags as any)?.competence || "beginner",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- featureFlags is JSON column with dynamic structure
+      competenceLevel: (company.featureFlags as Record<string, unknown>)?.competence as string || "beginner",
       lastLoginAt: owner?.updatedAt || null,
       thirtyDayActivity: recentActivity,
     },
@@ -136,8 +137,13 @@ export async function getTenantDetail(companyId: string): Promise<TenantDetail |
   }
 }
 
+interface CompanyForFlags {
+  fiscalEnabled: boolean
+  createdAt: Date
+}
+
 function calculateFlags(
-  company: any,
+  company: CompanyForFlags,
   revenue: number,
   limit: number,
   lastLogin: Date | null

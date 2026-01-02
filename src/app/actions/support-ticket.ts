@@ -10,6 +10,7 @@ import {
   getCurrentCompany,
 } from "@/lib/auth-utils"
 import {
+  Prisma,
   SupportTicketPriority,
   SupportTicketStatus,
   SupportTicket,
@@ -226,7 +227,7 @@ export async function getSupportTickets(
     return requireCompanyWithContext(user.id!, async (company) => {
       const skip = (page - 1) * limit
 
-      const whereClause: any = {}
+      const whereClause: Prisma.SupportTicketWhereInput = {}
 
       if (status && status.length > 0) {
         whereClause.status = { in: status }
@@ -306,7 +307,7 @@ export async function updateSupportTicket(ticketId: string, input: UpdateSupport
       const validated = updateSupportTicketSchema.partial().parse(input)
 
       // Prepare update data
-      const updateData: any = {}
+      const updateData: Prisma.SupportTicketUpdateInput = {}
       if (validated.title !== undefined) updateData.title = validated.title.trim()
       if (validated.body !== undefined) updateData.body = validated.body.trim()
       if (validated.priority !== undefined) updateData.priority = validated.priority

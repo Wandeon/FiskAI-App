@@ -95,7 +95,7 @@ export default async function DocumentsPage({
     documentType: j.documentType,
     progress: j.status === "READY_FOR_REVIEW" ? 100 : j.status === "PROCESSING" ? 50 : 0,
     error: j.failureReason,
-    extractedData: j.extractedData as any,
+    extractedData: j.extractedData as Record<string, unknown> | null,
   }))
 
   const params = await searchParams

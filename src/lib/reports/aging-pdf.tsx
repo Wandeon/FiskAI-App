@@ -124,15 +124,23 @@ const styles = StyleSheet.create({
   },
 })
 
+interface AgingInvoice {
+  invoiceNumber: string | null
+  issueDate: Date | null
+  dueDate: Date | null
+  totalAmount: number | string
+  buyer?: { name: string } | null
+}
+
 interface AgingPdfDocumentProps {
   companyName: string
   companyOib: string
   aging: {
-    current: any[]
-    days30: any[]
-    days60: any[]
-    days90: any[]
-    over90: any[]
+    current: AgingInvoice[]
+    days30: AgingInvoice[]
+    days60: AgingInvoice[]
+    days90: AgingInvoice[]
+    over90: AgingInvoice[]
   }
   totals: {
     current: number

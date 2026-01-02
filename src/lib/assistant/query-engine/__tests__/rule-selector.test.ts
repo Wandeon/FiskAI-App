@@ -1,4 +1,5 @@
 // src/lib/assistant/query-engine/__tests__/rule-selector.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { selectRules, type RuleCandidate, type RuleSelectionResult } from "../rule-selector"
 

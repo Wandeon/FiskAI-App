@@ -7,6 +7,7 @@
  * @see GitHub issue #292
  */
 
+import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
 import { trackExperimentExposure, trackExperimentEnrollment } from "@/lib/feature-analytics"
 import type { TrackExperimentEventInput } from "./types"
@@ -34,7 +35,7 @@ export async function trackExperimentEvent(input: TrackExperimentEventInput): Pr
       variantId: assignment.variantId,
       eventType,
       eventName,
-      properties: properties as any,
+      properties: (properties as Prisma.InputJsonValue) ?? undefined,
     },
   })
 

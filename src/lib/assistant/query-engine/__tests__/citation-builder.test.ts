@@ -1,4 +1,5 @@
 // src/lib/assistant/query-engine/__tests__/citation-builder.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect } from "vitest"
 import { buildCitations } from "../citation-builder"
 import type { RuleCandidate } from "../rule-selector"

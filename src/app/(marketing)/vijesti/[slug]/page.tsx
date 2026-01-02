@@ -287,19 +287,17 @@ export default async function PostDetailPage({ params }: PageProps) {
     <>
       <ViewTracker slug={slug} />
       <JsonLd
-        schemas={
-          [
-            generateNewsArticleSchema(
-              post.title,
-              post.excerpt || "",
-              publishedDate,
-              publishedDate,
-              articleUrl,
-              post.featuredImageUrl || undefined
-            ),
-            generateBreadcrumbSchema(breadcrumbItems),
-          ] as any
-        }
+        schemas={[
+          generateNewsArticleSchema(
+            post.title,
+            post.excerpt || "",
+            publishedDate,
+            publishedDate,
+            articleUrl,
+            post.featuredImageUrl || undefined
+          ),
+          generateBreadcrumbSchema(breadcrumbItems),
+        ]}
       />
 
       <div className="mx-auto max-w-4xl px-4 py-12">

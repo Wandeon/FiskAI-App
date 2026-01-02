@@ -88,7 +88,7 @@ async function queueFiscalizationOrThrow(params: {
     companyId: params.company.id,
     invoiceId: params.invoice.id,
     type: "FISCALIZATION_TRIGGERED",
-    payload: fiscalDecision as any,
+    payload: fiscalDecision as Prisma.JsonValue,
   })
 
   return fiscalDecision

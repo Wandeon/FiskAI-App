@@ -223,6 +223,29 @@ export async function checkArchiveEligibility(
 /**
  * Export archived data for regulatory compliance
  */
+interface JsonExportData {
+  companyId: string
+  exportDate: string
+  count: number
+  period: { startDate: string; endDate: string }
+  invoices: unknown[]
+}
+
+interface CsvExportRow {
+  invoiceNumber: string
+  issueDate: string
+  fiscalizedAt: string
+  status: string
+  netAmount: string
+  vatAmount: string
+  totalAmount: string
+  buyerName: string
+  buyerOib: string
+  archivedAt: string
+}
+
+type ArchiveExportData = JsonExportData | CsvExportRow[] | unknown[]
+
 export async function exportArchiveData(
   companyId: string,
   startDate: Date,
@@ -230,7 +253,7 @@ export async function exportArchiveData(
   format: "json" | "xml" | "csv" = "json"
 ): Promise<{
   success: boolean
-  data: any
+  data: ArchiveExportData | null
   filename: string
   count: number
   message: string
@@ -252,7 +275,7 @@ export async function exportArchiveData(
       orderBy: { archivedAt: "desc" },
     })
 
-    let exportedData: any
+    let exportedData: ArchiveExportData
     let filename: string
 
     switch (format) {
@@ -269,15 +292,15 @@ export async function exportArchiveData(
             createdAt: inv.createdAt.toISOString(),
             updatedAt: inv.updatedAt.toISOString(),
             archivedAt: inv.archivedAt?.toISOString() || null,
-            lines: inv.lines.map((line) => ({
-              ...line,
-              createdAt: (line as any).createdAt?.toISOString
-                ? (line as any).createdAt.toISOString()
-                : undefined,
-              updatedAt: (line as any).updatedAt?.toISOString
-                ? (line as any).updatedAt.toISOString()
-                : undefined,
-            })),
+            // EInvoiceLine may have optional date fields
+            lines: inv.lines.map((line) => {
+              const lineWithDates = line as typeof line & { createdAt?: Date; updatedAt?: Date }
+              return {
+                ...line,
+                createdAt: lineWithDates.createdAt?.toISOString?.() ?? undefined,
+                updatedAt: lineWithDates.updatedAt?.toISOString?.() ?? undefined,
+              }
+            }),
           })),
         }
         filename = `fiskai-archive-export-${companyId}-${startDate.toISOString().split("T")[0]}-to-${endDate.toISOString().split("T")[0]}.json`

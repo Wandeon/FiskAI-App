@@ -2,6 +2,7 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
 import { ImportClient } from "./import-client"
+import type { JobStatus } from "@prisma/client"
 
 export default async function ImportPage() {
   const user = await requireAuth()
@@ -53,11 +54,11 @@ export default async function ImportPage() {
         initialJobs={pendingJobs.map((j) => ({
           id: j.id,
           fileName: j.originalName,
-          status: j.status as any,
+          status: j.status as JobStatus,
           documentType: j.documentType,
           progress: j.status === "READY_FOR_REVIEW" ? 100 : j.status === "PROCESSING" ? 50 : 0,
           error: j.failureReason,
-          extractedData: j.extractedData as any,
+          extractedData: j.extractedData as Record<string, unknown> | null,
         }))}
       />
     </div>

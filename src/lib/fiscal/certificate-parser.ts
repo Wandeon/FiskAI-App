@@ -118,7 +118,7 @@ export function isValidOIB(oib: string): boolean {
   return control === parseInt(oib[10], 10)
 }
 
-function formatSubject(subject: { getField(sn: string): any }): string {
+function formatSubject(subject: { getField(sn: string): { value?: string } | null }): string {
   const parts: string[] = []
   const cn = subject.getField("CN")
   const o = subject.getField("O")

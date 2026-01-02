@@ -1,4 +1,5 @@
 // src/lib/assistant/hooks/__tests__/useRovingTabindex.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { useRovingTabindex } from "../useRovingTabindex"

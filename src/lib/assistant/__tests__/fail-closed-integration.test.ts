@@ -1,4 +1,5 @@
 // src/lib/assistant/__tests__/fail-closed-integration.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 /**
  * Fail-Closed Integration Tests
  *

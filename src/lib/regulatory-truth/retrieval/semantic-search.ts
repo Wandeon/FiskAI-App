@@ -93,7 +93,7 @@ export async function semanticSearch(
 
   // Build WHERE clause conditions
   const conditions: string[] = []
-  const params: any[] = []
+  const params: (string | number)[] = []
 
   // Add domain filter
   if (domain) {

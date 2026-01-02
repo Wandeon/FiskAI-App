@@ -55,6 +55,17 @@ interface LatestSourceItem {
   impactLevel: string | null
 }
 
+interface NewsItemQueryResult {
+  id: string
+  sourceName: string | null
+  sourceUrl: string
+  title: string
+  summaryHr: string | null
+  originalContent: string | null
+  publishedAt: Date | null
+  impactLevel: string | null
+}
+
 function toPreview(value: string | null | undefined, maxLen = 180) {
   if (!value) return null
   const stripped = value
@@ -121,7 +132,7 @@ async function getLatestItems(limit = 10): Promise<LatestSourceItem[]> {
     .orderBy(desc(newsItems.publishedAt))
     .limit(limit)
 
-  return items.map((item: any) => ({
+  return (items as NewsItemQueryResult[]).map((item) => ({
     id: item.id,
     sourceName: item.sourceName,
     sourceUrl: item.sourceUrl,
@@ -129,7 +140,7 @@ async function getLatestItems(limit = 10): Promise<LatestSourceItem[]> {
     preview: item.summaryHr || toPreview(item.originalContent),
     publishedAt: item.publishedAt,
     impactLevel: item.impactLevel,
-  })) as LatestSourceItem[]
+  }))
 }
 
 async function getSources() {

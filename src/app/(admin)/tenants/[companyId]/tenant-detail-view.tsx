@@ -65,7 +65,7 @@ interface ActivityLog {
   action: string
   entity: string
   entityId: string
-  changes: any
+  changes: Record<string, unknown>
   timestamp: Date
   user: {
     id: string
@@ -79,11 +79,11 @@ interface SubscriptionHistory {
   timestamp: Date
   action: string
   changes: {
-    status?: any
-    plan?: any
-    periodStart?: any
-    periodEnd?: any
-    stripeId?: any
+    status?: string
+    plan?: string
+    periodStart?: string
+    periodEnd?: string
+    stripeId?: string
   }
   user: {
     id: string

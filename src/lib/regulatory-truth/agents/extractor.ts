@@ -40,7 +40,7 @@ function isJsonContent(content: string): boolean {
 /**
  * Helper to find a value in a JSON object and return the key-value pair
  */
-function findInJsonObject(obj: any, value: string, path: string = ""): string | null {
+function findInJsonObject(obj: unknown, value: string, path: string = ""): string | null {
   if (typeof obj !== "object" || obj === null) return null
 
   for (const [key, val] of Object.entries(obj)) {
@@ -178,7 +178,10 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
 
   // Store source pointers
   const sourcePointerIds: string[] = []
-  const rejectedExtractions: Array<{ extraction: any; errors: string[] }> = []
+  const rejectedExtractions: Array<{
+    extraction: ExtractorOutput["extractions"][number]
+    errors: string[]
+  }> = []
 
   for (const extraction of result.output.extractions) {
     // GUARD: Validate domain is in the standard DomainSchema
@@ -197,7 +200,8 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
         data: {
           evidenceId: evidence.id,
           rejectionType: "INVALID_DOMAIN",
-          rawOutput: extraction as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma JSON field accepts any serializable value
+          rawOutput: extraction as unknown as Record<string, unknown>,
           errorDetails: `Domain '${extraction.domain}' is not in DomainSchema. Valid domains: pausalni, pdv, porez_dohodak, doprinosi, fiskalizacija, rokovi, obrasci`,
         },
       })
@@ -244,7 +248,8 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
         data: {
           evidenceId: evidence.id,
           rejectionType,
-          rawOutput: extraction as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma JSON field accepts any serializable value
+          rawOutput: extraction as unknown as Record<string, unknown>,
           errorDetails: validation.errors.join("; "),
         },
       })

@@ -337,7 +337,7 @@ export function validateValueInQuote(
       if (match) {
         const jsonValue = match[1].trim()
         // Try to parse as JSON to get the actual value
-        let parsedValue: any
+        let parsedValue: unknown
         try {
           parsedValue = JSON.parse(jsonValue)
         } catch {
@@ -978,6 +978,19 @@ export interface DuplicateCheckResult {
 }
 
 /**
+ * Minimal Prisma client interface for claim validation functions.
+ * This allows the functions to work with any Prisma client (standard or extended).
+ */
+interface ClaimValidationDbClient {
+  atomicClaim: {
+    findFirst: (args: {
+      where: Record<string, unknown>
+      select: { id: true }
+    }) => Promise<{ id: string } | null>
+  }
+}
+
+/**
  * Check if a claim is a duplicate of an existing claim.
  * Duplicates are defined as claims with the same:
  * - subjectType + assertionType + logicExpr + value (semantic identity)
@@ -986,7 +999,7 @@ export interface DuplicateCheckResult {
 export async function checkClaimDuplicate(
   claim: AtomicClaimInput,
   evidenceId: string,
-  db: any
+  db: ClaimValidationDbClient
 ): Promise<DuplicateCheckResult> {
   // Check for provenance duplicate (same evidence + same quote)
   const provenanceDuplicate = await db.atomicClaim.findFirst({
@@ -1057,7 +1070,7 @@ export async function validateClaimBatch(
   claims: AtomicClaimInput[],
   evidenceId: string,
   evidenceContent: string,
-  db: any
+  db: ClaimValidationDbClient
 ): Promise<BatchValidationResult> {
   const validClaims: AtomicClaimInput[] = []
   const rejectedClaims: Array<{

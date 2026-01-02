@@ -28,6 +28,78 @@ type ParsedPage = {
   }
 }
 
+/** CAMT XML amount field - can be number, string, or object with currency attribute */
+type CamtAmountValue = number | string | { "@_Ccy"?: string; "#text"?: string; "_text"?: string; "$t"?: string }
+
+/** CAMT XML balance entry structure */
+interface CamtBalance {
+  Tp?: {
+    CdOrPrtry?: {
+      Cd?: string
+      Prtry?: string
+    }
+  }
+  Amt?: CamtAmountValue
+}
+
+/** CAMT XML entry (transaction) structure */
+interface CamtEntry {
+  Amt?: CamtAmountValue
+  CdtDbtInd?: string
+  BookgDt?: { Dt?: string }
+  ValDt?: { Dt?: string }
+  NtryRef?: string
+  AddtlNtryInf?: string
+  NtryDtls?: {
+    TxDtls?: CamtTransactionDetails | CamtTransactionDetails[]
+  }
+}
+
+/** CAMT XML transaction details */
+interface CamtTransactionDetails {
+  Refs?: {
+    EndToEndId?: string
+    TxId?: string
+    InstrId?: string
+  }
+  RltdPties?: {
+    Cdtr?: { Nm?: string }
+    Dbtr?: { Nm?: string }
+    UltmtCdtr?: { Nm?: string }
+    UltmtDbtr?: { Nm?: string }
+    CdtrAcct?: { Id?: { IBAN?: string } }
+    DbtrAcct?: { Id?: { IBAN?: string } }
+  }
+  RmtInf?: { Ustrd?: string }
+}
+
+/** Raw transaction from AI model response */
+interface RawParsedTransaction {
+  date?: string
+  payee?: string | null
+  description?: string | null
+  amount?: number | string
+  direction?: string
+  reference?: string | null
+  counterpartyIban?: string | null
+}
+
+/** Raw page response from AI model */
+interface RawParsedPageResponse {
+  pageStartBalance?: number | string | null
+  pageEndBalance?: number | string | null
+  transactions?: RawParsedTransaction[]
+  metadata?: {
+    sequenceNumber?: number | null
+    statementDate?: string | null
+  }
+}
+
+/** PDF page data from pdf-parse library */
+interface PdfPageData {
+  getTextContent(): Promise<{ items: Array<{ str: string }> }>
+}
+
 function parseCroatianNumber(raw: string): number {
   if (raw === null || raw === undefined) return NaN
   const str = String(raw).trim()
@@ -39,7 +111,7 @@ function parseCroatianNumber(raw: string): number {
   return parseFloat(cleaned)
 }
 
-function extractAmountValue(amt: any): number {
+function extractAmountValue(amt: CamtAmountValue | null | undefined): number {
   if (amt === null || amt === undefined) return 0
   if (typeof amt === "number") return amt
   if (typeof amt === "string") return parseFloat(amt) || 0
@@ -148,22 +220,23 @@ async function handleXml(jobId: string) {
   const periodStart = stmt?.FrToDt?.FrDt ? new Date(stmt.FrToDt.FrDt) : statementDate
   const periodEnd = stmt?.FrToDt?.ToDt ? new Date(stmt.FrToDt.ToDt) : statementDate
 
-  const balances = Array.isArray(stmt.Bal) ? stmt.Bal : stmt.Bal ? [stmt.Bal] : []
+  const balances: CamtBalance[] = Array.isArray(stmt.Bal) ? stmt.Bal : stmt.Bal ? [stmt.Bal] : []
   const openingBalRaw =
-    balances.find((b: any) => b?.Tp?.CdOrPrtry?.Cd === "OPBD")?.Amt ??
-    balances.find((b: any) => b?.Tp?.CdOrPrtry?.Prtry === "OPBD")?.Amt ??
+    balances.find((b) => b?.Tp?.CdOrPrtry?.Cd === "OPBD")?.Amt ??
+    balances.find((b) => b?.Tp?.CdOrPrtry?.Prtry === "OPBD")?.Amt ??
     balances[0]?.Amt ??
     0
   const closingBalRaw =
-    balances.find((b: any) => b?.Tp?.CdOrPrtry?.Cd === "CLBD")?.Amt ??
-    balances.find((b: any) => b?.Tp?.CdOrPrtry?.Prtry === "CLBD")?.Amt ??
+    balances.find((b) => b?.Tp?.CdOrPrtry?.Cd === "CLBD")?.Amt ??
+    balances.find((b) => b?.Tp?.CdOrPrtry?.Prtry === "CLBD")?.Amt ??
     balances[balances.length - 1]?.Amt ??
     openingBalRaw
   const openingBal = extractAmountValue(openingBalRaw)
   const closingBal = extractAmountValue(closingBalRaw)
-  const currency = balances[0]?.Amt?.["@_Ccy"] || "EUR"
+  const firstAmt = balances[0]?.Amt
+  const currency = (typeof firstAmt === "object" && firstAmt !== null ? firstAmt["@_Ccy"] : undefined) || "EUR"
 
-  const entries = Array.isArray(stmt.Ntry) ? stmt.Ntry : stmt.Ntry ? [stmt.Ntry] : []
+  const entries: CamtEntry[] = Array.isArray(stmt.Ntry) ? stmt.Ntry : stmt.Ntry ? [stmt.Ntry] : []
 
   const statementImport = await db.statementImport.create({
     data: {
@@ -213,12 +286,12 @@ async function handleXml(jobId: string) {
 
   if (entries.length) {
     await db.bankTransaction.createMany({
-      data: entries.map((entry: any) => {
+      data: entries.map((entry) => {
         const amount = extractAmountValue(entry?.Amt)
         const cdtDbt = entry?.CdtDbtInd === "CRDT" ? "INCOMING" : "OUTGOING"
         const dateStr = entry?.BookgDt?.Dt || entry?.ValDt?.Dt || statementDate
         const related = entry?.NtryDtls?.TxDtls || []
-        const details = Array.isArray(related) ? related[0] : related
+        const details: CamtTransactionDetails | undefined = Array.isArray(related) ? related[0] : related
         const ref =
           entry?.NtryRef ||
           details?.Refs?.EndToEndId ||
@@ -463,11 +536,11 @@ async function callWorkhorseModel(pageText: string): Promise<Omit<ParsedPage, "p
     ],
   })
 
-  const parsed = JSON.parse(content) as any
+  const parsed = JSON.parse(content) as RawParsedPageResponse
 
   const transactions = Array.isArray(parsed.transactions)
-    ? parsed.transactions.map((t: any) => ({
-        date: t.date,
+    ? parsed.transactions.map((t) => ({
+        date: t.date ?? "",
         payee: t.payee ?? null,
         description: t.description ?? null,
         amount: Number(t.amount),
@@ -488,7 +561,8 @@ async function callWorkhorseModel(pageText: string): Promise<Omit<ParsedPage, "p
 }
 
 async function extractPdfTextPerPage(buffer: Buffer): Promise<string[]> {
-  let pdfParse: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pdf-parse is dynamically imported and lacks TypeScript definitions
+  let pdfParse: (buffer: Buffer, options?: { pagerender?: (pageData: PdfPageData) => Promise<string> }) => Promise<unknown>
   try {
     pdfParse = (await import("pdf-parse")).default
   } catch (error) {
@@ -498,17 +572,18 @@ async function extractPdfTextPerPage(buffer: Buffer): Promise<string[]> {
   try {
     const pages: string[] = []
     await pdfParse(buffer, {
-      pagerender: async (pageData: any) => {
+      pagerender: async (pageData: PdfPageData) => {
         const textContent = await pageData.getTextContent()
-        const strings = textContent.items.map((item: any) => item.str)
+        const strings = textContent.items.map((item) => item.str)
         const combined = strings.join(" ").trim()
         pages.push(combined)
         return combined
       },
     })
     return pages
-  } catch (pdfError: any) {
-    console.warn("[extractPdfTextPerPage] pdf-parse failed:", pdfError.message)
+  } catch (pdfError: unknown) {
+    const errorMessage = pdfError instanceof Error ? pdfError.message : String(pdfError)
+    console.warn("[extractPdfTextPerPage] pdf-parse failed:", errorMessage)
     // Fallback: try to extract text with a simpler approach
     try {
       // Simple fallback for testing - extract any text from buffer
@@ -528,7 +603,7 @@ async function extractPdfTextPerPage(buffer: Buffer): Promise<string[]> {
     } catch (fallbackError) {
       console.error("[extractPdfTextPerPage] fallback also failed:", fallbackError)
     }
-    throw new Error(`PDF text extraction failed: ${pdfError.message}`)
+    throw new Error(`PDF text extraction failed: ${errorMessage}`)
   }
 }
 
@@ -625,10 +700,10 @@ async function tryRepairPageWithVision({
   const content = (await runOllama()) ?? (await runOpenAI())
   if (!content) return null
 
-  const parsed = JSON.parse(content)
+  const parsed = JSON.parse(content) as RawParsedPageResponse
   const transactions = Array.isArray(parsed.transactions)
-    ? parsed.transactions.map((t: any) => ({
-        date: t.date,
+    ? parsed.transactions.map((t) => ({
+        date: t.date ?? "",
         payee: t.payee ?? null,
         description: t.description ?? null,
         amount: Number(t.amount),

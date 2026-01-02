@@ -1,4 +1,5 @@
 // src/lib/assistant/hooks/__tests__/useReducedMotion.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { renderHook } from "@testing-library/react"
 import { useReducedMotion } from "../useReducedMotion"

@@ -119,8 +119,10 @@ export async function fetchFromRSS(source: NewsSource): Promise<NewNewsItem[]> {
     for (const item of feed.items) {
       if (!item.title || !item.link) continue
 
+      // rss-parser custom fields are typed dynamically
+      const itemWithCustomFields = item as typeof item & { contentEncoded?: string; description?: string }
       const content =
-        (item as any).contentEncoded || (item as any).description || item.content || ""
+        itemWithCustomFields.contentEncoded || itemWithCustomFields.description || item.content || ""
 
       items.push({
         sourceId: source.id,

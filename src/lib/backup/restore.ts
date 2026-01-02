@@ -6,6 +6,57 @@ import { Prisma } from "@prisma/client"
 import { logger } from "@/lib/logger"
 import { BackupData, validateBackupData } from "./export"
 
+/**
+ * Raw JSON representation of backup data before date parsing.
+ * Used in parseBackupJson to safely process JSON.parse() output.
+ */
+interface RawBackupInvoice {
+  issueDate?: string | null
+  dueDate?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  [key: string]: unknown
+}
+
+interface RawBackupExpense {
+  date?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  vatRate?: unknown // Optional field that may not exist on Expense model
+  [key: string]: unknown
+}
+
+interface RawBackupContact {
+  createdAt?: string | null
+  updatedAt?: string | null
+  [key: string]: unknown
+}
+
+interface RawBackupProduct {
+  createdAt?: string | null
+  updatedAt?: string | null
+  [key: string]: unknown
+}
+
+interface RawBackupWarehouse {
+  createdAt?: string | null
+  updatedAt?: string | null
+  [key: string]: unknown
+}
+
+interface RawBackupStockItem {
+  createdAt?: string | null
+  updatedAt?: string | null
+  lastMovementAt?: string | null
+  [key: string]: unknown
+}
+
+interface RawBackupStockMovement {
+  movementDate?: string | null
+  createdAt?: string | null
+  [key: string]: unknown
+}
+
 export type RestoreMode = "merge" | "replace"
 
 export interface RestoreOptions {
@@ -687,7 +738,7 @@ export async function restoreCompanyData(
                     status: expense.status,
                     netAmount: expense.netAmount,
                     vatAmount: expense.vatAmount,
-                    vatRate: (expense as any).vatRate ?? new Prisma.Decimal(25),
+                    vatRate: expense.vatRate ?? new Prisma.Decimal(25),
                     totalAmount: expense.totalAmount,
                     paymentMethod: expense.paymentMethod,
                   },
@@ -704,7 +755,7 @@ export async function restoreCompanyData(
                   status: expense.status,
                   netAmount: expense.netAmount,
                   vatAmount: expense.vatAmount,
-                  vatRate: (expense as any).vatRate ?? new Prisma.Decimal(25),
+                  vatRate: expense.vatRate ?? new Prisma.Decimal(25),
                   totalAmount: expense.totalAmount,
                   paymentMethod: expense.paymentMethod,
                 },
@@ -756,7 +807,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert invoice dates
     if (Array.isArray(data.invoices)) {
-      data.invoices = data.invoices.map((inv: any) => ({
+      data.invoices = data.invoices.map((inv: RawBackupInvoice) => ({
         ...inv,
         issueDate: inv.issueDate ? new Date(inv.issueDate) : null,
         dueDate: inv.dueDate ? new Date(inv.dueDate) : null,
@@ -767,7 +818,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert expense dates
     if (Array.isArray(data.expenses)) {
-      data.expenses = data.expenses.map((exp: any) => ({
+      data.expenses = data.expenses.map((exp: RawBackupExpense) => ({
         ...exp,
         date: exp.date ? new Date(exp.date) : null,
         createdAt: exp.createdAt ? new Date(exp.createdAt) : null,
@@ -777,7 +828,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert contact dates
     if (Array.isArray(data.contacts)) {
-      data.contacts = data.contacts.map((contact: any) => ({
+      data.contacts = data.contacts.map((contact: RawBackupContact) => ({
         ...contact,
         createdAt: contact.createdAt ? new Date(contact.createdAt) : null,
         updatedAt: contact.updatedAt ? new Date(contact.updatedAt) : null,
@@ -786,7 +837,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert product dates
     if (Array.isArray(data.products)) {
-      data.products = data.products.map((product: any) => ({
+      data.products = data.products.map((product: RawBackupProduct) => ({
         ...product,
         createdAt: product.createdAt ? new Date(product.createdAt) : null,
         updatedAt: product.updatedAt ? new Date(product.updatedAt) : null,
@@ -795,7 +846,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert warehouse dates
     if (Array.isArray(data.warehouses)) {
-      data.warehouses = data.warehouses.map((warehouse: any) => ({
+      data.warehouses = data.warehouses.map((warehouse: RawBackupWarehouse) => ({
         ...warehouse,
         createdAt: warehouse.createdAt ? new Date(warehouse.createdAt) : null,
         updatedAt: warehouse.updatedAt ? new Date(warehouse.updatedAt) : null,
@@ -804,7 +855,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert stock item dates
     if (Array.isArray(data.stockItems)) {
-      data.stockItems = data.stockItems.map((stockItem: any) => ({
+      data.stockItems = data.stockItems.map((stockItem: RawBackupStockItem) => ({
         ...stockItem,
         createdAt: stockItem.createdAt ? new Date(stockItem.createdAt) : null,
         updatedAt: stockItem.updatedAt ? new Date(stockItem.updatedAt) : null,
@@ -814,7 +865,7 @@ export function parseBackupJson(jsonString: string): BackupData {
 
     // Convert stock movement dates
     if (Array.isArray(data.stockMovements)) {
-      data.stockMovements = data.stockMovements.map((movement: any) => ({
+      data.stockMovements = data.stockMovements.map((movement: RawBackupStockMovement) => ({
         ...movement,
         movementDate: movement.movementDate ? new Date(movement.movementDate) : null,
         createdAt: movement.createdAt ? new Date(movement.createdAt) : null,

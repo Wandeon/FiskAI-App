@@ -40,8 +40,8 @@ export function AgingReportTable({ invoices }: { invoices: Invoice[] }) {
 
   const sortedInvoices = useMemo(() => {
     const sorted = [...invoices].sort((a, b) => {
-      let aValue: any
-      let bValue: any
+      let aValue: string | number
+      let bValue: string | number
 
       switch (sortField) {
         case "invoiceNumber":

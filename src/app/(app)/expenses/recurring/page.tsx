@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ResponsiveTable, type Column } from "@/components/ui/responsive-table"
 import { Plus, RefreshCw, Calendar } from "lucide-react"
 import { RecurringExpenseActions } from "./recurring-expense-actions"
-import type { RecurringExpense, ExpenseCategory, Contact } from "@prisma/client"
+import { ContactType, type RecurringExpense, type ExpenseCategory, type Contact } from "@prisma/client"
 
 type RecurringExpenseWithRelations = RecurringExpense & {
   category: ExpenseCategory
@@ -58,7 +58,7 @@ export default async function RecurringExpensesPage() {
       where: { companyId: company.id },
     }),
     db.contact.findMany({
-      where: { companyId: company.id, type: "VENDOR" as any },
+      where: { companyId: company.id, type: ContactType.SUPPLIER },
     }),
   ])
 

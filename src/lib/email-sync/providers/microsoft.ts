@@ -107,12 +107,28 @@ export const microsoftProvider: EmailSyncProvider = {
 
     const response = await request.get()
 
-    const messages: EmailMessage[] = (response.value || []).map((msg: any) => ({
+    // Microsoft Graph API message response types
+    interface MSGraphAttachment {
+      id: string
+      name: string
+      contentType: string
+      size: number
+    }
+
+    interface MSGraphMessage {
+      id: string
+      receivedDateTime: string
+      from?: { emailAddress?: { address?: string } }
+      subject?: string
+      attachments?: MSGraphAttachment[]
+    }
+
+    const messages: EmailMessage[] = ((response.value || []) as MSGraphMessage[]).map((msg) => ({
       id: msg.id,
       receivedAt: new Date(msg.receivedDateTime),
       senderEmail: msg.from?.emailAddress?.address || "",
       subject: msg.subject || "",
-      attachments: (msg.attachments || []).map((att: any) => ({
+      attachments: (msg.attachments || []).map((att) => ({
         id: att.id,
         filename: att.name,
         mimeType: att.contentType || "application/octet-stream",

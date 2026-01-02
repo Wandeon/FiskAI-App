@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import dynamic from "next/dynamic"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { getCachedTenantList } from "@/lib/cache"
-import type { TenantFilters, TenantSort, TenantPagination } from "@/lib/admin/tenant-list"
+import type { TenantFilters, TenantSort, TenantPagination, TenantSortField, TenantSortOrder } from "@/lib/admin/tenant-list"
 
 // Dynamic import for heavy TenantListView component
 const TenantListView = dynamic(
@@ -47,8 +47,8 @@ export default async function AdminTenantsPage({
 
   // Parse sort from URL params
   const sort: TenantSort = {
-    field: (params.sortField as any) || "createdAt",
-    order: (params.sortOrder as any) || "desc",
+    field: (params.sortField as TenantSortField) || "createdAt",
+    order: (params.sortOrder as TenantSortOrder) || "desc",
   }
 
   // Parse pagination from URL params

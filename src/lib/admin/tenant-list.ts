@@ -51,8 +51,9 @@ export async function getTenantList(
   sort: TenantSort = { field: "createdAt", order: "desc" },
   pagination: TenantPagination = { page: 1, pageSize: 20 }
 ): Promise<TenantListResult> {
-  // Build where clause
-  const where: any = {}
+  // Build where clause - using Prisma.CompanyWhereInput would require importing Prisma types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma where clause with dynamic conditions
+  const where: Record<string, unknown> = {}
 
   if (filters.legalForm) {
     where.legalForm = filters.legalForm
@@ -154,8 +155,8 @@ export async function getTenantList(
 
   // Sort the results
   tenants.sort((a, b) => {
-    let aValue: any
-    let bValue: any
+    let aValue: string | number
+    let bValue: string | number
 
     switch (sort.field) {
       case "name":

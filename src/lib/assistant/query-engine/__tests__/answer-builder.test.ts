@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { buildAnswer } from "../answer-builder"
 import * as conceptMatcher from "../concept-matcher"

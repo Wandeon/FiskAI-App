@@ -249,7 +249,7 @@ export async function syncAllConnections(): Promise<SyncResult[]> {
 
     try {
       // Try to acquire lock with NX (only set if not exists) and EX (expiry)
-      const acquired = await (redis as any).set(lockKey, Date.now().toString(), "NX", "EX", lockTTL)
+      const acquired = await redis.set(lockKey, Date.now().toString(), "EX", lockTTL, "NX")
 
       if (!acquired) {
         // Lock already held by another process

@@ -341,16 +341,31 @@ export async function verifyAgainstRTL(
       [domain]
     )
 
+    // Type the expected row structure from the query
+    interface SourcePointerRow {
+      id: string
+      extractedValue: string
+      displayValue: string
+      confidence: number
+      evidenceId: string
+      sourceUrl: string
+      fetchedAt: Date
+    }
+
+    interface RuleRow {
+      id: string
+    }
+
     if (pointerQuery.rows.length > 0) {
       rtlResult.hasRTLData = true
-      rtlResult.sourcePointerIds = pointerQuery.rows.map((r: any) => r.id)
-      rtlResult.evidenceIds = [...new Set(pointerQuery.rows.map((r: any) => r.evidenceId))]
-      rtlResult.lastRTLExtraction = (pointerQuery.rows[0] as any).fetchedAt
+      const typedRows = pointerQuery.rows as SourcePointerRow[]
+      rtlResult.sourcePointerIds = typedRows.map((r) => r.id)
+      rtlResult.evidenceIds = [...new Set(typedRows.map((r) => r.evidenceId))]
+      rtlResult.lastRTLExtraction = typedRows[0].fetchedAt
 
       // Look for matching values
-      for (const pointer of pointerQuery.rows) {
-        const p = pointer as any
-        const extractedNum = parseFloat(p.extractedValue)
+      for (const pointer of typedRows) {
+        const extractedNum = parseFloat(pointer.extractedValue)
         const foundNum =
           typeof result.foundValue === "number"
             ? result.foundValue
@@ -358,7 +373,7 @@ export async function verifyAgainstRTL(
 
         if (!isNaN(extractedNum) && !isNaN(foundNum) && Math.abs(extractedNum - foundNum) < 0.001) {
           // Found matching RTL data
-          rtlResult.confidence = Math.max(rtlResult.confidence, p.confidence)
+          rtlResult.confidence = Math.max(rtlResult.confidence, pointer.confidence)
           break
         }
       }
@@ -374,7 +389,7 @@ export async function verifyAgainstRTL(
     )
 
     if (ruleQuery.rows.length > 0) {
-      rtlResult.ruleId = (ruleQuery.rows[0] as any).id
+      rtlResult.ruleId = (ruleQuery.rows[0] as RuleRow).id
     }
   } catch (error) {
     console.error(`[rtl-bridge] Error verifying against RTL:`, error)

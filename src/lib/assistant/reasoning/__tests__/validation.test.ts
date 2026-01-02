@@ -1,4 +1,5 @@
 // src/lib/assistant/reasoning/__tests__/validation.test.ts
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect } from "vitest"
 import {
   ReasoningEventSchema,

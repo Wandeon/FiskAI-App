@@ -5,6 +5,7 @@
  * @see GitHub issue #292
  */
 
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
 import type {
   CreateExperimentInput,
@@ -44,7 +45,7 @@ export async function createExperiment(
           name: variant.name,
           description: variant.description,
           weight: variant.weight,
-          config: variant.config as any,
+          config: (variant.config as Prisma.InputJsonValue) ?? Prisma.JsonNull,
         })),
       },
     },
@@ -89,7 +90,7 @@ export async function getExperimentByName(name: string): Promise<ExperimentWithR
  * List all experiments with optional filters
  */
 export async function listExperiments(filters?: ExperimentFilters): Promise<Experiment[]> {
-  const where: any = {}
+  const where: Prisma.ExperimentWhereInput = {}
 
   if (filters?.status) {
     where.status = filters.status

@@ -11,9 +11,34 @@ export interface RSSItem {
 }
 
 /**
+ * Parsed XML structure from xml2js for RSS feeds
+ */
+interface ParsedRSSData {
+  rss?: {
+    channel?: Array<{
+      item?: Array<{
+        title?: string[]
+        link?: string[]
+        pubDate?: string[]
+        description?: string[]
+      }>
+    }>
+  }
+  feed?: {
+    entry?: Array<{
+      title?: Array<string | { _: string }>
+      link?: Array<string | { $?: { href?: string } }>
+      updated?: string[]
+      published?: string[]
+      summary?: Array<string | { _: string }>
+    }>
+  }
+}
+
+/**
  * Parse an RSS 2.0 feed
  */
-function parseRSS2(data: any): RSSItem[] {
+function parseRSS2(data: ParsedRSSData): RSSItem[] {
   const items: RSSItem[] = []
 
   if (!data.rss?.channel?.[0]?.item) {
@@ -42,7 +67,7 @@ function parseRSS2(data: any): RSSItem[] {
 /**
  * Parse an Atom feed
  */
-function parseAtom(data: any): RSSItem[] {
+function parseAtom(data: ParsedRSSData): RSSItem[] {
   const items: RSSItem[] = []
 
   if (!data.feed?.entry) {

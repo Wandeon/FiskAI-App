@@ -364,8 +364,13 @@ export async function* buildAnswerWithReasoning(
         }
       }
 
-      // Calculate decision coverage
-      decisionCoverage = calculateDecisionCoverage(topic, providedDimensions, context as any)
+      // Calculate decision coverage - convert CompanyContext to Record<string, string>
+      const userProfile: Record<string, string> | undefined = context
+        ? Object.fromEntries(
+            Object.entries(context).filter(([, v]) => v !== undefined) as [string, string][]
+          )
+        : undefined
+      decisionCoverage = calculateDecisionCoverage(topic, providedDimensions, userProfile)
 
       terminalOutcome = decisionCoverage.terminalOutcome as
         | "ANSWER"

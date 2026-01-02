@@ -1,4 +1,5 @@
 import { createHash } from "crypto"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import type {
   CalculationRequest,
@@ -72,7 +73,7 @@ export async function createRuleVersion(params: {
         tableId: table.id,
         version: params.version,
         effectiveFrom: params.effectiveFrom,
-        data: params.data as any,
+        data: params.data as unknown as Prisma.InputJsonValue,
         dataHash,
       },
     })
@@ -80,7 +81,7 @@ export async function createRuleVersion(params: {
     await tx.ruleSnapshot.create({
       data: {
         ruleVersionId: ruleVersion.id,
-        data: params.data as any,
+        data: params.data as unknown as Prisma.InputJsonValue,
         dataHash,
       },
     })
@@ -302,8 +303,8 @@ export async function calculateDeterministicRule(
     data: {
       ruleVersionId: ruleVersion.id,
       tableKey: input.tableKey,
-      input: input as any,
-      result: result as any,
+      input: input as unknown as Prisma.InputJsonValue,
+      result: result as unknown as Prisma.InputJsonValue,
       referenceDate,
     },
   })

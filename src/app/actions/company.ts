@@ -48,7 +48,7 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
         // Determine entitlements based on legal form
         const legalForm = data.legalForm || existingCompany.legalForm || "DOO"
         const entitlements =
-          existingCompany.entitlements && (existingCompany.entitlements as any[]).length > 0
+          existingCompany.entitlements && Array.isArray(existingCompany.entitlements) && existingCompany.entitlements.length > 0
             ? existingCompany.entitlements
             : getEntitlementsForLegalForm(legalForm)
 

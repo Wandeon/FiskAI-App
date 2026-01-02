@@ -4,7 +4,7 @@
  */
 
 import OpenAI from "openai"
-import { trackAIUsage } from "@/lib/ai/usage-tracking"
+import { trackAIUsage, type AIOperation } from "@/lib/ai/usage-tracking"
 
 interface DeepSeekMessage {
   role: "system" | "user" | "assistant"
@@ -40,7 +40,7 @@ export class DeepSeekError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public responseBody?: any
+    public responseBody?: unknown
   ) {
     super(message)
     this.name = "DeepSeekError"
@@ -134,7 +134,7 @@ async function callOllamaCloud(
       // Track usage for system operations (news processing)
       await trackAIUsage({
         companyId: "system",
-        operation: operation as any,
+        operation: operation as AIOperation,
         model,
         inputTokens: 0, // Ollama doesn't provide token counts
         outputTokens: 0,
@@ -159,7 +159,7 @@ async function callOllamaCloud(
   // Track failed request
   await trackAIUsage({
     companyId: "system",
-    operation: operation as any,
+    operation: operation as AIOperation,
     model,
     inputTokens: 0,
     outputTokens: 0,
@@ -223,7 +223,7 @@ async function callOpenAI(
       // Track usage for system operations (news processing)
       await trackAIUsage({
         companyId: "system",
-        operation: operation as any,
+        operation: operation as AIOperation,
         model,
         inputTokens: response.usage?.prompt_tokens || 0,
         outputTokens: response.usage?.completion_tokens || 0,
@@ -245,7 +245,7 @@ async function callOpenAI(
   // Track failed request
   await trackAIUsage({
     companyId: "system",
-    operation: operation as any,
+    operation: operation as AIOperation,
     model,
     inputTokens: 0,
     outputTokens: 0,
@@ -362,7 +362,7 @@ export async function callDeepSeek(
       if (data.usage) {
         await trackAIUsage({
           companyId: "system",
-          operation: operation as any,
+          operation: operation as AIOperation,
           model,
           inputTokens: data.usage.prompt_tokens,
           outputTokens: data.usage.completion_tokens,
@@ -390,7 +390,7 @@ export async function callDeepSeek(
   // Track failed request
   await trackAIUsage({
     companyId: "system",
-    operation: operation as any,
+    operation: operation as AIOperation,
     model: model || "deepseek-chat",
     inputTokens: 0,
     outputTokens: 0,
