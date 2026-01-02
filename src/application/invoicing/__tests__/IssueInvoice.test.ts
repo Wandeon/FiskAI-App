@@ -42,7 +42,6 @@ describe("IssueInvoice", () => {
 
     const input: IssueInvoiceInput = {
       invoiceId: existingInvoice.id.toString(),
-      companyId: "company-789",
       premiseCode: 1,
       deviceCode: 1,
       dueDate: futureDate,
@@ -52,7 +51,7 @@ describe("IssueInvoice", () => {
 
     expect(result.invoiceNumber).toBe("42-1-1")
     expect(mockRepo.findById).toHaveBeenCalledTimes(1)
-    expect(mockRepo.nextSequenceNumber).toHaveBeenCalledWith("company-789", 1, 1)
+    expect(mockRepo.nextSequenceNumber).toHaveBeenCalledWith(1, 1)
   })
 
   it("saves the invoice after issuing", async () => {
@@ -61,7 +60,6 @@ describe("IssueInvoice", () => {
 
     const input: IssueInvoiceInput = {
       invoiceId: existingInvoice.id.toString(),
-      companyId: "company-789",
       premiseCode: 2,
       deviceCode: 3,
       dueDate: futureDate,
@@ -80,7 +78,6 @@ describe("IssueInvoice", () => {
 
     const input: IssueInvoiceInput = {
       invoiceId: "non-existent-id",
-      companyId: "company-789",
       premiseCode: 1,
       deviceCode: 1,
       dueDate: futureDate,
@@ -98,7 +95,6 @@ describe("IssueInvoice", () => {
 
     const input: IssueInvoiceInput = {
       invoiceId: existingInvoice.id.toString(),
-      companyId: "company-abc",
       premiseCode: 5,
       deviceCode: 2,
       dueDate: futureDate,

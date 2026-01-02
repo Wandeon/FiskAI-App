@@ -4,7 +4,6 @@ import { InvoiceId, InvoiceNumber, InvoiceError } from "@/domain/invoicing"
 
 export interface IssueInvoiceInput {
   invoiceId: string
-  companyId: string
   premiseCode: number
   deviceCode: number
   dueDate: Date
@@ -14,6 +13,12 @@ export interface IssueInvoiceOutput {
   invoiceNumber: string
 }
 
+/**
+ * Use case for issuing an invoice.
+ *
+ * Note: companyId is no longer passed as input - the repository is
+ * already scoped to the tenant via TenantScopedContext.
+ */
 export class IssueInvoice {
   constructor(private readonly repo: InvoiceRepository) {}
 
@@ -23,11 +28,7 @@ export class IssueInvoice {
       throw new InvoiceError(`Invoice ${input.invoiceId} not found`)
     }
 
-    const sequenceNumber = await this.repo.nextSequenceNumber(
-      input.companyId,
-      input.premiseCode,
-      input.deviceCode
-    )
+    const sequenceNumber = await this.repo.nextSequenceNumber(input.premiseCode, input.deviceCode)
 
     const invoiceNumber = InvoiceNumber.create(
       sequenceNumber,

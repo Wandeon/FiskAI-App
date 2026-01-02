@@ -1,10 +1,12 @@
 // src/infrastructure/invoicing/PrismaInvoiceRepository.ts
 import { Prisma, EInvoiceStatus } from "@prisma/client"
-import { prisma } from "@/lib/db"
 import { InvoiceRepository } from "@/domain/invoicing/InvoiceRepository"
 import { Invoice, InvoiceId, InvoiceNumber, InvoiceStatus, InvoiceLine } from "@/domain/invoicing"
 import { Quantity, VatRate } from "@/domain/shared"
 import { MoneyMapper } from "@/infrastructure/mappers/MoneyMapper"
+import { TenantScopedContext } from "../shared/TenantScopedContext"
+import { TenantScopeMismatchError } from "../shared/TenantScopeMismatchError"
+import { logSecurityEvent } from "@/lib/audit/security-events"
 
 /**
  * Map domain InvoiceStatus to Prisma EInvoiceStatus.
@@ -30,20 +32,67 @@ type EInvoiceWithLines = Prisma.EInvoiceGetPayload<{
 }>
 
 export class PrismaInvoiceRepository implements InvoiceRepository {
+  constructor(private readonly ctx: TenantScopedContext) {}
+
+  /**
+   * Best-effort audit logging for tenant scope violations.
+   * MUST NEVER throw - failures are silently logged to console.
+   */
+  private auditViolation(operation: string, aggregateId: string, actualCompanyId: string): void {
+    try {
+      logSecurityEvent({
+        type: "TENANT_SCOPE_VIOLATION",
+        actorUserId: this.ctx.userId,
+        expectedCompanyId: this.ctx.companyId,
+        actualCompanyId,
+        aggregateType: "Invoice",
+        aggregateId,
+        operation,
+        correlationId: this.ctx.correlationId,
+        timestamp: new Date().toISOString(),
+      })
+    } catch {
+      // Best-effort - NEVER throw from audit
+      console.error("Failed to audit tenant violation")
+    }
+  }
+
   async save(invoice: Invoice): Promise<void> {
+    // Enforce tenant scope before any database operation
+    if (invoice.companyId !== this.ctx.companyId) {
+      this.auditViolation("save", invoice.id.toString(), invoice.companyId)
+      throw new TenantScopeMismatchError(
+        this.ctx.companyId,
+        invoice.companyId,
+        "Invoice",
+        invoice.id.toString(),
+        "save"
+      )
+    }
+
     const lines = invoice.getLines()
 
     // For new drafts without invoice number, use a placeholder
     const invoiceNumberStr = invoice.invoiceNumber?.format() ?? `DRAFT-${invoice.id.toString()}`
 
-    await prisma.eInvoice.upsert({
+    // Note: In the domain model, sellerId represents the tenant (company) identity,
+    // but in the database schema, sellerId/buyerId are FK references to Contact table.
+    // The domain's sellerId is used for tenant scope via invoice.companyId getter.
+    // For the database, we store tenant identity in companyId, and leave seller/buyer
+    // Contact references as null unless they're valid Contact IDs.
+    // An empty string or company ID in buyerId/sellerId should be stored as null.
+    const sellerContactId =
+      invoice.sellerId && invoice.sellerId !== this.ctx.companyId ? invoice.sellerId : null
+    const buyerContactId = invoice.buyerId || null
+
+    await this.ctx.prisma.eInvoice.upsert({
       where: { id: invoice.id.toString() },
       create: {
         id: invoice.id.toString(),
-        companyId: invoice.sellerId,
+        companyId: this.ctx.companyId,
         direction: "OUTBOUND",
-        sellerId: invoice.sellerId,
-        buyerId: invoice.buyerId,
+        sellerId: sellerContactId,
+        buyerId: buyerContactId,
         invoiceNumber: invoiceNumberStr,
         issueDate: invoice.issueDate ?? new Date(),
         dueDate: invoice.dueDate ?? null,
@@ -68,7 +117,7 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
         },
       },
       update: {
-        buyerId: invoice.buyerId,
+        buyerId: buyerContactId,
         invoiceNumber: invoiceNumberStr,
         issueDate: invoice.issueDate ?? new Date(),
         dueDate: invoice.dueDate ?? null,
@@ -82,20 +131,23 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
     })
 
     // For updates, we need to handle lines separately
-    // Delete existing lines and recreate them
-    const existing = await prisma.eInvoice.findUnique({
-      where: { id: invoice.id.toString() },
+    // Delete existing lines and recreate them (scoped by companyId through invoice)
+    const existing = await this.ctx.prisma.eInvoice.findFirst({
+      where: {
+        id: invoice.id.toString(),
+        companyId: this.ctx.companyId, // Tenant scope!
+      },
       select: { id: true },
     })
 
     if (existing) {
       // Delete old lines and create new ones
-      await prisma.eInvoiceLine.deleteMany({
+      await this.ctx.prisma.eInvoiceLine.deleteMany({
         where: { eInvoiceId: invoice.id.toString() },
       })
 
       if (lines.length > 0) {
-        await prisma.eInvoiceLine.createMany({
+        await this.ctx.prisma.eInvoiceLine.createMany({
           data: lines.map((line, index) => ({
             id: line.id,
             eInvoiceId: invoice.id.toString(),
@@ -113,33 +165,33 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
   }
 
   async findById(id: InvoiceId): Promise<Invoice | null> {
-    const record = await prisma.eInvoice.findUnique({
-      where: { id: id.toString() },
+    const record = await this.ctx.prisma.eInvoice.findFirst({
+      where: {
+        id: id.toString(),
+        companyId: this.ctx.companyId, // Tenant scope!
+      },
       include: { lines: true },
     })
-    if (!record) return null
-    return this.toDomain(record)
+    return record ? this.toDomain(record) : null
   }
 
-  async findByNumber(number: string, companyId: string): Promise<Invoice | null> {
-    const record = await prisma.eInvoice.findFirst({
-      where: { invoiceNumber: number, companyId },
+  async findByNumber(number: string): Promise<Invoice | null> {
+    const record = await this.ctx.prisma.eInvoice.findFirst({
+      where: {
+        invoiceNumber: number,
+        companyId: this.ctx.companyId, // Tenant scope!
+      },
       include: { lines: true },
     })
-    if (!record) return null
-    return this.toDomain(record)
+    return record ? this.toDomain(record) : null
   }
 
-  async nextSequenceNumber(
-    companyId: string,
-    _premiseCode: number,
-    _deviceCode: number
-  ): Promise<number> {
+  async nextSequenceNumber(_premiseCode: number, _deviceCode: number): Promise<number> {
     // For now, use a simpler approach - count existing invoices + 1
     // The actual InvoiceSequence table uses businessPremisesId which we'd need to resolve
-    const count = await prisma.eInvoice.count({
+    const count = await this.ctx.prisma.eInvoice.count({
       where: {
-        companyId,
+        companyId: this.ctx.companyId, // Tenant scope!
         invoiceNumber: { not: { startsWith: "DRAFT-" } },
         issueDate: {
           gte: new Date(new Date().getFullYear(), 0, 1),

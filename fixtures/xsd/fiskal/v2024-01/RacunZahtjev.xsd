@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Placeholder XSD - download actual schema from Porezna uprava -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="RacunZahtjev">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Zaglavlje" type="xs:string"/>
+        <xs:element name="Racun" type="xs:string"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -93,6 +93,12 @@
       }
     },
     {
+      "files": ["src/app/(admin)/**/*.ts", "src/app/(admin)/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    },
+    {
       "files": ["src/domain/**/*.ts", "src/domain/**/*.tsx"],
       "rules": {
         "no-restricted-imports": [

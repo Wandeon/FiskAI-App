@@ -51,6 +51,13 @@ export interface DirectImpact {
 
   /** How the match was determined */
   matchType: MatchType
+
+  /**
+   * True if ALL matched files are test files.
+   * Test-only impacts do NOT contribute criticality to the blast score
+   * because test changes don't affect production behavior.
+   */
+  testOnly: boolean
 }
 
 /**
@@ -73,6 +80,22 @@ export interface TransitiveImpact {
  */
 function normalizePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path
+}
+
+/**
+ * Checks if a file path is a test file.
+ * Test files are those under __tests__/ directories or with .test.ts/.spec.ts suffixes.
+ */
+export function isTestFile(filePath: string): boolean {
+  const normalized = normalizePath(filePath)
+  return (
+    normalized.includes("/__tests__/") ||
+    normalized.includes("/__mocks__/") ||
+    normalized.endsWith(".test.ts") ||
+    normalized.endsWith(".test.tsx") ||
+    normalized.endsWith(".spec.ts") ||
+    normalized.endsWith(".spec.tsx")
+  )
 }
 
 /**
@@ -319,10 +342,16 @@ export function computeDirectImpact(
   // Convert map to array of DirectImpact
   const results: DirectImpact[] = []
   for (const { component, files, matchType } of impactMap.values()) {
+    // Determine if this is a test-only impact
+    // A test-only impact means ALL matched files are test files
+    const sortedFiles = files.sort() // Sort for deterministic output
+    const testOnly = sortedFiles.every(isTestFile)
+
     results.push({
       component,
-      matchedFiles: files.sort(), // Sort for deterministic output
+      matchedFiles: sortedFiles,
       matchType,
+      testOnly,
     })
   }
 
@@ -649,9 +678,14 @@ function bumpTier(criticality: Criticality): Criticality {
 
 /**
  * Checks if any direct impact component is owned by team:security.
+ * Test-only impacts are excluded from this check.
  */
 function hasSecurityOwner(directImpacts: DirectImpact[]): boolean {
   for (const impact of directImpacts) {
+    // Skip test-only impacts - they don't affect production
+    if (impact.testOnly) {
+      continue
+    }
     if (impact.component.owner === "team:security") {
       return true
     }
@@ -702,8 +736,14 @@ export function computeBlastScore(
   const bumps: TierBump[] = []
 
   // Step 1: Compute base score from max criticality of direct components
+  // IMPORTANT: Test-only impacts do NOT contribute to criticality
+  // Test changes don't affect production behavior, so they shouldn't trigger high scores
   let baseScore: Criticality = "LOW"
   for (const impact of directImpacts) {
+    // Skip test-only impacts - they don't affect production
+    if (impact.testOnly) {
+      continue
+    }
     const criticality = impact.component.criticality as Criticality
     const currentIndex = CRITICALITY_ORDER.indexOf(baseScore)
     const impactIndex = CRITICALITY_ORDER.indexOf(criticality)

@@ -41,6 +41,68 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+  lint-ratchet:
+    name: Lint Ratchet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run lint ratchet check
+        run: |
+          set -euo pipefail
+
+          # Run ESLint on scoped paths (use find to handle parentheses in path)
+          find "src/app/(admin)" -name "*.ts" -o -name "*.tsx" | \
+            xargs npx eslint --format json > eslint-ratchet-report.json 2>&1 || true
+
+          # Verify output exists
+          if [ ! -s eslint-ratchet-report.json ]; then
+            echo "::error::ESLint produced no output - possible crash"
+            exit 1
+          fi
+
+          # Count violations
+          ANY_COUNT=$(jq '[.[].messages[] | select(.ruleId == "@typescript-eslint/no-explicit-any")] | length' eslint-ratchet-report.json)
+
+          # Get baseline (fail if missing)
+          if [ ! -f .eslint-baseline.json ]; then
+            echo "::error::Baseline file .eslint-baseline.json not found"
+            exit 1
+          fi
+
+          BASELINE=$(jq -r '.ratchets[] | select(.rule=="@typescript-eslint/no-explicit-any") | .ceiling' .eslint-baseline.json)
+
+          if [ -z "$BASELINE" ] || [ "$BASELINE" = "null" ]; then
+            echo "::error::No baseline ceiling found for no-explicit-any"
+            exit 1
+          fi
+
+          echo "Current: $ANY_COUNT | Ceiling: $BASELINE"
+
+          if [ "$ANY_COUNT" -gt "$BASELINE" ]; then
+            echo "::error::Lint ratchet FAILED: no-explicit-any increased from $BASELINE to $ANY_COUNT"
+            exit 1
+          fi
+
+          if [ "$ANY_COUNT" -lt "$BASELINE" ]; then
+            echo "::notice::Lint debt reduced! Consider updating baseline: $ANY_COUNT < $BASELINE"
+          fi
+
+          echo "✅ Lint ratchet passed"
+
   typecheck:
     name: TypeScript Check
     runs-on: ubuntu-latest
@@ -226,6 +288,52 @@ jobs:
           echo "| citation_compliance | ≥95% (28/30) | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/regulatory-truth/evidence-pack-2025-12-23.md\` for full details." >> $GITHUB_STEP_SUMMARY
+
+  acceptance-tests:
+    name: Acceptance Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Enable pgvector extension
+        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+      - name: Apply schema
+        run: npx prisma db push --accept-data-loss
+
+      - name: Run acceptance tests
+        run: node --import tsx --test acceptance/*.test.ts
 
   architecture-check:
     name: Architecture Compliance

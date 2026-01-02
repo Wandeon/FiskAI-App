@@ -1,47 +1,58 @@
 // src/infrastructure/invoicing/__tests__/PrismaInvoiceRepository.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { Prisma, EInvoiceStatus } from "@prisma/client"
-import { Invoice, InvoiceId, InvoiceNumber, InvoiceStatus, InvoiceLine } from "@/domain/invoicing"
+import { Prisma, EInvoiceStatus, PrismaClient } from "@prisma/client"
+import { Invoice, InvoiceId, InvoiceStatus, InvoiceLine } from "@/domain/invoicing"
 import { Money, Quantity, VatRate } from "@/domain/shared"
-
-// Mock Prisma client - must be declared inside the factory function
-vi.mock("@/lib/db", () => ({
-  prisma: {
-    eInvoice: {
-      upsert: vi.fn(),
-      findUnique: vi.fn(),
-      findFirst: vi.fn(),
-      count: vi.fn(),
-    },
-    eInvoiceLine: {
-      deleteMany: vi.fn(),
-      createMany: vi.fn(),
-    },
-  },
-}))
-
-// Import the mocked module after mocking
-import { prisma } from "@/lib/db"
+import { TenantScopedContext } from "../../shared/TenantScopedContext"
+import { TenantScopeMismatchError } from "../../shared/TenantScopeMismatchError"
 import { PrismaInvoiceRepository } from "../PrismaInvoiceRepository"
 
-// Type the mock for better type safety
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockPrisma = prisma as any
+// Create mock Prisma client
+const mockPrisma = {
+  eInvoice: {
+    upsert: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
+  },
+  eInvoiceLine: {
+    deleteMany: vi.fn(),
+    createMany: vi.fn(),
+  },
+} as unknown as PrismaClient
+
+// Mock the security events module
+vi.mock("@/lib/audit/security-events", () => ({
+  logSecurityEvent: vi.fn(),
+}))
 
 describe("PrismaInvoiceRepository", () => {
   let repository: PrismaInvoiceRepository
+  let ctx: TenantScopedContext
+  const testCompanyId = "company-123"
+  const testUserId = "user-456"
+  const testCorrelationId = "corr-789"
 
   beforeEach(() => {
-    repository = new PrismaInvoiceRepository()
+    ctx = new TenantScopedContext(
+      {
+        companyId: testCompanyId,
+        userId: testUserId,
+        correlationId: testCorrelationId,
+      },
+      mockPrisma
+    )
+    repository = new PrismaInvoiceRepository(ctx)
     vi.clearAllMocks()
   })
 
   describe("save", () => {
     it("saves a new draft invoice", async () => {
-      const invoice = Invoice.create("buyer-123", "seller-456")
-      mockPrisma.eInvoice.upsert.mockResolvedValue({})
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({ id: invoice.id.toString() })
-      mockPrisma.eInvoiceLine.deleteMany.mockResolvedValue({})
+      const invoice = Invoice.create("buyer-123", testCompanyId)
+      ;(mockPrisma.eInvoice.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: invoice.id.toString(),
+      })
+      ;(mockPrisma.eInvoiceLine.deleteMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await repository.save(invoice)
 
@@ -51,15 +62,23 @@ describe("PrismaInvoiceRepository", () => {
           where: { id: invoice.id.toString() },
           create: expect.objectContaining({
             buyerId: "buyer-123",
-            sellerId: "seller-456",
+            // sellerId is null when it equals companyId (domain sellerId represents tenant, not Contact)
+            sellerId: null,
+            companyId: testCompanyId,
             status: EInvoiceStatus.DRAFT,
           }),
         })
       )
     })
 
+    it("throws TenantScopeMismatchError when invoice companyId does not match context", async () => {
+      const invoice = Invoice.create("buyer-123", "different-company")
+
+      await expect(repository.save(invoice)).rejects.toThrow(TenantScopeMismatchError)
+    })
+
     it("saves invoice with lines", async () => {
-      const invoice = Invoice.create("buyer-123", "seller-456")
+      const invoice = Invoice.create("buyer-123", testCompanyId)
       const line = InvoiceLine.create({
         description: "Test product",
         quantity: Quantity.of(2),
@@ -67,11 +86,12 @@ describe("PrismaInvoiceRepository", () => {
         vatRate: VatRate.standard("25"),
       })
       invoice.addLine(line)
-
-      mockPrisma.eInvoice.upsert.mockResolvedValue({})
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({ id: invoice.id.toString() })
-      mockPrisma.eInvoiceLine.deleteMany.mockResolvedValue({})
-      mockPrisma.eInvoiceLine.createMany.mockResolvedValue({})
+      ;(mockPrisma.eInvoice.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: invoice.id.toString(),
+      })
+      ;(mockPrisma.eInvoiceLine.deleteMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoiceLine.createMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await repository.save(invoice)
 
@@ -91,11 +111,13 @@ describe("PrismaInvoiceRepository", () => {
     })
 
     it("uses DRAFT- prefix for invoice number when not yet issued", async () => {
-      const invoice = Invoice.create("buyer-123", "seller-456")
+      const invoice = Invoice.create("buyer-123", testCompanyId)
 
-      mockPrisma.eInvoice.upsert.mockResolvedValue({})
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({ id: invoice.id.toString() })
-      mockPrisma.eInvoiceLine.deleteMany.mockResolvedValue({})
+      ;(mockPrisma.eInvoice.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: invoice.id.toString(),
+      })
+      ;(mockPrisma.eInvoiceLine.deleteMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await repository.save(invoice)
 
@@ -109,12 +131,13 @@ describe("PrismaInvoiceRepository", () => {
     })
 
     it("maps CANCELED status to REJECTED for database", async () => {
-      const invoice = Invoice.create("buyer-123", "seller-456")
+      const invoice = Invoice.create("buyer-123", testCompanyId)
       invoice.cancel()
-
-      mockPrisma.eInvoice.upsert.mockResolvedValue({})
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({ id: invoice.id.toString() })
-      mockPrisma.eInvoiceLine.deleteMany.mockResolvedValue({})
+      ;(mockPrisma.eInvoice.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: invoice.id.toString(),
+      })
+      ;(mockPrisma.eInvoiceLine.deleteMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await repository.save(invoice)
 
@@ -128,7 +151,7 @@ describe("PrismaInvoiceRepository", () => {
     })
 
     it("deletes old lines and creates new ones on update", async () => {
-      const invoice = Invoice.create("buyer-123", "seller-456")
+      const invoice = Invoice.create("buyer-123", testCompanyId)
       const line = InvoiceLine.create({
         description: "Updated product",
         quantity: Quantity.of(1),
@@ -136,11 +159,12 @@ describe("PrismaInvoiceRepository", () => {
         vatRate: VatRate.standard("25"),
       })
       invoice.addLine(line)
-
-      mockPrisma.eInvoice.upsert.mockResolvedValue({})
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({ id: invoice.id.toString() })
-      mockPrisma.eInvoiceLine.deleteMany.mockResolvedValue({})
-      mockPrisma.eInvoiceLine.createMany.mockResolvedValue({})
+      ;(mockPrisma.eInvoice.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: invoice.id.toString(),
+      })
+      ;(mockPrisma.eInvoiceLine.deleteMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(mockPrisma.eInvoiceLine.createMany as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await repository.save(invoice)
 
@@ -163,23 +187,26 @@ describe("PrismaInvoiceRepository", () => {
   describe("findById", () => {
     it("returns null when invoice not found", async () => {
       const id = InvoiceId.fromString("non-existent-id")
-      mockPrisma.eInvoice.findUnique.mockResolvedValue(null)
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await repository.findById(id)
 
       expect(result).toBeNull()
-      expect(mockPrisma.eInvoice.findUnique).toHaveBeenCalledWith({
-        where: { id: "non-existent-id" },
+      expect(mockPrisma.eInvoice.findFirst).toHaveBeenCalledWith({
+        where: {
+          id: "non-existent-id",
+          companyId: testCompanyId,
+        },
         include: { lines: true },
       })
     })
 
     it("reconstitutes invoice from database record", async () => {
       const id = InvoiceId.fromString("inv-123")
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "inv-123",
-        companyId: "company-456",
-        sellerId: "seller-456",
+        companyId: testCompanyId,
+        sellerId: testCompanyId,
         buyerId: "buyer-789",
         invoiceNumber: "1-1-1",
         issueDate: new Date("2024-01-15"),
@@ -196,16 +223,16 @@ describe("PrismaInvoiceRepository", () => {
       expect(result).not.toBeNull()
       expect(result!.id.toString()).toBe("inv-123")
       expect(result!.buyerId).toBe("buyer-789")
-      expect(result!.sellerId).toBe("seller-456")
+      expect(result!.sellerId).toBe(testCompanyId)
       expect(result!.status).toBe(InvoiceStatus.DRAFT)
     })
 
     it("reconstitutes invoice with lines", async () => {
       const id = InvoiceId.fromString("inv-123")
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "inv-123",
-        companyId: "company-456",
-        sellerId: "seller-456",
+        companyId: testCompanyId,
+        sellerId: testCompanyId,
         buyerId: "buyer-789",
         invoiceNumber: "1-1-1",
         issueDate: new Date("2024-01-15"),
@@ -238,10 +265,10 @@ describe("PrismaInvoiceRepository", () => {
 
     it("maps REJECTED status to CANCELED", async () => {
       const id = InvoiceId.fromString("inv-123")
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "inv-123",
-        companyId: "company-456",
-        sellerId: "seller-456",
+        companyId: testCompanyId,
+        sellerId: testCompanyId,
         buyerId: "buyer-789",
         invoiceNumber: "DRAFT-inv-123",
         issueDate: new Date("2024-01-15"),
@@ -260,10 +287,10 @@ describe("PrismaInvoiceRepository", () => {
 
     it("maps ERROR status to DRAFT as fallback", async () => {
       const id = InvoiceId.fromString("inv-123")
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "inv-123",
-        companyId: "company-456",
-        sellerId: "seller-456",
+        companyId: testCompanyId,
+        sellerId: testCompanyId,
         buyerId: "buyer-789",
         invoiceNumber: "DRAFT-inv-123",
         issueDate: new Date("2024-01-15"),
@@ -282,10 +309,10 @@ describe("PrismaInvoiceRepository", () => {
 
     it("handles DRAFT- prefix in invoice number", async () => {
       const id = InvoiceId.fromString("inv-123")
-      mockPrisma.eInvoice.findUnique.mockResolvedValue({
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "inv-123",
-        companyId: "company-456",
-        sellerId: "seller-456",
+        companyId: testCompanyId,
+        sellerId: testCompanyId,
         buyerId: "buyer-789",
         invoiceNumber: "DRAFT-inv-123",
         issueDate: new Date("2024-01-15"),
@@ -305,22 +332,25 @@ describe("PrismaInvoiceRepository", () => {
 
   describe("findByNumber", () => {
     it("returns null when invoice not found", async () => {
-      mockPrisma.eInvoice.findFirst.mockResolvedValue(null)
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
-      const result = await repository.findByNumber("1-1-1", "company-123")
+      const result = await repository.findByNumber("1-1-1")
 
       expect(result).toBeNull()
       expect(mockPrisma.eInvoice.findFirst).toHaveBeenCalledWith({
-        where: { invoiceNumber: "1-1-1", companyId: "company-123" },
+        where: {
+          invoiceNumber: "1-1-1",
+          companyId: testCompanyId,
+        },
         include: { lines: true },
       })
     })
 
     it("returns invoice when found by number and company", async () => {
-      mockPrisma.eInvoice.findFirst.mockResolvedValue({
+      ;(mockPrisma.eInvoice.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "inv-123",
-        companyId: "company-123",
-        sellerId: "seller-456",
+        companyId: testCompanyId,
+        sellerId: testCompanyId,
         buyerId: "buyer-789",
         invoiceNumber: "1-1-1",
         issueDate: new Date("2024-01-15"),
@@ -332,7 +362,7 @@ describe("PrismaInvoiceRepository", () => {
         lines: [],
       })
 
-      const result = await repository.findByNumber("1-1-1", "company-123")
+      const result = await repository.findByNumber("1-1-1")
 
       expect(result).not.toBeNull()
       expect(result!.invoiceNumber?.format()).toBe("1-1-1")
@@ -341,30 +371,30 @@ describe("PrismaInvoiceRepository", () => {
 
   describe("nextSequenceNumber", () => {
     it("returns count + 1 for sequence number", async () => {
-      mockPrisma.eInvoice.count.mockResolvedValue(42)
+      ;(mockPrisma.eInvoice.count as ReturnType<typeof vi.fn>).mockResolvedValue(42)
 
-      const result = await repository.nextSequenceNumber("company-123", 1, 1)
+      const result = await repository.nextSequenceNumber(1, 1)
 
       expect(result).toBe(43)
     })
 
     it("returns 1 when no invoices exist", async () => {
-      mockPrisma.eInvoice.count.mockResolvedValue(0)
+      ;(mockPrisma.eInvoice.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
 
-      const result = await repository.nextSequenceNumber("company-123", 1, 1)
+      const result = await repository.nextSequenceNumber(1, 1)
 
       expect(result).toBe(1)
     })
 
     it("excludes DRAFT invoices from count", async () => {
-      mockPrisma.eInvoice.count.mockResolvedValue(5)
+      ;(mockPrisma.eInvoice.count as ReturnType<typeof vi.fn>).mockResolvedValue(5)
 
-      await repository.nextSequenceNumber("company-123", 1, 1)
+      await repository.nextSequenceNumber(1, 1)
 
       expect(mockPrisma.eInvoice.count).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            companyId: "company-123",
+            companyId: testCompanyId,
             invoiceNumber: { not: { startsWith: "DRAFT-" } },
           }),
         })
@@ -372,10 +402,10 @@ describe("PrismaInvoiceRepository", () => {
     })
 
     it("filters by current year", async () => {
-      mockPrisma.eInvoice.count.mockResolvedValue(10)
+      ;(mockPrisma.eInvoice.count as ReturnType<typeof vi.fn>).mockResolvedValue(10)
       const currentYear = new Date().getFullYear()
 
-      await repository.nextSequenceNumber("company-123", 1, 1)
+      await repository.nextSequenceNumber(1, 1)
 
       expect(mockPrisma.eInvoice.count).toHaveBeenCalledWith(
         expect.objectContaining({

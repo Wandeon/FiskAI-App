@@ -35,12 +35,14 @@ function makeComponent(
 function makeDirectImpact(
   componentId: string,
   criticality: Criticality,
-  owner: string | null = null
+  owner: string | null = null,
+  testOnly: boolean = false
 ): DirectImpact {
   return {
     component: makeComponent(componentId, criticality, owner),
     matchedFiles: [`src/lib/${componentId}/index.ts`],
     matchType: "codeRef",
+    testOnly,
   }
 }
 

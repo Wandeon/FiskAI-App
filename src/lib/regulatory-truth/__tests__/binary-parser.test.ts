@@ -1,7 +1,8 @@
 // src/lib/regulatory-truth/__tests__/binary-parser.test.ts
 // Integration tests for binary document parsing (DOC, DOCX, XLSX, PDF)
 
-import { describe, it, expect, beforeAll } from "vitest"
+import { describe, test, before } from "node:test"
+import assert from "node:assert/strict"
 import { existsSync, mkdirSync } from "fs"
 import { join } from "path"
 import { parseBinaryContent, detectBinaryType, isBinaryUrl } from "../utils/binary-parser"
@@ -16,82 +17,84 @@ function ensureFixtures() {
 }
 
 describe("Binary Document Parser", () => {
-  beforeAll(() => {
+  before(() => {
     ensureFixtures()
   })
 
   describe("detectBinaryType", () => {
-    it("detects PDF from URL extension", () => {
-      expect(detectBinaryType("https://example.com/document.pdf")).toBe("pdf")
+    test("detects PDF from URL extension", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/document.pdf"), "pdf")
     })
 
-    it("detects DOCX from URL extension", () => {
-      expect(detectBinaryType("https://example.com/document.docx")).toBe("docx")
+    test("detects DOCX from URL extension", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/document.docx"), "docx")
     })
 
-    it("detects DOC from URL extension", () => {
-      expect(detectBinaryType("https://example.com/document.doc")).toBe("doc")
+    test("detects DOC from URL extension", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/document.doc"), "doc")
     })
 
-    it("detects XLSX from URL extension", () => {
-      expect(detectBinaryType("https://example.com/spreadsheet.xlsx")).toBe("xlsx")
+    test("detects XLSX from URL extension", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/spreadsheet.xlsx"), "xlsx")
     })
 
-    it("detects XLS from URL extension", () => {
-      expect(detectBinaryType("https://example.com/spreadsheet.xls")).toBe("xls")
+    test("detects XLS from URL extension", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/spreadsheet.xls"), "xls")
     })
 
-    it("returns unknown for HTML", () => {
-      expect(detectBinaryType("https://example.com/page.html")).toBe("unknown")
+    test("returns unknown for HTML", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/page.html"), "unknown")
     })
 
-    it("detects PDF from content-type header", () => {
-      expect(detectBinaryType("https://example.com/doc", "application/pdf")).toBe("pdf")
+    test("detects PDF from content-type header", () => {
+      assert.strictEqual(detectBinaryType("https://example.com/doc", "application/pdf"), "pdf")
     })
 
-    it("detects DOCX from content-type header", () => {
-      expect(
+    test("detects DOCX from content-type header", () => {
+      assert.strictEqual(
         detectBinaryType(
           "https://example.com/doc",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-      ).toBe("docx")
+        ),
+        "docx"
+      )
     })
 
-    it("detects XLSX from content-type header", () => {
-      expect(
+    test("detects XLSX from content-type header", () => {
+      assert.strictEqual(
         detectBinaryType(
           "https://example.com/doc",
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-      ).toBe("xlsx")
+        ),
+        "xlsx"
+      )
     })
   })
 
   describe("isBinaryUrl", () => {
-    it("returns true for PDF URLs", () => {
-      expect(isBinaryUrl("https://example.com/doc.pdf")).toBe(true)
+    test("returns true for PDF URLs", () => {
+      assert.strictEqual(isBinaryUrl("https://example.com/doc.pdf"), true)
     })
 
-    it("returns true for DOCX URLs", () => {
-      expect(isBinaryUrl("https://example.com/doc.docx")).toBe(true)
+    test("returns true for DOCX URLs", () => {
+      assert.strictEqual(isBinaryUrl("https://example.com/doc.docx"), true)
     })
 
-    it("returns true for XLSX URLs", () => {
-      expect(isBinaryUrl("https://example.com/sheet.xlsx")).toBe(true)
+    test("returns true for XLSX URLs", () => {
+      assert.strictEqual(isBinaryUrl("https://example.com/sheet.xlsx"), true)
     })
 
-    it("returns false for HTML URLs", () => {
-      expect(isBinaryUrl("https://example.com/page.html")).toBe(false)
+    test("returns false for HTML URLs", () => {
+      assert.strictEqual(isBinaryUrl("https://example.com/page.html"), false)
     })
 
-    it("returns false for plain URLs", () => {
-      expect(isBinaryUrl("https://example.com/page")).toBe(false)
+    test("returns false for plain URLs", () => {
+      assert.strictEqual(isBinaryUrl("https://example.com/page"), false)
     })
   })
 
   describe("parseBinaryContent - DOCX", () => {
-    it("extracts text from DOCX buffer", async () => {
+    test("extracts text from DOCX buffer", async () => {
       // Create a minimal DOCX file for testing
       // Real DOCX is a ZIP file with XML content
       // We'll use mammoth's capability to handle this
@@ -105,32 +108,32 @@ describe("Binary Document Parser", () => {
       const result = await parseBinaryContent(emptyBuffer, "docx")
 
       // Empty buffer should return empty text with error metadata
-      expect(result.text).toBe("")
-      expect(result.metadata).toBeDefined()
+      assert.strictEqual(result.text, "")
+      assert.ok(result.metadata !== undefined)
     })
 
-    it("sanitizes null bytes from DOCX content", async () => {
+    test("sanitizes null bytes from DOCX content", async () => {
       // Test that null bytes are sanitized
       const textWithNull = "Test\x00content"
       const sanitized = textWithNull.replace(/\x00/g, "")
-      expect(sanitized).toBe("Testcontent")
+      assert.strictEqual(sanitized, "Testcontent")
     })
   })
 
   describe("parseBinaryContent - DOC", () => {
-    it("handles DOC parsing with fallback", async () => {
+    test("handles DOC parsing with fallback", async () => {
       // Old DOC format requires word-extractor
       const emptyBuffer = Buffer.from([])
       const result = await parseBinaryContent(emptyBuffer, "doc")
 
       // Empty buffer should trigger error handling
-      expect(result.text).toBe("")
-      expect(result.metadata).toBeDefined()
+      assert.strictEqual(result.text, "")
+      assert.ok(result.metadata !== undefined)
     })
   })
 
   describe("parseBinaryContent - XLSX", () => {
-    it("extracts text from XLSX buffer", async () => {
+    test("extracts text from XLSX buffer", async () => {
       const XLSX = await import("xlsx")
 
       // Create a simple workbook in memory
@@ -150,13 +153,13 @@ describe("Binary Document Parser", () => {
       const result = await parseBinaryContent(buffer, "xlsx")
 
       // Should extract text content
-      expect(result.text).toContain("Header1")
-      expect(result.text).toContain("Row1Col1")
-      expect(result.text).toContain("TestSheet")
-      expect(result.metadata?.sheetNames).toContain("TestSheet")
+      assert.ok(result.text.includes("Header1"))
+      assert.ok(result.text.includes("Row1Col1"))
+      assert.ok(result.text.includes("TestSheet"))
+      assert.ok((result.metadata?.sheetNames as string[] | undefined)?.includes("TestSheet"))
     })
 
-    it("handles multi-sheet XLSX", async () => {
+    test("handles multi-sheet XLSX", async () => {
       const XLSX = await import("xlsx")
 
       const workbook = XLSX.utils.book_new()
@@ -172,12 +175,12 @@ describe("Binary Document Parser", () => {
       const buffer = Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }))
       const result = await parseBinaryContent(buffer, "xlsx")
 
-      expect(result.text).toContain("Sheet1Header")
-      expect(result.text).toContain("Sheet2Header")
-      expect(result.metadata?.sheetCount).toBe(2)
+      assert.ok(result.text.includes("Sheet1Header"))
+      assert.ok(result.text.includes("Sheet2Header"))
+      assert.strictEqual(result.metadata?.sheetCount, 2)
     })
 
-    it("handles empty XLSX", async () => {
+    test("handles empty XLSX", async () => {
       const XLSX = await import("xlsx")
 
       const workbook = XLSX.utils.book_new()
@@ -188,33 +191,33 @@ describe("Binary Document Parser", () => {
       const result = await parseBinaryContent(buffer, "xlsx")
 
       // Should handle empty sheet gracefully
-      expect(result.metadata?.sheetCount).toBe(1)
+      assert.strictEqual(result.metadata?.sheetCount, 1)
     })
   })
 
   describe("parseBinaryContent - unknown type", () => {
-    it("returns empty result for unknown type", async () => {
+    test("returns empty result for unknown type", async () => {
       const buffer = Buffer.from("test content")
       const result = await parseBinaryContent(buffer, "unknown")
 
-      expect(result.text).toBe("")
-      expect(result.metadata?.skipped).toBe(true)
-      expect(result.metadata?.reason).toBe("Unknown binary type")
+      assert.strictEqual(result.text, "")
+      assert.strictEqual(result.metadata?.skipped, true)
+      assert.strictEqual(result.metadata?.reason, "Unknown binary type")
     })
   })
 
   describe("text sanitization", () => {
-    it("removes null bytes", () => {
+    test("removes null bytes", () => {
       const input = "Test\x00content\x00here"
       const sanitized = input.replace(/\x00/g, "")
-      expect(sanitized).toBe("Testcontenthere")
-      expect(sanitized).not.toContain("\x00")
+      assert.strictEqual(sanitized, "Testcontenthere")
+      assert.ok(!sanitized.includes("\x00"))
     })
 
-    it("removes control characters except newline, tab, carriage return", () => {
+    test("removes control characters except newline, tab, carriage return", () => {
       const input = "Test\x01\x02\x03content\t\n\r"
       const sanitized = input.replace(/\x00/g, "").replace(/[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-      expect(sanitized).toBe("Testcontent\t\n\r")
+      assert.strictEqual(sanitized, "Testcontent\t\n\r")
     })
   })
 })

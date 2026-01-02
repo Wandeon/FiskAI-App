@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { CreateInvoice } from "@/application/invoicing"
 import { PrismaInvoiceRepository } from "@/infrastructure/invoicing"
+import { TenantScopedContext } from "@/infrastructure/shared/TenantScopedContext"
 
 const CreateInvoiceSchema = z.object({
   buyerId: z.string().min(1, "Buyer ID is required"),
@@ -9,9 +10,15 @@ const CreateInvoiceSchema = z.object({
 
 export type CreateInvoiceRequest = z.infer<typeof CreateInvoiceSchema>
 
-export async function handleCreateInvoice(input: unknown) {
+/**
+ * Handle creating a new invoice.
+ *
+ * @param ctx - TenantScopedContext for the current request
+ * @param input - The request data
+ */
+export async function handleCreateInvoice(ctx: TenantScopedContext, input: unknown) {
   const validated = CreateInvoiceSchema.parse(input)
-  const repo = new PrismaInvoiceRepository()
+  const repo = new PrismaInvoiceRepository(ctx)
   const useCase = new CreateInvoice(repo)
   return await useCase.execute(validated)
 }
