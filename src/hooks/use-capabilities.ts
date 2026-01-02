@@ -52,7 +52,10 @@ export interface UseCapabilitiesReturn {
 
   /** Mutate cache (for optimistic updates) */
   mutate: (
-    data?: CapabilityResponse[] | Promise<CapabilityResponse[]> | ((current?: CapabilityResponse[]) => CapabilityResponse[])
+    data?:
+      | CapabilityResponse[]
+      | Promise<CapabilityResponse[]>
+      | ((current?: CapabilityResponse[]) => CapabilityResponse[])
   ) => Promise<CapabilityResponse[] | undefined>
 }
 
@@ -131,7 +134,10 @@ export function useCapabilities(options: UseCapabilitiesOptions): UseCapabilitie
   }
 
   const mutateFn = async (
-    newData?: CapabilityResponse[] | Promise<CapabilityResponse[]> | ((current?: CapabilityResponse[]) => CapabilityResponse[])
+    newData?:
+      | CapabilityResponse[]
+      | Promise<CapabilityResponse[]>
+      | ((current?: CapabilityResponse[]) => CapabilityResponse[])
   ): Promise<CapabilityResponse[] | undefined> => {
     return await mutate(newData)
   }

@@ -38,16 +38,17 @@ describe("useCapabilities", () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          capabilities: [{ capability: "INV-003", state: "READY", inputs: [], blockers: [], actions: [] }],
+          capabilities: [
+            { capability: "INV-003", state: "READY", inputs: [], blockers: [], actions: [] },
+          ],
         }),
     } as Response)
 
     const { useCapabilities } = await import("../use-capabilities")
 
-    const { result } = renderHook(
-      () => useCapabilities({ capabilityIds: ["INV-003"] }),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useCapabilities({ capabilityIds: ["INV-003"] }), {
+      wrapper,
+    })
 
     expect(typeof result.current.revalidate).toBe("function")
   })
@@ -63,10 +64,9 @@ describe("useCapabilities", () => {
 
     const { useCapabilities } = await import("../use-capabilities")
 
-    const { result } = renderHook(
-      () => useCapabilities({ capabilityIds: ["INV-003"] }),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useCapabilities({ capabilityIds: ["INV-003"] }), {
+      wrapper,
+    })
 
     expect(typeof result.current.mutate).toBe("function")
   })
@@ -124,16 +124,17 @@ describe("useCapabilities", () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          capabilities: [{ capability: "INV-003", state: "READY", inputs: [], blockers: [], actions: [] }],
+          capabilities: [
+            { capability: "INV-003", state: "READY", inputs: [], blockers: [], actions: [] },
+          ],
         }),
     } as Response)
 
     const { useCapabilities } = await import("../use-capabilities")
 
-    const { result } = renderHook(
-      () => useCapabilities({ capabilityIds: ["INV-003"] }),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useCapabilities({ capabilityIds: ["INV-003"] }), {
+      wrapper,
+    })
 
     await waitFor(() => {
       expect(result.current.capabilities).toHaveLength(1)
@@ -177,10 +178,9 @@ describe("useCapabilities", () => {
 
     const { useCapabilities } = await import("../use-capabilities")
 
-    const { result } = renderHook(
-      () => useCapabilities({ capabilityIds: ["INV-003"] }),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useCapabilities({ capabilityIds: ["INV-003"] }), {
+      wrapper,
+    })
 
     await waitFor(() => {
       expect(result.current.error).toBeDefined()
@@ -288,10 +288,9 @@ describe("buildCacheKey", () => {
     const { useCapabilities } = await import("../use-capabilities")
 
     // First hook with IDs in one order
-    renderHook(
-      () => useCapabilities({ capabilityIds: ["INV-004", "INV-003", "INV-001"] }),
-      { wrapper }
-    )
+    renderHook(() => useCapabilities({ capabilityIds: ["INV-004", "INV-003", "INV-001"] }), {
+      wrapper,
+    })
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalled()
