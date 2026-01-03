@@ -2,6 +2,7 @@
   "root": true,
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],
+  "ignorePatterns": ["src/generated/**"],
   "parserOptions": {
     "project": "./tsconfig.json"
   },
@@ -257,25 +258,33 @@
       }
     },
     {
-      "files": [
-        "src/lib/payroll/**/*.ts",
-        "src/lib/joppd/**/*.ts",
-        "src/lib/rules/**/*.ts",
-        "src/app/api/payouts/**/*.ts",
-        "src/app/api/joppd/**/*.ts"
+      "files": ["src/**/*.ts", "src/**/*.tsx"],
+      "excludedFiles": [
+        "src/lib/fiscal-rules/**/*",
+        "src/lib/rules/applied-rule-snapshot-service.ts"
       ],
       "rules": {
         "no-restricted-syntax": [
           "error",
           {
-            "selector": "Property[key.name='include'] ObjectExpression Property[key.name='ruleVersion']",
-            "message": "Do not include ruleVersion relation on PayoutLine/JoppdSubmissionLine. Use appliedRuleSnapshot instead (PR#8+). The ruleVersion relation is deprecated."
+            "selector": "Property[key.name='include'] ObjectExpression > Property[key.name='ruleVersion']",
+            "message": "Forbidden: include.ruleVersion. Use AppliedRuleSnapshot via snapshot-reader. (PR#9)"
           },
           {
-            "selector": "MemberExpression[property.name='ruleVersion'][object.name=/line/i]",
-            "message": "Do not access .ruleVersion on PayoutLine/JoppdSubmissionLine. Use .appliedRuleSnapshot instead. The ruleVersion relation is deprecated."
+            "selector": "Property[key.name='select'] ObjectExpression > Property[key.name='ruleVersion']",
+            "message": "Forbidden: select.ruleVersion. Use AppliedRuleSnapshot via snapshot-reader. (PR#9)"
+          },
+          {
+            "selector": "MemberExpression[property.name='ruleVersion']",
+            "message": "Forbidden: accessing .ruleVersion. Use AppliedRuleSnapshot (appliedRuleSnapshot / snapshot-reader). (PR#9)"
           }
         ]
+      }
+    },
+    {
+      "files": ["src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.test.tsx", "src/**/*.spec.tsx"],
+      "rules": {
+        "no-restricted-syntax": "off"
       }
     }
   ]

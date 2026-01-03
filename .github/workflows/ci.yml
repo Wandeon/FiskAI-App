@@ -41,6 +41,9 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      - name: Check no ruleVersion relations (PR#9 guardrail)
+        run: npx tsx scripts/check-no-ruleversion-relations.ts
+
   lint-ratchet:
     name: Lint Ratchet
     runs-on: ubuntu-latest

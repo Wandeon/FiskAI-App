@@ -2523,7 +2523,8 @@ model PayoutLine {
   appliedRuleSnapshotId String?               @map("applied_rule_snapshot_id")
   createdAt             DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
   payout                Payout                @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  ruleVersion           RuleVersion?          @relation("PayoutLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
+  // ruleVersionId is now a soft reference only - relation removed in PR#9
+  // Use AppliedRuleSnapshot for rule data access
   appliedRuleSnapshot   AppliedRuleSnapshot?  @relation(fields: [appliedRuleSnapshotId], references: [id], onDelete: SetNull)
   company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee              Employee?             @relation(fields: [employeeId], references: [id], onDelete: SetNull)
@@ -2749,7 +2750,8 @@ model JoppdSubmissionLine {
   createdAt             DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
   submission            JoppdSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   payoutLine            PayoutLine            @relation(fields: [payoutLineId], references: [id], onDelete: Restrict)
-  ruleVersion           RuleVersion?          @relation("JoppdSubmissionLineRuleVersion", fields: [ruleVersionId], references: [id], onDelete: SetNull)
+  // ruleVersionId is now a soft reference only - relation removed in PR#9
+  // Use AppliedRuleSnapshot for rule data access
   appliedRuleSnapshot   AppliedRuleSnapshot?  @relation(fields: [appliedRuleSnapshotId], references: [id], onDelete: SetNull)
   originalLine          JoppdSubmissionLine?  @relation("JoppdLineCorrections", fields: [originalLineId], references: [id], onDelete: SetNull)
   corrections           JoppdSubmissionLine[] @relation("JoppdLineCorrections")
@@ -3862,8 +3864,8 @@ model RuleVersion {
   table                RuleTable             @relation(fields: [tableId], references: [id], onDelete: Cascade)
   snapshots            RuleSnapshot[]
   calculations         RuleCalculation[]
-  payoutLines          PayoutLine[]          @relation("PayoutLineRuleVersion")
-  joppdSubmissionLines JoppdSubmissionLine[] @relation("JoppdSubmissionLineRuleVersion")
+  // payoutLines and joppdSubmissionLines relations removed in PR#9
+  // These now use soft references via ruleVersionId + AppliedRuleSnapshot
   travelOrdersPerDiem  TravelOrder[]         @relation("TravelOrderPerDiemRuleVersion")
   travelOrdersMileage  TravelOrder[]         @relation("TravelOrderMileageRuleVersion")
 
