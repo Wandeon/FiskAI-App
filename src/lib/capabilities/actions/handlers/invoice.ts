@@ -16,6 +16,7 @@ import {
   sendEInvoice,
   createCreditNote,
   issueInvoice,
+  markInvoiceAsPaid,
 } from "@/app/actions/invoice"
 import { fiscalizeInvoice } from "@/app/actions/fiscalize"
 
@@ -169,5 +170,32 @@ registerActionHandler({
     }
 
     return { success: false, error: result.error || "Failed to create credit note" }
+  },
+})
+
+/**
+ * INV-008:mark_paid - Mark invoice as paid
+ *
+ * Records payment for an invoice.
+ *
+ * @permission invoice:update
+ */
+registerActionHandler({
+  capabilityId: "INV-008",
+  actionId: "mark_paid",
+  permission: "invoice:update",
+  handler: async (_context: ActionContext, params?: ActionParams): Promise<ActionResult> => {
+    if (!params?.id) {
+      return { success: false, error: "Invoice ID required", code: "VALIDATION_ERROR" }
+    }
+
+    const result = await markInvoiceAsPaid(params.id as string)
+
+    // Check for success indicator in result
+    if ("success" in result && typeof result.success === "string") {
+      return { success: true }
+    }
+
+    return { success: false, error: result.error || "Failed to mark invoice as paid" }
   },
 })
