@@ -26,3 +26,4 @@ export { executeBatchAction } from "./batch-executor"
 
 // Import handlers to ensure registration
 import "./handlers/invoice"
+import "./handlers/expense"
