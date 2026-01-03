@@ -230,7 +230,7 @@ describe("ActionButton", () => {
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
           type: "success",
-          message: "Success",
+          message: "Uspjeh",
         })
       )
       expect(onSuccess).toHaveBeenCalled()
