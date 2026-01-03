@@ -2,6 +2,7 @@
   "root": true,
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],
+  "ignorePatterns": ["src/generated/**"],
   "parserOptions": {
     "project": "./tsconfig.json"
   },
