@@ -15,6 +15,14 @@ export {
   type UseCapabilityActionOptions,
   type UseCapabilityActionReturn,
 } from "./useCapabilityAction"
+export {
+  useBatchAction,
+  type UseBatchActionOptions,
+  type UseBatchActionReturn,
+  type BatchProgress,
+} from "./useBatchAction"
+export * from "./batch-types"
+export { executeBatchAction } from "./batch-executor"
 
 // Import handlers to ensure registration
 import "./handlers/invoice"
