@@ -424,11 +424,11 @@ export async function preparePdvFormData(
 }
 
 /**
- * Format amount for XML (2 decimal places)
- * Uses Money class for proper rounding
+ * Format amount for XML (always 2 decimal places per Croatian Tax Authority spec)
+ * Uses Decimal for proper rounding, .toFixed(2) ensures trailing zeros are preserved.
  */
 function formatAmount(amount: string): string {
-  return new Decimal(amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toString()
+  return new Decimal(amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2)
 }
 
 /**
