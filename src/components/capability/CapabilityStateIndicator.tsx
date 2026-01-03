@@ -9,6 +9,7 @@
  * @since Control Center Shells
  */
 
+import React from "react"
 import { Badge } from "@/components/ui/badge"
 import type { CapabilityState } from "./types"
 

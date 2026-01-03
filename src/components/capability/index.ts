@@ -20,3 +20,4 @@ export { DiagnosticsProvider, DiagnosticsToggle, useDiagnostics } from "./Diagno
 export { SelectionProvider, useSelection, useSelectionOptional } from "./selection-context"
 export { BatchActionBar } from "./BatchActionBar"
 export type { BatchActionDefinition } from "./BatchActionBar"
+export { SelectableQueueItem } from "./SelectableQueueItem"
