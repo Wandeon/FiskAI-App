@@ -14,6 +14,7 @@ import {
 } from "@/lib/documents/unified-query"
 import { cn } from "@/lib/utils"
 import { Receipt, Search } from "lucide-react"
+import { LegacyBanner } from "@/components/layout/LegacyBanner"
 
 function formatCurrency(value: number, currency: string) {
   return new Intl.NumberFormat("hr-HR", {
@@ -179,6 +180,8 @@ export default async function ExpensesPage({
 
   return (
     <div className="space-y-6">
+      <LegacyBanner />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

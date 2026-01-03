@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { ContactType } from "@prisma/client"
 import { CommandPalette } from "@/components/ui/command-palette"
 import { VisibleButton } from "@/lib/visibility"
+import { LegacyBanner } from "@/components/layout/LegacyBanner"
 
 interface PageProps {
   searchParams: Promise<{
@@ -119,6 +120,8 @@ export default async function ContactsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
+      <LegacyBanner />
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
