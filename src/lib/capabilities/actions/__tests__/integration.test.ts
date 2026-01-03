@@ -36,6 +36,19 @@ vi.mock("@/app/actions/invoice", () => ({
   sendInvoiceEmail: vi.fn(),
   sendEInvoice: vi.fn(),
   createCreditNote: vi.fn(),
+  issueInvoice: vi.fn(),
+  markInvoiceAsPaid: vi.fn(),
+}))
+
+// Mock expense server actions
+vi.mock("@/app/actions/expense", () => ({
+  markExpenseAsPaid: vi.fn(),
+}))
+
+// Mock banking server actions
+vi.mock("@/app/actions/banking", () => ({
+  matchTransaction: vi.fn(),
+  ignoreTransaction: vi.fn(),
 }))
 
 vi.mock("@/app/actions/fiscalize", () => ({
@@ -128,19 +141,28 @@ describe("Capability Actions Integration", () => {
     // The executor.ts imports ./handlers/invoice which triggers registration
     // Since we import executeCapabilityAction, handlers are already registered
 
-    it("should have all invoice handlers registered after module import", () => {
+    it("should have all handlers registered after module import", () => {
       const handlers = getAllHandlers()
       const handlerKeys = handlers.map((h) => `${h.capabilityId}:${h.actionId}`)
 
+      // Invoice handlers
       expect(handlerKeys).toContain("INV-002:send_email")
       expect(handlerKeys).toContain("INV-002:send_einvoice")
       expect(handlerKeys).toContain("INV-003:fiscalize")
+      expect(handlerKeys).toContain("INV-004:issue")
       expect(handlerKeys).toContain("INV-004:create_credit_note")
+      expect(handlerKeys).toContain("INV-008:mark_paid")
+      // Expense handlers
+      expect(handlerKeys).toContain("EXP-004:mark_paid")
+      // Bank handlers
+      expect(handlerKeys).toContain("BNK-005:manual_match")
+      expect(handlerKeys).toContain("BNK-007:ignore")
     })
 
-    it("should register exactly 4 invoice handlers", () => {
+    it("should register all action handlers", () => {
       const handlers = getAllHandlers()
-      expect(handlers.length).toBe(4)
+      // 6 invoice + 1 expense + 2 bank = 9 handlers
+      expect(handlers.length).toBe(9)
     })
 
     it("should set correct permissions for each handler", () => {
@@ -590,7 +612,7 @@ describe("Capability Actions Integration", () => {
     it("should clear and restore handlers correctly", () => {
       // Get current handlers count
       const originalCount = getAllHandlers().length
-      expect(originalCount).toBe(4) // The 4 invoice handlers
+      expect(originalCount).toBe(9) // 6 invoice + 1 expense + 2 bank = 9 handlers
 
       // Clear registry
       clearRegistry()
