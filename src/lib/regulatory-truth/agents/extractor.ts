@@ -344,10 +344,18 @@ export async function runExtractorBatch(limit: number = 20): Promise<{
   sourcePointerIds: string[]
   errors: string[]
 }> {
-  // Find evidence without source pointers
+  // Find evidence that hasn't been processed (no source pointers link to it)
+  // Query all evidence IDs that have source pointers
+  const pointersWithEvidence = await db.sourcePointer.findMany({
+    select: { evidenceId: true },
+    distinct: ["evidenceId"],
+  })
+  const processedEvidenceIds = pointersWithEvidence.map((p) => p.evidenceId)
+
+  // Find evidence not in that list
   const unprocessedEvidence = await dbReg.evidence.findMany({
     where: {
-      sourcePointers: { none: {} },
+      id: { notIn: processedEvidenceIds.length > 0 ? processedEvidenceIds : ["__none__"] },
     },
     take: limit,
     orderBy: { fetchedAt: "asc" },

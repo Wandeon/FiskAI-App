@@ -1,5 +1,5 @@
 // src/lib/regulatory-truth/monitoring/metrics.ts
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { contentSyncEvents } from "@/lib/db/schema/content-sync"
 import { sql, count, avg } from "drizzle-orm"
@@ -77,11 +77,19 @@ export async function collectMetrics(): Promise<PipelineMetrics> {
 
     // Evidence
     dbReg.evidence.count(),
-    dbReg.evidence.count({
-      where: {
-        sourcePointers: { none: {} },
-      },
-    }),
+    // Unprocessed evidence: count evidence IDs not referenced by any source pointer
+    (async () => {
+      const processedEvidenceIds = await db.sourcePointer.findMany({
+        select: { evidenceId: true },
+        distinct: ["evidenceId"],
+      })
+      const processedIds = processedEvidenceIds.map((p) => p.evidenceId)
+      return dbReg.evidence.count({
+        where: {
+          id: { notIn: processedIds.length > 0 ? processedIds : ["__none__"] },
+        },
+      })
+    })(),
 
     // Pointers
     db.sourcePointer.count(),

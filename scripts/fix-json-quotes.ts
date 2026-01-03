@@ -3,6 +3,7 @@
 // Fix exchange rate rules that have quotes not in evidence
 
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 
 /**
  * Check if content is JSON (starts with { or [)
@@ -68,19 +69,25 @@ function extractQuoteFromJson(content: string, value: string): string | null {
 async function main() {
   console.log("Finding SourcePointers with JSON evidence that need fixing...")
 
-  // Find all source pointers with JSON evidence
-  const pointers = await db.sourcePointer.findMany({
-    include: {
-      evidence: true,
-    },
-  })
+  // Get all source pointers (in core db)
+  const pointers = await db.sourcePointer.findMany()
+
+  // Get all evidence (in regulatory db) and create lookup map
+  const evidenceRecords = await dbReg.evidence.findMany()
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
 
   let fixed = 0
   let skipped = 0
   let failed = 0
 
   for (const pointer of pointers) {
-    const evidence = pointer.evidence
+    const evidence = evidenceMap.get(pointer.evidenceId)
+
+    if (!evidence) {
+      console.warn(`Evidence ${pointer.evidenceId} not found for pointer ${pointer.id}`)
+      failed++
+      continue
+    }
 
     // Check if evidence is JSON
     if (evidence.contentType !== "json" && !isJsonContent(evidence.rawContent)) {
@@ -109,7 +116,7 @@ async function main() {
     console.log(`  Old quote: ${pointer.exactQuote}`)
     console.log(`  New quote: ${betterQuote}`)
 
-    // Update the pointer
+    // Update the pointer (in core db)
     await db.sourcePointer.update({
       where: { id: pointer.id },
       data: {

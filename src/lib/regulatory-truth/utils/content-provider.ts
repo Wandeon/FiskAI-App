@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/utils/content-provider.ts
 // Provides extractable text content from Evidence, using artifacts when available
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 
 export interface ExtractableContent {
   text: string

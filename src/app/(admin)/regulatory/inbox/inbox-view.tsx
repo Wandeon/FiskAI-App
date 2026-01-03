@@ -14,12 +14,19 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { CheckCircle, XCircle, ExternalLink, Filter, ChevronLeft, ChevronRight } from "lucide-react"
-import type { RegulatoryRule, SourcePointer, Evidence, RegulatorySource } from "@prisma/client"
+import type { RegulatoryRule, SourcePointer } from "@prisma/client"
 
-type RuleWithSourcePointers = RegulatoryRule & {
+// Evidence and RegulatorySource are now in regulatory schema
+// Using minimal interface for the joined data
+export type RuleWithSourcePointers = RegulatoryRule & {
   sourcePointers: (SourcePointer & {
-    evidence: Evidence & {
-      source: RegulatorySource
+    evidence?: {
+      id: string
+      url: string
+      source?: {
+        name: string
+        slug: string
+      }
     }
   })[]
 }
@@ -221,15 +228,19 @@ export function InboxView({ rules, total, page, pageSize, userId }: InboxViewPro
                         <div className="space-y-1">
                           {rule.sourcePointers.slice(0, 2).map((pointer) => (
                             <div key={pointer.id} className="text-xs">
-                              <a
-                                href={pointer.evidence.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-info-icon hover:underline"
-                              >
-                                {pointer.evidence.source.name}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
+                              {pointer.evidence?.url ? (
+                                <a
+                                  href={pointer.evidence.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-info-icon hover:underline"
+                                >
+                                  {pointer.evidence.source?.name || "Source"}
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground">No evidence</span>
+                              )}
                             </div>
                           ))}
                           {rule.sourcePointers.length > 2 && (

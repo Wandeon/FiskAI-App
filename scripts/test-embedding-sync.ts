@@ -26,11 +26,7 @@ async function main() {
   const publishedRule = await db.regulatoryRule.findFirst({
     where: { status: "PUBLISHED" },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: true,
-        },
-      },
+      sourcePointers: true,
     },
   })
 
@@ -39,10 +35,15 @@ async function main() {
     process.exit(1)
   }
 
+  // Note: Evidence is now in regulatory schema, accessed via evidenceId soft ref
+  const pointerCount = await db.sourcePointer.count({
+    where: { rules: { some: { id: publishedRule.id } } },
+  })
+
   console.log(`\n🎯 Testing embedding generation for rule: ${publishedRule.id}`)
   console.log(`  - Concept: ${publishedRule.conceptSlug}`)
   console.log(`  - Title: ${publishedRule.titleHr}`)
-  console.log(`  - Source pointers: ${publishedRule.sourcePointers.length}`)
+  console.log(`  - Source pointers: ${pointerCount}`)
 
   // Generate embeddings
   console.log("\n⚙️  Generating embeddings...")
@@ -58,7 +59,9 @@ async function main() {
   // Get updated stats
   console.log("\n📊 Updated Embedding Stats:")
   const statsAfter = await getEmbeddingStats()
-  console.log(`  - Total chunks: ${statsAfter.totalChunks} (+${statsAfter.totalChunks - statsBefore.totalChunks})`)
+  console.log(
+    `  - Total chunks: ${statsAfter.totalChunks} (+${statsAfter.totalChunks - statsBefore.totalChunks})`
+  )
   console.log(`  - Rules with embeddings: ${statsAfter.rulesWithEmbeddings}`)
   console.log(
     `  - Published rules without embeddings: ${statsAfter.publishedRulesWithoutEmbeddings}`

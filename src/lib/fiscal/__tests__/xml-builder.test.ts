@@ -2,6 +2,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert"
 import { buildRacunRequest, buildStornoRequest, FiscalInvoiceData } from "../xml-builder"
 import * as forge from "node-forge"
+import Decimal from "decimal.js"
 
 // Generate a test RSA key pair
 const testKeys = forge.pki.rsa.generateKeyPair({ bits: 1024, workers: -1 })
@@ -15,9 +16,11 @@ describe("xml-builder", () => {
       premisesCode: "PP1",
       deviceCode: "NA1",
       issueDate: new Date("2025-01-15T14:30:00"),
-      totalAmount: 125.0,
+      totalAmount: new Decimal("125.00"),
       vatRegistered: true,
-      vatBreakdown: [{ rate: 25, baseAmount: 100.0, vatAmount: 25.0 }],
+      vatBreakdown: [
+        { rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") },
+      ],
       paymentMethod: "G",
       operatorOib: MOCK_OIB,
       subsequentDelivery: false,
@@ -51,9 +54,11 @@ describe("xml-builder", () => {
       premisesCode: "PP1",
       deviceCode: "NA1",
       issueDate: new Date("2025-01-15T14:30:00"),
-      totalAmount: 125.0,
+      totalAmount: new Decimal("125.00"),
       vatRegistered: true,
-      vatBreakdown: [{ rate: 25, baseAmount: 100.0, vatAmount: 25.0 }],
+      vatBreakdown: [
+        { rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") },
+      ],
       paymentMethod: "G",
       operatorOib: MOCK_OIB,
       subsequentDelivery: false,

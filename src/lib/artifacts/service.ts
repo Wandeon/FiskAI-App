@@ -58,7 +58,7 @@ export async function storeArtifact(input: StoreArtifactInput): Promise<Artifact
           checksum,
           generatorVersion: input.generatorVersion ?? "unknown",
           inputHash: input.inputHash ?? null,
-          generationMeta: (input.generationMeta as Record<string, never> | null) ?? null,
+          generationMeta: input.generationMeta ?? undefined,
           createdById: input.createdById ?? null,
         },
       })
@@ -99,7 +99,7 @@ export async function recordStoredArtifact(input: RecordStoredArtifactInput): Pr
           checksum: input.checksum,
           generatorVersion: input.generatorVersion ?? "unknown",
           inputHash: input.inputHash ?? null,
-          generationMeta: (input.generationMeta as Record<string, never> | null) ?? null,
+          generationMeta: input.generationMeta ?? undefined,
           createdById: input.createdById ?? null,
         },
       })

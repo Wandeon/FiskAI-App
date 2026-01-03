@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/watchdog/audit.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { Prisma, type AuditResult } from "@prisma/client"
 import type { AuditReport, RuleAuditResult, AuditCheckResult } from "./types"
 import { notifyAuditResult } from "./alerting"
@@ -46,6 +46,14 @@ async function selectRandomRun(): Promise<Date | null> {
   return new Date(randomDate)
 }
 
+// Evidence type for audit
+type EvidenceForAudit = {
+  id: string
+  url: string
+  rawContent: string | null
+  contentHash: string | null
+}
+
 /**
  * Select random rules from a run
  */
@@ -61,15 +69,19 @@ async function selectRandomRules(runDate: Date, count: number = 5) {
       status: { in: ["APPROVED", "PUBLISHED"] },
     },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: true,
-        },
-      },
+      sourcePointers: true,
     },
   })
 
-  if (rules.length === 0) return []
+  if (rules.length === 0) return { rules: [], evidenceMap: new Map<string, EvidenceForAudit>() }
+
+  // Fetch evidence for all source pointers
+  const evidenceIds = rules.flatMap((r) => r.sourcePointers.map((sp) => sp.evidenceId))
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    select: { id: true, url: true, rawContent: true, contentHash: true },
+  })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
 
   // Shuffle and take count
   const shuffled = rules.sort(() => Math.random() - 0.5)
@@ -86,20 +98,22 @@ async function selectRandomRules(runDate: Date, count: number = 5) {
   const remaining = shuffled.filter((r) => !selected.includes(r))
   selected.push(...remaining.slice(0, count - selected.length))
 
-  return selected.slice(0, count)
+  return { rules: selected.slice(0, count), evidenceMap }
 }
 
 /**
  * Audit a single rule
  */
 async function auditRule(
-  rule: Awaited<ReturnType<typeof selectRandomRules>>[0]
+  rule: Awaited<ReturnType<typeof selectRandomRules>>["rules"][0],
+  evidenceMap: Map<string, EvidenceForAudit>
 ): Promise<RuleAuditResult> {
   const checks: AuditCheckResult[] = []
 
   // Check 1: Evidence exists (weight 10)
   const hasEvidence =
-    rule.sourcePointers.length > 0 && rule.sourcePointers.some((sp) => sp.evidence)
+    rule.sourcePointers.length > 0 &&
+    rule.sourcePointers.some((sp) => evidenceMap.has(sp.evidenceId))
   checks.push({
     name: "evidence_exists",
     passed: hasEvidence,
@@ -119,7 +133,7 @@ async function auditRule(
   }
 
   const primaryPointer = rule.sourcePointers[0]
-  const evidence = primaryPointer.evidence
+  const evidence = evidenceMap.get(primaryPointer.evidenceId)
 
   // Check 2: Quote in content (weight 8)
   // Normalize both quote and content to handle smart quote variants
@@ -214,7 +228,7 @@ export async function runRandomAudit(): Promise<AuditReport | null> {
 
   console.log(`[audit] Selected run date: ${runDate.toISOString().split("T")[0]}`)
 
-  const rules = await selectRandomRules(runDate, 5)
+  const { rules, evidenceMap } = await selectRandomRules(runDate, 5)
   if (rules.length === 0) {
     console.log("[audit] No rules found for selected date")
     return null
@@ -224,7 +238,7 @@ export async function runRandomAudit(): Promise<AuditReport | null> {
 
   const findings: RuleAuditResult[] = []
   for (const rule of rules) {
-    const result = await auditRule(rule)
+    const result = await auditRule(rule, evidenceMap)
     findings.push(result)
     console.log(
       `[audit] ${rule.conceptSlug}: ${result.score.toFixed(1)}% (${result.passed ? "PASS" : "FAIL"})`

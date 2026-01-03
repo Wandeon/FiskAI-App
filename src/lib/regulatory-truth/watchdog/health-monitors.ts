@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/watchdog/health-monitors.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import type { WatchdogHealthStatus, WatchdogCheckType } from "@prisma/client"
 import type { HealthCheckResult } from "./types"
 import { getThreshold } from "./types"

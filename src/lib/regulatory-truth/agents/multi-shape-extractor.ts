@@ -6,7 +6,7 @@ import { runReferenceExtractor } from "./reference-extractor"
 import { runAssetExtractor } from "./asset-extractor"
 import { runTransitionalExtractor } from "./transitional-extractor"
 import { detectComparisonContent, runComparisonExtractor } from "./comparison-extractor"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import type { ContentClassification } from "../schemas/content-classifier"
 
 export interface MultiShapeExtractionResult {

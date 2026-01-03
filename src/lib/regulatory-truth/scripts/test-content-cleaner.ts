@@ -7,7 +7,7 @@ import { resolve } from "path"
 const envPath = resolve(process.cwd(), ".env.local")
 config({ path: envPath })
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { cleanContent, getCleaningStats, extractNewsItems } from "../utils/content-cleaner"
 
 async function testContentCleaner() {

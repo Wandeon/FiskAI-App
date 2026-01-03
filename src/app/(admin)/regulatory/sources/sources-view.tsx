@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ExternalLink, RefreshCw, CheckCircle, AlertCircle, Clock } from "lucide-react"
-import type { RegulatorySource, Evidence } from "@prisma/client"
+import type { RegulatorySource, Evidence } from "@/generated/regulatory-client"
 
 type SourceWithEvidence = RegulatorySource & {
   evidence: Evidence[]

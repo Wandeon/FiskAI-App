@@ -4,7 +4,9 @@ import { db, runWithTenant } from "@/lib/db"
 import { runWithAuditContext } from "@/lib/audit-context"
 import { runWithContext } from "@/lib/context"
 
-async function waitForAuditLog(where: Parameters<typeof db.auditLog.findFirst>[0]["where"]) {
+async function waitForAuditLog(
+  where: NonNullable<Parameters<typeof db.auditLog.findFirst>[0]>["where"]
+) {
   const started = Date.now()
   while (Date.now() - started < 2000) {
     const log = await db.auditLog.findFirst({
@@ -81,4 +83,3 @@ describe("H2: audit logs include correlationId and before-state", () => {
     expect(changes.after?.name).toBe("Main Updated")
   })
 })
-

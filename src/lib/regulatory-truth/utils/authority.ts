@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/utils/authority.ts
 
 import { AuthorityLevel } from "@prisma/client"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 
 /**
  * Map database hierarchy integer to AuthorityLevel enum

@@ -1,5 +1,6 @@
 // src/lib/assistant/query-engine/rule-selector.ts
 import { prisma } from "@/lib/prisma"
+import { dbReg } from "@/lib/db/regulatory"
 import {
   checkRuleEligibility,
   buildEvaluationContext,
@@ -38,11 +39,11 @@ export interface RuleCandidate {
     contextAfter: string | null
     articleNumber: string | null
     lawReference: string | null
-    evidence: {
+    evidence?: {
       id: string
       url: string
       fetchedAt: Date | null
-      source: {
+      source?: {
         name: string
         url: string
       }
@@ -127,24 +128,55 @@ export async function selectRules(
   // Fetch all PUBLISHED rules for these concepts
   // Note: We fetch all and filter in-memory to properly handle appliesWhen
   // and to track ineligible rules for debugging
-  const allRules = await prisma.regulatoryRule.findMany({
+  const allRulesRaw = await prisma.regulatoryRule.findMany({
     where: {
       conceptSlug: { in: conceptSlugs },
       status: "PUBLISHED",
     },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: {
-            include: {
-              source: true,
-            },
-          },
-        },
-      },
+      sourcePointers: true,
     },
     orderBy: [{ authorityLevel: "asc" }, { confidence: "desc" }, { effectiveFrom: "desc" }],
   })
+
+  // Collect all evidence IDs and fetch from regulatory db
+  const allEvidenceIds = new Set<string>()
+  for (const rule of allRulesRaw) {
+    for (const sp of rule.sourcePointers) {
+      allEvidenceIds.add(sp.evidenceId)
+    }
+  }
+
+  // Fetch evidence with source from regulatory schema
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: Array.from(allEvidenceIds) } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
+
+  // Join evidence to rules
+  const allRules = allRulesRaw.map((rule) => ({
+    ...rule,
+    sourcePointers: rule.sourcePointers.map((sp) => {
+      const evidence = evidenceMap.get(sp.evidenceId)
+      return {
+        ...sp,
+        evidence: evidence
+          ? {
+              id: evidence.id,
+              url: evidence.url,
+              fetchedAt: evidence.fetchedAt,
+              source: evidence.source
+                ? {
+                    name: evidence.source.name,
+                    url: evidence.source.url,
+                  }
+                : undefined,
+            }
+          : undefined,
+      }
+    }),
+  }))
 
   const eligibleRules: RuleCandidate[] = []
   const ineligible: RuleSelectionResult["ineligible"] = []

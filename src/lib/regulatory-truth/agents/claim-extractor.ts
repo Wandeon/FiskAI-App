@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/claim-extractor.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { Prisma } from "@prisma/client"
 import { runAgent } from "./runner"
 import { AtomicClaimSchema, type AtomicClaim } from "../schemas/atomic-claim"

@@ -257,20 +257,9 @@ export async function autoApproveEligibleRules(): Promise<{
  * Run the Reviewer agent to validate a Draft Rule
  */
 export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
-  // Get rule from database with source pointers
+  // Get rule from database
   const rule = await db.regulatoryRule.findUnique({
     where: { id: ruleId },
-    include: {
-      sourcePointers: {
-        include: {
-          evidence: {
-            include: {
-              source: true,
-            },
-          },
-        },
-      },
-    },
   })
 
   if (!rule) {
@@ -281,6 +270,11 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       error: `Rule not found: ${ruleId}`,
     }
   }
+
+  // Query source pointers separately (many-to-many relation, no evidence include)
+  const sourcePointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { id: ruleId } } },
+  })
 
   // Build input for agent
   const input: ReviewerInput = {
@@ -293,7 +287,7 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
       value: rule.value,
       confidence: rule.confidence,
     },
-    sourcePointers: rule.sourcePointers.map((sp) => ({
+    sourcePointers: sourcePointers.map((sp) => ({
       id: sp.id,
       exactQuote: sp.exactQuote,
       extractedValue: sp.extractedValue,

@@ -2,7 +2,7 @@
 // src/lib/regulatory-truth/scripts/drain-pipeline.ts
 // Drains all pending work through the full pipeline
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { fetchDiscoveredItems } from "../agents/sentinel"
 import { runExtractorBatch } from "../agents/extractor"
 import { runComposerBatch } from "../agents/composer"
@@ -92,7 +92,17 @@ export async function drainPipeline(options?: {
   // Phase 2: Extract from all unprocessed evidence (in batches)
   let totalExtracted = 0
   for (let batch = 0; batch < maxExtractorBatches; batch++) {
-    const unprocessedCount = await dbReg.evidence.count({ where: { sourcePointers: { none: {} } } })
+    // Count evidence not referenced by any source pointer
+    const processedEvidenceIds = await db.sourcePointer.findMany({
+      select: { evidenceId: true },
+      distinct: ["evidenceId"],
+    })
+    const processedIds = processedEvidenceIds.map((p) => p.evidenceId)
+    const unprocessedCount = await dbReg.evidence.count({
+      where: {
+        id: { notIn: processedIds.length > 0 ? processedIds : ["__none__"] },
+      },
+    })
     if (unprocessedCount === 0) break
 
     const result = await drainPhase(`extract-batch-${batch + 1}`, async () => {

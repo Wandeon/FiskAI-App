@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
@@ -19,13 +20,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get source counts by status
-    const sourceStats = await db.regulatorySource.groupBy({
+    const sourceStats = await dbReg.regulatorySource.groupBy({
       by: ["isActive"],
       _count: true,
     })
 
-    const activeSources = sourceStats.find((s) => s.isActive)?._count || 0
-    const inactiveSources = sourceStats.find((s) => !s.isActive)?._count || 0
+    const activeSources =
+      sourceStats.find((s: { isActive: boolean; _count: number }) => s.isActive)?._count || 0
+    const inactiveSources =
+      sourceStats.find((s: { isActive: boolean; _count: number }) => !s.isActive)?._count || 0
     const totalSources = activeSources + inactiveSources
 
     // Get sources by priority (based on fetchIntervalHours)
@@ -115,7 +118,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get latest evidence collection timestamp
-    const latestEvidence = await db.evidence.findFirst({
+    const latestEvidence = await dbReg.evidence.findFirst({
       orderBy: { fetchedAt: "desc" },
       select: { fetchedAt: true },
     })
@@ -134,7 +137,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get total counts
-    const totalEvidence = await db.evidence.count()
+    const totalEvidence = await dbReg.evidence.count()
     const totalSourcePointers = await db.sourcePointer.count()
     const totalConflicts = await db.regulatoryConflict.count({
       where: {

@@ -40,7 +40,7 @@ async function batchReviewDrafts(options: BatchReviewOptions = {}) {
   console.log(`Auto-publish: ${autoPublish}`)
   console.log("")
 
-  // Find DRAFT rules with high confidence
+  // Find DRAFT rules with high confidence (without evidence include)
   const draftRules = await db.regulatoryRule.findMany({
     where: {
       status: "DRAFT",
@@ -48,11 +48,7 @@ async function batchReviewDrafts(options: BatchReviewOptions = {}) {
       riskTier: { in: riskTiers as RiskTier[] },
     },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: true,
-        },
-      },
+      sourcePointers: true,
     },
     orderBy: [
       { riskTier: "asc" }, // T0 first (most critical)

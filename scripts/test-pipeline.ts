@@ -3,6 +3,7 @@
 // End-to-end pipeline test for Croatian Regulatory Truth Layer
 
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 
 // Mock the rate limiter for testing
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -80,7 +81,7 @@ async function testDiscoveredItems() {
 async function testEvidenceRecords() {
   console.log("\n=== STEP 3: EVIDENCE RECORDS ===\n")
 
-  const evidence = await db.evidence.findMany({
+  const evidence = await dbReg.evidence.findMany({
     take: 10,
     orderBy: { fetchedAt: "desc" },
     include: { source: true },
@@ -103,7 +104,6 @@ async function testSourcePointers() {
   const pointers = await db.sourcePointer.findMany({
     take: 15,
     orderBy: { createdAt: "desc" },
-    include: { evidence: { include: { source: true } } },
   })
 
   console.log(`Found ${pointers.length} source pointers:`)
@@ -267,7 +267,7 @@ async function testTier1Fetchers() {
   }
 
   // Check for NN metadata evidence
-  const nnEvidence = await db.evidence.findMany({
+  const nnEvidence = await dbReg.evidence.findMany({
     where: {
       contentType: "json-ld",
     },
@@ -323,7 +323,7 @@ async function main() {
 
     const endpoints = await db.discoveryEndpoint.count({ where: { isActive: true } })
     const discovered = await db.discoveredItem.count()
-    const evidence = await db.evidence.count()
+    const evidence = await dbReg.evidence.count()
     const pointers = await db.sourcePointer.count()
     const rules = await db.regulatoryRule.count()
     const published = await db.regulatoryRule.count({ where: { status: "PUBLISHED" } })

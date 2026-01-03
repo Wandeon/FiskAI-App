@@ -173,9 +173,8 @@ async function main() {
   // Modules that read env at import time must be loaded after env is set.
   const { generateInvoicePdfArtifact } = await import("@/lib/pdf/generate-invoice-pdf-artifact")
   const { fiscalizePosSale } = await import("@/lib/fiscal/pos-fiscalize")
-  const { prepareJoppdSubmission, markJoppdSubmitted, markJoppdAccepted } = await import(
-    "@/lib/joppd/joppd-service"
-  )
+  const { prepareJoppdSubmission, markJoppdSubmitted, markJoppdAccepted } =
+    await import("@/lib/joppd/joppd-service")
   const { generatePdvXmlArtifact } = await import("@/lib/reports/pdv-xml-artifact")
 
   const startedAt = new Date().toISOString()
@@ -289,7 +288,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "Contact", id: buyerEu.id, fields: { name: buyerEu.name, vatNumber: buyerEu.vatNumber } })
+    recordEntity(report, {
+      model: "Contact",
+      id: buyerEu.id,
+      fields: { name: buyerEu.name, vatNumber: buyerEu.vatNumber },
+    })
 
     const issueDate1 = new Date("2026-01-05T00:00:00.000Z")
     const invNo1 = await withScenario({
@@ -463,8 +466,19 @@ async function main() {
       ],
       evidence: {
         rows: [
-          { model: "EInvoice", id: invoice1.id, fields: { invoiceNumber: invoice1.invoiceNumber, status: invoice1.status } },
-          { model: "EInvoiceLine", id: invoice1.lines[0].id, fields: { vatRate: invoice1.lines[0].vatRate.toFixed(2), vatAmount: invoice1.lines[0].vatAmount.toFixed(2) } },
+          {
+            model: "EInvoice",
+            id: invoice1.id,
+            fields: { invoiceNumber: invoice1.invoiceNumber, status: invoice1.status },
+          },
+          {
+            model: "EInvoiceLine",
+            id: invoice1.lines[0].id,
+            fields: {
+              vatRate: invoice1.lines[0].vatRate.toFixed(2),
+              vatAmount: invoice1.lines[0].vatAmount.toFixed(2),
+            },
+          },
         ],
         artifacts: [
           {
@@ -500,7 +514,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "Contact", id: buyerHr.id, fields: { name: buyerHr.name, oib: buyerHr.oib } })
+    recordEntity(report, {
+      model: "Contact",
+      id: buyerHr.id,
+      fields: { name: buyerHr.name, oib: buyerHr.oib },
+    })
 
     const issueDate2 = new Date("2026-01-07T00:00:00.000Z")
     const invNo2 = await withScenario({
@@ -606,7 +624,14 @@ async function main() {
           include: { lines: { orderBy: { lineNumber: "asc" } } },
         }),
     })
-    recordEntity(report, { model: "EInvoice", id: invoice2.id, fields: { invoiceNumber: invoice2.invoiceNumber, totalAmount: invoice2.totalAmount.toFixed(2) } })
+    recordEntity(report, {
+      model: "EInvoice",
+      id: invoice2.id,
+      fields: {
+        invoiceNumber: invoice2.invoiceNumber,
+        totalAmount: invoice2.totalAmount.toFixed(2),
+      },
+    })
 
     const fiscalRes = await withScenario({
       correlationId,
@@ -682,7 +707,13 @@ async function main() {
       companyId: company.id,
       userId: user.id,
       reason: "s1_allocate_credit_note_number",
-      fn: () => getNextInvoiceNumber(company.id, undefined, undefined, new Date("2026-01-08T00:00:00.000Z")),
+      fn: () =>
+        getNextInvoiceNumber(
+          company.id,
+          undefined,
+          undefined,
+          new Date("2026-01-08T00:00:00.000Z")
+        ),
     })
 
     const creditNote = await withScenario({
@@ -724,7 +755,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "EInvoice", id: creditNote.id, fields: { type: creditNote.type, correctsInvoiceId: creditNote.correctsInvoiceId } })
+    recordEntity(report, {
+      model: "EInvoice",
+      id: creditNote.id,
+      fields: { type: creditNote.type, correctsInvoiceId: creditNote.correctsInvoiceId },
+    })
 
     assert(
       report,
@@ -736,7 +771,10 @@ async function main() {
     report.steps.push({
       step: "S1.Invoice2 fiscalize + sabotage + credit note",
       input: {
-        invoice2: { invoiceNumber: invoice2.invoiceNumber, totalAmount: invoice2.totalAmount.toFixed(2) },
+        invoice2: {
+          invoiceNumber: invoice2.invoiceNumber,
+          totalAmount: invoice2.totalAmount.toFixed(2),
+        },
         fiscalize: { demo: true, paymentMethod: "CASH" },
         sabotage: { update: { totalAmount: "1.00" } },
         creditNote: { correctsInvoiceId: invoice2.id, fullRefund: true },
@@ -748,8 +786,22 @@ async function main() {
       ],
       evidence: {
         rows: [
-          { model: "EInvoice", id: invoice2AfterFiscal.id, fields: { jir: invoice2AfterFiscal.jir, fiscalizedAt: invoice2AfterFiscal.fiscalizedAt?.toISOString() ?? null } },
-          { model: "EInvoice", id: creditNote.id, fields: { correctsInvoiceId: creditNote.correctsInvoiceId, totalAmount: creditNote.totalAmount.toFixed(2) } },
+          {
+            model: "EInvoice",
+            id: invoice2AfterFiscal.id,
+            fields: {
+              jir: invoice2AfterFiscal.jir,
+              fiscalizedAt: invoice2AfterFiscal.fiscalizedAt?.toISOString() ?? null,
+            },
+          },
+          {
+            model: "EInvoice",
+            id: creditNote.id,
+            fields: {
+              correctsInvoiceId: creditNote.correctsInvoiceId,
+              totalAmount: creditNote.totalAmount.toFixed(2),
+            },
+          },
         ],
         notes: { sabotageError },
       },
@@ -803,7 +855,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "ExpenseCategory", id: category.id, fields: { name: category.name, code: category.code } })
+    recordEntity(report, {
+      model: "ExpenseCategory",
+      id: category.id,
+      fields: { name: category.name, code: category.code },
+    })
 
     const expenseDate = new Date("2026-01-10T00:00:00.000Z")
     const expense = await withScenario({
@@ -830,7 +886,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "Expense", id: expense.id, fields: { totalAmount: expense.totalAmount.toFixed(2), status: expense.status } })
+    recordEntity(report, {
+      model: "Expense",
+      id: expense.id,
+      fields: { totalAmount: expense.totalAmount.toFixed(2), status: expense.status },
+    })
 
     const expenseLine = await withScenario({
       correlationId,
@@ -852,7 +912,14 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "ExpenseLine", id: expenseLine.id, fields: { netAmount: expenseLine.netAmount.toFixed(2), vatAmount: expenseLine.vatAmount.toFixed(2) } })
+    recordEntity(report, {
+      model: "ExpenseLine",
+      id: expenseLine.id,
+      fields: {
+        netAmount: expenseLine.netAmount.toFixed(2),
+        vatAmount: expenseLine.vatAmount.toFixed(2),
+      },
+    })
 
     // URA input row via real VAT input code paths.
     const uraInput = await withScenario({
@@ -862,7 +929,13 @@ async function main() {
       reason: "s2_create_ura_input",
       fn: async () => {
         return db.$transaction(async (tx) => {
-          const { references } = await evaluateVatInputRules(tx, company, expense, expenseLine, category)
+          const { references } = await evaluateVatInputRules(
+            tx,
+            company,
+            expense,
+            expenseLine,
+            category
+          )
           const { deductibleVatAmount, nonDeductibleVatAmount } = calculateVatInputAmounts(
             expense,
             expenseLine,
@@ -889,7 +962,11 @@ async function main() {
         })
       },
     })
-    recordEntity(report, { model: "UraInput", id: uraInput.id, fields: { deductibleVatAmount: uraInput.deductibleVatAmount.toFixed(2) } })
+    recordEntity(report, {
+      model: "UraInput",
+      id: uraInput.id,
+      fields: { deductibleVatAmount: uraInput.deductibleVatAmount.toFixed(2) },
+    })
 
     const candidateEmit = await withScenario({
       correlationId,
@@ -919,7 +996,11 @@ async function main() {
     recordEntity(report, {
       model: "FixedAssetCandidate",
       id: candidate.id,
-      fields: { status: candidate.status, amount: candidate.amount.toFixed(2), thresholdValue: candidate.thresholdValue.toFixed(2) },
+      fields: {
+        status: candidate.status,
+        amount: candidate.amount.toFixed(2),
+        thresholdValue: candidate.thresholdValue.toFixed(2),
+      },
     })
 
     const conversion = await withScenario({
@@ -937,9 +1018,20 @@ async function main() {
     })
 
     if (!conversion.asset) throw new Error("Expected asset created")
-    recordEntity(report, { model: "FixedAsset", id: conversion.asset.id, fields: { acquisitionCost: conversion.asset.acquisitionCost.toFixed(2), usefulLifeMonths: conversion.asset.usefulLifeMonths } })
+    recordEntity(report, {
+      model: "FixedAsset",
+      id: conversion.asset.id,
+      fields: {
+        acquisitionCost: conversion.asset.acquisitionCost.toFixed(2),
+        usefulLifeMonths: conversion.asset.usefulLifeMonths,
+      },
+    })
     if (!conversion.schedule) throw new Error("Expected depreciation schedule created")
-    recordEntity(report, { model: "DepreciationSchedule", id: conversion.schedule.id, fields: { status: conversion.schedule.status } })
+    recordEntity(report, {
+      model: "DepreciationSchedule",
+      id: conversion.schedule.id,
+      fields: { status: conversion.schedule.status },
+    })
 
     const entry1 = await db.depreciationEntry.findFirst({
       where: { assetId: conversion.asset.id },
@@ -999,17 +1091,29 @@ async function main() {
         companyId: company.id,
         userId: user.id,
         reason: "s2_attack_locked_period_update_expense",
-        fn: () => db.expense.update({ where: { id: expense.id }, data: { description: "Tampered" } }),
+        fn: () =>
+          db.expense.update({ where: { id: expense.id }, data: { description: "Tampered" } }),
       })
     } catch (error) {
       lockError = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-      assert(report, "S2.Locked period blocks expense update", error instanceof AccountingPeriodLockedError, lockError)
+      assert(
+        report,
+        "S2.Locked period blocks expense update",
+        error instanceof AccountingPeriodLockedError,
+        lockError
+      )
     }
 
     report.steps.push({
       step: "S2.Expense→Asset→MonthClose→Lock",
       input: {
-        expense: { vendor: vendor.name, item: "MacBook Pro M3", net: "2500.00", vat: "625.00", total: "3125.00" },
+        expense: {
+          vendor: vendor.name,
+          item: "MacBook Pro M3",
+          net: "2500.00",
+          vat: "625.00",
+          total: "3125.00",
+        },
         depreciation: { usefulLifeMonths: 24, expectedMonth1: "104.16" },
         monthClose: { month: "2026-01" },
         sabotage: { expenseUpdateDescription: "Tampered" },
@@ -1022,10 +1126,36 @@ async function main() {
       ],
       evidence: {
         rows: [
-          { model: "Expense", id: expense.id, fields: { totalAmount: expense.totalAmount.toFixed(2), status: expense.status } },
-          { model: "FixedAssetCandidate", id: candidate.id, fields: { status: candidate.status, amount: candidate.amount.toFixed(2), thresholdValue: candidate.thresholdValue.toFixed(2) } },
-          { model: "FixedAsset", id: conversion.asset.id, fields: { acquisitionCost: conversion.asset.acquisitionCost.toFixed(2), usefulLifeMonths: conversion.asset.usefulLifeMonths } },
-          { model: "AccountingPeriod", id: monthClose.period.id, fields: { status: monthClose.period.status, startDate: monthClose.period.startDate.toISOString() } },
+          {
+            model: "Expense",
+            id: expense.id,
+            fields: { totalAmount: expense.totalAmount.toFixed(2), status: expense.status },
+          },
+          {
+            model: "FixedAssetCandidate",
+            id: candidate.id,
+            fields: {
+              status: candidate.status,
+              amount: candidate.amount.toFixed(2),
+              thresholdValue: candidate.thresholdValue.toFixed(2),
+            },
+          },
+          {
+            model: "FixedAsset",
+            id: conversion.asset.id,
+            fields: {
+              acquisitionCost: conversion.asset.acquisitionCost.toFixed(2),
+              usefulLifeMonths: conversion.asset.usefulLifeMonths,
+            },
+          },
+          {
+            model: "AccountingPeriod",
+            id: monthClose.period.id,
+            fields: {
+              status: monthClose.period.status,
+              startDate: monthClose.period.startDate.toISOString(),
+            },
+          },
         ],
         notes: { lockError, candidateEmit },
       },
@@ -1068,7 +1198,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "BankAccount", id: bankAccount.id, fields: { iban: bankAccount.iban } })
+    recordEntity(report, {
+      model: "BankAccount",
+      id: bankAccount.id,
+      fields: { iban: bankAccount.iban },
+    })
 
     const buyer = await withScenario({
       correlationId,
@@ -1108,7 +1242,14 @@ async function main() {
       reason: "s3_build_line_100",
       fn: () =>
         buildVatLineTotals(
-          { description: "Service", quantity: 1, unit: "HUR", unitPrice: 100, vatRate: 0, vatCategory: "E" },
+          {
+            description: "Service",
+            quantity: 1,
+            unit: "HUR",
+            unitPrice: 100,
+            vatRate: 0,
+            vatCategory: "E",
+          },
           issueA
         ),
     })
@@ -1194,8 +1335,22 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "EInvoice", id: invoiceA.id, fields: { invoiceNumber: invoiceA.invoiceNumber, totalAmount: invoiceA.totalAmount.toFixed(2) } })
-    recordEntity(report, { model: "EInvoice", id: invoiceB.id, fields: { invoiceNumber: invoiceB.invoiceNumber, totalAmount: invoiceB.totalAmount.toFixed(2) } })
+    recordEntity(report, {
+      model: "EInvoice",
+      id: invoiceA.id,
+      fields: {
+        invoiceNumber: invoiceA.invoiceNumber,
+        totalAmount: invoiceA.totalAmount.toFixed(2),
+      },
+    })
+    recordEntity(report, {
+      model: "EInvoice",
+      id: invoiceB.id,
+      fields: {
+        invoiceNumber: invoiceB.invoiceNumber,
+        totalAmount: invoiceB.totalAmount.toFixed(2),
+      },
+    })
 
     const importRes = await withScenario({
       correlationId,
@@ -1210,9 +1365,24 @@ async function main() {
           fileName: "camt053-mocked.json",
           importedAt: new Date("2026-02-20T00:00:00.000Z"),
           transactions: [
-            { date: new Date("2026-02-20T00:00:00.000Z"), description: "Uplata bez poziva", amount: "98.00", reference: null },
-            { date: new Date("2026-02-20T00:00:00.000Z"), description: "Uplata s pozivom", amount: "102.00", reference: invoiceB.invoiceNumber },
-            { date: new Date("2026-02-20T00:00:00.000Z"), description: "Bank naknada", amount: "-5.00", reference: null },
+            {
+              date: new Date("2026-02-20T00:00:00.000Z"),
+              description: "Uplata bez poziva",
+              amount: "98.00",
+              reference: null,
+            },
+            {
+              date: new Date("2026-02-20T00:00:00.000Z"),
+              description: "Uplata s pozivom",
+              amount: "102.00",
+              reference: invoiceB.invoiceNumber,
+            },
+            {
+              date: new Date("2026-02-20T00:00:00.000Z"),
+              description: "Bank naknada",
+              amount: "-5.00",
+              reference: null,
+            },
           ],
         }),
     })
@@ -1222,7 +1392,12 @@ async function main() {
       companyId: company.id,
       userId: user.id,
       reason: "s3_run_matcher",
-      fn: () => runAutoMatchTransactions({ companyId: company.id, bankAccountId: bankAccount.id, userId: user.id }),
+      fn: () =>
+        runAutoMatchTransactions({
+          companyId: company.id,
+          bankAccountId: bankAccount.id,
+          userId: user.id,
+        }),
     })
 
     const invAAfter = await db.eInvoice.findUnique({ where: { id: invoiceA.id } })
@@ -1242,14 +1417,21 @@ async function main() {
       `paymentStatus=${invBAfter.paymentStatus} paidAmount=${invBAfter.paidAmount.toFixed(2)}`
     )
 
-    const unapplied = await db.unappliedPayment.findFirst({ where: { companyId: company.id, amount: new Decimal("2.00") } })
+    const unapplied = await db.unappliedPayment.findFirst({
+      where: { companyId: company.id, amount: new Decimal("2.00") },
+    })
     assert(
       report,
       "S3.Overpayment stored as UnappliedPayment 2.00",
       Boolean(unapplied),
       unapplied ? `unappliedPayment.id=${unapplied.id}` : "missing"
     )
-    if (unapplied) recordEntity(report, { model: "UnappliedPayment", id: unapplied.id, fields: { amount: unapplied.amount.toFixed(2) } })
+    if (unapplied)
+      recordEntity(report, {
+        model: "UnappliedPayment",
+        id: unapplied.id,
+        fields: { amount: unapplied.amount.toFixed(2) },
+      })
 
     const feeExpense = await db.expense.findFirst({
       where: { companyId: company.id, description: "Bankarske usluge" },
@@ -1262,14 +1444,35 @@ async function main() {
       Boolean(feeExpense) && String(feeExpense!.category?.name).toLowerCase().includes("bankarske"),
       feeExpense ? `expense.id=${feeExpense.id} category=${feeExpense.category?.name}` : "missing"
     )
-    if (feeExpense) recordEntity(report, { model: "Expense", id: feeExpense.id, fields: { totalAmount: feeExpense.totalAmount.toFixed(2), category: feeExpense.category?.name } })
+    if (feeExpense)
+      recordEntity(report, {
+        model: "Expense",
+        id: feeExpense.id,
+        fields: {
+          totalAmount: feeExpense.totalAmount.toFixed(2),
+          category: feeExpense.category?.name,
+        },
+      })
 
     const txns = await db.bankTransaction.findMany({
       where: { companyId: company.id, bankAccountId: bankAccount.id },
       orderBy: { amount: "asc" },
-      select: { id: true, amount: true, description: true, matchedInvoiceId: true, matchedExpenseId: true, matchStatus: true },
+      select: {
+        id: true,
+        amount: true,
+        description: true,
+        matchedInvoiceId: true,
+        matchedExpenseId: true,
+        matchStatus: true,
+      },
     })
-    txns.forEach((t) => recordEntity(report, { model: "BankTransaction", id: t.id, fields: { amount: t.amount.toFixed(2), matchStatus: t.matchStatus } }))
+    txns.forEach((t) =>
+      recordEntity(report, {
+        model: "BankTransaction",
+        id: t.id,
+        fields: { amount: t.amount.toFixed(2), matchStatus: t.matchStatus },
+      })
+    )
 
     report.steps.push({
       step: "S3.Import + AutoMatch",
@@ -1290,10 +1493,32 @@ async function main() {
       ],
       evidence: {
         rows: [
-          { model: "StatementImport", id: importRes.statementImportId, fields: { fileChecksum: importRes.fileChecksum } },
-          { model: "EInvoice", id: invAAfter.id, fields: { paymentStatus: invAAfter.paymentStatus, paidAmount: invAAfter.paidAmount.toFixed(2) } },
-          { model: "EInvoice", id: invBAfter.id, fields: { paymentStatus: invBAfter.paymentStatus, paidAmount: invBAfter.paidAmount.toFixed(2) } },
-          ...txns.map((t) => ({ model: "BankTransaction", id: t.id, fields: { amount: t.amount.toFixed(2), matchStatus: t.matchStatus } })),
+          {
+            model: "StatementImport",
+            id: importRes.statementImportId,
+            fields: { fileChecksum: importRes.fileChecksum },
+          },
+          {
+            model: "EInvoice",
+            id: invAAfter.id,
+            fields: {
+              paymentStatus: invAAfter.paymentStatus,
+              paidAmount: invAAfter.paidAmount.toFixed(2),
+            },
+          },
+          {
+            model: "EInvoice",
+            id: invBAfter.id,
+            fields: {
+              paymentStatus: invBAfter.paymentStatus,
+              paidAmount: invBAfter.paidAmount.toFixed(2),
+            },
+          },
+          ...txns.map((t) => ({
+            model: "BankTransaction",
+            id: t.id,
+            fields: { amount: t.amount.toFixed(2), matchStatus: t.matchStatus },
+          })),
         ],
         notes: { matchRes },
       },
@@ -1333,7 +1558,11 @@ async function main() {
     await db.ruleTable.upsert({
       where: { key: "MUNICIPALITY_INCOME_TAX" },
       update: {},
-      create: { key: "MUNICIPALITY_INCOME_TAX", name: "Municipality income tax", description: "Shatter bootstrap" },
+      create: {
+        key: "MUNICIPALITY_INCOME_TAX",
+        name: "Municipality income tax",
+        description: "Shatter bootstrap",
+      },
     })
     await db.ruleTable.upsert({
       where: { key: "JOPPD_CODEBOOK" },
@@ -1400,14 +1629,31 @@ async function main() {
       },
     })
 
-    recordEntity(report, { model: "RuleVersion", id: contributionsVersion.id, fields: { table: "CONTRIBUTIONS", version: contributionsVersion.version } })
-    recordEntity(report, { model: "RuleVersion", id: incomeTaxVersion.id, fields: { table: "INCOME_TAX", version: incomeTaxVersion.version } })
-    recordEntity(report, { model: "RuleVersion", id: municipalityVersion.id, fields: { table: "MUNICIPALITY_INCOME_TAX", version: municipalityVersion.version } })
-    recordEntity(report, { model: "RuleVersion", id: joppdCodebookVersion.id, fields: { table: "JOPPD_CODEBOOK", version: joppdCodebookVersion.version } })
+    recordEntity(report, {
+      model: "RuleVersion",
+      id: contributionsVersion.id,
+      fields: { table: "CONTRIBUTIONS", version: contributionsVersion.version },
+    })
+    recordEntity(report, {
+      model: "RuleVersion",
+      id: incomeTaxVersion.id,
+      fields: { table: "INCOME_TAX", version: incomeTaxVersion.version },
+    })
+    recordEntity(report, {
+      model: "RuleVersion",
+      id: municipalityVersion.id,
+      fields: { table: "MUNICIPALITY_INCOME_TAX", version: municipalityVersion.version },
+    })
+    recordEntity(report, {
+      model: "RuleVersion",
+      id: joppdCodebookVersion.id,
+      fields: { table: "JOPPD_CODEBOOK", version: joppdCodebookVersion.version },
+    })
 
     const contributions = (await getEffectiveRuleVersion("CONTRIBUTIONS", ruleDate)).data as any
     const incomeTax = (await getEffectiveRuleVersion("INCOME_TAX", ruleDate)).data as any
-    const municipality = (await getEffectiveRuleVersion("MUNICIPALITY_INCOME_TAX", ruleDate)).data as any
+    const municipality = (await getEffectiveRuleVersion("MUNICIPALITY_INCOME_TAX", ruleDate))
+      .data as any
 
     const calc = computeDirectorSalaryPayroll({
       grossAmount: "3000.00",
@@ -1454,8 +1700,23 @@ async function main() {
         }),
     })
 
-    recordEntity(report, { model: "Payout", id: payout.id, fields: { periodYear: payout.periodYear, periodMonth: payout.periodMonth, status: payout.status } })
-    recordEntity(report, { model: "PayoutLine", id: payout.lines[0].id, fields: { grossAmount: payout.lines[0].grossAmount.toFixed(2), netAmount: payout.lines[0].netAmount.toFixed(2) } })
+    recordEntity(report, {
+      model: "Payout",
+      id: payout.id,
+      fields: {
+        periodYear: payout.periodYear,
+        periodMonth: payout.periodMonth,
+        status: payout.status,
+      },
+    })
+    recordEntity(report, {
+      model: "PayoutLine",
+      id: payout.lines[0]!.id,
+      fields: {
+        grossAmount: payout.lines[0]!.grossAmount!.toFixed(2),
+        netAmount: payout.lines[0]!.netAmount!.toFixed(2),
+      },
+    })
 
     const snapshot = await withScenario({
       correlationId,
@@ -1494,7 +1755,11 @@ async function main() {
           },
         }),
     })
-    recordEntity(report, { model: "CalculationSnapshot", id: snapshot.id, fields: { payoutId: snapshot.payoutId, payoutLineId: snapshot.payoutLineId } })
+    recordEntity(report, {
+      model: "CalculationSnapshot",
+      id: snapshot.id,
+      fields: { payoutId: snapshot.payoutId, payoutLineId: snapshot.payoutLineId },
+    })
 
     await withScenario({
       correlationId,
@@ -1540,8 +1805,16 @@ async function main() {
         }),
     })
 
-    recordEntity(report, { model: "JoppdSubmission", id: submission1.id, fields: { status: submission1.status, signedXmlHash: submission1.signedXmlHash } })
-    recordEntity(report, { model: "JoppdSubmission", id: submission2.id, fields: { status: submission2.status, signedXmlHash: submission2.signedXmlHash } })
+    recordEntity(report, {
+      model: "JoppdSubmission",
+      id: submission1.id,
+      fields: { status: submission1.status, signedXmlHash: submission1.signedXmlHash },
+    })
+    recordEntity(report, {
+      model: "JoppdSubmission",
+      id: submission2.id,
+      fields: { status: submission2.status, signedXmlHash: submission2.signedXmlHash },
+    })
 
     assert(
       report,
@@ -1594,11 +1867,20 @@ async function main() {
         companyId: company.id,
         userId: user.id,
         reason: "s4_attack_modify_signed_storage_key",
-        fn: () => db.joppdSubmission.update({ where: { id: submission1.id }, data: { signedXmlStorageKey: null } }),
+        fn: () =>
+          db.joppdSubmission.update({
+            where: { id: submission1.id },
+            data: { signedXmlStorageKey: null },
+          }),
       })
     } catch (error) {
       joppdAttackError = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-      assert(report, "S4.Sabotage update blocked for submitted JOPPD", error instanceof JoppdImmutabilityError, joppdAttackError)
+      assert(
+        report,
+        "S4.Sabotage update blocked for submitted JOPPD",
+        error instanceof JoppdImmutabilityError,
+        joppdAttackError
+      )
     }
 
     let joppdDeleteError: string | null = null
@@ -1612,7 +1894,12 @@ async function main() {
       })
     } catch (error) {
       joppdDeleteError = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-      assert(report, "S4.Sabotage delete blocked for submitted JOPPD", error instanceof JoppdImmutabilityError, joppdDeleteError)
+      assert(
+        report,
+        "S4.Sabotage delete blocked for submitted JOPPD",
+        error instanceof JoppdImmutabilityError,
+        joppdDeleteError
+      )
     }
 
     const periodFrom = new Date("2026-01-01T00:00:00.000Z")
@@ -1623,14 +1910,27 @@ async function main() {
       companyId: company.id,
       userId: user.id,
       reason: "s4_generate_pdv_a",
-      fn: () => generatePdvXmlArtifact({ companyId: company.id, dateFrom: periodFrom, dateTo: periodTo, createdById: user.id }),
+      fn: () =>
+        generatePdvXmlArtifact({
+          companyId: company.id,
+          dateFrom: periodFrom,
+          dateTo: periodTo,
+          createdById: user.id,
+        }),
     })
     const pdv2 = await withScenario({
       correlationId,
       companyId: company.id,
       userId: user.id,
       reason: "s4_generate_pdv_b",
-      fn: () => generatePdvXmlArtifact({ companyId: company.id, dateFrom: periodFrom, dateTo: periodTo, createdById: user.id, reason: "pdv_repeat" }),
+      fn: () =>
+        generatePdvXmlArtifact({
+          companyId: company.id,
+          dateFrom: periodFrom,
+          dateTo: periodTo,
+          createdById: user.id,
+          reason: "pdv_repeat",
+        }),
     })
 
     recordArtifact(report, {
@@ -1711,9 +2011,25 @@ async function main() {
       ],
       evidence: {
         rows: [
-          { model: "Payout", id: payout.id, fields: { status: "REPORTED", periodMonth: payout.periodMonth } },
-          { model: "CalculationSnapshot", id: snapshot.id, fields: { rulesEngineSnapshot: snapshot.rulesEngineSnapshot } },
-          { model: "JoppdSubmission", id: submission1.id, fields: { status: "ACCEPTED", signedXmlHash: submission1.signedXmlHash, signedXmlStorageKey: submission1.signedXmlStorageKey } },
+          {
+            model: "Payout",
+            id: payout.id,
+            fields: { status: "REPORTED", periodMonth: payout.periodMonth },
+          },
+          {
+            model: "CalculationSnapshot",
+            id: snapshot.id,
+            fields: { rulesEngineSnapshot: snapshot.rulesEngineSnapshot },
+          },
+          {
+            model: "JoppdSubmission",
+            id: submission1.id,
+            fields: {
+              status: "ACCEPTED",
+              signedXmlHash: submission1.signedXmlHash,
+              signedXmlStorageKey: submission1.signedXmlStorageKey,
+            },
+          },
         ],
         artifacts: [
           ...(joppdArtifact
@@ -1760,7 +2076,10 @@ async function main() {
     evidence.scenarios[key].auditLogIds = await fetchAuditIds(company.id, key)
   }
 
-  const outPath = path.resolve(process.cwd(), "audit/operation-shatter/evidence/shatter-evidence.json")
+  const outPath = path.resolve(
+    process.cwd(),
+    "audit/operation-shatter/evidence/shatter-evidence.json"
+  )
   await fs.writeFile(outPath, JSON.stringify(evidence, null, 2))
 
   console.log(JSON.stringify({ done: true, evidencePath: outPath }, null, 2))

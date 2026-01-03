@@ -3,7 +3,7 @@
 
 import { mkdirSync, writeFileSync, existsSync } from "fs"
 import { resolve, join } from "path"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import {
   collectEnvironmentFingerprint,
   printFingerprintHeader,

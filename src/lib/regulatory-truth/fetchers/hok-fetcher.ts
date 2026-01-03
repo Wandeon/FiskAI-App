@@ -3,7 +3,7 @@
 // Monitors regulations, membership fees, and guidance for paušalni obrt (flat-rate taxation)
 // Critical for compliance calculations and trade regulations
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { logAuditEvent } from "../utils/audit-log"
 import { fetchWithRateLimit } from "../utils/rate-limiter"

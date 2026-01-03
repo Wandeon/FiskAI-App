@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/process-extractor.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { runAgent } from "./runner"
 import { RegulatoryProcessSchema, type RegulatoryProcess } from "../schemas/process"
 import { getExtractableContent } from "../utils/content-provider"

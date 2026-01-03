@@ -1,3 +1,4 @@
+import { vi, describe, it, expect } from "vitest"
 import { Prisma } from "@prisma/client"
 
 import { emitAssetCandidates } from "../asset-candidates"
@@ -39,4 +40,3 @@ describe("emitAssetCandidates", () => {
     expect(tx.fixedAssetCandidate.createMany).toHaveBeenCalledTimes(1)
   })
 })
-

@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/services/embedding-service.ts
 // Service to generate and sync embeddings for regulatory rules
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { sourceChunkEmbeddings } from "@/lib/db/drizzle/schema/embeddings"
 import { embedBatch, embedText } from "@/lib/article-agent/verification/embedder"
@@ -22,16 +22,9 @@ export interface EmbeddingResult {
  */
 export async function generateEmbeddingsForRule(ruleId: string): Promise<EmbeddingResult> {
   try {
-    // Fetch the rule with its evidence
+    // Fetch the rule
     const rule = await db.regulatoryRule.findUnique({
       where: { id: ruleId },
-      include: {
-        sourcePointers: {
-          include: {
-            evidence: true,
-          },
-        },
-      },
     })
 
     if (!rule) {
@@ -41,6 +34,23 @@ export async function generateEmbeddingsForRule(ruleId: string): Promise<Embeddi
         error: `Rule ${ruleId} not found`,
       }
     }
+
+    // Query source pointers separately (many-to-many relation, no evidence include)
+    const sourcePointers = await db.sourcePointer.findMany({
+      where: { rules: { some: { id: ruleId } } },
+    })
+
+    // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+    const evidenceIds = sourcePointers.map((sp) => sp.evidenceId)
+    const evidenceRecords = await dbReg.evidence.findMany({
+      where: { id: { in: evidenceIds } },
+      select: {
+        id: true,
+        url: true,
+        rawContent: true,
+      },
+    })
+    const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
 
     // Build content chunks from the rule
     const chunks: Array<{
@@ -55,19 +65,20 @@ export async function generateEmbeddingsForRule(ruleId: string): Promise<Embeddi
     chunks.push({
       id: `${ruleId}-rule-content`,
       factSheetId: ruleId,
-      sourceUrl: rule.sourcePointers[0]?.lawReference || "N/A",
+      sourceUrl: sourcePointers[0]?.lawReference || "N/A",
       content: ruleContent,
     })
 
     // Chunk 2-N: Evidence snippets (if available)
-    for (const pointer of rule.sourcePointers) {
-      if (pointer.evidence?.rawContent) {
+    for (const pointer of sourcePointers) {
+      const evidence = evidenceMap.get(pointer.evidenceId)
+      if (evidence?.rawContent) {
         // Take first 2000 chars of evidence (embeddings work better with focused content)
-        const evidenceSnippet = pointer.evidence.rawContent.slice(0, 2000)
+        const evidenceSnippet = evidence.rawContent.slice(0, 2000)
         chunks.push({
           id: `${ruleId}-evidence-${pointer.id}`,
           factSheetId: ruleId,
-          sourceUrl: pointer.lawReference || pointer.evidence.url,
+          sourceUrl: pointer.lawReference || evidence.url,
           content: evidenceSnippet,
         })
       }

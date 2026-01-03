@@ -17,7 +17,7 @@
  */
 
 import { embedText, embedBatch } from "@/lib/article-agent/verification/embedder"
-import { prisma } from "@/lib/prisma"
+import { dbReg } from "@/lib/db"
 import { normalizeHtmlContent } from "./content-hash"
 
 /**
@@ -55,7 +55,7 @@ export function buildEvidenceEmbeddingText(evidence: {
  */
 export async function generateEvidenceEmbedding(evidenceId: string): Promise<number[]> {
   // Fetch evidence
-  const evidence = await prisma.evidence.findUnique({
+  const evidence = await dbReg.evidence.findUnique({
     where: { id: evidenceId },
     select: {
       id: true,
@@ -78,9 +78,9 @@ export async function generateEvidenceEmbedding(evidenceId: string): Promise<num
   // Generate embedding
   const embedding = await embedText(text)
 
-  // Update database
-  await prisma.$executeRaw`
-    UPDATE "Evidence"
+  // Update database (Evidence is in regulatory schema)
+  await dbReg.$executeRaw`
+    UPDATE "regulatory"."Evidence"
     SET "embedding" = ${JSON.stringify(embedding)}::vector
     WHERE "id" = ${evidenceId}
   `
@@ -100,7 +100,7 @@ export async function generateEvidenceEmbeddingsBatch(
   }
 
   // Fetch evidence records
-  const evidenceRecords = await prisma.evidence.findMany({
+  const evidenceRecords = await dbReg.evidence.findMany({
     where: { id: { in: evidenceIds } },
     select: {
       id: true,
@@ -128,8 +128,8 @@ export async function generateEvidenceEmbeddingsBatch(
     if (!embedding) continue
 
     // Update database with raw SQL (Prisma doesn't support vector type directly)
-    await prisma.$executeRaw`
-      UPDATE "Evidence"
+    await dbReg.$executeRaw`
+      UPDATE "regulatory"."Evidence"
       SET "embedding" = ${JSON.stringify(embedding)}::vector
       WHERE "id" = ${evidence.id}
     `
@@ -144,9 +144,9 @@ export async function generateEvidenceEmbeddingsBatch(
  * Check if an Evidence record has an embedding
  */
 export async function hasEmbedding(evidenceId: string): Promise<boolean> {
-  const result = await prisma.$queryRaw<[{ has_embedding: boolean }]>`
+  const result = await dbReg.$queryRaw<[{ has_embedding: boolean }]>`
     SELECT ("embedding" IS NOT NULL) as has_embedding
-    FROM "Evidence"
+    FROM "regulatory"."Evidence"
     WHERE "id" = ${evidenceId}
   `
 
@@ -162,14 +162,14 @@ export async function getEmbeddingStats(): Promise<{
   withoutEmbedding: number
   percentage: number
 }> {
-  const result = await prisma.$queryRaw<
+  const result = await dbReg.$queryRaw<
     [{ total: bigint; with_embedding: bigint; without_embedding: bigint }]
   >`
     SELECT
       COUNT(*) as total,
       COUNT("embedding") as with_embedding,
       COUNT(*) - COUNT("embedding") as without_embedding
-    FROM "Evidence"
+    FROM "regulatory"."Evidence"
     WHERE "deletedAt" IS NULL
   `
 
@@ -192,9 +192,9 @@ export async function getEmbeddingStats(): Promise<{
 export async function findEvidenceWithoutEmbeddings(
   limit: number = 100
 ): Promise<Array<{ id: string; url: string }>> {
-  const result = await prisma.$queryRaw<Array<{ id: string; url: string }>>`
+  const result = await dbReg.$queryRaw<Array<{ id: string; url: string }>>`
     SELECT "id", "url"
-    FROM "Evidence"
+    FROM "regulatory"."Evidence"
     WHERE "embedding" IS NULL
       AND "deletedAt" IS NULL
     ORDER BY "fetchedAt" DESC
@@ -227,9 +227,9 @@ export async function findSimilarEvidence(
   }>
 > {
   // Get the evidence embedding
-  const evidence = await prisma.$queryRaw<Array<{ embedding: string }>>`
+  const evidence = await dbReg.$queryRaw<Array<{ embedding: string }>>`
     SELECT "embedding"::text as embedding
-    FROM "Evidence"
+    FROM "regulatory"."Evidence"
     WHERE "id" = ${evidenceId}
       AND "embedding" IS NOT NULL
   `
@@ -241,7 +241,7 @@ export async function findSimilarEvidence(
   const queryEmbedding = evidence[0].embedding
 
   // Find similar evidence using cosine similarity
-  const results = await prisma.$queryRaw<
+  const results = await dbReg.$queryRaw<
     Array<{
       id: string
       url: string
@@ -256,7 +256,7 @@ export async function findSimilarEvidence(
       "contentHash",
       "sourceId",
       1 - ("embedding" <=> ${queryEmbedding}::vector) as similarity
-    FROM "Evidence"
+    FROM "regulatory"."Evidence"
     WHERE "id" != ${evidenceId}
       AND "embedding" IS NOT NULL
       AND "deletedAt" IS NULL
@@ -302,7 +302,7 @@ export async function findSimilarEvidenceByContent(
   const embedding = await embedText(text)
 
   // Find similar evidence using cosine similarity
-  const results = await prisma.$queryRaw<
+  const results = await dbReg.$queryRaw<
     Array<{
       id: string
       url: string
@@ -317,7 +317,7 @@ export async function findSimilarEvidenceByContent(
       "contentHash",
       "sourceId",
       1 - ("embedding" <=> ${JSON.stringify(embedding)}::vector) as similarity
-    FROM "Evidence"
+    FROM "regulatory"."Evidence"
     WHERE "embedding" IS NOT NULL
       AND "deletedAt" IS NULL
       AND 1 - ("embedding" <=> ${JSON.stringify(embedding)}::vector) >= ${minSimilarity}

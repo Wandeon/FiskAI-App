@@ -3,7 +3,7 @@
 // Fetchers create DRAFT rules only - approval and publication happen via pipeline/service.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { createHNBRules, type HNBExchangeRate } from "../fetchers/hnb-fetcher"
 
 // Mock the db module

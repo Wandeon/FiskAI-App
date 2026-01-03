@@ -6,18 +6,21 @@ import { config } from "dotenv"
 config() // Load .env file
 
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 import { runExtractor } from "../src/lib/regulatory-truth/agents"
 
 async function test() {
-  // Get an evidence record that hasn't been processed
-  const evidence = await db.evidence.findFirst({
-    where: { sourcePointers: { none: {} } },
-    include: { source: true },
-  })
+  // Get an evidence record that hasn't been processed (cross-schema query)
+  const evidenceWithPointers = new Set(
+    (await db.sourcePointer.findMany({ select: { evidenceId: true } })).map((p) => p.evidenceId)
+  )
+  const allEvidence = await dbReg.evidence.findMany({ include: { source: true }, take: 100 })
+  const unprocessedEvidence = allEvidence.filter((e) => !evidenceWithPointers.has(e.id))
+  const evidence = unprocessedEvidence[0]
 
   if (!evidence) {
     // Get any evidence for testing
-    const anyEvidence = await db.evidence.findFirst({ include: { source: true } })
+    const anyEvidence = await dbReg.evidence.findFirst({ include: { source: true } })
     if (!anyEvidence) {
       console.log("No evidence records found")
       return

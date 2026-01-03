@@ -1,5 +1,5 @@
 // src/lib/regulatory-truth/agents/content-classifier.ts
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { runAgent } from "./runner"
 import {
   ContentClassificationSchema,

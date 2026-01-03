@@ -178,8 +178,8 @@ function calculateTemporalMargin(effectiveUntil: Date | null): {
 export function calculateEvidenceQuality(rule: RuleCandidate): EvidenceQualityScore {
   // Get the most recent evidence fetchedAt across all source pointers
   const fetchedDates = rule.sourcePointers
-    .map((sp) => sp.evidence.fetchedAt)
-    .filter((d): d is Date => d !== null)
+    .map((sp) => sp.evidence?.fetchedAt)
+    .filter((d): d is Date => d !== null && d !== undefined)
 
   const mostRecentFetchedAt =
     fetchedDates.length > 0 ? new Date(Math.max(...fetchedDates.map((d) => d.getTime()))) : null

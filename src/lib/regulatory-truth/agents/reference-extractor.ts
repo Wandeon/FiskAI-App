@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/reference-extractor.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { runAgent } from "./runner"
 import { ReferenceTableSchema, type ReferenceTable } from "../schemas/reference"
 import { getExtractableContent } from "../utils/content-provider"

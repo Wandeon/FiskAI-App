@@ -4,9 +4,15 @@ import { Prisma } from "@prisma/client"
 import { db, runWithTenant } from "@/lib/db"
 import { runWithAuditContext } from "@/lib/audit-context"
 import { runWithContext } from "@/lib/context"
-import { InvoiceImmutabilityError, JoppdImmutabilityError, AccountingPeriodLockedError } from "@/lib/prisma-extensions"
+import {
+  InvoiceImmutabilityError,
+  JoppdImmutabilityError,
+  AccountingPeriodLockedError,
+} from "@/lib/prisma-extensions"
 
-async function waitForAudit(where: Parameters<typeof db.auditLog.findFirst>[0]["where"]) {
+async function waitForAudit(
+  where: NonNullable<Parameters<typeof db.auditLog.findFirst>[0]>["where"]
+) {
   const started = Date.now()
   while (Date.now() - started < 2000) {
     const log = await db.auditLog.findFirst({ where, orderBy: { timestamp: "desc" } })
@@ -212,12 +218,15 @@ describe("H3: immutability enforcement logs blocked attempts", () => {
     const attempt = async () =>
       runWithContext({ requestId: correlationId }, async () =>
         runWithTenant({ companyId: company.id, userId: user.id }, async () =>
-          runWithAuditContext({ actorId: user.id, reason: "shatter_h3_attack_period" }, async () => {
-            await db.expense.update({
-              where: { id: expense.id },
-              data: { description: "New" },
-            })
-          })
+          runWithAuditContext(
+            { actorId: user.id, reason: "shatter_h3_attack_period" },
+            async () => {
+              await db.expense.update({
+                where: { id: expense.id },
+                data: { description: "New" },
+              })
+            }
+          )
         )
       )
 

@@ -1,4 +1,5 @@
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 
 async function checkCounts() {
   console.log("=== REGULATORY RULE COUNTS BY STATUS ===")
@@ -7,7 +8,7 @@ async function checkCounts() {
   console.log(JSON.stringify(rulesByStatus, null, 2))
 
   console.log("\n=== EVIDENCE COUNT ===")
-  const evidenceCount = await db.evidence.count()
+  const evidenceCount = await dbReg.evidence.count()
   console.log("Evidence records:", evidenceCount)
 
   console.log("\n=== SOURCE POINTER COUNT ===")
@@ -19,33 +20,40 @@ async function checkCounts() {
   console.log("Concept records:", conceptCount)
 
   console.log("\n=== SAMPLE PUBLISHED RULE WITH SOURCE POINTER ===")
+  // RegulatoryRule is in core, SourcePointer/Evidence are in regulatory
+  // Must query separately after RTL migration
   const sampleRule = await db.regulatoryRule.findFirst({
     where: { status: "PUBLISHED" },
-    include: {
-      sourcePointers: {
-        include: {
-          evidence: true,
-        },
-      },
-      concept: true,
-    },
+    include: { concept: true },
   })
   if (sampleRule) {
     console.log("Rule ID:", sampleRule.id)
     console.log("Title:", sampleRule.titleHr)
     console.log("Concept:", sampleRule.concept?.slug)
-    console.log("SourcePointers:", sampleRule.sourcePointers.length)
-    if (sampleRule.sourcePointers[0]) {
-      console.log("  - Quote:", sampleRule.sourcePointers[0].exactQuote?.substring(0, 100))
-      console.log("  - Evidence URL:", sampleRule.sourcePointers[0].evidence?.url)
-      console.log("  - Evidence ID:", sampleRule.sourcePointers[0].evidenceId)
-      console.log("  - FetchedAt:", sampleRule.sourcePointers[0].evidence?.fetchedAt)
+
+    // Query source pointers from core DB (soft ref to Evidence in regulatory)
+    const sourcePointers = await db.sourcePointer.findMany({
+      where: { rules: { some: { id: sampleRule.id } } },
+    })
+    console.log("SourcePointers:", sourcePointers.length)
+    if (sourcePointers[0]) {
+      console.log("  - Quote:", sourcePointers[0].exactQuote?.substring(0, 100))
+      console.log("  - Evidence ID:", sourcePointers[0].evidenceId)
+      // Get evidence from regulatory DB
+      const evidence = await dbReg.evidence.findUnique({
+        where: { id: sourcePointers[0].evidenceId },
+      })
+      if (evidence) {
+        console.log("  - Evidence URL:", evidence.url)
+        console.log("  - FetchedAt:", evidence.fetchedAt)
+      }
     }
   } else {
     console.log("NO PUBLISHED RULES FOUND")
   }
 
   await db.$disconnect()
+  await dbReg.$disconnect()
 }
 
 checkCounts().catch(console.error)

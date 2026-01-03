@@ -3,7 +3,7 @@
 // Monitors minimum wage announcements and labor law changes
 // Critical for contribution calculations and compliance
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { logAuditEvent } from "../utils/audit-log"
 import { fetchWithRateLimit } from "../utils/rate-limiter"

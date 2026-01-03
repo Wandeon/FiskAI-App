@@ -1,8 +1,9 @@
 import { getCurrentUser } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { Prisma } from "@prisma/client"
 import { redirect } from "next/navigation"
-import { InboxView } from "./inbox-view"
+import { InboxView, type RuleWithSourcePointers } from "./inbox-view"
 
 export const revalidate = 0 // Always fetch fresh data
 
@@ -36,7 +37,7 @@ export default async function RegulatoryInboxPage({
     where.riskTier = riskTierFilter
   }
 
-  const [rules, total] = await Promise.all([
+  const [rulesRaw, total] = await Promise.all([
     db.regulatoryRule.findMany({
       where,
       orderBy: [
@@ -46,19 +47,45 @@ export default async function RegulatoryInboxPage({
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
-        sourcePointers: {
-          include: {
-            evidence: {
-              include: {
-                source: true,
-              },
-            },
-          },
-        },
+        sourcePointers: true,
       },
     }),
     db.regulatoryRule.count({ where }),
   ])
+
+  // Fetch evidence from regulatory db
+  const allEvidenceIds = new Set<string>()
+  for (const rule of rulesRaw) {
+    for (const sp of rule.sourcePointers) {
+      allEvidenceIds.add(sp.evidenceId)
+    }
+  }
+
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: Array.from(allEvidenceIds) } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
+
+  // Join evidence to rules
+  const rules: RuleWithSourcePointers[] = rulesRaw.map((rule) => ({
+    ...rule,
+    sourcePointers: rule.sourcePointers.map((sp) => {
+      const evidence = evidenceMap.get(sp.evidenceId)
+      return {
+        ...sp,
+        evidence: evidence
+          ? {
+              id: evidence.id,
+              url: evidence.url,
+              source: evidence.source
+                ? { name: evidence.source.name, slug: evidence.source.slug }
+                : undefined,
+            }
+          : undefined,
+      }
+    }),
+  }))
 
   return <InboxView rules={rules} total={total} page={page} pageSize={pageSize} userId={user.id} />
 }

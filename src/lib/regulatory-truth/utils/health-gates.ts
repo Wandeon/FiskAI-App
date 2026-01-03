@@ -1,5 +1,5 @@
 // src/lib/regulatory-truth/utils/health-gates.ts
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 
 export interface HealthGate {
   name: string

@@ -8,7 +8,7 @@
 // through the pipeline stage, which calls the domain service.
 // This ensures all status transitions go through the same choke point.
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { logAuditEvent } from "../utils/audit-log"
 

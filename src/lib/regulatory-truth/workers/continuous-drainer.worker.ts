@@ -9,7 +9,7 @@ import {
   releaseQueue,
   ocrQueue,
 } from "./queues"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { Prisma } from "@prisma/client"
 import { fetchDiscoveredItems } from "../agents/sentinel"
 import { closeRedis, updateDrainerHeartbeat, updateStageHeartbeat } from "./redis"
@@ -260,15 +260,16 @@ async function drainFetchedEvidence(): Promise<number> {
     .map((i) => i.evidenceId)
     .filter((id): id is string => id !== null)
 
-  // Filter to only evidence without source pointers
-  const newEvidence = await dbReg.evidence.findMany({
-    where: {
-      id: { in: evidenceIds },
-      sourcePointers: { none: {} },
-    },
-    select: { id: true },
-    take: 50,
+  // Filter to only evidence without source pointers (soft reference pattern)
+  const existingPointers = await db.sourcePointer.findMany({
+    where: { evidenceId: { in: evidenceIds } },
+    select: { evidenceId: true },
+    distinct: ["evidenceId"],
   })
+  const evidenceWithPointersSet = new Set(existingPointers.map((p) => p.evidenceId))
+  const newEvidenceIds = evidenceIds.filter((id) => !evidenceWithPointersSet.has(id)).slice(0, 50)
+
+  const newEvidence = newEvidenceIds.map((id) => ({ id }))
 
   if (newEvidence.length === 0) return 0
 

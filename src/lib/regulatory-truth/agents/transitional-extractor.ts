@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/transitional-extractor.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { runAgent } from "./runner"
 import { TransitionalProvisionSchema, type TransitionalProvision } from "../schemas/transitional"
 import { getExtractableContent } from "../utils/content-provider"
