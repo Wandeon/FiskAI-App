@@ -1,9 +1,24 @@
 import { db } from "@/lib/db"
 import { AUTO_MATCH_THRESHOLD } from "./reconciliation-config"
-import { MatchKind, MatchSource, MatchStatus } from "@prisma/client"
+import { InvoicePaymentStatus, MatchKind, MatchSource, MatchStatus } from "@prisma/client"
 import { safeRevalidatePath } from "@/lib/next/safe-revalidate"
 import { Prisma } from "@prisma/client"
 import { moneyToMinorUnits } from "@/lib/money"
+
+/**
+ * Explicit mapping from computed payment status string to Prisma enum.
+ * Fails fast on unknown values - no silent defaults in regulated logic.
+ */
+function toInvoicePaymentStatus(status: "UNPAID" | "PARTIAL" | "PAID"): InvoicePaymentStatus {
+  switch (status) {
+    case "UNPAID":
+      return InvoicePaymentStatus.UNPAID
+    case "PARTIAL":
+      return InvoicePaymentStatus.PARTIAL
+    case "PAID":
+      return InvoicePaymentStatus.PAID
+  }
+}
 
 interface AutoMatchParams {
   companyId: string
@@ -23,7 +38,7 @@ function isBankFeeTransaction(params: { amount: Prisma.Decimal; description: str
     normalized.includes("naknada") ||
     normalized.includes("fee") ||
     normalized.includes("proviz") ||
-    normalized.includes("bank") && normalized.includes("nakn")
+    (normalized.includes("bank") && normalized.includes("nakn"))
   )
 }
 
@@ -100,7 +115,10 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
     const currency = txn.bankAccount?.currency || txn.currency || "EUR"
 
     // Debit transactions: try to auto-categorize bank fees first (Scenario 3 requirement).
-    if (txn.amount.lessThan(0) && isBankFeeTransaction({ amount: txn.amount, description: txn.description })) {
+    if (
+      txn.amount.lessThan(0) &&
+      isBankFeeTransaction({ amount: txn.amount, description: txn.description })
+    ) {
       const bankFeeAmount = txn.amount.abs().toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       const category = await db.expenseCategory.findFirst({
         where: {
@@ -112,16 +130,20 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
       const expense = await db.expense.create({
         data: {
           companyId,
-          categoryId: category?.id ?? (await db.expenseCategory.create({
-            data: {
-              companyId,
-              name: "Bankarske usluge",
-              code: "BANK_FEES",
-              vatDeductibleDefault: true,
-              receiptRequired: false,
-              isActive: true,
-            },
-          })).id,
+          categoryId:
+            category?.id ??
+            (
+              await db.expenseCategory.create({
+                data: {
+                  companyId,
+                  name: "Bankarske usluge",
+                  code: "BANK_FEES",
+                  vatDeductibleDefault: true,
+                  receiptRequired: false,
+                  isActive: true,
+                },
+              })
+            ).id,
           description: "Bankarske usluge",
           date: txn.date,
           dueDate: null,
@@ -202,8 +224,13 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
 
       const top = candidates[0]
       if (top) {
-        const score =
-          top.referenceHit ? 100 : top.deltaMinor === 0 ? 95 : top.deltaMinor <= 500 ? 85 : 0
+        const score = top.referenceHit
+          ? 100
+          : top.deltaMinor === 0
+            ? 95
+            : top.deltaMinor <= 500
+              ? 85
+              : 0
         if (score >= threshold) {
           const invoice = top.invoice
           const invoicePaidBefore = new Decimal(invoice.paidAmount ?? 0)
@@ -216,12 +243,11 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
           const paidAfterRaw = invoicePaidBefore.add(allocation.allocated)
           const paidAfter = paidAfterRaw.greaterThan(invoiceTotal) ? invoiceTotal : paidAfterRaw
 
-          const paymentStatus =
-            paidAfter.equals(0)
-              ? "UNPAID"
-              : paidAfter.lessThan(invoiceTotal)
-                ? "PARTIAL"
-                : "PAID"
+          const paymentStatus: "UNPAID" | "PARTIAL" | "PAID" = paidAfter.equals(0)
+            ? "UNPAID"
+            : paidAfter.lessThan(invoiceTotal)
+              ? "PARTIAL"
+              : "PAID"
 
           matchedCount++
 
@@ -240,7 +266,9 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
                 metadata: {
                   kind: paymentStatus === "PAID" ? "INVOICE_PAID" : "INVOICE_PARTIAL",
                   currency,
-                  transactionAmount: txn.amount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2),
+                  transactionAmount: txn.amount
+                    .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+                    .toFixed(2),
                   invoiceTotal: invoiceTotal.toFixed(2),
                   invoicePaidBefore: invoicePaidBefore.toFixed(2),
                   invoicePaidAfter: paidAfter.toFixed(2),
@@ -257,7 +285,7 @@ export async function runAutoMatchTransactions(params: AutoMatchParams) {
               where: { id: invoice.id },
               data: {
                 paidAmount: paidAfter,
-                paymentStatus: paymentStatus as any,
+                paymentStatus: toInvoicePaymentStatus(paymentStatus),
                 paidAt: paymentStatus === "PAID" ? txn.date : null,
               },
             })

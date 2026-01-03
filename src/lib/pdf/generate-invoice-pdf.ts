@@ -146,6 +146,10 @@ export async function generateInvoicePDF({
   // Generate PDF
   const doc = InvoicePDFDocument({ ...pdfData, barcodeDataUrl, fiscalQRDataUrl })
 
+  // Deterministic mode: only override Math.random for predictable internal IDs.
+  // We do NOT override Date because global mutation is unsafe in async contexts.
+  // PDF metadata (CreationDate, ModDate) will vary - golden tests should compare
+  // visual content or use PDF parsing, not byte-for-byte comparison.
   const pdfBuffer = await (async () => {
     if (!deterministicMode) {
       return renderToBuffer(doc)
@@ -156,8 +160,6 @@ export async function generateInvoicePDF({
     const seed = seedBytes.reduce((acc, b) => (acc * 31 + b) >>> 0, 0x811c9dc5) >>> 0
 
     const realRandom = Math.random
-    const realDate = Date
-    const fixedNow = new realDate("2000-01-01T00:00:00.000Z").getTime()
 
     function xorshift32(state: number) {
       let x = state >>> 0
@@ -169,23 +171,9 @@ export async function generateInvoicePDF({
 
     let rngState = seed || 1
 
-    const DeterministicDate = class extends realDate {
-      constructor(...args: any[]) {
-        if (args.length === 0) {
-          super(fixedNow)
-          return
-        }
-        // @ts-expect-error - Date constructor overloads
-        super(...args)
-      }
-      static now() {
-        return fixedNow
-      }
-    }
-
     try {
-      // Deterministic sources for PDF metadata IDs & timestamps (PDFKit / react-pdf internals).
-      ;(globalThis as any).Date = DeterministicDate
+      // Only override Math.random for deterministic internal IDs.
+      // This is safe because Math.random is synchronous and stateless.
       Math.random = () => {
         rngState = xorshift32(rngState)
         return rngState / 0x100000000
@@ -193,7 +181,6 @@ export async function generateInvoicePDF({
 
       return renderToBuffer(doc)
     } finally {
-      ;(globalThis as any).Date = realDate
       Math.random = realRandom
     }
   })()

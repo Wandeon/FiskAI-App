@@ -1,6 +1,7 @@
 import { createHash } from "crypto"
 import { db } from "@/lib/db"
 import type { TransactionClient } from "@/lib/db"
+import { MatchStatus, type Prisma } from "@prisma/client"
 
 export type ParsedBankTransactionInput = {
   date: Date
@@ -42,25 +43,25 @@ export async function importParsedBankTransactions(
 
   const fileChecksum = createHash("sha256").update(JSON.stringify(snapshot)).digest("hex")
 
+  const statementImportData: Prisma.StatementImportCreateInput = {
+    company: { connect: { id: params.companyId } },
+    bankAccount: { connect: { id: params.bankAccountId } },
+    fileName: params.fileName,
+    fileChecksum,
+    format: "XML_CAMT053",
+    transactionCount: params.transactions.length,
+    importedAt: params.importedAt,
+    importedBy: params.importedBy,
+    metadata: { source: "parsed-transactions" } satisfies Prisma.InputJsonValue,
+  }
+
   const statementImport = await client.statementImport.create({
-    data: {
-      companyId: params.companyId,
-      bankAccountId: params.bankAccountId,
-      fileName: params.fileName,
-      fileChecksum,
-      format: "XML_CAMT053",
-      transactionCount: params.transactions.length,
-      importedAt: params.importedAt,
-      importedBy: params.importedBy,
-      metadata: {
-        source: "parsed-transactions",
-      },
-    } as any,
+    data: statementImportData,
   })
 
   if (params.transactions.length) {
-    await client.bankTransaction.createMany({
-      data: params.transactions.map((txn) => ({
+    const transactionRows: Prisma.BankTransactionCreateManyInput[] = params.transactions.map(
+      (txn) => ({
         companyId: params.companyId,
         bankAccountId: params.bankAccountId,
         statementImportId: statementImport.id,
@@ -72,13 +73,16 @@ export async function importParsedBankTransactions(
         reference: txn.reference ?? null,
         counterpartyName: txn.counterpartyName ?? null,
         counterpartyIban: txn.counterpartyIban ?? null,
-        matchStatus: "UNMATCHED",
+        matchStatus: MatchStatus.UNMATCHED,
         confidenceScore: 0,
-      })),
+      })
+    )
+
+    await client.bankTransaction.createMany({
+      data: transactionRows,
       skipDuplicates: false,
-    } as any)
+    })
   }
 
   return { statementImportId: statementImport.id, fileChecksum }
 }
-

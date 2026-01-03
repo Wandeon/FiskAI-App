@@ -264,7 +264,7 @@ export async function preparePdvFormData(
   let outVat13 = new Decimal(0)
   let outBase5 = new Decimal(0)
   let outVat5 = new Decimal(0)
-  let outEuGoods = new Decimal(0)
+  const outEuGoods = new Decimal(0)
   let outEuServices = new Decimal(0)
 
   for (const inv of invoices) {
@@ -319,7 +319,11 @@ export async function preparePdvFormData(
   }
 
   const totalOutputVat = outVat25.plus(outVat13).plus(outVat5)
-  const totalBaseOutput = outBase25.plus(outBase13).plus(outBase5).plus(outEuGoods).plus(outEuServices)
+  const totalBaseOutput = outBase25
+    .plus(outBase13)
+    .plus(outBase5)
+    .plus(outEuGoods)
+    .plus(outEuServices)
   const totalInputVat = inVat25.plus(inVat13).plus(inVat5)
   const totalBaseInput = inBase25.plus(inBase13).plus(inBase5)
 
@@ -350,28 +354,28 @@ export async function preparePdvFormData(
     periodQuarter: isQuarterly ? periodQuarter : undefined,
     periodYear,
 
-	    section1: {
-	      domestic: {
-	        standard: {
-	          rate: VAT_RATES.STANDARD,
-	          baseAmount: toMoneyString(outBase25),
-	          vatAmount: toMoneyString(outVat25),
-	        },
-	        reduced: {
-	          rate: VAT_RATES.REDUCED,
-	          baseAmount: toMoneyString(outBase13),
-	          vatAmount: toMoneyString(outVat13),
-	        },
-	        superReduced: {
-	          rate: VAT_RATES.SUPER_REDUCED,
-	          baseAmount: toMoneyString(outBase5),
-	          vatAmount: toMoneyString(outVat5),
-	        },
-	      },
-	      euDeliveries: { goods: toMoneyString(outEuGoods), services: toMoneyString(outEuServices) },
-	      exports: "0.00",
-	      exempt: "0.00",
-	      totalOutputVat: toMoneyString(totalOutputVat),
+    section1: {
+      domestic: {
+        standard: {
+          rate: VAT_RATES.STANDARD,
+          baseAmount: toMoneyString(outBase25),
+          vatAmount: toMoneyString(outVat25),
+        },
+        reduced: {
+          rate: VAT_RATES.REDUCED,
+          baseAmount: toMoneyString(outBase13),
+          vatAmount: toMoneyString(outVat13),
+        },
+        superReduced: {
+          rate: VAT_RATES.SUPER_REDUCED,
+          baseAmount: toMoneyString(outBase5),
+          vatAmount: toMoneyString(outVat5),
+        },
+      },
+      euDeliveries: { goods: toMoneyString(outEuGoods), services: toMoneyString(outEuServices) },
+      exports: "0.00",
+      exempt: "0.00",
+      totalOutputVat: toMoneyString(totalOutputVat),
       totalBaseOutput: toMoneyString(totalBaseOutput),
     },
 
