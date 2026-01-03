@@ -11,7 +11,12 @@
 
 import { registerActionHandler } from "../registry"
 import type { ActionContext, ActionParams, ActionResult } from "../types"
-import { sendInvoiceEmail, sendEInvoice, createCreditNote } from "@/app/actions/invoice"
+import {
+  sendInvoiceEmail,
+  sendEInvoice,
+  createCreditNote,
+  issueInvoice,
+} from "@/app/actions/invoice"
 import { fiscalizeInvoice } from "@/app/actions/fiscalize"
 
 /**
@@ -103,6 +108,33 @@ registerActionHandler({
     }
 
     return { success: false, error: result.error || "Failed to fiscalize invoice" }
+  },
+})
+
+/**
+ * INV-004:issue - Issue a draft invoice
+ *
+ * Transitions invoice from DRAFT to PENDING_FISCALIZATION.
+ * After issuing, the invoice must be fiscalized within 48 hours.
+ *
+ * @permission invoice:update
+ */
+registerActionHandler({
+  capabilityId: "INV-004",
+  actionId: "issue",
+  permission: "invoice:update",
+  handler: async (_context: ActionContext, params?: ActionParams): Promise<ActionResult> => {
+    if (!params?.id) {
+      return { success: false, error: "Invoice ID required", code: "VALIDATION_ERROR" }
+    }
+
+    const result = await issueInvoice(params.id as string)
+
+    if (result.success) {
+      return { success: true }
+    }
+
+    return { success: false, error: result.error || "Failed to issue invoice" }
   },
 })
 

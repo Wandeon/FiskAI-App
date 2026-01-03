@@ -858,6 +858,43 @@ export async function deleteEInvoice(eInvoiceId: string) {
   })
 }
 
+export async function issueInvoice(invoiceId: string): Promise<ActionResult> {
+  try {
+    const user = await requireAuth()
+
+    return requireCompanyWithPermission(user.id!, "invoice:update", async () => {
+      const invoice = await db.eInvoice.findUnique({
+        where: { id: invoiceId },
+        select: { status: true, companyId: true, lines: { select: { id: true } } },
+      })
+
+      if (!invoice) {
+        return { success: false, error: "Invoice not found" }
+      }
+
+      if (invoice.status !== "DRAFT") {
+        return { success: false, error: "Invoice must be in DRAFT status to issue" }
+      }
+
+      if (invoice.lines.length === 0) {
+        return { success: false, error: "Invoice must have at least one line item" }
+      }
+
+      await db.eInvoice.update({
+        where: { id: invoiceId },
+        data: { status: "PENDING_FISCALIZATION" },
+      })
+
+      revalidatePath("/invoices")
+      revalidatePath(`/invoices/${invoiceId}`)
+      return { success: true }
+    })
+  } catch (error) {
+    console.error("Failed to issue invoice:", error)
+    return { success: false, error: "Failed to issue invoice" }
+  }
+}
+
 export async function markInvoiceAsPaid(invoiceId: string) {
   const user = await requireAuth()
 
