@@ -5,8 +5,8 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ResponsiveTable, type Column } from "@/components/ui/responsive-table"
-import { NewDocumentDropdown } from "@/components/documents/new-document-dropdown"
 import { DocumentsClient } from "@/components/documents/documents-client"
+import { LegacyBanner } from "@/components/layout/LegacyBanner"
 import {
   queryUnifiedDocuments,
   CATEGORY_META,
@@ -179,13 +179,14 @@ export default async function InvoicesPage({
 
   return (
     <div className="space-y-6">
+      <LegacyBanner message="View-only. Create invoices from Control Center." />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Računi</h1>
           <p className="text-[var(--muted)]">Pregled svih izdanih računa</p>
         </div>
-        <NewDocumentDropdown />
+        {/* Action moved to Control Center */}
       </div>
 
       {/* Main content with import dropzone and sidebar */}
