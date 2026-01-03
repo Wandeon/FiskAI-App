@@ -1,0 +1,45 @@
+// prisma/regulatory.prisma
+// OWNER: Prisma (regulatory client)
+// Tables in this file are managed exclusively by the regulatory Prisma client.
+// This schema is for the Regulatory Truth Layer (RTL) and system-wide tables.
+// Do NOT add tenant-scoped tables here.
+//
+// Connection: Uses REGULATORY_DATABASE_URL (can be same DB initially, separate later)
+// Client: dbReg (no tenant isolation)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/regulatory-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// RTL MODELS WILL BE MOVED HERE IN PR#5
+// ============================================================================
+// Models to migrate:
+// - Evidence (source documents)
+// - EvidencePointer (links to rules)
+// - RegulatoryRule (extracted rules)
+// - RegulatoryRuleVersion (versioned rules)
+// - RuleCalculation (calculated values)
+// - RuleClaim (extracted claims)
+// - RuleClaimConflict (conflicts between claims)
+// - RuleClaimAggregation (aggregated claims)
+// - MonitoringAlert (RTL alerts)
+// - ReviewQueueItem (human review queue)
+// - ExtractionResult (LLM extraction results)
+// - Arbiter* models
+// - Pipeline* models
+// ============================================================================
+
+// Placeholder model to ensure schema is valid for generation
+// Remove after first real model is added in PR#5
+model RegulatoryPlaceholder {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  @@map("_regulatory_placeholder")
+}

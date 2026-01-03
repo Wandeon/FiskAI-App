@@ -51,7 +51,8 @@ next-env.d.ts
 .idea/
 .vscode/
 
-/src/generated/prisma
+# Generated Prisma clients
+/src/generated/
 
 # uploads
 uploads/

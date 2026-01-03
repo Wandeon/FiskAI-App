@@ -1,24 +1,33 @@
+// src/lib/db/core.ts
+// OWNER: Prisma (core client)
+// This is the primary Prisma client for tenant-scoped business data.
+// Uses DATABASE_URL and includes tenant isolation middleware.
+
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { Pool } from "pg"
-import { withTenantIsolation } from "./prisma-extensions"
+import { withTenantIsolation } from "../prisma-extensions"
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: ReturnType<typeof withTenantIsolation> | undefined
-  pool: Pool | undefined
+// Global singleton for core database pool and client
+const globalForCore = globalThis as unknown as {
+  corePool: Pool | undefined
+  coreClient: ReturnType<typeof withTenantIsolation> | undefined
 }
 
-const pool = globalForPrisma.pool ?? new Pool({ connectionString: process.env.DATABASE_URL })
-const basePrisma = new PrismaClient({ adapter: new PrismaPg(pool) })
-const db = globalForPrisma.prisma ?? withTenantIsolation(basePrisma)
+// Core database pool - tenant-scoped business data
+const corePool = globalForCore.corePool ?? new Pool({ connectionString: process.env.DATABASE_URL })
 
+// Base Prisma client with pg adapter
+const basePrisma = new PrismaClient({ adapter: new PrismaPg(corePool) })
+
+// Extended client with tenant isolation
+const db = globalForCore.coreClient ?? withTenantIsolation(basePrisma)
+
+// Cache in development to survive hot-reload
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db
-  globalForPrisma.pool = pool
+  globalForCore.corePool = corePool
+  globalForCore.coreClient = db
 }
-
-// Alias for backwards compatibility with experiments module (fixes #926)
-const prisma = db
 
 /**
  * Extended Prisma client type with tenant isolation
@@ -38,7 +47,10 @@ export type ExtendedPrismaClient = typeof db
  */
 export type TransactionClient = Parameters<Parameters<ExtendedPrismaClient["$transaction"]>[0]>[0]
 
-export { db, prisma }
+// Export core client
+export { db }
+
+// Re-export tenant context utilities from prisma-extensions
 export {
   setTenantContext,
   getTenantContext,
@@ -48,9 +60,10 @@ export {
   RegulatoryRuleStatusTransitionError,
   RegulatoryRuleUpdateManyStatusNotAllowedError,
   AccountingPeriodLockedError,
-} from "./prisma-extensions"
+} from "../prisma-extensions"
+
 export type {
   TenantContext,
   RegulatoryTransitionContext,
   RegulatorySystemAction,
-} from "./prisma-extensions"
+} from "../prisma-extensions"
