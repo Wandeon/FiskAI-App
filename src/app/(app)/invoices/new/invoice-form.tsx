@@ -134,8 +134,8 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
     setIsLoading(false)
 
     if (result.success) {
-      toast.success("Dokument je kreiran")
-      router.push("/invoices")
+      toast.success("Nacrt spremljen. Koristite Kontrolni centar za izdavanje.")
+      router.push("/control-center")
     } else {
       toast.error(result.error || "Greška pri kreiranju")
     }
@@ -379,7 +379,7 @@ export function InvoiceForm({ type, contacts, products, isPausalni = false }: In
           </Button>
         </Link>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Spremanje..." : "Spremi dokument"}
+          {isLoading ? "Spremanje..." : "Spremi kao nacrt"}
         </Button>
       </div>
     </form>

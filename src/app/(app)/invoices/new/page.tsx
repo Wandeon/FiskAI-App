@@ -1,9 +1,12 @@
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { setTenantContext } from "@/lib/prisma-extensions"
+import { resolveCapabilityForUser } from "@/lib/capabilities/server"
+import { BlockerDisplay } from "@/components/capability"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { InvoiceForm } from "./invoice-form"
+import { redirect } from "next/navigation"
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Račun",
@@ -27,6 +30,27 @@ export default async function NewInvoicePage({
     companyId: company.id,
     userId: user.id!,
   })
+
+  // Check capability before allowing access
+  const capability = await resolveCapabilityForUser("INV-001", {
+    entityType: "EInvoice",
+  })
+
+  if (capability.state === "UNAUTHORIZED") {
+    redirect("/control-center")
+  }
+
+  if (capability.state === "BLOCKED") {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold">Nije moguće kreirati račun</h1>
+        <BlockerDisplay blockers={capability.blockers} />
+        <Link href="/control-center">
+          <Button>Povratak na Kontrolni centar</Button>
+        </Link>
+      </div>
+    )
+  }
 
   // Get contacts for buyer dropdown
   const contacts = await db.contact.findMany({
