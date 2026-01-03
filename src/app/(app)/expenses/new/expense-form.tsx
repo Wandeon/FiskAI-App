@@ -43,7 +43,7 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
       if (showScanner) {
         setShowScanner(false)
       } else {
-        router.push("/expenses")
+        router.push("/control-center")
       }
     },
     enabled: !isLoading,
@@ -187,8 +187,8 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
     setIsLoading(false)
 
     if (result.success) {
-      toast.success("Trošak je spremljen")
-      router.push("/expenses")
+      toast.success("Nacrt spremljen. Koristite Kontrolni centar za daljnje akcije.")
+      router.push("/control-center")
     } else {
       toast.error(result.error || "Greška pri spremanju")
     }
@@ -437,13 +437,13 @@ export function ExpenseForm({ vendors, categories }: ExpenseFormProps) {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Link href="/expenses">
+        <Link href="/control-center">
           <Button type="button" variant="outline">
             Odustani
           </Button>
         </Link>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Spremanje..." : "Spremi trošak"}
+          {isLoading ? "Spremanje..." : "Spremi kao nacrt"}
         </Button>
       </div>
     </form>
