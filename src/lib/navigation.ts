@@ -15,6 +15,7 @@ import {
   Landmark,
   Receipt,
   FolderOpen,
+  Command,
   type LucideIcon,
 } from "lucide-react"
 import { ModuleKey } from "@/lib/modules/definitions"
@@ -27,7 +28,19 @@ export interface NavItem {
   children?: { name: string; href: string }[]
   module?: ModuleKey
   showFor?: string[] // Legal forms that should see this item (e.g., ["OBRT_PAUSAL"])
+  legacy?: boolean // Mark legacy routes that will be deprecated
 }
+
+export const LEGACY_ROUTES = [
+  "/dashboard",
+  "/invoices",
+  "/expenses",
+  "/banking",
+  "/contacts",
+  "/products",
+  "/pos",
+  "/reports",
+] as const
 
 export interface NavSection {
   title: string
@@ -39,19 +52,26 @@ export const navigation: NavSection[] = [
     title: "Pregled",
     items: [
       {
+        name: "Kontrolni centar",
+        href: "/control-center",
+        icon: Command,
+        module: "platform-core",
+      },
+      {
         name: "Nadzorna ploča",
         href: "/dashboard",
         icon: LayoutDashboard,
         module: "platform-core",
+        legacy: true,
       },
     ],
   },
   {
     title: "Financije",
     items: [
-      { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos" },
-      { name: "Računi", href: "/invoices", icon: FileText, module: "invoicing" },
-      { name: "Troškovi", href: "/expenses", icon: Receipt, module: "expenses" },
+      { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos", legacy: true },
+      { name: "Računi", href: "/invoices", icon: FileText, module: "invoicing", legacy: true },
+      { name: "Troškovi", href: "/expenses", icon: Receipt, module: "expenses", legacy: true },
       {
         name: "Dokumenti",
         href: "/documents",
@@ -65,7 +85,7 @@ export const navigation: NavSection[] = [
           { name: "Ponavljajući troškovi", href: "/expenses/recurring" },
         ],
       },
-      { name: "Banka", href: "/banking", icon: Building2, module: "banking" },
+      { name: "Banka", href: "/banking", icon: Building2, module: "banking", legacy: true },
       {
         name: "Paušalni Hub",
         href: "/pausalni",
@@ -85,6 +105,7 @@ export const navigation: NavSection[] = [
         href: "/reports",
         icon: BarChart3,
         module: "reports-basic",
+        legacy: true,
         children: [
           { name: "Svi izvještaji", href: "/reports" },
           { name: "PO-SD izvještaj", href: "/reports/pausalni-obrt" },
@@ -102,8 +123,8 @@ export const navigation: NavSection[] = [
   {
     title: "Podaci",
     items: [
-      { name: "Kontakti", href: "/contacts", icon: Users },
-      { name: "Proizvodi", href: "/products", icon: Package },
+      { name: "Kontakti", href: "/contacts", icon: Users, legacy: true },
+      { name: "Proizvodi", href: "/products", icon: Package, legacy: true },
       { name: "Article Agent", href: "/article-agent", icon: Bot, module: "ai-assistant" },
     ],
   },
