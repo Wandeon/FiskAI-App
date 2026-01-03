@@ -1,0 +1,5 @@
+{
+  "$schema": "./schema-ownership-allowlist.schema.json",
+  "description": "Temporary allowlist for tables that must exist in both Prisma and Drizzle during migration. Each entry MUST have an expiry date.",
+  "allowed": []
+}

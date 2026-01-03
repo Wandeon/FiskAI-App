@@ -1,0 +1,34 @@
+name: Schema Ownership Check
+
+on:
+  pull_request:
+    paths:
+      - "prisma/schema.prisma"
+      - "src/lib/db/schema/**"
+      - "scripts/check-schema-ownership.mjs"
+      - "docs/contracts/schema-ownership-allowlist.json"
+
+jobs:
+  check-ownership:
+    name: Check Schema Ownership
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run Schema Ownership Check
+        run: node scripts/check-schema-ownership.mjs
+
+      - name: Report on Failure
+        if: failure()
+        run: |
+          echo "::error::Dual-defined tables detected! A table is defined in both Prisma and Drizzle."
+          echo "::error::See job output above for details."
+          echo "::error::Resolution: Remove from one ORM or add to allowlist with expiry."
+          echo "::error::Docs: docs/contracts/data-access-ownership.md"
