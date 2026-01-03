@@ -1,6 +1,11 @@
 import { createHash } from "crypto"
 import { Prisma } from "@prisma/client"
-import { prisma } from "@/lib/prisma"
+import { db } from "@/lib/db"
+import {
+  getEffectiveRuleVersion as storeGetEffectiveRuleVersion,
+  getRuleVersionByIdWithTable,
+  getRuleTableByKey,
+} from "./ruleversion-store"
 import type {
   CalculationRequest,
   CalculationResponse,
@@ -36,14 +41,8 @@ function hashRuleData(data: RuleDataByTableKey): string {
 }
 
 export async function getEffectiveRuleVersion(tableKey: RuleTableKey, referenceDate: Date) {
-  const ruleVersion = await prisma.ruleVersion.findFirst({
-    where: {
-      table: { key: tableKey },
-      effectiveFrom: { lte: referenceDate },
-      OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: referenceDate } }],
-    },
-    orderBy: { effectiveFrom: "desc" },
-  })
+  // PR#10: Use ruleversion-store for reads (supports core/regulatory/dual modes)
+  const ruleVersion = await storeGetEffectiveRuleVersion(tableKey, referenceDate)
 
   if (!ruleVersion) {
     throw new Error(`No effective rule version found for ${tableKey}`)
@@ -59,9 +58,8 @@ export async function createRuleVersion(params: {
   effectiveUntil?: Date | null
   data: RuleDataByTableKey
 }) {
-  const table = await prisma.ruleTable.findUnique({
-    where: { key: params.tableKey },
-  })
+  // PR#10: Use ruleversion-store for RuleTable lookup (supports core/regulatory/dual modes)
+  const table = await getRuleTableByKey(params.tableKey)
 
   if (!table) {
     throw new Error(`Rule table not found: ${params.tableKey}`)
@@ -69,7 +67,8 @@ export async function createRuleVersion(params: {
 
   const dataHash = hashRuleData(params.data)
 
-  return prisma.$transaction(async (tx) => {
+  // NOTE: Writes still go to core DB until full cutover
+  return db.$transaction(async (tx) => {
     const ruleVersion = await tx.ruleVersion.create({
       data: {
         tableId: table.id,
@@ -286,11 +285,9 @@ export async function calculateDeterministicRule(
         ? new Date(input.referenceDate)
         : new Date()
 
+  // PR#10: Use ruleversion-store for reads (supports core/regulatory/dual modes)
   const ruleVersion = input.ruleVersionId
-    ? await prisma.ruleVersion.findUnique({
-        where: { id: input.ruleVersionId },
-        include: { table: true },
-      })
+    ? await getRuleVersionByIdWithTable(input.ruleVersionId)
     : await getEffectiveRuleVersion(input.tableKey, referenceDate)
 
   if (!ruleVersion) {
@@ -337,7 +334,8 @@ export async function calculateDeterministicRule(
     }
   }
 
-  await prisma.ruleCalculation.create({
+  // NOTE: Writes still go to core DB until full cutover
+  await db.ruleCalculation.create({
     data: {
       ruleVersionId: ruleVersion.id,
       tableKey: input.tableKey,

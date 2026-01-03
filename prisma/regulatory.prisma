@@ -207,3 +207,73 @@ model MonitoringAlert {
   @@index([createdAt])
   @@index([resolvedAt])
 }
+
+// =============================================================================
+// RULE VERSION BUNDLE - Fiscal rule tables and versions (migrated from core in PR#10)
+// =============================================================================
+
+model RuleTable {
+  id          String   @id @default(cuid())
+  key         String   @unique // VAT, MUNICIPALITY_INCOME_TAX, CONTRIBUTIONS, PER_DIEM, MILEAGE, JOPPD_CODEBOOK
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions RuleVersion[]
+
+  @@index([key])
+  @@map("rule_table")
+}
+
+model RuleVersion {
+  id             String    @id @default(cuid())
+  tableId        String
+  version        String
+  effectiveFrom  DateTime
+  effectiveUntil DateTime?
+  data           Json
+  dataHash       String
+  publishedAt    DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+
+  table        RuleTable         @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  snapshots    RuleSnapshot[]
+  calculations RuleCalculation[]
+  // NOTE: TravelOrder relations remain in core schema with soft reference to ruleVersionId
+  // NOTE: PayoutLine/JoppdSubmissionLine use AppliedRuleSnapshot, not direct relations (PR#9)
+
+  @@unique([tableId, version])
+  @@index([tableId, effectiveFrom])
+  @@map("rule_version")
+}
+
+model RuleSnapshot {
+  id            String   @id @default(cuid())
+  ruleVersionId String
+  data          Json
+  dataHash      String
+  createdAt     DateTime @default(now())
+
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+
+  @@index([ruleVersionId])
+  @@map("rule_snapshot")
+}
+
+model RuleCalculation {
+  id            String   @id @default(cuid())
+  ruleVersionId String
+  tableKey      String
+  input         Json
+  result        Json
+  referenceDate DateTime
+  createdAt     DateTime @default(now())
+
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+
+  @@index([tableKey])
+  @@index([ruleVersionId])
+  @@index([referenceDate])
+  @@map("rule_calculation")
+}

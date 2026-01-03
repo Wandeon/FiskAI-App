@@ -18,7 +18,7 @@
 
 import { createHash } from "crypto"
 import { db, type TransactionClient } from "@/lib/db"
-import { prisma } from "@/lib/prisma"
+import { getRuleVersionByIdWithTable } from "@/lib/fiscal-rules/ruleversion-store"
 import { getTenantContext } from "@/lib/prisma-extensions"
 
 /**
@@ -229,12 +229,9 @@ export async function getOrCreateSnapshotFromRuleVersionId(
     throw new SnapshotTenantContextError()
   }
 
-  // Fetch RuleVersion with its table to get the tableKey
-  // Note: This uses the regulatory prisma client (separate DB), not the tx
-  const ruleVersion = await prisma.ruleVersion.findUnique({
-    where: { id: ruleVersionId },
-    include: { table: true },
-  })
+  // PR#10: Use ruleversion-store for RuleVersion lookup (supports core/regulatory/dual modes)
+  // Note: The store handles source selection based on RULE_VERSION_SOURCE env var
+  const ruleVersion = await getRuleVersionByIdWithTable(ruleVersionId)
 
   if (!ruleVersion) {
     return null
