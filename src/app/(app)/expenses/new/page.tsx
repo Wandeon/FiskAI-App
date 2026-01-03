@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ExpenseForm } from "./expense-form"
 import { redirect } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 
 export default async function NewExpensePage() {
   const user = await requireAuth()
@@ -55,10 +56,15 @@ export default async function NewExpensePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Novi trošak</h1>
-          <p className="text-secondary">Evidentirajte novi poslovni trošak</p>
+          <p className="text-muted-foreground">
+            Spremi nacrt, zatim koristi Kontrolni centar za daljnje akcije.
+          </p>
         </div>
-        <Link href="/expenses">
-          <Button variant="outline">← Natrag</Button>
+        <Link href="/control-center">
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Kontrolni centar
+          </Button>
         </Link>
       </div>
       <ExpenseForm vendors={vendors} categories={categories} />
