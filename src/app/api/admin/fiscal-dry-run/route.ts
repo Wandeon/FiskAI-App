@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const invoice = await db.eInvoice.create({
       data: {
         companyId,
-        direction: "OUTGOING",
+        direction: "OUTBOUND",
         invoiceNumber: testInvoiceNumber,
         issueDate: new Date(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),

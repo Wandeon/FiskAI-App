@@ -75,3 +75,6 @@ async function main() {
 }
 
 main()
+
+// Make this a module to avoid duplicate function name conflicts
+export {}

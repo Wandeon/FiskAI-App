@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
         throw new Error("Buyer required for UBL generation")
       }
 
-      ublXml = generateUBLInvoice(invoice)
+      ublXml = generateUBLInvoice({ ...invoice, seller: null })
 
       // Store UBL in invoice
       await db.eInvoice.update({
@@ -195,13 +195,13 @@ export async function POST(request: NextRequest) {
           lines: invoice.lines,
         })
 
-        ublValid = complianceResult.valid
+        ublValid = complianceResult.compliant
 
         results.steps = {
           ...(results.steps as object),
           ublValidation: {
-            success: complianceResult.valid,
-            valid: complianceResult.valid,
+            success: complianceResult.compliant,
+            valid: complianceResult.compliant,
             errors: complianceResult.errors,
             warnings: complianceResult.warnings,
           },
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
           const provider = createEInvoiceProvider(providerName, { apiKey })
 
           if (ublXml) {
-            const result = await provider.sendInvoice(invoice, ublXml)
+            const result = await provider.sendInvoice({ ...invoice, seller: null }, ublXml)
 
             if (result.success) {
               sendResult = {

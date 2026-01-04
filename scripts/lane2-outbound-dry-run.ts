@@ -134,7 +134,7 @@ async function main() {
 
     console.log("\nGenerating UBL XML...")
     try {
-      ublXml = generateUBLInvoice(invoice)
+      ublXml = generateUBLInvoice({ ...invoice, seller: null })
 
       // Store UBL in invoice
       await db.eInvoice.update({
@@ -158,13 +158,13 @@ async function main() {
         const complianceResult = validateEN16931Compliance({
           ...invoice,
           company,
-          buyer: invoice.buyer!,
+          buyer: invoice.buyer,
           lines: invoice.lines,
         })
 
-        ublValid = complianceResult.valid
+        ublValid = complianceResult.compliant
 
-        if (complianceResult.valid) {
+        if (complianceResult.compliant) {
           console.log("[OK] EN16931 compliance valid")
         } else {
           console.log(`[WARN] EN16931 validation errors: ${complianceResult.errors.join(", ")}`)
@@ -176,8 +176,8 @@ async function main() {
         results.steps = {
           ...(results.steps as object),
           ublValidation: {
-            success: complianceResult.valid,
-            valid: complianceResult.valid,
+            success: complianceResult.compliant,
+            valid: complianceResult.compliant,
             errors: complianceResult.errors,
             warnings: complianceResult.warnings,
           },
@@ -329,7 +329,7 @@ async function main() {
       const provider = createEInvoiceProvider(providerName, { apiKey })
 
       if (ublXml) {
-        const result = await provider.sendInvoice(invoice, ublXml)
+        const result = await provider.sendInvoice({ ...invoice, seller: null }, ublXml)
 
         if (result.success) {
           sendResult = {
@@ -456,3 +456,6 @@ async function main() {
 main()
   .catch(console.error)
   .finally(() => db.$disconnect())
+
+// Make this a module to avoid duplicate function name conflicts
+export {}
