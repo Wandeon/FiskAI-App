@@ -83,7 +83,7 @@ describe("Fetcher Lifecycle Invariants", () => {
     })
 
     vi.mocked(dbReg.evidence.findFirst).mockResolvedValue(null) // No existing evidence
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     vi.mocked(dbReg.evidence.create).mockResolvedValue({
       id: "evidence-1",
       sourceId: "source-1",
@@ -99,6 +99,7 @@ describe("Fetcher Lifecycle Invariants", () => {
       ocrMetadata: null,
       primaryTextArtifactId: null,
     } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     vi.mocked(db.sourcePointer.create).mockResolvedValue({
       id: "pointer-1",
@@ -136,7 +137,7 @@ describe("Fetcher Lifecycle Invariants", () => {
       updatedAt: new Date(),
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     vi.mocked(db.regulatoryRule.create).mockResolvedValue({
       id: "rule-1",
       conceptId: "concept-1",
@@ -167,6 +168,7 @@ describe("Fetcher Lifecycle Invariants", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any)
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   })
 
   afterEach(() => {

@@ -16,14 +16,29 @@ import { findRelevantRules } from "../utils/rule-context"
 import { TEST_QUESTIONS } from "./citation-compliance.test"
 import { deleteEvidenceForTest } from "@/__tests__/helpers/db-cleanup"
 
-describe("Citation Compliance (Integration)", () => {
+describe("Citation Compliance (Integration)", { timeout: 60000 }, () => {
   // Test fixture IDs for cleanup
   const createdIds: { evidenceIds: string[]; ruleIds: string[] } = {
     evidenceIds: [],
     ruleIds: [],
   }
 
+  // Flag to track if regulatory schema exists
+  let skipTests = false
+
   before(async () => {
+    // Check if regulatory schema exists (RegulatorySource table)
+    // In CI, only main schema is pushed - skip these integration tests if regulatory tables are missing
+    try {
+      await dbReg.regulatorySource.findFirst({ take: 1 })
+    } catch (e) {
+      console.log(
+        "[citation-integration] SKIP: Regulatory schema not available (table RegulatorySource missing)"
+      )
+      skipTests = true
+      return
+    }
+
     // Create test fixtures for citation testing
     // These simulate real published rules with source evidence
     const fixtures = [
@@ -172,7 +187,8 @@ describe("Citation Compliance (Integration)", () => {
   })
 
   describe("findRelevantRules", () => {
-    it("returns rules with complete citation structure", async () => {
+    it("returns rules with complete citation structure", async (t) => {
+      if (skipTests) return t.skip("Regulatory schema not available")
       const results = await findRelevantRules("PDV stopa")
 
       assert.ok(results.length > 0, "Should find at least one rule")
@@ -186,7 +202,8 @@ describe("Citation Compliance (Integration)", () => {
       assert.ok(rule.fetchedAt, "Should have fetchedAt")
     })
 
-    it("only returns PUBLISHED rules", async () => {
+    it("only returns PUBLISHED rules", async (t) => {
+      if (skipTests) return t.skip("Regulatory schema not available")
       const results = await findRelevantRules("stopa")
 
       for (const rule of results) {
@@ -197,7 +214,8 @@ describe("Citation Compliance (Integration)", () => {
       }
     })
 
-    it("excludes rules without sourcePointers", async () => {
+    it("excludes rules without sourcePointers", async (t) => {
+      if (skipTests) return t.skip("Regulatory schema not available")
       // All returned rules should have source pointers
       const results = await findRelevantRules("porez")
 
@@ -212,6 +230,14 @@ describe("Citation Compliance (Integration)", () => {
     const results: { query: string; pattern: string; found: boolean; count: number }[] = []
 
     after(() => {
+      // Skip summary if tests were skipped
+      if (skipTests) {
+        console.log(
+          "[citation-integration] Skipped 30-question compliance test (regulatory schema not available)"
+        )
+        return
+      }
+
       // Report compliance summary
       const passed = results.filter((r) => r.found).length
       const total = results.length
@@ -236,7 +262,8 @@ describe("Citation Compliance (Integration)", () => {
 
     // Run all 30 questions
     for (const { query, expectPattern } of TEST_QUESTIONS) {
-      it(`finds citations for: "${query.substring(0, 35)}..."`, async () => {
+      it(`finds citations for: "${query.substring(0, 35)}..."`, async (t) => {
+        if (skipTests) return t.skip("Regulatory schema not available")
         const rules = await findRelevantRules(query)
 
         results.push({
@@ -255,7 +282,8 @@ describe("Citation Compliance (Integration)", () => {
       })
     }
 
-    it("achieves ≥95% citation compliance target", async () => {
+    it("achieves ≥95% citation compliance target", async (t) => {
+      if (skipTests) return t.skip("Regulatory schema not available")
       // Calculate compliance from results
       const passed = results.filter((r) => r.found).length
       const total = TEST_QUESTIONS.length

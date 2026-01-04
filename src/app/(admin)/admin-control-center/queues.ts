@@ -1,4 +1,4 @@
-// src/app/(admin)/control-center/queues.ts
+// src/app/(admin)/admin-control-center/queues.ts
 /**
  * Admin Control Center Queue Definitions
  *

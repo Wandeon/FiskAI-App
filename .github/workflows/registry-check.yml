@@ -39,6 +39,7 @@ jobs:
         run: npm ci
 
       - name: Run registry check
+        id: registry-check
         # Phase 8 Lock-Down: Registry check is now BLOCKING
         # Zero drift tolerance - all systems must be declared
         run: npm run registry:check -- --write-report
@@ -157,7 +158,9 @@ jobs:
           fi
 
       - name: Comment on PR (Drift Failure)
-        if: github.event_name == 'pull_request' && failure()
+        # Only comment about drift if the registry check specifically failed
+        # (not if blast-radius or other steps failed)
+        if: github.event_name == 'pull_request' && steps.registry-check.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |

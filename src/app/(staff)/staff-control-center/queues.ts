@@ -1,4 +1,4 @@
-// src/app/(staff)/control-center/queues.ts
+// src/app/(staff)/staff-control-center/queues.ts
 /**
  * Accountant Control Center Queue Definitions
  *

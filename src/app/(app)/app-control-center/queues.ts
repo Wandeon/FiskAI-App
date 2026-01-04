@@ -1,4 +1,4 @@
-// src/app/(app)/control-center/queues.ts
+// src/app/(app)/app-control-center/queues.ts
 /**
  * Client Control Center Queue Definitions
  *

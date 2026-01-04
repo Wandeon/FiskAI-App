@@ -28,21 +28,10 @@ export {
   getCapabilitiesAffectingEntity,
 } from "./registry"
 
-// Resolver
-export { resolveCapability, resolveCapabilities } from "./resolver"
-
-// Server utilities (for server components)
-export {
-  resolveCapabilitiesForUser,
-  resolveCapabilityForUser,
-  resolveCapabilitiesByDomain,
-} from "./server"
-
-// Actions module
-export * from "./actions"
-
-// Client-side hooks and utilities for capability resolution
-export {
-  useCapabilityResolution,
-  revalidateCapabilityResolution,
-} from "@/hooks/use-capability-resolution"
+// NOTE: Server utilities are intentionally NOT exported from this barrel file
+// to prevent server-only code (period-locking, auth, redis) from being bundled
+// into client components. Import directly when needed in server code:
+//
+//   import { resolveCapability, resolveCapabilities } from "@/lib/capabilities/resolver"
+//   import { resolveCapabilitiesForUser } from "@/lib/capabilities/server"
+//   import { executeCapability } from "@/lib/capabilities/actions"

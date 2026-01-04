@@ -1,4 +1,4 @@
-// src/app/(staff)/control-center/page.tsx
+// src/app/(staff)/staff-control-center/page.tsx
 /**
  * Accountant Control Center
  *

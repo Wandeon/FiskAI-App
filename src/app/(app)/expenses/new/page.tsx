@@ -24,7 +24,7 @@ export default async function NewExpensePage() {
   })
 
   if (capability.state === "UNAUTHORIZED") {
-    redirect("/control-center")
+    redirect("/app-control-center")
   }
 
   if (capability.state === "BLOCKED") {
@@ -32,7 +32,7 @@ export default async function NewExpensePage() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Nije moguće kreirati trošak</h1>
         <BlockerDisplay blockers={capability.blockers} />
-        <Link href="/control-center">
+        <Link href="/app-control-center">
           <Button>Povratak na Kontrolni centar</Button>
         </Link>
       </div>
@@ -60,7 +60,7 @@ export default async function NewExpensePage() {
             Spremi nacrt, zatim koristi Kontrolni centar za daljnje akcije.
           </p>
         </div>
-        <Link href="/control-center">
+        <Link href="/app-control-center">
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kontrolni centar

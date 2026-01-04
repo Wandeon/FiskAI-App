@@ -6,7 +6,8 @@
 // - pretty-print change changes hash (verifies whitespace sensitivity)
 // - re-fetching same URL may produce different hash only if bytes differ
 
-import { describe, it, expect } from "vitest"
+import { describe, it } from "node:test"
+import assert from "node:assert"
 import { hashContent } from "../utils/content-hash"
 
 describe("JSON Hash Consistency (INV-001 F-1)", () => {
@@ -25,7 +26,7 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       // Simulate verification: recompute hash from stored rawContent
       const recomputedHash = hashContent(rawContent, "application/json")
 
-      expect(recomputedHash).toBe(contentHash)
+      assert.strictEqual(recomputedHash, contentHash)
     })
 
     it("verifies 10 sample JSON structures hash correctly", () => {
@@ -47,7 +48,7 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
         const contentHash = hashContent(rawContent, "application/json")
         const recomputedHash = hashContent(rawContent, "application/json")
 
-        expect(recomputedHash).toBe(contentHash)
+        assert.strictEqual(recomputedHash, contentHash)
       }
     })
   })
@@ -63,12 +64,12 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       const prettyHash = hashContent(prettyPrinted, "application/json")
 
       // These MUST be different - this is what caused F-1
-      expect(compactHash).not.toBe(prettyHash)
+      assert.notStrictEqual(compactHash, prettyHash)
 
       // Verify the actual content differs
-      expect(compact).not.toBe(prettyPrinted)
-      expect(compact).toBe('{"key":"value","number":42}')
-      expect(prettyPrinted).toContain("\n")
+      assert.notStrictEqual(compact, prettyPrinted)
+      assert.strictEqual(compact, '{"key":"value","number":42}')
+      assert.ok(prettyPrinted.includes("\n"))
     })
 
     it("any whitespace change produces a different hash", () => {
@@ -80,9 +81,9 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       const spaceHash = hashContent(withSpace, "application/json")
       const newlineHash = hashContent(withNewline, "application/json")
 
-      expect(originalHash).not.toBe(spaceHash)
-      expect(originalHash).not.toBe(newlineHash)
-      expect(spaceHash).not.toBe(newlineHash)
+      assert.notStrictEqual(originalHash, spaceHash)
+      assert.notStrictEqual(originalHash, newlineHash)
+      assert.notStrictEqual(spaceHash, newlineHash)
     })
   })
 
@@ -94,7 +95,7 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       const originalHash = hashContent(JSON.stringify(original), "application/json")
       const updatedHash = hashContent(JSON.stringify(updated), "application/json")
 
-      expect(originalHash).not.toBe(updatedHash)
+      assert.notStrictEqual(originalHash, updatedHash)
     })
 
     it("identical content produces identical hash regardless of creation order", () => {
@@ -107,7 +108,7 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       const hash1 = hashContent(JSON.stringify(obj1), "application/json")
       const hash2 = hashContent(JSON.stringify(obj2), "application/json")
 
-      expect(hash1).toBe(hash2)
+      assert.strictEqual(hash1, hash2)
     })
 
     it("key order affects hash (JSON.stringify property order)", () => {
@@ -119,7 +120,7 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       const hash2 = hashContent(JSON.stringify(obj2), "application/json")
 
       // These will be different because JSON.stringify preserves key order
-      expect(hash1).not.toBe(hash2)
+      assert.notStrictEqual(hash1, hash2)
     })
   })
 
@@ -131,14 +132,14 @@ describe("JSON Hash Consistency (INV-001 F-1)", () => {
       const hashes = Array.from({ length: 100 }, () => hashContent(content, "application/json"))
 
       // All 100 hashes should be identical
-      expect(new Set(hashes).size).toBe(1)
+      assert.strictEqual(new Set(hashes).size, 1)
     })
 
     it("hash is a valid SHA-256 hex string", () => {
       const hash = hashContent('{"test":true}', "application/json")
 
       // SHA-256 produces 64 hex characters
-      expect(hash).toMatch(/^[a-f0-9]{64}$/)
+      assert.match(hash, /^[a-f0-9]{64}$/)
     })
   })
 })
@@ -161,7 +162,7 @@ describe("Fetcher hash-store consistency simulation", () => {
 
     // Verification (what verify-immutability.ts does):
     const recomputed = hashContent(storedRawContent, "application/json")
-    expect(recomputed).toBe(storedContentHash)
+    assert.strictEqual(recomputed, storedContentHash)
   })
 
   it("simulates NN fetcher: hash and store same bytes", () => {
@@ -175,7 +176,7 @@ describe("Fetcher hash-store consistency simulation", () => {
     const contentHash = hashContent(rawContent)
 
     // Verification
-    expect(hashContent(rawContent)).toBe(contentHash)
+    assert.strictEqual(hashContent(rawContent), contentHash)
   })
 
   it("simulates EUR-Lex fetcher: hash and store same bytes", () => {
@@ -189,6 +190,6 @@ describe("Fetcher hash-store consistency simulation", () => {
     const contentHash = hashContent(rawContent)
 
     // Verification
-    expect(hashContent(rawContent)).toBe(contentHash)
+    assert.strictEqual(hashContent(rawContent), contentHash)
   })
 })

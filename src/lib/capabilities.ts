@@ -13,6 +13,8 @@ import {
 import { parseTenantFlags, type TenantFeatureFlags } from "./config/features"
 
 // Re-export from new capabilities module for Enterprise Hardening
+// NOTE: resolveCapability/resolveCapabilities are server-only - import from
+// "@/lib/capabilities/resolver" in server code to avoid bundling server deps
 export {
   // Types
   type CapabilityState,
@@ -28,9 +30,6 @@ export {
   getCapabilityMetadata,
   getCapabilitiesByDomain,
   getCapabilitiesAffectingEntity,
-  // Resolver
-  resolveCapability,
-  resolveCapabilities,
 } from "./capabilities/index"
 
 export type LegalForm = "OBRT_PAUSAL" | "OBRT_REAL" | "OBRT_VAT" | "JDOO" | "DOO"

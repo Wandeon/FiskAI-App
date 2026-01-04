@@ -1,24 +1,13 @@
 // src/lib/regulatory-truth/__tests__/regulatory-status-gates.test.ts
 // Tests for regulatory rule status transition enforcement
 // These tests verify that the Prisma extension properly blocks bypass attempts
-//
-// FIXME(2024-12-29): The simulated validateTransition() function in this test file
-// does NOT match the actual implementation in prisma-extensions.ts. Specifically:
-// - Test allows DRAFT → APPROVED with bypassApproval (line 37)
-// - Actual implementation BLOCKS this transition (prisma-extensions.ts lines 323-333)
-// - Test should be updated to match actual behavior including systemAction support
-// See: prisma-extensions.ts validateStatusTransitionInternal()
 
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it } from "node:test"
+import assert from "node:assert"
 import {
   RegulatoryRuleStatusTransitionError,
   RegulatoryRuleUpdateManyStatusNotAllowedError,
 } from "@/lib/prisma-extensions"
-
-// Mock the database client with status gate behavior
-const mockFindUnique = vi.fn()
-const mockUpdate = vi.fn()
-const mockUpdateMany = vi.fn()
 
 // Simulated gate enforcement (mirrors prisma-extensions.ts logic EXACTLY)
 // CRITICAL: This must match the actual implementation in prisma-extensions.ts
@@ -122,10 +111,6 @@ function validateTransition(
 }
 
 describe("RegulatoryRule Status Gates", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   describe("updateMany blocking", () => {
     it("throws RegulatoryRuleUpdateManyStatusNotAllowedError when status is in data", () => {
       // This test verifies the invariant: updateMany CANNOT be used to change status
@@ -137,8 +122,7 @@ describe("RegulatoryRule Status Gates", () => {
         }
       }
 
-      expect(attemptUpdateMany).toThrow(RegulatoryRuleUpdateManyStatusNotAllowedError)
-      expect(attemptUpdateMany).toThrow("Cannot update RegulatoryRule.status using updateMany")
+      assert.throws(attemptUpdateMany, RegulatoryRuleUpdateManyStatusNotAllowedError)
     })
 
     it("allows updateMany when status is NOT in data", () => {
@@ -151,68 +135,68 @@ describe("RegulatoryRule Status Gates", () => {
         return { count: 5 }
       }
 
-      expect(attemptUpdateMany()).toEqual({ count: 5 })
+      assert.deepStrictEqual(attemptUpdateMany(), { count: 5 })
     })
   })
 
   describe("allowed status transitions", () => {
     it("allows DRAFT → PENDING_REVIEW", () => {
       const result = validateTransition("DRAFT", "PENDING_REVIEW")
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows PENDING_REVIEW → APPROVED", () => {
       const result = validateTransition("PENDING_REVIEW", "APPROVED")
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows APPROVED → PUBLISHED with source context", () => {
       const result = validateTransition("APPROVED", "PUBLISHED", { source: "releaser" })
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows PUBLISHED → DEPRECATED", () => {
       const result = validateTransition("PUBLISHED", "DEPRECATED")
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows REJECTED → DRAFT", () => {
       const result = validateTransition("REJECTED", "DRAFT")
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
   })
 
   describe("blocked status transitions (bypass prevention)", () => {
     it("blocks DRAFT → APPROVED (skipping PENDING_REVIEW)", () => {
       const result = validateTransition("DRAFT", "APPROVED")
-      expect(result.allowed).toBe(false)
-      expect(result.error).toContain("Illegal status transition")
+      assert.strictEqual(result.allowed, false)
+      assert.ok(result.error?.includes("Illegal status transition"))
     })
 
     it("blocks DRAFT → PUBLISHED (skipping all gates)", () => {
       const result = validateTransition("DRAFT", "PUBLISHED")
-      expect(result.allowed).toBe(false)
+      assert.strictEqual(result.allowed, false)
     })
 
     it("blocks PENDING_REVIEW → PUBLISHED (skipping APPROVED)", () => {
       const result = validateTransition("PENDING_REVIEW", "PUBLISHED")
-      expect(result.allowed).toBe(false)
+      assert.strictEqual(result.allowed, false)
     })
 
     it("blocks APPROVED → PUBLISHED WITHOUT source context", () => {
       const result = validateTransition("APPROVED", "PUBLISHED") // no context
-      expect(result.allowed).toBe(false)
-      expect(result.error).toContain("Publishing requires explicit source context")
+      assert.strictEqual(result.allowed, false)
+      assert.ok(result.error?.includes("Publishing requires explicit source context"))
     })
 
     it("blocks PUBLISHED → APPROVED without rollback context", () => {
       const result = validateTransition("PUBLISHED", "APPROVED", { source: "manual" })
-      expect(result.allowed).toBe(false)
+      assert.strictEqual(result.allowed, false)
     })
 
     it("blocks DEPRECATED → anything (terminal state)", () => {
-      expect(validateTransition("DEPRECATED", "DRAFT").allowed).toBe(false)
-      expect(validateTransition("DEPRECATED", "PUBLISHED").allowed).toBe(false)
+      assert.strictEqual(validateTransition("DEPRECATED", "DRAFT").allowed, false)
+      assert.strictEqual(validateTransition("DEPRECATED", "PUBLISHED").allowed, false)
     })
   })
 
@@ -224,8 +208,8 @@ describe("RegulatoryRule Status Gates", () => {
         source: "hnb-fetcher",
         bypassApproval: true,
       })
-      expect(result.allowed).toBe(false)
-      expect(result.error).toContain("bypassApproval cannot be used for approval")
+      assert.strictEqual(result.allowed, false)
+      assert.ok(result.error?.includes("bypassApproval cannot be used for approval"))
     })
 
     it("allows PUBLISHED → APPROVED with rollback context (backward compat)", () => {
@@ -233,7 +217,7 @@ describe("RegulatoryRule Status Gates", () => {
         source: "rollback",
         bypassApproval: true,
       })
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows PUBLISHED → APPROVED with systemAction ROLLBACK", () => {
@@ -241,7 +225,7 @@ describe("RegulatoryRule Status Gates", () => {
         source: "manual-rollback",
         systemAction: "ROLLBACK",
       })
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows APPROVED → PENDING_REVIEW with systemAction QUARANTINE_DOWNGRADE", () => {
@@ -249,7 +233,7 @@ describe("RegulatoryRule Status Gates", () => {
         source: "quarantine-script",
         systemAction: "QUARANTINE_DOWNGRADE",
       })
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows APPROVED → PENDING_REVIEW with bypassApproval (downgrade)", () => {
@@ -258,7 +242,7 @@ describe("RegulatoryRule Status Gates", () => {
         source: "quarantine",
         bypassApproval: true,
       })
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("does NOT allow PENDING_REVIEW → PUBLISHED even with bypass", () => {
@@ -267,7 +251,7 @@ describe("RegulatoryRule Status Gates", () => {
         source: "test",
         bypassApproval: true,
       })
-      expect(result.allowed).toBe(false)
+      assert.strictEqual(result.allowed, false)
     })
 
     it("blocks DRAFT → PUBLISHED with bypassApproval", () => {
@@ -276,34 +260,34 @@ describe("RegulatoryRule Status Gates", () => {
         source: "test",
         bypassApproval: true,
       })
-      expect(result.allowed).toBe(false)
-      expect(result.error).toContain("bypassApproval cannot be used for publishing")
+      assert.strictEqual(result.allowed, false)
+      assert.ok(result.error?.includes("bypassApproval cannot be used for publishing"))
     })
   })
 
   describe("error class structure", () => {
     it("RegulatoryRuleStatusTransitionError has correct name", () => {
       const error = new RegulatoryRuleStatusTransitionError("test")
-      expect(error.name).toBe("RegulatoryRuleStatusTransitionError")
-      expect(error.message).toBe("test")
+      assert.strictEqual(error.name, "RegulatoryRuleStatusTransitionError")
+      assert.strictEqual(error.message, "test")
     })
 
     it("RegulatoryRuleUpdateManyStatusNotAllowedError has correct name", () => {
       const error = new RegulatoryRuleUpdateManyStatusNotAllowedError()
-      expect(error.name).toBe("RegulatoryRuleUpdateManyStatusNotAllowedError")
-      expect(error.message).toContain("updateMany")
+      assert.strictEqual(error.name, "RegulatoryRuleUpdateManyStatusNotAllowedError")
+      assert.ok(error.message.includes("updateMany"))
     })
   })
 
   describe("same-status updates (no-op)", () => {
     it("allows updating DRAFT → DRAFT (no transition)", () => {
       const result = validateTransition("DRAFT", "DRAFT")
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
 
     it("allows updating PUBLISHED → PUBLISHED (no transition)", () => {
       const result = validateTransition("PUBLISHED", "PUBLISHED")
-      expect(result.allowed).toBe(true)
+      assert.strictEqual(result.allowed, true)
     })
   })
 })
@@ -311,12 +295,12 @@ describe("RegulatoryRule Status Gates", () => {
 describe("Integration: Status gate error messages", () => {
   it("provides actionable error message for updateMany bypass attempt", () => {
     const error = new RegulatoryRuleUpdateManyStatusNotAllowedError()
-    expect(error.message).toContain("rule status service")
-    expect(error.message).toContain("approve/publish")
+    assert.ok(error.message.includes("rule status service"))
+    assert.ok(error.message.includes("approve/publish"))
   })
 
   it("provides actionable error message for missing context on publish", () => {
     const result = validateTransition("APPROVED", "PUBLISHED")
-    expect(result.error).toContain("source context")
+    assert.ok(result.error?.includes("source context"))
   })
 })

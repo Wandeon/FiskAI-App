@@ -1,4 +1,4 @@
-// src/app/(app)/control-center/page.tsx
+// src/app/(app)/app-control-center/page.tsx
 /**
  * Client Control Center
  *

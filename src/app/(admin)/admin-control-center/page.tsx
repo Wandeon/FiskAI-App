@@ -1,4 +1,4 @@
-// src/app/(admin)/control-center/page.tsx
+// src/app/(admin)/admin-control-center/page.tsx
 /**
  * Admin Control Center
  *

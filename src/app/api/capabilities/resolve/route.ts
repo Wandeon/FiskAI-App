@@ -17,12 +17,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import type { PrismaClient } from "@prisma/client"
-import {
-  resolveCapability,
-  resolveCapabilities,
-  type CapabilityRequest,
-  type CapabilityResponse,
-} from "@/lib/capabilities"
+import type { CapabilityRequest, CapabilityResponse } from "@/lib/capabilities"
+import { resolveCapability, resolveCapabilities } from "@/lib/capabilities/resolver"
 
 /**
  * Request body schema.

@@ -251,27 +251,59 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Rewrite to appropriate route group based on subdomain
-  const url = request.nextUrl.clone()
-
-  // Map subdomain to route group
+  // Map subdomain to route group and control-center path
+  // Control-center pages are uniquely named to avoid Next.js route conflicts at build time
   // Note: "marketing" is handled above and returns early, so subdomain here is only "staff" | "app" | "admin"
   let routeGroup = ""
+  let controlCenterPath = ""
   switch (subdomain) {
     case "admin":
       routeGroup = "/(admin)"
+      controlCenterPath = "/admin-control-center"
       break
     case "staff":
       routeGroup = "/(staff)"
+      controlCenterPath = "/staff-control-center"
       break
     case "app":
     default:
       routeGroup = "/(app)"
+      controlCenterPath = "/app-control-center"
+  }
+
+  // Redirect root path to control-center for protected subdomains
+  // This replaces the redirect that was in individual page.tsx files
+  if (pathname === "/") {
+    const externalUrl = getExternalUrl(request)
+    const controlCenterUrl = new URL(controlCenterPath, externalUrl)
+
+    logger.info(
+      {
+        requestId,
+        subdomain,
+        systemRole,
+      },
+      "Redirecting authenticated user from root to control-center"
+    )
+
+    const response = NextResponse.redirect(controlCenterUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
+  // Rewrite to appropriate route group based on subdomain
+  const url = request.nextUrl.clone()
+
+  // Rewrite /control-center to the subdomain-specific path
+  let rewrittenPath = pathname
+  if (pathname === "/control-center") {
+    rewrittenPath = controlCenterPath
   }
 
   // Don't rewrite if already in the correct route group
   if (!pathname.startsWith(routeGroup)) {
-    url.pathname = `${routeGroup}${pathname}`
+    url.pathname = `${routeGroup}${rewrittenPath}`
 
     const response = NextResponse.rewrite(url)
     response.headers.set("x-request-id", requestId)

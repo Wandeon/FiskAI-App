@@ -16,6 +16,13 @@ export default defineConfig({
     // No setupFiles - DB tests use real database, not mocks
     setupFiles: [],
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
+    // Force serial execution to prevent race conditions on shared DB state
+    // This is a temporary stabilizer until proper test isolation is implemented
+    fileParallelism: false,
+    // Also disable concurrency within files
+    sequence: {
+      concurrent: false,
+    },
   },
   resolve: {
     alias: {

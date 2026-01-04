@@ -1,61 +1,62 @@
-import { describe, it, expect } from "vitest"
+import { describe, it } from "node:test"
+import assert from "node:assert"
 import { CONCEPT_GUIDE_MAP, getAffectedGuides, getConceptsForGuide } from "../concept-guide-map"
 
 describe("CONCEPT_GUIDE_MAP", () => {
   it("has entries for key regulatory concepts", () => {
-    expect(CONCEPT_GUIDE_MAP).toHaveProperty("pdv")
-    expect(CONCEPT_GUIDE_MAP).toHaveProperty("pausalni")
-    expect(CONCEPT_GUIDE_MAP).toHaveProperty("fiskalizacija")
-    expect(CONCEPT_GUIDE_MAP).toHaveProperty("doprinosi")
+    assert.ok("pdv" in CONCEPT_GUIDE_MAP)
+    assert.ok("pausalni" in CONCEPT_GUIDE_MAP)
+    assert.ok("fiskalizacija" in CONCEPT_GUIDE_MAP)
+    assert.ok("doprinosi" in CONCEPT_GUIDE_MAP)
   })
 })
 
 describe("getAffectedGuides", () => {
   it("returns guides for known concept", () => {
-    expect(getAffectedGuides("pdv")).toContain("pdv")
-    expect(getAffectedGuides("pdv").length).toBeGreaterThan(0)
+    assert.ok(getAffectedGuides("pdv").includes("pdv"))
+    assert.ok(getAffectedGuides("pdv").length > 0)
   })
 
   it("returns multiple guides for concept affecting several guides", () => {
     const guides = getAffectedGuides("doprinosi")
-    expect(guides).toContain("pausalni-obrt")
-    expect(guides).toContain("obrt-dohodak")
-    expect(guides).toContain("doo")
+    assert.ok(guides.includes("pausalni-obrt"))
+    assert.ok(guides.includes("obrt-dohodak"))
+    assert.ok(guides.includes("doo"))
   })
 
   it("returns empty array for unknown concept", () => {
-    expect(getAffectedGuides("nonexistent")).toEqual([])
+    assert.deepStrictEqual(getAffectedGuides("nonexistent"), [])
   })
 
   it("returns correct guides for pdv-threshold", () => {
     const guides = getAffectedGuides("pdv-threshold")
-    expect(guides).toContain("pdv")
-    expect(guides).toContain("pausalni-obrt")
+    assert.ok(guides.includes("pdv"))
+    assert.ok(guides.includes("pausalni-obrt"))
   })
 })
 
 describe("getConceptsForGuide", () => {
   it("returns concepts that affect a guide", () => {
     const concepts = getConceptsForGuide("pausalni-obrt")
-    expect(concepts).toContain("pausalni")
-    expect(concepts).toContain("doprinosi")
+    assert.ok(concepts.includes("pausalni"))
+    assert.ok(concepts.includes("doprinosi"))
   })
 
   it("returns multiple concepts for guides affected by many concepts", () => {
     const concepts = getConceptsForGuide("pdv")
-    expect(concepts).toContain("pdv")
-    expect(concepts).toContain("pdv-threshold")
-    expect(concepts).toContain("pdv-rates")
+    assert.ok(concepts.includes("pdv"))
+    assert.ok(concepts.includes("pdv-threshold"))
+    assert.ok(concepts.includes("pdv-rates"))
   })
 
   it("returns empty for unknown guide", () => {
-    expect(getConceptsForGuide("nonexistent")).toEqual([])
+    assert.deepStrictEqual(getConceptsForGuide("nonexistent"), [])
   })
 
   it("returns correct concepts for doo guide", () => {
     const concepts = getConceptsForGuide("doo")
-    expect(concepts).toContain("doprinosi")
-    expect(concepts).toContain("doo")
-    expect(concepts).toContain("porezna-prijava")
+    assert.ok(concepts.includes("doprinosi"))
+    assert.ok(concepts.includes("doo"))
+    assert.ok(concepts.includes("porezna-prijava"))
   })
 })
