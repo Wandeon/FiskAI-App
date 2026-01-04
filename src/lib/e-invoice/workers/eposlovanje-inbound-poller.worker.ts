@@ -417,13 +417,13 @@ function setupGracefulShutdown(): void {
   }
 
   process.on("SIGTERM", () => {
-    shutdown("SIGTERM").catch((err) => {
+    void shutdown("SIGTERM").catch((err) => {
       console.error("[eposlovanje-inbound-poller] Shutdown error:", err)
       process.exit(1)
     })
   })
   process.on("SIGINT", () => {
-    shutdown("SIGINT").catch((err) => {
+    void shutdown("SIGINT").catch((err) => {
       console.error("[eposlovanje-inbound-poller] Shutdown error:", err)
       process.exit(1)
     })

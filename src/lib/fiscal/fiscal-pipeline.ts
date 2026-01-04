@@ -21,6 +21,10 @@ export interface PipelineResult {
 
 export async function executeFiscalRequest(request: FiscalRequest): Promise<PipelineResult> {
   // 1. Load certificate
+  if (!request.certificateId) {
+    throw { poreznaCode: "p001", message: "Certificate ID not provided" }
+  }
+
   const certificate = await db.fiscalCertificate.findUnique({
     where: { id: request.certificateId },
   })

@@ -52,26 +52,30 @@ vi.mock("../../providers/eposlovanje-einvoice", () => ({
 
 import { db } from "@/lib/db"
 import { EposlovanjeEInvoiceProvider } from "../../providers/eposlovanje-einvoice"
+import type { Mock } from "vitest"
 
-// Type helpers for mocks
-const mockDb = db as unknown as {
+// Type-safe mock interface for db operations
+interface MockedDb {
   providerSyncState: {
-    findUnique: ReturnType<typeof vi.fn>
-    create: ReturnType<typeof vi.fn>
-    update: ReturnType<typeof vi.fn>
+    findUnique: Mock
+    create: Mock
+    update: Mock
   }
   eInvoice: {
-    create: ReturnType<typeof vi.fn>
+    create: Mock
   }
   contact: {
-    findFirst: ReturnType<typeof vi.fn>
-    create: ReturnType<typeof vi.fn>
+    findFirst: Mock
+    create: Mock
   }
   company: {
-    findUnique: ReturnType<typeof vi.fn>
+    findUnique: Mock
   }
-  $disconnect: ReturnType<typeof vi.fn>
+  $disconnect: Mock
 }
+
+// Cast db to our mock interface
+const mockedDb = db as unknown as MockedDb
 
 describe("ePoslovanje Inbound Poller", () => {
   beforeEach(() => {
@@ -101,14 +105,14 @@ describe("ePoslovanje Inbound Poller", () => {
       const expectedFrom = new Date()
       expectedFrom.setDate(expectedFrom.getDate() - 7) // MAX_WINDOW_DAYS
 
-      mockDb.providerSyncState.findUnique.mockResolvedValue(null)
-      mockDb.providerSyncState.create.mockResolvedValue({
+      mockedDb.providerSyncState.findUnique.mockResolvedValue(null)
+      mockedDb.providerSyncState.create.mockResolvedValue({
         id: "sync-state-123",
         lastSuccessfulPollAt: expectedFrom,
       })
 
       // Act - simulate getOrCreateSyncState behavior
-      const existing = await mockDb.providerSyncState.findUnique({
+      const existing = await mockedDb.providerSyncState.findUnique({
         where: {
           companyId_provider_direction: {
             companyId,
@@ -121,7 +125,7 @@ describe("ePoslovanje Inbound Poller", () => {
 
       expect(existing).toBeNull()
 
-      const created = await mockDb.providerSyncState.create({
+      const created = await mockedDb.providerSyncState.create({
         data: {
           companyId,
           provider: "eposlovanje",
@@ -132,8 +136,8 @@ describe("ePoslovanje Inbound Poller", () => {
       })
 
       // Assert
-      expect(mockDb.providerSyncState.findUnique).toHaveBeenCalledTimes(1)
-      expect(mockDb.providerSyncState.create).toHaveBeenCalledTimes(1)
+      expect(mockedDb.providerSyncState.findUnique).toHaveBeenCalledTimes(1)
+      expect(mockedDb.providerSyncState.create).toHaveBeenCalledTimes(1)
       expect(created.id).toBe("sync-state-123")
     })
 
@@ -143,10 +147,10 @@ describe("ePoslovanje Inbound Poller", () => {
         id: "existing-sync-state",
         lastSuccessfulPollAt: new Date("2026-01-01T00:00:00Z"),
       }
-      mockDb.providerSyncState.findUnique.mockResolvedValue(existingState)
+      mockedDb.providerSyncState.findUnique.mockResolvedValue(existingState)
 
       // Act
-      const result = await mockDb.providerSyncState.findUnique({
+      const result = await mockedDb.providerSyncState.findUnique({
         where: {
           companyId_provider_direction: {
             companyId: "test-company-id",
@@ -159,7 +163,7 @@ describe("ePoslovanje Inbound Poller", () => {
 
       // Assert
       expect(result).toEqual(existingState)
-      expect(mockDb.providerSyncState.create).not.toHaveBeenCalled()
+      expect(mockedDb.providerSyncState.create).not.toHaveBeenCalled()
     })
 
     it("should advance cursor after successful poll", async () => {
@@ -167,19 +171,19 @@ describe("ePoslovanje Inbound Poller", () => {
       const syncStateId = "sync-state-123"
       const newPollAt = new Date("2026-01-04T12:00:00Z")
 
-      mockDb.providerSyncState.update.mockResolvedValue({
+      mockedDb.providerSyncState.update.mockResolvedValue({
         id: syncStateId,
         lastSuccessfulPollAt: newPollAt,
       })
 
       // Act
-      await mockDb.providerSyncState.update({
+      await mockedDb.providerSyncState.update({
         where: { id: syncStateId },
         data: { lastSuccessfulPollAt: newPollAt },
       })
 
       // Assert
-      expect(mockDb.providerSyncState.update).toHaveBeenCalledWith({
+      expect(mockedDb.providerSyncState.update).toHaveBeenCalledWith({
         where: { id: syncStateId },
         data: { lastSuccessfulPollAt: newPollAt },
       })
@@ -211,11 +215,11 @@ describe("ePoslovanje Inbound Poller", () => {
         clientVersion: "5.0.0",
       })
 
-      mockDb.eInvoice.create.mockRejectedValue(p2002Error)
+      mockedDb.eInvoice.create.mockRejectedValue(p2002Error)
 
       // Act & Assert - simulate the error handling in pollIncomingInvoices
       try {
-        await mockDb.eInvoice.create({
+        await mockedDb.eInvoice.create({
           data: {
             companyId: "test-company-id",
             providerRef: "duplicate-ref",
@@ -275,9 +279,9 @@ describe("ePoslovanje Inbound Poller", () => {
       }
 
       // First run - success
-      mockDb.eInvoice.create.mockResolvedValueOnce({ id: "einv-123" })
+      mockedDb.eInvoice.create.mockResolvedValueOnce({ id: "einv-123" })
 
-      const firstRun = await mockDb.eInvoice.create({
+      const firstRun = await mockedDb.eInvoice.create({
         data: {
           companyId: "test-company-id",
           providerRef: invoice.providerRef,
@@ -287,7 +291,7 @@ describe("ePoslovanje Inbound Poller", () => {
       expect(firstRun.id).toBe("einv-123")
 
       // Second run - P2002 error (idempotent skip)
-      mockDb.eInvoice.create.mockRejectedValueOnce(
+      mockedDb.eInvoice.create.mockRejectedValueOnce(
         new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
           code: "P2002",
           clientVersion: "5.0.0",
@@ -296,7 +300,7 @@ describe("ePoslovanje Inbound Poller", () => {
 
       let skipped = false
       try {
-        await mockDb.eInvoice.create({
+        await mockedDb.eInvoice.create({
           data: {
             companyId: "test-company-id",
             providerRef: invoice.providerRef,
@@ -313,7 +317,7 @@ describe("ePoslovanje Inbound Poller", () => {
 
       // Assert
       expect(skipped).toBe(true)
-      expect(mockDb.eInvoice.create).toHaveBeenCalledTimes(2)
+      expect(mockedDb.eInvoice.create).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -406,33 +410,33 @@ describe("ePoslovanje Inbound Poller", () => {
     it("should find existing seller contact by OIB", async () => {
       // Arrange
       const existingContact = { id: "contact-123" }
-      mockDb.contact.findFirst.mockResolvedValue(existingContact)
+      mockedDb.contact.findFirst.mockResolvedValue(existingContact)
 
       // Act
-      const result = await mockDb.contact.findFirst({
+      const result = await mockedDb.contact.findFirst({
         where: { companyId: "test-company", oib: "12345678901" },
         select: { id: true },
       })
 
       // Assert
       expect(result).toEqual(existingContact)
-      expect(mockDb.contact.create).not.toHaveBeenCalled()
+      expect(mockedDb.contact.create).not.toHaveBeenCalled()
     })
 
     it("should create new seller contact if not found", async () => {
       // Arrange
-      mockDb.contact.findFirst.mockResolvedValue(null)
-      mockDb.contact.create.mockResolvedValue({ id: "new-contact-456" })
+      mockedDb.contact.findFirst.mockResolvedValue(null)
+      mockedDb.contact.create.mockResolvedValue({ id: "new-contact-456" })
 
       // Act
-      const existing = await mockDb.contact.findFirst({
+      const existing = await mockedDb.contact.findFirst({
         where: { companyId: "test-company", oib: "12345678901" },
         select: { id: true },
       })
 
       expect(existing).toBeNull()
 
-      const created = await mockDb.contact.create({
+      const created = await mockedDb.contact.create({
         data: {
           companyId: "test-company",
           type: "SUPPLIER",
