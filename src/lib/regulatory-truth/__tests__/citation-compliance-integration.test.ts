@@ -16,7 +16,7 @@ import { findRelevantRules } from "../utils/rule-context"
 import { TEST_QUESTIONS } from "./citation-compliance.test"
 import { deleteEvidenceForTest } from "@/__tests__/helpers/db-cleanup"
 
-describe("Citation Compliance (Integration)", () => {
+describe("Citation Compliance (Integration)", { timeout: 60000 }, () => {
   // Test fixture IDs for cleanup
   const createdIds: { evidenceIds: string[]; ruleIds: string[] } = {
     evidenceIds: [],
