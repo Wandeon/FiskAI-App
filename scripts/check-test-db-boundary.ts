@@ -13,9 +13,8 @@
  *   1 = violation(s) found
  */
 
-import { glob } from "fs/promises"
+import fg from "fast-glob"
 import { readFile } from "fs/promises"
-import path from "path"
 
 // Patterns that indicate DB dependency (imports and usage)
 const DB_IMPORT_PATTERNS = [
@@ -78,24 +77,17 @@ const MOCKED_FILES = [
 async function main() {
   console.log("=== Test-DB Boundary Check ===\n")
 
-  // Find all *.test.ts files, excluding *.db.test.ts
-  const testFiles: string[] = []
+  // Find all *.test.ts files, excluding *.db.test.ts, *.property.test.ts, *.golden.test.ts
+  const allTestFiles = await fg("src/**/*.test.ts", {
+    ignore: ["**/*.db.test.ts", "**/*.property.test.ts", "**/*.golden.test.ts"],
+  })
 
-  // Use glob to find test files
-  for await (const entry of glob("src/**/*.test.ts")) {
-    // Skip DB tests
-    if (entry.endsWith(".db.test.ts")) continue
-    // Skip property tests
-    if (entry.endsWith(".property.test.ts")) continue
-    // Skip golden tests
-    if (entry.endsWith(".golden.test.ts")) continue
-    // Skip files matching excluded patterns (already excluded in vitest.config.ts)
-    if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(entry))) continue
-    // Skip files that mock DB properly
-    if (MOCKED_FILES.some((f) => entry.endsWith(f.replace(/^src\//, "")))) continue
-
-    testFiles.push(entry)
-  }
+  // Filter out excluded patterns and mocked files
+  const testFiles = allTestFiles.filter((entry) => {
+    if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(entry))) return false
+    if (MOCKED_FILES.some((f) => entry.endsWith(f.replace(/^src\//, "")))) return false
+    return true
+  })
 
   console.log(`Scanning ${testFiles.length} unit test files...\n`)
 

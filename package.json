@@ -19,7 +19,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:unit": "vitest run --exclude \"**/*.db.test.ts\"",
-    "test:db": "vitest run \"**/*.db.test.ts\"",
+    "test:db": "vitest run --config vitest.config.db.ts",
     "test:watch": "vitest",
     "test:property": "vitest run src/domain/shared/__tests__/Money.property.test.ts src/domain/tax/__tests__/VatBreakdown.property.test.ts src/domain/tax/__tests__/VatCalculator.property.test.ts src/domain/invoicing/__tests__/InvoiceStatus.property.test.ts",
     "test:golden": "vitest run src/lib/fiscal/__tests__/xml-builder.golden.test.ts src/lib/reports/__tests__/pdv-xml.golden.test.ts",

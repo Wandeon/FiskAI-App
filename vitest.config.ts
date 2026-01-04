@@ -6,6 +6,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
+    // Explicit include to support both standard *.test.ts and *.db.test.ts naming
+    include: ["**/*.{test,spec}.?(c|m)[jt]s?(x)", "**/*.db.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
