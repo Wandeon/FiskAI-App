@@ -10,7 +10,7 @@
 // 3. Updates with offsets and matchType (EXACT, NORMALIZED, or NOT_FOUND)
 // 4. Logs failures for manual review
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { findQuoteInEvidence, type MatchType } from "../utils/quote-in-evidence"
 
 interface BackfillResult {
@@ -58,25 +58,29 @@ async function backfillPointerOffsets(options: {
       where: {
         OR: [{ matchType: null }, { matchType: "PENDING_VERIFICATION" }],
       },
-      include: {
-        evidence: {
-          select: {
-            id: true,
-            rawContent: true,
-            contentHash: true,
-          },
-        },
-      },
       take: batchSize,
       skip: offset,
     })
 
     if (pointers.length === 0) break
 
+    // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+    const evidenceIds = pointers.map((p) => p.evidenceId)
+    const evidenceRecords = await dbReg.evidence.findMany({
+      where: { id: { in: evidenceIds } },
+      select: {
+        id: true,
+        rawContent: true,
+        contentHash: true,
+      },
+    })
+    const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
+
     for (const pointer of pointers) {
       processed++
 
-      if (!pointer.evidence?.rawContent) {
+      const evidence = evidenceMap.get(pointer.evidenceId)
+      if (!evidence?.rawContent) {
         result.errors.push(`Pointer ${pointer.id}: No evidence rawContent found`)
         result.notFound++
         continue
@@ -84,9 +88,9 @@ async function backfillPointerOffsets(options: {
 
       // Find quote in evidence
       const matchResult = findQuoteInEvidence(
-        pointer.evidence.rawContent,
+        evidence.rawContent,
         pointer.exactQuote,
-        pointer.evidence.contentHash ?? undefined
+        evidence.contentHash ?? undefined
       )
 
       if (!matchResult.found) {

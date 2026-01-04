@@ -15,6 +15,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { buildAnswer } from "../query-engine/answer-builder"
 import { validateResponse } from "../validation"
 import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { deleteOneEvidenceForTest } from "@/__tests__/helpers/db-cleanup"
 
 // Skip these tests if no database is available
@@ -55,7 +56,7 @@ describe.skipIf(!hasDatabase)("Fail-Closed Integration", () => {
     createdIds.sourceIds.push(source.id)
 
     // 2. Create Evidence (with fetchedAt for fail-closed validation)
-    const evidence = await db.evidence.create({
+    const evidence = await dbReg.evidence.create({
       data: {
         sourceId: source.id,
         url: `https://test.nn.hr/clanci/${testRunId}`,

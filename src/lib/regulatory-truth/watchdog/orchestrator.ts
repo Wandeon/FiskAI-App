@@ -11,7 +11,7 @@ import { runAllHealthChecks } from "./health-monitors"
 import { runRandomAudit } from "./audit"
 import { sendDailyDigestEmail, raiseAlert } from "./alerting"
 import { getRandomDelay, sleep } from "./rate-limiter"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import type { PhaseResult, WatchdogRunResult } from "./types"
 import { runTier1Fetchers } from "../fetchers"
 
@@ -198,9 +198,17 @@ async function runProcessPhase(): Promise<PhaseResult> {
     console.log("\n[watchdog] === PROCESS PHASE ===")
 
     // Extract from unprocessed evidence
+    // First get evidence IDs that already have source pointers
+    const evidenceIdsWithPointers = await db.sourcePointer.findMany({
+      select: { evidenceId: true },
+      distinct: ["evidenceId"],
+    })
+    const processedEvidenceIds = evidenceIdsWithPointers.map((p) => p.evidenceId)
+
+    // Find evidence without any source pointers
     const unprocessedEvidence = await dbReg.evidence.findMany({
       where: {
-        sourcePointers: { none: {} },
+        id: { notIn: processedEvidenceIds.length > 0 ? processedEvidenceIds : ["__none__"] },
       },
       take: 20,
     })

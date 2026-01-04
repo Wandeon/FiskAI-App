@@ -1,9 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { runWithAuditContext } from "@/lib/audit-context"
-import {
-  createAccountingPeriod,
-  lockAccountingPeriod,
-} from "@/lib/period-locking/service"
+import { createAccountingPeriod, lockAccountingPeriod } from "@/lib/period-locking/service"
 import { postDepreciationEntriesForPeriod } from "@/lib/assets/depreciation"
 
 function monthStart(date: Date) {
@@ -29,7 +26,13 @@ export async function runMonthClose(params: {
 
   const period =
     (await prisma.accountingPeriod.findUnique({
-      where: { companyId_fiscalYear_periodNumber: { companyId: params.companyId, fiscalYear, periodNumber } },
+      where: {
+        companyId_fiscalYear_periodNumber: {
+          companyId: params.companyId,
+          fiscalYear,
+          periodNumber,
+        },
+      },
     })) ??
     (await createAccountingPeriod(
       params.companyId,
@@ -64,4 +67,3 @@ export async function runMonthClose(params: {
     depreciationResults,
   }
 }
-

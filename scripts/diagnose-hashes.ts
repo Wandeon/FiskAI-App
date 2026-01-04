@@ -1,10 +1,12 @@
 // scripts/diagnose-hashes.ts
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 import { createHash } from "crypto"
 
 async function diagnose() {
   // INV-1: Check hash mismatches
-  const evidence = await db.evidence.findMany({
+  // Evidence is in regulatory DB
+  const evidence = await dbReg.evidence.findMany({
     select: { id: true, contentHash: true, rawContent: true, contentType: true },
   })
 
@@ -63,6 +65,7 @@ async function diagnose() {
   }
 
   await db.$disconnect()
+  await dbReg.$disconnect()
 }
 
 diagnose().catch(console.error)

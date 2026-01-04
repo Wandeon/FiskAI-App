@@ -55,4 +55,3 @@ describe("tenant isolation: depreciation schedule persistence", () => {
     expect(schedule.assetId).toBe(asset.id)
   })
 })
-

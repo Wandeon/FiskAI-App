@@ -25,9 +25,15 @@ export function computeDirectorSalaryPayroll(params: {
 }) {
   const gross = new Decimal(params.grossAmount)
 
-  const mio1 = gross.mul(d(params.contributions.rates.MIO_I.rate)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
-  const mio2 = gross.mul(d(params.contributions.rates.MIO_II.rate)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
-  const hzzo = gross.mul(d(params.contributions.rates.HZZO.rate)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+  const mio1 = gross
+    .mul(d(params.contributions.rates.MIO_I.rate))
+    .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+  const mio2 = gross
+    .mul(d(params.contributions.rates.MIO_II.rate))
+    .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+  const hzzo = gross
+    .mul(d(params.contributions.rates.HZZO.rate))
+    .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
 
   const allowance = d(params.incomeTax.personalAllowance)
   const taxableMonthly = gross.sub(mio1).sub(mio2).sub(allowance)
@@ -38,7 +44,10 @@ export function computeDirectorSalaryPayroll(params: {
     params.incomeTax.brackets.find((b) => {
       const min = d(b.min)
       const max = b.max === null ? null : d(b.max)
-      return taxableAnnual.greaterThanOrEqualTo(min) && (max === null || taxableAnnual.lessThanOrEqualTo(max))
+      return (
+        taxableAnnual.greaterThanOrEqualTo(min) &&
+        (max === null || taxableAnnual.lessThanOrEqualTo(max))
+      )
     }) ?? null
 
   if (!bracket) {
@@ -92,4 +101,3 @@ export function computeDirectorSalaryPayroll(params: {
     },
   }
 }
-

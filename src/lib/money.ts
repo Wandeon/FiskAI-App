@@ -16,10 +16,7 @@ export function moneyToFixed(value: Prisma.Decimal, decimals: number = 2): strin
   return roundMoney(value, decimals).toFixed(decimals)
 }
 
-export function moneyToMinorUnits(
-  value: Prisma.Decimal,
-  decimals: number = 2
-): number {
+export function moneyToMinorUnits(value: Prisma.Decimal, decimals: number = 2): number {
   const scale = new Decimal(10).pow(decimals)
   const scaled = value.mul(scale).toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
   const asString = scaled.toFixed(0)
@@ -34,4 +31,3 @@ export function minorUnitsToMoney(value: number, decimals: number = 2): Prisma.D
   const scale = new Decimal(10).pow(decimals)
   return new Decimal(value).div(scale).toDecimalPlaces(decimals, Decimal.ROUND_HALF_UP)
 }
-

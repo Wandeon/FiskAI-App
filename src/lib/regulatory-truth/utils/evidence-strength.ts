@@ -1,8 +1,18 @@
 // src/lib/regulatory-truth/utils/evidence-strength.ts
 // Computes evidence strength for regulatory rules based on source diversity
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import type { AuthorityLevel } from "@prisma/client"
+
+// Type for evidence with source (fetched separately via dbReg)
+type EvidenceWithSource = {
+  id: string
+  sourceId: string | null
+  source: {
+    id: string
+    name: string
+  } | null
+}
 
 export type EvidenceStrength = "MULTI_SOURCE" | "SINGLE_SOURCE"
 
@@ -27,17 +37,6 @@ const SINGLE_SOURCE_ALLOWED_TIERS: AuthorityLevel[] = ["LAW"]
 export async function computeEvidenceStrength(ruleId: string): Promise<EvidenceStrengthResult> {
   const rule = await db.regulatoryRule.findUnique({
     where: { id: ruleId },
-    include: {
-      sourcePointers: {
-        include: {
-          evidence: {
-            include: {
-              source: true,
-            },
-          },
-        },
-      },
-    },
   })
 
   if (!rule) {
@@ -51,25 +50,37 @@ export async function computeEvidenceStrength(ruleId: string): Promise<EvidenceS
     }
   }
 
-  return computeEvidenceStrengthFromPointers(rule.sourcePointers, rule.authorityLevel)
+  // Query source pointers separately (many-to-many relation, no evidence include)
+  const sourcePointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { id: ruleId } } },
+  })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const evidenceIds = sourcePointers.map((sp) => sp.evidenceId)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map<string, EvidenceWithSource>(evidenceRecords.map((e) => [e.id, e]))
+
+  return computeEvidenceStrengthFromPointers(sourcePointers, rule.authorityLevel, evidenceMap)
 }
 
 /**
  * Compute evidence strength from loaded source pointers
  * Use this when you already have the pointers loaded to avoid extra DB query
+ *
+ * @param sourcePointers - Array of source pointers with evidenceId
+ * @param authorityLevel - Authority level of the rule
+ * @param evidenceMap - Map of evidenceId -> evidence record (fetched separately via dbReg)
  */
 export function computeEvidenceStrengthFromPointers(
   sourcePointers: Array<{
     id: string
-    evidence?: {
-      id: string
-      source?: {
-        id: string
-        name?: string
-      } | null
-    } | null
+    evidenceId: string
   }>,
-  authorityLevel: AuthorityLevel
+  authorityLevel: AuthorityLevel,
+  evidenceMap: Map<string, EvidenceWithSource>
 ): EvidenceStrengthResult {
   const pointerCount = sourcePointers.length
 
@@ -78,11 +89,12 @@ export function computeEvidenceStrengthFromPointers(
   const sourceIds = new Set<string>()
 
   for (const pointer of sourcePointers) {
-    if (pointer.evidence?.id) {
-      evidenceIds.add(pointer.evidence.id)
+    const evidence = evidenceMap.get(pointer.evidenceId)
+    if (evidence?.id) {
+      evidenceIds.add(evidence.id)
     }
-    if (pointer.evidence?.source?.id) {
-      sourceIds.add(pointer.evidence.source.id)
+    if (evidence?.source?.id) {
+      sourceIds.add(evidence.source.id)
     }
   }
 
@@ -136,18 +148,34 @@ export async function checkBatchEvidenceStrength(ruleIds: string[]): Promise<{
 }> {
   const rules = await db.regulatoryRule.findMany({
     where: { id: { in: ruleIds } },
+  })
+
+  // Query all source pointers for all rules in one query (no evidence include)
+  const allSourcePointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { id: { in: ruleIds } } } },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: {
-            include: {
-              source: true,
-            },
-          },
-        },
-      },
+      rules: { select: { id: true } },
     },
   })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const evidenceIds = allSourcePointers.map((sp) => sp.evidenceId)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map<string, EvidenceWithSource>(evidenceRecords.map((e) => [e.id, e]))
+
+  // Group pointers by rule ID
+  const pointersByRuleId = new Map<string, typeof allSourcePointers>()
+  for (const pointer of allSourcePointers) {
+    for (const ruleRef of pointer.rules) {
+      if (!pointersByRuleId.has(ruleRef.id)) {
+        pointersByRuleId.set(ruleRef.id, [])
+      }
+      pointersByRuleId.get(ruleRef.id)!.push(pointer)
+    }
+  }
 
   const blockedRules: Array<{
     ruleId: string
@@ -158,7 +186,12 @@ export async function checkBatchEvidenceStrength(ruleIds: string[]): Promise<{
   const passedRules: string[] = []
 
   for (const rule of rules) {
-    const result = computeEvidenceStrengthFromPointers(rule.sourcePointers, rule.authorityLevel)
+    const rulePointers = pointersByRuleId.get(rule.id) || []
+    const result = computeEvidenceStrengthFromPointers(
+      rulePointers,
+      rule.authorityLevel,
+      evidenceMap
+    )
 
     if (result.canPublish) {
       passedRules.push(rule.id)
@@ -189,28 +222,61 @@ export async function getEvidenceStrengthMetrics(): Promise<{
   singleSourceCanPublish: number
   singleSourceBlocked: number
 }> {
-  // Get all non-rejected rules with their pointers
+  // Get all non-rejected rules
   const rules = await db.regulatoryRule.findMany({
     where: { status: { not: "REJECTED" } },
+  })
+
+  if (rules.length === 0) {
+    return {
+      totalRules: 0,
+      multiSourceRules: 0,
+      singleSourceRules: 0,
+      singleSourceCanPublish: 0,
+      singleSourceBlocked: 0,
+    }
+  }
+
+  const ruleIds = rules.map((r) => r.id)
+
+  // Query all source pointers for all rules in one query (no evidence include)
+  const allSourcePointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { id: { in: ruleIds } } } },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: {
-            include: {
-              source: true,
-            },
-          },
-        },
-      },
+      rules: { select: { id: true } },
     },
   })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const evidenceIds = allSourcePointers.map((sp) => sp.evidenceId)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map<string, EvidenceWithSource>(evidenceRecords.map((e) => [e.id, e]))
+
+  // Group pointers by rule ID
+  const pointersByRuleId = new Map<string, typeof allSourcePointers>()
+  for (const pointer of allSourcePointers) {
+    for (const ruleRef of pointer.rules) {
+      if (!pointersByRuleId.has(ruleRef.id)) {
+        pointersByRuleId.set(ruleRef.id, [])
+      }
+      pointersByRuleId.get(ruleRef.id)!.push(pointer)
+    }
+  }
 
   let multiSourceRules = 0
   let singleSourceCanPublish = 0
   let singleSourceBlocked = 0
 
   for (const rule of rules) {
-    const result = computeEvidenceStrengthFromPointers(rule.sourcePointers, rule.authorityLevel)
+    const rulePointers = pointersByRuleId.get(rule.id) || []
+    const result = computeEvidenceStrengthFromPointers(
+      rulePointers,
+      rule.authorityLevel,
+      evidenceMap
+    )
 
     if (result.strength === "MULTI_SOURCE") {
       multiSourceRules++

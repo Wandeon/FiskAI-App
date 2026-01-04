@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/utils/coverage-metrics.ts
 // Live coverage accounting and saturation tracking
 
-import { cliDb as db } from "../cli-db"
+import { cliDb as db, dbReg } from "../cli-db"
 
 export interface CoverageMetrics {
   timestamp: string
@@ -88,9 +88,19 @@ export async function collectCoverageMetrics(): Promise<CoverageMetrics> {
     _count: true,
     where: { deletedAt: null },
   })
-  const unextractedEvidence = await dbReg.evidence.count({
-    where: { deletedAt: null, sourcePointers: { none: {} } },
+  // Get evidenceIds that have at least one SourcePointer (relation removed, use manual query)
+  const pointersWithEvidence = await db.sourcePointer.findMany({
+    where: { deletedAt: null },
+    select: { evidenceId: true },
+    distinct: ["evidenceId"],
   })
+  const evidenceIdsWithPointers = pointersWithEvidence.map((p) => p.evidenceId)
+  const unextractedEvidence =
+    evidenceIdsWithPointers.length > 0
+      ? await dbReg.evidence.count({
+          where: { deletedAt: null, id: { notIn: evidenceIdsWithPointers } },
+        })
+      : evidenceTotal
 
   // Pointer metrics
   const pointerTotal = await db.sourcePointer.count({ where: { deletedAt: null } })

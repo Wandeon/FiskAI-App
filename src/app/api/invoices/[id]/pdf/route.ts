@@ -54,7 +54,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
         const durationMs = Date.now() - startedAt
         logger.info(
-          { status: 200, durationMs, invoiceId: id, artifactId: artifact.id, checksum: artifact.checksum },
+          {
+            status: 200,
+            durationMs,
+            invoiceId: id,
+            artifactId: artifact.id,
+            checksum: artifact.checksum,
+          },
           "PDF generated successfully"
         )
 

@@ -26,7 +26,9 @@ describe("Fiscal XML Golden Tests", () => {
         issueDate: new Date("2025-01-15T14:30:00"),
         totalAmount: new Decimal("125.00"),
         vatRegistered: true,
-        vatBreakdown: [{ rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") }],
+        vatBreakdown: [
+          { rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") },
+        ],
         paymentMethod: "G", // Cash
         operatorOib: MOCK_OIB,
         subsequentDelivery: false,
@@ -81,7 +83,9 @@ describe("Fiscal XML Golden Tests", () => {
         issueDate: new Date("2025-06-01T09:00:00"),
         totalAmount: new Decimal("200.00"),
         vatRegistered: true,
-        vatBreakdown: [{ rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") }],
+        vatBreakdown: [
+          { rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") },
+        ],
         exemptAmount: new Decimal("50.00"),
         notTaxableAmount: new Decimal("25.00"),
         paymentMethod: "T", // Bank transfer
@@ -108,7 +112,9 @@ describe("Fiscal XML Golden Tests", () => {
         issueDate: new Date("2025-01-20T16:00:00"),
         totalAmount: new Decimal("50.00"),
         vatRegistered: true,
-        vatBreakdown: [{ rate: 25, baseAmount: new Decimal("40.00"), vatAmount: new Decimal("10.00") }],
+        vatBreakdown: [
+          { rate: 25, baseAmount: new Decimal("40.00"), vatAmount: new Decimal("10.00") },
+        ],
         paymentMethod: "G",
         operatorOib: MOCK_OIB,
         subsequentDelivery: true,
@@ -160,7 +166,9 @@ describe("Fiscal XML Golden Tests", () => {
         issueDate: new Date("2025-01-15T14:30:00"),
         totalAmount: new Decimal("125.00"),
         vatRegistered: true,
-        vatBreakdown: [{ rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") }],
+        vatBreakdown: [
+          { rate: 25, baseAmount: new Decimal("100.00"), vatAmount: new Decimal("25.00") },
+        ],
         paymentMethod: "G",
         operatorOib: MOCK_OIB,
         subsequentDelivery: false,

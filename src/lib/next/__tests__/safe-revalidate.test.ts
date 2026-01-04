@@ -7,4 +7,3 @@ describe("safeRevalidatePath", () => {
     expect(() => safeRevalidatePath("/shatter")).not.toThrow()
   })
 })
-

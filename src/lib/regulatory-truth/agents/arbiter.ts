@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/arbiter.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import {
   ArbiterInputSchema,
   ArbiterOutputSchema,
@@ -45,37 +45,48 @@ export function getAuthorityScore(level: AuthorityLevel): number {
   }
 }
 
+// Type for evidence with source (fetched separately via dbReg)
+type EvidenceWithSource = {
+  id: string
+  url: string
+  source: {
+    id: string
+    name: string
+    hierarchy: number
+  } | null
+}
+
 /**
  * Build conflicting item description with full context
  */
-function buildConflictingItemClaim(rule: {
-  id: string
-  titleHr: string
-  titleEn: string | null
-  value: string
-  valueType: string
-  authorityLevel: AuthorityLevel
-  effectiveFrom: Date
-  effectiveUntil: Date | null
-  appliesWhen: string
-  explanationHr: string | null
-  sourcePointers: Array<{
-    exactQuote: string
-    extractedValue: string
-    confidence: number
-    evidence: {
-      url: string
-      source: {
-        name: string
-        hierarchy: number
-      }
-    }
-  }>
-}): string {
+function buildConflictingItemClaim(
+  rule: {
+    id: string
+    titleHr: string
+    titleEn: string | null
+    value: string
+    valueType: string
+    authorityLevel: AuthorityLevel
+    effectiveFrom: Date
+    effectiveUntil: Date | null
+    appliesWhen: string
+    explanationHr: string | null
+    sourcePointers: Array<{
+      id: string
+      evidenceId: string
+      exactQuote: string
+      extractedValue: string
+      confidence: number
+    }>
+  },
+  evidenceMap: Map<string, EvidenceWithSource>
+): string {
   const sources = rule.sourcePointers
-    .map(
-      (sp) => `"${sp.exactQuote}" (from ${sp.evidence.source.name}, confidence: ${sp.confidence})`
-    )
+    .map((sp) => {
+      const evidence = evidenceMap.get(sp.evidenceId)
+      const sourceName = evidence?.source?.name ?? "Unknown"
+      return `"${sp.exactQuote}" (from ${sourceName}, confidence: ${sp.confidence})`
+    })
     .join("; ")
 
   return `
@@ -117,12 +128,15 @@ async function handleSourceConflict(conflict: {
   // Fetch the conflicting source pointers
   const sourcePointers = await db.sourcePointer.findMany({
     where: { id: { in: metadata.sourcePointerIds } },
-    include: {
-      evidence: {
-        include: { source: true },
-      },
-    },
   })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const spEvidenceIds = sourcePointers.map((sp) => sp.evidenceId)
+  const spEvidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: spEvidenceIds } },
+    include: { source: true },
+  })
+  const spEvidenceMap = new Map(spEvidenceRecords.map((e) => [e.id, e]))
 
   if (sourcePointers.length < 2) {
     // Not enough pointers to have a conflict - mark as resolved
@@ -162,13 +176,16 @@ async function handleSourceConflict(conflict: {
         rationaleHr: "Pronađene su proturječne vrijednosti u izvornim podacima",
         rationaleEn: "Conflicting values found in source data",
         sourcePointerIds: metadata.sourcePointerIds,
-        pointerSummary: sourcePointers.map((sp) => ({
-          id: sp.id,
-          domain: sp.domain,
-          value: sp.extractedValue,
-          source: sp.evidence?.source?.name,
-          confidence: sp.confidence,
-        })),
+        pointerSummary: sourcePointers.map((sp) => {
+          const evidence = spEvidenceMap.get(sp.evidenceId)
+          return {
+            id: sp.id,
+            domain: sp.domain,
+            value: sp.extractedValue,
+            source: evidence?.source?.name,
+            confidence: sp.confidence,
+          }
+        }),
       },
     },
   })
@@ -204,37 +221,9 @@ async function handleSourceConflict(conflict: {
  * Run the Arbiter agent to resolve a conflict between two rules
  */
 export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
-  // Get conflict from database with both rules and their evidence
+  // Get conflict from database (without itemA/itemB relations - they were removed)
   const conflict = await db.regulatoryConflict.findUnique({
     where: { id: conflictId },
-    include: {
-      itemA: {
-        include: {
-          sourcePointers: {
-            include: {
-              evidence: {
-                include: {
-                  source: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      itemB: {
-        include: {
-          sourcePointers: {
-            include: {
-              evidence: {
-                include: {
-                  source: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
   })
 
   if (!conflict) {
@@ -247,12 +236,12 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
     }
   }
 
-  // Handle SOURCE_CONFLICT type - these have null itemA/itemB and use metadata.sourcePointerIds
+  // Handle SOURCE_CONFLICT type - these have null itemAId/itemBId and use metadata.sourcePointerIds
   if (conflict.conflictType === "SOURCE_CONFLICT") {
     return handleSourceConflict(conflict)
   }
 
-  if (!conflict.itemA || !conflict.itemB) {
+  if (!conflict.itemAId || !conflict.itemBId) {
     return {
       success: false,
       output: null,
@@ -262,17 +251,54 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
     }
   }
 
+  // Fetch rules separately using soft reference IDs (without evidence relation)
+  const [itemA, itemB] = await Promise.all([
+    db.regulatoryRule.findUnique({
+      where: { id: conflict.itemAId },
+      include: {
+        sourcePointers: true,
+      },
+    }),
+    db.regulatoryRule.findUnique({
+      where: { id: conflict.itemBId },
+      include: {
+        sourcePointers: true,
+      },
+    }),
+  ])
+
+  if (!itemA || !itemB) {
+    return {
+      success: false,
+      output: null,
+      resolution: null,
+      updatedConflictId: null,
+      error: `One or both conflicting rules not found for conflict: ${conflictId}`,
+    }
+  }
+
+  // Fetch all evidence records for both rules' source pointers
+  const allEvidenceIds = [
+    ...itemA.sourcePointers.map((sp) => sp.evidenceId),
+    ...itemB.sourcePointers.map((sp) => sp.evidenceId),
+  ]
+  const allEvidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: allEvidenceIds } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map<string, EvidenceWithSource>(allEvidenceRecords.map((e) => [e.id, e]))
+
   // Build conflicting items for the agent
   const conflictingItems: ConflictingItem[] = [
     {
-      item_id: conflict.itemA.id,
+      item_id: itemA.id,
       item_type: "rule",
-      claim: buildConflictingItemClaim(conflict.itemA),
+      claim: buildConflictingItemClaim(itemA, evidenceMap),
     },
     {
-      item_id: conflict.itemB.id,
+      item_id: itemB.id,
       item_type: "rule",
-      claim: buildConflictingItemClaim(conflict.itemB),
+      claim: buildConflictingItemClaim(itemB, evidenceMap),
     },
   ]
 
@@ -310,9 +336,9 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
 
   if (arbitration.requires_human_review) {
     resolution = "ESCALATE_TO_HUMAN"
-  } else if (arbitration.resolution.winning_item_id === conflict.itemA.id) {
+  } else if (arbitration.resolution.winning_item_id === itemA.id) {
     resolution = "RULE_A_PREVAILS"
-  } else if (arbitration.resolution.winning_item_id === conflict.itemB.id) {
+  } else if (arbitration.resolution.winning_item_id === itemB.id) {
     resolution = "RULE_B_PREVAILS"
   } else {
     // If agent suggests something else or unclear, escalate
@@ -320,7 +346,7 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
   }
 
   // Additional escalation logic based on business rules
-  const shouldEscalate = checkEscalationCriteria(conflict.itemA, conflict.itemB, arbitration)
+  const shouldEscalate = checkEscalationCriteria(itemA, itemB, arbitration)
   if (shouldEscalate) {
     resolution = "ESCALATE_TO_HUMAN"
   }
@@ -348,7 +374,7 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
   // Create centralized human review request if escalating (Issue #884)
   if (resolution === "ESCALATE_TO_HUMAN") {
     const escalationReason =
-      conflict.itemA.riskTier === "T0" && conflict.itemB.riskTier === "T0"
+      itemA.riskTier === "T0" && itemB.riskTier === "T0"
         ? "both_t0"
         : arbitration.confidence < 0.8
           ? "low_confidence"
@@ -356,8 +382,8 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
 
     await requestConflictReview(conflict.id, {
       conflictType: conflict.conflictType,
-      ruleATier: conflict.itemA.riskTier,
-      ruleBTier: conflict.itemB.riskTier,
+      ruleATier: itemA.riskTier,
+      ruleBTier: itemB.riskTier,
       confidence: arbitration.confidence,
       escalationReason,
     })
@@ -378,26 +404,26 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
   // If one rule prevails, update the losing rule's status
   if (resolution === "RULE_A_PREVAILS") {
     await db.regulatoryRule.update({
-      where: { id: conflict.itemB.id },
+      where: { id: itemB.id },
       data: {
         status: "DEPRECATED",
         reviewerNotes: JSON.stringify({
           deprecated_reason: "Conflict resolution - Rule A prevails",
           conflict_id: conflict.id,
-          superseded_by: conflict.itemA.id,
+          superseded_by: itemA.id,
           arbiter_rationale: arbitration.resolution.rationale_hr,
         }),
       },
     })
   } else if (resolution === "RULE_B_PREVAILS") {
     await db.regulatoryRule.update({
-      where: { id: conflict.itemA.id },
+      where: { id: itemA.id },
       data: {
         status: "DEPRECATED",
         reviewerNotes: JSON.stringify({
           deprecated_reason: "Conflict resolution - Rule B prevails",
           conflict_id: conflict.id,
-          superseded_by: conflict.itemB.id,
+          superseded_by: itemB.id,
           arbiter_rationale: arbitration.resolution.rationale_hr,
         }),
       },
@@ -481,25 +507,16 @@ async function compareSourceHierarchy(
   ruleA: {
     id: string
     sourcePointers: Array<{
-      evidence: {
-        source: {
-          hierarchy: number
-          name: string
-        }
-      }
+      evidenceId: string
     }>
   },
   ruleB: {
     id: string
     sourcePointers: Array<{
-      evidence: {
-        source: {
-          hierarchy: number
-          name: string
-        }
-      }
+      evidenceId: string
     }>
-  }
+  },
+  evidenceMap: Map<string, EvidenceWithSource>
 ): Promise<{
   winningRuleId: string | null
   sourceAHierarchy: number | null
@@ -510,14 +527,26 @@ async function compareSourceHierarchy(
 }> {
   // Get the highest authority source for each rule (lowest hierarchy number)
   const sourceA = ruleA.sourcePointers.reduce(
-    (highest, sp) =>
-      !highest || sp.evidence.source.hierarchy < highest.hierarchy ? sp.evidence.source : highest,
+    (highest, sp) => {
+      const evidence = evidenceMap.get(sp.evidenceId)
+      if (!evidence?.source) return highest
+      if (!highest || evidence.source.hierarchy < highest.hierarchy) {
+        return { hierarchy: evidence.source.hierarchy, name: evidence.source.name }
+      }
+      return highest
+    },
     null as { hierarchy: number; name: string } | null
   )
 
   const sourceB = ruleB.sourcePointers.reduce(
-    (highest, sp) =>
-      !highest || sp.evidence.source.hierarchy < highest.hierarchy ? sp.evidence.source : highest,
+    (highest, sp) => {
+      const evidence = evidenceMap.get(sp.evidenceId)
+      if (!evidence?.source) return highest
+      if (!highest || evidence.source.hierarchy < highest.hierarchy) {
+        return { hierarchy: evidence.source.hierarchy, name: evidence.source.name }
+      }
+      return highest
+    },
     null as { hierarchy: number; name: string } | null
   )
 
@@ -647,36 +676,51 @@ export async function getPendingConflicts(): Promise<
     conflictType: string
     description: string
     createdAt: Date
+    itemAId: string | null
+    itemBId: string | null
     itemA: { id: string; titleHr: string; riskTier: string } | null
     itemB: { id: string; titleHr: string; riskTier: string } | null
   }>
 > {
+  // Get conflicts without itemA/itemB relations (they were removed)
   const conflicts = await db.regulatoryConflict.findMany({
     where: {
       status: "OPEN",
-    },
-    include: {
-      itemA: {
-        select: {
-          id: true,
-          titleHr: true,
-          riskTier: true,
-        },
-      },
-      itemB: {
-        select: {
-          id: true,
-          titleHr: true,
-          riskTier: true,
-        },
-      },
     },
     orderBy: [
       { createdAt: "asc" }, // Oldest first
     ],
   })
 
-  return conflicts
+  // Collect all rule IDs needed
+  const ruleIds = conflicts
+    .flatMap((c) => [c.itemAId, c.itemBId])
+    .filter((id): id is string => id !== null)
+
+  // Fetch all rules at once
+  const rules = await db.regulatoryRule.findMany({
+    where: { id: { in: ruleIds } },
+    select: {
+      id: true,
+      titleHr: true,
+      riskTier: true,
+    },
+  })
+
+  // Build a map for quick lookup
+  const ruleMap = new Map(rules.map((r) => [r.id, r]))
+
+  // Return conflicts with resolved itemA/itemB
+  return conflicts.map((c) => ({
+    id: c.id,
+    conflictType: c.conflictType,
+    description: c.description,
+    createdAt: c.createdAt,
+    itemAId: c.itemAId,
+    itemBId: c.itemBId,
+    itemA: c.itemAId ? (ruleMap.get(c.itemAId) ?? null) : null,
+    itemB: c.itemBId ? (ruleMap.get(c.itemBId) ?? null) : null,
+  }))
 }
 
 /**

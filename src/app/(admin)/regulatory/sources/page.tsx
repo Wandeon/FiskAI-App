@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth-utils"
-import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { redirect } from "next/navigation"
 import { SourcesView } from "./sources-view"
 
@@ -13,7 +13,7 @@ export default async function RegulatorySourcesPage() {
   }
 
   // Get all regulatory sources
-  const sources = await db.regulatorySource.findMany({
+  const sources = await dbReg.regulatorySource.findMany({
     orderBy: [
       { hierarchy: "asc" }, // Most authoritative first
       { name: "asc" },

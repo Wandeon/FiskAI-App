@@ -2,7 +2,7 @@
 // Tests for Evidence immutability protection
 
 import { describe, it, expect } from "vitest"
-import { EvidenceImmutabilityError } from "../prisma-extensions"
+import { EvidenceImmutabilityError } from "../db/regulatory"
 import {
   verifyEvidenceIntegrity,
   verifyEvidenceBatch,

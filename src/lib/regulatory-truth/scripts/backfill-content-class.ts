@@ -6,7 +6,7 @@
 //   npx tsx src/lib/regulatory-truth/scripts/backfill-content-class.ts --dry-run
 //   npx tsx src/lib/regulatory-truth/scripts/backfill-content-class.ts --apply
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 
 const CONTENT_TYPE_TO_CLASS: Record<string, string> = {
   html: "HTML",

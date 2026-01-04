@@ -15,4 +15,3 @@ export function safeRevalidatePath(path: string): void {
     throw error
   }
 }
-

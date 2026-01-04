@@ -1,5 +1,6 @@
 // src/lib/assistant/reasoning/reasoning-pipeline.ts
 import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { routeQuery } from "@/lib/regulatory-truth/retrieval/query-router"
 import { calculateDecisionCoverage, inferTopicFromIntent } from "./decision-coverage"
 import { determineRefusalCode, buildRefusalPayload, RefusalCode } from "./refusal-policy"
@@ -115,7 +116,7 @@ async function* discoverSources(domain: string): AsyncGenerator<{
   url?: string
 }> {
   // Query database for relevant sources
-  const sources = await db.regulatorySource.findMany({
+  const sources = await dbReg.regulatorySource.findMany({
     where: { isActive: true },
     take: 5,
   })

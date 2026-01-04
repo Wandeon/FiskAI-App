@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { getCurrentUser } from "@/lib/auth-utils"
 import {
   parseParams,
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { isActive } = await parseBody(request, bodySchema)
 
     // Update the source
-    const updatedSource = await db.regulatorySource.update({
+    const updatedSource = await dbReg.regulatorySource.update({
       where: { id },
       data: { isActive },
     })

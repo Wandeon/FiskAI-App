@@ -12,11 +12,16 @@ export async function generatePdvXmlArtifact(params: {
   createdById?: string | null
   reason?: string | null
 }) {
-  const { xml, data } = await generatePdvFormForPeriod(params.companyId, params.dateFrom, params.dateTo, {
-    generatedAt: params.dateTo,
-    formattedOutput: true,
-    includeDeclaration: true,
-  })
+  const { xml, data } = await generatePdvFormForPeriod(
+    params.companyId,
+    params.dateFrom,
+    params.dateTo,
+    {
+      generatedAt: params.dateTo,
+      formattedOutput: true,
+      includeDeclaration: true,
+    }
+  )
 
   const inputSnapshot = {
     companyId: params.companyId,
@@ -54,4 +59,3 @@ export async function generatePdvXmlArtifact(params: {
 
   return { artifact, xml, data, inputHash }
 }
-

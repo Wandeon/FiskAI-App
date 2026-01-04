@@ -22,4 +22,3 @@ describe("depreciation rounding", () => {
     expect(entries.at(-1)!.accumulatedAmount.toFixed(2)).toBe("2500.00")
   })
 })
-

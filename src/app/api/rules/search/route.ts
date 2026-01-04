@@ -157,14 +157,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             exactQuote: true,
-            evidence: {
-              select: {
-                url: true,
-                source: {
-                  select: { name: true, slug: true },
-                },
-              },
-            },
+            evidenceId: true,
           },
         },
       },

@@ -3,7 +3,7 @@ import { Job } from "bullmq"
 import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
 import { sentinelQueue, releaseQueue, arbiterQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { autoApproveEligibleRules } from "../agents/reviewer"
 import { logWorkerStartup } from "./startup-log"
 

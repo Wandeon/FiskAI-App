@@ -65,4 +65,3 @@ export async function convertFixedAssetCandidateToAsset(params: {
     return { asset, schedule, candidate: updatedCandidate }
   })
 }
-

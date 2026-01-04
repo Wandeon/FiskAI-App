@@ -28,6 +28,7 @@
 
 import { db } from "../src/lib/db"
 import { dbReg } from "../src/lib/db/regulatory"
+import type { Prisma as PrismaReg } from "../src/generated/regulatory-client"
 
 // Type for tableId mapping
 type TableIdMap = Map<string, string> // coreTableId -> regulatoryTableId
@@ -225,7 +226,7 @@ async function copyRuleVersions(
   for (let i = 0; i < rewritten.length; i += CHUNK_SIZE) {
     const chunk = rewritten.slice(i, i + CHUNK_SIZE)
     const result = await dbReg.ruleVersion.createMany({
-      data: chunk,
+      data: chunk as unknown as PrismaReg.RuleVersionCreateManyInput[],
       skipDuplicates: true,
     })
     inserted += result.count
@@ -273,7 +274,7 @@ async function copyRuleSnapshots(): Promise<{ inserted: number; skipped: number 
   for (let i = 0; i < coreSnapshots.length; i += CHUNK_SIZE) {
     const chunk = coreSnapshots.slice(i, i + CHUNK_SIZE)
     const result = await dbReg.ruleSnapshot.createMany({
-      data: chunk,
+      data: chunk as unknown as PrismaReg.RuleSnapshotCreateManyInput[],
       skipDuplicates: true,
     })
     inserted += result.count
@@ -334,7 +335,7 @@ async function copyRuleCalculations(): Promise<{ inserted: number; skipped: numb
     chunkNum++
 
     const result = await dbReg.ruleCalculation.createMany({
-      data: chunk,
+      data: chunk as unknown as PrismaReg.RuleCalculationCreateManyInput[],
       skipDuplicates: true,
     })
 

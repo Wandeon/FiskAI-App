@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/asset-extractor.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { runAgent } from "./runner"
 import { RegulatoryAssetSchema, type RegulatoryAsset } from "../schemas/asset"
 import { getExtractableContent } from "../utils/content-provider"

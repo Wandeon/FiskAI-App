@@ -3,6 +3,7 @@
 // Demonstrates full pipeline with one item from each source type
 
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 import { createHash } from "crypto"
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -185,10 +186,10 @@ async function main() {
     "Raw HTML content from Step 2",
     async () => {
       // Check existing evidence count
-      const evidenceCount = await db.evidence.count()
+      const evidenceCount = await dbReg.evidence.count()
 
       // Get a sample evidence to show structure
-      const sampleEvidence = await db.evidence.findFirst({
+      const sampleEvidence = await dbReg.evidence.findFirst({
         include: { source: true },
         orderBy: { fetchedAt: "desc" },
       })
@@ -228,7 +229,6 @@ async function main() {
       })
 
       const samplePointer = await db.sourcePointer.findFirst({
-        include: { evidence: true },
         orderBy: { createdAt: "desc" },
       })
 

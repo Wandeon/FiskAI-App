@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { parseParams, isValidationError, formatValidationError } from "@/lib/api/validation"
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = parseParams(await params, paramsSchema)
 
     // Get the source
-    const source = await db.regulatorySource.findUnique({
+    const source = await dbReg.regulatorySource.findUnique({
       where: { id },
       select: { id: true, name: true, isActive: true },
     })

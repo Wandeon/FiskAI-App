@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/e2e/synthetic-heartbeat.ts
 // Creates synthetic conflicts to verify Arbiter pipeline health
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { createId } from "@paralleldrive/cuid2"
 
 const HEARTBEAT_PREFIX = "heartbeat-synthetic-"

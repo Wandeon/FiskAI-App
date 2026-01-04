@@ -202,9 +202,17 @@ export async function fetchVatReportData(
   const vatPayable = outputVatAmount.subtract(inputDeductible)
 
   return {
-    outputVat,
-    inputVat,
-    vatPayable: vatPayable.toDisplayNumber(),
+    outputVat: {
+      net: String(outputVat.net),
+      vat: String(outputVat.vat),
+      total: String(outputVat.total),
+    },
+    inputVat: {
+      deductible: String(inputVat.deductible),
+      nonDeductible: String(inputVat.nonDeductible),
+      total: String(inputVat.total),
+    },
+    vatPayable: String(vatPayable.toDisplayNumber()),
   }
 }
 
@@ -416,11 +424,11 @@ export async function preparePdvFormData(
 }
 
 /**
- * Format amount for XML (2 decimal places)
- * Uses Money class for proper rounding
+ * Format amount for XML (always 2 decimal places per Croatian Tax Authority spec)
+ * Uses Decimal for proper rounding, .toFixed(2) ensures trailing zeros are preserved.
  */
 function formatAmount(amount: string): string {
-  return new Decimal(amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toString()
+  return new Decimal(amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2)
 }
 
 /**
@@ -531,8 +539,8 @@ export function generatePdvXml(data: PdvFormData, options: PdvXmlOptions = {}): 
         // Section III: Calculation
         III_1_Izlazni_PDV: formatAmount(data.section3.outputVat),
         III_2_Ulazni_PDV: formatAmount(data.section3.inputVat),
-        III_3_Razlika: formatAmount(Math.abs(data.section3.vatPayable)),
-        III_3_Vrsta: data.section3.vatPayable >= 0 ? "UPLATA" : "POVRAT",
+        III_3_Razlika: formatAmount(String(Math.abs(Number(data.section3.vatPayable)))),
+        III_3_Vrsta: Number(data.section3.vatPayable) >= 0 ? "UPLATA" : "POVRAT",
       },
       ...(data.section4 && {
         IV_Posebne_odredbe: {

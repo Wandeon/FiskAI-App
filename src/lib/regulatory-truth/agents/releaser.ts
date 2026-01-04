@@ -328,14 +328,32 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
       id: { in: approvedRuleIds },
       status: "APPROVED",
     },
+  })
+
+  // Query source pointers separately (many-to-many relation, no evidence include)
+  const allSourcePointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { id: { in: approvedRuleIds } } } },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: true,
-        },
-      },
+      rules: { select: { id: true } },
     },
   })
+
+  // Group pointers by rule ID
+  const pointersByRuleId = new Map<string, typeof allSourcePointers>()
+  for (const pointer of allSourcePointers) {
+    for (const ruleRef of pointer.rules) {
+      if (!pointersByRuleId.has(ruleRef.id)) {
+        pointersByRuleId.set(ruleRef.id, [])
+      }
+      pointersByRuleId.get(ruleRef.id)!.push(pointer)
+    }
+  }
+
+  // Create enriched rules with source pointers
+  const rulesWithPointers = rules.map((rule) => ({
+    ...rule,
+    sourcePointers: pointersByRuleId.get(rule.id) || [],
+  }))
 
   if (rules.length === 0) {
     return {
@@ -405,7 +423,7 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
   }
 
   // HARD GATE: All rules must have source pointers
-  const rulesWithoutPointers = rules.filter((r) => r.sourcePointers.length === 0)
+  const rulesWithoutPointers = rulesWithPointers.filter((r) => r.sourcePointers.length === 0)
 
   if (rulesWithoutPointers.length > 0) {
     console.error(
@@ -515,7 +533,7 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
   const sourcePointerIds = new Set<string>()
   let humanApprovals = 0
 
-  for (const rule of rules) {
+  for (const rule of rulesWithPointers) {
     for (const pointer of rule.sourcePointers) {
       sourcePointerIds.add(pointer.id)
       evidenceIds.add(pointer.evidenceId)
@@ -635,7 +653,7 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
   // Emit a ContentSyncEvent for each published rule to trigger MDX guide updates.
   // This is async and non-blocking - failures are logged but don't fail the release.
 
-  for (const rule of rules) {
+  for (const rule of rulesWithPointers) {
     // Gather source pointer IDs and evidence IDs for traceability
     const ruleSourcePointerIds = rule.sourcePointers.map((sp) => sp.id)
     const ruleEvidenceIds = [...new Set(rule.sourcePointers.map((sp) => sp.evidenceId))]

@@ -159,19 +159,17 @@ export async function getStaffStats(userId: string) {
           status: { not: "CLOSED" },
         },
       }),
+      // TODO: compliance_deadlines model was removed - stub with empty array
       // Query compliance deadlines in the next 30 days
-      db.compliance_deadlines.findMany({
-        where: {
-          deadline_date: { gte: now, lte: thirtyDaysFromNow },
-        },
-        select: {
-          id: true,
-          deadline_type: true,
-          applies_to: true,
-          deadline_date: true,
-          severity: true,
-        },
-      }),
+      Promise.resolve(
+        [] as Array<{
+          id: string
+          deadline_type: string
+          applies_to: unknown
+          deadline_date: Date
+          severity: string | null
+        }>
+      ),
       db.eInvoice.count({
         where: { companyId: { in: companyIds }, status: "DRAFT" },
       }),
@@ -278,20 +276,15 @@ export async function getUpcomingDeadlineDetails(
   const thirtyDaysFromNow = new Date(now)
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
 
-  const complianceDeadlines = await db.compliance_deadlines.findMany({
-    where: {
-      deadline_date: { gte: now, lte: thirtyDaysFromNow },
-    },
-    select: {
-      id: true,
-      title: true,
-      deadline_date: true,
-      deadline_type: true,
-      applies_to: true,
-      severity: true,
-    },
-    orderBy: { deadline_date: "asc" },
-  })
+  // TODO: compliance_deadlines model was removed - stub with empty array
+  const complianceDeadlines = [] as Array<{
+    id: string
+    title: string
+    deadline_date: Date
+    deadline_type: string
+    applies_to: unknown
+    severity: string | null
+  }>
 
   // Filter deadlines based on company characteristics
   const relevantDeadlines = complianceDeadlines.filter((deadline) => {

@@ -15,7 +15,7 @@
 //
 // This file remains for backward compatibility and one-off CELEX lookups.
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { logAuditEvent } from "../utils/audit-log"
 import { fetchWithRateLimit } from "../utils/rate-limiter"

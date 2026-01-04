@@ -5,7 +5,7 @@
 import { Job } from "bullmq"
 import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
 import { jobsProcessed, jobDuration } from "./metrics"
-import { prisma } from "@/lib/prisma"
+import { dbReg } from "@/lib/db"
 import { generateEvidenceEmbedding } from "../utils/evidence-embedder"
 
 export interface EvidenceEmbeddingJobData {
@@ -27,7 +27,7 @@ async function processEvidenceEmbeddingJob(job: Job<EvidenceEmbeddingJobData>): 
 
   try {
     // Mark as processing
-    await prisma.evidence.update({
+    await dbReg.evidence.update({
       where: { id: evidenceId },
       data: {
         embeddingStatus: "PROCESSING",
@@ -41,7 +41,7 @@ async function processEvidenceEmbeddingJob(job: Job<EvidenceEmbeddingJobData>): 
     const embedding = await generateEvidenceEmbedding(evidenceId)
 
     // Mark as completed
-    await prisma.evidence.update({
+    await dbReg.evidence.update({
       where: { id: evidenceId },
       data: {
         embeddingStatus: "COMPLETED",
@@ -89,7 +89,7 @@ async function processEvidenceEmbeddingJob(job: Job<EvidenceEmbeddingJobData>): 
 
     // Update status based on whether we have exhausted retries
     const isFinalAttempt = attempt >= MAX_ATTEMPTS
-    await prisma.evidence.update({
+    await dbReg.evidence.update({
       where: { id: evidenceId },
       data: {
         embeddingStatus: isFinalAttempt ? "FAILED" : "PENDING",

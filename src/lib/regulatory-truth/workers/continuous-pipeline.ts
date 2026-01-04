@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/workers/continuous-pipeline.ts
 // Continuous 24/7 pipeline processing with self-healing
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { fetchDiscoveredItems } from "../agents/sentinel"
 import { runExtractorBatch } from "../agents/extractor"
 import { runComposerBatch } from "../agents/composer"
@@ -54,7 +54,15 @@ async function runPipelineCycle(): Promise<void> {
     const pending = await db.discoveredItem.count({
       where: { status: "PENDING", retryCount: { lt: 3 } },
     })
-    const unextracted = await dbReg.evidence.count({ where: { sourcePointers: { none: {} } } })
+    // Count evidence without source pointers (soft reference pattern)
+    const evidenceIdsWithPointers = await db.sourcePointer.findMany({
+      select: { evidenceId: true },
+      distinct: ["evidenceId"],
+    })
+    const processedIds = evidenceIdsWithPointers.map((p) => p.evidenceId)
+    const unextracted = await dbReg.evidence.count({
+      where: { id: { notIn: processedIds.length > 0 ? processedIds : ["__none__"] } },
+    })
     const unlinkedPointers = await db.sourcePointer.count({ where: { rules: { none: {} } } })
     const pendingReview = await db.regulatoryRule.count({ where: { status: "PENDING_REVIEW" } })
     const approved = await db.regulatoryRule.count({

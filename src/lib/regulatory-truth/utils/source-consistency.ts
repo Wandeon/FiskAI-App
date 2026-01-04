@@ -15,13 +15,17 @@ export interface SourceConsistencyResult {
   primarySourceId: string | null
 }
 
-export interface SourcePointerWithEvidence {
+// Type for source pointer with evidenceId (soft reference)
+export interface SourcePointerWithEvidenceId {
   id: string
-  evidence: {
-    id: string
-    sourceId: string
-    source: { id: string; slug: string; name: string }
-  }
+  evidenceId: string
+}
+
+// Type for evidence with source (fetched separately via dbReg)
+export interface EvidenceWithSource {
+  id: string
+  sourceId: string
+  source: { id: string; slug: string; name: string } | null
 }
 
 /**
@@ -32,11 +36,13 @@ export interface SourcePointerWithEvidence {
  * This prevents silent source attribution confusion where a rule
  * could theoretically reference evidence from a completely different source.
  *
- * @param pointers - Source pointers with their evidence and source relations
+ * @param pointers - Source pointers with evidenceId (soft reference)
+ * @param evidenceMap - Map of evidenceId -> evidence record (fetched separately via dbReg)
  * @returns Validation result with cross-source reference details
  */
 export async function validateSourceConsistency(
-  pointers: SourcePointerWithEvidence[]
+  pointers: SourcePointerWithEvidenceId[],
+  evidenceMap: Map<string, EvidenceWithSource>
 ): Promise<SourceConsistencyResult> {
   const warnings: string[] = []
   const crossSourceReferences: SourceConsistencyResult["crossSourceReferences"] = []
@@ -53,12 +59,15 @@ export async function validateSourceConsistency(
   // Determine primary source (most common source among pointers)
   const sourceCounts = new Map<string, number>()
   for (const pointer of pointers) {
-    const sourceId = pointer.evidence.sourceId
-    sourceCounts.set(sourceId, (sourceCounts.get(sourceId) || 0) + 1)
+    const evidence = evidenceMap.get(pointer.evidenceId)
+    if (evidence?.sourceId) {
+      sourceCounts.set(evidence.sourceId, (sourceCounts.get(evidence.sourceId) || 0) + 1)
+    }
   }
 
   // Find the primary source (most frequently referenced)
-  let primarySourceId = pointers[0].evidence.sourceId
+  const firstEvidence = evidenceMap.get(pointers[0].evidenceId)
+  let primarySourceId = firstEvidence?.sourceId || null
   let maxCount = 0
   for (const [sourceId, count] of sourceCounts) {
     if (count > maxCount) {
@@ -69,18 +78,21 @@ export async function validateSourceConsistency(
 
   // Check each pointer for cross-source references
   for (const pointer of pointers) {
-    const evidenceSourceId = pointer.evidence.sourceId
+    const evidence = evidenceMap.get(pointer.evidenceId)
+    if (!evidence?.sourceId || !evidence.source) continue
 
-    if (evidenceSourceId !== primarySourceId) {
+    const evidenceSourceId = evidence.sourceId
+
+    if (primarySourceId && evidenceSourceId !== primarySourceId) {
       crossSourceReferences.push({
         pointerId: pointer.id,
-        evidenceId: pointer.evidence.id,
+        evidenceId: evidence.id,
         sourceId: evidenceSourceId,
-        sourceName: pointer.evidence.source.name,
+        sourceName: evidence.source.name,
       })
 
       warnings.push(
-        `Cross-source reference: Pointer ${pointer.id} cites evidence from "${pointer.evidence.source.name}" (${pointer.evidence.source.slug}) while primary source is different`
+        `Cross-source reference: Pointer ${pointer.id} cites evidence from "${evidence.source.name}" (${evidence.source.slug}) while primary source is different`
       )
     }
   }

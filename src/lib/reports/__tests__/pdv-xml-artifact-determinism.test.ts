@@ -13,9 +13,8 @@ describe("H4: PDV XML artifacts are reproducible", () => {
     process.env.R2_MOCK_DIR = tmp
     process.env.DETERMINISTIC_MODE = "true"
 
-    const { generatePdvXmlArtifact, PDV_XML_GENERATOR_VERSION } = await import(
-      "@/lib/reports/pdv-xml-artifact"
-    )
+    const { generatePdvXmlArtifact, PDV_XML_GENERATOR_VERSION } =
+      await import("@/lib/reports/pdv-xml-artifact")
 
     const user = await db.user.create({
       data: { email: `shatter-pdv-h4-${crypto.randomUUID()}@example.test` },

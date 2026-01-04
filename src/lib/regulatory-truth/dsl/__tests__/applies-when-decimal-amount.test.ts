@@ -81,4 +81,3 @@ describe("H1: applies-when supports decimal string amounts", () => {
     expect(evaluateAppliesWhen(predicate as any, context)).toBe(true)
   })
 })
-

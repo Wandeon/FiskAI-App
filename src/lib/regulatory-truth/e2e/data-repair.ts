@@ -3,7 +3,7 @@
 //
 // IMPORTANT: All repairs MUST be logged for audit trail
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 import { computeReleaseHash } from "../utils/release-hash"
 import { logAuditEvent } from "../utils/audit-log"

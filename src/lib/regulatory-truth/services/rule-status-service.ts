@@ -7,7 +7,7 @@
 // 4. Audit trail is complete
 // 5. PROVENANCE VALIDATION: Every quote must exist in evidence
 
-import { db, runWithRegulatoryContext, getRegulatoryContext } from "@/lib/db"
+import { db, dbReg, runWithRegulatoryContext, getRegulatoryContext } from "@/lib/db"
 import { isAutoApprovalAllowed } from "../policy/auto-approval-policy"
 import { Prisma } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
@@ -72,23 +72,27 @@ async function validateRuleProvenance(
   riskTier: string,
   prismaClient: PrismaTransactionClient = db
 ): Promise<RuleProvenanceResult> {
-  // Load rule with all source pointers and their evidence
+  // Load rule
   const rule = await prismaClient.regulatoryRule.findUnique({
     where: { id: ruleId },
-    include: {
-      sourcePointers: {
-        include: {
-          evidence: {
-            select: {
-              id: true,
-              rawContent: true,
-              contentHash: true,
-            },
-          },
-        },
-      },
+  })
+
+  // Query source pointers separately (many-to-many relation, no evidence include)
+  const sourcePointers = await prismaClient.sourcePointer.findMany({
+    where: { rules: { some: { id: ruleId } } },
+  })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const evidenceIds = sourcePointers.map((sp) => sp.evidenceId)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    select: {
+      id: true,
+      rawContent: true,
+      contentHash: true,
     },
   })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
 
   if (!rule) {
     return {
@@ -108,7 +112,7 @@ async function validateRuleProvenance(
   }
 
   // INVARIANT: Must have at least one source pointer
-  if (rule.sourcePointers.length === 0) {
+  if (sourcePointers.length === 0) {
     return {
       ruleId,
       valid: false,
@@ -129,14 +133,17 @@ async function validateRuleProvenance(
   const failures: ProvenanceValidationResult[] = []
   const isCriticalTier = riskTier === "T0" || riskTier === "T1"
 
-  for (const pointer of rule.sourcePointers) {
+  for (const pointer of sourcePointers) {
+    // Get evidence from map
+    const evidence = evidenceMap.get(pointer.evidenceId)
+
     // Validate quote exists in evidence
     const validationResult = validateQuoteInEvidence(
       pointer.id,
       pointer.evidenceId,
       pointer.exactQuote,
-      pointer.evidence.rawContent,
-      pointer.evidence.contentHash ?? undefined
+      evidence?.rawContent ?? "",
+      evidence?.contentHash ?? undefined
     )
 
     // Apply tier-based policy

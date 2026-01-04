@@ -133,7 +133,7 @@ export async function processPosSale(input: unknown): Promise<ProcessPosSaleResu
           id: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
           issueDate: invoice.issueDate,
-          totalAmount: Number(invoice.totalAmount),
+          totalAmount: invoice.totalAmount,
           paymentMethod: data.paymentMethod,
         },
         company: {

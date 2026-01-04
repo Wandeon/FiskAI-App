@@ -5,7 +5,7 @@ import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
 import { extractQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
 import { runSentinel, fetchDiscoveredItems } from "../agents/sentinel"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 
 interface SentinelJobData {
   runId: string
@@ -25,10 +25,16 @@ async function processSentinelJob(job: Job<SentinelJobData>): Promise<JobResult>
     const fetchResult = await fetchDiscoveredItems(50)
 
     // Queue extract jobs for unprocessed evidence (no source pointers yet)
-    // Check all unprocessed evidence, not just recently fetched
+    // Use soft reference pattern: query SourcePointer to find processed evidence IDs
+    const processedPointers = await db.sourcePointer.findMany({
+      select: { evidenceId: true },
+      distinct: ["evidenceId"],
+    })
+    const processedEvidenceIds = processedPointers.map((p) => p.evidenceId)
+
     const newEvidence = await dbReg.evidence.findMany({
       where: {
-        sourcePointers: { none: {} },
+        id: { notIn: processedEvidenceIds.length > 0 ? processedEvidenceIds : ["__none__"] },
       },
       select: { id: true },
       orderBy: { fetchedAt: "desc" },

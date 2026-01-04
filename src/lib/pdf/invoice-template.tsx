@@ -294,7 +294,9 @@ export const InvoicePDFTemplate: React.FC<{ data: InvoiceData }> = ({ data }) =>
   const { invoice, seller, buyer, lines } = data
   const reverseCharge =
     Boolean(buyer?.vatNumber) &&
-    !String(buyer?.vatNumber ?? "").toUpperCase().startsWith("HR") &&
+    !String(buyer?.vatNumber ?? "")
+      .toUpperCase()
+      .startsWith("HR") &&
     new Decimal(invoice.vatAmount).equals(0)
 
   return (

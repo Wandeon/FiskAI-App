@@ -15,9 +15,8 @@ describe("H4: invoice PDF artifacts are reproducible", () => {
     process.env.R2_MOCK_DIR = tmp
     process.env.DETERMINISTIC_MODE = "true"
 
-    const { generateInvoicePdfArtifact, INVOICE_PDF_GENERATOR_VERSION } = await import(
-      "@/lib/pdf/generate-invoice-pdf-artifact"
-    )
+    const { generateInvoicePdfArtifact, INVOICE_PDF_GENERATOR_VERSION } =
+      await import("@/lib/pdf/generate-invoice-pdf-artifact")
 
     const user = await db.user.create({
       data: { email: `shatter-h4-${crypto.randomUUID()}@example.test` },
@@ -46,42 +45,44 @@ describe("H4: invoice PDF artifacts are reproducible", () => {
       },
     })
 
-    const invoice = await runWithContext({ requestId: `SHATTER-H4-${crypto.randomUUID()}` }, async () =>
-      runWithTenant({ companyId: company.id, userId: user.id }, async () =>
-        runWithAuditContext({ actorId: user.id, reason: "shatter_h4_setup" }, async () => {
-          return db.eInvoice.create({
-            data: {
-              companyId: company.id,
-              direction: "OUTBOUND",
-              invoiceNumber: `R-1-${crypto.randomUUID()}`,
-              issueDate: new Date("2025-01-15T00:00:00.000Z"),
-              dueDate: null,
-              currency: "EUR",
-              buyerId: buyer.id,
-              netAmount: new Prisma.Decimal("100.00"),
-              vatAmount: new Prisma.Decimal("0.00"),
-              totalAmount: new Prisma.Decimal("100.00"),
-              includeBarcode: false,
-              status: "SENT",
-              lines: {
-                create: [
-                  {
-                    lineNumber: 1,
-                    description: "Consulting",
-                    quantity: new Prisma.Decimal("1.000"),
-                    unit: "HUR",
-                    unitPrice: new Prisma.Decimal("100.00"),
-                    netAmount: new Prisma.Decimal("100.00"),
-                    vatRate: new Prisma.Decimal("0.00"),
-                    vatCategory: "AE",
-                    vatAmount: new Prisma.Decimal("0.00"),
-                  },
-                ],
+    const invoice = await runWithContext(
+      { requestId: `SHATTER-H4-${crypto.randomUUID()}` },
+      async () =>
+        runWithTenant({ companyId: company.id, userId: user.id }, async () =>
+          runWithAuditContext({ actorId: user.id, reason: "shatter_h4_setup" }, async () => {
+            return db.eInvoice.create({
+              data: {
+                companyId: company.id,
+                direction: "OUTBOUND",
+                invoiceNumber: `R-1-${crypto.randomUUID()}`,
+                issueDate: new Date("2025-01-15T00:00:00.000Z"),
+                dueDate: null,
+                currency: "EUR",
+                buyerId: buyer.id,
+                netAmount: new Prisma.Decimal("100.00"),
+                vatAmount: new Prisma.Decimal("0.00"),
+                totalAmount: new Prisma.Decimal("100.00"),
+                includeBarcode: false,
+                status: "SENT",
+                lines: {
+                  create: [
+                    {
+                      lineNumber: 1,
+                      description: "Consulting",
+                      quantity: new Prisma.Decimal("1.000"),
+                      unit: "HUR",
+                      unitPrice: new Prisma.Decimal("100.00"),
+                      netAmount: new Prisma.Decimal("100.00"),
+                      vatRate: new Prisma.Decimal("0.00"),
+                      vatCategory: "AE",
+                      vatAmount: new Prisma.Decimal("0.00"),
+                    },
+                  ],
+                },
               },
-            },
+            })
           })
-        })
-      )
+        )
     )
 
     const run = async () =>

@@ -1,5 +1,5 @@
 // src/lib/regulatory-truth/utils/rule-context.ts
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 
 export interface RuleContext {
   ruleId: string
@@ -33,28 +33,37 @@ export async function findRelevantRules(query: string, limit: number = 5): Promi
       ]),
     },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: true,
-        },
-        take: 1,
-      },
+      sourcePointers: { take: 1 },
     },
     take: limit,
     orderBy: { confidence: "desc" },
   })
 
+  // Collect evidence IDs and fetch from regulatory schema
+  const evidenceIds = rules
+    .flatMap((r) => r.sourcePointers.map((sp) => sp.evidenceId))
+    .filter((id): id is string => id !== null)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    select: { id: true, url: true, fetchedAt: true },
+  })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
+
   return rules
-    .filter((rule) => rule.sourcePointers.length > 0 && rule.sourcePointers[0]?.evidence)
+    .filter(
+      (rule) =>
+        rule.sourcePointers.length > 0 && evidenceMap.has(rule.sourcePointers[0]!.evidenceId)
+    )
     .map((rule) => {
       const pointer = rule.sourcePointers[0]!
+      const evidence = evidenceMap.get(pointer.evidenceId)!
       return {
         ruleId: rule.id,
         conceptSlug: rule.conceptSlug,
         value: rule.value,
         exactQuote: pointer.exactQuote,
-        sourceUrl: pointer.evidence!.url,
-        fetchedAt: pointer.evidence!.fetchedAt,
+        sourceUrl: evidence.url,
+        fetchedAt: evidence.fetchedAt,
         articleNumber: pointer.articleNumber || undefined,
         lawReference: pointer.lawReference || undefined,
       }

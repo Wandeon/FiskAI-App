@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 import { getCurrentUser } from "@/lib/auth-utils"
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const sources = await db.regulatorySource.findMany({
+  const sources = await dbReg.regulatorySource.findMany({
     orderBy: { lastFetchedAt: "desc" },
     include: {
       _count: {

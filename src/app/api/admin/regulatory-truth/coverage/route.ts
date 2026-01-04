@@ -1,7 +1,7 @@
 // src/app/api/admin/regulatory-truth/coverage/route.ts
 import { NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth-utils"
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { getCoverageSummary } from "@/lib/regulatory-truth/quality"
 import { isValidationError, formatValidationError } from "@/lib/api/validation"
 
@@ -21,19 +21,10 @@ export async function GET() {
     // Get overall summary
     const summary = await getCoverageSummary()
 
-    // Get recent reports with issues
+    // Get recent reports with issues (evidenceId is soft ref, no include)
     const reportsWithIssues = await db.coverageReport.findMany({
       where: {
         OR: [{ isComplete: false }, { warnings: { isEmpty: false } }],
-      },
-      include: {
-        evidence: {
-          select: {
-            id: true,
-            url: true,
-            fetchedAt: true,
-          },
-        },
       },
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -46,23 +37,26 @@ export async function GET() {
         reviewerApproved: false,
         reviewedAt: null,
       },
-      include: {
-        evidence: {
-          select: {
-            id: true,
-            url: true,
-          },
-        },
-      },
       take: 10,
     })
+
+    // Collect all evidenceIds and fetch from regulatory schema
+    const allEvidenceIds = [
+      ...reportsWithIssues.map((r) => r.evidenceId),
+      ...pendingReviews.map((r) => r.evidenceId),
+    ]
+    const evidenceRecords = await dbReg.evidence.findMany({
+      where: { id: { in: allEvidenceIds } },
+      select: { id: true, url: true, fetchedAt: true },
+    })
+    const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
 
     return NextResponse.json({
       summary,
       reportsWithIssues: reportsWithIssues.map((r) => ({
         id: r.id,
         evidenceId: r.evidenceId,
-        evidenceUrl: r.evidence.url,
+        evidenceUrl: evidenceMap.get(r.evidenceId)?.url ?? null,
         coverageScore: r.coverageScore,
         isComplete: r.isComplete,
         missingShapes: r.missingShapes,
@@ -72,7 +66,7 @@ export async function GET() {
       pendingReviews: pendingReviews.map((r) => ({
         id: r.id,
         evidenceId: r.evidenceId,
-        evidenceUrl: r.evidence.url,
+        evidenceUrl: evidenceMap.get(r.evidenceId)?.url ?? null,
         coverageScore: r.coverageScore,
         primaryContentType: r.primaryContentType,
       })),

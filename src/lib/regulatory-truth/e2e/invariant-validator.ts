@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/e2e/invariant-validator.ts
 // Validates all 8 hard invariants of the Regulatory Truth Layer
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import { hashContent } from "../utils/content-hash"
 
 export type InvariantStatus = "PASS" | "FAIL" | "PARTIAL"
@@ -75,27 +75,52 @@ async function validateINV1(): Promise<InvariantResult> {
  */
 async function validateINV2(): Promise<InvariantResult> {
   const rules = await db.regulatoryRule.findMany({
+    select: { id: true, conceptSlug: true },
+  })
+
+  // Query all source pointers with their rule associations (no evidence include)
+  const allSourcePointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { id: { in: rules.map((r) => r.id) } } } },
     include: {
-      sourcePointers: {
-        include: { evidence: true },
-      },
+      rules: { select: { id: true } },
     },
   })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const evidenceIds = allSourcePointers.map((sp) => sp.evidenceId)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    select: { id: true },
+  })
+  const evidenceIdSet = new Set(evidenceRecords.map((e) => e.id))
+
+  // Group pointers by rule ID
+  const pointersByRuleId = new Map<string, typeof allSourcePointers>()
+  for (const pointer of allSourcePointers) {
+    for (const ruleRef of pointer.rules) {
+      if (!pointersByRuleId.has(ruleRef.id)) {
+        pointersByRuleId.set(ruleRef.id, [])
+      }
+      pointersByRuleId.get(ruleRef.id)!.push(pointer)
+    }
+  }
 
   let valid = 0
   let orphan = 0
   const orphanRules: string[] = []
 
   for (const rule of rules) {
+    const rulePointers = pointersByRuleId.get(rule.id) || []
+    // Check if all pointers have their evidenceId in the evidence set
     const hasValidChain =
-      rule.sourcePointers.length > 0 && rule.sourcePointers.every((sp) => sp.evidence !== null)
+      rulePointers.length > 0 && rulePointers.every((sp) => evidenceIdSet.has(sp.evidenceId))
 
     if (hasValidChain) {
       valid++
     } else {
       orphan++
       if (orphanRules.length < 5) {
-        orphanRules.push(`${rule.conceptSlug} (${rule.sourcePointers.length} pointers)`)
+        orphanRules.push(`${rule.conceptSlug} (${rulePointers.length} pointers)`)
       }
     }
   }
@@ -249,17 +274,32 @@ async function validateINV5(): Promise<InvariantResult> {
  * AI assistant only cites PUBLISHED rules with evidence
  */
 async function validateINV6(): Promise<InvariantResult> {
-  // Check for any PUBLISHED rules without source pointers
-  const publishedWithoutSources = await db.regulatoryRule.count({
-    where: {
-      status: "PUBLISHED",
-      sourcePointers: { none: {} },
-    },
+  // Get all published rules
+  const publishedRules = await db.regulatoryRule.findMany({
+    where: { status: "PUBLISHED" },
+    select: { id: true },
   })
 
-  const totalPublished = await db.regulatoryRule.count({
-    where: { status: "PUBLISHED" },
+  const totalPublished = publishedRules.length
+
+  // Find rules that have at least one source pointer
+  const rulesWithPointers = await db.sourcePointer.findMany({
+    where: { rules: { some: { status: "PUBLISHED" } } },
+    select: { rules: { select: { id: true } } },
   })
+
+  // Get unique rule IDs that have pointers
+  const ruleIdsWithPointers = new Set<string>()
+  for (const pointer of rulesWithPointers) {
+    for (const rule of pointer.rules) {
+      ruleIdsWithPointers.add(rule.id)
+    }
+  }
+
+  // Count published rules without any source pointers
+  const publishedWithoutSources = publishedRules.filter(
+    (rule) => !ruleIdsWithPointers.has(rule.id)
+  ).length
 
   const status: InvariantStatus = publishedWithoutSources === 0 ? "PASS" : "FAIL"
 

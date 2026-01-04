@@ -11,7 +11,16 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 
+vi.mock("@/lib/db/regulatory", () => ({
+  dbReg: {
+    evidence: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  },
+}))
+
 import { prisma } from "@/lib/prisma"
+import { dbReg } from "@/lib/db/regulatory"
 
 const today = new Date()
 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
@@ -95,6 +104,16 @@ const mockRules = [
 
 describe("selectRules", () => {
   beforeEach(() => {
+    // Mock dbReg.evidence.findMany to return evidence for source pointer tests
+    vi.mocked(dbReg.evidence.findMany).mockResolvedValue([
+      {
+        id: "e1",
+        url: "https://example.com",
+        fetchedAt: new Date(),
+        source: { id: "s1", name: "Test Source", url: "https://example.com" },
+      } as any,
+    ])
+
     // Mock implementation that only filters by status (PUBLISHED)
     // The eligibility gate handles temporal filtering in-memory
     vi.mocked(prisma.regulatoryRule.findMany).mockImplementation((async (args: any) => {

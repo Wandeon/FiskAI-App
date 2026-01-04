@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/agents/composer.ts
 
-import { db } from "@/lib/db"
+import { db, dbReg } from "@/lib/db"
 import {
   ComposerInputSchema,
   ComposerOutputSchema,
@@ -48,17 +48,18 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
     }
   }
 
-  // Get source pointers from database
+  // Get source pointers from database (without evidence relation)
   const sourcePointers = await db.sourcePointer.findMany({
     where: { id: { in: sourcePointerIds } },
-    include: {
-      evidence: {
-        include: {
-          source: true,
-        },
-      },
-    },
   })
+
+  // Fetch evidence records separately via dbReg (soft reference via evidenceId)
+  const evidenceIds = sourcePointers.map((sp) => sp.evidenceId)
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    include: { source: true },
+  })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
 
   if (sourcePointers.length === 0) {
     return {
@@ -84,7 +85,21 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
 
   // ISSUE #906: Validate source attribution integrity
   // Verify that pointer.evidenceId sources are consistent across all pointers
-  const sourceConsistency = await validateSourceConsistency(sourcePointers)
+  // Need to build the EvidenceWithSource map for the function
+  const sourceConsistencyEvidenceMap = new Map(
+    evidenceRecords.map((e) => [
+      e.id,
+      {
+        id: e.id,
+        sourceId: e.sourceId,
+        source: e.source ? { id: e.source.id, slug: e.source.slug, name: e.source.name } : null,
+      },
+    ])
+  )
+  const sourceConsistency = await validateSourceConsistency(
+    sourcePointers,
+    sourceConsistencyEvidenceMap
+  )
   if (sourceConsistency.crossSourceReferences.length > 0) {
     console.warn(
       `[composer] Cross-source references detected: ${sourceConsistency.warnings.join("; ")}`
@@ -211,10 +226,10 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
   const appliesWhenString =
     typeof appliesWhenObj === "string" ? appliesWhenObj : JSON.stringify(appliesWhenObj)
 
-  // Derive authority level from sources
+  // Derive authority level from sources (fetched separately via evidenceMap)
   const sourceSlugs = sourcePointers
-    .filter((sp) => sp.evidence?.source?.slug)
-    .map((sp) => sp.evidence.source.slug)
+    .map((sp) => evidenceMap.get(sp.evidenceId)?.source?.slug)
+    .filter((slug): slug is string => slug !== undefined)
   const authorityLevel = deriveAuthorityLevel(sourceSlugs)
 
   // IMPORTANT: Use the actual input source pointer IDs, not the LLM output

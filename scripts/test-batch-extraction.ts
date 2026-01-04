@@ -6,7 +6,10 @@ import { config } from "dotenv"
 config() // Load .env file
 
 import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 import { runExtractorBatch } from "../src/lib/regulatory-truth/agents"
+
+// NOTE: Evidence is in dbReg, SourcePointer is in db (soft reference)
 
 async function test() {
   console.log("╔════════════════════════════════════════════════════════════════╗")
@@ -17,10 +20,13 @@ async function test() {
   console.log(`Model: ${process.env.OLLAMA_MODEL}`)
 
   // Check how many evidence records need processing
-  const unprocessedCount = await db.evidence.count({
-    where: { sourcePointers: { none: {} } },
-  })
-  const totalEvidence = await db.evidence.count()
+  // Note: sourcePointers relation removed, use separate query
+  const allEvidenceIds = (await dbReg.evidence.findMany({ select: { id: true } })).map((e) => e.id)
+  const evidenceWithPointers = new Set(
+    (await db.sourcePointer.findMany({ select: { evidenceId: true } })).map((p) => p.evidenceId)
+  )
+  const unprocessedCount = allEvidenceIds.filter((id) => !evidenceWithPointers.has(id)).length
+  const totalEvidence = allEvidenceIds.length
 
   console.log(`\nEvidence records: ${totalEvidence} total, ${unprocessedCount} unprocessed`)
 
@@ -63,21 +69,22 @@ async function test() {
     console.log("\nNew Source Pointers:")
     const pointers = await db.sourcePointer.findMany({
       where: { id: { in: result.sourcePointerIds } },
-      include: { evidence: { include: { source: true } } },
     })
 
     for (const p of pointers) {
       console.log(`  - [${p.domain}] ${p.extractedValue}`)
-      console.log(`    Source: ${p.evidence?.source?.name}`)
       console.log(`    Quote: "${p.exactQuote?.slice(0, 60)}..."`)
     }
   }
 
   // Final stats
   const finalPointerCount = await db.sourcePointer.count()
-  const finalUnprocessed = await db.evidence.count({
-    where: { sourcePointers: { none: {} } },
-  })
+  const finalEvidenceWithPointers = new Set(
+    (await db.sourcePointer.findMany({ select: { evidenceId: true } })).map((p) => p.evidenceId)
+  )
+  const finalUnprocessed = (await dbReg.evidence.findMany({ select: { id: true } })).filter(
+    (e) => !finalEvidenceWithPointers.has(e.id)
+  ).length
 
   console.log("\n" + "═".repeat(60))
   console.log("FINAL DATABASE STATE")

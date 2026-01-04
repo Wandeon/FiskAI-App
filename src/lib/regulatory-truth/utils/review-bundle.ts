@@ -1,7 +1,7 @@
 // src/lib/regulatory-truth/utils/review-bundle.ts
 // Daily Review Bundle Generator for T0/T1 rules requiring human review
 
-import { cliDb as db } from "../cli-db"
+import { cliDb as db, dbReg } from "../cli-db"
 import { RiskTier } from "@prisma/client"
 
 export interface ReviewItem {
@@ -45,28 +45,32 @@ export async function generateReviewBundle(options?: GenerateOptions): Promise<R
 
   const now = new Date()
 
-  // Get pending rules with source information
+  // Get pending rules with source pointers (evidence is now in separate schema)
   const pendingRules = await db.regulatoryRule.findMany({
     where: {
       status: "PENDING_REVIEW",
       riskTier: { in: riskTiers },
     },
     include: {
-      sourcePointers: {
-        include: {
-          evidence: { select: { url: true } },
-        },
-      },
+      sourcePointers: true,
     },
     orderBy:
       prioritize === "risk" ? [{ riskTier: "asc" }, { updatedAt: "asc" }] : [{ updatedAt: "asc" }],
     take: maxItems,
   })
 
+  // Collect all evidence IDs and fetch from regulatory schema
+  const evidenceIds = pendingRules.flatMap((r) => r.sourcePointers.map((sp) => sp.evidenceId))
+  const evidenceRecords = await dbReg.evidence.findMany({
+    where: { id: { in: evidenceIds } },
+    select: { id: true, url: true },
+  })
+  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
+
   const items: ReviewItem[] = pendingRules.map((rule) => {
     const urls = rule.sourcePointers
-      .map((sp: { evidence?: { url?: string | null } | null }) => sp.evidence?.url)
-      .filter((url: string | null | undefined): url is string => url !== null && url !== undefined)
+      .map((sp) => evidenceMap.get(sp.evidenceId)?.url)
+      .filter((url): url is string => url !== null && url !== undefined)
     const domain = rule.sourcePointers[0]?.domain || "unknown"
 
     return {
@@ -78,7 +82,7 @@ export async function generateReviewBundle(options?: GenerateOptions): Promise<R
       riskTier: rule.riskTier,
       confidence: rule.confidence,
       sourceCount: rule.sourcePointers.length,
-      quotes: rule.sourcePointers.map((sp: { exactQuote: string }) => sp.exactQuote).slice(0, 3),
+      quotes: rule.sourcePointers.map((sp) => sp.exactQuote).slice(0, 3),
       urls: Array.from(new Set(urls)), // Deduplicate URLs
       waitingHours: (now.getTime() - rule.updatedAt.getTime()) / (1000 * 60 * 60),
       effectiveFrom: rule.effectiveFrom.toISOString().split("T")[0],

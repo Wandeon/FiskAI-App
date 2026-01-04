@@ -4,7 +4,7 @@
 // Run with: npx tsx scripts/audit-ocr.ts
 // For local development: DATABASE_URL="postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai" npx tsx scripts/audit-ocr.ts
 
-import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 import { Prisma } from "@prisma/client"
 
 // Handle --help flag
@@ -50,18 +50,18 @@ async function auditOcr() {
   console.log("1. OCR QUEUE HEALTH")
   console.log("-".repeat(50))
 
-  const pendingScanned = await db.evidence.count({
+  const pendingScanned = await dbReg.evidence.count({
     where: { contentClass: "PDF_SCANNED", primaryTextArtifactId: null },
   })
   console.log(`PDF_SCANNED awaiting OCR (no text artifact): ${pendingScanned}`)
 
-  const totalScanned = await db.evidence.count({
+  const totalScanned = await dbReg.evidence.count({
     where: { contentClass: "PDF_SCANNED" },
   })
   console.log(`Total PDF_SCANNED Evidence records: ${totalScanned}`)
 
   // Check for stuck jobs (Evidence with ocrMetadata showing processing but no artifact)
-  const stuckOcr = await db.evidence.findMany({
+  const stuckOcr = await dbReg.evidence.findMany({
     where: {
       contentClass: "PDF_SCANNED",
       primaryTextArtifactId: null,
@@ -89,7 +89,7 @@ async function auditOcr() {
   console.log("\n2. ARTIFACT GENERATION")
   console.log("-".repeat(50))
 
-  const artifactStats = await db.$queryRaw<Array<{ kind: string; count: bigint }>>`
+  const artifactStats = await dbReg.$queryRaw<Array<{ kind: string; count: bigint }>>`
     SELECT kind, COUNT(*)::bigint as count
     FROM "EvidenceArtifact"
     GROUP BY kind
@@ -101,7 +101,7 @@ async function auditOcr() {
   }
 
   // Check PDF_SCANNED with OCR_TEXT artifacts
-  const scannedWithOcr = await db.evidence.count({
+  const scannedWithOcr = await dbReg.evidence.count({
     where: {
       contentClass: "PDF_SCANNED",
       artifacts: { some: { kind: "OCR_TEXT" } },
@@ -110,7 +110,7 @@ async function auditOcr() {
   console.log(`\nPDF_SCANNED with OCR_TEXT artifact: ${scannedWithOcr}/${totalScanned}`)
 
   // Check artifact content lengths
-  const artifactLengths = await db.$queryRaw<
+  const artifactLengths = await dbReg.$queryRaw<
     Array<{ kind: string; avg_len: number; min_len: number; max_len: number }>
   >`
     SELECT
@@ -131,7 +131,7 @@ async function auditOcr() {
   console.log("\n3. SAMPLE OCR_TEXT ARTIFACTS (up to 5)")
   console.log("-".repeat(50))
 
-  const sampleArtifacts = await db.evidenceArtifact.findMany({
+  const sampleArtifacts = await dbReg.evidenceArtifact.findMany({
     where: { kind: "OCR_TEXT" },
     include: {
       evidence: {
@@ -172,7 +172,7 @@ async function auditOcr() {
   console.log("\n4. FAILED OCR PROCESSING")
   console.log("-".repeat(50))
 
-  const failedOcr = await db.evidence.findMany({
+  const failedOcr = await dbReg.evidence.findMany({
     where: {
       contentClass: "PDF_SCANNED",
       ocrMetadata: {
@@ -202,7 +202,7 @@ async function auditOcr() {
   console.log("\n5. OCR PROCESSING METRICS")
   console.log("-".repeat(50))
 
-  const ocrMetrics = await db.evidence.findMany({
+  const ocrMetrics = await dbReg.evidence.findMany({
     where: {
       contentClass: "PDF_SCANNED",
       ocrMetadata: { not: Prisma.JsonNull },
@@ -368,7 +368,7 @@ async function auditOcr() {
     console.log("OVERALL: FAIL - Immediate attention required")
   }
 
-  await db.$disconnect()
+  await dbReg.$disconnect()
 
   // Exit with error code if any check failed
   if (!overallPass) {

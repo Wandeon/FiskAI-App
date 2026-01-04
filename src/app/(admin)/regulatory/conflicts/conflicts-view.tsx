@@ -5,29 +5,23 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { CheckCircle, AlertCircle, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
-import type {
-  RegulatoryConflict,
-  RegulatoryRule,
-  SourcePointer,
-  Evidence,
-  RegulatorySource,
-} from "@prisma/client"
+import type { RegulatoryConflict, RegulatoryRule, SourcePointer } from "@prisma/client"
 
+// Evidence type for soft reference lookup (evidence is in a separate database)
+export type EvidenceWithSource = {
+  id: string
+  url: string
+  source: {
+    id: string
+    name: string
+    hierarchy: number
+  } | null
+}
+
+// Rule with source pointers (evidence is looked up separately via evidenceMap)
 type RuleWithSourcePointers = RegulatoryRule & {
-  sourcePointers: (SourcePointer & {
-    evidence: Evidence & {
-      source: RegulatorySource
-    }
-  })[]
+  sourcePointers: SourcePointer[]
 }
 
 interface ConflictResolution {
@@ -47,9 +41,17 @@ interface ConflictsViewProps {
   page: number
   pageSize: number
   userId: string
+  evidenceMap: Record<string, EvidenceWithSource>
 }
 
-export function ConflictsView({ conflicts, total, page, pageSize, userId }: ConflictsViewProps) {
+export function ConflictsView({
+  conflicts,
+  total,
+  page,
+  pageSize,
+  userId,
+  evidenceMap,
+}: ConflictsViewProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -252,19 +254,23 @@ export function ConflictsView({ conflicts, total, page, pageSize, userId }: Conf
                     <div className="mt-2">
                       <span className="font-medium">Sources:</span>
                       <div className="ml-4 mt-1 space-y-1">
-                        {conflict.itemA.sourcePointers.slice(0, 2).map((pointer) => (
-                          <div key={pointer.id}>
-                            <a
-                              href={pointer.evidence.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-info-icon hover:underline text-xs"
-                            >
-                              {pointer.evidence.source.name}
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </div>
-                        ))}
+                        {conflict.itemA.sourcePointers.slice(0, 2).map((pointer) => {
+                          const evidence = evidenceMap[pointer.evidenceId]
+                          if (!evidence) return null
+                          return (
+                            <div key={pointer.id}>
+                              <a
+                                href={evidence.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-info-icon hover:underline text-xs"
+                              >
+                                {evidence.source?.name ?? "Unknown Source"}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -292,19 +298,23 @@ export function ConflictsView({ conflicts, total, page, pageSize, userId }: Conf
                     <div className="mt-2">
                       <span className="font-medium">Sources:</span>
                       <div className="ml-4 mt-1 space-y-1">
-                        {conflict.itemB.sourcePointers.slice(0, 2).map((pointer) => (
-                          <div key={pointer.id}>
-                            <a
-                              href={pointer.evidence.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-info-icon hover:underline text-xs"
-                            >
-                              {pointer.evidence.source.name}
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </div>
-                        ))}
+                        {conflict.itemB.sourcePointers.slice(0, 2).map((pointer) => {
+                          const evidence = evidenceMap[pointer.evidenceId]
+                          if (!evidence) return null
+                          return (
+                            <div key={pointer.id}>
+                              <a
+                                href={evidence.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-info-icon hover:underline text-xs"
+                              >
+                                {evidence.source?.name ?? "Unknown Source"}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>

@@ -25,14 +25,16 @@ try {
 
 import { Pool } from "pg"
 import { PrismaClient } from "@prisma/client"
+import { PrismaClient as RegPrismaClient } from "@/generated/regulatory-client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { getAffectedGuides } from "../concept-guide-map"
 import { sendContentAlert, type ContentAlert } from "../watchdog/slack"
 
-// Create pool and prisma instance
+// Create pool and prisma instances
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
+const prismaReg = new RegPrismaClient({ adapter: new PrismaPg(pool) })
 
 interface EvidenceWithRelations {
   id: string
@@ -65,19 +67,13 @@ async function getRecentChangedEvidence(): Promise<EvidenceWithRelations[]> {
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
 
-  const changedEvidence = await prisma.evidence.findMany({
+  // Query Evidence from regulatory schema (relations sourcePointers and source were removed)
+  const changedEvidence = await prismaReg.evidence.findMany({
     where: {
       fetchedAt: { gte: yesterday },
       hasChanged: true,
     },
     include: {
-      sourcePointers: {
-        select: {
-          id: true,
-          domain: true,
-          lawReference: true,
-        },
-      },
       source: {
         select: {
           id: true,
@@ -89,17 +85,60 @@ async function getRecentChangedEvidence(): Promise<EvidenceWithRelations[]> {
     orderBy: { fetchedAt: "desc" },
   })
 
-  return changedEvidence
+  // Collect evidence IDs and fetch source pointers separately from core schema
+  const evidenceIds = changedEvidence.map((e) => e.id)
+  const sourcePointers = await prisma.sourcePointer.findMany({
+    where: { evidenceId: { in: evidenceIds } },
+    select: {
+      id: true,
+      domain: true,
+      lawReference: true,
+      evidenceId: true,
+    },
+  })
+
+  // Group pointers by evidenceId
+  const pointersByEvidence = new Map<string, typeof sourcePointers>()
+  for (const pointer of sourcePointers) {
+    if (!pointersByEvidence.has(pointer.evidenceId)) {
+      pointersByEvidence.set(pointer.evidenceId, [])
+    }
+    pointersByEvidence.get(pointer.evidenceId)!.push(pointer)
+  }
+
+  // Combine evidence with their pointers
+  return changedEvidence.map((ev) => ({
+    id: ev.id,
+    fetchedAt: ev.fetchedAt,
+    hasChanged: ev.hasChanged ?? false,
+    changeSummary: ev.changeSummary,
+    source: ev.source!,
+    sourcePointers: (pointersByEvidence.get(ev.id) || []).map((sp) => ({
+      id: sp.id,
+      domain: sp.domain,
+      lawReference: sp.lawReference,
+    })),
+  }))
 }
 
 /**
  * Check if any rules for this concept have open conflicts
  */
 async function hasOpenConflicts(conceptSlug: string): Promise<boolean> {
+  // First get all rule IDs for this concept
+  const rulesForConcept = await prisma.regulatoryRule.findMany({
+    where: { conceptSlug },
+    select: { id: true },
+  })
+  const ruleIds = rulesForConcept.map((r) => r.id)
+
+  if (ruleIds.length === 0) return false
+
+  // Then check for open conflicts involving those rules (itemA/itemB relations were removed)
   const conflicts = await prisma.regulatoryConflict.count({
     where: {
       status: "OPEN",
-      OR: [{ itemA: { conceptSlug } }, { itemB: { conceptSlug } }],
+      OR: [{ itemAId: { in: ruleIds } }, { itemBId: { in: ruleIds } }],
     },
   })
 
@@ -316,6 +355,7 @@ export async function runContentBridge(): Promise<{ success: boolean; alertCount
  */
 async function cleanup(): Promise<void> {
   await prisma.$disconnect()
+  await prismaReg.$disconnect()
   await pool.end()
 }
 

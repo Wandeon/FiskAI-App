@@ -63,4 +63,3 @@ describe("H3: issued invoices allow payment status updates", () => {
     expect(updated.paymentStatus).toBe("PARTIAL")
   })
 })
-

@@ -27,4 +27,3 @@ describe("H1: VAT input determinism", () => {
     }
   })
 })
-

@@ -44,28 +44,30 @@ describe("H4: JOPPD XML artifacts are reproducible", () => {
       data: { year: 2025, lastVerified: "2025-01-01", source: "test", entries: [] },
     })
 
-    const payout = await runWithContext({ requestId: `SHATTER-H4-${crypto.randomUUID()}` }, async () =>
-      runWithTenant({ companyId: company.id, userId: user.id }, async () =>
-        runWithAuditContext({ actorId: user.id, reason: "shatter_h4_payout" }, async () =>
-          createPayout({
-            companyId: company.id,
-            payoutDate: new Date("2025-03-31T00:00:00.000Z"),
-            periodFrom: new Date("2025-03-01T00:00:00.000Z"),
-            periodTo: new Date("2025-03-31T00:00:00.000Z"),
-            lines: [
-              {
-                lineNumber: 1,
-                employeeName: "Director",
-                employeeOib: "12345678903",
-                grossAmount: "1000.00",
-                netAmount: "800.00",
-                taxAmount: "50.00",
-                joppdData: { mio1: "150.00", mio2: "50.00", hzzo: "165.00" },
-              },
-            ],
-          })
+    const payout = await runWithContext(
+      { requestId: `SHATTER-H4-${crypto.randomUUID()}` },
+      async () =>
+        runWithTenant({ companyId: company.id, userId: user.id }, async () =>
+          runWithAuditContext({ actorId: user.id, reason: "shatter_h4_payout" }, async () =>
+            createPayout({
+              companyId: company.id,
+              payoutDate: new Date("2025-03-31T00:00:00.000Z"),
+              periodFrom: new Date("2025-03-01T00:00:00.000Z"),
+              periodTo: new Date("2025-03-31T00:00:00.000Z"),
+              lines: [
+                {
+                  lineNumber: 1,
+                  employeeName: "Director",
+                  employeeOib: "12345678903",
+                  grossAmount: "1000.00",
+                  netAmount: "800.00",
+                  taxAmount: "50.00",
+                  joppdData: { mio1: "150.00", mio2: "50.00", hzzo: "165.00" },
+                },
+              ],
+            })
+          )
         )
-      )
     )
 
     const run = async () =>
@@ -99,4 +101,3 @@ describe("H4: JOPPD XML artifacts are reproducible", () => {
     expect(artifacts[0].inputHash).toBe(artifacts[1].inputHash)
   })
 })
-

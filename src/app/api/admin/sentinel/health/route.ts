@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth-utils"
 import { getSentinelHealth } from "@/lib/regulatory-truth/utils/rate-limiter"
 import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db/regulatory"
 
 /**
  * GET /api/admin/sentinel/health
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
     const successRate = totalRuns > 0 ? completedRuns / totalRuns : 1
 
     // Get source statistics
-    const totalSources = await db.regulatorySource.count({
+    const totalSources = await dbReg.regulatorySource.count({
       where: { isActive: true },
     })
 
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get evidence fetched in last 24h
-    const recentEvidence = await db.evidence.count({
+    const recentEvidence = await dbReg.evidence.count({
       where: {
         fetchedAt: { gte: last24h },
       },

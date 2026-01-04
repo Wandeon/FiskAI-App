@@ -44,7 +44,9 @@ export function formatDateTime(date: Date): string {
  */
 export function generateVerificationUrl(data: FiscalQRData): string {
   const formattedDateTime = formatDateTime(data.dateTime)
-  const formattedAmount = new Decimal(data.amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2)
+  const formattedAmount = new Decimal(data.amount)
+    .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+    .toFixed(2)
 
   const params = new URLSearchParams({
     jir: data.jir,

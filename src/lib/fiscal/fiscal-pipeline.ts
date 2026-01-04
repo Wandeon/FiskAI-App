@@ -177,10 +177,12 @@ function mapToFiscalInvoice(invoice: InvoiceForFiscalization): FiscalInvoiceData
 
   for (const line of invoice.lines) {
     const rateKey =
-      line.vatRate instanceof Decimal ? line.vatRate.toFixed(2) : new Decimal(line.vatRate).toFixed(2)
+      line.vatRate instanceof Decimal
+        ? line.vatRate.toFixed(2)
+        : new Decimal(String(line.vatRate)).toFixed(2)
     const existing = vatMap.get(rateKey) || { base: new Decimal(0), vat: new Decimal(0) }
-    existing.base = existing.base.add(new Decimal(line.netAmount))
-    existing.vat = existing.vat.add(new Decimal(line.vatAmount))
+    existing.base = existing.base.add(new Decimal(String(line.netAmount)))
+    existing.vat = existing.vat.add(new Decimal(String(line.vatAmount)))
     vatMap.set(rateKey, existing)
   }
 
@@ -195,7 +197,7 @@ function mapToFiscalInvoice(invoice: InvoiceForFiscalization): FiscalInvoiceData
     premisesCode: invoice.company.premisesCode || "1",
     deviceCode: invoice.company.deviceCode || "1",
     issueDate: invoice.issueDate,
-    totalAmount: new Decimal(invoice.totalAmount),
+    totalAmount: new Decimal(String(invoice.totalAmount)),
     vatRegistered: invoice.company.vatRegistered ?? true,
     vatBreakdown,
     paymentMethod: invoice.paymentMethod || "G",

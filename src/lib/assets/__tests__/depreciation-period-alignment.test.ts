@@ -28,4 +28,3 @@ describe("depreciation period alignment", () => {
     expect(first.periodEnd.getDate()).toBe(31)
   })
 })
-

@@ -8,13 +8,12 @@
 //   Production (Docker exec): docker exec fiskai-redis redis-cli (for manual queries)
 
 import IORedis from "ioredis"
-import { PrismaClient } from "@prisma/client"
+import { db } from "../src/lib/db"
+import { dbReg } from "../src/lib/db/regulatory"
 
 const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
 })
-
-const db = new PrismaClient()
 
 const QUEUES = [
   "sentinel",
@@ -61,6 +60,8 @@ async function getQueueStats(queue: string): Promise<QueueStats> {
 }
 
 async function getDbStats() {
+  // Core DB: discoveredItems, rules, conflicts, sourcePointers
+  // Regulatory DB: evidence
   const [discoveredItems, rules, evidence, pointers, conflicts] = await Promise.all([
     db.discoveredItem.groupBy({
       by: ["status"],
@@ -70,14 +71,18 @@ async function getDbStats() {
       by: ["status"],
       _count: true,
     }),
-    db.evidence.count(),
+    dbReg.evidence.count(),
     db.sourcePointer.count(),
     db.regulatoryConflict.count({ where: { status: "OPEN" } }),
   ])
 
   return {
-    discoveredItems: Object.fromEntries(discoveredItems.map((d) => [d.status, d._count])),
-    rules: Object.fromEntries(rules.map((r) => [r.status, r._count])),
+    discoveredItems: Object.fromEntries(
+      discoveredItems.map((d: { status: string; _count: number }) => [d.status, d._count])
+    ),
+    rules: Object.fromEntries(
+      rules.map((r: { status: string; _count: number }) => [r.status, r._count])
+    ),
     evidence,
     pointers,
     openConflicts: conflicts,

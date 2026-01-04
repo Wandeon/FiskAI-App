@@ -88,9 +88,18 @@ export function generateJoppdXml(data: JoppdFormData): string {
   // ============================================
   const count = data.lines.length
 
-  const sumGross = data.lines.reduce((s, l) => s.plus(l.grossAmount ? new Decimal(l.grossAmount) : 0), new Decimal(0))
-  const sumNet = data.lines.reduce((s, l) => s.plus(l.netAmount ? new Decimal(l.netAmount) : 0), new Decimal(0))
-  const sumTax = data.lines.reduce((s, l) => s.plus(l.taxAmount ? new Decimal(l.taxAmount) : 0), new Decimal(0))
+  const sumGross = data.lines.reduce(
+    (s, l) => s.plus(l.grossAmount ? new Decimal(l.grossAmount) : 0),
+    new Decimal(0)
+  )
+  const sumNet = data.lines.reduce(
+    (s, l) => s.plus(l.netAmount ? new Decimal(l.netAmount) : 0),
+    new Decimal(0)
+  )
+  const sumTax = data.lines.reduce(
+    (s, l) => s.plus(l.taxAmount ? new Decimal(l.taxAmount) : 0),
+    new Decimal(0)
+  )
 
   const sumMioI = data.lines.reduce(
     (s, l) => s.plus(new Decimal(extractLineDataField(l.lineData, "mio1", "0"))),

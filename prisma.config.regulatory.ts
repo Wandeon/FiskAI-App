@@ -10,15 +10,12 @@ if (existsSync(".env.local")) {
   config({ path: ".env.local" })
 }
 
-// Get the URL, falling back to DATABASE_URL if REGULATORY_DATABASE_URL not set
-const regulatoryUrl = process.env.REGULATORY_DATABASE_URL || process.env.DATABASE_URL
-
-if (!regulatoryUrl) {
-  throw new Error(
-    "Neither REGULATORY_DATABASE_URL nor DATABASE_URL is set. " +
-      "Set at least DATABASE_URL in .env.local or environment."
-  )
-}
+// For prisma generate, we don't need a real database URL
+// Use a dummy URL if neither REGULATORY_DATABASE_URL nor DATABASE_URL is set (CI jobs without DB service)
+const regulatoryUrl =
+  process.env.REGULATORY_DATABASE_URL ||
+  process.env.DATABASE_URL ||
+  "postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
 
 export default defineConfig({
   schema: "prisma/regulatory.prisma",
