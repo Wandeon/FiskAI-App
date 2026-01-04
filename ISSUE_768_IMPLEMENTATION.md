@@ -5,6 +5,7 @@ This document describes the complete implementation for adding soft-delete funct
 ## Overview
 
 The current feature flag system performs hard deletes, which is risky. This implementation adds:
+
 - Soft-delete with `DELETED` status and `deletedAt` timestamp
 - Required deletion reason with audit trail
 - Proper confirmation dialog in Croatian
@@ -15,6 +16,7 @@ The current feature flag system performs hard deletes, which is risky. This impl
 ### 1. Prisma Schema (`prisma/schema.prisma`)
 
 #### Add DELETED status to FeatureFlagStatus enum (line ~3201):
+
 ```prisma
 enum FeatureFlagStatus {
   ACTIVE
@@ -25,6 +27,7 @@ enum FeatureFlagStatus {
 ```
 
 #### Add soft-delete fields to FeatureFlag model (after line ~3228):
+
 ```prisma
   // Audit trail
   createdAt DateTime  @default(now())
@@ -36,6 +39,7 @@ enum FeatureFlagStatus {
 ```
 
 #### Add deletedAt index to FeatureFlag model (after line ~3239):
+
 ```prisma
   @@index([key])
   @@index([status])
@@ -45,6 +49,7 @@ enum FeatureFlagStatus {
 ```
 
 #### Add DELETED and RESTORED actions to FeatureFlagAuditAction enum (after line ~3277):
+
 ```prisma
 enum FeatureFlagAuditAction {
   CREATED
@@ -83,6 +88,7 @@ CREATE INDEX "FeatureFlag_deletedAt_idx" ON "FeatureFlag"("deletedAt");
 ### 3. Service Layer (`src/lib/feature-flags/service.ts`)
 
 #### Update `getAllFlags` function (line ~52):
+
 ```typescript
 /**
  * Get all feature flags with their overrides (cached)
@@ -109,6 +115,7 @@ export async function getAllFlags(includeDeleted = false): Promise<FeatureFlagWi
 ```
 
 #### Replace `deleteFlag` function (line ~355):
+
 ```typescript
 /**
  * Delete a feature flag (soft delete)
@@ -145,7 +152,11 @@ export async function deleteFlag(id: string, userId: string, reason?: string): P
 /**
  * Restore a soft-deleted feature flag
  */
-export async function restoreFlag(id: string, userId: string, reason?: string): Promise<FeatureFlag> {
+export async function restoreFlag(
+  id: string,
+  userId: string,
+  reason?: string
+): Promise<FeatureFlag> {
   const previous = await prisma.featureFlag.findUnique({ where: { id } })
   if (!previous) throw new Error("Feature flag not found")
   if (previous.status !== "DELETED") throw new Error("Flag is not deleted")
@@ -180,6 +191,7 @@ export async function restoreFlag(id: string, userId: string, reason?: string): 
 ### 4. API Route (`src/app/api/admin/feature-flags/[id]/route.ts`)
 
 #### Replace DELETE function (line ~64):
+
 ```typescript
 /**
  * DELETE /api/admin/feature-flags/[id]
@@ -211,12 +223,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 ### 5. Frontend Component (`src/app/(admin)/feature-flags/feature-flags-view.tsx`)
 
 #### Add state after editingId state (line ~36):
+
 ```typescript
 const [editingId, setEditingId] = useState<string | null>(null)
-const [deleteConfirm, setDeleteConfirm] = useState<{ flag: FeatureFlagWithOverrides; reason: string } | null>(null)  // <-- ADD THIS
+const [deleteConfirm, setDeleteConfirm] = useState<{
+  flag: FeatureFlagWithOverrides
+  reason: string
+} | null>(null) // <-- ADD THIS
 ```
 
 #### Replace handleDelete function (line ~96):
+
 ```typescript
 const handleDelete = async (flag: FeatureFlagWithOverrides) => {
   setDeleteConfirm({ flag, reason: "" })
@@ -254,6 +271,7 @@ const confirmDelete = async () => {
 ```
 
 #### Add confirmation modal before closing </div>) tags (before line ~401):
+
 ```tsx
       </table>
     </div>
@@ -319,6 +337,7 @@ const confirmDelete = async () => {
 ## Security Improvements
 
 This implementation provides:
+
 1. **Soft-delete**: Flags are never permanently deleted
 2. **Audit trail**: All deletions are logged with who/when/why
 3. **Required reason**: Prevents accidental deletions

@@ -3,6 +3,7 @@
 **Worktree evidence:** `audit/operation-shatter/evidence/git-worktree-list-2026-01-02.txt`
 
 **Run metadata (latest evidence bundle):**
+
 ```
 startedAt: 2026-01-02T12:23:31.036Z
 DATABASE_URL: postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatter?schema=public
@@ -43,13 +44,13 @@ Evidence bundle JSON: `audit/operation-shatter/evidence/shatter-evidence.json`
 
 ## A) Summary Table (PASS/FAIL)
 
-| CorrelationId | Step | Result | One-line reason | Primary evidence |
-|---|---|---|---|---|
-| `SHATTER-S1` | `S1.Invoice1 create + PDF` | PASS | VAT 0% + reverse-charge note present + deterministic PDF checksum | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
-| `SHATTER-S1` | `S1.Invoice2 fiscalize + sabotage + credit note` | PASS | Fiscalize mock success; post-fiscal sabotage blocked without mutation; credit note created as separate record | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
-| `SHATTER-S2` | `S2.Expense→Asset→MonthClose→Lock` | PASS | Expense becomes asset candidate; depreciation 104.16 posted; period locks and blocks tamper update | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
-| `SHATTER-S3` | `S3.Import + AutoMatch` | PASS | Matcher produces PARTIAL/PAID statuses; overpayment stored; bank fee categorized | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
-| `SHATTER-S4` | `S4.Payroll→JOPPD→PDV` | PASS | Payroll snapshot pins rule versions; JOPPD sign/submit mocked success; signed/submitted sabotage blocked; PDV totals validated | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
+| CorrelationId | Step                                             | Result | One-line reason                                                                                                                | Primary evidence                                                                                                               |
+| ------------- | ------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `SHATTER-S1`  | `S1.Invoice1 create + PDF`                       | PASS   | VAT 0% + reverse-charge note present + deterministic PDF checksum                                                              | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
+| `SHATTER-S1`  | `S1.Invoice2 fiscalize + sabotage + credit note` | PASS   | Fiscalize mock success; post-fiscal sabotage blocked without mutation; credit note created as separate record                  | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
+| `SHATTER-S2`  | `S2.Expense→Asset→MonthClose→Lock`               | PASS   | Expense becomes asset candidate; depreciation 104.16 posted; period locks and blocks tamper update                             | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
+| `SHATTER-S3`  | `S3.Import + AutoMatch`                          | PASS   | Matcher produces PARTIAL/PAID statuses; overpayment stored; bank fee categorized                                               | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
+| `SHATTER-S4`  | `S4.Payroll→JOPPD→PDV`                           | PASS   | Payroll snapshot pins rule versions; JOPPD sign/submit mocked success; signed/submitted sabotage blocked; PDV totals validated | `audit/operation-shatter/evidence/shatter-evidence.json`, `audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt` |
 
 ## B) Critical Failures (if any)
 
@@ -58,6 +59,7 @@ None in the latest end-to-end run (`audit/operation-shatter/evidence/shatter-evi
 ## C) Evidence Bundle
 
 **Commands used**
+
 ```
 DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatter?schema=public' npx vitest run | tee audit/operation-shatter/evidence/gates-vitest-2026-01-02-pass5.txt
 DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatter?schema=public' npx tsx scripts/operation-shatter.ts | tee audit/operation-shatter/evidence/shatter-run-2026-01-02-pass11.txt
@@ -65,66 +67,34 @@ DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatt
 ```
 
 **DB entity IDs created (by scenario; from `audit/operation-shatter/evidence/shatter-evidence.json`)**
+
 ```json
 {
   "SHATTER-S1": {
-    "Contact": [
-      "cmjwuht450004y1wahn3wgum3",
-      "cmjwuhuj0000my1wa2y7133fe"
-    ],
+    "Contact": ["cmjwuht450004y1wahn3wgum3", "cmjwuhuj0000my1wa2y7133fe"],
     "EInvoice": [
       "cmjwuhtb3000cy1wand8hmwut",
       "cmjwuhul6000qy1wad9tbh2yp",
       "cmjwuhut1000yy1waif8n1kxc"
     ],
-    "Artifact": [
-      "cmjwuhtw7000gy1wa331d7nu0",
-      "cmjwuhu9c000jy1waz6ad5fsy"
-    ]
+    "Artifact": ["cmjwuhtw7000gy1wa331d7nu0", "cmjwuhu9c000jy1waz6ad5fsy"]
   },
   "SHATTER-S2": {
-    "Contact": [
-      "cmjwuhuuk0013y1wal3cuyn5k"
-    ],
-    "ExpenseCategory": [
-      "cmjwuhuup0014y1waf0txy5ka"
-    ],
-    "Expense": [
-      "cmjwuhuv10017y1waff8qtmve"
-    ],
-    "ExpenseLine": [
-      "cmjwuhuwg001ay1wak4oz1gjl"
-    ],
-    "UraInput": [
-      "cmjwuhux9001cy1wa1frucqyb"
-    ],
-    "FixedAssetCandidate": [
-      "cmjwuhuxu001ey1wamsiqiluj"
-    ],
-    "FixedAsset": [
-      "cmjwuhuz2001fy1waz72vlk4g"
-    ],
-    "DepreciationSchedule": [
-      "cmjwuhv1b001hy1wah52frs8i"
-    ]
+    "Contact": ["cmjwuhuuk0013y1wal3cuyn5k"],
+    "ExpenseCategory": ["cmjwuhuup0014y1waf0txy5ka"],
+    "Expense": ["cmjwuhuv10017y1waff8qtmve"],
+    "ExpenseLine": ["cmjwuhuwg001ay1wak4oz1gjl"],
+    "UraInput": ["cmjwuhux9001cy1wa1frucqyb"],
+    "FixedAssetCandidate": ["cmjwuhuxu001ey1wamsiqiluj"],
+    "FixedAsset": ["cmjwuhuz2001fy1waz72vlk4g"],
+    "DepreciationSchedule": ["cmjwuhv1b001hy1wah52frs8i"]
   },
   "SHATTER-S3": {
-    "BankAccount": [
-      "cmjwuhvaz002gy1wabcg1sgps"
-    ],
-    "Contact": [
-      "cmjwuhvb9002hy1wayri7as55"
-    ],
-    "EInvoice": [
-      "cmjwuhvec002oy1wanqhk2qd7",
-      "cmjwuhvfm002sy1wa4d30qb4h"
-    ],
-    "UnappliedPayment": [
-      "cmjwuhvld0038y1warpz4qwvo"
-    ],
-    "Expense": [
-      "cmjwuhvk90033y1waa9a152dc"
-    ],
+    "BankAccount": ["cmjwuhvaz002gy1wabcg1sgps"],
+    "Contact": ["cmjwuhvb9002hy1wayri7as55"],
+    "EInvoice": ["cmjwuhvec002oy1wanqhk2qd7", "cmjwuhvfm002sy1wa4d30qb4h"],
+    "UnappliedPayment": ["cmjwuhvld0038y1warpz4qwvo"],
+    "Expense": ["cmjwuhvk90033y1waa9a152dc"],
     "BankTransaction": [
       "cmjwuhvi30030y1wa8ge3ntw2",
       "cmjwuhvi3002yy1waopb3382n",
@@ -138,15 +108,9 @@ DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatt
       "cmjwuhvyf003jy1waxwklges6",
       "cmjwuhvz4003ly1wa7tfnhi8q"
     ],
-    "Payout": [
-      "8ed9135f-589a-4807-9e7e-703045bc59c4"
-    ],
-    "PayoutLine": [
-      "d3d99f2c-6576-4955-bd66-469a9ff8ba98"
-    ],
-    "CalculationSnapshot": [
-      "515e8872-6fb4-41e6-b333-032e4baadd81"
-    ],
+    "Payout": ["8ed9135f-589a-4807-9e7e-703045bc59c4"],
+    "PayoutLine": ["d3d99f2c-6576-4955-bd66-469a9ff8ba98"],
+    "CalculationSnapshot": ["515e8872-6fb4-41e6-b333-032e4baadd81"],
     "JoppdSubmission": [
       "0752f8dd-ca8e-47a2-a854-105a359819fa",
       "9382924a-1342-4887-a955-6f8959a49d52"
@@ -161,6 +125,7 @@ DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatt
 ```
 
 **Audit log IDs per correlationId (from `audit/operation-shatter/evidence/shatter-evidence.json`)**
+
 ```json
 {
   "SHATTER-S1": [
@@ -226,6 +191,7 @@ DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatt
 ```
 
 **Artifacts (checksums + storage keys; from `audit/operation-shatter/evidence/shatter-evidence.json`)**
+
 ```json
 {
   "SHATTER-S1": [
@@ -284,17 +250,53 @@ DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@localhost:5434/fiskai_shatt
 
 ```json
 [
-  { "file": "src/lib/vat/__tests__/money-determinism.test.ts", "asserts": "Decimal determinism + rounding stability (no float artifacts)" },
-  { "file": "src/lib/vat/__tests__/input-vat-determinism.test.ts", "asserts": "VAT input determinism + deductibility without JS number coercion" },
-  { "file": "src/lib/regulatory-truth/dsl/__tests__/applies-when-decimal-amount.test.ts", "asserts": "DSL compares decimal-string amounts deterministically" },
-  { "file": "src/lib/banking/import/__tests__/import-parsed-determinism.test.ts", "asserts": "Parsed bank import creates deterministic BankTransaction records" },
-  { "file": "src/lib/fixed-assets/__tests__/asset-candidates-determinism.test.ts", "asserts": "Asset-candidate thresholding stays deterministic" },
-  { "file": "src/lib/payroll/__tests__/director-salary-determinism.test.ts", "asserts": "Director payroll computation is deterministic" },
-  { "file": "src/lib/audit/__tests__/audit-correlation.test.ts", "asserts": "UPDATE audit log includes before/after + correlationId" },
-  { "file": "src/lib/audit/__tests__/immutability-blocked.test.ts", "asserts": "Blocked mutations for fiscal invoices, JOPPD, locked periods are rejected and logged" },
-  { "file": "src/lib/audit/__tests__/invoice-payment-mutable.test.ts", "asserts": "paidAmount/paymentStatus remain mutable post-issue without breaking invoice immutability" },
-  { "file": "src/lib/next/__tests__/safe-revalidate.test.ts", "asserts": "safeRevalidatePath() prevents Next-only crashes in backend services" },
-  { "file": "src/lib/assets/__tests__/tenant-depreciation-schedule.test.ts", "asserts": "Tenant isolation does not inject companyId into depreciation schedule/entry writes" },
-  { "file": "src/lib/assets/__tests__/depreciation-period-alignment.test.ts", "asserts": "Monthly depreciation aligns to calendar month boundaries for month close" }
+  {
+    "file": "src/lib/vat/__tests__/money-determinism.test.ts",
+    "asserts": "Decimal determinism + rounding stability (no float artifacts)"
+  },
+  {
+    "file": "src/lib/vat/__tests__/input-vat-determinism.test.ts",
+    "asserts": "VAT input determinism + deductibility without JS number coercion"
+  },
+  {
+    "file": "src/lib/regulatory-truth/dsl/__tests__/applies-when-decimal-amount.test.ts",
+    "asserts": "DSL compares decimal-string amounts deterministically"
+  },
+  {
+    "file": "src/lib/banking/import/__tests__/import-parsed-determinism.test.ts",
+    "asserts": "Parsed bank import creates deterministic BankTransaction records"
+  },
+  {
+    "file": "src/lib/fixed-assets/__tests__/asset-candidates-determinism.test.ts",
+    "asserts": "Asset-candidate thresholding stays deterministic"
+  },
+  {
+    "file": "src/lib/payroll/__tests__/director-salary-determinism.test.ts",
+    "asserts": "Director payroll computation is deterministic"
+  },
+  {
+    "file": "src/lib/audit/__tests__/audit-correlation.test.ts",
+    "asserts": "UPDATE audit log includes before/after + correlationId"
+  },
+  {
+    "file": "src/lib/audit/__tests__/immutability-blocked.test.ts",
+    "asserts": "Blocked mutations for fiscal invoices, JOPPD, locked periods are rejected and logged"
+  },
+  {
+    "file": "src/lib/audit/__tests__/invoice-payment-mutable.test.ts",
+    "asserts": "paidAmount/paymentStatus remain mutable post-issue without breaking invoice immutability"
+  },
+  {
+    "file": "src/lib/next/__tests__/safe-revalidate.test.ts",
+    "asserts": "safeRevalidatePath() prevents Next-only crashes in backend services"
+  },
+  {
+    "file": "src/lib/assets/__tests__/tenant-depreciation-schedule.test.ts",
+    "asserts": "Tenant isolation does not inject companyId into depreciation schedule/entry writes"
+  },
+  {
+    "file": "src/lib/assets/__tests__/depreciation-period-alignment.test.ts",
+    "asserts": "Monthly depreciation aligns to calendar month boundaries for month close"
+  }
 ]
 ```

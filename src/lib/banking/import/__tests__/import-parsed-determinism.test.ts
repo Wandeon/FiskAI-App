@@ -1,5 +1,8 @@
 import { vi, describe, it, expect } from "vitest"
 
+// Mock DB - this test uses mocked repository calls
+vi.mock("@/lib/db", () => ({ db: {} }))
+
 import { importParsedBankTransactions } from "../import-parsed"
 
 describe("importParsedBankTransactions", () => {

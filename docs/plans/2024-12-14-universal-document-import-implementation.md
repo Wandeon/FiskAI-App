@@ -13,12 +13,14 @@
 ## Task 1: Update Prisma Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma:451-474` (ImportJob model)
 - Modify: `prisma/schema.prisma:691-697` (JobStatus enum)
 
 **Step 1: Add new enum values and fields to schema**
 
 Add to `JobStatus` enum (after FAILED):
+
 ```prisma
 enum JobStatus {
   PENDING
@@ -33,6 +35,7 @@ enum JobStatus {
 ```
 
 Add new `DocumentType` enum (after JobStatus):
+
 ```prisma
 enum DocumentType {
   BANK_STATEMENT
@@ -42,6 +45,7 @@ enum DocumentType {
 ```
 
 Update `ImportJob` model:
+
 ```prisma
 model ImportJob {
   id             String        @id @default(cuid())
@@ -93,12 +97,13 @@ git commit -m "feat(schema): add DocumentType enum and ImportJob fields for univ
 ## Task 2: Create Document Type Detection
 
 **Files:**
+
 - Create: `src/lib/import/detect-document-type.ts`
 
 **Step 1: Create detection utility**
 
 ```typescript
-import { DocumentType } from '@prisma/client'
+import { DocumentType } from "@prisma/client"
 
 export interface DetectionResult {
   type: DocumentType
@@ -107,13 +112,33 @@ export interface DetectionResult {
 }
 
 const BANK_KEYWORDS = [
-  'izvod', 'stanje', 'promet', 'saldo', 'iban', 'swift', 'bic',
-  'transakcij', 'uplat', 'isplat', 'banka', 'račun'
+  "izvod",
+  "stanje",
+  "promet",
+  "saldo",
+  "iban",
+  "swift",
+  "bic",
+  "transakcij",
+  "uplat",
+  "isplat",
+  "banka",
+  "račun",
 ]
 
 const INVOICE_KEYWORDS = [
-  'račun', 'faktura', 'invoice', 'pdv', 'vat', 'oib', 'iznos',
-  'ukupno', 'total', 'dobavljač', 'kupac', 'dospijeće'
+  "račun",
+  "faktura",
+  "invoice",
+  "pdv",
+  "vat",
+  "oib",
+  "iznos",
+  "ukupno",
+  "total",
+  "dobavljač",
+  "kupac",
+  "dospijeće",
 ]
 
 export function detectDocumentType(
@@ -121,72 +146,76 @@ export function detectDocumentType(
   mimeType: string,
   textContent?: string
 ): DetectionResult {
-  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  const ext = fileName.split(".").pop()?.toLowerCase() || ""
   const nameLower = fileName.toLowerCase()
 
   // XML files are almost always bank statements (CAMT.053)
-  if (ext === 'xml') {
+  if (ext === "xml") {
     return {
       type: DocumentType.BANK_STATEMENT,
       confidence: 0.95,
-      reason: 'XML format typically used for CAMT.053 bank statements'
+      reason: "XML format typically used for CAMT.053 bank statements",
     }
   }
 
   // CSV files are typically bank exports
-  if (ext === 'csv') {
+  if (ext === "csv") {
     return {
       type: DocumentType.BANK_STATEMENT,
       confidence: 0.85,
-      reason: 'CSV format typically used for bank transaction exports'
+      reason: "CSV format typically used for bank transaction exports",
     }
   }
 
   // Image files are typically invoices/receipts
-  if (['jpg', 'jpeg', 'png', 'heic', 'webp'].includes(ext)) {
+  if (["jpg", "jpeg", "png", "heic", "webp"].includes(ext)) {
     return {
       type: DocumentType.INVOICE,
       confidence: 0.8,
-      reason: 'Image format typically used for scanned invoices'
+      reason: "Image format typically used for scanned invoices",
     }
   }
 
   // For PDFs, check filename and content
-  if (ext === 'pdf') {
+  if (ext === "pdf") {
     // Check filename hints
-    if (nameLower.includes('izvod') || nameLower.includes('statement')) {
+    if (nameLower.includes("izvod") || nameLower.includes("statement")) {
       return {
         type: DocumentType.BANK_STATEMENT,
         confidence: 0.9,
-        reason: 'Filename suggests bank statement'
+        reason: "Filename suggests bank statement",
       }
     }
-    if (nameLower.includes('racun') || nameLower.includes('faktura') || nameLower.includes('invoice')) {
+    if (
+      nameLower.includes("racun") ||
+      nameLower.includes("faktura") ||
+      nameLower.includes("invoice")
+    ) {
       return {
         type: DocumentType.INVOICE,
         confidence: 0.9,
-        reason: 'Filename suggests invoice'
+        reason: "Filename suggests invoice",
       }
     }
 
     // Check text content if available
     if (textContent) {
       const textLower = textContent.toLowerCase()
-      const bankScore = BANK_KEYWORDS.filter(k => textLower.includes(k)).length
-      const invoiceScore = INVOICE_KEYWORDS.filter(k => textLower.includes(k)).length
+      const bankScore = BANK_KEYWORDS.filter((k) => textLower.includes(k)).length
+      const invoiceScore = INVOICE_KEYWORDS.filter((k) => textLower.includes(k)).length
 
       if (bankScore > invoiceScore && bankScore >= 3) {
         return {
           type: DocumentType.BANK_STATEMENT,
           confidence: Math.min(0.5 + bankScore * 0.1, 0.9),
-          reason: `Found ${bankScore} bank-related keywords`
+          reason: `Found ${bankScore} bank-related keywords`,
         }
       }
       if (invoiceScore > bankScore && invoiceScore >= 2) {
         return {
           type: DocumentType.INVOICE,
           confidence: Math.min(0.5 + invoiceScore * 0.1, 0.9),
-          reason: `Found ${invoiceScore} invoice-related keywords`
+          reason: `Found ${invoiceScore} invoice-related keywords`,
         }
       }
     }
@@ -195,7 +224,7 @@ export function detectDocumentType(
     return {
       type: DocumentType.INVOICE,
       confidence: 0.5,
-      reason: 'PDF defaulting to invoice - please verify'
+      reason: "PDF defaulting to invoice - please verify",
     }
   }
 
@@ -203,37 +232,46 @@ export function detectDocumentType(
   return {
     type: DocumentType.INVOICE,
     confidence: 0.3,
-    reason: 'Unknown format - defaulting to invoice'
+    reason: "Unknown format - defaulting to invoice",
   }
 }
 
 export function getMimeTypeFromExtension(fileName: string): string {
-  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  const ext = fileName.split(".").pop()?.toLowerCase() || ""
   const mimeMap: Record<string, string> = {
-    pdf: 'application/pdf',
-    xml: 'application/xml',
-    csv: 'text/csv',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    heic: 'image/heic',
-    webp: 'image/webp',
+    pdf: "application/pdf",
+    xml: "application/xml",
+    csv: "text/csv",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    heic: "image/heic",
+    webp: "image/webp",
   }
-  return mimeMap[ext] || 'application/octet-stream'
+  return mimeMap[ext] || "application/octet-stream"
 }
 
 export const ACCEPTED_FILE_TYPES = {
-  'application/pdf': ['.pdf'],
-  'application/xml': ['.xml'],
-  'text/xml': ['.xml'],
-  'text/csv': ['.csv'],
-  'image/jpeg': ['.jpg', '.jpeg'],
-  'image/png': ['.png'],
-  'image/heic': ['.heic'],
-  'image/webp': ['.webp'],
+  "application/pdf": [".pdf"],
+  "application/xml": [".xml"],
+  "text/xml": [".xml"],
+  "text/csv": [".csv"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "image/heic": [".heic"],
+  "image/webp": [".webp"],
 }
 
-export const ACCEPTED_EXTENSIONS = ['.pdf', '.xml', '.csv', '.jpg', '.jpeg', '.png', '.heic', '.webp']
+export const ACCEPTED_EXTENSIONS = [
+  ".pdf",
+  ".xml",
+  ".csv",
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".heic",
+  ".webp",
+]
 ```
 
 **Step 2: Commit**
@@ -248,6 +286,7 @@ git commit -m "feat(import): add document type detection utility"
 ## Task 3: Create Smart Dropzone Component
 
 **Files:**
+
 - Create: `src/components/import/smart-dropzone.tsx`
 
 **Step 1: Create dropzone component**
@@ -340,6 +379,7 @@ git commit -m "feat(import): add smart dropzone component"
 ## Task 4: Create Processing Card Component
 
 **Files:**
+
 - Create: `src/components/import/processing-card.tsx`
 
 **Step 1: Create processing card component**
@@ -513,6 +553,7 @@ git commit -m "feat(import): add processing card component"
 ## Task 5: Create Processing Queue Component
 
 **Files:**
+
 - Create: `src/components/import/processing-queue.tsx`
 
 **Step 1: Create queue component**
@@ -599,6 +640,7 @@ git commit -m "feat(import): add processing queue component"
 ## Task 6: Create PDF Viewer Component
 
 **Files:**
+
 - Create: `src/components/import/pdf-viewer.tsx`
 
 **Step 1: Install react-pdf**
@@ -773,6 +815,7 @@ git commit -m "feat(import): add PDF and image viewer components"
 ## Task 7: Create Transaction Editor Component
 
 **Files:**
+
 - Create: `src/components/import/transaction-editor.tsx`
 
 **Step 1: Create transaction editor component**
@@ -1011,6 +1054,7 @@ git commit -m "feat(import): add transaction editor component"
 ## Task 8: Create Confirmation Modal Component
 
 **Files:**
+
 - Create: `src/components/import/confirmation-modal.tsx`
 
 **Step 1: Create confirmation modal**
@@ -1188,6 +1232,7 @@ git commit -m "feat(import): add confirmation modal component"
 ## Task 9: Create Import API Routes
 
 **Files:**
+
 - Create: `src/app/api/import/upload/route.ts`
 - Create: `src/app/api/import/jobs/[id]/route.ts`
 - Create: `src/app/api/import/jobs/[id]/confirm/route.ts`
@@ -1197,18 +1242,19 @@ git commit -m "feat(import): add confirmation modal component"
 **Step 1: Create upload route**
 
 Create `src/app/api/import/upload/route.ts`:
+
 ```typescript
-import { NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
-import { createHash } from 'crypto'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
-import { detectDocumentType } from '@/lib/import/detect-document-type'
+import { NextResponse } from "next/server"
+import { promises as fs } from "fs"
+import path from "path"
+import { createHash } from "crypto"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
+import { detectDocumentType } from "@/lib/import/detect-document-type"
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
-const ALLOWED_EXTENSIONS = ['pdf', 'xml', 'csv', 'jpg', 'jpeg', 'png', 'heic', 'webp']
+const ALLOWED_EXTENSIONS = ["pdf", "xml", "csv", "jpg", "jpeg", "png", "heic", "webp"]
 
 export async function POST(request: Request) {
   const user = await requireAuth()
@@ -1220,36 +1266,39 @@ export async function POST(request: Request) {
   })
 
   const formData = await request.formData()
-  const file = formData.get('file')
-  const bankAccountId = formData.get('bankAccountId') as string | null
-  const documentTypeOverride = formData.get('documentType') as string | null
+  const file = formData.get("file")
+  const bankAccountId = formData.get("bankAccountId") as string | null
+  const documentTypeOverride = formData.get("documentType") as string | null
 
   if (!(file instanceof Blob)) {
-    return NextResponse.json({ error: 'Missing file' }, { status: 400 })
+    return NextResponse.json({ error: "Missing file" }, { status: 400 })
   }
 
-  const fileName = (file as File).name || 'upload'
-  const extension = fileName.split('.').pop()?.toLowerCase() || ''
+  const fileName = (file as File).name || "upload"
+  const extension = fileName.split(".").pop()?.toLowerCase() || ""
 
   if (!ALLOWED_EXTENSIONS.includes(extension)) {
-    return NextResponse.json({
-      error: `Unsupported file type. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`
-    }, { status: 400 })
+    return NextResponse.json(
+      {
+        error: `Unsupported file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}`,
+      },
+      { status: 400 }
+    )
   }
 
   const arrayBuffer = await file.arrayBuffer()
   if (arrayBuffer.byteLength === 0) {
-    return NextResponse.json({ error: 'Empty file' }, { status: 400 })
+    return NextResponse.json({ error: "Empty file" }, { status: 400 })
   }
   if (arrayBuffer.byteLength > MAX_UPLOAD_BYTES) {
-    return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 413 })
+    return NextResponse.json({ error: "File too large (max 20MB)" }, { status: 413 })
   }
 
   const buffer = Buffer.from(arrayBuffer)
-  const checksum = createHash('sha256').update(buffer).digest('hex')
+  const checksum = createHash("sha256").update(buffer).digest("hex")
 
   // Store file
-  const storageDir = path.join(process.cwd(), 'uploads', 'imports')
+  const storageDir = path.join(process.cwd(), "uploads", "imports")
   await fs.mkdir(storageDir, { recursive: true })
   const storedFileName = `${checksum}.${extension}`
   const storagePath = path.join(storageDir, storedFileName)
@@ -1268,15 +1317,15 @@ export async function POST(request: Request) {
       fileChecksum: checksum,
       originalName: fileName,
       storagePath,
-      status: 'PENDING',
+      status: "PENDING",
       documentType: documentType as any,
     },
   })
 
   // Trigger background processing
-  fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/import/process`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/api/import/process`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jobId: job.id }),
   }).catch(() => {})
 
@@ -1293,16 +1342,14 @@ export async function POST(request: Request) {
 **Step 2: Create job status route**
 
 Create `src/app/api/import/jobs/[id]/route.ts`:
-```typescript
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+```typescript
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
+
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const { id } = await params
@@ -1322,7 +1369,7 @@ export async function GET(
   })
 
   if (!job || job.companyId !== company.id) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    return NextResponse.json({ error: "Job not found" }, { status: 404 })
   }
 
   return NextResponse.json({
@@ -1346,17 +1393,15 @@ export async function GET(
 **Step 3: Create confirm route**
 
 Create `src/app/api/import/jobs/[id]/confirm/route.ts`:
-```typescript
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
-import { Prisma } from '@prisma/client'
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+```typescript
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
+import { Prisma } from "@prisma/client"
+
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const { id } = await params
@@ -1370,18 +1415,18 @@ export async function PUT(
   const job = await db.importJob.findUnique({ where: { id } })
 
   if (!job || job.companyId !== company.id) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    return NextResponse.json({ error: "Job not found" }, { status: 404 })
   }
 
-  if (job.status !== 'READY_FOR_REVIEW') {
-    return NextResponse.json({ error: 'Job not ready for confirmation' }, { status: 400 })
+  if (job.status !== "READY_FOR_REVIEW") {
+    return NextResponse.json({ error: "Job not ready for confirmation" }, { status: 400 })
   }
 
   const { transactions, bankAccountId } = body
 
-  if (job.documentType === 'BANK_STATEMENT') {
+  if (job.documentType === "BANK_STATEMENT") {
     if (!bankAccountId) {
-      return NextResponse.json({ error: 'Bank account required' }, { status: 400 })
+      return NextResponse.json({ error: "Bank account required" }, { status: 400 })
     }
 
     // Write transactions to database
@@ -1391,13 +1436,13 @@ export async function PUT(
           companyId: company.id,
           bankAccountId,
           date: new Date(t.date),
-          description: t.description || '',
+          description: t.description || "",
           amount: new Prisma.Decimal(Math.abs(t.amount)),
           balance: new Prisma.Decimal(0),
           reference: t.reference || null,
           counterpartyName: t.counterpartyName || null,
           counterpartyIban: t.counterpartyIban || null,
-          matchStatus: 'UNMATCHED',
+          matchStatus: "UNMATCHED",
           confidenceScore: 0,
         })),
       })
@@ -1408,7 +1453,7 @@ export async function PUT(
   await db.importJob.update({
     where: { id },
     data: {
-      status: 'CONFIRMED',
+      status: "CONFIRMED",
       bankAccountId,
     },
   })
@@ -1423,16 +1468,14 @@ export async function PUT(
 **Step 4: Create reject route**
 
 Create `src/app/api/import/jobs/[id]/reject/route.ts`:
-```typescript
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+```typescript
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
+
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const { id } = await params
@@ -1445,12 +1488,12 @@ export async function PUT(
   const job = await db.importJob.findUnique({ where: { id } })
 
   if (!job || job.companyId !== company.id) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    return NextResponse.json({ error: "Job not found" }, { status: 404 })
   }
 
   await db.importJob.update({
     where: { id },
-    data: { status: 'REJECTED' },
+    data: { status: "REJECTED" },
   })
 
   return NextResponse.json({ success: true })
@@ -1460,16 +1503,14 @@ export async function PUT(
 **Step 5: Create file serving route**
 
 Create `src/app/api/import/jobs/[id]/file/route.ts`:
-```typescript
-import { NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+```typescript
+import { NextResponse } from "next/server"
+import { promises as fs } from "fs"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const { id } = await params
@@ -1477,32 +1518,32 @@ export async function GET(
   const job = await db.importJob.findUnique({ where: { id } })
 
   if (!job || job.companyId !== company.id) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    return NextResponse.json({ error: "Job not found" }, { status: 404 })
   }
 
   try {
     const fileBuffer = await fs.readFile(job.storagePath)
-    const ext = job.originalName.split('.').pop()?.toLowerCase() || ''
+    const ext = job.originalName.split(".").pop()?.toLowerCase() || ""
 
     const mimeTypes: Record<string, string> = {
-      pdf: 'application/pdf',
-      xml: 'application/xml',
-      csv: 'text/csv',
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      heic: 'image/heic',
-      webp: 'image/webp',
+      pdf: "application/pdf",
+      xml: "application/xml",
+      csv: "text/csv",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      heic: "image/heic",
+      webp: "image/webp",
     }
 
     return new NextResponse(fileBuffer, {
       headers: {
-        'Content-Type': mimeTypes[ext] || 'application/octet-stream',
-        'Content-Disposition': `inline; filename="${job.originalName}"`,
+        "Content-Type": mimeTypes[ext] || "application/octet-stream",
+        "Content-Disposition": `inline; filename="${job.originalName}"`,
       },
     })
   } catch {
-    return NextResponse.json({ error: 'File not found' }, { status: 404 })
+    return NextResponse.json({ error: "File not found" }, { status: 404 })
   }
 }
 ```
@@ -1519,19 +1560,21 @@ git commit -m "feat(api): add import API routes for upload, confirm, reject, fil
 ## Task 10: Update Process Route for New Flow
 
 **Files:**
+
 - Modify: `src/app/api/import/process/route.ts` (or create if needed at new location)
 
 **Step 1: Create/update process route**
 
 Create `src/app/api/import/process/route.ts`:
+
 ```typescript
-import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { JobStatus } from '@prisma/client'
-import { promises as fs } from 'fs'
-import { XMLParser } from 'fast-xml-parser'
-import { deepseekJson } from '@/lib/ai/deepseek'
-import { BANK_STATEMENT_SYSTEM_PROMPT } from '@/lib/banking/import/prompt'
+import { NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { JobStatus } from "@prisma/client"
+import { promises as fs } from "fs"
+import { XMLParser } from "fast-xml-parser"
+import { deepseekJson } from "@/lib/ai/deepseek"
+import { BANK_STATEMENT_SYSTEM_PROMPT } from "@/lib/banking/import/prompt"
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
@@ -1543,11 +1586,11 @@ export async function POST(request: Request) {
     : await db.importJob.findFirst({ where: { status: JobStatus.PENDING } })
 
   if (!job) {
-    return NextResponse.json({ status: 'idle', message: 'No pending jobs' })
+    return NextResponse.json({ status: "idle", message: "No pending jobs" })
   }
 
-  if (job.status !== 'PENDING') {
-    return NextResponse.json({ status: 'skip', message: 'Job already processed' })
+  if (job.status !== "PENDING") {
+    return NextResponse.json({ status: "skip", message: "Job already processed" })
   }
 
   // Mark as processing
@@ -1557,14 +1600,14 @@ export async function POST(request: Request) {
   })
 
   try {
-    const extension = job.originalName.split('.').pop()?.toLowerCase() || ''
+    const extension = job.originalName.split(".").pop()?.toLowerCase() || ""
     let extractedData: any = null
 
-    if (extension === 'xml') {
+    if (extension === "xml") {
       extractedData = await processXml(job.storagePath)
-    } else if (extension === 'csv') {
+    } else if (extension === "csv") {
       extractedData = await processCsv(job.storagePath)
-    } else if (['pdf', 'jpg', 'jpeg', 'png', 'heic', 'webp'].includes(extension)) {
+    } else if (["pdf", "jpg", "jpeg", "png", "heic", "webp"].includes(extension)) {
       extractedData = await processPdfOrImage(job.storagePath, extension)
     }
 
@@ -1572,28 +1615,28 @@ export async function POST(request: Request) {
     await db.importJob.update({
       where: { id: job.id },
       data: {
-        status: 'READY_FOR_REVIEW' as any,
+        status: "READY_FOR_REVIEW" as any,
         extractedData,
         pagesProcessed: 1,
       },
     })
 
-    return NextResponse.json({ status: 'ok', jobId: job.id })
+    return NextResponse.json({ status: "ok", jobId: job.id })
   } catch (error) {
-    console.error('[process] error', error)
+    console.error("[process] error", error)
     await db.importJob.update({
       where: { id: job.id },
       data: {
         status: JobStatus.FAILED,
-        failureReason: error instanceof Error ? error.message : 'Unknown error',
+        failureReason: error instanceof Error ? error.message : "Unknown error",
       },
     })
-    return NextResponse.json({ status: 'error', jobId: job.id })
+    return NextResponse.json({ status: "error", jobId: job.id })
   }
 }
 
 async function processXml(filePath: string) {
-  const xmlBuffer = await fs.readFile(filePath, 'utf-8')
+  const xmlBuffer = await fs.readFile(filePath, "utf-8")
   const parser = new XMLParser({ ignoreAttributes: false, parseTagValue: true })
   const parsed = parser.parse(xmlBuffer)
 
@@ -1603,101 +1646,111 @@ async function processXml(filePath: string) {
     parsed?.Document?.BkToCstmrAcctRpt?.Rpt?.[0] ||
     parsed?.Document?.BkToCstmrAcctRpt?.Rpt
 
-  if (!stmt) throw new Error('CAMT XML does not contain a statement')
+  if (!stmt) throw new Error("CAMT XML does not contain a statement")
 
   const balances = Array.isArray(stmt.Bal) ? stmt.Bal : stmt.Bal ? [stmt.Bal] : []
-  const openingBal = extractAmount(balances.find((b: any) => b?.Tp?.CdOrPrtry?.Cd === 'OPBD')?.Amt)
-  const closingBal = extractAmount(balances.find((b: any) => b?.Tp?.CdOrPrtry?.Cd === 'CLBD')?.Amt)
+  const openingBal = extractAmount(balances.find((b: any) => b?.Tp?.CdOrPrtry?.Cd === "OPBD")?.Amt)
+  const closingBal = extractAmount(balances.find((b: any) => b?.Tp?.CdOrPrtry?.Cd === "CLBD")?.Amt)
 
   const entries = Array.isArray(stmt.Ntry) ? stmt.Ntry : stmt.Ntry ? [stmt.Ntry] : []
 
   const transactions = entries.map((entry: any, idx: number) => {
     const amount = extractAmount(entry?.Amt)
-    const direction = entry?.CdtDbtInd === 'CRDT' ? 'INCOMING' : 'OUTGOING'
+    const direction = entry?.CdtDbtInd === "CRDT" ? "INCOMING" : "OUTGOING"
     const dateStr = entry?.BookgDt?.Dt || entry?.ValDt?.Dt || new Date().toISOString()
-    const details = Array.isArray(entry?.NtryDtls?.TxDtls) ? entry.NtryDtls.TxDtls[0] : entry?.NtryDtls?.TxDtls
+    const details = Array.isArray(entry?.NtryDtls?.TxDtls)
+      ? entry.NtryDtls.TxDtls[0]
+      : entry?.NtryDtls?.TxDtls
 
     return {
       id: `txn-${idx}`,
       date: dateStr,
-      description: entry?.AddtlNtryInf || details?.RmtInf?.Ustrd || '',
+      description: entry?.AddtlNtryInf || details?.RmtInf?.Ustrd || "",
       amount,
       direction,
       counterpartyName: details?.RltdPties?.Cdtr?.Nm || details?.RltdPties?.Dbtr?.Nm || null,
-      counterpartyIban: details?.RltdPties?.CdtrAcct?.Id?.IBAN || details?.RltdPties?.DbtrAcct?.Id?.IBAN || null,
+      counterpartyIban:
+        details?.RltdPties?.CdtrAcct?.Id?.IBAN || details?.RltdPties?.DbtrAcct?.Id?.IBAN || null,
       reference: entry?.NtryRef || details?.Refs?.EndToEndId || null,
     }
   })
 
-  const calcClosing = openingBal + transactions.reduce((sum: number, t: any) =>
-    sum + (t.direction === 'INCOMING' ? t.amount : -t.amount), 0)
+  const calcClosing =
+    openingBal +
+    transactions.reduce(
+      (sum: number, t: any) => sum + (t.direction === "INCOMING" ? t.amount : -t.amount),
+      0
+    )
   const mathValid = Math.abs(calcClosing - closingBal) < 0.01
 
   return { transactions, openingBalance: openingBal, closingBalance: closingBal, mathValid }
 }
 
 async function processCsv(filePath: string) {
-  const csvText = await fs.readFile(filePath, 'utf-8')
-  const lines = csvText.trim().split('\n')
-  if (lines.length < 2) throw new Error('CSV file is empty')
+  const csvText = await fs.readFile(filePath, "utf-8")
+  const lines = csvText.trim().split("\n")
+  if (lines.length < 2) throw new Error("CSV file is empty")
 
-  const header = lines[0].split(',').map(h => h.trim().toLowerCase())
-  const dateIdx = header.findIndex(h => ['datum', 'date'].includes(h))
-  const descIdx = header.findIndex(h => ['opis', 'description'].includes(h))
-  const amountIdx = header.findIndex(h => ['iznos', 'amount'].includes(h))
+  const header = lines[0].split(",").map((h) => h.trim().toLowerCase())
+  const dateIdx = header.findIndex((h) => ["datum", "date"].includes(h))
+  const descIdx = header.findIndex((h) => ["opis", "description"].includes(h))
+  const amountIdx = header.findIndex((h) => ["iznos", "amount"].includes(h))
 
   if (dateIdx === -1 || descIdx === -1 || amountIdx === -1) {
-    throw new Error('CSV must have date, description, amount columns')
+    throw new Error("CSV must have date, description, amount columns")
   }
 
-  const transactions = lines.slice(1).map((line, idx) => {
-    const values = line.split(',').map(v => v.trim())
-    const amount = parseFloat(values[amountIdx].replace(',', '.')) || 0
-    return {
-      id: `txn-${idx}`,
-      date: values[dateIdx],
-      description: values[descIdx],
-      amount: Math.abs(amount),
-      direction: amount >= 0 ? 'INCOMING' : 'OUTGOING',
-      counterpartyName: null,
-      counterpartyIban: null,
-      reference: null,
-    }
-  }).filter(t => t.date && t.description)
+  const transactions = lines
+    .slice(1)
+    .map((line, idx) => {
+      const values = line.split(",").map((v) => v.trim())
+      const amount = parseFloat(values[amountIdx].replace(",", ".")) || 0
+      return {
+        id: `txn-${idx}`,
+        date: values[dateIdx],
+        description: values[descIdx],
+        amount: Math.abs(amount),
+        direction: amount >= 0 ? "INCOMING" : "OUTGOING",
+        counterpartyName: null,
+        counterpartyIban: null,
+        reference: null,
+      }
+    })
+    .filter((t) => t.date && t.description)
 
   return { transactions, openingBalance: null, closingBalance: null, mathValid: true }
 }
 
 async function processPdfOrImage(filePath: string, ext: string) {
   // For PDFs, extract text first
-  let textContent = ''
-  if (ext === 'pdf') {
+  let textContent = ""
+  if (ext === "pdf") {
     try {
-      const pdfParse = (await import('pdf-parse')).default
+      const pdfParse = (await import("pdf-parse")).default
       const buffer = await fs.readFile(filePath)
       const data = await pdfParse(buffer)
       textContent = data.text
     } catch {
-      textContent = ''
+      textContent = ""
     }
   }
 
   // Use AI to extract transactions
   const response = await deepseekJson({
-    model: 'deepseek-chat',
+    model: "deepseek-chat",
     messages: [
-      { role: 'system', content: BANK_STATEMENT_SYSTEM_PROMPT },
-      { role: 'user', content: textContent || 'Extract transactions from this bank statement.' },
+      { role: "system", content: BANK_STATEMENT_SYSTEM_PROMPT },
+      { role: "user", content: textContent || "Extract transactions from this bank statement." },
     ],
   })
 
   const parsed = JSON.parse(response)
   const transactions = (parsed.transactions || []).map((t: any, idx: number) => ({
     id: `txn-${idx}`,
-    date: t.date || new Date().toISOString().split('T')[0],
-    description: t.description || '',
+    date: t.date || new Date().toISOString().split("T")[0],
+    description: t.description || "",
     amount: Math.abs(Number(t.amount) || 0),
-    direction: t.direction === 'INCOMING' ? 'INCOMING' : 'OUTGOING',
+    direction: t.direction === "INCOMING" ? "INCOMING" : "OUTGOING",
     counterpartyName: t.payee || null,
     counterpartyIban: t.counterpartyIban || null,
     reference: t.reference || null,
@@ -1713,10 +1766,10 @@ async function processPdfOrImage(filePath: string, ext: string) {
 
 function extractAmount(amt: any): number {
   if (!amt) return 0
-  if (typeof amt === 'number') return amt
-  if (typeof amt === 'string') return parseFloat(amt) || 0
-  if (typeof amt === 'object') {
-    const text = amt['#text'] ?? amt['_text'] ?? amt['$t']
+  if (typeof amt === "number") return amt
+  if (typeof amt === "string") return parseFloat(amt) || 0
+  if (typeof amt === "object") {
+    const text = amt["#text"] ?? amt["_text"] ?? amt["$t"]
     if (text) return parseFloat(String(text)) || 0
   }
   return 0
@@ -1735,6 +1788,7 @@ git commit -m "feat(api): add process route with XML, CSV, PDF/image handling"
 ## Task 11: Create Import Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/import/page.tsx`
 
 **Step 1: Create the import page**
@@ -1810,6 +1864,7 @@ export default async function ImportPage() {
 **Step 2: Create import client component**
 
 Create `src/app/(dashboard)/import/import-client.tsx`:
+
 ```typescript
 'use client'
 
@@ -2065,11 +2120,13 @@ git commit -m "feat(import): add universal import page with client component"
 ## Task 12: Update Navigation
 
 **Files:**
+
 - Modify: `src/lib/navigation.ts`
 
 **Step 1: Add import page to navigation**
 
 Add to the "Financije" section after "Dokumenti":
+
 ```typescript
 {
   name: "Uvoz",
@@ -2119,6 +2176,7 @@ git commit -m "feat(import): complete universal document import implementation"
 ## Summary
 
 This plan implements a universal document import system with:
+
 - Smart dropzone accepting PDF, XML, CSV, and images
 - Multi-file parallel processing with queue display
 - Auto-detection of document type with override

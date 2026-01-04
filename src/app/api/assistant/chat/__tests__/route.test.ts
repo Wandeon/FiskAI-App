@@ -1,4 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+
+// Mock DB clients - route tests don't use DB directly
+vi.mock("@/lib/db", () => ({ db: {} }))
+vi.mock("@/lib/db/regulatory", () => ({ dbReg: {} }))
+vi.mock("@/lib/prisma", () => ({ prisma: {} }))
+
 import { POST } from "../route"
 import { NextRequest } from "next/server"
 import * as answerBuilder from "@/lib/assistant/query-engine/answer-builder"

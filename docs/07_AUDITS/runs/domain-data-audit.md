@@ -1,6 +1,7 @@
 # Domain Modeling & Data Integrity Audit
 
 ## Findings
+
 1. **Invoice numbers not unique per company** – `prisma/schema.prisma:183-240` defines `invoiceNumber` with only a standalone index (`@@index([invoiceNumber])`). Two tenants could end up sharing the same number, and even within one company duplicate numbers are possible, leading to accounting/fiscalization errors. Add a composite constraint `@@unique([companyId, invoiceNumber])` to ensure numbering sequences remain unique per tenant.
 2. **Cross-tenant contact references allowed** – `createEInvoice` (`src/app/actions/e-invoice.ts:12-78`) accepts any `buyerId`/`sellerId` without verifying they belong to the caller’s company. Coupled with eager inclusion of `buyer` data in list/detail queries (`src/app/actions/e-invoice.ts:152-182`), a malicious user can attach another tenant’s contact and expose their PII. Enforce ownership checks before writing (e.g., `await db.contact.findFirst({ where: { id: buyerId, companyId: company.id } })`) or add Prisma middleware to inject `companyId` conditions automatically.
 3. **No constraint on default company per user** – `CompanyUser` (`prisma/schema.prisma:97-112`) tracks `isDefault` but nothing prevents multiple entries being true for the same user. Server logic (`src/app/actions/company.ts:137-145`) tries to reset flags before switching, yet concurrent requests can still yield two defaults. Add a partial unique index (Prisma: `@@unique([userId], map: "unique_default_company", where: isDefault = true)`) or enforce via database constraint to keep tenant routing deterministic.
@@ -9,6 +10,7 @@
 6. **Products & contacts unmanaged yet referenced** – While Prisma models for `Product` and `Contact` exist, there are no API routes/UI for enforcing mandatory fields (e.g., VAT category, OIB). Until those modules ship, invoices can reference incomplete contacts, undermining compliance. Define minimum data requirements and validation flows before enabling outbound e-invoicing for production users.
 
 ## Recommendations
+
 - Add composite unique constraints for `invoiceNumber`, `Contact.oib`, and default company flags directly in Prisma schema.
 - Introduce Prisma middleware or service-layer guards that automatically inject `companyId` filters on every tenant-scoped query.
 - Encrypt provider credentials at rest and restrict read access to privileged actions only.

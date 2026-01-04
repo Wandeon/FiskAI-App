@@ -13,6 +13,7 @@
 ## Prerequisites
 
 Before starting, ensure:
+
 - Node.js 20+ installed
 - PostgreSQL 16 running (locally or Docker)
 - Git configured
@@ -23,6 +24,7 @@ Before starting, ensure:
 ## Task 1: Initialize Next.js Project
 
 **Files:**
+
 - Create: `package.json`
 - Create: `tsconfig.json`
 - Create: `next.config.ts`
@@ -33,6 +35,7 @@ Before starting, ensure:
 **Step 1: Create Next.js application with TypeScript**
 
 Run:
+
 ```bash
 cd /home/admin/FiskAI
 npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
@@ -43,6 +46,7 @@ Expected: Project initialized with Next.js 14+, TypeScript, Tailwind, App Router
 **Step 2: Verify installation**
 
 Run:
+
 ```bash
 npm run dev &
 sleep 5
@@ -55,6 +59,7 @@ Expected: HTML response from Next.js dev server
 **Step 3: Install core dependencies**
 
 Run:
+
 ```bash
 npm install @prisma/client next-auth@beta @auth/prisma-adapter zod react-hook-form @hookform/resolvers zustand @tanstack/react-query bcryptjs
 npm install -D prisma @types/bcryptjs
@@ -65,6 +70,7 @@ Expected: Dependencies installed successfully
 **Step 4: Create environment file**
 
 Create `.env.local`:
+
 ```env
 # Database
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fiskai?schema=public"
@@ -81,6 +87,7 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 **Step 5: Update .gitignore**
 
 Append to `.gitignore`:
+
 ```
 # Environment
 .env.local
@@ -98,6 +105,7 @@ Append to `.gitignore`:
 **Step 6: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: initialize Next.js 14 project with TypeScript and Tailwind"
@@ -108,12 +116,14 @@ git commit -m "feat: initialize Next.js 14 project with TypeScript and Tailwind"
 ## Task 2: Set Up Prisma Schema (Core Models)
 
 **Files:**
+
 - Create: `prisma/schema.prisma`
 - Create: `src/lib/db.ts`
 
 **Step 1: Initialize Prisma**
 
 Run:
+
 ```bash
 npx prisma init
 ```
@@ -123,6 +133,7 @@ Expected: `prisma/schema.prisma` and `.env` created
 **Step 2: Write Core database schema**
 
 Replace `prisma/schema.prisma`:
+
 ```prisma
 generator client {
   provider = "prisma-client-js"
@@ -405,8 +416,9 @@ model EInvoiceLine {
 **Step 3: Create Prisma client singleton**
 
 Create `src/lib/db.ts`:
+
 ```typescript
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from "@prisma/client"
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -414,12 +426,13 @@ const globalForPrisma = globalThis as unknown as {
 
 export const db = globalForPrisma.prisma ?? new PrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db
 ```
 
 **Step 4: Generate Prisma client and create migration**
 
 Run:
+
 ```bash
 npx prisma generate
 npx prisma migrate dev --name init
@@ -430,6 +443,7 @@ Expected: Migration created and applied, Prisma client generated
 **Step 5: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add Prisma schema with core and e-invoicing models"
@@ -440,6 +454,7 @@ git commit -m "feat: add Prisma schema with core and e-invoicing models"
 ## Task 3: Configure NextAuth.js Authentication
 
 **Files:**
+
 - Create: `src/lib/auth.ts`
 - Create: `src/app/api/auth/[...nextauth]/route.ts`
 - Create: `src/lib/auth-utils.ts`
@@ -447,6 +462,7 @@ git commit -m "feat: add Prisma schema with core and e-invoicing models"
 **Step 1: Create NextAuth configuration**
 
 Create `src/lib/auth.ts`:
+
 ```typescript
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
@@ -527,6 +543,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 **Step 2: Create auth API route**
 
 Create `src/app/api/auth/[...nextauth]/route.ts`:
+
 ```typescript
 import { handlers } from "@/lib/auth"
 
@@ -536,6 +553,7 @@ export const { GET, POST } = handlers
 **Step 3: Create auth utility functions**
 
 Create `src/lib/auth-utils.ts`:
+
 ```typescript
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
@@ -589,6 +607,7 @@ export async function requireCompany(userId: string) {
 **Step 4: Add NextAuth types**
 
 Create `src/types/next-auth.d.ts`:
+
 ```typescript
 import { DefaultSession } from "next-auth"
 
@@ -604,6 +623,7 @@ declare module "next-auth" {
 **Step 5: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: configure NextAuth.js with credentials and Google providers"
@@ -614,6 +634,7 @@ git commit -m "feat: configure NextAuth.js with credentials and Google providers
 ## Task 4: Create Zod Validation Schemas
 
 **Files:**
+
 - Create: `src/lib/validations/auth.ts`
 - Create: `src/lib/validations/company.ts`
 - Create: `src/lib/validations/contact.ts`
@@ -622,6 +643,7 @@ git commit -m "feat: configure NextAuth.js with credentials and Google providers
 **Step 1: Create auth validation schemas**
 
 Create `src/lib/validations/auth.ts`:
+
 ```typescript
 import { z } from "zod"
 
@@ -630,19 +652,21 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 })
 
-export const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
+export const registerSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
@@ -651,6 +675,7 @@ export type RegisterInput = z.infer<typeof registerSchema>
 **Step 2: Create company validation schemas**
 
 Create `src/lib/validations/company.ts`:
+
 ```typescript
 import { z } from "zod"
 
@@ -683,13 +708,18 @@ export type CompanySettingsInput = z.infer<typeof companySettingsSchema>
 **Step 3: Create contact validation schemas**
 
 Create `src/lib/validations/contact.ts`:
+
 ```typescript
 import { z } from "zod"
 
 export const contactSchema = z.object({
   type: z.enum(["CUSTOMER", "SUPPLIER", "BOTH"]),
   name: z.string().min(2, "Name must be at least 2 characters"),
-  oib: z.string().regex(/^\d{11}$/, "OIB must be exactly 11 digits").optional().or(z.literal("")),
+  oib: z
+    .string()
+    .regex(/^\d{11}$/, "OIB must be exactly 11 digits")
+    .optional()
+    .or(z.literal("")),
   vatNumber: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -705,6 +735,7 @@ export type ContactInput = z.infer<typeof contactSchema>
 **Step 4: Create e-invoice validation schemas**
 
 Create `src/lib/validations/e-invoice.ts`:
+
 ```typescript
 import { z } from "zod"
 
@@ -734,6 +765,7 @@ export type EInvoiceInput = z.infer<typeof eInvoiceSchema>
 **Step 5: Create index file**
 
 Create `src/lib/validations/index.ts`:
+
 ```typescript
 export * from "./auth"
 export * from "./company"
@@ -744,6 +776,7 @@ export * from "./e-invoice"
 **Step 6: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add Zod validation schemas for all entities"
@@ -754,11 +787,13 @@ git commit -m "feat: add Zod validation schemas for all entities"
 ## Task 5: Create Server Actions for Authentication
 
 **Files:**
+
 - Create: `src/app/actions/auth.ts`
 
 **Step 1: Create authentication server actions**
 
 Create `src/app/actions/auth.ts`:
+
 ```typescript
 "use server"
 
@@ -839,6 +874,7 @@ export async function logout() {
 **Step 2: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add server actions for authentication"
@@ -849,11 +885,13 @@ git commit -m "feat: add server actions for authentication"
 ## Task 6: Create Server Actions for Company Management
 
 **Files:**
+
 - Create: `src/app/actions/company.ts`
 
 **Step 1: Create company server actions**
 
 Create `src/app/actions/company.ts`:
+
 ```typescript
 "use server"
 
@@ -903,10 +941,7 @@ export async function createCompany(formData: z.infer<typeof companySchema>) {
   redirect("/dashboard")
 }
 
-export async function updateCompany(
-  companyId: string,
-  formData: z.infer<typeof companySchema>
-) {
+export async function updateCompany(companyId: string, formData: z.infer<typeof companySchema>) {
   const user = await requireAuth()
 
   // Verify user has access to this company
@@ -1019,6 +1054,7 @@ export async function getUserCompanies() {
 **Step 2: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add server actions for company management"
@@ -1029,11 +1065,13 @@ git commit -m "feat: add server actions for company management"
 ## Task 7: Create Server Actions for Contacts
 
 **Files:**
+
 - Create: `src/app/actions/contact.ts`
 
 **Step 1: Create contact server actions**
 
 Create `src/app/actions/contact.ts`:
+
 ```typescript
 "use server"
 
@@ -1064,10 +1102,7 @@ export async function createContact(formData: z.infer<typeof contactSchema>) {
   return { success: "Contact created", data: contact }
 }
 
-export async function updateContact(
-  contactId: string,
-  formData: z.infer<typeof contactSchema>
-) {
+export async function updateContact(contactId: string, formData: z.infer<typeof contactSchema>) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
@@ -1156,6 +1191,7 @@ export async function searchContacts(query: string) {
 **Step 2: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add server actions for contact management"
@@ -1166,6 +1202,7 @@ git commit -m "feat: add server actions for contact management"
 ## Task 8: Create E-Invoice Provider Interface and Mock Provider
 
 **Files:**
+
 - Create: `src/lib/e-invoice/types.ts`
 - Create: `src/lib/e-invoice/provider.ts`
 - Create: `src/lib/e-invoice/providers/mock.ts`
@@ -1173,6 +1210,7 @@ git commit -m "feat: add server actions for contact management"
 **Step 1: Create e-invoice types**
 
 Create `src/lib/e-invoice/types.ts`:
+
 ```typescript
 import { EInvoice, EInvoiceLine, Contact, Company } from "@prisma/client"
 
@@ -1224,6 +1262,7 @@ export interface ProviderConfig {
 **Step 2: Create provider interface**
 
 Create `src/lib/e-invoice/provider.ts`:
+
 ```typescript
 import {
   EInvoiceWithRelations,
@@ -1237,18 +1276,13 @@ import {
 export interface EInvoiceProvider {
   readonly name: string
 
-  sendInvoice(
-    invoice: EInvoiceWithRelations,
-    ublXml: string
-  ): Promise<SendInvoiceResult>
+  sendInvoice(invoice: EInvoiceWithRelations, ublXml: string): Promise<SendInvoiceResult>
 
   fetchIncomingInvoices(): Promise<IncomingInvoice[]>
 
   getInvoiceStatus(providerRef: string): Promise<InvoiceStatusResult>
 
-  archiveInvoice(
-    invoice: EInvoiceWithRelations
-  ): Promise<ArchiveResult>
+  archiveInvoice(invoice: EInvoiceWithRelations): Promise<ArchiveResult>
 
   testConnection(): Promise<boolean>
 }
@@ -1275,6 +1309,7 @@ export function createEInvoiceProvider(
 **Step 3: Create mock provider for development**
 
 Create `src/lib/e-invoice/providers/mock.ts`:
+
 ```typescript
 import {
   EInvoiceProvider,
@@ -1291,10 +1326,7 @@ export class MockProvider implements EInvoiceProvider {
 
   constructor(private config: ProviderConfig) {}
 
-  async sendInvoice(
-    invoice: EInvoiceWithRelations,
-    ublXml: string
-  ): Promise<SendInvoiceResult> {
+  async sendInvoice(invoice: EInvoiceWithRelations, ublXml: string): Promise<SendInvoiceResult> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500))
 
@@ -1330,9 +1362,7 @@ export class MockProvider implements EInvoiceProvider {
     }
   }
 
-  async archiveInvoice(
-    invoice: EInvoiceWithRelations
-  ): Promise<ArchiveResult> {
+  async archiveInvoice(invoice: EInvoiceWithRelations): Promise<ArchiveResult> {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     return {
@@ -1351,6 +1381,7 @@ export class MockProvider implements EInvoiceProvider {
 **Step 4: Create index file**
 
 Create `src/lib/e-invoice/index.ts`:
+
 ```typescript
 export * from "./types"
 export * from "./provider"
@@ -1359,6 +1390,7 @@ export * from "./provider"
 **Step 5: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add e-invoice provider interface with mock implementation"
@@ -1369,11 +1401,13 @@ git commit -m "feat: add e-invoice provider interface with mock implementation"
 ## Task 9: Create UBL XML Generator
 
 **Files:**
+
 - Create: `src/lib/e-invoice/ubl-generator.ts`
 
 **Step 1: Create UBL generator**
 
 Create `src/lib/e-invoice/ubl-generator.ts`:
+
 ```typescript
 import { EInvoiceWithRelations } from "./types"
 import { Company, Contact, EInvoiceLine } from "@prisma/client"
@@ -1405,10 +1439,7 @@ function formatDecimal(value: number | string, decimals: number = 2): string {
   return Number(value).toFixed(decimals)
 }
 
-function generatePartyXml(
-  party: Contact | Company,
-  isSupplier: boolean
-): string {
+function generatePartyXml(party: Contact | Company, isSupplier: boolean): string {
   const oib = "oib" in party ? party.oib : null
   const vatNumber = "vatNumber" in party ? party.vatNumber : null
 
@@ -1570,6 +1601,7 @@ export function generateUBLInvoice(invoice: EInvoiceWithRelations): string {
 **Step 2: Update index**
 
 Update `src/lib/e-invoice/index.ts`:
+
 ```typescript
 export * from "./types"
 export * from "./provider"
@@ -1579,6 +1611,7 @@ export * from "./ubl-generator"
 **Step 3: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add UBL 2.1 XML generator for PEPPOL BIS 3.0 compliance"
@@ -1589,11 +1622,13 @@ git commit -m "feat: add UBL 2.1 XML generator for PEPPOL BIS 3.0 compliance"
 ## Task 10: Create E-Invoice Server Actions
 
 **Files:**
+
 - Create: `src/app/actions/e-invoice.ts`
 
 **Step 1: Create e-invoice server actions**
 
 Create `src/app/actions/e-invoice.ts`:
+
 ```typescript
 "use server"
 
@@ -1634,14 +1669,8 @@ export async function createEInvoice(formData: z.infer<typeof eInvoiceSchema>) {
     }
   })
 
-  const netAmount = lineItems.reduce(
-    (sum, line) => sum + Number(line.netAmount),
-    0
-  )
-  const vatAmount = lineItems.reduce(
-    (sum, line) => sum + Number(line.vatAmount),
-    0
-  )
+  const netAmount = lineItems.reduce((sum, line) => sum + Number(line.netAmount), 0)
+  const vatAmount = lineItems.reduce((sum, line) => sum + Number(line.vatAmount), 0)
   const totalAmount = netAmount + vatAmount
 
   const eInvoice = await db.eInvoice.create({
@@ -1738,10 +1767,7 @@ export async function sendEInvoice(eInvoiceId: string) {
   return { success: "E-Invoice sent successfully", data: result }
 }
 
-export async function getEInvoices(
-  direction?: "OUTBOUND" | "INBOUND",
-  status?: string
-) {
+export async function getEInvoices(direction?: "OUTBOUND" | "INBOUND", status?: string) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
@@ -1806,6 +1832,7 @@ export async function deleteEInvoice(eInvoiceId: string) {
 **Step 2: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add server actions for e-invoice management"
@@ -1816,6 +1843,7 @@ git commit -m "feat: add server actions for e-invoice management"
 ## Task 11: Create Basic UI Layout and Components
 
 **Files:**
+
 - Create: `src/components/ui/button.tsx`
 - Create: `src/components/ui/input.tsx`
 - Create: `src/components/ui/card.tsx`
@@ -1827,6 +1855,7 @@ git commit -m "feat: add server actions for e-invoice management"
 **Step 1: Create Button component**
 
 Create `src/components/ui/button.tsx`:
+
 ```typescript
 import { forwardRef, ButtonHTMLAttributes } from "react"
 import { cn } from "@/lib/utils"
@@ -1869,6 +1898,7 @@ export { Button }
 **Step 2: Create Input component**
 
 Create `src/components/ui/input.tsx`:
+
 ```typescript
 import { forwardRef, InputHTMLAttributes } from "react"
 import { cn } from "@/lib/utils"
@@ -1903,6 +1933,7 @@ export { Input }
 **Step 3: Create Card component**
 
 Create `src/components/ui/card.tsx`:
+
 ```typescript
 import { HTMLAttributes, forwardRef } from "react"
 import { cn } from "@/lib/utils"
@@ -1956,6 +1987,7 @@ export { Card, CardHeader, CardTitle, CardContent }
 **Step 4: Create utils**
 
 Create `src/lib/utils.ts`:
+
 ```typescript
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
@@ -1966,6 +1998,7 @@ export function cn(...inputs: ClassValue[]) {
 ```
 
 Install clsx:
+
 ```bash
 npm install clsx tailwind-merge
 ```
@@ -1973,6 +2006,7 @@ npm install clsx tailwind-merge
 **Step 5: Create Header component**
 
 Create `src/components/layout/header.tsx`:
+
 ```typescript
 import Link from "next/link"
 import { auth } from "@/lib/auth"
@@ -2021,6 +2055,7 @@ export async function Header() {
 **Step 6: Create Sidebar component**
 
 Create `src/components/layout/sidebar.tsx`:
+
 ```typescript
 "use client"
 
@@ -2066,6 +2101,7 @@ export function Sidebar() {
 **Step 7: Create auth layout**
 
 Create `src/app/(auth)/layout.tsx`:
+
 ```typescript
 import { ReactNode } from "react"
 
@@ -2081,6 +2117,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 **Step 8: Create dashboard layout**
 
 Create `src/app/(dashboard)/layout.tsx`:
+
 ```typescript
 import { ReactNode } from "react"
 import { redirect } from "next/navigation"
@@ -2114,6 +2151,7 @@ export default async function DashboardLayout({
 **Step 9: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add basic UI components and layouts"
@@ -2124,12 +2162,14 @@ git commit -m "feat: add basic UI components and layouts"
 ## Task 12: Create Authentication Pages
 
 **Files:**
+
 - Create: `src/app/(auth)/login/page.tsx`
 - Create: `src/app/(auth)/register/page.tsx`
 
 **Step 1: Create login page**
 
 Create `src/app/(auth)/login/page.tsx`:
+
 ```typescript
 "use client"
 
@@ -2225,6 +2265,7 @@ export default function LoginPage() {
 **Step 2: Create register page**
 
 Create `src/app/(auth)/register/page.tsx`:
+
 ```typescript
 "use client"
 
@@ -2348,6 +2389,7 @@ export default function RegisterPage() {
 **Step 3: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add login and registration pages"
@@ -2358,6 +2400,7 @@ git commit -m "feat: add login and registration pages"
 ## Task 13: Create Dashboard and E-Invoice Pages
 
 **Files:**
+
 - Create: `src/app/(dashboard)/dashboard/page.tsx`
 - Create: `src/app/(dashboard)/e-invoices/page.tsx`
 - Create: `src/app/(dashboard)/e-invoices/new/page.tsx`
@@ -2366,6 +2409,7 @@ git commit -m "feat: add login and registration pages"
 **Step 1: Create dashboard page**
 
 Create `src/app/(dashboard)/dashboard/page.tsx`:
+
 ```typescript
 import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
@@ -2460,6 +2504,7 @@ export default async function DashboardPage() {
 **Step 2: Create e-invoices list page**
 
 Create `src/app/(dashboard)/e-invoices/page.tsx`:
+
 ```typescript
 import Link from "next/link"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
@@ -2560,6 +2605,7 @@ export default async function EInvoicesPage() {
 **Step 3: Create new e-invoice page**
 
 Create `src/app/(dashboard)/e-invoices/new/page.tsx`:
+
 ```typescript
 "use client"
 
@@ -2818,6 +2864,7 @@ export default function NewEInvoicePage() {
 **Step 4: Create onboarding page**
 
 Create `src/app/(dashboard)/onboarding/page.tsx`:
+
 ```typescript
 "use client"
 
@@ -2975,6 +3022,7 @@ export default function OnboardingPage() {
 **Step 5: Update root page**
 
 Update `src/app/page.tsx`:
+
 ```typescript
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
@@ -2993,6 +3041,7 @@ export default async function HomePage() {
 **Step 6: Commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: add dashboard, e-invoices, and onboarding pages"
@@ -3005,11 +3054,13 @@ git commit -m "feat: add dashboard, e-invoices, and onboarding pages"
 **Step 1: Ensure database is running**
 
 Run:
+
 ```bash
 docker run -d --name fiskai-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=fiskai -p 5432:5432 postgres:16-alpine
 ```
 
 Or if using existing PostgreSQL, create database:
+
 ```bash
 createdb fiskai
 ```
@@ -3017,6 +3068,7 @@ createdb fiskai
 **Step 2: Run migrations**
 
 Run:
+
 ```bash
 npx prisma migrate deploy
 ```
@@ -3024,6 +3076,7 @@ npx prisma migrate deploy
 **Step 3: Start development server**
 
 Run:
+
 ```bash
 npm run dev
 ```
@@ -3041,6 +3094,7 @@ npm run dev
 **Step 5: Final commit**
 
 Run:
+
 ```bash
 git add -A
 git commit -m "feat: complete Phase 1 MVP - Core + E-Invoicing"
@@ -3073,6 +3127,7 @@ Phase 1 implements:
    - Company onboarding
 
 **Next Phase:**
+
 - Integrate real e-invoice provider (IE Računi or DDD)
 - Add contacts management UI
 - Add products management UI

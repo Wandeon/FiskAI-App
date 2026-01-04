@@ -4,12 +4,12 @@
 
 ```typescript
 // Hooks
-import { useMediaQuery, useIsMobile } from '@/hooks/use-media-query'
+import { useMediaQuery, useIsMobile } from "@/hooks/use-media-query"
 
 // Components
-import { MobileNav } from '@/components/layout/mobile-nav'
-import { ResponsiveTable } from '@/components/ui/responsive-table'
-import { FAB } from '@/components/ui/fab'
+import { MobileNav } from "@/components/layout/mobile-nav"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
+import { FAB } from "@/components/ui/fab"
 ```
 
 ## Common Patterns
@@ -78,31 +78,35 @@ const isMobile = useIsMobile() // true when width <= 768px
 
 ## Tailwind Breakpoints
 
-| Prefix | Min Width | Device |
-|--------|-----------|--------|
-| (none) | 0px | Mobile first |
-| sm | 640px | Small tablet |
-| md | 768px | Tablet |
-| lg | 1024px | Desktop |
-| xl | 1280px | Large desktop |
+| Prefix | Min Width | Device        |
+| ------ | --------- | ------------- |
+| (none) | 0px       | Mobile first  |
+| sm     | 640px     | Small tablet  |
+| md     | 768px     | Tablet        |
+| lg     | 1024px    | Desktop       |
+| xl     | 1280px    | Large desktop |
 
 ## Common Responsive Utilities
 
 ### Spacing
+
 - `p-4 md:p-6` - Padding
 - `m-2 md:m-4` - Margin
 - `gap-2 md:gap-4` - Grid/flex gap
 
 ### Layout
+
 - `flex-col md:flex-row` - Stack mobile, row desktop
 - `w-full md:w-1/2` - Full width mobile, half desktop
 - `max-w-sm md:max-w-lg` - Max width responsive
 
 ### Typography
+
 - `text-sm md:text-base lg:text-lg` - Font size
 - `text-center md:text-left` - Text alignment
 
 ### Display
+
 - `hidden md:block` - Hide mobile, show desktop
 - `block md:hidden` - Show mobile, hide desktop
 - `grid-cols-1 md:grid-cols-2` - Responsive columns
@@ -118,6 +122,7 @@ const isMobile = useIsMobile() // true when width <= 768px
 ## Touch Target Sizes
 
 Minimum sizes for mobile:
+
 - Buttons: 44x44px
 - Links: 44x44px
 - Form inputs: 44px height

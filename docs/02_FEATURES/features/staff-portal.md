@@ -18,27 +18,27 @@ The Staff Portal is designed to be a multi-client workspace for accountants and 
 
 #### Routes (2 pages)
 
-| Route              | Component                          | Status      |
-| ------------------ | ---------------------------------- | ----------- |
-| `/staff-dashboard` | `src/components/staff/dashboard.tsx` | Implemented |
+| Route              | Component                               | Status      |
+| ------------------ | --------------------------------------- | ----------- |
+| `/staff-dashboard` | `src/components/staff/dashboard.tsx`    | Implemented |
 | `/clients`         | `src/components/staff/clients-list.tsx` | Implemented |
 
 #### Layout & Navigation
 
-| Component                | Path                                          | Status      |
-| ------------------------ | --------------------------------------------- | ----------- |
-| Staff Layout             | `src/app/(staff)/layout.tsx`                  | Implemented |
-| Staff Sidebar            | `src/components/staff/sidebar.tsx`            | Implemented |
-| Staff Header             | `src/components/staff/header.tsx`             | Implemented |
-| Staff Client Provider    | `src/components/staff/staff-client-provider.tsx` | Shell only  |
-| Staff Client Context     | `src/contexts/staff-client-context.tsx`       | Implemented |
+| Component             | Path                                             | Status      |
+| --------------------- | ------------------------------------------------ | ----------- |
+| Staff Layout          | `src/app/(staff)/layout.tsx`                     | Implemented |
+| Staff Sidebar         | `src/components/staff/sidebar.tsx`               | Implemented |
+| Staff Header          | `src/components/staff/header.tsx`                | Implemented |
+| Staff Client Provider | `src/components/staff/staff-client-provider.tsx` | Shell only  |
+| Staff Client Context  | `src/contexts/staff-client-context.tsx`          | Implemented |
 
 #### API Endpoints
 
-| Endpoint                          | Method | Purpose                      | Status      |
-| --------------------------------- | ------ | ---------------------------- | ----------- |
-| `/api/staff/clients`              | GET    | List assigned clients        | Implemented |
-| `/api/staff/clients/[companyId]`  | GET    | Get single client details    | Implemented |
+| Endpoint                         | Method | Purpose                   | Status      |
+| -------------------------------- | ------ | ------------------------- | ----------- |
+| `/api/staff/clients`             | GET    | List assigned clients     | Implemented |
+| `/api/staff/clients/[companyId]` | GET    | Get single client details | Implemented |
 
 #### Authentication & Authorization
 
@@ -49,22 +49,22 @@ The Staff Portal is designed to be a multi-client workspace for accountants and 
 
 #### Dashboard Features
 
-| Feature                | Description                                       | Status      |
-| ---------------------- | ------------------------------------------------- | ----------- |
+| Feature                | Description                                        | Status      |
+| ---------------------- | -------------------------------------------------- | ----------- |
 | Assigned Clients Count | Shows number of companies assigned to staff member | Implemented |
-| Pending Tickets Count  | Shows accounting-related open support tickets     | Implemented |
-| Upcoming Deadlines     | Placeholder (returns 0)                           | Stub only   |
-| Items Need Attention   | Hardcoded to 0                                    | Stub only   |
-| Recent Activity        | Shows recent staff assignments                    | Implemented |
+| Pending Tickets Count  | Shows accounting-related open support tickets      | Implemented |
+| Upcoming Deadlines     | Placeholder (returns 0)                            | Stub only   |
+| Items Need Attention   | Hardcoded to 0                                     | Stub only   |
+| Recent Activity        | Shows recent staff assignments                     | Implemented |
 
 #### Client List Features
 
-| Feature               | Description                                    | Status      |
-| --------------------- | ---------------------------------------------- | ----------- |
-| Client Cards          | Display client name, OIB, invoice/expense counts | Implemented |
-| Open Ticket Badges    | Red badge showing open support tickets per client | Implemented |
-| Client Search         | Search input present but not wired             | UI only     |
-| Empty State           | Message when no clients assigned               | Implemented |
+| Feature            | Description                                       | Status      |
+| ------------------ | ------------------------------------------------- | ----------- |
+| Client Cards       | Display client name, OIB, invoice/expense counts  | Implemented |
+| Open Ticket Badges | Red badge showing open support tickets per client | Implemented |
+| Client Search      | Search input present but not wired                | UI only     |
+| Empty State        | Message when no clients assigned                  | Implemented |
 
 ---
 
@@ -72,34 +72,34 @@ The Staff Portal is designed to be a multi-client workspace for accountants and 
 
 #### Missing Pages (Navigation links exist, pages don't)
 
-| Route        | Expected Functionality                              | Status  |
-| ------------ | --------------------------------------------------- | ------- |
-| `/clients/[id]` | Client detail view with company info, actions    | Missing |
-| `/calendar`  | Shared calendar with deadlines across all clients   | Missing |
-| `/tasks`     | Task management for accountant workflows            | Missing |
-| `/tickets`   | Support tickets filtered to assigned clients        | Missing |
-| `/documents` | Document management across clients                  | Missing |
-| `/settings`  | Staff-specific settings                             | Missing |
+| Route           | Expected Functionality                            | Status  |
+| --------------- | ------------------------------------------------- | ------- |
+| `/clients/[id]` | Client detail view with company info, actions     | Missing |
+| `/calendar`     | Shared calendar with deadlines across all clients | Missing |
+| `/tasks`        | Task management for accountant workflows          | Missing |
+| `/tickets`      | Support tickets filtered to assigned clients      | Missing |
+| `/documents`    | Document management across clients                | Missing |
+| `/settings`     | Staff-specific settings                           | Missing |
 
 #### Missing Multi-Client Features
 
-| Feature                      | Description                                        | Priority |
-| ---------------------------- | -------------------------------------------------- | -------- |
-| Client Context Integration   | Layout uses shell provider, not actual context     | High     |
-| Client Switching UX          | Select client and work in their context            | High     |
-| Batch Operations             | Perform actions across multiple clients at once    | Medium   |
-| Aggregated Financial Views   | Combined P&L, VAT summary across all clients       | Medium   |
-| Cross-Client Search          | Search invoices/expenses across all clients        | Medium   |
+| Feature                    | Description                                     | Priority |
+| -------------------------- | ----------------------------------------------- | -------- |
+| Client Context Integration | Layout uses shell provider, not actual context  | High     |
+| Client Switching UX        | Select client and work in their context         | High     |
+| Batch Operations           | Perform actions across multiple clients at once | Medium   |
+| Aggregated Financial Views | Combined P&L, VAT summary across all clients    | Medium   |
+| Cross-Client Search        | Search invoices/expenses across all clients     | Medium   |
 
 #### Missing Accountant Workflows
 
-| Workflow                     | Description                                        | Priority |
-| ---------------------------- | -------------------------------------------------- | -------- |
-| Monthly Close Checklist      | Guided steps for closing books per client          | High     |
-| VAT Return Preparation       | Multi-client VAT aggregation and submission        | High     |
-| Year-End Processing          | Annual reports and filings for all clients         | Medium   |
-| Document Collection          | Request missing documents from clients             | Medium   |
-| Client Communication Log     | Track interactions and notes per client            | Low      |
+| Workflow                 | Description                                 | Priority |
+| ------------------------ | ------------------------------------------- | -------- |
+| Monthly Close Checklist  | Guided steps for closing books per client   | High     |
+| VAT Return Preparation   | Multi-client VAT aggregation and submission | High     |
+| Year-End Processing      | Annual reports and filings for all clients  | Medium   |
+| Document Collection      | Request missing documents from clients      | Medium   |
+| Client Communication Log | Track interactions and notes per client     | Low      |
 
 ---
 
@@ -123,6 +123,7 @@ model StaffAssignment {
 ### Context Architecture
 
 The `StaffClientContext` provides:
+
 - `currentClient` - Currently selected client (null = overview mode)
 - `switchClient(clientId)` - Fetch client details and navigate
 - `clearClient()` - Return to staff dashboard overview
@@ -150,6 +151,7 @@ API calls verify assignment before data access
 ### Current State (30% Complete)
 
 **Implemented:**
+
 - Basic scaffold with layout, sidebar, header
 - Authentication and authorization
 - Dashboard with stats (mostly stubs)
@@ -158,6 +160,7 @@ API calls verify assignment before data access
 - Client switching context infrastructure
 
 **Not Implemented:**
+
 - Any page beyond dashboard and client list
 - Client detail/editing views
 - Multi-client batch operations
@@ -188,6 +191,7 @@ List all companies assigned to the authenticated staff member.
 **Request:** No body required
 
 **Response (200):**
+
 ```json
 [
   {
@@ -203,6 +207,7 @@ List all companies assigned to the authenticated staff member.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - Not authenticated
 - `403 Forbidden` - User lacks STAFF/ADMIN role
 
@@ -217,9 +222,11 @@ Get detailed information for a specific assigned client.
 **Authentication:** Required (STAFF or ADMIN systemRole)
 
 **Path Parameters:**
+
 - `companyId` (string) - Company UUID
 
 **Response (200):**
+
 ```json
 {
   "id": "clxxx...",
@@ -240,6 +247,7 @@ Get detailed information for a specific assigned client.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - Not authenticated
 - `403 Forbidden` - User lacks STAFF/ADMIN role or not assigned to company
 - `404 Not Found` - Company does not exist
@@ -250,23 +258,23 @@ Get detailed information for a specific assigned client.
 
 ## File References
 
-| File | Purpose |
-| ---- | ------- |
-| `src/app/(staff)/layout.tsx` | Staff portal layout with auth |
-| `src/app/(staff)/staff-dashboard/page.tsx` | Dashboard page |
-| `src/app/(staff)/clients/page.tsx` | Clients list page |
-| `src/components/staff/dashboard.tsx` | Dashboard component |
-| `src/components/staff/clients-list.tsx` | Client list component |
-| `src/components/staff/sidebar.tsx` | Navigation sidebar |
-| `src/components/staff/header.tsx` | Portal header |
-| `src/contexts/staff-client-context.tsx` | Client switching context |
-| `src/app/api/staff/clients/route.ts` | List clients API |
-| `src/app/api/staff/clients/[companyId]/route.ts` | Get client API |
+| File                                             | Purpose                       |
+| ------------------------------------------------ | ----------------------------- |
+| `src/app/(staff)/layout.tsx`                     | Staff portal layout with auth |
+| `src/app/(staff)/staff-dashboard/page.tsx`       | Dashboard page                |
+| `src/app/(staff)/clients/page.tsx`               | Clients list page             |
+| `src/components/staff/dashboard.tsx`             | Dashboard component           |
+| `src/components/staff/clients-list.tsx`          | Client list component         |
+| `src/components/staff/sidebar.tsx`               | Navigation sidebar            |
+| `src/components/staff/header.tsx`                | Portal header                 |
+| `src/contexts/staff-client-context.tsx`          | Client switching context      |
+| `src/app/api/staff/clients/route.ts`             | List clients API              |
+| `src/app/api/staff/clients/[companyId]/route.ts` | Get client API                |
 
 ---
 
 ## Changelog
 
-| Date       | Change                              |
-| ---------- | ----------------------------------- |
-| 2025-12-28 | Initial documentation from audit   |
+| Date       | Change                           |
+| ---------- | -------------------------------- |
+| 2025-12-28 | Initial documentation from audit |

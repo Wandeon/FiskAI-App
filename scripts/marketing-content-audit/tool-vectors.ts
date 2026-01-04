@@ -48,7 +48,7 @@ export const TOOL_VECTORS: ToolVector[] = [
     expectedTexts: [],
     actions: [
       { type: "fill", selector: "#oib-input", value: "12345678903" },
-      { type: "click", selector: "button:has-text(\"Provjeri\")" },
+      { type: "click", selector: 'button:has-text("Provjeri")' },
     ],
     expectedAfter: ["OIB je valjan"],
     notes: "Confirms OIB validator accepts a known valid checksum.",

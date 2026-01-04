@@ -96,7 +96,7 @@ async function listUnmappedConcepts() {
   }
 
   console.log(`❌ Found ${unmappedConcepts.length} UNMAPPED concepts:\n`)
-  console.log("=" .repeat(80))
+  console.log("=".repeat(80))
 
   let totalUnmappedRules = 0
 

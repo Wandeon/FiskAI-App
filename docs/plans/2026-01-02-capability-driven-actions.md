@@ -15,6 +15,7 @@
 PHASE 1 built the UI projection layer - Control Centers that render capability-driven queues with ActionButton components. The buttons currently do nothing when clicked. PHASE 2 wires them to actual server actions.
 
 **Key Components:**
+
 1. `ActionHandlerRegistry` - Maps `{capabilityId, actionId}` → server action function
 2. `executeCapabilityAction` - Server action that validates capability state and dispatches to handler
 3. `useCapabilityAction` - Client hook with loading/error/success states
@@ -25,6 +26,7 @@ PHASE 1 built the UI projection layer - Control Centers that render capability-d
 ## Task 1: Action Handler Types
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/types.ts`
 - Test: `src/lib/capabilities/actions/__tests__/types.test.ts`
 
@@ -186,6 +188,7 @@ git commit -m "feat(capabilities): add action handler types"
 ## Task 2: Action Handler Registry
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/registry.ts`
 - Test: `src/lib/capabilities/actions/__tests__/registry.test.ts`
 
@@ -323,6 +326,7 @@ git commit -m "feat(capabilities): add action handler registry"
 ## Task 3: Invoice Action Handlers
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/handlers/invoice.ts`
 - Test: `src/lib/capabilities/actions/handlers/__tests__/invoice.test.ts`
 
@@ -414,10 +418,7 @@ registerActionHandler({
   capabilityId: "INV-002",
   actionId: "send_email",
   permission: "invoice:update",
-  handler: async (
-    _context: ActionContext,
-    params?: ActionParams
-  ): Promise<ActionResult> => {
+  handler: async (_context: ActionContext, params?: ActionParams): Promise<ActionResult> => {
     if (!params?.id) {
       return { success: false, error: "Invoice ID required", code: "VALIDATION_ERROR" }
     }
@@ -436,10 +437,7 @@ registerActionHandler({
   capabilityId: "INV-002",
   actionId: "send_einvoice",
   permission: "invoice:update",
-  handler: async (
-    _context: ActionContext,
-    params?: ActionParams
-  ): Promise<ActionResult> => {
+  handler: async (_context: ActionContext, params?: ActionParams): Promise<ActionResult> => {
     if (!params?.id) {
       return { success: false, error: "Invoice ID required", code: "VALIDATION_ERROR" }
     }
@@ -514,6 +512,7 @@ git commit -m "feat(capabilities): add invoice action handlers"
 ## Task 4: Action Executor Server Action
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/executor.ts`
 - Test: `src/lib/capabilities/actions/__tests__/executor.test.ts`
 
@@ -642,9 +641,7 @@ export interface ExecuteActionInput {
  * 2. Resolves capability to verify action is allowed
  * 3. Executes the registered handler
  */
-export async function executeCapabilityAction(
-  input: ExecuteActionInput
-): Promise<ActionResult> {
+export async function executeCapabilityAction(input: ExecuteActionInput): Promise<ActionResult> {
   const { capabilityId, actionId, entityId, entityType, params } = input
 
   // 1. Get session
@@ -765,6 +762,7 @@ git commit -m "feat(capabilities): add action executor server action"
 ## Task 5: useCapabilityAction Client Hook
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/useCapabilityAction.ts`
 - Test: `src/lib/capabilities/actions/__tests__/useCapabilityAction.test.tsx`
 
@@ -972,6 +970,7 @@ git commit -m "feat(capabilities): add useCapabilityAction hook"
 ## Task 6: Enhanced ActionButton Component
 
 **Files:**
+
 - Modify: `src/components/capability/ActionButton.tsx`
 - Test: `src/components/capability/__tests__/ActionButton.test.tsx`
 
@@ -1197,6 +1196,7 @@ git commit -m "feat(capabilities): enhance ActionButton with action execution"
 ## Task 7: Update QueueItem to Pass Entity Context
 
 **Files:**
+
 - Modify: `src/components/capability/QueueItem.tsx`
 
 **Step 1: Read current implementation**
@@ -1311,6 +1311,7 @@ git commit -m "feat(capabilities): pass entity context to ActionButton in QueueI
 ## Task 8: Barrel Export for Actions Module
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/index.ts`
 - Modify: `src/lib/capabilities/index.ts`
 
@@ -1355,6 +1356,7 @@ git commit -m "feat(capabilities): add barrel exports for actions module"
 ## Task 9: Integration Tests
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/__tests__/integration.test.ts`
 
 **Step 1: Write integration test**
@@ -1462,6 +1464,7 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ## Summary
 
 **Files Created:**
+
 - `src/lib/capabilities/actions/types.ts` - Action types
 - `src/lib/capabilities/actions/registry.ts` - Handler registry
 - `src/lib/capabilities/actions/handlers/invoice.ts` - Invoice handlers
@@ -1470,11 +1473,13 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 - `src/lib/capabilities/actions/index.ts` - Barrel exports
 
 **Files Modified:**
+
 - `src/components/capability/ActionButton.tsx` - Enhanced with execution
 - `src/components/capability/QueueItem.tsx` - Pass entity context
 - `src/lib/capabilities/index.ts` - Export actions module
 
 **Architecture:**
+
 ```
 ActionButton (click)
     ↓

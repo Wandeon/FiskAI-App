@@ -217,18 +217,18 @@ AND table_name IN (
 
 ## Staging Smoke Test Checklist
 
-| Flow | Action | Expected Result | Status |
-|------|--------|-----------------|--------|
-| Auth | Login with email/password | Success | [ ] |
-| Auth | Logout | Success | [ ] |
-| Auth | Password reset request | Email sent, VerificationToken created | [ ] |
-| Auth | Passkey login | Success (WebAuthnCredential used) | [ ] |
-| RTL | Run sentinel discovery | Evidence created | [ ] |
-| RTL | Trigger watchdog check | WatchdogAudit row created | [ ] |
-| Webhook | Process regulatory webhook | WebhookEvent created | [ ] |
-| Email | Send to previously bounced | EmailSuppression checked | [ ] |
-| Cron | Trigger failing cron job | CronJobError logged | [ ] |
-| Banking | Import duplicate transaction | PotentialDuplicate created | [ ] |
-| Build | `npm run build` | Success, no errors | [ ] |
-| Tests | `npm test` | All pass | [ ] |
-| Prisma | `npx prisma generate` | Success | [ ] |
+| Flow    | Action                       | Expected Result                       | Status |
+| ------- | ---------------------------- | ------------------------------------- | ------ |
+| Auth    | Login with email/password    | Success                               | [ ]    |
+| Auth    | Logout                       | Success                               | [ ]    |
+| Auth    | Password reset request       | Email sent, VerificationToken created | [ ]    |
+| Auth    | Passkey login                | Success (WebAuthnCredential used)     | [ ]    |
+| RTL     | Run sentinel discovery       | Evidence created                      | [ ]    |
+| RTL     | Trigger watchdog check       | WatchdogAudit row created             | [ ]    |
+| Webhook | Process regulatory webhook   | WebhookEvent created                  | [ ]    |
+| Email   | Send to previously bounced   | EmailSuppression checked              | [ ]    |
+| Cron    | Trigger failing cron job     | CronJobError logged                   | [ ]    |
+| Banking | Import duplicate transaction | PotentialDuplicate created            | [ ]    |
+| Build   | `npm run build`              | Success, no errors                    | [ ]    |
+| Tests   | `npm test`                   | All pass                              | [ ]    |
+| Prisma  | `npx prisma generate`        | Success                               | [ ]    |

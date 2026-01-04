@@ -80,18 +80,18 @@ docs/
 
 ### docs/01_ARCHITECTURE/
 
-| Canonical                    | Sources Merged                                                  | Status |
-| ---------------------------- | --------------------------------------------------------------- | ------ |
-| `overview.md`                | `docs/design/architecture.md`, `PHASE1_FEATURE_ARCHITECTURE.md` | DONE   |
-| `two-layer-model.md`         | `docs/regulatory-truth/` architecture sections                  | DONE   |
-| `trust-guarantees.md`        | `docs/_meta/invariants.md` references                           | DONE   |
-| `REGULATORY_TRUTH_LAYER.md`  | Scattered RTL docs, PR #128                                     | DONE   |
+| Canonical                   | Sources Merged                                                  | Status |
+| --------------------------- | --------------------------------------------------------------- | ------ |
+| `overview.md`               | `docs/design/architecture.md`, `PHASE1_FEATURE_ARCHITECTURE.md` | DONE   |
+| `two-layer-model.md`        | `docs/regulatory-truth/` architecture sections                  | DONE   |
+| `trust-guarantees.md`       | `docs/_meta/invariants.md` references                           | DONE   |
+| `REGULATORY_TRUTH_LAYER.md` | Scattered RTL docs, PR #128                                     | DONE   |
 
 ### docs/03_ARCHITECTURE/ (NEW - Component Architecture)
 
-| Canonical          | Sources Merged                         | Status |
-| ------------------ | -------------------------------------- | ------ |
-| `AI_ASSISTANT.md`  | 90+ files in `/src/lib/assistant/`, PR #127 | DONE   |
+| Canonical         | Sources Merged                              | Status |
+| ----------------- | ------------------------------------------- | ------ |
+| `AI_ASSISTANT.md` | 90+ files in `/src/lib/assistant/`, PR #127 | DONE   |
 
 ### docs/04_OPERATIONS/
 
@@ -209,15 +209,15 @@ These files are accurate and canonical:
 
 ## Recently Added Documentation (2025-12-28)
 
-| PR    | File                                            | Description                          |
-| ----- | ----------------------------------------------- | ------------------------------------ |
-| #124  | `docs/02_FEATURES/FEATURE_REGISTRY.md`          | Status granularity ([I]/[P]/[S]/[D]) |
-| #125  | `docs/product-bible/09-GUIDANCE-SYSTEM.md`      | Guidance System specification        |
-| #126  | `docs/02_FEATURES/features/staff-portal.md`     | Staff Portal gap analysis            |
-| #127  | `docs/03_ARCHITECTURE/AI_ASSISTANT.md`          | AI Assistant architecture            |
-| #128  | `docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md`| RTL consolidated architecture        |
-| #130  | `docs/02_FEATURES/features/staff-portal.md`     | Staff API reference added            |
-| #131  | `docs/02_FEATURES/COMPONENT_LIBRARY.md`         | UI component inventory               |
+| PR   | File                                             | Description                          |
+| ---- | ------------------------------------------------ | ------------------------------------ |
+| #124 | `docs/02_FEATURES/FEATURE_REGISTRY.md`           | Status granularity ([I]/[P]/[S]/[D]) |
+| #125 | `docs/product-bible/09-GUIDANCE-SYSTEM.md`       | Guidance System specification        |
+| #126 | `docs/02_FEATURES/features/staff-portal.md`      | Staff Portal gap analysis            |
+| #127 | `docs/03_ARCHITECTURE/AI_ASSISTANT.md`           | AI Assistant architecture            |
+| #128 | `docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md` | RTL consolidated architecture        |
+| #130 | `docs/02_FEATURES/features/staff-portal.md`      | Staff API reference added            |
+| #131 | `docs/02_FEATURES/COMPONENT_LIBRARY.md`          | UI component inventory               |
 
 ---
 

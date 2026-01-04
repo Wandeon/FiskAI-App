@@ -1,6 +1,7 @@
 # Docs Evidence Spot Check (2025-12-15)
 
 ## Sample
+
 Sampled 30 feature docs from `docs/02_FEATURES/features` using even index spacing.
 
 - accountant-dashboard.md

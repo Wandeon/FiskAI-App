@@ -119,6 +119,7 @@ npm run db:studio
 **Automatic (Recommended)**: Drizzle migrations run automatically on container startup via `docker-entrypoint.sh`.
 
 **Manual (if needed)**:
+
 ```bash
 # Inside the container
 docker exec -it fiskai-app npx drizzle-kit migrate
@@ -128,6 +129,7 @@ docker-compose exec fiskai-app npx drizzle-kit migrate
 ```
 
 **Verify migrations were applied**:
+
 ```sql
 -- Check if news tables exist
 SELECT table_name
@@ -167,6 +169,7 @@ npx prisma migrate status
 ### Migration Execution Order
 
 On deployment, migrations run in this order:
+
 1. **Drizzle migrations** (automatic via docker-entrypoint.sh)
 2. **Prisma migrations** (manual via `prisma migrate deploy` if needed)
 
@@ -197,6 +200,7 @@ Authorization: Bearer ${CRON_SECRET}
 ### Authorization
 
 The endpoint verifies the `Authorization` header must be exactly:
+
 ```
 Bearer 69dc676aaeb0c9e08cedeaaafb497ad549444aeece7f9339baa3947cef9305eb
 ```
@@ -206,6 +210,7 @@ If the header is missing or incorrect, the endpoint returns `401 Unauthorized`.
 ### Response Format
 
 **Success (200)**
+
 ```json
 {
   "processed": 10,
@@ -224,11 +229,13 @@ If the header is missing or incorrect, the endpoint returns `401 Unauthorized`.
 ```
 
 **Unauthorized (401)**
+
 ```
 Unauthorized
 ```
 
 **Server Error (500)**
+
 ```json
 {
   "error": "Processing failed"
@@ -273,17 +280,20 @@ RUN echo '*/1 * * * * curl -X GET "https://your-app.example.com/api/cron/fiscal-
 ### Option 4: External Cron Service
 
 Use a service like:
+
 - **EasyCron**: https://www.easycron.com
 - **Cron-job.org**: https://cron-job.org
 - **AWS EventBridge**: For AWS deployments
 - **Google Cloud Scheduler**: For Google Cloud deployments
 
 Configure the service to make HTTP GET requests to:
+
 ```
 https://your-app.example.com/api/cron/fiscal-processor
 ```
 
 With header:
+
 ```
 Authorization: Bearer 69dc676aaeb0c9e08cedeaaafb497ad549444aeece7f9339baa3947cef9305eb
 ```
@@ -304,6 +314,7 @@ docker logs -f <container_id>
 ```
 
 Expected log output:
+
 ```
 {"processed": 10, "results": [...]}
 ```
@@ -350,6 +361,7 @@ WHERE id = 'company_id';
 #### 3. Upload Fiscal Certificate
 
 The certificate must be in P12/PFX format with:
+
 - Subject containing the company OIB (11-digit Croatian tax ID)
 - Valid for the chosen environment (TEST or PROD)
 - Not expired
@@ -357,12 +369,12 @@ The certificate must be in P12/PFX format with:
 Upload via the UI at `/settings/fiscalisation` or via API:
 
 ```typescript
-import { saveCertificateAction } from '@/app/actions/fiscal-certificate'
+import { saveCertificateAction } from "@/app/actions/fiscal-certificate"
 
 const result = await saveCertificateAction({
   p12Base64: base64EncodedP12File,
-  password: 'certificate_password',
-  environment: 'PROD'
+  password: "certificate_password",
+  environment: "PROD",
 })
 ```
 
@@ -381,7 +393,7 @@ const result = await saveCertificateAction({
 ### docker-compose.prod.yml Example
 
 ```yaml
-version: '3.9'
+version: "3.9"
 
 services:
   fiskai-app:
@@ -453,6 +465,7 @@ docker-compose -f docker-compose.prod.yml exec fiskai-app npx prisma migrate dep
 ### Migration Behavior on Deployment
 
 When the container starts:
+
 1. The `docker-entrypoint.sh` script runs Drizzle migrations automatically
 2. If migrations succeed, the application starts
 3. If migrations fail, the container exits with an error
@@ -485,6 +498,7 @@ LIMIT 20;
 ```
 
 Status breakdown:
+
 - `QUEUED`: Waiting to be processed
 - `PROCESSING`: Currently being handled by cron worker
 - `COMPLETED`: Successfully fiscalized with JIR
@@ -506,6 +520,7 @@ ORDER BY certNotAfter ASC;
 ```
 
 Alert if:
+
 - `status` != 'ACTIVE'
 - `certNotAfter` < NOW() + INTERVAL '30 days' (expiring soon)
 
@@ -561,7 +576,7 @@ Key metrics to monitor:
 ## Support
 
 For issues with:
+
 - **Fiscalisation**: Contact your FINA representative or Porezna Uprava
 - **Application**: Check logs and contact FiskAI support
 - **Cron setup**: Refer to your hosting provider's documentation
-

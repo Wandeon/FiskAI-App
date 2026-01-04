@@ -28,6 +28,7 @@ keywords:
 ## Što je PDV obrazac?
 
 **PDV obrazac** je mjesečni ili kvartalni obrazac kojim PDV obveznici:
+
 - Prijavljuju **izlazni PDV** (na prodaju)
 - Prijavljuju **ulazni PDV** (na nabavu)
 - Obračunavaju **razliku** za uplatu ili povrat
@@ -35,46 +36,53 @@ keywords:
 ## Tko predaje PDV obrazac?
 
 **Obveznici:**
+
 - Svi PDV obveznici
 - Poduzetnici u sustavu PDV-a (prihod > <FiscalCurrency path="THRESHOLDS.pdv.value" /> ili dobrovoljni ulazak)
 
 **Frekvencija:**
+
 - **Mjesečno:** Prihod > 500.000 EUR godišnje
 - **Kvartalno:** Prihod < 500.000 EUR godišnje
 
 ## Rokovi predaje 2025.
 
 ### Mjesečna prijava:
+
 **20. u mjesecu za prethodni mjesec**
 
-| Mjesec | Rok predaje |
-|--------|-------------|
+| Mjesec        | Rok predaje       |
+| ------------- | ----------------- |
 | Siječanj 2025 | 20. veljače 2025. |
-| Veljača 2025 | 20. ožujka 2025. |
-| Ožujak 2025 | 22. travnja 2025. |
-| ... | ... |
+| Veljača 2025  | 20. ožujka 2025.  |
+| Ožujak 2025   | 22. travnja 2025. |
+| ...           | ...               |
 
 ### Kvartalna prijava:
+
 **20. u mjesecu nakon kvartala**
 
-| Kvartal | Razdoblje | Rok |
-|---------|-----------|-----|
-| Q1 2025 | 1.1.-31.3. | 22. travnja 2025. |
-| Q2 2025 | 1.4.-30.6. | 21. srpnja 2025. |
-| Q3 2025 | 1.7.-30.9. | 20. listopada 2025. |
-| Q4 2025 | 1.10.-31.12. | 20. siječnja 2026. |
+| Kvartal | Razdoblje    | Rok                 |
+| ------- | ------------ | ------------------- |
+| Q1 2025 | 1.1.-31.3.   | 22. travnja 2025.   |
+| Q2 2025 | 1.4.-30.6.   | 21. srpnja 2025.    |
+| Q3 2025 | 1.7.-30.9.   | 20. listopada 2025. |
+| Q4 2025 | 1.10.-31.12. | 20. siječnja 2026.  |
 
 ## Struktura PDV obrasca
 
 **I. Izlazni PDV (prodaja):**
+
 - Promet po stopama (<FiscalPercentage path="TAX_RATES.vat.standard.rate" />, <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" />, <FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" />, 0%)
 - Obračunati PDV
 
 **II. Ulazni PDV (nabava):**
+
 - Nabava s PDV-om
 - Ulazni PDV koji se može odbiti
 
 **III. Obračun:**
+
 - Razlika = Izlazni PDV - Ulazni PDV
 - **Ako > 0:** Uplatiti državi
 - **Ako < 0:** Povrat od države
@@ -84,15 +92,18 @@ keywords:
 **IT obrtnik, siječanj 2025.:**
 
 **Prodaja (izlazni PDV):**
+
 - Usluge: 10.000 EUR + PDV (standardna stopa)
 - **Izlazni PDV: obračun po stopi**
 
 **Nabava (ulazni PDV):**
+
 - Laptop: 1.200 EUR + 300 EUR PDV
 - Software licenca: 400 EUR + 100 EUR PDV
 - **Ulazni PDV: 400 EUR**
 
 **Obračun:**
+
 - Izlazni PDV: zbroj izlaznog PDV-a
 - Ulazni PDV: -400 EUR
 - **Za uplatiti: razlika izlaznog i ulaznog PDV-a**
@@ -100,9 +111,11 @@ keywords:
 ## Predaja PDV obrasca
 
 **Način predaje:**
+
 - **Elektronički:** ePorezna portal (obavezno)
 
 **Proces:**
+
 1. Prikupite račune (prodaja i nabava)
 2. Prijava na ePorezna
 3. Odabir "PDV obrazac"
@@ -114,16 +127,19 @@ keywords:
 ## Povrat PDV-a
 
 **Kada se događa povrat?**
+
 - Ulazni PDV > Izlazni PDV
 - Česta situacija pri velikim nabavama (oprema, vozila)
 - Izvoznici (izvoz je 0% PDV, ali ulazni se odbija)
 
 **Proces povrata:**
+
 - Porezna provjerava zahtjev (30-60 dana)
 - Odobrenje povrata
 - Isplata na poslovni račun
 
 **Primjer:**
+
 - Izlazni PDV: 1.000 EUR
 - Ulazni PDV: 3.000 EUR (kupljena oprema)
 - **Povrat: 2.000 EUR**
@@ -138,6 +154,7 @@ keywords:
 ## PDV obrazac i KPR
 
 **Na kraju godine:**
+
 - Predaje se **KPR obrazac** (godišnji)
 - Rekapitulacija svih PDV obrazaca
 - Kontrolni obračun

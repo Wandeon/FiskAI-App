@@ -13,6 +13,7 @@
 ## Task 1: Migrate Button Component
 
 **Files:**
+
 - Modify: `src/components/ui/button.tsx`
 
 **Step 1: Read current implementation**
@@ -99,6 +100,7 @@ kill %1
 ## Task 2: Migrate Badge Component
 
 **Files:**
+
 - Modify: `src/components/ui/badge.tsx`
 
 **Step 1: Read current implementation**
@@ -160,6 +162,7 @@ export { Badge, badgeVariants };
 ## Task 3: Migrate Input Component
 
 **Files:**
+
 - Modify: `src/components/ui/input.tsx`
 
 **Step 1: Read current implementation**
@@ -215,6 +218,7 @@ export { Input };
 ## Task 4: Migrate Textarea Component
 
 **Files:**
+
 - Modify: `src/components/ui/textarea.tsx`
 
 **Step 1: Read current implementation**
@@ -269,6 +273,7 @@ export { Textarea };
 ## Task 5: Migrate Card Component
 
 **Files:**
+
 - Modify: `src/components/ui/card.tsx`
 
 **Step 1: Read current implementation**
@@ -362,6 +367,7 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 ## Task 6: Migrate Alert Component
 
 **Files:**
+
 - Modify: `src/components/ui/alert.tsx`
 
 **Step 1: Read current implementation**

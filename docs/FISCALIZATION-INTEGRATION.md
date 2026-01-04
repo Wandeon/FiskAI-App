@@ -7,6 +7,7 @@ Quick guide for integrating Croatian fiscalization into your invoice workflow.
 ### 1. Set Environment Variable
 
 Add to `.env.local`:
+
 ```env
 FISCAL_PROVIDER=mock
 ```
@@ -16,7 +17,7 @@ FISCAL_PROVIDER=mock
 Run this once in your setup or settings page:
 
 ```typescript
-import { db } from '@/lib/db'
+import { db } from "@/lib/db"
 
 // Create default business premises
 const premises = await db.businessPremises.create({
@@ -26,8 +27,8 @@ const premises = await db.businessPremises.create({
     name: "Glavni ured",
     address: "Your business address",
     isDefault: true,
-    isActive: true
-  }
+    isActive: true,
+  },
 })
 
 // Create default payment device
@@ -38,8 +39,8 @@ await db.paymentDevice.create({
     code: 1,
     name: "Blagajna 1",
     isDefault: true,
-    isActive: true
-  }
+    isActive: true,
+  },
 })
 ```
 
@@ -121,7 +122,7 @@ export async function fiscalizeInvoiceWithPremises(
 ### Check Fiscalization Status
 
 ```typescript
-import { checkFiscalStatus } from '@/app/actions/fiscalize'
+import { checkFiscalStatus } from "@/app/actions/fiscalize"
 
 const status = await checkFiscalStatus(invoiceId)
 console.log(status.status) // 'FISCALIZED' | 'PENDING' | 'ERROR'
@@ -133,14 +134,12 @@ To fiscalize multiple invoices:
 
 ```typescript
 async function fiscalizeMultiple(invoiceIds: string[]) {
-  const results = await Promise.allSettled(
-    invoiceIds.map(id => fiscalizeInvoice(id))
-  )
+  const results = await Promise.allSettled(invoiceIds.map((id) => fiscalizeInvoice(id)))
 
   return results.map((result, i) => ({
     invoiceId: invoiceIds[i],
-    success: result.status === 'fulfilled' && result.value.success,
-    error: result.status === 'rejected' ? result.reason : undefined
+    success: result.status === "fulfilled" && result.value.success,
+    error: result.status === "rejected" ? result.reason : undefined,
   }))
 }
 ```
@@ -160,10 +159,10 @@ export async function generateInvoicePDF(invoice: EInvoice) {
   // Add fiscal data if fiscalized
   if (invoice.fiscalizedAt) {
     pdf.fontSize(10)
-    pdf.text('─────────────────────────────')
+    pdf.text("─────────────────────────────")
     pdf.text(`ZKI: ${invoice.zki}`)
     pdf.text(`JIR: ${invoice.jir}`)
-    pdf.text(`Fiscalized: ${invoice.fiscalizedAt.toLocaleString('hr-HR')}`)
+    pdf.text(`Fiscalized: ${invoice.fiscalizedAt.toLocaleString("hr-HR")}`)
 
     // Optionally add QR code with JIR
     // const qrCode = await generateQRCode(invoice.jir)
@@ -185,14 +184,18 @@ export function getFiscalEmailTemplate(invoice: EInvoice) {
       <body>
         <h2>Račun ${invoice.invoiceNumber}</h2>
 
-        ${invoice.fiscalizedAt ? `
+        ${
+          invoice.fiscalizedAt
+            ? `
           <div style="background: #f0f0f0; padding: 15px; margin: 20px 0;">
             <h3>Podaci fiskalizacije</h3>
             <p><strong>ZKI:</strong> ${invoice.zki}</p>
             <p><strong>JIR:</strong> ${invoice.jir}</p>
-            <p><em>Fiskalizirano: ${invoice.fiscalizedAt.toLocaleString('hr-HR')}</em></p>
+            <p><em>Fiskalizirano: ${invoice.fiscalizedAt.toLocaleString("hr-HR")}</em></p>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
         <!-- Rest of email -->
       </body>
@@ -204,9 +207,11 @@ export function getFiscalEmailTemplate(invoice: EInvoice) {
 ## Workflow Integration
 
 ### Option 1: Manual Fiscalization
+
 User creates invoice → Reviews → Clicks "Fiscalize" button → Gets JIR
 
 ### Option 2: Auto-fiscalize on Send
+
 ```typescript
 export async function sendInvoiceWithFiscalization(invoiceId: string) {
   // First fiscalize
@@ -224,6 +229,7 @@ export async function sendInvoiceWithFiscalization(invoiceId: string) {
 ```
 
 ### Option 3: Fiscalize on Create
+
 ```typescript
 export async function createAndFiscalizeInvoice(data) {
   // Create invoice
@@ -279,7 +285,7 @@ export function FiscalizationStatus({ invoice }: { invoice: EInvoice }) {
 
 ```typescript
 // .env.local
-FISCAL_PROVIDER=mock
+FISCAL_PROVIDER = mock
 
 // Your test
 const result = await fiscalizeInvoice(testInvoiceId)
@@ -291,9 +297,9 @@ expect(result.jir).toMatch(/^[a-z0-9-]+$/)
 
 ```typescript
 // .env.local
-FISCAL_PROVIDER=ie-racuni
-IE_RACUNI_API_KEY=your_sandbox_key
-IE_RACUNI_SANDBOX=true
+FISCAL_PROVIDER = ie - racuni
+IE_RACUNI_API_KEY = your_sandbox_key
+IE_RACUNI_SANDBOX = true
 
 // Your test
 const result = await fiscalizeInvoice(testInvoiceId)
@@ -325,15 +331,19 @@ IE_RACUNI_API_URL=https://api.ie-racuni.hr/v1
 ## Common Issues
 
 ### "Nije konfiguriran poslovni prostor"
+
 ➡️ Run step 2 above to create business premises
 
 ### "Račun je već fiskaliziran"
+
 ➡️ Can't fiscalize twice. Create credit note to reverse.
 
 ### "Invalid OIB format"
+
 ➡️ Check company.oib is exactly 11 digits
 
 ### JIR not showing
+
 ➡️ Check invoice.status === 'FISCALIZED' and invoice.jir exists
 
 ## Support

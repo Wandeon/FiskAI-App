@@ -13,6 +13,7 @@
 ## Task 1: Add Email Provider Enums to Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add enums after existing DuplicateResolution enum**
@@ -55,6 +56,7 @@ git commit -m "feat(email-import): add email provider enums"
 ## Task 2: Add EmailConnection Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add EmailConnection model after PotentialDuplicate model**
@@ -92,6 +94,7 @@ model EmailConnection {
 **Step 2: Add relation to Company model**
 
 Find in Company model and add after `potentialDuplicates`:
+
 ```prisma
   emailConnections      EmailConnection[]
 ```
@@ -113,6 +116,7 @@ git commit -m "feat(email-import): add EmailConnection model"
 ## Task 3: Add EmailImportRule Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add EmailImportRule model after EmailConnection**
@@ -156,6 +160,7 @@ git commit -m "feat(email-import): add EmailImportRule model"
 ## Task 4: Add EmailAttachment Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add EmailAttachment model after EmailImportRule**
@@ -197,6 +202,7 @@ model EmailAttachment {
 **Step 2: Add relation to ImportJob model**
 
 Find ImportJob model and add after `invoice`:
+
 ```prisma
   emailAttachment   EmailAttachment?
 ```
@@ -204,6 +210,7 @@ Find ImportJob model and add after `invoice`:
 **Step 3: Add relations to Company model**
 
 Find in Company model and add:
+
 ```prisma
   emailImportRules      EmailImportRule[]
   emailAttachments      EmailAttachment[]
@@ -226,6 +233,7 @@ git commit -m "feat(email-import): add EmailAttachment model"
 ## Task 5: Push Schema Changes to Database
 
 **Files:**
+
 - None (database operation)
 
 **Step 1: Push schema to database**
@@ -250,6 +258,7 @@ git commit -m "feat(email-import): sync database schema"
 ## Task 6: Create Email Provider Types
 
 **Files:**
+
 - Create: `src/lib/email-sync/types.ts`
 
 **Step 1: Create types file**
@@ -302,6 +311,7 @@ git commit -m "feat(email-import): add email sync types"
 ## Task 7: Create Email Provider Interface
 
 **Files:**
+
 - Create: `src/lib/email-sync/provider.ts`
 
 **Step 1: Create provider interface**
@@ -309,7 +319,7 @@ git commit -m "feat(email-import): add email sync types"
 ```typescript
 // src/lib/email-sync/provider.ts
 
-import type { TokenResult, MessageBatch } from './types'
+import type { TokenResult, MessageBatch } from "./types"
 
 export interface EmailSyncProvider {
   name: string
@@ -337,11 +347,7 @@ export interface EmailSyncProvider {
   /**
    * Download attachment content
    */
-  downloadAttachment(
-    accessToken: string,
-    messageId: string,
-    attachmentId: string
-  ): Promise<Buffer>
+  downloadAttachment(accessToken: string, messageId: string, attachmentId: string): Promise<Buffer>
 
   /**
    * Revoke tokens on disconnect
@@ -367,6 +373,7 @@ git commit -m "feat(email-import): add email provider interface"
 ## Task 8: Install Gmail API Dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install googleapis**
@@ -386,6 +393,7 @@ git commit -m "feat(email-import): add googleapis dependency"
 ## Task 9: Create Gmail Provider Implementation
 
 **Files:**
+
 - Create: `src/lib/email-sync/providers/gmail.ts`
 
 **Step 1: Create Gmail provider**
@@ -393,30 +401,27 @@ git commit -m "feat(email-import): add googleapis dependency"
 ```typescript
 // src/lib/email-sync/providers/gmail.ts
 
-import { google } from 'googleapis'
-import type { EmailSyncProvider } from '../provider'
-import type { TokenResult, MessageBatch, EmailMessage } from '../types'
+import { google } from "googleapis"
+import type { EmailSyncProvider } from "../provider"
+import type { TokenResult, MessageBatch, EmailMessage } from "../types"
 
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+const SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 function getOAuth2Client() {
-  return new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET
-  )
+  return new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)
 }
 
 export const gmailProvider: EmailSyncProvider = {
-  name: 'gmail',
+  name: "gmail",
 
   getAuthUrl(redirectUri: string, state: string): string {
     const oauth2Client = getOAuth2Client()
     return oauth2Client.generateAuthUrl({
-      access_type: 'offline',
+      access_type: "offline",
       scope: SCOPES,
       redirect_uri: redirectUri,
       state,
-      prompt: 'consent',
+      prompt: "consent",
     })
   },
 
@@ -427,7 +432,7 @@ export const gmailProvider: EmailSyncProvider = {
     const { tokens } = await oauth2Client.getToken(code)
 
     if (!tokens.refresh_token) {
-      throw new Error('No refresh token received - user may need to revoke and reconnect')
+      throw new Error("No refresh token received - user may need to revoke and reconnect")
     }
 
     return {
@@ -456,11 +461,11 @@ export const gmailProvider: EmailSyncProvider = {
     const oauth2Client = getOAuth2Client()
     oauth2Client.setCredentials({ access_token: accessToken })
 
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client })
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client })
 
     const response = await gmail.users.messages.list({
-      userId: 'me',
-      q: 'has:attachment',
+      userId: "me",
+      q: "has:attachment",
       maxResults: 50,
       pageToken: cursor,
     })
@@ -469,27 +474,27 @@ export const gmailProvider: EmailSyncProvider = {
 
     for (const msg of response.data.messages || []) {
       const detail = await gmail.users.messages.get({
-        userId: 'me',
+        userId: "me",
         id: msg.id!,
-        format: 'metadata',
-        metadataHeaders: ['From', 'Subject', 'Date'],
+        format: "metadata",
+        metadataHeaders: ["From", "Subject", "Date"],
       })
 
       const headers = detail.data.payload?.headers || []
-      const fromHeader = headers.find(h => h.name === 'From')?.value || ''
-      const subjectHeader = headers.find(h => h.name === 'Subject')?.value || ''
-      const dateHeader = headers.find(h => h.name === 'Date')?.value || ''
+      const fromHeader = headers.find((h) => h.name === "From")?.value || ""
+      const subjectHeader = headers.find((h) => h.name === "Subject")?.value || ""
+      const dateHeader = headers.find((h) => h.name === "Date")?.value || ""
 
       // Extract email from "Name <email>" format
       const emailMatch = fromHeader.match(/<([^>]+)>/) || [null, fromHeader]
       const senderEmail = emailMatch[1] || fromHeader
 
       const attachments = (detail.data.payload?.parts || [])
-        .filter(part => part.filename && part.body?.attachmentId)
-        .map(part => ({
+        .filter((part) => part.filename && part.body?.attachmentId)
+        .map((part) => ({
           id: part.body!.attachmentId!,
           filename: part.filename!,
-          mimeType: part.mimeType || 'application/octet-stream',
+          mimeType: part.mimeType || "application/octet-stream",
           sizeBytes: part.body!.size || 0,
         }))
 
@@ -518,21 +523,21 @@ export const gmailProvider: EmailSyncProvider = {
     const oauth2Client = getOAuth2Client()
     oauth2Client.setCredentials({ access_token: accessToken })
 
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client })
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client })
 
     const response = await gmail.users.messages.attachments.get({
-      userId: 'me',
+      userId: "me",
       messageId,
       id: attachmentId,
     })
 
     const data = response.data.data
     if (!data) {
-      throw new Error('No attachment data received')
+      throw new Error("No attachment data received")
     }
 
     // Gmail returns base64url encoded data
-    return Buffer.from(data, 'base64url')
+    return Buffer.from(data, "base64url")
   },
 
   async revokeAccess(accessToken: string): Promise<void> {
@@ -559,6 +564,7 @@ git commit -m "feat(email-import): implement Gmail provider"
 ## Task 10: Install Microsoft Graph Dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install Microsoft Graph client**
@@ -578,6 +584,7 @@ git commit -m "feat(email-import): add Microsoft Graph dependencies"
 ## Task 11: Create Microsoft Provider Implementation
 
 **Files:**
+
 - Create: `src/lib/email-sync/providers/microsoft.ts`
 
 **Step 1: Create Microsoft provider**
@@ -585,34 +592,34 @@ git commit -m "feat(email-import): add Microsoft Graph dependencies"
 ```typescript
 // src/lib/email-sync/providers/microsoft.ts
 
-import { ConfidentialClientApplication } from '@azure/msal-node'
-import { Client } from '@microsoft/microsoft-graph-client'
-import type { EmailSyncProvider } from '../provider'
-import type { TokenResult, MessageBatch, EmailMessage } from '../types'
+import { ConfidentialClientApplication } from "@azure/msal-node"
+import { Client } from "@microsoft/microsoft-graph-client"
+import type { EmailSyncProvider } from "../provider"
+import type { TokenResult, MessageBatch, EmailMessage } from "../types"
 
-const SCOPES = ['Mail.Read', 'offline_access']
+const SCOPES = ["Mail.Read", "offline_access"]
 
 function getMsalClient() {
   return new ConfidentialClientApplication({
     auth: {
       clientId: process.env.MICROSOFT_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-      authority: 'https://login.microsoftonline.com/common',
+      authority: "https://login.microsoftonline.com/common",
     },
   })
 }
 
 export const microsoftProvider: EmailSyncProvider = {
-  name: 'microsoft',
+  name: "microsoft",
 
   getAuthUrl(redirectUri: string, state: string): string {
     const params = new URLSearchParams({
       client_id: process.env.MICROSOFT_CLIENT_ID!,
-      response_type: 'code',
+      response_type: "code",
       redirect_uri: redirectUri,
-      scope: SCOPES.join(' '),
+      scope: SCOPES.join(" "),
       state,
-      prompt: 'consent',
+      prompt: "consent",
     })
     return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`
   },
@@ -627,7 +634,7 @@ export const microsoftProvider: EmailSyncProvider = {
     })
 
     if (!result) {
-      throw new Error('Failed to exchange code for tokens')
+      throw new Error("Failed to exchange code for tokens")
     }
 
     // Get refresh token via token cache
@@ -660,9 +667,9 @@ export const microsoftProvider: EmailSyncProvider = {
       account: {
         homeAccountId,
         tenantId,
-        environment: 'login.microsoftonline.com',
-        username: '',
-        localAccountId: '',
+        environment: "login.microsoftonline.com",
+        username: "",
+        localAccountId: "",
       },
     })
 
@@ -680,10 +687,10 @@ export const microsoftProvider: EmailSyncProvider = {
     })
 
     let request = client
-      .api('/me/messages')
-      .filter('hasAttachments eq true')
-      .select('id,receivedDateTime,from,subject')
-      .expand('attachments($select=id,name,contentType,size)')
+      .api("/me/messages")
+      .filter("hasAttachments eq true")
+      .select("id,receivedDateTime,from,subject")
+      .expand("attachments($select=id,name,contentType,size)")
       .top(50)
 
     if (cursor) {
@@ -695,19 +702,19 @@ export const microsoftProvider: EmailSyncProvider = {
     const messages: EmailMessage[] = (response.value || []).map((msg: any) => ({
       id: msg.id,
       receivedAt: new Date(msg.receivedDateTime),
-      senderEmail: msg.from?.emailAddress?.address || '',
-      subject: msg.subject || '',
+      senderEmail: msg.from?.emailAddress?.address || "",
+      subject: msg.subject || "",
       attachments: (msg.attachments || []).map((att: any) => ({
         id: att.id,
         filename: att.name,
-        mimeType: att.contentType || 'application/octet-stream',
+        mimeType: att.contentType || "application/octet-stream",
         sizeBytes: att.size || 0,
       })),
     }))
 
     return {
       messages,
-      nextCursor: response['@odata.nextLink'],
+      nextCursor: response["@odata.nextLink"],
     }
   },
 
@@ -720,15 +727,13 @@ export const microsoftProvider: EmailSyncProvider = {
       authProvider: (done) => done(null, accessToken),
     })
 
-    const response = await client
-      .api(`/me/messages/${messageId}/attachments/${attachmentId}`)
-      .get()
+    const response = await client.api(`/me/messages/${messageId}/attachments/${attachmentId}`).get()
 
     if (!response.contentBytes) {
-      throw new Error('No attachment content received')
+      throw new Error("No attachment content received")
     }
 
-    return Buffer.from(response.contentBytes, 'base64')
+    return Buffer.from(response.contentBytes, "base64")
   },
 
   async revokeAccess(_accessToken: string): Promise<void> {
@@ -756,6 +761,7 @@ git commit -m "feat(email-import): implement Microsoft provider"
 ## Task 12: Create Provider Index
 
 **Files:**
+
 - Create: `src/lib/email-sync/providers/index.ts`
 
 **Step 1: Create index file**
@@ -763,9 +769,9 @@ git commit -m "feat(email-import): implement Microsoft provider"
 ```typescript
 // src/lib/email-sync/providers/index.ts
 
-import type { EmailSyncProvider } from '../provider'
-import { gmailProvider } from './gmail'
-import { microsoftProvider } from './microsoft'
+import type { EmailSyncProvider } from "../provider"
+import { gmailProvider } from "./gmail"
+import { microsoftProvider } from "./microsoft"
 
 const providers: Record<string, EmailSyncProvider> = {
   gmail: gmailProvider,
@@ -783,11 +789,11 @@ export function getEmailProvider(name: string): EmailSyncProvider {
 }
 
 export function isEmailProviderConfigured(name: string): boolean {
-  if (name === 'gmail' || name === 'GMAIL') {
+  if (name === "gmail" || name === "GMAIL") {
     return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
   }
 
-  if (name === 'microsoft' || name === 'MICROSOFT') {
+  if (name === "microsoft" || name === "MICROSOFT") {
     return !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET)
   }
 
@@ -812,6 +818,7 @@ git commit -m "feat(email-import): add email provider index"
 ## Task 13: Create R2 Storage Client
 
 **Files:**
+
 - Create: `src/lib/r2-client.ts`
 
 **Step 1: Install AWS S3 client**
@@ -824,10 +831,15 @@ Expected: "added X packages"
 ```typescript
 // src/lib/r2-client.ts
 
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3"
 
 const r2Client = new S3Client({
-  region: 'auto',
+  region: "auto",
   endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
@@ -835,13 +847,9 @@ const r2Client = new S3Client({
   },
 })
 
-const BUCKET = process.env.R2_BUCKET_NAME || 'fiskai-documents'
+const BUCKET = process.env.R2_BUCKET_NAME || "fiskai-documents"
 
-export async function uploadToR2(
-  key: string,
-  data: Buffer,
-  contentType: string
-): Promise<string> {
+export async function uploadToR2(key: string, data: Buffer, contentType: string): Promise<string> {
   await r2Client.send(
     new PutObjectCommand({
       Bucket: BUCKET,
@@ -877,15 +885,11 @@ export async function deleteFromR2(key: string): Promise<void> {
   )
 }
 
-export function generateR2Key(
-  companyId: string,
-  contentHash: string,
-  filename: string
-): string {
+export function generateR2Key(companyId: string, contentHash: string, filename: string): string {
   const now = new Date()
   const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const ext = filename.split('.').pop() || 'bin'
+  const month = String(now.getMonth() + 1).padStart(2, "0")
+  const ext = filename.split(".").pop() || "bin"
 
   return `attachments/${companyId}/${year}/${month}/${contentHash}.${ext}`
 }
@@ -908,6 +912,7 @@ git commit -m "feat(email-import): add Cloudflare R2 client"
 ## Task 14: Create Email Connect API Endpoint
 
 **Files:**
+
 - Create: `src/app/api/email/connect/route.ts`
 
 **Step 1: Create connect endpoint**
@@ -915,10 +920,10 @@ git commit -m "feat(email-import): add Cloudflare R2 client"
 ```typescript
 // src/app/api/email/connect/route.ts
 
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { setTenantContext } from '@/lib/prisma-extensions'
-import { getEmailProvider, isEmailProviderConfigured } from '@/lib/email-sync/providers'
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { setTenantContext } from "@/lib/prisma-extensions"
+import { getEmailProvider, isEmailProviderConfigured } from "@/lib/email-sync/providers"
 
 export async function POST(request: Request) {
   try {
@@ -928,9 +933,9 @@ export async function POST(request: Request) {
 
     const { provider: providerName } = await request.json()
 
-    if (!providerName || !['GMAIL', 'MICROSOFT'].includes(providerName)) {
+    if (!providerName || !["GMAIL", "MICROSOFT"].includes(providerName)) {
       return NextResponse.json(
-        { error: 'Invalid provider. Must be GMAIL or MICROSOFT' },
+        { error: "Invalid provider. Must be GMAIL or MICROSOFT" },
         { status: 400 }
       )
     }
@@ -943,21 +948,21 @@ export async function POST(request: Request) {
     }
 
     const provider = getEmailProvider(providerName)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.fiskai.hr'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.fiskai.hr"
     const redirectUri = `${baseUrl}/api/email/callback`
 
     // State contains provider and company info for callback
     const state = Buffer.from(
       JSON.stringify({ provider: providerName, companyId: company.id })
-    ).toString('base64url')
+    ).toString("base64url")
 
     const authUrl = provider.getAuthUrl(redirectUri, state)
 
     return NextResponse.json({ authUrl })
   } catch (error) {
-    console.error('[email/connect] error:', error)
+    console.error("[email/connect] error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Connection failed' },
+      { error: error instanceof Error ? error.message : "Connection failed" },
       { status: 500 }
     )
   }
@@ -981,6 +986,7 @@ git commit -m "feat(email-import): add email connect endpoint"
 ## Task 15: Create Email Callback API Endpoint
 
 **Files:**
+
 - Create: `src/app/api/email/callback/route.ts`
 
 **Step 1: Create callback endpoint**
@@ -988,65 +994,65 @@ git commit -m "feat(email-import): add email connect endpoint"
 ```typescript
 // src/app/api/email/callback/route.ts
 
-import { redirect } from 'next/navigation'
-import { db } from '@/lib/db'
-import { getEmailProvider } from '@/lib/email-sync/providers'
-import { encryptSecret } from '@/lib/secrets'
+import { redirect } from "next/navigation"
+import { db } from "@/lib/db"
+import { getEmailProvider } from "@/lib/email-sync/providers"
+import { encryptSecret } from "@/lib/secrets"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
-  const state = searchParams.get('state')
-  const error = searchParams.get('error')
+  const code = searchParams.get("code")
+  const state = searchParams.get("state")
+  const error = searchParams.get("error")
 
   if (error) {
-    console.error('[email/callback] OAuth error:', error)
-    redirect('/settings/email?error=oauth_denied')
+    console.error("[email/callback] OAuth error:", error)
+    redirect("/settings/email?error=oauth_denied")
   }
 
   if (!code || !state) {
-    redirect('/settings/email?error=missing_params')
+    redirect("/settings/email?error=missing_params")
   }
 
   try {
     // Decode state
-    const stateData = JSON.parse(Buffer.from(state, 'base64url').toString())
+    const stateData = JSON.parse(Buffer.from(state, "base64url").toString())
     const { provider: providerName, companyId } = stateData
 
     if (!providerName || !companyId) {
-      redirect('/settings/email?error=invalid_state')
+      redirect("/settings/email?error=invalid_state")
     }
 
     const provider = getEmailProvider(providerName)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.fiskai.hr'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.fiskai.hr"
     const redirectUri = `${baseUrl}/api/email/callback`
 
     // Exchange code for tokens
     const tokens = await provider.exchangeCode(code, redirectUri)
 
     // Get user email address (for Gmail, from token info)
-    let emailAddress = 'unknown@email.com'
+    let emailAddress = "unknown@email.com"
 
-    if (providerName === 'GMAIL') {
+    if (providerName === "GMAIL") {
       // Fetch user profile to get email
-      const { google } = await import('googleapis')
+      const { google } = await import("googleapis")
       const oauth2Client = new google.auth.OAuth2()
       oauth2Client.setCredentials({ access_token: tokens.accessToken })
-      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client })
+      const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client })
       const userInfo = await oauth2.userinfo.get()
       emailAddress = userInfo.data.email || emailAddress
-    } else if (providerName === 'MICROSOFT') {
+    } else if (providerName === "MICROSOFT") {
       // Fetch user profile from Graph
-      const { Client } = await import('@microsoft/microsoft-graph-client')
+      const { Client } = await import("@microsoft/microsoft-graph-client")
       const client = Client.init({
         authProvider: (done) => done(null, tokens.accessToken),
       })
-      const user = await client.api('/me').select('mail,userPrincipalName').get()
+      const user = await client.api("/me").select("mail,userPrincipalName").get()
       emailAddress = user.mail || user.userPrincipalName || emailAddress
     }
 
     // Create or update connection
-    const providerEnum = providerName.toUpperCase() as 'GMAIL' | 'MICROSOFT'
+    const providerEnum = providerName.toUpperCase() as "GMAIL" | "MICROSOFT"
 
     await db.emailConnection.upsert({
       where: {
@@ -1059,14 +1065,14 @@ export async function GET(request: Request) {
         companyId,
         provider: providerEnum,
         emailAddress,
-        status: 'CONNECTED',
+        status: "CONNECTED",
         accessTokenEnc: tokens.accessToken ? encryptSecret(tokens.accessToken) : null,
         refreshTokenEnc: encryptSecret(tokens.refreshToken),
         tokenExpiresAt: tokens.expiresAt,
         scopes: tokens.scopes,
       },
       update: {
-        status: 'CONNECTED',
+        status: "CONNECTED",
         accessTokenEnc: tokens.accessToken ? encryptSecret(tokens.accessToken) : null,
         refreshTokenEnc: encryptSecret(tokens.refreshToken),
         tokenExpiresAt: tokens.expiresAt,
@@ -1075,10 +1081,10 @@ export async function GET(request: Request) {
       },
     })
 
-    redirect('/settings/email?success=connected')
+    redirect("/settings/email?success=connected")
   } catch (error) {
-    console.error('[email/callback] error:', error)
-    redirect('/settings/email?error=callback_failed')
+    console.error("[email/callback] error:", error)
+    redirect("/settings/email?error=callback_failed")
   }
 }
 ```
@@ -1100,6 +1106,7 @@ git commit -m "feat(email-import): add email callback endpoint"
 ## Task 16: Create Email Disconnect API Endpoint
 
 **Files:**
+
 - Create: `src/app/api/email/[connectionId]/disconnect/route.ts`
 
 **Step 1: Create disconnect endpoint**
@@ -1107,12 +1114,12 @@ git commit -m "feat(email-import): add email callback endpoint"
 ```typescript
 // src/app/api/email/[connectionId]/disconnect/route.ts
 
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
-import { getEmailProvider } from '@/lib/email-sync/providers'
-import { decryptSecret } from '@/lib/secrets'
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
+import { getEmailProvider } from "@/lib/email-sync/providers"
+import { decryptSecret } from "@/lib/secrets"
 
 export async function DELETE(
   request: Request,
@@ -1130,10 +1137,7 @@ export async function DELETE(
     })
 
     if (!connection) {
-      return NextResponse.json(
-        { error: 'Connection not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Connection not found" }, { status: 404 })
     }
 
     // Try to revoke access token
@@ -1144,7 +1148,7 @@ export async function DELETE(
         await provider.revokeAccess(accessToken)
       }
     } catch (revokeError) {
-      console.error('[email/disconnect] revoke error:', revokeError)
+      console.error("[email/disconnect] revoke error:", revokeError)
       // Continue with deletion even if revoke fails
     }
 
@@ -1152,17 +1156,17 @@ export async function DELETE(
     await db.emailConnection.update({
       where: { id: connectionId },
       data: {
-        status: 'REVOKED',
+        status: "REVOKED",
         accessTokenEnc: null,
-        refreshTokenEnc: '',
+        refreshTokenEnc: "",
       },
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[email/disconnect] error:', error)
+    console.error("[email/disconnect] error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Disconnect failed' },
+      { error: error instanceof Error ? error.message : "Disconnect failed" },
       { status: 500 }
     )
   }
@@ -1186,6 +1190,7 @@ git commit -m "feat(email-import): add email disconnect endpoint"
 ## Task 17: Create Email Import Rules API
 
 **Files:**
+
 - Create: `src/app/api/email/rules/route.ts`
 
 **Step 1: Create rules CRUD endpoint**
@@ -1193,10 +1198,10 @@ git commit -m "feat(email-import): add email disconnect endpoint"
 ```typescript
 // src/app/api/email/rules/route.ts
 
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
 
 export async function GET() {
   try {
@@ -1211,16 +1216,13 @@ export async function GET() {
           select: { emailAddress: true, provider: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     })
 
     return NextResponse.json({ rules })
   } catch (error) {
-    console.error('[email/rules] GET error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch rules' },
-      { status: 500 }
-    )
+    console.error("[email/rules] GET error:", error)
+    return NextResponse.json({ error: "Failed to fetch rules" }, { status: 500 })
   }
 }
 
@@ -1234,10 +1236,7 @@ export async function POST(request: Request) {
       await request.json()
 
     if (!connectionId) {
-      return NextResponse.json(
-        { error: 'connectionId is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "connectionId is required" }, { status: 400 })
     }
 
     // Verify connection belongs to company
@@ -1246,16 +1245,13 @@ export async function POST(request: Request) {
     })
 
     if (!connection) {
-      return NextResponse.json(
-        { error: 'Connection not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Connection not found" }, { status: 404 })
     }
 
     // Require at least one filter
     if (!senderEmail && !senderDomain && !subjectContains && !filenameContains) {
       return NextResponse.json(
-        { error: 'At least one filter criterion is required' },
+        { error: "At least one filter criterion is required" },
         { status: 400 }
       )
     }
@@ -1273,11 +1269,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ rule })
   } catch (error) {
-    console.error('[email/rules] POST error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create rule' },
-      { status: 500 }
-    )
+    console.error("[email/rules] POST error:", error)
+    return NextResponse.json({ error: "Failed to create rule" }, { status: 500 })
   }
 }
 ```
@@ -1299,6 +1292,7 @@ git commit -m "feat(email-import): add email rules API"
 ## Task 18: Create Email Rule Update/Delete API
 
 **Files:**
+
 - Create: `src/app/api/email/rules/[id]/route.ts`
 
 **Step 1: Create rule update/delete endpoint**
@@ -1306,15 +1300,12 @@ git commit -m "feat(email-import): add email rules API"
 ```typescript
 // src/app/api/email/rules/[id]/route.ts
 
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAuth()
     const company = await requireCompany(user.id!)
@@ -1327,7 +1318,7 @@ export async function PUT(
     })
 
     if (!rule) {
-      return NextResponse.json({ error: 'Rule not found' }, { status: 404 })
+      return NextResponse.json({ error: "Rule not found" }, { status: 404 })
     }
 
     const { senderEmail, senderDomain, subjectContains, filenameContains, isActive } =
@@ -1346,15 +1337,12 @@ export async function PUT(
 
     return NextResponse.json({ rule: updated })
   } catch (error) {
-    console.error('[email/rules] PUT error:', error)
-    return NextResponse.json({ error: 'Failed to update rule' }, { status: 500 })
+    console.error("[email/rules] PUT error:", error)
+    return NextResponse.json({ error: "Failed to update rule" }, { status: 500 })
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAuth()
     const company = await requireCompany(user.id!)
@@ -1367,15 +1355,15 @@ export async function DELETE(
     })
 
     if (!rule) {
-      return NextResponse.json({ error: 'Rule not found' }, { status: 404 })
+      return NextResponse.json({ error: "Rule not found" }, { status: 404 })
     }
 
     await db.emailImportRule.delete({ where: { id } })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[email/rules] DELETE error:', error)
-    return NextResponse.json({ error: 'Failed to delete rule' }, { status: 500 })
+    console.error("[email/rules] DELETE error:", error)
+    return NextResponse.json({ error: "Failed to delete rule" }, { status: 500 })
   }
 }
 ```
@@ -1397,6 +1385,7 @@ git commit -m "feat(email-import): add email rule update/delete API"
 ## Task 19: Create Email Sync Service
 
 **Files:**
+
 - Create: `src/lib/email-sync/sync-service.ts`
 
 **Step 1: Create sync service**
@@ -1404,13 +1393,13 @@ git commit -m "feat(email-import): add email rule update/delete API"
 ```typescript
 // src/lib/email-sync/sync-service.ts
 
-import crypto from 'crypto'
-import { db } from '@/lib/db'
-import { getEmailProvider } from './providers'
-import { decryptSecret, encryptSecret } from '@/lib/secrets'
-import { uploadToR2, generateR2Key } from '@/lib/r2-client'
-import type { EmailConnection, EmailImportRule } from '@prisma/client'
-import type { EmailMessage, EmailAttachmentInfo } from './types'
+import crypto from "crypto"
+import { db } from "@/lib/db"
+import { getEmailProvider } from "./providers"
+import { decryptSecret, encryptSecret } from "@/lib/secrets"
+import { uploadToR2, generateR2Key } from "@/lib/r2-client"
+import type { EmailConnection, EmailImportRule } from "@prisma/client"
+import type { EmailMessage, EmailAttachmentInfo } from "./types"
 
 interface SyncResult {
   connectionId: string
@@ -1470,17 +1459,10 @@ export async function syncEmailConnection(
 
         for (const attachment of message.attachments) {
           try {
-            await processAttachment(
-              connection,
-              message,
-              attachment,
-              accessToken,
-              provider,
-              result
-            )
+            await processAttachment(connection, message, attachment, accessToken, provider, result)
           } catch (attError) {
             result.errors.push(
-              `Failed to process ${attachment.filename}: ${attError instanceof Error ? attError.message : 'Unknown error'}`
+              `Failed to process ${attachment.filename}: ${attError instanceof Error ? attError.message : "Unknown error"}`
             )
           }
         }
@@ -1505,14 +1487,14 @@ export async function syncEmailConnection(
       },
     })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Sync failed'
+    const errorMessage = error instanceof Error ? error.message : "Sync failed"
     result.errors.push(errorMessage)
 
     await db.emailConnection.update({
       where: { id: connection.id },
       data: {
         lastError: errorMessage,
-        status: errorMessage.includes('token') ? 'EXPIRED' : 'ERROR',
+        status: errorMessage.includes("token") ? "EXPIRED" : "ERROR",
       },
     })
   }
@@ -1530,9 +1512,9 @@ async function processAttachment(
 ): Promise<void> {
   // Generate content hash for deduplication
   const contentHash = crypto
-    .createHash('sha256')
+    .createHash("sha256")
     .update(`${message.id}:${attachment.id}:${attachment.filename}:${attachment.sizeBytes}`)
-    .digest('hex')
+    .digest("hex")
     .slice(0, 32)
 
   // Check if already processed
@@ -1558,15 +1540,21 @@ async function processAttachment(
     }
 
     if (rule.senderDomain) {
-      const domain = message.senderEmail.split('@')[1]?.toLowerCase()
+      const domain = message.senderEmail.split("@")[1]?.toLowerCase()
       if (domain !== rule.senderDomain.toLowerCase()) return false
     }
 
-    if (rule.subjectContains && !message.subject.toLowerCase().includes(rule.subjectContains.toLowerCase())) {
+    if (
+      rule.subjectContains &&
+      !message.subject.toLowerCase().includes(rule.subjectContains.toLowerCase())
+    ) {
       return false
     }
 
-    if (rule.filenameContains && !attachment.filename.toLowerCase().includes(rule.filenameContains.toLowerCase())) {
+    if (
+      rule.filenameContains &&
+      !attachment.filename.toLowerCase().includes(rule.filenameContains.toLowerCase())
+    ) {
       return false
     }
 
@@ -1597,26 +1585,26 @@ async function processAttachment(
       mimeType: attachment.mimeType,
       sizeBytes: attachment.sizeBytes,
       r2Key,
-      status: matchesRule ? 'PENDING' : 'SKIPPED',
+      status: matchesRule ? "PENDING" : "SKIPPED",
     },
   })
 
   // If matches rule, create ImportJob
   if (matchesRule) {
     // Determine document type from filename/mime
-    const isPdf = attachment.mimeType === 'application/pdf' || attachment.filename.endsWith('.pdf')
-    const isImage = attachment.mimeType.startsWith('image/')
+    const isPdf = attachment.mimeType === "application/pdf" || attachment.filename.endsWith(".pdf")
+    const isImage = attachment.mimeType.startsWith("image/")
 
     if (isPdf || isImage) {
       const importJob = await db.importJob.create({
         data: {
           companyId: connection.companyId,
-          userId: 'system', // System-initiated
+          userId: "system", // System-initiated
           fileChecksum: contentHash,
           originalName: attachment.filename,
           storagePath: r2Key,
-          status: 'PENDING',
-          documentType: 'BANK_STATEMENT', // Default, AI will refine
+          status: "PENDING",
+          documentType: "BANK_STATEMENT", // Default, AI will refine
         },
       })
 
@@ -1624,7 +1612,7 @@ async function processAttachment(
         where: { id: emailAttachment.id },
         data: {
           importJobId: importJob.id,
-          status: 'IMPORTED',
+          status: "IMPORTED",
         },
       })
 
@@ -1636,7 +1624,7 @@ async function processAttachment(
 export async function syncAllConnections(): Promise<SyncResult[]> {
   const connections = await db.emailConnection.findMany({
     where: {
-      status: 'CONNECTED',
+      status: "CONNECTED",
     },
     include: {
       importRules: true,
@@ -1671,6 +1659,7 @@ git commit -m "feat(email-import): add email sync service"
 ## Task 20: Create Email Sync Cron Job
 
 **Files:**
+
 - Create: `src/app/api/cron/email-sync/route.ts`
 
 **Step 1: Create cron endpoint**
@@ -1678,20 +1667,20 @@ git commit -m "feat(email-import): add email sync service"
 ```typescript
 // src/app/api/cron/email-sync/route.ts
 
-import { NextResponse } from 'next/server'
-import { syncAllConnections } from '@/lib/email-sync/sync-service'
+import { NextResponse } from "next/server"
+import { syncAllConnections } from "@/lib/email-sync/sync-service"
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get('authorization')
+  const authHeader = request.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    console.log('[cron/email-sync] Starting email sync...')
+    console.log("[cron/email-sync] Starting email sync...")
 
     const results = await syncAllConnections()
 
@@ -1703,13 +1692,13 @@ export async function GET(request: Request) {
       errors: results.flatMap((r) => r.errors),
     }
 
-    console.log('[cron/email-sync] Completed:', summary)
+    console.log("[cron/email-sync] Completed:", summary)
 
     return NextResponse.json({ success: true, summary })
   } catch (error) {
-    console.error('[cron/email-sync] error:', error)
+    console.error("[cron/email-sync] error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Sync failed' },
+      { error: error instanceof Error ? error.message : "Sync failed" },
       { status: 500 }
     )
   }
@@ -1733,6 +1722,7 @@ git commit -m "feat(email-import): add email sync cron job"
 ## Task 21: Update Vercel Cron Config
 
 **Files:**
+
 - Modify: `vercel.json`
 
 **Step 1: Add email-sync cron job**
@@ -1764,6 +1754,7 @@ git commit -m "feat(email-import): add email-sync to vercel cron"
 ## Task 22: Create Email Settings Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/email/page.tsx`
 
 **Step 1: Create email settings page**
@@ -1847,6 +1838,7 @@ git commit -m "feat(email-import): add email settings page"
 ## Task 23: Create Connect Email Button Component
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/email/components/connect-button.tsx`
 
 **Step 1: Create connect button component**
@@ -1939,6 +1931,7 @@ git commit -m "feat(email-import): add connect email button component"
 ## Task 24: Create Email Connection List Component
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/email/components/connection-list.tsx`
 
 **Step 1: Create connection list component**
@@ -2079,6 +2072,7 @@ git commit -m "feat(email-import): add email connection list component"
 ## Task 25: Create Import Rules Component
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/email/components/import-rules.tsx`
 
 **Step 1: Create import rules component**
@@ -2290,11 +2284,13 @@ git commit -m "feat(email-import): add import rules component"
 ## Task 26: Update Environment Variables Documentation
 
 **Files:**
+
 - Modify: `.env.example`
 
 **Step 1: Add email and R2 environment variables**
 
 Add to `.env.example`:
+
 ```bash
 # Email Import - Gmail (reuse existing Google OAuth if available)
 # GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET already used for auth
@@ -2322,6 +2318,7 @@ git commit -m "docs(email-import): add environment variables to .env.example"
 ## Task 27: Run Full Build Verification
 
 **Files:**
+
 - None (verification only)
 
 **Step 1: Run TypeScript check**

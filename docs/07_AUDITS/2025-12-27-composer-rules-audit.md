@@ -23,11 +23,11 @@ The Composer implementation demonstrates robust design patterns with proper fail
 
 **File:** `src/lib/regulatory-truth/agents/composer.ts:207-244`
 
-| Check | Status | Details |
-|-------|--------|---------|
-| Zero-pointer validation | PASS | Lines 212-222: Rejects rules without source pointers |
-| Pointer existence verification | PASS | Lines 225-244: Validates all pointer IDs exist in database |
-| LLM ID override | PASS | Lines 207-208: Uses actual input IDs, not LLM output |
+| Check                          | Status | Details                                                    |
+| ------------------------------ | ------ | ---------------------------------------------------------- |
+| Zero-pointer validation        | PASS   | Lines 212-222: Rejects rules without source pointers       |
+| Pointer existence verification | PASS   | Lines 225-244: Validates all pointer IDs exist in database |
+| LLM ID override                | PASS   | Lines 207-208: Uses actual input IDs, not LLM output       |
 
 ```typescript
 // CRITICAL VALIDATION: Rules MUST have at least one source pointer
@@ -59,11 +59,11 @@ None - implementation is sound.
 
 **File:** `src/lib/regulatory-truth/utils/concept-resolver.ts`
 
-| Check | Status | Details |
-|-------|--------|---------|
-| Kebab-case validation | PASS | Schema enforces via regex `/^[a-z0-9-]+$/` |
-| Alias mapping | PASS | 12+ canonical aliases defined with comprehensive variants |
-| Canonical resolution | PASS | Normalizes slugs and maps to canonical forms |
+| Check                 | Status | Details                                                   |
+| --------------------- | ------ | --------------------------------------------------------- |
+| Kebab-case validation | PASS   | Schema enforces via regex `/^[a-z0-9-]+$/`                |
+| Alias mapping         | PASS   | 12+ canonical aliases defined with comprehensive variants |
+| Canonical resolution  | PASS   | Normalizes slugs and maps to canonical forms              |
 
 ### Canonical Alias Coverage
 
@@ -126,12 +126,12 @@ sourcePointers: sourcePointers.map((sp) => ({
 
 **File:** `src/lib/regulatory-truth/utils/conflict-detector.ts`
 
-| Conflict Type | Detection Logic | Status |
-|--------------|-----------------|--------|
-| VALUE_MISMATCH | Same concept, different value, overlapping dates | PASS |
-| DATE_OVERLAP | Temporal overlap detection | PASS |
-| AUTHORITY_SUPERSEDE | Higher authority detection | PASS |
-| CROSS_SLUG_DUPLICATE | Same value across different slugs | PASS |
+| Conflict Type        | Detection Logic                                  | Status |
+| -------------------- | ------------------------------------------------ | ------ |
+| VALUE_MISMATCH       | Same concept, different value, overlapping dates | PASS   |
+| DATE_OVERLAP         | Temporal overlap detection                       | PASS   |
+| AUTHORITY_SUPERSEDE  | Higher authority detection                       | PASS   |
+| CROSS_SLUG_DUPLICATE | Same value across different slugs                | PASS   |
 
 ```typescript
 async function detectStructuralConflicts(newRule) {
@@ -154,11 +154,11 @@ async function detectStructuralConflicts(newRule) {
 
 ```typescript
 const ranks = {
-  LAW: 1,        // Highest authority
+  LAW: 1, // Highest authority
   REGULATION: 2,
   GUIDANCE: 3,
   PROCEDURE: 4,
-  PRACTICE: 5    // Lowest authority
+  PRACTICE: 5, // Lowest authority
 }
 ```
 
@@ -208,15 +208,15 @@ RISK TIER CRITERIA:
 
 **File:** `src/lib/regulatory-truth/dsl/applies-when.ts`
 
-| DSL Operator | Validation | Status |
-|--------------|------------|--------|
-| and/or/not | Recursive args validation | PASS |
-| cmp | Field path + operator + value | PASS |
-| in | Field + values array | PASS |
-| exists | Field path validation | PASS |
-| between | Numeric bounds validation | PASS |
-| matches | ReDoS protection (100 char limit) | PASS |
-| true/false | Literal boolean | PASS |
+| DSL Operator | Validation                        | Status |
+| ------------ | --------------------------------- | ------ |
+| and/or/not   | Recursive args validation         | PASS   |
+| cmp          | Field path + operator + value     | PASS   |
+| in           | Field + values array              | PASS   |
+| exists       | Field path validation             | PASS   |
+| between      | Numeric bounds validation         | PASS   |
+| matches      | ReDoS protection (100 char limit) | PASS   |
+| true/false   | Literal boolean                   | PASS   |
 
 ### Fail-Closed Behavior
 
@@ -229,7 +229,7 @@ if (!dslValidation.valid) {
   console.error(`[composer] REJECTING rule with invalid AppliesWhen DSL`)
   return {
     success: false,
-    error: `Cannot create rule with invalid AppliesWhen DSL...`
+    error: `Cannot create rule with invalid AppliesWhen DSL...`,
   }
 }
 ```
@@ -310,11 +310,11 @@ if (resolution.shouldMerge && resolution.existingRuleId) {
 
 **File:** `src/lib/regulatory-truth/utils/explanation-validator.ts`
 
-| Validation | Purpose | Status |
-|------------|---------|--------|
-| Modal verb check | Prevents unsourced obligation language | PASS |
-| Numeric value check | Ensures values trace to sources | PASS |
-| Quote-only fallback | Fail-closed for invalid explanations | PASS |
+| Validation          | Purpose                                | Status |
+| ------------------- | -------------------------------------- | ------ |
+| Modal verb check    | Prevents unsourced obligation language | PASS   |
+| Numeric value check | Ensures values trace to sources        | PASS   |
+| Quote-only fallback | Fail-closed for invalid explanations   | PASS   |
 
 ### Modal Verb Detection
 
@@ -354,8 +354,7 @@ const BLOCKED_DOMAINS = ["heartbeat", "test", "synthetic", "debug"]
 
 export function isBlockedDomain(domain: string): boolean {
   return BLOCKED_DOMAINS.some(
-    (blocked) => domain.toLowerCase() === blocked ||
-                 domain.toLowerCase().includes(blocked)
+    (blocked) => domain.toLowerCase() === blocked || domain.toLowerCase().includes(blocked)
   )
 }
 ```
@@ -395,8 +394,8 @@ if (result.output.conflicts_detected) {
     data: {
       conflictType: "SOURCE_CONFLICT",
       status: "OPEN",
-      metadata: { sourcePointerIds, detectedBy: "COMPOSER" }
-    }
+      metadata: { sourcePointerIds, detectedBy: "COMPOSER" },
+    },
   })
   return { success: false, error: `Conflict detected - queued for Arbiter` }
 }
@@ -417,18 +416,18 @@ None - proper conflict escalation pattern.
 
 ## Audit Summary
 
-| Category | Status | Critical Issues |
-|----------|--------|-----------------|
-| Rule-Pointer Linkage | PASS | None |
-| Concept Resolution | PASS | None |
-| Value Consistency | PASS | None |
-| Conflict Detection | PASS | None |
-| Risk Tier Assignment | PASS | None |
-| AppliesWhen DSL Validation | PASS | None |
-| Meaning Signature Uniqueness | PASS | None |
-| Explanation Validation | PASS | None |
-| Blocked Domain Protection | PASS | None |
-| Source Conflict Handling | PASS | None |
+| Category                     | Status | Critical Issues |
+| ---------------------------- | ------ | --------------- |
+| Rule-Pointer Linkage         | PASS   | None            |
+| Concept Resolution           | PASS   | None            |
+| Value Consistency            | PASS   | None            |
+| Conflict Detection           | PASS   | None            |
+| Risk Tier Assignment         | PASS   | None            |
+| AppliesWhen DSL Validation   | PASS   | None            |
+| Meaning Signature Uniqueness | PASS   | None            |
+| Explanation Validation       | PASS   | None            |
+| Blocked Domain Protection    | PASS   | None            |
+| Source Conflict Handling     | PASS   | None            |
 
 ---
 
@@ -454,18 +453,18 @@ None identified.
 
 ## Files Reviewed
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `agents/composer.ts` | 523 | Main composer agent |
-| `schemas/composer.ts` | 114 | Input/output schemas |
-| `utils/conflict-detector.ts` | 331 | Structural conflict detection |
-| `utils/meaning-signature.ts` | 41 | Uniqueness signature computation |
-| `utils/concept-resolver.ts` | 315 | Canonical concept resolution |
-| `utils/explanation-validator.ts` | 252 | Anti-hallucination checks |
-| `utils/authority.ts` | 99 | Authority level derivation |
-| `dsl/applies-when.ts` | 320 | DSL validation and evaluation |
-| `prompts/index.ts` | 760 | Agent prompt templates |
-| `agents/runner.ts` | 285 | Agent execution framework |
+| File                             | Lines | Purpose                          |
+| -------------------------------- | ----- | -------------------------------- |
+| `agents/composer.ts`             | 523   | Main composer agent              |
+| `schemas/composer.ts`            | 114   | Input/output schemas             |
+| `utils/conflict-detector.ts`     | 331   | Structural conflict detection    |
+| `utils/meaning-signature.ts`     | 41    | Uniqueness signature computation |
+| `utils/concept-resolver.ts`      | 315   | Canonical concept resolution     |
+| `utils/explanation-validator.ts` | 252   | Anti-hallucination checks        |
+| `utils/authority.ts`             | 99    | Authority level derivation       |
+| `dsl/applies-when.ts`            | 320   | DSL validation and evaluation    |
+| `prompts/index.ts`               | 760   | Agent prompt templates           |
+| `agents/runner.ts`               | 285   | Agent execution framework        |
 
 ---
 
@@ -485,5 +484,5 @@ The implementation follows best practices for regulatory compliance systems wher
 
 ---
 
-*Audit conducted by: Claude (claude-opus-4-5-20251101)*
-*Audit script: `src/lib/regulatory-truth/scripts/audit-composer.ts`*
+_Audit conducted by: Claude (claude-opus-4-5-20251101)_
+_Audit script: `src/lib/regulatory-truth/scripts/audit-composer.ts`_

@@ -14,11 +14,11 @@ This audit examined all non-standard paths that can modify regulatory truth data
 
 **Critical Finding:** Multiple emergency and maintenance scripts can modify truth data without audit logging, bypassing the traceability requirements essential for legal defense (RTL-009).
 
-| Category | Total | With Audit Logging | Without Audit Logging |
-|----------|-------|-------------------|----------------------|
-| CLI Scripts | 35 | 3 | 32 |
-| Admin APIs (write) | 8 | 5 | 3 |
-| Agents | 7 | 7 | 0 |
+| Category           | Total | With Audit Logging | Without Audit Logging |
+| ------------------ | ----- | ------------------ | --------------------- |
+| CLI Scripts        | 35    | 3                  | 32                    |
+| Admin APIs (write) | 8     | 5                  | 3                     |
+| Agents             | 7     | 7                  | 0                     |
 
 ---
 
@@ -26,26 +26,26 @@ This audit examined all non-standard paths that can modify regulatory truth data
 
 ### 1.1 CRITICAL - Scripts Without Audit Logging
 
-| Script | Path | Risk | Operations |
-|--------|------|------|------------|
-| `bootstrap.ts` | `scripts/bootstrap.ts` | **CRITICAL** | Seeds sources, creates evidence, approves rules, publishes releases |
-| `overnight-run.ts` | `scripts/overnight-run.ts` | **CRITICAL** | Full pipeline execution, auto-approves rules, creates releases |
-| `drain-pipeline.ts` | `scripts/drain-pipeline.ts` | **CRITICAL** | Bypasses grace period, auto-approves rules, releases |
-| `data-repair.ts` | `e2e/data-repair.ts` | **HIGH** | Modifies Evidence.contentHash and RuleRelease.contentHash |
-| `cleanup-duplicate-evidence.ts` | `scripts/cleanup-duplicate-evidence.ts` | **HIGH** | DELETES Evidence records, migrates pointers |
-| `cleanup-stuck-runs.ts` | `scripts/cleanup-stuck-runs.ts` | **MEDIUM** | Marks agent runs as failed |
-| `migrate-applieswhen-dsl.ts` | `scripts/migrate-applieswhen-dsl.ts` | **HIGH** | Modifies RegulatoryRule.appliesWhen |
-| `baseline-backfill.ts` | `scripts/baseline-backfill.ts` | **MEDIUM** | Creates Evidence and DiscoveredItem records |
-| `backfill-content-class.ts` | `scripts/backfill-content-class.ts` | **MEDIUM** | Modifies Evidence.contentClass |
-| `backfill-concepts.ts` | `scripts/backfill-concepts.ts` | **MEDIUM** | Links rules to concepts |
+| Script                          | Path                                    | Risk         | Operations                                                          |
+| ------------------------------- | --------------------------------------- | ------------ | ------------------------------------------------------------------- |
+| `bootstrap.ts`                  | `scripts/bootstrap.ts`                  | **CRITICAL** | Seeds sources, creates evidence, approves rules, publishes releases |
+| `overnight-run.ts`              | `scripts/overnight-run.ts`              | **CRITICAL** | Full pipeline execution, auto-approves rules, creates releases      |
+| `drain-pipeline.ts`             | `scripts/drain-pipeline.ts`             | **CRITICAL** | Bypasses grace period, auto-approves rules, releases                |
+| `data-repair.ts`                | `e2e/data-repair.ts`                    | **HIGH**     | Modifies Evidence.contentHash and RuleRelease.contentHash           |
+| `cleanup-duplicate-evidence.ts` | `scripts/cleanup-duplicate-evidence.ts` | **HIGH**     | DELETES Evidence records, migrates pointers                         |
+| `cleanup-stuck-runs.ts`         | `scripts/cleanup-stuck-runs.ts`         | **MEDIUM**   | Marks agent runs as failed                                          |
+| `migrate-applieswhen-dsl.ts`    | `scripts/migrate-applieswhen-dsl.ts`    | **HIGH**     | Modifies RegulatoryRule.appliesWhen                                 |
+| `baseline-backfill.ts`          | `scripts/baseline-backfill.ts`          | **MEDIUM**   | Creates Evidence and DiscoveredItem records                         |
+| `backfill-content-class.ts`     | `scripts/backfill-content-class.ts`     | **MEDIUM**   | Modifies Evidence.contentClass                                      |
+| `backfill-concepts.ts`          | `scripts/backfill-concepts.ts`          | **MEDIUM**   | Links rules to concepts                                             |
 
 ### 1.2 CRITICAL - Admin APIs Without Audit Logging
 
-| API Route | Method | Risk | Operations |
-|-----------|--------|------|------------|
-| `/api/admin/regulatory-truth/trigger` | POST | **CRITICAL** | Triggers full pipeline (discovery, extraction, composition, review) |
-| `/api/admin/regulatory-truth/conflicts/[id]/resolve` | POST | **HIGH** | Resolves conflicts, deprecates rules, no audit trail |
-| `/api/admin/regulatory-truth/truth-health` | POST | **MEDIUM** | Creates health snapshots |
+| API Route                                            | Method | Risk         | Operations                                                          |
+| ---------------------------------------------------- | ------ | ------------ | ------------------------------------------------------------------- |
+| `/api/admin/regulatory-truth/trigger`                | POST   | **CRITICAL** | Triggers full pipeline (discovery, extraction, composition, review) |
+| `/api/admin/regulatory-truth/conflicts/[id]/resolve` | POST   | **HIGH**     | Resolves conflicts, deprecates rules, no audit trail                |
+| `/api/admin/regulatory-truth/truth-health`           | POST   | **MEDIUM**   | Creates health snapshots                                            |
 
 ### 1.3 Scripts WITH Proper Audit Logging (Reference)
 
@@ -81,6 +81,7 @@ The bootstrap script calls `runReleaser()` without validating that rules have pr
 ### 2.3 Direct Database Modifications in Backfill Scripts
 
 Scripts like `backfill-content-class.ts` and `migrate-applieswhen-dsl.ts` modify data directly without:
+
 - Pre-modification snapshots
 - Rollback capability
 - Validation against business rules
@@ -91,11 +92,11 @@ Scripts like `backfill-content-class.ts` and `migrate-applieswhen-dsl.ts` modify
 
 ### 3.1 Temporary Scripts Becoming Permanent
 
-| Script | Created For | Status | Degradation Risk |
-|--------|-------------|--------|------------------|
-| `cleanup-duplicate-evidence.ts` | One-time deduplication | No expiration | Could be re-run accidentally |
-| `migrate-applieswhen-dsl.ts` | DSL format migration | No expiration | Could corrupt already-migrated data |
-| `backfill-content-class.ts` | Content classification fix | No expiration | Could re-apply fixes to correct data |
+| Script                          | Created For                | Status        | Degradation Risk                     |
+| ------------------------------- | -------------------------- | ------------- | ------------------------------------ |
+| `cleanup-duplicate-evidence.ts` | One-time deduplication     | No expiration | Could be re-run accidentally         |
+| `migrate-applieswhen-dsl.ts`    | DSL format migration       | No expiration | Could corrupt already-migrated data  |
+| `backfill-content-class.ts`     | Content classification fix | No expiration | Could re-apply fixes to correct data |
 
 **Recommendation:** Add idempotency guards or expiration dates to one-time scripts.
 
@@ -106,18 +107,14 @@ Scripts like `backfill-content-class.ts` and `migrate-applieswhen-dsl.ts` modify
 The `AuditAction` type is incomplete:
 
 ```typescript
-export type AuditAction =
-  | "RULE_CREATED"
-  | "RULE_APPROVED"
-  | "RULE_REJECTED"
-  | "RULE_PUBLISHED"
-  // ... missing:
-  // | "RULE_MERGED"           (used by consolidator but not typed)
-  // | "RULE_DELETED"          (used by check-pointers but not typed)
-  // | "EVIDENCE_MODIFIED"     (not used)
-  // | "EVIDENCE_DELETED"      (not used)
-  // | "PIPELINE_TRIGGERED"    (not used)
-  // | "DATA_REPAIRED"         (not used)
+export type AuditAction = "RULE_CREATED" | "RULE_APPROVED" | "RULE_REJECTED" | "RULE_PUBLISHED"
+// ... missing:
+// | "RULE_MERGED"           (used by consolidator but not typed)
+// | "RULE_DELETED"          (used by check-pointers but not typed)
+// | "EVIDENCE_MODIFIED"     (not used)
+// | "EVIDENCE_DELETED"      (not used)
+// | "PIPELINE_TRIGGERED"    (not used)
+// | "DATA_REPAIRED"         (not used)
 ```
 
 ---
@@ -126,13 +123,13 @@ export type AuditAction =
 
 ### 4.1 Missing "Who" Attribution
 
-| Component | Issue |
-|-----------|-------|
-| `bootstrap.ts` | Uses "SYSTEM" but no human context |
-| `overnight-run.ts` | No attribution at all |
-| `drain-pipeline.ts` | No attribution at all |
-| `cleanup-stuck-runs.ts` | No attribution at all |
-| `data-repair.ts` | No attribution at all |
+| Component               | Issue                              |
+| ----------------------- | ---------------------------------- |
+| `bootstrap.ts`          | Uses "SYSTEM" but no human context |
+| `overnight-run.ts`      | No attribution at all              |
+| `drain-pipeline.ts`     | No attribution at all              |
+| `cleanup-stuck-runs.ts` | No attribution at all              |
+| `data-repair.ts`        | No attribution at all              |
 
 ### 4.2 Missing "Why" Context
 
@@ -142,7 +139,7 @@ Most scripts lack structured reason logging. Examples:
 // data-repair.ts - No reason logged
 await db.evidence.update({
   where: { id: e.id },
-  data: { contentHash: correctHash },  // Why was this changed?
+  data: { contentHash: correctHash }, // Why was this changed?
 })
 ```
 
@@ -193,23 +190,23 @@ ALTER TABLE "EvidenceArtifact" ADD CONSTRAINT "EvidenceArtifact_evidenceId_fkey"
 
 ### 6.1 IMMEDIATE (P0) - Add Audit Logging to Critical Paths
 
-| File | Action | Priority |
-|------|--------|----------|
-| `bootstrap.ts` | Add logAuditEvent for each phase | P0 |
-| `overnight-run.ts` | Add logAuditEvent for pipeline start/completion | P0 |
-| `drain-pipeline.ts` | Add logAuditEvent, remove grace period bypass | P0 |
-| `trigger/route.ts` | Add logAuditEvent with user context | P0 |
-| `conflicts/[id]/resolve/route.ts` | Add logAuditEvent for resolution | P0 |
+| File                              | Action                                          | Priority |
+| --------------------------------- | ----------------------------------------------- | -------- |
+| `bootstrap.ts`                    | Add logAuditEvent for each phase                | P0       |
+| `overnight-run.ts`                | Add logAuditEvent for pipeline start/completion | P0       |
+| `drain-pipeline.ts`               | Add logAuditEvent, remove grace period bypass   | P0       |
+| `trigger/route.ts`                | Add logAuditEvent with user context             | P0       |
+| `conflicts/[id]/resolve/route.ts` | Add logAuditEvent for resolution                | P0       |
 
 ### 6.2 HIGH (P1) - Add Audit Logging to Maintenance Scripts
 
-| File | Action | Priority |
-|------|--------|----------|
-| `data-repair.ts` | Log DATA_REPAIRED with before/after hashes | P1 |
-| `cleanup-duplicate-evidence.ts` | Log EVIDENCE_DELETED | P1 |
-| `cleanup-stuck-runs.ts` | Log AGENT_RUN_CLEANUP | P1 |
-| `migrate-applieswhen-dsl.ts` | Log RULE_MODIFIED | P1 |
-| `backfill-content-class.ts` | Log EVIDENCE_MODIFIED | P1 |
+| File                            | Action                                     | Priority |
+| ------------------------------- | ------------------------------------------ | -------- |
+| `data-repair.ts`                | Log DATA_REPAIRED with before/after hashes | P1       |
+| `cleanup-duplicate-evidence.ts` | Log EVIDENCE_DELETED                       | P1       |
+| `cleanup-stuck-runs.ts`         | Log AGENT_RUN_CLEANUP                      | P1       |
+| `migrate-applieswhen-dsl.ts`    | Log RULE_MODIFIED                          | P1       |
+| `backfill-content-class.ts`     | Log EVIDENCE_MODIFIED                      | P1       |
 
 ### 6.3 MEDIUM (P2) - Structural Improvements
 
@@ -264,10 +261,12 @@ grep -r "AUTO_APPROVE_GRACE_HOURS.*=.*0" src/
 ## Appendix A: Complete Script Inventory
 
 ### Scripts WITH Audit Logging (3/35)
+
 - `approve-bundle.ts`
 - `run-consolidator.ts` (via consolidator.ts)
 
 ### Agents WITH Audit Logging (7/7)
+
 - `sentinel.ts`
 - `extractor.ts` (via composer/reviewer)
 - `composer.ts`
@@ -277,6 +276,7 @@ grep -r "AUTO_APPROVE_GRACE_HOURS.*=.*0" src/
 - `knowledge-graph.ts`
 
 ### Scripts WITHOUT Audit Logging (32/35)
+
 - `bootstrap.ts`
 - `overnight-run.ts`
 - `drain-pipeline.ts`

@@ -41,6 +41,7 @@ faq:
 [Paušalni obrt](/rjecnik/pausal) je najjednostavniji oblik poslovanja u Hrvatskoj. Idealan je za početnike s očekivanim prihodima do paušalnog praga godišnje.
 
 **Ključne prednosti:**
+
 - Minimalna administracija
 - Fiksni mjesečni doprinosi
 - Bez obveze vođenja knjiga
@@ -51,11 +52,13 @@ faq:
 ## Tko može otvoriti paušalni obrt?
 
 ### Možete ako:
+
 - Očekujete godišnji prihod do paušalnog praga
 - Bavite se dozvoljenomom djelatnošću
 - Nemate zabranu poslovanja
 
 ### Ne možete ako:
+
 - Već imate PDV registraciju
 - Djelatnost je isključena iz paušala (npr. odvjetnici, liječnici)
 - Već vodite obrt na dohodak
@@ -65,12 +68,14 @@ faq:
 <TaxCalculator />
 
 ### Mjesečni doprinosi (2025.)
+
 - **MIO I. stup:** 153,70€
 - **MIO II. stup:** 47,03€ (ako ste u II. stupu)
 - **HZZO:** 61,27€
 - **Ukupno:** ~262€ mjesečno
 
 ### Porez na dohodak
+
 - Porezna osnovica: 12% od prihoda
 - Stopa: <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> (do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />) ili <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> (iznad)
 - Efektivna stopa: ~10% od ukupnog prihoda
@@ -95,6 +100,7 @@ faq:
     - HZZO: 61,27€/mj
 
     **Ukupno:** ~262€ mjesečno fiksno, neovisno o prihodu.
+
   </TabPanel>
 
   <TabPanel>
@@ -111,6 +117,7 @@ faq:
     - Često plaćate samo HOK članarinu (~34€/kvartal)
     - Porez na dohodak se i dalje plaća
     - Jednostavnije je nego samostalni obrt
+
   </TabPanel>
 
   <TabPanel>
@@ -125,6 +132,7 @@ faq:
     <PDVCallout type="tip">
       Umirovljenici često biraju paušal jer je jednostavan i ne utječe na mirovinu.
     </PDVCallout>
+
   </TabPanel>
 
   <TabPanel>
@@ -137,6 +145,7 @@ faq:
     - Možete koristiti studentske ugovore paralelno
 
     **Napomena:** Provjerite s fakultetom kakvi su uvjeti za zadržavanje studentskog statusa.
+
   </TabPanel>
 </VariantTabs>
 
@@ -163,35 +172,40 @@ faq:
 ## Obveze
 
 ### Mjesečne
+
 - Uplata doprinosa do 15. u mjesecu
 - Izdavanje računa klijentima ([fiskalizacija](/rjecnik/fiskalizacija) obavezna)
 
 ### Kvartalne
+
 - HOK članarina (~34€)
 
 ### Godišnje
+
 - [PO-SD obrazac](/rjecnik/po-sd) do 28. veljače (vidi: [kako ispuniti PO-SD](/kako-da/ispuniti-po-sd))
 - Pregled prihoda za prethodnu godinu
 
 ## PDV i vi
 
 <PDVCallout type="warning" thresholdPath="THRESHOLDS.pdv.value">
-  Ako vaš prihod prijeđe <FiscalCurrency path="THRESHOLDS.pdv.value" />, automatski postajete PDV obveznik
-  od 1. sljedećeg mjeseca.
+  Ako vaš prihod prijeđe <FiscalCurrency path="THRESHOLDS.pdv.value" />, automatski postajete PDV
+  obveznik od 1. sljedećeg mjeseca.
 </PDVCallout>
 
 ### Kada postajete obveznik?
+
 - Prag: <FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnje (od 2025.)
 - Automatski od 1. sljedećeg mjeseca po prelasku
 
 ### Što se mijenja?
+
 - Morate obračunavati 25% PDV na račune
 - Možete odbiti ulazni PDV
 - Mjesečne/kvartalne PDV prijave
 
 <PDVCallout type="tip" context="voluntary">
-  Ako imate značajne ulazne troškove (oprema, softver), razmislite o
-  dobrovoljnom ulasku u PDV jer možete odbiti ulazni PDV.
+  Ako imate značajne ulazne troškove (oprema, softver), razmislite o dobrovoljnom ulasku u PDV jer
+  možete odbiti ulazni PDV.
 </PDVCallout>
 
 ## Česta pitanja

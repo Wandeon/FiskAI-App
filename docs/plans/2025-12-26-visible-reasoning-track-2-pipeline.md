@@ -778,17 +778,15 @@ import type { SourcesPayload } from "../../types"
 
 // Mock concept matcher
 vi.mock("@/lib/assistant/query-engine/concept-matcher", () => ({
-  matchConcepts: vi
-    .fn()
-    .mockResolvedValue([
-      {
-        conceptId: "c1",
-        slug: "pdv-stopa",
-        nameHr: "PDV stopa",
-        score: 0.9,
-        matchedKeywords: ["pdv", "stopa"],
-      },
-    ]),
+  matchConcepts: vi.fn().mockResolvedValue([
+    {
+      conceptId: "c1",
+      slug: "pdv-stopa",
+      nameHr: "PDV stopa",
+      score: 0.9,
+      matchedKeywords: ["pdv", "stopa"],
+    },
+  ]),
 }))
 
 describe("sourceDiscoveryStage", () => {
@@ -963,15 +961,13 @@ vi.mock("@/lib/assistant/query-engine/concept-matcher", () => ({
 }))
 
 vi.mock("@/lib/assistant/query-engine/rule-selector", () => ({
-  selectRules: vi
-    .fn()
-    .mockResolvedValue({
-      rules: [],
-      ineligible: [],
-      hasMissingContext: false,
-      missingContextRuleIds: [],
-      asOfDate: new Date().toISOString(),
-    }),
+  selectRules: vi.fn().mockResolvedValue({
+    rules: [],
+    ineligible: [],
+    hasMissingContext: false,
+    missingContextRuleIds: [],
+    asOfDate: new Date().toISOString(),
+  }),
 }))
 
 describe("buildAnswerWithReasoning", () => {

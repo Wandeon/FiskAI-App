@@ -69,7 +69,7 @@ async function loadRoutes() {
   }
 
   const filtered = Array.from(unique.keys()).filter(
-    (route) => !AUTH_ROUTES.has(route) && !route.includes("["),
+    (route) => !AUTH_ROUTES.has(route) && !route.includes("[")
   )
 
   return {
@@ -146,10 +146,9 @@ test("marketing routes and links respond", async ({ page, request }) => {
         })
         const status = linkResponse.status()
 
-        expect.soft(
-          status,
-          `Link ${normalized} should respond (found on ${url}).`,
-        ).toBeLessThan(400)
+        expect
+          .soft(status, `Link ${normalized} should respond (found on ${url}).`)
+          .toBeLessThan(400)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
         expect.soft(false, `Link ${normalized} request failed on ${url}: ${message}`).toBe(true)
@@ -166,11 +165,13 @@ test("marketing routes and links respond", async ({ page, request }) => {
       })
     })
 
-    expect.soft(
-      axeResults.violations.length,
-      `Contrast issues on ${url}: ${axeResults.violations
-        .map((violation) => violation.id)
-        .join(", ")}`,
-    ).toBe(0)
+    expect
+      .soft(
+        axeResults.violations.length,
+        `Contrast issues on ${url}: ${axeResults.violations
+          .map((violation) => violation.id)
+          .join(", ")}`
+      )
+      .toBe(0)
   }
 })

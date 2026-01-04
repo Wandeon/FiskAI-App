@@ -13,6 +13,7 @@
 ## Task 1: Split Docker Compose Files (dev/prod)
 
 **Files:**
+
 - Create: `docker-compose.dev.yml`
 - Create: `docker-compose.prod.yml`
 - Modify: `docker-compose.yml` (base configuration)
@@ -44,7 +45,13 @@ services:
       fiskai-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 || r.statusCode === 307 ? 0 : 1)).on('error', () => process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 || r.statusCode === 307 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -133,6 +140,7 @@ networks:
 ```
 
 **Verification:**
+
 - Run: `docker compose -f docker-compose.yml -f docker-compose.dev.yml config`
 - Expected: Valid merged configuration without errors
 
@@ -141,6 +149,7 @@ networks:
 ## Task 2: Fix Dockerfile ARM64 Platform
 
 **Files:**
+
 - Modify: `Dockerfile`
 
 **Step 1: Update Dockerfile with ARM64 platform pin**
@@ -209,6 +218,7 @@ CMD ["node", "server.js"]
 ```
 
 **Verification:**
+
 - Check: `grep "platform=linux/arm64" Dockerfile`
 - Expected: Line shows `FROM --platform=linux/arm64`
 
@@ -217,6 +227,7 @@ CMD ["node", "server.js"]
 ## Task 3: Add npm Scripts for Prisma
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Add Prisma scripts to package.json**
@@ -242,6 +253,7 @@ Add these scripts to the "scripts" section:
 ```
 
 **Verification:**
+
 - Run: `npm run db:generate`
 - Expected: Prisma client generated successfully
 
@@ -250,6 +262,7 @@ Add these scripts to the "scripts" section:
 ## Task 4: Add Prisma Middleware for Tenant Filtering
 
 **Files:**
+
 - Create: `src/lib/prisma-extensions.ts`
 - Modify: `src/lib/db.ts`
 
@@ -286,7 +299,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
       $allModels: {
         async findMany({ model, args, query }) {
           const context = getTenantContext()
-          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+          if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
               ...args.where,
               companyId: context.companyId,
@@ -296,7 +309,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
         },
         async findFirst({ model, args, query }) {
           const context = getTenantContext()
-          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+          if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
               ...args.where,
               companyId: context.companyId,
@@ -308,7 +321,11 @@ export function withTenantIsolation(prisma: PrismaClient) {
           // For findUnique, we verify after fetch instead of modifying where
           const result = await query(args)
           const context = getTenantContext()
-          if (context && result && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+          if (
+            context &&
+            result &&
+            TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])
+          ) {
             if ((result as { companyId?: string }).companyId !== context.companyId) {
               return null // Hide records from other tenants
             }
@@ -317,7 +334,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
         },
         async create({ model, args, query }) {
           const context = getTenantContext()
-          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+          if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.data = {
               ...args.data,
               companyId: context.companyId,
@@ -327,7 +344,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
         },
         async update({ model, args, query }) {
           const context = getTenantContext()
-          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+          if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
               ...args.where,
               companyId: context.companyId,
@@ -337,7 +354,7 @@ export function withTenantIsolation(prisma: PrismaClient) {
         },
         async delete({ model, args, query }) {
           const context = getTenantContext()
-          if (context && TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) {
+          if (context && TENANT_MODELS.includes(model as (typeof TENANT_MODELS)[number])) {
             args.where = {
               ...args.where,
               companyId: context.companyId,
@@ -379,6 +396,7 @@ export { setTenantContext, getTenantContext } from "./prisma-extensions"
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes with no type errors
 
@@ -387,6 +405,7 @@ export { setTenantContext, getTenantContext } from "./prisma-extensions"
 ## Task 5: Add Structured ActionResult Type
 
 **Files:**
+
 - Create: `src/lib/action-result.ts`
 - Modify: `src/app/actions/e-invoice.ts` (example usage)
 
@@ -426,12 +445,15 @@ export function isOk<T>(result: ActionResult<T>): result is { success: true; dat
 }
 
 // Type guard to check if result is error
-export function isErr<T>(result: ActionResult<T>): result is { success: false; error: string; code?: string; field?: string } {
+export function isErr<T>(
+  result: ActionResult<T>
+): result is { success: false; error: string; code?: string; field?: string } {
   return result.success === false
 }
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -440,6 +462,7 @@ export function isErr<T>(result: ActionResult<T>): result is { success: false; e
 ## Task 6: Add Health Endpoints
 
 **Files:**
+
 - Create: `src/app/api/health/route.ts`
 - Create: `src/app/api/health/ready/route.ts`
 
@@ -498,6 +521,7 @@ export async function GET() {
 ```
 
 **Verification:**
+
 - Run: `curl http://localhost:3002/api/health`
 - Expected: `{"status":"ok","timestamp":"...","version":"0.1.0"}`
 
@@ -506,6 +530,7 @@ export async function GET() {
 ## Task 7: Add Structured Logging (Pino)
 
 **Files:**
+
 - Modify: `package.json` (add pino dependency)
 - Create: `src/lib/logger.ts`
 
@@ -557,6 +582,7 @@ export const apiLogger = createLogger("api")
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -565,6 +591,7 @@ export const apiLogger = createLogger("api")
 ## Task 8: Add Company Switcher to Header
 
 **Files:**
+
 - Create: `src/components/layout/company-switcher.tsx`
 - Modify: `src/components/layout/header.tsx`
 - Create: `src/app/actions/company-switch.ts`
@@ -669,11 +696,7 @@ export function CompanySwitcher({
   const currentCompany = companies.find((c) => c.id === currentCompanyId)
 
   if (companies.length <= 1) {
-    return (
-      <div className="text-sm text-gray-600">
-        {currentCompany?.name}
-      </div>
-    )
+    return <div className="text-sm text-gray-600">{currentCompany?.name}</div>
   }
 
   const handleSwitch = (companyId: string) => {
@@ -768,10 +791,7 @@ export async function Header() {
             FiskAI
           </Link>
           {currentCompany && companies.length > 0 && (
-            <CompanySwitcher
-              companies={companies}
-              currentCompanyId={currentCompany.id}
-            />
+            <CompanySwitcher companies={companies} currentCompanyId={currentCompany.id} />
           )}
         </div>
 
@@ -805,6 +825,7 @@ export async function Header() {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -813,6 +834,7 @@ export async function Header() {
 ## Task 9: Enhance Dashboard with Insights/KPIs
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/dashboard/page.tsx`
 
 **Step 1: Update dashboard with financial KPIs**
@@ -924,9 +946,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium text-gray-500">Ukupni prihod</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-600">
-              {totalRevenueValue.toFixed(2)} EUR
-            </p>
+            <p className="text-2xl font-bold text-green-600">{totalRevenueValue.toFixed(2)} EUR</p>
           </CardContent>
         </Card>
 
@@ -1003,7 +1023,10 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Nedavni e-racuni</span>
-              <Link href="/e-invoices" className="text-sm font-normal text-blue-600 hover:underline">
+              <Link
+                href="/e-invoices"
+                className="text-sm font-normal text-blue-600 hover:underline"
+              >
                 Vidi sve
               </Link>
             </CardTitle>
@@ -1089,6 +1112,7 @@ export default async function DashboardPage() {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -1121,6 +1145,7 @@ Addresses audit findings from implementation-plan.md phases 1-7"
 ```
 
 **Verification:**
+
 - Run: `git log --oneline -1`
 - Expected: Shows new commit with message
 

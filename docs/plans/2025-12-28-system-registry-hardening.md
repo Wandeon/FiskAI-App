@@ -15,6 +15,7 @@
 ### Task 1: Enforcement Tests (Owner Validity + Route Group Coverage)
 
 **Files:**
+
 - Create: `src/lib/__tests__/system-registry-enforcement.test.ts`
 - Modify (later): `src/lib/system-registry/compute-drift.ts`
 - Modify (later): `src/lib/system-registry/schema.ts`
@@ -100,6 +101,7 @@ Expected: PASS
 ### Task 2: Enforcement Implementation (Owner Validity + Route Group Coverage)
 
 **Files:**
+
 - Modify: `src/lib/system-registry/compute-drift.ts`
 - Modify: `src/lib/system-registry/schema.ts`
 
@@ -120,6 +122,7 @@ In `src/lib/system-registry/schema.ts`, change ROUTE_GROUP rule to cover all cri
 **Step 2: Enforce owner validity in drift**
 
 In `src/lib/system-registry/compute-drift.ts`:
+
 - Treat invalid owners as missing owners (add `NO_OWNER` gap)
 - Record invalid owners in a dedicated list for reporting (optional but recommended)
 
@@ -131,7 +134,9 @@ if (decl.owner) {
   if (!ownerValidation.valid) {
     invalidOwners.push({ componentId: decl.componentId, owner: decl.owner })
   }
-  if (ownerValidation.deprecated) { /* existing behavior */ }
+  if (ownerValidation.deprecated) {
+    /* existing behavior */
+  }
 }
 
 const ownerMissing = !decl.owner || (decl.owner && !ownerValidation?.valid)
@@ -150,6 +155,7 @@ Expected: PASS
 ### Task 3: Queue Harvester Tests (Full Scan + Constructor Guard)
 
 **Files:**
+
 - Create: `src/lib/__tests__/system-registry-queues.test.ts`
 - Modify (later): `src/lib/system-registry/harvesters/harvest-queues.ts`
 - Modify (later): `src/lib/system-registry/governance.ts`
@@ -197,6 +203,7 @@ Expected: FAIL (no queue detected in alpha.ts; no errors for beta.ts)
 ### Task 4: Queue Harvester Implementation (Full Scan + Constructor Guard)
 
 **Files:**
+
 - Modify: `src/lib/system-registry/harvesters/harvest-queues.ts`
 - Modify: `src/lib/system-registry/governance.ts`
 
@@ -213,6 +220,7 @@ export const ALLOWED_QUEUE_CONSTRUCTOR_PATHS = [
 **Step 2: Scan all .ts/.tsx files under src/lib**
 
 In `harvest-queues.ts`:
+
 - Always scan `src/lib` recursively (no filename filter)
 - Sort file list for deterministic ordering
 - Add a scan cap; if exceeded, push a non-recoverable error
@@ -220,6 +228,7 @@ In `harvest-queues.ts`:
 **Step 3: Enforce queue constructor location**
 
 In `harvest-queues.ts`:
+
 - For each scanned file, if `new Queue(` appears and file not in allowlist, add a harvester error.
 
 **Step 4: Run queue tests**
@@ -232,6 +241,7 @@ Expected: PASS
 ### Task 5: Worker Harvester Tests (Full Enumeration + Exclusions)
 
 **Files:**
+
 - Create: `src/lib/__tests__/system-registry-workers.test.ts`
 - Modify (later): `src/lib/system-registry/harvesters/harvest-workers.ts`
 - Modify (later): `src/lib/system-registry/governance.ts`
@@ -280,6 +290,7 @@ Expected: FAIL (api-service not detected)
 ### Task 6: Worker Harvester Implementation (Exclusions + Enumeration)
 
 **Files:**
+
 - Modify: `src/lib/system-registry/harvesters/harvest-workers.ts`
 - Modify: `src/lib/system-registry/governance.ts`
 
@@ -304,6 +315,7 @@ Also extend `validateGovernance()` to validate this list.
 **Step 2: Enumerate all compose services**
 
 In `harvest-workers.ts`:
+
 - Remove name-based filtering
 - Skip services listed in `WORKER_SERVICE_EXCLUSIONS`
 - Keep the existing name normalization (`fiskai-` and `worker-` prefixes)
@@ -318,6 +330,7 @@ Expected: PASS
 ### Task 7: Harvester Error Tests (Scan Caps + Registry Check)
 
 **Files:**
+
 - Create: `src/lib/__tests__/system-registry-harvester-errors.test.ts`
 - Modify (later): `src/lib/system-registry/harvesters/harvest-libs.ts`
 - Create (later): `src/lib/system-registry/scripts/registry-check-utils.ts`
@@ -367,6 +380,7 @@ Expected: FAIL (no scan-cap error; helper not implemented)
 ### Task 8: Harvester Error Implementation (Scan Caps + CI Failure)
 
 **Files:**
+
 - Modify: `src/lib/system-registry/harvesters/harvest-libs.ts`
 - Create: `src/lib/system-registry/scripts/registry-check-utils.ts`
 - Modify: `src/lib/system-registry/scripts/registry-check.ts`
@@ -409,6 +423,7 @@ Expected: PASS
 ### Task 9: Close Repo-Level Bypasses (CODEOWNERS + CI Scope)
 
 **Files:**
+
 - Modify: `.github/CODEOWNERS`
 - Modify: `.github/workflows/registry-check.yml`
 

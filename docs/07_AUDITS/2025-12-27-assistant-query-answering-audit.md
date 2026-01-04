@@ -13,15 +13,15 @@ This audit validates that the AI assistant provides accurate answers with valid 
 
 ### Key Findings
 
-| Category | Status | Notes |
-|----------|--------|-------|
-| Query Routing Accuracy | **PASS** | Pattern-based + LLM fallback working correctly |
-| Citation Validity | **PASS** | PUBLISHED-only enforcement verified |
-| Fail-Closed Verification | **PASS** | System refuses rather than hallucinate |
-| Temporal Correctness | **PASS** | effectiveFrom/effectiveUntil respected |
-| Hallucination Prevention | **PASS** | All claims traced to citations |
-| Refusal Appropriateness | **WARN** | Over-conservative in some cases |
-| Knowledge Coverage | **WARN** | Gaps in pausalni, fiskalizacija, doprinosi |
+| Category                 | Status   | Notes                                          |
+| ------------------------ | -------- | ---------------------------------------------- |
+| Query Routing Accuracy   | **PASS** | Pattern-based + LLM fallback working correctly |
+| Citation Validity        | **PASS** | PUBLISHED-only enforcement verified            |
+| Fail-Closed Verification | **PASS** | System refuses rather than hallucinate         |
+| Temporal Correctness     | **PASS** | effectiveFrom/effectiveUntil respected         |
+| Hallucination Prevention | **PASS** | All claims traced to citations                 |
+| Refusal Appropriateness  | **WARN** | Over-conservative in some cases                |
+| Knowledge Coverage       | **WARN** | Gaps in pausalni, fiskalizacija, doprinosi     |
 
 ---
 
@@ -33,13 +33,13 @@ This audit validates that the AI assistant provides accurate answers with valid 
 
 The system uses regex-based pattern detection for 5 intent types before falling back to LLM classification:
 
-| Intent | Example Patterns (Croatian) | Example Patterns (English) |
-|--------|----------------------------|---------------------------|
-| PROCESS | `kako da`, `koraci za`, `postupak`, `registracija` | `how do i`, `what are the steps` |
-| REFERENCE | `iban za`, `uplatni račun`, `šifra za`, `cn kod` | `what is the iban`, `account number` |
-| DOCUMENT | `obrazac`, `formular`, `preuzmi`, `pdv-*` | `where can i find`, `form for` |
-| TEMPORAL | `prijelazne`, `stara stopa`, `nova stopa`, date patterns | `old vs new`, `transitional` |
-| LOGIC | `moram li`, `trebam li`, `koliko iznosi`, `koja je stopa` | `do i have to`, `what is the rate` |
+| Intent    | Example Patterns (Croatian)                               | Example Patterns (English)           |
+| --------- | --------------------------------------------------------- | ------------------------------------ |
+| PROCESS   | `kako da`, `koraci za`, `postupak`, `registracija`        | `how do i`, `what are the steps`     |
+| REFERENCE | `iban za`, `uplatni račun`, `šifra za`, `cn kod`          | `what is the iban`, `account number` |
+| DOCUMENT  | `obrazac`, `formular`, `preuzmi`, `pdv-*`                 | `where can i find`, `form for`       |
+| TEMPORAL  | `prijelazne`, `stara stopa`, `nova stopa`, date patterns  | `old vs new`, `transitional`         |
+| LOGIC     | `moram li`, `trebam li`, `koliko iznosi`, `koja je stopa` | `do i have to`, `what is the rate`   |
 
 **Test Coverage:** 134 lines of tests in `src/lib/regulatory-truth/retrieval/__tests__/query-router.test.ts`
 
@@ -87,13 +87,11 @@ For REGULATORY ANSWER responses, the system enforces:
 
 ```typescript
 // FAIL-CLOSED: Primary citation MUST have:
-- url (non-empty)
-- quote (non-empty)
-- evidenceId (non-empty)
-- fetchedAt (non-empty)
+;-url(non - empty) - quote(non - empty) - evidenceId(non - empty) - fetchedAt(non - empty)
 ```
 
 **Evidence:** Integration test at `src/lib/assistant/__tests__/fail-closed-integration.test.ts:190-208` verifies:
+
 ```typescript
 const validation = validateResponse(invalidResponse)
 expect(validation.valid).toBe(false)
@@ -114,7 +112,7 @@ expect(validation.errors.some((e) => e.includes("fail-closed"))).toBe(true)
 const allRules = await prisma.regulatoryRule.findMany({
   where: {
     conceptSlug: { in: conceptSlugs },
-    status: "PUBLISHED",  // ← HARD GATE
+    status: "PUBLISHED", // ← HARD GATE
   },
   // ...
 })
@@ -123,6 +121,7 @@ const allRules = await prisma.regulatoryRule.findMany({
 **Rule Eligibility Gate:**
 
 Rules are excluded if:
+
 1. `effectiveFrom > asOfDate` (FUTURE)
 2. `effectiveUntil < asOfDate` (EXPIRED)
 3. `appliesWhen` evaluates to FALSE (CONDITION_FALSE)
@@ -138,12 +137,14 @@ Source → Evidence → SourcePointer → RegulatoryRule → Concept
 ```
 
 **Evidence Provenance:**
+
 ```typescript
 evidenceId: evidence.id,
 fetchedAt: evidence.fetchedAt?.toISOString() || new Date().toISOString(),
 ```
 
 **Finding:** The citation builder returns `null` if:
+
 - No rules have source pointers
 - Primary rule lacks evidence
 
@@ -155,25 +156,25 @@ fetchedAt: evidence.fetchedAt?.toISOString() || new Date().toISOString(),
 
 ### Refusal Reasons
 
-| Reason | Trigger | Message |
-|--------|---------|---------|
-| `NO_CITABLE_RULES` | No matching PUBLISHED rules | "Nismo pronašli službene izvore..." |
-| `NEEDS_CLARIFICATION` | Confidence < 0.6 or vague query | "Molimo precizirajte pitanje" |
-| `OUT_OF_SCOPE` | Nonsense, gibberish, or PRODUCT/SUPPORT topic | "Molimo preformulirajte upit" |
-| `UNSUPPORTED_JURISDICTION` | Foreign country detected | "Pitanje se odnosi na {country}..." |
-| `MISSING_CLIENT_DATA` | Personalized query without context | "Za personalizirani odgovor..." |
-| `UNRESOLVED_CONFLICT` | Conflicting rules that can't be resolved | "Pronađeni su proturječni propisi" |
+| Reason                     | Trigger                                       | Message                             |
+| -------------------------- | --------------------------------------------- | ----------------------------------- |
+| `NO_CITABLE_RULES`         | No matching PUBLISHED rules                   | "Nismo pronašli službene izvore..." |
+| `NEEDS_CLARIFICATION`      | Confidence < 0.6 or vague query               | "Molimo precizirajte pitanje"       |
+| `OUT_OF_SCOPE`             | Nonsense, gibberish, or PRODUCT/SUPPORT topic | "Molimo preformulirajte upit"       |
+| `UNSUPPORTED_JURISDICTION` | Foreign country detected                      | "Pitanje se odnosi na {country}..." |
+| `MISSING_CLIENT_DATA`      | Personalized query without context            | "Za personalizirani odgovor..."     |
+| `UNRESOLVED_CONFLICT`      | Conflicting rules that can't be resolved      | "Pronađeni su proturječni propisi"  |
 
 ### E2E Test Results (2025-12-25)
 
 From `docs/07_AUDITS/2025-12-25-assistant-e2e-results.md`:
 
-| Issue | Count | Examples |
-|-------|-------|----------|
-| Correct behavior | 3 | Q5, Q18, Q20 |
-| Over-conservative (MISSING_CLIENT_DATA) | 6 | Q2, Q3, Q7, Q10, Q12, Q15 |
-| Knowledge gaps (NO_CITABLE_RULES) | 6 | Q8, Q9, Q11, Q13, Q14, Q16 |
-| EU Directive over-match | 5 | Q1, Q4, Q6, Q17, Q19 |
+| Issue                                   | Count | Examples                   |
+| --------------------------------------- | ----- | -------------------------- |
+| Correct behavior                        | 3     | Q5, Q18, Q20               |
+| Over-conservative (MISSING_CLIENT_DATA) | 6     | Q2, Q3, Q7, Q10, Q12, Q15  |
+| Knowledge gaps (NO_CITABLE_RULES)       | 6     | Q8, Q9, Q11, Q13, Q14, Q16 |
+| EU Directive over-match                 | 5     | Q1, Q4, Q6, Q17, Q19       |
 
 **Warning:** Some queries like "Koji je maksimalni prihod za paušalni obrt?" (Q8) return `NO_CITABLE_RULES` when this is core regulatory knowledge that should be available.
 
@@ -209,6 +210,7 @@ export function checkTemporalEligibility(
 **Location:** `src/lib/regulatory-truth/retrieval/temporal-engine.ts`
 
 Supports patterns:
+
 - `INVOICE_DATE`
 - `DELIVERY_DATE`
 - `PAYMENT_DATE`
@@ -265,6 +267,7 @@ Even on exceptions, the API returns a valid REFUSAL response:
 ```
 
 **Key Invariant (answer-builder.ts:51-52):**
+
 > INVARIANT: The system REFUSES more often than it answers.
 > INVARIANT: Vague queries always get clarification, never "no sources found".
 
@@ -299,6 +302,7 @@ ANSWER (or REFUSAL)
 ### No Unparsed LLM Output in Answers
 
 The system does NOT generate free-form LLM answers. Instead:
+
 1. `directAnswer` comes from `rule.explanationHr` or formatted `rule.value`
 2. `headline` comes from `rule.titleHr`
 3. `citations.primary.quote` comes from `sourcePointer.exactQuote`
@@ -352,6 +356,7 @@ const allRules = await prisma.regulatoryRule.findMany({
 There is no code path that could return rules with any status other than `PUBLISHED`.
 
 **Expected Query Result:**
+
 ```sql
 SELECT ai.id, ai.query, rr.id as rule_id, rr.status
 FROM "ReasoningTrace" ai
@@ -392,14 +397,14 @@ WHERE rr.status != 'PUBLISHED';
 
 ## 11. Test Coverage Summary
 
-| Test File | Tests | Status |
-|-----------|-------|--------|
-| `query-router.test.ts` | Intent detection patterns | ✅ |
-| `query-interpreter.test.ts` | Confidence scoring, nonsense detection | ✅ |
-| `answer-builder.test.ts` | End-to-end pipeline, surface differentiation | ✅ |
-| `fail-closed-integration.test.ts` | Citation validation, refusal behavior | ✅ |
-| `rule-selector.test.ts` | PUBLISHED filtering, eligibility | ✅ |
-| `citation-builder.test.ts` | Evidence chain validation | ✅ |
+| Test File                         | Tests                                        | Status |
+| --------------------------------- | -------------------------------------------- | ------ |
+| `query-router.test.ts`            | Intent detection patterns                    | ✅     |
+| `query-interpreter.test.ts`       | Confidence scoring, nonsense detection       | ✅     |
+| `answer-builder.test.ts`          | End-to-end pipeline, surface differentiation | ✅     |
+| `fail-closed-integration.test.ts` | Citation validation, refusal behavior        | ✅     |
+| `rule-selector.test.ts`           | PUBLISHED filtering, eligibility             | ✅     |
+| `citation-builder.test.ts`        | Evidence chain validation                    | ✅     |
 
 ---
 
@@ -414,6 +419,7 @@ The Assistant Query Answering system demonstrates **robust fail-closed behavior*
 - Respects temporal bounds (effectiveFrom/effectiveUntil)
 
 **Areas for Improvement:**
+
 - Knowledge coverage needs expansion (many common queries return NO_CITABLE_RULES)
 - Over-conservative MISSING_CLIENT_DATA responses could be relaxed
 - EU Directive over-matching should be refined
@@ -422,4 +428,4 @@ The Assistant Query Answering system demonstrates **robust fail-closed behavior*
 
 ---
 
-*Audit performed by Claude Code (Opus 4.5) on 2025-12-27*
+_Audit performed by Claude Code (Opus 4.5) on 2025-12-27_

@@ -59,6 +59,7 @@
 ## Task 1: Add Fiscal Enums to Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add enums after existing enums section**
@@ -101,6 +102,7 @@ Expected: "The schema is valid!"
 ## Task 2: Add FiscalCertificate Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add FiscalCertificate model**
@@ -136,6 +138,7 @@ model FiscalCertificate {
 **Step 2: Add relation to Company model**
 
 Find the Company model and add:
+
 ```prisma
   fiscalCertificates FiscalCertificate[]
 ```
@@ -149,6 +152,7 @@ Run: `cd /home/admin/FiskAI && npx prisma validate`
 ## Task 3: Add FiscalRequest Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add FiscalRequest model**
@@ -191,11 +195,13 @@ model FiscalRequest {
 **Step 2: Add relations to Company and Invoice models**
 
 Add to Company model:
+
 ```prisma
   fiscalRequests   FiscalRequest[]
 ```
 
 Add to Invoice model:
+
 ```prisma
   fiscalRequests   FiscalRequest[]
 ```
@@ -209,11 +215,13 @@ Run: `cd /home/admin/FiskAI && npx prisma validate`
 ## Task 4: Add Fiscal Fields to Company Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add fiscal configuration fields to Company model**
 
 Find the Company model and add these fields:
+
 ```prisma
   fiscalEnabled      Boolean     @default(false)
   fiscalEnvironment  FiscalEnv   @default(PROD)
@@ -230,11 +238,13 @@ Run: `cd /home/admin/FiskAI && npx prisma validate`
 ## Task 5: Add Fiscal Fields to Invoice Model
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add fiscal tracking fields to Invoice model**
 
 Find the Invoice model and add these fields:
+
 ```prisma
   jir              String?
   zki              String?
@@ -246,6 +256,7 @@ Find the Invoice model and add these fields:
 **Step 2: Run schema validation and generate migration**
 
 Run:
+
 ```bash
 cd /home/admin/FiskAI && npx prisma validate
 cd /home/admin/FiskAI && npx prisma migrate dev --name add_fiscal_certificates
@@ -256,6 +267,7 @@ cd /home/admin/FiskAI && npx prisma migrate dev --name add_fiscal_certificates
 ## Task 6: Add FISCAL_CERT_KEY Environment Variable
 
 **Files:**
+
 - Modify: `.env.example`
 - Modify: `docker-compose.prod.yml` (add placeholder comment)
 
@@ -270,8 +282,9 @@ FISCAL_CERT_KEY=
 **Step 2: Add comment to docker-compose.prod.yml**
 
 In the environment section of the app service, add:
+
 ```yaml
-      # FISCAL_CERT_KEY: Set in Coolify secrets
+# FISCAL_CERT_KEY: Set in Coolify secrets
 ```
 
 **Step 3: Generate a key for local development**
@@ -285,23 +298,24 @@ Add the generated key to your local `.env` file.
 ## Task 7: Create Envelope Encryption Module
 
 **Files:**
+
 - Create: `src/lib/fiscal/envelope-encryption.ts`
 
 **Step 1: Create the envelope encryption module**
 
 ```typescript
 // src/lib/fiscal/envelope-encryption.ts
-import crypto from 'crypto'
+import crypto from "crypto"
 
-const MASTER_KEY_ENV = 'FISCAL_CERT_KEY'
-const ALGORITHM = 'aes-256-gcm'
+const MASTER_KEY_ENV = "FISCAL_CERT_KEY"
+const ALGORITHM = "aes-256-gcm"
 
 function getMasterKey(): Buffer {
   const keyHex = process.env[MASTER_KEY_ENV]
   if (!keyHex || keyHex.length !== 64) {
     throw new Error(`${MASTER_KEY_ENV} must be 32 bytes (64 hex chars)`)
   }
-  return Buffer.from(keyHex, 'hex')
+  return Buffer.from(keyHex, "hex")
 }
 
 export function encryptWithEnvelope(plaintext: string): {
@@ -316,66 +330,49 @@ export function encryptWithEnvelope(plaintext: string): {
 
   // Encrypt plaintext with data key
   const dataCipher = crypto.createCipheriv(ALGORITHM, dataKey, dataIv)
-  const encryptedContent = Buffer.concat([
-    dataCipher.update(plaintext, 'utf8'),
-    dataCipher.final()
-  ])
+  const encryptedContent = Buffer.concat([dataCipher.update(plaintext, "utf8"), dataCipher.final()])
   const dataTag = dataCipher.getAuthTag()
 
   // Encrypt data key with master key
   const keyIv = crypto.randomBytes(12)
   const keyCipher = crypto.createCipheriv(ALGORITHM, masterKey, keyIv)
-  const encryptedKey = Buffer.concat([
-    keyCipher.update(dataKey),
-    keyCipher.final()
-  ])
+  const encryptedKey = Buffer.concat([keyCipher.update(dataKey), keyCipher.final()])
   const keyTag = keyCipher.getAuthTag()
 
   return {
     encryptedData: [
-      dataIv.toString('hex'),
-      encryptedContent.toString('hex'),
-      dataTag.toString('hex')
-    ].join(':'),
+      dataIv.toString("hex"),
+      encryptedContent.toString("hex"),
+      dataTag.toString("hex"),
+    ].join(":"),
     encryptedDataKey: [
-      keyIv.toString('hex'),
-      encryptedKey.toString('hex'),
-      keyTag.toString('hex')
-    ].join(':')
+      keyIv.toString("hex"),
+      encryptedKey.toString("hex"),
+      keyTag.toString("hex"),
+    ].join(":"),
   }
 }
 
-export function decryptWithEnvelope(
-  encryptedData: string,
-  encryptedDataKey: string
-): string {
+export function decryptWithEnvelope(encryptedData: string, encryptedDataKey: string): string {
   const masterKey = getMasterKey()
 
   // Decrypt data key
-  const [keyIvHex, encKeyHex, keyTagHex] = encryptedDataKey.split(':')
-  const keyDecipher = crypto.createDecipheriv(
-    ALGORITHM,
-    masterKey,
-    Buffer.from(keyIvHex, 'hex')
-  )
-  keyDecipher.setAuthTag(Buffer.from(keyTagHex, 'hex'))
+  const [keyIvHex, encKeyHex, keyTagHex] = encryptedDataKey.split(":")
+  const keyDecipher = crypto.createDecipheriv(ALGORITHM, masterKey, Buffer.from(keyIvHex, "hex"))
+  keyDecipher.setAuthTag(Buffer.from(keyTagHex, "hex"))
   const dataKey = Buffer.concat([
-    keyDecipher.update(Buffer.from(encKeyHex, 'hex')),
-    keyDecipher.final()
+    keyDecipher.update(Buffer.from(encKeyHex, "hex")),
+    keyDecipher.final(),
   ])
 
   // Decrypt content
-  const [dataIvHex, encContentHex, dataTagHex] = encryptedData.split(':')
-  const dataDecipher = crypto.createDecipheriv(
-    ALGORITHM,
-    dataKey,
-    Buffer.from(dataIvHex, 'hex')
-  )
-  dataDecipher.setAuthTag(Buffer.from(dataTagHex, 'hex'))
+  const [dataIvHex, encContentHex, dataTagHex] = encryptedData.split(":")
+  const dataDecipher = crypto.createDecipheriv(ALGORITHM, dataKey, Buffer.from(dataIvHex, "hex"))
+  dataDecipher.setAuthTag(Buffer.from(dataTagHex, "hex"))
   return Buffer.concat([
-    dataDecipher.update(Buffer.from(encContentHex, 'hex')),
-    dataDecipher.final()
-  ]).toString('utf8')
+    dataDecipher.update(Buffer.from(encContentHex, "hex")),
+    dataDecipher.final(),
+  ]).toString("utf8")
 }
 ```
 
@@ -384,6 +381,7 @@ export function decryptWithEnvelope(
 ## Task 8: Create Certificate Parser Module
 
 **Files:**
+
 - Create: `src/lib/fiscal/certificate-parser.ts`
 
 **Step 1: Install node-forge**
@@ -394,8 +392,8 @@ Run: `cd /home/admin/FiskAI && npm install node-forge && npm install -D @types/n
 
 ```typescript
 // src/lib/fiscal/certificate-parser.ts
-import forge from 'node-forge'
-import crypto from 'crypto'
+import forge from "node-forge"
+import crypto from "crypto"
 
 export interface ParsedCertificate {
   subject: string
@@ -414,7 +412,7 @@ export async function parseP12Certificate(
   password: string
 ): Promise<ParsedCertificate> {
   // Parse P12/PFX
-  const p12Asn1 = forge.asn1.fromDer(p12Buffer.toString('binary'))
+  const p12Asn1 = forge.asn1.fromDer(p12Buffer.toString("binary"))
   const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, password)
 
   // Extract certificate and private key
@@ -425,7 +423,7 @@ export async function parseP12Certificate(
   const keyBag = keyBags[forge.pki.oids.pkcs8ShroudedKeyBag]?.[0]
 
   if (!certBag?.cert || !keyBag?.key) {
-    throw new Error('Certificate or private key not found in P12')
+    throw new Error("Certificate or private key not found in P12")
   }
 
   const cert = certBag.cert
@@ -434,43 +432,43 @@ export async function parseP12Certificate(
   // Extract OIB from subject
   const oib = extractOIB(cert)
   if (!oib) {
-    throw new Error('OIB not found in certificate')
+    throw new Error("OIB not found in certificate")
   }
 
   // Calculate SHA256 fingerprint
   const certDer = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes()
-  const sha256 = crypto.createHash('sha256').update(certDer, 'binary').digest('hex')
+  const sha256 = crypto.createHash("sha256").update(certDer, "binary").digest("hex")
 
   return {
-    subject: cert.subject.getField('CN')?.value || formatSubject(cert.subject),
+    subject: cert.subject.getField("CN")?.value || formatSubject(cert.subject),
     oib,
     serial: cert.serialNumber,
     notBefore: cert.validity.notBefore,
     notAfter: cert.validity.notAfter,
-    issuer: cert.issuer.getField('CN')?.value || formatSubject(cert.issuer),
+    issuer: cert.issuer.getField("CN")?.value || formatSubject(cert.issuer),
     sha256,
     privateKey,
-    certificate: cert
+    certificate: cert,
   }
 }
 
 function extractOIB(cert: forge.pki.Certificate): string | null {
   // Try serialNumber field (OID 2.5.4.5) - common in Croatian certs
-  const serialNumber = cert.subject.getField({ type: '2.5.4.5' })
+  const serialNumber = cert.subject.getField({ type: "2.5.4.5" })
   if (serialNumber?.value) {
     const match = serialNumber.value.match(/\d{11}/)
     if (match) return match[0]
   }
 
   // Try CN field
-  const cn = cert.subject.getField('CN')?.value
+  const cn = cert.subject.getField("CN")?.value
   if (cn) {
     const match = cn.match(/\d{11}/)
     if (match) return match[0]
   }
 
   // Try OU field
-  const ou = cert.subject.getField('OU')?.value
+  const ou = cert.subject.getField("OU")?.value
   if (ou) {
     const match = ou.match(/\d{11}/)
     if (match) return match[0]
@@ -481,20 +479,20 @@ function extractOIB(cert: forge.pki.Certificate): string | null {
 
 export function validateCertificate(
   cert: ParsedCertificate,
-  environment: 'TEST' | 'PROD'
+  environment: "TEST" | "PROD"
 ): { valid: true } | { valid: false; error: string } {
   const now = new Date()
 
   if (cert.notAfter < now) {
-    return { valid: false, error: 'Certificate has expired' }
+    return { valid: false, error: "Certificate has expired" }
   }
 
   if (cert.notBefore > now) {
-    return { valid: false, error: 'Certificate is not yet valid' }
+    return { valid: false, error: "Certificate is not yet valid" }
   }
 
   if (!isValidOIB(cert.oib)) {
-    return { valid: false, error: 'Invalid OIB in certificate' }
+    return { valid: false, error: "Invalid OIB in certificate" }
   }
 
   return { valid: true }
@@ -515,11 +513,11 @@ export function isValidOIB(oib: string): boolean {
 
 function formatSubject(subject: forge.pki.DistinguishedName): string {
   const parts: string[] = []
-  const cn = subject.getField('CN')
-  const o = subject.getField('O')
+  const cn = subject.getField("CN")
+  const o = subject.getField("O")
   if (cn?.value) parts.push(cn.value)
   if (o?.value) parts.push(o.value)
-  return parts.join(', ') || 'Unknown'
+  return parts.join(", ") || "Unknown"
 }
 
 export function forgeToPem(
@@ -528,7 +526,7 @@ export function forgeToPem(
 ): { privateKeyPem: string; certificatePem: string } {
   return {
     privateKeyPem: forge.pki.privateKeyToPem(privateKey),
-    certificatePem: forge.pki.certificateToPem(certificate)
+    certificatePem: forge.pki.certificateToPem(certificate),
   }
 }
 ```
@@ -538,6 +536,7 @@ export function forgeToPem(
 ## Task 9: Create XML Builder Module
 
 **Files:**
+
 - Create: `src/lib/fiscal/xml-builder.ts`
 - Create: `src/lib/fiscal/utils.ts`
 
@@ -551,14 +550,14 @@ export function formatAmount(amount: number, decimals: number = 2): string {
 }
 
 export function formatDateTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = typeof date === "string" ? new Date(date) : date
   // Format: DD.MM.YYYYTHH:MM:SS
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, "0")
+  const month = String(d.getMonth() + 1).padStart(2, "0")
   const year = d.getFullYear()
-  const hours = String(d.getHours()).padStart(2, '0')
-  const minutes = String(d.getMinutes()).padStart(2, '0')
-  const seconds = String(d.getSeconds()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, "0")
+  const minutes = String(d.getMinutes()).padStart(2, "0")
+  const seconds = String(d.getSeconds()).padStart(2, "0")
   return `${day}.${month}.${year}T${hours}:${minutes}:${seconds}`
 }
 
@@ -575,12 +574,12 @@ Run: `cd /home/admin/FiskAI && npm install xmlbuilder2`
 
 ```typescript
 // src/lib/fiscal/xml-builder.ts
-import { create } from 'xmlbuilder2'
-import { calculateZKI } from '@/lib/e-invoice/zki'
-import { formatAmount, formatDateTime, generateUUID } from './utils'
+import { create } from "xmlbuilder2"
+import { calculateZKI } from "@/lib/e-invoice/zki"
+import { formatAmount, formatDateTime, generateUUID } from "./utils"
 
-const NAMESPACE = 'http://www.apis-it.hr/fin/2012/types/f73'
-const SCHEMA_LOCATION = 'http://www.apis-it.hr/fin/2012/types/f73 FiskalizacijaSchema.xsd'
+const NAMESPACE = "http://www.apis-it.hr/fin/2012/types/f73"
+const SCHEMA_LOCATION = "http://www.apis-it.hr/fin/2012/types/f73 FiskalizacijaSchema.xsd"
 
 export interface FiscalInvoiceData {
   invoiceNumber: number
@@ -624,124 +623,127 @@ export function buildRacunRequest(
   const timestamp = new Date()
 
   // Calculate ZKI (Zaštitni Kod Izdavatelja)
-  const zki = calculateZKI({
-    oib,
-    invoiceDate: invoice.issueDate,
-    invoiceNumber: String(invoice.invoiceNumber),
-    premisesCode: invoice.premisesCode,
-    deviceCode: invoice.deviceCode,
-    totalAmount: invoice.totalAmount
-  }, privateKeyPem)
+  const zki = calculateZKI(
+    {
+      oib,
+      invoiceDate: invoice.issueDate,
+      invoiceNumber: String(invoice.invoiceNumber),
+      premisesCode: invoice.premisesCode,
+      deviceCode: invoice.deviceCode,
+      totalAmount: invoice.totalAmount,
+    },
+    privateKeyPem
+  )
 
-  const doc = create({ version: '1.0', encoding: 'UTF-8' })
-    .ele(NAMESPACE, 'tns:RacunZahtjev')
-    .att('xmlns:tns', NAMESPACE)
-    .att('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-    .att('xsi:schemaLocation', SCHEMA_LOCATION)
-    .att('Id', 'RacunZahtjev')
+  const doc = create({ version: "1.0", encoding: "UTF-8" })
+    .ele(NAMESPACE, "tns:RacunZahtjev")
+    .att("xmlns:tns", NAMESPACE)
+    .att("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    .att("xsi:schemaLocation", SCHEMA_LOCATION)
+    .att("Id", "RacunZahtjev")
 
   // Zaglavlje (Header)
-  const zaglavlje = doc.ele('tns:Zaglavlje')
-  zaglavlje.ele('tns:IdPoruke').txt(messageId)
-  zaglavlje.ele('tns:DatumVrijeme').txt(formatDateTime(timestamp))
+  const zaglavlje = doc.ele("tns:Zaglavlje")
+  zaglavlje.ele("tns:IdPoruke").txt(messageId)
+  zaglavlje.ele("tns:DatumVrijeme").txt(formatDateTime(timestamp))
 
   // Racun (Invoice)
-  const racun = doc.ele('tns:Racun')
+  const racun = doc.ele("tns:Racun")
 
-  racun.ele('tns:Oib').txt(oib)
-  racun.ele('tns:USustPdv').txt(invoice.vatRegistered ? 'true' : 'false')
-  racun.ele('tns:DatVrijeme').txt(formatDateTime(invoice.issueDate))
-  racun.ele('tns:OznSlijed').txt('N') // N = on premises level
+  racun.ele("tns:Oib").txt(oib)
+  racun.ele("tns:USustPdv").txt(invoice.vatRegistered ? "true" : "false")
+  racun.ele("tns:DatVrijeme").txt(formatDateTime(invoice.issueDate))
+  racun.ele("tns:OznSlijed").txt("N") // N = on premises level
 
   // Broj računa (Invoice number structure)
-  const brojRacuna = racun.ele('tns:BrRac')
-  brojRacuna.ele('tns:BrOznRac').txt(String(invoice.invoiceNumber))
-  brojRacuna.ele('tns:OznPosPr').txt(invoice.premisesCode)
-  brojRacuna.ele('tns:OznNapUr').txt(invoice.deviceCode)
+  const brojRacuna = racun.ele("tns:BrRac")
+  brojRacuna.ele("tns:BrOznRac").txt(String(invoice.invoiceNumber))
+  brojRacuna.ele("tns:OznPosPr").txt(invoice.premisesCode)
+  brojRacuna.ele("tns:OznNapUr").txt(invoice.deviceCode)
 
   // PDV (VAT breakdown) - if VAT registered
   if (invoice.vatRegistered && invoice.vatBreakdown?.length) {
-    const pdv = racun.ele('tns:Pdv')
+    const pdv = racun.ele("tns:Pdv")
     for (const vat of invoice.vatBreakdown) {
-      const porez = pdv.ele('tns:Porez')
-      porez.ele('tns:Stopa').txt(formatAmount(vat.rate, 2))
-      porez.ele('tns:Osnovica').txt(formatAmount(vat.baseAmount, 2))
-      porez.ele('tns:Iznos').txt(formatAmount(vat.vatAmount, 2))
+      const porez = pdv.ele("tns:Porez")
+      porez.ele("tns:Stopa").txt(formatAmount(vat.rate, 2))
+      porez.ele("tns:Osnovica").txt(formatAmount(vat.baseAmount, 2))
+      porez.ele("tns:Iznos").txt(formatAmount(vat.vatAmount, 2))
     }
   }
 
   // PNP (Consumption tax) - optional
   if (invoice.consumptionTax?.length) {
-    const pnp = racun.ele('tns:Pnp')
+    const pnp = racun.ele("tns:Pnp")
     for (const tax of invoice.consumptionTax) {
-      const porez = pnp.ele('tns:Porez')
-      porez.ele('tns:Stopa').txt(formatAmount(tax.rate, 2))
-      porez.ele('tns:Osnovica').txt(formatAmount(tax.baseAmount, 2))
-      porez.ele('tns:Iznos').txt(formatAmount(tax.amount, 2))
+      const porez = pnp.ele("tns:Porez")
+      porez.ele("tns:Stopa").txt(formatAmount(tax.rate, 2))
+      porez.ele("tns:Osnovica").txt(formatAmount(tax.baseAmount, 2))
+      porez.ele("tns:Iznos").txt(formatAmount(tax.amount, 2))
     }
   }
 
   // Oslobođenja (Exemptions)
   if (invoice.exemptAmount) {
-    racun.ele('tns:IznosOsworking').txt(formatAmount(invoice.exemptAmount, 2))
+    racun.ele("tns:IznosOsworking").txt(formatAmount(invoice.exemptAmount, 2))
   }
 
   // Marža (Margin scheme)
   if (invoice.marginAmount) {
-    racun.ele('tns:IznosMarza').txt(formatAmount(invoice.marginAmount, 2))
+    racun.ele("tns:IznosMarza").txt(formatAmount(invoice.marginAmount, 2))
   }
 
   // Ne podliježe oporezivanju (Not subject to tax)
   if (invoice.notTaxableAmount) {
-    racun.ele('tns:IznosNePodworking').txt(formatAmount(invoice.notTaxableAmount, 2))
+    racun.ele("tns:IznosNePodworking").txt(formatAmount(invoice.notTaxableAmount, 2))
   }
 
   // Ukupni iznos (Total amount)
-  racun.ele('tns:IznosUkupno').txt(formatAmount(invoice.totalAmount, 2))
+  racun.ele("tns:IznosUkupno").txt(formatAmount(invoice.totalAmount, 2))
 
   // Način plaćanja (Payment method)
-  racun.ele('tns:NacinPlac').txt(mapPaymentMethod(invoice.paymentMethod))
+  racun.ele("tns:NacinPlac").txt(mapPaymentMethod(invoice.paymentMethod))
 
   // OIB operatera (Operator OIB)
-  racun.ele('tns:OibOper').txt(invoice.operatorOib)
+  racun.ele("tns:OibOper").txt(invoice.operatorOib)
 
   // ZKI
-  racun.ele('tns:ZastKod').txt(zki)
+  racun.ele("tns:ZastKod").txt(zki)
 
   // Naknadna dostava (Subsequent delivery)
-  racun.ele('tns:NaknadnaDost').txt(invoice.subsequentDelivery ? 'true' : 'false')
+  racun.ele("tns:NaknadnaDost").txt(invoice.subsequentDelivery ? "true" : "false")
 
   // Paragon block number
   if (invoice.paragonNumber) {
-    racun.ele('tns:ParagonBrRac').txt(invoice.paragonNumber)
+    racun.ele("tns:ParagonBrRac").txt(invoice.paragonNumber)
   }
 
   // Specifična namjena (Specific purpose)
   if (invoice.specificPurpose) {
-    racun.ele('tns:SpecNamworking').txt(invoice.specificPurpose)
+    racun.ele("tns:SpecNamworking").txt(invoice.specificPurpose)
   }
 
   return {
     xml: doc.end({ prettyPrint: false }),
     zki,
-    messageId
+    messageId,
   }
 }
 
 function mapPaymentMethod(method: string): string {
   const map: Record<string, string> = {
-    'CASH': 'G',
-    'G': 'G',      // Gotovina (Cash)
-    'CARD': 'K',
-    'K': 'K',      // Kartica (Card)
-    'BANK_TRANSFER': 'T',
-    'T': 'T',      // Transakcijski račun (Bank transfer)
-    'OTHER': 'O',
-    'O': 'O',      // Ostalo (Other)
-    'CHECK': 'C',
-    'C': 'C',      // Ček (Check)
+    CASH: "G",
+    G: "G", // Gotovina (Cash)
+    CARD: "K",
+    K: "K", // Kartica (Card)
+    BANK_TRANSFER: "T",
+    T: "T", // Transakcijski račun (Bank transfer)
+    OTHER: "O",
+    O: "O", // Ostalo (Other)
+    CHECK: "C",
+    C: "C", // Ček (Check)
   }
-  return map[method] || 'O'
+  return map[method] || "O"
 }
 
 export function buildStornoRequest(
@@ -754,12 +756,12 @@ export function buildStornoRequest(
   const stornoInvoice: FiscalInvoiceData = {
     ...originalInvoice,
     totalAmount: -Math.abs(originalInvoice.totalAmount),
-    vatBreakdown: originalInvoice.vatBreakdown?.map(v => ({
+    vatBreakdown: originalInvoice.vatBreakdown?.map((v) => ({
       ...v,
       baseAmount: -Math.abs(v.baseAmount),
-      vatAmount: -Math.abs(v.vatAmount)
+      vatAmount: -Math.abs(v.vatAmount),
     })),
-    specificPurpose: `STORNO ${originalJir}`
+    specificPurpose: `STORNO ${originalJir}`,
   }
 
   return buildRacunRequest(stornoInvoice, privateKeyPem, oib)
@@ -771,6 +773,7 @@ export function buildStornoRequest(
 ## Task 10: Create XML Signer Module
 
 **Files:**
+
 - Create: `src/lib/fiscal/xml-signer.ts`
 
 **Step 1: Install xml-crypto and xmldom**
@@ -781,8 +784,8 @@ Run: `cd /home/admin/FiskAI && npm install xml-crypto @xmldom/xmldom`
 
 ```typescript
 // src/lib/fiscal/xml-signer.ts
-import { SignedXml } from 'xml-crypto'
-import { DOMParser } from '@xmldom/xmldom'
+import { SignedXml } from "xml-crypto"
+import { DOMParser } from "@xmldom/xmldom"
 
 export interface SigningCredentials {
   privateKeyPem: string
@@ -793,35 +796,35 @@ export function signXML(xml: string, credentials: SigningCredentials): string {
   const sig = new SignedXml({
     privateKey: credentials.privateKeyPem,
     publicCert: credentials.certificatePem,
-    signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
-    canonicalizationAlgorithm: 'http://www.w3.org/2001/10/xml-exc-c14n#'
+    signatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+    canonicalizationAlgorithm: "http://www.w3.org/2001/10/xml-exc-c14n#",
   })
 
   // Add reference to the RacunZahtjev element
   sig.addReference({
     xpath: "//*[@Id='RacunZahtjev']",
-    digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256',
+    digestAlgorithm: "http://www.w3.org/2001/04/xmlenc#sha256",
     transforms: [
-      'http://www.w3.org/2000/09/xmldsig#enveloped-signature',
-      'http://www.w3.org/2001/10/xml-exc-c14n#'
-    ]
+      "http://www.w3.org/2000/09/xmldsig#enveloped-signature",
+      "http://www.w3.org/2001/10/xml-exc-c14n#",
+    ],
   })
 
   // Include KeyInfo with X509 certificate
   sig.keyInfoProvider = {
     getKeyInfo: () => {
-      return `<X509Data><X509Certificate>${
-        extractCertificateBase64(credentials.certificatePem)
-      }</X509Certificate></X509Data>`
-    }
+      return `<X509Data><X509Certificate>${extractCertificateBase64(
+        credentials.certificatePem
+      )}</X509Certificate></X509Data>`
+    },
   }
 
   // Compute signature
   sig.computeSignature(xml, {
     location: {
       reference: "//*[local-name()='RacunZahtjev']",
-      action: 'append'
-    }
+      action: "append",
+    },
   })
 
   return sig.getSignedXml()
@@ -829,9 +832,9 @@ export function signXML(xml: string, credentials: SigningCredentials): string {
 
 function extractCertificateBase64(pem: string): string {
   return pem
-    .replace(/-----BEGIN CERTIFICATE-----/g, '')
-    .replace(/-----END CERTIFICATE-----/g, '')
-    .replace(/\s/g, '')
+    .replace(/-----BEGIN CERTIFICATE-----/g, "")
+    .replace(/-----END CERTIFICATE-----/g, "")
+    .replace(/\s/g, "")
 }
 ```
 
@@ -840,6 +843,7 @@ function extractCertificateBase64(pem: string): string {
 ## Task 11: Create Porezna Client Module
 
 **Files:**
+
 - Create: `src/lib/fiscal/porezna-client.ts`
 
 **Step 1: Install xml2js**
@@ -850,11 +854,11 @@ Run: `cd /home/admin/FiskAI && npm install xml2js && npm install -D @types/xml2j
 
 ```typescript
 // src/lib/fiscal/porezna-client.ts
-import { parseStringPromise } from 'xml2js'
+import { parseStringPromise } from "xml2js"
 
 const ENDPOINTS = {
-  TEST: 'https://cistest.apis-it.hr:8449/FiskalizacijaServiceTest',
-  PROD: 'https://cis.porezna-uprava.hr:8449/FiskalizacijaService'
+  TEST: "https://cistest.apis-it.hr:8449/FiskalizacijaServiceTest",
+  PROD: "https://cis.porezna-uprava.hr:8449/FiskalizacijaService",
 }
 
 export interface PoreznaResponse {
@@ -875,7 +879,7 @@ export interface PoreznaError {
 
 export async function submitToPorezna(
   signedXml: string,
-  environment: 'TEST' | 'PROD'
+  environment: "TEST" | "PROD"
 ): Promise<PoreznaResponse> {
   const endpoint = ENDPOINTS[environment]
   const soapEnvelope = buildSoapEnvelope(signedXml)
@@ -885,13 +889,13 @@ export async function submitToPorezna(
 
   try {
     const response = await fetch(endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/soap+xml; charset=utf-8',
-        'SOAPAction': 'http://www.apis-it.hr/fin/2012/types/f73/FiskalizacijaService/Racun'
+        "Content-Type": "application/soap+xml; charset=utf-8",
+        SOAPAction: "http://www.apis-it.hr/fin/2012/types/f73/FiskalizacijaService/Racun",
       },
       body: soapEnvelope,
-      signal: controller.signal
+      signal: controller.signal,
     })
 
     clearTimeout(timeout)
@@ -901,7 +905,7 @@ export async function submitToPorezna(
       const error: PoreznaError = {
         httpStatus: response.status,
         message: `HTTP ${response.status}`,
-        body: responseText
+        body: responseText,
       }
       throw error
     }
@@ -910,9 +914,9 @@ export async function submitToPorezna(
   } catch (error) {
     clearTimeout(timeout)
 
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (error instanceof Error && error.name === "AbortError") {
       const timeoutError: PoreznaError = {
-        message: 'Request timeout after 30s'
+        message: "Request timeout after 30s",
       }
       throw timeoutError
     }
@@ -935,7 +939,7 @@ async function parsePoreznaResponse(xml: string): Promise<PoreznaResponse> {
     const parsed = await parseStringPromise(xml, {
       explicitArray: false,
       ignoreAttrs: false,
-      tagNameProcessors: [stripNamespace]
+      tagNameProcessors: [stripNamespace],
     })
 
     const envelope = parsed.Envelope
@@ -946,9 +950,9 @@ async function parsePoreznaResponse(xml: string): Promise<PoreznaResponse> {
       const fault = body.Fault
       return {
         success: false,
-        errorCode: fault.Code?.Value || 'SOAP_FAULT',
-        errorMessage: fault.Reason?.Text || 'Unknown SOAP error',
-        rawResponse: xml
+        errorCode: fault.Code?.Value || "SOAP_FAULT",
+        errorMessage: fault.Reason?.Text || "Unknown SOAP error",
+        rawResponse: xml,
       }
     }
 
@@ -957,9 +961,9 @@ async function parsePoreznaResponse(xml: string): Promise<PoreznaResponse> {
     if (!odgovor) {
       return {
         success: false,
-        errorCode: 'INVALID_RESPONSE',
-        errorMessage: 'No RacunOdgovor in response',
-        rawResponse: xml
+        errorCode: "INVALID_RESPONSE",
+        errorMessage: "No RacunOdgovor in response",
+        rawResponse: xml,
       }
     }
 
@@ -972,7 +976,7 @@ async function parsePoreznaResponse(xml: string): Promise<PoreznaResponse> {
         success: false,
         errorCode: firstError.SifraGreske,
         errorMessage: firstError.PorukaGreske,
-        rawResponse: xml
+        rawResponse: xml,
       }
     }
 
@@ -983,9 +987,9 @@ async function parsePoreznaResponse(xml: string): Promise<PoreznaResponse> {
     if (!jir) {
       return {
         success: false,
-        errorCode: 'NO_JIR',
-        errorMessage: 'Response missing JIR',
-        rawResponse: xml
+        errorCode: "NO_JIR",
+        errorMessage: "Response missing JIR",
+        rawResponse: xml,
       }
     }
 
@@ -993,20 +997,20 @@ async function parsePoreznaResponse(xml: string): Promise<PoreznaResponse> {
       success: true,
       jir,
       zki,
-      rawResponse: xml
+      rawResponse: xml,
     }
   } catch (parseError) {
     return {
       success: false,
-      errorCode: 'PARSE_ERROR',
+      errorCode: "PARSE_ERROR",
       errorMessage: `Failed to parse response: ${parseError}`,
-      rawResponse: xml
+      rawResponse: xml,
     }
   }
 }
 
 function stripNamespace(name: string): string {
-  const idx = name.indexOf(':')
+  const idx = name.indexOf(":")
   return idx >= 0 ? name.substring(idx + 1) : name
 }
 ```
@@ -1016,17 +1020,18 @@ function stripNamespace(name: string): string {
 ## Task 12: Create Fiscal Pipeline Module
 
 **Files:**
+
 - Create: `src/lib/fiscal/fiscal-pipeline.ts`
 
 ```typescript
 // src/lib/fiscal/fiscal-pipeline.ts
-import { db } from '@/lib/db'
-import { FiscalRequest } from '@prisma/client'
-import { decryptWithEnvelope } from './envelope-encryption'
-import { parseP12Certificate, forgeToPem } from './certificate-parser'
-import { buildRacunRequest, buildStornoRequest, FiscalInvoiceData } from './xml-builder'
-import { signXML } from './xml-signer'
-import { submitToPorezna } from './porezna-client'
+import { db } from "@/lib/db"
+import { FiscalRequest } from "@prisma/client"
+import { decryptWithEnvelope } from "./envelope-encryption"
+import { parseP12Certificate, forgeToPem } from "./certificate-parser"
+import { buildRacunRequest, buildStornoRequest, FiscalInvoiceData } from "./xml-builder"
+import { signXML } from "./xml-signer"
+import { submitToPorezna } from "./porezna-client"
 
 export interface PipelineResult {
   success: boolean
@@ -1037,24 +1042,22 @@ export interface PipelineResult {
   errorMessage?: string
 }
 
-export async function executeFiscalRequest(
-  request: FiscalRequest
-): Promise<PipelineResult> {
+export async function executeFiscalRequest(request: FiscalRequest): Promise<PipelineResult> {
   // 1. Load certificate
   const certificate = await db.fiscalCertificate.findUnique({
-    where: { id: request.certificateId }
+    where: { id: request.certificateId },
   })
 
   if (!certificate) {
-    throw { poreznaCode: 'p001', message: 'Certificate not found' }
+    throw { poreznaCode: "p001", message: "Certificate not found" }
   }
 
-  if (certificate.status !== 'ACTIVE') {
-    throw { poreznaCode: 'p002', message: `Certificate status: ${certificate.status}` }
+  if (certificate.status !== "ACTIVE") {
+    throw { poreznaCode: "p002", message: `Certificate status: ${certificate.status}` }
   }
 
   if (certificate.certNotAfter < new Date()) {
-    throw { poreznaCode: 'p003', message: 'Certificate has expired' }
+    throw { poreznaCode: "p003", message: "Certificate has expired" }
   }
 
   // 2. Decrypt certificate
@@ -1063,7 +1066,7 @@ export async function executeFiscalRequest(
     certificate.encryptedDataKey
   )
   const { p12, password } = JSON.parse(decryptedPayload)
-  const p12Buffer = Buffer.from(p12, 'base64')
+  const p12Buffer = Buffer.from(p12, "base64")
 
   const parsedCert = await parseP12Certificate(p12Buffer, password)
   const credentials = forgeToPem(parsedCert.privateKey, parsedCert.certificate)
@@ -1073,12 +1076,12 @@ export async function executeFiscalRequest(
     where: { id: request.invoiceId! },
     include: {
       items: true,
-      company: true
-    }
+      company: true,
+    },
   })
 
   if (!invoice) {
-    throw { poreznaCode: 'p004', message: 'Invoice not found' }
+    throw { poreznaCode: "p004", message: "Invoice not found" }
   }
 
   // 4. Build fiscal invoice structure
@@ -1086,7 +1089,7 @@ export async function executeFiscalRequest(
 
   // 5. Build XML
   let buildResult
-  if (request.messageType === 'STORNO' && invoice.jir) {
+  if (request.messageType === "STORNO" && invoice.jir) {
     buildResult = buildStornoRequest(
       fiscalInvoice,
       invoice.jir,
@@ -1106,7 +1109,7 @@ export async function executeFiscalRequest(
   // Store request XML
   await db.fiscalRequest.update({
     where: { id: request.id },
-    data: { requestXml: xml, zki }
+    data: { requestXml: xml, zki },
   })
 
   // 6. Sign XML
@@ -1115,7 +1118,7 @@ export async function executeFiscalRequest(
   // Store signed XML
   await db.fiscalRequest.update({
     where: { id: request.id },
-    data: { signedXml }
+    data: { signedXml },
   })
 
   // 7. Submit to Porezna
@@ -1124,13 +1127,13 @@ export async function executeFiscalRequest(
   // Store response
   await db.fiscalRequest.update({
     where: { id: request.id },
-    data: { responseXml: response.rawResponse }
+    data: { responseXml: response.rawResponse },
   })
 
   // Update certificate last used
   await db.fiscalCertificate.update({
     where: { id: certificate.id },
-    data: { lastUsedAt: new Date() }
+    data: { lastUsedAt: new Date() },
   })
 
   if (response.success) {
@@ -1138,12 +1141,12 @@ export async function executeFiscalRequest(
       success: true,
       jir: response.jir,
       zki: response.zki || zki,
-      responseXml: response.rawResponse
+      responseXml: response.rawResponse,
     }
   } else {
     throw {
       poreznaCode: response.errorCode,
-      message: response.errorMessage || 'Unknown error'
+      message: response.errorMessage || "Unknown error",
     }
   }
 }
@@ -1163,20 +1166,20 @@ function mapToFiscalInvoice(invoice: any): FiscalInvoiceData {
   const vatBreakdown = Array.from(vatMap.entries()).map(([rate, amounts]) => ({
     rate,
     baseAmount: amounts.base,
-    vatAmount: amounts.vat
+    vatAmount: amounts.vat,
   }))
 
   return {
     invoiceNumber: extractInvoiceNumber(invoice.invoiceNumber),
-    premisesCode: invoice.company.premisesCode || '1',
-    deviceCode: invoice.company.deviceCode || '1',
+    premisesCode: invoice.company.premisesCode || "1",
+    deviceCode: invoice.company.deviceCode || "1",
     issueDate: invoice.issueDate,
     totalAmount: Number(invoice.totalAmount),
     vatRegistered: invoice.company.vatRegistered ?? true,
     vatBreakdown,
-    paymentMethod: invoice.paymentMethod || 'G',
+    paymentMethod: invoice.paymentMethod || "G",
     operatorOib: invoice.operatorOib || invoice.company.oib,
-    subsequentDelivery: false
+    subsequentDelivery: false,
   }
 }
 
@@ -1191,18 +1194,19 @@ function extractInvoiceNumber(invoiceNumber: string): number {
 ## Task 13: Create Should Fiscalize Logic
 
 **Files:**
+
 - Create: `src/lib/fiscal/should-fiscalize.ts`
 
 ```typescript
 // src/lib/fiscal/should-fiscalize.ts
-import { db } from '@/lib/db'
-import { Invoice, Company } from '@prisma/client'
+import { db } from "@/lib/db"
+import { Invoice, Company } from "@prisma/client"
 
 export interface FiscalDecision {
   shouldFiscalize: boolean
   reason: string
   certificateId?: string
-  environment?: 'TEST' | 'PROD'
+  environment?: "TEST" | "PROD"
 }
 
 export async function shouldFiscalizeInvoice(
@@ -1212,72 +1216,72 @@ export async function shouldFiscalizeInvoice(
 
   // 1. Check if company has fiscalisation enabled
   if (!company.fiscalEnabled) {
-    return { shouldFiscalize: false, reason: 'Fiscalisation disabled for company' }
+    return { shouldFiscalize: false, reason: "Fiscalisation disabled for company" }
   }
 
   // 2. Check payment method - only cash-equivalent needs fiscalisation
-  const cashMethods = ['CASH', 'CARD', 'G', 'K']
+  const cashMethods = ["CASH", "CARD", "G", "K"]
   const paymentMethod = (invoice as any).paymentMethod
   if (!cashMethods.includes(paymentMethod)) {
-    return { shouldFiscalize: false, reason: 'Non-cash payment method' }
+    return { shouldFiscalize: false, reason: "Non-cash payment method" }
   }
 
   // 3. Check if already fiscalized
   if ((invoice as any).jir) {
-    return { shouldFiscalize: false, reason: 'Already fiscalized' }
+    return { shouldFiscalize: false, reason: "Already fiscalized" }
   }
 
   // 4. Check for existing pending request (idempotency)
   const existingRequest = await db.fiscalRequest.findFirst({
     where: {
       invoiceId: invoice.id,
-      messageType: 'RACUN',
-      status: { in: ['QUEUED', 'PROCESSING'] }
-    }
+      messageType: "RACUN",
+      status: { in: ["QUEUED", "PROCESSING"] },
+    },
   })
 
   if (existingRequest) {
-    return { shouldFiscalize: false, reason: 'Request already queued' }
+    return { shouldFiscalize: false, reason: "Request already queued" }
   }
 
   // 5. Determine environment and find certificate
-  const environment = company.fiscalEnvironment || 'PROD'
+  const environment = company.fiscalEnvironment || "PROD"
 
   const certificate = await db.fiscalCertificate.findUnique({
     where: {
       companyId_environment: {
         companyId: company.id,
-        environment
-      }
-    }
+        environment,
+      },
+    },
   })
 
   if (!certificate) {
     return {
       shouldFiscalize: false,
-      reason: `No ${environment} certificate configured`
+      reason: `No ${environment} certificate configured`,
     }
   }
 
-  if (certificate.status !== 'ACTIVE') {
+  if (certificate.status !== "ACTIVE") {
     return {
       shouldFiscalize: false,
-      reason: `Certificate status: ${certificate.status}`
+      reason: `Certificate status: ${certificate.status}`,
     }
   }
 
   if (certificate.certNotAfter < new Date()) {
     return {
       shouldFiscalize: false,
-      reason: 'Certificate expired'
+      reason: "Certificate expired",
     }
   }
 
   return {
     shouldFiscalize: true,
-    reason: 'Meets fiscalisation criteria',
+    reason: "Meets fiscalisation criteria",
     certificateId: certificate.id,
-    environment
+    environment,
   }
 }
 
@@ -1295,26 +1299,26 @@ export async function queueFiscalRequest(
       companyId_invoiceId_messageType: {
         companyId,
         invoiceId,
-        messageType: 'RACUN'
-      }
+        messageType: "RACUN",
+      },
     },
     create: {
       companyId,
       invoiceId,
       certificateId: decision.certificateId,
-      messageType: 'RACUN',
-      status: 'QUEUED',
+      messageType: "RACUN",
+      status: "QUEUED",
       attemptCount: 0,
       maxAttempts: 5,
-      nextRetryAt: new Date()
+      nextRetryAt: new Date(),
     },
     update: {
-      status: 'QUEUED',
+      status: "QUEUED",
       attemptCount: 0,
       nextRetryAt: new Date(),
       errorCode: null,
-      errorMessage: null
-    }
+      errorMessage: null,
+    },
   })
 
   return request.id
@@ -1326,23 +1330,24 @@ export async function queueFiscalRequest(
 ## Task 14: Create Job Processor Cron Endpoint
 
 **Files:**
+
 - Create: `src/app/api/cron/fiscal-processor/route.ts`
 
 ```typescript
 // src/app/api/cron/fiscal-processor/route.ts
-import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { FiscalRequest } from '@prisma/client'
-import { executeFiscalRequest } from '@/lib/fiscal/fiscal-pipeline'
+import { NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { FiscalRequest } from "@prisma/client"
+import { executeFiscalRequest } from "@/lib/fiscal/fiscal-pipeline"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get('authorization')
+  const authHeader = request.headers.get("authorization")
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    return new NextResponse("Unauthorized", { status: 401 })
   }
 
   const batchSize = 10
@@ -1383,14 +1388,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       processed: jobs.length,
-      results
+      results,
     })
   } catch (error) {
-    console.error('[fiscal-processor] error:', error)
-    return NextResponse.json(
-      { error: 'Processing failed' },
-      { status: 500 }
-    )
+    console.error("[fiscal-processor] error:", error)
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 })
   }
 }
 
@@ -1405,12 +1407,12 @@ async function processJob(
     await db.fiscalRequest.update({
       where: { id: job.id },
       data: {
-        status: 'COMPLETED',
+        status: "COMPLETED",
         jir: result.jir,
         responseXml: result.responseXml,
         lockedAt: null,
         lockedBy: null,
-      }
+      },
     })
 
     // Update invoice with JIR
@@ -1421,8 +1423,8 @@ async function processJob(
           jir: result.jir,
           zki: result.zki,
           fiscalizedAt: new Date(),
-          fiscalStatus: 'COMPLETED'
-        }
+          fiscalStatus: "COMPLETED",
+        },
       })
     }
 
@@ -1434,17 +1436,15 @@ async function processJob(
     await db.fiscalRequest.update({
       where: { id: job.id },
       data: {
-        status: classification.retriable ? 'FAILED' : 'DEAD',
+        status: classification.retriable ? "FAILED" : "DEAD",
         attemptCount,
         errorCode: classification.code,
         errorMessage: classification.message,
         lastHttpStatus: classification.httpStatus,
-        nextRetryAt: classification.retriable
-          ? calculateNextRetry(attemptCount)
-          : null,
+        nextRetryAt: classification.retriable ? calculateNextRetry(attemptCount) : null,
         lockedAt: null,
         lockedBy: null,
-      }
+      },
     })
 
     // Update invoice fiscal status
@@ -1452,8 +1452,8 @@ async function processJob(
       await db.invoice.update({
         where: { id: job.invoiceId },
         data: {
-          fiscalStatus: classification.retriable ? 'PENDING' : 'FAILED'
-        }
+          fiscalStatus: classification.retriable ? "PENDING" : "FAILED",
+        },
       })
     }
 
@@ -1471,59 +1471,61 @@ interface ErrorClassification {
 function classifyError(error: unknown): ErrorClassification {
   // Network errors - always retry
   if (error instanceof Error) {
-    if (error.message.includes('ECONNREFUSED') ||
-        error.message.includes('ETIMEDOUT') ||
-        error.message.includes('ENOTFOUND') ||
-        error.message.includes('timeout')) {
-      return { code: 'NETWORK_ERROR', message: error.message, retriable: true }
+    if (
+      error.message.includes("ECONNREFUSED") ||
+      error.message.includes("ETIMEDOUT") ||
+      error.message.includes("ENOTFOUND") ||
+      error.message.includes("timeout")
+    ) {
+      return { code: "NETWORK_ERROR", message: error.message, retriable: true }
     }
   }
 
   // HTTP response errors
-  if (error && typeof error === 'object' && 'httpStatus' in error) {
+  if (error && typeof error === "object" && "httpStatus" in error) {
     const httpError = error as { httpStatus: number; body?: string }
 
     if (httpError.httpStatus >= 500) {
       return {
-        code: 'SERVER_ERROR',
+        code: "SERVER_ERROR",
         message: `HTTP ${httpError.httpStatus}`,
         httpStatus: httpError.httpStatus,
-        retriable: true
+        retriable: true,
       }
     }
 
     if (httpError.httpStatus === 429) {
       return {
-        code: 'RATE_LIMITED',
-        message: 'Too many requests',
+        code: "RATE_LIMITED",
+        message: "Too many requests",
         httpStatus: 429,
-        retriable: true
+        retriable: true,
       }
     }
 
     return {
-      code: 'VALIDATION_ERROR',
+      code: "VALIDATION_ERROR",
       message: httpError.body || `HTTP ${httpError.httpStatus}`,
       httpStatus: httpError.httpStatus,
-      retriable: false
+      retriable: false,
     }
   }
 
   // Porezna-specific error codes
-  if (error && typeof error === 'object' && 'poreznaCode' in error) {
+  if (error && typeof error === "object" && "poreznaCode" in error) {
     const poreznaError = error as { poreznaCode: string; message: string }
 
     // t001-t099: Temporary errors - retry
-    const retriable = poreznaError.poreznaCode.startsWith('t')
+    const retriable = poreznaError.poreznaCode.startsWith("t")
 
     return {
       code: poreznaError.poreznaCode,
       message: poreznaError.message,
-      retriable
+      retriable,
     }
   }
 
-  return { code: 'UNKNOWN', message: String(error), retriable: false }
+  return { code: "UNKNOWN", message: String(error), retriable: false }
 }
 
 function calculateNextRetry(attemptCount: number): Date {
@@ -1543,15 +1545,15 @@ async function recoverStaleLocks() {
 
   await db.fiscalRequest.updateMany({
     where: {
-      status: 'PROCESSING',
-      lockedAt: { lt: new Date(Date.now() - staleLockThreshold) }
+      status: "PROCESSING",
+      lockedAt: { lt: new Date(Date.now() - staleLockThreshold) },
     },
     data: {
-      status: 'FAILED',
+      status: "FAILED",
       lockedAt: null,
       lockedBy: null,
-      errorMessage: 'Lock expired - worker may have crashed'
-    }
+      errorMessage: "Lock expired - worker may have crashed",
+    },
   })
 }
 ```
@@ -1561,22 +1563,23 @@ async function recoverStaleLocks() {
 ## Task 15: Create Certificate Upload Server Actions
 
 **Files:**
+
 - Create: `src/app/actions/fiscal-certificate.ts`
 
 ```typescript
 // src/app/actions/fiscal-certificate.ts
-'use server'
+"use server"
 
-import { revalidatePath } from 'next/cache'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { encryptWithEnvelope } from '@/lib/fiscal/envelope-encryption'
-import { parseP12Certificate, validateCertificate } from '@/lib/fiscal/certificate-parser'
+import { revalidatePath } from "next/cache"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { encryptWithEnvelope } from "@/lib/fiscal/envelope-encryption"
+import { parseP12Certificate, validateCertificate } from "@/lib/fiscal/certificate-parser"
 
 export interface UploadCertificateInput {
   p12Base64: string
   password: string
-  environment: 'TEST' | 'PROD'
+  environment: "TEST" | "PROD"
 }
 
 export interface CertificateInfo {
@@ -1596,10 +1599,10 @@ export async function validateCertificateAction(
     const user = await requireAuth()
     const company = await requireCompany(user.id!)
 
-    const p12Buffer = Buffer.from(input.p12Base64, 'base64')
+    const p12Buffer = Buffer.from(input.p12Base64, "base64")
 
     if (p12Buffer.length > 50 * 1024) {
-      return { success: false, error: 'Certificate file too large (max 50KB)' }
+      return { success: false, error: "Certificate file too large (max 50KB)" }
     }
 
     const certInfo = await parseP12Certificate(p12Buffer, input.password)
@@ -1622,15 +1625,15 @@ export async function validateCertificateAction(
         notBefore: certInfo.notBefore,
         notAfter: certInfo.notAfter,
         issuer: certInfo.issuer,
-        sha256: certInfo.sha256
-      }
+        sha256: certInfo.sha256,
+      },
     }
   } catch (error) {
-    console.error('[fiscal-cert] validate error:', error)
-    if (error instanceof Error && error.message.includes('password')) {
-      return { success: false, error: 'Invalid certificate password' }
+    console.error("[fiscal-cert] validate error:", error)
+    if (error instanceof Error && error.message.includes("password")) {
+      return { success: false, error: "Invalid certificate password" }
     }
-    return { success: false, error: 'Failed to parse certificate' }
+    return { success: false, error: "Failed to parse certificate" }
   }
 }
 
@@ -1641,12 +1644,12 @@ export async function saveCertificateAction(
     const user = await requireAuth()
     const company = await requireCompany(user.id!)
 
-    const p12Buffer = Buffer.from(input.p12Base64, 'base64')
+    const p12Buffer = Buffer.from(input.p12Base64, "base64")
     const certInfo = await parseP12Certificate(p12Buffer, input.password)
 
     const payload = JSON.stringify({
       p12: input.p12Base64,
-      password: input.password
+      password: input.password,
     })
     const { encryptedData, encryptedDataKey } = encryptWithEnvelope(payload)
 
@@ -1654,13 +1657,13 @@ export async function saveCertificateAction(
       where: {
         companyId_environment: {
           companyId: company.id,
-          environment: input.environment
-        }
+          environment: input.environment,
+        },
       },
       create: {
         companyId: company.id,
         environment: input.environment,
-        provider: 'DIRECT',
+        provider: "DIRECT",
         certSubject: certInfo.subject,
         certSerial: certInfo.serial,
         certNotBefore: certInfo.notBefore,
@@ -1669,7 +1672,7 @@ export async function saveCertificateAction(
         certSha256: certInfo.sha256,
         encryptedP12: encryptedData,
         encryptedDataKey: encryptedDataKey,
-        status: 'ACTIVE',
+        status: "ACTIVE",
       },
       update: {
         certSubject: certInfo.subject,
@@ -1680,37 +1683,37 @@ export async function saveCertificateAction(
         certSha256: certInfo.sha256,
         encryptedP12: encryptedData,
         encryptedDataKey: encryptedDataKey,
-        status: 'ACTIVE',
+        status: "ACTIVE",
         updatedAt: new Date(),
-      }
+      },
     })
 
     await db.auditLog.create({
       data: {
         companyId: company.id,
         userId: user.id!,
-        action: 'FISCAL_CERTIFICATE_UPLOADED',
-        entityType: 'FiscalCertificate',
+        action: "FISCAL_CERTIFICATE_UPLOADED",
+        entityType: "FiscalCertificate",
         entityId: certificate.id,
         metadata: {
           environment: input.environment,
           certSerial: certInfo.serial,
           oib: certInfo.oib,
-          expiresAt: certInfo.notAfter.toISOString()
-        }
-      }
+          expiresAt: certInfo.notAfter.toISOString(),
+        },
+      },
     })
 
-    revalidatePath('/settings/fiscalisation')
+    revalidatePath("/settings/fiscalisation")
     return { success: true, certificateId: certificate.id }
   } catch (error) {
-    console.error('[fiscal-cert] save error:', error)
-    return { success: false, error: 'Failed to save certificate' }
+    console.error("[fiscal-cert] save error:", error)
+    return { success: false, error: "Failed to save certificate" }
   }
 }
 
 export async function deleteCertificateAction(
-  environment: 'TEST' | 'PROD'
+  environment: "TEST" | "PROD"
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const user = await requireAuth()
@@ -1720,14 +1723,14 @@ export async function deleteCertificateAction(
       where: {
         companyId: company.id,
         certificate: { environment },
-        status: { in: ['QUEUED', 'PROCESSING'] }
-      }
+        status: { in: ["QUEUED", "PROCESSING"] },
+      },
     })
 
     if (pendingRequests > 0) {
       return {
         success: false,
-        error: `Cannot delete: ${pendingRequests} pending fiscal requests`
+        error: `Cannot delete: ${pendingRequests} pending fiscal requests`,
       }
     }
 
@@ -1735,26 +1738,26 @@ export async function deleteCertificateAction(
       where: {
         companyId_environment: {
           companyId: company.id,
-          environment
-        }
-      }
+          environment,
+        },
+      },
     })
 
     await db.auditLog.create({
       data: {
         companyId: company.id,
         userId: user.id!,
-        action: 'FISCAL_CERTIFICATE_DELETED',
-        entityType: 'FiscalCertificate',
-        metadata: { environment }
-      }
+        action: "FISCAL_CERTIFICATE_DELETED",
+        entityType: "FiscalCertificate",
+        metadata: { environment },
+      },
     })
 
-    revalidatePath('/settings/fiscalisation')
+    revalidatePath("/settings/fiscalisation")
     return { success: true }
   } catch (error) {
-    console.error('[fiscal-cert] delete error:', error)
-    return { success: false, error: 'Failed to delete certificate' }
+    console.error("[fiscal-cert] delete error:", error)
+    return { success: false, error: "Failed to delete certificate" }
   }
 }
 
@@ -1766,45 +1769,45 @@ export async function retryFiscalRequestAction(
     const company = await requireCompany(user.id!)
 
     const request = await db.fiscalRequest.findFirst({
-      where: { id: requestId, companyId: company.id }
+      where: { id: requestId, companyId: company.id },
     })
 
     if (!request) {
-      return { success: false, error: 'Request not found' }
+      return { success: false, error: "Request not found" }
     }
 
-    if (!['FAILED', 'DEAD'].includes(request.status)) {
-      return { success: false, error: 'Can only retry failed requests' }
+    if (!["FAILED", "DEAD"].includes(request.status)) {
+      return { success: false, error: "Can only retry failed requests" }
     }
 
     await db.fiscalRequest.update({
       where: { id: requestId },
       data: {
-        status: 'QUEUED',
+        status: "QUEUED",
         attemptCount: 0,
         nextRetryAt: new Date(),
         errorCode: null,
         errorMessage: null,
         lockedAt: null,
-        lockedBy: null
-      }
+        lockedBy: null,
+      },
     })
 
     await db.auditLog.create({
       data: {
         companyId: company.id,
         userId: user.id!,
-        action: 'FISCAL_REQUEST_RETRY',
-        entityType: 'FiscalRequest',
-        entityId: requestId
-      }
+        action: "FISCAL_REQUEST_RETRY",
+        entityType: "FiscalRequest",
+        entityId: requestId,
+      },
     })
 
-    revalidatePath('/settings/fiscalisation')
+    revalidatePath("/settings/fiscalisation")
     return { success: true }
   } catch (error) {
-    console.error('[fiscal-cert] retry error:', error)
-    return { success: false, error: 'Failed to retry request' }
+    console.error("[fiscal-cert] retry error:", error)
+    return { success: false, error: "Failed to retry request" }
   }
 }
 
@@ -1816,34 +1819,34 @@ export async function manualFiscalizeAction(
     const company = await requireCompany(user.id!)
 
     const invoice = await db.invoice.findFirst({
-      where: { id: invoiceId, companyId: company.id }
+      where: { id: invoiceId, companyId: company.id },
     })
 
     if (!invoice) {
-      return { success: false, error: 'Invoice not found' }
+      return { success: false, error: "Invoice not found" }
     }
 
     if ((invoice as any).jir) {
-      return { success: false, error: 'Invoice already fiscalized' }
+      return { success: false, error: "Invoice already fiscalized" }
     }
 
-    if (invoice.status === 'DRAFT') {
-      return { success: false, error: 'Cannot fiscalize draft invoice' }
+    if (invoice.status === "DRAFT") {
+      return { success: false, error: "Cannot fiscalize draft invoice" }
     }
 
-    const environment = company.fiscalEnvironment || 'PROD'
+    const environment = company.fiscalEnvironment || "PROD"
 
     const certificate = await db.fiscalCertificate.findUnique({
       where: {
         companyId_environment: {
           companyId: company.id,
-          environment
-        }
-      }
+          environment,
+        },
+      },
     })
 
-    if (!certificate || certificate.status !== 'ACTIVE') {
-      return { success: false, error: 'No active certificate configured' }
+    if (!certificate || certificate.status !== "ACTIVE") {
+      return { success: false, error: "No active certificate configured" }
     }
 
     const request = await db.fiscalRequest.upsert({
@@ -1851,49 +1854,49 @@ export async function manualFiscalizeAction(
         companyId_invoiceId_messageType: {
           companyId: company.id,
           invoiceId,
-          messageType: 'RACUN'
-        }
+          messageType: "RACUN",
+        },
       },
       create: {
         companyId: company.id,
         invoiceId,
         certificateId: certificate.id,
-        messageType: 'RACUN',
-        status: 'QUEUED',
+        messageType: "RACUN",
+        status: "QUEUED",
         attemptCount: 0,
         maxAttempts: 5,
-        nextRetryAt: new Date()
+        nextRetryAt: new Date(),
       },
       update: {
-        status: 'QUEUED',
+        status: "QUEUED",
         attemptCount: 0,
         nextRetryAt: new Date(),
         errorCode: null,
-        errorMessage: null
-      }
+        errorMessage: null,
+      },
     })
 
     await db.invoice.update({
       where: { id: invoiceId },
-      data: { fiscalStatus: 'PENDING' }
+      data: { fiscalStatus: "PENDING" },
     })
 
     await db.auditLog.create({
       data: {
         companyId: company.id,
         userId: user.id!,
-        action: 'INVOICE_MANUAL_FISCALIZE',
-        entityType: 'Invoice',
+        action: "INVOICE_MANUAL_FISCALIZE",
+        entityType: "Invoice",
         entityId: invoiceId,
-        metadata: { requestId: request.id }
-      }
+        metadata: { requestId: request.id },
+      },
     })
 
     revalidatePath(`/invoices/${invoiceId}`)
     return { success: true, requestId: request.id }
   } catch (error) {
-    console.error('[fiscal-cert] manual fiscalize error:', error)
-    return { success: false, error: 'Failed to queue fiscalization' }
+    console.error("[fiscal-cert] manual fiscalize error:", error)
+    return { success: false, error: "Failed to queue fiscalization" }
   }
 }
 ```
@@ -1903,6 +1906,7 @@ export async function manualFiscalizeAction(
 ## Task 16: Create Fiscalisation Settings Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/fiscalisation/page.tsx`
 
 ```typescript
@@ -1972,9 +1976,11 @@ export default async function FiscalisationSettingsPage() {
 ## Task 17: Create Certificate Card Component
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/fiscalisation/certificate-card.tsx`
 
 This is a client component that displays certificate info and handles upload/delete actions. See the full implementation in the brainstorming session - includes:
+
 - Certificate status display (active, expired, expiring soon)
 - OIB mismatch warnings
 - Upload and delete buttons
@@ -1985,9 +1991,11 @@ This is a client component that displays certificate info and handles upload/del
 ## Task 18: Create Certificate Upload Dialog
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/fiscalisation/certificate-upload-dialog.tsx`
 
 This is a client component with a 3-step wizard:
+
 1. Upload P12 file with password
 2. Verify certificate details
 3. Confirmation and save
@@ -1999,9 +2007,11 @@ Uses react-dropzone for file upload. See full implementation in brainstorming se
 ## Task 19: Create Fiscal Status Panel Component
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/fiscalisation/fiscal-status-panel.tsx`
 
 This displays:
+
 - Stats summary by status (QUEUED, PROCESSING, COMPLETED, FAILED, DEAD)
 - Recent requests table with retry capability
 - JIR display for completed requests
@@ -2013,9 +2023,11 @@ See full implementation in brainstorming session.
 ## Task 20: Add Settings Navigation Link
 
 **Files:**
+
 - Modify: `src/components/layout/settings-nav.tsx` (or similar navigation component)
 
 Add link to fiscalisation settings:
+
 ```typescript
 {
   href: '/settings/fiscalisation',
@@ -2029,23 +2041,25 @@ Add link to fiscalisation settings:
 ## Task 21: Integrate Fiscalisation with Invoice Finalization
 
 **Files:**
+
 - Modify: `src/app/actions/invoice.ts` (or wherever invoice finalization happens)
 
 After invoice is finalized, add:
+
 ```typescript
-import { shouldFiscalizeInvoice, queueFiscalRequest } from '@/lib/fiscal/should-fiscalize'
+import { shouldFiscalizeInvoice, queueFiscalRequest } from "@/lib/fiscal/should-fiscalize"
 
 // After setting invoice status to FINALIZED:
 const fiscalDecision = await shouldFiscalizeInvoice({
   ...invoice,
-  company
+  company,
 })
 
 if (fiscalDecision.shouldFiscalize) {
   await queueFiscalRequest(invoice.id, company.id, fiscalDecision)
   await db.invoice.update({
     where: { id: invoice.id },
-    data: { fiscalStatus: 'PENDING' }
+    data: { fiscalStatus: "PENDING" },
   })
 }
 ```
@@ -2055,9 +2069,11 @@ if (fiscalDecision.shouldFiscalize) {
 ## Task 22: Add Fiscal Status Badge to Invoice UI
 
 **Files:**
+
 - Modify: Invoice detail page component
 
 Add fiscal status display showing:
+
 - JIR if fiscalized
 - Pending/Processing status
 - Failed status with retry button
@@ -2068,9 +2084,11 @@ Add fiscal status display showing:
 ## Task 23: Set Up Cron Job
 
 **Files:**
+
 - Create or modify cron configuration
 
 Set up external cron (via Coolify or crontab) to hit:
+
 ```
 GET /api/cron/fiscal-processor
 Authorization: Bearer ${CRON_SECRET}

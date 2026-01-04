@@ -5,12 +5,15 @@
 All credentials below were exposed in git history and must be rotated:
 
 ### Database
+
 - [ ] POSTGRES_PASSWORD - Rotate in Coolify, update docker-compose
 
 ### Authentication
+
 - [ ] NEXTAUTH_SECRET - Generate new: `openssl rand -base64 32`
 
 ### API Keys
+
 - [ ] RESEND_API_KEY - Rotate in Resend dashboard
 - [ ] CLOUDFLARE_DNS_API_TOKEN - Rotate in Cloudflare dashboard
 - [ ] COOLIFY_API_TOKEN - Rotate in Coolify settings
@@ -18,6 +21,7 @@ All credentials below were exposed in git history and must be rotated:
 - [ ] OLLAMA_API_KEY - Rotate if using cloud Ollama
 
 ### Encryption
+
 - [ ] FISCAL_CERT_KEY - Generate new: `openssl rand -hex 32`
 - [ ] EINVOICE_KEY_SECRET - Generate new secret
 - [ ] CRON_SECRET - Generate new: `openssl rand -hex 32`

@@ -1,5 +1,9 @@
 // src/lib/reports/__tests__/pdv-xml.golden.test.ts
-import { describe, it } from "vitest"
+import { describe, it, vi } from "vitest"
+
+// Mock DB - this test only uses pure XML generation, no DB access
+// The generator module imports db but this test doesn't use those code paths
+vi.mock("@/lib/db", () => ({ db: {} }))
 import path from "path"
 import { generatePdvXml, PdvFormData, VAT_RATES } from "../pdv-xml-generator"
 import { assertMatchesGolden } from "@/test-utils/golden-test"

@@ -11,18 +11,21 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 **Status**: Government agency, most established provider
 
 **Services**:
+
 - B2G e-invoicing (Servis eRačun za državu) - since 2019
 - B2B e-invoicing - expanding for 2026
 - PEPPOL Access Point
 - Long-term archival
 
 **Pros**:
+
 - Official government backing
 - Already handles all B2G invoices
 - PEPPOL integrated
 - Trusted by enterprises
 
 **Cons**:
+
 - Can be slower to innovate
 - Government bureaucracy
 
@@ -37,18 +40,21 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 **Status**: Private certified intermediary
 
 **Services**:
+
 - B2G, B2B, B2C e-invoicing
 - EN 16931 compliant
 - 11-year archival
 - Multi-network integration (FINA B2G, FINA B2B, HT, mSTART, REDOK)
 
 **Pros**:
+
 - Partner API program for software developers
 - Revenue share model for integrators
 - Modern API
 - Focused on software integration
 
 **Cons**:
+
 - Smaller than FINA
 
 **Integration**: API with partner program - good candidate for FiskAI
@@ -62,6 +68,7 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 **Status**: Private provider (solo.com.hr - competitor product)
 
 **Services**:
+
 - Full accounting/invoicing SaaS
 - E-invoicing built-in
 - Targeting small businesses
@@ -77,6 +84,7 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 **Status**: Private certified intermediary
 
 **Services**:
+
 - E-invoicing exchange
 - PDF to XML conversion
 - Archival services
@@ -88,14 +96,17 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 **Status**: International EDI provider with Croatian presence
 
 **Services**:
+
 - Global e-invoicing compliance
 - Multi-country support
 - Enterprise-focused
 
 **Pros**:
+
 - Good for companies with international operations
 
 **Cons**:
+
 - Enterprise pricing
 - May be overkill for SMB
 
@@ -106,10 +117,12 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 **Status**: International compliance API
 
 **Services**:
+
 - Single API for global e-invoicing/fiscalization
 - Croatia support included
 
 **Pros**:
+
 - Modern REST API
 - Good documentation
 - Multi-country from one integration
@@ -120,21 +133,22 @@ In Croatia's Fiskalizacija 2.0 system, businesses must connect to the tax author
 
 ## Provider Selection Criteria for FiskAI
 
-| Criterion | Weight | Notes |
-|-----------|--------|-------|
-| API Quality | High | Must have modern REST/GraphQL API |
-| Documentation | High | Clear integration docs |
-| Partner Program | Medium | Revenue share or flat fee |
-| Reliability | High | Uptime SLA |
-| Pricing | Medium | Per-invoice or subscription |
-| Support | Medium | Developer support quality |
-| Multi-network | Medium | Connects to all intermediaries |
+| Criterion       | Weight | Notes                             |
+| --------------- | ------ | --------------------------------- |
+| API Quality     | High   | Must have modern REST/GraphQL API |
+| Documentation   | High   | Clear integration docs            |
+| Partner Program | Medium | Revenue share or flat fee         |
+| Reliability     | High   | Uptime SLA                        |
+| Pricing         | Medium | Per-invoice or subscription       |
+| Support         | Medium | Developer support quality         |
+| Multi-network   | Medium | Connects to all intermediaries    |
 
 ## Recommended Strategy
 
 ### Primary Integration: IE Računi or DDD Invoices
 
 **Rationale**:
+
 1. Partner programs designed for software integrators
 2. Modern APIs
 3. Good documentation
@@ -158,6 +172,7 @@ class FinaProvider implements EInvoiceProvider { ... }
 ```
 
 This allows:
+
 - Starting with one provider
 - Easy switching if needed
 - Customer choice of provider (enterprise feature)
@@ -177,11 +192,11 @@ For any provider integration, we need:
 
 ## Cost Considerations
 
-| Provider Type | Typical Pricing |
-|--------------|-----------------|
-| Per invoice | €0.10 - €0.50 per invoice |
-| Monthly subscription | €20 - €100/month |
-| Enterprise | Custom pricing |
+| Provider Type        | Typical Pricing           |
+| -------------------- | ------------------------- |
+| Per invoice          | €0.10 - €0.50 per invoice |
+| Monthly subscription | €20 - €100/month          |
+| Enterprise           | Custom pricing            |
 
 FiskAI should build pricing to cover intermediary costs + margin.
 

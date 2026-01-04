@@ -3,12 +3,15 @@
 ## Setup (5 minutes)
 
 ### 1. Install Dependencies
+
 ```bash
 npm install openai lucide-react
 ```
 
 ### 2. Configure OpenAI API Key
+
 Add to your `.env` file:
+
 ```env
 OPENAI_API_KEY=sk-your-api-key-here
 ```
@@ -16,6 +19,7 @@ OPENAI_API_KEY=sk-your-api-key-here
 Get your API key from: https://platform.openai.com/api-keys
 
 ### 3. Restart Development Server
+
 ```bash
 npm run dev
 ```
@@ -25,6 +29,7 @@ That's it! The AI features are now active.
 ## Using the Receipt Scanner
 
 ### For Users:
+
 1. Go to "Novi trošak" (New Expense)
 2. Click "Skeniraj račun" button
 3. Take a photo or upload an image
@@ -33,6 +38,7 @@ That's it! The AI features are now active.
 6. Click "Spremi trošak" to save
 
 ### What Gets Extracted:
+
 - ✅ Vendor name (Dobavljač)
 - ✅ Vendor OIB
 - ✅ Date
@@ -43,7 +49,9 @@ That's it! The AI features are now active.
 - ✅ Payment method
 
 ### Category Suggestions:
+
 As you type the description or select a vendor, you'll see:
+
 - AI-powered category suggestions
 - Confidence scores (%)
 - Click a badge to apply the category
@@ -51,6 +59,7 @@ As you type the description or select a vendor, you'll see:
 ## Example Usage
 
 ### Sample Receipt:
+
 ```
 KONZUM d.d.
 OIB: 12345678901
@@ -67,6 +76,7 @@ Plaćeno karticom
 ```
 
 ### Extracted Result:
+
 - Vendor: "KONZUM d.d."
 - OIB: "12345678901"
 - Date: "2024-01-15"
@@ -79,12 +89,14 @@ Plaćeno karticom
 ## Testing
 
 ### Quick Test:
+
 ```bash
 # Optional: Test without running the app
 npx tsx scripts/test-ai.ts
 ```
 
 ### Browser Test:
+
 1. Open `/expenses/new`
 2. Click "Skeniraj račun"
 3. Upload a test receipt image
@@ -93,30 +105,37 @@ npx tsx scripts/test-ai.ts
 ## Costs
 
 ### Typical Usage:
+
 - **Text extraction**: $0.0005 per receipt
 - **Image OCR**: $0.003 per receipt
 - **1000 receipts/month**: ~$3-5
 
 ### Free Alternative:
+
 Category suggestions use keyword matching (no AI cost) when:
+
 - Based on previous vendor history
 - Matched by keywords in description
 
 ## Troubleshooting
 
 ### "OpenAI API key not configured"
+
 → Add `OPENAI_API_KEY` to `.env` and restart server
 
 ### "Extraction failed"
+
 → Check image quality (clear, well-lit, in focus)
 → Verify OpenAI API key is valid
 → Check OpenAI account has credits
 
 ### Camera not working on mobile
+
 → Ensure site is accessed via HTTPS
 → Check browser camera permissions
 
 ### Category suggestions not showing
+
 → Wait 500ms after typing (debounced)
 → Check browser console for errors
 → Verify categories exist in database
@@ -129,18 +148,18 @@ Category suggestions use keyword matching (no AI cost) when:
 
 ## Croatian UI Reference
 
-| English | Croatian |
-|---------|----------|
-| Scan receipt | Skeniraj račun |
-| Take photo | Fotografiraj |
-| Upload image | Učitaj sliku |
-| Processing... | Obrađujem... |
-| Confirm | Potvrdi |
-| Cancel | Poništi |
-| Suggestions | Prijedlozi |
-| Vendor | Dobavljač |
-| Description | Opis |
-| Total | Ukupno |
+| English       | Croatian       |
+| ------------- | -------------- |
+| Scan receipt  | Skeniraj račun |
+| Take photo    | Fotografiraj   |
+| Upload image  | Učitaj sliku   |
+| Processing... | Obrađujem...   |
+| Confirm       | Potvrdi        |
+| Cancel        | Poništi        |
+| Suggestions   | Prijedlozi     |
+| Vendor        | Dobavljač      |
+| Description   | Opis           |
+| Total         | Ukupno         |
 
 ## Next Steps
 

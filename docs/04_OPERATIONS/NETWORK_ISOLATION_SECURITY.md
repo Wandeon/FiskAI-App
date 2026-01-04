@@ -41,8 +41,8 @@ The production setup in `docker-compose.prod.yml` implements these requirements:
 ```yaml
 fiskai-app:
   networks:
-    - fiskai_internal  # Database access (internal only)
-    - coolify          # Traefik access (external network)
+    - fiskai_internal # Database access (internal only)
+    - coolify # Traefik access (external network)
   # NO ports: directive - container not directly accessible
   labels:
     - "traefik.http.routers.fiskai.rule=Host(`${APP_DOMAIN:-erp.metrica.hr}`)"

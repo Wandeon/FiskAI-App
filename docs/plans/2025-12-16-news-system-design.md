@@ -263,6 +263,7 @@ Images are cached locally to prevent hotlinking issues:
 - **Module:** `src/lib/news/image-cache.ts`
 
 Database fields:
+
 - `local_image_path` - Cached local path (preferred)
 - `image_url` - Original URL (kept for reference/re-caching)
 

@@ -76,7 +76,7 @@ In `.github/workflows/registry-check.yml`, the enforcement mode is set via envir
 ```yaml
 - name: Compute Blast Radius
   env:
-    BLAST_RADIUS_ENFORCEMENT_MODE: warn  # Change to 'fail' when ready
+    BLAST_RADIUS_ENFORCEMENT_MODE: warn # Change to 'fail' when ready
   run: |
     npx tsx src/lib/system-registry/scripts/blast-radius.ts \
       --base-sha "$BASE_SHA" \
@@ -121,7 +121,7 @@ In `.github/workflows/registry-check.yml`, the enforcement mode is set via envir
 ## Exit Codes
 
 | Score    | WARN Mode | FAIL Mode |
-|----------|-----------|-----------|
+| -------- | --------- | --------- |
 | LOW      | 0         | 0         |
 | MEDIUM   | 0         | 0         |
 | HIGH     | 0         | 1         |

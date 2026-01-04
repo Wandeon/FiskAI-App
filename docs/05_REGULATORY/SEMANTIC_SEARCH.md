@@ -336,13 +336,13 @@ if (isSemanticSearchAvailable()) {
 
 ### Index Performance
 
-| Operation               | Performance | Notes                            |
-| ----------------------- | ----------- | -------------------------------- |
-| Exact match             | < 1ms       | Direct B-tree lookup             |
-| Semantic search (small) | 10-50ms     | IVFFlat index, < 1000 vectors    |
-| Semantic search (large) | 50-200ms    | IVFFlat index, > 10000 vectors   |
-| Embedding generation    | 100-300ms   | Ollama API call (single)         |
-| Batch embedding (50)    | 500-1000ms  | Ollama API call (batch)          |
+| Operation               | Performance | Notes                          |
+| ----------------------- | ----------- | ------------------------------ |
+| Exact match             | < 1ms       | Direct B-tree lookup           |
+| Semantic search (small) | 10-50ms     | IVFFlat index, < 1000 vectors  |
+| Semantic search (large) | 50-200ms    | IVFFlat index, > 10000 vectors |
+| Embedding generation    | 100-300ms   | Ollama API call (single)       |
+| Batch embedding (50)    | 500-1000ms  | Ollama API call (batch)        |
 
 ### Optimization Strategies
 
@@ -383,13 +383,13 @@ semanticSearch('Kolika je PDV stopa?', { limit: 3 }).then(console.log)
 
 ### Quality Metrics
 
-| Metric                  | Target | Measurement                             |
-| ----------------------- | ------ | --------------------------------------- |
-| Embedding Coverage      | > 95%  | Percentage of SourcePointers with vector |
-| Semantic Precision      | > 80%  | Relevant results in top 5               |
-| Semantic Recall         | > 70%  | Known matches found in top 10           |
-| Query Latency (p95)     | < 500ms| Including embedding + search             |
-| Fallback Success Rate   | > 90%  | Keyword fallback when semantic fails    |
+| Metric                | Target  | Measurement                              |
+| --------------------- | ------- | ---------------------------------------- |
+| Embedding Coverage    | > 95%   | Percentage of SourcePointers with vector |
+| Semantic Precision    | > 80%   | Relevant results in top 5                |
+| Semantic Recall       | > 70%   | Known matches found in top 10            |
+| Query Latency (p95)   | < 500ms | Including embedding + search             |
+| Fallback Success Rate | > 90%   | Keyword fallback when semantic fails     |
 
 ## Deployment Checklist
 

@@ -54,7 +54,9 @@ function main() {
   }
 
   console.log("// Generated concept mapping stubs")
-  console.log("// Copy and paste these into src/lib/regulatory-truth/content-sync/concept-registry.ts")
+  console.log(
+    "// Copy and paste these into src/lib/regulatory-truth/content-sync/concept-registry.ts"
+  )
   console.log("// Remember to:")
   console.log("//   1. Add actual MDX paths")
   console.log("//   2. Write accurate descriptions")

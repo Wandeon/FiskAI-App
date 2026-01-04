@@ -13,18 +13,22 @@
 ## Context
 
 **Design Document Mandate (Section 9, Phase 3):**
+
 > Workflow Completion UX
+>
 > - Actions execute from Control Center
 > - Confirmation for irreversible actions
 > - Clear success/failure feedback
 
 **Current State:**
+
 - Control Center renders queues with items
 - ActionButton executes via useCapabilityAction hook
 - Only some invoice handlers exist (send_email, send_einvoice, fiscalize, create_credit_note)
 - Missing handlers for: issue, mark_paid (invoice/expense), match/ignore (bank)
 
 **Target State:**
+
 - All queue capabilities have working action handlers
 - Irreversible actions show confirmation dialog
 - Success states show next steps
@@ -35,6 +39,7 @@
 ## Task 1: Add Issue Invoice Action Handler
 
 **Files:**
+
 - Modify: `src/lib/capabilities/actions/handlers/invoice.ts`
 
 **Step 1: Add the issue invoice handler**
@@ -119,6 +124,7 @@ PENDING_FISCALIZATION status.
 ## Task 2: Add Mark Invoice Paid Action Handler
 
 **Files:**
+
 - Modify: `src/lib/capabilities/actions/handlers/invoice.ts`
 
 **Step 1: Add the mark paid handler**
@@ -142,9 +148,7 @@ registerActionHandler({
       return { success: false, error: "Invoice ID required", code: "VALIDATION_ERROR" }
     }
 
-    const paymentDate = params.paymentDate
-      ? new Date(params.paymentDate as string)
-      : new Date()
+    const paymentDate = params.paymentDate ? new Date(params.paymentDate as string) : new Date()
 
     const result = await markInvoicePaid(params.id as string, paymentDate)
 
@@ -174,6 +178,7 @@ Adds INV-008:mark_paid handler to record invoice payments.
 ## Task 3: Add Expense Action Handlers
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/handlers/expense.ts`
 
 **Step 1: Create expense handlers file**
@@ -210,9 +215,7 @@ registerActionHandler({
 
     const result = await markExpensePaid(params.id as string, {
       paymentMethod: (params.paymentMethod as string) || "TRANSFER",
-      paymentDate: params.paymentDate
-        ? new Date(params.paymentDate as string)
-        : new Date(),
+      paymentDate: params.paymentDate ? new Date(params.paymentDate as string) : new Date(),
     })
 
     if (result.success) {
@@ -250,6 +253,7 @@ Adds EXP-004:mark_paid handler for marking expenses as paid.
 ## Task 4: Add Bank Transaction Action Handlers
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/handlers/bank.ts`
 
 **Step 1: Create bank handlers file**
@@ -355,6 +359,7 @@ Adds BNK-005:manual_match and BNK-007:ignore handlers.
 ## Task 5: Add Confirmation Dialog Component
 
 **Files:**
+
 - Create: `src/components/capability/ConfirmationDialog.tsx`
 
 **Step 1: Create confirmation dialog**
@@ -436,6 +441,7 @@ Adds ConfirmationDialog for irreversible actions with loading state.
 ## Task 6: Update ActionButton with Confirmation
 
 **Files:**
+
 - Modify: `src/components/capability/ActionButton.tsx`
 - Modify: `src/components/capability/types.ts`
 
@@ -597,11 +603,13 @@ Check that all handlers load without errors by importing them.
 ## Summary
 
 ### Files Created
+
 - `src/lib/capabilities/actions/handlers/expense.ts`
 - `src/lib/capabilities/actions/handlers/bank.ts`
 - `src/components/capability/ConfirmationDialog.tsx`
 
 ### Files Modified
+
 - `src/lib/capabilities/actions/handlers/invoice.ts` - Added issue, mark_paid handlers
 - `src/lib/capabilities/actions/handlers/index.ts` - Export new handlers
 - `src/components/capability/ActionButton.tsx` - Confirmation dialog support
@@ -609,11 +617,13 @@ Check that all handlers load without errors by importing them.
 - `src/components/capability/index.ts` - Export ConfirmationDialog
 
 ### What This Implements
+
 - All queue actions have working handlers
 - Confirmation dialogs for irreversible actions
 - Clear success/error feedback
 
 ### Definition of Done (from Design Document)
+
 - ✅ Actions execute from Control Center
 - ✅ Confirmation for irreversible actions
 - ✅ Clear success/failure feedback

@@ -67,12 +67,14 @@ FiskAI implements a three-tier monitoring strategy with specialized endpoints fo
 **Purpose:** Determine if the application process is alive and functioning
 
 **Behavior:**
+
 - Returns 200 if healthy
 - Returns 503 if unhealthy
 - Fast response (<100ms)
 - Basic checks only
 
 **When it fails:**
+
 - Database is unreachable
 - Memory usage >95%
 - Application crash
@@ -86,12 +88,14 @@ FiskAI implements a three-tier monitoring strategy with specialized endpoints fo
 **Purpose:** Determine if the application is ready to receive traffic
 
 **Behavior:**
+
 - Returns 200 if ready
 - Returns 503 if not ready
 - More strict than health
 - Comprehensive checks
 
 **When it fails:**
+
 - Database latency >5000ms
 - Memory usage >90%
 - Application uptime <5s
@@ -105,12 +109,14 @@ FiskAI implements a three-tier monitoring strategy with specialized endpoints fo
 **Purpose:** Provide system information for monitoring and debugging
 
 **Behavior:**
+
 - Always returns 200
 - No database queries
 - Very fast response (<50ms)
 - Rich information
 
 **Information provided:**
+
 - Application version
 - Environment (dev/prod)
 - Uptime (seconds + formatted)
@@ -185,6 +191,7 @@ FiskAI implements a three-tier monitoring strategy with specialized endpoints fo
 ## Monitoring Strategy
 
 ### Level 1: Load Balancer
+
 ```
 Load Balancer
   └─> /api/health every 30s
@@ -193,6 +200,7 @@ Load Balancer
 ```
 
 ### Level 2: Orchestration (Kubernetes)
+
 ```
 Kubernetes
   ├─> Liveness Probe: /api/health every 10s
@@ -204,6 +212,7 @@ Kubernetes
 ```
 
 ### Level 3: Monitoring System
+
 ```
 Monitoring System (Prometheus/Datadog)
   └─> /api/status every 60s
@@ -216,6 +225,7 @@ Monitoring System (Prometheus/Datadog)
 ## Error Scenarios
 
 ### Scenario 1: Database Down
+
 ```
 Event: PostgreSQL stops responding
 
@@ -238,6 +248,7 @@ Result:
 ```
 
 ### Scenario 2: High Memory Usage
+
 ```
 Event: Memory usage reaches 92%
 
@@ -260,6 +271,7 @@ Result:
 ```
 
 ### Scenario 3: Slow Database
+
 ```
 Event: Database queries taking 6000ms
 
@@ -284,6 +296,7 @@ Result:
 ## Best Practices
 
 ### 1. Load Balancer Configuration
+
 - Use `/api/health` for target health checks
 - Set timeout to 5-10 seconds
 - Check every 30 seconds
@@ -291,6 +304,7 @@ Result:
 - Mark healthy after 1 success
 
 ### 2. Kubernetes Configuration
+
 - Use `/api/health` for liveness probe
 - Use `/api/health/ready` for readiness probe
 - Set different thresholds for each
@@ -298,6 +312,7 @@ Result:
 - Don't restart too aggressively
 
 ### 3. Monitoring Configuration
+
 - Scrape `/api/status` for metrics
 - Check every 60 seconds
 - Store time-series data
@@ -307,6 +322,7 @@ Result:
   - Version changes (track deployments)
 
 ### 4. Development vs Production
+
 ```
 Development:
   ├─ Looser health check intervals
@@ -323,6 +339,7 @@ Production:
 ## Security Considerations
 
 ### What's Safe to Expose
+
 - Health status (up/down)
 - Version number
 - Uptime statistics
@@ -331,6 +348,7 @@ Production:
 - Platform information
 
 ### What's NOT Exposed
+
 - Database credentials
 - Connection strings
 - API keys or secrets
@@ -340,6 +358,7 @@ Production:
 - Detailed error messages (in production)
 
 ### Why No Authentication?
+
 1. Load balancers need fast, simple access
 2. Orchestration tools don't support auth headers
 3. Monitoring systems need reliable access
@@ -349,6 +368,7 @@ Production:
 ## Troubleshooting Guide
 
 ### Health Check Returns 503
+
 1. Check database connectivity
    ```bash
    psql $DATABASE_URL -c "SELECT 1"
@@ -363,12 +383,14 @@ Production:
    ```
 
 ### Readiness Check Never Passes
+
 1. Check if still initializing (<5s uptime)
 2. Verify database latency
 3. Check memory usage (<90%)
 4. Review startup logs
 
 ### Status Endpoint Not Responding
+
 1. Check if application is running
 2. Verify port 3000 is accessible
 3. Check for network issues
@@ -377,18 +399,21 @@ Production:
 ## Metrics to Track
 
 ### Uptime Metrics
+
 - Total application uptime
 - Time since last restart
 - Restart frequency
 - Deployment timestamps
 
 ### Performance Metrics
+
 - Health check response time
 - Database connection latency
 - Memory usage trends
 - CPU usage patterns
 
 ### Reliability Metrics
+
 - Health check success rate
 - Readiness check success rate
 - Time to become ready after start
@@ -397,17 +422,19 @@ Production:
 ## Integration Examples
 
 ### Prometheus Configuration
+
 ```yaml
 scrape_configs:
-  - job_name: 'fiskai-status'
+  - job_name: "fiskai-status"
     scrape_interval: 60s
     scrape_timeout: 5s
-    metrics_path: '/api/status'
+    metrics_path: "/api/status"
     static_configs:
-      - targets: ['fiskai:3000']
+      - targets: ["fiskai:3000"]
 ```
 
 ### Datadog Check
+
 ```python
 def check_fiskai_health(self):
     response = requests.get('http://fiskai:3000/api/health')
@@ -418,6 +445,7 @@ def check_fiskai_health(self):
 ```
 
 ### Grafana Dashboard Query
+
 ```promql
 # Uptime over time
 fiskai_uptime_seconds

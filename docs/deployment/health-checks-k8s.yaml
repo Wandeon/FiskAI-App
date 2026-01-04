@@ -18,71 +18,71 @@ spec:
         app: fiskai
     spec:
       containers:
-      - name: fiskai
-        image: fiskai:latest
-        ports:
-        - containerPort: 3000
-          name: http
+        - name: fiskai
+          image: fiskai:latest
+          ports:
+            - containerPort: 3000
+              name: http
 
-        # Environment variables
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: fiskai-secrets
-              key: database-url
-        - name: APP_VERSION
-          value: "0.1.0"
+          # Environment variables
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fiskai-secrets
+                  key: database-url
+            - name: APP_VERSION
+              value: "0.1.0"
 
-        # Resource limits
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
+          # Resource limits
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
 
-        # Liveness probe - determines if container needs to be restarted
-        # Uses /api/health because it's less strict
-        livenessProbe:
-          httpGet:
-            path: /api/health
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30  # Wait 30s after container starts
-          periodSeconds: 10         # Check every 10 seconds
-          timeoutSeconds: 5         # Timeout after 5 seconds
-          failureThreshold: 3       # Restart after 3 failures
-          successThreshold: 1       # Consider healthy after 1 success
+          # Liveness probe - determines if container needs to be restarted
+          # Uses /api/health because it's less strict
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30 # Wait 30s after container starts
+            periodSeconds: 10 # Check every 10 seconds
+            timeoutSeconds: 5 # Timeout after 5 seconds
+            failureThreshold: 3 # Restart after 3 failures
+            successThreshold: 1 # Consider healthy after 1 success
 
-        # Readiness probe - determines if container should receive traffic
-        # Uses /api/health/ready because it's more strict
-        readinessProbe:
-          httpGet:
-            path: /api/health/ready
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10   # Wait 10s after container starts
-          periodSeconds: 5          # Check every 5 seconds
-          timeoutSeconds: 3         # Timeout after 3 seconds
-          failureThreshold: 3       # Remove from service after 3 failures
-          successThreshold: 1       # Add to service after 1 success
+          # Readiness probe - determines if container should receive traffic
+          # Uses /api/health/ready because it's more strict
+          readinessProbe:
+            httpGet:
+              path: /api/health/ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10 # Wait 10s after container starts
+            periodSeconds: 5 # Check every 5 seconds
+            timeoutSeconds: 3 # Timeout after 3 seconds
+            failureThreshold: 3 # Remove from service after 3 failures
+            successThreshold: 1 # Add to service after 1 success
 
-        # Startup probe - gives more time for slow-starting apps
-        # Optional, but recommended for apps with long initialization
-        startupProbe:
-          httpGet:
-            path: /api/health/ready
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 0
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 30      # 30 * 5s = 150s max startup time
-          successThreshold: 1
+          # Startup probe - gives more time for slow-starting apps
+          # Optional, but recommended for apps with long initialization
+          startupProbe:
+            httpGet:
+              path: /api/health/ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30 # 30 * 5s = 150s max startup time
+            successThreshold: 1
 
 ---
 # Service definition
@@ -95,10 +95,10 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80
-    targetPort: http
-    protocol: TCP
-    name: http
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
   selector:
     app: fiskai
 
@@ -116,18 +116,18 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
 
 ---
 # ConfigMap for monitoring

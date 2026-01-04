@@ -174,8 +174,11 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Check test-DB boundary (guardrail)
+        run: npx tsx scripts/check-test-db-boundary.ts
+
       - name: Run unit tests
-        run: npm test
+        run: npm run test:unit
 
   test-property:
     name: Property-Based Tests
@@ -291,6 +294,52 @@ jobs:
           echo "| citation_compliance | ≥95% (28/30) | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/regulatory-truth/evidence-pack-2025-12-23.md\` for full details." >> $GITHUB_STEP_SUMMARY
+
+  test-db:
+    name: DB Vitest Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Enable pgvector extension
+        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+      - name: Apply schema
+        run: npx prisma db push --accept-data-loss
+
+      - name: Run DB vitest tests
+        run: npm run test:db
 
   acceptance-tests:
     name: Acceptance Tests
@@ -423,7 +472,19 @@ jobs:
     # Added typecheck as dependency per Phase 0 Architecture Containment
     # Added property and golden tests as dependencies per Phase 7 Testing Expansion
     # Phase 8: test-integration and architecture-check now blocking
-    needs: [lint, typecheck, test, test-property, test-golden, test-integration, architecture-check, security]
+    needs:
+      [
+        lint,
+        typecheck,
+        test,
+        test-property,
+        test-golden,
+        test-integration,
+        architecture-check,
+        security,
+      ]
+    # Note: test-db runs in parallel and is a required merge check,
+    # but doesn't block build to reduce critical path time
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

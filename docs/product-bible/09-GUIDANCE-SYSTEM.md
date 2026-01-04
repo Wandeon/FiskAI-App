@@ -23,11 +23,11 @@ The Guidance System is FiskAI's adaptive help and task management layer that per
 
 **Key Benefits:**
 
-| Persona | Benefit |
-|---------|---------|
-| Marko (Beginner) | Step-by-step guidance, frequent reminders, full explanations |
-| Ana (Average) | Balanced interface, key reminders only, context when needed |
-| Ivan (Pro) | Clean interface, keyboard shortcuts visible, critical alerts only |
+| Persona          | Benefit                                                           |
+| ---------------- | ----------------------------------------------------------------- |
+| Marko (Beginner) | Step-by-step guidance, frequent reminders, full explanations      |
+| Ana (Average)    | Balanced interface, key reminders only, context when needed       |
+| Ivan (Pro)       | Clean interface, keyboard shortcuts visible, critical alerts only |
 
 ### 14.2 Architecture
 
@@ -62,13 +62,13 @@ The Guidance System is FiskAI's adaptive help and task management layer that per
 
 **File Locations:**
 
-| Component | Location |
-|-----------|----------|
-| Core Library | `/src/lib/guidance/` |
-| API Routes | `/src/app/api/guidance/` |
-| Components | `/src/components/guidance/` |
+| Component     | Location                            |
+| ------------- | ----------------------------------- |
+| Core Library  | `/src/lib/guidance/`                |
+| API Routes    | `/src/app/api/guidance/`            |
+| Components    | `/src/components/guidance/`         |
 | Settings Page | `/src/app/(app)/settings/guidance/` |
-| DB Schema | `/src/lib/db/schema/guidance.ts` |
+| DB Schema     | `/src/lib/db/schema/guidance.ts`    |
 
 ---
 
@@ -78,11 +78,11 @@ The Guidance System is FiskAI's adaptive help and task management layer that per
 
 Users can set their experience level globally or per-category:
 
-| Level | Croatian Label | Description |
-|-------|---------------|-------------|
-| `beginner` | Početnik | Full help: step-by-step guides, tooltips, frequent reminders |
-| `average` | Srednji | Balanced: help only for risky actions and new features |
-| `pro` | Profesionalac | Minimal: critical notifications only, fast interface, keyboard shortcuts |
+| Level      | Croatian Label | Description                                                              |
+| ---------- | -------------- | ------------------------------------------------------------------------ |
+| `beginner` | Početnik       | Full help: step-by-step guides, tooltips, frequent reminders             |
+| `average`  | Srednji        | Balanced: help only for risky actions and new features                   |
+| `pro`      | Profesionalac  | Minimal: critical notifications only, fast interface, keyboard shortcuts |
 
 **Implementation:**
 
@@ -105,11 +105,11 @@ export const LEVEL_DESCRIPTIONS: Record<CompetenceLevel, string> = {
 
 Competence can be set independently for three business domains:
 
-| Category | Croatian Label | Covers |
-|----------|---------------|--------|
-| `fakturiranje` | Fakturiranje | Invoicing, e-invoices, fiscalization |
-| `financije` | Financije | Banking, expenses, contributions, taxes |
-| `eu` | EU poslovanje | VAT, cross-border transactions |
+| Category       | Croatian Label | Covers                                  |
+| -------------- | -------------- | --------------------------------------- |
+| `fakturiranje` | Fakturiranje   | Invoicing, e-invoices, fiscalization    |
+| `financije`    | Financije      | Banking, expenses, contributions, taxes |
+| `eu`           | EU poslovanje  | VAT, cross-border transactions          |
 
 **Use Case:** A user might be experienced with invoicing but new to EU regulations.
 
@@ -152,10 +152,14 @@ export function getEffectiveLevel(
   }
 
   switch (category) {
-    case "fakturiranje": return preferences.levelFakturiranje
-    case "financije": return preferences.levelFinancije
-    case "eu": return preferences.levelEu
-    default: return "beginner"
+    case "fakturiranje":
+      return preferences.levelFakturiranje
+    case "financije":
+      return preferences.levelFinancije
+    case "eu":
+      return preferences.levelEu
+    default:
+      return "beginner"
   }
 }
 ```
@@ -168,12 +172,12 @@ The help density system controls four UI aspects based on competence level:
 
 ### 16.1 Density Matrix
 
-| Aspect | Beginner | Average | Pro |
-|--------|----------|---------|-----|
-| **Field Tooltips** | `all` - Every field | `key` - Important fields only | `none` - No tooltips |
-| **Action Confirmations** | `always` - All actions | `destructive` - Delete/cancel only | `never` - No confirmations |
-| **Success Explanations** | `detailed` - Full explanation | `brief` - Short message | `toast` - Just a toast |
-| **Keyboard Shortcuts** | `hidden` - Not shown | `hover` - Shown on hover | `visible` - Always visible |
+| Aspect                   | Beginner                      | Average                            | Pro                        |
+| ------------------------ | ----------------------------- | ---------------------------------- | -------------------------- |
+| **Field Tooltips**       | `all` - Every field           | `key` - Important fields only      | `none` - No tooltips       |
+| **Action Confirmations** | `always` - All actions        | `destructive` - Delete/cancel only | `never` - No confirmations |
+| **Success Explanations** | `detailed` - Full explanation | `brief` - Short message            | `toast` - Just a toast     |
+| **Keyboard Shortcuts**   | `hidden` - Not shown          | `hover` - Shown on hover           | `visible` - Always visible |
 
 **Implementation:**
 
@@ -212,19 +216,22 @@ export const HELP_DENSITY: Record<CompetenceLevel, HelpDensityConfig> = {
 
 Reminder frequency adapts to competence level:
 
-| Level | Reminder Schedule |
-|-------|------------------|
+| Level    | Reminder Schedule               |
+| -------- | ------------------------------- |
 | Beginner | 7 days, 3 days, 1 day, same day |
-| Average | 3 days, 1 day, same day |
-| Pro | 1 day, same day only |
+| Average  | 3 days, 1 day, same day         |
+| Pro      | 1 day, same day only            |
 
 ```typescript
 // src/lib/guidance/preferences.ts
 export function getNotificationDays(level: CompetenceLevel): number[] {
   switch (level) {
-    case "beginner": return [7, 3, 1, 0]
-    case "average": return [3, 1, 0]
-    case "pro": return [1, 0]
+    case "beginner":
+      return [7, 3, 1, 0]
+    case "average":
+      return [3, 1, 0]
+    case "pro":
+      return [1, 0]
   }
 }
 ```
@@ -263,22 +270,22 @@ The checklist aggregates tasks from multiple sources into a unified "What do I n
 
 ### 17.1 Checklist Item Types
 
-| Type | Source | Example |
-|------|--------|---------|
-| `deadline` | `complianceDeadlines` table | "PO-SD due January 15" |
-| `payment` | `paymentObligation` table | "MIO I contribution - 107.88 EUR" |
-| `action` | Draft invoices, pending items | "Complete draft invoice #123" |
-| `onboarding` | Company data gaps | "Add company OIB and address" |
-| `seasonal` | Calendar-based tasks | "Prepare PO-SD form for 2024" |
-| `suggestion` | AI pattern detection | "Invoice Client X (monthly pattern)" |
+| Type         | Source                        | Example                              |
+| ------------ | ----------------------------- | ------------------------------------ |
+| `deadline`   | `complianceDeadlines` table   | "PO-SD due January 15"               |
+| `payment`    | `paymentObligation` table     | "MIO I contribution - 107.88 EUR"    |
+| `action`     | Draft invoices, pending items | "Complete draft invoice #123"        |
+| `onboarding` | Company data gaps             | "Add company OIB and address"        |
+| `seasonal`   | Calendar-based tasks          | "Prepare PO-SD form for 2024"        |
+| `suggestion` | AI pattern detection          | "Invoice Client X (monthly pattern)" |
 
 ### 17.2 Urgency Levels
 
-| Level | Criteria | Visual |
-|-------|----------|--------|
-| `critical` | Overdue or due today | 🔴 Red background |
-| `soon` | Due within 3 days | 🟡 Amber background |
-| `upcoming` | Due within 7 days | 🔵 Blue background |
+| Level      | Criteria                 | Visual                |
+| ---------- | ------------------------ | --------------------- |
+| `critical` | Overdue or due today     | 🔴 Red background     |
+| `soon`     | Due within 3 days        | 🟡 Amber background   |
+| `upcoming` | Due within 7 days        | 🔵 Blue background    |
 | `optional` | Suggestions, no deadline | ⚪ Neutral background |
 
 **Calculation:**
@@ -290,7 +297,7 @@ function calculateUrgency(dueDate: Date | null): UrgencyLevel {
 
   const daysUntil = Math.ceil((due - today) / (1000 * 60 * 60 * 24))
 
-  if (daysUntil < 0) return "critical"  // Overdue
+  if (daysUntil < 0) return "critical" // Overdue
   if (daysUntil === 0) return "critical" // Due today
   if (daysUntil <= 3) return "soon"
   if (daysUntil <= 7) return "upcoming"
@@ -302,11 +309,11 @@ function calculateUrgency(dueDate: Date | null): UrgencyLevel {
 
 Users can interact with checklist items:
 
-| Action | Effect | Storage |
-|--------|--------|---------|
-| `complete` | Remove from list permanently | `checklistInteractions` with action="completed" |
-| `dismiss` | Remove from list permanently | `checklistInteractions` with action="dismissed" |
-| `snooze` | Hide until specified date | `checklistInteractions` with action="snoozed", snoozedUntil |
+| Action     | Effect                       | Storage                                                     |
+| ---------- | ---------------------------- | ----------------------------------------------------------- |
+| `complete` | Remove from list permanently | `checklistInteractions` with action="completed"             |
+| `dismiss`  | Remove from list permanently | `checklistInteractions` with action="dismissed"             |
+| `snooze`   | Hide until specified date    | `checklistInteractions` with action="snoozed", snoozedUntil |
 
 **Database Schema:**
 
@@ -331,13 +338,13 @@ export const checklistInteractions = pgTable("checklist_interactions", {
 
 Checklist items use a reference pattern for tracking:
 
-| Pattern | Example |
-|---------|---------|
-| `obligation:{id}` | `obligation:abc123` |
-| `deadline:{id}` | `deadline:xyz789` |
-| `draft_invoice:{id}` | `draft_invoice:inv456` |
-| `onboarding:{task}` | `onboarding:company_data` |
-| `seasonal:{task}:{year}` | `seasonal:posd:2024` |
+| Pattern                      | Example                                  |
+| ---------------------------- | ---------------------------------------- |
+| `obligation:{id}`            | `obligation:abc123`                      |
+| `deadline:{id}`              | `deadline:xyz789`                        |
+| `draft_invoice:{id}`         | `draft_invoice:inv456`                   |
+| `onboarding:{task}`          | `onboarding:company_data`                |
+| `seasonal:{task}:{year}`     | `seasonal:posd:2024`                     |
 | `pattern-{type}-{timestamp}` | `pattern-invoice_reminder-1704067200000` |
 
 ### 17.5 Checklist Aggregation
@@ -385,12 +392,12 @@ The pattern detection system analyzes historical data to provide proactive sugge
 
 ### 18.1 Pattern Types
 
-| Type | Detection Logic | Confidence Threshold |
-|------|-----------------|---------------------|
+| Type               | Detection Logic                     | Confidence Threshold       |
+| ------------------ | ----------------------------------- | -------------------------- |
 | `invoice_reminder` | Monthly invoicing patterns by buyer | Low day variance (<5 days) |
-| `expense_pattern` | Spending anomalies by category | 50%+ above average |
-| `revenue_trend` | Revenue changes vs previous months | 15%+ change |
-| `compliance_risk` | Approaching thresholds | 85%+ of limit |
+| `expense_pattern`  | Spending anomalies by category      | 50%+ above average         |
+| `revenue_trend`    | Revenue changes vs previous months  | 15%+ change                |
+| `compliance_risk`  | Approaching thresholds              | 85%+ of limit              |
 
 ### 18.2 Invoice Pattern Detection
 
@@ -480,10 +487,10 @@ The Guidance System works in conjunction with the Visibility System to create a 
 
 ### 19.1 System Boundary
 
-| System | Responsibility |
-|--------|---------------|
+| System                | Responsibility                                          |
+| --------------------- | ------------------------------------------------------- |
 | **Visibility System** | Controls what elements exist in the UI (show/hide/lock) |
-| **Guidance System** | Controls how much help surrounds those elements |
+| **Guidance System**   | Controls how much help surrounds those elements         |
 
 ### 19.2 Shared CompetenceLevel
 
@@ -539,8 +546,8 @@ export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
     // Paušalni sees checklist and insights
   ],
   OBRT_REAL: [
-    "card:checklist-widget",   // Hidden for non-paušalni
-    "card:insights-widget",    // Hidden for non-paušalni
+    "card:checklist-widget", // Hidden for non-paušalni
+    "card:insights-widget", // Hidden for non-paušalni
   ],
   // ... other legal forms
 }
@@ -573,8 +580,16 @@ Get the current user's guidance preferences.
   "meta": {
     "levels": { "BEGINNER": "beginner", "AVERAGE": "average", "PRO": "pro" },
     "levelLabels": { "beginner": "Početnik", "average": "Srednji", "pro": "Profesionalac" },
-    "levelDescriptions": { "beginner": "Puna pomoć...", "average": "Uravnoteženo...", "pro": "Minimalno..." },
-    "categoryLabels": { "fakturiranje": "Fakturiranje", "financije": "Financije", "eu": "EU poslovanje" }
+    "levelDescriptions": {
+      "beginner": "Puna pomoć...",
+      "average": "Uravnoteženo...",
+      "pro": "Minimalno..."
+    },
+    "categoryLabels": {
+      "fakturiranje": "Fakturiranje",
+      "financije": "Financije",
+      "eu": "EU poslovanje"
+    }
   }
 }
 ```
@@ -605,7 +620,9 @@ Update user's guidance preferences.
 
 ```json
 {
-  "preferences": { /* updated preferences object */ }
+  "preferences": {
+    /* updated preferences object */
+  }
 }
 ```
 
@@ -615,11 +632,11 @@ Get aggregated checklist items.
 
 **Query Parameters:**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | number | 20 | Max items to return (max: 100) |
-| `includeCompleted` | "true" | false | Include completed items |
-| `includeDismissed` | "true" | false | Include dismissed items |
+| Parameter          | Type   | Default | Description                    |
+| ------------------ | ------ | ------- | ------------------------------ |
+| `limit`            | number | 20      | Max items to return (max: 100) |
+| `includeCompleted` | "true" | false   | Include completed items        |
+| `includeDismissed` | "true" | false   | Include dismissed items        |
 
 **Response:**
 
@@ -675,12 +692,12 @@ Mark a checklist item as completed, dismissed, or snoozed.
 }
 ```
 
-| Field | Required | Values |
-|-------|----------|--------|
-| `action` | Yes | `"complete"`, `"dismiss"`, `"snooze"` |
-| `itemType` | Yes | `"deadline"`, `"payment"`, `"action"`, `"onboarding"`, `"seasonal"`, `"suggestion"` |
-| `itemReference` | Yes | The item's reference string |
-| `snoozeUntil` | Only for snooze | ISO date string |
+| Field           | Required        | Values                                                                              |
+| --------------- | --------------- | ----------------------------------------------------------------------------------- |
+| `action`        | Yes             | `"complete"`, `"dismiss"`, `"snooze"`                                               |
+| `itemType`      | Yes             | `"deadline"`, `"payment"`, `"action"`, `"onboarding"`, `"seasonal"`, `"suggestion"` |
+| `itemReference` | Yes             | The item's reference string                                                         |
+| `snoozeUntil`   | Only for snooze | ISO date string                                                                     |
 
 **Response:**
 
@@ -727,15 +744,15 @@ Get AI-powered pattern insights for the current company.
 
 ### 21.1 Component Catalog
 
-| Component | Location | Description |
-|-----------|----------|-------------|
-| `CompetenceSelector` | `/src/components/guidance/CompetenceSelector.tsx` | Full or compact competence level selector |
-| `ChecklistWidget` | `/src/components/guidance/ChecklistWidget.tsx` | Dashboard widget showing top 5 checklist items |
-| `ChecklistItem` | `/src/components/guidance/ChecklistItem.tsx` | Individual checklist item with urgency styling |
-| `ChecklistMiniView` | `/src/components/guidance/ChecklistMiniView.tsx` | Compact inline checklist view |
-| `HelpTooltip` | `/src/components/guidance/HelpTooltip.tsx` | Contextual help tooltip with positioning |
-| `QuickLevelToggle` | `/src/components/guidance/QuickLevelToggle.tsx` | Header dropdown for quick level switching |
-| `InsightsWidget` | `/src/components/guidance/InsightsWidget.tsx` | Dashboard widget showing AI insights |
+| Component            | Location                                          | Description                                    |
+| -------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `CompetenceSelector` | `/src/components/guidance/CompetenceSelector.tsx` | Full or compact competence level selector      |
+| `ChecklistWidget`    | `/src/components/guidance/ChecklistWidget.tsx`    | Dashboard widget showing top 5 checklist items |
+| `ChecklistItem`      | `/src/components/guidance/ChecklistItem.tsx`      | Individual checklist item with urgency styling |
+| `ChecklistMiniView`  | `/src/components/guidance/ChecklistMiniView.tsx`  | Compact inline checklist view                  |
+| `HelpTooltip`        | `/src/components/guidance/HelpTooltip.tsx`        | Contextual help tooltip with positioning       |
+| `QuickLevelToggle`   | `/src/components/guidance/QuickLevelToggle.tsx`   | Header dropdown for quick level switching      |
+| `InsightsWidget`     | `/src/components/guidance/InsightsWidget.tsx`     | Dashboard widget showing AI insights           |
 
 ### 21.2 CompetenceSelector
 
@@ -752,7 +769,9 @@ Two variants for different contexts:
     eu: "beginner",
   }}
   globalLevel={null}
-  onChange={(category, level) => { /* update */ }}
+  onChange={(category, level) => {
+    /* update */
+  }}
 />
 ```
 
@@ -772,8 +791,8 @@ Dashboard integration:
 
 ```tsx
 <ChecklistWidget
-  initialItems={items}  // Optional SSR data
-  initialStats={stats}  // Optional SSR stats
+  initialItems={items} // Optional SSR data
+  initialStats={stats} // Optional SSR stats
 />
 ```
 
@@ -877,27 +896,27 @@ Contextual help that respects visibility settings:
 
 ## 23. Implementation Status
 
-| Feature | Status | Location |
-|---------|--------|----------|
-| User preferences CRUD | ✅ Implemented | `preferences.ts`, `/api/guidance/preferences` |
-| Per-category competence | ✅ Implemented | DB schema, preferences API |
-| Global level override | ✅ Implemented | `setGlobalLevel()`, API |
-| Checklist aggregation | ✅ Implemented | `checklist.ts`, `/api/guidance/checklist` |
-| Payment obligations | ✅ Implemented | `getObligationItems()` |
-| Compliance deadlines | ✅ Implemented | `getDeadlineItems()` |
-| Onboarding tasks | ✅ Implemented | `getOnboardingItems()` |
-| Seasonal tasks | ✅ Implemented | `getSeasonalItems()` |
-| Complete/dismiss/snooze | ✅ Implemented | API, `checklistInteractions` table |
-| Invoice pattern detection | ✅ Implemented | `detectInvoicePatterns()` |
-| Expense pattern detection | ✅ Implemented | `detectExpensePatterns()` |
-| Revenue trend detection | ✅ Implemented | `detectRevenueTrends()` |
-| Help density config | ✅ Implemented | `help-density.ts` |
-| Settings page | ✅ Implemented | `/settings/guidance/` |
-| Dashboard widgets | ✅ Implemented | `ChecklistWidget`, `InsightsWidget` |
-| Quick level toggle | ✅ Implemented | `QuickLevelToggle` |
-| Email digest sending | ✅ Implemented | `/api/cron/checklist-digest`, email template |
-| Push notifications | 📋 Planned | Not implemented |
-| Context provider integration | ⚠️ Partial | `ConditionalHelpTooltip` stub exists |
+| Feature                      | Status         | Location                                      |
+| ---------------------------- | -------------- | --------------------------------------------- |
+| User preferences CRUD        | ✅ Implemented | `preferences.ts`, `/api/guidance/preferences` |
+| Per-category competence      | ✅ Implemented | DB schema, preferences API                    |
+| Global level override        | ✅ Implemented | `setGlobalLevel()`, API                       |
+| Checklist aggregation        | ✅ Implemented | `checklist.ts`, `/api/guidance/checklist`     |
+| Payment obligations          | ✅ Implemented | `getObligationItems()`                        |
+| Compliance deadlines         | ✅ Implemented | `getDeadlineItems()`                          |
+| Onboarding tasks             | ✅ Implemented | `getOnboardingItems()`                        |
+| Seasonal tasks               | ✅ Implemented | `getSeasonalItems()`                          |
+| Complete/dismiss/snooze      | ✅ Implemented | API, `checklistInteractions` table            |
+| Invoice pattern detection    | ✅ Implemented | `detectInvoicePatterns()`                     |
+| Expense pattern detection    | ✅ Implemented | `detectExpensePatterns()`                     |
+| Revenue trend detection      | ✅ Implemented | `detectRevenueTrends()`                       |
+| Help density config          | ✅ Implemented | `help-density.ts`                             |
+| Settings page                | ✅ Implemented | `/settings/guidance/`                         |
+| Dashboard widgets            | ✅ Implemented | `ChecklistWidget`, `InsightsWidget`           |
+| Quick level toggle           | ✅ Implemented | `QuickLevelToggle`                            |
+| Email digest sending         | ✅ Implemented | `/api/cron/checklist-digest`, email template  |
+| Push notifications           | 📋 Planned     | Not implemented                               |
+| Context provider integration | ⚠️ Partial     | `ConditionalHelpTooltip` stub exists          |
 
 ---
 

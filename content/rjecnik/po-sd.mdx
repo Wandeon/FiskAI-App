@@ -37,10 +37,12 @@ keywords:
 ## Tko predaje PO-SD?
 
 **Obveznici:**
+
 - Svi paušalni obrtnici
 - Čak i ako nema primitaka u kvartalu
 
 **Ne predaju:**
+
 - Obrtnici na dohodak (oni predaju DOH)
 - d.o.o. i j.d.o.o. (oni predaju PD)
 
@@ -51,6 +53,7 @@ keywords:
 ## Što se upisuje?
 
 **Obvezni podaci:**
+
 1. **Ukupni primitci** za kvartal (svi poslovni primitci)
 2. Paušalni prihod (automatski iz pravilnika)
 3. Obračun paušalnog poreza (<FiscalPercentage path="TAX_RATES.pausal.rate" /> × paušalni prihod)
@@ -62,10 +65,12 @@ keywords:
 ## Predaja PO-SD obrasca
 
 **Način predaje:**
+
 - **Elektronički:** ePorezna portal (obavezno)
 - NIAS prijava (e-osobna, token)
 
 **Proces:**
+
 1. Prijava na https://e-porezna.porezna-uprava.hr
 2. Odabir "Predaja obrazaca" → "PO-SD"
 3. Odabir kvartala i godine
@@ -83,12 +88,14 @@ Za konkretan izračun poreza i prireza koristite [PO-SD kalkulator](/alati/posd-
 Nakon Q4, paušalci **ne predaju dodatni godišnji obračun**. PO-SD se predaje 4 puta godišnje i to je to.
 
 Za razliku od:
+
 - Obrta na dohodak → godišnji DOH
 - d.o.o. → godišnji PD
 
 ## Nulta prijava
 
 **Ako nemate primitaka u kvartalu:**
+
 - I dalje morate predati PO-SD
 - Upisujete nulu primitaka
 - **Ali:** Paušalni porez se plaća čak i bez primitaka!
@@ -98,6 +105,7 @@ Za razliku od:
 ## Doprinosi i PO-SD
 
 PO-SD obrazac **ne uključuje doprinose** (MIO, HZZO). Doprinosi se plaćaju zasebno:
+
 - MIO (<FiscalPercentage path="CONTRIBUTIONS.rates.MIO_I.rate" />)
 - HZZO (<FiscalPercentage path="CONTRIBUTIONS.rates.HZZO.rate" />)
 - **Ukupno (s II. stupom):** <FiscalCurrency path="CONTRIBUTIONS.monthly.total" />
@@ -107,6 +115,7 @@ Doprinosi se plaćaju na minimalnu osnovicu (<FiscalCurrency path="CONTRIBUTIONS
 ## Ispravak PO-SD-a
 
 **Ako ste pogriješili:**
+
 1. Prijavite se na ePorezna
 2. Odaberite "Ispravak PO-SD"
 3. Unesite ispravne podatke
@@ -115,14 +124,17 @@ Doprinosi se plaćaju na minimalnu osnovicu (<FiscalCurrency path="CONTRIBUTIONS
 ## Kazne
 
 **Nepredaja ili kašnjenje:**
+
 - Kazne su značajne i ovise o prekršaju
 - Zatezna kamata na neplaćeni porez
 
 **Nepotpuna prijava:**
+
 - Kazne se određuju prema prekršaju
 
 ## Glavni vodič
 
 Za detaljne informacije o paušalnom obrtu i PO-SD obrascu, pročitajte:
+
 - [Paušalni obrt - kompletan vodič](/vodic/pausalni-obrt)
 - [Kako ispuniti PO-SD - korak po korak](/kako-da/ispuniti-po-sd)

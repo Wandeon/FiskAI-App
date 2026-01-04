@@ -13,46 +13,57 @@ This audit traces the full Evidence lifecycle for immutability and stable hashin
 ## (A) Confirmed Invariants
 
 ### INV-1.1: Evidence.rawContent is Write-Once
+
 **STATUS: CONFIRMED**
 
 No code path exists that updates `Evidence.rawContent` after creation. Evidence is created via:
+
 - `db.evidence.create()` in `sentinel.ts:365-375, 411-420, 545-568`
 - `db.evidence.create()` in fetchers (`hnb-fetcher.ts:118-127`, `nn-fetcher.ts:229-237`, `eurlex-fetcher.ts:140-148`)
 - `db.evidence.upsert()` in `sentinel.ts:545-568` (update path only touches `fetchedAt`, not `rawContent`)
 
 Evidence updates only modify metadata fields:
+
 - `ocrMetadata` (`ocr.worker.ts:61-70, 90-105`)
 - `primaryTextArtifactId` (`ocr.worker.ts:90-105`, `sentinel.ts:433-436`)
 - `contentHash` (via `data-repair.ts:31-34` - see Failure Mode F-1)
 
 ### INV-1.2: EvidenceArtifact.content is Write-Once
+
 **STATUS: CONFIRMED**
 
 No `db.evidenceArtifact.update()` calls exist in the codebase. Artifacts are only created:
+
 - `ocr.worker.ts:75-87` (OCR_TEXT artifact)
 - `sentinel.ts:423-429` (PDF_TEXT artifact for text-layer PDFs)
 
 ### INV-1.3: PDF Content Stored as Base64 with Matching Hash
+
 **STATUS: CONFIRMED**
 
 For PDF content:
+
 - `sentinel.ts:364`: `hashContent(buffer.toString("base64"))`
 - `sentinel.ts:369`: `rawContent: buffer.toString("base64")`
 
 The hash and stored content use identical base64 encoding.
 
 ### INV-1.4: HTML Hashing Uses Normalized Content
+
 **STATUS: CONFIRMED (with caveat)**
 
 For HTML content:
+
 - `hashContent()` in `content-hash.ts:58-74` normalizes HTML before hashing
 - This is intentional for change detection (removes dynamic timestamps, comments, scripts)
 - Re-hashing stored content produces the same hash because normalization is deterministic
 
 ### INV-1.5: Binary Document Text is Sanitized Before Hash
+
 **STATUS: CONFIRMED**
 
 For DOC/DOCX/XLS/XLSX:
+
 - `binary-parser.ts:76-84` sanitizes text (removes null bytes, control chars)
 - `sentinel.ts:487` computes hash from the already-sanitized text
 - Same sanitized text is stored in `rawContent`
@@ -67,13 +78,14 @@ For DOC/DOCX/XLS/XLSX:
 **Impact:** Re-hashing stored `rawContent` produces different hash than stored `contentHash`
 **Affected Files:**
 
-| File | Hash Line | Store Line | Issue |
-|------|-----------|------------|-------|
-| `fetchers/hnb-fetcher.ts` | 104-105 | 122 | Hash uses `JSON.stringify(rate)`, store uses `JSON.stringify(rate, null, 2)` |
-| `fetchers/nn-fetcher.ts` | 199 | 233 | Hash uses `JSON.stringify(metadata)`, store uses `JSON.stringify(metadata, null, 2)` |
-| `fetchers/eurlex-fetcher.ts` | 110 | 144 | Hash uses `JSON.stringify(metadata)`, store uses `JSON.stringify(metadata, null, 2)` |
+| File                         | Hash Line | Store Line | Issue                                                                                |
+| ---------------------------- | --------- | ---------- | ------------------------------------------------------------------------------------ |
+| `fetchers/hnb-fetcher.ts`    | 104-105   | 122        | Hash uses `JSON.stringify(rate)`, store uses `JSON.stringify(rate, null, 2)`         |
+| `fetchers/nn-fetcher.ts`     | 199       | 233        | Hash uses `JSON.stringify(metadata)`, store uses `JSON.stringify(metadata, null, 2)` |
+| `fetchers/eurlex-fetcher.ts` | 110       | 144        | Hash uses `JSON.stringify(metadata)`, store uses `JSON.stringify(metadata, null, 2)` |
 
 **Root Cause:**
+
 ```typescript
 // hnb-fetcher.ts:104-105
 const rawContent = JSON.stringify(rate)  // Compact - used for hash
@@ -84,6 +96,7 @@ rawContent: JSON.stringify(rate, null, 2),  // Pretty-printed - stored in DB
 ```
 
 **Proof of Bug:**
+
 ```typescript
 // Compact JSON
 '{"a":1}'
@@ -209,13 +222,13 @@ describe("Evidence Mutation Detection", () => {
         contentHash: hashContent(content),
         contentType: "html",
         sourceId: "test-source-id",
-      }
+      },
     })
     testEvidenceId = evidence.id
   })
 
   afterEach(async () => {
-    await db.evidence.delete({ where: { id: testEvidenceId }})
+    await db.evidence.delete({ where: { id: testEvidenceId } })
   })
 
   it("FAILS if any code path can update rawContent after creation", async () => {
@@ -224,10 +237,10 @@ describe("Evidence Mutation Detection", () => {
 
     await db.evidence.update({
       where: { id: testEvidenceId },
-      data: { rawContent: mutatedContent }  // This should be blocked!
+      data: { rawContent: mutatedContent }, // This should be blocked!
     })
 
-    const evidence = await db.evidence.findUnique({ where: { id: testEvidenceId }})
+    const evidence = await db.evidence.findUnique({ where: { id: testEvidenceId } })
 
     // If this passes, we have a mutation vulnerability
     assert.notStrictEqual(
@@ -267,12 +280,13 @@ export async function createEvidence(data: {
     data: {
       ...data,
       contentHash,
-    }
+    },
   })
 }
 ```
 
 **Enforcement Points:**
+
 - `sentinel.ts` - Replace direct `db.evidence.create()` with `createEvidence()`
 - All fetchers - Same
 
@@ -282,12 +296,12 @@ export async function createEvidence(data: {
 
 ```typescript
 prisma.$use(async (params, next) => {
-  if (params.model === 'Evidence' && params.action === 'update') {
+  if (params.model === "Evidence" && params.action === "update") {
     const dataKeys = Object.keys(params.args.data || {})
-    if (dataKeys.includes('rawContent')) {
+    if (dataKeys.includes("rawContent")) {
       throw new Error(
-        'IMMUTABILITY VIOLATION: Evidence.rawContent cannot be modified after creation. ' +
-        `Attempted update on Evidence ${params.args.where?.id}`
+        "IMMUTABILITY VIOLATION: Evidence.rawContent cannot be modified after creation. " +
+          `Attempted update on Evidence ${params.args.where?.id}`
       )
     }
   }
@@ -317,7 +331,7 @@ Add to existing health checks:
 
 ```typescript
 async function checkEvidenceHashes(): Promise<HealthCheckResult> {
-  const mismatchCount = await db.$queryRaw<{count: bigint}[]>`
+  const mismatchCount = await db.$queryRaw<{ count: bigint }[]>`
     SELECT COUNT(*) as count FROM "Evidence"
     WHERE "contentHash" != (
       -- This would require a SQL hash function, so use sampling instead
@@ -327,8 +341,8 @@ async function checkEvidenceHashes(): Promise<HealthCheckResult> {
   // Alternative: Sample 100 random records
   const samples = await db.evidence.findMany({
     take: 100,
-    orderBy: { fetchedAt: 'desc' },
-    select: { id: true, contentHash: true, rawContent: true, contentType: true }
+    orderBy: { fetchedAt: "desc" },
+    select: { id: true, contentHash: true, rawContent: true, contentType: true },
   })
 
   let mismatches = 0
@@ -339,14 +353,14 @@ async function checkEvidenceHashes(): Promise<HealthCheckResult> {
 
   if (mismatches > 0) {
     await createWatchdogAlert({
-      severity: 'CRITICAL',
-      type: 'HASH_MISMATCH',
+      severity: "CRITICAL",
+      type: "HASH_MISMATCH",
       message: `${mismatches}/${samples.length} sampled Evidence records have hash mismatches`,
     })
-    return { status: 'CRITICAL', metric: mismatches }
+    return { status: "CRITICAL", metric: mismatches }
   }
 
-  return { status: 'HEALTHY', metric: 0 }
+  return { status: "HEALTHY", metric: 0 }
 }
 ```
 
@@ -354,31 +368,31 @@ async function checkEvidenceHashes(): Promise<HealthCheckResult> {
 
 ## Summary of Required Fixes
 
-| Priority | Issue | Fix |
-|----------|-------|-----|
-| P0 | JSON hash/content mismatch | Fix fetchers to hash exactly what is stored |
-| P1 | No mutation guard | Add Prisma middleware to block rawContent updates |
-| P2 | Silent hash repair | Add audit logging to data-repair.ts, or remove auto-repair |
-| P3 | CI verification | Add hash verification to CI pipeline |
+| Priority | Issue                      | Fix                                                        |
+| -------- | -------------------------- | ---------------------------------------------------------- |
+| P0       | JSON hash/content mismatch | Fix fetchers to hash exactly what is stored                |
+| P1       | No mutation guard          | Add Prisma middleware to block rawContent updates          |
+| P2       | Silent hash repair         | Add audit logging to data-repair.ts, or remove auto-repair |
+| P3       | CI verification            | Add hash verification to CI pipeline                       |
 
 ---
 
 ## Appendix: Content Type Hash Matrix
 
-| Content Type | Hash Algorithm | Normalization | Stable on Re-fetch? |
-|--------------|---------------|---------------|---------------------|
-| HTML | SHA-256 of normalized text | Yes (strips comments, scripts, dynamic IDs) | Yes |
-| JSON | SHA-256 of raw bytes | No | Yes* |
-| JSON-LD | SHA-256 of raw bytes | No | Yes* |
-| PDF (text layer) | SHA-256 of base64 | No | Yes |
-| PDF (scanned) | SHA-256 of base64 | No | Yes |
-| DOC/DOCX | SHA-256 of sanitized text | Yes (null bytes, control chars) | Yes |
-| XLS/XLSX | SHA-256 of sanitized text | Yes (null bytes, control chars) | Yes |
-| OCR_TEXT (artifact) | SHA-256 of raw text | No | No** |
+| Content Type        | Hash Algorithm             | Normalization                               | Stable on Re-fetch? |
+| ------------------- | -------------------------- | ------------------------------------------- | ------------------- |
+| HTML                | SHA-256 of normalized text | Yes (strips comments, scripts, dynamic IDs) | Yes                 |
+| JSON                | SHA-256 of raw bytes       | No                                          | Yes\*               |
+| JSON-LD             | SHA-256 of raw bytes       | No                                          | Yes\*               |
+| PDF (text layer)    | SHA-256 of base64          | No                                          | Yes                 |
+| PDF (scanned)       | SHA-256 of base64          | No                                          | Yes                 |
+| DOC/DOCX            | SHA-256 of sanitized text  | Yes (null bytes, control chars)             | Yes                 |
+| XLS/XLSX            | SHA-256 of sanitized text  | Yes (null bytes, control chars)             | Yes                 |
+| OCR_TEXT (artifact) | SHA-256 of raw text        | No                                          | No\*\*              |
 
-*Currently broken due to F-1
-**OCR output varies based on engine version, settings, and image quality
+\*Currently broken due to F-1
+\*\*OCR output varies based on engine version, settings, and image quality
 
 ---
 
-*End of Audit Report*
+_End of Audit Report_

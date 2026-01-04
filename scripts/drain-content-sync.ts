@@ -41,9 +41,7 @@ async function drainPendingEvents() {
 
   for (const event of pending) {
     try {
-      console.log(
-        `Enqueueing: ${event.eventId.slice(0, 8)}... (${event.conceptId}, ${event.type})`
-      )
+      console.log(`Enqueueing: ${event.eventId.slice(0, 8)}... (${event.conceptId}, ${event.type})`)
       await enqueueContentSyncJob(event.eventId)
       enqueued++
     } catch (error) {

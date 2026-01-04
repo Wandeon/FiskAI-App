@@ -26,36 +26,39 @@ Phase 2 is lightweight - it adds optional metadata fields and validation rules. 
 **File:** `src/lib/system-registry/schema.ts`
 
 **Add to DeclaredComponent interface:**
+
 ```typescript
 interface DeclaredComponent {
   // Existing fields...
 
   // NEW: Operational metadata
   healthCheck?: {
-    endpoint?: string;      // HTTP path, e.g., "/health"
-    command?: string;       // Shell command, e.g., "pg_isready"
-    interval?: string;      // Check interval, e.g., "30s"
-  };
+    endpoint?: string // HTTP path, e.g., "/health"
+    command?: string // Shell command, e.g., "pg_isready"
+    interval?: string // Check interval, e.g., "30s"
+  }
 
   slo?: {
-    availability?: string;  // e.g., "99.9%"
-    latencyP50?: string;    // e.g., "100ms"
-    latencyP99?: string;    // e.g., "500ms"
-    errorBudget?: string;   // e.g., "0.1%"
-  };
+    availability?: string // e.g., "99.9%"
+    latencyP50?: string // e.g., "100ms"
+    latencyP99?: string // e.g., "500ms"
+    errorBudget?: string // e.g., "0.1%"
+  }
 
-  alertChannel?: string;    // e.g., "#ops-critical"
-  runbook?: string;         // e.g., "docs/runbooks/auth.md"
+  alertChannel?: string // e.g., "#ops-critical"
+  runbook?: string // e.g., "docs/runbooks/auth.md"
 }
 ```
 
 **Validation:**
+
 - If healthCheck provided, at least endpoint or command required
 - If slo provided, at least one metric required
 - alertChannel must be non-empty string if provided
 - runbook must be non-empty string if provided
 
 **Tests:**
+
 - Valid healthCheck with endpoint
 - Valid healthCheck with command
 - Invalid: empty healthCheck object
@@ -63,6 +66,7 @@ interface DeclaredComponent {
 - Invalid: empty slo object
 
 **Acceptance criteria:**
+
 - Schema compiles
 - Validation rejects invalid shapes
 - Existing declarations still work
@@ -92,6 +96,7 @@ interface DeclaredComponent {
    - Message: "Runbook path does not exist"
 
 **Tests:**
+
 - CRITICAL without healthCheck gets warning
 - WORKER without slo gets warning
 - Component with slo but no alertChannel fails
@@ -99,6 +104,7 @@ interface DeclaredComponent {
 - No global rule disable (suppression only via governed exclusions)
 
 **Acceptance criteria:**
+
 - Rules fire correctly
 - Warnings vs failures correct
 - Suppression requires explicit, expiring governance exclusions
@@ -112,6 +118,7 @@ interface DeclaredComponent {
 **Add metadata to all CRITICAL components:**
 
 Example for lib-auth:
+
 ```typescript
 {
   componentId: 'lib-auth',
@@ -131,10 +138,12 @@ Example for lib-auth:
 ```
 
 **Components to update:**
+
 - All with criticality === 'CRITICAL'
 - Estimate: ~15-20 components
 
 **Acceptance criteria:**
+
 - All CRITICAL components have healthCheck
 - All have alertChannel
 - Runbooks exist (or are created as stubs)
@@ -151,31 +160,37 @@ Example for lib-auth:
 # {Component Name} Failure Runbook
 
 ## Component
+
 - **ID:** {component-id}
 - **Type:** {type}
 - **Owner:** {owner}
 
 ## Health Check
+
 - **Endpoint:** {endpoint}
 - **Expected:** 200 OK
 
 ## Common Issues
 
 ### Issue 1: {Description}
+
 **Symptoms:** {what you see}
 **Resolution:** {steps to fix}
 
 ### Issue 2: ...
 
 ## Escalation
+
 - Primary: {owner}
 - Backup: #ops-critical
 
 ## References
+
 - {links to docs, dashboards, etc.}
 ```
 
 **Acceptance criteria:**
+
 - Runbook exists for each CRITICAL component
 - Follows consistent template
 - Linked from declarations
@@ -187,6 +202,7 @@ Example for lib-auth:
 **File:** `src/lib/system-registry/governance.ts` (comments)
 
 **Add guidance:**
+
 ```typescript
 /**
  * OPERATIONAL METADATA PATTERNS
@@ -212,6 +228,7 @@ Example for lib-auth:
 ```
 
 **Acceptance criteria:**
+
 - Patterns documented in code
 - Examples provided
 - Discoverable via code navigation

@@ -13,6 +13,7 @@
 ## Task 1: Create Multi-Step Onboarding Wizard - State Management
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/lib/stores/onboarding-store.ts`
 
 **Step 1: Create zustand store for wizard state with localStorage persistence**
@@ -106,6 +107,7 @@ export const useOnboardingStore = create<OnboardingState>()(
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes with no errors
 
@@ -114,6 +116,7 @@ export const useOnboardingStore = create<OnboardingState>()(
 ## Task 2: Create Onboarding Step Components
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/components/onboarding/step-indicator.tsx`
 - Create: `/home/admin/FiskAI/src/components/onboarding/step-basic-info.tsx`
 - Create: `/home/admin/FiskAI/src/components/onboarding/step-address.tsx`
@@ -145,7 +148,8 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
       <ol className="flex items-center justify-center gap-2">
         {steps.map((step, index) => {
           const isActive = step.number === currentStep
-          const isCompleted = step.number < currentStep || isStepValid(step.number as OnboardingStep)
+          const isCompleted =
+            step.number < currentStep || isStepValid(step.number as OnboardingStep)
           const isPast = step.number < currentStep
 
           return (
@@ -182,12 +186,7 @@ export function StepIndicator({ currentStep, isStepValid }: StepIndicatorProps) 
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div
-                  className={cn(
-                    "mx-4 h-0.5 w-12",
-                    isPast ? "bg-green-600" : "bg-gray-200"
-                  )}
-                />
+                <div className={cn("mx-4 h-0.5 w-12", isPast ? "bg-green-600" : "bg-gray-200")} />
               )}
             </li>
           )
@@ -221,9 +220,7 @@ export function StepBasicInfo() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Osnovni podaci tvrtke</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Unesite naziv i OIB vaše tvrtke
-        </p>
+        <p className="mt-1 text-sm text-gray-600">Unesite naziv i OIB vaše tvrtke</p>
       </div>
 
       <div className="space-y-4">
@@ -252,9 +249,7 @@ export function StepBasicInfo() {
             maxLength={11}
             className="mt-1"
           />
-          <p className="mt-1 text-xs text-gray-500">
-            Osobni identifikacijski broj (11 znamenki)
-          </p>
+          <p className="mt-1 text-xs text-gray-500">Osobni identifikacijski broj (11 znamenki)</p>
         </div>
       </div>
 
@@ -291,9 +286,7 @@ export function StepAddress() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Adresa tvrtke</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Unesite poslovnu adresu
-        </p>
+        <p className="mt-1 text-sm text-gray-600">Unesite poslovnu adresu</p>
       </div>
 
       <div className="space-y-4">
@@ -419,16 +412,10 @@ export function StepContactTax() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold">Kontakt i porezni podaci</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Završite postavljanje tvrtke
-        </p>
+        <p className="mt-1 text-sm text-gray-600">Završite postavljanje tvrtke</p>
       </div>
 
-      {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
       <div className="space-y-4">
         <div>
@@ -499,6 +486,7 @@ export function StepContactTax() {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -507,6 +495,7 @@ export function StepContactTax() {
 ## Task 3: Update Onboarding Page to Use Wizard
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/onboarding/page.tsx`
 
 **Step 1: Replace single form with multi-step wizard**
@@ -529,9 +518,7 @@ export default function OnboardingPage() {
     <div className="mx-auto max-w-xl py-12">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900">Dobrodošli u FiskAI</h1>
-        <p className="mt-2 text-gray-600">
-          Postavite svoju tvrtku u 3 jednostavna koraka
-        </p>
+        <p className="mt-2 text-gray-600">Postavite svoju tvrtku u 3 jednostavna koraka</p>
       </div>
 
       <StepIndicator currentStep={currentStep} isStepValid={isStepValid} />
@@ -553,6 +540,7 @@ export default function OnboardingPage() {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -561,6 +549,7 @@ export default function OnboardingPage() {
 ## Task 4: Add Contacts Pagination and Search
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/app/actions/contact-list.ts`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/contacts/page.tsx`
 
@@ -682,9 +671,7 @@ export default async function ContactsPage({ searchParams }: PageProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Kontakti</h1>
-          <p className="text-sm text-gray-600">
-            {pagination.total} kontakata ukupno
-          </p>
+          <p className="text-sm text-gray-600">{pagination.total} kontakata ukupno</p>
         </div>
         <Link href="/contacts/new">
           <Button>+ Novi kontakt</Button>
@@ -803,6 +790,7 @@ export default async function ContactsPage({ searchParams }: PageProps) {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -811,6 +799,7 @@ export default async function ContactsPage({ searchParams }: PageProps) {
 ## Task 5: Add Prometheus-Compatible Metrics Endpoint
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/app/api/metrics/route.ts`
 - Modify: `/home/admin/FiskAI/src/app/api/health/ready/route.ts`
 
@@ -828,22 +817,17 @@ export async function GET() {
 
   try {
     // Collect metrics
-    const [
-      userCount,
-      companyCount,
-      contactCount,
-      invoiceCount,
-      invoicesByStatus,
-    ] = await Promise.all([
-      db.user.count(),
-      db.company.count(),
-      db.contact.count(),
-      db.eInvoice.count(),
-      db.eInvoice.groupBy({
-        by: ["status"],
-        _count: { id: true },
-      }),
-    ])
+    const [userCount, companyCount, contactCount, invoiceCount, invoicesByStatus] =
+      await Promise.all([
+        db.user.count(),
+        db.company.count(),
+        db.contact.count(),
+        db.eInvoice.count(),
+        db.eInvoice.groupBy({
+          by: ["status"],
+          _count: { id: true },
+        }),
+      ])
 
     const dbQueryTime = Date.now() - startTime
 
@@ -971,6 +955,7 @@ export async function GET() {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -979,6 +964,7 @@ export async function GET() {
 ## Task 6: Add PostHog Analytics Integration
 
 **Files:**
+
 - Run: `npm install posthog-js`
 - Create: `/home/admin/FiskAI/src/lib/analytics.ts`
 - Create: `/home/admin/FiskAI/src/components/providers/analytics-provider.tsx`
@@ -1072,9 +1058,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (pathname) {
-      const url = searchParams?.toString()
-        ? `${pathname}?${searchParams.toString()}`
-        : pathname
+      const url = searchParams?.toString() ? `${pathname}?${searchParams.toString()}` : pathname
       trackPageView(url)
     }
   }, [pathname, searchParams])
@@ -1093,7 +1077,7 @@ import { AnalyticsProvider } from "@/components/providers/analytics-provider"
 import { Suspense } from "react"
 
 // Wrap children in providers:
-<body className={inter.className}>
+;<body className={inter.className}>
   <Toaster
     position="top-right"
     richColors
@@ -1104,9 +1088,7 @@ import { Suspense } from "react"
     }}
   />
   <Suspense fallback={null}>
-    <AnalyticsProvider>
-      {children}
-    </AnalyticsProvider>
+    <AnalyticsProvider>{children}</AnalyticsProvider>
   </Suspense>
 </body>
 ```
@@ -1120,6 +1102,7 @@ NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -1128,6 +1111,7 @@ NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ## Task 7: Add Analytics Tracking to Key User Flows
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/src/components/onboarding/step-basic-info.tsx`
 - Modify: `/home/admin/FiskAI/src/components/onboarding/step-contact-tax.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/new/invoice-form.tsx`
@@ -1181,6 +1165,7 @@ trackEvent(AnalyticsEvents.INVOICE_CREATED, {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -1221,6 +1206,7 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 **Verification:**
+
 - Run: `git log --oneline -1`
 - Expected: Shows new commit with message
 

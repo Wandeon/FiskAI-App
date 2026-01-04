@@ -35,6 +35,7 @@ faq:
 [Obrt na dohodak](/rjecnik/dohodak) je fleksibilniji oblik poslovanja od [paušala](/rjecnik/pausal). Omogućuje odbijanje stvarnih troškova i nema ograničenja prihoda.
 
 **Ključne prednosti:**
+
 - Nema ograničenja prihoda
 - Odbijanje stvarnih troškova
 - Mogućnost odbitka PDV-a
@@ -43,28 +44,34 @@ faq:
 ## Tko bi trebao izabrati obrt na dohodak?
 
 ### Idealno za:
+
 - Prihode iznad paušalnog praga godišnje
 - Poslovanje sa značajnim troškovima
 - Potrebu za odbitkom PDV-a
 
 ### Nije idealno za:
+
 - Male prihode bez troškova (paušal je jednostavniji)
 - One koji žele minimalnu administraciju
 
 ## Troškovi i porezi
 
 ### Mjesečni doprinosi (2025.)
+
 Isti kao paušalni obrt:
+
 - **MIO I. stup:** 153,70€
 - **MIO II. stup:** 47,03€
 - **HZZO:** 61,27€
 
 ### Porez na dohodak
+
 - Porezna osnovica: Prihodi - Troškovi
 - **Do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />:** <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> + prirez
 - **Iznad <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />:** <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> + prirez
 
 ### Obveza knjigovodstva
+
 - Knjiga primitaka i izdataka (KPI)
 - Evidencija o PDV-u (ako ste obveznik)
 - Trošak: ~50-100€ mjesečno
@@ -89,6 +96,7 @@ Isti kao paušalni obrt:
     - Porez (20%): ~9.370€
     - Knjigovodstvo: ~1.000€
     - **Neto:** ~66.480€
+
   </TabPanel>
 
   <TabPanel>
@@ -100,6 +108,7 @@ Isti kao paušalni obrt:
       Ako ste zaposleni, doprinosi se ne plaćaju dvostruko.
       Plaćate samo razliku ako je osnovica obrta viša.
     </PDVCallout>
+
   </TabPanel>
 
   <TabPanel>
@@ -114,36 +123,44 @@ Isti kao paušalni obrt:
       Porez na dobit je <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" />, <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> iznad. Može biti povoljnije
       od poreza na dohodak za visoke zarade.
     </PDVCallout>
+
   </TabPanel>
 </VariantTabs>
 
 ## PDV obveza
 
 <PDVCallout type="warning" thresholdPath="THRESHOLDS.pdv.value">
-  Obrtnici na dohodak postaju PDV obveznici kada prijeđu prag od <FiscalCurrency path="THRESHOLDS.pdv.value" />.
+  Obrtnici na dohodak postaju PDV obveznici kada prijeđu prag od{" "}
+  <FiscalCurrency path="THRESHOLDS.pdv.value" />.
 </PDVCallout>
 
 ### Prednosti PDV sustava:
+
 - Odbijanje ulaznog PDV-a (oprema, materijal)
 - Profesionalniji dojam za B2B klijente
 - Mogućnost dobrovoljnog ulaska i prije praga
 
 ## Česta pitanja
 
-<FAQ items={[
-  {
-    question: "Koja je razlika između obrta na dohodak i paušala?",
-    answer: "Obrt na dohodak nema ograničenja prihoda i omogućuje odbijanje stvarnih troškova. Paušal je jednostavniji ali ograničen na paušalni prag."
-  },
-  {
-    question: "Koliko košta knjigovodstvo?",
-    answer: "Obično 50-100€ mjesečno za jednostavno knjigovodstvo. Cijena ovisi o broju dokumenata i kompleksnosti."
-  },
-  {
-    question: "Kada se isplati prijeći na obrt na dobit?",
-    answer: "Kada prihodi prelaze 1M€ ili kada želite reinvestirati profit u poslovanje umjesto osobne isplate."
-  },
-]} />
+<FAQ
+  items={[
+    {
+      question: "Koja je razlika između obrta na dohodak i paušala?",
+      answer:
+        "Obrt na dohodak nema ograničenja prihoda i omogućuje odbijanje stvarnih troškova. Paušal je jednostavniji ali ograničen na paušalni prag.",
+    },
+    {
+      question: "Koliko košta knjigovodstvo?",
+      answer:
+        "Obično 50-100€ mjesečno za jednostavno knjigovodstvo. Cijena ovisi o broju dokumenata i kompleksnosti.",
+    },
+    {
+      question: "Kada se isplati prijeći na obrt na dobit?",
+      answer:
+        "Kada prihodi prelaze 1M€ ili kada želite reinvestirati profit u poslovanje umjesto osobne isplate.",
+    },
+  ]}
+/>
 
 ## Povezani pojmovi
 

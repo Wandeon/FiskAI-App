@@ -7,18 +7,21 @@ FiskAI includes AI-powered features for automated receipt scanning, data extract
 ## Features
 
 ### 1. Receipt Scanning & OCR
+
 - **Image-to-Text Extraction**: Upload or photograph receipts to automatically extract data
 - **Smart Data Parsing**: Extracts vendor name, OIB, date, items, amounts, VAT, and payment method
 - **Croatian Language Support**: Understands Croatian receipt terminology (PDV, Ukupno, Gotovina, etc.)
 - **Multi-format Support**: Works with various receipt formats and layouts
 
 ### 2. Intelligent Categorization
+
 - **Keyword-based Suggestions**: Automatically suggests expense categories based on description
 - **Vendor History**: Learns from previous expenses with the same vendor
 - **Confidence Scoring**: Shows confidence level for each suggestion
 - **Multi-language Keywords**: Supports both Croatian and English keywords
 
 ### 3. Auto-fill Forms
+
 - **Pre-populated Fields**: Automatically fills expense forms from extracted data
 - **Review & Edit**: Users can review and modify extracted data before saving
 - **Validation**: Ensures extracted data meets business rules
@@ -91,6 +94,7 @@ src/
 Extract receipt data from image or text.
 
 **Request:**
+
 ```json
 {
   "image": "base64-encoded-image-data",
@@ -100,6 +104,7 @@ Extract receipt data from image or text.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -117,7 +122,7 @@ Extract receipt data from image or text.
       }
     ],
     "subtotal": 9.58,
-    "vatAmount": 2.40,
+    "vatAmount": 2.4,
     "total": 11.98,
     "paymentMethod": "card",
     "currency": "EUR",
@@ -131,6 +136,7 @@ Extract receipt data from image or text.
 Get category suggestions based on description and vendor.
 
 **Request:**
+
 ```json
 {
   "description": "Toner za printer HP",
@@ -140,6 +146,7 @@ Get category suggestions based on description and vendor.
 ```
 
 **Response:**
+
 ```json
 {
   "suggestions": [
@@ -164,16 +171,18 @@ Get category suggestions based on description and vendor.
 Camera/file upload component for receipt scanning.
 
 **Props:**
+
 - `onExtracted: (data: ExtractedReceipt) => void` - Callback when extraction succeeds
 - `onCancel?: () => void` - Optional cancel handler
 
 **Usage:**
-```tsx
-import { ReceiptScanner } from '@/components/expense/receipt-scanner'
 
-<ReceiptScanner
+```tsx
+import { ReceiptScanner } from "@/components/expense/receipt-scanner"
+
+;<ReceiptScanner
   onExtracted={(data) => {
-    console.log('Extracted:', data)
+    console.log("Extracted:", data)
     // Fill form fields
   }}
   onCancel={() => setShowScanner(false)}
@@ -185,12 +194,14 @@ import { ReceiptScanner } from '@/components/expense/receipt-scanner'
 Enhanced expense form with AI-powered features.
 
 **Props:**
+
 - `categories: Array<{ id, name, code }>` - Available expense categories
 - `companyId: string` - Current company ID
 - `onSubmit: (data) => Promise<void>` - Form submission handler
 - `defaultValues?: Partial<ExpenseFormData>` - Optional default values
 
 **Features:**
+
 - Receipt scanner integration
 - Real-time category suggestions
 - Auto-fill from extracted data
@@ -221,7 +232,7 @@ Edit `/src/lib/ai/categorize.ts` to add category-specific keywords:
 
 ```typescript
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'YOUR_CATEGORY_CODE': ['keyword1', 'keyword2', 'ključna-riječ'],
+  YOUR_CATEGORY_CODE: ["keyword1", "keyword2", "ključna-riječ"],
   // ...
 }
 ```
@@ -252,15 +263,19 @@ For 1000 receipts/month: ~$3-5/month
 ### Common Errors
 
 1. **Missing API Key**
+
    ```json
    { "success": false, "error": "OpenAI API key not configured" }
    ```
+
    Solution: Add `OPENAI_API_KEY` to `.env`
 
 2. **Invalid Image Format**
+
    ```json
    { "success": false, "error": "No JSON in response" }
    ```
+
    Solution: Ensure image is JPEG/PNG and properly base64 encoded
 
 3. **Rate Limiting**
@@ -272,6 +287,7 @@ For 1000 receipts/month: ~$3-5/month
 ### Graceful Degradation
 
 If AI extraction fails, the system falls back to:
+
 1. Manual form entry (always available)
 2. Keyword-based categorization (no AI required)
 3. Vendor history lookup (database only)
@@ -335,6 +351,7 @@ curl -X POST http://localhost:3000/api/ai/suggest-category \
 **Symptom**: Extracted data is often incorrect
 
 **Solutions**:
+
 1. Improve image quality (better lighting, focus)
 2. Add more Croatian keywords to prompts
 3. Fine-tune extraction prompts
@@ -345,6 +362,7 @@ curl -X POST http://localhost:3000/api/ai/suggest-category \
 **Symptom**: No suggestions shown
 
 **Check**:
+
 1. Categories exist in database
 2. Keywords match description/vendor
 3. Company ID is correct
@@ -353,6 +371,7 @@ curl -X POST http://localhost:3000/api/ai/suggest-category \
 ## Support
 
 For issues or questions:
+
 1. Check console for API errors
 2. Verify OpenAI API key is valid
 3. Test with sample receipts

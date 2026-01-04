@@ -14,31 +14,81 @@
     }
   },
   "observedNotDeclared": [
-    { "componentId": "route-group-admin", "type": "ROUTE_GROUP", "risk": "HIGH", "reason": "25 endpoints, auth critical" },
+    {
+      "componentId": "route-group-admin",
+      "type": "ROUTE_GROUP",
+      "risk": "HIGH",
+      "reason": "25 endpoints, auth critical"
+    },
     { "componentId": "route-group-ai", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
     { "componentId": "route-group-assistant", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
-    { "componentId": "route-group-auth", "type": "ROUTE_GROUP", "risk": "CRITICAL", "reason": "security boundary" },
-    { "componentId": "route-group-bank", "type": "ROUTE_GROUP", "risk": "HIGH", "reason": "financial" },
-    { "componentId": "route-group-banking", "type": "ROUTE_GROUP", "risk": "HIGH", "reason": "financial" },
-    { "componentId": "route-group-billing", "type": "ROUTE_GROUP", "risk": "CRITICAL", "reason": "money movement" },
+    {
+      "componentId": "route-group-auth",
+      "type": "ROUTE_GROUP",
+      "risk": "CRITICAL",
+      "reason": "security boundary"
+    },
+    {
+      "componentId": "route-group-bank",
+      "type": "ROUTE_GROUP",
+      "risk": "HIGH",
+      "reason": "financial"
+    },
+    {
+      "componentId": "route-group-banking",
+      "type": "ROUTE_GROUP",
+      "risk": "HIGH",
+      "reason": "financial"
+    },
+    {
+      "componentId": "route-group-billing",
+      "type": "ROUTE_GROUP",
+      "risk": "CRITICAL",
+      "reason": "money movement"
+    },
     { "componentId": "route-group-cache", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-capabilities", "type": "ROUTE_GROUP", "risk": "LOW" },
-    { "componentId": "route-group-compliance", "type": "ROUTE_GROUP", "risk": "HIGH", "reason": "legal" },
-    { "componentId": "route-group-cron", "type": "ROUTE_GROUP", "risk": "HIGH", "reason": "system automation" },
+    {
+      "componentId": "route-group-compliance",
+      "type": "ROUTE_GROUP",
+      "risk": "HIGH",
+      "reason": "legal"
+    },
+    {
+      "componentId": "route-group-cron",
+      "type": "ROUTE_GROUP",
+      "risk": "HIGH",
+      "reason": "system automation"
+    },
     { "componentId": "route-group-deadlines", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
-    { "componentId": "route-group-e-invoices", "type": "ROUTE_GROUP", "risk": "CRITICAL", "reason": "legal" },
+    {
+      "componentId": "route-group-e-invoices",
+      "type": "ROUTE_GROUP",
+      "risk": "CRITICAL",
+      "reason": "legal"
+    },
     { "componentId": "route-group-email", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
     { "componentId": "route-group-exports", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
     { "componentId": "route-group-guidance", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-health", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-import", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
-    { "componentId": "route-group-invoices", "type": "ROUTE_GROUP", "risk": "CRITICAL", "reason": "legal" },
+    {
+      "componentId": "route-group-invoices",
+      "type": "ROUTE_GROUP",
+      "risk": "CRITICAL",
+      "reason": "legal"
+    },
     { "componentId": "route-group-knowledge-hub", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-metrics", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-news", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-notifications", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-oib", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
-    { "componentId": "route-group-pausalni", "type": "ROUTE_GROUP", "risk": "CRITICAL", "reason": "tax" },
+    {
+      "componentId": "route-group-pausalni",
+      "type": "ROUTE_GROUP",
+      "risk": "CRITICAL",
+      "reason": "tax"
+    },
     { "componentId": "route-group-products", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
     { "componentId": "route-group-receipts", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
     { "componentId": "route-group-regulatory", "type": "ROUTE_GROUP", "risk": "HIGH" },
@@ -48,8 +98,18 @@
     { "componentId": "route-group-staff", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
     { "componentId": "route-group-status", "type": "ROUTE_GROUP", "risk": "LOW" },
     { "componentId": "route-group-support", "type": "ROUTE_GROUP", "risk": "MEDIUM" },
-    { "componentId": "route-group-terminal", "type": "ROUTE_GROUP", "risk": "HIGH", "reason": "POS" },
-    { "componentId": "route-group-webauthn", "type": "ROUTE_GROUP", "risk": "CRITICAL", "reason": "auth" },
+    {
+      "componentId": "route-group-terminal",
+      "type": "ROUTE_GROUP",
+      "risk": "HIGH",
+      "reason": "POS"
+    },
+    {
+      "componentId": "route-group-webauthn",
+      "type": "ROUTE_GROUP",
+      "risk": "CRITICAL",
+      "reason": "auth"
+    },
     { "componentId": "route-group-webhooks", "type": "ROUTE_GROUP", "risk": "HIGH" },
     { "componentId": "job-fiscal-processor", "type": "JOB", "risk": "CRITICAL" },
     { "componentId": "job-fetch-news", "type": "JOB", "risk": "LOW" },
@@ -86,32 +146,73 @@
   "declaredNotObserved": [],
   "metadataGaps": {
     "noOwner": [
-      "ui-portal-marketing", "ui-portal-app", "ui-portal-staff", "ui-portal-admin",
-      "module-invoicing", "module-e-invoicing", "module-fiscalization", "module-contacts",
-      "module-products", "module-expenses", "module-banking", "module-reconciliation",
-      "module-reports-basic", "module-reports-advanced", "module-pausalni", "module-vat",
-      "module-corporate-tax", "module-pos", "module-documents", "module-ai-assistant",
-      "lib-regulatory-truth", "lib-assistant", "lib-guidance", "lib-visibility",
-      "worker-orchestrator", "worker-sentinel", "worker-extractor", "worker-ocr",
-      "worker-composer", "worker-reviewer", "worker-releaser", "worker-arbiter",
-      "store-postgresql", "store-redis", "store-r2",
-      "integration-resend", "integration-stripe", "integration-gocardless",
-      "integration-fina-cis", "integration-ollama"
-    ],
-    "noDocs": [
-      "ui-portal-admin", "module-vat", "module-corporate-tax", "module-pos",
-      "module-documents", "store-postgresql", "store-redis", "store-r2",
-      "integration-resend", "integration-stripe", "integration-gocardless",
+      "ui-portal-marketing",
+      "ui-portal-app",
+      "ui-portal-staff",
+      "ui-portal-admin",
+      "module-invoicing",
+      "module-e-invoicing",
+      "module-fiscalization",
+      "module-contacts",
+      "module-products",
+      "module-expenses",
+      "module-banking",
+      "module-reconciliation",
+      "module-reports-basic",
+      "module-reports-advanced",
+      "module-pausalni",
+      "module-vat",
+      "module-corporate-tax",
+      "module-pos",
+      "module-documents",
+      "module-ai-assistant",
+      "lib-regulatory-truth",
+      "lib-assistant",
+      "lib-guidance",
+      "lib-visibility",
+      "worker-orchestrator",
+      "worker-sentinel",
+      "worker-extractor",
+      "worker-ocr",
+      "worker-composer",
+      "worker-reviewer",
+      "worker-releaser",
+      "worker-arbiter",
+      "store-postgresql",
+      "store-redis",
+      "store-r2",
+      "integration-resend",
+      "integration-stripe",
+      "integration-gocardless",
+      "integration-fina-cis",
       "integration-ollama"
     ],
-    "noCodeRef": [
-      "integration-gocardless", "integration-ollama"
-    ]
+    "noDocs": [
+      "ui-portal-admin",
+      "module-vat",
+      "module-corporate-tax",
+      "module-pos",
+      "module-documents",
+      "store-postgresql",
+      "store-redis",
+      "store-r2",
+      "integration-resend",
+      "integration-stripe",
+      "integration-gocardless",
+      "integration-ollama"
+    ],
+    "noCodeRef": ["integration-gocardless", "integration-ollama"]
   },
   "criticalPaths": [
     {
       "name": "Fiscalization Path",
-      "components": ["module-fiscalization", "lib-fiscal", "integration-fina-cis", "job-fiscal-processor", "job-fiscal-retry"],
+      "components": [
+        "module-fiscalization",
+        "lib-fiscal",
+        "integration-fina-cis",
+        "job-fiscal-processor",
+        "job-fiscal-retry"
+      ],
       "gap": "No declared health check or SLO"
     },
     {
@@ -121,7 +222,22 @@
     },
     {
       "name": "Regulatory Truth Pipeline",
-      "components": ["worker-sentinel", "queue-sentinel", "worker-extractor", "queue-extract", "worker-ocr", "queue-ocr", "worker-composer", "queue-compose", "worker-reviewer", "queue-review", "worker-arbiter", "queue-arbiter", "worker-releaser", "queue-release"],
+      "components": [
+        "worker-sentinel",
+        "queue-sentinel",
+        "worker-extractor",
+        "queue-extract",
+        "worker-ocr",
+        "queue-ocr",
+        "worker-composer",
+        "queue-compose",
+        "worker-reviewer",
+        "queue-review",
+        "worker-arbiter",
+        "queue-arbiter",
+        "worker-releaser",
+        "queue-release"
+      ],
       "gap": "Queues are observed but not declared, no SLO definitions"
     }
   ],

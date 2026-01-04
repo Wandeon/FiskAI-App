@@ -1,3 +1,8 @@
+import { vi } from "vitest"
+
+// Mock DB - this test uses pure XML generation
+vi.mock("@/lib/db", () => ({ db: {} }))
+
 import { generatePdvXml, VAT_RATES, type PdvFormData } from "../pdv-xml-generator"
 
 describe("generatePdvXml metapodaci", () => {

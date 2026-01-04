@@ -1,29 +1,33 @@
 # Mobile Responsiveness - Phase 14
 
 ## Overview
+
 FiskAI now includes comprehensive mobile responsiveness with custom hooks, components, and responsive layouts.
 
 ## Components Created
 
 ### 1. useMediaQuery Hook
+
 Location: `/src/hooks/use-media-query.ts`
 
 Custom React hook for media query matching:
 
 ```typescript
-import { useMediaQuery, useIsMobile } from '@/hooks/use-media-query'
+import { useMediaQuery, useIsMobile } from "@/hooks/use-media-query"
 
 // Usage
 const isMobile = useIsMobile() // true when screen width <= 768px
-const isLarge = useMediaQuery('(min-width: 1024px)')
+const isLarge = useMediaQuery("(min-width: 1024px)")
 ```
 
 ### 2. MobileNav Component
+
 Location: `/src/components/layout/mobile-nav.tsx`
 
 Responsive mobile navigation with slide-out sidebar:
 
 **Features:**
+
 - Hamburger menu button (visible only on mobile)
 - Slide-out sidebar with smooth transitions
 - Backdrop overlay for better UX
@@ -31,20 +35,24 @@ Responsive mobile navigation with slide-out sidebar:
 - Uses same navigation items as desktop sidebar
 
 **Styling:**
+
 - Fixed positioning with z-index management
 - Tailwind transition classes for smooth animations
 - Responsive visibility (hidden on md+ screens)
 
 ### 3. Updated Dashboard Layout
+
 Location: `/src/app/(dashboard)/layout.tsx`
 
 **Changes:**
+
 - Desktop sidebar hidden on mobile (`hidden md:block`)
 - Mobile navigation component added
 - Responsive padding on main content (`p-4 md:p-6`)
 - Top padding adjustment for mobile menu button (`pt-16 md:pt-6`)
 
 ### 4. ResponsiveTable Component
+
 Location: `/src/components/ui/responsive-table.tsx`
 
 Intelligent table that adapts to screen size:
@@ -98,11 +106,13 @@ const invoices: Invoice[] = [
 ```
 
 ### 5. FAB Component
+
 Location: `/src/components/ui/fab.tsx`
 
 Floating Action Button that only appears on mobile:
 
 **Features:**
+
 - Only visible on mobile devices
 - Fixed bottom-right positioning
 - Customizable icon and action
@@ -137,19 +147,20 @@ FiskAI uses standard Tailwind breakpoints:
 ## Mobile-First Patterns
 
 ### Responsive Padding
+
 ```tsx
-<div className="p-4 md:p-6">
-  {/* 16px padding on mobile, 24px on desktop */}
-</div>
+<div className="p-4 md:p-6">{/* 16px padding on mobile, 24px on desktop */}</div>
 ```
 
 ### Conditional Visibility
+
 ```tsx
 <div className="hidden md:block">Desktop only</div>
 <div className="block md:hidden">Mobile only</div>
 ```
 
 ### Responsive Grid
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {/* 1 column mobile, 2 tablet, 3 desktop */}
@@ -157,10 +168,9 @@ FiskAI uses standard Tailwind breakpoints:
 ```
 
 ### Responsive Text
+
 ```tsx
-<h1 className="text-2xl md:text-3xl lg:text-4xl">
-  {/* Scales with screen size */}
-</h1>
+<h1 className="text-2xl md:text-3xl lg:text-4xl">{/* Scales with screen size */}</h1>
 ```
 
 ## Best Practices
@@ -174,6 +184,7 @@ FiskAI uses standard Tailwind breakpoints:
 ## Testing
 
 Test responsiveness using browser DevTools:
+
 1. Open DevTools (F12)
 2. Toggle device toolbar (Ctrl+Shift+M)
 3. Test at different breakpoints:

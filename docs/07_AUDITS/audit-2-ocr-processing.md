@@ -18,14 +18,14 @@ This audit validates the OCR processing stage that extracts text from scanned PD
 
 ### Components Analyzed
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `src/lib/regulatory-truth/workers/ocr.worker.ts` | BullMQ worker for OCR jobs | ✓ Reviewed |
-| `src/lib/regulatory-truth/utils/ocr-processor.ts` | Main OCR pipeline orchestrator | ✓ Reviewed |
-| `src/lib/regulatory-truth/utils/tesseract.ts` | Tesseract CLI wrapper | ✓ Reviewed |
-| `src/lib/regulatory-truth/utils/vision-ocr.ts` | Vision model fallback | ✓ Reviewed |
-| `src/lib/regulatory-truth/utils/pdf-renderer.ts` | PDF to image conversion | ✓ Reviewed |
-| `src/lib/regulatory-truth/agents/sentinel.ts` | PDF classification (PDF_TEXT vs PDF_SCANNED) | ✓ Reviewed |
+| File                                              | Purpose                                      | Status     |
+| ------------------------------------------------- | -------------------------------------------- | ---------- |
+| `src/lib/regulatory-truth/workers/ocr.worker.ts`  | BullMQ worker for OCR jobs                   | ✓ Reviewed |
+| `src/lib/regulatory-truth/utils/ocr-processor.ts` | Main OCR pipeline orchestrator               | ✓ Reviewed |
+| `src/lib/regulatory-truth/utils/tesseract.ts`     | Tesseract CLI wrapper                        | ✓ Reviewed |
+| `src/lib/regulatory-truth/utils/vision-ocr.ts`    | Vision model fallback                        | ✓ Reviewed |
+| `src/lib/regulatory-truth/utils/pdf-renderer.ts`  | PDF to image conversion                      | ✓ Reviewed |
+| `src/lib/regulatory-truth/agents/sentinel.ts`     | PDF classification (PDF_TEXT vs PDF_SCANNED) | ✓ Reviewed |
 
 ### Data Flow
 
@@ -71,12 +71,12 @@ PDF_SCANNED Evidence
 export const ocrQueue = createQueue("ocr", { max: 2, duration: 60000 })
 ```
 
-| Setting | Value | Assessment |
-|---------|-------|------------|
-| Rate Limit | 2 jobs/minute | **PASS** - Prevents resource exhaustion |
-| Retry Attempts | 3 | **PASS** - Standard retry policy |
-| Backoff | Exponential (10s, 20s, 40s) | **PASS** - Good backoff strategy |
-| Dead Letter Queue | Yes | **PASS** - Failed jobs preserved for inspection |
+| Setting           | Value                       | Assessment                                      |
+| ----------------- | --------------------------- | ----------------------------------------------- |
+| Rate Limit        | 2 jobs/minute               | **PASS** - Prevents resource exhaustion         |
+| Retry Attempts    | 3                           | **PASS** - Standard retry policy                |
+| Backoff           | Exponential (10s, 20s, 40s) | **PASS** - Good backoff strategy                |
+| Dead Letter Queue | Yes                         | **PASS** - Failed jobs preserved for inspection |
 
 **Worker Concurrency:** `1` (hardcoded in `ocr.worker.ts:155`)
 **Assessment:** **PASS** - OCR is CPU-intensive, single concurrency prevents overload.
@@ -88,19 +88,20 @@ export const ocrQueue = createQueue("ocr", { max: 2, duration: 60000 })
 **Location:** `src/lib/regulatory-truth/agents/sentinel.ts:628-681` and `ocr-processor.ts:126-130`
 
 **Classification Logic:**
+
 ```typescript
 function isScannedPdf(extractedText: string, pageCount: number): boolean {
   const textLength = extractedText?.trim().length || 0
   const charsPerPage = textLength / Math.max(pageCount, 1)
-  return charsPerPage < 50  // Less than 50 chars/page = scanned
+  return charsPerPage < 50 // Less than 50 chars/page = scanned
 }
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Text vs Scanned differentiation | **PASS** | 50 chars/page threshold is reasonable |
-| Content class assignment | **PASS** | PDF_TEXT and PDF_SCANNED correctly set |
-| Queue routing | **PASS** | PDF_SCANNED → OCR queue, PDF_TEXT → Extract queue |
+| Check                           | Result   | Notes                                             |
+| ------------------------------- | -------- | ------------------------------------------------- |
+| Text vs Scanned differentiation | **PASS** | 50 chars/page threshold is reasonable             |
+| Content class assignment        | **PASS** | PDF_TEXT and PDF_SCANNED correctly set            |
+| Queue routing                   | **PASS** | PDF_SCANNED → OCR queue, PDF_TEXT → Extract queue |
 
 ---
 
@@ -124,13 +125,13 @@ const artifact = await db.evidenceArtifact.create({
 })
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| OCR_TEXT artifact creation | **PASS** | Artifact created with extracted text |
-| Content hash | **PASS** | Hash computed for deduplication |
-| Page-level metadata | **PASS** | Per-page confidence and method stored in `pageMap` |
-| primaryTextArtifactId update | **PASS** | Evidence linked to canonical text artifact |
-| OCR_HOCR (coordinates) | **WARN** | Not implemented - tables may lose structure |
+| Check                        | Result   | Notes                                              |
+| ---------------------------- | -------- | -------------------------------------------------- |
+| OCR_TEXT artifact creation   | **PASS** | Artifact created with extracted text               |
+| Content hash                 | **PASS** | Hash computed for deduplication                    |
+| Page-level metadata          | **PASS** | Per-page confidence and method stored in `pageMap` |
+| primaryTextArtifactId update | **PASS** | Evidence linked to canonical text artifact         |
+| OCR_HOCR (coordinates)       | **WARN** | Not implemented - tables may lose structure        |
 
 **Recommendation:** Consider adding OCR_HOCR artifacts with coordinate data for better table extraction.
 
@@ -142,13 +143,14 @@ const artifact = await db.evidenceArtifact.create({
 
 #### Thresholds
 
-| Threshold | Value | Purpose |
-|-----------|-------|---------|
-| TESSERACT_CONFIDENCE_THRESHOLD | 70% | Trigger Vision fallback |
-| GARBAGE_TEXT_THRESHOLD | 0.2 | Detect garbage output (80% non-letters) |
-| MANUAL_REVIEW_THRESHOLD | 50% | Flag for human review |
+| Threshold                      | Value | Purpose                                 |
+| ------------------------------ | ----- | --------------------------------------- |
+| TESSERACT_CONFIDENCE_THRESHOLD | 70%   | Trigger Vision fallback                 |
+| GARBAGE_TEXT_THRESHOLD         | 0.2   | Detect garbage output (80% non-letters) |
+| MANUAL_REVIEW_THRESHOLD        | 50%   | Flag for human review                   |
 
 **Garbage Text Detection:**
+
 ```typescript
 function isGarbageText(text: string): boolean {
   if (!text || text.length < 20) return true
@@ -157,11 +159,11 @@ function isGarbageText(text: string): boolean {
 }
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Minimum text length check | **PASS** | <20 chars treated as garbage |
-| Letter ratio validation | **PASS** | Unicode letter matching (`\p{L}`) |
-| Manual review flagging | **PASS** | needsManualReview set when avgConfidence < 50% |
+| Check                     | Result   | Notes                                          |
+| ------------------------- | -------- | ---------------------------------------------- |
+| Minimum text length check | **PASS** | <20 chars treated as garbage                   |
+| Letter ratio validation   | **PASS** | Unicode letter matching (`\p{L}`)              |
+| Manual review flagging    | **PASS** | needsManualReview set when avgConfidence < 50% |
 
 ---
 
@@ -170,20 +172,22 @@ function isGarbageText(text: string): boolean {
 **Location:** `src/lib/regulatory-truth/utils/tesseract.ts:37` and `vision-ocr.ts:19`
 
 **Tesseract Language:**
+
 ```typescript
 await runTesseract(imageBuffer, "hrv+eng")
 ```
 
 **Vision Prompt:**
+
 ```
 Keep Croatian characters exactly as shown (č, ć, đ, š, ž, Č, Ć, Đ, Š, Ž)
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Croatian language model | **PASS** | `hrv+eng` language pack used |
-| Vision prompt for diacritics | **PASS** | Explicit instruction to preserve č, ć, đ, š, ž |
-| Unicode handling in TSV parsing | **PASS** | UTF-8 encoding preserved |
+| Check                           | Result   | Notes                                          |
+| ------------------------------- | -------- | ---------------------------------------------- |
+| Croatian language model         | **PASS** | `hrv+eng` language pack used                   |
+| Vision prompt for diacritics    | **PASS** | Explicit instruction to preserve č, ć, đ, š, ž |
+| Unicode handling in TSV parsing | **PASS** | UTF-8 encoding preserved                       |
 
 ---
 
@@ -193,43 +197,43 @@ Keep Croatian characters exactly as shown (č, ć, đ, š, ž, Č, Ć, Đ, Š, �
 
 ```typescript
 const needsVision =
-  tesseractResult.confidence < TESSERACT_CONFIDENCE_THRESHOLD ||
-  isGarbageText(tesseractResult.text)
+  tesseractResult.confidence < TESSERACT_CONFIDENCE_THRESHOLD || isGarbageText(tesseractResult.text)
 
 if (!needsVision) {
-  return { ...tesseractResult }  // Tesseract OK
+  return { ...tesseractResult } // Tesseract OK
 }
 
 try {
   const visionResult = await runVisionOcr(imageBuffer)
   if (visionResult.confidence > tesseractResult.confidence) {
-    return { ...visionResult }  // Vision better
+    return { ...visionResult } // Vision better
   }
 } catch (error) {
   console.warn(`Vision failed, using Tesseract anyway`)
 }
 
-return { ...tesseractResult }  // Fallback to Tesseract
+return { ...tesseractResult } // Fallback to Tesseract
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Confidence-based fallback trigger | **PASS** | <70% confidence triggers Vision |
-| Garbage text fallback trigger | **PASS** | Garbage output triggers Vision |
-| Vision failure handling | **PASS** | Falls back to Tesseract on Vision error |
-| Best-result selection | **PASS** | Higher confidence result used |
-| Maximum retry limit | **PASS** | Worker has 3 retries with exponential backoff |
+| Check                             | Result   | Notes                                         |
+| --------------------------------- | -------- | --------------------------------------------- |
+| Confidence-based fallback trigger | **PASS** | <70% confidence triggers Vision               |
+| Garbage text fallback trigger     | **PASS** | Garbage output triggers Vision                |
+| Vision failure handling           | **PASS** | Falls back to Tesseract on Vision error       |
+| Best-result selection             | **PASS** | Higher confidence result used                 |
+| Maximum retry limit               | **PASS** | Worker has 3 retries with exponential backoff |
 
 **Vision Model Configuration:**
+
 ```typescript
 const VISION_MODEL = process.env.OLLAMA_VISION_MODEL || "llama3.2-vision"
 const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || "http://localhost:11434"
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Configurable model | **PASS** | Environment variable override |
-| Configurable endpoint | **PASS** | Self-hosted Ollama support |
+| Check                        | Result   | Notes                                                |
+| ---------------------------- | -------- | ---------------------------------------------------- |
+| Configurable model           | **PASS** | Environment variable override                        |
+| Configurable endpoint        | **PASS** | Self-hosted Ollama support                           |
 | Vision confidence estimation | **PASS** | Heuristic based on unclear markers and garbage ratio |
 
 ---
@@ -239,22 +243,25 @@ const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || "http://localhost:11434"
 **Location:** `src/lib/regulatory-truth/utils/pdf-renderer.ts`
 
 **PDF Rendering:**
+
 ```typescript
 await execAsync(`pdftoppm -png -r ${dpi} "${tempPdf}" "${tempDir}/page"`)
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| DPI setting | 300 DPI | **PASS** - Standard OCR quality |
-| Temp file cleanup | **PASS** | Files cleaned in finally block |
+| Check             | Result   | Notes                               |
+| ----------------- | -------- | ----------------------------------- |
+| DPI setting       | 300 DPI  | **PASS** - Standard OCR quality     |
+| Temp file cleanup | **PASS** | Files cleaned in finally block      |
 | Memory management | **WARN** | No explicit chunking for large PDFs |
 
 **Concerns:**
+
 - Large PDFs (>50 pages) are NOT chunked - all pages processed sequentially
 - No memory limit enforcement during processing
 - No explicit timeout per page
 
 **Recommendations:**
+
 1. Add page count limit or chunking for PDFs >50 pages
 2. Consider streaming/chunked processing for memory efficiency
 3. Add per-page timeout (e.g., 60s/page)
@@ -287,12 +294,12 @@ await execAsync(`pdftoppm -png -r ${dpi} "${tempPdf}" "${tempDir}/page"`)
 }
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Error stored in ocrMetadata | **PASS** | Errors preserved for debugging |
-| Manual review flag | **PASS** | Failed OCR flagged for human review |
-| Prometheus metrics | **PASS** | jobsProcessed and jobDuration tracked |
-| Logging | **PASS** | Comprehensive console logging |
+| Check                       | Result   | Notes                                 |
+| --------------------------- | -------- | ------------------------------------- |
+| Error stored in ocrMetadata | **PASS** | Errors preserved for debugging        |
+| Manual review flag          | **PASS** | Failed OCR flagged for human review   |
+| Prometheus metrics          | **PASS** | jobsProcessed and jobDuration tracked |
+| Logging                     | **PASS** | Comprehensive console logging         |
 
 ---
 
@@ -305,40 +312,40 @@ await execAsync(`pdftoppm -png -r ${dpi} "${tempPdf}" "${tempDir}/page"`)
 await extractQueue.add("extract", { evidenceId, runId })
 ```
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Automatic extraction queue | **PASS** | Successful OCR queues for extraction |
-| Run ID propagation | **PASS** | runId passed for tracing |
+| Check                        | Result   | Notes                                            |
+| ---------------------------- | -------- | ------------------------------------------------ |
+| Automatic extraction queue   | **PASS** | Successful OCR queues for extraction             |
+| Run ID propagation           | **PASS** | runId passed for tracing                         |
 | Content provider integration | **PASS** | content-provider.ts checks for OCR_TEXT artifact |
 
 ---
 
 ## 3. Audit Checklist Summary
 
-| Category | Check | Status |
-|----------|-------|--------|
-| **OCR Queue Health** | Queue configuration | ✅ PASS |
-| | Rate limiting | ✅ PASS |
-| | Dead letter queue | ✅ PASS |
-| | Retry policy | ✅ PASS |
-| **Artifact Generation** | OCR_TEXT creation | ✅ PASS |
-| | Content hash | ✅ PASS |
-| | Page-level metadata | ✅ PASS |
-| | OCR_HOCR for tables | ⚠️ WARN (not implemented) |
-| **Text Quality** | Confidence scoring | ✅ PASS |
-| | Garbage detection | ✅ PASS |
-| | Croatian diacritics | ✅ PASS |
-| | Manual review flagging | ✅ PASS |
-| **Fallback Handling** | Vision API fallback | ✅ PASS |
-| | Vision failure recovery | ✅ PASS |
-| | Best-result selection | ✅ PASS |
-| **Performance** | DPI quality | ✅ PASS |
-| | Temp file cleanup | ✅ PASS |
-| | Large PDF chunking | ⚠️ WARN (not implemented) |
-| | Memory bounds | ⚠️ WARN (not enforced) |
-| **Error Handling** | Error persistence | ✅ PASS |
-| | Metrics collection | ✅ PASS |
-| | Logging | ✅ PASS |
+| Category                | Check                   | Status                    |
+| ----------------------- | ----------------------- | ------------------------- |
+| **OCR Queue Health**    | Queue configuration     | ✅ PASS                   |
+|                         | Rate limiting           | ✅ PASS                   |
+|                         | Dead letter queue       | ✅ PASS                   |
+|                         | Retry policy            | ✅ PASS                   |
+| **Artifact Generation** | OCR_TEXT creation       | ✅ PASS                   |
+|                         | Content hash            | ✅ PASS                   |
+|                         | Page-level metadata     | ✅ PASS                   |
+|                         | OCR_HOCR for tables     | ⚠️ WARN (not implemented) |
+| **Text Quality**        | Confidence scoring      | ✅ PASS                   |
+|                         | Garbage detection       | ✅ PASS                   |
+|                         | Croatian diacritics     | ✅ PASS                   |
+|                         | Manual review flagging  | ✅ PASS                   |
+| **Fallback Handling**   | Vision API fallback     | ✅ PASS                   |
+|                         | Vision failure recovery | ✅ PASS                   |
+|                         | Best-result selection   | ✅ PASS                   |
+| **Performance**         | DPI quality             | ✅ PASS                   |
+|                         | Temp file cleanup       | ✅ PASS                   |
+|                         | Large PDF chunking      | ⚠️ WARN (not implemented) |
+|                         | Memory bounds           | ⚠️ WARN (not enforced)    |
+| **Error Handling**      | Error persistence       | ✅ PASS                   |
+|                         | Metrics collection      | ✅ PASS                   |
+|                         | Logging                 | ✅ PASS                   |
 
 ---
 
@@ -366,6 +373,7 @@ WHERE "ocrMetadata"->>'processingMs' IS NOT NULL;
 ```
 
 **To run the audit script:**
+
 ```bash
 npx tsx scripts/audit-ocr.ts
 ```
@@ -400,10 +408,10 @@ npx tsx scripts/audit-ocr.ts
 
 ## 6. Files Created/Modified
 
-| File | Action |
-|------|--------|
-| `scripts/audit-ocr.ts` | Created - Database audit script |
-| `docs/07_AUDITS/audit-2-ocr-processing.md` | Created - This report |
+| File                                       | Action                          |
+| ------------------------------------------ | ------------------------------- |
+| `scripts/audit-ocr.ts`                     | Created - Database audit script |
+| `docs/07_AUDITS/audit-2-ocr-processing.md` | Created - This report           |
 
 ---
 
@@ -422,4 +430,4 @@ Areas for improvement are primarily around handling edge cases (very large PDFs,
 
 ---
 
-*Audit completed by Claude (Opus 4.5) on 2025-12-27*
+_Audit completed by Claude (Opus 4.5) on 2025-12-27_

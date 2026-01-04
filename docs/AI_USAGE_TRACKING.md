@@ -11,6 +11,7 @@ FiskAI uses OpenAI's GPT models for OCR receipt scanning, invoice extraction, an
 ### 1. Database Schema
 
 **AIUsage Model** (`prisma/schema.prisma`):
+
 ```prisma
 model AIUsage {
   id        String   @id @default(cuid())
@@ -41,6 +42,7 @@ model AIUsage {
 - `hasExceededBudget(companyId, budgetCents)` - Checks if monthly budget exceeded
 
 **Pricing** (based on OpenAI pricing):
+
 - `gpt-4o`: €0.0025 per 1K input tokens, €0.01 per 1K output tokens
 - `gpt-4o-mini`: €0.00015 per 1K input tokens, €0.0006 per 1K output tokens
 
@@ -49,6 +51,7 @@ model AIUsage {
 **Location**: `/src/lib/ai/rate-limiter.ts`
 
 **Features**:
+
 - In-memory rate limiter (10 requests per minute per company)
 - Monthly usage limits based on subscription plan
 - Per-operation limits for specific AI operations
@@ -56,17 +59,18 @@ model AIUsage {
 
 **Plan Limits**:
 
-| Plan | Monthly Calls | Monthly Budget | OCR Limit | Extract Limit |
-|------|--------------|----------------|-----------|---------------|
-| pausalni | 100 | €2.00 | 50 | 50 |
-| obrtnicki | 500 | €10.00 | 250 | 250 |
-| obrt_vat | 1000 | €20.00 | - | - |
-| doo_small | 2000 | €50.00 | - | - |
-| doo_standard | 5000 | €100.00 | - | - |
-| enterprise | Unlimited | Unlimited | - | - |
-| trial/default | 20 | €0.50 | - | - |
+| Plan          | Monthly Calls | Monthly Budget | OCR Limit | Extract Limit |
+| ------------- | ------------- | -------------- | --------- | ------------- |
+| pausalni      | 100           | €2.00          | 50        | 50            |
+| obrtnicki     | 500           | €10.00         | 250       | 250           |
+| obrt_vat      | 1000          | €20.00         | -         | -             |
+| doo_small     | 2000          | €50.00         | -         | -             |
+| doo_standard  | 5000          | €100.00        | -         | -             |
+| enterprise    | Unlimited     | Unlimited      | -         | -             |
+| trial/default | 20            | €0.50          | -         | -             |
 
 **Key Functions**:
+
 - `checkRateLimit(companyId, operation)` - Checks if request is allowed
 - `getUsageLimits(companyId)` - Returns current usage and limits
 
@@ -75,12 +79,14 @@ model AIUsage {
 All AI functions now accept an optional `companyId` parameter for tracking:
 
 **OCR Functions** (`/src/lib/ai/ocr.ts`):
+
 ```typescript
 extractFromImage(imageBase64: string, companyId?: string)
 extractFromImageUrl(imageUrl: string, companyId?: string)
 ```
 
 **Extraction Functions** (`/src/lib/ai/extract.ts`):
+
 ```typescript
 extractReceipt(text: string, companyId?: string)
 extractInvoice(text: string, companyId?: string)
@@ -89,12 +95,14 @@ extractInvoice(text: string, companyId?: string)
 ### 5. API Endpoints
 
 **Extract Endpoint** (`/api/ai/extract`):
+
 - Checks rate limits before processing
 - Tracks token usage and costs
 - Returns usage information in response
 - Returns 429 status code when rate limited
 
 **Usage Endpoint** (`/api/ai/usage`):
+
 - GET endpoint to retrieve current usage and limits
 - Authenticated endpoint requiring valid session
 - Returns plan, limits, usage, and remaining quota
@@ -104,12 +112,12 @@ extractInvoice(text: string, companyId?: string)
 ### Track AI Usage Manually
 
 ```typescript
-import { trackAIUsage } from '@/lib/ai/usage-tracking'
+import { trackAIUsage } from "@/lib/ai/usage-tracking"
 
 await trackAIUsage({
-  companyId: 'company_123',
-  operation: 'ocr_receipt',
-  model: 'gpt-4o',
+  companyId: "company_123",
+  operation: "ocr_receipt",
+  model: "gpt-4o",
   inputTokens: 1000,
   outputTokens: 500,
   success: true,
@@ -119,9 +127,9 @@ await trackAIUsage({
 ### Check Rate Limit
 
 ```typescript
-import { checkRateLimit } from '@/lib/ai/rate-limiter'
+import { checkRateLimit } from "@/lib/ai/rate-limiter"
 
-const check = await checkRateLimit('company_123', 'ocr_receipt')
+const check = await checkRateLimit("company_123", "ocr_receipt")
 
 if (!check.allowed) {
   console.log(`Rate limit exceeded: ${check.reason}`)
@@ -134,9 +142,9 @@ if (!check.allowed) {
 ### Get Usage Statistics
 
 ```typescript
-import { getUsageThisMonth } from '@/lib/ai/usage-tracking'
+import { getUsageThisMonth } from "@/lib/ai/usage-tracking"
 
-const usage = await getUsageThisMonth('company_123')
+const usage = await getUsageThisMonth("company_123")
 
 console.log(`Total calls: ${usage.totalCalls}`)
 console.log(`Total cost: €${usage.totalCostCents / 100}`)
@@ -146,9 +154,9 @@ console.log(`By operation:`, usage.byOperation)
 ### Get Usage and Limits
 
 ```typescript
-import { getUsageLimits } from '@/lib/ai/rate-limiter'
+import { getUsageLimits } from "@/lib/ai/rate-limiter"
 
-const data = await getUsageLimits('company_123')
+const data = await getUsageLimits("company_123")
 
 console.log(`Plan: ${data.plan}`)
 console.log(`Usage: ${data.usage.totalCalls} / ${data.limits.totalCalls}`)
@@ -165,7 +173,7 @@ console.log(`Remaining: ${data.remaining.calls} calls`)
   "data": {
     "vendor": "Konzum",
     "date": "2024-12-15",
-    "total": 125.50,
+    "total": 125.5
     // ... other fields
   },
   "usage": {
@@ -203,6 +211,7 @@ console.log(`Remaining: ${data.remaining.calls} calls`)
 ### Database Queries
 
 **Monthly usage by company**:
+
 ```sql
 SELECT
   "companyId",
@@ -216,6 +225,7 @@ GROUP BY "companyId";
 ```
 
 **Usage by operation**:
+
 ```sql
 SELECT
   operation,
@@ -275,6 +285,7 @@ The system helps manage costs through:
 ## Support
 
 For questions or issues with AI usage tracking:
+
 - Check logs in the database for historical usage
 - Review company subscription plan and limits
 - Contact support for custom limits or plan upgrades

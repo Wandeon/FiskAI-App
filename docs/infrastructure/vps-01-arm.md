@@ -2,13 +2,13 @@
 
 ## Server Specifications
 
-| Property | Value |
-|----------|-------|
-| **Hostname** | VPS-01 |
-| **Architecture** | ARM64 (aarch64) |
-| **NOT** | x86_64 |
-| **Purpose** | FiskAI production deployment |
-| **Status** | Requires cleanup before deployment |
+| Property         | Value                              |
+| ---------------- | ---------------------------------- |
+| **Hostname**     | VPS-01                             |
+| **Architecture** | ARM64 (aarch64)                    |
+| **NOT**          | x86_64                             |
+| **Purpose**      | FiskAI production deployment       |
+| **Status**       | Requires cleanup before deployment |
 
 ## ARM64 Considerations
 
@@ -22,16 +22,16 @@ ARM64 is a different CPU architecture than the traditional x86_64 used in most s
 
 ### Compatibility Status
 
-| Component | ARM64 Support | Notes |
-|-----------|---------------|-------|
-| Node.js | ✅ Full | Official ARM64 builds |
-| Next.js | ✅ Full | Pure JavaScript |
-| React | ✅ Full | Pure JavaScript |
-| PostgreSQL | ✅ Full | Official ARM64 images |
-| Coolify | ✅ Full | Supports Raspberry Pi/ARM |
-| Docker | ✅ Full | Native ARM64 support |
-| Prisma | ✅ Full | ARM64 binaries available |
-| Sharp (images) | ✅ Full | ARM64 binaries available |
+| Component      | ARM64 Support | Notes                     |
+| -------------- | ------------- | ------------------------- |
+| Node.js        | ✅ Full       | Official ARM64 builds     |
+| Next.js        | ✅ Full       | Pure JavaScript           |
+| React          | ✅ Full       | Pure JavaScript           |
+| PostgreSQL     | ✅ Full       | Official ARM64 images     |
+| Coolify        | ✅ Full       | Supports Raspberry Pi/ARM |
+| Docker         | ✅ Full       | Native ARM64 support      |
+| Prisma         | ✅ Full       | ARM64 binaries available  |
+| Sharp (images) | ✅ Full       | ARM64 binaries available  |
 
 ### Docker Image Selection
 
@@ -85,10 +85,10 @@ For Next.js on ARM64:
 ```javascript
 // next.config.js
 module.exports = {
-  output: 'standalone', // Smaller deployment
+  output: "standalone", // Smaller deployment
   experimental: {
     // ARM64 optimizations if needed
-  }
+  },
 }
 ```
 
@@ -131,6 +131,7 @@ Before deploying FiskAI to VPS-01:
 ## Performance Expectations
 
 ARM64 servers generally offer:
+
 - Good single-thread performance
 - Excellent power efficiency
 - Competitive multi-core performance
@@ -141,6 +142,7 @@ For a SaaS application like FiskAI, ARM64 is an excellent choice.
 ## Monitoring
 
 Set up monitoring for:
+
 - CPU usage (ARM metrics)
 - Memory usage
 - Disk I/O

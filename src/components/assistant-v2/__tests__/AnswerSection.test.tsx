@@ -1,5 +1,11 @@
 import React from "react"
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
+
+// Mock DB clients - component tests don't use DB
+vi.mock("@/lib/db", () => ({ db: {} }))
+vi.mock("@/lib/db/regulatory", () => ({ dbReg: {} }))
+vi.mock("@/lib/prisma", () => ({ prisma: {} }))
+
 import { render, screen } from "@testing-library/react"
 import { AnswerSection } from "../AnswerSection"
 import type { AssistantControllerState, AssistantResponse } from "@/lib/assistant"

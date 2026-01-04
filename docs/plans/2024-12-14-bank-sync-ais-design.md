@@ -12,14 +12,14 @@ Integrate automatic bank transaction syncing via PSD2-compliant Account Informat
 
 ## Key Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Coexistence with manual import | Parallel systems | Flexibility - user can sync AND upload manually |
-| Deduplication | Hybrid (strict auto + fuzzy review) | Auto-handles obvious cases, surfaces edge cases |
-| Sync frequency | Daily cron at 6 AM | Simple, respects rate limits, fits accountant workflow |
-| Expiration handling | Proactive alerts (7 days + on expiry) | Not annoying but ensures continuity |
-| Bank selection | Auto-detect from existing IBAN | User already has bank account with IBAN in app |
-| Multi-account from bank | Match by IBAN only | Keep it focused, don't auto-create accounts |
+| Decision                       | Choice                                | Rationale                                              |
+| ------------------------------ | ------------------------------------- | ------------------------------------------------------ |
+| Coexistence with manual import | Parallel systems                      | Flexibility - user can sync AND upload manually        |
+| Deduplication                  | Hybrid (strict auto + fuzzy review)   | Auto-handles obvious cases, surfaces edge cases        |
+| Sync frequency                 | Daily cron at 6 AM                    | Simple, respects rate limits, fits accountant workflow |
+| Expiration handling            | Proactive alerts (7 days + on expiry) | Not annoying but ensures continuity                    |
+| Bank selection                 | Auto-detect from existing IBAN        | User already has bank account with IBAN in app         |
+| Multi-account from bank        | Match by IBAN only                    | Keep it focused, don't auto-create accounts            |
 
 ---
 
@@ -80,10 +80,7 @@ interface BankSyncProvider {
   ): Promise<{ accounts: ProviderAccount[]; expiresAt: Date }>
 
   // Fetch transactions for an account
-  fetchTransactions(
-    providerAccountId: string,
-    since: Date
-  ): Promise<ProviderTransaction[]>
+  fetchTransactions(providerAccountId: string, since: Date): Promise<ProviderTransaction[]>
 
   // Check connection status
   getConnectionStatus(connectionId: string): Promise<ConnectionStatus>
@@ -218,6 +215,7 @@ enum DuplicateResolution {
 ### Tier 1: Strict Auto-Merge
 
 Runs on every sync/import. Transaction is duplicate if ALL match:
+
 - Same `bankAccountId`
 - Same `date` (exact day)
 - Same `amount` (exact, to cent)
@@ -228,6 +226,7 @@ Runs on every sync/import. Transaction is duplicate if ALL match:
 ### Tier 2: Fuzzy Detection
 
 Flags for human review. Potential duplicate if:
+
 - Same `bankAccountId`
 - Date within ±2 days
 - Amount within ±0.01 EUR
@@ -302,12 +301,13 @@ For each BankAccount where connectionStatus = CONNECTED:
 
 ## Expiration Notifications
 
-| Trigger | Channel | Content |
-|---------|---------|---------|
-| 7 days before expiry | Email + In-app | Warning with reconnect link |
-| On expiry day | Email + Banner | Final notice, status → EXPIRED |
+| Trigger              | Channel        | Content                        |
+| -------------------- | -------------- | ------------------------------ |
+| 7 days before expiry | Email + In-app | Warning with reconnect link    |
+| On expiry day        | Email + Banner | Final notice, status → EXPIRED |
 
 **Email Template:**
+
 ```
 Subject: Vaša veza s [Bank] bankom ističe [za 7 dana / danas]
 
@@ -323,14 +323,14 @@ Ako ne obnovite vezu, morat ćete ručno uploadati izvode.
 
 ## API Endpoints
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/api/bank/connect` | Initiate connection for a bank account |
-| GET | `/api/bank/callback` | Handle provider redirect after auth |
-| POST | `/api/bank/sync` | Manual sync trigger (optional future) |
-| POST | `/api/bank/disconnect` | Remove connection, revert to manual |
-| GET | `/api/bank/institutions` | List supported banks (admin/debug) |
-| POST | `/api/cron/bank-sync` | Daily sync job |
+| Method | Endpoint                 | Purpose                                |
+| ------ | ------------------------ | -------------------------------------- |
+| POST   | `/api/bank/connect`      | Initiate connection for a bank account |
+| GET    | `/api/bank/callback`     | Handle provider redirect after auth    |
+| POST   | `/api/bank/sync`         | Manual sync trigger (optional future)  |
+| POST   | `/api/bank/disconnect`   | Remove connection, revert to manual    |
+| GET    | `/api/bank/institutions` | List supported banks (admin/debug)     |
+| POST   | `/api/cron/bank-sync`    | Daily sync job                         |
 
 ---
 
@@ -397,19 +397,19 @@ NEXT_PUBLIC_APP_URL=https://app.fiskai.hr
 
 Initial mapping (to be validated against GoCardless API):
 
-| Bank Name | GoCardless Institution ID |
-|-----------|---------------------------|
-| Zagrebačka banka | ZAGREBACKA_BANKA_ZABAHR2X |
-| Privredna banka Zagreb | PBZ_PBZGHR2X |
-| Erste Bank | ERSTE_BANK_GIBAHR2X |
-| Raiffeisen Bank | RBA_RZBHHR2X |
-| OTP banka | OTP_BANKA_OTPVHR2X |
-| Addiko Bank | ADDIKO_BANK_HAABHR22 |
-| HPB | HPB_HABORHR2X |
-| Slatinska banka | SLATINSKA_BANKA_SLSPHR2X |
-| Agram banka | AGRAM_BANKA_AGRAHR2X |
+| Bank Name              | GoCardless Institution ID |
+| ---------------------- | ------------------------- |
+| Zagrebačka banka       | ZAGREBACKA_BANKA_ZABAHR2X |
+| Privredna banka Zagreb | PBZ_PBZGHR2X              |
+| Erste Bank             | ERSTE_BANK_GIBAHR2X       |
+| Raiffeisen Bank        | RBA_RZBHHR2X              |
+| OTP banka              | OTP_BANKA_OTPVHR2X        |
+| Addiko Bank            | ADDIKO_BANK_HAABHR22      |
+| HPB                    | HPB_HABORHR2X             |
+| Slatinska banka        | SLATINSKA_BANKA_SLSPHR2X  |
+| Agram banka            | AGRAM_BANKA_AGRAHR2X      |
 
-*Note: Exact IDs will be fetched from `/institutions/?country=HR` endpoint.*
+_Note: Exact IDs will be fetched from `/institutions/?country=HR` endpoint._
 
 ---
 

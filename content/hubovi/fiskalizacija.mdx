@@ -40,30 +40,34 @@ Fiskalizacija 2.0 je najveća promjena u hrvatskom poreznom sustavu od uvođenja
 
 ### Razlike između Fiskalizacije 1.0 i 2.0
 
-| Kriterij | Fiskalizacija 1.0 (2013-2025) | Fiskalizacija 2.0 (2026+) |
-|----------|-------------------------------|---------------------------|
-| **Obuhvat** | Samo gotovinsko poslovanje (B2C) | Sve poslovne transakcije (B2B, B2G, B2C) |
-| **Način plaćanja** | Samo gotovina | Gotovina, kartica, virman, ostalo |
-| **Format računa** | Papir ili PDF | Strukturirani e-račun (UBL/CII format) |
-| **Fiskalizacija** | Odmah na blagajni (API poziv) | Putem informacijskog posrednika |
-| **QR kod** | Samo na fiskalnom računu | Na svim računima |
-| **PEPPOL** | Ne | Da (obavezno za javnu nabavu) |
+| Kriterij           | Fiskalizacija 1.0 (2013-2025)    | Fiskalizacija 2.0 (2026+)                |
+| ------------------ | -------------------------------- | ---------------------------------------- |
+| **Obuhvat**        | Samo gotovinsko poslovanje (B2C) | Sve poslovne transakcije (B2B, B2G, B2C) |
+| **Način plaćanja** | Samo gotovina                    | Gotovina, kartica, virman, ostalo        |
+| **Format računa**  | Papir ili PDF                    | Strukturirani e-račun (UBL/CII format)   |
+| **Fiskalizacija**  | Odmah na blagajni (API poziv)    | Putem informacijskog posrednika          |
+| **QR kod**         | Samo na fiskalnom računu         | Na svim računima                         |
+| **PEPPOL**         | Ne                               | Da (obavezno za javnu nabavu)            |
 
 ### Ključne novine
 
 **1. E-račun u UBL formatu**
+
 - Strukturirani XML dokument prema europskom standardu
 - Automatski čitljiv (nema ručnog unosa podataka)
 
 **2. Informacijski posrednik**
+
 - Treća strana koja fiskalizira račune
 - Registracija obvezna do 31.12.2025
 
 **3. PEPPOL mreža**
+
 - Europska mreža za razmjenu e-dokumenata
 - Obvezna za javnu nabavu (B2G)
 
 **4. Proširenje na sve načine plaćanja**
+
 - Fiskalizacija čak i za virmanske uplate
 - Nema više razlike gotovina/bezgotovina
 
@@ -74,34 +78,41 @@ Fiskalizacija 2.0 je najveća promjena u hrvatskom poreznom sustavu od uvođenja
 **Cilj:** Testiranje sustava u produkcijskom okruženju
 
 **Aktivnosti:**
+
 - Registracija testnog informacijskog posrednika
 - Slanje probnih e-računa
 - Testiranje integracije računovodstvenog softwarea
 - Obuka zaposlenika
 
 **Tko može testirati:**
+
 - Svi poduzetnici (dobrovoljno)
 - Preporuka za PDV obveznike
 
 ### Faza 2: Obvezno za PDV obveznike (1.1.2026)
 
 **Tko:**
+
 - Svi PDV obveznici (obrt, d.o.o., j.d.o.o. u PDV sustavu)
 
 **Obveze:**
+
 - Izdavanje svih računa u e-formatu
 - Slanje putem ovlaštenog posrednika
 - Fiskalizacija svih računa (B2B i B2C)
 
 **Rok registracije posrednika:**
+
 - Najkasnije 31.12.2025
 
 ### Faza 3: Obvezno za sve (1.1.2027)
 
 **Tko:**
+
 - Svi poduzetnici (uključujući paušalce, osobe van PDV sustava)
 
 **Izuzetak:**
+
 - Paušalci mogu koristiti besplatnu državnu aplikaciju **MIKROeRAČUN**
 
 ## Što je e-račun?
@@ -114,6 +125,7 @@ E-račun nije PDF. E-račun je **strukturirani XML dokument** u jednom od standa
 2. **CII (Cross Industry Invoice)** - alternativa
 
 **Primjer strukture UBL računa:**
+
 ```xml
 <Invoice>
   <ID>R-2025-0001</ID>
@@ -139,6 +151,7 @@ E-račun se klijentu može poslati na 2 načina:
 ### Uloga posrednika
 
 Informacijski posrednik:
+
 - Prima e-račun od poduzetnika
 - Dodjeljuje **JIR** (jedinstveni identifikator računa)
 - Generira **QR kod**
@@ -150,6 +163,7 @@ Informacijski posrednik:
 Popis svih ovlaštenih posrednika dostupan na [FiskAplikacija portalu](https://fiskalizacija.gov.hr).
 
 **Popularni posrednici:**
+
 - **FiskAI** - Automatska fiskalizacija s AI asistentom
 - **eRačun.hr** - Enterprise rješenje
 - **MultiPlu** - Integracija s ERP sustavima
@@ -157,12 +171,12 @@ Popis svih ovlaštenih posrednika dostupan na [FiskAplikacija portalu](https://f
 
 ### Troškovi posrednika
 
-| Kategorija | Cijena mjesečno | Po računu |
-|-----------|-----------------|-----------|
-| MIKROeRAČUN (država) | 0 EUR | 0 EUR |
-| Osnovni paket | 15-30 EUR | 0,05-0,15 EUR |
-| Standardni paket | 40-60 EUR | 0,02-0,10 EUR |
-| Enterprise | 100+ EUR | Dogovor |
+| Kategorija           | Cijena mjesečno | Po računu     |
+| -------------------- | --------------- | ------------- |
+| MIKROeRAČUN (država) | 0 EUR           | 0 EUR         |
+| Osnovni paket        | 15-30 EUR       | 0,05-0,15 EUR |
+| Standardni paket     | 40-60 EUR       | 0,02-0,10 EUR |
+| Enterprise           | 100+ EUR        | Dogovor       |
 
 **Napomena:** Cijene su okvirne. Usporedite ponude prije odabira.
 
@@ -171,6 +185,7 @@ Popis svih ovlaštenih posrednika dostupan na [FiskAplikacija portalu](https://f
 ### Što je PEPPOL?
 
 PEPPOL (Pan-European Public Procurement OnLine) je europska mreža koja omogućava:
+
 - Automatsku razmjenu e-računa između sustava
 - Primatelja računa prima strukturirani e-račun direktno u svoj ERP
 - Eliminacija ručnog unosa podataka
@@ -178,13 +193,16 @@ PEPPOL (Pan-European Public Procurement OnLine) je europska mreža koja omoguća
 ### PEPPOL u Hrvatskoj
 
 **Obvezno za:**
+
 - B2G transakcije (poslovanje s javnim sektorom) od 1.1.2026
 - Sve javne ustanove (ministarstva, bolnice, škole)
 
 **Dobrovoljno za:**
+
 - B2B transakcije (od 1.1.2027 mogućnost proširenja obveze)
 
 **Kako funkcionira:**
+
 1. Poduzetnik izdaje e-račun putem posrednika
 2. Posrednik šalje e-račun na PEPPOL mrežu
 3. PEPPOL prosljeđuje primatelju
@@ -193,6 +211,7 @@ PEPPOL (Pan-European Public Procurement OnLine) je europska mreža koja omoguća
 ### PEPPOL ID (identifikator)
 
 Svaki sudionik PEPPOL mreže ima jedinstveni ID:
+
 - Format: **0088:HRXXXXXXXXXX** (0088 + HR + OIB)
 - Primjer: 0088:HR12345678901
 
@@ -201,29 +220,34 @@ Svaki sudionik PEPPOL mreže ima jedinstveni ID:
 ### Kontrolna lista do 31.12.2025
 
 **Korak 1: Odabir informacijskog posrednika (do 30.11.2025)**
+
 - [ ] Pregledajte popis ovlaštenih posrednika
 - [ ] Usporedite cijene i funkcionalnosti
 - [ ] Kontaktirajte odabrane posrednike (demo)
 - [ ] Sklopite ugovor s posrednikom
 
 **Korak 2: Registracija posrednika (do 15.12.2025)**
+
 - [ ] Prijavite se na FiskAplikacija portal
 - [ ] Registrirajte odabranog posrednika
 - [ ] Čekanje odobrenja (1-3 dana)
 - [ ] Aktivacija usluge
 
 **Korak 3: Testiranje (1.9.2025 - 31.12.2025)**
+
 - [ ] Postavite testno okruženje
 - [ ] Izdajte probne e-račune
 - [ ] Testirajte fiskalizaciju (JIR, QR kod)
 - [ ] Provjerite integraciju s računovodstvenim softwareom
 
 **Korak 4: Obuka zaposlenika (do 20.12.2025)**
+
 - [ ] Obuka za izdavanje e-računa
 - [ ] Postupak u slučaju greške
 - [ ] Kako provjeriti status fiskalizacije
 
 **Korak 5: Prilagodba procesa (do 31.12.2025)**
+
 - [ ] Ažurirajte predloške računa
 - [ ] Postavite automatizaciju (API integracija)
 - [ ] Testirajte slanje klijentima (PDF + XML)
@@ -233,12 +257,14 @@ Svaki sudionik PEPPOL mreže ima jedinstveni ID:
 ### Izdavanje računa
 
 **PRIJE (do 31.12.2025):**
+
 1. Kreirate račun u Wordu/Excelu
 2. Izvozite u PDF
 3. Šaljete klijentu mailom
 4. Upisujete u evidenciju
 
 **POSLIJE (od 1.1.2026):**
+
 1. Kreirate e-račun u softwareu
 2. Software šalje posredniku (automatski)
 3. Posrednik fiskalizira (JIR + QR kod)
@@ -248,11 +274,13 @@ Svaki sudionik PEPPOL mreže ima jedinstveni ID:
 ### Primanje računa
 
 **PRIJE:**
+
 1. Primate PDF račun mailom
 2. Ručno upisujete u sustav
 3. Arhivirate PDF
 
 **POSLIJE:**
+
 1. Primate strukturirani e-račun (PEPPOL ili XML)
 2. Automatski uvoz u sustav (nema ručnog unosa)
 3. Arhiviranje elektroničko (obavezno 11 godina)
@@ -261,16 +289,17 @@ Svaki sudionik PEPPOL mreže ima jedinstveni ID:
 
 ### Prekršaji i kazne
 
-| Prekršaj | Kazna fizička osoba | Kazna pravna osoba |
-|----------|---------------------|---------------------|
-| Neizdavanje e-računa | 2.000-20.000 EUR | 10.000-200.000 EUR |
-| Neregistriran posrednik | 1.000-10.000 EUR | 5.000-100.000 EUR |
-| Kriva fiskalizacija | 500-5.000 EUR | 2.000-50.000 EUR |
-| Nearhiviranje e-računa | 500-5.000 EUR | 2.000-50.000 EUR |
+| Prekršaj                | Kazna fizička osoba | Kazna pravna osoba |
+| ----------------------- | ------------------- | ------------------ |
+| Neizdavanje e-računa    | 2.000-20.000 EUR    | 10.000-200.000 EUR |
+| Neregistriran posrednik | 1.000-10.000 EUR    | 5.000-100.000 EUR  |
+| Kriva fiskalizacija     | 500-5.000 EUR       | 2.000-50.000 EUR   |
+| Nearhiviranje e-računa  | 500-5.000 EUR       | 2.000-50.000 EUR   |
 
 ### Inspekcijski nadzor
 
 Porezna uprava može:
+
 - Zatražiti prikaz svih e-računa za određeno razdoblje
 - Provjeriti jesu li svi računi fiskalizirani
 - Usporediti prijavljene primitke s izdanim računima
@@ -281,15 +310,18 @@ Porezna uprava može:
 ### Za poduzetnike
 
 **1. Manje administrativnog posla**
+
 - Automatizacija izdavanja računa
 - Automatski unos primljenih računa
 - Manje ručnog rada
 
 **2. Brže plaćanje**
+
 - Elektronički račun = brža obrada kod klijenta
 - PEPPOL direktna dostava u sustav kupca
 
 **3. Manji troškovi**
+
 - Nema tiskanja i slanja pošte
 - Nema ručnog unosa
 - Manje grešaka
@@ -297,11 +329,13 @@ Porezna uprava može:
 ### Za državu
 
 **1. Bolja kontrola**
+
 - Svi računi u realnom vremenu
 - Manji prostor za utaju
 - Automatska usporedba (JOPPD vs e-računi)
 
 **2. Jednostavnija kontrola PDV-a**
+
 - Ulazni i izlazni računi automatski
 - Brža provjera predugovaranja PDV-a
 
@@ -314,6 +348,7 @@ Ne. E-fiskalizacija (2013) je bila samo za gotovinsko poslovanje. Fiskalizacija 
 Ne, od datuma obveze (1.1.2026 za PDV obveznike). Svi računi moraju biti e-računi.
 
 **Što s računima stranima (EU, izvan EU)?**
+
 - **EU:** Isti postupak, dodatno VIES prijava
 - **Izvan EU:** E-račun + izvozna dokumentacija
 
@@ -326,14 +361,17 @@ Možete promijeniti posrednika. Stari računi ostaju kod starog posrednika (arhi
 ## Korisni resursi
 
 ### Službeni portali
+
 - [FiskAplikacija](https://fiskalizacija.gov.hr) - Registracija posrednika
 - [ePorezna](https://e-porezna.porezna-uprava.hr) - Porezne prijave
 - [e-Račun](https://e-racun.hr) - Informacije o e-fakturiranju
 
 ### Edukacija
+
 - [Webinari Porezne uprave](https://www.porezna-uprava.hr) - Besplatna edukacija
 - [FINA PEPPOL](https://www.fina.hr/peppol) - PEPPOL pristup
 
 ### Alati
+
 - [FiskAI](/) - Automatska fiskalizacija s AI asistentom
 - [Fiskalizacija 2.0 Wizard](/fiskalizacija) - Provjerite svoju spremnost

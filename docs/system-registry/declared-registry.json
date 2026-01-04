@@ -108,9 +108,7 @@
       "owner": null,
       "docsRef": "docs/02_FEATURES/features/contacts-*.md",
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "store-postgresql", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "store-postgresql", "type": "HARD" }]
     },
     {
       "componentId": "module-products",
@@ -121,9 +119,7 @@
       "owner": null,
       "docsRef": "docs/02_FEATURES/features/products-*.md",
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "store-postgresql", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "store-postgresql", "type": "HARD" }]
     },
     {
       "componentId": "module-expenses",
@@ -162,9 +158,7 @@
       "owner": null,
       "docsRef": "docs/02_FEATURES/features/banking-reconciliation.md",
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "module-banking", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "module-banking", "type": "HARD" }]
     },
     {
       "componentId": "module-reports-basic",
@@ -175,9 +169,7 @@
       "owner": null,
       "docsRef": "docs/02_FEATURES/features/reports-*.md",
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "store-postgresql", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "store-postgresql", "type": "HARD" }]
     },
     {
       "componentId": "module-reports-advanced",
@@ -188,9 +180,7 @@
       "owner": null,
       "docsRef": "docs/02_FEATURES/features/reports-*.md",
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "module-reports-basic", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "module-reports-basic", "type": "HARD" }]
     },
     {
       "componentId": "module-pausalni",
@@ -201,9 +191,7 @@
       "owner": null,
       "docsRef": "docs/02_FEATURES/features/pausalni-*.md",
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "store-postgresql", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "store-postgresql", "type": "HARD" }]
     },
     {
       "componentId": "module-vat",
@@ -214,9 +202,7 @@
       "owner": null,
       "docsRef": null,
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "store-postgresql", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "store-postgresql", "type": "HARD" }]
     },
     {
       "componentId": "module-corporate-tax",
@@ -238,9 +224,7 @@
       "owner": null,
       "docsRef": null,
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "integration-stripe", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "integration-stripe", "type": "HARD" }]
     },
     {
       "componentId": "module-documents",
@@ -251,9 +235,7 @@
       "owner": null,
       "docsRef": null,
       "codeRef": "src/lib/modules/definitions.ts",
-      "dependencies": [
-        { "componentId": "store-r2", "type": "HARD" }
-      ]
+      "dependencies": [{ "componentId": "store-r2", "type": "HARD" }]
     },
     {
       "componentId": "module-ai-assistant",
@@ -293,9 +275,7 @@
       "owner": null,
       "docsRef": "docs/03_ARCHITECTURE/AI_ASSISTANT.md",
       "codeRef": "src/lib/assistant/",
-      "dependencies": [
-        { "componentId": "lib-regulatory-truth", "type": "DATA" }
-      ]
+      "dependencies": [{ "componentId": "lib-regulatory-truth", "type": "DATA" }]
     },
     {
       "componentId": "lib-guidance",

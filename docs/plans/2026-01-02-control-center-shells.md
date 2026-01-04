@@ -32,17 +32,18 @@
 
 ## Route Structure
 
-| Portal | Route | Role Check |
-|--------|-------|------------|
-| Client | `/app/(app)/control-center/page.tsx` | USER |
-| Accountant | `/app/(staff)/control-center/page.tsx` | STAFF |
-| Admin | `/app/(admin)/control-center/page.tsx` | ADMIN |
+| Portal     | Route                                  | Role Check |
+| ---------- | -------------------------------------- | ---------- |
+| Client     | `/app/(app)/control-center/page.tsx`   | USER       |
+| Accountant | `/app/(staff)/control-center/page.tsx` | STAFF      |
+| Admin      | `/app/(admin)/control-center/page.tsx` | ADMIN      |
 
 ---
 
 ## Task 1: Capability Resolution Server Utilities
 
 **Files:**
+
 - Create: `src/lib/capabilities/server.ts`
 - Test: `src/lib/capabilities/__tests__/server.test.ts`
 
@@ -306,9 +307,7 @@ export async function resolveCapabilityForUser(
 /**
  * Get all capabilities for a domain, resolved for current user.
  */
-export async function resolveCapabilitiesByDomain(
-  domain: string
-): Promise<CapabilityResponse[]> {
+export async function resolveCapabilitiesByDomain(domain: string): Promise<CapabilityResponse[]> {
   const { getCapabilitiesByDomain } = await import("./registry")
   const capabilities = getCapabilitiesByDomain(domain as any)
   const ids = capabilities.map((c) => c.id)
@@ -349,6 +348,7 @@ git commit -m "feat(capabilities): add server-side resolution utilities"
 ## Task 2: Capability-Aware UI Primitives
 
 **Files:**
+
 - Create: `src/components/capability/types.ts`
 - Create: `src/components/capability/CapabilityStateIndicator.tsx`
 - Create: `src/components/capability/BlockerDisplay.tsx`
@@ -636,6 +636,7 @@ git commit -m "feat(ui): add capability-aware UI primitives"
 ## Task 3: Queue Renderer Component
 
 **Files:**
+
 - Create: `src/components/capability/QueueRenderer.tsx`
 - Create: `src/components/capability/QueueItem.tsx`
 
@@ -818,6 +819,7 @@ git commit -m "feat(ui): add queue renderer components"
 ## Task 4: Control Center Shell Layout
 
 **Files:**
+
 - Create: `src/components/capability/ControlCenterShell.tsx`
 - Create: `src/components/capability/DiagnosticsToggle.tsx`
 
@@ -952,6 +954,7 @@ git commit -m "feat(ui): add Control Center shell and diagnostics toggle"
 ## Task 5: Client Control Center
 
 **Files:**
+
 - Create: `src/app/(app)/control-center/page.tsx`
 - Create: `src/app/(app)/control-center/queues.ts`
 
@@ -1202,6 +1205,7 @@ git commit -m "feat(client): add Client Control Center shell"
 ## Task 6: Accountant Control Center
 
 **Files:**
+
 - Create: `src/app/(staff)/control-center/page.tsx`
 - Create: `src/app/(staff)/control-center/queues.ts`
 
@@ -1408,6 +1412,7 @@ git commit -m "feat(staff): add Accountant Control Center shell"
 ## Task 7: Admin Control Center
 
 **Files:**
+
 - Create: `src/app/(admin)/control-center/page.tsx`
 - Create: `src/app/(admin)/control-center/queues.ts`
 
@@ -1616,6 +1621,7 @@ git commit -m "feat(admin): add Admin Control Center shell"
 ## Task 8: Integration Test
 
 **Files:**
+
 - Create: `src/app/(app)/control-center/__tests__/page.test.tsx`
 
 **Purpose:** Verify Control Centers render without errors.
@@ -1734,13 +1740,13 @@ git commit -m "feat: complete Control Center shells implementation"
 
 ### Files Created
 
-| File | Purpose |
-|------|---------|
-| `src/lib/capabilities/server.ts` | Server-side resolution utilities |
-| `src/components/capability/*.tsx` | Capability-aware UI primitives |
-| `src/app/(app)/control-center/page.tsx` | Client Control Center |
-| `src/app/(staff)/control-center/page.tsx` | Accountant Control Center |
-| `src/app/(admin)/control-center/page.tsx` | Admin Control Center |
+| File                                      | Purpose                          |
+| ----------------------------------------- | -------------------------------- |
+| `src/lib/capabilities/server.ts`          | Server-side resolution utilities |
+| `src/components/capability/*.tsx`         | Capability-aware UI primitives   |
+| `src/app/(app)/control-center/page.tsx`   | Client Control Center            |
+| `src/app/(staff)/control-center/page.tsx` | Accountant Control Center        |
+| `src/app/(admin)/control-center/page.tsx` | Admin Control Center             |
 
 ### What This Implements
 

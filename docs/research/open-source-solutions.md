@@ -15,11 +15,13 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 **License**: Free for personal/commercial use
 
 **Tech Stack**:
+
 - Backend: Node.js + Express.js
 - Database: MongoDB
 - Frontend: React.js + Ant Design + Redux
 
 **Features**:
+
 - Invoice management
 - Quote management
 - Expense tracking
@@ -29,6 +31,7 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - Multi-currency support
 
 **Pros**:
+
 - MERN stack (JavaScript throughout)
 - Active development
 - Good UI with Ant Design
@@ -36,11 +39,13 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - Multi-tenant capable
 
 **Cons**:
+
 - MongoDB (we want PostgreSQL for financial data)
 - No European e-invoicing compliance
 - No Croatian localization
 
 **What We Can Learn**:
+
 - Invoice UI/UX patterns
 - PDF generation approach
 - Multi-tenant architecture
@@ -55,11 +60,13 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 **License**: Elastic License (source-available)
 
 **Tech Stack**:
+
 - Backend: Laravel (PHP)
 - Frontend: Flutter (mobile), React (web admin)
 - Database: MySQL/PostgreSQL
 
 **Features**:
+
 - Full invoicing suite
 - Quote and proposal system
 - Expense tracking
@@ -71,6 +78,7 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - White-label option
 
 **Pros**:
+
 - Most feature-complete open solution
 - React admin portal (TypeScript)
 - Excellent API
@@ -78,11 +86,13 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - Payment integrations
 
 **Cons**:
+
 - PHP backend (we want Node.js/TypeScript)
 - Complex codebase
 - Elastic License restrictions
 
 **What We Can Learn**:
+
 - Feature completeness benchmark
 - Client portal design
 - Payment integration patterns
@@ -100,12 +110,14 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 **License**: MIT (open source)
 
 **Tech Stack**:
+
 - Backend: Ruby on Rails
 - Frontend: React + TypeScript
 - Database: PostgreSQL
 - GraphQL API
 
 **Features**:
+
 - Usage-based billing
 - Subscription management
 - Metering and events
@@ -114,6 +126,7 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - Webhook system
 
 **Pros**:
+
 - Modern architecture
 - TypeScript React frontend
 - PostgreSQL
@@ -122,11 +135,13 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - Good for SaaS businesses
 
 **Cons**:
+
 - Ruby backend (not TypeScript)
 - Focused on SaaS billing, not traditional invoicing
 - No e-invoicing compliance
 
 **What We Can Learn**:
+
 - Event-driven architecture
 - GraphQL schema design
 - React TypeScript patterns
@@ -144,12 +159,14 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 **License**: AGPL-3.0
 
 **Tech Stack**:
+
 - Backend: Laravel (PHP)
 - Frontend: Vue.js
 - Mobile: React Native
 - Database: MySQL
 
 **Features**:
+
 - Invoice & estimate creation
 - Expense tracking
 - Payment tracking
@@ -159,15 +176,18 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - Mobile apps
 
 **Pros**:
+
 - Clean, simple design
 - React Native mobile (can reference)
 - Good for small businesses
 
 **Cons**:
+
 - PHP/Vue.js (not our stack)
 - Less feature-rich than Invoice Ninja
 
 **What We Can Learn**:
+
 - Simple, focused UX
 - Mobile app patterns (React Native)
 - Small business workflow
@@ -181,11 +201,13 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 **License**: GPL-3.0
 
 **Tech Stack**:
+
 - Backend: Python (Frappe framework)
 - Frontend: JavaScript
 - Database: MariaDB
 
 **Features**:
+
 - Full ERP suite
 - Accounting
 - Inventory
@@ -195,17 +217,20 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 - E-commerce
 
 **Pros**:
+
 - Most comprehensive ERP
 - Well-documented
 - Large community
 - Croatian community exists
 
 **Cons**:
+
 - Python/MariaDB (not our stack)
 - Very complex
 - Steep learning curve
 
 **What We Can Learn**:
+
 - Full accounting workflows
 - Croatian accounting requirements
 - Chart of accounts structure
@@ -220,22 +245,26 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 **License**: GPL-2.0
 
 **Tech Stack**:
+
 - Backend: Java
 - Frontend: React + Redux
 - Database: PostgreSQL
 
 **Features**:
+
 - Full ERP
 - Manufacturing focus
 - B2B commerce
 - Warehouse management
 
 **Pros**:
+
 - React frontend
 - PostgreSQL
 - German/EU focused (similar compliance needs)
 
 **Cons**:
+
 - Java backend (not TypeScript)
 - Very enterprise-focused
 
@@ -243,14 +272,14 @@ Evaluate open-source projects we can learn from, potentially fork, or use as ref
 
 ## Comparison Matrix
 
-| Project | Stack Match | Features | E-Invoice | Learning Value |
-|---------|-------------|----------|-----------|----------------|
-| IDURAR | High (MERN) | Medium | No | High |
-| Invoice Ninja | Medium (React UI) | High | No | Very High |
-| Lago | Medium (React/TS) | Medium | No | High |
-| Crater | Low | Medium | No | Medium |
-| ERPNext | Low | Very High | Partial | High (accounting) |
-| Metasfresh | Medium | High | Partial | Medium |
+| Project       | Stack Match       | Features  | E-Invoice | Learning Value    |
+| ------------- | ----------------- | --------- | --------- | ----------------- |
+| IDURAR        | High (MERN)       | Medium    | No        | High              |
+| Invoice Ninja | Medium (React UI) | High      | No        | Very High         |
+| Lago          | Medium (React/TS) | Medium    | No        | High              |
+| Crater        | Low               | Medium    | No        | Medium            |
+| ERPNext       | Low               | Very High | Partial   | High (accounting) |
+| Metasfresh    | Medium            | High      | Partial   | Medium            |
 
 ## Recommended Approach
 

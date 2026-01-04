@@ -15,9 +15,7 @@ describe("Navigation", () => {
   })
 
   it("marks dashboard as legacy in navigation", () => {
-    const dashboardItem = navigation
-      .flatMap((s) => s.items)
-      .find((i) => i.href === "/dashboard")
+    const dashboardItem = navigation.flatMap((s) => s.items).find((i) => i.href === "/dashboard")
     expect(dashboardItem?.legacy).toBe(true)
   })
 })

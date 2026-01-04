@@ -10,21 +10,21 @@ These aren't "acceptable noise" - they're regression targets. Each gap represent
 
 ### Missing Seed Data (needs rules created)
 
-| Question | Expected Pattern | Status | Notes |
-|----------|------------------|--------|-------|
-| "Kolika je stopa doprinosa za HZZO?" | `hzzo` | MISSING | Need HZZO contribution rate rule |
-| "Kada sam obvezan voditi dvojno knjigovodstvo?" | `knjig` | MISSING | Need accounting threshold rule |
-| "Koji su limiti za jednostavno knjigovodstvo?" | `knjig` | MISSING | Need simple bookkeeping limits |
-| "Koji su rokovi za predaju GFI-POD?" | `gfi` | MISSING | Need GFI-POD deadline rule |
-| "Do kada trebam predati godišnje izvješće?" | `izvjes` | MISSING | Need annual report deadline |
-| "Koje su obveze malog poduzetnika?" | `poduzetn` | MISSING | Need small business obligations |
-| "Kakva su pravila za obrtnike?" | `obrt` | MISSING | Need sole proprietor rules |
+| Question                                        | Expected Pattern | Status  | Notes                            |
+| ----------------------------------------------- | ---------------- | ------- | -------------------------------- |
+| "Kolika je stopa doprinosa za HZZO?"            | `hzzo`           | MISSING | Need HZZO contribution rate rule |
+| "Kada sam obvezan voditi dvojno knjigovodstvo?" | `knjig`          | MISSING | Need accounting threshold rule   |
+| "Koji su limiti za jednostavno knjigovodstvo?"  | `knjig`          | MISSING | Need simple bookkeeping limits   |
+| "Koji su rokovi za predaju GFI-POD?"            | `gfi`            | MISSING | Need GFI-POD deadline rule       |
+| "Do kada trebam predati godišnje izvješće?"     | `izvjes`         | MISSING | Need annual report deadline      |
+| "Koje su obveze malog poduzetnika?"             | `poduzetn`       | MISSING | Need small business obligations  |
+| "Kakva su pravila za obrtnike?"                 | `obrt`           | MISSING | Need sole proprietor rules       |
 
 ### Keyword Matching Issues
 
-| Question | Expected Pattern | Status | Notes |
-|----------|------------------|--------|-------|
-| "Koliki je porez na profit?" | `dobit` | WEAK | Query says "profit" but rules use "dobit" - need synonym expansion or titleHr match |
+| Question                     | Expected Pattern | Status | Notes                                                                               |
+| ---------------------------- | ---------------- | ------ | ----------------------------------------------------------------------------------- |
+| "Koliki je porez na profit?" | `dobit`          | WEAK   | Query says "profit" but rules use "dobit" - need synonym expansion or titleHr match |
 
 ## Fix Priority
 
@@ -43,7 +43,7 @@ await db.regulatoryRule.create({
     value: "16.5",
     valueType: "percentage",
     // ... with sourcePointer
-  }
+  },
 })
 ```
 

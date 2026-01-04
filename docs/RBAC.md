@@ -17,30 +17,35 @@ The system supports five roles, defined in the Prisma schema:
 ## Permission Matrix
 
 ### Invoices
+
 - **invoice:create**: OWNER, ADMIN, MEMBER
 - **invoice:read**: OWNER, ADMIN, MEMBER, ACCOUNTANT, VIEWER
 - **invoice:update**: OWNER, ADMIN, MEMBER
 - **invoice:delete**: OWNER, ADMIN
 
 ### Expenses
+
 - **expense:create**: OWNER, ADMIN, MEMBER
 - **expense:read**: OWNER, ADMIN, MEMBER, ACCOUNTANT, VIEWER
 - **expense:update**: OWNER, ADMIN, MEMBER
 - **expense:delete**: OWNER, ADMIN
 
 ### Contacts
+
 - **contact:create**: OWNER, ADMIN, MEMBER
 - **contact:read**: OWNER, ADMIN, MEMBER, ACCOUNTANT, VIEWER
 - **contact:update**: OWNER, ADMIN, MEMBER
 - **contact:delete**: OWNER, ADMIN
 
 ### Products
+
 - **product:create**: OWNER, ADMIN, MEMBER
 - **product:read**: OWNER, ADMIN, MEMBER, ACCOUNTANT, VIEWER
 - **product:update**: OWNER, ADMIN, MEMBER
 - **product:delete**: OWNER, ADMIN
 
 ### Settings & Management
+
 - **settings:read**: OWNER, ADMIN, ACCOUNTANT
 - **settings:update**: OWNER, ADMIN
 - **billing:manage**: OWNER only
@@ -49,6 +54,7 @@ The system supports five roles, defined in the Prisma schema:
 - **users:update_role**: OWNER only
 
 ### Reports
+
 - **reports:read**: OWNER, ADMIN, ACCOUNTANT, VIEWER
 - **reports:export**: OWNER, ADMIN, ACCOUNTANT
 
@@ -59,34 +65,34 @@ The system supports five roles, defined in the Prisma schema:
 For actions that require permission checking, use `requireCompanyWithPermission`:
 
 ```typescript
-import { requireAuth, requireCompanyWithPermission } from '@/lib/auth-utils'
+import { requireAuth, requireCompanyWithPermission } from "@/lib/auth-utils"
 
 export async function deleteInvoice(id: string) {
   try {
     const user = await requireAuth()
 
-    return requireCompanyWithPermission(user.id!, 'invoice:delete', async (company, user) => {
+    return requireCompanyWithPermission(user.id!, "invoice:delete", async (company, user) => {
       // User has permission, proceed with deletion
       const invoice = await db.eInvoice.findFirst({ where: { id } })
 
       if (!invoice) {
-        return { success: false, error: 'Invoice not found' }
+        return { success: false, error: "Invoice not found" }
       }
 
       await db.eInvoice.delete({ where: { id } })
-      revalidatePath('/invoices')
+      revalidatePath("/invoices")
 
       return { success: true }
     })
   } catch (error) {
-    console.error('Failed to delete invoice:', error)
+    console.error("Failed to delete invoice:", error)
 
     // Handle permission errors
-    if (error instanceof Error && error.message.includes('Permission denied')) {
-      return { success: false, error: 'You do not have permission to delete invoices' }
+    if (error instanceof Error && error.message.includes("Permission denied")) {
+      return { success: false, error: "You do not have permission to delete invoices" }
     }
 
-    return { success: false, error: 'Failed to delete invoice' }
+    return { success: false, error: "Failed to delete invoice" }
   }
 }
 ```
@@ -96,7 +102,7 @@ export async function deleteInvoice(id: string) {
 If an action doesn't require specific permissions (e.g., listing resources that all users can read), use `requireCompanyWithContext`:
 
 ```typescript
-import { requireAuth, requireCompanyWithContext } from '@/lib/auth-utils'
+import { requireAuth, requireCompanyWithContext } from "@/lib/auth-utils"
 
 export async function getInvoices() {
   const user = await requireAuth()
@@ -111,28 +117,31 @@ export async function getInvoices() {
 ## Helper Functions
 
 ### `hasPermission(userId, companyId, permission)`
+
 Checks if a user has a specific permission. Returns a boolean.
 
 ```typescript
-import { hasPermission } from '@/lib/rbac'
+import { hasPermission } from "@/lib/rbac"
 
-const canDelete = await hasPermission(userId, companyId, 'invoice:delete')
+const canDelete = await hasPermission(userId, companyId, "invoice:delete")
 if (canDelete) {
   // Show delete button
 }
 ```
 
 ### `requirePermission(userId, companyId, permission)`
+
 Throws an error if the user doesn't have permission. Useful when you need to check permissions in the middle of an operation.
 
 ```typescript
-import { requirePermission } from '@/lib/rbac'
+import { requirePermission } from "@/lib/rbac"
 
-await requirePermission(userId, companyId, 'invoice:delete')
+await requirePermission(userId, companyId, "invoice:delete")
 // Will throw if user doesn't have permission
 ```
 
 ### `roleHasPermission(role, permission)`
+
 Check if a role has permission without a database lookup. Useful for UI rendering.
 
 ```typescript
@@ -145,13 +154,14 @@ if (roleHasPermission(userRole, 'invoice:delete')) {
 ```
 
 ### `getUserRole(userId, companyId)`
+
 Get the user's role for a specific company.
 
 ```typescript
-import { getUserRole } from '@/lib/rbac'
+import { getUserRole } from "@/lib/rbac"
 
 const role = await getUserRole(userId, companyId)
-console.log('User role:', role)
+console.log("User role:", role)
 ```
 
 ## Extending the Permission System
@@ -165,15 +175,15 @@ export const PERMISSIONS = {
   // ... existing permissions ...
 
   // New feature permissions
-  'analytics:read': ['OWNER', 'ADMIN', 'ACCOUNTANT'],
-  'analytics:export': ['OWNER', 'ADMIN'],
+  "analytics:read": ["OWNER", "ADMIN", "ACCOUNTANT"],
+  "analytics:export": ["OWNER", "ADMIN"],
 } as const
 ```
 
 2. Use the new permission in your server actions:
 
 ```typescript
-return requireCompanyWithPermission(user.id!, 'analytics:export', async () => {
+return requireCompanyWithPermission(user.id!, "analytics:export", async () => {
   // Export analytics
 })
 ```
@@ -183,11 +193,13 @@ return requireCompanyWithPermission(user.id!, 'analytics:export', async () => {
 To migrate existing server actions to use RBAC:
 
 1. Import `requireCompanyWithPermission`:
+
    ```typescript
-   import { requireCompanyWithPermission } from '@/lib/auth-utils'
+   import { requireCompanyWithPermission } from "@/lib/auth-utils"
    ```
 
 2. Replace `requireCompanyWithContext` with `requireCompanyWithPermission` for sensitive operations:
+
    ```typescript
    // Before
    return requireCompanyWithContext(user.id!, async () => {
@@ -195,7 +207,7 @@ To migrate existing server actions to use RBAC:
    })
 
    // After
-   return requireCompanyWithPermission(user.id!, 'invoice:delete', async () => {
+   return requireCompanyWithPermission(user.id!, "invoice:delete", async () => {
      await db.eInvoice.delete({ where: { id } })
    })
    ```
@@ -224,5 +236,6 @@ Tests are available in `/home/admin/FiskAI/src/lib/__tests__/rbac.test.ts` to ve
 ## Examples
 
 See the following files for implementation examples:
+
 - `/home/admin/FiskAI/src/app/actions/invoice.ts` - Invoice delete action
 - `/home/admin/FiskAI/src/app/actions/expense.ts` - Expense delete action

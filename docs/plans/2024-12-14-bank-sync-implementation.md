@@ -13,6 +13,7 @@
 ## Task 1: Database Schema - Enums and BankAccount Extensions
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add new enums after existing enums (~line 50)**
@@ -143,6 +144,7 @@ git commit -m "schema: add bank sync enums and extend BankAccount/BankTransactio
 ## Task 2: Database Schema - New Models
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add BankConnection model (after BankTransaction)**
@@ -233,6 +235,7 @@ git commit -m "schema: add BankConnection and PotentialDuplicate models"
 ## Task 3: Provider Interface and Types
 
 **Files:**
+
 - Create: `src/lib/bank-sync/types.ts`
 - Create: `src/lib/bank-sync/provider.ts`
 
@@ -261,7 +264,7 @@ export interface ProviderTransaction {
 export interface ProviderBalance {
   amount: number
   currency: string
-  type: 'available' | 'current'
+  type: "available" | "current"
 }
 
 export interface ConnectionResult {
@@ -286,7 +289,7 @@ import type {
   ProviderBalance,
   ConnectionResult,
   CreateConnectionResult,
-} from './types'
+} from "./types"
 
 export interface BankSyncProvider {
   name: string
@@ -313,10 +316,7 @@ export interface BankSyncProvider {
   /**
    * Fetch transactions since a given date
    */
-  fetchTransactions(
-    providerAccountId: string,
-    since: Date
-  ): Promise<ProviderTransaction[]>
+  fetchTransactions(providerAccountId: string, since: Date): Promise<ProviderTransaction[]>
 
   /**
    * Fetch current balance
@@ -347,6 +347,7 @@ git commit -m "feat(bank-sync): add provider interface and types"
 ## Task 4: GoCardless Provider Implementation
 
 **Files:**
+
 - Create: `src/lib/bank-sync/providers/gocardless.ts`
 - Create: `src/lib/bank-sync/providers/index.ts`
 
@@ -355,17 +356,16 @@ git commit -m "feat(bank-sync): add provider interface and types"
 ```typescript
 // src/lib/bank-sync/providers/gocardless.ts
 
-import type {
-  BankSyncProvider,
-} from '../provider'
+import type { BankSyncProvider } from "../provider"
 import type {
   ProviderTransaction,
   ProviderBalance,
   ConnectionResult,
   CreateConnectionResult,
-} from '../types'
+} from "../types"
 
-const GOCARDLESS_BASE = process.env.GOCARDLESS_BASE_URL || 'https://bankaccountdata.gocardless.com/api/v2'
+const GOCARDLESS_BASE =
+  process.env.GOCARDLESS_BASE_URL || "https://bankaccountdata.gocardless.com/api/v2"
 
 // Token cache (simple in-memory, refresh when expired)
 let tokenCache: { access: string; expiresAt: number } | null = null
@@ -379,12 +379,12 @@ async function getAccessToken(): Promise<string> {
   const secretKey = process.env.GOCARDLESS_SECRET_KEY
 
   if (!secretId || !secretKey) {
-    throw new Error('GoCardless credentials not configured')
+    throw new Error("GoCardless credentials not configured")
   }
 
   const res = await fetch(`${GOCARDLESS_BASE}/token/new/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       secret_id: secretId,
       secret_key: secretKey,
@@ -411,7 +411,7 @@ async function gcFetch<T>(endpoint: string, options: RequestInit = {}): Promise<
   const res = await fetch(`${GOCARDLESS_BASE}${endpoint}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
       ...options.headers,
     },
@@ -427,24 +427,24 @@ async function gcFetch<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 // Croatian bank name to GoCardless institution ID mapping
 const INSTITUTION_MAP: Record<string, string> = {
-  'zagrebačka banka': 'ZAGREBACKA_BANKA_ZABAHR2X',
-  'zaba': 'ZAGREBACKA_BANKA_ZABAHR2X',
-  'privredna banka zagreb': 'PBZ_PBZGHR2X',
-  'pbz': 'PBZ_PBZGHR2X',
-  'erste bank': 'ERSTE_BANK_GIBAHR2X',
-  'erste&steiermärkische bank': 'ERSTE_BANK_GIBAHR2X',
-  'raiffeisenbank austria': 'RBA_RZBHHR2X',
-  'raiffeisen bank': 'RBA_RZBHHR2X',
-  'rba': 'RBA_RZBHHR2X',
-  'otp banka': 'OTP_BANKA_OTPVHR2X',
-  'otp': 'OTP_BANKA_OTPVHR2X',
-  'addiko bank': 'ADDIKO_BANK_HAABHR22',
-  'hrvatska poštanska banka': 'HPB_HABORHR2X',
-  'hpb': 'HPB_HABORHR2X',
+  "zagrebačka banka": "ZAGREBACKA_BANKA_ZABAHR2X",
+  zaba: "ZAGREBACKA_BANKA_ZABAHR2X",
+  "privredna banka zagreb": "PBZ_PBZGHR2X",
+  pbz: "PBZ_PBZGHR2X",
+  "erste bank": "ERSTE_BANK_GIBAHR2X",
+  "erste&steiermärkische bank": "ERSTE_BANK_GIBAHR2X",
+  "raiffeisenbank austria": "RBA_RZBHHR2X",
+  "raiffeisen bank": "RBA_RZBHHR2X",
+  rba: "RBA_RZBHHR2X",
+  "otp banka": "OTP_BANKA_OTPVHR2X",
+  otp: "OTP_BANKA_OTPVHR2X",
+  "addiko bank": "ADDIKO_BANK_HAABHR22",
+  "hrvatska poštanska banka": "HPB_HABORHR2X",
+  hpb: "HPB_HABORHR2X",
 }
 
 export const gocardlessProvider: BankSyncProvider = {
-  name: 'gocardless',
+  name: "gocardless",
 
   async getInstitutionId(bankName: string): Promise<string | null> {
     const normalized = bankName.toLowerCase().trim()
@@ -464,12 +464,13 @@ export const gocardlessProvider: BankSyncProvider = {
     // Fallback: fetch from API and search
     try {
       const data = await gcFetch<{ results: Array<{ id: string; name: string }> }>(
-        '/institutions/?country=HR'
+        "/institutions/?country=HR"
       )
 
       const match = data.results.find(
-        (inst) => inst.name.toLowerCase().includes(normalized) ||
-                  normalized.includes(inst.name.toLowerCase())
+        (inst) =>
+          inst.name.toLowerCase().includes(normalized) ||
+          normalized.includes(inst.name.toLowerCase())
       )
 
       return match?.id || null
@@ -483,13 +484,13 @@ export const gocardlessProvider: BankSyncProvider = {
     redirectUrl: string,
     reference: string
   ): Promise<CreateConnectionResult> {
-    const data = await gcFetch<{ id: string; link: string }>('/requisitions/', {
-      method: 'POST',
+    const data = await gcFetch<{ id: string; link: string }>("/requisitions/", {
+      method: "POST",
       body: JSON.stringify({
         institution_id: institutionId,
         redirect: redirectUrl,
         reference,
-        user_language: 'HR',
+        user_language: "HR",
       }),
     })
 
@@ -506,7 +507,7 @@ export const gocardlessProvider: BankSyncProvider = {
       accounts: string[]
     }>(`/requisitions/${connectionId}/`)
 
-    if (data.status !== 'LN') {
+    if (data.status !== "LN") {
       throw new Error(`Requisition not linked: status=${data.status}`)
     }
 
@@ -524,7 +525,7 @@ export const gocardlessProvider: BankSyncProvider = {
           id: accountId,
           iban: details.iban,
           name: details.owner_name,
-          currency: 'EUR',
+          currency: "EUR",
         }
       })
     )
@@ -536,11 +537,8 @@ export const gocardlessProvider: BankSyncProvider = {
     return { accounts, expiresAt }
   },
 
-  async fetchTransactions(
-    providerAccountId: string,
-    since: Date
-  ): Promise<ProviderTransaction[]> {
-    const dateFrom = since.toISOString().split('T')[0]
+  async fetchTransactions(providerAccountId: string, since: Date): Promise<ProviderTransaction[]> {
+    const dateFrom = since.toISOString().split("T")[0]
 
     const data = await gcFetch<{
       transactions: {
@@ -565,13 +563,14 @@ export const gocardlessProvider: BankSyncProvider = {
       const isCredit = amount > 0
 
       return {
-        externalId: txn.transactionId || txn.internalTransactionId || `${txn.bookingDate}-${amount}`,
+        externalId:
+          txn.transactionId || txn.internalTransactionId || `${txn.bookingDate}-${amount}`,
         date: new Date(txn.bookingDate),
         amount,
         description:
           txn.remittanceInformationUnstructured ||
-          txn.remittanceInformationUnstructuredArray?.join(' ') ||
-          '',
+          txn.remittanceInformationUnstructuredArray?.join(" ") ||
+          "",
         reference: txn.transactionId,
         counterpartyName: isCredit ? txn.debtorName : txn.creditorName,
         counterpartyIban: isCredit ? txn.debtorAccount?.iban : txn.creditorAccount?.iban,
@@ -588,16 +587,17 @@ export const gocardlessProvider: BankSyncProvider = {
         }>
       }>(`/accounts/${providerAccountId}/balances/`)
 
-      const balance = data.balances.find(
-        (b) => b.balanceType === 'interimAvailable' || b.balanceType === 'expected'
-      ) || data.balances[0]
+      const balance =
+        data.balances.find(
+          (b) => b.balanceType === "interimAvailable" || b.balanceType === "expected"
+        ) || data.balances[0]
 
       if (!balance) return null
 
       return {
         amount: parseFloat(balance.balanceAmount.amount),
         currency: balance.balanceAmount.currency,
-        type: balance.balanceType === 'interimAvailable' ? 'available' : 'current',
+        type: balance.balanceType === "interimAvailable" ? "available" : "current",
       }
     } catch {
       return null
@@ -607,7 +607,7 @@ export const gocardlessProvider: BankSyncProvider = {
   async isConnectionValid(connectionId: string): Promise<boolean> {
     try {
       const data = await gcFetch<{ status: string }>(`/requisitions/${connectionId}/`)
-      return data.status === 'LN'
+      return data.status === "LN"
     } catch {
       return false
     }
@@ -620,15 +620,15 @@ export const gocardlessProvider: BankSyncProvider = {
 ```typescript
 // src/lib/bank-sync/providers/index.ts
 
-import type { BankSyncProvider } from '../provider'
-import { gocardlessProvider } from './gocardless'
+import type { BankSyncProvider } from "../provider"
+import { gocardlessProvider } from "./gocardless"
 
 const providers: Record<string, BankSyncProvider> = {
   gocardless: gocardlessProvider,
 }
 
 export function getProvider(name?: string | null): BankSyncProvider {
-  const providerName = name || process.env.BANK_SYNC_PROVIDER || 'gocardless'
+  const providerName = name || process.env.BANK_SYNC_PROVIDER || "gocardless"
 
   const provider = providers[providerName.toLowerCase()]
 
@@ -640,9 +640,9 @@ export function getProvider(name?: string | null): BankSyncProvider {
 }
 
 export function isProviderConfigured(): boolean {
-  const providerName = process.env.BANK_SYNC_PROVIDER || 'gocardless'
+  const providerName = process.env.BANK_SYNC_PROVIDER || "gocardless"
 
-  if (providerName === 'gocardless') {
+  if (providerName === "gocardless") {
     return !!(process.env.GOCARDLESS_SECRET_ID && process.env.GOCARDLESS_SECRET_KEY)
   }
 
@@ -667,6 +667,7 @@ git commit -m "feat(bank-sync): implement GoCardless provider"
 ## Task 5: Deduplication Engine
 
 **Files:**
+
 - Create: `src/lib/bank-sync/dedup.ts`
 
 **Step 1: Create deduplication engine**
@@ -674,9 +675,9 @@ git commit -m "feat(bank-sync): implement GoCardless provider"
 ```typescript
 // src/lib/bank-sync/dedup.ts
 
-import { db } from '@/lib/db'
-import { Prisma } from '@prisma/client'
-import type { ProviderTransaction } from './types'
+import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
+import type { ProviderTransaction } from "./types"
 
 const Decimal = Prisma.Decimal
 
@@ -690,8 +691,8 @@ interface DedupResult {
  * Calculate similarity between two strings (0-1)
  */
 function stringSimilarity(a: string, b: string): number {
-  const aNorm = a.toLowerCase().replace(/[^a-z0-9]/g, '')
-  const bNorm = b.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const aNorm = a.toLowerCase().replace(/[^a-z0-9]/g, "")
+  const bNorm = b.toLowerCase().replace(/[^a-z0-9]/g, "")
 
   if (aNorm === bNorm) return 1
   if (!aNorm || !bNorm) return 0
@@ -791,7 +792,7 @@ async function findFuzzyDuplicates(
             transactionBId: candidate.id,
             similarityScore: similarity,
             reason: `Sličan datum (±2 dana), isti iznos, opis ${Math.round(similarity * 100)}% sličan`,
-            status: 'PENDING',
+            status: "PENDING",
           },
         })
       }
@@ -833,8 +834,8 @@ export async function processTransactionsWithDedup(
         counterpartyName: txn.counterpartyName,
         counterpartyIban: txn.counterpartyIban,
         externalId: txn.externalId,
-        source: 'AIS_SYNC',
-        matchStatus: 'UNMATCHED',
+        source: "AIS_SYNC",
+        matchStatus: "UNMATCHED",
       },
     })
 
@@ -842,13 +843,13 @@ export async function processTransactionsWithDedup(
 
     // Tier 2: Fuzzy duplicate detection
     const beforeCount = await db.potentialDuplicate.count({
-      where: { companyId, status: 'PENDING' },
+      where: { companyId, status: "PENDING" },
     })
 
     await findFuzzyDuplicates(bankAccountId, companyId, txn, newTxn.id)
 
     const afterCount = await db.potentialDuplicate.count({
-      where: { companyId, status: 'PENDING' },
+      where: { companyId, status: "PENDING" },
     })
 
     result.flaggedForReview += afterCount - beforeCount
@@ -862,7 +863,7 @@ export async function processTransactionsWithDedup(
  */
 export async function resolveDuplicate(
   duplicateId: string,
-  resolution: 'KEEP_BOTH' | 'MERGE' | 'DELETE_NEW',
+  resolution: "KEEP_BOTH" | "MERGE" | "DELETE_NEW",
   userId: string
 ): Promise<void> {
   const duplicate = await db.potentialDuplicate.findUnique({
@@ -870,15 +871,15 @@ export async function resolveDuplicate(
   })
 
   if (!duplicate) {
-    throw new Error('Duplicate not found')
+    throw new Error("Duplicate not found")
   }
 
-  if (resolution === 'DELETE_NEW') {
+  if (resolution === "DELETE_NEW") {
     // Delete the newer transaction (transactionA is always the new one)
     await db.bankTransaction.delete({
       where: { id: duplicate.transactionAId },
     })
-  } else if (resolution === 'MERGE') {
+  } else if (resolution === "MERGE") {
     // Keep transactionB (the original), delete transactionA
     await db.bankTransaction.delete({
       where: { id: duplicate.transactionAId },
@@ -889,7 +890,7 @@ export async function resolveDuplicate(
   await db.potentialDuplicate.update({
     where: { id: duplicateId },
     data: {
-      status: 'RESOLVED',
+      status: "RESOLVED",
       resolution,
       resolvedAt: new Date(),
       resolvedBy: userId,
@@ -915,6 +916,7 @@ git commit -m "feat(bank-sync): implement deduplication engine"
 ## Task 6: API Route - Connect Bank Account
 
 **Files:**
+
 - Create: `src/app/api/bank/connect/route.ts`
 
 **Step 1: Create connect endpoint**
@@ -922,11 +924,11 @@ git commit -m "feat(bank-sync): implement deduplication engine"
 ```typescript
 // src/app/api/bank/connect/route.ts
 
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
-import { getProvider, isProviderConfigured } from '@/lib/bank-sync/providers'
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
+import { getProvider, isProviderConfigured } from "@/lib/bank-sync/providers"
 
 export async function POST(request: Request) {
   try {
@@ -935,19 +937,13 @@ export async function POST(request: Request) {
     setTenantContext({ companyId: company.id, userId: user.id! })
 
     if (!isProviderConfigured()) {
-      return NextResponse.json(
-        { error: 'Bank sync provider not configured' },
-        { status: 503 }
-      )
+      return NextResponse.json({ error: "Bank sync provider not configured" }, { status: 503 })
     }
 
     const { bankAccountId } = await request.json()
 
     if (!bankAccountId) {
-      return NextResponse.json(
-        { error: 'bankAccountId is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "bankAccountId is required" }, { status: 400 })
     }
 
     // Find the bank account
@@ -956,17 +952,11 @@ export async function POST(request: Request) {
     })
 
     if (!bankAccount) {
-      return NextResponse.json(
-        { error: 'Bank account not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Bank account not found" }, { status: 404 })
     }
 
-    if (bankAccount.connectionStatus === 'CONNECTED') {
-      return NextResponse.json(
-        { error: 'Bank account already connected' },
-        { status: 400 }
-      )
+    if (bankAccount.connectionStatus === "CONNECTED") {
+      return NextResponse.json({ error: "Bank account already connected" }, { status: 400 })
     }
 
     // Get provider and institution ID
@@ -981,7 +971,7 @@ export async function POST(request: Request) {
     }
 
     // Create connection
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.fiskai.hr'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.fiskai.hr"
     const redirectUrl = `${baseUrl}/api/bank/callback`
 
     const result = await provider.createConnection(
@@ -996,25 +986,25 @@ export async function POST(request: Request) {
       create: {
         companyId: company.id,
         bankAccountId,
-        provider: 'GOCARDLESS',
+        provider: "GOCARDLESS",
         providerConnectionId: result.connectionId,
         institutionId,
         institutionName: bankAccount.bankName,
-        status: 'MANUAL', // Will be updated on callback
+        status: "MANUAL", // Will be updated on callback
       },
       update: {
         providerConnectionId: result.connectionId,
         institutionId,
-        status: 'MANUAL',
+        status: "MANUAL",
         lastError: null,
       },
     })
 
     return NextResponse.json({ redirectUrl: result.redirectUrl })
   } catch (error) {
-    console.error('[bank/connect] error:', error)
+    console.error("[bank/connect] error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Connection failed' },
+      { error: error instanceof Error ? error.message : "Connection failed" },
       { status: 500 }
     )
   }
@@ -1038,6 +1028,7 @@ git commit -m "feat(bank-sync): add connect API endpoint"
 ## Task 7: API Route - Callback Handler
 
 **Files:**
+
 - Create: `src/app/api/bank/callback/route.ts`
 
 **Step 1: Create callback endpoint**
@@ -1045,17 +1036,17 @@ git commit -m "feat(bank-sync): add connect API endpoint"
 ```typescript
 // src/app/api/bank/callback/route.ts
 
-import { redirect } from 'next/navigation'
-import { db } from '@/lib/db'
-import { getProvider } from '@/lib/bank-sync/providers'
-import { processTransactionsWithDedup } from '@/lib/bank-sync/dedup'
+import { redirect } from "next/navigation"
+import { db } from "@/lib/db"
+import { getProvider } from "@/lib/bank-sync/providers"
+import { processTransactionsWithDedup } from "@/lib/bank-sync/dedup"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const ref = searchParams.get('ref')
+  const ref = searchParams.get("ref")
 
   if (!ref) {
-    redirect('/banking?error=missing_ref')
+    redirect("/banking?error=missing_ref")
   }
 
   try {
@@ -1066,7 +1057,7 @@ export async function GET(request: Request) {
     })
 
     if (!connection) {
-      redirect('/banking?error=unknown_connection')
+      redirect("/banking?error=unknown_connection")
     }
 
     const provider = getProvider(connection.provider)
@@ -1075,9 +1066,7 @@ export async function GET(request: Request) {
     const result = await provider.handleCallback(connection.providerConnectionId)
 
     // Find matching account by IBAN
-    const matchedAccount = result.accounts.find(
-      (acc) => acc.iban === connection.bankAccount.iban
-    )
+    const matchedAccount = result.accounts.find((acc) => acc.iban === connection.bankAccount.iban)
 
     if (!matchedAccount) {
       await db.bankConnection.update({
@@ -1086,7 +1075,7 @@ export async function GET(request: Request) {
           lastError: `No account found with IBAN ${connection.bankAccount.iban}`,
         },
       })
-      redirect('/banking?error=iban_not_found')
+      redirect("/banking?error=iban_not_found")
     }
 
     // Update connection and bank account
@@ -1094,7 +1083,7 @@ export async function GET(request: Request) {
       db.bankConnection.update({
         where: { id: connection.id },
         data: {
-          status: 'CONNECTED',
+          status: "CONNECTED",
           authorizedAt: new Date(),
           expiresAt: result.expiresAt,
           lastError: null,
@@ -1103,9 +1092,9 @@ export async function GET(request: Request) {
       db.bankAccount.update({
         where: { id: connection.bankAccountId },
         data: {
-          syncProvider: 'GOCARDLESS',
+          syncProvider: "GOCARDLESS",
           syncProviderAccountId: matchedAccount.id,
-          connectionStatus: 'CONNECTED',
+          connectionStatus: "CONNECTED",
           connectionExpiresAt: result.expiresAt,
         },
       }),
@@ -1136,14 +1125,14 @@ export async function GET(request: Request) {
         })
       }
     } catch (syncError) {
-      console.error('[bank/callback] initial sync error:', syncError)
+      console.error("[bank/callback] initial sync error:", syncError)
       // Don't fail the connection, just log
     }
 
-    redirect('/banking?success=connected')
+    redirect("/banking?success=connected")
   } catch (error) {
-    console.error('[bank/callback] error:', error)
-    redirect('/banking?error=callback_failed')
+    console.error("[bank/callback] error:", error)
+    redirect("/banking?error=callback_failed")
   }
 }
 ```
@@ -1165,6 +1154,7 @@ git commit -m "feat(bank-sync): add callback API endpoint"
 ## Task 8: API Route - Daily Sync Cron
 
 **Files:**
+
 - Create: `src/app/api/cron/bank-sync/route.ts`
 
 **Step 1: Create cron endpoint**
@@ -1172,18 +1162,18 @@ git commit -m "feat(bank-sync): add callback API endpoint"
 ```typescript
 // src/app/api/cron/bank-sync/route.ts
 
-import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { getProvider } from '@/lib/bank-sync/providers'
-import { processTransactionsWithDedup } from '@/lib/bank-sync/dedup'
+import { NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { getProvider } from "@/lib/bank-sync/providers"
+import { processTransactionsWithDedup } from "@/lib/bank-sync/dedup"
 
 export async function POST(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get('authorization')
+  const authHeader = request.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const results: Array<{
@@ -1196,7 +1186,7 @@ export async function POST(request: Request) {
   try {
     // Find all connected accounts
     const accounts = await db.bankAccount.findMany({
-      where: { connectionStatus: 'CONNECTED' },
+      where: { connectionStatus: "CONNECTED" },
       include: { connection: true },
     })
 
@@ -1212,9 +1202,9 @@ export async function POST(request: Request) {
             // Expired - mark and skip
             await db.bankAccount.update({
               where: { id: account.id },
-              data: { connectionStatus: 'EXPIRED' },
+              data: { connectionStatus: "EXPIRED" },
             })
-            results.push({ accountId: account.id, status: 'expired' })
+            results.push({ accountId: account.id, status: "expired" })
             continue
           }
 
@@ -1225,7 +1215,7 @@ export async function POST(request: Request) {
         }
 
         if (!account.syncProviderAccountId || !account.connection) {
-          results.push({ accountId: account.id, status: 'skipped', error: 'No provider account' })
+          results.push({ accountId: account.id, status: "skipped", error: "No provider account" })
           continue
         }
 
@@ -1233,10 +1223,7 @@ export async function POST(request: Request) {
         const provider = getProvider(account.syncProvider)
         const since = account.lastSyncAt || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
-        const transactions = await provider.fetchTransactions(
-          account.syncProviderAccountId,
-          since
-        )
+        const transactions = await provider.fetchTransactions(account.syncProviderAccountId, since)
 
         // Process with dedup
         const dedupResult = await processTransactionsWithDedup(
@@ -1258,15 +1245,15 @@ export async function POST(request: Request) {
 
         results.push({
           accountId: account.id,
-          status: 'synced',
+          status: "synced",
           inserted: dedupResult.inserted,
         })
       } catch (error) {
         console.error(`[bank-sync] Error syncing account ${account.id}:`, error)
         results.push({
           accountId: account.id,
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          status: "error",
+          error: error instanceof Error ? error.message : "Unknown error",
         })
       }
     }
@@ -1276,11 +1263,8 @@ export async function POST(request: Request) {
       results,
     })
   } catch (error) {
-    console.error('[bank-sync] Cron error:', error)
-    return NextResponse.json(
-      { error: 'Sync failed' },
-      { status: 500 }
-    )
+    console.error("[bank-sync] Cron error:", error)
+    return NextResponse.json({ error: "Sync failed" }, { status: 500 })
   }
 }
 
@@ -1307,6 +1291,7 @@ git commit -m "feat(bank-sync): add daily cron sync endpoint"
 ## Task 9: API Route - Disconnect
 
 **Files:**
+
 - Create: `src/app/api/bank/disconnect/route.ts`
 
 **Step 1: Create disconnect endpoint**
@@ -1314,10 +1299,10 @@ git commit -m "feat(bank-sync): add daily cron sync endpoint"
 ```typescript
 // src/app/api/bank/disconnect/route.ts
 
-import { NextResponse } from 'next/server'
-import { requireAuth, requireCompany } from '@/lib/auth-utils'
-import { db } from '@/lib/db'
-import { setTenantContext } from '@/lib/prisma-extensions'
+import { NextResponse } from "next/server"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
+import { db } from "@/lib/db"
+import { setTenantContext } from "@/lib/prisma-extensions"
 
 export async function POST(request: Request) {
   try {
@@ -1328,10 +1313,7 @@ export async function POST(request: Request) {
     const { bankAccountId } = await request.json()
 
     if (!bankAccountId) {
-      return NextResponse.json(
-        { error: 'bankAccountId is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "bankAccountId is required" }, { status: 400 })
     }
 
     // Find and verify ownership
@@ -1340,10 +1322,7 @@ export async function POST(request: Request) {
     })
 
     if (!bankAccount) {
-      return NextResponse.json(
-        { error: 'Bank account not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Bank account not found" }, { status: 404 })
     }
 
     // Delete connection and reset account
@@ -1356,7 +1335,7 @@ export async function POST(request: Request) {
         data: {
           syncProvider: null,
           syncProviderAccountId: null,
-          connectionStatus: 'MANUAL',
+          connectionStatus: "MANUAL",
           connectionExpiresAt: null,
         },
       }),
@@ -1364,11 +1343,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[bank/disconnect] error:', error)
-    return NextResponse.json(
-      { error: 'Disconnect failed' },
-      { status: 500 }
-    )
+    console.error("[bank/disconnect] error:", error)
+    return NextResponse.json({ error: "Disconnect failed" }, { status: 500 })
   }
 }
 ```
@@ -1390,6 +1366,7 @@ git commit -m "feat(bank-sync): add disconnect API endpoint"
 ## Task 10: UI Component - Connect Button
 
 **Files:**
+
 - Create: `src/app/(dashboard)/banking/components/connect-button.tsx`
 
 **Step 1: Create connect button component**
@@ -1526,6 +1503,7 @@ git commit -m "feat(bank-sync): add connect button UI component"
 ## Task 11: UI Component - Connection Badge
 
 **Files:**
+
 - Create: `src/app/(dashboard)/banking/components/connection-badge.tsx`
 
 **Step 1: Create connection badge component**
@@ -1593,6 +1571,7 @@ git commit -m "feat(bank-sync): add connection badge UI component"
 ## Task 12: Integrate Components into Banking Page
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/banking/page.tsx`
 
 **Step 1: Read current page to understand structure**
@@ -1602,8 +1581,8 @@ First read the file to see current implementation.
 **Step 2: Add imports at top of file**
 
 ```typescript
-import { ConnectButton } from './components/connect-button'
-import { ConnectionBadge } from './components/connection-badge'
+import { ConnectButton } from "./components/connect-button"
+import { ConnectionBadge } from "./components/connection-badge"
 ```
 
 **Step 3: Update bank account cards to show connection status and button**
@@ -1611,12 +1590,11 @@ import { ConnectionBadge } from './components/connection-badge'
 Find where bank accounts are rendered and add:
 
 ```tsx
-{/* In each bank account card, add: */}
-<div className="flex items-center justify-between">
-  <ConnectionBadge
-    status={account.connectionStatus}
-    expiresAt={account.connectionExpiresAt}
-  />
+{
+  /* In each bank account card, add: */
+}
+;<div className="flex items-center justify-between">
+  <ConnectionBadge status={account.connectionStatus} expiresAt={account.connectionExpiresAt} />
   <ConnectButton
     bankAccountId={account.id}
     connectionStatus={account.connectionStatus}
@@ -1642,6 +1620,7 @@ git commit -m "feat(bank-sync): integrate connection UI into banking page"
 ## Task 13: Add Vercel Cron Configuration
 
 **Files:**
+
 - Create or modify: `vercel.json`
 
 **Step 1: Add cron configuration**
@@ -1671,6 +1650,7 @@ git commit -m "config: add daily bank sync cron job"
 ## Task 14: Environment Variables Documentation
 
 **Files:**
+
 - Modify: `.env.example` or create if not exists
 
 **Step 1: Add bank sync environment variables**
@@ -1700,6 +1680,7 @@ git commit -m "docs: add bank sync environment variables"
 **Step 1: Verify all files exist**
 
 Run:
+
 ```bash
 ls -la /home/admin/FiskAI/src/lib/bank-sync/
 ls -la /home/admin/FiskAI/src/lib/bank-sync/providers/
@@ -1742,22 +1723,22 @@ Expected: Push succeeds, Coolify deployment triggered
 
 ## Summary
 
-| Task | Description | Files |
-|------|-------------|-------|
-| 1 | Schema enums + BankAccount extensions | prisma/schema.prisma |
-| 2 | New models (BankConnection, PotentialDuplicate) | prisma/schema.prisma |
-| 3 | Provider interface + types | src/lib/bank-sync/ |
-| 4 | GoCardless provider implementation | src/lib/bank-sync/providers/ |
-| 5 | Deduplication engine | src/lib/bank-sync/dedup.ts |
-| 6 | Connect API endpoint | src/app/api/bank/connect/ |
-| 7 | Callback API endpoint | src/app/api/bank/callback/ |
-| 8 | Cron sync endpoint | src/app/api/cron/bank-sync/ |
-| 9 | Disconnect API endpoint | src/app/api/bank/disconnect/ |
-| 10 | Connect button component | banking/components/ |
-| 11 | Connection badge component | banking/components/ |
-| 12 | Banking page integration | banking/page.tsx |
-| 13 | Vercel cron config | vercel.json |
-| 14 | Environment variables | .env.example |
-| 15 | Final integration test | - |
+| Task | Description                                     | Files                        |
+| ---- | ----------------------------------------------- | ---------------------------- |
+| 1    | Schema enums + BankAccount extensions           | prisma/schema.prisma         |
+| 2    | New models (BankConnection, PotentialDuplicate) | prisma/schema.prisma         |
+| 3    | Provider interface + types                      | src/lib/bank-sync/           |
+| 4    | GoCardless provider implementation              | src/lib/bank-sync/providers/ |
+| 5    | Deduplication engine                            | src/lib/bank-sync/dedup.ts   |
+| 6    | Connect API endpoint                            | src/app/api/bank/connect/    |
+| 7    | Callback API endpoint                           | src/app/api/bank/callback/   |
+| 8    | Cron sync endpoint                              | src/app/api/cron/bank-sync/  |
+| 9    | Disconnect API endpoint                         | src/app/api/bank/disconnect/ |
+| 10   | Connect button component                        | banking/components/          |
+| 11   | Connection badge component                      | banking/components/          |
+| 12   | Banking page integration                        | banking/page.tsx             |
+| 13   | Vercel cron config                              | vercel.json                  |
+| 14   | Environment variables                           | .env.example                 |
+| 15   | Final integration test                          | -                            |
 
 **Total: 15 tasks**

@@ -38,12 +38,15 @@ keywords:
 ---
 
 <QuickAnswer>
-Rok za registraciju informacijskog posrednika je **31. prosinca 2025** za PDV obveznike (obvezno e-fakturiranje od 1.1.2026). Registracija se obavlja putem FiskAplikacija portala u 5 koraka. Paušalci mogu koristiti besplatnu državnu aplikaciju MIKROeRAČUN.
+  Rok za registraciju informacijskog posrednika je **31. prosinca 2025** za PDV obveznike (obvezno
+  e-fakturiranje od 1.1.2026). Registracija se obavlja putem FiskAplikacija portala u 5 koraka.
+  Paušalci mogu koristiti besplatnu državnu aplikaciju MIKROeRAČUN.
 </QuickAnswer>
 
 ## Što je informacijski posrednik?
 
 Informacijski posrednik je pravna osoba ovlaštena od strane Porezne uprave koja:
+
 - Prima e-račune od poduzetnika
 - Fiskalizira ih (dodaje JIR i QR kod)
 - Šalje ih krajnjem primatelju
@@ -54,12 +57,12 @@ Posrednik je tehnički "most" između vašeg računovodstvenog softwarea i Porez
 
 ## Tko mora registrirati posrednika?
 
-| Kategorija poduzetnika | Obveza od | Može koristiti MIKROeRAČUN? |
-|------------------------|-----------|------------------------------|
+| Kategorija poduzetnika | Obveza od | Može koristiti MIKROeRAČUN?    |
+| ---------------------- | --------- | ------------------------------ |
 | **PDV obveznici**      | 1.1.2026  | Ne (samo privatnog posrednika) |
-| **Ostali obrtnici**    | 1.1.2027  | Da (besplatno) |
-| **Paušalci**           | 1.1.2027  | Da (preporučeno) |
-| **d.o.o./j.d.o.o.**    | 1.1.2026  | Ne |
+| **Ostali obrtnici**    | 1.1.2027  | Da (besplatno)                 |
+| **Paušalci**           | 1.1.2027  | Da (preporučeno)               |
+| **d.o.o./j.d.o.o.**    | 1.1.2026  | Ne                             |
 
 **Preporuka:** Čak i ako niste obvezni do 2027., razmislite o ranoj implementaciji - testna faza počinje 1.9.2025.
 
@@ -73,6 +76,7 @@ Popis svih ovlaštenih informacijskih posrednika dostupan je na FiskAplikacija p
 - **MIKROeRAČUN** - Besplatna državna aplikacija (samo za paušalce)
 
 **Usporedba:**
+
 - Broj računa mjesečno
 - Cijena po računu
 - API integracija (za automatizaciju)
@@ -115,6 +119,7 @@ Popis svih ovlaštenih informacijskih posrednika dostupan je na FiskAplikacija p
 
 **1. Testirajte slanje računa**
 Većina posrednika nudi testno okruženje. Pošaljite probni račun i provjerite:
+
 - Generiranje JIR-a (jedinstveni identifikator računa)
 - QR kod na računu
 - Primitak potvrde od posrednika
@@ -122,11 +127,13 @@ Većina posrednika nudi testno okruženje. Pošaljite probni račun i provjerite
 
 **2. Uvjerite se u integraciju**
 Ako koristite računovodstveni software:
+
 - Provjerite podržava li API posrednika
 - Testirajte automatsko slanje
 - Postavite automatizirane podsjetnicima za nefakturirane usluge
 
 **3. Obučite osoblje**
+
 - Kako izdati e-račun
 - Kako poslati račun klijentu (PDF ili PEPPOL)
 - Što učiniti u slučaju greške
@@ -135,15 +142,19 @@ Ako koristite računovodstveni software:
 ## Česte greške pri odabiru posrednika
 
 **1. Odabir najjeftinijeg bez provjere funkcionalnosti**
+
 - Provjerite podržava li vaše potrebe (broj računa, API, format izvoza)
 
 **2. Kasna registracija**
+
 - Registrirajte se 2-3 tjedna prije roka kako biste imali vremena za testiranje
 
 **3. Neprovjeren API**
+
 - Ako koristite software, prije potpisivanja ugovora provjerite kompatibilnost
 
 **4. Zaboravljanje budućih troškova**
+
 - Neki posrednici nude besplatnu osnovnu uslugu, ali naplaćuju svaki dodatni račun
 
 ## Posebni slučajevi
@@ -159,18 +170,19 @@ Morate imati PDV broj u Hrvatskoj i registrirati posrednika ako izdajete račune
 
 ## Troškovi
 
-| Tip posrednika | Mjesečna naknada | Po računu | Napomena |
-|----------------|------------------|-----------|----------|
-| MIKROeRAČUN (država) | 0 EUR | 0 EUR | Samo za paušalce |
-| Osnovni paket | 10-35 EUR | 0,05-0,14 EUR | Do 100 računa/mj |
-| Standardni paket | 30-55 EUR | 0,02-0,09 EUR | Do 500 računa/mj |
-| Enterprise | 100+ EUR | Dogovor | Neograničeno, API, integracije |
+| Tip posrednika       | Mjesečna naknada | Po računu     | Napomena                       |
+| -------------------- | ---------------- | ------------- | ------------------------------ |
+| MIKROeRAČUN (država) | 0 EUR            | 0 EUR         | Samo za paušalce               |
+| Osnovni paket        | 10-35 EUR        | 0,05-0,14 EUR | Do 100 računa/mj               |
+| Standardni paket     | 30-55 EUR        | 0,02-0,09 EUR | Do 500 računa/mj               |
+| Enterprise           | 100+ EUR         | Dogovor       | Neograničeno, API, integracije |
 
 **Napomena:** Cijene su okvirne i variraju prema posredniku. Usporedite ponude.
 
 ## Promjena posrednika
 
 Možete promijeniti posrednika u bilo kojem trenutku:
+
 1. Registrirajte novog posrednika na FiskAplikacija
 2. Postavite datum prijelaza (minimum 7 dana)
 3. Otkažite ugovor sa starim posrednikom
@@ -180,10 +192,10 @@ Možete promijeniti posrednika u bilo kojem trenutku:
 
 ## Kazne za neusklađenost
 
-| Prekršaj | Kazna fizička osoba | Kazna pravna osoba |
-|----------|---------------------|---------------------|
-| Neizdavanje e-računa | 2.000-20.000 EUR | 10.000-200.000 EUR |
-| Neregistriran posrednik | 1.000-10.000 EUR | 5.000-100.000 EUR |
-| Kriva fiskalizacija | 500-5.000 EUR | značajne novčane kazne |
+| Prekršaj                | Kazna fizička osoba | Kazna pravna osoba     |
+| ----------------------- | ------------------- | ---------------------- |
+| Neizdavanje e-računa    | 2.000-20.000 EUR    | 10.000-200.000 EUR     |
+| Neregistriran posrednik | 1.000-10.000 EUR    | 5.000-100.000 EUR      |
+| Kriva fiskalizacija     | 500-5.000 EUR       | značajne novčane kazne |
 
 **Preporuka:** Registrirajte posrednika do **30. studenog 2025** kako biste imali mjesec dana za testiranje.

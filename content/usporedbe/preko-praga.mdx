@@ -44,11 +44,12 @@ Prešli ste godišnji limit od <FiscalCurrency path="THRESHOLDS.pausalni.value" 
 Kada prijeđete prag od <FiscalCurrency path="THRESHOLDS.pausalni.value" /> godišnjeg prihoda, imate **samo 8 dana** da prijavite promjenu Poreznoj upravi. Također, automatski ulazite u sustav PDV-a od prvog dana sljedećeg mjeseca nakon prelaska praga. Kasno prijavljivanje može rezultirati kaznama.
 
 **Što učiniti odmah:**
+
 1. Kontaktirajte knjigovođu čim znate da ste prešli ili ćete prijeći prag
 2. Prijavite promjenu Poreznoj upravi u zakonskom roku
 3. Pripremite se za vođenje poslovnih knjiga i obračun PDV-a
 4. Prilagodite cijene s PDV-om (25%) za domaće klijente
-</PDVCallout>
+   </PDVCallout>
 
 ## Brza usporedba opcija nakon prelaska praga
 
@@ -58,65 +59,97 @@ Kada prijeđete prag od <FiscalCurrency path="THRESHOLDS.pausalni.value" /> godi
     <ComparisonCell type="jdoo" isNegative>Kompleksna - osnivanje nove pravne osobe</ComparisonCell>
   </ComparisonRow>
 
-  <ComparisonRow label="Kontinuitet poslovanja">
-    <ComparisonCell type="obrt-dohodak" isPositive>Neprekinut - isti OIB, isti račun</ComparisonCell>
-    <ComparisonCell type="jdoo" isNegative>Prekid - novi OIB, novi račun, transfer klijenata</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Kontinuitet poslovanja">
+  <ComparisonCell type="obrt-dohodak" isPositive>
+    Neprekinut - isti OIB, isti račun
+  </ComparisonCell>
+  <ComparisonCell type="jdoo" isNegative>
+    Prekid - novi OIB, novi račun, transfer klijenata
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Troškovi prijelaza">
-    <ComparisonCell type="obrt-dohodak" isPositive>50-100 EUR (promjena u registru)</ComparisonCell>
-    <ComparisonCell type="jdoo" isNegative>1.500-3.000 EUR (osnivanje + zatvaranje obrta)</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Troškovi prijelaza">
+  <ComparisonCell type="obrt-dohodak" isPositive>
+    50-100 EUR (promjena u registru)
+  </ComparisonCell>
+  <ComparisonCell type="jdoo" isNegative>
+    1.500-3.000 EUR (osnivanje + zatvaranje obrta)
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Vrijeme prijelaza">
-    <ComparisonCell type="obrt-dohodak" isPositive>1-3 dana</ComparisonCell>
-    <ComparisonCell type="jdoo" isNegative>7-14 dana (+ zatvaranje obrta)</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Vrijeme prijelaza">
+  <ComparisonCell type="obrt-dohodak" isPositive>
+    1-3 dana
+  </ComparisonCell>
+  <ComparisonCell type="jdoo" isNegative>
+    7-14 dana (+ zatvaranje obrta)
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Mjesečni fiksni troškovi">
-    <ComparisonCell type="obrt-dohodak">262 EUR doprinosi + 100-300 EUR knjigovodstvo</ComparisonCell>
-    <ComparisonCell type="jdoo">450-500 EUR plaća direktora + 200-500 EUR knjigovodstvo</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Mjesečni fiksni troškovi">
+  <ComparisonCell type="obrt-dohodak">262 EUR doprinosi + 100-300 EUR knjigovodstvo</ComparisonCell>
+  <ComparisonCell type="jdoo">
+    450-500 EUR plaća direktora + 200-500 EUR knjigovodstvo
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Porezno opterećenje">
-    <ComparisonCell type="obrt-dohodak">20-30% na dobitak (dohodak)</ComparisonCell>
-    <ComparisonCell type="jdoo" isPositive>10-18% na dobitak (porez + dividenda)</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Porezno opterećenje">
+  <ComparisonCell type="obrt-dohodak">20-30% na dobitak (dohodak)</ComparisonCell>
+  <ComparisonCell type="jdoo" isPositive>
+    10-18% na dobitak (porez + dividenda)
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Odgovornost imovinom">
-    <ComparisonCell type="obrt-dohodak" isNegative>Da, cijelom osobnom imovinom</ComparisonCell>
-    <ComparisonCell type="jdoo" isPositive>Ne, ograničena na ulog</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Odgovornost imovinom">
+  <ComparisonCell type="obrt-dohodak" isNegative>
+    Da, cijelom osobnom imovinom
+  </ComparisonCell>
+  <ComparisonCell type="jdoo" isPositive>
+    Ne, ograničena na ulog
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Složenost poslovanja">
-    <ComparisonCell type="obrt-dohodak">Umjerena - jednostavno knjigovodstvo</ComparisonCell>
-    <ComparisonCell type="jdoo" isNegative>Visoka - složeno knjigovodstvo, skupštine</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Složenost poslovanja">
+  <ComparisonCell type="obrt-dohodak">Umjerena - jednostavno knjigovodstvo</ComparisonCell>
+  <ComparisonCell type="jdoo" isNegative>
+    Visoka - složeno knjigovodstvo, skupštine
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Potreban knjigovođa">
-    <ComparisonCell type="obrt-dohodak">Da (100-300 EUR/mj)</ComparisonCell>
-    <ComparisonCell type="jdoo" isNegative>Da (200-500 EUR/mj)</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Potreban knjigovođa">
+  <ComparisonCell type="obrt-dohodak">Da (100-300 EUR/mj)</ComparisonCell>
+  <ComparisonCell type="jdoo" isNegative>
+    Da (200-500 EUR/mj)
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Odbitak troškova">
-    <ComparisonCell type="obrt-dohodak" isPositive>Da, svi opravdani troškovi</ComparisonCell>
-    <ComparisonCell type="jdoo" isPositive>Da, svi opravdani troškovi</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Odbitak troškova">
+  <ComparisonCell type="obrt-dohodak" isPositive>
+    Da, svi opravdani troškovi
+  </ComparisonCell>
+  <ComparisonCell type="jdoo" isPositive>
+    Da, svi opravdani troškovi
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="PDV status">
-    <ComparisonCell type="obrt-dohodak">Obavezan (prešli ste prag)</ComparisonCell>
-    <ComparisonCell type="jdoo">Obavezan (prešli ste prag)</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="PDV status">
+  <ComparisonCell type="obrt-dohodak">Obavezan (prešli ste prag)</ComparisonCell>
+  <ComparisonCell type="jdoo">Obavezan (prešli ste prag)</ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Profesionalan dojam">
-    <ComparisonCell type="obrt-dohodak">Dobar</ComparisonCell>
-    <ComparisonCell type="jdoo" isPositive>Vrlo dobar, korporativni</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Profesionalan dojam">
+  <ComparisonCell type="obrt-dohodak">Dobar</ComparisonCell>
+  <ComparisonCell type="jdoo" isPositive>
+    Vrlo dobar, korporativni
+  </ComparisonCell>
+</ComparisonRow>
 
-  <ComparisonRow label="Mogućnost rasta">
-    <ComparisonCell type="obrt-dohodak">Dobra</ComparisonCell>
-    <ComparisonCell type="jdoo" isPositive>Izvrsna - lakše zapošljavanje i investicije</ComparisonCell>
-  </ComparisonRow>
+<ComparisonRow label="Mogućnost rasta">
+  <ComparisonCell type="obrt-dohodak">Dobra</ComparisonCell>
+  <ComparisonCell type="jdoo" isPositive>
+    Izvrsna - lakše zapošljavanje i investicije
+  </ComparisonCell>
+</ComparisonRow>
 
   <ComparisonRow label="Zatvaranje/prodaja">
     <ComparisonCell type="obrt-dohodak">Jednostavno zatvaranje, ne može se prodati</ComparisonCell>
@@ -137,6 +170,7 @@ Usporedite koliko bi vas koštalo poslovanje na različitim razinama prihoda s o
 Najjednostavniji i najbrži način prijelaza koji zadržava kontinuitet poslovanja.
 
 **Prednosti prijelaza:**
+
 - Zadržavate isti OIB i poslovni račun
 - Klijenti ne primjećuju promjenu
 - Minimalni administrativni troškovi
@@ -182,6 +216,7 @@ Najjednostavniji i najbrži način prijelaza koji zadržava kontinuitet poslovan
 Kompleksniji proces koji uključuje osnivanje nove pravne osobe i zatvaranje obrta.
 
 **Prednosti prijelaza:**
+
 - Ograničena odgovornost (zaštita osobne imovine)
 - Niži porezi na dobitak (10-18% vs 20-30%)
 - Profesionalniji dojam prema velikim klijentima
@@ -247,12 +282,13 @@ Kompleksniji proces koji uključuje osnivanje nove pravne osobe i zatvaranje obr
 - Spremni ste voditi evidenciju prihoda i rashoda
 
 **Primjeri idealnih situacija:**
+
 - Freelance IT developeri koji su porasli
 - Konzultanti s višim prihodima
 - Mali trgovci koji su prešli limit
 - Uslužne djelatnosti koje su povećale promet
 - Svaki paušalac koji želi jednostavan i brz prijelaz
-</RecommendationCard>
+  </RecommendationCard>
 
 ### J.D.O.O. - Najbolji za one koji planiraju rast i trebaju zaštitu
 
@@ -269,13 +305,14 @@ Kompleksniji proces koji uključuje osnivanje nove pravne osobe i zatvaranje obr
 - Spremni ste na veće administrativne troškove
 
 **Primjeri idealnih situacija:**
+
 - Softverske tvrtke u rastu
 - Agencije koje skaliraju poslovanje
 - Građevinske tvrtke s većim projektima
 - Proizvođači ili trgovci s velikim prometom
 - Izvozno orijentirani poslovi
 - Startupovi koji traže investicije
-</RecommendationCard>
+  </RecommendationCard>
 
 ## Što se događa s PDV-om?
 
@@ -284,6 +321,7 @@ Bez obzira koju opciju odaberete (obrt na dohodak ili j.d.o.o.), **automatski ul
 ### PDV obveze nakon prelaska praga
 
 **Od kada ste PDV obveznik:**
+
 - Od prvog dana sljedećeg mjeseca nakon što ste prešli <FiscalCurrency path="THRESHOLDS.pausalni.value" />
 - Primjer: Ako prijeđete prag 15. svibnja, PDV obveznik ste od 1. lipnja
 
@@ -314,15 +352,18 @@ Bez obzira koju opciju odaberete (obrt na dohodak ili j.d.o.o.), **automatski ul
 **Primjer prilagodbe cijena:**
 
 Prije (paušalni obrt):
+
 - Vaša usluga: 1.000 EUR (bez PDV-a)
 - Klijent plaća: 1.000 EUR
 
 Nakon prelaska u PDV sustav:
+
 - Vaša usluga: 1.000 EUR + 25% PDV = 1.250 EUR
 - Klijent plaća: 1.250 EUR
 - Vi državi plaćate: 250 EUR PDV-a (osim ako ga možete odbiti protiv PDV-a na troškove)
 
 **Strategije:**
+
 1. **Povećati cijene za 25%** - klijent snosi PDV (najčešće)
 2. **Apsorbirati PDV** - smanjiti marže da cijene ostanu iste (rijetko)
 3. **Kompromis** - povećati cijene djelomično (npr. +15%)
@@ -340,6 +381,7 @@ Morate prijaviti promjenu **unutar 8 dana** od kada su vaši prihodi u tekućoj 
 ### Što ako ne prijavim promjenu na vrijeme?
 
 Kasnjena prijava može rezultirati:
+
 - Novčanim kaznama (1.000-10.000 EUR)
 - Obvezom plaćanja razlike poreza retroaktivno
 - Problemima s Poreznom upravom
@@ -350,6 +392,7 @@ Kasnjena prijava može rezultirati:
 ### Mogu li se ikada vratiti na paušalni obrt?
 
 Da, možete se vratiti na paušalni obrt **ako** u sljedećoj godini vaši prihodi budu ispod <FiscalCurrency path="THRESHOLDS.pausalni.value" />. Međutim:
+
 - Morate pričekati početak nove kalendarske godine
 - Morate prijaviti povratak na paušalni sustav
 - Ako ponovno prijeđete <FiscalCurrency path="THRESHOLDS.pausalni.value" />, opet morate prijeći
@@ -359,6 +402,7 @@ Da, možete se vratiti na paušalni obrt **ako** u sljedećoj godini vaši priho
 ### Što ako sam prešao paušalni prag, ali većina je izvoz (0% PDV)?
 
 Izvoz se **također računa** u prag od <FiscalCurrency path="THRESHOLDS.pausalni.value" />, čak i ako je stavka s 0% PDV-a. Što znači:
+
 - Prihodi od izvoza se zbrajaju s domaćim prihodima
 - Ako ukupno prijeđete <FiscalCurrency path="THRESHOLDS.pausalni.value" />, morate prijeći s paušalnog
 - Ulazite u PDV sustav neovisno o tome što je izvoz 0% PDV
@@ -366,6 +410,7 @@ Izvoz se **također računa** u prag od <FiscalCurrency path="THRESHOLDS.pausaln
 ### Trebam li novi OIB ako prelazim s obrta na j.d.o.o.?
 
 **Da**, j.d.o.o. je nova pravna osoba s vlastitim OIB-om, što znači:
+
 - Novi OIB za j.d.o.o. (vi kao fizička osoba zadržavate svoj)
 - Novi poslovni račun
 - Novi ugovori s klijentima (ili aneks koji prenosi postojeće)
@@ -376,10 +421,12 @@ S druge strane, **prijelaz na obrt na dohodak zadržava isti OIB** - jednostavno
 ### Koliko bi mi trebalo novca "sa strane" za prijelaz?
 
 **Za obrt na dohodak:**
+
 - Minimalno: 500-1.000 EUR za prvi mjesec s knjigovođom
 - Rezerva za PDV obveze (prve mjesece dok se ne ustaljite)
 
 **Za j.d.o.o.:**
+
 - Minimalno: 3.000-5.000 EUR za osnivanje i prve mjesece
 - Temeljni kapital: 1-2.650 EUR (blokiran u tvrtki)
 - Troškovi osnivanja: 1.500-3.000 EUR
@@ -388,11 +435,13 @@ S druge strane, **prijelaz na obrt na dohodak zadržava isti OIB** - jednostavno
 ### Što s postojećim ugovorima i projektima?
 
 **Obrt na dohodak:**
+
 - Svi ugovori ostaju važeći (isti OIB)
 - Samo informirate klijente o PDV-u na budućim fakturama
 - Nema potrebe za novim ugovorima
 
 **J.D.O.O.:**
+
 - Tehnički, postojeći ugovori su s vama kao fizičkom osobom (obrt)
 - Potreban je transfer ugovora na j.d.o.o. (aneks ili novi ugovori)
 - Dogovorite s klijentima prije osnivanja j.d.o.o.
@@ -401,6 +450,7 @@ S druge strane, **prijelaz na obrt na dohodak zadržava isti OIB** - jednostavno
 ### Mogu li zadržati paušalni obrt i otvoriti j.d.o.o. istovremeno?
 
 Tehnički da, ali **nije preporučljivo** jer:
+
 - Plaćate duplo doprinose (za obrt + plaća u j.d.o.o.)
 - Složenije porezno planiranje
 - Rizik od problema s Poreznom ako nije jasna podjela poslovanja
@@ -411,6 +461,7 @@ Tehnički da, ali **nije preporučljivo** jer:
 ### Što ako procijenim da ću prijeći prag krajem godine?
 
 Ako znate da ćete prijeći paušalni prag (npr. imate velike projekte u planu):
+
 1. **Proaktivno prijeđite ranije** - ne čekajte da prijeđete prag
 2. **Planirajte prijelaz u mirnijim mjesecima** (ne usred velikih projekata)
 3. **Informirajte klijente unaprijed** o nadolazećoj promjeni i PDV-u
@@ -421,11 +472,13 @@ Ako znate da ćete prijeći paušalni prag (npr. imate velike projekte u planu):
 ### Koliko košta knjigovođa za obrt vs j.d.o.o.?
 
 **Obrt na dohodak:**
+
 - 100-200 EUR/mjesec za manje obrte (< 50 transakcija)
 - 200-300 EUR/mjesec za veće obrte (50-100 transakcija)
 - Uključuje: knjiženje, PDV prijave, godišnja prijava
 
 **J.D.O.O.:**
+
 - 200-350 EUR/mjesec za male j.d.o.o. (< 50 transakcija)
 - 350-500 EUR/mjesec za srednje (50-150 transakcija)
 - Uključuje: kompletno računovodstvo, obračun plaća, PDV, godišnji izvještaji
@@ -446,6 +499,7 @@ Nakon što odlučite koju opciju odabrati, proučite detaljan vodič za taj obli
 ### Za većinu paušalaca koji prijeđu paušalni prag:
 
 **Obrt na dohodak** je najlogičniji prvi korak jer:
+
 - Najbrža i najjednostavnija tranzicija
 - Zadržava kontinuitet poslovanja
 - Minimalni troškovi prijelaza
@@ -454,6 +508,7 @@ Nakon što odlučite koju opciju odabrati, proučite detaljan vodič za taj obli
 ### Za one s velikim rastom (100.000+ EUR) ili rizicima:
 
 **J.D.O.O.** je bolji dugoročno jer:
+
 - Niži porezi na dobitak (razlika od 5.000-10.000 EUR godišnje)
 - Zaštita osobne imovine
 - Profesionalniji dojam i mogućnosti rasta
@@ -462,6 +517,7 @@ Nakon što odlučite koju opciju odabrati, proučite detaljan vodič za taj obli
 ### Zlatna sredina strategija:
 
 Mnogi paušalci koji prijeđu prag slijede ovaj put:
+
 1. **Odmah prijeđite na obrt na dohodak** (dan 1-7)
 2. **Poslujte godinu dana i stabilizirajte se** s knjigovodstvom i PDV-om
 3. **Ako prihodi rastu prema 100.000+ EUR**, razmislite o j.d.o.o. (godina 2)
@@ -489,4 +545,4 @@ Time minimalizirate rizik, osiguravate kontinuitet, i imate vremena za učenje p
 
 ---
 
-*Zadnje ažurirano: Prosinac 2025. Svi podaci su informativne prirode. Za točne informacije specifične za vašu situaciju, obavezno se konzultirajte s ovlaštenim knjigovođom ili poreznim savjetnikom.*
+_Zadnje ažurirano: Prosinac 2025. Svi podaci su informativne prirode. Za točne informacije specifične za vašu situaciju, obavezno se konzultirajte s ovlaštenim knjigovođom ili poreznim savjetnikom._

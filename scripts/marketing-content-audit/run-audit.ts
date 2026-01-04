@@ -66,7 +66,11 @@ async function main() {
     reportEnv.MARKETING_AUDIT_PLAYWRIGHT_RESULTS = playwrightResultsPath
   }
 
-  await runCommand(tsxBin, ["scripts/marketing-content-audit/generate-report.ts"], reportEnv as NodeJS.ProcessEnv)
+  await runCommand(
+    tsxBin,
+    ["scripts/marketing-content-audit/generate-report.ts"],
+    reportEnv as NodeJS.ProcessEnv
+  )
 }
 
 main().catch((error) => {

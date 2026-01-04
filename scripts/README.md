@@ -16,6 +16,7 @@ Validates environment files for placeholder values that should not be used in pr
 ```
 
 **Exit codes:**
+
 - 0 - No placeholder values found
 - 1 - Placeholder values detected
 - 2 - Environment file not found

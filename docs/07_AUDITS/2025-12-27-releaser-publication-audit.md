@@ -8,14 +8,14 @@
 
 ## Executive Summary
 
-| Category | Status | Notes |
-|----------|--------|-------|
-| Publish Gate Enforcement | **PASS** | 5 hard gates properly enforced |
-| Versioning Correctness | **PASS** | Semver based on risk tier implemented correctly |
-| Content Hash Integrity | **PASS** | Deterministic SHA-256 with comprehensive tests |
-| Audit Trail Completeness | **PASS** | Dual audit entries (rule + release level) |
-| Release Metadata | **PASS** | Complete audit trail JSON stored |
-| Rollback Safety | **WARN** | No explicit rollback mechanism; relies on version history |
+| Category                 | Status   | Notes                                                     |
+| ------------------------ | -------- | --------------------------------------------------------- |
+| Publish Gate Enforcement | **PASS** | 5 hard gates properly enforced                            |
+| Versioning Correctness   | **PASS** | Semver based on risk tier implemented correctly           |
+| Content Hash Integrity   | **PASS** | Deterministic SHA-256 with comprehensive tests            |
+| Audit Trail Completeness | **PASS** | Dual audit entries (rule + release level)                 |
+| Release Metadata         | **PASS** | Complete audit trail JSON stored                          |
+| Rollback Safety          | **WARN** | No explicit rollback mechanism; relies on version history |
 
 **Overall Result: PASS with 1 WARNING**
 
@@ -27,13 +27,13 @@
 
 The releaser (`src/lib/regulatory-truth/agents/releaser.ts`) enforces **5 hard gates** before publication:
 
-| Gate | Location | Enforcement |
-|------|----------|-------------|
-| Status = APPROVED | Line 79-101 | `db.regulatoryRule.findMany({ where: { status: "APPROVED" } })` |
-| T0/T1 Human Approval | Lines 116-132 | Checks `approvedBy` field is set for T0/T1 rules |
-| No Unresolved Conflicts | Lines 134-158 | Queries `conflictsA`/`conflictsB` with status OPEN |
-| Source Pointers Required | Lines 160-175 | `r.sourcePointers.length === 0` check |
-| Evidence Strength Policy | Lines 177-194 | `checkBatchEvidenceStrength()` utility |
+| Gate                     | Location      | Enforcement                                                     |
+| ------------------------ | ------------- | --------------------------------------------------------------- |
+| Status = APPROVED        | Line 79-101   | `db.regulatoryRule.findMany({ where: { status: "APPROVED" } })` |
+| T0/T1 Human Approval     | Lines 116-132 | Checks `approvedBy` field is set for T0/T1 rules                |
+| No Unresolved Conflicts  | Lines 134-158 | Queries `conflictsA`/`conflictsB` with status OPEN              |
+| Source Pointers Required | Lines 160-175 | `r.sourcePointers.length === 0` check                           |
+| Evidence Strength Policy | Lines 177-194 | `checkBatchEvidenceStrength()` utility                          |
 
 ### 1.2 Evidence Strength Policy
 
@@ -50,11 +50,13 @@ MULTI_SOURCE (2+ sources) → ALLOWED regardless of authority
 ### 1.3 Critical Invariant Check
 
 The system correctly prevents publication of non-approved rules:
+
 - Rules must be in `APPROVED` status (Lines 79-101)
 - T0/T1 rules additionally require `approvedBy` field set (Lines 116-132)
 - Status changes to `PUBLISHED` only AFTER all gates pass (Line 343-346)
 
 **Note on Schema:** The `RegulatoryRule` model does NOT have a `publishedAt` field. Publication timing is tracked via:
+
 - `RuleRelease.releasedAt` - When the bundle was published
 - `RegulatoryRule.status = 'PUBLISHED'` - Rule state
 
@@ -86,6 +88,7 @@ function calculateNextVersion(previousVersion, riskTiers):
 ### 2.3 Monotonic Increase
 
 The `RuleRelease` model has:
+
 - `@@unique([version])` - Prevents duplicate versions
 - `releasedAt DESC` ordering for latest release lookup
 
@@ -100,6 +103,7 @@ The `RuleRelease` model has:
 **Location:** `src/lib/regulatory-truth/utils/release-hash.ts`
 
 The `computeReleaseHash()` function:
+
 1. Sorts rules by `conceptSlug` (deterministic ordering)
 2. Normalizes dates to `YYYY-MM-DD` format
 3. Recursively sorts all object keys
@@ -109,17 +113,17 @@ The `computeReleaseHash()` function:
 
 **Location:** `src/lib/regulatory-truth/__tests__/release-hash.test.ts`
 
-| Test Case | Status |
-|-----------|--------|
-| Same hash on multiple computes | PASS |
-| Same hash regardless of input order | PASS |
-| Same hash with equivalent Date objects | PASS |
-| Same hash with nested key reordering | PASS |
-| Different hash when value changes | PASS |
-| Different hash when date changes | PASS |
-| Different hash when appliesWhen changes | PASS |
-| Handles empty array | PASS |
-| Handles null effectiveUntil | PASS |
+| Test Case                               | Status |
+| --------------------------------------- | ------ |
+| Same hash on multiple computes          | PASS   |
+| Same hash regardless of input order     | PASS   |
+| Same hash with equivalent Date objects  | PASS   |
+| Same hash with nested key reordering    | PASS   |
+| Different hash when value changes       | PASS   |
+| Different hash when date changes        | PASS   |
+| Different hash when appliesWhen changes | PASS   |
+| Handles empty array                     | PASS   |
+| Handles null effectiveUntil             | PASS   |
 
 ### 3.3 Verification Endpoint
 
@@ -139,23 +143,25 @@ The `computeReleaseHash()` function:
 The releaser creates audit entries at TWO levels:
 
 **Release Level (Lines 321-330):**
+
 ```typescript
 logAuditEvent({
   action: "RELEASE_PUBLISHED",
   entityType: "RELEASE",
   entityId: release.id,
-  metadata: { version, ruleCount, contentHash }
+  metadata: { version, ruleCount, contentHash },
 })
 ```
 
 **Rule Level (Lines 332-340):**
+
 ```typescript
 for (const ruleId of approvedRuleIds) {
   logAuditEvent({
     action: "RULE_PUBLISHED",
     entityType: "RULE",
     entityId: ruleId,
-    metadata: { releaseId, version }
+    metadata: { releaseId, version },
   })
 }
 ```
@@ -171,6 +177,7 @@ for (const ruleId of approvedRuleIds) {
 ### 4.3 Release Metadata
 
 The `RuleRelease.auditTrail` JSON stores:
+
 ```json
 {
   "sourceEvidenceCount": <number>,
@@ -224,12 +231,14 @@ ReleaserOutputSchema = {
 The system preserves version history but lacks explicit rollback:
 
 **What IS supported:**
+
 - Previous rule versions preserved via `supersedesId` chain
 - All releases preserved (never deleted)
 - Historical rules queryable through `releases` relation
 - Version numbers unique and immutable
 
 **What is NOT implemented:**
+
 - No `rollbackRelease(version)` function
 - No UI for triggering rollback
 - No automatic rollback on error
@@ -237,6 +246,7 @@ The system preserves version history but lacks explicit rollback:
 ### 6.2 Workaround Available
 
 Manual rollback would require:
+
 1. Find rules from target release: `SELECT * FROM "RegulatoryRule" r JOIN "_ReleaseRules" rr ON r.id = rr."A" WHERE rr."B" = '<release_id>'`
 2. Set status back to APPROVED
 3. Re-publish with corrected rules
@@ -244,6 +254,7 @@ Manual rollback would require:
 ### 6.3 Supersession Chain
 
 Rules track supersession via:
+
 - `RegulatoryRule.supersedesId` - Direct parent
 - `GraphEdge` with relation `AMENDS` - Full history graph
 
@@ -317,24 +328,25 @@ No critical issues found.
 
 ## 9. Files Reviewed
 
-| File | Purpose |
-|------|---------|
-| `src/lib/regulatory-truth/agents/releaser.ts` | Main releaser agent |
-| `src/lib/regulatory-truth/schemas/releaser.ts` | Input/output schemas |
-| `src/lib/regulatory-truth/utils/audit-log.ts` | Audit logging utility |
-| `src/lib/regulatory-truth/utils/evidence-strength.ts` | Evidence policy enforcement |
-| `src/lib/regulatory-truth/utils/release-hash.ts` | Content hash computation |
-| `src/lib/regulatory-truth/quality/coverage-gate.ts` | Coverage quality gate |
-| `src/lib/regulatory-truth/workers/releaser.worker.ts` | BullMQ worker |
-| `src/lib/regulatory-truth/scripts/run-releaser.ts` | CLI script |
-| `src/lib/regulatory-truth/__tests__/release-hash.test.ts` | Hash determinism tests |
-| `prisma/schema.prisma` | Database schema |
+| File                                                      | Purpose                     |
+| --------------------------------------------------------- | --------------------------- |
+| `src/lib/regulatory-truth/agents/releaser.ts`             | Main releaser agent         |
+| `src/lib/regulatory-truth/schemas/releaser.ts`            | Input/output schemas        |
+| `src/lib/regulatory-truth/utils/audit-log.ts`             | Audit logging utility       |
+| `src/lib/regulatory-truth/utils/evidence-strength.ts`     | Evidence policy enforcement |
+| `src/lib/regulatory-truth/utils/release-hash.ts`          | Content hash computation    |
+| `src/lib/regulatory-truth/quality/coverage-gate.ts`       | Coverage quality gate       |
+| `src/lib/regulatory-truth/workers/releaser.worker.ts`     | BullMQ worker               |
+| `src/lib/regulatory-truth/scripts/run-releaser.ts`        | CLI script                  |
+| `src/lib/regulatory-truth/__tests__/release-hash.test.ts` | Hash determinism tests      |
+| `prisma/schema.prisma`                                    | Database schema             |
 
 ---
 
 ## 10. Database Queries (For Production Verification)
 
 ### Check for unapproved publications (should return 0):
+
 ```sql
 SELECT id, "conceptSlug", status
 FROM "RegulatoryRule"
@@ -345,6 +357,7 @@ AND id NOT IN (
 ```
 
 ### Check for single-source non-LAW published rules (should return 0):
+
 ```sql
 SELECT rr.id, rr."conceptSlug", rr."authorityLevel", COUNT(sp.id) as sources
 FROM "RegulatoryRule" rr
@@ -356,6 +369,7 @@ HAVING COUNT(sp.id) = 1;
 ```
 
 ### Verify version monotonicity:
+
 ```sql
 SELECT version, "releasedAt", "releaseType", "contentHash"
 FROM "RuleRelease"
@@ -364,6 +378,7 @@ LIMIT 10;
 ```
 
 ### Audit log summary (last 7 days):
+
 ```sql
 SELECT action, "entityType", COUNT(*)
 FROM "RegulatoryAuditLog"

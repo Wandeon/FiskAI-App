@@ -36,6 +36,7 @@ keywords:
 ## Što je paušal?
 
 **Paušalno oporezivanje** je pojednostavljen sustav oporezivanja za male obrtnike. Umjesto složenog knjigovodstva i obračuna stvarne dobiti, paušalac plaća:
+
 - **Fiksni paušalni porez** (<FiscalPercentage path="TAX_RATES.pausal.rate" /> od paušalnog prihoda)
 - **Doprinose** na minimalnu osnovicu
 
@@ -51,6 +52,7 @@ Paušalni prihod ne ovisi o stvarnom prihodu, već o djelatnosti i lokaciji.
 4. **Prva godina poslovanja** - može se automatski
 
 ### Djelatnosti koje MOGU biti paušalne:
+
 - Grafički dizajn
 - Web development
 - Savjetovanje
@@ -59,6 +61,7 @@ Paušalni prihod ne ovisi o stvarnom prihodu, već o djelatnosti i lokaciji.
 - Fotografi
 
 ### Djelatnosti koje NE MOGU biti paušalne:
+
 - Trgovina (osim mala djelatnost)
 - Ugostiteljstvo s posluživanjem
 - Iznajmljivanje nekretnina
@@ -73,6 +76,7 @@ Paušalni obrtnik plaća **dva dijela:**
 **Formula:** Paušalni prihod × <FiscalPercentage path="TAX_RATES.pausal.rate" /> × (1 + stopa prireza)
 
 **Paušalni prihod** (fiksni iznos) ovisi o:
+
 - NKD šifri djelatnosti
 - Gradu/općini
 
@@ -94,6 +98,7 @@ Ukupan trošak ovisi o razredu, prirezu i doprinosima. Za precizan izračun kori
 ## PO-SD obrazac
 
 Paušalci predaju **PO-SD obrazac kvartalno:**
+
 - Rok: 20. u mjesecu nakon kvartala
 - Sadržaj: Ukupni primici za kvartal
 - Obračun paušalnog poreza
@@ -103,6 +108,7 @@ Paušalci predaju **PO-SD obrazac kvartalno:**
 ## Prednosti paušalnog obrta
 
 ### ✅ Prednosti:
+
 1. **Jednostavnost** - bez knjigovodstva
 2. **Niski troškovi** - ako je prihod velik
 3. **Predvidivi troškovi** - ista svota svaki mjesec
@@ -110,6 +116,7 @@ Paušalci predaju **PO-SD obrazac kvartalno:**
 5. **Manje administracije** - samo kvartalni PO-SD
 
 ### ❌ Nedostaci:
+
 1. **Plaćanje i bez prihoda** - trošak postoji uvijek
 2. **Limit <FiscalCurrency path="THRESHOLDS.pausalni.value" />** - iznad se mora preći na dohodak
 3. **Ne mogu svi biti** - ograničene djelatnosti
@@ -117,18 +124,19 @@ Paušalci predaju **PO-SD obrazac kvartalno:**
 
 ## Paušal vs Obrt na dohodak
 
-| Karakteristika | Paušal | Dohodak |
-|----------------|--------|---------|
-| Knjigovodstvo | ❌ Ne | ✅ Da |
-| Evidencija rashoda | ❌ Ne | ✅ Da |
-| Limit prihoda | <FiscalCurrency path="THRESHOLDS.pausalni.value" /> | Bez limita |
-| Zaposlenici | ❌ Ne (osim pripravnik) | ✅ Da |
-| Porez | Fiksni (<FiscalPercentage path="TAX_RATES.pausal.rate" />) | Progresivni (<FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> - <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" />) |
-| Plaćanje | I bez prihoda | Samo na dobit |
+| Karakteristika     | Paušal                                                     | Dohodak                                                                                                                                   |
+| ------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Knjigovodstvo      | ❌ Ne                                                      | ✅ Da                                                                                                                                     |
+| Evidencija rashoda | ❌ Ne                                                      | ✅ Da                                                                                                                                     |
+| Limit prihoda      | <FiscalCurrency path="THRESHOLDS.pausalni.value" />        | Bez limita                                                                                                                                |
+| Zaposlenici        | ❌ Ne (osim pripravnik)                                    | ✅ Da                                                                                                                                     |
+| Porez              | Fiksni (<FiscalPercentage path="TAX_RATES.pausal.rate" />) | Progresivni (<FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> - <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" />) |
+| Plaćanje           | I bez prihoda                                              | Samo na dobit                                                                                                                             |
 
 ### Kada je isplativiji paušal?
 
 Paušal je isplativiji ako:
+
 - **Visoki prihodi, mali troškovi** (IT, dizajn, savjetovanje)
 - **Nemaš velike rashode** za odbitak
 - **Ne trebaš zaposlenike**
@@ -137,6 +145,7 @@ Paušal je isplativiji ako:
 ### Kada je bolji dohodak?
 
 Dohodak je bolji ako:
+
 - **Prihod iznad paušalnog praga**
 - **Veliki troškovi** (oprema, prostor, materijal)
 - **Trebaš zaposlenike**
@@ -145,10 +154,12 @@ Dohodak je bolji ako:
 ## Prijelaz s paušala na dohodak
 
 Promjena je moguća:
+
 - **Dobrovoljno:** jednom godišnje (do 15.1. za tekuću godinu)
 - **Prisilno:** ako prijeđeš paušalni prag ili zaposliš radnika
 
 **Primjer:**
+
 - U kolovozu prijeđeš paušalni prag
 - Od 1. rujna **moraš** prijeći na dohodak
 - Prijavljuješ promjenu u HOK/HGK i Poreznoj
@@ -156,6 +167,7 @@ Promjena je moguća:
 ## Paušal i PDV
 
 Paušalci mogu (ali ne moraju) biti u sustavu PDV-a:
+
 - Obvezno: ako prihod prijeđe <FiscalCurrency path="THRESHOLDS.pdv.value" />
 - Dobrovoljno: ranije, ako želiš
 
@@ -166,10 +178,12 @@ Paušalci mogu (ali ne moraju) biti u sustavu PDV-a:
 **Paušalac mora fiskalizirati sve račune** kao i svi drugi.
 
 Fiskalizacija 2.0 (od 2026.):
+
 - Paušalci mogu koristiti **MIKROeRAČUN** (besplatna državna aplikacija)
 - Alternativno: privatni informacijski posrednik
 
 ## Glavni vodič
 
 Za detaljne informacije o paušalnom obrtu, pročitajte:
+
 - [Paušalni obrt - kompletan vodič](/vodic/pausalni-obrt)

@@ -49,12 +49,12 @@ All confidence scores are expressed as a decimal value between 0.0 and 1.0:
 
 The Extractor agent assigns confidence scores based on these criteria (defined in `prompts/index.ts`):
 
-| Score | Criteria | Example |
-|-------|----------|---------|
-| **1.0** | Explicit, unambiguous value in clear context | "Stopa PDV-a iznosi 25%" → 25, percentage |
-| **0.9** | Clear value but context could apply to multiple scenarios | "Prag od 40.000 EUR" (unclear if annual/total/per-transaction) |
-| **0.8** | Value present but requires interpretation of scope | "Obveznici plaćaju..." (who qualifies as obveznik?) |
-| **< 0.8** | Ambiguous, inferred, or uncertain | DO NOT EXTRACT |
+| Score     | Criteria                                                  | Example                                                        |
+| --------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| **1.0**   | Explicit, unambiguous value in clear context              | "Stopa PDV-a iznosi 25%" → 25, percentage                      |
+| **0.9**   | Clear value but context could apply to multiple scenarios | "Prag od 40.000 EUR" (unclear if annual/total/per-transaction) |
+| **0.8**   | Value present but requires interpretation of scope        | "Obveznici plaćaju..." (who qualifies as obveznik?)            |
+| **< 0.8** | Ambiguous, inferred, or uncertain                         | DO NOT EXTRACT                                                 |
 
 ### Key Rules
 
@@ -144,12 +144,12 @@ CONSTRAINTS:
 
 **Auto-Approval Matrix:**
 
-| Risk Tier | Minimum Confidence | Auto-Approve? |
-|-----------|-------------------|---------------|
-| T0 (Critical) | N/A | Never (Infinity) |
-| T1 (High) | N/A | Never (Infinity) |
-| T2 (Medium) | 0.95 | Yes, if ≥ 0.95 |
-| T3 (Low) | 0.90 | Yes, if ≥ 0.90 |
+| Risk Tier     | Minimum Confidence | Auto-Approve?    |
+| ------------- | ------------------ | ---------------- |
+| T0 (Critical) | N/A                | Never (Infinity) |
+| T1 (High)     | N/A                | Never (Infinity) |
+| T2 (Medium)   | 0.95               | Yes, if ≥ 0.95   |
+| T3 (Low)      | 0.90               | Yes, if ≥ 0.90   |
 
 **Reviewer Prompt Guidance:**
 
@@ -171,10 +171,10 @@ AUTHORITY MATRIX:
 
 ```typescript
 // Minimum confidence: 0.70
-if (rule.confidence < 0.70) {
+if (rule.confidence < 0.7) {
   return {
     canPublish: false,
-    reason: `Confidence ${rule.confidence} below minimum threshold (0.70)`
+    reason: `Confidence ${rule.confidence} below minimum threshold (0.70)`,
   }
 }
 ```
@@ -189,10 +189,10 @@ if (rule.confidence < 0.70) {
 
 ```typescript
 export const CONFIDENCE_THRESHOLDS = {
-  T0: 0.99,  // Critical: Tax rates, legal deadlines, penalties
-  T1: 0.95,  // High: Thresholds triggering obligations
-  T2: 0.90,  // Medium: Procedural requirements
-  T3: 0.85,  // Low: UI labels, non-binding guidance
+  T0: 0.99, // Critical: Tax rates, legal deadlines, penalties
+  T1: 0.95, // High: Thresholds triggering obligations
+  T2: 0.9, // Medium: Procedural requirements
+  T3: 0.85, // Low: UI labels, non-binding guidance
 } as const
 ```
 
@@ -202,18 +202,18 @@ export const CONFIDENCE_THRESHOLDS = {
 export const AUTO_APPROVE_THRESHOLDS = {
   T0: Infinity, // Never auto-approve (requires human review)
   T1: Infinity, // Never auto-approve (requires human review)
-  T2: 0.95,     // Auto-approve if confidence ≥ 0.95
-  T3: 0.90,     // Auto-approve if confidence ≥ 0.90
+  T2: 0.95, // Auto-approve if confidence ≥ 0.95
+  T3: 0.9, // Auto-approve if confidence ≥ 0.90
 } as const
 ```
 
 ### Pipeline Gates
 
-| Gate | Location | Threshold | Action |
-|------|----------|-----------|--------|
-| **Extraction Gate** | `validateExtraction()` | < 0.7 | Warning |
+| Gate                   | Location                  | Threshold        | Action            |
+| ---------------------- | ------------------------- | ---------------- | ----------------- |
+| **Extraction Gate**    | `validateExtraction()`    | < 0.7            | Warning           |
 | **Auto-Approval Gate** | `auto-approval-policy.ts` | < tier threshold | Escalate to human |
-| **Publish Gate** | `publish-gate.ts` | < 0.70 | Block publication |
+| **Publish Gate**       | `publish-gate.ts`         | < 0.70           | Block publication |
 
 ---
 
@@ -227,13 +227,13 @@ Rules degrade in confidence over time as regulatory landscapes change. This ensu
 
 ### Decay Schedule
 
-| Age | Decay Amount | Final Floor |
-|-----|--------------|-------------|
-| 0-3 months | 0% | - |
-| 3-6 months | 5% | - |
-| 6-12 months | 10% | - |
-| 12-24 months | 20% | - |
-| 24+ months | 30% (capped) | 0.50 minimum |
+| Age          | Decay Amount | Final Floor  |
+| ------------ | ------------ | ------------ |
+| 0-3 months   | 0%           | -            |
+| 3-6 months   | 5%           | -            |
+| 6-12 months  | 10%          | -            |
+| 12-24 months | 20%          | -            |
+| 24+ months   | 30% (capped) | 0.50 minimum |
 
 ### Implementation
 
@@ -271,14 +271,14 @@ export async function applyConfidenceDecay(): Promise<{
 Rules that drop below 0.75 confidence due to age are flagged for human re-validation:
 
 ```typescript
-export async function getRulesNeedingRevalidation(
-  maxConfidence: number = 0.75
-): Promise<Array<{
-  id: string
-  conceptSlug: string
-  confidence: number
-  ageMonths: number
-}>>
+export async function getRulesNeedingRevalidation(maxConfidence: number = 0.75): Promise<
+  Array<{
+    id: string
+    conceptSlug: string
+    confidence: number
+    ageMonths: number
+  }>
+>
 ```
 
 ---
@@ -367,25 +367,25 @@ This function ensures the `extracted_value` actually appears in the `exact_quote
 #### Rule Confidence Distribution
 
 | Confidence | Count | Percentage |
-|------------|-------|------------|
-| 1.0 | 428 | 69.6% |
-| 0.95 | 80 | 13.0% |
-| 0.9 | 68 | 11.1% |
-| 0.85 | 15 | 2.4% |
-| 0.8 | 6 | 1.0% |
-| < 0.8 | 18 | 2.9% |
+| ---------- | ----- | ---------- |
+| 1.0        | 428   | 69.6%      |
+| 0.95       | 80    | 13.0%      |
+| 0.9        | 68    | 11.1%      |
+| 0.85       | 15    | 2.4%       |
+| 0.8        | 6     | 1.0%       |
+| < 0.8      | 18    | 2.9%       |
 
 **Total Rules:** 615
 
 #### SourcePointer Confidence Distribution
 
 | Confidence | Count | Percentage |
-|------------|-------|------------|
-| 1.0 | 1,915 | 96.0% |
-| 0.95 | 8 | 0.4% |
-| 0.9 | 68 | 3.4% |
-| 0.85 | 3 | 0.2% |
-| 0.8 | 1 | 0.1% |
+| ---------- | ----- | ---------- |
+| 1.0        | 1,915 | 96.0%      |
+| 0.95       | 8     | 0.4%       |
+| 0.9        | 68    | 3.4%       |
+| 0.85       | 3     | 0.2%       |
+| 0.8        | 1     | 0.1%       |
 
 **Total Source Pointers:** 1,995
 
@@ -453,15 +453,15 @@ The low publication rate (few rules in PUBLISHED status) is **not** due to confi
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `schemas/common.ts` | Confidence thresholds and constants |
-| `schemas/extractor.ts` | Extractor output schema with confidence |
-| `prompts/index.ts` | LLM prompt with confidence scoring guidance |
+| File                                | Purpose                                           |
+| ----------------------------------- | ------------------------------------------------- |
+| `schemas/common.ts`                 | Confidence thresholds and constants               |
+| `schemas/extractor.ts`              | Extractor output schema with confidence           |
+| `prompts/index.ts`                  | LLM prompt with confidence scoring guidance       |
 | `utils/deterministic-validators.ts` | Validation functions including quote verification |
-| `utils/confidence-decay.ts` | Temporal confidence decay logic |
-| `policy/auto-approval-policy.ts` | Auto-approval decision logic |
-| `utils/publish-gate.ts` | Publication gate checks |
+| `utils/confidence-decay.ts`         | Temporal confidence decay logic                   |
+| `policy/auto-approval-policy.ts`    | Auto-approval decision logic                      |
+| `utils/publish-gate.ts`             | Publication gate checks                           |
 
 ### Schemas
 

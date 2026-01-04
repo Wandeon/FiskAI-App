@@ -1,1 +1,11 @@
-{"context":{"asOf":"2000-01-01T00:00:00.000Z","entity":{"type":"DOO","vat":{"status":"IN_VAT"}}},"evaluatedAt":"2025-12-23T08:27:27.151Z","totalRulesEvaluated":0,"applicableCount":0,"applicableRules":[],"evaluationDetails":[]}
+{
+  "context": {
+    "asOf": "2000-01-01T00:00:00.000Z",
+    "entity": { "type": "DOO", "vat": { "status": "IN_VAT" } }
+  },
+  "evaluatedAt": "2025-12-23T08:27:27.151Z",
+  "totalRulesEvaluated": 0,
+  "applicableCount": 0,
+  "applicableRules": [],
+  "evaluationDetails": []
+}

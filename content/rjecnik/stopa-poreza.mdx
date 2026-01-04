@@ -27,26 +27,26 @@ keywords:
 
 ## Stope poreza na dohodak 2025.
 
-| Godišnji dohodak | Stopa |
-|------------------|-------|
-| Do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> | <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> |
+| Godišnji dohodak                                                | Stopa                                                        |
+| --------------------------------------------------------------- | ------------------------------------------------------------ |
+| Do <FiscalCurrency path="TAX_RATES.income.brackets.0.max" />    | <FiscalPercentage path="TAX_RATES.income.brackets.0.rate" /> |
 | Iznad <FiscalCurrency path="TAX_RATES.income.brackets.0.max" /> | <FiscalPercentage path="TAX_RATES.income.brackets.1.rate" /> |
 
 ## Stope poreza na dobit 2025.
 
-| Godišnji prihod | Stopa |
-|-----------------|-------|
-| Do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> | <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> |
+| Godišnji prihod                                                      | Stopa                                                      |
+| -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Do <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" />    | <FiscalPercentage path="TAX_RATES.corporate.small.rate" /> |
 | Iznad <FiscalCurrency path="TAX_RATES.corporate.small.maxRevenue" /> | <FiscalPercentage path="TAX_RATES.corporate.large.rate" /> |
 
 ## Stope PDV-a
 
-| Tip | Stopa |
-|-----|-------|
-| Opća | <FiscalPercentage path="TAX_RATES.vat.standard.rate" /> |
-| Snižena | <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" /> |
+| Tip           | Stopa                                                    |
+| ------------- | -------------------------------------------------------- |
+| Opća          | <FiscalPercentage path="TAX_RATES.vat.standard.rate" />  |
+| Snižena       | <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" /> |
 | Super-snižena | <FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" /> |
-| Izvoz | 0% |
+| Izvoz         | 0%                                                       |
 
 ## Ostale porezne stope
 
