@@ -250,6 +250,7 @@ model Company {
   organizations                  Organization[]
   taxIdentities                  TaxIdentity[]
   documents                      Document[]
+  providerSyncStates             ProviderSyncState[]
 }
 
 model ChartOfAccounts {
@@ -2268,7 +2269,7 @@ model CertificateNotification {
 model FiscalRequest {
   id                   String            @id @default(cuid())
   companyId            String
-  certificateId        String
+  certificateId        String? // Optional: null when cert-missing failure
   invoiceId            String?
   messageType          FiscalMessageType
   status               FiscalStatus      @default(QUEUED)
@@ -2298,7 +2299,7 @@ model FiscalRequest {
   responseXml          String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
-  certificate          FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
+  certificate          FiscalCertificate? @relation(fields: [certificateId], references: [id], onDelete: Restrict)
   company              Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   invoice              EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   responses            FiscalResponse[]
@@ -5461,4 +5462,24 @@ enum OutboxEventStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+// =============================================================================
+// E-INVOICE PROVIDER SYNC STATE - Cursor persistence for inbound polling
+// =============================================================================
+
+model ProviderSyncState {
+  id                   String            @id @default(cuid())
+  companyId            String
+  provider             String // e.g., "eposlovanje", "moj-eracun"
+  direction            EInvoiceDirection
+  lastSuccessfulPollAt DateTime
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, provider, direction])
+  @@index([companyId])
+  @@index([provider, direction])
 }
