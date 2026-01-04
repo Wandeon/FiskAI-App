@@ -13,11 +13,13 @@
 ## Context
 
 **PHASE 1-3 Complete:**
+
 - Control Center shells render capability state (PHASE 1)
 - `executeCapabilityAction` handles single-entity actions (PHASE 2)
 - `useCapabilityResolution` and `revalidateCapabilityResolution` handle cache (PHASE 3)
 
 **Existing Components:**
+
 - `ActionButton` - Executes single action on single entity
 - `QueueRenderer` + `QueueItemCard` - Renders queue items with actions
 - `useCapabilityAction` - Client hook for single actions
@@ -30,6 +32,7 @@
 ## Task 1: Batch Action Types
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/batch-types.ts`
 - Test: `src/lib/capabilities/actions/__tests__/batch-types.test.ts`
 
@@ -206,6 +209,7 @@ git commit -m "feat(capabilities): add batch action types"
 ## Task 2: Batch Action Executor
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/batch-executor.ts`
 - Modify: `src/lib/capabilities/actions/executor.ts:20-21` (import handlers export)
 - Test: `src/lib/capabilities/actions/__tests__/batch-executor.test.ts`
@@ -298,7 +302,7 @@ Expected: FAIL - Cannot find module '../batch-executor'
 
 **Step 3: Write minimal implementation**
 
-```typescript
+````typescript
 // src/lib/capabilities/actions/batch-executor.ts
 "use server"
 
@@ -406,7 +410,7 @@ export async function executeBatchAction(input: BatchActionInput): Promise<Batch
     results,
   }
 }
-```
+````
 
 **Step 4: Run test to verify it passes**
 
@@ -425,6 +429,7 @@ git commit -m "feat(capabilities): add batch action executor"
 ## Task 3: useBatchAction Hook
 
 **Files:**
+
 - Create: `src/lib/capabilities/actions/useBatchAction.ts`
 - Test: `src/lib/capabilities/actions/__tests__/useBatchAction.test.tsx`
 
@@ -537,7 +542,7 @@ Expected: FAIL - Cannot find module '../useBatchAction'
 
 **Step 3: Write minimal implementation**
 
-```typescript
+````typescript
 // src/lib/capabilities/actions/useBatchAction.ts
 "use client"
 
@@ -721,7 +726,7 @@ export function useBatchAction(options: UseBatchActionOptions): UseBatchActionRe
     reset,
   }
 }
-```
+````
 
 **Step 4: Run test to verify it passes**
 
@@ -740,6 +745,7 @@ git commit -m "feat(capabilities): add useBatchAction hook"
 ## Task 4: Selection Context
 
 **Files:**
+
 - Create: `src/components/capability/selection-context.tsx`
 - Test: `src/components/capability/__tests__/selection-context.test.tsx`
 
@@ -949,6 +955,7 @@ git commit -m "feat(capabilities): add selection context for batch operations"
 ## Task 5: BatchActionBar Component
 
 **Files:**
+
 - Create: `src/components/capability/BatchActionBar.tsx`
 - Test: `src/components/capability/__tests__/BatchActionBar.test.tsx`
 
@@ -1213,6 +1220,7 @@ git commit -m "feat(capabilities): add BatchActionBar component"
 ## Task 6: SelectableQueueItem Component
 
 **Files:**
+
 - Create: `src/components/capability/SelectableQueueItem.tsx`
 - Test: `src/components/capability/__tests__/SelectableQueueItem.test.tsx`
 
@@ -1443,6 +1451,7 @@ git commit -m "feat(capabilities): add SelectableQueueItem component"
 ## Task 7: Update Barrel Exports
 
 **Files:**
+
 - Modify: `src/lib/capabilities/actions/index.ts` - Add batch exports
 - Modify: `src/components/capability/index.ts` - Add selection exports
 
@@ -1493,11 +1502,7 @@ export type { UseCapabilityActionOptions, UseCapabilityActionReturn } from "./us
 
 // Batch hook (PHASE 4)
 export { useBatchAction } from "./useBatchAction"
-export type {
-  UseBatchActionOptions,
-  UseBatchActionReturn,
-  BatchProgress,
-} from "./useBatchAction"
+export type { UseBatchActionOptions, UseBatchActionReturn, BatchProgress } from "./useBatchAction"
 ```
 
 **Step 2: Update component barrel**

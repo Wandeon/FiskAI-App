@@ -11,11 +11,13 @@ Overall assessment: NOT production ready.
 Go/No-Go recommendation: NO-GO until Critical findings are addressed.
 
 Key themes:
+
 - Composer conflict handling is still broken: SOURCE_CONFLICT now writes SourcePointer IDs into rule conflict fields, which violates the RegulatoryRule foreign key and prevents Arbiter/Admin resolution.
 - Operational control improved (pipeline trigger now runs real phases, monitoring signature fixed), but the source-specific check endpoint remains a placeholder.
 - Audit trail coverage improved for evidence fetches and human approvals, but conflict creation in Reviewer and manual conflict resolution still lack audit events.
 
 Severity counts:
+
 - Critical: 1
 - High: 0
 - Medium: 6
@@ -30,8 +32,8 @@ Severity counts:
 
 ### Tests Executed
 
-- npx tsx --test src/lib/regulatory-truth/__tests__/arbiter.test.ts (pass)
-- npx tsx --test src/lib/regulatory-truth/__tests__/sentinel.test.ts (pass)
+- npx tsx --test src/lib/regulatory-truth/**tests**/arbiter.test.ts (pass)
+- npx tsx --test src/lib/regulatory-truth/**tests**/sentinel.test.ts (pass)
 - RESEND_API_KEY=dummy npm run build (pass)
 
 ## Resolved Since Previous Audit
@@ -117,7 +119,7 @@ LOW-01: Invalid appliesWhen predicates are skipped silently
 LOW-02: AI provider mismatch vs audit request
 
 - Evidence:
-  - Agent runner uses OLLAMA_* env vars in src/lib/regulatory-truth/agents/runner.ts:9-23.
+  - Agent runner uses OLLAMA\_\* env vars in src/lib/regulatory-truth/agents/runner.ts:9-23.
   - Audit request specifies Anthropic Claude.
 - Impact: Documentation drift and operational confusion.
 - Recommendation: Align docs with implementation or implement Anthropic client.
@@ -125,11 +127,13 @@ LOW-02: AI provider mismatch vs audit request
 ## Readiness and Roadmap
 
 Immediate fixes before production:
+
 1. Fix Composer SOURCE_CONFLICT to avoid invalid itemAId/itemBId and support pointer-level conflicts.
 2. Add audit logging for reviewer-created conflicts and admin conflict resolution.
 3. Implement source-specific manual checks (or a job queue) for operational recovery.
 
 Near-term improvements:
+
 - Use RegulatorySource.hierarchy for authority derivation.
 - Enforce rate limit configuration (maxRequestsPerMinute/maxConcurrentRequests).
 - Replace the 1000-rule cap with pagination or filtered evaluation.
@@ -147,10 +151,10 @@ See docs/07_AUDITS/2025-12-22-regulatory-truth-layer-risk-registry.csv for curre
 
 ## Appendix: Files Reviewed
 
-- src/lib/regulatory-truth/agents/*
-- src/lib/regulatory-truth/dsl/*
-- src/lib/regulatory-truth/utils/*
-- src/lib/regulatory-truth/scripts/*
-- src/app/api/rules/*
-- src/app/api/admin/regulatory-truth/*
+- src/lib/regulatory-truth/agents/\*
+- src/lib/regulatory-truth/dsl/\*
+- src/lib/regulatory-truth/utils/\*
+- src/lib/regulatory-truth/scripts/\*
+- src/app/api/rules/\*
+- src/app/api/admin/regulatory-truth/\*
 - prisma/schema.prisma

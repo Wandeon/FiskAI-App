@@ -40,11 +40,13 @@ The Regulatory Truth Layer now supports real-time discovery through webhooks and
 ### Database Models
 
 **WebhookSubscription**
+
 - Represents a webhook subscription to a regulatory source
 - Stores configuration, authentication, and filter patterns
 - Tracks success/error metrics
 
 **WebhookEvent**
+
 - Records each received webhook notification
 - Stores raw payload for debugging
 - Links to created Evidence records
@@ -52,16 +54,19 @@ The Regulatory Truth Layer now supports real-time discovery through webhooks and
 ### API Endpoint
 
 **POST /api/webhooks/regulatory-truth**
+
 - Receives webhook notifications
 - Verifies signatures and authentication
 - Creates WebhookEvent records
 - Processes events asynchronously
 
 **Query Parameters:**
+
 - `provider` - Source identifier (e.g., "narodne-novine", "porezna-uprava")
 - `subscription_id` - Specific subscription ID (optional)
 
 **Headers:**
+
 - `X-Webhook-Provider` - Alternative to query param
 - `X-Webhook-Signature` - HMAC signature for verification
 - `Authorization` - Bearer token for authentication
@@ -77,6 +82,7 @@ The Regulatory Truth Layer now supports real-time discovery through webhooks and
 **Feed URL:** `https://narodne-novine.nn.hr/rss/`
 
 **Setup:**
+
 ```sql
 INSERT INTO "WebhookSubscription" (
   id,
@@ -98,10 +104,12 @@ INSERT INTO "WebhookSubscription" (
 ```
 
 **Configuration:**
+
 - `pollIntervalMinutes`: How often to poll RSS feed (default: 15)
 - `types`: NN content types to include (1=Zakon, 2=Uredba)
 
 **Filter Patterns:**
+
 - Only process URLs matching `https://narodne-novine.nn.hr/clanci/.*`
 
 ### 2. Porezna Uprava (Tax Authority)
@@ -111,6 +119,7 @@ INSERT INTO "WebhookSubscription" (
 **Email:** Subscribe to newsletters at https://www.porezna-uprava.hr
 
 **Setup:**
+
 1. Subscribe to Porezna uprava newsletter with FiskAI email
 2. Configure email forwarding to webhook endpoint
 3. Create webhook subscription:
@@ -134,6 +143,7 @@ INSERT INTO "WebhookSubscription" (
 ```
 
 **Email Forwarding:**
+
 - Forward emails from `newsletters@porezna-uprava.hr` to webhook endpoint
 - Use email service provider (SendGrid, Mailgun) for parsing
 - Webhook will extract URLs from email body
@@ -191,6 +201,7 @@ INSERT INTO "WebhookSubscription" (
 ```
 
 **Security:**
+
 - `secretKey`: HMAC secret for signature verification
 - `authToken`: Bearer token for authorization (alternative to HMAC)
 - `verifySSL`: Enable/disable SSL verification (default: true)
@@ -285,6 +296,7 @@ curl 'https://fiskai.hr/api/webhooks/regulatory-truth?provider=narodne-novine'
 ```
 
 Response:
+
 ```json
 {
   "subscription": {
@@ -331,16 +343,19 @@ await processWebhookEvent("webhook-event-id")
 ### Common Issues
 
 **Issue: Signature verification failed**
+
 - Check that `secretKey` matches webhook provider configuration
 - Verify signature algorithm (sha256 vs sha1)
 - Ensure payload is not modified during transmission
 
 **Issue: No URLs found in payload**
+
 - Check `eventType` detection logic in processor
 - Verify email parser is extracting URLs correctly
 - Review `rawPayload` in WebhookEvent record
 
 **Issue: Evidence not created**
+
 - Check filter patterns - URLs may be filtered out
 - Verify source exists or can be auto-created
 - Review error logs in WebhookEvent
@@ -356,12 +371,7 @@ All webhook subscriptions should use HMAC signature verification:
 ```typescript
 import { verifyWebhookSignature } from "@/lib/regulatory-truth/webhooks/signature-verification"
 
-const isValid = verifyWebhookSignature(
-  rawPayload,
-  signature,
-  secretKey,
-  "sha256"
-)
+const isValid = verifyWebhookSignature(rawPayload, signature, secretKey, "sha256")
 ```
 
 ### Authentication
@@ -397,12 +407,7 @@ For Stripe-style webhooks with timestamps:
 ```typescript
 import { verifyStripeStyleSignature } from "@/lib/regulatory-truth/webhooks/signature-verification"
 
-const isValid = verifyStripeStyleSignature(
-  payload,
-  signature,
-  secret,
-  timestamp
-)
+const isValid = verifyStripeStyleSignature(payload, signature, secret, timestamp)
 ```
 
 Rejects requests older than 5 minutes.

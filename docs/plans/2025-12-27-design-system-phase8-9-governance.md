@@ -31,6 +31,7 @@ npx husky init
 ## Task 2: Create Pre-commit Hook
 
 **Files:**
+
 - Create/Modify: `.husky/pre-commit`
 
 **Step 1: Create pre-commit hook**
@@ -52,6 +53,7 @@ chmod +x .husky/pre-commit
 ## Task 3: Configure lint-staged
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Add lint-staged config to package.json**
@@ -115,6 +117,7 @@ rm src/components/ui/test-violation.tsx
 ## Task 5: Create TOKENS.md Governance Document
 
 **Files:**
+
 - Create: `src/design-system/TOKENS.md`
 
 **Step 1: Create TOKENS.md**
@@ -130,28 +133,29 @@ This document defines the rules for managing design tokens in the FiskAI codebas
 **Review Required:** Any PR adding/modifying tokens needs design system owner approval
 
 ## Token Architecture
-
 ```
+
 LAYER 0: PRIMITIVES (primitives.ts)
 └── Raw color values - NEVER import directly in components
 
-LAYER 1: SEMANTIC (semantic/*.ts)
-├── surfaces.ts  - Surface ladder
-├── text.ts      - Text hierarchy
-├── borders.ts   - Border tokens
+LAYER 1: SEMANTIC (semantic/\*.ts)
+├── surfaces.ts - Surface ladder
+├── text.ts - Text hierarchy
+├── borders.ts - Border tokens
 ├── interactive.ts - Interactive states
-└── colors.ts    - Status colors
+└── colors.ts - Status colors
 
-LAYER 2: LAYOUT (layout/*.ts)
-├── spacing.ts   - 4px base spacing
-├── radius.ts    - Border radius
+LAYER 2: LAYOUT (layout/\*.ts)
+├── spacing.ts - 4px base spacing
+├── radius.ts - Border radius
 └── elevation.ts - Shadows & z-index
 
 LAYER 3: SPECIALIZED
 ├── typography.ts - Text styles
-├── motion.ts     - Animation
-└── data-vis.ts   - Chart colors
-```
+├── motion.ts - Animation
+└── data-vis.ts - Chart colors
+
+````
 
 ## Adding New Tokens
 
@@ -221,23 +225,24 @@ Use `// @design-override: <reason>` ONLY when:
 ```tsx
 // @design-override: Brand partner XYZ requires exact hex #AB1234
 <div className="bg-[#AB1234]">Partner Logo</div>
-```
+````
 
 ## Enforcement
 
 ### ESLint Rules
 
-| Path | Level | Rule |
-|------|-------|------|
-| `src/app/(app)/**` | ERROR | Block hardcoded colors |
-| `src/app/(admin)/**` | ERROR | Block hardcoded colors |
-| `src/app/(staff)/**` | ERROR | Block hardcoded colors |
-| `src/components/**` | ERROR | Block hardcoded colors |
-| `src/app/(marketing)/**` | WARN | Warn about hardcoded colors |
+| Path                     | Level | Rule                        |
+| ------------------------ | ----- | --------------------------- |
+| `src/app/(app)/**`       | ERROR | Block hardcoded colors      |
+| `src/app/(admin)/**`     | ERROR | Block hardcoded colors      |
+| `src/app/(staff)/**`     | ERROR | Block hardcoded colors      |
+| `src/components/**`      | ERROR | Block hardcoded colors      |
+| `src/app/(marketing)/**` | WARN  | Warn about hardcoded colors |
 
 ### Pre-commit Hook
 
 Commits are blocked if:
+
 - Hardcoded colors in app/admin/staff/components
 - No escape hatch comment provided
 
@@ -250,6 +255,7 @@ ESLint runs in CI with same rules as pre-commit.
 ### Q: Which token should I use for X?
 
 Check the token files in order:
+
 1. `semantic/` - Most UI needs are here
 2. `layout/` - Spacing, radius, shadows
 3. `typography.ts` - Text styles
@@ -274,7 +280,8 @@ Ensure you're using CSS variable-based tokens (`var(--surface-0)`), not direct h
 - [Design System Architecture](../docs/plans/2025-12-27-design-system-architecture.md)
 - [Tailwind Config](../../tailwind.config.ts)
 - [CSS Variables](./css/variables.css)
-```
+
+````
 
 ---
 
@@ -303,11 +310,12 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
   <Button variant="primary">Action</Button>
   <Badge variant="success">Status</Badge>
 </div>
-```
+````
 
 ## Available Classes
 
 ### Surfaces
+
 - `bg-base` - Page background
 - `bg-surface` - Cards (default)
 - `bg-surface-1` - Nested cards, hover states
@@ -315,6 +323,7 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
 - `bg-surface-elevated` - Modals
 
 ### Text
+
 - `text-foreground` - Primary text
 - `text-secondary` - Body text
 - `text-tertiary` - Captions
@@ -322,22 +331,26 @@ import type { ButtonVariant, StatusVariant } from '@/design-system';
 - `text-link` - Links
 
 ### Status
+
 - `bg-success-bg`, `text-success-text`, `border-success-border`
 - `bg-warning-bg`, `text-warning-text`, `border-warning-border`
 - `bg-danger-bg`, `text-danger-text`, `border-danger-border`
 - `bg-info-bg`, `text-info-text`, `border-info-border`
 
 ### Typography
+
 - `text-display-xl`, `text-display-lg`, `text-display-md`
 - `text-heading-xl`, `text-heading-lg`, `text-heading-md`, `text-heading-sm`
 - `text-body-lg`, `text-body-base`, `text-body-sm`, `text-body-xs`
 - `text-label`, `text-caption`, `text-overline`, `text-code`
 
 ### Interactive
+
 - `bg-interactive`, `hover:bg-interactive-hover`
 - `border-border-focus`
 
 ### Charts
+
 - `text-chart-1` through `text-chart-8`
 
 ## Enforcement
@@ -363,7 +376,8 @@ Hardcoded colors are blocked by ESLint:
 
 - [Architecture](../docs/plans/2025-12-27-design-system-architecture.md)
 - [Governance](./TOKENS.md)
-```
+
+````
 
 ---
 
@@ -383,7 +397,7 @@ git commit -m "feat(design-system): add pre-commit hook and governance (phase 8-
 - Create TOKENS.md governance document
 - Create README.md for design system usage
 - Document token ownership, naming rules, escape hatch policy"
-```
+````
 
 ---
 

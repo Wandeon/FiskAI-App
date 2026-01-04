@@ -36,7 +36,10 @@ keywords:
 ---
 
 <QuickAnswer>
-Prag za obvezan ulazak u sustav PDV-a je **<FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnjeg prometa**. Registracija se obavlja putem ePorezna u roku 15 dana od prekoračenja. Možete se registrirati i dobrovoljno. Postupak traje 1-3 dana i dobivate PDV broj (OIB s oznakom HR).
+  Prag za obvezan ulazak u sustav PDV-a je **
+  <FiscalCurrency path="THRESHOLDS.pdv.value" /> godišnjeg prometa**. Registracija se obavlja putem
+  ePorezna u roku 15 dana od prekoračenja. Možete se registrirati i dobrovoljno. Postupak traje 1-3
+  dana i dobivate PDV broj (OIB s oznakom HR).
 </QuickAnswer>
 
 ## Što je sustav PDV-a?
@@ -48,6 +51,7 @@ PDV (Porez na dodanu vrijednost) je porez na potrošnju koji se naplaćuje na sv
 - **Razliku predaje** državi (ili dobiva povrat)
 
 **Primjer:**
+
 - Naplaćujete PDV od kupaca (izlazni PDV).
 - Plaćate PDV dobavljačima (ulazni PDV).
 - **Razliku prijavljujete** državi ili ostvarujete povrat.
@@ -57,13 +61,16 @@ PDV (Porez na dodanu vrijednost) je porez na potrošnju koji se naplaćuje na sv
 ### Kako se računa prag?
 
 Prag se računa kao **zbroj neto prihoda** (bez PDV-a) za:
+
 - **Proteklih 12 mjeseci** (klizni prosjek) ili
 - **Tekuća kalendarska godina**
 
 **Primjer kliznog prosjeka:**
+
 - Ako u posljednjih 12 mjeseci prijeđete PDV prag → obvezna registracija.
 
 **Primjer kalendarske godine:**
+
 - Ako procijenite da ćete do kraja godine prijeći PDV prag → prijavite se prije prekoračenja.
 
 ### Rok za registraciju
@@ -71,27 +78,30 @@ Prag se računa kao **zbroj neto prihoda** (bez PDV-a) za:
 **Obvezna registracija:** Unutar **15 dana** od prekoračenja praga.
 
 **Kazna za kašnjenje:**
+
 - Kazne su značajne i ovise o prekršaju
 - Retroaktivna obveza PDV-a (morate prijaviti sve transakcije od trenutka prekoračenja)
 
 ## Dobrovoljna vs obvezna registracija
 
-| Kriterij | Obvezna | Dobrovoljna |
-|----------|---------|-------------|
-| **Prag prometa** | Iznad <FiscalCurrency path="THRESHOLDS.pdv.value" /> | Bilo koji iznos |
-| **Rok** | 15 dana od prekoračenja | Bilo kada |
-| **Trajanje obveze** | Minimum 2 godine | Minimum 2 godine |
-| **Prednosti** | - | Predugovaranje PDV-a, veći kredibilitet |
-| **Nedostaci** | Dodatne obveze | Dodatne obveze (prijave, evidencija) |
+| Kriterij            | Obvezna                                              | Dobrovoljna                             |
+| ------------------- | ---------------------------------------------------- | --------------------------------------- |
+| **Prag prometa**    | Iznad <FiscalCurrency path="THRESHOLDS.pdv.value" /> | Bilo koji iznos                         |
+| **Rok**             | 15 dana od prekoračenja                              | Bilo kada                               |
+| **Trajanje obveze** | Minimum 2 godine                                     | Minimum 2 godine                        |
+| **Prednosti**       | -                                                    | Predugovaranje PDV-a, veći kredibilitet |
+| **Nedostaci**       | Dodatne obveze                                       | Dodatne obveze (prijave, evidencija)    |
 
 ### Kada se isplati dobrovoljna registracija?
 
 **DA - registrirajte se dobrovoljno ako:**
+
 - Kupujete puno opreme/materijala s PDV-om (možete predugovarati)
 - Radite s PDV obveznicima (ne smeta im vaš PDV na računu)
 - Planirate promet preko PDV praga uskoro
 
 **NE - ostanite izvan sustava ako:**
+
 - Radite s krajnjim potrošačima (B2C) - njima PDV poskupljuje uslugu
 - Godišnji promet je značajno ispod PDV praga
 - Niske marže (PDV nemate što predugovarati)
@@ -101,27 +111,33 @@ Prag se računa kao **zbroj neto prihoda** (bez PDV-a) za:
 ### Prednosti
 
 **1. Predugovaranje ulaznog PDV-a**
+
 - Primjer: Kupite opremu s PDV-om, ulazni PDV možete odbiti.
 
 **2. Veći kredibilitet**
+
 - B2B klijenti preferiraju rad s PDV obveznicima
 - PDV broj označava ozbiljniju tvrtku
 
 **3. Mogućnost povrata PDV-a**
+
 - Ako je ulazni PDV veći od izlaznog → Dobivate povrat
 
 ### Nedostaci
 
 **1. Administrativna opterećenost**
+
 - Mjesečne ili kvartalne PDV prijave
 - Obavezna evidencija ulaznih i izlaznih računa
 - VIES prijave (za EU transakcije)
 
 **2. Likvidnost**
+
 - PDV naplaćujete od kupaca, ali ga možda nećete odmah dobiti
 - Morate ga predati državi prije nego klijent plati
 
 **3. Cijene za krajnje kupce**
+
 - B2C klijenti plaćaju + <FiscalPercentage path="TAX_RATES.vat.standard.rate" /> (vaš proizvod/usluga skuplja)
 
 ## Postupak registracije putem ePorezna
@@ -173,6 +189,7 @@ Dobit ćete **PDV broj u formatu: HRXXXXXXXXXX** (HR + vaš OIB)
 ### 2. Obavijestite klijente i dobavljače
 
 Pošaljite obavijest:
+
 > "Poštovani,
 > Obavještavamo vas da smo od [datum] upisani u registar PDV obveznika.
 > Naš PDV broj je: HRXXXXXXXXXX
@@ -182,6 +199,7 @@ Pošaljite obavijest:
 ### 3. Prilagodite fakture
 
 **Obvezni elementi na PDV računu:**
+
 - Vaš PDV broj (HRXXXXXXXXXX)
 - Osnovica (iznos bez PDV-a)
 - Stopa PDV-a (<FiscalPercentage path="TAX_RATES.vat.standard.rate" />, <FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" /> ili <FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" />)
@@ -189,6 +207,7 @@ Pošaljite obavijest:
 - Ukupno za platiti (osnovica + PDV)
 
 **Primjer:**
+
 ```
 Usluga: Izrada web stranice
 Osnovica: [iznos bez PDV-a]
@@ -201,34 +220,39 @@ PDV broj: HR12345678901
 ### 4. Evidencija računa
 
 **Ulazni računi (troškovi):**
+
 - Svi računi s PDV-om (možete predugovarati)
 - Arhivirati digitalno ili fizički (6 godina)
 
 **Izlazni računi (prihodi):**
+
 - Svi izdani računi s PDV-om
 - Obavezna evidencija za PDV prijavu
 
 ### 5. Prva PDV prijava
 
 **Rok:**
+
 - **Mjesečne:** Do 20. u mjesecu za prethodni mjesec (za siječanj - rok 20. veljače)
 - **Kvartalne:** Do 20. u mjesecu nakon kraja kvartala (za Q1 - rok 20. travnja)
 
 **Obrazac: PDV-P**
+
 - Izlazni PDV (naplaćeno od kupaca)
 - Ulazni PDV (plaćeno dobavljačima)
 - Razlika → Doplata ili povrat
 
 ## Stope PDV-a u Hrvatskoj
 
-| Stopa | Primjena | Primjeri |
-|-------|----------|----------|
-| **<FiscalPercentage path="TAX_RATES.vat.standard.rate" />** | Opća stopa | IT usluge, oprema, konzultacije, većina usluga |
-| **<FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" />** | Snižena stopa | Ugostiteljstvo, turizam, voda, novine |
-| **<FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" />** | Super-snižena | Knjige, lijekovi, medicinska pomagala |
-| **Oslobođeno** | Izvoz | Usluge izvan EU, izvoz robe |
+| Stopa                                                        | Primjena      | Primjeri                                       |
+| ------------------------------------------------------------ | ------------- | ---------------------------------------------- |
+| **<FiscalPercentage path="TAX_RATES.vat.standard.rate" />**  | Opća stopa    | IT usluge, oprema, konzultacije, većina usluga |
+| **<FiscalPercentage path="TAX_RATES.vat.reduced.0.rate" />** | Snižena stopa | Ugostiteljstvo, turizam, voda, novine          |
+| **<FiscalPercentage path="TAX_RATES.vat.reduced.1.rate" />** | Super-snižena | Knjige, lijekovi, medicinska pomagala          |
+| **Oslobođeno**                                               | Izvoz         | Usluge izvan EU, izvoz robe                    |
 
 **Kako znati koja stopa?**
+
 - Provjerite NKD djelatnosti
 - Konzultirajte Zakon o PDV-u ili poreznog savjetnika
 
@@ -237,11 +261,13 @@ PDV broj: HR12345678901
 ### Uvjeti
 
 Možete zatražiti brisanje iz PDV registra ako:
+
 1. Godišnji promet pao ispod praga za izlazak
 2. Zadržite promet ispod praga dvije uzastopne godine
 3. Prošle su **najmanje 2 godine** od registracije
 
 **Postupak:**
+
 - Zahtjev putem ePorezna (PDV-O obrazac)
 - Porezna odobrenje (1-2 mjeseca)
 - Brisanje od 1. siječnja sljedeće godine
@@ -249,18 +275,22 @@ Možete zatražiti brisanje iz PDV registra ako:
 ## Česte greške pri registraciji
 
 **1. Kasna registracija**
+
 - Prekoračili ste prag, ali niste se registrirali u roku 15 dana
 - Kazna + retroaktivna obveza
 
 **2. Kriva procjena prometa**
+
 - Očekivali ste promet ispod praga, ali ste ga premašili
 - Morate se registrirati čim prijeđete prag
 
 **3. Odmah napuštanje sustava**
+
 - Morate ostati minimum 2 godine u sustavu
 - Ne možete se prebaciti natrag u paušalno odmah
 
 **4. Neažurirana faktura**
+
 - Nakon registracije, svi računi MORAJU imati PDV
 - Račun bez PDV-a nije valjan
 
@@ -269,6 +299,7 @@ Možete zatražiti brisanje iz PDV registra ako:
 ### Stranci (fizičke osobe iz EU)
 
 Ako pružate usluge stranim PDV obveznicima u EU:
+
 - **Obrnuto oporezivanje** (Reverse Charge) - oni plaćaju PDV u svojoj zemlji
 - Ne dodajete PDV na račun
 - Ispunjujete VIES prijavu

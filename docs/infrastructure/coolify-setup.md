@@ -3,6 +3,7 @@
 Goal: host FiskAI on VPS-01 (ARM64) using Coolify so every Git push can trigger automated builds and deployments.
 
 ## Prerequisites
+
 - ARM64 VPS with Ubuntu 22.04+, 4 vCPUs, 8 GB RAM, 100 GB SSD minimum.
 - Root SSH access.
 - Docker & Docker Compose already installed (Coolify installer checks this).
@@ -11,6 +12,7 @@ Goal: host FiskAI on VPS-01 (ARM64) using Coolify so every Git push can trigger 
 - `.env` file prepared with the values defined in `.env.example` (POSTGRES, NEXTAUTH, EINVOICE_KEY_SECRET, etc.).
 
 ## Installation Steps
+
 1. **System prep**
    ```bash
    sudo apt update && sudo apt upgrade -y
@@ -20,6 +22,7 @@ Goal: host FiskAI on VPS-01 (ARM64) using Coolify so every Git push can trigger 
    ```bash
    curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
    ```
+
    - Script installs Docker dependencies (if missing), pulls Coolify image, and sets up the `coolify` systemd service.
    - Once complete, Coolify listens on port `8000` (HTTP). Use `https://<server-ip>:8000` to finish onboarding.
 3. **Initial onboarding**
@@ -30,6 +33,7 @@ Goal: host FiskAI on VPS-01 (ARM64) using Coolify so every Git push can trigger 
    - In Coolify, enable HTTPS (Let’s Encrypt) for the dashboard.
 
 ## Deploying FiskAI
+
 1. **Create PostgreSQL service**
    - In Coolify, add a new managed database → PostgreSQL 16 (ARM64 architecture).
    - Note credentials and connection URL (use them to populate `DATABASE_URL`).
@@ -53,17 +57,20 @@ Goal: host FiskAI on VPS-01 (ARM64) using Coolify so every Git push can trigger 
    - Optional: restrict to tags or branches (e.g., only `main`).
 
 ## Post-Deployment Checklist
+
 - Run `npx prisma migrate deploy` inside the Coolify console after first deployment to apply DB schema.
 - Verify environment variables via Coolify dashboard (no secrets in git).
 - Enable backups for Postgres (Coolify’s schedule or external snapshot).
 - Connect monitoring/alerts (Coolify has built-in metrics; also set up external ping).
 
 ## Maintenance Commands
+
 - Restart Coolify service: `sudo systemctl restart coolify`
 - View logs: `docker logs -f coolify`
 - Update Coolify: rerun the installer script; it performs rolling upgrade.
 
 ## Notes
+
 - Installer requires outbound internet access; if network is restricted, fetch the script manually and transfer via SCP.
 - For GitHub webhooks, ensure port 6001 is reachable or configure polling mode under project settings.
 - Keep PATs in Coolify’s secret store; rotate regularly.

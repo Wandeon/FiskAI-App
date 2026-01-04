@@ -21,6 +21,10 @@ vi.mock("@/lib/db", () => ({
   },
 }))
 
+vi.mock("@/lib/db/regulatory", () => ({
+  dbReg: {},
+}))
+
 vi.mock("../../regulatory-truth/retrieval/query-router", () => ({
   routeQuery: vi.fn().mockResolvedValue({
     success: true,

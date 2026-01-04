@@ -4,14 +4,14 @@ name: Assistant Quality Gates
 on:
   push:
     paths:
-      - 'src/lib/assistant/**'
-      - 'src/components/assistant-v2/**'
-      - 'e2e/assistant/**'
+      - "src/lib/assistant/**"
+      - "src/components/assistant-v2/**"
+      - "e2e/assistant/**"
   pull_request:
     paths:
-      - 'src/lib/assistant/**'
-      - 'src/components/assistant-v2/**'
-      - 'e2e/assistant/**'
+      - "src/lib/assistant/**"
+      - "src/components/assistant-v2/**"
+      - "e2e/assistant/**"
 
 jobs:
   unit-tests:
@@ -23,8 +23,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -44,8 +44,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -64,8 +64,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci

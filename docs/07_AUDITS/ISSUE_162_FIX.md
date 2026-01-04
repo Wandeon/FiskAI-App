@@ -6,19 +6,20 @@ Only 12 out of 615 rules (1.9%) were published, severely limiting the AI Assista
 
 ### Status Distribution (Before Fix)
 
-| Status | Count | Percentage |
-|--------|-------|------------|
-| DRAFT | 509 | 82.8% |
-| REJECTED | 65 | 10.6% |
-| PENDING_REVIEW | 28 | 4.6% |
-| PUBLISHED | 12 | 1.9% |
-| APPROVED | 1 | 0.2% |
+| Status         | Count | Percentage |
+| -------------- | ----- | ---------- |
+| DRAFT          | 509   | 82.8%      |
+| REJECTED       | 65    | 10.6%      |
+| PENDING_REVIEW | 28    | 4.6%       |
+| PUBLISHED      | 12    | 1.9%       |
+| APPROVED       | 1     | 0.2%       |
 
 ## Root Cause Analysis
 
 The bottleneck was identified in the rule progression pipeline:
 
 ### Pipeline Flow
+
 ```
 DRAFT → PENDING_REVIEW → APPROVED → PUBLISHED
    ↓         ↓              ↓
@@ -53,12 +54,14 @@ Created three new scripts to address the bottleneck:
 Batch processes DRAFT rules through the reviewer agent.
 
 **Features:**
+
 - Processes DRAFT rules with confidence >= threshold
 - Supports filtering by risk tier
 - Can auto-publish approved rules
 - Dry-run mode for previewing changes
 
 **Usage:**
+
 ```bash
 # Preview what would be processed
 npx tsx src/lib/regulatory-truth/scripts/batch-review-drafts.ts --dry-run
@@ -75,6 +78,7 @@ npx tsx src/lib/regulatory-truth/scripts/batch-review-drafts.ts --publish
 Manually triggers auto-approval for eligible PENDING_REVIEW rules.
 
 **Criteria for auto-approval:**
+
 - Status: PENDING_REVIEW
 - Age: >= 24 hours
 - Confidence: >= 0.90
@@ -82,6 +86,7 @@ Manually triggers auto-approval for eligible PENDING_REVIEW rules.
 - No open conflicts
 
 **Usage:**
+
 ```bash
 # Run with default settings (24h grace, 0.90 confidence)
 npx tsx src/lib/regulatory-truth/scripts/run-auto-approve.ts
@@ -95,12 +100,14 @@ AUTO_APPROVE_GRACE_HOURS=48 npx tsx src/lib/regulatory-truth/scripts/run-auto-ap
 Orchestrates the entire pipeline fix in one command.
 
 **Steps:**
+
 1. Analyze current state
 2. Review high-confidence DRAFT rules (T2/T3, confidence >= 0.95)
 3. Auto-approve eligible PENDING_REVIEW rules
 4. Release all APPROVED rules
 
 **Usage:**
+
 ```bash
 # Preview what would happen
 npx tsx src/lib/regulatory-truth/scripts/fix-publication-pipeline.ts --dry-run
@@ -153,12 +160,14 @@ npx tsx src/lib/regulatory-truth/scripts/fix-publication-pipeline.ts
 ## Testing
 
 ### Dry-Run Testing
+
 ```bash
 # Test the full pipeline fix
 npx tsx src/lib/regulatory-truth/scripts/fix-publication-pipeline.ts --dry-run
 ```
 
 ### Incremental Testing
+
 ```bash
 # 1. Test review of a small batch
 npx tsx src/lib/regulatory-truth/scripts/batch-review-drafts.ts --max-rules 10 --dry-run
@@ -192,12 +201,14 @@ npx tsx src/lib/regulatory-truth/scripts/run-releaser.ts
 ### Recommended Workflow
 
 **Daily:**
+
 ```bash
 # Auto-approve eligible rules (T2/T3 that aged 24h)
 npx tsx src/lib/regulatory-truth/scripts/run-auto-approve.ts
 ```
 
 **Weekly:**
+
 ```bash
 # Review and publish new high-confidence rules
 npx tsx src/lib/regulatory-truth/scripts/batch-review-drafts.ts --tiers "T2,T3" --publish
@@ -207,6 +218,7 @@ npx tsx src/lib/regulatory-truth/scripts/generate-review-bundle.ts --tiers "T0,T
 ```
 
 **As Needed:**
+
 ```bash
 # Fix pipeline if backlog accumulates
 npx tsx src/lib/regulatory-truth/scripts/fix-publication-pipeline.ts
@@ -236,11 +248,13 @@ After running the fix:
 If issues occur:
 
 1. **Stop Processing**
+
    ```bash
    # All scripts can be safely interrupted (Ctrl+C)
    ```
 
 2. **Revert Published Rules**
+
    ```bash
    # Use the rollback function (if needed)
    npx tsx src/lib/regulatory-truth/scripts/run-releaser.ts --rollback <version>

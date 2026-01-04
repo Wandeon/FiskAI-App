@@ -15,6 +15,7 @@
 ### Task 1: Create ContentSyncEvent Drizzle Schema
 
 **Files:**
+
 - Create: `src/lib/db/schema/content-sync.ts`
 - Modify: `src/lib/db/schema/index.ts`
 
@@ -98,9 +99,7 @@ export const contentSyncEvents = pgTable(
     // Full event payload (ContentSyncEventV1)
     payload: jsonb("payload").notNull(),
 
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     // Unique constraint for idempotency
@@ -155,6 +154,7 @@ git commit -m "feat(rtl): add content_sync_events Drizzle schema"
 ### Task 2: Create Event Signature and ID Generation
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/event-id.ts`
 - Create: `src/lib/regulatory-truth/content-sync/types.ts`
 
@@ -272,11 +272,7 @@ Create `src/lib/regulatory-truth/content-sync/__tests__/event-id.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "vitest"
-import {
-  generateEventId,
-  hashSourcePointerIds,
-  determineSeverity,
-} from "../event-id"
+import { generateEventId, hashSourcePointerIds, determineSeverity } from "../event-id"
 import type { ContentSyncEventSignature } from "../types"
 
 describe("generateEventId", () => {
@@ -376,6 +372,7 @@ git commit -m "feat(rtl): add event ID generation with deterministic signatures"
 ### Task 3: Create Event Emitter Function
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/emit-event.ts`
 - Create: `src/lib/regulatory-truth/content-sync/index.ts`
 
@@ -530,9 +527,7 @@ describe("emitContentSyncEvent", () => {
 
   afterEach(async () => {
     // Cleanup test events
-    await drizzleDb
-      .delete(contentSyncEvents)
-      .where(eq(contentSyncEvents.ruleId, "test-rule-123"))
+    await drizzleDb.delete(contentSyncEvents).where(eq(contentSyncEvents.ruleId, "test-rule-123"))
   })
 
   it("creates event with correct fields", async () => {
@@ -620,6 +615,7 @@ git commit -m "feat(rtl): add idempotent content sync event emitter"
 ### Task 4: Integrate Event Emission into Releaser
 
 **Files:**
+
 - Modify: `src/lib/regulatory-truth/agents/releaser.ts`
 
 **Step 1: Find the release success point**
@@ -642,8 +638,8 @@ for (const rule of releasedRules) {
   const evidenceIds = [...new Set(rule.sourcePointers.map((sp) => sp.evidenceId))]
 
   // Determine change type from release type
-  const changeType = rule.status === "REPEALED" ? "repeal" :
-    previousVersionExists ? "update" : "create"
+  const changeType =
+    rule.status === "REPEALED" ? "repeal" : previousVersionExists ? "update" : "create"
 
   // Get primary source URL from first pointer with lawReference
   const primarySourceUrl = rule.sourcePointers.find((sp) => sp.lawReference)?.lawReference
@@ -703,6 +699,7 @@ git commit -m "feat(rtl): emit content sync events on rule release"
 ### Task 5: Create Content Sync BullMQ Queue
 
 **Files:**
+
 - Modify: `src/lib/regulatory-truth/workers/queues.ts`
 
 **Step 1: Add content-sync queue to queues.ts**
@@ -713,7 +710,7 @@ Add after existing queue definitions:
 // Content sync queue - processes MDX patching jobs
 // Lower rate limit since it involves git operations
 export const contentSyncQueue = createQueue("content-sync", {
-  max: 2,      // 2 jobs per minute
+  max: 2, // 2 jobs per minute
   duration: 60000,
 })
 ```
@@ -748,6 +745,7 @@ git commit -m "feat(rtl): add content-sync BullMQ queue"
 ### Task 6: Create Concept Registry Types and Structure
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/concept-registry.ts`
 
 **Step 1: Write the registry**
@@ -799,139 +797,97 @@ export const CONCEPT_REGISTRY: ConceptMapping[] = [
   {
     conceptId: "pausalni-tax-rate",
     description: "Paušalni obrt flat tax rate",
-    mdxPaths: [
-      "vodici/pausalni-obrt.mdx",
-      "rjecnik/pausalni-porez.mdx",
-    ],
+    mdxPaths: ["vodici/pausalni-obrt.mdx", "rjecnik/pausalni-porez.mdx"],
   },
   {
     conceptId: "pausalni-contribution-base",
     description: "Paušalni obrt contribution calculation base",
-    mdxPaths: [
-      "vodici/pausalni-obrt.mdx",
-    ],
+    mdxPaths: ["vodici/pausalni-obrt.mdx"],
   },
   // Contribution rates
   {
     conceptId: "zdravstveno-rate",
     description: "Health insurance contribution rate",
-    mdxPaths: [
-      "rjecnik/doprinosi.mdx",
-      "vodici/pausalni-obrt.mdx",
-    ],
+    mdxPaths: ["rjecnik/doprinosi.mdx", "vodici/pausalni-obrt.mdx"],
   },
   {
     conceptId: "mirovinsko-rate",
     description: "Pension contribution rate",
-    mdxPaths: [
-      "rjecnik/doprinosi.mdx",
-      "vodici/pausalni-obrt.mdx",
-    ],
+    mdxPaths: ["rjecnik/doprinosi.mdx", "vodici/pausalni-obrt.mdx"],
   },
   // Fiscalization
   {
     conceptId: "fiskalizacija-required",
     description: "Fiscalization requirements",
-    mdxPaths: [
-      "rjecnik/fiskalizacija.mdx",
-      "vodici/pausalni-obrt.mdx",
-    ],
+    mdxPaths: ["rjecnik/fiskalizacija.mdx", "vodici/pausalni-obrt.mdx"],
   },
   // Deadlines
   {
     conceptId: "posd-deadline",
     description: "PO-SD form submission deadline",
-    mdxPaths: [
-      "kako-da/ispuniti-po-sd.mdx",
-      "vodici/pausalni-obrt.mdx",
-    ],
+    mdxPaths: ["kako-da/ispuniti-po-sd.mdx", "vodici/pausalni-obrt.mdx"],
   },
   {
     conceptId: "joppd-deadline",
     description: "JOPPD form submission deadline",
-    mdxPaths: [
-      "rjecnik/joppd.mdx",
-    ],
+    mdxPaths: ["rjecnik/joppd.mdx"],
   },
   // Corporate
   {
     conceptId: "jdoo-capital-requirement",
     description: "j.d.o.o. minimum capital requirement",
-    mdxPaths: [
-      "rjecnik/jdoo.mdx",
-      "usporedbe/pocinjem-solo.mdx",
-    ],
+    mdxPaths: ["rjecnik/jdoo.mdx", "usporedbe/pocinjem-solo.mdx"],
   },
   {
     conceptId: "doo-capital-requirement",
     description: "d.o.o. minimum capital requirement",
-    mdxPaths: [
-      "rjecnik/doo.mdx",
-      "usporedbe/pocinjem-solo.mdx",
-    ],
+    mdxPaths: ["rjecnik/doo.mdx", "usporedbe/pocinjem-solo.mdx"],
   },
   // Income tax
   {
     conceptId: "porez-na-dohodak-rates",
     description: "Personal income tax rates and brackets",
-    mdxPaths: [
-      "rjecnik/porez-na-dohodak.mdx",
-    ],
+    mdxPaths: ["rjecnik/porez-na-dohodak.mdx"],
   },
   {
     conceptId: "osobni-odbitak",
     description: "Personal tax deduction amount",
-    mdxPaths: [
-      "rjecnik/osobni-odbitak.mdx",
-    ],
+    mdxPaths: ["rjecnik/osobni-odbitak.mdx"],
   },
   // Corporate tax
   {
     conceptId: "porez-na-dobit-rate",
     description: "Corporate profit tax rate",
-    mdxPaths: [
-      "rjecnik/porez-na-dobit.mdx",
-    ],
+    mdxPaths: ["rjecnik/porez-na-dobit.mdx"],
   },
   // E-invoicing
   {
     conceptId: "e-racun-mandatory",
     description: "E-invoice mandate requirements",
-    mdxPaths: [
-      "rjecnik/e-racun.mdx",
-    ],
+    mdxPaths: ["rjecnik/e-racun.mdx"],
   },
   // Reverse charge
   {
     conceptId: "reverse-charge-eu",
     description: "EU reverse charge rules",
-    mdxPaths: [
-      "vodici/freelancer.mdx",
-      "rjecnik/reverse-charge.mdx",
-    ],
+    mdxPaths: ["vodici/freelancer.mdx", "rjecnik/reverse-charge.mdx"],
   },
   // Minimum wage
   {
     conceptId: "minimalna-placa",
     description: "Minimum wage amount",
-    mdxPaths: [
-      "rjecnik/minimalna-placa.mdx",
-    ],
+    mdxPaths: ["rjecnik/minimalna-placa.mdx"],
   },
   // OPG
   {
     conceptId: "opg-pdv-threshold",
     description: "OPG VAT registration threshold",
-    mdxPaths: [
-      "rjecnik/opg.mdx",
-    ],
+    mdxPaths: ["rjecnik/opg.mdx"],
   },
   {
     conceptId: "opg-pausalni-limit",
     description: "OPG flat-rate taxation limit",
-    mdxPaths: [
-      "rjecnik/opg.mdx",
-    ],
+    mdxPaths: ["rjecnik/opg.mdx"],
   },
 ]
 
@@ -1026,6 +982,7 @@ git commit -m "feat(rtl): add concept registry with 20 core mappings"
 ### Task 7: Create Concept Registry Validation Script
 
 **Files:**
+
 - Create: `scripts/validate-concept-registry.ts`
 
 **Step 1: Write validation script**
@@ -1037,7 +994,10 @@ Create `scripts/validate-concept-registry.ts`:
 
 import fs from "fs"
 import path from "path"
-import { CONCEPT_REGISTRY, getAllConceptIds } from "../src/lib/regulatory-truth/content-sync/concept-registry"
+import {
+  CONCEPT_REGISTRY,
+  getAllConceptIds,
+} from "../src/lib/regulatory-truth/content-sync/concept-registry"
 
 const CONTENT_DIR = path.join(process.cwd(), "content")
 
@@ -1153,6 +1113,7 @@ Expected: Lists stats, shows any missing files as errors
 **Step 3: Fix any missing MDX paths**
 
 If validation shows missing files, either:
+
 - Create the missing MDX files, OR
 - Remove the paths from concept-registry.ts
 
@@ -1170,6 +1131,7 @@ git commit -m "feat(rtl): add concept registry validation script"
 ### Task 8: Create Custom Error Classes
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/errors.ts`
 
 **Step 1: Write error classes**
@@ -1364,6 +1326,7 @@ git commit -m "feat(rtl): add content sync error classes with classification"
 ### Task 9: Create Frontmatter Patcher
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/patcher.ts`
 
 **Step 1: Write the patcher**
@@ -1374,11 +1337,7 @@ Create `src/lib/regulatory-truth/content-sync/patcher.ts`:
 import fs from "fs"
 import matter from "gray-matter"
 import type { ContentSyncEventV1 } from "./types"
-import {
-  ContentNotFoundError,
-  FrontmatterParseError,
-  PatchConflictError,
-} from "./errors"
+import { ContentNotFoundError, FrontmatterParseError, PatchConflictError } from "./errors"
 
 /**
  * Changelog entry in frontmatter
@@ -1421,10 +1380,7 @@ export function readMdxFrontmatter(filePath: string): {
     const { data, content } = matter(raw)
     return { data, content, raw }
   } catch (err) {
-    throw new FrontmatterParseError(
-      filePath,
-      err instanceof Error ? err.message : String(err)
-    )
+    throw new FrontmatterParseError(filePath, err instanceof Error ? err.message : String(err))
   }
 }
 
@@ -1476,10 +1432,7 @@ export function createChangelogEntry(event: ContentSyncEventV1): ChangelogEntry 
  * Patch frontmatter with event data.
  * Returns the new file content.
  */
-export function patchFrontmatter(
-  filePath: string,
-  event: ContentSyncEventV1
-): string {
+export function patchFrontmatter(filePath: string, event: ContentSyncEventV1): string {
   const { data, content } = readMdxFrontmatter(filePath)
 
   // Update lastUpdated
@@ -1641,9 +1594,7 @@ Some markdown here.
   })
 
   it("throws ContentNotFoundError for missing file", () => {
-    expect(() => patchFrontmatter("/nonexistent/file.mdx", testEvent)).toThrow(
-      ContentNotFoundError
-    )
+    expect(() => patchFrontmatter("/nonexistent/file.mdx", testEvent)).toThrow(ContentNotFoundError)
   })
 
   it("throws PatchConflictError for duplicate eventId", () => {
@@ -1681,6 +1632,7 @@ git commit -m "feat(rtl): add frontmatter patcher with changelog management"
 ### Task 10: Create Content Repo Adapter
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/repo-adapter.ts`
 
 **Step 1: Write the adapter**
@@ -1716,11 +1668,7 @@ export interface ContentRepoAdapter {
   /**
    * Create PR using GitHub CLI
    */
-  createPR(params: {
-    title: string
-    body: string
-    base?: string
-  }): string // Returns PR URL
+  createPR(params: { title: string; body: string; base?: string }): string // Returns PR URL
 
   /**
    * Get current branch name
@@ -1804,12 +1752,7 @@ export function generatePRTitle(
   conceptId: string,
   changeType: "create" | "update" | "repeal"
 ): string {
-  const verb =
-    changeType === "create"
-      ? "Add"
-      : changeType === "repeal"
-        ? "Remove"
-        : "Update"
+  const verb = changeType === "create" ? "Add" : changeType === "repeal" ? "Remove" : "Update"
   return `docs: ${verb} ${conceptId} content from RTL`
 }
 
@@ -1826,7 +1769,16 @@ export function generatePRBody(params: {
   primarySourceUrl?: string
   patchedFiles: string[]
 }): string {
-  const { eventId, conceptId, ruleId, changeType, effectiveFrom, sourcePointerIds, primarySourceUrl, patchedFiles } = params
+  const {
+    eventId,
+    conceptId,
+    ruleId,
+    changeType,
+    effectiveFrom,
+    sourcePointerIds,
+    primarySourceUrl,
+    patchedFiles,
+  } = params
 
   return `## RTL Content Sync
 
@@ -1860,11 +1812,7 @@ Create `src/lib/regulatory-truth/content-sync/__tests__/repo-adapter.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "vitest"
-import {
-  generateBranchName,
-  generatePRTitle,
-  generatePRBody,
-} from "../repo-adapter"
+import { generateBranchName, generatePRTitle, generatePRBody } from "../repo-adapter"
 
 describe("generateBranchName", () => {
   it("creates valid branch name", () => {
@@ -1931,6 +1879,7 @@ git commit -m "feat(rtl): add content repo adapter for git operations"
 ### Task 11: Create Content Sync Worker
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/workers/content-sync.worker.ts`
 
 **Step 1: Write the worker**
@@ -1942,7 +1891,11 @@ import { Job } from "bullmq"
 import { eq, inArray, sql } from "drizzle-orm"
 import { drizzleDb } from "@/lib/db/drizzle"
 import { contentSyncEvents } from "@/lib/db/schema/content-sync"
-import type { ContentSyncEvent, ContentSyncStatus, DeadLetterReason } from "@/lib/db/schema/content-sync"
+import type {
+  ContentSyncEvent,
+  ContentSyncStatus,
+  DeadLetterReason,
+} from "@/lib/db/schema/content-sync"
 import { createWorker } from "./base"
 import { queues } from "./queues"
 import { getConceptMapping, resolveContentPaths } from "../content-sync/concept-registry"
@@ -2118,9 +2071,7 @@ async function processContentSyncJob(job: Job<ContentSyncJobData>) {
 
     // Stage and commit
     repoAdapter.stageFiles(patchedFiles)
-    repoAdapter.commit(
-      `docs: sync ${event.conceptId} from RTL event ${eventId.slice(0, 8)}`
-    )
+    repoAdapter.commit(`docs: sync ${event.conceptId} from RTL event ${eventId.slice(0, 8)}`)
 
     // Push branch
     repoAdapter.pushBranch(branchName)
@@ -2227,6 +2178,7 @@ git commit -m "feat(rtl): add content sync BullMQ worker with PR creation"
 ### Task 12: Create Queue Drain Script for Content Sync
 
 **Files:**
+
 - Create: `scripts/drain-content-sync.ts`
 
 **Step 1: Write the drain script**
@@ -2281,6 +2233,7 @@ git commit -m "feat(rtl): add content sync queue drain script"
 ### Task 13: Update Frontmatter Validation
 
 **Files:**
+
 - Modify: `src/lib/knowledge-hub/validate-frontmatter.ts`
 - Modify: `scripts/validate-content.ts`
 
@@ -2341,9 +2294,7 @@ export function validateChangelog(changelog: ChangelogEntry[]): ValidationResult
   // Existing validation...
 
   // Add eventId uniqueness check
-  const eventIds = changelog
-    .filter((e) => e.eventId)
-    .map((e) => e.eventId)
+  const eventIds = changelog.filter((e) => e.eventId).map((e) => e.eventId)
   const uniqueEventIds = new Set(eventIds)
   if (eventIds.length !== uniqueEventIds.size) {
     errors.push("Changelog contains duplicate eventIds")
@@ -2352,10 +2303,16 @@ export function validateChangelog(changelog: ChangelogEntry[]): ValidationResult
   // Validate sourcePointerIds if present
   for (const entry of changelog) {
     if (entry.sourcePointerIds && !Array.isArray(entry.sourcePointerIds)) {
-      errors.push(`Changelog entry ${entry.eventId || entry.date}: sourcePointerIds must be an array`)
+      errors.push(
+        `Changelog entry ${entry.eventId || entry.date}: sourcePointerIds must be an array`
+      )
     }
     if (entry.confidenceLevel !== undefined) {
-      if (typeof entry.confidenceLevel !== "number" || entry.confidenceLevel < 0 || entry.confidenceLevel > 100) {
+      if (
+        typeof entry.confidenceLevel !== "number" ||
+        entry.confidenceLevel < 0 ||
+        entry.confidenceLevel > 100
+      ) {
         errors.push(`Changelog entry ${entry.eventId || entry.date}: confidenceLevel must be 0-100`)
       }
     }
@@ -2400,6 +2357,7 @@ git commit -m "feat(rtl): update frontmatter validation for RTL fields"
 ### Task 14: Add Worker to Docker Compose
 
 **Files:**
+
 - Modify: `docker-compose.workers.yml`
 
 **Step 1: Add content-sync worker service**
@@ -2407,25 +2365,25 @@ git commit -m "feat(rtl): update frontmatter validation for RTL fields"
 Add to `docker-compose.workers.yml`:
 
 ```yaml
-  worker-content-sync:
-    build:
-      context: .
-      dockerfile: Dockerfile.workers
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      - WORKER_TYPE=content-sync
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-    volumes:
-      - .:/app
-      - /app/node_modules
-    depends_on:
-      - redis
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
+worker-content-sync:
+  build:
+    context: .
+    dockerfile: Dockerfile.workers
+  environment:
+    - DATABASE_URL=${DATABASE_URL}
+    - REDIS_URL=${REDIS_URL}
+    - WORKER_TYPE=content-sync
+    - GITHUB_TOKEN=${GITHUB_TOKEN}
+  volumes:
+    - .:/app
+    - /app/node_modules
+  depends_on:
+    - redis
+  restart: unless-stopped
+  deploy:
+    resources:
+      limits:
+        memory: 512M
 ```
 
 **Step 2: Verify compose file**
@@ -2445,6 +2403,7 @@ git commit -m "feat(rtl): add content-sync worker to docker compose"
 ### Task 15: Create Integration Test
 
 **Files:**
+
 - Create: `src/lib/regulatory-truth/content-sync/__tests__/integration.test.ts`
 
 **Step 1: Write integration test**
@@ -2469,9 +2428,7 @@ describe("RTL Content Sync Integration", () => {
 
   afterEach(async () => {
     // Cleanup test events
-    await drizzleDb
-      .delete(contentSyncEvents)
-      .where(eq(contentSyncEvents.ruleId, testRuleId))
+    await drizzleDb.delete(contentSyncEvents).where(eq(contentSyncEvents.ruleId, testRuleId))
   })
 
   it("emits event with correct ID generation", async () => {
@@ -2514,9 +2471,7 @@ describe("RTL Content Sync Integration", () => {
 
     // At least one path should exist
     const contentDir = path.join(process.cwd(), "content")
-    const existingPaths = mapping!.mdxPaths.filter((p) =>
-      fs.existsSync(path.join(contentDir, p))
-    )
+    const existingPaths = mapping!.mdxPaths.filter((p) => fs.existsSync(path.join(contentDir, p)))
     expect(existingPaths.length).toBeGreaterThan(0)
   })
 
@@ -2645,17 +2600,19 @@ Implements the RTL → Content sync control plane that automatically projects re
 
 ### Architecture
 ```
+
 Releaser → emitContentSyncEvent() → content_sync_events table
-                                           ↓
-                              BullMQ content-sync queue
-                                           ↓
-                              ContentSyncWorker claims event
-                                           ↓
-                              Concept Registry → MDX paths
-                                           ↓
-                              Patcher updates frontmatter
-                                           ↓
-                              Git commit → Push → PR
+↓
+BullMQ content-sync queue
+↓
+ContentSyncWorker claims event
+↓
+Concept Registry → MDX paths
+↓
+Patcher updates frontmatter
+↓
+Git commit → Push → PR
+
 ```
 
 ### Testing
@@ -2682,6 +2639,7 @@ EOF
 This plan implements the RTL → Content sync control plane in 3 phases:
 
 **Phase 1 (Tasks 1-5):** Event infrastructure
+
 - Drizzle schema for content_sync_events
 - Event ID generation with deterministic signatures
 - Event emitter with idempotency
@@ -2689,10 +2647,12 @@ This plan implements the RTL → Content sync control plane in 3 phases:
 - BullMQ queue setup
 
 **Phase 2 (Tasks 6-7):** Concept registry
+
 - 20 core concept mappings
 - Validation script
 
 **Phase 3 (Tasks 8-16):** MDX patching worker
+
 - Error classes with classification
 - Frontmatter patcher
 - Git repo adapter

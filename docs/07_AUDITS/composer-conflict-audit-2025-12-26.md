@@ -11,6 +11,7 @@
 The Composer pipeline has a multi-layered approach to preventing duplicates and detecting conflicts, but several gaps remain that could allow duplicates to persist or conflicts to be missed.
 
 **Key Findings:**
+
 1. **Canonicalization is reactive, not preventive** - Alias resolution only works for known aliases in the hardcoded map
 2. **AppliesWhen fallback broadens applicability silently** - Invalid DSL defaults to `{ op: "true" }` (applies to everyone)
 3. **meaningSignature is an index, not a unique constraint** - No DB-level prevention of semantic duplicates
@@ -57,6 +58,7 @@ The Composer pipeline has a multi-layered approach to preventing duplicates and 
 Location: `src/lib/regulatory-truth/utils/concept-resolver.ts:15-106`
 
 Currently contains 11 canonical concepts with ~45 total aliases:
+
 - `pdv-standardna-stopa` (4 aliases)
 - `pdv-drzavni-proracun-iban` (6 aliases)
 - `prag-promidzbenih-darova` (7 aliases)
@@ -101,6 +103,7 @@ Known canonical: "pausalni-revenue-threshold"
 ```
 
 **Flow:**
+
 1. ALIAS_TO_CANONICAL lookup fails → use proposed slug
 2. db.concept.findFirst fails → no existing concept
 3. Normalized slug comparison: `"pausalniлimitprihoda"` ≠ `"pausalnirevenuethreshold"`
@@ -119,6 +122,7 @@ Worker B: runComposer(["ptr3", "ptr4"])  // Same domain, same value
 ```
 
 **Timeline:**
+
 1. t0: Worker A calls `resolveCanonicalConcept()` → no existing rule
 2. t1: Worker B calls `resolveCanonicalConcept()` → no existing rule (A hasn't committed)
 3. t2: Worker A creates rule, commits
@@ -137,6 +141,7 @@ Evidence B: "39816.84 EUR" (US format)
 ```
 
 **Flow:**
+
 1. Extractor outputs string values as extracted
 2. `resolveCanonicalConcept()` checks `value = "39.816,84 EUR"` vs `"39816.84 EUR"`
 3. String mismatch → both pass
@@ -177,16 +182,17 @@ if (aliasSlugSet.size === 0) {
 ### Unique Constraint Analysis
 
 **Current constraint:**
+
 ```prisma
 @@unique([conceptSlug, effectiveFrom, status])
 ```
 
-| Scenario | Prevented by Constraint? |
-|----------|------------------------|
-| Exact duplicate (same slug, date, status) | ✅ Yes |
-| Same slug, same date, different status (DRAFT + PUBLISHED) | ❌ No |
-| Different slug (alias), same date, same status | ❌ No |
-| Same slug, different date, same status | ❌ No |
+| Scenario                                                   | Prevented by Constraint? |
+| ---------------------------------------------------------- | ------------------------ |
+| Exact duplicate (same slug, date, status)                  | ✅ Yes                   |
+| Same slug, same date, different status (DRAFT + PUBLISHED) | ❌ No                    |
+| Different slug (alias), same date, same status             | ❌ No                    |
+| Same slug, different date, same status                     | ❌ No                    |
 
 **Intentional:** The constraint ALLOWS draft/pending variants to coexist (see schema comment line 1860-1861).
 
@@ -202,6 +208,7 @@ meaningSignature  String?
 **Gap:** It's computed and stored but NOT enforced as unique. Duplicates can exist.
 
 **Recommended Fix:** Add unique constraint with status filter:
+
 ```sql
 CREATE UNIQUE INDEX IF NOT EXISTS
   "RegulatoryRule_meaning_active_unique"
@@ -250,7 +257,7 @@ if (!dslValidation.valid) {
   console.warn(`[composer] Invalid AppliesWhen DSL...`)
   console.warn(`[composer] Replacing with { op: "true" } as fallback`)
 
-  appliesWhenObj = { op: "true" }  // ⚠️ APPLIES TO EVERYONE
+  appliesWhenObj = { op: "true" } // ⚠️ APPLIES TO EVERYONE
 
   draftRule.composer_notes = `...Original appliesWhen was invalid: ${dslValidation.error}`
 }
@@ -259,6 +266,7 @@ if (!dslValidation.valid) {
 **Risk:** Invalid DSL (e.g., LLM typo in field name) silently broadens the rule to apply universally.
 
 **Example:**
+
 - LLM intended: `{ op: "cmp", field: "entity.obrtSubtype", cmp: "eq", value: "PAUSALNI" }`
 - LLM generated: `{ op: "cmp", field: "entiy.obrtSubtype", ... }` (typo)
 - Validation fails → fallback to `{ op: "true" }`
@@ -306,7 +314,11 @@ function areSlugsRelated(slug1: string, slug2: string): boolean {
 ```typescript
 // consolidator.ts:175-207
 const stopWords = new Set([
-  "the", "a", "rate", "value", "threshold", // etc.
+  "the",
+  "a",
+  "rate",
+  "value",
+  "threshold", // etc.
 ])
 ```
 
@@ -325,8 +337,8 @@ const stopWords = new Set([
 const existingByMeaning = await db.regulatoryRule.findFirst({
   where: {
     meaningSignature,
-    status: { in: ["APPROVED", "PUBLISHED"] }
-  }
+    status: { in: ["APPROVED", "PUBLISHED"] },
+  },
 })
 if (existingByMeaning) {
   throw new DuplicateRuleError(existingByMeaning.id)
@@ -336,6 +348,7 @@ if (existingByMeaning) {
 #### 2. Fix AppliesWhen Fallback Behavior
 
 **Option A (Recommended):** Fail-closed - reject rule creation if DSL invalid
+
 ```typescript
 if (!dslValidation.valid) {
   return {
@@ -347,6 +360,7 @@ if (!dslValidation.valid) {
 ```
 
 **Option B:** Create but flag for human review
+
 ```typescript
 if (!dslValidation.valid) {
   status: "PENDING_REVIEW",  // Not DRAFT
@@ -366,14 +380,14 @@ CREATE UNIQUE INDEX CONCURRENTLY
 
 ### Metrics to Track
 
-| Metric Name | Definition | Alert Threshold |
-|-------------|------------|-----------------|
-| `duplicate_creation_rate_24h` | Rules created that match existing meaningSignature | >0 |
-| `applies_when_fallback_rate_24h` | Rules with `{ op: "true" }` due to validation failure | >0 |
-| `unknown_alias_rate_24h` | Slugs that didn't resolve via CANONICAL_ALIASES | >10% |
-| `cross_slug_conflict_rate_7d` | CROSS_SLUG_DUPLICATE conflicts created | Trend up |
-| `consolidator_merge_count_7d` | Rules merged by consolidator (cleanup metric) | >5/week |
-| `test_data_leakage_count` | Test domain pointers in non-rejected rules | >0 |
+| Metric Name                      | Definition                                            | Alert Threshold |
+| -------------------------------- | ----------------------------------------------------- | --------------- |
+| `duplicate_creation_rate_24h`    | Rules created that match existing meaningSignature    | >0              |
+| `applies_when_fallback_rate_24h` | Rules with `{ op: "true" }` due to validation failure | >0              |
+| `unknown_alias_rate_24h`         | Slugs that didn't resolve via CANONICAL_ALIASES       | >10%            |
+| `cross_slug_conflict_rate_7d`    | CROSS_SLUG_DUPLICATE conflicts created                | Trend up        |
+| `consolidator_merge_count_7d`    | Rules merged by consolidator (cleanup metric)         | >5/week         |
+| `test_data_leakage_count`        | Test domain pointers in non-rejected rules            | >0              |
 
 ### Health Gate Additions
 
@@ -388,8 +402,8 @@ async function checkAppliesWhenFallbackRate(): Promise<HealthGate> {
   const fallbackRules = await db.regulatoryRule.count({
     where: {
       status: { in: ["DRAFT", "PENDING_REVIEW", "APPROVED"] },
-      composerNotes: { contains: "[AUTO-FIX] Original appliesWhen" }
-    }
+      composerNotes: { contains: "[AUTO-FIX] Original appliesWhen" },
+    },
   })
 
   return {
@@ -398,9 +412,10 @@ async function checkAppliesWhenFallbackRate(): Promise<HealthGate> {
     value: fallbackRules,
     threshold: 0,
     message: `${fallbackRules} rules with fallback appliesWhen`,
-    recommendation: fallbackRules > 0
-      ? "Rules with fallback appliesWhen apply universally. Review and fix DSL manually."
-      : undefined
+    recommendation:
+      fallbackRules > 0
+        ? "Rules with fallback appliesWhen apply universally. Review and fix DSL manually."
+        : undefined,
   }
 }
 
@@ -426,9 +441,10 @@ async function checkDuplicateMeaningSignatures(): Promise<HealthGate> {
     value: count,
     threshold: 0,
     message: `${count} meaning signatures have duplicates`,
-    recommendation: count > 0
-      ? "Duplicate meaning signatures indicate failed deduplication. Run consolidator immediately."
-      : undefined
+    recommendation:
+      count > 0
+        ? "Duplicate meaning signatures indicate failed deduplication. Run consolidator immediately."
+        : undefined,
   }
 }
 ```
@@ -437,15 +453,15 @@ async function checkDuplicateMeaningSignatures(): Promise<HealthGate> {
 
 ## Summary Matrix
 
-| Component | Current State | Risk Level | Fix Priority |
-|-----------|--------------|------------|--------------|
-| Canonicalization | Reactive (alias map) | MEDIUM | P2 - Add learning mechanism |
-| Duplicate Prevention | Post-hoc (consolidator) | HIGH | P1 - Add write-time gate |
-| AppliesWhen Fallback | Broadens silently | CRITICAL | P0 - Fail-closed or flag |
-| DB Constraints | Partial | MEDIUM | P1 - Add meaningSignature unique |
-| Conflict Detection | Good for known aliases | MEDIUM | P2 - Improve cross-slug detection |
-| Consolidator Safety | Strong | LOW | OK - Monitor only |
-| Metrics/Monitoring | Incomplete | HIGH | P1 - Add missing gates |
+| Component            | Current State           | Risk Level | Fix Priority                      |
+| -------------------- | ----------------------- | ---------- | --------------------------------- |
+| Canonicalization     | Reactive (alias map)    | MEDIUM     | P2 - Add learning mechanism       |
+| Duplicate Prevention | Post-hoc (consolidator) | HIGH       | P1 - Add write-time gate          |
+| AppliesWhen Fallback | Broadens silently       | CRITICAL   | P0 - Fail-closed or flag          |
+| DB Constraints       | Partial                 | MEDIUM     | P1 - Add meaningSignature unique  |
+| Conflict Detection   | Good for known aliases  | MEDIUM     | P2 - Improve cross-slug detection |
+| Consolidator Safety  | Strong                  | LOW        | OK - Monitor only                 |
+| Metrics/Monitoring   | Incomplete              | HIGH       | P1 - Add missing gates            |
 
 ---
 

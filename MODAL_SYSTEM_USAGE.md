@@ -9,6 +9,7 @@ This document describes the new modal system and micro-interaction components im
 A reusable modal component with animations and accessibility features.
 
 **Features:**
+
 - Backdrop blur and fade-in animation
 - Escape key to close
 - Click outside to close
@@ -43,9 +44,7 @@ function MyComponent() {
           <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleAction}>
-            Confirm
-          </Button>
+          <Button onClick={handleAction}>Confirm</Button>
         </ModalFooter>
       </Modal>
     </>
@@ -58,12 +57,14 @@ function MyComponent() {
 A styled confirmation dialog with icon variants.
 
 **Variants:**
+
 - `danger` - Red (for destructive actions)
 - `warning` - Yellow (for warnings)
 - `info` - Blue (for informational)
 - `success` - Green (for confirmations)
 
 **Features:**
+
 - Icon with colored background
 - Loading state with spinner
 - Disabled buttons during loading
@@ -119,7 +120,7 @@ A simple spinning loader icon.
 ```tsx
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
-<LoadingSpinner size="md" />
+;<LoadingSpinner size="md" />
 // Sizes: 'sm' | 'md' | 'lg'
 ```
 
@@ -130,7 +131,7 @@ An overlay that covers content with a spinner and optional message.
 ```tsx
 import { LoadingOverlay } from "@/components/ui/loading-spinner"
 
-<div className="relative">
+;<div className="relative">
   {/* Your content */}
   {isLoading && <LoadingOverlay message="Loading data..." />}
 </div>
@@ -143,8 +144,9 @@ Animated dots for inline loading states.
 ```tsx
 import { LoadingDots } from "@/components/ui/loading-spinner"
 
-<span>
-  Processing<LoadingDots />
+;<span>
+  Processing
+  <LoadingDots />
 </span>
 ```
 
@@ -159,12 +161,7 @@ A horizontal progress bar with variants.
 ```tsx
 import { ProgressBar } from "@/components/ui/progress-bar"
 
-<ProgressBar
-  value={75}
-  size="md"
-  variant="default"
-  showLabel={true}
-/>
+;<ProgressBar value={75} size="md" variant="default" showLabel={true} />
 // Sizes: 'sm' | 'md' | 'lg'
 // Variants: 'default' | 'success' | 'warning' | 'danger'
 ```
@@ -176,10 +173,7 @@ Step-by-step progress indicator.
 ```tsx
 import { ProgressSteps } from "@/components/ui/progress-bar"
 
-<ProgressSteps
-  steps={["Upload", "Process", "Review", "Complete"]}
-  currentStep={2}
-/>
+;<ProgressSteps steps={["Upload", "Process", "Review", "Complete"]} currentStep={2} />
 ```
 
 ### 5. useConfirm Hook (`src/hooks/use-confirm.ts`)
@@ -202,7 +196,7 @@ function MyComponent() {
       onConfirm: async () => {
         await deleteItem()
         toast.success("Item deleted")
-      }
+      },
     })
   }
 
@@ -229,6 +223,7 @@ function MyComponent() {
 The Sonner toast system has been enhanced with design system styling.
 
 **Already configured in `src/app/layout.tsx`:**
+
 - Matches design system colors (uses CSS variables)
 - Rounded corners matching card style
 - Elevated shadow
@@ -321,6 +316,7 @@ function FileUpload() {
 ## Accessibility
 
 All components follow accessibility best practices:
+
 - Keyboard navigation (Escape to close)
 - ARIA attributes for screen readers
 - Focus management

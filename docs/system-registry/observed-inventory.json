@@ -612,7 +612,10 @@
       "componentId": "worker-orchestrator",
       "type": "WORKER",
       "name": "RTL Orchestrator Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/orchestrator.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/orchestrator.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-orchestrator",
@@ -623,7 +626,10 @@
       "componentId": "worker-sentinel",
       "type": "WORKER",
       "name": "RTL Sentinel Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/sentinel.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/sentinel.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-sentinel",
@@ -634,7 +640,10 @@
       "componentId": "worker-extractor",
       "type": "WORKER",
       "name": "RTL Extractor Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/extractor.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/extractor.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "replicas": 2,
@@ -645,7 +654,10 @@
       "componentId": "worker-ocr",
       "type": "WORKER",
       "name": "RTL OCR Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/ocr.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/ocr.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-ocr",
@@ -656,7 +668,10 @@
       "componentId": "worker-composer",
       "type": "WORKER",
       "name": "RTL Composer Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/composer.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/composer.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-composer",
@@ -667,7 +682,10 @@
       "componentId": "worker-reviewer",
       "type": "WORKER",
       "name": "RTL Reviewer Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/reviewer.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/reviewer.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-reviewer",
@@ -678,7 +696,10 @@
       "componentId": "worker-scheduler",
       "type": "WORKER",
       "name": "RTL Scheduler Service",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/scheduler.service.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/scheduler.service.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-scheduler"
@@ -688,7 +709,10 @@
       "componentId": "worker-releaser",
       "type": "WORKER",
       "name": "RTL Releaser Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/releaser.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/releaser.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-releaser",
@@ -699,7 +723,10 @@
       "componentId": "worker-arbiter",
       "type": "WORKER",
       "name": "RTL Arbiter Worker",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/arbiter.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/arbiter.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-arbiter",
@@ -710,7 +737,10 @@
       "componentId": "worker-continuous-drainer",
       "type": "WORKER",
       "name": "RTL Continuous Drainer",
-      "observedAt": ["docker-compose.workers.yml", "src/lib/regulatory-truth/workers/continuous-drainer.worker.ts"],
+      "observedAt": [
+        "docker-compose.workers.yml",
+        "src/lib/regulatory-truth/workers/continuous-drainer.worker.ts"
+      ],
       "discoveryMethod": "compose-service",
       "metadata": {
         "containerName": "fiskai-worker-continuous-drainer"

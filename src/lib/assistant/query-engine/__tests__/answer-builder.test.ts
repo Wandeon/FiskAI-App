@@ -11,7 +11,8 @@ vi.mock("../rule-selector")
 vi.mock("../conflict-detector")
 vi.mock("../citation-builder")
 
-// Mock Prisma to prevent real database calls
+// Mock DB clients to prevent real database calls
+vi.mock("@/lib/db/regulatory", () => ({ dbReg: {} }))
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     company: {

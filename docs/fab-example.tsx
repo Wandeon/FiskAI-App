@@ -1,10 +1,10 @@
 // Example: Using FAB (Floating Action Button) component
 // This demonstrates how to add a mobile-only floating action button with multi-action menu
 
-'use client'
+"use client"
 
-import { FAB } from '@/components/ui/fab'
-import { FileText, Users, Package, Receipt } from 'lucide-react'
+import { FAB } from "@/components/ui/fab"
+import { FileText, Users, Package, Receipt } from "lucide-react"
 
 // Example 1: Using Default FAB (with built-in actions)
 export function InvoicePageWithDefaultFAB() {

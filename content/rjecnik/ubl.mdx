@@ -30,6 +30,7 @@ keywords:
 **UBL (Universal Business Language)** je međunarodni **XML standard** za elektroničke poslovne dokumente razvijen od OASIS konzorcija.
 
 UBL pokriva:
+
 - Račune (Invoice)
 - Predračune (Order)
 - Otpremnice (DespatchAdvice)
@@ -38,6 +39,7 @@ UBL pokriva:
 ## Struktura UBL računa
 
 **UBL Invoice** sadrži strukturirane podatke:
+
 - Osnovni podaci (broj, datum, valuta)
 - Izdavatelj (OIB, naziv, adresa)
 - Kupac (OIB, naziv, adresa)
@@ -46,6 +48,7 @@ UBL pokriva:
 - Način plaćanja
 
 **Primjer (pojednostavljeno):**
+
 ```xml
 <Invoice>
   <ID>2025-001</ID>
@@ -64,21 +67,23 @@ UBL pokriva:
 
 ## UBL vs PDF
 
-| | UBL | PDF |
-|---|-----|-----|
-| Format | Strukturirani XML | Nestrukturirani dokument |
-| Čitljivost | Strojno čitljiv | Ljudima čitljiv |
-| Automatizacija | Potpuna | Nemoguća |
-| Obrada | Automatska | Ručna |
+|                | UBL               | PDF                      |
+| -------------- | ----------------- | ------------------------ |
+| Format         | Strukturirani XML | Nestrukturirani dokument |
+| Čitljivost     | Strojno čitljiv   | Ljudima čitljiv          |
+| Automatizacija | Potpuna           | Nemoguća                 |
+| Obrada         | Automatska        | Ručna                    |
 
 ## Implementacija UBL-a
 
 Poduzetnici ne moraju znati XML:
+
 - **Informacijski posrednici** generiraju UBL automatski
 - Unos podataka kao i dosad (broj, stavke, iznos)
 - Softver kreira UBL u pozadini
 
 **Primjer workflow:**
+
 1. Unesete račun u FiskAI (ili drugo)
 2. Aplikacija generira UBL XML
 3. Šalje putem PEPPOL-a

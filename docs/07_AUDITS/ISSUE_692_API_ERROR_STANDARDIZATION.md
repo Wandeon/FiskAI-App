@@ -97,7 +97,7 @@ try {
   return apiError(error, {
     code: "INVOICE_PROCESSING_FAILED",
     message: "Neuspjelo procesiranje računa",
-    logContext: { invoiceId: id }
+    logContext: { invoiceId: id },
   })
 }
 ```
@@ -105,6 +105,7 @@ try {
 ## Response Format
 
 Client receives:
+
 ```json
 {
   "error": "Internal server error",
@@ -114,6 +115,7 @@ Client receives:
 ```
 
 Server logs include:
+
 - Full error object with stack trace
 - Request ID
 - User ID and Company ID (from context)
@@ -137,6 +139,7 @@ Server logs include:
 ### Automated Migration
 
 Run the migration script:
+
 ```bash
 ./scripts/migrate-api-error-responses.sh --dry-run  # Preview changes
 ./scripts/migrate-api-error-responses.sh            # Apply changes
@@ -147,11 +150,13 @@ Run the migration script:
 For each API route file:
 
 1. Add import:
+
 ```typescript
 import { apiError, ApiErrors } from "@/lib/api-error"
 ```
 
 2. Replace catch blocks:
+
 ```typescript
 // Before
 } catch (error) {
@@ -165,6 +170,7 @@ import { apiError, ApiErrors } from "@/lib/api-error"
 ```
 
 3. Replace auth errors:
+
 ```typescript
 // Before
 return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

@@ -9,23 +9,27 @@ FiskAI integrates with the Croatian fiscalization system (Fiskalizacija) as requ
 ## Key Concepts
 
 ### ZKI (Zaštitni Kod Izdavatelja)
+
 - **Protective Code of the Issuer**
 - Generated before sending invoice to CIS
 - Created by signing invoice data with company's private key
 - Format: 32-character hexadecimal string
 
 ### JIR (Jedinstveni Identifikator Računa)
+
 - **Unique Invoice Identifier**
 - Received from CIS after successful fiscalization
 - Must be printed on the invoice
 - Format: UUID-like string
 
 ### Business Premises (Poslovni prostor)
+
 - Physical location where business is conducted
 - Each location has a unique code (numeric)
 - Must be registered with tax authority
 
 ### Payment Device (Naplatni uređaj)
+
 - Cash register or POS terminal
 - Each device has a unique code (numeric)
 - Associated with a business premises
@@ -104,8 +108,8 @@ await db.businessPremises.create({
     name: "Glavni ured",
     address: "Ulica Grada Vukovara 269",
     isDefault: true,
-    isActive: true
-  }
+    isActive: true,
+  },
 })
 
 await db.paymentDevice.create({
@@ -115,24 +119,24 @@ await db.paymentDevice.create({
     code: 1,
     name: "Blagajna 1",
     isDefault: true,
-    isActive: true
-  }
+    isActive: true,
+  },
 })
 ```
 
 ### 3. Fiscalize an Invoice
 
 ```typescript
-import { fiscalizeInvoice } from '@/app/actions/fiscalize'
+import { fiscalizeInvoice } from "@/app/actions/fiscalize"
 
 // In your component or API route
 const result = await fiscalizeInvoice(invoiceId)
 
 if (result.success) {
-  console.log('JIR:', result.jir)
-  console.log('ZKI:', result.zki)
+  console.log("JIR:", result.jir)
+  console.log("ZKI:", result.zki)
 } else {
-  console.error('Error:', result.error)
+  console.error("Error:", result.error)
 }
 ```
 
@@ -145,6 +149,7 @@ OIB + DateTime + InvoiceNumber + PremisesCode + DeviceCode + TotalAmount
 ```
 
 **Example:**
+
 ```
 OIB: 12345678901
 DateTime: 15.12.2024 14:30:25
@@ -157,11 +162,13 @@ Data String: 1234567890115.12.202414:30:252024/1-1-111 1250,00
 ```
 
 ### Development Mode (without certificate)
+
 - Uses SHA-256 hash of data string
 - First 32 characters used as ZKI
 - Suitable for testing and development
 
 ### Production Mode (with certificate)
+
 - Signs data string with RSA private key
 - Hashes signature with MD5
 - Result is 32-character ZKI
@@ -169,6 +176,7 @@ Data String: 1234567890115.12.202414:30:252024/1-1-111 1250,00
 ## Fiscal Providers
 
 ### Mock Provider (Development)
+
 - No external API calls
 - Generates fake JIR codes
 - Simulates API delays
@@ -176,17 +184,20 @@ Data String: 1234567890115.12.202414:30:252024/1-1-111 1250,00
 - Perfect for development and testing
 
 **Usage:**
+
 ```typescript
-FISCAL_PROVIDER=mock
+FISCAL_PROVIDER = mock
 ```
 
 ### IE-Računi Provider (Production)
+
 - Integrates with IE-Računi service
 - Communicates with Croatian CIS
 - Requires API credentials
 - Supports sandbox mode
 
 **Usage:**
+
 ```typescript
 FISCAL_PROVIDER=ie-racuni
 IE_RACUNI_API_KEY=your_api_key
@@ -194,12 +205,14 @@ IE_RACUNI_SANDBOX=true  # Start with sandbox
 ```
 
 **Implementation Status:**
+
 - ✅ Basic structure implemented
 - ✅ API client ready
 - ⚠️ API endpoints need IE-Računi documentation
 - ⚠️ Requires account setup with IE-Računi
 
 ### FINA Provider (Future)
+
 - Direct integration with FINA
 - Alternative to IE-Računi
 - Not yet implemented
@@ -238,30 +251,35 @@ enum EInvoiceStatus {
 Common errors and solutions:
 
 ### "Nije konfiguriran poslovni prostor"
+
 **Solution:** Configure business premises in settings
 
 ### "Nije konfiguriran naplatni uređaj"
+
 **Solution:** Configure payment device for your premises
 
 ### "Invalid OIB format"
+
 **Solution:** Ensure company OIB is exactly 11 digits
 
 ### "IE-Računi API key not configured"
+
 **Solution:** Set `IE_RACUNI_API_KEY` environment variable
 
 ## Testing
 
 ### Test ZKI Calculation
+
 ```typescript
-import { calculateZKI, validateZKIInput } from '@/lib/e-invoice'
+import { calculateZKI, validateZKIInput } from "@/lib/e-invoice"
 
 const zkiInput = {
-  oib: '12345678901',
+  oib: "12345678901",
   dateTime: new Date(),
-  invoiceNumber: '2024/1-1-1',
-  premisesCode: '1',
-  deviceCode: '1',
-  totalAmount: 125000  // in cents
+  invoiceNumber: "2024/1-1-1",
+  premisesCode: "1",
+  deviceCode: "1",
+  totalAmount: 125000, // in cents
 }
 
 // Validate
@@ -270,22 +288,23 @@ console.log(validation)
 
 // Calculate
 const zki = calculateZKI(zkiInput)
-console.log('ZKI:', zki)
+console.log("ZKI:", zki)
 ```
 
 ### Test Mock Provider
-```typescript
-import { getFiscalProvider } from '@/lib/e-invoice'
 
-const provider = getFiscalProvider({ provider: 'mock' })
+```typescript
+import { getFiscalProvider } from "@/lib/e-invoice"
+
+const provider = getFiscalProvider({ provider: "mock" })
 
 const result = await provider.send({
-  invoiceNumber: '2024/1-1-1',
-  zki: 'abc123...',
+  invoiceNumber: "2024/1-1-1",
+  zki: "abc123...",
   // ... other fields
 })
 
-console.log('JIR:', result.jir)
+console.log("JIR:", result.jir)
 ```
 
 ## Production Checklist
@@ -326,6 +345,7 @@ According to Croatian law:
 ## Support
 
 For implementation support:
+
 1. Check this documentation
 2. Review test cases in development
 3. Contact IE-Računi support (if using their service)

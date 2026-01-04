@@ -38,21 +38,22 @@ Croatian e-invoicing requires compliance with European standards. This document 
 
 EN 16931 defines these mandatory and optional business groups:
 
-| Group | Description | Mandatory |
-|-------|-------------|-----------|
-| BG-1 | Invoice note | No |
-| BG-2 | Process control | Yes |
-| BG-4 | Seller | Yes |
-| BG-7 | Buyer | Yes |
-| BG-13 | Delivery information | No |
-| BG-16 | Payment instructions | Yes |
-| BG-22 | Document totals | Yes |
-| BG-23 | VAT breakdown | Yes |
-| BG-25 | Invoice line | Yes |
+| Group | Description          | Mandatory |
+| ----- | -------------------- | --------- |
+| BG-1  | Invoice note         | No        |
+| BG-2  | Process control      | Yes       |
+| BG-4  | Seller               | Yes       |
+| BG-7  | Buyer                | Yes       |
+| BG-13 | Delivery information | No        |
+| BG-16 | Payment instructions | Yes       |
+| BG-22 | Document totals      | Yes       |
+| BG-23 | VAT breakdown        | Yes       |
+| BG-25 | Invoice line         | Yes       |
 
 ### Croatian Extensions
 
 Croatia may require additional fields:
+
 - OIB (Personal Identification Number) for seller and buyer
 - JIR (Unique Invoice Identifier) for fiscalization
 - ZKI (Security Code of Invoice Issuer)
@@ -83,12 +84,12 @@ urn:oasis:names:specification:ubl:schema:xsd:Invoice-2::Invoice##urn:cen.eu:en16
 
 ### Key Business Rules
 
-| Rule | Description |
-|------|-------------|
-| PEPPOL-EN16931-R001 | Business process must be specified |
+| Rule                | Description                                 |
+| ------------------- | ------------------------------------------- |
+| PEPPOL-EN16931-R001 | Business process must be specified          |
 | PEPPOL-EN16931-R003 | Buyer reference or order reference required |
-| PEPPOL-EN16931-R010 | Buyer electronic address required |
-| PEPPOL-EN16931-R020 | Seller electronic address required |
+| PEPPOL-EN16931-R010 | Buyer electronic address required           |
+| PEPPOL-EN16931-R020 | Seller electronic address required          |
 
 ## UBL 2.1 XML Structure
 
@@ -250,30 +251,31 @@ For Croatian entities, use scheme ID `0191` (Croatian OIB):
 
 ### VAT Categories for Croatia
 
-| Code | Description | Rate |
-|------|-------------|------|
-| S | Standard rate | 25% |
-| AA | Lower rate | 13% |
-| AA | Reduced rate | 5% |
-| E | Exempt | 0% |
-| Z | Zero rated | 0% |
-| O | Not subject to VAT | - |
+| Code | Description        | Rate |
+| ---- | ------------------ | ---- |
+| S    | Standard rate      | 25%  |
+| AA   | Lower rate         | 13%  |
+| AA   | Reduced rate       | 5%   |
+| E    | Exempt             | 0%   |
+| Z    | Zero rated         | 0%   |
+| O    | Not subject to VAT | -    |
 
 ### Invoice Type Codes
 
-| Code | Description |
-|------|-------------|
-| 380 | Commercial invoice |
-| 381 | Credit note |
-| 383 | Debit note |
-| 386 | Prepayment invoice |
-| 389 | Self-billed invoice |
+| Code | Description         |
+| ---- | ------------------- |
+| 380  | Commercial invoice  |
+| 381  | Credit note         |
+| 383  | Debit note          |
+| 386  | Prepayment invoice  |
+| 389  | Self-billed invoice |
 
 ## Validation
 
 ### Schematron Rules
 
 PEPPOL provides Schematron files for validation:
+
 - [PEPPOL-EN16931-UBL.sch](https://github.com/OpenPEPPOL/peppol-bis-invoice-3/blob/master/rules/sch/PEPPOL-EN16931-UBL.sch)
 
 ### Validation Process
@@ -288,28 +290,28 @@ PEPPOL provides Schematron files for validation:
 
 ```typescript
 interface UBLInvoice {
-  customizationID: string;
-  profileID: string;
-  id: string;
-  issueDate: Date;
-  dueDate?: Date;
-  invoiceTypeCode: '380' | '381' | '383' | '386' | '389';
-  documentCurrencyCode: string;
-  buyerReference?: string;
-  seller: Party;
-  buyer: Party;
-  paymentMeans: PaymentMeans[];
-  taxTotal: TaxTotal;
-  legalMonetaryTotal: MonetaryTotal;
-  invoiceLines: InvoiceLine[];
+  customizationID: string
+  profileID: string
+  id: string
+  issueDate: Date
+  dueDate?: Date
+  invoiceTypeCode: "380" | "381" | "383" | "386" | "389"
+  documentCurrencyCode: string
+  buyerReference?: string
+  seller: Party
+  buyer: Party
+  paymentMeans: PaymentMeans[]
+  taxTotal: TaxTotal
+  legalMonetaryTotal: MonetaryTotal
+  invoiceLines: InvoiceLine[]
 }
 
 interface Party {
-  endpointID: { schemeID: string; value: string };
-  partyName: string;
-  postalAddress: Address;
-  partyTaxScheme?: { companyID: string };
-  partyLegalEntity: { registrationName: string; companyID?: string };
+  endpointID: { schemeID: string; value: string }
+  partyName: string
+  postalAddress: Address
+  partyTaxScheme?: { companyID: string }
+  partyLegalEntity: { registrationName: string; companyID?: string }
 }
 ```
 
@@ -318,19 +320,18 @@ interface Party {
 Recommended: Use a UBL library or build XML with proper escaping
 
 ```typescript
-import { create } from 'xmlbuilder2';
+import { create } from "xmlbuilder2"
 
 function generateUBLInvoice(invoice: UBLInvoice): string {
-  const doc = create({ version: '1.0', encoding: 'UTF-8' })
-    .ele('Invoice', {
-      xmlns: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
-      'xmlns:cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
-      'xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2'
-    });
+  const doc = create({ version: "1.0", encoding: "UTF-8" }).ele("Invoice", {
+    xmlns: "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2",
+    "xmlns:cac": "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
+    "xmlns:cbc": "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+  })
 
   // Build invoice structure...
 
-  return doc.end({ prettyPrint: true });
+  return doc.end({ prettyPrint: true })
 }
 ```
 

@@ -128,6 +128,7 @@ RAG is a tool. Knowledge graphs are structure. **Governance is the moat.**
 **Purpose:** Scan Croatian regulatory endpoints for new or changed content.
 
 **Execution:**
+
 - **Triggers:**
   - Cron schedule (06:00 Europe/Zagreb) - Polling
   - Webhooks/Push notifications - Real-time (NEW)
@@ -137,6 +138,7 @@ RAG is a tool. Knowledge graphs are structure. **Governance is the moat.**
 - **Idempotency:** Same input produces same output
 
 **Components:**
+
 - **Scheduler Service** (`workers/scheduler.service.ts`) - Cron-based job scheduling
 - **Sentinel Agent** (`agents/sentinel.ts`) - Scans discovery endpoints
 - **Webhook Receiver** (`api/webhooks/regulatory-truth/route.ts`) - Receives push notifications (NEW)
@@ -156,6 +158,7 @@ RAG is a tool. Knowledge graphs are structure. **Governance is the moat.**
    - Real-time discovery with <1 minute latency
 
 **Data Flow:**
+
 ```
 Scheduler → Sentinel → Evidence Records
                 ↓
@@ -171,11 +174,13 @@ Webhook → Processor → Evidence Records (same queue routing)
 **Purpose:** Process discovered evidence into validated regulatory rules.
 
 **Execution:**
+
 - **Trigger:** Queue-based (BullMQ with Redis)
 - **Operator:** Worker containers (Docker)
 - **Continuous:** Runs 24/7, processing as items arrive
 
 **Key Benefits of Separation:**
+
 - Discovery can run on schedule without blocking processing
 - Processing continues 24/7 independent of discovery
 - Each layer can scale independently
@@ -275,6 +280,7 @@ Webhook → Processor → Evidence Records (same queue routing)
 **Purpose:** Fetch content from regulatory endpoints
 
 **Process:**
+
 1. Check discovery endpoints for new content
 2. Fetch URLs and detect content type
 3. Classify as HTML, PDF_TEXT, or PDF_SCANNED
@@ -282,6 +288,7 @@ Webhook → Processor → Evidence Records (same queue routing)
 5. Route to appropriate queue
 
 **Configuration:**
+
 ```typescript
 maxItemsPerRun: 100
 maxPagesPerEndpoint: 50
@@ -290,6 +297,7 @@ sitemapDelayMs: 1000
 ```
 
 **Outputs:**
+
 - `Evidence` record with `contentClass`
 - `EvidenceArtifact` for PDF_TEXT (extracted text)
 - Queue job for next stage
@@ -301,6 +309,7 @@ sitemapDelayMs: 1000
 **Purpose:** Extract text from scanned PDFs
 
 **Process:**
+
 1. Render PDF pages to images (300 DPI)
 2. Run Tesseract OCR with Croatian + English
 3. Check confidence scores
@@ -309,14 +318,15 @@ sitemapDelayMs: 1000
 
 **Thresholds:**
 
-| Threshold          | Value           | Action                    |
-| ------------------ | --------------- | ------------------------- |
-| Scanned detection  | < 50 chars/page | Route to OCR              |
-| Tesseract accept   | ≥ 70% confidence| Skip vision fallback      |
-| Garbage detection  | > 20% non-letters| Trigger vision fallback  |
-| Manual review      | < 50% avg conf  | Flag for human review     |
+| Threshold         | Value             | Action                  |
+| ----------------- | ----------------- | ----------------------- |
+| Scanned detection | < 50 chars/page   | Route to OCR            |
+| Tesseract accept  | ≥ 70% confidence  | Skip vision fallback    |
+| Garbage detection | > 20% non-letters | Trigger vision fallback |
+| Manual review     | < 50% avg conf    | Flag for human review   |
 
 **Outputs:**
+
 - `EvidenceArtifact` with kind=OCR_TEXT
 - `Evidence.ocrMetadata` with confidence, method
 - `Evidence.primaryTextArtifactId` pointer
@@ -328,6 +338,7 @@ sitemapDelayMs: 1000
 **Purpose:** Extract structured regulatory facts from text
 
 **Shape-Specific Extractors:**
+
 1. **Claim Extractor** - Atomic factual statements (VAT rate = 25%)
 2. **Process Extractor** - Step-by-step procedures
 3. **Reference Extractor** - Contact info, IBANs, account numbers
@@ -336,6 +347,7 @@ sitemapDelayMs: 1000
 6. **Comparison Extractor** - Decision matrices
 
 **Output Schema:**
+
 ```typescript
 {
   evidence_id: string
@@ -360,6 +372,7 @@ sitemapDelayMs: 1000
 **Purpose:** Compose regulatory rules from extracted facts
 
 **Process:**
+
 1. Aggregate related facts by concept
 2. Compose draft rule with LLM
 3. Create source pointers to evidence
@@ -367,16 +380,17 @@ sitemapDelayMs: 1000
 5. Detect conflicts with existing rules
 
 **Output Schema:**
+
 ```typescript
 {
   rule: {
-    concept_slug: string     // kebab-case (e.g., "pdv-standard-rate")
+    concept_slug: string // kebab-case (e.g., "pdv-standard-rate")
     title_hr: string
     risk_tier: "T0" | "T1" | "T2" | "T3"
     value: string
     authority_level: "LAW" | "GUIDANCE" | "PROCEDURE" | "PRACTICE"
-    applies_when: string     // DSL JSON
-    effective_from: string   // ISO date
+    applies_when: string // DSL JSON
+    effective_from: string // ISO date
     effective_until: string | null
     confidence: number
   }
@@ -384,6 +398,7 @@ sitemapDelayMs: 1000
 ```
 
 **Conflict Detection:**
+
 - VALUE_MISMATCH: Same concept, different values, overlapping dates
 - DATE_OVERLAP: Temporal conflicts
 - AUTHORITY_SUPERSEDE: Higher authority may override lower
@@ -395,12 +410,14 @@ sitemapDelayMs: 1000
 **Purpose:** Automated quality checks and approval decisions
 
 **Auto-Approval Criteria (T2/T3 only):**
+
 - Pending ≥ 24 hours (grace period)
 - Confidence ≥ 0.90
 - No open conflicts
 - **T0/T1 ALWAYS require explicit human review**
 
 **Outputs:**
+
 - APPROVED → eligible for release
 - REJECTED → removed from pipeline
 - ESCALATE → human review queue
@@ -412,19 +429,22 @@ sitemapDelayMs: 1000
 **Purpose:** Resolve conflicts between competing rules
 
 **Resolution Strategies:**
+
 ```typescript
-"RULE_A_PREVAILS"    // Rule A has higher authority
-"RULE_B_PREVAILS"    // Rule B has higher authority
-"MERGE_RULES"        // Create combined rule with conditions
-"ESCALATE_TO_HUMAN"  // Cannot auto-resolve
+"RULE_A_PREVAILS" // Rule A has higher authority
+"RULE_B_PREVAILS" // Rule B has higher authority
+"MERGE_RULES" // Create combined rule with conditions
+"ESCALATE_TO_HUMAN" // Cannot auto-resolve
 ```
 
 **Authority Hierarchy:**
+
 ```
 LAW (1) > GUIDANCE (2) > PROCEDURE (3) > PRACTICE (4)
 ```
 
 **Precedence Principles:**
+
 - Lex Specialis (specific overrides general)
 - Lex Posterior (newer overrides older)
 - Lex Superiori (higher authority overrides lower)
@@ -436,6 +456,7 @@ LAW (1) > GUIDANCE (2) > PROCEDURE (3) > PRACTICE (4)
 **Purpose:** Create versioned release bundles
 
 **Versioning Strategy:**
+
 ```typescript
 T0 (critical) → Major (e.g., 1.0.0 → 2.0.0)
 T1 (high)     → Minor (e.g., 1.0.0 → 1.1.0)
@@ -443,6 +464,7 @@ T2/T3 (low)   → Patch (e.g., 1.0.0 → 1.0.1)
 ```
 
 **Publish Gate Checks:**
+
 1. Status = APPROVED (not DRAFT)
 2. Has source pointers (evidence-backed)
 3. No open conflicts
@@ -450,6 +472,7 @@ T2/T3 (low)   → Patch (e.g., 1.0.0 → 1.0.1)
 5. Evidence strength ≥ SINGLE_SOURCE (or LAW authority)
 
 **Outputs:**
+
 - Creates Release + ReleaseRule records
 - Transitions rules to PUBLISHED (immutable)
 - Builds knowledge graph edges
@@ -490,29 +513,29 @@ services:
     image: redis:7-alpine
     command: redis-server --appendonly yes --maxmemory 512mb
 
-  worker-orchestrator:      # Pipeline coordination
-  worker-sentinel:          # Discovery (1 instance)
-  worker-extractor:         # LLM extraction (2 replicas)
-  worker-ocr:              # OCR processing (1 instance)
-  worker-composer:          # Rule composition (1 instance)
-  worker-reviewer:          # Quality review (1 instance)
-  worker-arbiter:           # Conflict resolution (1 instance)
-  worker-releaser:          # Publication (1 instance)
-  worker-scheduler:         # Cron scheduling
+  worker-orchestrator: # Pipeline coordination
+  worker-sentinel: # Discovery (1 instance)
+  worker-extractor: # LLM extraction (2 replicas)
+  worker-ocr: # OCR processing (1 instance)
+  worker-composer: # Rule composition (1 instance)
+  worker-reviewer: # Quality review (1 instance)
+  worker-arbiter: # Conflict resolution (1 instance)
+  worker-releaser: # Publication (1 instance)
+  worker-scheduler: # Cron scheduling
   worker-continuous-drainer: # 24/7 queue draining
 ```
 
 ### Queue Configuration
 
-| Queue    | Rate Limit | Concurrency | Notes                      |
-| -------- | ---------- | ----------- | -------------------------- |
-| sentinel | 10/min     | 1           | Respects source servers    |
-| ocr      | 2/min      | 1           | CPU-intensive              |
-| extract  | 5/min      | 2           | LLM-intensive              |
-| compose  | 5/min      | 1           | LLM-intensive              |
-| review   | 10/min     | 1           | Fast checks                |
-| arbiter  | 5/min      | 1           | Conflict resolution        |
-| release  | 10/min     | 1           | Fast publication           |
+| Queue    | Rate Limit | Concurrency | Notes                   |
+| -------- | ---------- | ----------- | ----------------------- |
+| sentinel | 10/min     | 1           | Respects source servers |
+| ocr      | 2/min      | 1           | CPU-intensive           |
+| extract  | 5/min      | 2           | LLM-intensive           |
+| compose  | 5/min      | 1           | LLM-intensive           |
+| review   | 10/min     | 1           | Fast checks             |
+| arbiter  | 5/min      | 1           | Conflict resolution     |
+| release  | 10/min     | 1           | Fast publication        |
 
 ### Worker Environment Variables
 
@@ -567,21 +590,21 @@ type AppliesWhenPredicate =
   | { op: "and"; args: AppliesWhenPredicate[] }
   | { op: "or"; args: AppliesWhenPredicate[] }
   | { op: "not"; arg: AppliesWhenPredicate }
-  | { op: "cmp"; field: string; cmp: "eq"|"neq"|"gt"|"gte"|"lt"|"lte"; value: unknown }
+  | { op: "cmp"; field: string; cmp: "eq" | "neq" | "gt" | "gte" | "lt" | "lte"; value: unknown }
   | { op: "in"; field: string; values: unknown[] }
   | { op: "exists"; field: string }
   | { op: "between"; field: string; gte?: unknown; lte?: unknown }
-  | { op: "matches"; field: string; pattern: string }  // Regex
+  | { op: "matches"; field: string; pattern: string } // Regex
   | { op: "date_in_effect"; dateField: string; on?: string }
-  | { op: "true" }   // Always applies
-  | { op: "false" }  // Never applies
+  | { op: "true" } // Always applies
+  | { op: "false" } // Never applies
 ```
 
 ### Evaluation Context
 
 ```typescript
 interface EvaluationContext {
-  asOf: string  // ISO datetime
+  asOf: string // ISO datetime
   entity: {
     type: "OBRT" | "DOO" | "JDOO" | "UDRUGA" | "OTHER"
     obrtSubtype?: "PAUSALNI" | "DOHODAS" | "DOBITAS"
@@ -606,6 +629,7 @@ interface EvaluationContext {
 ### Examples
 
 **Rule applies to all pausalni businesses:**
+
 ```json
 {
   "op": "and",
@@ -617,6 +641,7 @@ interface EvaluationContext {
 ```
 
 **Rule applies to cash sales over 1000 EUR:**
+
 ```json
 {
   "op": "and",
@@ -631,15 +656,15 @@ interface EvaluationContext {
 ### Helper Functions
 
 ```typescript
-import { predicates } from '@/lib/regulatory-truth/dsl/applies-when'
+import { predicates } from "@/lib/regulatory-truth/dsl/applies-when"
 
-predicates.isObrt()           // Entity type = OBRT
-predicates.isPausalni()       // OBRT + PAUSALNI subtype
-predicates.isOutsideVat()     // VAT status = OUTSIDE_VAT
-predicates.isCashSale()       // Sale + CASH or CARD payment
-predicates.revenueExceeds(n)  // Revenue YTD > n
-predicates.always()           // { op: "true" }
-predicates.never()            // { op: "false" }
+predicates.isObrt() // Entity type = OBRT
+predicates.isPausalni() // OBRT + PAUSALNI subtype
+predicates.isOutsideVat() // VAT status = OUTSIDE_VAT
+predicates.isCashSale() // Sale + CASH or CARD payment
+predicates.revenueExceeds(n) // Revenue YTD > n
+predicates.always() // { op: "true" }
+predicates.never() // { op: "false" }
 ```
 
 ### Security
@@ -658,19 +683,19 @@ Prevent circular references in precedence relationships that would create logica
 ### Precedence Edge Types (Must Be Acyclic)
 
 ```typescript
-SUPERSEDES    // Newer rule replaces older (temporal ordering)
-OVERRIDES     // Specific rule > general rule (lex specialis)
-AMENDS        // Rule modifies another rule
-DEPENDS_ON    // Rule depends on another's evaluation
-REQUIRES      // Rule requires another to be satisfied
+SUPERSEDES // Newer rule replaces older (temporal ordering)
+OVERRIDES // Specific rule > general rule (lex specialis)
+AMENDS // Rule modifies another rule
+DEPENDS_ON // Rule depends on another's evaluation
+REQUIRES // Rule requires another to be satisfied
 ```
 
 ### Non-Precedence Edge Types (Allowed Cycles)
 
 ```typescript
-CITED_IN      // Rule cites another (informational)
-INTERPRETS    // Rule interprets another (guidance)
-RELATED_TO    // General relationship
+CITED_IN // Rule cites another (informational)
+INTERPRETS // Rule interprets another (guidance)
+RELATED_TO // General relationship
 ```
 
 ### Cycle Detection Algorithm
@@ -678,23 +703,27 @@ RELATED_TO    // General relationship
 **File:** `graph/cycle-detection.ts`
 
 Uses BFS from target to source:
+
 1. If adding edge A→B, check if path exists from B to A
 2. If path exists, adding A→B would create cycle
 3. Throws `CycleDetectedError` if detected
 
 ```typescript
-import { wouldCreateCycle, createEdgeWithCycleCheck } from '@/lib/regulatory-truth/graph/cycle-detection'
+import {
+  wouldCreateCycle,
+  createEdgeWithCycleCheck,
+} from "@/lib/regulatory-truth/graph/cycle-detection"
 
 // Check before creating
-if (await wouldCreateCycle(fromId, toId, 'SUPERSEDES')) {
+if (await wouldCreateCycle(fromId, toId, "SUPERSEDES")) {
   // Handle cycle prevention
 }
 
 // Or create with automatic check
 await createEdgeWithCycleCheck({
-  fromRuleId: 'rule-a',
-  toRuleId: 'rule-b',
-  relation: 'SUPERSEDES',
+  fromRuleId: "rule-a",
+  toRuleId: "rule-b",
+  relation: "SUPERSEDES",
   validFrom: new Date(),
 })
 ```
@@ -702,7 +731,7 @@ await createEdgeWithCycleCheck({
 ### Graph Validation
 
 ```typescript
-import { validateGraphAcyclicity, findPath } from '@/lib/regulatory-truth/graph/cycle-detection'
+import { validateGraphAcyclicity, findPath } from "@/lib/regulatory-truth/graph/cycle-detection"
 
 // Validate entire graph
 const result = await validateGraphAcyclicity()
@@ -722,11 +751,13 @@ const path = await findPath(fromId, toId)
 **Guarantee:** Every regulatory claim links to source evidence.
 
 **Implementation:**
+
 - `RuleSourcePointer` links rules to `Evidence` records
 - `Evidence.rawContent` contains immutable source material
 - Citations include source URL, fetch timestamp, content hash
 
 **Verification:**
+
 - No rule can be published without at least one source pointer
 - Orphaned rules trigger arbiter review
 
@@ -735,6 +766,7 @@ const path = await findPath(fromId, toId)
 **Guarantee:** LLM-extracted content is verified against source.
 
 **Implementation:**
+
 - Extractor compares output against evidence text
 - `exact_quote` must exist verbatim in source
 - Confidence scores below threshold trigger re-extraction
@@ -745,6 +777,7 @@ const path = await findPath(fromId, toId)
 **Guarantee:** System fails safely when uncertain.
 
 **Implementation:**
+
 - Unresolvable conflicts → human arbiter queue
 - Missing evidence → extraction blocked
 - Low confidence OCR → vision fallback → human review
@@ -755,6 +788,7 @@ const path = await findPath(fromId, toId)
 **Guarantee:** Source evidence cannot be modified after capture.
 
 **Implementation:**
+
 - `Evidence.rawContent` is never updated after creation
 - Derived text stored in separate `EvidenceArtifact` table
 - Content hash computed at fetch time
@@ -765,6 +799,7 @@ const path = await findPath(fromId, toId)
 **Guarantee:** Same input produces same output.
 
 **Implementation:**
+
 - Idempotent job processing
 - Content hash for deduplication
 - Stable LLM prompts with structured output
@@ -912,22 +947,22 @@ storeTruthHealthSnapshot().then(console.log)
 
 All jobs run in Europe/Zagreb timezone:
 
-| Job                  | Time        | Purpose                           |
-| -------------------- | ----------- | --------------------------------- |
-| Health Snapshot      | 00:00       | Collect health metrics            |
-| Confidence Decay     | 03:00 Sun   | Weekly confidence score decay     |
-| Consolidation Audit  | 04:00       | Check for duplicates/leakage      |
-| E2E Validation       | 05:00       | Full pipeline validation          |
-| Morning Discovery    | 06:00       | Sentinel scans                    |
-| Daily Digest         | 07:00       | Email health report               |
+| Job                 | Time      | Purpose                       |
+| ------------------- | --------- | ----------------------------- |
+| Health Snapshot     | 00:00     | Collect health metrics        |
+| Confidence Decay    | 03:00 Sun | Weekly confidence score decay |
+| Consolidation Audit | 04:00     | Check for duplicates/leakage  |
+| E2E Validation      | 05:00     | Full pipeline validation      |
+| Morning Discovery   | 06:00     | Sentinel scans                |
+| Daily Digest        | 07:00     | Email health report           |
 
 ### Alert Severity Levels
 
-| Severity | Routing                | Examples                           |
-| -------- | ---------------------- | ---------------------------------- |
-| CRITICAL | Slack + Email + Resend | Pipeline failure, test data leak   |
-| WARNING  | Email digest only      | High unlinked pointers             |
-| INFO     | Logged only            | Normal operations                  |
+| Severity | Routing                | Examples                         |
+| -------- | ---------------------- | -------------------------------- |
+| CRITICAL | Slack + Email + Resend | Pipeline failure, test data leak |
+| WARNING  | Email digest only      | High unlinked pointers           |
+| INFO     | Logged only            | Normal operations                |
 
 ### Webhook Management
 

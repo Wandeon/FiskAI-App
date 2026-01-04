@@ -2,13 +2,13 @@
 
 ## Quick Diagnosis
 
-| Symptom | Likely Cause | Quick Fix |
-|---------|--------------|-----------|
+| Symptom             | Likely Cause                    | Quick Fix                      |
+| ------------------- | ------------------------------- | ------------------------------ |
 | Fiscalization fails | Certificate expired or CIS down | Check certificate, retry queue |
-| Bank import stuck | PDF parsing failed | Retry with XML format |
-| E-invoice rejected | EN16931 validation error | Check validation details |
-| AI assistant slow | Rate limit or model load | Wait 60s, retry |
-| Login loop | Session expired mid-action | Clear cookies, re-login |
+| Bank import stuck   | PDF parsing failed              | Retry with XML format          |
+| E-invoice rejected  | EN16931 validation error        | Check validation details       |
+| AI assistant slow   | Rate limit or model load        | Wait 60s, retry                |
+| Login loop          | Session expired mid-action      | Clear cookies, re-login        |
 
 ---
 
@@ -19,12 +19,14 @@
 **Cause:** FINA certificate has expired.
 
 **Diagnosis:**
+
 ```bash
 # Check certificate expiry via API
 curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 ```
 
 **Resolution:**
+
 1. Obtain new certificate from FINA
 2. Upload via Admin portal > Settings > Fiscalization
 3. Re-test with a test invoice
@@ -36,10 +38,12 @@ curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 **Cause:** Croatian Tax Authority CIS service is down.
 
 **Diagnosis:**
+
 1. Check CIS status at https://cis.porezna-uprava.hr
 2. Review `/api/health` for external dependency status
 
 **Resolution:**
+
 1. Invoices are queued automatically
 2. Monitor queue: `GET /api/admin/fiscal-queue`
 3. CIS usually recovers within 1-2 hours
@@ -52,6 +56,7 @@ curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 **Cause:** Customer OIB format invalid or doesn't pass checksum.
 
 **Resolution:**
+
 1. Verify OIB at https://oib.oib.hr
 2. OIB must be exactly 11 digits
 3. Last digit is MOD11 checksum
@@ -64,6 +69,7 @@ curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 **Cause:** Invoice with same number already fiscalized.
 
 **Resolution:**
+
 1. Check if invoice was actually fiscalized (has JIR)
 2. If yes: Use the existing fiscalized invoice
 3. If no: Generate new invoice number and retry
@@ -77,11 +83,13 @@ curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 **Cause:** PDF doesn't contain extractable text layer.
 
 **Diagnosis:**
+
 - Check if PDF is scanned image vs text-based
 - Text PDFs work immediately
 - Scanned PDFs need OCR processing
 
 **Resolution:**
+
 1. Request XML format from bank (preferred)
 2. Use SEPA XML camt.053 format if available
 3. OCR processing takes longer but should work
@@ -93,6 +101,7 @@ curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 **Cause:** Same statement already uploaded (checksum match).
 
 **Resolution:**
+
 1. If intentional: Set `overwrite: true` in request
 2. If accidental: No action needed, statement already exists
 3. Check existing import: `GET /api/banking/import/jobs`
@@ -104,12 +113,14 @@ curl -s https://fiskai.hr/api/cron/certificate-check | jq .
 **Cause:** Unexpected statement format from bank.
 
 **Diagnosis:**
+
 ```bash
 # Check import job details
 curl -s https://app.fiskai.hr/api/banking/import/jobs/{jobId} | jq .
 ```
 
 **Resolution:**
+
 1. Check bank name matches supported banks
 2. Some banks have multiple formats - try different export option
 3. Contact support with statement sample (redacted)
@@ -123,12 +134,14 @@ curl -s https://app.fiskai.hr/api/banking/import/jobs/{jobId} | jq .
 **Cause:** Invoice doesn't meet EU e-invoice standard.
 
 **Common issues:**
+
 - Missing required fields (seller VAT, buyer address)
 - Invalid currency code
 - Tax calculation rounding errors
 - Missing line item details
 
 **Resolution:**
+
 1. Check validation details in API response
 2. Common fixes:
    - Add seller VAT ID
@@ -143,6 +156,7 @@ curl -s https://app.fiskai.hr/api/banking/import/jobs/{jobId} | jq .
 **Cause:** E-invoice provider (Moj-eRacun, FINA, etc.) rejected the invoice.
 
 **Diagnosis:**
+
 ```sql
 -- Check provider error
 SELECT "providerStatus", "providerError"
@@ -151,6 +165,7 @@ WHERE id = 'xxx';
 ```
 
 **Resolution:**
+
 1. Check `providerError` field for specific reason
 2. Common causes:
    - Recipient not registered for e-invoices
@@ -164,6 +179,7 @@ WHERE id = 'xxx';
 **Cause:** Recipient company isn't registered for e-invoices.
 
 **Resolution:**
+
 1. Verify recipient is registered at https://moj-eracun.hr/provjera
 2. If not registered, send invoice via email/mail instead
 3. Update contact preference in customer record
@@ -177,11 +193,13 @@ WHERE id = 'xxx';
 **Cause:** Rate limiting, high load, or API timeout.
 
 **Diagnosis:**
+
 1. Check AI usage: `GET /api/ai/usage`
 2. Review rate limit headers in response
 3. Check `/api/assistant/reasoning/health`
 
 **Resolution:**
+
 1. Wait 60 seconds for rate limit reset
 2. Try non-streaming endpoint if streaming fails
 3. Simplify the query (shorter context)
@@ -193,6 +211,7 @@ WHERE id = 'xxx';
 **Cause:** Document quality or unusual format.
 
 **Resolution:**
+
 1. Submit feedback: `POST /api/ai/feedback`
 2. Ensure document is clear and readable
 3. Use original document (not scanned copy of copy)
@@ -205,6 +224,7 @@ WHERE id = 'xxx';
 **Cause:** Monthly AI usage limit reached.
 
 **Resolution:**
+
 1. Check plan limits in billing
 2. Upgrade plan for more AI queries
 3. Essential operations (fiscalization) continue without AI
@@ -218,6 +238,7 @@ WHERE id = 'xxx';
 **Cause:** Session cookie expired or corrupted.
 
 **Resolution:**
+
 1. Clear all fiskai.hr cookies
 2. Clear browser cache
 3. Try incognito/private window
@@ -230,6 +251,7 @@ WHERE id = 'xxx';
 **Cause:** User lacks permission for resource.
 
 **Diagnosis:**
+
 ```sql
 -- Check user role
 SELECT "systemRole" FROM "User" WHERE email = 'xxx';
@@ -239,6 +261,7 @@ SELECT role FROM "CompanyUser" WHERE "userId" = 'xxx';
 ```
 
 **Resolution:**
+
 1. Verify user has correct system role (USER, STAFF, ADMIN)
 2. Check company-level role assignment
 3. For staff: Ensure assignment to client company exists
@@ -250,6 +273,7 @@ SELECT role FROM "CompanyUser" WHERE "userId" = 'xxx';
 **Cause:** Code expired or sync issue.
 
 **Resolution:**
+
 1. Wait for new code (codes expire in 5 minutes)
 2. Check email spam folder
 3. Request code resend: `POST /api/auth/send-code`
@@ -261,6 +285,7 @@ SELECT role FROM "CompanyUser" WHERE "userId" = 'xxx';
 ### Slow queries
 
 **Diagnosis:**
+
 ```sql
 -- Check slow queries
 SELECT query, calls, mean_time
@@ -275,6 +300,7 @@ WHERE idx_scan = 0;
 ```
 
 **Resolution:**
+
 1. Add indexes for frequently queried columns
 2. Optimize N+1 queries with includes
 3. Consider query caching for hot paths
@@ -286,11 +312,13 @@ WHERE idx_scan = 0;
 **Symptoms:** "Too many connections" errors, timeouts.
 
 **Diagnosis:**
+
 ```sql
 SELECT count(*) FROM pg_stat_activity;
 ```
 
 **Resolution:**
+
 1. Restart application to reset pool
 2. Increase pool size if sustained load
 3. Check for connection leaks in code
@@ -348,6 +376,7 @@ Escalate to development team if:
 5. **Compliance risk** - Fiscalization down >4 hours
 
 **Escalation contacts:**
+
 - Technical issues: dev@fiskai.hr
 - Security incidents: security@fiskai.hr
 - Urgent production issues: [On-call rotation]

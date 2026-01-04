@@ -24,12 +24,12 @@ The AI Assistant is a **fail-closed, evidence-backed** question-answering system
 
 ### Core Design Principles
 
-| Principle | Implementation |
-|-----------|----------------|
-| **Fail-Closed** | System refuses answers rather than hallucinate |
-| **Evidence-Backed** | Every answer requires citations with source provenance |
-| **Multi-Gate Validation** | Multiple checkpoints filter low-quality responses |
-| **Progressive Enhancement** | Supports legacy JSON, NDJSON streaming, and SSE |
+| Principle                   | Implementation                                         |
+| --------------------------- | ------------------------------------------------------ |
+| **Fail-Closed**             | System refuses answers rather than hallucinate         |
+| **Evidence-Backed**         | Every answer requires citations with source provenance |
+| **Multi-Gate Validation**   | Multiple checkpoints filter low-quality responses      |
+| **Progressive Enhancement** | Supports legacy JSON, NDJSON streaming, and SSE        |
 
 ### Architecture Diagram
 
@@ -191,11 +191,11 @@ The legacy query engine implements a **3-stage fail-closed pipeline** that trans
 
 ### Confidence Thresholds
 
-| Threshold | Value | Action |
-|-----------|-------|--------|
-| `CONFIDENCE_THRESHOLD_CLARIFY` | 0.6 | Below → always NEEDS_CLARIFICATION |
-| `CONFIDENCE_THRESHOLD_STRICT` | 0.75 | Between 0.6-0.75 → require 2+ entities |
-| `NONSENSE_RATIO_THRESHOLD` | 0.6 | Above → OUT_OF_SCOPE |
+| Threshold                      | Value | Action                                 |
+| ------------------------------ | ----- | -------------------------------------- |
+| `CONFIDENCE_THRESHOLD_CLARIFY` | 0.6   | Below → always NEEDS_CLARIFICATION     |
+| `CONFIDENCE_THRESHOLD_STRICT`  | 0.75  | Between 0.6-0.75 → require 2+ entities |
+| `NONSENSE_RATIO_THRESHOLD`     | 0.6   | Above → OUT_OF_SCOPE                   |
 
 ### Authority Ranking
 
@@ -277,30 +277,30 @@ The new reasoning pipeline is a **generator-based, event-driven** system that pr
 
 ### Reasoning Stages (13 Total)
 
-| Stage | Purpose | Status Types |
-|-------|---------|--------------|
-| `QUESTION_INTAKE` | Parse and normalize query | started → complete |
-| `CONTEXT_RESOLUTION` | Determine domain, jurisdiction, risk tier | started → complete |
-| `CLARIFICATION` | Request missing information (optional) | awaiting_input |
-| `SOURCES` | Identify applicable regulations | started → progress → complete |
-| `RETRIEVAL` | Fetch relevant rules | started → complete |
-| `APPLICABILITY` | Filter by context, calculate coverage | started → complete |
-| `CONFLICTS` | Resolve conflicting rules | started → complete |
-| `ANALYSIS` | Deep analysis with checkpoints | started → checkpoint → complete |
-| `CONFIDENCE` | Calculate confidence scores | started → complete |
-| `ANSWER` | Generate answer (terminal) | complete |
-| `CONDITIONAL_ANSWER` | Multiple branches (terminal) | complete |
-| `REFUSAL` | Cannot answer (terminal) | complete |
-| `ERROR` | Pipeline failure (terminal) | complete |
+| Stage                | Purpose                                   | Status Types                    |
+| -------------------- | ----------------------------------------- | ------------------------------- |
+| `QUESTION_INTAKE`    | Parse and normalize query                 | started → complete              |
+| `CONTEXT_RESOLUTION` | Determine domain, jurisdiction, risk tier | started → complete              |
+| `CLARIFICATION`      | Request missing information (optional)    | awaiting_input                  |
+| `SOURCES`            | Identify applicable regulations           | started → progress → complete   |
+| `RETRIEVAL`          | Fetch relevant rules                      | started → complete              |
+| `APPLICABILITY`      | Filter by context, calculate coverage     | started → complete              |
+| `CONFLICTS`          | Resolve conflicting rules                 | started → complete              |
+| `ANALYSIS`           | Deep analysis with checkpoints            | started → checkpoint → complete |
+| `CONFIDENCE`         | Calculate confidence scores               | started → complete              |
+| `ANSWER`             | Generate answer (terminal)                | complete                        |
+| `CONDITIONAL_ANSWER` | Multiple branches (terminal)              | complete                        |
+| `REFUSAL`            | Cannot answer (terminal)                  | complete                        |
+| `ERROR`              | Pipeline failure (terminal)               | complete                        |
 
 ### Risk Tier Classification
 
-| Tier | Keywords | Description |
-|------|----------|-------------|
-| T0 | kazna, rok, obveza | Critical: Legal deadlines, penalties |
-| T1 | pdv, porez, doprinos | High: Tax obligations, VAT |
-| T2 | prag, limit, granica | Medium: Thresholds, limits |
-| T3 | (default) | Low: Informational |
+| Tier | Keywords             | Description                          |
+| ---- | -------------------- | ------------------------------------ |
+| T0   | kazna, rok, obveza   | Critical: Legal deadlines, penalties |
+| T1   | pdv, porez, doprinos | High: Tax obligations, VAT           |
+| T2   | prag, limit, granica | Medium: Thresholds, limits           |
+| T3   | (default)            | Low: Informational                   |
 
 ### Decision Coverage
 
@@ -329,10 +329,12 @@ interface DimensionRequirement {
 ```
 
 **Coverage Scoring:**
+
 - `requiredScore = requiredResolved / requiredCount` (must be 1.0 for ANSWER)
 - `totalScore = totalResolved / totalCount` (includes optional)
 
 **Terminal Outcome Determination:**
+
 - `requiredScore < 1.0` → REFUSAL
 - `requiredScore = 1.0 AND totalScore < 1.0` → CONDITIONAL_ANSWER
 - `requiredScore = 1.0 AND totalScore = 1.0` → ANSWER
@@ -343,45 +345,45 @@ interface DimensionRequirement {
 
 ### Query Engine Components
 
-| Component | File | Responsibility |
-|-----------|------|----------------|
+| Component             | File                   | Responsibility                                                               |
+| --------------------- | ---------------------- | ---------------------------------------------------------------------------- |
 | **Query Interpreter** | `query-interpreter.ts` | Classify topic, intent, jurisdiction; detect gibberish; calculate confidence |
-| **Text Utils** | `text-utils.ts` | Normalize diacritics, tokenize, extract keywords |
-| **Concept Matcher** | `concept-matcher.ts` | Match query keywords to regulatory concepts (strict token matching) |
-| **Rule Eligibility** | `rule-eligibility.ts` | Check temporal validity, evaluate appliesWhen predicates |
-| **Rule Selector** | `rule-selector.ts` | Fetch and filter PUBLISHED rules, sort by authority |
-| **Conflict Detector** | `conflict-detector.ts` | Detect and resolve conflicting rules |
-| **Citation Builder** | `citation-builder.ts` | Format citations with evidence provenance |
-| **Answer Builder** | `answer-builder.ts` | Orchestrate full pipeline, manage all gates |
+| **Text Utils**        | `text-utils.ts`        | Normalize diacritics, tokenize, extract keywords                             |
+| **Concept Matcher**   | `concept-matcher.ts`   | Match query keywords to regulatory concepts (strict token matching)          |
+| **Rule Eligibility**  | `rule-eligibility.ts`  | Check temporal validity, evaluate appliesWhen predicates                     |
+| **Rule Selector**     | `rule-selector.ts`     | Fetch and filter PUBLISHED rules, sort by authority                          |
+| **Conflict Detector** | `conflict-detector.ts` | Detect and resolve conflicting rules                                         |
+| **Citation Builder**  | `citation-builder.ts`  | Format citations with evidence provenance                                    |
+| **Answer Builder**    | `answer-builder.ts`    | Orchestrate full pipeline, manage all gates                                  |
 
 ### Reasoning Pipeline Components
 
-| Component | File | Responsibility |
-|-----------|------|----------------|
-| **Pipeline** | `reasoning-pipeline.ts` | Main generator, orchestrates all stages |
-| **Context Resolution** | `stages/context-resolution.ts` | Determine domain, jurisdiction, risk tier |
-| **Source Discovery** | `stages/source-discovery.ts` | Find applicable regulatory sources |
-| **Decision Coverage** | `decision-coverage.ts` | Calculate dimension coverage, determine outcome |
-| **Refusal Policy** | `refusal-policy.ts` | Determine refusal codes and messages |
-| **Shadow Runner** | `shadow-runner.ts` | Run both pipelines for gradual migration |
-| **Feature Flags** | `feature-flags.ts` | Mode selection (off/shadow/live) |
-| **SSE Sink** | `sinks/sse-sink.ts` | Convert events to SSE format |
-| **Audit Sink** | `sinks/audit-sink.ts` | Persist traces for analysis |
-| **Metrics Sink** | `sinks/metrics-sink.ts` | Collect performance metrics |
-| **Consumer** | `sinks/consumer.ts` | Multiplex generator to all sinks |
+| Component              | File                           | Responsibility                                  |
+| ---------------------- | ------------------------------ | ----------------------------------------------- |
+| **Pipeline**           | `reasoning-pipeline.ts`        | Main generator, orchestrates all stages         |
+| **Context Resolution** | `stages/context-resolution.ts` | Determine domain, jurisdiction, risk tier       |
+| **Source Discovery**   | `stages/source-discovery.ts`   | Find applicable regulatory sources              |
+| **Decision Coverage**  | `decision-coverage.ts`         | Calculate dimension coverage, determine outcome |
+| **Refusal Policy**     | `refusal-policy.ts`            | Determine refusal codes and messages            |
+| **Shadow Runner**      | `shadow-runner.ts`             | Run both pipelines for gradual migration        |
+| **Feature Flags**      | `feature-flags.ts`             | Mode selection (off/shadow/live)                |
+| **SSE Sink**           | `sinks/sse-sink.ts`            | Convert events to SSE format                    |
+| **Audit Sink**         | `sinks/audit-sink.ts`          | Persist traces for analysis                     |
+| **Metrics Sink**       | `sinks/metrics-sink.ts`        | Collect performance metrics                     |
+| **Consumer**           | `sinks/consumer.ts`            | Multiplex generator to all sinks                |
 
 ### React Hooks
 
-| Hook | File | Responsibility |
-|------|------|----------------|
-| **useAssistantController** | `useAssistantController.ts` | Main state machine for chat lifecycle |
-| **useReasoningStream** | `useReasoningStream.ts` | SSE streaming and event parsing |
-| **useCTAEligibility** | `useCTAEligibility.ts` | Determine when to show marketing CTAs |
-| **useCTADismissal** | `useCTADismissal.ts` | Manage CTA dismissal with 7-day cooldown |
-| **useAssistantAnalytics** | `useAssistantAnalytics.ts` | Event tracking for analytics |
-| **useFocusManagement** | `useFocusManagement.ts` | Auto-focus headline/input based on status |
-| **useReducedMotion** | `useReducedMotion.ts` | Respect browser motion preferences |
-| **useRovingTabindex** | `useRovingTabindex.ts` | ARIA keyboard navigation |
+| Hook                       | File                        | Responsibility                            |
+| -------------------------- | --------------------------- | ----------------------------------------- |
+| **useAssistantController** | `useAssistantController.ts` | Main state machine for chat lifecycle     |
+| **useReasoningStream**     | `useReasoningStream.ts`     | SSE streaming and event parsing           |
+| **useCTAEligibility**      | `useCTAEligibility.ts`      | Determine when to show marketing CTAs     |
+| **useCTADismissal**        | `useCTADismissal.ts`        | Manage CTA dismissal with 7-day cooldown  |
+| **useAssistantAnalytics**  | `useAssistantAnalytics.ts`  | Event tracking for analytics              |
+| **useFocusManagement**     | `useFocusManagement.ts`     | Auto-focus headline/input based on status |
+| **useReducedMotion**       | `useReducedMotion.ts`       | Respect browser motion preferences        |
+| **useRovingTabindex**      | `useRovingTabindex.ts`      | ARIA keyboard navigation                  |
 
 ---
 
@@ -467,23 +469,23 @@ The `rule-eligibility.ts` evaluates conditional predicates using the Regulatory 
     and: [
       { eq: ["entity.type", "OBRT"] },
       { eq: ["entity.obrtSubtype", "PAUSALNI"] },
-      { lt: ["counters.revenueYtd", 39816.84] }
+      { lt: ["counters.revenueYtd", 39816.84] },
     ]
   }
 }
 
 // Evaluation context
 interface EvaluationContext {
-  asOf: string  // ISO date
+  asOf: string // ISO date
   entity: {
     type: "DOO" | "JDOO" | "OBRT" | "UDRUGA" | "OTHER"
     obrtSubtype?: "PAUSALNI" | "DOHODAS" | "DOBITAS"
     vat: { status: "IN_VAT" | "OUTSIDE_VAT" | "UNKNOWN" }
     activityNkd?: string
-    location: { country: "HR", county?: string }
+    location: { country: "HR"; county?: string }
   }
   counters?: { revenueYtd?: number }
-  txn?: { kind, paymentMethod, amount, b2b }
+  txn?: { kind; paymentMethod; amount; b2b }
 }
 ```
 
@@ -542,11 +544,11 @@ Client ──POST──▶ Server
 
 ```typescript
 interface ReasoningEvent {
-  v: 1                           // Schema version
-  id: string                     // Format: `${requestId}_${seq}`
+  v: 1 // Schema version
+  id: string // Format: `${requestId}_${seq}`
   requestId: string
-  seq: number                    // Sequence counter
-  ts: string                     // ISO timestamp
+  seq: number // Sequence counter
+  ts: string // ISO timestamp
   stage: ReasoningStage
   status: "started" | "progress" | "checkpoint" | "complete" | "awaiting_input"
   message?: string
@@ -583,6 +585,7 @@ interface ReasoningEvent {
 ```
 
 **Sink Modes:**
+
 - `nonBlocking`: Fire-and-forget, never blocks response
 - `buffered`: Collects events, writes all at once on flush
 - `criticalAwait`: Only awaits critical-severity events
@@ -597,17 +600,17 @@ The system **refuses answers rather than hallucinate**. Every response must pass
 
 ### Refusal Codes
 
-| Code | Trigger | Message |
-|------|---------|---------|
-| `NEEDS_CLARIFICATION` | Confidence < 0.6 or no concept matches | "Molimo pojasnite vaše pitanje" |
-| `NO_CITABLE_RULES` | No eligible rules found | "Nismo pronašli relevantne propise" |
-| `OUT_OF_SCOPE` | Gibberish or PRODUCT/SUPPORT topic | "Ovo pitanje nije u našem području" |
-| `UNSUPPORTED_JURISDICTION` | Non-Croatian jurisdiction | "Podržavamo samo hrvatsko zakonodavstvo" |
-| `MISSING_CLIENT_DATA` | Personalization needed but no context | "Trebamo više podataka o vašem poslovanju" |
-| `UNRESOLVED_CONFLICT` | Conflicting rules at same authority | "Pronašli smo proturječne propise" |
-| `GRAY_ZONE` | Ambiguous interpretation | "Ovo područje zahtijeva stručni savjet" |
-| `FUTURE_LAW_UNCERTAIN` | Future effective date | "Propisi koji stupaju na snagu nisu konačni" |
-| `MISSING_REQUIRED_DIMENSION` | Coverage score < 1.0 | "Nedostaju ključni podaci za odgovor" |
+| Code                         | Trigger                                | Message                                      |
+| ---------------------------- | -------------------------------------- | -------------------------------------------- |
+| `NEEDS_CLARIFICATION`        | Confidence < 0.6 or no concept matches | "Molimo pojasnite vaše pitanje"              |
+| `NO_CITABLE_RULES`           | No eligible rules found                | "Nismo pronašli relevantne propise"          |
+| `OUT_OF_SCOPE`               | Gibberish or PRODUCT/SUPPORT topic     | "Ovo pitanje nije u našem području"          |
+| `UNSUPPORTED_JURISDICTION`   | Non-Croatian jurisdiction              | "Podržavamo samo hrvatsko zakonodavstvo"     |
+| `MISSING_CLIENT_DATA`        | Personalization needed but no context  | "Trebamo više podataka o vašem poslovanju"   |
+| `UNRESOLVED_CONFLICT`        | Conflicting rules at same authority    | "Pronašli smo proturječne propise"           |
+| `GRAY_ZONE`                  | Ambiguous interpretation               | "Ovo područje zahtijeva stručni savjet"      |
+| `FUTURE_LAW_UNCERTAIN`       | Future effective date                  | "Propisi koji stupaju na snagu nisu konačni" |
+| `MISSING_REQUIRED_DIMENSION` | Coverage score < 1.0                   | "Nedostaju ključni podaci za odgovor"        |
 
 ### Validation Points
 
@@ -630,10 +633,10 @@ The system **refuses answers rather than hallucinate**. Every response must pass
 
 ```typescript
 const LIMITS = {
-  headline: 120,        // chars
-  directAnswer: 240,    // chars
-  citationsMax: 4,      // count
-  totalResponse: 3500   // chars
+  headline: 120, // chars
+  directAnswer: 240, // chars
+  citationsMax: 4, // count
+  totalResponse: 3500, // chars
 }
 ```
 
@@ -667,12 +670,12 @@ IDLE ──submit()──▶ LOADING ──stream_start──▶ STREAMING
 
 ### CTA Eligibility Rules
 
-| Condition | CTA Type |
-|-----------|----------|
+| Condition                                                   | CTA Type          |
+| ----------------------------------------------------------- | ----------------- |
 | 1+ successful REGULATORY answers + personalization keywords | `personalization` |
-| 2+ successful REGULATORY answers (no personalization) | `contextual` |
-| APP surface | Never show |
-| Recently dismissed (7-day cooldown) | Don't show |
+| 2+ successful REGULATORY answers (no personalization)       | `contextual`      |
+| APP surface                                                 | Never show        |
+| Recently dismissed (7-day cooldown)                         | Don't show        |
 
 ### Analytics Events
 
@@ -703,6 +706,7 @@ IDLE ──submit()──▶ LOADING ──stream_start──▶ STREAMING
 Standard JSON response endpoint.
 
 **Request:**
+
 ```typescript
 {
   query: string
@@ -712,6 +716,7 @@ Standard JSON response endpoint.
 ```
 
 **Response:**
+
 ```typescript
 {
   schemaVersion: "1.0.0"
@@ -750,6 +755,7 @@ SSE streaming endpoint with reasoning stages.
 Health check endpoint.
 
 **Response:**
+
 ```typescript
 {
   status: "healthy" | "degraded" | "unhealthy"
@@ -770,19 +776,19 @@ Health check endpoint.
 
 ### Environment Variables
 
-| Variable | Values | Description |
-|----------|--------|-------------|
-| `REASONING_MODE` | `off` \| `shadow` \| `live` | Global pipeline mode |
-| `REASONING_UX_ENABLED` | `true` \| `false` | Show reasoning UI |
-| `REASONING_BETA_PERCENTAGE` | `0-100` | Per-user rollout percentage |
+| Variable                    | Values                      | Description                 |
+| --------------------------- | --------------------------- | --------------------------- |
+| `REASONING_MODE`            | `off` \| `shadow` \| `live` | Global pipeline mode        |
+| `REASONING_UX_ENABLED`      | `true` \| `false`           | Show reasoning UI           |
+| `REASONING_BETA_PERCENTAGE` | `0-100`                     | Per-user rollout percentage |
 
 ### Mode Behavior
 
-| Mode | Legacy Pipeline | New Pipeline | Response |
-|------|-----------------|--------------|----------|
-| `off` | Runs | Skipped | Legacy |
-| `shadow` | Runs | Runs (background) | Legacy |
-| `live` | Skipped | Runs | New (with compat wrapper) |
+| Mode     | Legacy Pipeline | New Pipeline      | Response                  |
+| -------- | --------------- | ----------------- | ------------------------- |
+| `off`    | Runs            | Skipped           | Legacy                    |
+| `shadow` | Runs            | Runs (background) | Legacy                    |
+| `live`   | Skipped         | Runs              | New (with compat wrapper) |
 
 ### Shadow Mode
 

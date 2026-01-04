@@ -16,14 +16,14 @@ The Arbiter conflict resolution system is well-designed with proper authority hi
 
 ## Files Reviewed
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `src/lib/regulatory-truth/agents/arbiter.ts` | Main arbiter implementation | ✅ Reviewed |
-| `src/lib/regulatory-truth/schemas/arbiter.ts` | Input/output validation | ✅ Reviewed |
-| `src/lib/regulatory-truth/utils/conflict-detector.ts` | Structural conflict detection | ✅ Reviewed |
-| `src/lib/regulatory-truth/taxonomy/precedence-builder.ts` | Graph edge management | ✅ Reviewed |
-| `src/lib/regulatory-truth/prompts/index.ts` | ARBITER_PROMPT | ✅ Reviewed |
-| `src/lib/regulatory-truth/taxonomy/graph-edges.ts` | Not found (referenced in audit) | ❌ Missing |
+| File                                                      | Purpose                         | Status      |
+| --------------------------------------------------------- | ------------------------------- | ----------- |
+| `src/lib/regulatory-truth/agents/arbiter.ts`              | Main arbiter implementation     | ✅ Reviewed |
+| `src/lib/regulatory-truth/schemas/arbiter.ts`             | Input/output validation         | ✅ Reviewed |
+| `src/lib/regulatory-truth/utils/conflict-detector.ts`     | Structural conflict detection   | ✅ Reviewed |
+| `src/lib/regulatory-truth/taxonomy/precedence-builder.ts` | Graph edge management           | ✅ Reviewed |
+| `src/lib/regulatory-truth/prompts/index.ts`               | ARBITER_PROMPT                  | ✅ Reviewed |
+| `src/lib/regulatory-truth/taxonomy/graph-edges.ts`        | Not found (referenced in audit) | ❌ Missing  |
 
 ---
 
@@ -36,11 +36,16 @@ The authority hierarchy is correctly implemented in `arbiter.ts:32-45`:
 ```typescript
 export function getAuthorityScore(level: AuthorityLevel): number {
   switch (level) {
-    case "LAW":       return 1  // Highest
-    case "GUIDANCE":  return 2
-    case "PROCEDURE": return 3
-    case "PRACTICE":  return 4  // Lowest
-    default:          return 999
+    case "LAW":
+      return 1 // Highest
+    case "GUIDANCE":
+      return 2
+    case "PROCEDURE":
+      return 3
+    case "PRACTICE":
+      return 4 // Lowest
+    default:
+      return 999
   }
 }
 ```
@@ -77,15 +82,16 @@ The prompt (`prompts/index.ts:350-357`) defines a comprehensive Croatian legal h
 
 Comprehensive escalation criteria in `arbiter.ts:394-440`:
 
-| Condition | Threshold | Result |
-|-----------|-----------|--------|
-| Low confidence in resolution | < 0.8 | Escalate |
-| Both rules are T0 (critical) | T0 vs T0 | Escalate |
+| Condition                                   | Threshold          | Result   |
+| ------------------------------------------- | ------------------ | -------- |
+| Low confidence in resolution                | < 0.8              | Escalate |
+| Both rules are T0 (critical)                | T0 vs T0           | Escalate |
 | Equal authority levels + hierarchy strategy | score_A == score_B | Escalate |
-| Same effective dates + temporal strategy | date_A == date_B | Escalate |
-| Either rule has low confidence | < 0.85 | Escalate |
+| Same effective dates + temporal strategy    | date_A == date_B   | Escalate |
+| Either rule has low confidence              | < 0.85             | Escalate |
 
 **Unit Tests:** Escalation logic is well-tested in `__tests__/arbiter.test.ts`:
+
 - Lines 95-127: Low confidence escalation test
 - Lines 129-161: T0 conflict escalation test
 - Lines 70-76: Equal authority level detection
@@ -156,6 +162,7 @@ enum GraphEdgeType {
    **Risk:** Circular supersession could cause infinite loops or incorrect precedence resolution.
 
    **Recommendation:** Add cycle detection before creating new edges:
+
    ```typescript
    // Before creating: A overrides B
    if (await doesOverride(ruleBId, ruleAId)) {
@@ -201,6 +208,7 @@ enum ConflictType {
 ### Conflict Detector Internal Types
 
 `conflict-detector.ts:6-11`:
+
 ```typescript
 export interface ConflictSeed {
   type: "VALUE_MISMATCH" | "DATE_OVERLAP" | "AUTHORITY_SUPERSEDE" | "CROSS_SLUG_DUPLICATE"
@@ -212,12 +220,12 @@ export interface ConflictSeed {
 
 The `mapConflictType()` function (`conflict-detector.ts:315-329`) maps internal types to DB enums:
 
-| Internal Type | DB Enum | Issue |
-|--------------|---------|-------|
-| VALUE_MISMATCH | SOURCE_CONFLICT | ✅ |
-| DATE_OVERLAP | TEMPORAL_CONFLICT | ✅ |
-| AUTHORITY_SUPERSEDE | TEMPORAL_CONFLICT | ⚠️ Semantic mismatch |
-| CROSS_SLUG_DUPLICATE | RULE_CONFLICT | ❌ **Not in DB enum** |
+| Internal Type        | DB Enum           | Issue                 |
+| -------------------- | ----------------- | --------------------- |
+| VALUE_MISMATCH       | SOURCE_CONFLICT   | ✅                    |
+| DATE_OVERLAP         | TEMPORAL_CONFLICT | ✅                    |
+| AUTHORITY_SUPERSEDE  | TEMPORAL_CONFLICT | ⚠️ Semantic mismatch  |
+| CROSS_SLUG_DUPLICATE | RULE_CONFLICT     | ❌ **Not in DB enum** |
 
 **❌ FAIL:** `CROSS_SLUG_DUPLICATE` maps to `RULE_CONFLICT` but `RULE_CONFLICT` does not exist in the Prisma `ConflictType` enum. This would cause a database error when trying to insert such conflicts.
 
@@ -268,6 +276,7 @@ AND ra."authorityLevel" > rb."authorityLevel";
 ```
 
 **Action Required:** Run these queries manually to verify:
+
 1. Open conflict backlog size and age
 2. Escalation rate (should be <10%)
 3. No authority hierarchy violations
@@ -276,13 +285,13 @@ AND ra."authorityLevel" > rb."authorityLevel";
 
 ## Issues Summary
 
-| ID | Severity | Description | Location |
-|----|----------|-------------|----------|
-| ARB-001 | ⚠️ WARN | REGULATION authority level not handled in arbiter | `arbiter.ts:32-45` |
-| ARB-002 | ⚠️ WARN | No acyclicity validation for graph edges | `precedence-builder.ts` |
-| ARB-003 | ❌ FAIL | RULE_CONFLICT not in ConflictType enum | `conflict-detector.ts:326` |
-| ARB-004 | ⚠️ WARN | AUTHORITY_SUPERSEDE mapped to TEMPORAL_CONFLICT | `conflict-detector.ts:319-320` |
-| ARB-005 | ℹ️ INFO | graph-edges.ts file missing | N/A |
+| ID      | Severity | Description                                       | Location                       |
+| ------- | -------- | ------------------------------------------------- | ------------------------------ |
+| ARB-001 | ⚠️ WARN  | REGULATION authority level not handled in arbiter | `arbiter.ts:32-45`             |
+| ARB-002 | ⚠️ WARN  | No acyclicity validation for graph edges          | `precedence-builder.ts`        |
+| ARB-003 | ❌ FAIL  | RULE_CONFLICT not in ConflictType enum            | `conflict-detector.ts:326`     |
+| ARB-004 | ⚠️ WARN  | AUTHORITY_SUPERSEDE mapped to TEMPORAL_CONFLICT   | `conflict-detector.ts:319-320` |
+| ARB-005 | ℹ️ INFO  | graph-edges.ts file missing                       | N/A                            |
 
 ---
 
@@ -304,10 +313,11 @@ AND ra."authorityLevel" > rb."authorityLevel";
 ### High Priority
 
 2. **Add cycle detection before creating OVERRIDES edges**
+
    ```typescript
    async function createOverridesEdge(fromId: string, toId: string) {
      if (await doesOverride(toId, fromId)) {
-       throw new Error("Cannot create edge: would create cycle");
+       throw new Error("Cannot create edge: would create cycle")
      }
      // proceed with creation
    }
@@ -333,6 +343,7 @@ AND ra."authorityLevel" > rb."authorityLevel";
 **Overall Status: ⚠️ WARN**
 
 The Arbiter conflict resolution system has a solid foundation with:
+
 - Correct authority hierarchy implementation
 - Comprehensive escalation logic
 - Good test coverage
@@ -341,6 +352,7 @@ The Arbiter conflict resolution system has a solid foundation with:
 However, the critical issue with `RULE_CONFLICT` enum mismatch needs immediate attention as it would cause runtime errors. The missing acyclicity validation is a potential edge case that could cause issues in production.
 
 **Next Steps:**
+
 1. Fix the RULE_CONFLICT enum issue
 2. Add acyclicity validation
 3. Run database queries manually to verify conflict statistics

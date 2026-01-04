@@ -482,9 +482,7 @@ async function loadPlaywrightSummary(): Promise<PlaywrightSummary | null> {
   const resultsPath = process.env.MARKETING_AUDIT_PLAYWRIGHT_RESULTS
   if (!resultsPath) return null
   const cwd = process.cwd()
-  const displayPath = resultsPath.startsWith(cwd)
-    ? path.relative(cwd, resultsPath)
-    : resultsPath
+  const displayPath = resultsPath.startsWith(cwd) ? path.relative(cwd, resultsPath) : resultsPath
 
   try {
     const raw = await fs.readFile(resultsPath, "utf8")
@@ -538,7 +536,9 @@ async function generateReport() {
     issueSummary.hardcoded += audit.hardcoded.length
     issueSummary.language += audit.language.length
     issueSummary.design += audit.design.length
-    issueSummary.brokenLinks += audit.links.filter((link) => link.status === "static-missing").length
+    issueSummary.brokenLinks += audit.links.filter(
+      (link) => link.status === "static-missing"
+    ).length
   }
 
   const lines: string[] = []

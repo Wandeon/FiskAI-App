@@ -15,6 +15,7 @@
 ### Task 8.1: Add AuditLog Model to Prisma Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma:275` (append at end)
 
 **Step 1: Add the AuditLog model and enum**
@@ -59,6 +60,7 @@ enum AuditAction {
 **Step 2: Generate Prisma client and push schema**
 
 Run:
+
 ```bash
 npx prisma db push
 ```
@@ -77,6 +79,7 @@ git commit -m "feat(audit): add AuditLog model to schema"
 ### Task 8.2: Create Audit Logging Library
 
 **Files:**
+
 - Create: `src/lib/audit.ts`
 
 **Step 1: Create the audit logging helper**
@@ -84,25 +87,25 @@ git commit -m "feat(audit): add AuditLog model to schema"
 Create `src/lib/audit.ts`:
 
 ```typescript
-import { prisma } from "@/lib/db";
-import { AuditAction } from "@prisma/client";
+import { prisma } from "@/lib/db"
+import { AuditAction } from "@prisma/client"
 
 interface AuditLogParams {
-  companyId: string;
-  userId?: string;
-  action: AuditAction;
-  entity: string;
-  entityId: string;
-  before?: Record<string, unknown>;
-  after?: Record<string, unknown>;
-  ipAddress?: string;
-  userAgent?: string;
+  companyId: string
+  userId?: string
+  action: AuditAction
+  entity: string
+  entityId: string
+  before?: Record<string, unknown>
+  after?: Record<string, unknown>
+  ipAddress?: string
+  userAgent?: string
 }
 
 export async function logAudit(params: AuditLogParams): Promise<void> {
-  const { before, after, ...rest } = params;
+  const { before, after, ...rest } = params
 
-  const changes = before || after ? { before, after } : null;
+  const changes = before || after ? { before, after } : null
 
   try {
     await prisma.auditLog.create({
@@ -110,37 +113,37 @@ export async function logAudit(params: AuditLogParams): Promise<void> {
         ...rest,
         changes,
       },
-    });
+    })
   } catch (error) {
     // Log to console but don't fail the main operation
-    console.error("[AUDIT] Failed to log audit entry:", error);
+    console.error("[AUDIT] Failed to log audit entry:", error)
   }
 }
 
 export async function getAuditLogs(
   companyId: string,
   options?: {
-    entity?: string;
-    entityId?: string;
-    userId?: string;
-    action?: AuditAction;
-    fromDate?: Date;
-    toDate?: Date;
-    limit?: number;
-    offset?: number;
+    entity?: string
+    entityId?: string
+    userId?: string
+    action?: AuditAction
+    fromDate?: Date
+    toDate?: Date
+    limit?: number
+    offset?: number
   }
 ) {
-  const where: Record<string, unknown> = { companyId };
+  const where: Record<string, unknown> = { companyId }
 
-  if (options?.entity) where.entity = options.entity;
-  if (options?.entityId) where.entityId = options.entityId;
-  if (options?.userId) where.userId = options.userId;
-  if (options?.action) where.action = options.action;
+  if (options?.entity) where.entity = options.entity
+  if (options?.entityId) where.entityId = options.entityId
+  if (options?.userId) where.userId = options.userId
+  if (options?.action) where.action = options.action
 
   if (options?.fromDate || options?.toDate) {
-    where.timestamp = {};
-    if (options.fromDate) (where.timestamp as Record<string, Date>).gte = options.fromDate;
-    if (options.toDate) (where.timestamp as Record<string, Date>).lte = options.toDate;
+    where.timestamp = {}
+    if (options.fromDate) (where.timestamp as Record<string, Date>).gte = options.fromDate
+    if (options.toDate) (where.timestamp as Record<string, Date>).lte = options.toDate
   }
 
   const [logs, total] = await Promise.all([
@@ -151,9 +154,9 @@ export async function getAuditLogs(
       skip: options?.offset ?? 0,
     }),
     prisma.auditLog.count({ where }),
-  ]);
+  ])
 
-  return { logs, total };
+  return { logs, total }
 }
 ```
 
@@ -169,6 +172,7 @@ git commit -m "feat(audit): add audit logging library"
 ### Task 8.3: Create Audit Log Server Actions
 
 **Files:**
+
 - Create: `src/app/actions/audit.ts`
 
 **Step 1: Create the audit actions**
@@ -176,28 +180,28 @@ git commit -m "feat(audit): add audit logging library"
 Create `src/app/actions/audit.ts`:
 
 ```typescript
-"use server";
+"use server"
 
-import { requireAuth } from "@/lib/auth-utils";
-import { getAuditLogs } from "@/lib/audit";
-import { AuditAction } from "@prisma/client";
+import { requireAuth } from "@/lib/auth-utils"
+import { getAuditLogs } from "@/lib/audit"
+import { AuditAction } from "@prisma/client"
 
 export async function getAuditLogsAction(options?: {
-  entity?: string;
-  entityId?: string;
-  action?: AuditAction;
-  fromDate?: string;
-  toDate?: string;
-  limit?: number;
-  offset?: number;
+  entity?: string
+  entityId?: string
+  action?: AuditAction
+  fromDate?: string
+  toDate?: string
+  limit?: number
+  offset?: number
 }) {
-  const { company } = await requireAuth();
+  const { company } = await requireAuth()
 
   return getAuditLogs(company.id, {
     ...options,
     fromDate: options?.fromDate ? new Date(options.fromDate) : undefined,
     toDate: options?.toDate ? new Date(options.toDate) : undefined,
-  });
+  })
 }
 ```
 
@@ -213,6 +217,7 @@ git commit -m "feat(audit): add audit log server actions"
 ### Task 8.4: Add Audit Logging to Existing Actions
 
 **Files:**
+
 - Modify: `src/app/actions/e-invoice.ts`
 - Modify: `src/app/actions/contact.ts`
 - Modify: `src/app/actions/product.ts`
@@ -222,8 +227,8 @@ git commit -m "feat(audit): add audit log server actions"
 Add at top of `src/app/actions/e-invoice.ts`:
 
 ```typescript
-import { logAudit } from "@/lib/audit";
-import { AuditAction } from "@prisma/client";
+import { logAudit } from "@/lib/audit"
+import { AuditAction } from "@prisma/client"
 ```
 
 **Step 2: Add audit logging to createEInvoice**
@@ -242,7 +247,7 @@ await logAudit({
     buyerId: eInvoice.buyerId,
     totalAmount: eInvoice.totalAmount.toString(),
   },
-});
+})
 ```
 
 **Step 3: Update contact.ts with audit logging**
@@ -250,8 +255,8 @@ await logAudit({
 Add import and logging to createContact, updateContact, deleteContact:
 
 ```typescript
-import { logAudit } from "@/lib/audit";
-import { AuditAction } from "@prisma/client";
+import { logAudit } from "@/lib/audit"
+import { AuditAction } from "@prisma/client"
 
 // In createContact after prisma.contact.create:
 await logAudit({
@@ -261,7 +266,7 @@ await logAudit({
   entity: "Contact",
   entityId: contact.id,
   after: { name: contact.name, oib: contact.oib },
-});
+})
 
 // In updateContact:
 await logAudit({
@@ -272,7 +277,7 @@ await logAudit({
   entityId: id,
   before: { name: existing.name },
   after: { name: data.name },
-});
+})
 
 // In deleteContact:
 await logAudit({
@@ -282,7 +287,7 @@ await logAudit({
   entity: "Contact",
   entityId: id,
   before: { name: contact.name, oib: contact.oib },
-});
+})
 ```
 
 **Step 4: Update product.ts similarly**
@@ -301,6 +306,7 @@ git commit -m "feat(audit): add audit logging to all entity actions"
 ### Task 8.5: Create Audit Log UI Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/audit-log/page.tsx`
 
 **Step 1: Create the audit log page**
@@ -365,6 +371,7 @@ git commit -m "feat(audit): add audit log UI page"
 ### Task 9.1: Add Numbering Models to Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add BusinessPremises, PaymentDevice, InvoiceSequence models**
@@ -458,6 +465,7 @@ git commit -m "feat(numbering): add BusinessPremises, PaymentDevice, InvoiceSequ
 ### Task 9.2: Create Invoice Numbering Library
 
 **Files:**
+
 - Create: `src/lib/invoice-numbering.ts`
 
 **Step 1: Create the numbering logic with DB locking**
@@ -465,15 +473,15 @@ git commit -m "feat(numbering): add BusinessPremises, PaymentDevice, InvoiceSequ
 Create `src/lib/invoice-numbering.ts`:
 
 ```typescript
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db"
 
 interface InvoiceNumber {
-  formatted: string;        // "43-1-1" (legal)
-  internalReference: string; // "2025/43-1-1"
-  sequenceNumber: number;
-  businessPremisesCode: number;
-  paymentDeviceCode: number;
-  year: number;
+  formatted: string // "43-1-1" (legal)
+  internalReference: string // "2025/43-1-1"
+  sequenceNumber: number
+  businessPremisesCode: number
+  paymentDeviceCode: number
+  year: number
 }
 
 export async function getNextInvoiceNumber(
@@ -481,15 +489,15 @@ export async function getNextInvoiceNumber(
   businessPremisesId?: string,
   paymentDeviceId?: string
 ): Promise<InvoiceNumber> {
-  const currentYear = new Date().getFullYear();
-  const yearShort = currentYear % 100; // 25 for 2025
+  const currentYear = new Date().getFullYear()
+  const yearShort = currentYear % 100 // 25 for 2025
 
   // Get or create default business premises
   let premises = businessPremisesId
     ? await prisma.businessPremises.findUnique({ where: { id: businessPremisesId } })
     : await prisma.businessPremises.findFirst({
         where: { companyId, isDefault: true, isActive: true },
-      });
+      })
 
   if (!premises) {
     // Create default premises if none exists
@@ -500,7 +508,7 @@ export async function getNextInvoiceNumber(
         name: "Glavni poslovni prostor",
         isDefault: true,
       },
-    });
+    })
   }
 
   // Get or create default payment device
@@ -508,7 +516,7 @@ export async function getNextInvoiceNumber(
     ? await prisma.paymentDevice.findUnique({ where: { id: paymentDeviceId } })
     : await prisma.paymentDevice.findFirst({
         where: { companyId, businessPremisesId: premises.id, isDefault: true, isActive: true },
-      });
+      })
 
   if (!device) {
     device = await prisma.paymentDevice.create({
@@ -519,7 +527,7 @@ export async function getNextInvoiceNumber(
         name: "Naplatni uređaj 1",
         isDefault: true,
       },
-    });
+    })
   }
 
   // Get next sequence number with row-level locking
@@ -532,7 +540,7 @@ export async function getNextInvoiceNumber(
           year: currentYear,
         },
       },
-    });
+    })
 
     if (!seq) {
       // Create new sequence for this year
@@ -543,21 +551,21 @@ export async function getNextInvoiceNumber(
           year: currentYear,
           lastNumber: 1,
         },
-      });
-      return seq;
+      })
+      return seq
     }
 
     // Increment and return
     seq = await tx.invoiceSequence.update({
       where: { id: seq.id },
       data: { lastNumber: { increment: 1 } },
-    });
+    })
 
-    return seq;
-  });
+    return seq
+  })
 
-  const formatted = `${sequence.lastNumber}-${premises.code}-${device.code}`;
-  const internalReference = `${currentYear}/${formatted}`;
+  const formatted = `${sequence.lastNumber}-${premises.code}-${device.code}`
+  const internalReference = `${currentYear}/${formatted}`
 
   return {
     formatted,
@@ -566,25 +574,25 @@ export async function getNextInvoiceNumber(
     businessPremisesCode: premises.code,
     paymentDeviceCode: device.code,
     year: currentYear,
-  };
+  }
 }
 
 export function parseInvoiceNumber(formatted: string): {
-  sequenceNumber: number;
-  businessPremisesCode: number;
-  paymentDeviceCode: number;
+  sequenceNumber: number
+  businessPremisesCode: number
+  paymentDeviceCode: number
 } | null {
-  const parts = formatted.split("-");
-  if (parts.length !== 3) return null;
+  const parts = formatted.split("-")
+  if (parts.length !== 3) return null
 
-  const [seq, bp, pd] = parts.map(Number);
-  if (isNaN(seq) || isNaN(bp) || isNaN(pd)) return null;
+  const [seq, bp, pd] = parts.map(Number)
+  if (isNaN(seq) || isNaN(bp) || isNaN(pd)) return null
 
   return {
     sequenceNumber: seq,
     businessPremisesCode: bp,
     paymentDeviceCode: pd,
-  };
+  }
 }
 ```
 
@@ -600,6 +608,7 @@ git commit -m "feat(numbering): add invoice numbering library with DB locking"
 ### Task 9.3: Create Business Premises Management UI
 
 **Files:**
+
 - Create: `src/app/(dashboard)/settings/premises/page.tsx`
 - Create: `src/app/actions/premises.ts`
 - Create: `src/lib/validations/premises.ts`
@@ -609,24 +618,24 @@ git commit -m "feat(numbering): add invoice numbering library with DB locking"
 Create `src/lib/validations/premises.ts`:
 
 ```typescript
-import { z } from "zod";
+import { z } from "zod"
 
 export const businessPremisesSchema = z.object({
   code: z.coerce.number().min(1, "Kod mora biti pozitivan broj"),
   name: z.string().min(1, "Naziv je obavezan"),
   address: z.string().optional(),
   isDefault: z.boolean().default(false),
-});
+})
 
 export const paymentDeviceSchema = z.object({
   businessPremisesId: z.string().min(1, "Poslovni prostor je obavezan"),
   code: z.coerce.number().min(1, "Kod mora biti pozitivan broj"),
   name: z.string().min(1, "Naziv je obavezan"),
   isDefault: z.boolean().default(false),
-});
+})
 
-export type BusinessPremisesInput = z.infer<typeof businessPremisesSchema>;
-export type PaymentDeviceInput = z.infer<typeof paymentDeviceSchema>;
+export type BusinessPremisesInput = z.infer<typeof businessPremisesSchema>
+export type PaymentDeviceInput = z.infer<typeof paymentDeviceSchema>
 ```
 
 **Step 2: Create server actions**
@@ -634,40 +643,40 @@ export type PaymentDeviceInput = z.infer<typeof paymentDeviceSchema>;
 Create `src/app/actions/premises.ts`:
 
 ```typescript
-"use server";
+"use server"
 
-import { requireAuth } from "@/lib/auth-utils";
-import { prisma } from "@/lib/db";
-import { businessPremisesSchema, paymentDeviceSchema } from "@/lib/validations/premises";
-import { logAudit } from "@/lib/audit";
-import { AuditAction } from "@prisma/client";
-import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth-utils"
+import { prisma } from "@/lib/db"
+import { businessPremisesSchema, paymentDeviceSchema } from "@/lib/validations/premises"
+import { logAudit } from "@/lib/audit"
+import { AuditAction } from "@prisma/client"
+import { revalidatePath } from "next/cache"
 
 export async function getBusinessPremises() {
-  const { company } = await requireAuth();
+  const { company } = await requireAuth()
 
   return prisma.businessPremises.findMany({
     where: { companyId: company.id, isActive: true },
     include: { devices: { where: { isActive: true } } },
     orderBy: { code: "asc" },
-  });
+  })
 }
 
 export async function createBusinessPremises(data: unknown) {
-  const { company, user } = await requireAuth();
-  const parsed = businessPremisesSchema.parse(data);
+  const { company, user } = await requireAuth()
+  const parsed = businessPremisesSchema.parse(data)
 
   // If setting as default, unset other defaults
   if (parsed.isDefault) {
     await prisma.businessPremises.updateMany({
       where: { companyId: company.id },
       data: { isDefault: false },
-    });
+    })
   }
 
   const premises = await prisma.businessPremises.create({
     data: { ...parsed, companyId: company.id },
-  });
+  })
 
   await logAudit({
     companyId: company.id,
@@ -676,26 +685,26 @@ export async function createBusinessPremises(data: unknown) {
     entity: "BusinessPremises",
     entityId: premises.id,
     after: { code: premises.code, name: premises.name },
-  });
+  })
 
-  revalidatePath("/settings/premises");
-  return { success: true, premises };
+  revalidatePath("/settings/premises")
+  return { success: true, premises }
 }
 
 export async function createPaymentDevice(data: unknown) {
-  const { company, user } = await requireAuth();
-  const parsed = paymentDeviceSchema.parse(data);
+  const { company, user } = await requireAuth()
+  const parsed = paymentDeviceSchema.parse(data)
 
   if (parsed.isDefault) {
     await prisma.paymentDevice.updateMany({
       where: { companyId: company.id, businessPremisesId: parsed.businessPremisesId },
       data: { isDefault: false },
-    });
+    })
   }
 
   const device = await prisma.paymentDevice.create({
     data: { ...parsed, companyId: company.id },
-  });
+  })
 
   await logAudit({
     companyId: company.id,
@@ -704,10 +713,10 @@ export async function createPaymentDevice(data: unknown) {
     entity: "PaymentDevice",
     entityId: device.id,
     after: { code: device.code, name: device.name },
-  });
+  })
 
-  revalidatePath("/settings/premises");
-  return { success: true, device };
+  revalidatePath("/settings/premises")
+  return { success: true, device }
 }
 ```
 
@@ -781,6 +790,7 @@ git commit -m "feat(numbering): add business premises management UI"
 ### Task 9.4: Integrate Numbering with E-Invoice Creation
 
 **Files:**
+
 - Modify: `src/app/actions/e-invoice.ts`
 - Modify: `prisma/schema.prisma` (add internalReference field)
 
@@ -797,20 +807,20 @@ internalReference  String?  // "2025/43-1-1"
 In `src/app/actions/e-invoice.ts`, update the createEInvoice function:
 
 ```typescript
-import { getNextInvoiceNumber } from "@/lib/invoice-numbering";
+import { getNextInvoiceNumber } from "@/lib/invoice-numbering"
 
 // In createEInvoice, replace manual invoiceNumber with:
-const invoiceNum = await getNextInvoiceNumber(company.id);
+const invoiceNum = await getNextInvoiceNumber(company.id)
 
 const eInvoice = await prisma.eInvoice.create({
   data: {
     ...parsed,
-    invoiceNumber: invoiceNum.formatted,      // "43-1-1"
+    invoiceNumber: invoiceNum.formatted, // "43-1-1"
     internalReference: invoiceNum.internalReference, // "2025/43-1-1"
     companyId: company.id,
     // ... rest of fields
   },
-});
+})
 ```
 
 **Step 3: Push schema and commit**
@@ -828,6 +838,7 @@ git commit -m "feat(numbering): integrate auto-numbering with e-invoice creation
 ### Task 10.1: Generalize Invoice Model in Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add Invoice model (generalized from EInvoice)**
@@ -977,6 +988,7 @@ git commit -m "feat(invoicing): add generalized Invoice model with types"
 ### Task 10.2: Create Invoice Validation Schema
 
 **Files:**
+
 - Create: `src/lib/validations/invoice.ts`
 
 **Step 1: Create the validation schema**
@@ -984,7 +996,7 @@ git commit -m "feat(invoicing): add generalized Invoice model with types"
 Create `src/lib/validations/invoice.ts`:
 
 ```typescript
-import { z } from "zod";
+import { z } from "zod"
 
 export const invoiceLineSchema = z.object({
   description: z.string().min(1, "Opis je obavezan"),
@@ -993,7 +1005,7 @@ export const invoiceLineSchema = z.object({
   unitPrice: z.coerce.number().min(0, "Cijena ne može biti negativna"),
   vatRate: z.coerce.number().min(0).max(100),
   vatCategory: z.string().default("S"),
-});
+})
 
 export const invoiceSchema = z.object({
   type: z.enum(["INVOICE", "E_INVOICE", "QUOTE", "PROFORMA", "CREDIT_NOTE", "DEBIT_NOTE"]),
@@ -1003,10 +1015,10 @@ export const invoiceSchema = z.object({
   currency: z.string().default("EUR"),
   notes: z.string().optional(),
   lines: z.array(invoiceLineSchema).min(1, "Barem jedna stavka je obavezna"),
-});
+})
 
-export type InvoiceInput = z.infer<typeof invoiceSchema>;
-export type InvoiceLineInput = z.infer<typeof invoiceLineSchema>;
+export type InvoiceInput = z.infer<typeof invoiceSchema>
+export type InvoiceLineInput = z.infer<typeof invoiceLineSchema>
 
 export const invoiceTypeLabels: Record<string, string> = {
   INVOICE: "Račun",
@@ -1015,7 +1027,7 @@ export const invoiceTypeLabels: Record<string, string> = {
   PROFORMA: "Predračun",
   CREDIT_NOTE: "Odobrenje",
   DEBIT_NOTE: "Terećenje",
-};
+}
 
 export const invoiceStatusLabels: Record<string, string> = {
   DRAFT: "Nacrt",
@@ -1030,7 +1042,7 @@ export const invoiceStatusLabels: Record<string, string> = {
   DELIVERED: "Dostavljeno",
   ACCEPTED: "Prihvaćeno",
   REJECTED: "Odbijeno",
-};
+}
 ```
 
 **Step 2: Commit**
@@ -1045,6 +1057,7 @@ git commit -m "feat(invoicing): add invoice validation schemas"
 ### Task 10.3: Create Invoice Server Actions
 
 **Files:**
+
 - Create: `src/app/actions/invoice.ts`
 
 **Step 1: Create the invoice actions**
@@ -1052,44 +1065,44 @@ git commit -m "feat(invoicing): add invoice validation schemas"
 Create `src/app/actions/invoice.ts`:
 
 ```typescript
-"use server";
+"use server"
 
-import { requireAuth } from "@/lib/auth-utils";
-import { prisma } from "@/lib/db";
-import { invoiceSchema, InvoiceInput } from "@/lib/validations/invoice";
-import { getNextInvoiceNumber } from "@/lib/invoice-numbering";
-import { logAudit } from "@/lib/audit";
-import { AuditAction, InvoiceType, InvoiceStatus, Prisma } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
-import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth-utils"
+import { prisma } from "@/lib/db"
+import { invoiceSchema, InvoiceInput } from "@/lib/validations/invoice"
+import { getNextInvoiceNumber } from "@/lib/invoice-numbering"
+import { logAudit } from "@/lib/audit"
+import { AuditAction, InvoiceType, InvoiceStatus, Prisma } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
+import { revalidatePath } from "next/cache"
 
 export async function createInvoice(data: InvoiceInput) {
-  const { company, user } = await requireAuth();
-  const parsed = invoiceSchema.parse(data);
+  const { company, user } = await requireAuth()
+  const parsed = invoiceSchema.parse(data)
 
   // Verify buyer belongs to company
   const buyer = await prisma.contact.findFirst({
     where: { id: parsed.buyerId, companyId: company.id },
     select: { id: true },
-  });
+  })
 
   if (!buyer) {
-    return { error: "Kupac nije pronađen" };
+    return { error: "Kupac nije pronađen" }
   }
 
   // Get next invoice number
-  const invoiceNum = await getNextInvoiceNumber(company.id);
+  const invoiceNum = await getNextInvoiceNumber(company.id)
 
   // Calculate totals using Decimal
-  let netAmount = new Decimal(0);
-  let vatAmount = new Decimal(0);
+  let netAmount = new Decimal(0)
+  let vatAmount = new Decimal(0)
 
   const lines = parsed.lines.map((line, index) => {
-    const lineNet = new Decimal(line.quantity).mul(new Decimal(line.unitPrice));
-    const lineVat = lineNet.mul(new Decimal(line.vatRate)).div(100);
+    const lineNet = new Decimal(line.quantity).mul(new Decimal(line.unitPrice))
+    const lineVat = lineNet.mul(new Decimal(line.vatRate)).div(100)
 
-    netAmount = netAmount.add(lineNet);
-    vatAmount = vatAmount.add(lineVat);
+    netAmount = netAmount.add(lineNet)
+    vatAmount = vatAmount.add(lineVat)
 
     return {
       lineNumber: index + 1,
@@ -1101,10 +1114,10 @@ export async function createInvoice(data: InvoiceInput) {
       vatRate: new Decimal(line.vatRate),
       vatCategory: line.vatCategory,
       vatAmount: lineVat,
-    };
-  });
+    }
+  })
 
-  const totalAmount = netAmount.add(vatAmount);
+  const totalAmount = netAmount.add(vatAmount)
 
   const invoice = await prisma.invoice.create({
     data: {
@@ -1124,7 +1137,7 @@ export async function createInvoice(data: InvoiceInput) {
       lines: { create: lines },
     },
     include: { lines: true, buyer: true },
-  });
+  })
 
   await logAudit({
     companyId: company.id,
@@ -1137,24 +1150,24 @@ export async function createInvoice(data: InvoiceInput) {
       invoiceNumber: invoice.invoiceNumber,
       totalAmount: invoice.totalAmount.toString(),
     },
-  });
+  })
 
-  revalidatePath("/invoices");
-  return { success: true, invoice };
+  revalidatePath("/invoices")
+  return { success: true, invoice }
 }
 
 export async function getInvoices(options?: {
-  type?: InvoiceType;
-  status?: InvoiceStatus;
-  limit?: number;
-  cursor?: string;
+  type?: InvoiceType
+  status?: InvoiceStatus
+  limit?: number
+  cursor?: string
 }) {
-  const { company } = await requireAuth();
-  const limit = Math.min(options?.limit ?? 20, 100);
+  const { company } = await requireAuth()
+  const limit = Math.min(options?.limit ?? 20, 100)
 
-  const where: Prisma.InvoiceWhereInput = { companyId: company.id };
-  if (options?.type) where.type = options.type;
-  if (options?.status) where.status = options.status;
+  const where: Prisma.InvoiceWhereInput = { companyId: company.id }
+  if (options?.type) where.type = options.type
+  if (options?.status) where.status = options.status
 
   const invoices = await prisma.invoice.findMany({
     where,
@@ -1162,37 +1175,37 @@ export async function getInvoices(options?: {
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     cursor: options?.cursor ? { id: options.cursor } : undefined,
-  });
+  })
 
-  const hasMore = invoices.length > limit;
-  const items = hasMore ? invoices.slice(0, -1) : invoices;
-  const nextCursor = hasMore ? items[items.length - 1]?.id : undefined;
+  const hasMore = invoices.length > limit
+  const items = hasMore ? invoices.slice(0, -1) : invoices
+  const nextCursor = hasMore ? items[items.length - 1]?.id : undefined
 
-  return { items, nextCursor, hasMore };
+  return { items, nextCursor, hasMore }
 }
 
 export async function getInvoice(id: string) {
-  const { company } = await requireAuth();
+  const { company } = await requireAuth()
 
   return prisma.invoice.findFirst({
     where: { id, companyId: company.id },
     include: { buyer: true, seller: true, lines: true },
-  });
+  })
 }
 
 export async function convertQuoteToInvoice(quoteId: string) {
-  const { company, user } = await requireAuth();
+  const { company, user } = await requireAuth()
 
   const quote = await prisma.invoice.findFirst({
     where: { id: quoteId, companyId: company.id, type: "QUOTE" },
     include: { lines: true },
-  });
+  })
 
   if (!quote) {
-    return { error: "Ponuda nije pronađena" };
+    return { error: "Ponuda nije pronađena" }
   }
 
-  const invoiceNum = await getNextInvoiceNumber(company.id);
+  const invoiceNum = await getNextInvoiceNumber(company.id)
 
   const invoice = await prisma.invoice.create({
     data: {
@@ -1224,7 +1237,7 @@ export async function convertQuoteToInvoice(quoteId: string) {
         })),
       },
     },
-  });
+  })
 
   await logAudit({
     companyId: company.id,
@@ -1233,10 +1246,10 @@ export async function convertQuoteToInvoice(quoteId: string) {
     entity: "Invoice",
     entityId: invoice.id,
     after: { convertedFrom: quote.id, type: "INVOICE" },
-  });
+  })
 
-  revalidatePath("/invoices");
-  return { success: true, invoice };
+  revalidatePath("/invoices")
+  return { success: true, invoice }
 }
 ```
 
@@ -1252,6 +1265,7 @@ git commit -m "feat(invoicing): add invoice server actions with conversion"
 ### Task 10.4: Create Invoice List Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/invoices/page.tsx`
 
 **Step 1: Create the invoices list page**
@@ -1327,6 +1341,7 @@ git commit -m "feat(invoicing): add invoices list page"
 ### Task 10.5: Create Invoice Form Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/invoices/new/page.tsx`
 - Create: `src/app/(dashboard)/invoices/new/invoice-form.tsx`
 
@@ -1512,6 +1527,7 @@ git commit -m "feat(invoicing): add invoice creation form with line items"
 ### Task 10.6: Add Invoices to Navigation
 
 **Files:**
+
 - Modify: `src/components/layout/sidebar.tsx`
 
 **Step 1: Add invoices link to sidebar**
@@ -1540,6 +1556,7 @@ git commit -m "feat(invoicing): add invoices to navigation"
 ### Task 11.1: Add Expense Models to Schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add Expense, ExpenseCategory, RecurringExpense models**
@@ -1652,6 +1669,7 @@ enum Frequency {
 **Step 2: Add relations to Company and Contact**
 
 Add to Company:
+
 ```prisma
 expenses          Expense[]
 expenseCategories ExpenseCategory[]
@@ -1659,6 +1677,7 @@ recurringExpenses RecurringExpense[]
 ```
 
 Add to Contact:
+
 ```prisma
 expensesAsVendor  Expense[] @relation("ExpenseVendor")
 ```
@@ -1681,6 +1700,7 @@ git commit -m "feat(expenses): add Expense, ExpenseCategory, RecurringExpense mo
 ### Task 11.2: Seed Default Expense Categories
 
 **Files:**
+
 - Create: `prisma/seed-categories.ts`
 
 **Step 1: Create seed script for default categories**
@@ -1688,9 +1708,9 @@ git commit -m "feat(expenses): add Expense, ExpenseCategory, RecurringExpense mo
 Create `prisma/seed-categories.ts`:
 
 ```typescript
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 const defaultCategories = [
   { code: "OFFICE", name: "Uredski materijal", vatDeductibleDefault: true },
@@ -1703,30 +1723,31 @@ const defaultCategories = [
   { code: "MARKETING", name: "Marketing", vatDeductibleDefault: true },
   { code: "INSURANCE", name: "Osiguranje", vatDeductibleDefault: false },
   { code: "OTHER", name: "Ostalo", vatDeductibleDefault: false },
-];
+]
 
 async function main() {
-  console.log("Seeding default expense categories...");
+  console.log("Seeding default expense categories...")
 
   for (const category of defaultCategories) {
     await prisma.expenseCategory.upsert({
       where: { companyId_code: { companyId: null as unknown as string, code: category.code } },
       update: {},
       create: { ...category, companyId: null },
-    });
+    })
   }
 
-  console.log("Done!");
+  console.log("Done!")
 }
 
 main()
   .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .finally(() => prisma.$disconnect())
 ```
 
 **Step 2: Add seed script to package.json**
 
 Add to scripts:
+
 ```json
 "db:seed:categories": "npx tsx prisma/seed-categories.ts"
 ```
@@ -1743,6 +1764,7 @@ git commit -m "feat(expenses): add default expense category seed script"
 ### Task 11.3: Create Expense Validation and Actions
 
 **Files:**
+
 - Create: `src/lib/validations/expense.ts`
 - Create: `src/app/actions/expense.ts`
 
@@ -1751,7 +1773,7 @@ git commit -m "feat(expenses): add default expense category seed script"
 Create `src/lib/validations/expense.ts`:
 
 ```typescript
-import { z } from "zod";
+import { z } from "zod"
 
 export const expenseSchema = z.object({
   vendorId: z.string().optional(),
@@ -1766,23 +1788,23 @@ export const expenseSchema = z.object({
   currency: z.string().default("EUR"),
   paymentMethod: z.enum(["CASH", "CARD", "TRANSFER", "OTHER"]).optional(),
   notes: z.string().optional(),
-});
+})
 
-export type ExpenseInput = z.infer<typeof expenseSchema>;
+export type ExpenseInput = z.infer<typeof expenseSchema>
 
 export const expenseStatusLabels: Record<string, string> = {
   DRAFT: "Nacrt",
   PENDING: "Na čekanju",
   PAID: "Plaćeno",
   CANCELLED: "Otkazano",
-};
+}
 
 export const paymentMethodLabels: Record<string, string> = {
   CASH: "Gotovina",
   CARD: "Kartica",
   TRANSFER: "Prijenos",
   OTHER: "Ostalo",
-};
+}
 ```
 
 **Step 2: Create expense actions**
@@ -1790,19 +1812,19 @@ export const paymentMethodLabels: Record<string, string> = {
 Create `src/app/actions/expense.ts`:
 
 ```typescript
-"use server";
+"use server"
 
-import { requireAuth } from "@/lib/auth-utils";
-import { prisma } from "@/lib/db";
-import { expenseSchema, ExpenseInput } from "@/lib/validations/expense";
-import { logAudit } from "@/lib/audit";
-import { AuditAction, ExpenseStatus, Prisma } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
-import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth-utils"
+import { prisma } from "@/lib/db"
+import { expenseSchema, ExpenseInput } from "@/lib/validations/expense"
+import { logAudit } from "@/lib/audit"
+import { AuditAction, ExpenseStatus, Prisma } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
+import { revalidatePath } from "next/cache"
 
 export async function createExpense(data: ExpenseInput) {
-  const { company, user } = await requireAuth();
-  const parsed = expenseSchema.parse(data);
+  const { company, user } = await requireAuth()
+  const parsed = expenseSchema.parse(data)
 
   const expense = await prisma.expense.create({
     data: {
@@ -1813,7 +1835,7 @@ export async function createExpense(data: ExpenseInput) {
       vatAmount: new Decimal(parsed.vatAmount),
       totalAmount: new Decimal(parsed.totalAmount),
     },
-  });
+  })
 
   await logAudit({
     companyId: company.id,
@@ -1822,30 +1844,30 @@ export async function createExpense(data: ExpenseInput) {
     entity: "Expense",
     entityId: expense.id,
     after: { description: expense.description, totalAmount: expense.totalAmount.toString() },
-  });
+  })
 
-  revalidatePath("/expenses");
-  return { success: true, expense };
+  revalidatePath("/expenses")
+  return { success: true, expense }
 }
 
 export async function getExpenses(options?: {
-  categoryId?: string;
-  status?: ExpenseStatus;
-  fromDate?: string;
-  toDate?: string;
-  limit?: number;
-  cursor?: string;
+  categoryId?: string
+  status?: ExpenseStatus
+  fromDate?: string
+  toDate?: string
+  limit?: number
+  cursor?: string
 }) {
-  const { company } = await requireAuth();
-  const limit = Math.min(options?.limit ?? 20, 100);
+  const { company } = await requireAuth()
+  const limit = Math.min(options?.limit ?? 20, 100)
 
-  const where: Prisma.ExpenseWhereInput = { companyId: company.id };
-  if (options?.categoryId) where.categoryId = options.categoryId;
-  if (options?.status) where.status = options.status;
+  const where: Prisma.ExpenseWhereInput = { companyId: company.id }
+  if (options?.categoryId) where.categoryId = options.categoryId
+  if (options?.status) where.status = options.status
   if (options?.fromDate || options?.toDate) {
-    where.date = {};
-    if (options.fromDate) where.date.gte = new Date(options.fromDate);
-    if (options.toDate) where.date.lte = new Date(options.toDate);
+    where.date = {}
+    if (options.fromDate) where.date.gte = new Date(options.fromDate)
+    if (options.toDate) where.date.lte = new Date(options.toDate)
   }
 
   const expenses = await prisma.expense.findMany({
@@ -1854,16 +1876,16 @@ export async function getExpenses(options?: {
     orderBy: { date: "desc" },
     take: limit + 1,
     cursor: options?.cursor ? { id: options.cursor } : undefined,
-  });
+  })
 
-  const hasMore = expenses.length > limit;
-  const items = hasMore ? expenses.slice(0, -1) : expenses;
+  const hasMore = expenses.length > limit
+  const items = hasMore ? expenses.slice(0, -1) : expenses
 
-  return { items, hasMore, nextCursor: hasMore ? items[items.length - 1]?.id : undefined };
+  return { items, hasMore, nextCursor: hasMore ? items[items.length - 1]?.id : undefined }
 }
 
 export async function getExpenseCategories() {
-  const { company } = await requireAuth();
+  const { company } = await requireAuth()
 
   return prisma.expenseCategory.findMany({
     where: {
@@ -1871,11 +1893,11 @@ export async function getExpenseCategories() {
       isActive: true,
     },
     orderBy: { name: "asc" },
-  });
+  })
 }
 
 export async function markExpensePaid(id: string, paymentDate?: Date) {
-  const { company, user } = await requireAuth();
+  const { company, user } = await requireAuth()
 
   const expense = await prisma.expense.update({
     where: { id, companyId: company.id },
@@ -1883,7 +1905,7 @@ export async function markExpensePaid(id: string, paymentDate?: Date) {
       status: ExpenseStatus.PAID,
       paymentDate: paymentDate ?? new Date(),
     },
-  });
+  })
 
   await logAudit({
     companyId: company.id,
@@ -1892,10 +1914,10 @@ export async function markExpensePaid(id: string, paymentDate?: Date) {
     entity: "Expense",
     entityId: id,
     after: { status: "PAID" },
-  });
+  })
 
-  revalidatePath("/expenses");
-  return { success: true, expense };
+  revalidatePath("/expenses")
+  return { success: true, expense }
 }
 ```
 
@@ -1911,6 +1933,7 @@ git commit -m "feat(expenses): add expense validation and actions"
 ### Task 11.4: Create Expenses List Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/expenses/page.tsx`
 
 **Step 1: Create the expenses page**
@@ -2010,6 +2033,7 @@ git commit -m "feat(expenses): add expenses list page with summary"
 ### Task 11.5: Create Expense Form Page
 
 **Files:**
+
 - Create: `src/app/(dashboard)/expenses/new/page.tsx`
 
 **Step 1: Create the expense form page**
@@ -2179,6 +2203,7 @@ export default function NewExpensePage() {
 **Step 2: Add expenses to navigation**
 
 Add to sidebar.tsx:
+
 ```typescript
 {
   href: "/expenses",
@@ -2201,6 +2226,7 @@ git commit -m "feat(expenses): add expense form and navigation"
 Due to the comprehensive nature of this plan, the remaining phases (12-16) follow the same patterns established above. Here's a condensed outline:
 
 ### Phase 12: Financial Reporting
+
 - Task 12.1: Add SavedReport model to schema
 - Task 12.2: Create report calculation libraries (`src/lib/reports/*.ts`)
 - Task 12.3: Create VAT summary page (`/reports/vat`)
@@ -2209,6 +2235,7 @@ Due to the comprehensive nature of this plan, the remaining phases (12-16) follo
 - Task 12.6: Add export functionality (Excel/PDF)
 
 ### Phase 13: Bank Integration
+
 - Task 13.1: Add BankAccount, BankTransaction, BankImport models
 - Task 13.2: Create CSV/XML import parsers
 - Task 13.3: Create matching algorithm (`src/lib/banking/matcher.ts`)
@@ -2217,6 +2244,7 @@ Due to the comprehensive nature of this plan, the remaining phases (12-16) follo
 - Task 13.6: Create reconciliation page (`/banking/reconcile`)
 
 ### Phase 14: Mobile Responsiveness
+
 - Task 14.1: Create MobileNav component
 - Task 14.2: Create ResponsiveTable component
 - Task 14.3: Create BottomSheet component
@@ -2225,6 +2253,7 @@ Due to the comprehensive nature of this plan, the remaining phases (12-16) follo
 - Task 14.6: Test on mobile devices
 
 ### Phase 15: Real E-Invoice Provider
+
 - Task 15.1: Create ZKI calculation library
 - Task 15.2: Implement IE-Računi provider
 - Task 15.3: Add provider selection to settings
@@ -2233,6 +2262,7 @@ Due to the comprehensive nature of this plan, the remaining phases (12-16) follo
 - Task 15.6: Add status polling/webhooks
 
 ### Phase 16: AI/OCR Features
+
 - Task 16.1: Create OCR service wrapper
 - Task 16.2: Create receipt extraction logic
 - Task 16.3: Create invoice extraction logic

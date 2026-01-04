@@ -19,23 +19,24 @@ Consolidate all document types (invoices, e-invoices, bank statements, expenses)
 
 ### New Routes
 
-| Route | Purpose |
-|-------|---------|
-| `/documents` | Unified documents hub |
+| Route             | Purpose                                                    |
+| ----------------- | ---------------------------------------------------------- |
+| `/documents`      | Unified documents hub                                      |
 | `/documents/[id]` | Smart detail router (redirects to appropriate detail page) |
 
 ### Redirects (backwards compatibility)
 
-| Old Route | Redirects To |
-|-----------|--------------|
-| `/invoices` | `/documents?category=invoice` |
-| `/e-invoices` | `/documents?category=e-invoice` |
+| Old Route            | Redirects To                         |
+| -------------------- | ------------------------------------ |
+| `/invoices`          | `/documents?category=invoice`        |
+| `/e-invoices`        | `/documents?category=e-invoice`      |
 | `/banking/documents` | `/documents?category=bank-statement` |
-| `/expenses` | `/documents?category=expense` |
+| `/expenses`          | `/documents?category=expense`        |
 
 ### Navigation Menu Update
 
 **Before:**
+
 ```
 Financije:
   - Dokumenti → /invoices
@@ -45,6 +46,7 @@ Financije:
 ```
 
 **After:**
+
 ```
 Financije:
   - Dokumenti → /documents
@@ -56,25 +58,25 @@ Financije:
 
 All document types are normalized to common fields for display:
 
-| Field | Invoice/E-Invoice | Bank Statement | Expense |
-|-------|-------------------|----------------|---------|
-| `id` | eInvoice.id | importJob.id | expense.id |
-| `date` | issueDate | createdAt | date |
-| `number` | invoiceNumber | originalName | receiptNumber |
-| `category` | "invoice"/"e-invoice" | "bank-statement" | "expense" |
-| `counterparty` | buyer.name | bankAccount.name | vendor |
-| `amount` | totalAmount | transactionCount | amount |
-| `status` | status | status | status |
-| `currency` | currency | null | currency |
+| Field          | Invoice/E-Invoice     | Bank Statement   | Expense       |
+| -------------- | --------------------- | ---------------- | ------------- |
+| `id`           | eInvoice.id           | importJob.id     | expense.id    |
+| `date`         | issueDate             | createdAt        | date          |
+| `number`       | invoiceNumber         | originalName     | receiptNumber |
+| `category`     | "invoice"/"e-invoice" | "bank-statement" | "expense"     |
+| `counterparty` | buyer.name            | bankAccount.name | vendor        |
+| `amount`       | totalAmount           | transactionCount | amount        |
+| `status`       | status                | status           | status        |
+| `currency`     | currency              | null             | currency      |
 
 ### Document Categories
 
-| Category | Label (HR) | Source Table |
-|----------|------------|--------------|
-| `invoice` | Računi | EInvoice (type=INVOICE,QUOTE,PROFORMA,CREDIT_NOTE,DEBIT_NOTE) |
-| `e-invoice` | E-Računi | EInvoice (type=E_INVOICE) |
-| `bank-statement` | Bankovni izvodi | ImportJob |
-| `expense` | Troškovi | Expense |
+| Category         | Label (HR)      | Source Table                                                  |
+| ---------------- | --------------- | ------------------------------------------------------------- |
+| `invoice`        | Računi          | EInvoice (type=INVOICE,QUOTE,PROFORMA,CREDIT_NOTE,DEBIT_NOTE) |
+| `e-invoice`      | E-Računi        | EInvoice (type=E_INVOICE)                                     |
+| `bank-statement` | Bankovni izvodi | ImportJob                                                     |
+| `expense`        | Troškovi        | Expense                                                       |
 
 ## UI Components
 
@@ -116,53 +118,53 @@ All document types are normalized to common fields for display:
 
 ### Table Columns
 
-| Column | Label | Content |
-|--------|-------|---------|
-| date | Datum | Formatted date (dd.mm.yyyy) |
-| category | Vrsta | Badge with category color |
-| number | Broj/Naziv | Document number or filename |
-| counterparty | Strana | Buyer, vendor, or bank account |
-| amount | Iznos | Formatted amount or transaction count |
-| status | Status | Status badge |
-| actions | — | "Pregledaj" link |
+| Column       | Label      | Content                               |
+| ------------ | ---------- | ------------------------------------- |
+| date         | Datum      | Formatted date (dd.mm.yyyy)           |
+| category     | Vrsta      | Badge with category color             |
+| number       | Broj/Naziv | Document number or filename           |
+| counterparty | Strana     | Buyer, vendor, or bank account        |
+| amount       | Iznos      | Formatted amount or transaction count |
+| status       | Status     | Status badge                          |
+| actions      | —          | "Pregledaj" link                      |
 
 ## Implementation Files
 
 ### New Files
 
-| File | Purpose |
-|------|---------|
-| `src/app/(dashboard)/documents/page.tsx` | Main unified hub |
-| `src/app/(dashboard)/documents/[id]/page.tsx` | Smart detail router |
-| `src/lib/documents/unified-query.ts` | Query & normalize all doc types |
-| `src/components/documents/category-cards.tsx` | Clickable filter cards |
-| `src/components/documents/new-document-dropdown.tsx` | Dropdown menu |
+| File                                                 | Purpose                         |
+| ---------------------------------------------------- | ------------------------------- |
+| `src/app/(dashboard)/documents/page.tsx`             | Main unified hub                |
+| `src/app/(dashboard)/documents/[id]/page.tsx`        | Smart detail router             |
+| `src/lib/documents/unified-query.ts`                 | Query & normalize all doc types |
+| `src/components/documents/category-cards.tsx`        | Clickable filter cards          |
+| `src/components/documents/new-document-dropdown.tsx` | Dropdown menu                   |
 
 ### Modified Files
 
-| File | Changes |
-|------|---------|
-| `src/lib/navigation.ts` | Update menu structure |
-| `src/app/(dashboard)/invoices/page.tsx` | Add redirect |
-| `src/app/(dashboard)/expenses/page.tsx` | Add redirect |
-| `src/app/(dashboard)/banking/documents/page.tsx` | Add redirect |
+| File                                             | Changes               |
+| ------------------------------------------------ | --------------------- |
+| `src/lib/navigation.ts`                          | Update menu structure |
+| `src/app/(dashboard)/invoices/page.tsx`          | Add redirect          |
+| `src/app/(dashboard)/expenses/page.tsx`          | Add redirect          |
+| `src/app/(dashboard)/banking/documents/page.tsx` | Add redirect          |
 
 ### Unchanged Files
 
-| File | Reason |
-|------|--------|
-| `src/app/(dashboard)/invoices/[id]/page.tsx` | Keep detail pages |
+| File                                           | Reason            |
+| ---------------------------------------------- | ----------------- |
+| `src/app/(dashboard)/invoices/[id]/page.tsx`   | Keep detail pages |
 | `src/app/(dashboard)/e-invoices/[id]/page.tsx` | Keep detail pages |
-| `src/app/(dashboard)/banking/import/page.tsx` | Keep import flow |
+| `src/app/(dashboard)/banking/import/page.tsx`  | Keep import flow  |
 
 ## Query Strategy
 
 ```typescript
 // Fetch all document types in parallel
 const [invoices, bankStatements, expenses] = await Promise.all([
-  db.eInvoice.findMany({ where: { companyId }, orderBy: { createdAt: 'desc' } }),
-  db.importJob.findMany({ where: { companyId }, orderBy: { createdAt: 'desc' } }),
-  db.expense.findMany({ where: { companyId }, orderBy: { createdAt: 'desc' } }),
+  db.eInvoice.findMany({ where: { companyId }, orderBy: { createdAt: "desc" } }),
+  db.importJob.findMany({ where: { companyId }, orderBy: { createdAt: "desc" } }),
+  db.expense.findMany({ where: { companyId }, orderBy: { createdAt: "desc" } }),
 ])
 
 // Normalize to unified format
@@ -177,12 +179,12 @@ const documents = [
 
 ### Generic Statuses (for mixed view)
 
-| Generic | Invoice | Bank Statement | Expense |
-|---------|---------|----------------|---------|
-| Nacrt | DRAFT | — | PENDING |
-| Obrađeno | SENT, DELIVERED, ACCEPTED, FISCALIZED | VERIFIED | APPROVED |
-| Greška | ERROR, REJECTED | FAILED | REJECTED |
-| Na čekanju | PENDING_FISCALIZATION | PROCESSING, NEEDS_REVIEW | — |
+| Generic    | Invoice                               | Bank Statement           | Expense  |
+| ---------- | ------------------------------------- | ------------------------ | -------- |
+| Nacrt      | DRAFT                                 | —                        | PENDING  |
+| Obrađeno   | SENT, DELIVERED, ACCEPTED, FISCALIZED | VERIFIED                 | APPROVED |
+| Greška     | ERROR, REJECTED                       | FAILED                   | REJECTED |
+| Na čekanju | PENDING_FISCALIZATION                 | PROCESSING, NEEDS_REVIEW | —        |
 
 ## Future Considerations
 

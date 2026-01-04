@@ -13,17 +13,21 @@
 ## Context
 
 **Design Document Mandate (Section 9, Phase 2):**
+
 > Minimal Entity Editors (Draft Only)
+>
 > - Only for top workflows
 > - Draft state only
 > - Fully capability-gated
 
 **Current State:**
+
 - Invoice form exists at `/invoices/new` but doesn't check capabilities
 - Expense form exists at `/expenses/new`
 - Forms may have "Issue" or "Submit" buttons
 
 **Target State:**
+
 - Invoice editor gated by INV-001 (Create Draft Invoice) capability
 - Expense editor gated by EXP-001 (Create Draft Expense) capability
 - No "Issue", "Fiscalize", or "Submit" buttons on editors
@@ -35,6 +39,7 @@
 ## Task 1: Capability Gate for Invoice Creation
 
 **Files:**
+
 - Modify: `src/app/(app)/invoices/new/page.tsx`
 - Create: `src/app/(app)/invoices/new/__tests__/page.test.tsx`
 
@@ -89,11 +94,13 @@ Invoice creation page now checks INV-001 capability before rendering.
 ## Task 2: Remove Issue Action from Invoice Form
 
 **Files:**
+
 - Modify: `src/app/(app)/invoices/new/invoice-form.tsx`
 
 **Step 1: Find and remove "Issue" or "Fiscalize" buttons**
 
 Search for buttons like:
+
 - "Izdaj" (Issue)
 - "Fiskaliziraj" (Fiscalize)
 - Any button that changes status to non-DRAFT
@@ -109,6 +116,7 @@ Replace with or ensure only "Save as Draft" remains:
 **Step 2: Ensure form only saves as DRAFT status**
 
 In the form submission handler, verify:
+
 ```typescript
 const formData = {
   ...data,
@@ -131,6 +139,7 @@ All workflow actions happen from Control Center.
 ## Task 3: Post-Save Redirect to Control Center
 
 **Files:**
+
 - Modify: `src/app/(app)/invoices/new/invoice-form.tsx`
 
 **Step 1: Update success redirect**
@@ -158,6 +167,7 @@ for issuing/fiscalizing.
 ## Task 4: Capability Gate for Expense Creation
 
 **Files:**
+
 - Modify: `src/app/(app)/expenses/new/page.tsx`
 
 **Step 1: Add capability check**
@@ -202,6 +212,7 @@ Expense creation page now checks EXP-001 capability.
 ## Task 5: Restrict Expense Form to Draft Only
 
 **Files:**
+
 - Modify: `src/app/(app)/expenses/new/page.tsx` or expense form component
 
 **Step 1: Ensure only draft saves**
@@ -224,6 +235,7 @@ Redirects to Control Center after save.
 ## Task 6: Add Control Center Link to Editors
 
 **Files:**
+
 - Modify: `src/app/(app)/invoices/new/page.tsx`
 - Modify: `src/app/(app)/expenses/new/page.tsx`
 
@@ -268,6 +280,7 @@ npm test
 **Step 2: Verify capability check works**
 
 Manually test:
+
 1. Visit `/invoices/new` - should work if user has capability
 2. Check that only "Save as Draft" button exists
 3. Save and verify redirect to Control Center
@@ -279,17 +292,20 @@ Manually test:
 ## Summary
 
 ### Files Modified
+
 - `src/app/(app)/invoices/new/page.tsx` - Capability gate, Control Center link
 - `src/app/(app)/invoices/new/invoice-form.tsx` - Draft-only saves, redirect
 - `src/app/(app)/expenses/new/page.tsx` - Capability gate, Control Center link
 - Expense form component - Draft-only saves, redirect
 
 ### What This Implements
+
 - Entity editors gated by capability resolution
 - Draft-only saves (no issuing from editor)
 - Clear user guidance: Control Center for workflow actions
 
 ### Definition of Done (from Design Document)
+
 - ✅ No UI action bypasses capability resolution
 - ✅ No redundant input (use existing form, gate access)
 - ✅ Only DRAFT state from editors

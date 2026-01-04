@@ -13,15 +13,18 @@
 ## Context
 
 **Design Document Mandate (Section 4):**
+
 > A Control Center is the sole operational UI surface for a role.
 
 **Current State:**
+
 - Control centers exist at `/control-center` for each portal
 - Dashboard at `/dashboard` is the default landing
 - Navigation shows "Nadzorna ploča" (Dashboard) as first item
 - Legacy pages have mutation actions that bypass capability resolution
 
 **Target State:**
+
 - `/control-center` is the default landing for each role
 - Navigation shows "Control Center" as primary
 - Legacy pages marked with visual indicator
@@ -32,6 +35,7 @@
 ## Task 1: Role-Based Landing Redirects
 
 **Files:**
+
 - Modify: `src/app/(app)/page.tsx`
 - Modify: `src/app/(staff)/page.tsx`
 - Modify: `src/app/(admin)/page.tsx`
@@ -132,6 +136,7 @@ Each portal's root now redirects to its control-center:
 ## Task 2: Update Navigation Priority
 
 **Files:**
+
 - Modify: `src/lib/navigation.ts`
 - Test: `src/lib/__tests__/navigation.test.ts`
 
@@ -156,9 +161,7 @@ describe("Navigation", () => {
   })
 
   it("marks dashboard as legacy in navigation", () => {
-    const dashboardItem = navigation
-      .flatMap((s) => s.items)
-      .find((i) => i.href === "/dashboard")
+    const dashboardItem = navigation.flatMap((s) => s.items).find((i) => i.href === "/dashboard")
     expect(dashboardItem?.legacy).toBe(true)
   })
 })
@@ -245,6 +248,7 @@ git commit -m "feat(nav): prioritize Control Center, mark legacy routes
 ## Task 3: Legacy Route Visual Indicator Component
 
 **Files:**
+
 - Create: `src/components/layout/LegacyBanner.tsx`
 - Test: `src/components/layout/__tests__/LegacyBanner.test.tsx`
 
@@ -334,6 +338,7 @@ Supports custom message prop for specific guidance."
 ## Task 4: Add Legacy Banner to Dashboard
 
 **Files:**
+
 - Modify: `src/app/(app)/dashboard/page.tsx`
 - Test: `src/app/(app)/dashboard/__tests__/page.test.tsx`
 
@@ -391,11 +396,13 @@ Expected: FAIL (LegacyBanner not imported)
 **Step 3: Add LegacyBanner to dashboard**
 
 Add to imports in `src/app/(app)/dashboard/page.tsx`:
+
 ```typescript
 import { LegacyBanner } from "@/components/layout/LegacyBanner"
 ```
 
 Add at the start of the return JSX (after opening fragment or div):
+
 ```typescript
 <LegacyBanner message="View-only. Use Control Center for actions." />
 ```
@@ -420,6 +427,7 @@ Actions on this page will be disabled in subsequent tasks."
 ## Task 5: Disable Action Buttons on Legacy Invoice List
 
 **Files:**
+
 - Modify: `src/app/(app)/invoices/page.tsx`
 - Test: `src/app/(app)/invoices/__tests__/page.test.tsx`
 
@@ -494,6 +502,7 @@ Invoice list is now view-only legacy page.
 ## Task 6: Update Sidebar to Show Legacy Indicator
 
 **Files:**
+
 - Modify: `src/components/layout/sidebar.tsx`
 - Test: `src/components/layout/__tests__/sidebar.test.tsx`
 
@@ -593,6 +602,7 @@ Control Center appears prominently as first item."
 ## Task 7: Add Legacy Banners to Remaining Pages
 
 **Files:**
+
 - Modify: `src/app/(app)/expenses/page.tsx`
 - Modify: `src/app/(app)/banking/page.tsx`
 - Modify: `src/app/(app)/contacts/page.tsx`
@@ -635,6 +645,7 @@ All legacy pages now direct users to Control Center."
 ## Task 8: Staff Portal Legacy Containment
 
 **Files:**
+
 - Modify: `src/app/(staff)/staff-dashboard/page.tsx`
 - Create: `src/app/(staff)/page.tsx` (if not exists)
 
@@ -684,6 +695,7 @@ git commit -m "feat(staff): add legacy containment
 ## Task 9: Admin Portal Legacy Containment
 
 **Files:**
+
 - Modify: `src/app/(admin)/overview/page.tsx`
 - Create: `src/app/(admin)/page.tsx` (if not exists)
 
@@ -776,6 +788,7 @@ git commit -m "style: format Phase 1 changes" --allow-empty
 ## Summary
 
 ### Files Created
+
 - `src/app/(app)/page.tsx` - Root redirect to control-center
 - `src/app/(staff)/page.tsx` - Root redirect to control-center
 - `src/app/(admin)/page.tsx` - Root redirect to control-center
@@ -783,6 +796,7 @@ git commit -m "style: format Phase 1 changes" --allow-empty
 - Test files for each component
 
 ### Files Modified
+
 - `src/lib/navigation.ts` - Control Center first, legacy flags
 - `src/components/layout/sidebar.tsx` - Legacy visual indicator
 - `src/app/(app)/dashboard/page.tsx` - Legacy banner
@@ -795,12 +809,14 @@ git commit -m "style: format Phase 1 changes" --allow-empty
 - `src/app/(admin)/overview/page.tsx` - Legacy banner
 
 ### What This Implements
+
 - Control Center as primary entry point for each role
 - Visual containment of legacy pages
 - Navigation prioritizes Control Center
 - Legacy pages marked and action-disabled
 
 ### Definition of Done (from Design Document)
+
 - ✅ No UI action bypasses capability resolution (legacy actions removed)
 - ✅ No redundant input introduced
 - ✅ No fake availability exists

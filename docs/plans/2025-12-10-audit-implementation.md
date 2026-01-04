@@ -13,6 +13,7 @@
 ## Task 1: Fix Cross-Tenant Contact Vulnerability (CRITICAL)
 
 **Files:**
+
 - Edit: `src/app/actions/e-invoice.ts`
 
 **Problem:** Line 55 accepts `buyerId` without verifying the contact belongs to the current company. A malicious user could reference another company's contact.
@@ -28,8 +29,8 @@ In `createEInvoice()` function, after validating fields (around line 22), add ow
 const buyer = await db.contact.findFirst({
   where: {
     id: buyerId,
-    companyId: company.id
-  }
+    companyId: company.id,
+  },
 })
 
 if (!buyer) {
@@ -38,6 +39,7 @@ if (!buyer) {
 ```
 
 **Verification:**
+
 - The buyer lookup must include both `id: buyerId` AND `companyId: company.id`
 - Return clear error if not found
 
@@ -46,6 +48,7 @@ if (!buyer) {
 ## Task 2: Implement API Key Encryption (CRITICAL)
 
 **Files:**
+
 - Edit: `src/app/actions/company.ts`
 - Edit: `prisma/schema.prisma` (add encrypted field)
 - Edit: `src/lib/validations/company.ts` (if needed)
@@ -55,6 +58,7 @@ if (!buyer) {
 **Implementation:**
 
 1. Update Prisma schema to add encrypted field:
+
 ```prisma
 model Company {
   // ... existing fields ...
@@ -64,6 +68,7 @@ model Company {
 ```
 
 2. In `src/app/actions/company.ts`, import and use encryption:
+
 ```typescript
 import { encryptSecret, decryptSecret } from "@/lib/secrets"
 
@@ -78,6 +83,7 @@ data: {
 ```
 
 3. In `src/app/actions/e-invoice.ts` sendEInvoice(), decrypt when reading:
+
 ```typescript
 import { decryptOptionalSecret } from "@/lib/secrets"
 
@@ -89,6 +95,7 @@ const provider = createEInvoiceProvider(providerName, { apiKey })
 4. Ensure EINVOICE_KEY_SECRET is in `.env.example` (already done by audit team)
 
 **Verification:**
+
 - API keys must never be stored in plaintext
 - Decryption must work correctly for provider authentication
 - Run `npm run build` to verify no type errors
@@ -98,6 +105,7 @@ const provider = createEInvoiceProvider(providerName, { apiKey })
 ## Task 3: Fix Floating-Point Money Math (HIGH)
 
 **Files:**
+
 - Edit: `src/app/actions/e-invoice.ts`
 
 **Problem:** Lines 26-27 use JavaScript floating-point: `line.quantity * line.unitPrice`. Lines 41-48 accumulate with `Number()` before final Decimal conversion. This causes precision errors in financial calculations.
@@ -132,18 +140,13 @@ const lineItems = lines.map((line, index) => {
 })
 
 // Calculate totals using Decimal
-const netAmount = lineItems.reduce(
-  (sum, line) => sum.add(line.netAmount),
-  new Decimal(0)
-)
-const vatAmount = lineItems.reduce(
-  (sum, line) => sum.add(line.vatAmount),
-  new Decimal(0)
-)
+const netAmount = lineItems.reduce((sum, line) => sum.add(line.netAmount), new Decimal(0))
+const vatAmount = lineItems.reduce((sum, line) => sum.add(line.vatAmount), new Decimal(0))
 const totalAmount = netAmount.add(vatAmount)
 ```
 
 **Verification:**
+
 - No `Number()` conversions in money calculations
 - All arithmetic uses Decimal methods: `.mul()`, `.div()`, `.add()`
 - Build must pass
@@ -153,10 +156,12 @@ const totalAmount = netAmount.add(vatAmount)
 ## Task 4: Add Pagination and Optimize Auth Queries (MEDIUM)
 
 **Files:**
+
 - Edit: `src/app/actions/e-invoice.ts`
 - Edit: `src/app/(dashboard)/e-invoices/page.tsx`
 
 **Problem:**
+
 1. `getEInvoices()` has no pagination - will be slow as data grows
 2. Both page and action call `requireAuth()`/`requireCompany()` = redundant DB hits
 3. Includes all relations for list view (oversized responses)
@@ -164,12 +169,13 @@ const totalAmount = netAmount.add(vatAmount)
 **Implementation:**
 
 1. Add pagination parameters to `getEInvoices()`:
+
 ```typescript
 export async function getEInvoices(options?: {
   direction?: "OUTBOUND" | "INBOUND"
   status?: string
-  cursor?: string  // For cursor-based pagination
-  limit?: number   // Default 20
+  cursor?: string // For cursor-based pagination
+  limit?: number // Default 20
 }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
@@ -194,8 +200,8 @@ export async function getEInvoices(options?: {
       jir: true,
       createdAt: true,
       buyer: {
-        select: { name: true, oib: true }
-      }
+        select: { name: true, oib: true },
+      },
     },
     orderBy: { createdAt: "desc" },
     take: limit + 1, // Take one extra to check if there's more
@@ -216,6 +222,7 @@ export async function getEInvoices(options?: {
 2. Update page to use paginated results (keep simple for now, can add load-more later)
 
 **Verification:**
+
 - `getEInvoices()` returns paginated results with `{ items, nextCursor, hasMore }`
 - List view only fetches needed fields (no full relations)
 - Build passes
@@ -225,6 +232,7 @@ export async function getEInvoices(options?: {
 ## Task 5: Fix Accessibility Issues (MEDIUM)
 
 **Files:**
+
 - Edit: `src/app/layout.tsx` - Change `lang="en"` to `lang="hr"`
 - Edit: `src/components/ui/input.tsx` - Add ARIA attributes
 - Edit: `src/app/(dashboard)/e-invoices/new/page.tsx` - Add label for buyer select
@@ -232,11 +240,13 @@ export async function getEInvoices(options?: {
 **Implementation:**
 
 1. In `src/app/layout.tsx`, change:
+
 ```tsx
 <html lang="hr">
 ```
 
 2. In `src/components/ui/input.tsx`, add ARIA support:
+
 ```tsx
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string
@@ -266,6 +276,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 ```
 
 3. In `src/app/(dashboard)/e-invoices/new/page.tsx`, add proper label association for buyer select (around line 103-114):
+
 ```tsx
 <label htmlFor="buyer-select" className="block text-sm font-medium text-gray-700">
   Kupac *
@@ -278,6 +289,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 ```
 
 **Verification:**
+
 - `<html lang="hr">` in layout
 - Input component accepts `error` prop and sets ARIA attributes
 - Buyer select has `id` matching label's `htmlFor`
@@ -287,9 +299,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 ## Task 6: Server-Side Contacts Fetch (MEDIUM)
 
 **Files:**
+
 - Edit: `src/app/(dashboard)/e-invoices/new/page.tsx`
 
 **Problem:** Line 12 imports server action `getContacts`, line 54 calls it in `useEffect`. This causes:
+
 1. Server action imported in client bundle (increases bundle size)
 2. Extra network round-trip after page loads
 
@@ -309,10 +323,7 @@ import { getProducts } from "@/app/actions/product"
 import { InvoiceForm } from "./invoice-form"
 
 export default async function NewEInvoicePage() {
-  const [contacts, products] = await Promise.all([
-    getContacts("CUSTOMER"),
-    getProducts()
-  ])
+  const [contacts, products] = await Promise.all([getContacts("CUSTOMER"), getProducts()])
 
   return <InvoiceForm contacts={contacts} products={products} />
 }
@@ -321,6 +332,7 @@ export default async function NewEInvoicePage() {
 3. Move the existing client code to `invoice-form.tsx`, accepting contacts/products as props instead of fetching in useEffect
 
 **Verification:**
+
 - No `useEffect` fetching contacts/products
 - Server component fetches data before render
 - Client form receives data as props

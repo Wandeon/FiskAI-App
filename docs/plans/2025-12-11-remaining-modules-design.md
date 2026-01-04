@@ -10,23 +10,24 @@ This document covers the design for 9 remaining major feature areas to bring Fis
 
 ## Phase Summary
 
-| Phase | Module | Priority | Dependencies |
-|-------|--------|----------|--------------|
-| 8 | Audit Logging | Foundation | None |
-| 9 | Invoice Numbering & Compliance | High | None |
-| 10 | General Invoicing | High | Phase 9 |
-| 11 | Expenses Module | High | Phase 8 |
-| 12 | Financial Reporting | Medium | Phases 10, 11 |
-| 13 | Bank Integration | Medium | Phases 10, 11 |
-| 14 | Mobile Responsiveness | Medium | None |
-| 15 | Real E-Invoice Provider | High | Phases 8, 9 |
-| 16 | AI/OCR Features | Low | Phase 11 |
+| Phase | Module                         | Priority   | Dependencies  |
+| ----- | ------------------------------ | ---------- | ------------- |
+| 8     | Audit Logging                  | Foundation | None          |
+| 9     | Invoice Numbering & Compliance | High       | None          |
+| 10    | General Invoicing              | High       | Phase 9       |
+| 11    | Expenses Module                | High       | Phase 8       |
+| 12    | Financial Reporting            | Medium     | Phases 10, 11 |
+| 13    | Bank Integration               | Medium     | Phases 10, 11 |
+| 14    | Mobile Responsiveness          | Medium     | None          |
+| 15    | Real E-Invoice Provider        | High       | Phases 8, 9   |
+| 16    | AI/OCR Features                | Low        | Phase 11      |
 
 ---
 
 ## Phase 8: Audit Logging
 
 ### Purpose
+
 Track every significant action in the system - who did what, when, and what changed. Critical for Croatian compliance (Fiskalizacija requires audit trails) and debugging.
 
 ### Database Schema
@@ -63,12 +64,14 @@ enum AuditAction {
 ```
 
 ### Implementation
+
 - Prisma middleware intercepts all write operations automatically
 - Server actions call `logAudit()` explicitly for important reads
 - Append-only table (no updates/deletes allowed)
 - UI: Audit log viewer in Settings for admins
 
 ### Key Files
+
 - `prisma/schema.prisma` - Add AuditLog model
 - `src/lib/audit.ts` - Logging helper functions
 - `src/lib/prisma-audit-middleware.ts` - Auto-capture writes
@@ -79,6 +82,7 @@ enum AuditAction {
 ## Phase 9: Invoice Numbering & Compliance
 
 ### Purpose
+
 Implement automatic invoice numbering per Croatian legal requirements (Fiskalizacija).
 
 ### Legal Format (Croatia)
@@ -90,11 +94,11 @@ The invoice number must have exactly **3 parts** separated by `-`:
 Example: 43-1-1
 ```
 
-| Part | Description |
-|------|-------------|
-| broj | Sequential number (resets yearly, no gaps) |
-| poslovni_prostor | Business premises code (number) |
-| naplatni_uređaj | Payment device code (number) |
+| Part             | Description                                |
+| ---------------- | ------------------------------------------ |
+| broj             | Sequential number (resets yearly, no gaps) |
+| poslovni_prostor | Business premises code (number)            |
+| naplatni_uređaj  | Payment device code (number)               |
 
 ### Display Format
 
@@ -158,6 +162,7 @@ model InvoiceSequence {
 ```
 
 ### Key Files
+
 - `prisma/schema.prisma` - Add 3 new models
 - `src/lib/invoice-numbering.ts` - `getNextInvoiceNumber()` with DB locking
 - `src/app/(dashboard)/settings/premises/page.tsx` - Manage business premises
@@ -168,18 +173,19 @@ model InvoiceSequence {
 ## Phase 10: General Invoicing
 
 ### Purpose
+
 Extend beyond e-invoices to support regular invoices, quotes, proforma invoices, and credit notes.
 
 ### Document Types
 
-| Type | Croatian | Use Case |
-|------|----------|----------|
-| INVOICE | Račun | Standard invoice |
-| E_INVOICE | E-Račun | Electronic invoice (existing) |
-| QUOTE | Ponuda | Price quote, convertible to invoice |
-| PROFORMA | Predračun | Payment request before delivery |
-| CREDIT_NOTE | Odobrenje | Refund/correction |
-| DEBIT_NOTE | Terećenje | Additional charge |
+| Type        | Croatian  | Use Case                            |
+| ----------- | --------- | ----------------------------------- |
+| INVOICE     | Račun     | Standard invoice                    |
+| E_INVOICE   | E-Račun   | Electronic invoice (existing)       |
+| QUOTE       | Ponuda    | Price quote, convertible to invoice |
+| PROFORMA    | Predračun | Payment request before delivery     |
+| CREDIT_NOTE | Odobrenje | Refund/correction                   |
+| DEBIT_NOTE  | Terećenje | Additional charge                   |
 
 ### Database Schema
 
@@ -271,12 +277,14 @@ enum InvoiceStatus {
 ```
 
 ### Key Features
+
 - Convert Quote → Invoice with one click
 - Convert Invoice → E-Invoice when ready to fiscalize
 - PDF generation for all document types
 - Separate numbering sequences per document type (optional)
 
 ### Key Files
+
 - `prisma/schema.prisma` - Generalized Invoice model
 - `src/app/(dashboard)/invoices/page.tsx` - List all invoices
 - `src/app/(dashboard)/invoices/new/page.tsx` - Create any document type
@@ -289,6 +297,7 @@ enum InvoiceStatus {
 ## Phase 11: Expenses Module
 
 ### Purpose
+
 Track business expenses, categorize for tax purposes, prepare for VAT deductions.
 
 ### Database Schema
@@ -390,18 +399,19 @@ enum Frequency {
 
 ### Default Categories (Croatian)
 
-| Code | Name | VAT Deductible |
-|------|------|----------------|
-| OFFICE | Uredski materijal | Yes |
-| TRAVEL | Putni troškovi | Partial |
-| FUEL | Gorivo | 50% |
-| TELECOM | Telekomunikacije | Yes |
-| RENT | Najam | Yes |
-| UTILITIES | Režije | Yes |
-| SERVICES | Usluge | Yes |
-| OTHER | Ostalo | No |
+| Code      | Name              | VAT Deductible |
+| --------- | ----------------- | -------------- |
+| OFFICE    | Uredski materijal | Yes            |
+| TRAVEL    | Putni troškovi    | Partial        |
+| FUEL      | Gorivo            | 50%            |
+| TELECOM   | Telekomunikacije  | Yes            |
+| RENT      | Najam             | Yes            |
+| UTILITIES | Režije            | Yes            |
+| SERVICES  | Usluge            | Yes            |
+| OTHER     | Ostalo            | No             |
 
 ### Key Files
+
 - `prisma/schema.prisma` - Expense models
 - `src/app/(dashboard)/expenses/page.tsx` - List with filters
 - `src/app/(dashboard)/expenses/new/page.tsx` - Create with receipt upload
@@ -414,19 +424,20 @@ enum Frequency {
 ## Phase 12: Financial Reporting
 
 ### Purpose
+
 Provide actionable financial insights - revenue, expenses, VAT obligations, cash flow.
 
 ### Core Reports
 
-| Report | Description |
-|--------|-------------|
-| Profit & Loss | Revenue vs Expenses by period |
-| VAT Summary | PDV obveza - input vs output VAT |
-| Revenue by Customer | Top customers, trends |
-| Expenses by Category | Spending breakdown |
+| Report                    | Description                      |
+| ------------------------- | -------------------------------- |
+| Profit & Loss             | Revenue vs Expenses by period    |
+| VAT Summary               | PDV obveza - input vs output VAT |
+| Revenue by Customer       | Top customers, trends            |
+| Expenses by Category      | Spending breakdown               |
 | Accounts Receivable Aging | Overdue invoices (30/60/90 days) |
-| Accounts Payable Aging | Unpaid expenses by age |
-| Cash Flow | Money in vs out over time |
+| Accounts Payable Aging    | Unpaid expenses by age           |
+| Cash Flow                 | Money in vs out over time        |
 
 ### Database Schema
 
@@ -489,6 +500,7 @@ OBVEZA PDV:         1,430.00 EUR
 ```
 
 ### Key Files
+
 - `src/app/(dashboard)/reports/page.tsx` - Report dashboard
 - `src/app/(dashboard)/reports/vat/page.tsx` - VAT summary
 - `src/app/(dashboard)/reports/profit-loss/page.tsx` - P&L statement
@@ -502,9 +514,11 @@ OBVEZA PDV:         1,430.00 EUR
 ## Phase 13: Bank Integration
 
 ### Purpose
+
 Import bank statements, match transactions to invoices/expenses, reconcile accounts.
 
 ### Approach
+
 **Hybrid:** Start with manual CSV/XML import, design for future PSD2 API integration.
 
 ### Database Schema
@@ -591,12 +605,14 @@ enum ImportFormat {
 ```
 
 ### Matching Logic
+
 1. Auto-match by invoice number in description
 2. Auto-match by exact amount + date range
 3. Suggest matches for review
 4. Manual matching for remainder
 
 ### Key Files
+
 - `src/app/(dashboard)/banking/page.tsx` - Account overview
 - `src/app/(dashboard)/banking/accounts/page.tsx` - Manage accounts
 - `src/app/(dashboard)/banking/import/page.tsx` - Upload statement
@@ -611,6 +627,7 @@ enum ImportFormat {
 ## Phase 14: Mobile Responsiveness
 
 ### Purpose
+
 Make the entire UI work well on phones and tablets.
 
 ### Responsive Breakpoints
@@ -624,26 +641,27 @@ xl: 1280px  - Desktops
 
 ### Component Adaptations
 
-| Component | Desktop | Mobile |
-|-----------|---------|--------|
-| Sidebar | Always visible | Hamburger menu, slide-out |
-| Header | Full with company switcher | Compact, icons only |
-| Tables | Full columns | Card layout or horizontal scroll |
-| Forms | Multi-column | Single column, stacked |
-| Actions | Buttons in row | FAB or bottom sheet |
-| Modals | Centered dialog | Full-screen sheet |
+| Component | Desktop                    | Mobile                           |
+| --------- | -------------------------- | -------------------------------- |
+| Sidebar   | Always visible             | Hamburger menu, slide-out        |
+| Header    | Full with company switcher | Compact, icons only              |
+| Tables    | Full columns               | Card layout or horizontal scroll |
+| Forms     | Multi-column               | Single column, stacked           |
+| Actions   | Buttons in row             | FAB or bottom sheet              |
+| Modals    | Centered dialog            | Full-screen sheet                |
 
 ### New Components
 
-| Component | Description |
-|-----------|-------------|
-| `MobileNav` | Hamburger + slide-out sidebar |
-| `ResponsiveTable` | Table on desktop, cards on mobile |
-| `BottomSheet` | Mobile-friendly modal alternative |
-| `FAB` | Floating action button for primary actions |
-| `SwipeActions` | Swipe to delete/edit on list items |
+| Component         | Description                                |
+| ----------------- | ------------------------------------------ |
+| `MobileNav`       | Hamburger + slide-out sidebar              |
+| `ResponsiveTable` | Table on desktop, cards on mobile          |
+| `BottomSheet`     | Mobile-friendly modal alternative          |
+| `FAB`             | Floating action button for primary actions |
+| `SwipeActions`    | Swipe to delete/edit on list items         |
 
 ### Priority Pages
+
 1. Dashboard - Quick stats, recent items
 2. Expenses - Quick capture with camera
 3. Invoices - View and send
@@ -651,6 +669,7 @@ xl: 1280px  - Desktops
 5. Reports - View key metrics
 
 ### Key Files
+
 - `src/components/layout/mobile-nav.tsx`
 - `src/components/ui/responsive-table.tsx`
 - `src/components/ui/bottom-sheet.tsx`
@@ -663,15 +682,16 @@ xl: 1280px  - Desktops
 ## Phase 15: Real E-Invoice Provider (IE-Računi)
 
 ### Purpose
+
 Replace mock provider with real integration to Croatia's fiscalization system.
 
 ### Provider Interface (Existing)
 
 ```typescript
 interface EInvoiceProvider {
-  send(invoice: Invoice): Promise<ProviderResponse>;
-  getStatus(ref: string): Promise<StatusResponse>;
-  cancel(ref: string): Promise<CancelResponse>;
+  send(invoice: Invoice): Promise<ProviderResponse>
+  getStatus(ref: string): Promise<StatusResponse>
+  cancel(ref: string): Promise<CancelResponse>
 }
 ```
 
@@ -714,6 +734,7 @@ ZKI = SHA256(
 ```
 
 ### Key Files
+
 - `src/lib/e-invoice/providers/ie-racuni.ts` - Provider implementation
 - `src/lib/e-invoice/providers/fina.ts` - Alternative provider
 - `src/lib/e-invoice/zki.ts` - ZKI calculation
@@ -725,16 +746,17 @@ ZKI = SHA256(
 ## Phase 16: AI/OCR Features
 
 ### Purpose
+
 Reduce manual data entry by automatically extracting data from documents.
 
 ### Use Cases
 
-| Feature | Input | Output |
-|---------|-------|--------|
-| Receipt Scanner | Photo of receipt | Expense with amount, date, vendor |
-| Invoice Reader | PDF/image of invoice | Expense or payable with line items |
-| Bank Statement OCR | Scanned PDF | Parsed transactions for import |
-| Smart Categorization | Expense description | Suggested category |
+| Feature              | Input                | Output                             |
+| -------------------- | -------------------- | ---------------------------------- |
+| Receipt Scanner      | Photo of receipt     | Expense with amount, date, vendor  |
+| Invoice Reader       | PDF/image of invoice | Expense or payable with line items |
+| Bank Statement OCR   | Scanned PDF          | Parsed transactions for import     |
+| Smart Categorization | Expense description  | Suggested category                 |
 
 ### Architecture
 
@@ -750,10 +772,12 @@ Reduce manual data entry by automatically extracting data from documents.
 ### Service Options
 
 **OCR:**
+
 - Google Cloud Vision (accurate, paid)
 - Tesseract (free, self-hosted)
 
 **LLM (structuring):**
+
 - OpenAI GPT-4 (best quality)
 - Claude API (alternative)
 - Local model (privacy, slower)
@@ -762,24 +786,25 @@ Reduce manual data entry by automatically extracting data from documents.
 
 ```typescript
 interface ExtractedReceipt {
-  vendor: string;
-  date: string;
+  vendor: string
+  date: string
   items: Array<{
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    total: number;
-    vatRate?: number;
-  }>;
-  subtotal: number;
-  vatAmount: number;
-  total: number;
-  paymentMethod?: string;
-  confidence: number; // 0-1
+    description: string
+    quantity: number
+    unitPrice: number
+    total: number
+    vatRate?: number
+  }>
+  subtotal: number
+  vatAmount: number
+  total: number
+  paymentMethod?: string
+  confidence: number // 0-1
 }
 ```
 
 ### Key Files
+
 - `src/lib/ai/ocr.ts` - OCR service wrapper
 - `src/lib/ai/extract-receipt.ts` - Receipt extraction
 - `src/lib/ai/extract-invoice.ts` - Invoice extraction
@@ -788,6 +813,7 @@ interface ExtractedReceipt {
 - `src/components/expense/receipt-scanner.tsx` - Upload + preview UI
 
 ### UI Flow
+
 1. User taps "Scan Receipt" on mobile
 2. Camera opens, user takes photo
 3. Loading spinner while processing

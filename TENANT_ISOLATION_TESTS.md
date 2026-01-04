@@ -165,21 +165,21 @@ ok 1 - Tenant Isolation System
 
 All Prisma operations are tested and secured:
 
-| Operation | Coverage | Status |
-|-----------|----------|--------|
-| findMany | ✓ | Tested |
-| findFirst | ✓ | Tested |
-| findUnique | ✓ | Tested |
-| create | ✓ | Tested |
-| createMany | ✓ | Tested |
-| update | ✓ | Tested |
-| updateMany | ✓ | Tested |
-| delete | ✓ | Tested |
-| deleteMany | ✓ | Tested |
-| upsert | ✓ | Tested |
-| count | ✓ | Tested |
-| aggregate | ✓ | Tested |
-| groupBy | ✓ | Tested |
+| Operation  | Coverage | Status |
+| ---------- | -------- | ------ |
+| findMany   | ✓        | Tested |
+| findFirst  | ✓        | Tested |
+| findUnique | ✓        | Tested |
+| create     | ✓        | Tested |
+| createMany | ✓        | Tested |
+| update     | ✓        | Tested |
+| updateMany | ✓        | Tested |
+| delete     | ✓        | Tested |
+| deleteMany | ✓        | Tested |
+| upsert     | ✓        | Tested |
+| count      | ✓        | Tested |
+| aggregate  | ✓        | Tested |
+| groupBy    | ✓        | Tested |
 
 ### Tenant-Scoped Models (23 models)
 
@@ -300,7 +300,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: "20"
       - run: npm install --legacy-peer-deps
       - run: npm run test:tenant
 ```
@@ -348,6 +348,7 @@ The system provides strong security guarantees against cross-tenant data access 
 ## Documentation
 
 For detailed test documentation, see:
+
 - **Test README**: `/home/admin/FiskAI/src/lib/__tests__/README.md`
 - **Test Implementation**: `/home/admin/FiskAI/src/lib/__tests__/tenant-isolation.test.ts`
 - **Prisma Extensions**: `/home/admin/FiskAI/src/lib/prisma-extensions.ts`

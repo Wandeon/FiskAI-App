@@ -13,6 +13,7 @@
 ## Task 1: Optimize Docker Build - Prune devDependencies
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/Dockerfile`
 
 **Step 1: Update Dockerfile runner stage**
@@ -56,6 +57,7 @@ CMD ["node", "server.js"]
 ```
 
 **Verification:**
+
 - Run: `docker build -t fiskai-test . 2>&1 | tail -5`
 - Expected: Build completes successfully
 - Check image size: `docker images fiskai-test --format "{{.Size}}"`
@@ -65,6 +67,7 @@ CMD ["node", "server.js"]
 ## Task 2: Add Accessible Data Table Component
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/components/ui/data-table.tsx`
 
 **Step 1: Create reusable accessible table component**
@@ -116,10 +119,7 @@ export function DataTable<T>({
               <th
                 key={column.key}
                 scope="col"
-                className={cn(
-                  "px-4 py-3 text-left font-medium text-gray-700",
-                  column.className
-                )}
+                className={cn("px-4 py-3 text-left font-medium text-gray-700", column.className)}
               >
                 {column.header}
               </th>
@@ -128,15 +128,9 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {data.map((item) => (
-            <tr
-              key={getRowKey(item)}
-              className="border-b last:border-b-0 hover:bg-gray-50"
-            >
+            <tr key={getRowKey(item)} className="border-b last:border-b-0 hover:bg-gray-50">
               {columns.map((column) => (
-                <td
-                  key={column.key}
-                  className={cn("px-4 py-3", column.className)}
-                >
+                <td key={column.key} className={cn("px-4 py-3", column.className)}>
                   {column.cell(item)}
                 </td>
               ))}
@@ -150,6 +144,7 @@ export function DataTable<T>({
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes with no errors
 
@@ -158,6 +153,7 @@ export function DataTable<T>({
 ## Task 3: Update E-Invoices List to Use Accessible Table
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/page.tsx`
 
 **Step 1: Refactor to use DataTable component**
@@ -244,6 +240,7 @@ const columns: Column<InvoiceItem>[] = [
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes, table has accessible caption
 
@@ -252,6 +249,7 @@ const columns: Column<InvoiceItem>[] = [
 ## Task 4: Add Toast Notification System
 
 **Files:**
+
 - Run: `npm install sonner`
 - Modify: `/home/admin/FiskAI/src/app/layout.tsx`
 - Create: `/home/admin/FiskAI/src/lib/toast.ts`
@@ -270,7 +268,7 @@ npm install sonner
 import { Toaster } from "sonner"
 
 // In the body, add Toaster component before children:
-<body className={inter.className}>
+;<body className={inter.className}>
   <Toaster
     position="top-right"
     richColors
@@ -323,6 +321,7 @@ export const toast = {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -331,6 +330,7 @@ export const toast = {
 ## Task 5: Replace Browser Alerts with Toast Notifications
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/contacts/delete-button.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/products/delete-button.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/invoice-actions.tsx`
@@ -366,12 +366,7 @@ export function DeleteContactButton({ contactId }: { contactId: string }) {
   }
 
   return (
-    <Button
-      variant="destructive"
-      size="sm"
-      onClick={handleDelete}
-      disabled={isPending}
-    >
+    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isPending}>
       {isPending ? "Brisanje..." : "Obriši"}
     </Button>
   )
@@ -408,12 +403,7 @@ export function DeleteProductButton({ productId }: { productId: string }) {
   }
 
   return (
-    <Button
-      variant="destructive"
-      size="sm"
-      onClick={handleDelete}
-      disabled={isPending}
-    >
+    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isPending}>
       {isPending ? "Brisanje..." : "Obriši"}
     </Button>
   )
@@ -483,12 +473,7 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
         </Button>
       )}
       {canDelete && (
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={isPending}
-        >
+        <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isPending}>
           Obriši
         </Button>
       )}
@@ -498,6 +483,7 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -506,6 +492,7 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
 ## Task 6: Add Buyer Typeahead Search Component
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/components/ui/combobox.tsx`
 
 **Step 1: Create accessible combobox component**
@@ -569,9 +556,7 @@ export function Combobox({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault()
-        setHighlightedIndex((prev) =>
-          Math.min(prev + 1, filteredOptions.length - 1)
-        )
+        setHighlightedIndex((prev) => Math.min(prev + 1, filteredOptions.length - 1))
         break
       case "ArrowUp":
         e.preventDefault()
@@ -679,6 +664,7 @@ export function Combobox({
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -687,16 +673,19 @@ export function Combobox({
 ## Task 7: Update Invoice Form with Buyer Typeahead
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/new/invoice-form.tsx`
 
 **Step 1: Replace select with Combobox for buyer selection**
 
 At the top of the file, add import:
+
 ```tsx
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 ```
 
 Convert contacts to ComboboxOptions:
+
 ```tsx
 const buyerOptions: ComboboxOption[] = contacts.map((contact) => ({
   value: contact.id,
@@ -706,6 +695,7 @@ const buyerOptions: ComboboxOption[] = contacts.map((contact) => ({
 ```
 
 Replace the buyer select (around lines 100-117) with:
+
 ```tsx
 <div>
   <label htmlFor="buyer-select" className="block text-sm font-medium text-gray-700">
@@ -719,13 +709,12 @@ Replace the buyer select (around lines 100-117) with:
     placeholder="Pretraži kupce..."
     emptyMessage="Nema pronađenih kupaca"
   />
-  {errors.buyerId && (
-    <p className="mt-1 text-sm text-red-600">{errors.buyerId.message}</p>
-  )}
+  {errors.buyerId && <p className="mt-1 text-sm text-red-600">{errors.buyerId.message}</p>}
 </div>
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -734,6 +723,7 @@ Replace the buyer select (around lines 100-117) with:
 ## Task 8: Add Product Picker to Invoice Lines
 
 **Files:**
+
 - Create: `/home/admin/FiskAI/src/components/invoice/product-picker.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/new/invoice-form.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/new/page.tsx`
@@ -797,10 +787,7 @@ import { getProducts } from "@/app/actions/product"
 import { InvoiceForm } from "./invoice-form"
 
 export default async function NewEInvoicePage() {
-  const [contacts, products] = await Promise.all([
-    getContacts("CUSTOMER"),
-    getProducts(),
-  ])
+  const [contacts, products] = await Promise.all([getContacts("CUSTOMER"), getProducts()])
 
   return <InvoiceForm contacts={contacts} products={products} />
 }
@@ -822,12 +809,9 @@ import { ProductPicker } from "@/components/invoice/product-picker"
 
 // Add handler for product selection:
 const handleProductSelect = (product: Product) => {
-  const unitPrice = typeof product.unitPrice === 'number'
-    ? product.unitPrice
-    : product.unitPrice.toNumber()
-  const vatRate = typeof product.vatRate === 'number'
-    ? product.vatRate
-    : product.vatRate.toNumber()
+  const unitPrice =
+    typeof product.unitPrice === "number" ? product.unitPrice : product.unitPrice.toNumber()
+  const vatRate = typeof product.vatRate === "number" ? product.vatRate : product.vatRate.toNumber()
 
   append({
     description: product.name,
@@ -840,15 +824,14 @@ const handleProductSelect = (product: Product) => {
 }
 
 // Add ProductPicker above line items:
-<div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Brzo dodaj proizvod
-  </label>
+;<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-2">Brzo dodaj proizvod</label>
   <ProductPicker products={products} onSelect={handleProductSelect} />
 </div>
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -857,6 +840,7 @@ const handleProductSelect = (product: Product) => {
 ## Task 9: Add Form Success Feedback with Toast
 
 **Files:**
+
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/e-invoices/new/invoice-form.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/settings/company-settings-form.tsx`
 - Modify: `/home/admin/FiskAI/src/app/(dashboard)/settings/einvoice-settings-form.tsx`
@@ -919,6 +903,7 @@ if (result?.error) {
 ```
 
 **Verification:**
+
 - Run: `npm run build`
 - Expected: Build passes
 
@@ -955,6 +940,7 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 **Verification:**
+
 - Run: `git log --oneline -1`
 - Expected: Shows new commit with message
 

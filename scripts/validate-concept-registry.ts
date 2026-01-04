@@ -52,9 +52,7 @@ function validateRegistry(): ValidationResult {
   for (const mapping of CONCEPT_REGISTRY) {
     // Check conceptId format (lowercase with hyphens only)
     if (!/^[a-z0-9-]+$/.test(mapping.conceptId)) {
-      errors.push(
-        `Invalid conceptId format: "${mapping.conceptId}" (use lowercase with hyphens)`
-      )
+      errors.push(`Invalid conceptId format: "${mapping.conceptId}" (use lowercase with hyphens)`)
     }
 
     // Check description

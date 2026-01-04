@@ -10,14 +10,14 @@
 
 This audit examines the traceability chain from SourcePointer → Evidence → Rule → Release. The system implements strong enforcement gates but has **3 identified gaps** that could allow rules to be published with thin/invalid evidence.
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| Schema constraints | ✅ Strong | FK relationships enforced |
-| Reviewer gates | ✅ Strong | Blocks rules without pointers |
-| Releaser gates | ✅ Strong | T0/T1 approval + evidence strength |
-| Bypass paths | ⚠️ 3 gaps | Scripts, consolidator, admin API |
-| meaningSignature | ✅ Good | Prevents semantic duplicates |
-| Violation detection | ✅ Implemented | INV-2 and INV-6 validators |
+| Aspect              | Status         | Notes                              |
+| ------------------- | -------------- | ---------------------------------- |
+| Schema constraints  | ✅ Strong      | FK relationships enforced          |
+| Reviewer gates      | ✅ Strong      | Blocks rules without pointers      |
+| Releaser gates      | ✅ Strong      | T0/T1 approval + evidence strength |
+| Bypass paths        | ⚠️ 3 gaps      | Scripts, consolidator, admin API   |
+| meaningSignature    | ✅ Good        | Prevents semantic duplicates       |
+| Violation detection | ✅ Implemented | INV-2 and INV-6 validators         |
 
 ---
 
@@ -108,14 +108,15 @@ LEGEND:
 
 ### B.1 Composer Agent (src/lib/regulatory-truth/agents/composer.ts)
 
-| Check | Location | Enforcement |
-|-------|----------|-------------|
-| Blocked domain guard | Lines 69-79 | Test/synthetic domains blocked from creating rules |
-| Source pointer validation | Lines 203-237 | Rules MUST have ≥1 source pointer with valid evidenceId |
-| Existing pointer verification | Lines 218-236 | Verifies pointers exist in DB before linking |
-| Meaning signature | Lines 293-299 | Computes hash to prevent semantic duplicates |
+| Check                         | Location      | Enforcement                                             |
+| ----------------------------- | ------------- | ------------------------------------------------------- |
+| Blocked domain guard          | Lines 69-79   | Test/synthetic domains blocked from creating rules      |
+| Source pointer validation     | Lines 203-237 | Rules MUST have ≥1 source pointer with valid evidenceId |
+| Existing pointer verification | Lines 218-236 | Verifies pointers exist in DB before linking            |
+| Meaning signature             | Lines 293-299 | Computes hash to prevent semantic duplicates            |
 
 **Code excerpt (critical validation):**
+
 ```typescript
 // Lines 203-215
 if (validSourcePointerIds.length === 0) {
@@ -129,13 +130,14 @@ if (validSourcePointerIds.length === 0) {
 
 ### B.2 Reviewer Agent (src/lib/regulatory-truth/agents/reviewer.ts)
 
-| Check | Location | Enforcement |
-|-------|----------|-------------|
-| Pointer count check | Lines 104-114, 229-240 | BLOCKS approval if pointerCount === 0 |
-| T0/T1 auto-approve block | Lines 66-73, 241-246 | T0/T1 NEVER auto-approved |
-| Confidence threshold | Line 249 | ≥0.95 required for T2/T3 auto-approve |
+| Check                    | Location               | Enforcement                           |
+| ------------------------ | ---------------------- | ------------------------------------- |
+| Pointer count check      | Lines 104-114, 229-240 | BLOCKS approval if pointerCount === 0 |
+| T0/T1 auto-approve block | Lines 66-73, 241-246   | T0/T1 NEVER auto-approved             |
+| Confidence threshold     | Line 249               | ≥0.95 required for T2/T3 auto-approve |
 
 **Code excerpt (invariant):**
+
 ```typescript
 // Lines 229-240
 if (pointerCount === 0) {
@@ -147,14 +149,15 @@ if (pointerCount === 0) {
 
 ### B.3 Releaser Agent (src/lib/regulatory-truth/agents/releaser.ts)
 
-| Check | Location | Enforcement |
-|-------|----------|-------------|
-| T0/T1 approval gate | Lines 116-132 | HARD GATE - blocks if approvedBy missing |
-| Evidence strength policy | Lines 134-151 | SINGLE_SOURCE blocked unless LAW authority |
-| Audit trail capture | Lines 224-236 | Records evidenceCount, pointerCount, humanApprovals |
-| Content hash | Lines 212-221 | Deterministic hash for reproducibility |
+| Check                    | Location      | Enforcement                                         |
+| ------------------------ | ------------- | --------------------------------------------------- |
+| T0/T1 approval gate      | Lines 116-132 | HARD GATE - blocks if approvedBy missing            |
+| Evidence strength policy | Lines 134-151 | SINGLE_SOURCE blocked unless LAW authority          |
+| Audit trail capture      | Lines 224-236 | Records evidenceCount, pointerCount, humanApprovals |
+| Content hash             | Lines 212-221 | Deterministic hash for reproducibility              |
 
 **Code excerpt (hard gate):**
+
 ```typescript
 // Lines 116-131
 const unapprovedCritical = rules.filter(
@@ -171,22 +174,22 @@ if (unapprovedCritical.length > 0) {
 
 ### B.4 Health Gates (src/lib/regulatory-truth/utils/health-gates.ts)
 
-| Gate | Function | Threshold |
-|------|----------|-----------|
-| T0/T1 approval compliance | `checkT0T1ApprovalCompliance()` | 0 unapproved (CRITICAL) |
-| Published pointer coverage | `checkSourcePointerCoveragePublished()` | 0 without pointers (CRITICAL) |
-| Draft pointer coverage | `checkSourcePointerCoverageDraft()` | <5% without pointers (CRITICAL) |
-| Quote validation | `checkQuoteValidationRate()` | >5% failure = CRITICAL |
+| Gate                       | Function                                | Threshold                       |
+| -------------------------- | --------------------------------------- | ------------------------------- |
+| T0/T1 approval compliance  | `checkT0T1ApprovalCompliance()`         | 0 unapproved (CRITICAL)         |
+| Published pointer coverage | `checkSourcePointerCoveragePublished()` | 0 without pointers (CRITICAL)   |
+| Draft pointer coverage     | `checkSourcePointerCoverageDraft()`     | <5% without pointers (CRITICAL) |
+| Quote validation           | `checkQuoteValidationRate()`            | >5% failure = CRITICAL          |
 
 ### B.5 Invariant Validators (src/lib/regulatory-truth/e2e/invariant-validator.ts)
 
-| ID | Name | Validation |
-|----|------|------------|
-| INV-1 | Evidence Immutability | contentHash === hashContent(rawContent) |
-| INV-2 | Rule Traceability | Every rule has ≥1 pointer with evidence |
-| INV-5 | Release Hash Determinism | Same rules produce same hash |
-| INV-6 | Citation Compliance | PUBLISHED rules have pointers |
-| INV-8 | T0/T1 Human Approval | No T0/T1 auto-approved |
+| ID    | Name                     | Validation                              |
+| ----- | ------------------------ | --------------------------------------- |
+| INV-1 | Evidence Immutability    | contentHash === hashContent(rawContent) |
+| INV-2 | Rule Traceability        | Every rule has ≥1 pointer with evidence |
+| INV-5 | Release Hash Determinism | Same rules produce same hash            |
+| INV-6 | Citation Compliance      | PUBLISHED rules have pointers           |
+| INV-8 | T0/T1 Human Approval     | No T0/T1 auto-approved                  |
 
 ---
 
@@ -239,12 +242,14 @@ const updatedRule = await db.regulatoryRule.update({
 **Issue:** Scripts using `cliDb` or raw SQL can bypass enforcement gates.
 
 **Examples:**
+
 - `approve-bundle.ts` - Approves rules after status check but no pointer check
 - Direct Prisma/SQL updates in maintenance scripts
 
 **Impact:** Operator error during maintenance could publish rules without proper evidence.
 
 **Mitigation:**
+
 - Add invariant check to scripts that modify status
 - Run INV-2 validator after any bulk operation
 
@@ -285,16 +290,17 @@ function computeMeaningSignature(params: {
 
 ### Analysis
 
-| Aspect | Finding |
-|--------|---------|
-| Collision risk | MD5 collision is cryptographically unlikely for this use case |
-| Uniqueness scope | Signature is stored but NOT enforced by unique constraint |
-| Silent overwrite | **NO** - Prisma unique constraint prevents duplicate (slug, date, status) |
+| Aspect            | Finding                                                                         |
+| ----------------- | ------------------------------------------------------------------------------- |
+| Collision risk    | MD5 collision is cryptographically unlikely for this use case                   |
+| Uniqueness scope  | Signature is stored but NOT enforced by unique constraint                       |
+| Silent overwrite  | **NO** - Prisma unique constraint prevents duplicate (slug, date, status)       |
 | Conflict workflow | **WORKS** - Multiple DRAFT rules can exist; only one PUBLISHED per (slug, date) |
 
 **Risk:** meaningSignature is computed and stored but not enforced by DB constraint. Two rules with different meaningSignatures but same (conceptSlug, effectiveFrom, PUBLISHED) would violate the unique constraint, which is correct behavior.
 
 **Recommendation:** Consider adding unique index on meaningSignature for explicit enforcement:
+
 ```sql
 CREATE UNIQUE INDEX IF NOT EXISTS idx_rule_meaning_signature
 ON "RegulatoryRule"("meaningSignature")
@@ -435,7 +441,7 @@ ORDER BY duplicate_count DESC;
 1. **Patch GAP-1:** Add pointer count check to admin approval API
    ```typescript
    const pointerCount = await db.sourcePointer.count({
-     where: { rules: { some: { id } } }
+     where: { rules: { some: { id } } },
    })
    if (pointerCount === 0) {
      return NextResponse.json({ error: "Cannot approve rule without evidence" }, { status: 400 })
@@ -458,13 +464,13 @@ ORDER BY duplicate_count DESC;
 
 ## Appendix: Related Invariants
 
-| ID | Name | Enforced By |
-|----|------|-------------|
-| INV-1 | Evidence Immutability | contentHash verification |
-| INV-2 | Rule Traceability | Composer, Reviewer, Health Gates |
-| INV-3 | No Inference Extraction | Quote validation in Extractor |
-| INV-4 | Arbiter Conflict Resolution | Arbiter agent with escalation |
-| INV-5 | Release Hash Determinism | computeReleaseHash() |
-| INV-6 | Citation Compliance | Health gate, INV-2 |
-| INV-7 | Discovery Idempotency | Unique constraint (endpointId, url) |
-| INV-8 | T0/T1 Human Approval | Reviewer, Releaser gates |
+| ID    | Name                        | Enforced By                         |
+| ----- | --------------------------- | ----------------------------------- |
+| INV-1 | Evidence Immutability       | contentHash verification            |
+| INV-2 | Rule Traceability           | Composer, Reviewer, Health Gates    |
+| INV-3 | No Inference Extraction     | Quote validation in Extractor       |
+| INV-4 | Arbiter Conflict Resolution | Arbiter agent with escalation       |
+| INV-5 | Release Hash Determinism    | computeReleaseHash()                |
+| INV-6 | Citation Compliance         | Health gate, INV-2                  |
+| INV-7 | Discovery Idempotency       | Unique constraint (endpointId, url) |
+| INV-8 | T0/T1 Human Approval        | Reviewer, Releaser gates            |

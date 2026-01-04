@@ -26,24 +26,21 @@ const CACHEABLE_API_PATHS = [
 const API_CACHE_MAX_AGE = 5 * 60 * 1000
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS))
-  )
+  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS)))
   self.skipWaiting()
 })
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter(
-            (key) =>
-              key !== SHELL_CACHE && key !== STATIC_CACHE && key !== API_CACHE
-          )
-          .map((key) => caches.delete(key))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== SHELL_CACHE && key !== STATIC_CACHE && key !== API_CACHE)
+            .map((key) => caches.delete(key))
+        )
       )
-    )
   )
   self.clients.claim()
 })
@@ -57,15 +54,11 @@ self.addEventListener("fetch", (event) => {
 
   // Check if this is an app subdomain (app., staff., admin.)
   const isAppSubdomain =
-    hostname.startsWith("app.") ||
-    hostname.startsWith("staff.") ||
-    hostname.startsWith("admin.")
+    hostname.startsWith("app.") || hostname.startsWith("staff.") || hostname.startsWith("admin.")
 
   // Check if this is an app path on the main domain
   const isAppPath =
-    pathname.startsWith("/app/") ||
-    pathname.startsWith("/staff/") ||
-    pathname.startsWith("/admin/")
+    pathname.startsWith("/app/") || pathname.startsWith("/staff/") || pathname.startsWith("/admin/")
 
   // For app subdomains and paths, apply caching strategies
   if (isAppSubdomain || isAppPath) {
@@ -137,9 +130,7 @@ function isStaticAsset(pathname) {
 }
 
 function isCacheableApi(pathname) {
-  return CACHEABLE_API_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(path + "/")
-  )
+  return CACHEABLE_API_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/"))
 }
 
 // Cache-first strategy for static assets

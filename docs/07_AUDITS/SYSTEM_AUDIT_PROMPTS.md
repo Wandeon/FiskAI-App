@@ -8,22 +8,23 @@
 
 ## Audit Overview
 
-| # | Stage | Risk Level | Key Files | Primary Concern |
-|---|-------|------------|-----------|-----------------|
-| 1 | Sentinel | Medium | `agents/sentinel.ts` | Source coverage, fetch reliability |
-| 2 | OCR | Medium | `workers/ocr.worker.ts` | Text extraction accuracy |
-| 3 | Extractor | **Critical** | `agents/extractor.ts` | Quote fidelity, no hallucinations |
-| 4 | Composer | **Critical** | `agents/composer.ts` | Rule correctness, conflict detection |
-| 5 | Reviewer | High | `agents/reviewer.ts` | Quality gate effectiveness |
-| 6 | Arbiter | High | `agents/arbiter.ts` | Conflict resolution correctness |
-| 7 | Releaser | High | `agents/releaser.ts` | Publication safety, versioning |
-| 8 | Assistant | **Critical** | `retrieval/*.ts` | Answer accuracy, citation validity |
+| #   | Stage     | Risk Level   | Key Files               | Primary Concern                      |
+| --- | --------- | ------------ | ----------------------- | ------------------------------------ |
+| 1   | Sentinel  | Medium       | `agents/sentinel.ts`    | Source coverage, fetch reliability   |
+| 2   | OCR       | Medium       | `workers/ocr.worker.ts` | Text extraction accuracy             |
+| 3   | Extractor | **Critical** | `agents/extractor.ts`   | Quote fidelity, no hallucinations    |
+| 4   | Composer  | **Critical** | `agents/composer.ts`    | Rule correctness, conflict detection |
+| 5   | Reviewer  | High         | `agents/reviewer.ts`    | Quality gate effectiveness           |
+| 6   | Arbiter   | High         | `agents/arbiter.ts`     | Conflict resolution correctness      |
+| 7   | Releaser  | High         | `agents/releaser.ts`    | Publication safety, versioning       |
+| 8   | Assistant | **Critical** | `retrieval/*.ts`        | Answer accuracy, citation validity   |
 
 ---
 
 ## AUDIT 1: Sentinel (Discovery)
 
 ### Purpose
+
 Validates that the Sentinel agent correctly discovers, fetches, and classifies regulatory content from all registered sources.
 
 ### Audit Prompt
@@ -89,6 +90,7 @@ Include specific IDs and counts where applicable.
 ## AUDIT 2: OCR (Text Extraction)
 
 ### Purpose
+
 Validates that scanned PDFs are correctly processed through OCR to produce accurate text artifacts.
 
 ### Audit Prompt
@@ -156,6 +158,7 @@ OUTPUT FORMAT:
 ## AUDIT 3: Extractor (Fact Extraction)
 
 ### Purpose
+
 **CRITICAL AUDIT** - Validates that the LLM extractor produces accurate facts with verifiable quotes and no hallucinations.
 
 ### Audit Prompt
@@ -238,6 +241,7 @@ OUTPUT FORMAT:
 ## AUDIT 4: Composer (Rule Composition)
 
 ### Purpose
+
 **CRITICAL AUDIT** - Validates that composed RegulatoryRules correctly synthesize SourcePointers into accurate, non-conflicting rules.
 
 ### Audit Prompt
@@ -321,6 +325,7 @@ OUTPUT FORMAT:
 ## AUDIT 5: Reviewer (Quality Checks)
 
 ### Purpose
+
 Validates that the Reviewer stage correctly filters rules and applies quality gates consistently.
 
 ### Audit Prompt
@@ -399,6 +404,7 @@ OUTPUT FORMAT:
 ## AUDIT 6: Arbiter (Conflict Resolution)
 
 ### Purpose
+
 Validates that conflicts are correctly detected, prioritized, and resolved using proper authority hierarchy.
 
 ### Audit Prompt
@@ -484,6 +490,7 @@ OUTPUT FORMAT:
 ## AUDIT 7: Releaser (Publication)
 
 ### Purpose
+
 Validates that only properly reviewed rules are published with correct versioning and audit trails.
 
 ### Audit Prompt
@@ -573,6 +580,7 @@ OUTPUT FORMAT:
 ## AUDIT 8: Assistant (Query Answering)
 
 ### Purpose
+
 **CRITICAL AUDIT** - Validates that the AI assistant provides accurate answers with valid citations and refuses appropriately when evidence is insufficient.
 
 ### Audit Prompt
@@ -696,16 +704,16 @@ Before running audits, verify:
 
 ## Audit Schedule
 
-| Audit | Frequency | Trigger Conditions |
-|-------|-----------|-------------------|
-| Sentinel | Weekly | After source list changes |
-| OCR | Weekly | After OCR config changes |
-| Extractor | **Daily** | Any extraction, new sources |
-| Composer | **Daily** | After rule composition |
-| Reviewer | Weekly | After auto-approval threshold changes |
-| Arbiter | Weekly | When conflict queue > 50 |
-| Releaser | Per-release | Before major/minor releases |
-| Assistant | **Daily** | Continuous sampling |
+| Audit     | Frequency   | Trigger Conditions                    |
+| --------- | ----------- | ------------------------------------- |
+| Sentinel  | Weekly      | After source list changes             |
+| OCR       | Weekly      | After OCR config changes              |
+| Extractor | **Daily**   | Any extraction, new sources           |
+| Composer  | **Daily**   | After rule composition                |
+| Reviewer  | Weekly      | After auto-approval threshold changes |
+| Arbiter   | Weekly      | When conflict queue > 50              |
+| Releaser  | Per-release | Before major/minor releases           |
+| Assistant | **Daily**   | Continuous sampling                   |
 
 ## Severity Definitions
 
@@ -716,6 +724,6 @@ Before running audits, verify:
 
 ---
 
-*Document version: 1.0*
-*Created: 2024-12-27*
-*Maintainer: Platform Engineering*
+_Document version: 1.0_
+_Created: 2024-12-27_
+_Maintainer: Platform Engineering_

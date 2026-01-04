@@ -165,19 +165,13 @@
         "cmjwuhutv0011y1waxbz5sv5r"
       ],
       "entityIds": {
-        "Contact": [
-          "cmjwuht450004y1wahn3wgum3",
-          "cmjwuhuj0000my1wa2y7133fe"
-        ],
+        "Contact": ["cmjwuht450004y1wahn3wgum3", "cmjwuhuj0000my1wa2y7133fe"],
         "EInvoice": [
           "cmjwuhtb3000cy1wand8hmwut",
           "cmjwuhul6000qy1wad9tbh2yp",
           "cmjwuhut1000yy1waif8n1kxc"
         ],
-        "Artifact": [
-          "cmjwuhtw7000gy1wa331d7nu0",
-          "cmjwuhu9c000jy1waz6ad5fsy"
-        ]
+        "Artifact": ["cmjwuhtw7000gy1wa331d7nu0", "cmjwuhu9c000jy1waz6ad5fsy"]
       },
       "artifacts": [
         {
@@ -335,30 +329,14 @@
         "cmjwuhva3002fy1waghbgaapx"
       ],
       "entityIds": {
-        "Contact": [
-          "cmjwuhuuk0013y1wal3cuyn5k"
-        ],
-        "ExpenseCategory": [
-          "cmjwuhuup0014y1waf0txy5ka"
-        ],
-        "Expense": [
-          "cmjwuhuv10017y1waff8qtmve"
-        ],
-        "ExpenseLine": [
-          "cmjwuhuwg001ay1wak4oz1gjl"
-        ],
-        "UraInput": [
-          "cmjwuhux9001cy1wa1frucqyb"
-        ],
-        "FixedAssetCandidate": [
-          "cmjwuhuxu001ey1wamsiqiluj"
-        ],
-        "FixedAsset": [
-          "cmjwuhuz2001fy1waz72vlk4g"
-        ],
-        "DepreciationSchedule": [
-          "cmjwuhv1b001hy1wah52frs8i"
-        ]
+        "Contact": ["cmjwuhuuk0013y1wal3cuyn5k"],
+        "ExpenseCategory": ["cmjwuhuup0014y1waf0txy5ka"],
+        "Expense": ["cmjwuhuv10017y1waff8qtmve"],
+        "ExpenseLine": ["cmjwuhuwg001ay1wak4oz1gjl"],
+        "UraInput": ["cmjwuhux9001cy1wa1frucqyb"],
+        "FixedAssetCandidate": ["cmjwuhuxu001ey1wamsiqiluj"],
+        "FixedAsset": ["cmjwuhuz2001fy1waz72vlk4g"],
+        "DepreciationSchedule": ["cmjwuhv1b001hy1wah52frs8i"]
       },
       "artifacts": [],
       "assertions": [
@@ -508,22 +486,11 @@
         "cmjwuhvr7003ey1wa9t11f432"
       ],
       "entityIds": {
-        "BankAccount": [
-          "cmjwuhvaz002gy1wabcg1sgps"
-        ],
-        "Contact": [
-          "cmjwuhvb9002hy1wayri7as55"
-        ],
-        "EInvoice": [
-          "cmjwuhvec002oy1wanqhk2qd7",
-          "cmjwuhvfm002sy1wa4d30qb4h"
-        ],
-        "UnappliedPayment": [
-          "cmjwuhvld0038y1warpz4qwvo"
-        ],
-        "Expense": [
-          "cmjwuhvk90033y1waa9a152dc"
-        ],
+        "BankAccount": ["cmjwuhvaz002gy1wabcg1sgps"],
+        "Contact": ["cmjwuhvb9002hy1wayri7as55"],
+        "EInvoice": ["cmjwuhvec002oy1wanqhk2qd7", "cmjwuhvfm002sy1wa4d30qb4h"],
+        "UnappliedPayment": ["cmjwuhvld0038y1warpz4qwvo"],
+        "Expense": ["cmjwuhvk90033y1waa9a152dc"],
         "BankTransaction": [
           "cmjwuhvi30030y1wa8ge3ntw2",
           "cmjwuhvi3002yy1waopb3382n",
@@ -751,15 +718,9 @@
           "cmjwuhvyf003jy1waxwklges6",
           "cmjwuhvz4003ly1wa7tfnhi8q"
         ],
-        "Payout": [
-          "8ed9135f-589a-4807-9e7e-703045bc59c4"
-        ],
-        "PayoutLine": [
-          "d3d99f2c-6576-4955-bd66-469a9ff8ba98"
-        ],
-        "CalculationSnapshot": [
-          "515e8872-6fb4-41e6-b333-032e4baadd81"
-        ],
+        "Payout": ["8ed9135f-589a-4807-9e7e-703045bc59c4"],
+        "PayoutLine": ["d3d99f2c-6576-4955-bd66-469a9ff8ba98"],
+        "CalculationSnapshot": ["515e8872-6fb4-41e6-b333-032e4baadd81"],
         "JoppdSubmission": [
           "0752f8dd-ca8e-47a2-a854-105a359819fa",
           "9382924a-1342-4887-a955-6f8959a49d52"

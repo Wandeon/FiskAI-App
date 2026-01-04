@@ -9,14 +9,14 @@
 
 ## Executive Summary
 
-| Area | Verdict | Risk Level |
-|------|---------|------------|
-| REFUSAL Logic | PASS | Low |
-| Rule-Absence Detection | CONDITIONAL PASS | Medium |
-| "No Obligation" Affirmation | FAIL | High |
-| Over-Compliance Bias | FAIL | High |
-| Silence → REFUSAL | PASS | Low |
-| UX Pressure on Compliance | PASS | Low |
+| Area                        | Verdict          | Risk Level |
+| --------------------------- | ---------------- | ---------- |
+| REFUSAL Logic               | PASS             | Low        |
+| Rule-Absence Detection      | CONDITIONAL PASS | Medium     |
+| "No Obligation" Affirmation | FAIL             | High       |
+| Over-Compliance Bias        | FAIL             | High       |
+| Silence → REFUSAL           | PASS             | Low        |
+| UX Pressure on Compliance   | PASS             | Low        |
 
 **OVERALL VERDICT: FAIL**
 
@@ -54,17 +54,19 @@ Stage 3: Answer Eligibility Gate
 ```
 
 **RefusalReason Enum (`src/lib/assistant/types.ts:64-70`):**
+
 ```typescript
 export type RefusalReason =
-  | "NO_CITABLE_RULES"        // No published rules found
-  | "OUT_OF_SCOPE"            // Topic outside system scope
-  | "MISSING_CLIENT_DATA"     // Needs personalization data
-  | "UNRESOLVED_CONFLICT"     // Multiple conflicting sources
-  | "NEEDS_CLARIFICATION"     // Query too vague
-  | "UNSUPPORTED_JURISDICTION"// Foreign country detected
+  | "NO_CITABLE_RULES" // No published rules found
+  | "OUT_OF_SCOPE" // Topic outside system scope
+  | "MISSING_CLIENT_DATA" // Needs personalization data
+  | "UNRESOLVED_CONFLICT" // Multiple conflicting sources
+  | "NEEDS_CLARIFICATION" // Query too vague
+  | "UNSUPPORTED_JURISDICTION" // Foreign country detected
 ```
 
 **Key Invariants (answer-builder.ts:51-52):**
+
 ```
 INVARIANT: The system REFUSES more often than it answers.
 INVARIANT: Vague queries always get clarification, never "no sources found".
@@ -79,6 +81,7 @@ INVARIANT: Vague queries always get clarification, never "no sources found".
 The system correctly identifies when no rules exist:
 
 **answer-builder.ts:284-298:**
+
 ```typescript
 if (conceptMatches.length === 0) {
   // INVARIANT: Vague queries get clarification, not "no sources found"
@@ -102,6 +105,7 @@ if (conceptMatches.length === 0) {
 **File:** `src/lib/regulatory-truth/dsl/outcome.ts`
 
 Current outcome kinds:
+
 ```typescript
 const outcomeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("VALUE"), ... }),
@@ -111,6 +115,7 @@ const outcomeSchema = z.discriminatedUnion("kind", [
 ```
 
 **Missing:**
+
 - `NO_OBLIGATION` - affirms that something is NOT required
 - `EXEMPTION` - affirms that a requirement does not apply to the user
 
@@ -118,20 +123,22 @@ const outcomeSchema = z.discriminatedUnion("kind", [
 
 When a user asks "Do I need to report X?" where X is genuinely not regulated:
 
-| Current Behavior | Expected Behavior |
-|------------------|-------------------|
-| Returns `NO_CITABLE_RULES` | Should return `ANSWER` with `NO_OBLIGATION` |
-| User sees: "We have no sources" | User should see: "No, there is no such requirement" |
-| Ambiguous - user can't tell if it's a gap or genuinely unregulated | Clear affirmation of non-applicability |
+| Current Behavior                                                   | Expected Behavior                                   |
+| ------------------------------------------------------------------ | --------------------------------------------------- |
+| Returns `NO_CITABLE_RULES`                                         | Should return `ANSWER` with `NO_OBLIGATION`         |
+| User sees: "We have no sources"                                    | User should see: "No, there is no such requirement" |
+| Ambiguous - user can't tell if it's a gap or genuinely unregulated | Clear affirmation of non-applicability              |
 
 ### Example Scenarios
 
 **Scenario 1: Unregulated Activity**
+
 - Query: "Do I need to file a report for cryptocurrency donations to charity?"
 - Current: `NO_CITABLE_RULES` (silent on whether requirement exists)
 - Expected: `ANSWER` + explicit "No such reporting requirement exists in Croatian tax law"
 
 **Scenario 2: Exemption Applies**
+
 - Query: "Do I need to register for VAT?" (business under threshold)
 - Current: May find VAT rules but cannot affirm exemption
 - Expected: `ANSWER` with `NO_OBLIGATION` outcome + citation to exemption provision
@@ -155,6 +162,7 @@ When uncertain, choose stricter interpretation:
 ```
 
 **File:** `src/lib/regulatory-truth/prompts/index.ts:369`
+
 ```
 4. Conservative: When uncertain, choose stricter interpretation
 ```
@@ -170,15 +178,18 @@ The Arbiter explicitly biases toward over-compliance when resolving conflicts. T
 ### Example
 
 **Conflict:**
+
 - Source A (LAW): "VAT threshold is 40,000 EUR"
 - Source B (GUIDANCE): "VAT threshold is 39,816.84 EUR"
 - Both same authority and date
 
 **Current behavior with "conservative" strategy:**
+
 - System chooses lower threshold (39,816.84 EUR) = stricter
 - User may register for VAT unnecessarily
 
 **Correct behavior:**
+
 - Escalate to human review (which it does for equal authority)
 - But if it doesn't escalate, it should not default to stricter
 
@@ -191,6 +202,7 @@ The Arbiter explicitly biases toward over-compliance when resolving conflicts. T
 The system correctly returns `NO_CITABLE_RULES` when no sources exist:
 
 **answer-builder.ts:434-458:**
+
 ```typescript
 function buildNoCitableRulesRefusal(
   base: Partial<AssistantResponse>,
@@ -275,11 +287,13 @@ The UX does not pressure users into over-compliance. The refusal messages are ne
 2. **Remove "Conservative" Bias from Arbiter**
 
    Change from:
+
    ```
    4. Conservative: When uncertain, choose stricter interpretation
    ```
 
    To:
+
    ```
    4. Escalate: When uncertain, escalate to human review (never guess)
    ```
@@ -287,6 +301,7 @@ The UX does not pressure users into over-compliance. The refusal messages are ne
 3. **Add Explicit Exemption Rules**
 
    Create rules that explicitly state when obligations DON'T apply:
+
    ```typescript
    {
      conceptSlug: "vat-exemption-under-threshold",
@@ -300,6 +315,7 @@ The UX does not pressure users into over-compliance. The refusal messages are ne
 4. **Distinguish "Unknown" vs "Not Required"**
 
    Add a new refusal reason:
+
    ```typescript
    | "ABSENCE_AFFIRMED" // We confirm there is no such requirement
    ```
@@ -325,10 +341,10 @@ The UX does not pressure users into over-compliance. The refusal messages are ne
 
 ## 9. Fallback Paths That Produce Over-Compliance
 
-| Path | Trigger | Risk |
-|------|---------|------|
-| Arbiter Conservative | Equal authority conflict | Chooses stricter option |
-| Missing Exemption Rules | Query about exemptions | Returns "no sources" instead of "exempt" |
+| Path                          | Trigger                   | Risk                                                |
+| ----------------------------- | ------------------------- | --------------------------------------------------- |
+| Arbiter Conservative          | Equal authority conflict  | Chooses stricter option                             |
+| Missing Exemption Rules       | Query about exemptions    | Returns "no sources" instead of "exempt"            |
 | Conflation of Vague vs Absent | Low confidence + no rules | Asks for clarification instead of affirming absence |
 
 ---

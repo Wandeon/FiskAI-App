@@ -17,6 +17,7 @@ FiskAI exposes a REST API for all client operations. All authenticated endpoints
 Create a new user account.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -26,11 +27,13 @@ Create a new user account.
 ```
 
 **Validation:**
+
 - `email`: Valid email format, unique
 - `name`: Minimum 2 characters
 - `password`: Minimum 8 characters
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -39,6 +42,7 @@ Create a new user account.
 ```
 
 **Errors:**
+
 - `400`: Invalid data or email already in use
 - `500`: Server error
 
@@ -71,11 +75,13 @@ Upload a bank statement file for processing.
 **Content-Type:** `multipart/form-data`
 
 **Parameters:**
+
 - `file`: PDF or XML bank statement (max 20MB)
 - `accountId`: Bank account ID to associate with
 - `overwrite`: `"true"` to overwrite existing duplicate
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -87,6 +93,7 @@ Upload a bank statement file for processing.
 ```
 
 **Response (409 - Duplicate):**
+
 ```json
 {
   "success": false,
@@ -97,6 +104,7 @@ Upload a bank statement file for processing.
 ```
 
 **Errors:**
+
 - `400`: Missing file, invalid account, unsupported file type
 - `404`: Company not found
 - `413`: File too large (>20MB)
@@ -138,6 +146,7 @@ Match a bank transaction to an invoice or expense.
 Get received e-invoices pending action.
 
 **Response (200):**
+
 ```json
 {
   "invoices": [
@@ -162,6 +171,7 @@ Get received e-invoices pending action.
 Accept or reject a received e-invoice.
 
 **Request Body:**
+
 ```json
 {
   "accept": true,
@@ -170,6 +180,7 @@ Accept or reject a received e-invoice.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -179,6 +190,7 @@ Accept or reject a received e-invoice.
 ```
 
 **Errors:**
+
 - `400`: Missing invoiceId or invalid data
 - `404`: Invoice not found or already processed
 
@@ -311,10 +323,12 @@ Mark notifications as read.
 Export all company data for a period.
 
 **Query Parameters:**
+
 - `from`: Start date (YYYY-MM-DD)
 - `to`: End date (YYYY-MM-DD)
 
 **Response:** ZIP file containing:
+
 - Invoices (CSV + PDF)
 - Expenses (CSV)
 - KPR (Knjiga Primitaka i Izdataka)
@@ -382,16 +396,16 @@ Trigger manual digest email send.
 
 > These endpoints are triggered by scheduled jobs.
 
-| Endpoint | Purpose | Schedule |
-|----------|---------|----------|
-| `/api/cron/fetch-news` | Fetch regulatory news | Every 6 hours |
-| `/api/cron/deadline-reminders` | Send deadline reminders | Daily at 8 AM |
-| `/api/cron/certificate-check` | Check certificate expiry | Weekly |
-| `/api/cron/bank-sync` | Sync bank connections | Every 4 hours |
-| `/api/cron/fiscal-processor` | Process fiscal queue | Every 5 minutes |
-| `/api/cron/email-sync` | Sync email imports | Every hour |
-| `/api/cron/weekly-digest` | Send weekly summary | Sunday at 6 PM |
-| `/api/cron/checklist-digest` | Send checklist updates | Daily at 9 AM |
+| Endpoint                       | Purpose                  | Schedule        |
+| ------------------------------ | ------------------------ | --------------- |
+| `/api/cron/fetch-news`         | Fetch regulatory news    | Every 6 hours   |
+| `/api/cron/deadline-reminders` | Send deadline reminders  | Daily at 8 AM   |
+| `/api/cron/certificate-check`  | Check certificate expiry | Weekly          |
+| `/api/cron/bank-sync`          | Sync bank connections    | Every 4 hours   |
+| `/api/cron/fiscal-processor`   | Process fiscal queue     | Every 5 minutes |
+| `/api/cron/email-sync`         | Sync email imports       | Every hour      |
+| `/api/cron/weekly-digest`      | Send weekly summary      | Sunday at 6 PM  |
+| `/api/cron/checklist-digest`   | Send checklist updates   | Daily at 9 AM   |
 
 ---
 
@@ -407,6 +421,7 @@ All errors follow a consistent format:
 ```
 
 **Common HTTP Status Codes:**
+
 - `200`: Success
 - `201`: Created
 - `400`: Bad Request (validation error)
@@ -422,11 +437,13 @@ All errors follow a consistent format:
 ## Rate Limiting
 
 API endpoints are rate-limited:
+
 - **Standard endpoints:** 100 requests/minute per user
 - **AI endpoints:** 20 requests/minute per user
 - **Upload endpoints:** 10 requests/minute per user
 
 Rate limit headers are included in responses:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95

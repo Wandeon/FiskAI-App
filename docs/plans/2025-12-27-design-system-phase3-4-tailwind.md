@@ -13,6 +13,7 @@
 ## Task 1: Create New Tailwind Config
 
 **Files:**
+
 - Modify: `tailwind.config.ts`
 
 **Step 1: Backup current config**
@@ -24,13 +25,13 @@ cp tailwind.config.ts tailwind.config.ts.backup
 **Step 2: Replace tailwind.config.ts**
 
 ```typescript
-import type { Config } from "tailwindcss";
-import { spacing, radius, shadows, zIndex } from "./src/design-system/tokens/layout";
-import { fonts, textStyles } from "./src/design-system/tokens/typography";
-import { categorical } from "./src/design-system/tokens/data-vis";
-import tailwindcssAnimate from "tailwindcss-animate";
-import tailwindcssTypography from "@tailwindcss/typography";
-import plugin from "tailwindcss/plugin";
+import type { Config } from "tailwindcss"
+import { spacing, radius, shadows, zIndex } from "./src/design-system/tokens/layout"
+import { fonts, textStyles } from "./src/design-system/tokens/typography"
+import { categorical } from "./src/design-system/tokens/data-vis"
+import tailwindcssAnimate from "tailwindcss-animate"
+import tailwindcssTypography from "@tailwindcss/typography"
+import plugin from "tailwindcss/plugin"
 
 const config: Config = {
   darkMode: "class",
@@ -233,9 +234,9 @@ const config: Config = {
       },
       transitionDuration: {
         "0": "0ms",
-        "fast": "var(--duration-fast)",
-        "normal": "var(--duration-normal)",
-        "slow": "var(--duration-slow)",
+        fast: "var(--duration-fast)",
+        normal: "var(--duration-normal)",
+        slow: "var(--duration-slow)",
       },
       transitionTimingFunction: {
         "bounce-in": "var(--ease-spring)",
@@ -299,11 +300,11 @@ const config: Config = {
     // ═══════════════════════════════════════════════════════════════
     // TYPOGRAPHY PLUGIN - Pre-composed text styles
     // ═══════════════════════════════════════════════════════════════
-    plugin(function({ addComponents }) {
-      const typographyComponents: Record<string, Record<string, string>> = {};
+    plugin(function ({ addComponents }) {
+      const typographyComponents: Record<string, Record<string, string>> = {}
 
       for (const [name, style] of Object.entries(textStyles)) {
-        const componentClass = `.text-${name}`;
+        const componentClass = `.text-${name}`
         typographyComponents[componentClass] = {
           fontSize: style.fontSize,
           lineHeight: style.lineHeight,
@@ -311,20 +312,21 @@ const config: Config = {
           ...(style.letterSpacing && { letterSpacing: style.letterSpacing }),
           ...(style.textTransform && { textTransform: style.textTransform }),
           ...(style.fontFamily && { fontFamily: style.fontFamily }),
-        };
+        }
       }
 
-      addComponents(typographyComponents);
+      addComponents(typographyComponents)
     }),
 
     // ═══════════════════════════════════════════════════════════════
     // UTILITY CLASSES
     // ═══════════════════════════════════════════════════════════════
-    plugin(function({ addUtilities }) {
+    plugin(function ({ addUtilities }) {
       addUtilities({
         // Focus ring
         ".focus-ring": {
-          "@apply focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2": {},
+          "@apply focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2":
+            {},
         },
         // Card styles
         ".card": {
@@ -346,12 +348,12 @@ const config: Config = {
           backdropFilter: "blur(24px)",
           border: "1px solid rgba(255, 255, 255, 0.18)",
         },
-      });
+      })
     }),
   ],
-};
+}
 
-export default config;
+export default config
 ```
 
 ---

@@ -17,6 +17,7 @@
 ### Task 1.1: Create ActionResult Type System
 
 **Files:**
+
 - Create: `src/lib/action-result.ts`
 
 **Step 1: Create the ActionResult type and helpers**
@@ -31,11 +32,17 @@ export function ok<T>(data: T, message?: string): ActionResult<T> {
   return { success: true, data, message }
 }
 
-export function err(error: string, code?: string, details?: Record<string, string[]>): ActionResult<never> {
+export function err(
+  error: string,
+  code?: string,
+  details?: Record<string, string[]>
+): ActionResult<never> {
   return { success: false, error, code, details }
 }
 
-export function fromZodError(error: { flatten: () => { fieldErrors: Record<string, string[]> } }): ActionResult<never> {
+export function fromZodError(error: {
+  flatten: () => { fieldErrors: Record<string, string[]> }
+}): ActionResult<never> {
   return {
     success: false,
     error: "Validation failed",
@@ -62,6 +69,7 @@ git commit -m "feat: add ActionResult type system for consistent server action r
 ### Task 1.2: Create Decimal Math Utilities
 
 **Files:**
+
 - Create: `src/lib/decimal.ts`
 
 **Step 1: Create decimal math helpers using Prisma Decimal**
@@ -93,10 +101,7 @@ export function multiply(a: DecimalLike, b: DecimalLike): Prisma.Decimal {
  * Add multiple values with Decimal precision
  */
 export function sum(...values: DecimalLike[]): Prisma.Decimal {
-  return values.reduce<Prisma.Decimal>(
-    (acc, val) => acc.add(toDecimal(val)),
-    new Decimal(0)
-  )
+  return values.reduce<Prisma.Decimal>((acc, val) => acc.add(toDecimal(val)), new Decimal(0))
 }
 
 /**
@@ -145,6 +150,7 @@ git commit -m "feat: add Decimal math utilities for precise currency calculation
 ### Task 1.3: Create Tenant Guard Utilities
 
 **Files:**
+
 - Create: `src/lib/tenant.ts`
 
 **Step 1: Create tenant verification helpers**
@@ -254,6 +260,7 @@ git commit -m "feat: add tenant guard utilities for multi-tenancy enforcement"
 ### Task 1.4: Export Foundation Utilities
 
 **Files:**
+
 - Create: `src/lib/index.ts`
 
 **Step 1: Create barrel export**
@@ -280,6 +287,7 @@ git commit -m "feat: add barrel export for lib utilities"
 ### Task 2.1: Update Prisma Schema for Encrypted API Keys
 
 **Files:**
+
 - Modify: `prisma/schema.prisma:83-85`
 
 **Step 1: Update Company model to use encrypted field**
@@ -317,6 +325,7 @@ git commit -m "feat: rename eInvoiceApiKey to eInvoiceApiKeyEncrypted in schema"
 ### Task 2.2: Update Company Settings Validation
 
 **Files:**
+
 - Modify: `src/lib/validations/company.ts:20-23`
 
 **Step 1: Update schema to reflect new field name**
@@ -333,6 +342,7 @@ Expected: No errors
 ### Task 2.3: Update Company Actions with Encryption
 
 **Files:**
+
 - Modify: `src/app/actions/company.ts`
 
 **Step 1: Add encryption imports and update updateCompanySettings**
@@ -556,6 +566,7 @@ git commit -m "feat: add API key encryption to company settings"
 ### Task 2.4: Update E-Invoice Actions with Tenant Guards
 
 **Files:**
+
 - Modify: `src/app/actions/e-invoice.ts`
 
 **Step 1: Update e-invoice actions with tenant verification and Decimal math**
@@ -600,11 +611,7 @@ export async function createEInvoice(
 
   // Calculate totals using Decimal math (no floating point)
   const lineItems = lines.map((line, index) => {
-    const { netAmount, vatAmount } = calculateLineTotal(
-      line.quantity,
-      line.unitPrice,
-      line.vatRate
-    )
+    const { netAmount, vatAmount } = calculateLineTotal(line.quantity, line.unitPrice, line.vatRate)
     return {
       lineNumber: index + 1,
       description: line.description,
@@ -646,7 +653,9 @@ export async function createEInvoice(
   return ok({ id: eInvoice.id }, "E-Invoice created")
 }
 
-export async function sendEInvoice(eInvoiceId: string): Promise<ActionResult<{ jir?: string; zki?: string }>> {
+export async function sendEInvoice(
+  eInvoiceId: string
+): Promise<ActionResult<{ jir?: string; zki?: string }>> {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
 
@@ -822,11 +831,13 @@ PERF: Add pagination to getEInvoices, optimize select fields"
 ### Task 2.5: Apply Database Migration for Encrypted Keys
 
 **Files:**
+
 - Database operation
 
 **Step 1: Rename column in database**
 
 Run on VPS-01:
+
 ```bash
 ssh admin@vps-01 'docker exec -i fiskai-postgres psql -U fiskai -d fiskai -c "ALTER TABLE \"Company\" RENAME COLUMN \"eInvoiceApiKey\" TO \"eInvoiceApiKeyEncrypted\";"'
 ```
@@ -836,6 +847,7 @@ Expected: `ALTER TABLE`
 **Step 2: Verify column renamed**
 
 Run:
+
 ```bash
 ssh admin@vps-01 'docker exec -i fiskai-postgres psql -U fiskai -d fiskai -c "\d \"Company\"" | grep -i apikey'
 ```
@@ -845,6 +857,7 @@ Expected: Shows `eInvoiceApiKeyEncrypted`
 **Step 3: Sync Prisma state**
 
 Run:
+
 ```bash
 ssh admin@vps-01 "cd FiskAI && DATABASE_URL='postgresql://fiskai:fiskai_secret_2025@172.18.0.2:5432/fiskai?schema=public' npx prisma db pull --config=prisma.config.ts"
 ```
@@ -856,6 +869,7 @@ ssh admin@vps-01 "cd FiskAI && DATABASE_URL='postgresql://fiskai:fiskai_secret_2
 ### Task 3.1: Fix HTML Language Attribute
 
 **Files:**
+
 - Modify: `src/app/layout.tsx:15`
 
 **Step 1: Change lang from "en" to "hr"**
@@ -884,6 +898,7 @@ git commit -m "fix(a11y): set document language to Croatian (hr)"
 ### Task 3.2: Add ARIA Attributes to Input Component
 
 **Files:**
+
 - Modify: `src/components/ui/input.tsx`
 
 **Step 1: Update Input component with ARIA support**
@@ -927,9 +942,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           aria-invalid={hasError ? "true" : undefined}
           aria-describedby={
-            [hasError && errorId, hasDescription && descriptionId]
-              .filter(Boolean)
-              .join(" ") || undefined
+            [hasError && errorId, hasDescription && descriptionId].filter(Boolean).join(" ") ||
+            undefined
           }
           {...props}
         />
@@ -974,6 +988,7 @@ git commit -m "fix(a11y): add ARIA attributes and labels to Input component
 ### Task 3.3: Create Accessible Select Component
 
 **Files:**
+
 - Create: `src/components/ui/select.tsx`
 
 **Step 1: Create Select component with accessibility**
@@ -993,16 +1008,7 @@ export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
-    {
-      className,
-      error,
-      label,
-      description,
-      options,
-      placeholder,
-      id: providedId,
-      ...props
-    },
+    { className, error, label, description, options, placeholder, id: providedId, ...props },
     ref
   ) => {
     const generatedId = useId()
@@ -1030,9 +1036,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           aria-invalid={hasError ? "true" : undefined}
           aria-describedby={
-            [hasError && errorId, hasDescription && descriptionId]
-              .filter(Boolean)
-              .join(" ") || undefined
+            [hasError && errorId, hasDescription && descriptionId].filter(Boolean).join(" ") ||
+            undefined
           }
           {...props}
         >
@@ -1089,6 +1094,7 @@ git commit -m "feat(a11y): add accessible Select component with ARIA support"
 ### Task 3.4: Add Table Accessibility to E-Invoice List
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/e-invoices/page.tsx`
 
 **Step 1: Add caption and scope attributes to invoice table**
@@ -1096,12 +1102,14 @@ git commit -m "feat(a11y): add accessible Select component with ARIA support"
 In `src/app/(dashboard)/e-invoices/page.tsx`, find the `<table>` element and add a caption. Update the table structure:
 
 Find:
+
 ```tsx
               <table className="w-full">
                 <thead className="border-b bg-gray-50">
 ```
 
 Replace with:
+
 ```tsx
               <table className="w-full">
                 <caption className="sr-only">
@@ -1113,17 +1121,17 @@ Replace with:
 Also update each `<th>` to include `scope="col"`:
 
 Find:
+
 ```tsx
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Broj računa
-                    </th>
+<th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Broj računa</th>
 ```
 
 Replace with:
+
 ```tsx
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Broj računa
-                    </th>
+<th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500">
+  Broj računa
+</th>
 ```
 
 (Repeat for all 7 `<th>` elements)
@@ -1146,6 +1154,7 @@ git commit -m "fix(a11y): add table caption and scope attributes to invoice list
 ### Task 4.1: Convert New Invoice Page to Server-Side Data Fetching
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/e-invoices/new/page.tsx`
 
 **Step 1: Split into server component and client form**
@@ -1295,16 +1304,9 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
             error={errors.issueDate?.message}
           />
 
-          <Input
-            label="Datum dospijeća"
-            type="date"
-            {...register("dueDate")}
-          />
+          <Input label="Datum dospijeća" type="date" {...register("dueDate")} />
 
-          <Input
-            label="Referenca kupca"
-            {...register("buyerReference")}
-          />
+          <Input label="Referenca kupca" {...register("buyerReference")} />
         </CardContent>
       </Card>
 
@@ -1331,15 +1333,9 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className="grid gap-4 rounded-md border p-4 md:grid-cols-6"
-            >
+            <div key={field.id} className="grid gap-4 rounded-md border p-4 md:grid-cols-6">
               <div className="md:col-span-2">
-                <Input
-                  label="Opis"
-                  {...register(`lines.${index}.description`)}
-                />
+                <Input label="Opis" {...register(`lines.${index}.description`)} />
               </div>
               <Input
                 label="Količina"
@@ -1385,15 +1381,9 @@ export function InvoiceForm({ contacts }: InvoiceFormProps) {
         <CardContent className="pt-6">
           <div className="flex justify-end space-y-1 text-right">
             <div className="space-y-1">
-              <p className="text-sm text-gray-500">
-                Neto: {totals.net.toFixed(2)} EUR
-              </p>
-              <p className="text-sm text-gray-500">
-                PDV: {totals.vat.toFixed(2)} EUR
-              </p>
-              <p className="text-lg font-bold">
-                Ukupno: {totals.total.toFixed(2)} EUR
-              </p>
+              <p className="text-sm text-gray-500">Neto: {totals.net.toFixed(2)} EUR</p>
+              <p className="text-sm text-gray-500">PDV: {totals.vat.toFixed(2)} EUR</p>
+              <p className="text-lg font-bold">Ukupno: {totals.total.toFixed(2)} EUR</p>
             </div>
           </div>
         </CardContent>
@@ -1467,6 +1457,7 @@ git commit -m "perf: convert new invoice page to server-side data fetching
 ### Task 5.1: Update E-Invoice List Page with Optimized Data
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/e-invoices/page.tsx`
 
 **Step 1: Update to use new getEInvoices return type**
@@ -1490,6 +1481,7 @@ git commit -m "chore: update e-invoice list to use optimized query data"
 ### Task 5.2: Fix ESLint Warnings
 
 **Files:**
+
 - Multiple files with unused imports
 
 **Step 1: Run ESLint with fix**
@@ -1512,6 +1504,7 @@ git commit -m "chore: fix ESLint warnings - remove unused imports and variables"
 ### Task 5.3: Update Settings Form for Encrypted Keys
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/settings/einvoice-settings-form.tsx`
 
 **Step 1: Update form to handle ActionResult type**
@@ -1573,6 +1566,7 @@ ssh admin@vps-01 "cd FiskAI && DATABASE_URL='postgresql://fiskai:fiskai_secret_2
 ## Summary of Changes
 
 ### Files Created:
+
 - `src/lib/action-result.ts` - Typed ActionResult system
 - `src/lib/decimal.ts` - Decimal math utilities
 - `src/lib/tenant.ts` - Tenant ownership guards
@@ -1582,6 +1576,7 @@ ssh admin@vps-01 "cd FiskAI && DATABASE_URL='postgresql://fiskai:fiskai_secret_2
 - `src/app/(dashboard)/e-invoices/new/invoice-form.tsx` - Client form component
 
 ### Files Modified:
+
 - `prisma/schema.prisma` - Renamed eInvoiceApiKey to eInvoiceApiKeyEncrypted
 - `src/app/layout.tsx` - Changed lang="en" to lang="hr"
 - `src/components/ui/input.tsx` - Added ARIA attributes
@@ -1592,17 +1587,20 @@ ssh admin@vps-01 "cd FiskAI && DATABASE_URL='postgresql://fiskai:fiskai_secret_2
 - `src/app/(dashboard)/settings/einvoice-settings-form.tsx` - Encrypted key handling
 
 ### Security Fixes:
+
 - Cross-tenant contact disclosure (CRITICAL)
 - Plaintext API key storage (CRITICAL)
 - Tenant ownership verification on all mutations
 
 ### Accessibility Fixes:
+
 - Document language set to Croatian
 - ARIA attributes on form inputs
 - Table captions and scope attributes
 - Role="alert" on error messages
 
 ### Performance Fixes:
+
 - Server-side data fetching for invoice form
 - Pagination on invoice list query
 - Optimized select fields (not loading unused relations)

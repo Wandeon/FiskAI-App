@@ -25,6 +25,7 @@ Build the most intelligent, user-friendly accounting solution for Croatian compa
 ## Technology Stack
 
 ### Frontend
+
 - **Framework**: Next.js 14+ (App Router)
 - **Language**: TypeScript
 - **UI Library**: React 18+
@@ -33,27 +34,32 @@ Build the most intelligent, user-friendly accounting solution for Croatian compa
 - **Forms**: React Hook Form + Zod
 
 ### Backend
+
 - **Framework**: Next.js API Routes / Server Actions
 - **Language**: TypeScript
 - **ORM**: Prisma
 - **Validation**: Zod
 
 ### Database
+
 - **Primary**: PostgreSQL 16
 - **Caching**: Redis (optional, for sessions/queues)
 
 ### Authentication
+
 - **Library**: NextAuth.js (Auth.js)
 - **Methods**: Email/password, Google OAuth
 - **Sessions**: JWT + database sessions
 
 ### Infrastructure
+
 - **Hosting**: Coolify on VPS-01 (ARM64)
 - **CDN**: Cloudflare (free tier)
 - **SSL**: Let's Encrypt (via Coolify)
 - **DNS**: Cloudflare
 
 ### AI Services
+
 - **OCR**: Google Cloud Vision / Tesseract
 - **LLM**: OpenAI GPT-4 / Claude API
 - **Embeddings**: OpenAI embeddings (for search)
@@ -457,37 +463,40 @@ model EInvoiceLine {
 // lib/e-invoice/provider.ts
 
 export interface SendInvoiceResult {
-  success: boolean;
-  providerRef?: string;
-  jir?: string;
-  zki?: string;
-  error?: string;
+  success: boolean
+  providerRef?: string
+  jir?: string
+  zki?: string
+  error?: string
 }
 
 export interface EInvoiceProvider {
-  name: string;
+  name: string
 
   // Send invoice
-  sendInvoice(invoice: EInvoice, ublXml: string): Promise<SendInvoiceResult>;
+  sendInvoice(invoice: EInvoice, ublXml: string): Promise<SendInvoiceResult>
 
   // Receive invoices
-  fetchIncomingInvoices(): Promise<IncomingInvoice[]>;
+  fetchIncomingInvoices(): Promise<IncomingInvoice[]>
 
   // Check status
-  getInvoiceStatus(providerRef: string): Promise<InvoiceStatus>;
+  getInvoiceStatus(providerRef: string): Promise<InvoiceStatus>
 
   // Archive
-  archiveInvoice(invoice: EInvoice): Promise<ArchiveResult>;
+  archiveInvoice(invoice: EInvoice): Promise<ArchiveResult>
 
   // Test connection
-  testConnection(): Promise<boolean>;
+  testConnection(): Promise<boolean>
 }
 
 // Implementation example
 export class IERacuniProvider implements EInvoiceProvider {
-  name = 'IE Računi';
+  name = "IE Računi"
 
-  constructor(private apiKey: string, private apiUrl: string) {}
+  constructor(
+    private apiKey: string,
+    private apiUrl: string
+  ) {}
 
   async sendInvoice(invoice: EInvoice, ublXml: string): Promise<SendInvoiceResult> {
     // Implementation...
@@ -502,12 +511,12 @@ export function createEInvoiceProvider(
   config: ProviderConfig
 ): EInvoiceProvider {
   switch (providerName) {
-    case 'ie-racuni':
-      return new IERacuniProvider(config.apiKey, config.apiUrl);
-    case 'fina':
-      return new FinaProvider(config.apiKey, config.apiUrl);
+    case "ie-racuni":
+      return new IERacuniProvider(config.apiKey, config.apiUrl)
+    case "fina":
+      return new FinaProvider(config.apiKey, config.apiUrl)
     default:
-      throw new Error(`Unknown provider: ${providerName}`);
+      throw new Error(`Unknown provider: ${providerName}`)
   }
 }
 ```
@@ -536,15 +545,18 @@ export function createEInvoiceProvider(
 ```typescript
 // AI service for categorization
 interface AICategorizationService {
-  categorizeExpense(description: string, amount: number): Promise<{
-    category: string;
-    confidence: number;
-    accountCode?: string;
-  }>;
+  categorizeExpense(
+    description: string,
+    amount: number
+  ): Promise<{
+    category: string
+    confidence: number
+    accountCode?: string
+  }>
 
-  detectAnomalies(transactions: Transaction[]): Promise<Anomaly[]>;
+  detectAnomalies(transactions: Transaction[]): Promise<Anomaly[]>
 
-  suggestBookingEntry(invoice: Invoice): Promise<JournalEntry[]>;
+  suggestBookingEntry(invoice: Invoice): Promise<JournalEntry[]>
 }
 ```
 
@@ -553,7 +565,7 @@ interface AICategorizationService {
 ```typescript
 // Natural language query interface
 interface AIAssistant {
-  query(prompt: string, context: CompanyContext): Promise<AssistantResponse>;
+  query(prompt: string, context: CompanyContext): Promise<AssistantResponse>
 
   // Example queries:
   // "Pokaži mi neplaćene račune iz prošlog mjeseca"
@@ -655,30 +667,32 @@ interface AIAssistant {
 
 ## Module Roadmap
 
-| Phase | Module | Priority | Dependencies |
-|-------|--------|----------|--------------|
-| 1 | Core (Auth, Companies, Contacts, Products) | MVP | None |
-| 1 | E-Invoicing | MVP | Core |
-| 2 | Invoicing | High | Core |
-| 2 | Expenses | High | Core |
-| 3 | Banking Integration | Medium | Invoicing, Expenses |
-| 3 | Bookkeeping | Medium | All above |
-| 4 | VAT/PDV Reporting | Medium | Bookkeeping |
-| 4 | Payroll (JOPPD) | Medium | Bookkeeping |
-| 5 | Financial Reporting | Medium | All above |
-| 5 | Assets Management | Low | Bookkeeping |
+| Phase | Module                                     | Priority | Dependencies        |
+| ----- | ------------------------------------------ | -------- | ------------------- |
+| 1     | Core (Auth, Companies, Contacts, Products) | MVP      | None                |
+| 1     | E-Invoicing                                | MVP      | Core                |
+| 2     | Invoicing                                  | High     | Core                |
+| 2     | Expenses                                   | High     | Core                |
+| 3     | Banking Integration                        | Medium   | Invoicing, Expenses |
+| 3     | Bookkeeping                                | Medium   | All above           |
+| 4     | VAT/PDV Reporting                          | Medium   | Bookkeeping         |
+| 4     | Payroll (JOPPD)                            | Medium   | Bookkeeping         |
+| 5     | Financial Reporting                        | Medium   | All above           |
+| 5     | Assets Management                          | Low      | Bookkeeping         |
 
 ---
 
 ## Success Metrics
 
 ### Technical
+
 - Page load < 2 seconds
 - API response < 500ms
 - 99.9% uptime
 - Zero data loss
 
 ### Business
+
 - E-invoice delivery success rate > 99%
 - OCR accuracy > 95%
 - User onboarding < 10 minutes
@@ -697,4 +711,4 @@ interface AIAssistant {
 
 ---
 
-*Document approved for implementation.*
+_Document approved for implementation._

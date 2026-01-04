@@ -58,7 +58,10 @@ function getExistingIssueTitles() {
 }
 
 function createIssue({ title, body, labels }) {
-  const tmp = path.join("/tmp", `fiskai_issue_${Date.now()}_${Math.random().toString(16).slice(2)}.md`)
+  const tmp = path.join(
+    "/tmp",
+    `fiskai_issue_${Date.now()}_${Math.random().toString(16).slice(2)}.md`
+  )
   fs.writeFileSync(tmp, body)
   const args = ["gh", "issue", "create", "--title", title, "--body-file", tmp]
   for (const label of labels) args.push("--label", label)
@@ -185,22 +188,32 @@ function main() {
   const created = []
 
   // Executive + DoD + Roadmap issues.
-  const executive = extractSection(md, /^##\s+Biggest “Land First Customers” Gaps \(Executive List\)$/m)
+  const executive = extractSection(
+    md,
+    /^##\s+Biggest “Land First Customers” Gaps \(Executive List\)$/m
+  )
   if (executive) {
     const title = "Launch gaps: Executive blockers"
     if (!existingTitles.has(title)) {
       const body = `Source: \`docs/LAUNCH_GAPS.md\`\n\n${executive}\n`
-      created.push(createIssue({ title, body, labels: ["launch-gap", "priority:P0", "area:acquisition"] }))
+      created.push(
+        createIssue({ title, body, labels: ["launch-gap", "priority:P0", "area:acquisition"] })
+      )
       existingTitles.add(title)
     }
   }
 
-  const dod = extractSection(md, /^##\s+First Customers \(Paušalni Obrt\)\s+—\s+Definition of Done$/m)
+  const dod = extractSection(
+    md,
+    /^##\s+First Customers \(Paušalni Obrt\)\s+—\s+Definition of Done$/m
+  )
   if (dod) {
     const title = "Launch gaps: Paušalni obrt definition of done"
     if (!existingTitles.has(title)) {
       const body = `Source: \`docs/LAUNCH_GAPS.md\`\n\n${dod}\n`
-      created.push(createIssue({ title, body, labels: ["launch-gap", "priority:P0", "area:pausalni-obrt"] }))
+      created.push(
+        createIssue({ title, body, labels: ["launch-gap", "priority:P0", "area:pausalni-obrt"] })
+      )
       existingTitles.add(title)
     }
   }
@@ -236,7 +249,9 @@ function main() {
       `This issue tracks the launch-readiness gap backlog.\n\n` +
       `Source document: \`docs/LAUNCH_GAPS.md\`\n\n` +
       `Next step: triage \`launch-gap\` issues and break P0/P1 into smaller deliverables.\n`
-    created.push(createIssue({ title: masterTitle, body, labels: ["launch-gap", "priority:P0", "area:ops"] }))
+    created.push(
+      createIssue({ title: masterTitle, body, labels: ["launch-gap", "priority:P0", "area:ops"] })
+    )
     existingTitles.add(masterTitle)
   }
 

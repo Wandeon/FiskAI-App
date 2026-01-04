@@ -63,7 +63,9 @@ test.describe("Authentication Flow", () => {
     // Should show password field or verification step
     // Wait for either password input or verification code input
     await expect(
-      page.getByRole("textbox", { name: /lozink|password/i }).or(page.getByText(/verifikacij|verification/i))
+      page
+        .getByRole("textbox", { name: /lozink|password/i })
+        .or(page.getByText(/verifikacij|verification/i))
     ).toBeVisible({ timeout: 10000 })
   })
 

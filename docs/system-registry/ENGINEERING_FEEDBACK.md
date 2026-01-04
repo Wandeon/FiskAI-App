@@ -8,8 +8,8 @@
 
 ## 1) Observed Inventory Summary
 
-* **Total observed components:** 110
-* **By type:**
+- **Total observed components:** 110
+- **By type:**
   - UI: 4
   - MODULE: 16
   - ROUTE_GROUP: 37
@@ -20,7 +20,7 @@
   - INTEGRATION: 6
   - LIB: 12
 
-* **Where inventory is incomplete and why:**
+- **Where inventory is incomplete and why:**
   - **Runtime endpoints not scanned:** Health/metrics endpoints exist but runtime observation not performed (v1 is code-only)
   - **SaltEdge integration:** Referenced in docs but no code wrapper found - may be deprecated or merged with GoCardless
   - **Email templates:** Templates exist in `src/lib/email/templates/` but not inventoried as separate components
@@ -31,29 +31,29 @@
 
 ### ObservedNotDeclared (highest risk)
 
-| componentId | discovered at | owner guess | why it matters |
-|-------------|---------------|-------------|----------------|
-| route-group-auth | src/app/api/auth/ | Unknown | Security boundary - authentication endpoints |
-| route-group-billing | src/app/api/billing/ | Unknown | Money movement - Stripe integration |
-| route-group-webauthn | src/app/api/webauthn/ | Unknown | Authentication - passkey management |
-| lib-auth | src/lib/auth/ | Unknown | Core security library |
-| lib-fiscal | src/lib/fiscal/ | Unknown | Fiscalization logic - legal requirement |
-| lib-billing | src/lib/billing/ | Unknown | Billing/subscription logic |
-| job-fiscal-processor | src/app/api/cron/fiscal-processor/ | Unknown | Fiscal batch processing |
-| job-certificate-check | src/app/api/cron/certificate-check/ | Unknown | Fiscal certificate expiry monitoring |
-| queue-release | src/lib/regulatory-truth/workers/queues.ts | Unknown | Final step in regulatory publication |
-| All 37 API route groups | src/app/api/*/ | Unknown | Entire API surface is undeclared |
+| componentId             | discovered at                              | owner guess | why it matters                               |
+| ----------------------- | ------------------------------------------ | ----------- | -------------------------------------------- |
+| route-group-auth        | src/app/api/auth/                          | Unknown     | Security boundary - authentication endpoints |
+| route-group-billing     | src/app/api/billing/                       | Unknown     | Money movement - Stripe integration          |
+| route-group-webauthn    | src/app/api/webauthn/                      | Unknown     | Authentication - passkey management          |
+| lib-auth                | src/lib/auth/                              | Unknown     | Core security library                        |
+| lib-fiscal              | src/lib/fiscal/                            | Unknown     | Fiscalization logic - legal requirement      |
+| lib-billing             | src/lib/billing/                           | Unknown     | Billing/subscription logic                   |
+| job-fiscal-processor    | src/app/api/cron/fiscal-processor/         | Unknown     | Fiscal batch processing                      |
+| job-certificate-check   | src/app/api/cron/certificate-check/        | Unknown     | Fiscal certificate expiry monitoring         |
+| queue-release           | src/lib/regulatory-truth/workers/queues.ts | Unknown     | Final step in regulatory publication         |
+| All 37 API route groups | src/app/api/\*/                            | Unknown     | Entire API surface is undeclared             |
 
 ### DeclaredNotObserved (rot risk)
 
-* **NONE** - All declared components have corresponding code.
+- **NONE** - All declared components have corresponding code.
 
 ### Metadata gaps
 
-* **No owner:** 40 (100% of declared components)
-* **No docs link:** 17 components
-* **No codeRef:** 3 components (integration-gocardless, integration-ollama, lib-billing)
-* **No dependencies defined:** 15 components
+- **No owner:** 40 (100% of declared components)
+- **No docs link:** 17 components
+- **No codeRef:** 3 components (integration-gocardless, integration-ollama, lib-billing)
+- **No dependencies defined:** 15 components
 
 ---
 
@@ -61,17 +61,17 @@
 
 List of things that exist but no one explicitly owns or documents:
 
-| Component | Location | What it does | Risk |
-|-----------|----------|--------------|------|
-| `lib-billing` | src/lib/billing/ | Stripe subscription management, plan enforcement | CRITICAL |
-| `lib-cache` | src/lib/cache/ | Caching layer, unclear usage | MEDIUM |
-| `lib-middleware` | src/lib/middleware/ | Subdomain routing, critical for portal separation | HIGH |
-| `job-bank-sync` | src/app/api/cron/bank-sync/ | Automatic bank transaction sync | HIGH |
-| `job-email-sync` | src/app/api/cron/email-sync/ | Email inbox sync for expense extraction | MEDIUM |
-| `queue-deadletter` | queues.ts | Failed job handling - no monitoring | HIGH |
-| `worker-scheduler` | docker-compose.workers.yml | Schedules RTL jobs, not in declared registry | HIGH |
-| `route-group-sandbox` | src/app/api/sandbox/ | Unknown purpose - test endpoint? | LOW |
-| All 12 cron jobs | src/app/api/cron/*/ | Background automation with no declared ownership | VARIES |
+| Component             | Location                     | What it does                                      | Risk     |
+| --------------------- | ---------------------------- | ------------------------------------------------- | -------- |
+| `lib-billing`         | src/lib/billing/             | Stripe subscription management, plan enforcement  | CRITICAL |
+| `lib-cache`           | src/lib/cache/               | Caching layer, unclear usage                      | MEDIUM   |
+| `lib-middleware`      | src/lib/middleware/          | Subdomain routing, critical for portal separation | HIGH     |
+| `job-bank-sync`       | src/app/api/cron/bank-sync/  | Automatic bank transaction sync                   | HIGH     |
+| `job-email-sync`      | src/app/api/cron/email-sync/ | Email inbox sync for expense extraction           | MEDIUM   |
+| `queue-deadletter`    | queues.ts                    | Failed job handling - no monitoring               | HIGH     |
+| `worker-scheduler`    | docker-compose.workers.yml   | Schedules RTL jobs, not in declared registry      | HIGH     |
+| `route-group-sandbox` | src/app/api/sandbox/         | Unknown purpose - test endpoint?                  | LOW      |
+| All 12 cron jobs      | src/app/api/cron/\*/         | Background automation with no declared ownership  | VARIES   |
 
 ---
 
@@ -79,11 +79,11 @@ List of things that exist but no one explicitly owns or documents:
 
 Same responsibility implemented twice:
 
-| Responsibility | Implementation 1 | Implementation 2 | Resolution |
-|----------------|------------------|------------------|------------|
-| Bank connectivity | `route-group-bank` (3 endpoints) | `route-group-banking` (7 endpoints) | Appears intentional: bank = connection setup, banking = transaction management. **Recommend:** Merge or clearly document separation |
-| AI endpoints | `route-group-ai` (4 endpoints) | `route-group-assistant` (5 endpoints) | Appears intentional: ai = extraction/suggestions, assistant = Q&A. **Recommend:** Document boundary |
-| News processing | `job-fetch-news` | `job-news-fetch-classify` | May be duplicate. **Investigate** |
+| Responsibility    | Implementation 1                 | Implementation 2                      | Resolution                                                                                                                          |
+| ----------------- | -------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Bank connectivity | `route-group-bank` (3 endpoints) | `route-group-banking` (7 endpoints)   | Appears intentional: bank = connection setup, banking = transaction management. **Recommend:** Merge or clearly document separation |
+| AI endpoints      | `route-group-ai` (4 endpoints)   | `route-group-assistant` (5 endpoints) | Appears intentional: ai = extraction/suggestions, assistant = Q&A. **Recommend:** Document boundary                                 |
+| News processing   | `job-fetch-news`                 | `job-news-fetch-classify`             | May be duplicate. **Investigate**                                                                                                   |
 
 ---
 
@@ -104,6 +104,7 @@ Same responsibility implemented twice:
 5. **Migration path:** TS source of truth can migrate to DB later if needed. Starting with DB is harder to reverse.
 
 **Commitment for v1:**
+
 - Drift detection script runs in CI
 - Audit trail via git history
 - Admin UI shows drift report
@@ -116,11 +117,13 @@ Same responsibility implemented twice:
 What we can ship in 1 week that meets non-negotiables:
 
 ### Day 1-2: Registry Definition
+
 - [ ] Create `src/lib/system-registry/schema.ts` with component types
 - [ ] Create `src/lib/system-registry/declarations.ts` with all 110 components declared
 - [ ] Add owner field (can be "unassigned" initially)
 
 ### Day 3-4: Harvesters
+
 - [ ] `harvest-modules.ts` - Scan module definitions
 - [ ] `harvest-routes.ts` - Scan API route groups
 - [ ] `harvest-workers.ts` - Scan docker-compose.workers.yml
@@ -128,11 +131,13 @@ What we can ship in 1 week that meets non-negotiables:
 - [ ] `compute-drift.ts` - Compare declared vs observed
 
 ### Day 5: CI Integration
+
 - [ ] Add `npm run registry:check` script
 - [ ] Add CI step that fails if new module/worker not declared
 - [ ] Add GitHub Action for drift report on PR
 
 ### Day 6-7: Admin UI
+
 - [ ] Create `/admin/registry` route
 - [ ] Overview tab: counts by type/status
 - [ ] Drift tab: ObservedNotDeclared, MetadataGaps
@@ -142,13 +147,13 @@ What we can ship in 1 week that meets non-negotiables:
 
 ## 7) Risks / blockers
 
-| Risk | Mitigation |
-|------|------------|
-| **No assigned owners** | Accept "unassigned" as valid status for v1, require assignment for CRITICAL components |
-| **37 route groups to declare** | Generate initial declarations from observed inventory, bulk import |
-| **Team may resist registration overhead** | Start enforcement with only MODULE and WORKER types, expand gradually |
-| **Dependency graph incomplete** | Accept partial graph in v1, flag missing deps as metadata gap |
-| **Runtime observation not in v1** | Explicitly mark as "code-only" observation, add runtime in v2 |
+| Risk                                      | Mitigation                                                                             |
+| ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| **No assigned owners**                    | Accept "unassigned" as valid status for v1, require assignment for CRITICAL components |
+| **37 route groups to declare**            | Generate initial declarations from observed inventory, bulk import                     |
+| **Team may resist registration overhead** | Start enforcement with only MODULE and WORKER types, expand gradually                  |
+| **Dependency graph incomplete**           | Accept partial graph in v1, flag missing deps as metadata gap                          |
+| **Runtime observation not in v1**         | Explicitly mark as "code-only" observation, add runtime in v2                          |
 
 ---
 
@@ -169,6 +174,7 @@ What we can ship in 1 week that meets non-negotiables:
 Pattern: `{type}-{name-kebab}`
 
 Examples:
+
 - `module-invoicing`
 - `route-group-admin`
 - `worker-sentinel`
@@ -200,13 +206,13 @@ Examples:
 
 ## Artifacts Produced
 
-| File | Purpose |
-|------|---------|
-| `docs/system-registry/observed-inventory.json` | Deterministic code scan output |
-| `docs/system-registry/declared-registry.json` | Current declared state (needs expansion) |
-| `docs/system-registry/drift-report.md` | Human-readable drift analysis |
-| `docs/system-registry/drift-report.json` | Machine-readable drift data |
-| `docs/system-registry/ENGINEERING_FEEDBACK.md` | This document |
+| File                                           | Purpose                                  |
+| ---------------------------------------------- | ---------------------------------------- |
+| `docs/system-registry/observed-inventory.json` | Deterministic code scan output           |
+| `docs/system-registry/declared-registry.json`  | Current declared state (needs expansion) |
+| `docs/system-registry/drift-report.md`         | Human-readable drift analysis            |
+| `docs/system-registry/drift-report.json`       | Machine-readable drift data              |
+| `docs/system-registry/ENGINEERING_FEEDBACK.md` | This document                            |
 
 ---
 

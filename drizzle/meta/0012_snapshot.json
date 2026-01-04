@@ -594,12 +594,8 @@
           "name": "news_categories_parent_id_news_categories_id_fk",
           "tableFrom": "news_categories",
           "tableTo": "news_categories",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -609,9 +605,7 @@
         "news_categories_slug_unique": {
           "name": "news_categories_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -864,12 +858,8 @@
           "name": "news_items_source_id_news_sources_id_fk",
           "tableFrom": "news_items",
           "tableTo": "news_sources",
-          "columnsFrom": [
-            "source_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["source_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -877,12 +867,8 @@
           "name": "news_items_assigned_to_post_id_news_posts_id_fk",
           "tableFrom": "news_items",
           "tableTo": "news_posts",
-          "columnsFrom": [
-            "assigned_to_post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_to_post_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1048,12 +1034,8 @@
           "name": "news_post_sources_post_id_news_posts_id_fk",
           "tableFrom": "news_post_sources",
           "tableTo": "news_posts",
-          "columnsFrom": [
-            "post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["post_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1061,12 +1043,8 @@
           "name": "news_post_sources_news_item_id_news_items_id_fk",
           "tableFrom": "news_post_sources",
           "tableTo": "news_items",
-          "columnsFrom": [
-            "news_item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["news_item_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1074,10 +1052,7 @@
       "compositePrimaryKeys": {
         "news_post_sources_post_id_news_item_id_pk": {
           "name": "news_post_sources_post_id_news_item_id_pk",
-          "columns": [
-            "post_id",
-            "news_item_id"
-          ]
+          "columns": ["post_id", "news_item_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1382,12 +1357,8 @@
           "name": "news_posts_category_id_news_categories_id_fk",
           "tableFrom": "news_posts",
           "tableTo": "news_categories",
-          "columnsFrom": [
-            "category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["category_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1397,9 +1368,7 @@
         "news_posts_slug_unique": {
           "name": "news_posts_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1558,9 +1527,7 @@
         "news_tags_slug_unique": {
           "name": "news_tags_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1663,9 +1630,7 @@
         "newsletter_subscriptions_email_unique": {
           "name": "newsletter_subscriptions_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -2474,15 +2439,7 @@
     "public.content_sync_status": {
       "name": "content_sync_status",
       "schema": "public",
-      "values": [
-        "PENDING",
-        "ENQUEUED",
-        "PROCESSING",
-        "DONE",
-        "FAILED",
-        "DEAD_LETTERED",
-        "SKIPPED"
-      ]
+      "values": ["PENDING", "ENQUEUED", "PROCESSING", "DONE", "FAILED", "DEAD_LETTERED", "SKIPPED"]
     },
     "public.dead_letter_reason": {
       "name": "dead_letter_reason",

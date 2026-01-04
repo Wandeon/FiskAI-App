@@ -42,11 +42,11 @@
 
 ## Alerts (PostHog Actions)
 
-| Alert | Condition | Action |
-|-------|-----------|--------|
-| LCP Regression | LCP p75 > 3000ms for 30min | Slack notification |
-| CLS Spike | CLS p75 > 0.15 for 30min | Slack notification |
-| INP Degradation | INP p75 > 300ms for 30min | Slack notification |
+| Alert           | Condition                  | Action             |
+| --------------- | -------------------------- | ------------------ |
+| LCP Regression  | LCP p75 > 3000ms for 30min | Slack notification |
+| CLS Spike       | CLS p75 > 0.15 for 30min   | Slack notification |
+| INP Degradation | INP p75 > 300ms for 30min  | Slack notification |
 
 ## Implementation
 

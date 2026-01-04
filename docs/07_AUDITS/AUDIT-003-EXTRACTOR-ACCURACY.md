@@ -13,15 +13,15 @@ This audit evaluates the Extractor stage of the Regulatory Truth system for accu
 
 ### Overall Assessment: **PASS WITH WARNINGS**
 
-| Category | Status | Details |
-|----------|--------|---------|
-| Hallucination Prevention (Prompt) | PASS | Strong anti-inference language in prompts |
-| Quote Verification | PASS | `validateValueInQuote` checks value presence |
-| Dead-Letter Handling | PASS | ExtractionRejected table captures failures |
-| Domain Validation | PASS | Domain-specific ranges enforced |
-| Test Coverage | PASS | Comprehensive validator tests |
-| Claim Extractor Validation | **FAIL** | Missing deterministic validation |
-| Cross-System Consistency | **WARN** | Schema mismatches between components |
+| Category                          | Status   | Details                                      |
+| --------------------------------- | -------- | -------------------------------------------- |
+| Hallucination Prevention (Prompt) | PASS     | Strong anti-inference language in prompts    |
+| Quote Verification                | PASS     | `validateValueInQuote` checks value presence |
+| Dead-Letter Handling              | PASS     | ExtractionRejected table captures failures   |
+| Domain Validation                 | PASS     | Domain-specific ranges enforced              |
+| Test Coverage                     | PASS     | Comprehensive validator tests                |
+| Claim Extractor Validation        | **FAIL** | Missing deterministic validation             |
+| Cross-System Consistency          | **WARN** | Schema mismatches between components         |
 
 ---
 
@@ -36,20 +36,22 @@ This audit evaluates the Extractor stage of the Regulatory Truth system for accu
 **Issue:** The claim extractor stores extracted claims directly from LLM output without running the `validateValueInQuote` or `validateExtraction` functions that protect the legacy SourcePointer flow.
 
 **Evidence:**
+
 ```typescript
 // claim-extractor.ts - Claims stored without quote verification
 for (const claim of result.output.claims) {
   const dbClaim = await db.atomicClaim.create({
     data: {
       // ... fields stored directly from LLM output
-      exactQuote: claim.exactQuote,  // NOT VERIFIED!
-      value: claim.value,            // NOT VERIFIED!
+      exactQuote: claim.exactQuote, // NOT VERIFIED!
+      value: claim.value, // NOT VERIFIED!
     },
   })
 }
 ```
 
 Compare with `extractor.ts:192`:
+
 ```typescript
 // extractor.ts - Proper validation before storage
 const validation = validateExtraction(extraction)
@@ -73,6 +75,7 @@ if (!validation.valid) {
 **Issue:** The test suite explicitly documents that OCR corruption of Croatian diacritics causes quote verification to fail incorrectly. When OCR produces "sijecnja" instead of "siječnja", the date pattern "15. siječnja 2025" won't match.
 
 **Evidence:**
+
 ```typescript
 // Known issue: OCR diacritic corruption causes false negatives
 it("fails on OCR diacritic corruption (known issue HIGH-02)", () => {
@@ -95,12 +98,13 @@ it("fails on OCR diacritic corruption (known issue HIGH-02)", () => {
 **Issue:** When JSON content is detected, the extractor auto-corrects quotes by extracting them from the JSON structure. This synthetic quote generation could mask cases where the LLM fabricated a value.
 
 **Evidence:**
+
 ```typescript
 // For JSON content, fix the quote to be a verbatim JSON fragment
 if (evidence.contentType === "json" || isJsonContent(content)) {
   const jsonQuote = extractQuoteFromJson(content, String(extraction.extracted_value))
   if (jsonQuote) {
-    extraction.exact_quote = jsonQuote  // OVERWRITES LLM's quote
+    extraction.exact_quote = jsonQuote // OVERWRITES LLM's quote
   }
 }
 ```
@@ -116,22 +120,23 @@ if (evidence.contentType === "json" || isJsonContent(content)) {
 #### MED-01: Schema Mismatch Between DomainSchema and Validators
 
 **Location:**
+
 - `src/lib/regulatory-truth/schemas/common.ts:50-59`
 - `src/lib/regulatory-truth/utils/deterministic-validators.ts:178-188`
 
 **Issue:** The Zod DomainSchema only includes 7 domains, but validators reference 9 domains:
 
-| Schema Domains | Validator Domains |
-|---------------|-------------------|
-| pausalni | pausalni |
-| pdv | pdv |
-| porez_dohodak | porez_dohodak |
-| doprinosi | doprinosi |
-| fiskalizacija | fiskalizacija |
-| rokovi | rokovi |
-| obrasci | obrasci |
-| - | **interest_rates** |
-| - | **exchange_rates** |
+| Schema Domains | Validator Domains  |
+| -------------- | ------------------ |
+| pausalni       | pausalni           |
+| pdv            | pdv                |
+| porez_dohodak  | porez_dohodak      |
+| doprinosi      | doprinosi          |
+| fiskalizacija  | fiskalizacija      |
+| rokovi         | rokovi             |
+| obrasci        | obrasci            |
+| -              | **interest_rates** |
+| -              | **exchange_rates** |
 
 **Risk:** Extractions with domain "interest_rates" or "exchange_rates" would fail Zod validation if schema is strictly enforced.
 
@@ -146,10 +151,17 @@ if (evidence.contentType === "json" || isJsonContent(content)) {
 **Issue:** ValueTypeSchema doesn't include "interest_rate" or "exchange_rate" but validators handle these types.
 
 **Current Schema:**
+
 ```typescript
 export const ValueTypeSchema = z.enum([
-  "currency", "percentage", "date", "threshold", "text",
-  "currency_hrk", "currency_eur", "count",
+  "currency",
+  "percentage",
+  "date",
+  "threshold",
+  "text",
+  "currency_hrk",
+  "currency_eur",
+  "count",
 ])
 // Missing: "interest_rate", "exchange_rate"
 ```
@@ -163,6 +175,7 @@ export const ValueTypeSchema = z.enum([
 **Location:** `src/lib/regulatory-truth/agents/claim-extractor.ts:54`
 
 **Issue:** Content is truncated to 50,000 characters before extraction:
+
 ```typescript
 content: cleanedContent.slice(0, 50000), // Limit content size
 ```
@@ -180,6 +193,7 @@ For large regulatory documents (e.g., complete laws), important provisions in la
 **Location:** `src/lib/regulatory-truth/utils/deterministic-validators.ts:452`
 
 **Issue:** Quote minimum length is only 5 characters:
+
 ```typescript
 if (!extraction.exact_quote || extraction.exact_quote.trim().length < 5) {
   errors.push("Exact quote is required and must be at least 5 characters")
@@ -209,6 +223,7 @@ A 5-character quote like "25%" provides insufficient context for verification.
    Location: `src/lib/regulatory-truth/prompts/index.ts:50-67`
 
    The EXTRACTOR_PROMPT has explicit, strongly-worded anti-inference instructions:
+
    ```
    CRITICAL RULE - NO INFERENCE ALLOWED:
    You may ONLY extract values that are EXPLICITLY STATED in the text.
@@ -243,11 +258,12 @@ A 5-character quote like "25%" provides insufficient context for verification.
    Location: `src/lib/regulatory-truth/agents/extractor.ts:201-218`
 
    Failed extractions are preserved for analysis:
+
    ```typescript
    await db.extractionRejected.create({
      data: {
        evidenceId: evidence.id,
-       rejectionType,  // OUT_OF_RANGE, NO_QUOTE_MATCH, etc.
+       rejectionType, // OUT_OF_RANGE, NO_QUOTE_MATCH, etc.
        rawOutput: extraction,
        errorDetails: validation.errors.join("; "),
      },
@@ -354,6 +370,7 @@ LIMIT 5;
 ## Conclusion
 
 The Extractor system has strong foundations for preventing hallucinations through:
+
 - Explicit prompt instructions
 - Deterministic quote verification
 - Domain-specific validation
@@ -362,6 +379,7 @@ The Extractor system has strong foundations for preventing hallucinations throug
 However, the **AtomicClaim extraction path bypasses these protections** (CRIT-01), creating a critical gap that should be addressed immediately. With this fix and the recommended improvements, the system would provide robust hallucination prevention for regulatory fact extraction.
 
 **Next Steps:**
+
 1. Fix CRIT-01 (claim validation)
 2. Address HIGH-01 and HIGH-02
 3. Run database queries when access available

@@ -3,9 +3,9 @@
 ## Auto-match rules
 
 - **Threshold:** Transactions that score **≥85** are auto-matched (`AUTO_MATCH_THRESHOLD`). Anything below stays in `UNMATCHED`.
-- **Score rules:**  
-  1. Invoice number found in the bank reference → score 100 (exact match).  
-  2. Net/total amount equal and invoice date within ±3 days → score 85.  
+- **Score rules:**
+  1. Invoice number found in the bank reference → score 100 (exact match).
+  2. Net/total amount equal and invoice date within ±3 days → score 85.
   3. Amount within ±5% and date within ±5 days → score 70 (treated as candidate, not auto-match).
 - **Currency handling:** Matching currently assumes the transaction amount is in the same currency as the invoice (typically HRK/EUR). Cross-currency or EUR→HRK conversions aren’t auto-accounted; those entries stay `UNMATCHED` for manual review.
 - **Invoice status:** Only outbound invoices with `paidAt = null` and fiscalized/released statuses are considered. When an auto-match happens, the invoice is updated to `paidAt = transaction.date` and status `ACCEPTED`.

@@ -14,11 +14,7 @@
       "actualWorkers": 1
     },
     "preserveOutput": "always",
-    "reporter": [
-      [
-        "json"
-      ]
-    ],
+    "reporter": [["json"]],
     "reportSlowTests": {
       "max": 5,
       "threshold": 300000
@@ -36,9 +32,7 @@
         "name": "",
         "testDir": "/home/admin/FiskAI/.worktrees/marketing-content-governance-plan/tests/marketing-audit",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 900000
       }
     ],

@@ -1,1 +1,34 @@
-{"context":{"asOf":"2026-01-01T00:00:00.000Z","entity":{"type":"DOO","vat":{"status":"IN_VAT"}}},"evaluatedAt":"2025-12-23T08:27:41.320Z","totalRulesEvaluated":1,"applicableCount":1,"applicableRules":[{"id":"cmjh8kjyy001bfgwa9b8d75ud","conceptSlug":"eu-vat-directive-reference","titleHr":"Referenca na Direktivu o PDV-u","titleEn":"VAT Directive Reference","riskTier":"T2","authorityLevel":"PRACTICE","automationPolicy":"CONFIRM","appliesWhen":"{\"op\":\"cmp\",\"field\":\"entity.vat.status\",\"cmp\":\"eq\",\"value\":\"IN_VAT\"}","value":"32006L0112","valueType":"text","outcome":null,"effectiveFrom":"2007-01-01T00:00:00.000Z","effectiveUntil":null,"confidence":1}],"evaluationDetails":[{"ruleId":"cmjh8kjyy001bfgwa9b8d75ud","conceptSlug":"eu-vat-directive-reference","applies":true}]}
+{
+  "context": {
+    "asOf": "2026-01-01T00:00:00.000Z",
+    "entity": { "type": "DOO", "vat": { "status": "IN_VAT" } }
+  },
+  "evaluatedAt": "2025-12-23T08:27:41.320Z",
+  "totalRulesEvaluated": 1,
+  "applicableCount": 1,
+  "applicableRules": [
+    {
+      "id": "cmjh8kjyy001bfgwa9b8d75ud",
+      "conceptSlug": "eu-vat-directive-reference",
+      "titleHr": "Referenca na Direktivu o PDV-u",
+      "titleEn": "VAT Directive Reference",
+      "riskTier": "T2",
+      "authorityLevel": "PRACTICE",
+      "automationPolicy": "CONFIRM",
+      "appliesWhen": "{\"op\":\"cmp\",\"field\":\"entity.vat.status\",\"cmp\":\"eq\",\"value\":\"IN_VAT\"}",
+      "value": "32006L0112",
+      "valueType": "text",
+      "outcome": null,
+      "effectiveFrom": "2007-01-01T00:00:00.000Z",
+      "effectiveUntil": null,
+      "confidence": 1
+    }
+  ],
+  "evaluationDetails": [
+    {
+      "ruleId": "cmjh8kjyy001bfgwa9b8d75ud",
+      "conceptSlug": "eu-vat-directive-reference",
+      "applies": true
+    }
+  ]
+}

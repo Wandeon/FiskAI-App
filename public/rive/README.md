@@ -9,6 +9,7 @@ This directory contains Rive animation files for the FiskAI authentication flow.
 **State Machine:** "State Machine 1"
 
 **Inputs:**
+
 - `state` (Number): Controls the auth state (0-5)
   - 0: identify
   - 1: authenticate
@@ -19,6 +20,7 @@ This directory contains Rive animation files for the FiskAI authentication flow.
 - `error` (Trigger): Triggers error animation pulse
 
 **Design Requirements:**
+
 - Smooth gradient aurora effect
 - State-reactive color transitions
 - Error state should pulse/shake briefly
@@ -26,6 +28,7 @@ This directory contains Rive animation files for the FiskAI authentication flow.
 
 **Fallback:**
 The `AuroraBackground` component includes CSS gradient fallbacks for when:
+
 - Rive file is not loaded
 - User prefers reduced motion
 - Initial render before Rive loads

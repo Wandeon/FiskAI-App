@@ -13,15 +13,15 @@ Fiskalizacija 2.0 is Croatia's comprehensive digital transformation of the invoi
 
 ## Key Dates Timeline
 
-| Date | Milestone |
-|------|-----------|
-| **Sep 1, 2025** | Testing phase begins; businesses can register their information intermediary |
-| **Dec 31, 2025** | Deadline to register information intermediary via FiskAplikacija |
-| **Jan 1, 2026** | Mandatory e-invoicing for VAT-registered businesses (issuance + receipt) |
-| **Jan 1, 2026** | Non-VAT businesses must receive e-invoices |
-| **Jan 1, 2027** | Non-VAT businesses must also issue e-invoices |
-| **Jan 1, 2027** | Paper invoices no longer allowed |
-| **Jul 1, 2030** | ViDA (VAT in the Digital Age) compliance required |
+| Date             | Milestone                                                                    |
+| ---------------- | ---------------------------------------------------------------------------- |
+| **Sep 1, 2025**  | Testing phase begins; businesses can register their information intermediary |
+| **Dec 31, 2025** | Deadline to register information intermediary via FiskAplikacija             |
+| **Jan 1, 2026**  | Mandatory e-invoicing for VAT-registered businesses (issuance + receipt)     |
+| **Jan 1, 2026**  | Non-VAT businesses must receive e-invoices                                   |
+| **Jan 1, 2027**  | Non-VAT businesses must also issue e-invoices                                |
+| **Jan 1, 2027**  | Paper invoices no longer allowed                                             |
+| **Jul 1, 2030**  | ViDA (VAT in the Digital Age) compliance required                            |
 
 ## Scope
 
@@ -50,6 +50,7 @@ Fiskalizacija 2.0 is Croatia's comprehensive digital transformation of the invoi
 ### Required Elements
 
 Per EN 16931, invoices must include:
+
 - Seller and buyer identification (OIB for Croatian entities)
 - Invoice number and date
 - Line items with descriptions
@@ -88,26 +89,31 @@ Per EN 16931, invoices must include:
 The Tax Authority provides a free application for small businesses:
 
 ### Eligibility
+
 - Not VAT-registered (nisu u sustavu PDV-a)
 - Not public procurement entities
 - Croatian tax residents
 
 ### Features
+
 - Free via ePorezna portal
 - Issue, receive, and fiscalize e-invoices
 - Available from 2026 (receive) and 2027 (issue)
 
 ### Limitation
+
 If a business becomes VAT-registered, they must switch to a commercial information intermediary.
 
 ## Obligations for FiskAI Users
 
 ### For VAT-Registered Businesses (d.o.o., larger obrt)
+
 - Must issue AND receive e-invoices from Jan 1, 2026
 - Must use information intermediary
 - Real-time fiscalization of all invoices
 
 ### For Non-VAT Businesses (paušalni obrt, small j.d.o.o.)
+
 - Must receive e-invoices from Jan 1, 2026
 - Must issue e-invoices from Jan 1, 2027
 - Can use free MIKROeRAČUN or commercial solution

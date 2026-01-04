@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test"
 import { TOOL_VECTORS } from "../../scripts/marketing-content-audit/tool-vectors"
 import { getAuditConfig } from "../../src/lib/marketing-audit/config"
 
-async function runActions(page: Page, actions?: typeof TOOL_VECTORS[number]["actions"]) {
+async function runActions(page: Page, actions?: (typeof TOOL_VECTORS)[number]["actions"]) {
   if (!actions) return
 
   for (const action of actions) {

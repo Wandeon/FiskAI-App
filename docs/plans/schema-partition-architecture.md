@@ -20,17 +20,18 @@ src/lib/db/
 
 ### Justification
 
-| Factor | Option 1 | Option 2 | Option 3 |
-|--------|----------|----------|----------|
-| Migration isolation | ✅ Fully isolated | ⚠️ Same DB, namespace collisions | ❌ Coupled |
-| Deploy independence | ✅ RTL deploys don't block core | ⚠️ Still same migration history | ❌ Coupled |
-| Connection pooling | ✅ Separate pools | ⚠️ Shared pool | ⚠️ Shared pool |
-| Backup/restore | ✅ Can backup RTL separately | ⚠️ Same backup | ❌ Same backup |
-| Cross-reference handling | ⚠️ String IDs, no FK | ⚠️ Cross-schema FKs | ✅ Normal FKs |
-| Complexity | Medium | Medium-High | Low |
-| Future scaling | ✅ Can move to separate DB | ⚠️ Harder to separate | ❌ Hard to separate |
+| Factor                   | Option 1                        | Option 2                         | Option 3            |
+| ------------------------ | ------------------------------- | -------------------------------- | ------------------- |
+| Migration isolation      | ✅ Fully isolated               | ⚠️ Same DB, namespace collisions | ❌ Coupled          |
+| Deploy independence      | ✅ RTL deploys don't block core | ⚠️ Still same migration history  | ❌ Coupled          |
+| Connection pooling       | ✅ Separate pools               | ⚠️ Shared pool                   | ⚠️ Shared pool      |
+| Backup/restore           | ✅ Can backup RTL separately    | ⚠️ Same backup                   | ❌ Same backup      |
+| Cross-reference handling | ⚠️ String IDs, no FK            | ⚠️ Cross-schema FKs              | ✅ Normal FKs       |
+| Complexity               | Medium                          | Medium-High                      | Low                 |
+| Future scaling           | ✅ Can move to separate DB      | ⚠️ Harder to separate            | ❌ Hard to separate |
 
 **Decision:** Option 1 wins because:
+
 1. RTL schema changes are frequent (new shapes, new fields) - isolation prevents blocking core
 2. Evidence tables grow unbounded - separate connection pool prevents core starvation
 3. Regulatory data has different retention requirements - separate DB enables different backup policies
@@ -42,9 +43,9 @@ src/lib/db/
 
 ### Current Cross-Links (Core → RTL)
 
-| Core Model | Field | RTL Model | Strategy |
-|------------|-------|-----------|----------|
-| EInvoice | vatRuleId | RegulatoryRule | Convert to `String` (soft reference) |
+| Core Model  | Field     | RTL Model      | Strategy                             |
+| ----------- | --------- | -------------- | ------------------------------------ |
+| EInvoice    | vatRuleId | RegulatoryRule | Convert to `String` (soft reference) |
 | PostingRule | vatRuleId | RegulatoryRule | Convert to `String` (soft reference) |
 
 ### Implementation Pattern
@@ -65,10 +66,10 @@ model EInvoice {
 
 ```typescript
 // Usage in code
-const invoice = await db.eInvoice.findUnique({ where: { id } });
+const invoice = await db.eInvoice.findUnique({ where: { id } })
 const vatRule = invoice.vatRuleId
   ? await dbReg.regulatoryRule.findUnique({ where: { id: invoice.vatRuleId } })
-  : null;
+  : null
 ```
 
 ### RTL → Core (None Required)
@@ -151,6 +152,7 @@ CREATE SCHEMA IF NOT EXISTS regulatory;
 ```
 
 This allows:
+
 - Single backup
 - Easy cross-queries during transition
 - Later migration to separate DB
@@ -202,12 +204,12 @@ model Concept { ... }
 
 ```typescript
 // src/lib/db/core.ts
-import { PrismaClient } from '@prisma/client';
-export const db = new PrismaClient();
+import { PrismaClient } from "@prisma/client"
+export const db = new PrismaClient()
 
 // src/lib/db/regulatory.ts
-import { PrismaClient as PrismaClientRegulatory } from '.prisma/regulatory';
-export const dbReg = new PrismaClientRegulatory();
+import { PrismaClient as PrismaClientRegulatory } from ".prisma/regulatory"
+export const dbReg = new PrismaClientRegulatory()
 ```
 
 ---
@@ -239,32 +241,35 @@ const rule = await dbReg.regulatoryRule.findUnique({ ... });
 
 ## Which Client Where
 
-| Code Path | Client | Rationale |
-|-----------|--------|-----------|
-| `src/app/(app)/` | db | Client-facing, core data |
-| `src/app/(staff)/` | db | Staff-facing, core data |
-| `src/app/(admin)/` | db + dbReg | Admin sees both |
-| `src/lib/regulatory-truth/` | dbReg | RTL processing |
-| `src/lib/vat/` | db + dbReg | Core + rule lookup |
-| `src/lib/fiscal-rules/` | dbReg | Rule management |
-| `src/infrastructure/` | db | Core repositories |
-| `scripts/` | varies | Depends on purpose |
+| Code Path                   | Client     | Rationale                |
+| --------------------------- | ---------- | ------------------------ |
+| `src/app/(app)/`            | db         | Client-facing, core data |
+| `src/app/(staff)/`          | db         | Staff-facing, core data  |
+| `src/app/(admin)/`          | db + dbReg | Admin sees both          |
+| `src/lib/regulatory-truth/` | dbReg      | RTL processing           |
+| `src/lib/vat/`              | db + dbReg | Core + rule lookup       |
+| `src/lib/fiscal-rules/`     | dbReg      | Rule management          |
+| `src/infrastructure/`       | db         | Core repositories        |
+| `scripts/`                  | varies     | Depends on purpose       |
 
 ---
 
 ## Risk Assessment
 
 ### Low Risk
+
 - Creating regulatory.prisma file
 - Creating separate client modules
 - Updating RTL code paths
 
 ### Medium Risk
+
 - Converting FK to soft reference (EInvoice.vatRuleId)
 - Running parallel migrations
 - Ensuring all imports updated
 
 ### High Risk
+
 - Data migration between schemas
 - Connection pool sizing
 - Prisma client generation conflicts
@@ -281,31 +286,37 @@ const rule = await dbReg.regulatoryRule.findUnique({ ... });
 ## PR Staging Plan
 
 ### PR #1: Remove Unused Models (D category, 0 hits)
+
 - **Scope:** 26 models, 0 code changes
 - **Risk:** Very low
 - **Migration:** Single drop table migration
 
 ### PR #2: Remove News Models (D category)
+
 - **Scope:** 6 models, ~50 code references
 - **Risk:** Low (news is separate feature)
 - **Migration:** Drop tables + remove code
 
 ### PR #3: Remove Feature Flag Models (D category)
+
 - **Scope:** 8 models, ~200 code references
 - **Risk:** Medium (requires flag service replacement)
 - **Migration:** Replace with LaunchDarkly/env vars first
 
 ### PR #4: Eject Pipeline State (C category)
+
 - **Scope:** 24 models
 - **Risk:** Medium (requires BullMQ setup)
 - **Migration:** BullMQ migration + table drops
 
 ### PR #5: Split RTL Schema (B category)
+
 - **Scope:** 31 models
 - **Risk:** High (new Prisma client)
 - **Migration:** Schema split + data migration
 
 ### PR #6: Enum Cleanup
+
 - **Scope:** 52 workflow enums
 - **Risk:** Medium (data migration)
 - **Migration:** enum → varchar with backfill
@@ -314,14 +325,14 @@ const rule = await dbReg.regulatoryRule.findUnique({ ... });
 
 ## Success Criteria
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| Schema lines | 5,822 | ~2,500 |
-| Models | 200 | ~100 |
-| Enums | 139 | ~60 |
-| Prisma generate time | ~15s | ~8s |
-| Migration conflicts/month | 3-5 | 0-1 |
-| RTL blocking core deploys | Yes | No |
+| Metric                    | Current | Target |
+| ------------------------- | ------- | ------ |
+| Schema lines              | 5,822   | ~2,500 |
+| Models                    | 200     | ~100   |
+| Enums                     | 139     | ~60    |
+| Prisma generate time      | ~15s    | ~8s    |
+| Migration conflicts/month | 3-5     | 0-1    |
+| RTL blocking core deploys | Yes     | No     |
 
 ---
 

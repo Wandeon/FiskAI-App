@@ -44,9 +44,11 @@ Porez = Porezna osnovica × Stopa poreza
 ## Porezna osnovica za plaću
 
 ### Formula:
+
 **Porezna osnovica = Bruto plaća - Doprinosi - Osobni odbitak**
 
 ### Primjer:
+
 **Bruto plaća:** 2.000 EUR
 
 1. **Doprinosi (32%):** 640 EUR
@@ -62,6 +64,7 @@ Porez = Porezna osnovica × Stopa poreza
 Ako je bruto plaća niska, porezna osnovica može biti **0**:
 
 **Bruto plaća:** 800 EUR
+
 - Doprinosi (32%): 256 EUR
 - Nakon doprinosa: 544 EUR
 - Osobni odbitak: <FiscalCurrency path="TAX_RATES.income.personalAllowance" decimals={0} />
@@ -75,6 +78,7 @@ Za PDV, **osnovica je iznos bez PDV-a.**
 ### Primjer 1: Dodavanje PDV-a na cijenu
 
 **Prodajna cijena bez PDV-a:** 100 EUR
+
 - **PDV osnovica:** 100 EUR
 - PDV (standardna stopa): obračun prema stopi
 - **Ukupna cijena s PDV-om:** cijena + PDV
@@ -82,6 +86,7 @@ Za PDV, **osnovica je iznos bez PDV-a.**
 ### Primjer 2: Izračun osnovice iz cijene s PDV-om
 
 **Cijena s PDV-om:** 125 EUR
+
 - **Formula:** Osnovica = Cijena s PDV / (1 + stopa)
 - Osnovica = Cijena s PDV / (1 + stopa)
 - PDV = Cijena s PDV - osnovica
@@ -93,6 +98,7 @@ Za pravne osobe:
 **Porezna osnovica = Prihodi - Priznati rashodi ± Porezne korekcije**
 
 ### Priznati rashodi:
+
 - Troškovi materijala
 - Plaće zaposlenika
 - Zakup
@@ -100,11 +106,13 @@ Za pravne osobe:
 - Amortizacija
 
 ### Nepriznati rashodi (dodaju se natrag):
+
 - Privatne troškove
 - Kazne
 - Troškovi iznad limita
 
 **Primjer:**
+
 - Prihodi: 500.000 EUR
 - Rashodi u knjigama: 400.000 EUR
 - Nepriznati rashodi: 10.000 EUR
@@ -118,6 +126,7 @@ Za pravne osobe:
 Doprinosi se plaćają na **bruto plaću** (ne na oporeziva osnovicu):
 
 **Bruto plaća:** 1.500 EUR
+
 - **Osnovica za doprinose:** 1.500 EUR
 - MIO (20%): 1.500 × 0,20 = 300 EUR
 - HZZO (16,5%): 1.500 × 0,165 = 247,50 EUR
@@ -133,10 +142,12 @@ To znači da čak i ako je plaća 500 EUR, doprinosi se računaju na 682 EUR.
 ## Osnovica za honorare (ugovor o djelu)
 
 **Vrsta primitka 011 (puni honorar):**
+
 - Osnovica = bruto iznos
 - Plaća se sve (porez + doprinosi)
 
 **Vrsta primitka 041 (autorska prava):**
+
 - Paušalni troškovi 50%
 - **Osnovica = 50% bruto iznosa**
 - Niže obveze
@@ -145,11 +156,13 @@ To znači da čak i ako je plaća 500 EUR, doprinosi se računaju na 682 EUR.
 Honorar: 1.000 EUR
 
 **Puni honorar (011):**
+
 - Osnovica: 1.000 EUR
 - Doprinosi + porez: ~50%
 - Neto: ~500 EUR
 
 **Autorska prava (041):**
+
 - Osnovica: 500 EUR (paušal 50%)
 - Doprinosi + porez: ~35-40%
 - Neto: ~600-650 EUR
@@ -159,10 +172,12 @@ Honorar: 1.000 EUR
 Paušalac nema stvarnu poreznu osnovicu. Umjesto toga koristi:
 
 **Paušalni prihod** = fiksni iznos određen Pravilnikom
+
 - Ne ovisi o stvarnom prihodu
 - Porez = Paušalni prihod × 12%
 
 **Primjer:**
+
 - Stvarni prihod: 52.000 EUR godišnje
 - Paušalni prihod (pravilnik): 12.000 EUR
 - **Porez:** 12.000 × 12% = 1.440 EUR (godišnje)
@@ -174,6 +189,7 @@ Ponekad poslodavac plaća "**neto neto**" - sav porez i doprinose plaća posloda
 **Zadatak:** Izračunaj bruto za neto 2.000 EUR
 
 Ovo zahtijeva **grossing-up** (obrnuti izračun):
+
 - Bruto ≈ 3.200 EUR
 - Doprinosi + porez: 1.200 EUR
 - **Neto: 2.000 EUR**

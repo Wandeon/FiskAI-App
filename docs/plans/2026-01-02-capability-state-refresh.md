@@ -15,6 +15,7 @@
 PHASE 2 built action execution. After an action runs (e.g., fiscalize invoice), the capability state changes (invoice becomes immutable, INV-003 capability blocked). Currently the UI doesn't reflect this until a full page refresh.
 
 PHASE 3 adds automatic refresh:
+
 1. Enhance `useCapabilities` hook with SWR mutation
 2. Add revalidation trigger to action executor
 3. Control Centers auto-update after actions complete
@@ -24,6 +25,7 @@ PHASE 3 adds automatic refresh:
 ## Task 1: Enhance useCapabilities Hook with Mutation
 
 **Files:**
+
 - Modify: `src/hooks/use-capabilities.ts`
 - Test: `src/hooks/__tests__/use-capabilities.test.ts`
 
@@ -245,7 +247,9 @@ export function useCapabilities(options: UseCapabilitiesOptions): UseCapabilitie
 export async function revalidateCapabilities(entityId?: string): Promise<void> {
   // Revalidate all keys starting with "capabilities:"
   await globalMutate(
-    (key) => typeof key === "string" && key.startsWith("capabilities:") &&
+    (key) =>
+      typeof key === "string" &&
+      key.startsWith("capabilities:") &&
       (entityId ? key.includes(entityId) : true),
     undefined,
     { revalidate: true }
@@ -270,6 +274,7 @@ git commit -m "feat(capabilities): enhance useCapabilities with revalidation sup
 ## Task 2: Integrate Revalidation in useCapabilityAction
 
 **Files:**
+
 - Modify: `src/lib/capabilities/actions/useCapabilityAction.ts`
 - Modify: `src/lib/capabilities/actions/__tests__/useCapabilityAction.test.tsx`
 
@@ -330,6 +335,7 @@ git commit -m "feat(capabilities): trigger capability revalidation after action 
 ## Task 3: Add Revalidation to QueueRenderer
 
 **Files:**
+
 - Modify: `src/components/capability/QueueRenderer.tsx`
 
 **Step 1: Read current implementation**
@@ -345,9 +351,7 @@ If not already using the hook, integrate it so the queue auto-refreshes when cap
 import { useCapabilities } from "@/hooks/use-capabilities"
 
 // In component:
-const capabilityIds = items.flatMap(item =>
-  item.capabilities.map(c => c.capability)
-)
+const capabilityIds = items.flatMap((item) => item.capabilities.map((c) => c.capability))
 const uniqueCapabilityIds = [...new Set(capabilityIds)]
 
 const { capabilities: freshCapabilities, revalidate } = useCapabilities({
@@ -371,6 +375,7 @@ git commit -m "feat(capabilities): integrate useCapabilities in QueueRenderer fo
 ## Task 4: Add Loading States During Revalidation
 
 **Files:**
+
 - Modify: `src/components/capability/QueueItem.tsx`
 
 **Step 1: Show subtle loading indicator when revalidating**
@@ -405,6 +410,7 @@ git commit -m "feat(capabilities): add revalidation loading state to QueueItem"
 ## Task 5: Export revalidateCapabilities Utility
 
 **Files:**
+
 - Modify: `src/lib/capabilities/index.ts`
 - Modify: `src/hooks/index.ts` (if exists)
 
@@ -427,6 +433,7 @@ git commit -m "feat(capabilities): export revalidateCapabilities utility"
 ## Task 6: Integration Test for Full Refresh Flow
 
 **Files:**
+
 - Create: `src/lib/capabilities/__tests__/refresh-flow.test.ts`
 
 **Step 1: Write integration test**
@@ -495,6 +502,7 @@ git commit -m "chore: PHASE 3 cleanup and formatting"
 ## Summary
 
 **Files Modified:**
+
 - `src/hooks/use-capabilities.ts` - Add revalidation support
 - `src/lib/capabilities/actions/useCapabilityAction.ts` - Trigger revalidation on success
 - `src/components/capability/QueueRenderer.tsx` - Integrate useCapabilities

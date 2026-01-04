@@ -9,6 +9,7 @@
 ## Current State
 
 The `docs/PRODUCT_BIBLE.md` is a monolithic document with:
+
 - 17 main sections
 - 4 appendixes
 - ~41,000 tokens (too large for single-file AI processing)
@@ -65,8 +66,10 @@ docs/product-bible/
 ## Chapter Mapping
 
 ### 01-VISION-ARCHITECTURE.md
+
 **Source Sections:** 1, 2
 **Content:**
+
 - What FiskAI Is (Core Promise)
 - Non-Negotiables Table
 - The Three Portals
@@ -79,8 +82,10 @@ docs/product-bible/
 ---
 
 ### 02-USERS-JOURNEYS.md
+
 **Source Sections:** 3
 **Content:**
+
 - Persona 1: Marko (Paušalni Freelancer)
 - Persona 2: Ana (Growing Obrt)
 - Persona 3: Ivan (D.O.O. Owner)
@@ -94,8 +99,10 @@ docs/product-bible/
 ---
 
 ### 03-LEGAL-COMPLIANCE.md
+
 **Source Sections:** 4, 11
 **Content:**
+
 - Croatian Business Types Table
 - Module Requirements by Legal Form
 - The 20 Scenarios Matrix
@@ -112,8 +119,10 @@ docs/product-bible/
 ---
 
 ### 04-ACCESS-CONTROL.md
+
 **Source Sections:** 5, 6, 7
 **Content:**
+
 - The 16 Module Keys
 - Module Definition Structure
 - Entitlement Checking
@@ -129,8 +138,10 @@ docs/product-bible/
 ---
 
 ### 05-UI-EXPERIENCE.md
+
 **Source Sections:** 8, 9, 10
 **Content:**
+
 - The Four Dashboard Stages (Onboarding → Setup → Active → Strategic)
 - Dashboard Element Catalog
 - Layout Components (Header, Sidebar, Mobile Nav)
@@ -153,8 +164,10 @@ docs/product-bible/
 ---
 
 ### 06-INTEGRATIONS.md
+
 **Source Sections:** 12
 **Content:**
+
 - External Systems Table (FINA, Gocardless, Stripe, etc.)
 - E-Invoice Providers
 - Bank Import Formats
@@ -167,8 +180,10 @@ docs/product-bible/
 ---
 
 ### 07-DATA-API.md
+
 **Source Sections:** 13, 14, 15, 16, 17
 **Content:**
+
 - Tier Structure (Free/Paušalni/Pro/Business/Enterprise)
 - Module-to-Tier Mapping
 - Stripe Integration
@@ -186,8 +201,10 @@ docs/product-bible/
 ---
 
 ### 08-APPENDIXES.md
+
 **Source Sections:** Appendix A, B, 1, 2, Document History
 **Content:**
+
 - Glossary (Croatian terms)
 - File Locations Reference
 - Strategic Technical Specification (Gaps + Proof)
@@ -199,8 +216,10 @@ docs/product-bible/
 ---
 
 ### 00-INDEX.md
+
 **New File**
 **Content:**
+
 - Product Bible Overview
 - Version & Status Alignment Table
 - Quick Links to All Chapters
@@ -214,17 +233,20 @@ docs/product-bible/
 ## Migration Steps
 
 ### Phase 1: Create Structure
+
 1. Create `docs/product-bible/` directory
 2. Create `00-INDEX.md` with overview and links
 3. Split content into 8 chapter files
 
 ### Phase 2: Content Migration
+
 1. Copy relevant sections to each chapter
 2. Update internal links (cross-references between chapters)
 3. Add chapter-specific headers and navigation
 4. Remove redundant content
 
 ### Phase 3: Cleanup
+
 1. Keep `docs/PRODUCT_BIBLE.md` as redirect/deprecated notice
 2. Update `CLAUDE.md` to reference new structure
 3. Update any other docs that reference the bible
@@ -233,14 +255,14 @@ docs/product-bible/
 
 ## Benefits
 
-| Benefit | Description |
-|---------|-------------|
-| **Maintainability** | Update only the relevant chapter after a PR |
-| **AI-Friendly** | Each chapter fits in context windows (~400-600 lines) |
-| **Discoverability** | Clear naming makes finding content easier |
-| **Parallel Work** | Multiple people can update different chapters |
-| **Git History** | Cleaner diffs per-chapter vs monolithic file |
-| **Version Control** | Track versions per-chapter if needed |
+| Benefit             | Description                                           |
+| ------------------- | ----------------------------------------------------- |
+| **Maintainability** | Update only the relevant chapter after a PR           |
+| **AI-Friendly**     | Each chapter fits in context windows (~400-600 lines) |
+| **Discoverability** | Clear naming makes finding content easier             |
+| **Parallel Work**   | Multiple people can update different chapters         |
+| **Git History**     | Cleaner diffs per-chapter vs monolithic file          |
+| **Version Control** | Track versions per-chapter if needed                  |
 
 ---
 

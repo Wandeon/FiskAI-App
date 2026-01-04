@@ -15,6 +15,7 @@
 ### Task 1.1: Add Authentication to Regulatory Trigger Endpoint
 
 **Files:**
+
 - Modify: `src/app/api/regulatory/trigger/route.ts`
 
 **Step 1: Read current implementation**
@@ -53,10 +54,7 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("Pipeline trigger error:", error)
-    return NextResponse.json(
-      { error: "Failed to trigger pipeline" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to trigger pipeline" }, { status: 500 })
   }
 }
 ```
@@ -81,6 +79,7 @@ git commit -m "security: add authentication to regulatory trigger endpoint"
 ### Task 1.2: Add Authentication to Truth Health Endpoint
 
 **Files:**
+
 - Modify: `src/app/api/admin/regulatory-truth/truth-health/route.ts`
 
 **Step 1: Read current implementation**
@@ -141,6 +140,7 @@ git commit -m "security: add authentication to truth-health endpoint"
 ### Task 1.3: Fix News Admin Endpoints Authentication (4 files)
 
 **Files:**
+
 - Modify: `src/app/api/admin/news/cron/trigger/route.ts`
 - Modify: `src/app/api/admin/news/posts/route.ts`
 - Modify: `src/app/api/admin/news/posts/[id]/route.ts`
@@ -151,6 +151,7 @@ git commit -m "security: add authentication to truth-health endpoint"
 All 4 files currently use cookie-based auth. Replace with proper NextAuth:
 
 For each file, replace:
+
 ```typescript
 // TODO: Replace with proper auth when available
 const authCookie = cookies().get("fiskai_admin_auth")
@@ -160,6 +161,7 @@ if (!authCookie || authCookie.value !== "authenticated") {
 ```
 
 With:
+
 ```typescript
 import { getCurrentUser } from "@/lib/auth-utils"
 
@@ -201,6 +203,7 @@ git commit -m "security: replace cookie auth with NextAuth in news admin endpoin
 ### Task 2.1: Remove Ghost Regulatory API Directory
 
 **Files:**
+
 - Delete: `src/app/api/admin/regulatory/` (empty directory)
 
 **Step 1: Verify directory is empty/unused**
@@ -237,6 +240,7 @@ git commit -m "chore: remove empty regulatory API directory"
 ### Task 2.2: Remove Empty Audit Artifact Files
 
 **Files:**
+
 - Delete: `docs/regulatory-truth/audit-artifacts/2025-12-23/regulatory_sources_priority.txt`
 - Delete: `docs/regulatory-truth/audit-artifacts/2025-12-22/regulatory_metrics_response.txt`
 - Delete: `docs/regulatory-truth/audit-artifacts/2025-12-22/regulatory_status_response.txt`
@@ -274,6 +278,7 @@ git commit -m "chore: remove empty audit artifact files"
 ### Task 2.3: Remove Unused Husky Hook Stubs
 
 **Files:**
+
 - Delete: `.husky/_/applypatch-msg`
 - Delete: `.husky/_/commit-msg`
 - Delete: `.husky/_/post-applypatch`
@@ -283,7 +288,7 @@ git commit -m "chore: remove empty audit artifact files"
 - Delete: `.husky/_/post-rewrite`
 - Delete: `.husky/_/pre-applypatch`
 - Delete: `.husky/_/pre-auto-gc`
-- Delete: `.husky/_/pre-commit` (in _/ subdirectory, not the main one)
+- Delete: `.husky/_/pre-commit` (in \_/ subdirectory, not the main one)
 - Delete: `.husky/_/pre-merge-commit`
 - Delete: `.husky/_/prepare-commit-msg`
 - Delete: `.husky/_/pre-push`
@@ -354,6 +359,7 @@ Expected: "No such file or directory"
 ### Task 3.1: Migrate Vijesti (News) Routes from admin-old to (admin)
 
 **Files:**
+
 - Create: `src/app/(admin)/news/page.tsx`
 - Create: `src/app/(admin)/news/[id]/page.tsx`
 - Create: `src/components/admin/news/PostEditorClient.tsx`
@@ -513,6 +519,7 @@ git commit -m "feat: migrate news management from admin-old to (admin)"
 ### Task 3.2: Migrate einvoice Demo Pages to e-invoice
 
 **Files:**
+
 - Modify: `src/app/(marketing)/alati/oib-validator/page.tsx`
 - Modify: `src/app/(marketing)/alati/e-racun/page.tsx`
 
@@ -525,11 +532,13 @@ grep "einvoice" src/app/\(marketing\)/alati/oib-validator/page.tsx
 **Step 2: Update oib-validator imports**
 
 Replace:
+
 ```typescript
 import { validateOIB } from "@/lib/einvoice/validators"
 ```
 
 With:
+
 ```typescript
 // OIB validation is a simple utility - extract or inline
 function validateOIB(oib: string): boolean {
@@ -556,12 +565,14 @@ grep "einvoice" src/app/\(marketing\)/alati/e-racun/page.tsx
 **Step 4: Update e-racun imports**
 
 Replace:
+
 ```typescript
 import { generateUBLInvoice, validateInvoice, validateOIB } from "@/lib/einvoice"
 import type { EInvoice, InvoiceLine, TaxCategory } from "@/lib/einvoice"
 ```
 
 With imports from e-invoice or inline the demo logic:
+
 ```typescript
 // For demo purposes, use simplified inline implementations
 // The production e-invoice module has different type signatures
@@ -589,6 +600,7 @@ git commit -m "refactor: migrate demo pages from einvoice to standalone utilitie
 **Prerequisite:** Task 3.1 must be complete and verified
 
 **Files:**
+
 - Delete: `src/app/admin-old/` (entire directory)
 
 **Step 1: Final verification that news is migrated**
@@ -628,6 +640,7 @@ git commit -m "chore: remove legacy admin-old directory after news migration"
 **Prerequisite:** Task 3.2 must be complete and verified
 
 **Files:**
+
 - Delete: `src/lib/einvoice/` (entire directory)
 
 **Step 1: Final verification that no imports remain**
@@ -707,6 +720,7 @@ Expected: e2e-43f074c no longer listed, ~2GB recovered
 ### Task 5.1: Update .gitignore for Build Caches
 
 **Files:**
+
 - Modify: `.gitignore`
 
 **Step 1: Add tsbuildinfo to gitignore**
@@ -735,6 +749,7 @@ git commit -m "chore: add tsbuildinfo to gitignore"
 ### Task 5.2: Create Security Rotation Checklist
 
 **Files:**
+
 - Create: `docs/07_AUDITS/SECURITY_ROTATION_CHECKLIST.md`
 
 **Step 1: Create checklist document**
@@ -747,12 +762,15 @@ git commit -m "chore: add tsbuildinfo to gitignore"
 All credentials below were exposed in git history and must be rotated:
 
 ### Database
+
 - [ ] POSTGRES_PASSWORD - Rotate in Coolify, update docker-compose
 
 ### Authentication
+
 - [ ] NEXTAUTH_SECRET - Generate new: `openssl rand -base64 32`
 
 ### API Keys
+
 - [ ] RESEND_API_KEY - Rotate in Resend dashboard
 - [ ] CLOUDFLARE_DNS_API_TOKEN - Rotate in Cloudflare dashboard
 - [ ] COOLIFY_API_TOKEN - Rotate in Coolify settings
@@ -760,6 +778,7 @@ All credentials below were exposed in git history and must be rotated:
 - [ ] OLLAMA_API_KEY - Rotate if using cloud Ollama
 
 ### Encryption
+
 - [ ] FISCAL_CERT_KEY - Generate new: `openssl rand -hex 32`
 - [ ] EINVOICE_KEY_SECRET - Generate new secret
 - [ ] CRON_SECRET - Generate new: `openssl rand -hex 32`
@@ -848,6 +867,7 @@ git log --oneline main..HEAD
 ## Summary of Changes
 
 ### Files Removed
+
 - `src/app/api/admin/regulatory/` (ghost directory)
 - `src/app/admin-old/` (legacy admin, after migration)
 - `src/lib/einvoice/` (deprecated library)
@@ -857,12 +877,14 @@ git log --oneline main..HEAD
 - `.next/` cache (4.2GB)
 
 ### Files Created
+
 - `src/app/(admin)/news/page.tsx`
 - `src/app/(admin)/news/[id]/page.tsx`
 - `src/components/admin/news/PostEditorClient.tsx`
 - `docs/07_AUDITS/SECURITY_ROTATION_CHECKLIST.md`
 
 ### Files Modified
+
 - `src/app/api/regulatory/trigger/route.ts` (added auth)
 - `src/app/api/admin/regulatory-truth/truth-health/route.ts` (added auth)
 - `src/app/api/admin/news/*/route.ts` (4 files, fixed auth)
@@ -872,4 +894,5 @@ git log --oneline main..HEAD
 - `.gitignore` (added tsbuildinfo)
 
 ### Disk Space Recovered
+
 - ~6.2GB total (worktree + .next cache + removed files)

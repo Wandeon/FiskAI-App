@@ -125,7 +125,8 @@ async function runTest() {
       const response = await buildAnswer(item.q, surface)
       const duration = Date.now() - start
 
-      const citationCount = response.kind === "ANSWER" ? (response.citations as any)?.rules?.length || 0 : 0
+      const citationCount =
+        response.kind === "ANSWER" ? (response.citations as any)?.rules?.length || 0 : 0
       let pass = true
       let reason = ""
 

@@ -19,10 +19,10 @@ A unified, user-friendly document import system that handles bank statements (PD
 
 ## Supported Document Types
 
-| Document Type | Accepted Formats | Extraction Method |
-|---------------|------------------|-------------------|
+| Document Type  | Accepted Formats         | Extraction Method               |
+| -------------- | ------------------------ | ------------------------------- |
 | Bank Statement | PDF, XML (CAMT.053), CSV | XML parser / AI text extraction |
-| Invoice | PDF, JPG, PNG, HEIC | AI vision extraction |
+| Invoice        | PDF, JPG, PNG, HEIC      | AI vision extraction            |
 
 ## Page Layout
 
@@ -162,7 +162,7 @@ src/
 
 ## Context Fields by Type
 
-| Document Type | Context Fields |
-|---------------|----------------|
-| Bank Statement | Bank Account (dropdown) |
-| Invoice | Type (incoming/outgoing), Supplier/Customer |
+| Document Type  | Context Fields                              |
+| -------------- | ------------------------------------------- |
+| Bank Statement | Bank Account (dropdown)                     |
+| Invoice        | Type (incoming/outgoing), Supplier/Customer |

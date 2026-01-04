@@ -13,6 +13,7 @@
 ## Task 1: Create CSS Variables File
 
 **Files:**
+
 - Create: `src/design-system/css/variables.css`
 
 **Step 1: Create variables.css**
@@ -246,6 +247,7 @@
 ## Task 2: Update globals.css to Import Variables
 
 **Files:**
+
 - Modify: `src/app/globals.css`
 
 **Step 1: Add import at top of globals.css**

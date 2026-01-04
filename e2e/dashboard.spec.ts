@@ -13,8 +13,7 @@ import { test, expect } from "@playwright/test"
 
 test.describe("Dashboard", () => {
   // Skip tests that require authentication if no test credentials
-  const hasTestCredentials =
-    process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD
+  const hasTestCredentials = process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD
 
   test.describe("Unauthenticated", () => {
     test("should redirect to auth when not logged in", async ({ page }) => {
@@ -53,9 +52,9 @@ test.describe("Dashboard", () => {
       }
 
       // Should have revenue or statistics section
-      await expect(
-        page.getByText(/prihod|revenue|statistika|e-račun/i).first()
-      ).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText(/prihod|revenue|statistika|e-račun/i).first()).toBeVisible({
+        timeout: 10000,
+      })
     })
 
     test("should have navigation sidebar with key links", async ({ page }) => {
@@ -108,9 +107,9 @@ test.describe("Dashboard", () => {
       }
 
       // Should show personalized greeting or company identifier
-      await expect(
-        page.getByText(/dobrodošl|pozdrav|dashboard|pregled/i).first()
-      ).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText(/dobrodošl|pozdrav|dashboard|pregled/i).first()).toBeVisible({
+        timeout: 10000,
+      })
     })
   })
 })

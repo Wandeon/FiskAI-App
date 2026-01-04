@@ -13,19 +13,23 @@
 ## Context
 
 **Design Document Mandate (Section 9, Phase 4):**
+
 > Visual Refinement (Optional, Last)
+>
 > - Status badges and visual indicators
 > - Action feedback animations
 > - Empty state designs
 > - Mobile responsiveness
 
 **Current State:**
+
 - Control Center renders queues with basic styling
 - Action buttons show loading state
 - Toast notifications for success/error
 - Basic responsive layout
 
 **Target State:**
+
 - Status badges with color-coded states
 - Smooth action feedback animations
 - Polished empty states with CTAs
@@ -36,6 +40,7 @@
 ## Task 1: Add Status Badges to Queue Items
 
 **Files:**
+
 - Create: `src/components/capability/StatusBadge.tsx`
 - Modify: `src/components/capability/QueueItem.tsx`
 
@@ -93,6 +98,7 @@ Color-coded badges for invoice, expense, and bank transaction states.
 ## Task 2: Add Empty State Component
 
 **Files:**
+
 - Create: `src/components/capability/EmptyQueueState.tsx`
 - Modify: `src/components/capability/QueueSection.tsx` (if exists) or update queue rendering
 
@@ -173,6 +179,7 @@ Shows friendly empty state with optional CTA for creating new items.
 ## Task 3: Add Loading Skeleton for Queue Items
 
 **Files:**
+
 - Create: `src/components/capability/QueueItemSkeleton.tsx`
 
 **Step 1: Create QueueItemSkeleton component**
@@ -228,6 +235,7 @@ Provides visual feedback while queue data is loading.
 ## Task 4: Add Success Animation to ActionButton
 
 **Files:**
+
 - Modify: `src/components/capability/ActionButton.tsx`
 
 **Step 1: Add success state with animation**
@@ -268,12 +276,14 @@ Shows brief checkmark animation after successful action execution.
 ## Task 5: Improve Mobile Layout for Control Center
 
 **Files:**
+
 - Modify: `src/app/(app)/control-center/page.tsx`
 - Modify: `src/components/capability/ActionButton.tsx` (responsive sizes)
 
 **Step 1: Add responsive classes to queue layout**
 
 Ensure queue items stack properly on mobile:
+
 - Single column on mobile
 - Two columns on tablet
 - Three columns on desktop
@@ -298,6 +308,7 @@ Queue items and action buttons adapt to screen size.
 **Step 1: Visual inspection**
 
 Visit `/control-center` and verify:
+
 - Status badges display correctly
 - Empty states show when no items
 - Loading skeletons appear during data fetch
@@ -311,16 +322,19 @@ Visit `/control-center` and verify:
 ## Summary
 
 ### Files Created
+
 - `src/components/capability/StatusBadge.tsx`
 - `src/components/capability/EmptyQueueState.tsx`
 - `src/components/capability/QueueItemSkeleton.tsx`
 
 ### Files Modified
+
 - `src/components/capability/ActionButton.tsx` - Success animation
 - `src/components/capability/index.ts` - Exports
 - `src/app/(app)/control-center/page.tsx` - Mobile layout
 
 ### What This Implements
+
 - Color-coded status badges for all entity states
 - Friendly empty states with CTAs
 - Loading skeletons for better perceived performance
@@ -328,6 +342,7 @@ Visit `/control-center` and verify:
 - Mobile-responsive queue layouts
 
 ### Definition of Done (from Design Document)
+
 - ✅ Status badges and visual indicators
 - ✅ Action feedback animations
 - ✅ Empty state designs

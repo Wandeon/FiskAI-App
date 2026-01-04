@@ -13,6 +13,7 @@
 ## Problem Statement
 
 The FiskAI codebase has 30+ different color patterns scattered across 145+ pages:
+
 - Components use hardcoded Tailwind colors (`blue-600`, `red-500`, `gray-200`) instead of design tokens
 - Status colors are inconsistent (`green-*` vs `emerald-*`, `amber-*` vs `yellow-*`)
 - No enforcement mechanism exists
@@ -89,54 +90,58 @@ src/design-system/
 
 Contrast-first, perceptually balanced palette:
 
-| Color   | Purpose                     | Key Values                        |
-|---------|-----------------------------|------------------------------------|
-| Blue    | Primary/Interactive         | 500: #3b82f6, 600: #2563eb        |
-| Slate   | Neutrals                    | 25: #f8fafc → 900: #020617        |
-| Emerald | Success                     | 500: #10b981, 700: #047857        |
-| Amber   | Warning                     | 500: #f59e0b, 700: #b45309        |
-| Red     | Danger                      | 500: #ef4444, 700: #b91c1c        |
-| Cyan    | Accent (marketing)          | 400: #22d3ee, 500: #06b6d4        |
+| Color   | Purpose             | Key Values                 |
+| ------- | ------------------- | -------------------------- |
+| Blue    | Primary/Interactive | 500: #3b82f6, 600: #2563eb |
+| Slate   | Neutrals            | 25: #f8fafc → 900: #020617 |
+| Emerald | Success             | 500: #10b981, 700: #047857 |
+| Amber   | Warning             | 500: #f59e0b, 700: #b45309 |
+| Red     | Danger              | 500: #ef4444, 700: #b91c1c |
+| Cyan    | Accent (marketing)  | 400: #22d3ee, 500: #06b6d4 |
 
 ### Semantic Tokens (Layer 1)
 
 #### Surface Ladder
-| Token      | Light Mode  | Dark Mode   | Use Case                |
-|------------|-------------|-------------|-------------------------|
-| base       | slate-25    | slate-900   | Page background         |
-| surface-0  | #ffffff     | slate-800   | Cards (default)         |
-| surface-1  | slate-50    | slate-700   | Nested, hover states    |
-| surface-2  | slate-100   | slate-600   | Deeper nesting          |
-| elevated   | #ffffff     | slate-700   | Modals, dropdowns       |
-| overlay    | rgba black  | rgba black  | Behind modals           |
+
+| Token     | Light Mode | Dark Mode  | Use Case             |
+| --------- | ---------- | ---------- | -------------------- |
+| base      | slate-25   | slate-900  | Page background      |
+| surface-0 | #ffffff    | slate-800  | Cards (default)      |
+| surface-1 | slate-50   | slate-700  | Nested, hover states |
+| surface-2 | slate-100  | slate-600  | Deeper nesting       |
+| elevated  | #ffffff    | slate-700  | Modals, dropdowns    |
+| overlay   | rgba black | rgba black | Behind modals        |
 
 #### Text Hierarchy
-| Token      | Light Mode  | Dark Mode   | Use Case                |
-|------------|-------------|-------------|-------------------------|
-| primary    | slate-900   | slate-25    | Headings, important     |
-| secondary  | slate-600   | slate-300   | Body text               |
-| tertiary   | slate-500   | slate-400   | Captions, hints         |
-| disabled   | slate-400   | slate-500   | Disabled states         |
-| inverse    | #ffffff     | slate-900   | On dark backgrounds     |
-| link       | blue-600    | blue-400    | Interactive text        |
+
+| Token     | Light Mode | Dark Mode | Use Case            |
+| --------- | ---------- | --------- | ------------------- |
+| primary   | slate-900  | slate-25  | Headings, important |
+| secondary | slate-600  | slate-300 | Body text           |
+| tertiary  | slate-500  | slate-400 | Captions, hints     |
+| disabled  | slate-400  | slate-500 | Disabled states     |
+| inverse   | #ffffff    | slate-900 | On dark backgrounds |
+| link      | blue-600   | blue-400  | Interactive text    |
 
 ### Layout Tokens (Layer 2)
 
 #### Spacing (4px base)
-| Token | Value  | Use Case              |
-|-------|--------|-----------------------|
-| 1     | 4px    | Atomic unit           |
-| 2     | 8px    | Tight                 |
-| 3     | 12px   | Default gap           |
-| 4     | 16px   | Standard padding      |
-| 6     | 24px   | Section padding       |
-| 8     | 32px   | Large gap             |
-| 12    | 48px   | Section margins       |
-| 16    | 64px   | Page sections         |
+
+| Token | Value | Use Case         |
+| ----- | ----- | ---------------- |
+| 1     | 4px   | Atomic unit      |
+| 2     | 8px   | Tight            |
+| 3     | 12px  | Default gap      |
+| 4     | 16px  | Standard padding |
+| 6     | 24px  | Section padding  |
+| 8     | 32px  | Large gap        |
+| 12    | 48px  | Section margins  |
+| 16    | 64px  | Page sections    |
 
 #### Radius
+
 | Token | Value  | Use Case              |
-|-------|--------|-----------------------|
+| ----- | ------ | --------------------- |
 | sm    | 4px    | Badges, small buttons |
 | md    | 8px    | Buttons, inputs       |
 | lg    | 12px   | Cards                 |
@@ -147,55 +152,73 @@ Contrast-first, perceptually balanced palette:
 
 Pre-composed text styles:
 
-| Token         | Size  | Line Height | Weight | Use Case          |
-|---------------|-------|-------------|--------|-------------------|
-| display-xl    | 60px  | 72px        | 700    | Hero headlines    |
-| display-lg    | 48px  | 56px        | 700    | Marketing         |
-| heading-xl    | 32px  | 40px        | 700    | Page titles       |
-| heading-lg    | 24px  | 32px        | 600    | Section headers   |
-| heading-md    | 20px  | 28px        | 600    | Subsections       |
-| heading-sm    | 16px  | 24px        | 600    | Card titles       |
-| body-lg       | 18px  | 28px        | 400    | Large body        |
-| body-base     | 16px  | 24px        | 400    | Default body      |
-| body-sm       | 14px  | 20px        | 400    | Small text        |
-| body-xs       | 12px  | 16px        | 400    | Captions          |
-| label         | 14px  | 20px        | 500    | Form labels       |
-| overline      | 11px  | 16px        | 600    | Overlines         |
+| Token      | Size | Line Height | Weight | Use Case        |
+| ---------- | ---- | ----------- | ------ | --------------- |
+| display-xl | 60px | 72px        | 700    | Hero headlines  |
+| display-lg | 48px | 56px        | 700    | Marketing       |
+| heading-xl | 32px | 40px        | 700    | Page titles     |
+| heading-lg | 24px | 32px        | 600    | Section headers |
+| heading-md | 20px | 28px        | 600    | Subsections     |
+| heading-sm | 16px | 24px        | 600    | Card titles     |
+| body-lg    | 18px | 28px        | 400    | Large body      |
+| body-base  | 16px | 24px        | 400    | Default body    |
+| body-sm    | 14px | 20px        | 400    | Small text      |
+| body-xs    | 12px | 16px        | 400    | Captions        |
+| label      | 14px | 20px        | 500    | Form labels     |
+| overline   | 11px | 16px        | 600    | Overlines       |
 
 ### Data Visualization Tokens
 
 Categorical palette (distinct from semantic status colors):
 
-| Series  | Color   | Hex      | Notes                              |
-|---------|---------|----------|------------------------------------|
-| 1       | Indigo  | #6366f1  | Not Blue (avoids interactive)      |
-| 2       | Violet  | #8b5cf6  |                                    |
-| 3       | Pink    | #ec4899  |                                    |
-| 4       | Teal    | #14b8a6  | Not Cyan (avoids accent)           |
-| 5       | Orange  | #f97316  |                                    |
-| 6       | Lime    | #84cc16  |                                    |
-| 7       | Cyan    | #06b6d4  |                                    |
-| 8       | Rose    | #f43f5e  |                                    |
+| Series | Color  | Hex     | Notes                         |
+| ------ | ------ | ------- | ----------------------------- |
+| 1      | Indigo | #6366f1 | Not Blue (avoids interactive) |
+| 2      | Violet | #8b5cf6 |                               |
+| 3      | Pink   | #ec4899 |                               |
+| 4      | Teal   | #14b8a6 | Not Cyan (avoids accent)      |
+| 5      | Orange | #f97316 |                               |
+| 6      | Lime   | #84cc16 |                               |
+| 7      | Cyan   | #06b6d4 |                               |
+| 8      | Rose   | #f43f5e |                               |
 
 ### Motion Tokens
 
 Intent-based animation:
 
-| Intent    | Duration | Easing    | Use Case                |
-|-----------|----------|-----------|-------------------------|
-| entrance  | 150ms    | easeOut   | Elements appearing      |
-| exit      | 100ms    | easeIn    | Elements disappearing   |
-| feedback  | 100ms    | easeInOut | Button press, toggle    |
-| attention | 200ms    | spring    | Draw eye                |
-| loading   | 300ms    | linear    | Spinners, progress      |
+| Intent    | Duration | Easing    | Use Case              |
+| --------- | -------- | --------- | --------------------- |
+| entrance  | 150ms    | easeOut   | Elements appearing    |
+| exit      | 100ms    | easeIn    | Elements disappearing |
+| feedback  | 100ms    | easeInOut | Button press, toggle  |
+| attention | 200ms    | spring    | Draw eye              |
+| loading   | 300ms    | linear    | Spinners, progress    |
 
 ## Enforcement Strategy
 
 ### 1. TypeScript Types
 
 ```typescript
-type SemanticTextColor = 'primary' | 'secondary' | 'tertiary' | 'disabled' | 'inverse' | 'link' | 'success' | 'warning' | 'danger';
-type SemanticBgColor = 'base' | 'surface' | 'surface-1' | 'surface-2' | 'elevated' | 'interactive' | 'success' | 'warning' | 'danger';
+type SemanticTextColor =
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "disabled"
+  | "inverse"
+  | "link"
+  | "success"
+  | "warning"
+  | "danger"
+type SemanticBgColor =
+  | "base"
+  | "surface"
+  | "surface-1"
+  | "surface-2"
+  | "elevated"
+  | "interactive"
+  | "success"
+  | "warning"
+  | "danger"
 ```
 
 ### 2. Restricted Tailwind Config
@@ -204,13 +227,13 @@ Override (not extend) the `colors` key to expose ONLY semantic tokens. Raw color
 
 ### 3. Path-Scoped ESLint
 
-| Path                  | Enforcement Level |
-|-----------------------|-------------------|
-| `src/app/(app)/**`    | ERROR             |
-| `src/app/(admin)/**`  | ERROR             |
-| `src/app/(staff)/**`  | ERROR             |
-| `src/components/**`   | ERROR             |
-| `src/app/(marketing)/**` | WARNING        |
+| Path                     | Enforcement Level |
+| ------------------------ | ----------------- |
+| `src/app/(app)/**`       | ERROR             |
+| `src/app/(admin)/**`     | ERROR             |
+| `src/app/(staff)/**`     | ERROR             |
+| `src/components/**`      | ERROR             |
+| `src/app/(marketing)/**` | WARNING           |
 
 ### 4. Escape Hatch
 
@@ -221,17 +244,17 @@ Override (not extend) the `colors` key to expose ONLY semantic tokens. Raw color
 
 ## Implementation Phases
 
-| Phase | Description                      | Files Created/Modified         |
-|-------|----------------------------------|--------------------------------|
-| 1     | Token files (all layers)         | src/design-system/tokens/*     |
-| 2     | CSS variables in globals.css     | src/app/globals.css            |
-| 3     | Tailwind config (restrictive)    | tailwind.config.ts             |
-| 4     | Typography plugin                | tailwind.config.ts             |
-| 5     | ESLint rule + config             | src/design-system/eslint/*     |
-| 6     | Migrate Button component         | src/components/ui/button.tsx   |
-| 7     | Migrate remaining components     | src/components/ui/*            |
-| 8     | Pre-commit hook                  | .husky/pre-commit              |
-| 9     | TOKENS.md governance             | src/design-system/TOKENS.md    |
+| Phase | Description                   | Files Created/Modified       |
+| ----- | ----------------------------- | ---------------------------- |
+| 1     | Token files (all layers)      | src/design-system/tokens/\*  |
+| 2     | CSS variables in globals.css  | src/app/globals.css          |
+| 3     | Tailwind config (restrictive) | tailwind.config.ts           |
+| 4     | Typography plugin             | tailwind.config.ts           |
+| 5     | ESLint rule + config          | src/design-system/eslint/\*  |
+| 6     | Migrate Button component      | src/components/ui/button.tsx |
+| 7     | Migrate remaining components  | src/components/ui/\*         |
+| 8     | Pre-commit hook               | .husky/pre-commit            |
+| 9     | TOKENS.md governance          | src/design-system/TOKENS.md  |
 
 ## Success Criteria
 

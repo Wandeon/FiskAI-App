@@ -35,6 +35,7 @@ The audit logging is implemented at three levels:
 ### Audit Data Captured
 
 All audit log entries include:
+
 - Staff user ID (`staffUserId`)
 - Client company ID (`clientCompanyId`)
 - Action type: `"STAFF_EXPORT_DATA"`
@@ -45,6 +46,7 @@ All audit log entries include:
 ### GDPR Compliance
 
 The audit logging enables:
+
 - Clients to see who accessed their data (via AuditLog table)
 - Compliance investigations to track data access
 - Detection of unauthorized data exfiltration

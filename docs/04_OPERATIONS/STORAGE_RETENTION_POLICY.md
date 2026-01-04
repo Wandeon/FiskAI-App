@@ -9,6 +9,7 @@ FiskAI implements an 11-year document retention policy in compliance with Croati
 ### R2 Storage with Retention
 
 All document uploads now include:
+
 - **Retention metadata**: `retention-years: "11"`
 - **Upload timestamp**: `uploaded-at: ISO 8601`
 - **Object Lock** (optional): COMPLIANCE mode preventing deletion before retention period expires
@@ -59,7 +60,7 @@ To verify retention enforcement:
 ```typescript
 // Check file metadata
 const metadata = await r2Client.send(new HeadObjectCommand({ Bucket, Key }))
-console.log(metadata.Metadata?.['retention-years']) // "11"
+console.log(metadata.Metadata?.["retention-years"]) // "11"
 
 // Check Object Lock
 const retention = await r2Client.send(new GetObjectRetentionCommand({ Bucket, Key }))

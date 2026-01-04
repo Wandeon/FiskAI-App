@@ -2,30 +2,33 @@
 
 ## Quick Reference
 
-| Issue | Check | Action |
-|-------|-------|--------|
-| App down | `/api/health` returns 503 | Check database, restart pod |
-| High latency | `/api/health/ready` slow | Check DB connections, scale up |
-| Disk full | Health check warning | Clean logs, archive old data |
-| Data export needed | N/A | Use `/reports/export` or API |
+| Issue              | Check                     | Action                         |
+| ------------------ | ------------------------- | ------------------------------ |
+| App down           | `/api/health` returns 503 | Check database, restart pod    |
+| High latency       | `/api/health/ready` slow  | Check DB connections, scale up |
+| Disk full          | Health check warning      | Clean logs, archive old data   |
+| Data export needed | N/A                       | Use `/reports/export` or API   |
 
 ---
 
 ## Health Check Endpoints
 
 ### Liveness: GET /api/health
+
 - **Purpose**: Is the app alive?
 - **Check frequency**: Every 30s
 - **Timeout**: 10s
 - **Failure action**: Restart container
 
 ### Readiness: GET /api/health/ready
+
 - **Purpose**: Can the app receive traffic?
 - **Check frequency**: Every 5s
 - **Timeout**: 3s
 - **Failure action**: Remove from load balancer (don't restart)
 
 ### Status: GET /api/status
+
 - **Purpose**: Detailed metrics for monitoring
 - **Contains**: Version, uptime, system metrics, database stats
 
@@ -38,6 +41,7 @@
 **Symptoms**: 503 errors, health checks failing
 
 **Diagnosis**:
+
 ```bash
 # Check application logs
 docker logs fiskai-app --tail 100
@@ -53,6 +57,7 @@ free -m
 ```
 
 **Resolution**:
+
 1. If database down: Restart database, check connection pool
 2. If memory exhausted: Restart app, investigate memory leak
 3. If disk full: Clear `/tmp`, archive old logs, clean uploads
@@ -62,6 +67,7 @@ free -m
 **Symptoms**: Slow responses, health/ready returning 503
 
 **Diagnosis**:
+
 ```bash
 # Check database latency
 curl -w "@curl-timing.txt" http://localhost:3000/api/health
@@ -74,6 +80,7 @@ psql $DATABASE_URL -c "SELECT query, calls, mean_time FROM pg_stat_statements OR
 ```
 
 **Resolution**:
+
 1. If DB latency high: Check indexes, optimize queries, increase pool size
 2. If too many connections: Restart app to reset pool
 3. If sustained load: Scale horizontally
@@ -83,6 +90,7 @@ psql $DATABASE_URL -c "SELECT query, calls, mean_time FROM pg_stat_statements OR
 **Symptoms**: Health check shows >80% disk usage
 
 **Resolution**:
+
 ```bash
 # Find large files
 du -sh /var/log/* | sort -rh | head -10
@@ -101,10 +109,12 @@ find /var/log -name "*.log" -mtime +30 -delete
 ### Manual Data Export
 
 Users can export their data via:
+
 - Dashboard: `/reports/export`
 - API: `GET /api/exports/season-pack?from=YYYY-MM-DD&to=YYYY-MM-DD`
 
 Export includes:
+
 - Invoices (CSV + PDF)
 - Expenses (CSV)
 - KPR (Knjiga Primitaka i Izdataka)
@@ -113,6 +123,7 @@ Export includes:
 ### Database Backup
 
 **Daily automated backup** (configure in production):
+
 ```bash
 # Backup command
 pg_dump $DATABASE_URL --format=custom --file=backup-$(date +%Y%m%d).dump
@@ -122,6 +133,7 @@ find /backups -name "*.dump" -mtime +30 -delete
 ```
 
 **Restore from backup**:
+
 ```bash
 # Restore (CAUTION: overwrites existing data)
 pg_restore --clean --if-exists -d $DATABASE_URL backup-YYYYMMDD.dump
@@ -130,6 +142,7 @@ pg_restore --clean --if-exists -d $DATABASE_URL backup-YYYYMMDD.dump
 ### Backup Verification
 
 Monthly restore drill:
+
 1. Create test database
 2. Restore latest backup
 3. Verify row counts match production
@@ -140,14 +153,14 @@ Monthly restore drill:
 
 ## Data Retention
 
-| Data Type | Retention | Reason |
-|-----------|-----------|--------|
-| Fiscalized invoices | 11 years | Croatian law |
-| Non-fiscal invoices | 7 years | Accounting standards |
-| Expenses | 7 years | Tax documentation |
-| Audit logs | 3 years | Compliance |
-| Session data | 30 days | Security |
-| Temp files | 24 hours | Cleanup |
+| Data Type           | Retention | Reason               |
+| ------------------- | --------- | -------------------- |
+| Fiscalized invoices | 11 years  | Croatian law         |
+| Non-fiscal invoices | 7 years   | Accounting standards |
+| Expenses            | 7 years   | Tax documentation    |
+| Audit logs          | 3 years   | Compliance           |
+| Session data        | 30 days   | Security             |
+| Temp files          | 24 hours  | Cleanup              |
 
 ---
 
@@ -187,14 +200,14 @@ AND "createdAt" > NOW() - INTERVAL '24 hours';
 
 ### Recommended Alert Thresholds
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Response time | >2s | >5s |
-| Error rate | >1% | >5% |
-| Database latency | >500ms | >2000ms |
-| Disk usage | >80% | >90% |
-| Memory usage | >80% | >95% |
-| Failed logins (per IP) | >5/min | >20/min |
+| Metric                 | Warning | Critical |
+| ---------------------- | ------- | -------- |
+| Response time          | >2s     | >5s      |
+| Error rate             | >1%     | >5%      |
+| Database latency       | >500ms  | >2000ms  |
+| Disk usage             | >80%    | >90%     |
+| Memory usage           | >80%    | >95%     |
+| Failed logins (per IP) | >5/min  | >20/min  |
 
 ### Setting Up Alerts
 
@@ -227,6 +240,6 @@ groups:
 
 ## Changelog
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                  | Author |
+| ---------- | ----------------------- | ------ |
 | 2025-12-15 | Initial runbook created | Claude |

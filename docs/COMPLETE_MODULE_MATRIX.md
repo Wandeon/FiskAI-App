@@ -1,4 +1,5 @@
 # FiskAI Complete Module Matrix
+
 ## Every Scenario, Every Combination, Every Requirement
 
 **Generated:** 2024-12-14
@@ -10,29 +11,31 @@
 
 ### 1.1 All Croatian Business Types
 
-| Legal Form | Croatian Name | Min. Capital | Tax Regime | Accounting Type | Our Code |
-|------------|---------------|--------------|------------|-----------------|----------|
-| Paušalni Obrt | Paušalno oporezivanje | 0 | Flat-rate | Single-entry | `OBRT_PAUSAL` |
-| Obrt (Dohodak) | Obrt - realno oporezivanje | 0 | Income tax | Single-entry | `OBRT_REAL` |
-| Obrt (PDV) | Obrt u sustavu PDV-a | 0 | Income + VAT | Single-entry | `OBRT_VAT` |
-| j.d.o.o. | Jednostavno d.o.o. | 10 HRK | Corporate | Double-entry | `JDOO` |
-| d.o.o. | Društvo s ograničenom odgovornošću | 20,000 HRK | Corporate | Double-entry | `DOO` |
-| Slobodna djelatnost | Freelance / Liberal profession | 0 | Income tax | Single-entry | `SLOBODNA` * |
-| OPG | Obiteljsko poljoprivredno gospodarstvo | 0 | Special | Single-entry | `OPG` * |
+| Legal Form          | Croatian Name                          | Min. Capital | Tax Regime   | Accounting Type | Our Code      |
+| ------------------- | -------------------------------------- | ------------ | ------------ | --------------- | ------------- |
+| Paušalni Obrt       | Paušalno oporezivanje                  | 0            | Flat-rate    | Single-entry    | `OBRT_PAUSAL` |
+| Obrt (Dohodak)      | Obrt - realno oporezivanje             | 0            | Income tax   | Single-entry    | `OBRT_REAL`   |
+| Obrt (PDV)          | Obrt u sustavu PDV-a                   | 0            | Income + VAT | Single-entry    | `OBRT_VAT`    |
+| j.d.o.o.            | Jednostavno d.o.o.                     | 10 HRK       | Corporate    | Double-entry    | `JDOO`        |
+| d.o.o.              | Društvo s ograničenom odgovornošću     | 20,000 HRK   | Corporate    | Double-entry    | `DOO`         |
+| Slobodna djelatnost | Freelance / Liberal profession         | 0            | Income tax   | Single-entry    | `SLOBODNA` \* |
+| OPG                 | Obiteljsko poljoprivredno gospodarstvo | 0            | Special      | Single-entry    | `OPG` \*      |
 
-*Not yet implemented in system
+\*Not yet implemented in system
 
 ---
 
 ### 1.2 Paušalni Obrt - Complete Requirements
 
 **Who qualifies:**
+
 - Annual revenue ≤ 40,000 EUR
 - No employees (owner only)
 - Not VAT registered
 - Simple service/trade businesses
 
 **Tax treatment:**
+
 - Flat-rate taxation on assumed income
 - No need to track actual expenses (for tax purposes)
 - Social contributions on assumed income base
@@ -52,6 +55,7 @@
 | Travel (Locco) | ⚠️ OPTIONAL | Personal benefit only |
 
 **Tax calculation (2025 rates):**
+
 ```
 Assumed Income Base = Revenue × 30% (or actual if lower)
 Tax = Progressive rate on assumed income:
@@ -68,6 +72,7 @@ Social Contributions (on assumed income):
 ```
 
 **Critical thresholds:**
+
 - 40,000 EUR/year → Must register for VAT within 5 days
 - 36,000 EUR/year → Warning (90% of threshold)
 
@@ -76,12 +81,14 @@ Social Contributions (on assumed income):
 ### 1.3 Obrt Dohodak (Real Income) - Complete Requirements
 
 **Who qualifies:**
+
 - Any revenue level
 - Can have employees
 - Can be VAT registered or not
 - More complex businesses
 
 **Tax treatment:**
+
 - Income tax on actual profit (Revenue - Expenses)
 - Must track all income and expenses
 - Progressive tax rates apply
@@ -101,6 +108,7 @@ Social Contributions (on assumed income):
 | Travel (Locco) | ⚠️ OPTIONAL | Tax deductible |
 
 **Tax calculation:**
+
 ```
 Taxable Income = Total Revenue - Deductible Expenses - Depreciation
 Tax = Progressive rate:
@@ -124,6 +132,7 @@ Surtax (Prirez): City-dependent (0-18%)
 | Complexity | Lower | Higher |
 
 **Tax treatment:**
+
 - Corporate tax (Porez na dobit): 10% (≤1M EUR) or 18% (>1M EUR)
 - Dividend tax: 10% (when distributed to owner)
 - Double-entry bookkeeping mandatory
@@ -144,6 +153,7 @@ Surtax (Prirez): City-dependent (0-18%)
 | KPI | ❌ NO | Uses double-entry books |
 
 **Corporate tax:**
+
 ```
 Profit = Revenue - Expenses - Depreciation - Salaries - Contributions
 Tax Rate:
@@ -161,43 +171,47 @@ Dividend distribution:
 
 ### 2.1 VAT Status Matrix
 
-| Scenario | VAT Status | Invoice Requirements | Reporting |
-|----------|------------|---------------------|-----------|
-| Paušalni < 40k | NOT IN SYSTEM | Must show "Nije u sustavu PDV-a" | None |
-| Paušalni > 40k | MUST REGISTER | Full VAT invoice | PDV forms |
-| Obrt voluntary | IN SYSTEM | Full VAT invoice | PDV forms |
-| Obrt > 40k | MUST REGISTER | Full VAT invoice | PDV forms |
-| d.o.o. always | IN SYSTEM | Full VAT invoice | PDV forms |
-| j.d.o.o. always | IN SYSTEM | Full VAT invoice | PDV forms |
+| Scenario        | VAT Status    | Invoice Requirements             | Reporting |
+| --------------- | ------------- | -------------------------------- | --------- |
+| Paušalni < 40k  | NOT IN SYSTEM | Must show "Nije u sustavu PDV-a" | None      |
+| Paušalni > 40k  | MUST REGISTER | Full VAT invoice                 | PDV forms |
+| Obrt voluntary  | IN SYSTEM     | Full VAT invoice                 | PDV forms |
+| Obrt > 40k      | MUST REGISTER | Full VAT invoice                 | PDV forms |
+| d.o.o. always   | IN SYSTEM     | Full VAT invoice                 | PDV forms |
+| j.d.o.o. always | IN SYSTEM     | Full VAT invoice                 | PDV forms |
 
 ### 2.2 VAT Rates Detail
 
-| Rate | Name | Applies To |
-|------|------|------------|
-| 25% | Standard | Most goods and services |
-| 13% | Reduced | Hospitality, newspapers, some food |
-| 5% | Super-reduced | Bread, milk, books, medicines |
-| 0% | Zero/Exempt | Exports, financial services, medical |
+| Rate | Name          | Applies To                           |
+| ---- | ------------- | ------------------------------------ |
+| 25%  | Standard      | Most goods and services              |
+| 13%  | Reduced       | Hospitality, newspapers, some food   |
+| 5%   | Super-reduced | Bread, milk, books, medicines        |
+| 0%   | Zero/Exempt   | Exports, financial services, medical |
 
 ### 2.3 VAT Reporting Requirements
 
 **PDV-RR (Regular Return):**
+
 - Monthly (if VAT > 300,000 HRK/year) or Quarterly
 - Due: 20th of following month
 - Contains: Output VAT, Input VAT, Net payable/refund
 
 **PDV-S (Summary):**
+
 - For intra-EU transactions
 - Due: Same as PDV-RR
 - Contains: EU sales and purchases
 
 **ZP (Exempt Transactions):**
+
 - When issuing exempt invoices
 - Contains: Documentation of exemption basis
 
 ### 2.4 Invoice Requirements by VAT Status
 
 **NOT in VAT system:**
+
 ```
 Must include text:
 "Porezni obveznik nije u sustavu PDV-a prema čl. 90. st. 2. Zakona o PDV-u"
@@ -210,6 +224,7 @@ Cannot show:
 ```
 
 **IN VAT system:**
+
 ```
 Must include:
 - Seller VAT ID (HR + OIB)
@@ -225,14 +240,14 @@ Must include:
 
 ### 3.1 When Fiscalization is Required
 
-| Payment Method | Fiscalization Required? | Notes |
-|----------------|------------------------|-------|
-| Cash (Gotovina) | ✅ YES | Always |
-| Card (Kartica) | ✅ YES | Always |
-| Bank Transfer | ❌ NO | Invoice-based only |
-| Mixed (partial cash) | ✅ YES | For cash portion |
-| Advance payment | ✅ YES | If cash/card |
-| Credit (on account) | ❌ NO | Until cash payment |
+| Payment Method       | Fiscalization Required? | Notes              |
+| -------------------- | ----------------------- | ------------------ |
+| Cash (Gotovina)      | ✅ YES                  | Always             |
+| Card (Kartica)       | ✅ YES                  | Always             |
+| Bank Transfer        | ❌ NO                   | Invoice-based only |
+| Mixed (partial cash) | ✅ YES                  | For cash portion   |
+| Advance payment      | ✅ YES                  | If cash/card       |
+| Credit (on account)  | ❌ NO                   | Until cash payment |
 
 ### 3.2 Fiscalization Flow
 
@@ -258,10 +273,12 @@ Must include:
 ### 3.3 Business Premises & Devices
 
 **Each business must register:**
+
 - Business Premises (Poslovni prostor): Physical locations
 - Payment Devices (Naplatni uređaj): Cash registers, POS terminals
 
 **Numbering format:**
+
 ```
 Invoice: [PremiseCode]-[DeviceCode]-[SequentialNumber]
 Example: OFFICE1-POS1-123
@@ -269,12 +286,12 @@ Example: OFFICE1-POS1-123
 
 ### 3.4 Fiscalization Providers
 
-| Provider | Type | Certificate | Notes |
-|----------|------|-------------|-------|
+| Provider      | Type          | Certificate        | Notes                       |
+| ------------- | ------------- | ------------------ | --------------------------- |
 | Direct (FINA) | Direct to CIS | FINA cert required | Most control, complex setup |
-| IE-Računi | Intermediary | Their cert | Easier setup, monthly fee |
-| Moj-eRačun | Intermediary | Their cert | Popular in Croatia |
-| Solo | Intermediary | Their cert | Budget option |
+| IE-Računi     | Intermediary  | Their cert         | Easier setup, monthly fee   |
+| Moj-eRačun    | Intermediary  | Their cert         | Popular in Croatia          |
+| Solo          | Intermediary  | Their cert         | Budget option               |
 
 **Current implementation:** IE-Računi + Mock (for testing)
 
@@ -284,16 +301,16 @@ Example: OFFICE1-POS1-123
 
 ### 4.1 Employment Types
 
-| Type | Croatian | JOPPD Required | Contributions |
-|------|----------|----------------|---------------|
-| Full-time employee | Radnik na neodređeno | ✅ YES | Full |
-| Fixed-term | Radnik na određeno | ✅ YES | Full |
-| Part-time | Nepuno radno vrijeme | ✅ YES | Proportional |
-| Student contract | Studentski ugovor | ✅ YES | Reduced |
-| Service contract | Ugovor o djelu | ✅ YES | Different rates |
-| Author's contract | Autorski ugovor | ✅ YES | Different rates |
-| Board member | Član uprave | ✅ YES | Special rules |
-| Owner (no salary) | Vlasnik bez plaće | ❌ NO | Through dividends |
+| Type               | Croatian             | JOPPD Required | Contributions     |
+| ------------------ | -------------------- | -------------- | ----------------- |
+| Full-time employee | Radnik na neodređeno | ✅ YES         | Full              |
+| Fixed-term         | Radnik na određeno   | ✅ YES         | Full              |
+| Part-time          | Nepuno radno vrijeme | ✅ YES         | Proportional      |
+| Student contract   | Studentski ugovor    | ✅ YES         | Reduced           |
+| Service contract   | Ugovor o djelu       | ✅ YES         | Different rates   |
+| Author's contract  | Autorski ugovor      | ✅ YES         | Different rates   |
+| Board member       | Član uprave          | ✅ YES         | Special rules     |
+| Owner (no salary)  | Vlasnik bez plaće    | ❌ NO          | Through dividends |
 
 ### 4.2 Salary Calculation (Full Employee)
 
@@ -324,12 +341,14 @@ Employer Contributions (on top of gross):
 ### 4.3 JOPPD Form Structure
 
 **Page A - Summary:**
+
 - Employer information
 - Period covered
 - Total amounts
 - Number of recipients
 
 **Page B - Individual Recipients:**
+
 - Each employee/contractor listed
 - Personal data (OIB, name, address)
 - Income type code
@@ -339,21 +358,22 @@ Employer Contributions (on top of gross):
 - Net paid
 
 **Submission:**
+
 - Due: By 15th of following month
 - Format: XML to ePorezna
 - Penalty: Late submission fines
 
 ### 4.4 Non-Taxable Receipts (Through JOPPD)
 
-| Type | Croatian | Max Amount | Reporting |
-|------|----------|------------|-----------|
-| Per diem (domestic) | Dnevnica | 26.54 EUR/day | JOPPD |
-| Per diem (foreign) | Inozemna dnevnica | Country-specific | JOPPD |
-| Mileage (private car) | Naknada za km | 0.40 EUR/km | JOPPD |
-| Christmas bonus | Božićnica | 663.61 EUR/year | JOPPD |
-| Holiday bonus | Regres | 331.81 EUR/year | JOPPD |
-| Child gift | Dar djetetu | 132.72 EUR/child | JOPPD |
-| Severance | Otpremnina | Complex rules | JOPPD |
+| Type                  | Croatian          | Max Amount       | Reporting |
+| --------------------- | ----------------- | ---------------- | --------- |
+| Per diem (domestic)   | Dnevnica          | 26.54 EUR/day    | JOPPD     |
+| Per diem (foreign)    | Inozemna dnevnica | Country-specific | JOPPD     |
+| Mileage (private car) | Naknada za km     | 0.40 EUR/km      | JOPPD     |
+| Christmas bonus       | Božićnica         | 663.61 EUR/year  | JOPPD     |
+| Holiday bonus         | Regres            | 331.81 EUR/year  | JOPPD     |
+| Child gift            | Dar djetetu       | 132.72 EUR/child | JOPPD     |
+| Severance             | Otpremnina        | Complex rules    | JOPPD     |
 
 ---
 
@@ -361,24 +381,24 @@ Employer Contributions (on top of gross):
 
 ### 5.1 Expense Categories
 
-| Category | Deductible | Requires | Notes |
-|----------|------------|----------|-------|
-| Office rent | 100% | Invoice | R-1 account entry |
-| Utilities | 100% | Invoice | Gas, electricity, water |
-| Office supplies | 100% | Receipt | Stationery, consumables |
-| Professional services | 100% | Invoice | Accounting, legal |
-| Software subscriptions | 100% | Invoice | SaaS, licenses |
-| Bank fees | 100% | Statement | Monthly charges |
-| Travel (business) | 100% | Documentation | Tickets, hotels |
-| Meals (with clients) | 50% | Receipt | Entertainment limit |
-| Meals (solo) | 0% | - | Not deductible |
-| Gifts to clients | Limited | Invoice | Annual limits apply |
-| Fines & penalties | 0% | - | Never deductible |
-| Personal expenses | 0% | - | Never deductible |
-| Vehicle (100% business) | 100% | Logbook | Must prove business use |
-| Vehicle (mixed use) | 50% or actual | Logbook | Track business km |
-| Mobile phone | 100% or split | Invoice | Must prove business use |
-| Home office | Proportional | Calculation | Based on m² used |
+| Category                | Deductible    | Requires      | Notes                   |
+| ----------------------- | ------------- | ------------- | ----------------------- |
+| Office rent             | 100%          | Invoice       | R-1 account entry       |
+| Utilities               | 100%          | Invoice       | Gas, electricity, water |
+| Office supplies         | 100%          | Receipt       | Stationery, consumables |
+| Professional services   | 100%          | Invoice       | Accounting, legal       |
+| Software subscriptions  | 100%          | Invoice       | SaaS, licenses          |
+| Bank fees               | 100%          | Statement     | Monthly charges         |
+| Travel (business)       | 100%          | Documentation | Tickets, hotels         |
+| Meals (with clients)    | 50%           | Receipt       | Entertainment limit     |
+| Meals (solo)            | 0%            | -             | Not deductible          |
+| Gifts to clients        | Limited       | Invoice       | Annual limits apply     |
+| Fines & penalties       | 0%            | -             | Never deductible        |
+| Personal expenses       | 0%            | -             | Never deductible        |
+| Vehicle (100% business) | 100%          | Logbook       | Must prove business use |
+| Vehicle (mixed use)     | 50% or actual | Logbook       | Track business km       |
+| Mobile phone            | 100% or split | Invoice       | Must prove business use |
+| Home office             | Proportional  | Calculation   | Based on m² used        |
 
 ### 5.2 Fixed Assets (Dugotrajna Imovina)
 
@@ -394,14 +414,17 @@ Employer Contributions (on top of gross):
 | Intangible assets | 5-10 years | 10-20% |
 
 **Threshold:**
+
 - Asset > 464.53 EUR → Must capitalize and depreciate
 - Asset ≤ 464.53 EUR → Can expense immediately (sitni inventar)
 
 **Depreciation methods:**
+
 1. Straight-line (most common): Same amount each year
 2. Declining balance: Higher in early years (tax advantageous)
 
 **Example:**
+
 ```
 Computer: 1,200 EUR
 Useful life: 4 years
@@ -417,13 +440,13 @@ Asset Register entry:
 
 ### 5.3 Vehicle Scenarios
 
-| Scenario | VAT Recovery | Expense Deduction | Notes |
-|----------|--------------|-------------------|-------|
-| 100% business vehicle | 100% VAT | 100% costs | Requires logbook |
-| Mixed use (no logbook) | 50% VAT | 50% costs | Safe harbor |
-| Mixed use (with logbook) | Actual % | Actual % | Must track every trip |
-| Leased vehicle | As above | Monthly payments | Same rules apply |
-| Private vehicle for business | N/A | 0.40 EUR/km | Through JOPPD |
+| Scenario                     | VAT Recovery | Expense Deduction | Notes                 |
+| ---------------------------- | ------------ | ----------------- | --------------------- |
+| 100% business vehicle        | 100% VAT     | 100% costs        | Requires logbook      |
+| Mixed use (no logbook)       | 50% VAT      | 50% costs         | Safe harbor           |
+| Mixed use (with logbook)     | Actual %     | Actual %          | Must track every trip |
+| Leased vehicle               | As above     | Monthly payments  | Same rules apply      |
+| Private vehicle for business | N/A          | 0.40 EUR/km       | Through JOPPD         |
 
 ---
 
@@ -431,16 +454,16 @@ Asset Register entry:
 
 ### 6.1 Monthly Deadlines
 
-| Day | What | Who | Form |
-|-----|------|-----|------|
-| 15th | JOPPD submission | Anyone with employees | XML |
-| 20th | PDV return (monthly filers) | VAT payers > 300k HRK | PDV-RR |
-| Last | Payroll payment | All employers | Bank transfer |
+| Day  | What                        | Who                   | Form          |
+| ---- | --------------------------- | --------------------- | ------------- |
+| 15th | JOPPD submission            | Anyone with employees | XML           |
+| 20th | PDV return (monthly filers) | VAT payers > 300k HRK | PDV-RR        |
+| Last | Payroll payment             | All employers         | Bank transfer |
 
 ### 6.2 Quarterly Deadlines
 
-| When | What | Who | Form |
-|------|------|-----|------|
+| When   | What   | Who              | Form   |
+| ------ | ------ | ---------------- | ------ |
 | Jan 20 | Q4 PDV | Small VAT payers | PDV-RR |
 | Apr 20 | Q1 PDV | Small VAT payers | PDV-RR |
 | Jul 20 | Q2 PDV | Small VAT payers | PDV-RR |
@@ -448,11 +471,11 @@ Asset Register entry:
 
 ### 6.3 Annual Deadlines
 
-| When | What | Who | Form |
-|------|------|-----|------|
-| Feb 28 | Annual PO-SD | Paušalni obrt | XML to ePorezna |
-| Apr 30 | Annual DOH | Obrt dohodak | XML to ePorezna |
-| Apr 30 | Annual PDO | d.o.o. / j.d.o.o. | XML to ePorezna |
+| When   | What                 | Who               | Form            |
+| ------ | -------------------- | ----------------- | --------------- |
+| Feb 28 | Annual PO-SD         | Paušalni obrt     | XML to ePorezna |
+| Apr 30 | Annual DOH           | Obrt dohodak      | XML to ePorezna |
+| Apr 30 | Annual PDO           | d.o.o. / j.d.o.o. | XML to ePorezna |
 | Jun 30 | Financial statements | d.o.o. / j.d.o.o. | FINA submission |
 
 ---
@@ -461,40 +484,40 @@ Asset Register entry:
 
 ### 7.1 Every Possible Combination
 
-| # | Legal Form | VAT Status | Cash Sales | Employees | Required Modules |
-|---|------------|------------|------------|-----------|------------------|
-| 1 | Paušalni | No | No | No | Invoicing, KPR, PO-SD |
-| 2 | Paušalni | No | Yes | No | Invoicing, KPR, PO-SD, **Fiscalization** |
-| 3 | Paušalni | Yes* | No | No | Invoicing, KPR, PO-SD, **PDV** |
-| 4 | Paušalni | Yes* | Yes | No | Invoicing, KPR, PO-SD, **PDV, Fiscalization** |
-| 5 | Obrt Real | No | No | No | Invoicing, KPI, URA/IRA, Assets |
-| 6 | Obrt Real | No | Yes | No | Invoicing, KPI, URA/IRA, Assets, **Fiscalization** |
-| 7 | Obrt Real | No | No | Yes | Invoicing, KPI, URA/IRA, Assets, **JOPPD** |
-| 8 | Obrt Real | No | Yes | Yes | Invoicing, KPI, URA/IRA, Assets, **Fiscalization, JOPPD** |
-| 9 | Obrt Real | Yes | No | No | Invoicing, KPI, URA/IRA, Assets, **PDV** |
-| 10 | Obrt Real | Yes | Yes | No | Invoicing, KPI, URA/IRA, Assets, **PDV, Fiscalization** |
-| 11 | Obrt Real | Yes | No | Yes | Invoicing, KPI, URA/IRA, Assets, **PDV, JOPPD** |
-| 12 | Obrt Real | Yes | Yes | Yes | Invoicing, KPI, URA/IRA, Assets, **PDV, Fiscalization, JOPPD** |
-| 13 | j.d.o.o. | Yes | No | No | Invoicing, URA/IRA, Assets, PDV |
-| 14 | j.d.o.o. | Yes | Yes | No | Invoicing, URA/IRA, Assets, PDV, **Fiscalization** |
-| 15 | j.d.o.o. | Yes | No | Yes | Invoicing, URA/IRA, Assets, PDV, **JOPPD** |
-| 16 | j.d.o.o. | Yes | Yes | Yes | Invoicing, URA/IRA, Assets, PDV, **Fiscalization, JOPPD** |
-| 17 | d.o.o. | Yes | No | No | Invoicing, URA/IRA, Assets, PDV |
-| 18 | d.o.o. | Yes | Yes | No | Invoicing, URA/IRA, Assets, PDV, **Fiscalization** |
-| 19 | d.o.o. | Yes | No | Yes | Invoicing, URA/IRA, Assets, PDV, **JOPPD** |
-| 20 | d.o.o. | Yes | Yes | Yes | Invoicing, URA/IRA, Assets, PDV, **Fiscalization, JOPPD** |
+| #   | Legal Form | VAT Status | Cash Sales | Employees | Required Modules                                               |
+| --- | ---------- | ---------- | ---------- | --------- | -------------------------------------------------------------- |
+| 1   | Paušalni   | No         | No         | No        | Invoicing, KPR, PO-SD                                          |
+| 2   | Paušalni   | No         | Yes        | No        | Invoicing, KPR, PO-SD, **Fiscalization**                       |
+| 3   | Paušalni   | Yes\*      | No         | No        | Invoicing, KPR, PO-SD, **PDV**                                 |
+| 4   | Paušalni   | Yes\*      | Yes        | No        | Invoicing, KPR, PO-SD, **PDV, Fiscalization**                  |
+| 5   | Obrt Real  | No         | No         | No        | Invoicing, KPI, URA/IRA, Assets                                |
+| 6   | Obrt Real  | No         | Yes        | No        | Invoicing, KPI, URA/IRA, Assets, **Fiscalization**             |
+| 7   | Obrt Real  | No         | No         | Yes       | Invoicing, KPI, URA/IRA, Assets, **JOPPD**                     |
+| 8   | Obrt Real  | No         | Yes        | Yes       | Invoicing, KPI, URA/IRA, Assets, **Fiscalization, JOPPD**      |
+| 9   | Obrt Real  | Yes        | No         | No        | Invoicing, KPI, URA/IRA, Assets, **PDV**                       |
+| 10  | Obrt Real  | Yes        | Yes        | No        | Invoicing, KPI, URA/IRA, Assets, **PDV, Fiscalization**        |
+| 11  | Obrt Real  | Yes        | No         | Yes       | Invoicing, KPI, URA/IRA, Assets, **PDV, JOPPD**                |
+| 12  | Obrt Real  | Yes        | Yes        | Yes       | Invoicing, KPI, URA/IRA, Assets, **PDV, Fiscalization, JOPPD** |
+| 13  | j.d.o.o.   | Yes        | No         | No        | Invoicing, URA/IRA, Assets, PDV                                |
+| 14  | j.d.o.o.   | Yes        | Yes        | No        | Invoicing, URA/IRA, Assets, PDV, **Fiscalization**             |
+| 15  | j.d.o.o.   | Yes        | No         | Yes       | Invoicing, URA/IRA, Assets, PDV, **JOPPD**                     |
+| 16  | j.d.o.o.   | Yes        | Yes        | Yes       | Invoicing, URA/IRA, Assets, PDV, **Fiscalization, JOPPD**      |
+| 17  | d.o.o.     | Yes        | No         | No        | Invoicing, URA/IRA, Assets, PDV                                |
+| 18  | d.o.o.     | Yes        | Yes        | No        | Invoicing, URA/IRA, Assets, PDV, **Fiscalization**             |
+| 19  | d.o.o.     | Yes        | No         | Yes       | Invoicing, URA/IRA, Assets, PDV, **JOPPD**                     |
+| 20  | d.o.o.     | Yes        | Yes        | Yes       | Invoicing, URA/IRA, Assets, PDV, **Fiscalization, JOPPD**      |
 
-*Paušalni with VAT = exceeded 40k threshold or voluntary registration
+\*Paušalni with VAT = exceeded 40k threshold or voluntary registration
 
 ### 7.2 Optional Modules (All Scenarios)
 
-| Module | Benefit | Who uses it |
-|--------|---------|-------------|
-| Travel (Locco) | Tax-deductible km | Anyone with business travel |
-| Bank Integration | Auto-matching | Anyone wanting automation |
-| Document OCR | Auto-extraction | Anyone with paper receipts |
-| Multi-currency | Foreign invoices | Exporters, importers |
-| Recurring invoices | Automation | Subscription businesses |
+| Module             | Benefit           | Who uses it                 |
+| ------------------ | ----------------- | --------------------------- |
+| Travel (Locco)     | Tax-deductible km | Anyone with business travel |
+| Bank Integration   | Auto-matching     | Anyone wanting automation   |
+| Document OCR       | Auto-extraction   | Anyone with paper receipts  |
+| Multi-currency     | Foreign invoices  | Exporters, importers        |
+| Recurring invoices | Automation        | Subscription businesses     |
 
 ---
 
@@ -502,47 +525,51 @@ Asset Register entry:
 
 ### 8.1 Module Readiness by Scenario
 
-| Scenario # | Can We Serve? | Missing Modules |
-|------------|---------------|-----------------|
-| 1 | ✅ YES | None |
-| 2 | ⚠️ PARTIAL | Fiscalization (60%) |
-| 3 | ⚠️ PARTIAL | PDV forms (40%) |
-| 4 | ⚠️ PARTIAL | PDV forms, Fiscalization |
-| 5 | ❌ NO | KPI, URA/IRA, Assets |
-| 6 | ❌ NO | KPI, URA/IRA, Assets, Fiscalization |
-| 7 | ❌ NO | KPI, URA/IRA, Assets, JOPPD |
-| 8 | ❌ NO | KPI, URA/IRA, Assets, Fiscalization, JOPPD |
-| 9 | ❌ NO | KPI, URA/IRA, Assets, PDV forms |
-| 10 | ❌ NO | KPI, URA/IRA, Assets, PDV forms, Fiscalization |
-| 11 | ❌ NO | KPI, URA/IRA, Assets, PDV forms, JOPPD |
-| 12 | ❌ NO | Everything except Invoicing |
-| 13 | ❌ NO | URA/IRA, Assets, PDV forms |
-| 14 | ❌ NO | URA/IRA, Assets, PDV forms, Fiscalization |
-| 15 | ❌ NO | URA/IRA, Assets, PDV forms, JOPPD |
-| 16 | ❌ NO | Everything except Invoicing |
-| 17 | ❌ NO | URA/IRA, Assets, PDV forms |
-| 18 | ❌ NO | URA/IRA, Assets, PDV forms, Fiscalization |
-| 19 | ❌ NO | URA/IRA, Assets, PDV forms, JOPPD |
-| 20 | ❌ NO | Everything except Invoicing |
+| Scenario # | Can We Serve? | Missing Modules                                |
+| ---------- | ------------- | ---------------------------------------------- |
+| 1          | ✅ YES        | None                                           |
+| 2          | ⚠️ PARTIAL    | Fiscalization (60%)                            |
+| 3          | ⚠️ PARTIAL    | PDV forms (40%)                                |
+| 4          | ⚠️ PARTIAL    | PDV forms, Fiscalization                       |
+| 5          | ❌ NO         | KPI, URA/IRA, Assets                           |
+| 6          | ❌ NO         | KPI, URA/IRA, Assets, Fiscalization            |
+| 7          | ❌ NO         | KPI, URA/IRA, Assets, JOPPD                    |
+| 8          | ❌ NO         | KPI, URA/IRA, Assets, Fiscalization, JOPPD     |
+| 9          | ❌ NO         | KPI, URA/IRA, Assets, PDV forms                |
+| 10         | ❌ NO         | KPI, URA/IRA, Assets, PDV forms, Fiscalization |
+| 11         | ❌ NO         | KPI, URA/IRA, Assets, PDV forms, JOPPD         |
+| 12         | ❌ NO         | Everything except Invoicing                    |
+| 13         | ❌ NO         | URA/IRA, Assets, PDV forms                     |
+| 14         | ❌ NO         | URA/IRA, Assets, PDV forms, Fiscalization      |
+| 15         | ❌ NO         | URA/IRA, Assets, PDV forms, JOPPD              |
+| 16         | ❌ NO         | Everything except Invoicing                    |
+| 17         | ❌ NO         | URA/IRA, Assets, PDV forms                     |
+| 18         | ❌ NO         | URA/IRA, Assets, PDV forms, Fiscalization      |
+| 19         | ❌ NO         | URA/IRA, Assets, PDV forms, JOPPD              |
+| 20         | ❌ NO         | Everything except Invoicing                    |
 
 ### 8.2 Implementation Priority
 
 **Tier 1 - Launch for Paušalni (Scenarios 1-2):**
+
 - [x] Invoicing (80%)
 - [x] KPR (100%)
 - [x] PO-SD (100%)
 - [ ] Fiscalization polish (60% → 90%)
 
 **Tier 2 - Unlock Obrt Dohodak (Scenarios 5-12):**
+
 - [ ] KPI (0% → 100%)
 - [ ] URA/IRA (30% → 100%)
 - [ ] Assets DI (0% → 100%)
 
 **Tier 3 - Unlock d.o.o. (Scenarios 13-20):**
+
 - [ ] PDV forms (40% → 100%)
 - [ ] Full URA/IRA
 
 **Tier 4 - Premium Features:**
+
 - [ ] JOPPD (0% → 100%)
 - [ ] Travel/Locco (0% → 100%)
 
@@ -598,22 +625,23 @@ AUTO-CONFIGURE MODULES BASED ON ANSWERS
 ```
 
 **Configuration Logic:**
+
 ```javascript
 function configureModules(answers) {
   const modules = {
     invoicing: true, // Always
-    kpr: answers.legalForm === 'PAUSAL',
-    kpi: ['OBRT_REAL', 'OBRT_VAT'].includes(answers.legalForm),
-    posd: answers.legalForm === 'PAUSAL',
-    pdv: answers.isVatPayer || ['DOO', 'JDOO'].includes(answers.legalForm),
-    uraIra: answers.legalForm !== 'PAUSAL',
+    kpr: answers.legalForm === "PAUSAL",
+    kpi: ["OBRT_REAL", "OBRT_VAT"].includes(answers.legalForm),
+    posd: answers.legalForm === "PAUSAL",
+    pdv: answers.isVatPayer || ["DOO", "JDOO"].includes(answers.legalForm),
+    uraIra: answers.legalForm !== "PAUSAL",
     fiscalization: answers.acceptsCash,
     joppd: answers.hasEmployees,
-    assets: answers.legalForm !== 'PAUSAL',
+    assets: answers.legalForm !== "PAUSAL",
     travel: answers.usesVehicle,
-  };
+  }
 
-  return modules;
+  return modules
 }
 ```
 
@@ -817,6 +845,7 @@ model TravelExpense {
 ## Part 11: API Endpoints Needed
 
 ### 11.1 KPI Module
+
 ```
 POST   /api/kpi/entries          - Create entry
 GET    /api/kpi/entries          - List entries (with filters)
@@ -829,6 +858,7 @@ GET    /api/kpi/export/xml       - Export to XML (tax format)
 ```
 
 ### 11.2 Assets Module
+
 ```
 POST   /api/assets               - Create asset
 GET    /api/assets               - List assets
@@ -841,6 +871,7 @@ GET    /api/assets/depreciation  - Depreciation schedule
 ```
 
 ### 11.3 Payroll Module
+
 ```
 POST   /api/employees            - Create employee
 GET    /api/employees            - List employees
@@ -854,6 +885,7 @@ POST   /api/joppd/submit         - Submit to ePorezna
 ```
 
 ### 11.4 Travel Module
+
 ```
 POST   /api/travel/orders        - Create travel order
 GET    /api/travel/orders        - List orders
@@ -864,6 +896,7 @@ GET    /api/travel/report        - Monthly travel report
 ```
 
 ### 11.5 VAT Module
+
 ```
 GET    /api/vat/summary          - VAT summary
 GET    /api/vat/pdv-rr           - Generate PDV-RR form
@@ -872,6 +905,7 @@ GET    /api/vat/export/xml       - Export for ePorezna
 ```
 
 ### 11.6 URA/IRA Module
+
 ```
 GET    /api/ura                  - Incoming invoice register
 GET    /api/ira                  - Outgoing invoice register
@@ -884,6 +918,7 @@ GET    /api/ira/export           - Export IRA
 ## Summary
 
 This document covers **20 distinct business scenarios** across:
+
 - 5 legal forms
 - 2 VAT statuses
 - 2 cash handling options
@@ -894,6 +929,7 @@ With fiscalization polish: **Scenarios 1-2**
 Full market coverage requires: **All 20 scenarios**
 
 **Development effort estimate:**
+
 - KPI: 1-2 weeks
 - URA/IRA: 1 week
 - Assets: 2 weeks
@@ -910,27 +946,36 @@ Full market coverage requires: **All 20 scenarios**
 This section outlines a strategic vision for the development of FiskAI, building upon the excellent foundation of the existing codebase and the comprehensive plan detailed in this document. The vision is based on five key pillars designed to ensure a high-quality, scalable, and market-leading product.
 
 ### Pillar 1: Foundational Excellence & Iterative Delivery
+
 The existing codebase demonstrates a high standard of quality, security, and architectural design. This standard must be maintained and propagated as new modules are developed. Instead of a "big bang" approach, development should be iterative. Each module (KPI, Assets, JOPPD, etc.) should be treated as a mini-project: built, tested, and polished before moving to the next. This ensures a steady delivery of value and maintains application stability.
 
 ### Pillar 2: A Component-Driven, Accessible-First UI
+
 The audit revealed opportunities to improve UI development. To accelerate the creation of the many new interfaces required, the project should formally adopt a "design system" approach.
+
 - **Immediate Action:** Standardize on a headless UI library (e.g., **Radix UI** or **Headless UI**). All new complex components (modals, tables, dropdowns, forms) should be built using these accessible, unstyled primitives.
 - **Benefit:** This will dramatically increase development speed, ensure WCAG-compliant accessibility out-of-the-box, and guarantee a consistent user experience across the entire application. It offloads the hardest parts of UI engineering, allowing the team to focus on business logic and styling.
 
 ### Pillar 3: Test-Driven Quality Assurance
+
 The application's complexity will grow exponentially with each new module. To manage this, a rigorous, automated testing culture is not just recommended—it is essential.
+
 - **Immediate Action:** Fix the `vitest` integration and add the `test` script to the CI pipeline.
 - **Core Practice:** For every new feature, the detailed "Testing Checklist" in the implementation plans should be used as a blueprint for writing **automated tests**. This includes unit tests for business logic, integration tests for API endpoints, and end-to-end tests for critical user flows. A Test-Driven Development (TDD) or Behavior-Driven Development (BDD) approach would be highly beneficial here.
 
 ### Pillar 4: AI as a Core Differentiator
+
 The "AI" in FiskAI should be a core part of the user experience, not a feature bolted on at the end. As each new module is built, we should ideate on where AI can provide the most value.
+
 - **KPI Module:** AI can suggest expense categories based on the entry description.
 - **Assets Module:** AI can suggest the depreciation category and useful life based on the asset name.
 - **URA/IRA (Invoices):** AI can be used for OCR to automatically extract data from uploaded PDF invoices and receipts, pre-filling data entry forms.
-By integrating AI from the beginning, FiskAI will build a powerful, intelligent platform that stands out in the market.
+  By integrating AI from the beginning, FiskAI will build a powerful, intelligent platform that stands out in the market.
 
 ### Pillar 5: Phased Market Expansion
+
 The tiered implementation plan should be mirrored by a phased go-to-market strategy. This turns the development roadmap into a series of strategic business milestones.
+
 - **Phase 1 (Current):** Perfect the `Paušalni obrt` offering (Tier 1). Launch with this focused niche to gather real-world user feedback and build a strong foundation.
 - **Phase 2 (Q1-Q2):** Complete `Obrt Dohodak` features (Tier 2). This unlocks a significantly larger market segment. Launch a targeted marketing campaign to attract these new users.
 - **Phase 3 (Q2-Q3):** Complete `d.o.o.` features (Tier 3). This achieves full market coverage for core accounting.
@@ -950,15 +995,16 @@ The tax matrix covers Porezna (Tax Authority) and HZZO/MIO (Health/Pension), but
 
 #### Turistička Članarina (Tourist Board Fee) - TZ-2
 
-| Aspect | Details |
-|--------|---------|
-| **Who pays** | Almost everyone: Paušalni, Obrt, d.o.o. |
+| Aspect          | Details                                              |
+| --------------- | ---------------------------------------------------- |
+| **Who pays**    | Almost everyone: Paušalni, Obrt, d.o.o.              |
 | **Calculation** | Total Revenue × Rate (varies by location & activity) |
-| **Form** | TZ-2 (Annual) |
-| **Due date** | January 31st for previous year |
-| **Rate range** | 0.01% - 0.15% depending on NKD code |
+| **Form**        | TZ-2 (Annual)                                        |
+| **Due date**    | January 31st for previous year                       |
+| **Rate range**  | 0.01% - 0.15% depending on NKD code                  |
 
 **Required data:**
+
 - NKD Code (Nacionalna klasifikacija djelatnosti) - Activity classification
 - County/City of business location
 - Total annual revenue
@@ -966,6 +1012,7 @@ The tax matrix covers Porezna (Tax Authority) and HZZO/MIO (Health/Pension), but
 **Common client question:** "Do I have to pay this? How much?"
 
 **Implementation:**
+
 ```
 Required fields in Company settings:
 - nkdCode: String (e.g., "62.01" for software development)
@@ -978,14 +1025,15 @@ turistickaClanarina = annualRevenue × turistickaRate
 
 #### HOK Komorski Doprinos (Chamber of Trades)
 
-| Aspect | Details |
-|--------|---------|
-| **Who pays** | All Obrts (Paušalni & Dohodak) - MANDATORY |
-| **Amount** | Fixed quarterly fee (~25 EUR/quarter, ~100 EUR/year) |
-| **Payment** | Quarterly |
-| **IBAN** | HR12 2340 0091 1001 0623 7 (HOK) |
+| Aspect       | Details                                              |
+| ------------ | ---------------------------------------------------- |
+| **Who pays** | All Obrts (Paušalni & Dohodak) - MANDATORY           |
+| **Amount**   | Fixed quarterly fee (~25 EUR/quarter, ~100 EUR/year) |
+| **Payment**  | Quarterly                                            |
+| **IBAN**     | HR12 2340 0091 1001 0623 7 (HOK)                     |
 
 **Implementation:**
+
 - Add quarterly reminder notification
 - Generate payment slip with correct "Poziv na broj"
 - Format: HR68 OIB-[QUARTER][YEAR]
@@ -994,38 +1042,40 @@ turistickaClanarina = annualRevenue × turistickaRate
 
 #### HGK Članarina (Chamber of Economy)
 
-| Aspect | Details |
-|--------|---------|
-| **Who pays** | d.o.o. / j.d.o.o. |
-| **Status** | Usually VOLUNTARY for small companies (Group 1) since 2022 |
-| **Mandatory for** | Large companies (>50 employees or >10M EUR revenue) |
+| Aspect            | Details                                                    |
+| ----------------- | ---------------------------------------------------------- |
+| **Who pays**      | d.o.o. / j.d.o.o.                                          |
+| **Status**        | Usually VOLUNTARY for small companies (Group 1) since 2022 |
+| **Mandatory for** | Large companies (>50 employees or >10M EUR revenue)        |
 
 **Implementation:**
+
 - Default to OFF for small clients
 - Allow opt-in if they want HGK benefits (networking, certificates)
 - Show: "Based on your size, HGK membership is voluntary"
 
 #### OKFŠ (Forestry Contribution - Općekorisne funkcije šuma)
 
-| Aspect | Details |
-|--------|---------|
-| **Who pays** | d.o.o./j.d.o.o. and Obrt Dohodak |
+| Aspect        | Details                                                   |
+| ------------- | --------------------------------------------------------- |
+| **Who pays**  | d.o.o./j.d.o.o. and Obrt Dohodak                          |
 | **Threshold** | Revenue > ~7.5M HRK (~1M EUR) - rare for small businesses |
-| **Rate** | 0.0265% of revenue |
+| **Rate**      | 0.0265% of revenue                                        |
 
 **Implementation:**
+
 - Simple threshold check
 - Display: "Your revenue is under threshold. You are exempt from OKFŠ." (Peace of mind)
 
 ### 13.2 Para-Fiscal Obligations Matrix
 
-| Obligation | Paušalni | Obrt Dohodak | j.d.o.o. | d.o.o. | Frequency | Status |
-|------------|----------|--------------|----------|--------|-----------|--------|
-| Turistička članarina | ✅ YES | ✅ YES | ✅ YES | ✅ YES | Annual | ❌ NOT IMPLEMENTED |
-| HOK (Chamber of Trades) | ✅ YES | ✅ YES | ❌ NO | ❌ NO | Quarterly | ❌ NOT IMPLEMENTED |
-| HGK (Chamber of Economy) | ❌ NO | ❌ NO | ⚠️ Optional | ⚠️ Optional | Annual | ❌ NOT IMPLEMENTED |
-| OKFŠ (Forestry) | ❌ NO | ⚠️ If >1M | ⚠️ If >1M | ⚠️ If >1M | Annual | ❌ NOT IMPLEMENTED |
-| Spomenička renta | ⚠️ Location | ⚠️ Location | ⚠️ Location | ⚠️ Location | Annual | ❌ NOT IMPLEMENTED |
+| Obligation               | Paušalni    | Obrt Dohodak | j.d.o.o.    | d.o.o.      | Frequency | Status             |
+| ------------------------ | ----------- | ------------ | ----------- | ----------- | --------- | ------------------ |
+| Turistička članarina     | ✅ YES      | ✅ YES       | ✅ YES      | ✅ YES      | Annual    | ❌ NOT IMPLEMENTED |
+| HOK (Chamber of Trades)  | ✅ YES      | ✅ YES       | ❌ NO       | ❌ NO       | Quarterly | ❌ NOT IMPLEMENTED |
+| HGK (Chamber of Economy) | ❌ NO       | ❌ NO        | ⚠️ Optional | ⚠️ Optional | Annual    | ❌ NOT IMPLEMENTED |
+| OKFŠ (Forestry)          | ❌ NO       | ⚠️ If >1M    | ⚠️ If >1M   | ⚠️ If >1M   | Annual    | ❌ NOT IMPLEMENTED |
+| Spomenička renta         | ⚠️ Location | ⚠️ Location  | ⚠️ Location | ⚠️ Location | Annual    | ❌ NOT IMPLEMENTED |
 
 ---
 
@@ -1036,6 +1086,7 @@ turistickaClanarina = annualRevenue × turistickaRate
 ### 14.1 Why This Matters
 
 The Tax Authority (Porezna) uses different "Poziv na broj" (Reference) formats for different payments:
+
 - Income Tax: Different format
 - VAT: Different format
 - Pension contributions: Different format
@@ -1045,19 +1096,20 @@ The Tax Authority (Porezna) uses different "Poziv na broj" (Reference) formats f
 
 ### 14.2 Payment Reference Formats (HR Model)
 
-| Payment Type | Model | Poziv na broj Format | IBAN |
-|--------------|-------|---------------------|------|
-| Income Tax (Porez na dohodak) | HR68 | OIB-[GGGG][MM][DD] | HR12 1001 0051 8630 0016 0 |
-| VAT (PDV) | HR68 | OIB-[GGGG][MM][DD] | HR12 1001 0051 8630 0016 0 |
-| Pension I (MIO I) | HR68 | OIB-[GGGG][MM] | HR12 1001 0051 8630 0016 0 |
-| Pension II (MIO II) | HR68 | OIB-[GGGG][MM] | HR87 2407 0001 0071 2001 3 |
-| Health (HZZO) | HR68 | OIB-[GGGG][MM] | HR12 1001 0051 8630 0016 0 |
-| HOK membership | HR68 | OIB-[Q][GGGG] | HR12 2340 0091 1001 0623 7 |
-| Turistička zajednica | HR67 | OIB-[GGGG] | Varies by county |
+| Payment Type                  | Model | Poziv na broj Format | IBAN                       |
+| ----------------------------- | ----- | -------------------- | -------------------------- |
+| Income Tax (Porez na dohodak) | HR68  | OIB-[GGGG][MM][DD]   | HR12 1001 0051 8630 0016 0 |
+| VAT (PDV)                     | HR68  | OIB-[GGGG][MM][DD]   | HR12 1001 0051 8630 0016 0 |
+| Pension I (MIO I)             | HR68  | OIB-[GGGG][MM]       | HR12 1001 0051 8630 0016 0 |
+| Pension II (MIO II)           | HR68  | OIB-[GGGG][MM]       | HR87 2407 0001 0071 2001 3 |
+| Health (HZZO)                 | HR68  | OIB-[GGGG][MM]       | HR12 1001 0051 8630 0016 0 |
+| HOK membership                | HR68  | OIB-[Q][GGGG]        | HR12 2340 0091 1001 0623 7 |
+| Turistička zajednica          | HR67  | OIB-[GGGG]           | Varies by county           |
 
 ### 14.3 Hub3 2D Barcode Generation
 
 **Hub3 Standard Fields:**
+
 ```
 HRVHUB30
 [Currency]
@@ -1076,6 +1128,7 @@ HRVHUB30
 ```
 
 **Example for Monthly MIO I Payment:**
+
 ```
 HRVHUB30
 EUR
@@ -1095,17 +1148,18 @@ MIO I DOPRINOS 12/2024
 
 ### 14.4 Required Implementation
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| Payment Calendar | Show upcoming payments with amounts | HIGH |
-| Hub3 Generator | Generate scannable barcode for any payment | HIGH |
-| One-Click Pay | Open banking app with pre-filled payment | MEDIUM |
-| Payment History | Track what was paid, when, reference used | HIGH |
-| Smart Reminders | Notify 5 days before each deadline | HIGH |
+| Feature          | Description                                | Priority |
+| ---------------- | ------------------------------------------ | -------- |
+| Payment Calendar | Show upcoming payments with amounts        | HIGH     |
+| Hub3 Generator   | Generate scannable barcode for any payment | HIGH     |
+| One-Click Pay    | Open banking app with pre-filled payment   | MEDIUM   |
+| Payment History  | Track what was paid, when, reference used  | HIGH     |
+| Smart Reminders  | Notify 5 days before each deadline         | HIGH     |
 
 ### 14.5 Monthly Payment Schedule Generator
 
 **For Paušalni Obrt:**
+
 ```
 Monthly Obligations:
 ├── MIO I (Pension Fund I): [calculated] EUR
@@ -1134,52 +1188,56 @@ Quarterly Obligations:
 
 #### VAT Registration Threshold (Already Partially Implemented)
 
-| Level | Threshold | Action |
-|-------|-----------|--------|
-| 🟢 Safe | < 36,000 EUR | "You're safely under the VAT threshold" |
-| 🟡 Warning | 36,000 - 39,999 EUR | "You're approaching VAT threshold (90%). Plan ahead." |
-| 🔴 Exceeded | ≥ 40,000 EUR | "VAT threshold exceeded! Register within 5 days." |
+| Level       | Threshold           | Action                                                |
+| ----------- | ------------------- | ----------------------------------------------------- |
+| 🟢 Safe     | < 36,000 EUR        | "You're safely under the VAT threshold"               |
+| 🟡 Warning  | 36,000 - 39,999 EUR | "You're approaching VAT threshold (90%). Plan ahead." |
+| 🔴 Exceeded | ≥ 40,000 EUR        | "VAT threshold exceeded! Register within 5 days."     |
 
 #### Paušalni Tax Bracket Monitor (NEW)
 
-| Bracket | Income Range | Quarterly Tax | Monthly Contributions |
-|---------|--------------|---------------|----------------------|
-| 1 | 0 - 12,000 EUR | Base rate | Lower base |
-| 2 | 12,001 - 30,000 EUR | +66% increase | Higher base |
-| 3 | 30,001 - 40,000 EUR | +50% increase | Highest base |
+| Bracket | Income Range        | Quarterly Tax | Monthly Contributions |
+| ------- | ------------------- | ------------- | --------------------- |
+| 1       | 0 - 12,000 EUR      | Base rate     | Lower base            |
+| 2       | 12,001 - 30,000 EUR | +66% increase | Higher base           |
+| 3       | 30,001 - 40,000 EUR | +50% increase | Highest base          |
 
 **Alert Example:**
+
 > "You have entered Bracket 2 with invoice #47. Your quarterly tax will increase from X EUR to Y EUR starting next quarter. This is normal - you're growing!"
 
 #### Cash Payment Limit (B2B)
 
-| Limit | Amount | Consequence |
-|-------|--------|-------------|
+| Limit     | Amount  | Consequence                        |
+| --------- | ------- | ---------------------------------- |
 | Legal max | 700 EUR | Fines for both parties if exceeded |
 
 **Alert Example:**
+
 > ⚠️ "This cash expense (850 EUR) exceeds the 700 EUR B2B cash limit. Consider bank transfer to avoid penalties."
 
 #### Distance Selling / OSS Threshold (EU Digital Sales)
 
-| Limit | Amount | Trigger |
-|-------|--------|---------|
+| Limit   | Amount     | Trigger                            |
+| ------- | ---------- | ---------------------------------- |
 | EU-wide | 10,000 EUR | Cross-border sales to EU consumers |
 
 **When exceeded:**
+
 - Must register for OSS (One-Stop-Shop)
 - Charge destination country VAT rates
 - File quarterly OSS returns
 
 **Alert Example:**
+
 > "Your EU consumer sales have reached 8,500 EUR. At 10,000 EUR, you must register for OSS. We can help you prepare."
 
 #### Fiscalization Transaction Limits
 
-| Scenario | Limit | Note |
-|----------|-------|------|
+| Scenario                | Limit          | Note                                |
+| ----------------------- | -------------- | ----------------------------------- |
 | Single cash transaction | No legal limit | But unusual patterns trigger audits |
-| Daily cash deposits | 10,000+ EUR | Bank reports to authorities |
+| Daily cash deposits     | 10,000+ EUR    | Bank reports to authorities         |
 
 ### 15.2 Dashboard Implementation
 
@@ -1214,45 +1272,46 @@ Quarterly Obligations:
 
 ### 16.1 Contextual Help Tooltips
 
-| Field/Feature | Tooltip Content |
-|---------------|-----------------|
+| Field/Feature                 | Tooltip Content                                                       |
+| ----------------------------- | --------------------------------------------------------------------- |
 | Reprezentacija (Client meals) | "Only 50% deductible. Write client's name & company on receipt back." |
-| Locco Travel | "Must attach: odometer reading, trip purpose, destination." |
-| Home Office Expense | "Calculate: (Office m² ÷ Total m²) × Utility cost" |
-| Vehicle Expense | "Keep logbook for 100% deduction, or claim 50% without proof." |
-| Cash Expense >500 EUR | "Ensure you have proper documentation. >700 EUR B2B = illegal." |
-| Dar (Gift to client) | "Max 160 HRK per gift. Must record recipient name." |
-| Depreciation | "Assets >3,500 HRK (464 EUR) must be depreciated over useful life." |
+| Locco Travel                  | "Must attach: odometer reading, trip purpose, destination."           |
+| Home Office Expense           | "Calculate: (Office m² ÷ Total m²) × Utility cost"                    |
+| Vehicle Expense               | "Keep logbook for 100% deduction, or claim 50% without proof."        |
+| Cash Expense >500 EUR         | "Ensure you have proper documentation. >700 EUR B2B = illegal."       |
+| Dar (Gift to client)          | "Max 160 HRK per gift. Must record recipient name."                   |
+| Depreciation                  | "Assets >3,500 HRK (464 EUR) must be depreciated over useful life."   |
 
 ### 16.2 Document Vault (Regulatory Documents)
 
 Clients constantly lose important documents. Store them in-app:
 
-| Document Type | Description | Who Needs It |
-|---------------|-------------|--------------|
-| Rješenje o paušalnom porezu | Tax ruling for paušalni | Paušalni |
-| Rješenje o upisu u obrtni registar | Trade registration | All Obrts |
-| MIO/HZZO prijava | Social insurance registration | Everyone |
-| Izvadak iz sudskog registra | Court registry extract | d.o.o./j.d.o.o. |
-| OIB potvrda | OIB certificate | Everyone |
-| FINA certifikat | Fiscalization certificate | If fiscalizing |
-| PDV prijava | VAT registration | VAT payers |
-| NKD klasifikacija | Activity classification | Everyone |
+| Document Type                      | Description                   | Who Needs It    |
+| ---------------------------------- | ----------------------------- | --------------- |
+| Rješenje o paušalnom porezu        | Tax ruling for paušalni       | Paušalni        |
+| Rješenje o upisu u obrtni registar | Trade registration            | All Obrts       |
+| MIO/HZZO prijava                   | Social insurance registration | Everyone        |
+| Izvadak iz sudskog registra        | Court registry extract        | d.o.o./j.d.o.o. |
+| OIB potvrda                        | OIB certificate               | Everyone        |
+| FINA certifikat                    | Fiscalization certificate     | If fiscalizing  |
+| PDV prijava                        | VAT registration              | VAT payers      |
+| NKD klasifikacija                  | Activity classification       | Everyone        |
 
 **Features:**
+
 - Upload/download official documents
 - Expiry tracking (certificates)
 - Quick access when needed for applications/banks
 
 ### 16.3 Knowledge Base Integration
 
-| Section | Content Type |
-|---------|--------------|
-| FAQ | "Do I need to pay turistička članarina?" |
-| Guides | "How to claim home office expenses" |
-| Calculators | "Estimate my quarterly tax" |
-| Deadlines | "When is PO-SD due?" |
-| Forms | Downloadable blank forms (TZ-2, JOPPD, etc.) |
+| Section     | Content Type                                 |
+| ----------- | -------------------------------------------- |
+| FAQ         | "Do I need to pay turistička članarina?"     |
+| Guides      | "How to claim home office expenses"          |
+| Calculators | "Estimate my quarterly tax"                  |
+| Deadlines   | "When is PO-SD due?"                         |
+| Forms       | Downloadable blank forms (TZ-2, JOPPD, etc.) |
 
 ---
 
@@ -1260,29 +1319,30 @@ Clients constantly lose important documents. Store them in-app:
 
 ### 17.1 Complete Module List (Including Para-Fiscal)
 
-| Module | Category | Paušalni | Obrt | d.o.o. | Status | Effort |
-|--------|----------|----------|------|--------|--------|--------|
-| Invoicing | Core | ✅ | ✅ | ✅ | 80% | - |
-| Fiscalization | Core | ⚠️ | ⚠️ | ⚠️ | 60% | 1 week |
-| KPR | Track | ✅ | ❌ | ❌ | 100% | Done |
-| KPI | Track | ❌ | ✅ | ❌ | 0% | 2 weeks |
-| PO-SD | Report | ✅ | ❌ | ❌ | 100% | Done |
-| PDV Forms | Report | ❌ | ⚠️ | ✅ | 40% | 2 weeks |
-| JOPPD | Report | ❌ | ⚠️ | ⚠️ | 0% | 4 weeks |
-| URA/IRA | Report | ❌ | ✅ | ✅ | 30% | 1 week |
-| Assets (DI) | Track | ❌ | ✅ | ✅ | 0% | 2 weeks |
-| Travel/Locco | Track | ⚠️ | ⚠️ | ⚠️ | 0% | 2 weeks |
-| **Turistička članarina** | Para-fiscal | ✅ | ✅ | ✅ | 0% | 3 days |
-| **HOK membership** | Para-fiscal | ✅ | ✅ | ❌ | 0% | 2 days |
-| **HGK membership** | Para-fiscal | ❌ | ❌ | ⚠️ | 0% | 1 day |
-| **Payment Hub3** | Utility | ✅ | ✅ | ✅ | 0% | 1 week |
-| **Threshold Monitor** | Utility | ✅ | ✅ | ✅ | 40% | 3 days |
-| **Document Vault** | Utility | ✅ | ✅ | ✅ | 0% | 1 week |
-| **Contextual Help** | UX | ✅ | ✅ | ✅ | 0% | 1 week |
+| Module                   | Category    | Paušalni | Obrt | d.o.o. | Status | Effort  |
+| ------------------------ | ----------- | -------- | ---- | ------ | ------ | ------- |
+| Invoicing                | Core        | ✅       | ✅   | ✅     | 80%    | -       |
+| Fiscalization            | Core        | ⚠️       | ⚠️   | ⚠️     | 60%    | 1 week  |
+| KPR                      | Track       | ✅       | ❌   | ❌     | 100%   | Done    |
+| KPI                      | Track       | ❌       | ✅   | ❌     | 0%     | 2 weeks |
+| PO-SD                    | Report      | ✅       | ❌   | ❌     | 100%   | Done    |
+| PDV Forms                | Report      | ❌       | ⚠️   | ✅     | 40%    | 2 weeks |
+| JOPPD                    | Report      | ❌       | ⚠️   | ⚠️     | 0%     | 4 weeks |
+| URA/IRA                  | Report      | ❌       | ✅   | ✅     | 30%    | 1 week  |
+| Assets (DI)              | Track       | ❌       | ✅   | ✅     | 0%     | 2 weeks |
+| Travel/Locco             | Track       | ⚠️       | ⚠️   | ⚠️     | 0%     | 2 weeks |
+| **Turistička članarina** | Para-fiscal | ✅       | ✅   | ✅     | 0%     | 3 days  |
+| **HOK membership**       | Para-fiscal | ✅       | ✅   | ❌     | 0%     | 2 days  |
+| **HGK membership**       | Para-fiscal | ❌       | ❌   | ⚠️     | 0%     | 1 day   |
+| **Payment Hub3**         | Utility     | ✅       | ✅   | ✅     | 0%     | 1 week  |
+| **Threshold Monitor**    | Utility     | ✅       | ✅   | ✅     | 40%    | 3 days  |
+| **Document Vault**       | Utility     | ✅       | ✅   | ✅     | 0%     | 1 week  |
+| **Contextual Help**      | UX          | ✅       | ✅   | ✅     | 0%     | 1 week  |
 
 ### 17.2 Revised Development Roadmap
 
 **Phase 1: Perfect Paušalni (2 weeks)**
+
 - [ ] Fiscalization polish (FINA cert or IE-Računi production)
 - [ ] Payment Hub3 generator (MIO, HZZO, Tax)
 - [ ] HOK membership reminders
@@ -1291,17 +1351,20 @@ Clients constantly lose important documents. Store them in-app:
 - [ ] Contextual help tooltips
 
 **Phase 2: Unlock Obrt Dohodak (4 weeks)**
+
 - [ ] KPI (Knjiga Primitaka/Izdataka)
 - [ ] URA/IRA report generators
 - [ ] Assets (DI) module
 - [ ] Document vault
 
 **Phase 3: Full d.o.o. Support (4 weeks)**
+
 - [ ] Complete PDV forms (PDV-RR, PDV-S, ZP)
 - [ ] HGK membership handling
 - [ ] Enhanced URA/IRA
 
 **Phase 4: Premium Features (6 weeks)**
+
 - [ ] JOPPD (Payroll)
 - [ ] Travel/Locco module
 - [ ] OSS threshold monitoring
@@ -1309,13 +1372,13 @@ Clients constantly lose important documents. Store them in-app:
 
 ### 17.3 Quick Wins (Can Do This Week)
 
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Add NKD code to company settings | 1 hour | Enables TZ calculation |
-| Hub3 barcode generator utility | 1 day | Huge UX improvement |
-| HOK payment reminder | 2 hours | Prevents missed payments |
-| Cash limit warning (>700 EUR) | 2 hours | Prevents legal issues |
-| Bracket jump notification | 4 hours | Reduces surprise tax bills |
+| Feature                          | Effort  | Impact                     |
+| -------------------------------- | ------- | -------------------------- |
+| Add NKD code to company settings | 1 hour  | Enables TZ calculation     |
+| Hub3 barcode generator utility   | 1 day   | Huge UX improvement        |
+| HOK payment reminder             | 2 hours | Prevents missed payments   |
+| Cash limit warning (>700 EUR)    | 2 hours | Prevents legal issues      |
+| Bracket jump notification        | 4 hours | Reduces surprise tax bills |
 
 ---
 
@@ -1428,17 +1491,18 @@ enum AlertLevel {
 
 ## Summary: From Accounting Software to Virtual CFO
 
-| Layer | Purpose | Status |
-|-------|---------|--------|
-| **Core Accounting** | Invoices, Expenses, Reports | 70% |
-| **Tax Compliance** | PDV, PO-SD, JOPPD | 50% |
-| **Para-Fiscal** | TZ, HOK, HGK, OKFŠ | 0% |
-| **Payment Execution** | Hub3 barcodes, references | 0% |
-| **Threshold Monitoring** | Proactive alerts | 40% |
-| **Document Management** | Regulatory doc storage | 0% |
-| **Education** | Contextual help, guides | 0% |
+| Layer                    | Purpose                     | Status |
+| ------------------------ | --------------------------- | ------ |
+| **Core Accounting**      | Invoices, Expenses, Reports | 70%    |
+| **Tax Compliance**       | PDV, PO-SD, JOPPD           | 50%    |
+| **Para-Fiscal**          | TZ, HOK, HGK, OKFŠ          | 0%     |
+| **Payment Execution**    | Hub3 barcodes, references   | 0%     |
+| **Threshold Monitoring** | Proactive alerts            | 40%    |
+| **Document Management**  | Regulatory doc storage      | 0%     |
+| **Education**            | Contextual help, guides     | 0%     |
 
 **With these additions, FiskAI becomes:**
+
 - ✅ Their accountant (books, taxes)
 - ✅ Their CFO (cash flow, planning)
 - ✅ Their compliance officer (deadlines, limits)

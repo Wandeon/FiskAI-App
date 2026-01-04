@@ -3,6 +3,7 @@
 ## Problem Summary
 
 Croatian tax law requires 11-year document retention, but:
+
 1. R2 storage has no lifecycle management
 2. No automated archival to cold storage
 3. No protection against accidental deletion
@@ -11,6 +12,7 @@ Croatian tax law requires 11-year document retention, but:
 ## Solution Overview
 
 Implement tiered retention strategy:
+
 1. **Metadata tagging** - Track retention requirements
 2. **Object Lock** - Prevent premature deletion (optional but recommended)
 3. **Lifecycle rules** - Transition to cold storage
@@ -29,19 +31,22 @@ Implement tiered retention strategy:
 ### 🔄 Phase 2: Apply to Upload Routes (In Progress)
 
 **File: `src/app/api/import/upload/route.ts`**
+
 - [ ] Update uploadToR2 call to include retention:
+
 ```typescript
 await uploadToR2(key, buffer, file.type, {
   retentionYears: 11,
   metadata: {
-    'company-id': company.id,
-    'original-filename': fileName,
-    'document-type': documentType || 'UNKNOWN',
+    "company-id": company.id,
+    "original-filename": fileName,
+    "document-type": documentType || "UNKNOWN",
   },
 })
 ```
 
 **File: `src/app/api/banking/import/upload/route.ts`**
+
 - [ ] Migrate from local filesystem to R2
 - [ ] Add R2 client imports
 - [ ] Replace `fs.writeFile()` with `uploadToR2()`
@@ -74,10 +79,7 @@ await uploadToR2(key, buffer, file.type, {
 
 ```typescript
 // Add imports
-import {
-  PutObjectRetentionCommand,
-  ObjectLockRetentionMode,
-} from "@aws-sdk/client-s3"
+import { PutObjectRetentionCommand, ObjectLockRetentionMode } from "@aws-sdk/client-s3"
 
 // Update uploadToR2 signature
 export async function uploadToR2(
@@ -105,9 +107,9 @@ const key = generateR2Key(company.id, checksum, fileName)
 await uploadToR2(key, buffer, file.type, {
   retentionYears: 11, // Croatian tax law requirement
   metadata: {
-    'company-id': company.id,
-    'original-filename': fileName,
-    'document-type': documentType || 'UNKNOWN',
+    "company-id": company.id,
+    "original-filename": fileName,
+    "document-type": documentType || "UNKNOWN",
   },
 })
 ```
@@ -161,11 +163,13 @@ R2_OBJECT_LOCK_ENABLED=true
 ## R2 Bucket Setup
 
 **For new buckets:**
+
 ```bash
 wrangler r2 bucket create fiskai-documents --object-lock
 ```
 
 **Configure lifecycle rules** (via Cloudflare Dashboard or API):
+
 - Transition to Infrequent Access after 1 year
 - Transition to Glacier after 2 years
 - Keep until 11 years (retention policy)
@@ -194,6 +198,7 @@ wrangler r2 bucket create fiskai-documents --object-lock
 ## Rollback Plan
 
 If issues arise:
+
 1. Set `R2_OBJECT_LOCK_ENABLED=false` to disable Object Lock
 2. Metadata tagging remains active (no-op if removed)
 3. Banking imports: Keep both storagePath and storageKey for transition period
