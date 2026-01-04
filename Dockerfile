@@ -13,8 +13,9 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Copy Prisma schema (needed for postinstall prisma generate)
+# Copy Prisma schemas and configs (needed for postinstall prisma generate)
 COPY prisma ./prisma
+COPY prisma.config.ts prisma.config.regulatory.ts ./
 
 # Disable Husky in Docker builds (no .git directory available)
 ENV HUSKY=0
