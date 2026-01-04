@@ -26,6 +26,31 @@ export interface IncomingInvoice {
   ublXml: string
 }
 
+/**
+ * Filter parameters for fetching incoming invoices
+ */
+export interface IncomingInvoiceFilter {
+  /** Start of date range (inclusive) */
+  fromDate?: Date
+  /** End of date range (inclusive) */
+  toDate?: Date
+  /** Page number for pagination (1-indexed) */
+  page?: number
+  /** Page size for pagination */
+  pageSize?: number
+}
+
+/**
+ * Result of listing incoming invoices
+ */
+export interface ListIncomingResult {
+  invoices: IncomingInvoice[]
+  totalCount: number
+  page: number
+  pageSize: number
+  hasMore: boolean
+}
+
 export interface InvoiceStatusResult {
   status: "pending" | "delivered" | "accepted" | "rejected" | "error"
   message?: string

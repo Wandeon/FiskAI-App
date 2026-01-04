@@ -349,6 +349,32 @@ services:
         limits:
           memory: 512M
 
+  # E-Invoice Inbound Poller: Polls ePoslovanje for incoming invoices
+  # Note: One instance per company (configured via COMPANY_ID)
+  worker-einvoice-inbound:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-einvoice-inbound
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - EPOSLOVANJE_API_BASE=${EPOSLOVANJE_API_BASE}
+      - EPOSLOVANJE_API_KEY=${EPOSLOVANJE_API_KEY}
+      - COMPANY_ID=${EINVOICE_COMPANY_ID}
+      - POLL_INTERVAL_MS=${EINVOICE_POLL_INTERVAL_MS:-300000}
+      - MAX_WINDOW_DAYS=${EINVOICE_MAX_WINDOW_DAYS:-7}
+      - WORKER_TYPE=einvoice-inbound
+    networks:
+      - default
+      - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
 volumes:
   fiskai_redis_data:
 
