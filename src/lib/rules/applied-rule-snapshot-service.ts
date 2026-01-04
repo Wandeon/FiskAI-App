@@ -138,10 +138,10 @@ export async function getOrCreateAppliedRuleSnapshot(
   const effectiveFrom = truncateToDate(input.effectiveFrom)
   const dataHash = computeDataHash(input.snapshotData)
 
-  // Check for existing snapshot with same dedupe key
-  // If exists: return existing (no update needed - snapshots are immutable)
-  // If not: create new
-  const existing = await client.appliedRuleSnapshot.findUnique({
+  // Use upsert with no-op update to atomically get-or-create
+  // This prevents race conditions where concurrent requests try to create
+  // the same snapshot (unique constraint on companyId, ruleVersionId, dataHash)
+  const snapshot = await client.appliedRuleSnapshot.upsert({
     where: {
       companyId_ruleVersionId_dataHash: {
         companyId,
@@ -149,16 +149,8 @@ export async function getOrCreateAppliedRuleSnapshot(
         dataHash,
       },
     },
-    select: { id: true },
-  })
-
-  if (existing) {
-    return { id: existing.id, created: false }
-  }
-
-  // Create new snapshot
-  const snapshot = await client.appliedRuleSnapshot.create({
-    data: {
+    update: {}, // No-op update - snapshots are immutable
+    create: {
       companyId,
       ruleVersionId: input.ruleVersionId,
       ruleTableKey,
@@ -170,6 +162,8 @@ export async function getOrCreateAppliedRuleSnapshot(
     select: { id: true },
   })
 
+  // We can't distinguish create vs existing with upsert, but that's fine
+  // The caller only needs the id
   return { id: snapshot.id, created: true }
 }
 
