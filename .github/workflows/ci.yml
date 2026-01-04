@@ -44,6 +44,9 @@ jobs:
       - name: Check no ruleVersion relations (PR#9 guardrail)
         run: npx tsx scripts/check-no-ruleversion-relations.ts
 
+      - name: Check no direct core RuleVersion usage (PR#11 guardrail)
+        run: npx tsx scripts/check-no-direct-core-ruleversion.ts
+
   lint-ratchet:
     name: Lint Ratchet
     runs-on: ubuntu-latest

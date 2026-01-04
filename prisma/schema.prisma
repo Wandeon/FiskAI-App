@@ -3836,6 +3836,23 @@ model RegulatoryRule {
 // ============================================================================
 // FISCAL RULE TABLES (Deterministic Calculations)
 // ============================================================================
+//
+// ⚠️  DEPRECATED (PR#10/PR#11): These models are migrated to regulatory schema.
+//     All reads now go through src/lib/fiscal-rules/ruleversion-store.ts
+//     which reads from dbReg (regulatory client) when RULE_VERSION_SOURCE=regulatory.
+//
+//     These core models remain ONLY for:
+//     1. TravelOrder relations (travelOrdersPerDiem, travelOrdersMileage)
+//     2. Migration scripts during transition period
+//
+//     DO NOT add new code that uses db.ruleTable or db.ruleVersion directly.
+//     Use the store functions: getRuleTableByKey(), getEffectiveRuleVersion(), etc.
+//
+//     CLEANUP GATE: Remove these models after:
+//     - TravelOrder relations migrated to soft references
+//     - Production stable on RULE_VERSION_SOURCE=regulatory for 48h+
+//     - Platform owner sign-off on docs/operations/ruleversion-cutover-exit-criteria.md
+// ============================================================================
 
 model RuleTable {
   id          String   @id @default(cuid())
