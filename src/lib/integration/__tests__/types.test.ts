@@ -3,6 +3,8 @@ import {
   parseEInvoiceSecrets,
   parseFiscalizationSecrets,
   validateIntegrationKind,
+  isEInvoiceKind,
+  isFiscalizationKind,
   IntegrationSecretsError,
 } from "../types"
 
@@ -56,6 +58,32 @@ describe("Integration Types", () => {
     it("returns false for invalid kind", () => {
       expect(validateIntegrationKind("INVALID")).toBe(false)
       expect(validateIntegrationKind("")).toBe(false)
+    })
+  })
+
+  describe("isEInvoiceKind", () => {
+    it("returns true for EINVOICE_ prefixed kinds", () => {
+      expect(isEInvoiceKind("EINVOICE_EPOSLOVANJE")).toBe(true)
+      expect(isEInvoiceKind("EINVOICE_FINA")).toBe(true)
+      expect(isEInvoiceKind("EINVOICE_IE_RACUNI")).toBe(true)
+    })
+
+    it("returns false for non-EINVOICE kinds", () => {
+      expect(isEInvoiceKind("FISCALIZATION_CIS")).toBe(false)
+      expect(isEInvoiceKind("INVALID")).toBe(false)
+      expect(isEInvoiceKind("")).toBe(false)
+    })
+  })
+
+  describe("isFiscalizationKind", () => {
+    it("returns true for FISCALIZATION_ prefixed kinds", () => {
+      expect(isFiscalizationKind("FISCALIZATION_CIS")).toBe(true)
+    })
+
+    it("returns false for non-FISCALIZATION kinds", () => {
+      expect(isFiscalizationKind("EINVOICE_EPOSLOVANJE")).toBe(false)
+      expect(isFiscalizationKind("INVALID")).toBe(false)
+      expect(isFiscalizationKind("")).toBe(false)
     })
   })
 })
