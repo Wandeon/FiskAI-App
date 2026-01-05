@@ -5553,4 +5553,5 @@ model ProviderSyncState {
   @@unique([companyId, provider, direction])
   @@index([companyId])
   @@index([provider, direction])
+  @@index([integrationAccountId])
 }
