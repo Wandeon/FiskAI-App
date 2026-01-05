@@ -157,13 +157,15 @@ const endpoints = [
     listingStrategy: "HTML_LIST" as const,
   },
   {
-    domain: "hnb.hr",
-    path: "/devizni-tecajevi/referentni-tecajevi-esb-a",
-    name: "HNB - Devizni tečajevi",
+    // FIXED: URL was wrong - verified correct path 2026-01-05
+    domain: "www.hnb.hr",
+    path: "/statistika/statisticki-podaci/financijski-sektor/sredisnja-banka-hnb/devizni-tecajevi/referentni-tecajevi-esb-a",
+    name: "HNB - Devizni tečajevi (ECB referentni)",
     endpointType: "STATISTICS" as const,
     priority: "CRITICAL" as const,
     scrapeFrequency: "EVERY_RUN" as const,
     listingStrategy: "HTML_LIST" as const,
+    metadata: { verified: "2026-01-05", note: "ECB reference rates via HNB" },
   },
   {
     domain: "www.hok.hr", // FIXED: hok.hr requires www prefix (verified 2026-01-05)
