@@ -13,8 +13,8 @@ import { Prisma, InvoiceType, type Company, type EInvoice } from "@prisma/client
 import { getNextInvoiceNumber } from "@/lib/invoice-numbering"
 import { canCreateInvoice, getUsageStats } from "@/lib/billing/stripe"
 import { eInvoiceSchema } from "@/lib/validations"
-import { createEInvoiceProvider, generateUBLInvoice } from "@/lib/e-invoice"
-import { decryptOptionalSecret } from "@/lib/secrets"
+import { generateUBLInvoice } from "@/lib/e-invoice"
+import { sendEInvoice as sendViaProvider } from "@/lib/e-invoice/send-invoice"
 import { generateInvoicePDF } from "@/lib/pdf/generate-invoice-pdf"
 import { shouldFiscalizeInvoice, queueFiscalRequest } from "@/lib/fiscal/should-fiscalize"
 import { validateStatusTransition, getTransitionError } from "@/lib/e-invoice-status"
@@ -683,24 +683,11 @@ export async function sendEInvoice(eInvoiceId: string) {
       return { error: transitionValidation.error }
     }
 
-    // Generate UBL XML
+    // Generate UBL XML (needed for storing in DB even when using new path)
     const ublXml = generateUBLInvoice(eInvoice)
 
-    // Get provider (use mock for now)
-    const providerName = company.eInvoiceProvider || "mock"
-
-    // Decrypt API key with error handling
-    let apiKey = ""
-    try {
-      apiKey = decryptOptionalSecret(company.eInvoiceApiKeyEncrypted) || ""
-    } catch {
-      return { error: "Failed to decrypt API key. Please reconfigure your e-invoice settings." }
-    }
-
-    const provider = createEInvoiceProvider(providerName, { apiKey })
-
-    // Send via provider
-    const result = await provider.sendInvoice(eInvoice, ublXml)
+    // Send via dual-path provider (feature flag checked internally)
+    const result = await sendViaProvider({ invoice: eInvoice })
 
     if (!result.success) {
       await db.eInvoice.update({
@@ -714,6 +701,7 @@ export async function sendEInvoice(eInvoiceId: string) {
     }
 
     // Update invoice with fiscalization data
+    // Note: integrationAccountId is already set by sendViaProvider when using new path
     const updatedInvoice = await db.eInvoice.update({
       where: { id: eInvoiceId },
       data: {
