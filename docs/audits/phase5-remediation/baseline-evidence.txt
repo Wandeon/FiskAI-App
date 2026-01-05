@@ -1,0 +1,91 @@
+============================================================
+PHASE 5 BASELINE EVIDENCE
+Timestamp: 2026-01-05T11:57:18.755Z
+============================================================
+
+=== A) INTEGRATION ACCOUNTS COUNT ===
+Total IntegrationAccounts: 0
+
+=== B) COMPANIES WITH E-INVOICE CONFIG ===
+
+Artemi Media (cmjbtptms000001nzepg6azh6)
+  OIB: 57913238050, VAT: false
+  Entitlements: none
+  Has e-invoice entitlement: undefined
+  E-Invoice Provider: not set
+  Has API key configured: false
+  Fiscal enabled: false
+
+Test Company (cmjdcjl3p0000rgwanicp0yev)
+  OIB: 99999999999, VAT: false
+  Entitlements: invoicing, e-invoicing
+  Has e-invoice entitlement: true
+  E-Invoice Provider: not set
+  Has API key configured: false
+  Fiscal enabled: false
+
+Test Company 2 (cmjdck3yj0000efwal3az7ulq)
+  OIB: 88888888888, VAT: false
+  Entitlements: none
+  Has e-invoice entitlement: undefined
+  E-Invoice Provider: not set
+  Has API key configured: false
+  Fiscal enabled: false
+
+Metrica d.o.o. (cmj02op1e000101lmu08z0hps)
+  OIB: 45480824373, VAT: true
+  Entitlements: invoicing, expenses, banking, reports, settings, eInvoicing
+  Has e-invoice entitlement: true
+  E-Invoice Provider: mock
+  Has API key configured: false
+  Fiscal enabled: false
+
+Test D.O.O. Lane2 (test-doo-lane2)
+  OIB: 12345678903, VAT: false
+  Entitlements: none
+  Has e-invoice entitlement: undefined
+  E-Invoice Provider: eposlovanje
+  Has API key configured: false
+  Fiscal enabled: false
+
+=== C) EINVOICES MISSING integrationAccountId ===
+Total operational EInvoices missing integrationAccountId: 20
+  cmk03vv2a0000wdwaeql5a3h8 | company: cmj02op1e000101lmu08z0hps | status: SENT | direction: OUTBOUND | created: 2026-01-04T19:09:42.269Z
+  cmk03sxpu000056waayh48zeq | company: cmj02op1e000101lmu08z0hps | status: ERROR | direction: OUTBOUND | created: 2026-01-04T19:07:25.732Z
+  cmk03pywe0000b4wa54wth92f | company: cmj02op1e000101lmu08z0hps | status: ERROR | direction: OUTBOUND | created: 2026-01-04T19:05:07.307Z
+  cmk03od3u0000o5wa66uhwyks | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T19:03:52.407Z
+  cmk03mvad00005xwai3mo9q6q | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T19:02:42.656Z
+  cmk03kq1000002cwal6aal9rj | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T19:01:02.524Z
+  cmk03j9bk0000kkwa2to8ahap | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T18:59:54.216Z
+  cmk02jzzu0000auwaurzxeabk | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T18:32:29.169Z
+  cmk01f7i200005cwa9i5aimyw | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T18:00:46.007Z
+  cmk01bcfm0000iswat8bsv0xj | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:57:45.773Z
+  cmk019yv6000075wa6wb165qp | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:56:41.534Z
+  cmk0184em0000hzwa0dp4mpq2 | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:55:15.401Z
+  cmk016qc7000021waf6ug4sqx | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:54:10.513Z
+  cmk00nerg000027waw5cegxir | company: test-doo-lane2 | status: SENT | direction: OUTBOUND | created: 2026-01-04T17:39:09.047Z
+  cmk00l44l0000ulwak9v5x7ua | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:37:21.943Z
+  cmjzzzep00000aswadnoqu5el | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:20:29.217Z
+  cmjzzynwj0000hwwa13taiu9l | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T17:19:54.495Z
+  cmjzyr0140000x6wam9s71ux4 | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T16:45:57.344Z
+  cmjzyp8kv00006hwauop19l10 | company: test-doo-lane2 | status: DELIVERED | direction: INBOUND | created: 2026-01-04T16:44:35.116Z
+  cmjzym9h80000auwacv48iaqo | company: test-doo-lane2 | status: ERROR | direction: OUTBOUND | created: 2026-01-04T16:42:16.312Z
+
+=== C2) ALL EINVOICE COUNTS BY STATUS (NULL integrationAccountId) ===
+  DRAFT: 3
+  SENT: 2
+  DELIVERED: 1
+  ERROR: 17
+
+Total EInvoice records: 23
+With integrationAccountId: 0
+Without integrationAccountId: 23
+
+=== D) FISCAL REQUESTS ===
+Total FiscalRequests: 1
+With integrationAccountId: 0
+Without integrationAccountId: 1
+
+============================================================
+BASELINE COLLECTION COMPLETE
+============================================================

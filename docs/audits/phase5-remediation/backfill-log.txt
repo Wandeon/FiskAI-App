@@ -1,0 +1,612 @@
+============================================================
+PHASE 5: EINVOICE INTEGRATION ACCOUNT BACKFILL
+Mode: APPLY
+Timestamp: 2026-01-05T12:02:06.317Z
+============================================================
+
+=== IDENTIFYING BACKFILL TARGETS ===
+Found 23 EInvoices without integrationAccountId
+
+Mappings identified: 23
+
+Backfill plan by company:
+  Test D.O.O. Lane2 (test-doo-lane2): 17 invoices → cmk13zt7i000281wafq54q7td
+  Artemi Media (cmjbtptms000001nzepg6azh6): 3 invoices → cmk13zt6u000081warchfnjsg
+  Metrica d.o.o. (cmj02op1e000101lmu08z0hps): 3 invoices → cmk13zt78000181wacgawskrk
+
+=== APPLYING BACKFILL ===
+  ✗ Failed to update cmjzyp8kv00006hwauop19l10: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmjzyp8kv00006hwauop19l10 in status DELIVERED. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmjzwujcs0000dlwaxp95je6i: PrismaClientKnownRequestError: 
+Invalid `db.eInvoice.updateMany()` invocation in
+/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:40
+
+  155 
+  156 for (const mapping of mappings) {
+  157   try {
+→ 158     const result = await db.eInvoice.updateMany(
+Foreign key constraint violated on the constraint: `EInvoice_integrationAccountId_fkey`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22) {
+  code: 'P2003',
+  meta: {
+    modelName: 'EInvoice',
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PgTransaction.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PgTransaction.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PgTransaction.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:276:41)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:266:25)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed to update cmjzxkm9y000030waf703bq6b: PrismaClientKnownRequestError: 
+Invalid `db.eInvoice.updateMany()` invocation in
+/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:40
+
+  155 
+  156 for (const mapping of mappings) {
+  157   try {
+→ 158     const result = await db.eInvoice.updateMany(
+Foreign key constraint violated on the constraint: `EInvoice_integrationAccountId_fkey`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22) {
+  code: 'P2003',
+  meta: {
+    modelName: 'EInvoice',
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PgTransaction.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PgTransaction.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PgTransaction.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:276:41)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:266:25)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed to update cmjzxllj300002twaqbqu4pmi: PrismaClientKnownRequestError: 
+Invalid `db.eInvoice.updateMany()` invocation in
+/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:40
+
+  155 
+  156 for (const mapping of mappings) {
+  157   try {
+→ 158     const result = await db.eInvoice.updateMany(
+Foreign key constraint violated on the constraint: `EInvoice_integrationAccountId_fkey`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22) {
+  code: 'P2003',
+  meta: {
+    modelName: 'EInvoice',
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PgTransaction.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PgTransaction.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PgTransaction.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:276:41)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:266:25)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed to update cmjzym9h80000auwacv48iaqo: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmjzym9h80000auwacv48iaqo in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmjzyr0140000x6wam9s71ux4: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmjzyr0140000x6wam9s71ux4 in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmjzzynwj0000hwwa13taiu9l: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmjzzynwj0000hwwa13taiu9l in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmjzzzep00000aswadnoqu5el: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmjzzzep00000aswadnoqu5el in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk00l44l0000ulwak9v5x7ua: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk00l44l0000ulwak9v5x7ua in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk00nerg000027waw5cegxir: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk00nerg000027waw5cegxir in status SENT. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk0184em0000hzwa0dp4mpq2: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk0184em0000hzwa0dp4mpq2 in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk016qc7000021waf6ug4sqx: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk016qc7000021waf6ug4sqx in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk019yv6000075wa6wb165qp: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk019yv6000075wa6wb165qp in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk01bcfm0000iswat8bsv0xj: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk01bcfm0000iswat8bsv0xj in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk01f7i200005cwa9i5aimyw: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk01f7i200005cwa9i5aimyw in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk02jzzu0000auwaurzxeabk: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk02jzzu0000auwaurzxeabk in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03j9bk0000kkwa2to8ahap: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03j9bk0000kkwa2to8ahap in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03mvad00005xwai3mo9q6q: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03mvad00005xwai3mo9q6q in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03kq1000002cwal6aal9rj: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03kq1000002cwal6aal9rj in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03od3u0000o5wa66uhwyks: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03od3u0000o5wa66uhwyks in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03pywe0000b4wa54wth92f: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03pywe0000b4wa54wth92f in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03vv2a0000wdwaeql5a3h8: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03vv2a0000wdwaeql5a3h8 in status SENT. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+  ✗ Failed to update cmk03sxpu000056waayh48zeq: InvoiceImmutabilityError: Issued invoices are immutable. Attempted to update fields [integrationAccountId] on invoice cmk03sxpu000056waayh48zeq in status ERROR. Use a credit note for corrections.
+    at enforceInvoiceUpdateManyImmutability (/home/admin/FiskAI/src/lib/prisma-extensions.ts:852:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.updateMany (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2998:13)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfill (/home/admin/FiskAI/scripts/backfill-einvoice-integration-account.ts:158:22)
+
+=== BACKFILL SUMMARY ===
+Updated: 0
+Skipped (already set): 0
+Total processed: 23
+
+=== POST-BACKFILL VERIFICATION ===
+EInvoices still without integrationAccountId: 23
+⚠️  Some EInvoices still missing integrationAccountId
+
+=== BACKFILLED INVOICE IDS ===
+cmjzyp8kv00006hwauop19l10
+cmjzwujcs0000dlwaxp95je6i
+cmjzxkm9y000030waf703bq6b
+cmjzxllj300002twaqbqu4pmi
+cmjzym9h80000auwacv48iaqo
+cmjzyr0140000x6wam9s71ux4
+cmjzzynwj0000hwwa13taiu9l
+cmjzzzep00000aswadnoqu5el
+cmk00l44l0000ulwak9v5x7ua
+cmk00nerg000027waw5cegxir
+cmk0184em0000hzwa0dp4mpq2
+cmk016qc7000021waf6ug4sqx
+cmk019yv6000075wa6wb165qp
+cmk01bcfm0000iswat8bsv0xj
+cmk01f7i200005cwa9i5aimyw
+cmk02jzzu0000auwaurzxeabk
+cmk03j9bk0000kkwa2to8ahap
+cmk03mvad00005xwai3mo9q6q
+cmk03kq1000002cwal6aal9rj
+cmk03od3u0000o5wa66uhwyks
+cmk03pywe0000b4wa54wth92f
+cmk03vv2a0000wdwaeql5a3h8
+cmk03sxpu000056waayh48zeq
+============================================================
+PHASE 5: EINVOICE BACKFILL (RAW SQL)
+Mode: APPLY
+Timestamp: 2026-01-05T12:03:24.671Z
+============================================================
+
+Found 3 IntegrationAccounts:
+  cmk13zt6u000081warchfnjsg | Artemi Media (cmjbtptms000001nzepg6azh6) | EINVOICE_EPOSLOVANJE PROD
+  cmk13zt78000181wacgawskrk | Metrica d.o.o. (cmj02op1e000101lmu08z0hps) | EINVOICE_EPOSLOVANJE TEST
+  cmk13zt7i000281wafq54q7td | Test D.O.O. Lane2 (test-doo-lane2) | EINVOICE_EPOSLOVANJE PROD
+
+Found 23 EInvoices without integrationAccountId
+
+Mappings ready: 23
+
+Backfill plan:
+  Test D.O.O. Lane2: 17 invoices → cmk13zt7i000281wafq54q7td
+  Artemi Media: 3 invoices → cmk13zt6u000081warchfnjsg
+  Metrica d.o.o.: 3 invoices → cmk13zt78000181wacgawskrk
+
+=== APPLYING BACKFILL (RAW SQL) ===
+  ✗ Failed for account cmk13zt7i000281wafq54q7td: PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRaw()` invocation:
+
+
+Raw query failed. Code: `23503`. Message: `insert or update on table "EInvoice" violates foreign key constraint "EInvoice_integrationAccountId_fkey"`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfillRaw (/home/admin/FiskAI/scripts/backfill-einvoice-raw.ts:109:22) {
+  code: 'P2010',
+  meta: {
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PrismaPgAdapter.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PrismaPgAdapter.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PrismaPgAdapter.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23)
+        at async e.execute (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/LocalExecutor.ts:81:12)
+        at async Dt.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/ClientEngine.ts:472:22) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed for account cmk13zt6u000081warchfnjsg: PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRaw()` invocation:
+
+
+Raw query failed. Code: `23503`. Message: `insert or update on table "EInvoice" violates foreign key constraint "EInvoice_integrationAccountId_fkey"`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfillRaw (/home/admin/FiskAI/scripts/backfill-einvoice-raw.ts:109:22) {
+  code: 'P2010',
+  meta: {
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PrismaPgAdapter.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PrismaPgAdapter.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PrismaPgAdapter.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23)
+        at async e.execute (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/LocalExecutor.ts:81:12)
+        at async Dt.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/ClientEngine.ts:472:22) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed for account cmk13zt78000181wacgawskrk: PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRaw()` invocation:
+
+
+Raw query failed. Code: `23503`. Message: `insert or update on table "EInvoice" violates foreign key constraint "EInvoice_integrationAccountId_fkey"`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfillRaw (/home/admin/FiskAI/scripts/backfill-einvoice-raw.ts:109:22) {
+  code: 'P2010',
+  meta: {
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PrismaPgAdapter.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PrismaPgAdapter.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PrismaPgAdapter.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23)
+        at async e.execute (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/LocalExecutor.ts:81:12)
+        at async Dt.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/ClientEngine.ts:472:22) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+
+=== BACKFILL SUMMARY ===
+Total updated: 0
+Unmappable: 0
+
+=== POST-BACKFILL VERIFICATION ===
+EInvoices still without integrationAccountId: 23
+❌ Unexpected remaining invoices
+
+=== BACKFILLED INVOICE IDS ===
+cmjzyp8kv00006hwauop19l10
+cmjzwujcs0000dlwaxp95je6i
+cmjzxkm9y000030waf703bq6b
+cmjzxllj300002twaqbqu4pmi
+cmjzym9h80000auwacv48iaqo
+cmjzyr0140000x6wam9s71ux4
+cmjzzynwj0000hwwa13taiu9l
+cmjzzzep00000aswadnoqu5el
+cmk00l44l0000ulwak9v5x7ua
+cmk00nerg000027waw5cegxir
+cmk0184em0000hzwa0dp4mpq2
+cmk016qc7000021waf6ug4sqx
+cmk019yv6000075wa6wb165qp
+cmk01bcfm0000iswat8bsv0xj
+cmk01f7i200005cwa9i5aimyw
+cmk02jzzu0000auwaurzxeabk
+cmk03j9bk0000kkwa2to8ahap
+cmk03mvad00005xwai3mo9q6q
+cmk03kq1000002cwal6aal9rj
+cmk03od3u0000o5wa66uhwyks
+cmk03pywe0000b4wa54wth92f
+cmk03vv2a0000wdwaeql5a3h8
+cmk03sxpu000056waayh48zeq
+============================================================
+PHASE 5: EINVOICE BACKFILL (RAW SQL)
+Mode: APPLY
+Timestamp: 2026-01-05T12:05:32.297Z
+============================================================
+
+Found 3 IntegrationAccounts:
+  cmk13zt6u000081warchfnjsg | Artemi Media (cmjbtptms000001nzepg6azh6) | EINVOICE_EPOSLOVANJE PROD
+  cmk13zt78000181wacgawskrk | Metrica d.o.o. (cmj02op1e000101lmu08z0hps) | EINVOICE_EPOSLOVANJE TEST
+  cmk13zt7i000281wafq54q7td | Test D.O.O. Lane2 (test-doo-lane2) | EINVOICE_EPOSLOVANJE PROD
+
+Found 23 EInvoices without integrationAccountId
+
+Mappings ready: 23
+
+Backfill plan:
+  Test D.O.O. Lane2: 17 invoices → cmk13zt7i000281wafq54q7td
+  Artemi Media: 3 invoices → cmk13zt6u000081warchfnjsg
+  Metrica d.o.o.: 3 invoices → cmk13zt78000181wacgawskrk
+
+=== APPLYING BACKFILL (RAW SQL) ===
+  ✗ Failed for account cmk13zt7i000281wafq54q7td: PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRaw()` invocation:
+
+
+Raw query failed. Code: `23503`. Message: `insert or update on table "EInvoice" violates foreign key constraint "EInvoice_integrationAccountId_fkey"`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfillRaw (/home/admin/FiskAI/scripts/backfill-einvoice-raw.ts:109:22) {
+  code: 'P2010',
+  meta: {
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PrismaPgAdapter.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PrismaPgAdapter.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PrismaPgAdapter.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23)
+        at async e.execute (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/LocalExecutor.ts:81:12)
+        at async Dt.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/ClientEngine.ts:472:22) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed for account cmk13zt6u000081warchfnjsg: PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRaw()` invocation:
+
+
+Raw query failed. Code: `23503`. Message: `insert or update on table "EInvoice" violates foreign key constraint "EInvoice_integrationAccountId_fkey"`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfillRaw (/home/admin/FiskAI/scripts/backfill-einvoice-raw.ts:109:22) {
+  code: 'P2010',
+  meta: {
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PrismaPgAdapter.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PrismaPgAdapter.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PrismaPgAdapter.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23)
+        at async e.execute (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/LocalExecutor.ts:81:12)
+        at async Dt.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/ClientEngine.ts:472:22) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+  ✗ Failed for account cmk13zt78000181wacgawskrk: PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRaw()` invocation:
+
+
+Raw query failed. Code: `23503`. Message: `insert or update on table "EInvoice" violates foreign key constraint "EInvoice_integrationAccountId_fkey"`
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async backfillRaw (/home/admin/FiskAI/scripts/backfill-einvoice-raw.ts:109:22) {
+  code: 'P2010',
+  meta: {
+    driverAdapterError: DriverAdapterError: ForeignKeyConstraintViolation
+        at PrismaPgAdapter.onError (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:687:11)
+        at PrismaPgAdapter.performIO (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:682:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async PrismaPgAdapter.executeRaw (/home/admin/FiskAI/node_modules/@prisma/adapter-pg/dist/index.js:641:13)
+        at async <anonymous> (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22)
+        at async fr (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:172:18)
+        at async e.run (/home/admin/FiskAI/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:96:23)
+        at async e.execute (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/LocalExecutor.ts:81:12)
+        at async Dt.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/engines/client/ClientEngine.ts:472:22) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '7.2.0'
+}
+
+=== BACKFILL SUMMARY ===
+Total updated: 0
+Unmappable: 0
+
+=== POST-BACKFILL VERIFICATION ===
+EInvoices still without integrationAccountId: 23
+❌ Unexpected remaining invoices
+
+=== BACKFILLED INVOICE IDS ===
+cmjzyp8kv00006hwauop19l10
+cmjzwujcs0000dlwaxp95je6i
+cmjzxkm9y000030waf703bq6b
+cmjzxllj300002twaqbqu4pmi
+cmjzym9h80000auwacv48iaqo
+cmjzyr0140000x6wam9s71ux4
+cmjzzynwj0000hwwa13taiu9l
+cmjzzzep00000aswadnoqu5el
+cmk00l44l0000ulwak9v5x7ua
+cmk00nerg000027waw5cegxir
+cmk0184em0000hzwa0dp4mpq2
+cmk016qc7000021waf6ug4sqx
+cmk019yv6000075wa6wb165qp
+cmk01bcfm0000iswat8bsv0xj
+cmk01f7i200005cwa9i5aimyw
+cmk02jzzu0000auwaurzxeabk
+cmk03j9bk0000kkwa2to8ahap
+cmk03mvad00005xwai3mo9q6q
+cmk03kq1000002cwal6aal9rj
+cmk03od3u0000o5wa66uhwyks
+cmk03pywe0000b4wa54wth92f
+cmk03vv2a0000wdwaeql5a3h8
+cmk03sxpu000056waayh48zeq
+============================================================
+PHASE 5: EINVOICE BACKFILL (RAW SQL)
+Mode: APPLY
+Timestamp: 2026-01-05T12:08:12.988Z
+============================================================
+
+Found 3 IntegrationAccounts:
+  cmk13zt6u000081warchfnjsg | Artemi Media (cmjbtptms000001nzepg6azh6) | EINVOICE_EPOSLOVANJE PROD
+  cmk13zt78000181wacgawskrk | Metrica d.o.o. (cmj02op1e000101lmu08z0hps) | EINVOICE_EPOSLOVANJE TEST
+  cmk13zt7i000281wafq54q7td | Test D.O.O. Lane2 (test-doo-lane2) | EINVOICE_EPOSLOVANJE PROD
+
+Found 23 EInvoices without integrationAccountId
+
+Mappings ready: 23
+
+Backfill plan:
+  Test D.O.O. Lane2: 17 invoices → cmk13zt7i000281wafq54q7td
+  Artemi Media: 3 invoices → cmk13zt6u000081warchfnjsg
+  Metrica d.o.o.: 3 invoices → cmk13zt78000181wacgawskrk
+
+=== APPLYING BACKFILL (RAW SQL) ===
+  Updated 17 invoices for account cmk13zt7i000281wafq54q7td
+  Updated 3 invoices for account cmk13zt6u000081warchfnjsg
+  Updated 3 invoices for account cmk13zt78000181wacgawskrk
+
+=== BACKFILL SUMMARY ===
+Total updated: 23
+Unmappable: 0
+
+=== POST-BACKFILL VERIFICATION ===
+EInvoices still without integrationAccountId: 0
+✅ All EInvoices now have integrationAccountId
+
+=== BACKFILLED INVOICE IDS ===
+cmjzyp8kv00006hwauop19l10
+cmjzwujcs0000dlwaxp95je6i
+cmjzxkm9y000030waf703bq6b
+cmjzxllj300002twaqbqu4pmi
+cmjzym9h80000auwacv48iaqo
+cmjzyr0140000x6wam9s71ux4
+cmjzzynwj0000hwwa13taiu9l
+cmjzzzep00000aswadnoqu5el
+cmk00l44l0000ulwak9v5x7ua
+cmk00nerg000027waw5cegxir
+cmk0184em0000hzwa0dp4mpq2
+cmk016qc7000021waf6ug4sqx
+cmk019yv6000075wa6wb165qp
+cmk01bcfm0000iswat8bsv0xj
+cmk01f7i200005cwa9i5aimyw
+cmk02jzzu0000auwaurzxeabk
+cmk03j9bk0000kkwa2to8ahap
+cmk03mvad00005xwai3mo9q6q
+cmk03kq1000002cwal6aal9rj
+cmk03od3u0000o5wa66uhwyks
+cmk03pywe0000b4wa54wth92f
+cmk03vv2a0000wdwaeql5a3h8
+cmk03sxpu000056waayh48zeq
