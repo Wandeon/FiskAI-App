@@ -25,6 +25,7 @@ import { signXML } from "./xml-signer"
 import { submitToPorezna } from "./porezna-client"
 import { createSignerFromIntegrationAccount, resolveSignerForCompany } from "./signer-v2"
 import { logger } from "@/lib/logger"
+import { assertLegacyPathAllowed } from "@/lib/integration"
 
 const Decimal = Prisma.Decimal
 
@@ -208,8 +209,17 @@ async function executeFiscalRequestV2(request: FiscalRequest): Promise<PipelineR
 
 /**
  * V1 path: Execute fiscal request using legacy FiscalCertificate
+ *
+ * @deprecated Use V2 path with IntegrationAccount instead.
+ * This path will be blocked when FF_ENFORCE_INTEGRATION_ACCOUNT=true.
  */
 async function executeFiscalRequestV1(request: FiscalRequest): Promise<PipelineResult> {
+  // Phase 5: Enforcement gate - blocks this path when enforcement is active
+  assertLegacyPathAllowed("FISCALIZATION", request.companyId, {
+    requestId: request.id,
+    certificateId: request.certificateId,
+  })
+
   // 1. Load certificate
   if (!request.certificateId) {
     throw { poreznaCode: "p001", message: "Certificate ID not provided" }

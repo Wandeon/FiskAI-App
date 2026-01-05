@@ -44,6 +44,9 @@ jobs:
       - name: Check no ruleVersion relations (PR#9 guardrail)
         run: npx tsx scripts/check-no-ruleversion-relations.ts
 
+      - name: Check no legacy secret access (Phase 5 guardrail)
+        run: npx tsx scripts/check-legacy-secrets.ts
+
   lint-ratchet:
     name: Lint Ratchet
     runs-on: ubuntu-latest
