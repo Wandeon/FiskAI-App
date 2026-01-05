@@ -87,7 +87,7 @@ export function QuickStatsBar({ stats, title }: QuickStatsBarProps) {
             exit={reduce ? undefined : { opacity: 0, y: -10 }}
             transition={reduce ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
-              "fixed left-0 right-0 z-30 border-b border-white/10 bg-surface-elevated/80 backdrop-blur shadow-sm",
+              "fixed left-0 right-0 z-sticky border-b border-white/10 bg-surface-elevated/80 backdrop-blur shadow-sm",
               "top-[var(--header-height)]"
             )}
           >

@@ -46,7 +46,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
       {/* @design-override: Marketing header always uses dark colors for cockpit aesthetic */}
       <motion.header
         className={cn(
-          "fixed left-0 right-0 top-0 z-30 transition-all duration-300",
+          "fixed left-0 right-0 top-0 z-fixed transition-all duration-300",
           isScrolled
             ? "border-b border-white/10 bg-slate-950/85 shadow-lg shadow-black/20 backdrop-blur-xl backdrop-saturate-150"
             : "border-b border-white/5 bg-transparent"
