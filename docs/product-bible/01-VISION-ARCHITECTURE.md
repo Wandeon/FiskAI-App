@@ -2,9 +2,9 @@
 
 [← Back to Index](./00-INDEX.md)
 
-> **Last Audit:** 2025-12-29 | **Auditor:** Claude Opus 4.5
+> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
 >
-> This chapter has been updated to reflect current implementation status across all merged PRs through #142.
+> Reality-audited against codebase via parallel subagent analysis. All statuses verified against actual implementation.
 
 ---
 
@@ -252,32 +252,45 @@ LAYER 3: SPECIALIZED
 
 ## 6. Module System
 
-> **Status:** Implemented
+> **Status:** ✅ Implemented
 >
 > **Reference:** See [src/lib/modules/definitions.ts](../../src/lib/modules/definitions.ts)
 
 ### 6.1 Module Registry
 
-16 toggleable modules stored in `Company.entitlements[]`:
+18 toggleable modules stored in `Company.entitlements[]`:
 
-| Module             | Default | Description                                |
-| ------------------ | ------- | ------------------------------------------ |
-| `invoicing`        | On      | Create and manage invoices                 |
-| `e-invoicing`      | On      | UBL/XML electronic invoices                |
-| `fiscalization`    | Off     | Fiscal receipts, JIR/ZKI, CIS              |
-| `contacts`         | On      | Customer and supplier management           |
-| `products`         | On      | Product catalog and pricing                |
-| `expenses`         | On      | Expense tracking and categories            |
-| `banking`          | Off     | Bank accounts, transactions, imports       |
-| `reconciliation`   | Off     | Auto-matching and statement reconciliation |
-| `reports-basic`    | On      | Aging, KPR, profit/loss                    |
-| `reports-advanced` | Off     | VAT reports, exports, custom               |
-| `pausalni`         | Off     | Paušalni obrt tax management               |
-| `vat`              | Off     | VAT management and submissions             |
-| `corporate-tax`    | Off     | DOO/JDOO tax features                      |
-| `pos`              | Off     | Point of sale and Stripe Terminal          |
-| `documents`        | On      | Document storage and attachments           |
-| `ai-assistant`     | Off     | AI-powered help and document analysis      |
+| Module             | Default | Description                                 | Status         |
+| ------------------ | ------- | ------------------------------------------- | -------------- |
+| `platform-core`    | On      | Core platform access (dashboards, settings) | ✅ Implemented |
+| `invoicing`        | On      | Create and manage invoices                  | ✅ Implemented |
+| `e-invoicing`      | On      | UBL/XML electronic invoices                 | ✅ Implemented |
+| `fiscalization`    | Off     | Fiscal receipts, JIR/ZKI, CIS               | ✅ Implemented |
+| `contacts`         | On      | Customer and supplier management            | ✅ Implemented |
+| `products`         | On      | Product catalog and pricing                 | ✅ Implemented |
+| `expenses`         | On      | Expense tracking and categories             | ✅ Implemented |
+| `banking`          | Off     | Bank accounts, transactions, imports        | ✅ Implemented |
+| `reconciliation`   | Off     | Auto-matching and statement reconciliation  | ✅ Implemented |
+| `reports-basic`    | On      | Aging, KPR, profit/loss                     | ✅ Implemented |
+| `reports-advanced` | Off     | VAT reports, exports, custom                | ⚠️ Partial     |
+| `pausalni`         | Off     | Paušalni obrt tax management                | ✅ Implemented |
+| `vat`              | Off     | VAT management and submissions              | ⚠️ Partial     |
+| `corporate-tax`    | Off     | DOO/JDOO tax features                       | 📋 Planned     |
+| `pos`              | Off     | Point of sale and Stripe Terminal           | ⚠️ Partial     |
+| `documents`        | On      | Document storage and attachments            | ✅ Implemented |
+| `ai-assistant`     | Off     | AI-powered help and document analysis       | ✅ Implemented |
+
+### 6.2 Legal Form Auto-Assignment
+
+Modules are auto-assigned based on business type selection:
+
+| Legal Form  | Auto-Assigned Modules                                       |
+| ----------- | ----------------------------------------------------------- |
+| OBRT_PAUSAL | base + pausalni                                             |
+| OBRT_REAL   | base + expenses                                             |
+| OBRT_VAT    | base + vat, expenses                                        |
+| JDOO        | base + vat, corporate-tax, reports-advanced                 |
+| DOO         | base + vat, corporate-tax, reports-advanced, reconciliation |
 
 ---
 
@@ -369,32 +382,30 @@ LAYER 3: SPECIALIZED
 
 ## 10. Gaps & Future Work
 
-### 10.1 Documented but Not Yet Implemented
+### 10.1 Features Not Yet Implemented
 
-| Feature                   | Status   | Notes                           |
-| ------------------------- | -------- | ------------------------------- |
-| Authority-First Phase B-D | Designed | Answer blocks, CWV optimization |
-| PWA Manifest              | Designed | Phase D of Authority-First      |
-| Speculation Rules         | Designed | Prefetch for navigation         |
+| Feature                      | Status     | Notes                           |
+| ---------------------------- | ---------- | ------------------------------- |
+| Authority-First Phase B-D    | 📋 Planned | Answer blocks, CWV optimization |
+| PWA Manifest                 | 📋 Planned | Phase D of Authority-First      |
+| Speculation Rules            | 📋 Planned | Prefetch for navigation         |
+| IE-Racuni Integration        | 📋 Planned | Stub exists, not connected      |
+| Corporate Tax Module         | 📋 Planned | DOO/JDOO specific tax features  |
+| Multi-client Staff Workspace | 📋 Planned | Staff portal basic only         |
 
-### 10.2 Implemented but Not Documented (Now Added)
+### 10.2 Partially Implemented
 
-| Feature                          | PR   | Notes                               |
-| -------------------------------- | ---- | ----------------------------------- |
-| Design System Token Architecture | #107 | Self-enforcing with ESLint          |
-| Adaptive Sentinel                | #111 | Topology-aware crawler              |
-| Living Truth Infrastructure      | #115 | Evidence immutability               |
-| OCR Temporal Filtering           | #119 | Cycle detection                     |
-| Authority-First Design           | #117 | Full performance specification      |
-| System Registry                  | #138 | Blast radius, CI enforcement        |
-| Component Architecture Layers    | #139 | patterns/, sections/, templates/    |
-| RTL Content Sync                 | #140 | BullMQ worker, concept registry     |
-| System Status HCL                | #142 | Admin monitoring, dead letter queue |
+| Feature          | Status     | Notes                                |
+| ---------------- | ---------- | ------------------------------------ |
+| VAT Module       | ⚠️ Partial | Basic reporting, submissions pending |
+| Reports-Advanced | ⚠️ Partial | VAT threshold, export partial        |
+| POS Module       | ⚠️ Partial | Stripe Terminal integration pending  |
 
 ### 10.3 Known Technical Debt
 
 - Bull Board disabled (no ARM64 support) - use `scripts/queue-status.ts`
 - Some AI features depend on Ollama local deployment
+- 2 soft-delete models only (SourcePointer, FeatureFlag) - no cascade soft-delete
 
 ---
 
@@ -402,6 +413,7 @@ LAYER 3: SPECIALIZED
 
 | Date       | Change                                    | PR/Commit |
 | ---------- | ----------------------------------------- | --------- |
+| 2026-01-05 | Reality audit: 18 modules, status labels  | v5.0.0    |
 | 2025-12-29 | Added System Registry, RTL Content Sync   | #138-#142 |
 | 2025-12-28 | Staff Portal status corrected to Partial  | Audit     |
 | 2025-12-28 | Full chapter audit and update             | Audit     |

@@ -2,8 +2,10 @@
 
 [← Back to Index](./00-INDEX.md)
 
-> **Last Updated:** 2025-12-28
-> **Version:** 2.1.0
+> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
+> **Version:** 3.0.0
+>
+> Reality-audited against codebase. Portal page counts and route structure verified.
 
 ---
 
@@ -551,10 +553,14 @@ User Authentication Journey
 - Staff promotion: Admin sets via `/admin/staff`
 - Admin access: Database update required (see CLAUDE.md)
 
-**Per-Company Roles (separate from SystemRole):**
+**Per-Company Roles (CompanyRole enum):**
 
-- OWNER
-- ACCOUNTANT
-- EMPLOYEE
+| Role       | Description         | Capabilities                   |
+| ---------- | ------------------- | ------------------------------ |
+| OWNER      | Company founder     | Full access including billing  |
+| ADMIN      | Trusted manager     | Manage resources, invite users |
+| MEMBER     | Employee            | Create/edit, limited delete    |
+| ACCOUNTANT | External accountant | Read + exports                 |
+| VIEWER     | Investor/advisor    | Read-only access               |
 
-These are stored in `CompanyMember.role` and control access within a company context.
+These are stored in `CompanyUser.role` and control access within a company context. See [04-ACCESS-CONTROL.md](./04-ACCESS-CONTROL.md) for full permission matrix.
