@@ -31,7 +31,10 @@ export interface IntegrationAccountWithSecrets {
 export async function createIntegrationAccount(
   input: CreateIntegrationAccountInput
 ): Promise<
-  { id: string; secretEnvelope: string; status: string } & Omit<CreateIntegrationAccountInput, "secrets">
+  { id: string; secretEnvelope: string; status: string } & Omit<
+    CreateIntegrationAccountInput,
+    "secrets"
+  >
 > {
   const { envelope, keyVersion } = encryptSecretEnvelope(input.secrets)
 
@@ -48,7 +51,9 @@ export async function createIntegrationAccount(
   })
 
   if (!account.secretEnvelope) {
-    throw new Error(`Failed to create integration account: secretEnvelope is null for account ${account.id}`)
+    throw new Error(
+      `Failed to create integration account: secretEnvelope is null for account ${account.id}`
+    )
   }
 
   return {
@@ -162,11 +167,15 @@ export async function updateIntegrationAccountSecrets(
   })
 
   if (!account.secretEnvelope) {
-    throw new Error(`Failed to update integration account secrets: secretEnvelope is null for account ${account.id}`)
+    throw new Error(
+      `Failed to update integration account secrets: secretEnvelope is null for account ${account.id}`
+    )
   }
 
   if (!account.rotatedAt) {
-    throw new Error(`Failed to update integration account secrets: rotatedAt is null for account ${account.id}`)
+    throw new Error(
+      `Failed to update integration account secrets: rotatedAt is null for account ${account.id}`
+    )
   }
 
   return {
