@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { PortalNavigation } from "./PortalNavigation"
 import { CommandPalette } from "@/components/ui/command-palette"
 import { Logo } from "@/components/ui/Logo"
+import { getAppUrl } from "@/lib/portal-urls"
 
 const NAV_LINKS = [
   { href: "/znacajke", label: "Značajke" },
@@ -162,7 +163,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
               {/* @design-override: Header CTAs use vibrant colors for visibility */}
               {isLoggedIn ? (
                 <a
-                  href="https://app.fiskai.hr/dashboard"
+                  href={getAppUrl()}
                   className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30"
                 >
                   <span className="hidden sm:inline">Otvori aplikaciju</span>

@@ -210,6 +210,14 @@
           {
             "selector": "BinaryExpression[operator='/'][right.value=100]",
             "message": "Percentage calculation in UI may indicate VAT calc. Use InvoiceDisplayAdapter for money operations."
+          },
+          {
+            "selector": "Literal[value=/^https?:\\/\\/(app|staff|admin)\\.fiskai\\.hr/]",
+            "message": "Hardcoded portal URL detected. Use getPortalUrl() from @/lib/portal-urls instead."
+          },
+          {
+            "selector": "TemplateLiteral > TemplateElement[value.raw=/https?:\\/\\/(app|staff|admin)\\.fiskai\\.hr/]",
+            "message": "Hardcoded portal URL in template literal. Use getPortalUrl() from @/lib/portal-urls instead."
           }
         ]
       }
