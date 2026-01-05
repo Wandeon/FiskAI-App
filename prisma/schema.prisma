@@ -181,6 +181,7 @@ model Company {
   expenseCategories              ExpenseCategory[]
   fiscalCertificates             FiscalCertificate[]
   fiscalRequests                 FiscalRequest[]
+  integrationAccounts            IntegrationAccount[]
   importJobs                     ImportJob[]
   invoiceSequences               InvoiceSequence[]
   payouts                        Payout[]
@@ -2246,6 +2247,44 @@ model FiscalCertificate {
   @@index([status])
 }
 
+/// Tenant-owned integration identity with encrypted secrets
+/// All regulated actions MUST resolve through this model
+model IntegrationAccount {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Integration identity
+  kind          IntegrationKind
+  environment   IntegrationEnv   @default(PROD)
+  status        IntegrationStatus @default(ACTIVE)
+
+  // Provider configuration (non-sensitive JSON)
+  providerConfig Json?
+
+  // Encrypted secrets (unified vault)
+  // Format: envelope-encrypted JSON payload
+  secretEnvelope    String?
+  secretKeyVersion  Int      @default(1)
+
+  // Audit fields
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  rotatedAt     DateTime?
+  lastUsedAt    DateTime?
+
+  // Relations (to be populated in later phases)
+  // eInvoices         EInvoice[]
+  // fiscalRequests    FiscalRequest[]
+  // providerSyncStates ProviderSyncState[]
+
+  // Constraints
+  @@unique([companyId, kind, environment], map: "integration_account_company_kind_env_key")
+  @@index([companyId], map: "integration_account_company_idx")
+  @@index([status], map: "integration_account_status_idx")
+  @@map("integration_account")
+}
+
 // Certificate expiry notification tracking with retry support
 model CertificateNotification {
   id              String                        @id @default(cuid())
@@ -3382,6 +3421,29 @@ enum CertificateNotificationStatus {
   SENT // Successfully sent
   FAILED // All retries exhausted
   RETRYING // Failed but will retry
+}
+
+// =============================================================================
+// INTEGRATION ACCOUNT - Multi-tenant integration credentials
+// =============================================================================
+
+enum IntegrationKind {
+  EINVOICE_EPOSLOVANJE
+  EINVOICE_FINA
+  EINVOICE_IE_RACUNI
+  FISCALIZATION_CIS
+}
+
+enum IntegrationEnv {
+  TEST
+  PROD
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  DISABLED
+  EXPIRED
+  REVOKED
 }
 
 enum ArticleType {
