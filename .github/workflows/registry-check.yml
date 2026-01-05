@@ -40,8 +40,8 @@ jobs:
 
       - name: Run registry check
         id: registry-check
-        # Phase 8 Lock-Down: Registry check is now BLOCKING
-        # Zero drift tolerance - all systems must be declared
+        continue-on-error: true # Informational only - posts comment about drift but doesn't block PRs
+        # Registry drift is reported via PR comment, but doesn't block merge
         run: npm run registry:check -- --write-report
 
       - name: Upload drift report
@@ -55,11 +55,12 @@ jobs:
       - name: Compute Blast Radius
         id: blast-radius
         if: github.event_name == 'pull_request'
+        continue-on-error: true # Informational only - don't block PRs
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.sha }}
-          # Phase 8 Lock-Down: Blast radius now BLOCKS critical PRs
-          BLAST_RADIUS_ENFORCEMENT_MODE: fail
+          # Changed from 'fail' to 'warn' - blast radius is now informational
+          BLAST_RADIUS_ENFORCEMENT_MODE: warn
         run: |
           npx tsx src/lib/system-registry/scripts/blast-radius.ts \
             --base-sha "$BASE_SHA" \

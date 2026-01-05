@@ -33,3 +33,14 @@ export {
   type CreateIntegrationAccountInput,
   type IntegrationAccountWithSecrets,
 } from "./repository"
+
+export {
+  IntegrationRequiredError,
+  assertLegacyPathAllowed,
+  assertWorkerHasIntegration,
+  isEnforcementActive,
+  isShadowModeActive,
+  getEnforcementMode,
+  type EnforcedOperation,
+  type EnforcementLogContext,
+} from "./enforcement"

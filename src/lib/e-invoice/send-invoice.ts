@@ -18,7 +18,11 @@ import { createEInvoiceProvider } from "./provider"
 import { createProviderFromIntegrationAccount, resolveProviderForCompany } from "./provider-v2"
 import { generateUBLInvoice } from "./ubl-generator"
 import { decryptOptionalSecret } from "@/lib/secrets"
-import { touchIntegrationAccount, findIntegrationAccount } from "@/lib/integration"
+import {
+  touchIntegrationAccount,
+  findIntegrationAccount,
+  assertLegacyPathAllowed,
+} from "@/lib/integration"
 import { logger } from "@/lib/logger"
 import type { SendInvoiceResult, EInvoiceWithRelations } from "./types"
 
@@ -77,10 +81,19 @@ export async function sendEInvoice(input: SendEInvoiceInput): Promise<SendEInvoi
 
 /**
  * Sends invoice via the legacy Company.eInvoiceApiKeyEncrypted path.
+ *
+ * @deprecated Use IntegrationAccount path instead.
+ * This path will be blocked when FF_ENFORCE_INTEGRATION_ACCOUNT=true.
  */
 async function sendViaLegacyPath(input: SendEInvoiceInput): Promise<SendEInvoiceOutput> {
   const { invoice } = input
   const company = invoice.company
+
+  // Phase 5: Enforcement gate - blocks this path when enforcement is active
+  assertLegacyPathAllowed("EINVOICE_SEND", company.id, {
+    invoiceId: invoice.id,
+    provider: company.eInvoiceProvider,
+  })
 
   logger.debug(
     {

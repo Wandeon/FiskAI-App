@@ -16,7 +16,7 @@
 
 import { db } from "@/lib/db"
 import { Prisma } from "@prisma/client"
-import { findIntegrationAccount } from "@/lib/integration"
+import { findIntegrationAccount, assertLegacyPathAllowed } from "@/lib/integration"
 import { pollInboundForAccount, type PollInboundResult } from "./poll-inbound-v2"
 import { EposlovanjeEInvoiceProvider } from "./providers/eposlovanje-einvoice"
 import { logger } from "@/lib/logger"
@@ -98,8 +98,17 @@ async function getOrCreateSyncStateV1(
 /**
  * V1 inbound polling using environment variables.
  * Used when IntegrationAccount is not available or feature flag is disabled.
+ *
+ * @deprecated Use V2 path with IntegrationAccount instead.
+ * This path will be blocked when FF_ENFORCE_INTEGRATION_ACCOUNT=true.
  */
 async function pollInboundV1(companyId: string): Promise<PollInboundResultV1> {
+  // Phase 5: Enforcement gate - blocks this path when enforcement is active
+  assertLegacyPathAllowed("EINVOICE_RECEIVE", companyId, {
+    path: "pollInboundV1",
+    provider: PROVIDER_NAME,
+  })
+
   const result: PollInboundResultV1 = {
     companyId,
     success: false,
