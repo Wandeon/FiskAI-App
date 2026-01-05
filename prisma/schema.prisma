@@ -1212,6 +1212,10 @@ model EInvoice {
   invoiceEvents          InvoiceEvent[]
   matchRecords           MatchRecord[]
 
+  // Integration account used for sending (Phase 2+)
+  integrationAccountId   String?
+  integrationAccount     IntegrationAccount? @relation(fields: [integrationAccountId], references: [id])
+
   @@unique([companyId, invoiceNumber])
   @@index([companyId])
   @@index([status])
@@ -2274,7 +2278,7 @@ model IntegrationAccount {
   lastUsedAt    DateTime?
 
   // Relations (to be populated in later phases)
-  // eInvoices         EInvoice[]
+  eInvoices         EInvoice[]
   // fiscalRequests    FiscalRequest[]
   // providerSyncStates ProviderSyncState[]
 
