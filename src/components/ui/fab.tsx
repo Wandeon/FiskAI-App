@@ -27,7 +27,7 @@ export function FAB({ actions = defaultActions, className }: FABProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className={cn("fixed right-4 bottom-20 z-30 md:hidden", className)}>
+    <div className={cn("fixed right-4 bottom-20 z-fixed md:hidden", className)}>
       {/* Action buttons */}
       <div
         className={cn(

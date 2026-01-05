@@ -534,7 +534,7 @@ export function InvoiceForm({
       </form>
 
       {/* Mobile sticky controls */}
-      <div className="fixed left-0 right-0 bottom-20 z-30 border-t border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-card md:hidden">
+      <div className="fixed left-0 right-0 bottom-20 z-fixed border-t border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-card md:hidden">
         <div className="flex items-center justify-between">
           <Button
             type="button"

@@ -74,7 +74,7 @@ export async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)]/50 bg-[var(--surface)]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[var(--surface)]/60">
+    <header className="sticky top-0 z-sticky border-b border-[var(--border)]/50 bg-[var(--surface)]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[var(--surface)]/60">
       <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Left Section */}
         <div className="flex items-center gap-3 md:gap-4 pl-12 md:pl-0">

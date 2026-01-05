@@ -177,7 +177,7 @@ export function ComparisonTable({
             {columnsToUse.length > 0 && (
               <thead>
                 <tr>
-                  <th className="sticky top-0 left-0 z-30 min-w-[180px] border-b border-white/10 bg-surface-elevated/80 p-3 text-left font-semibold text-white">
+                  <th className="sticky top-0 left-0 z-sticky min-w-[180px] border-b border-white/10 bg-surface-elevated/80 p-3 text-left font-semibold text-white">
                     Usporedba
                   </th>
                   {columnsToUse.map((col) => (
