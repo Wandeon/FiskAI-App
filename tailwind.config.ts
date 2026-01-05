@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss"
 import { spacing, radius, shadows, zIndex } from "./src/design-system/tokens/layout"
 import { fonts, textStyles } from "./src/design-system/tokens/typography"
+import { designTokens } from "./src/styles/tokens"
 import tailwindcssAnimate from "tailwindcss-animate"
 import tailwindcssTypography from "@tailwindcss/typography"
 import plugin from "tailwindcss/plugin"
@@ -35,6 +36,13 @@ const config: Config = {
       current: "currentColor",
       white: "#ffffff",
       black: "#000000",
+
+      // ─────────────────────────────────────────────────────────────
+      // TEMPORARY COMPATIBILITY LAYER
+      // TODO: Migrate all bg-brand-*, text-brand-*, border-brand-* usages
+      // to semantic tokens, then remove this block.
+      // ─────────────────────────────────────────────────────────────
+      brand: designTokens.colors.brand,
 
       // ─────────────────────────────────────────────────────────────
       // SURFACE LADDER
