@@ -2354,6 +2354,7 @@ model FiscalRequest {
   @@index([status, nextRetryAt])
   @@index([companyId])
   @@index([invoiceId])
+  @@index([integrationAccountId])
 }
 
 model FiscalResponse {
