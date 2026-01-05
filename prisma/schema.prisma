@@ -2279,9 +2279,9 @@ model IntegrationAccount {
   lastUsedAt    DateTime?
 
   // Relations (to be populated in later phases)
-  eInvoices         EInvoice[]
+  eInvoices          EInvoice[]
+  providerSyncStates ProviderSyncState[]
   // fiscalRequests    FiscalRequest[]
-  // providerSyncStates ProviderSyncState[]
 
   // Constraints
   @@unique([companyId, kind, environment], map: "integration_account_company_kind_env_key")
@@ -5543,6 +5543,10 @@ model ProviderSyncState {
   lastSuccessfulPollAt DateTime
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
+
+  // Phase 3+: Integration account used for syncing
+  integrationAccountId String?
+  integrationAccount   IntegrationAccount? @relation(fields: [integrationAccountId], references: [id])
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
