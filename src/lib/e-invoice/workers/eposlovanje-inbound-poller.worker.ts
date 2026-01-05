@@ -5,21 +5,28 @@
  * Polls ePoslovanje for incoming invoices on a schedule.
  * Tenant-safe: polls for a specific company via COMPANY_ID env var.
  *
+ * Uses dual-path orchestrator that routes between:
+ * - V1 path: Uses EPOSLOVANJE_API_BASE/KEY env vars (legacy)
+ * - V2 path: Uses IntegrationAccount credentials (when USE_INTEGRATION_ACCOUNT_INBOUND=true)
+ *
  * Environment:
  *   - COMPANY_ID (required) - Company to poll for
- *   - EPOSLOVANJE_API_BASE (required) - API base URL
- *   - EPOSLOVANJE_API_KEY (required) - API key for authorization
  *   - DATABASE_URL (required) - PostgreSQL connection string
  *   - POLL_INTERVAL_MS (optional, default: 300000 = 5 minutes)
  *   - MAX_WINDOW_DAYS (optional, default: 7) - Max lookback on first run
+ *
+ * V1 path (legacy):
+ *   - EPOSLOVANJE_API_BASE - API base URL
+ *   - EPOSLOVANJE_API_KEY - API key for authorization
+ *
+ * V2 path (IntegrationAccount):
+ *   - USE_INTEGRATION_ACCOUNT_INBOUND=true - Enable V2 path
+ *   - Credentials from IntegrationAccount in database
  */
 
 import { db } from "@/lib/db"
-import { Prisma } from "@prisma/client"
-import { EposlovanjeEInvoiceProvider } from "../providers/eposlovanje-einvoice"
+import { pollInbound, isV2Result } from "../poll-inbound"
 import { logger } from "@/lib/logger"
-
-const Decimal = Prisma.Decimal
 
 // =============================================================================
 // Configuration
@@ -28,8 +35,6 @@ const Decimal = Prisma.Decimal
 const COMPANY_ID = process.env.COMPANY_ID
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "300000", 10) // 5 min
 const MAX_WINDOW_DAYS = parseInt(process.env.MAX_WINDOW_DAYS || "7", 10)
-const PROVIDER_NAME = "eposlovanje"
-const DIRECTION = "INBOUND" as const
 
 // =============================================================================
 // Worker State
@@ -81,227 +86,7 @@ function logStartup(): void {
   console.log("╚══════════════════════════════════════════════════════════════╝")
 }
 
-// =============================================================================
-// Cursor Management
-// =============================================================================
-
-interface SyncState {
-  id: string
-  lastSuccessfulPollAt: Date
-}
-
-async function getOrCreateSyncState(companyId: string): Promise<SyncState> {
-  // Try to find existing sync state
-  const existing = await db.providerSyncState.findUnique({
-    where: {
-      companyId_provider_direction: {
-        companyId,
-        provider: PROVIDER_NAME,
-        direction: DIRECTION,
-      },
-    },
-    select: { id: true, lastSuccessfulPollAt: true },
-  })
-
-  if (existing) {
-    return existing
-  }
-
-  // Create new sync state with lookback
-  const defaultFrom = new Date()
-  defaultFrom.setDate(defaultFrom.getDate() - MAX_WINDOW_DAYS)
-
-  const created = await db.providerSyncState.create({
-    data: {
-      companyId,
-      provider: PROVIDER_NAME,
-      direction: DIRECTION,
-      lastSuccessfulPollAt: defaultFrom,
-    },
-    select: { id: true, lastSuccessfulPollAt: true },
-  })
-
-  logger.info(
-    { companyId, provider: PROVIDER_NAME, direction: DIRECTION, from: defaultFrom },
-    "Created new ProviderSyncState with default lookback"
-  )
-
-  return created
-}
-
-async function advanceCursor(syncStateId: string, newPollAt: Date): Promise<void> {
-  await db.providerSyncState.update({
-    where: { id: syncStateId },
-    data: { lastSuccessfulPollAt: newPollAt },
-  })
-
-  logger.info({ syncStateId, newPollAt }, "Advanced cursor to new poll time")
-}
-
-// =============================================================================
-// Inbound Invoice Processing
-// =============================================================================
-
-interface PollResult {
-  success: boolean
-  fetched: number
-  inserted: number
-  skipped: number
-  errors: number
-  errorMessages: string[]
-}
-
-async function pollIncomingInvoices(companyId: string): Promise<PollResult> {
-  const result: PollResult = {
-    success: false,
-    fetched: 0,
-    inserted: 0,
-    skipped: 0,
-    errors: 0,
-    errorMessages: [],
-  }
-
-  // Get sync state and determine window
-  const syncState = await getOrCreateSyncState(companyId)
-  const fromDate = syncState.lastSuccessfulPollAt
-  const toDate = new Date()
-
-  // Safety: cap window to MAX_WINDOW_DAYS
-  const maxFrom = new Date()
-  maxFrom.setDate(maxFrom.getDate() - MAX_WINDOW_DAYS)
-  const effectiveFrom = fromDate < maxFrom ? maxFrom : fromDate
-
-  logger.info(
-    { companyId, from: effectiveFrom.toISOString(), to: toDate.toISOString() },
-    "Starting inbound poll"
-  )
-
-  // Create provider instance
-  const apiBase = process.env.EPOSLOVANJE_API_BASE
-  const apiKey = process.env.EPOSLOVANJE_API_KEY
-
-  if (!apiBase || !apiKey) {
-    result.errorMessages.push("EPOSLOVANJE_API_BASE and EPOSLOVANJE_API_KEY required")
-    logger.error({ companyId }, "Provider not configured")
-    return result
-  }
-
-  const provider = new EposlovanjeEInvoiceProvider({
-    apiKey,
-    apiUrl: apiBase,
-  })
-
-  // Test connectivity
-  const isConnected = await provider.testConnection()
-  if (!isConnected) {
-    result.errorMessages.push("Provider connectivity test failed")
-    logger.error({ companyId }, "Provider connectivity test failed")
-    return result
-  }
-
-  // Fetch all pages of incoming invoices
-  let page = 1
-  const pageSize = 100
-  let hasMore = true
-
-  while (hasMore) {
-    const invoices = await provider.fetchIncomingInvoices({
-      fromDate: effectiveFrom,
-      toDate,
-      page,
-      pageSize,
-    })
-
-    result.fetched += invoices.length
-    hasMore = invoices.length >= pageSize
-    page++
-
-    // Process each invoice
-    for (const invoice of invoices) {
-      try {
-        // Find or create seller contact
-        let sellerId: string | null = null
-        if (invoice.sellerOib) {
-          const sellerContact = await db.contact.findFirst({
-            where: { companyId, oib: invoice.sellerOib },
-            select: { id: true },
-          })
-
-          if (sellerContact) {
-            sellerId = sellerContact.id
-          } else {
-            const newContact = await db.contact.create({
-              data: {
-                companyId,
-                type: "SUPPLIER",
-                name: invoice.sellerName || `Supplier ${invoice.sellerOib}`,
-                oib: invoice.sellerOib,
-              },
-              select: { id: true },
-            })
-            sellerId = newContact.id
-          }
-        }
-
-        // Insert invoice - unique constraint handles race conditions
-        await db.eInvoice.create({
-          data: {
-            companyId,
-            direction: DIRECTION,
-            type: "E_INVOICE",
-            invoiceNumber: invoice.invoiceNumber,
-            issueDate: invoice.issueDate,
-            currency: invoice.currency,
-            netAmount: new Decimal(0), // Will be parsed from UBL
-            vatAmount: new Decimal(0),
-            totalAmount: new Decimal(invoice.totalAmount.toString()),
-            status: "DELIVERED",
-            providerRef: invoice.providerRef,
-            providerStatus: "RECEIVED",
-            ublXml: invoice.ublXml || null,
-            sellerId,
-            notes: `Received via ePoslovanje poll at ${new Date().toISOString()}`,
-          },
-        })
-
-        result.inserted++
-        logger.info(
-          { companyId, providerRef: invoice.providerRef, invoiceNumber: invoice.invoiceNumber },
-          "Inserted inbound invoice"
-        )
-      } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-          // Unique constraint violation = duplicate
-          result.skipped++
-          logger.debug({ companyId, providerRef: invoice.providerRef }, "Skipped duplicate invoice")
-        } else {
-          result.errors++
-          const msg = error instanceof Error ? error.message : "Unknown error"
-          result.errorMessages.push(`${invoice.providerRef}: ${msg}`)
-          logger.error(
-            { companyId, providerRef: invoice.providerRef, error: msg },
-            "Failed to insert inbound invoice"
-          )
-        }
-      }
-    }
-
-    // Rate limit protection
-    if (hasMore) {
-      await sleep(1000) // 1 second between pages
-    }
-  }
-
-  // Only advance cursor if ALL pages were fetched successfully (no fatal errors)
-  if (result.errors === 0 || result.inserted > 0 || result.skipped > 0) {
-    // If we got here, the provider call succeeded even if some inserts failed
-    // We advance cursor to prevent re-fetching the same invoices
-    await advanceCursor(syncState.id, toDate)
-    result.success = true
-  }
-
-  return result
-}
+// Inline polling removed - now delegated to poll-inbound.ts orchestrator
 
 // =============================================================================
 // Main Loop
@@ -328,7 +113,8 @@ async function runPollCycle(): Promise<void> {
   const pollStart = Date.now()
 
   try {
-    const result = await pollIncomingInvoices(COMPANY_ID)
+    // Use orchestrator which routes between V1 (env vars) and V2 (IntegrationAccount)
+    const result = await pollInbound(COMPANY_ID)
 
     state.stats.totalFetched += result.fetched
     state.stats.totalInserted += result.inserted
@@ -337,12 +123,15 @@ async function runPollCycle(): Promise<void> {
     state.lastPollAt = new Date()
 
     const duration = Date.now() - pollStart
+    const path = isV2Result(result) ? "V2" : "V1"
 
     // Log structured summary (DO NOT log UBL or secrets)
     logger.info(
       {
         companyId: COMPANY_ID,
         companyName: company.name,
+        path,
+        integrationAccountId: isV2Result(result) ? result.integrationAccountId : undefined,
         success: result.success,
         fetched: result.fetched,
         inserted: result.inserted,
@@ -356,7 +145,7 @@ async function runPollCycle(): Promise<void> {
 
     // Console output for container logs
     console.log(
-      `[eposlovanje-inbound-poller] Poll #${state.stats.totalPolls}: ` +
+      `[eposlovanje-inbound-poller] Poll #${state.stats.totalPolls} (${path}): ` +
         `fetched=${result.fetched} inserted=${result.inserted} ` +
         `skipped=${result.skipped} errors=${result.errors} ` +
         `duration=${duration}ms`
@@ -452,15 +241,24 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  if (!process.env.EPOSLOVANJE_API_BASE || !process.env.EPOSLOVANJE_API_KEY) {
-    console.error("[eposlovanje-inbound-poller] FATAL: ePoslovanje credentials not set")
-    process.exit(1)
+  // With orchestrator, we can use either IntegrationAccount OR env vars
+  const hasEnvVars = !!(process.env.EPOSLOVANJE_API_BASE && process.env.EPOSLOVANJE_API_KEY)
+  const useIntegrationAccount = process.env.USE_INTEGRATION_ACCOUNT_INBOUND === "true"
+
+  if (!hasEnvVars && !useIntegrationAccount) {
+    console.warn("[eposlovanje-inbound-poller] WARNING: No credentials configured")
+    console.warn("  - Set EPOSLOVANJE_API_BASE + EPOSLOVANJE_API_KEY for V1 path")
+    console.warn("  - Set USE_INTEGRATION_ACCOUNT_INBOUND=true for V2 path")
+    console.warn("  - Polling will fail until IntegrationAccount is created or env vars are set")
   }
 
   setupGracefulShutdown()
 
   console.log(`[eposlovanje-inbound-poller] Starting poll loop for company ${COMPANY_ID}`)
   console.log(`[eposlovanje-inbound-poller] Poll interval: ${POLL_INTERVAL_MS / 1000}s`)
+  console.log(
+    `[eposlovanje-inbound-poller] IntegrationAccount mode: ${useIntegrationAccount ? "ENABLED" : "DISABLED"}`
+  )
 
   await mainLoop()
 }

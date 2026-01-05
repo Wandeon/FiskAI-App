@@ -1304,6 +1304,22 @@ export const WORKER_COMPONENTS: SystemComponent[] = [
     criticalPaths: ["path-rtl-pipeline"],
     metadata: { purpose: "Generate embeddings for published regulatory rules" },
   },
+  {
+    componentId: "worker-einvoice-inbound",
+    type: "WORKER",
+    name: "E-Invoice Inbound Poller",
+    status: "STABLE",
+    criticality: "HIGH",
+    owner: "team:einvoice",
+    docsRef: null,
+    codeRef: "src/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.ts",
+    dependencies: [
+      { componentId: "store-postgresql", type: "HARD" },
+      { componentId: "integration-einvoice", type: "HARD" },
+    ],
+    criticalPaths: [],
+    metadata: { purpose: "Poll ePoslovanje for incoming e-invoices" },
+  },
 ]
 
 // =============================================================================
