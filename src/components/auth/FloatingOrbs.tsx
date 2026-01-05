@@ -1,5 +1,8 @@
 "use client"
 
+// @design-override: Auth page animated background uses hardcoded colors for framer-motion
+// color interpolation. CSS variables don't animate smoothly. Quarantined as legacy component.
+
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 

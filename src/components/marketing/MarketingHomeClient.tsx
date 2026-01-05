@@ -1,5 +1,9 @@
 "use client"
 
+// @design-override: Marketing hero page uses intentional raw colors for brand-specific
+// dark gradient aesthetic (cockpit theme). Decorative animated orbs require hardcoded
+// colors for framer-motion interpolation. TODO: Migrate static sections to tokens.
+
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

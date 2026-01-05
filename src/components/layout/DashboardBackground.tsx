@@ -1,5 +1,9 @@
 "use client"
 
+// @design-override: Decorative animated background uses hardcoded colors for
+// smooth framer-motion color transitions. CSS variables don't interpolate well
+// in motion animations. TODO: Migrate when design system provides animation-safe tokens.
+
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 
