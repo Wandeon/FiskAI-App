@@ -6,9 +6,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-// Mock all external dependencies before importing the module under test
-vi.mock("@/lib/db", () => ({
-  db: {
+// Create hoisted mocks before vi.mock calls
+const { mockDb } = vi.hoisted(() => ({
+  mockDb: {
     providerSyncState: {
       findUnique: vi.fn(),
       update: vi.fn().mockResolvedValue({}),
@@ -22,6 +22,11 @@ vi.mock("@/lib/db", () => ({
       create: vi.fn(),
     },
   },
+}))
+
+// Mock all external dependencies before importing the module under test
+vi.mock("@/lib/db", () => ({
+  db: mockDb,
 }))
 
 vi.mock("@/lib/integration", () => ({
@@ -59,10 +64,9 @@ vi.mock("../eposlovanje-einvoice", () => {
   }
 })
 
-// Now import the module under test
+// Now import the module under test (no db import - use mockDb instead)
 import { pollInbound, getPollPath, isV2Result } from "../../poll-inbound"
 import { findIntegrationAccount } from "@/lib/integration"
-import { db } from "@/lib/db"
 
 describe("Dual-Path Polling Orchestrator", () => {
   const mockAccount = {
@@ -102,7 +106,7 @@ describe("Dual-Path Polling Orchestrator", () => {
     delete process.env.EPOSLOVANJE_API_KEY
 
     // Setup default mock for providerSyncState.findUnique
-    vi.mocked(db.providerSyncState.findUnique).mockResolvedValue({
+    mockDb.providerSyncState.findUnique.mockResolvedValue({
       id: "sync-1",
       lastSuccessfulPollAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     } as never)

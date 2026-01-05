@@ -6,9 +6,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-// Mock all external dependencies before importing the module under test
-vi.mock("@/lib/db", () => ({
-  db: {
+// Create hoisted mocks before vi.mock calls
+const { mockDb } = vi.hoisted(() => ({
+  mockDb: {
     providerSyncState: {
       findUnique: vi.fn(),
       update: vi.fn().mockResolvedValue({}),
@@ -22,6 +22,11 @@ vi.mock("@/lib/db", () => ({
       create: vi.fn(),
     },
   },
+}))
+
+// Mock all external dependencies before importing the module under test
+vi.mock("@/lib/db", () => ({
+  db: mockDb,
 }))
 
 vi.mock("@/lib/integration", () => ({
@@ -59,10 +64,9 @@ vi.mock("../eposlovanje-einvoice", () => {
   }
 })
 
-// Now import the module under test
+// Now import the module under test (no db import - use mockDb instead)
 import { pollInboundForAccount, pollInboundForCompany } from "../../poll-inbound-v2"
 import { findIntegrationAccountById, findIntegrationAccount } from "@/lib/integration"
-import { db } from "@/lib/db"
 
 describe("Poll Inbound V2", () => {
   const mockAccount = {
@@ -85,7 +89,7 @@ describe("Poll Inbound V2", () => {
     mockFetchIncomingInvoices.mockResolvedValue([])
 
     // Setup default mock for providerSyncState.findUnique
-    vi.mocked(db.providerSyncState.findUnique).mockResolvedValue({
+    mockDb.providerSyncState.findUnique.mockResolvedValue({
       id: "sync-1",
       lastSuccessfulPollAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
       integrationAccountId: "acc-123",
@@ -146,15 +150,15 @@ describe("Poll Inbound V2", () => {
 
     it("creates sync state if not exists", async () => {
       vi.mocked(findIntegrationAccountById).mockResolvedValue(mockAccount)
-      vi.mocked(db.providerSyncState.findUnique).mockResolvedValue(null)
-      vi.mocked(db.providerSyncState.create).mockResolvedValue({
+      mockDb.providerSyncState.findUnique.mockResolvedValue(null)
+      mockDb.providerSyncState.create.mockResolvedValue({
         id: "new-sync-1",
         lastSuccessfulPollAt: new Date(),
       } as never)
 
       await pollInboundForAccount("acc-123", "comp-456")
 
-      expect(db.providerSyncState.create).toHaveBeenCalledWith(
+      expect(mockDb.providerSyncState.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             companyId: "comp-456",
@@ -168,7 +172,7 @@ describe("Poll Inbound V2", () => {
 
     it("updates sync state integrationAccountId if not set", async () => {
       vi.mocked(findIntegrationAccountById).mockResolvedValue(mockAccount)
-      vi.mocked(db.providerSyncState.findUnique).mockResolvedValue({
+      mockDb.providerSyncState.findUnique.mockResolvedValue({
         id: "sync-1",
         lastSuccessfulPollAt: new Date(),
         integrationAccountId: null, // Not set
@@ -176,7 +180,7 @@ describe("Poll Inbound V2", () => {
 
       await pollInboundForAccount("acc-123", "comp-456")
 
-      expect(db.providerSyncState.update).toHaveBeenCalledWith(
+      expect(mockDb.providerSyncState.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: "sync-1" },
           data: { integrationAccountId: "acc-123" },
