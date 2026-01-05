@@ -17,8 +17,16 @@ export function generateCSP(nonce: string): string {
     // Script CSP with nonce and strict-dynamic for compatibility
     // strict-dynamic allows scripts loaded by nonce-tagged scripts to run
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-    // Style CSP with nonce for inline styles (used by Next.js and Tailwind)
+    // Script elements need nonce (for Next.js inline scripts)
+    `script-src-elem 'self' 'nonce-${nonce}'`,
+    // Block inline event handlers (onclick, etc.) for security
+    "script-src-attr 'none'",
+    // Base style CSP with nonce
     `style-src 'self' 'nonce-${nonce}'`,
+    // Style elements: allow unsafe-inline for Framer Motion's injected <style> tags
+    `style-src-elem 'self' 'nonce-${nonce}' 'unsafe-inline'`,
+    // Style attributes: allow unsafe-inline for Framer Motion's element.style.* manipulation
+    "style-src-attr 'unsafe-inline'",
     // Allow images from self, data URIs, and HTTPS sources
     "img-src 'self' data: https:",
     // Allow fonts from self and data URIs
