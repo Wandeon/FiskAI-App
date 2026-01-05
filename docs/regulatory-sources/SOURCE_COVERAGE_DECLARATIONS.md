@@ -15,9 +15,8 @@ This document is the **authoritative contract** for regulatory source coverage. 
 | Status     | Count | Sources                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------- |
 | COMPLETE   | 14    | NN, Porezna, HZZO, HZMO, HNB, FINA, MFin, MRMS, HOK, Vlada, Sabor, e-Savjetovanja, HANFA, AZOP |
-| PARTIAL    | 1     | DZS (news only, statistics require manual)                                                     |
+| PARTIAL    | 2     | DZS (news only), HGK (headless enabled, stability pending)                                     |
 | INCOMPLETE | 1     | EUR-Lex (RSS removed, access method unresolved)                                                |
-| BLOCKED    | 1     | HGK (JS-rendered, requires headless browser)                                                   |
 
 ---
 
@@ -332,23 +331,42 @@ This document is the **authoritative contract** for regulatory source coverage. 
 
 ---
 
-## BLOCKED Sources
-
-### HGK (Croatian Chamber of Economy)
+### 16. HGK (Croatian Chamber of Economy)
 
 **Slug:** `hgk`
 **Domain:** `hgk.hr`
-**Status:** BLOCKED - requires headless browser
+**Scope:** PARTIAL - headless lane enabled, stability verification pending
 
-**Reason:** Direct fetch returns HTTP 500. Site is JS-rendered and requires Playwright.
+| Endpoint   | Type         | SLA | Strategy  |
+| ---------- | ------------ | --- | --------- |
+| `/vijesti` | NEWS_LISTING | 24h | HTML_LIST |
 
-**Required action:**
+**Status:** PARTIAL - capability exists, operational proof pending
 
-1. Implement Playwright fetcher with `requiresHeadless = true` flag
-2. Lower concurrency and stricter rate limits than standard fetch
-3. Test with HGK only before general rollout
+**Update SLA:** News within 24h (once stability verified)
+**Change detection:** Content hash (post-JS-render)
 
-**Until resolved:** HGK content is not monitored.
+**Constraints:**
+
+- Headless browser only (Playwright)
+- Strict rate limits: concurrency=1 per domain, 5 req/min, 30s render timeout
+- Single surface: `/vijesti` only (no pagination/load-more yet)
+
+**Known blind spots:**
+
+- Pagination/load-more not implemented (latest page only)
+- Category filters not crawled
+- Sub-pages not followed
+
+**Stability verification required (72-hour gate):**
+
+1. 3 consecutive scheduled runs complete without timeout
+2. HGK endpoint: lastSuccessAt updated, consecutiveErrors=0
+3. DiscoveredItems created on first run
+4. Evidence snapshots exist for listing HTML
+5. No endpoint alerts triggered
+
+**Notes:** Uses `metadata.requiresHeadless=true`. Will be promoted to COMPLETE after stability gate passes.
 
 ---
 
@@ -385,6 +403,7 @@ Status: Not yet implemented. Required for Phase 3.
 
 ## Version History
 
-| Date       | Version | Changes                                                  |
-| ---------- | ------- | -------------------------------------------------------- |
-| 2026-01-05 | 1.0     | Initial coverage freeze. 56 endpoints across 15 sources. |
+| Date       | Version | Changes                                                                                 |
+| ---------- | ------- | --------------------------------------------------------------------------------------- |
+| 2026-01-05 | 1.1     | HGK headless lane enabled (PARTIAL). 57 endpoints across 16 sources. Stability pending. |
+| 2026-01-05 | 1.0     | Initial coverage freeze. 56 endpoints across 15 sources.                                |

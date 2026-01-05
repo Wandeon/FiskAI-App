@@ -568,6 +568,27 @@ const endpoints = [
     listingStrategy: "HTML_LIST" as const,
     metadata: { domain: "gdpr", sitemap: "/sitemap_index.xml", verified: "2026-01-05" },
   },
+  // ==========================================================================
+  // HEADLESS-REQUIRED SOURCES (JS-rendered sites requiring Playwright)
+  // ==========================================================================
+
+  // HGK - Croatian Chamber of Economy (JS-rendered, requires headless browser)
+  // Status: BLOCKED without headless - returns HTTP 500 on direct fetch
+  // See: docs/regulatory-sources/SOURCE_COVERAGE_DECLARATIONS.md
+  {
+    domain: "hgk.hr",
+    path: "/vijesti",
+    name: "HGK - Vijesti",
+    endpointType: "NEWS_LISTING" as const,
+    priority: "HIGH" as const,
+    scrapeFrequency: "DAILY" as const,
+    listingStrategy: "HTML_LIST" as const,
+    metadata: {
+      requiresHeadless: true,
+      verified: "2026-01-05",
+      notes: "JS-rendered site, requires Playwright for content extraction",
+    },
+  },
 ]
 
 async function main() {
