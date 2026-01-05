@@ -19,7 +19,7 @@ const config: Config = {
     // This makes blue-600, red-500, etc. unavailable
     // ═══════════════════════════════════════════════════════════════
 
-    spacing: spacing,
+    // NOTE: spacing moved to extend.spacing to preserve Tailwind defaults (p-7, mt-9, etc.)
     borderRadius: radius,
     zIndex: zIndex,
     boxShadow: shadows,
@@ -147,6 +147,11 @@ const config: Config = {
     },
 
     extend: {
+      // ─────────────────────────────────────────────────────────────
+      // SPACING (extends Tailwind defaults, adds semantic spacing)
+      // ─────────────────────────────────────────────────────────────
+      spacing: spacing,
+
       // ─────────────────────────────────────────────────────────────
       // ANIMATIONS (keep existing)
       // ─────────────────────────────────────────────────────────────
