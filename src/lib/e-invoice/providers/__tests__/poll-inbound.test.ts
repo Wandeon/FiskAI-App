@@ -31,6 +31,7 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("@/lib/integration", () => ({
   findIntegrationAccount: vi.fn(),
+  assertLegacyPathAllowed: vi.fn(), // Phase 5: Added enforcement function (no-op when not enforcing)
 }))
 
 vi.mock("@/lib/logger", () => ({
