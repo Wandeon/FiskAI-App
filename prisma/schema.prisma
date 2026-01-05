@@ -2278,10 +2278,10 @@ model IntegrationAccount {
   rotatedAt     DateTime?
   lastUsedAt    DateTime?
 
-  // Relations (to be populated in later phases)
+  // Relations
   eInvoices          EInvoice[]
   providerSyncStates ProviderSyncState[]
-  // fiscalRequests    FiscalRequest[]
+  fiscalRequests     FiscalRequest[]
 
   // Constraints
   @@unique([companyId, kind, environment], map: "integration_account_company_kind_env_key")
@@ -2315,6 +2315,7 @@ model FiscalRequest {
   companyId            String
   certificateId        String? // Optional: null when cert-missing failure
   invoiceId            String?
+  integrationAccountId String? // IntegrationAccount used for signing (Phase 4+)
   messageType          FiscalMessageType
   status               FiscalStatus      @default(QUEUED)
   attemptCount         Int               @default(0)
@@ -2346,6 +2347,7 @@ model FiscalRequest {
   certificate          FiscalCertificate? @relation(fields: [certificateId], references: [id], onDelete: Restrict)
   company              Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   invoice              EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  integrationAccount   IntegrationAccount? @relation(fields: [integrationAccountId], references: [id], onDelete: Restrict)
   responses            FiscalResponse[]
 
   @@unique([companyId, invoiceId, messageType])
