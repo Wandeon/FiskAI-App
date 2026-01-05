@@ -2,10 +2,11 @@
 
 ## The Complete System Truth
 
-**Version:** 4.3.0
-**Date:** 2025-12-29
-**Status:** Canonical - Single Source of Truth
+**Version:** 5.0.0
+**Date:** 2026-01-05
+**Status:** Canonical - Single Source of Truth (Reality-Audited)
 **Scope:** Every flow, every button, every permission, every scenario
+**Audit Method:** Codebase audit via parallel haiku subagents (2026-01-05)
 
 ---
 
@@ -13,25 +14,45 @@
 
 Throughout this document:
 
-- ✅ **Implemented** - In production, working
-- ⚠️ **Partial** - Some features working, others in progress
-- 🚧 **In Development** - Actively being built
-- 📋 **Planned** - Designed but not started
-- ❌ **Not Planned** - Out of scope
+- ✅ **Implemented** - In production, working, verified in codebase
+- ⚠️ **Partially Implemented** - Core functionality working, some features pending
+- 🚧 **In Development** - Actively being built, code exists
+- 📋 **Planned** - Designed but not started, no code
+- 🗑️ **Deprecated** - Being phased out
+- ❌ **Removed** - No longer in codebase
+
+---
+
+## System Reality Snapshot (2026-01-05)
+
+| Metric             | Count | Notes                                        |
+| ------------------ | ----- | -------------------------------------------- |
+| Prisma Models      | 182   | Multi-tenant with companyId isolation        |
+| Enums              | 80+   | Including SystemRole, CompanyRole, LegalForm |
+| Modules            | 18    | platform-core through ai-assistant           |
+| API Route Files    | 241   | Under src/app/api/                           |
+| HTTP Endpoints     | ~216  | Across auth, invoicing, banking, admin, AI   |
+| RTL Workers        | 14    | BullMQ-based pipeline workers                |
+| Marketing Pages    | ~45   | Public site at fiskai.hr                     |
+| Client App Pages   | ~85   | app.fiskai.hr                                |
+| Staff Portal Pages | 12    | staff.fiskai.hr                              |
+| Admin Portal Pages | ~22   | admin.fiskai.hr                              |
 
 ---
 
 ## Version Alignment
 
-| Component         | Bible Version | Code Version | Status     |
-| ----------------- | ------------- | ------------ | ---------- |
-| Core Architecture | 4.1.0         | Current      | ✅ Aligned |
-| Module System     | 4.1.0         | Current      | ✅ Aligned |
-| Visibility System | 4.1.0         | Current      | ✅ Aligned |
-| Guidance System   | 4.2.1         | Current      | ✅ Aligned |
-| Pricing Tiers     | 4.1.0         | Stripe       | ⚠️ Partial |
-| Staff Portal      | 4.1.0         | Current      | ⚠️ Partial |
-| Admin Portal      | 4.1.0         | Current      | ⚠️ Partial |
+| Component              | Bible Version | Code Reality                       | Status     |
+| ---------------------- | ------------- | ---------------------------------- | ---------- |
+| Core Architecture      | 5.0.0         | Next.js 15, Prisma 7               | ✅ Aligned |
+| Module System          | 5.0.0         | 18 modules in definitions.ts       | ✅ Aligned |
+| Visibility System      | 5.0.0         | CompetenceLevel + ProgressionStage | ✅ Aligned |
+| Guidance System        | 5.0.0         | Drizzle-based, checklist system    | ✅ Aligned |
+| Pricing Tiers          | 5.0.0         | 4 tiers in subscriptionPlans.ts    | ✅ Aligned |
+| Staff Portal           | 5.0.0         | 12 pages, basic functionality      | ⚠️ Partial |
+| Admin Portal           | 5.0.0         | ~22 pages, management features     | ✅ Aligned |
+| Regulatory Truth Layer | 5.0.0         | 14 workers, 7-stage pipeline       | ✅ Aligned |
+| Integrations           | 5.0.0         | Porezna CIS, ePoslovanje v2        | ✅ Aligned |
 
 ---
 
@@ -98,6 +119,7 @@ Throughout this document:
 
 | Version | Date       | Author      | Changes                                              |
 | ------- | ---------- | ----------- | ---------------------------------------------------- |
+| 5.0.0   | 2026-01-05 | Claude Opus | Complete reality audit & reconstruction              |
 | 4.3.0   | 2025-12-29 | Claude      | System Registry, RTL Content Sync, HCL updates       |
 | 4.2.1   | 2025-12-28 | Claude      | Added Chapter 9: Guidance System specification       |
 | 4.2.0   | 2025-12-20 | Antigravity | Updated 2025/2026 Tax Thresholds & E-Invoice Mandate |
@@ -107,7 +129,60 @@ Throughout this document:
 | 2.0.0   | 2025-12-19 | Codex       | V2 Rewrite                                           |
 | 1.0.0   | 2025-12-19 | Gemini      | Initial draft                                        |
 
-### v4.3.0 Changes
+### v5.0.0 Changes (2026-01-05) - Reality Audit
+
+**Audit Methodology:**
+
+- 7 parallel haiku subagents audited codebase reality
+- Canonical Rule Hierarchy: Runtime > Source > Schema > Migrations > Config > Tests > Docs
+- Status labels applied to ALL features per actual implementation state
+
+**Database Reality (182 models):**
+
+- Prisma 7 with 182 models, 80+ enums
+- Multi-tenant isolation via AsyncLocalStorage + Prisma middleware
+- Soft-delete limited to SourcePointer and FeatureFlag only
+- SystemRole enum: USER, STAFF, ADMIN
+- CompanyRole enum: OWNER, ADMIN, MEMBER, ACCOUNTANT, VIEWER
+
+**Module System (18 modules):**
+
+- Corrected count from 16 to 18 modules
+- Added: platform-core (always enabled, core routes)
+- Entitlements v2 format with permission granularity
+- Trial support infrastructure in schema
+
+**Portal Reality:**
+
+- Marketing: ~45 pages (public, MDX guides, comparisons, tools)
+- Client App: ~85 pages (full business dashboard)
+- Staff Portal: 12 pages (basic, multi-client pending)
+- Admin Portal: ~22 pages (tenant/user management, RTL admin)
+
+**RTL Pipeline (14 workers):**
+
+- Sentinel → OCR → Extractor → Composer → Reviewer → Arbiter → Releaser
+- Additional: Content-Sync, Evidence-Embedding, Article, Consolidator
+- Continuous drainer for 24/7 processing
+- Dead letter queue with admin visibility
+
+**Integration Status Updates:**
+
+- ePoslovanje v2: ✅ Implemented (production)
+- Porezna CIS: ✅ Implemented (fiscalization)
+- GoCardless: ✅ Implemented (PSD2 banking)
+- Stripe: ✅ Implemented (billing + Terminal)
+- IE-Racuni: 📋 Planned (stub exists)
+
+**Access Control Verified:**
+
+- RequiresModule, RequiresPlan, RequiresEntitlement components
+- canPerform() RBAC checks in server actions
+- Tenant isolation via setCompanyContext() + Prisma extensions
+
+---
+
+### v4.3.0 Changes (2025-12-29)
 
 **System Registry (16 commits):**
 
@@ -121,63 +196,11 @@ Throughout this document:
 - BullMQ worker for content synchronization
 - Concept registry for RTL-to-content mapping
 - Frontmatter patcher for MDX files
-- Event emission integration in Releaser
 
 **System Status Human Control Layer (PR #142):**
 
 - Admin page for system status monitoring
-- Refresh API and pipeline
-- Diff rules and snapshot store
-- Event retention cleanup cron
 - Dead letter queue handling
-
-**Regulatory Status Gate Enforcement (PR #138):**
-
-- Prisma extensions for status transitions
-- Fetcher lifecycle and provenance validation
-- Architectural hardening
-
-**Component Architecture Layers (PR #139):**
-
-- patterns/, sections/, templates/ directories
-- ESLint import boundaries
-- MarketingPageTemplate and components
-
-**Authority-First Performance (PR #131):**
-
-- AIAnswerBlock wiring to content pages
-- Web vitals route_group tagging
-- Performance SLO definitions
-
----
-
-### v4.1.0 Changes
-
-**Critical Fixes:**
-
-- Fixed all 40k thresholds to 60k EUR (paušalni/PDV exit threshold per 2025 Croatian Tax Reform)
-- Corrected competence terminology: "Foundation" and "Growth" (removed outdated "standard"/"expert" references)
-- Updated asset capitalization threshold to 1,000.00 EUR (previously 665 EUR)
-- Fixed paušalni income tiers to 7-tier structure (0-60k EUR range)
-- Corrected minimal wage to 970 EUR and contribution base to 719.20 EUR
-- Updated Income Tax threshold to 60,000 EUR (previously 50,400 EUR)
-
-**New Sections:**
-
-- Section 16: API Reference (Legacy) - documented actual API routes vs server actions
-- Section 17: Server Actions Reference - comprehensive CRUD operations inventory
-- Section 18: Drizzle ORM & Database Schema - migration from Prisma documentation
-- Section 19: AI Agents & Automation - Watchdog, Matcher, and Legal Archive specs
-- Section 20: Mobile Navigation & Responsive Design - sidebar behavior documentation
-
-**Alignments:**
-
-- Sidebar navigation aligned with actual implementation (dynamic visibility, mobile behavior)
-- Module system aligned with code (defaultEnabled flags, entitlement logic)
-- Visibility components documented (RequiresModule, RequiresPlan, etc.)
-- Mobile navigation patterns standardized
-- Pricing tier documentation updated to match Stripe configuration
-- Bank sync and e-invoice provider status clarified
 
 ---
 

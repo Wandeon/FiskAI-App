@@ -4,9 +4,10 @@
 
 ---
 
-> **Last Audit:** 2025-12-29
-> **Auditor:** Claude Code
-> **Status:** Updated with PR #140 (RTL Content Sync), PR #142 (System Status HCL)
+> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
+> **Version:** 3.0.0
+>
+> Reality-audited against codebase. Integration statuses verified against actual implementation.
 
 ---
 
@@ -38,13 +39,14 @@
 
 ### 12.2 E-Invoice Providers
 
-| Provider    | Type         | Status         | Location                                      | Notes                             |
-| ----------- | ------------ | -------------- | --------------------------------------------- | --------------------------------- |
-| Mock        | Testing      | ✅ Full        | `/src/lib/e-invoice/providers/mock.ts`        | Development only                  |
-| Mock Fiscal | Testing      | ✅ Full        | `/src/lib/e-invoice/providers/mock-fiscal.ts` | Fiscalization testing             |
-| IE-Racuni   | Intermediary | ⚠️ Stub        | `/src/lib/e-invoice/providers/ie-racuni.ts`   | API stub ready, needs credentials |
-| FINA Direct | Direct       | ⚠️ 80%         | `/src/lib/fiscal/porezna-client.ts`           | Requires certificate              |
-| Moj-eRacun  | Intermediary | ❌ Not started | -                                             | Low priority                      |
+| Provider       | Type         | Status         | Location                                               | Notes                             |
+| -------------- | ------------ | -------------- | ------------------------------------------------------ | --------------------------------- |
+| ePoslovanje v2 | Intermediary | ✅ Production  | `/src/lib/e-invoice/providers/eposlovanje-einvoice.ts` | Primary e-invoice provider        |
+| Mock           | Testing      | ✅ Full        | `/src/lib/e-invoice/providers/mock.ts`                 | Development only                  |
+| Mock Fiscal    | Testing      | ✅ Full        | `/src/lib/e-invoice/providers/mock-fiscal.ts`          | Fiscalization testing             |
+| IE-Racuni      | Intermediary | 📋 Stub        | `/src/lib/e-invoice/providers/ie-racuni.ts`            | API stub ready, needs credentials |
+| FINA Direct    | Direct       | ⚠️ 80%         | `/src/lib/fiscal/porezna-client.ts`                    | Requires certificate              |
+| Moj-eRacun     | Intermediary | ❌ Not started | -                                                      | Low priority                      |
 
 ### 12.3 Bank Import Formats
 
