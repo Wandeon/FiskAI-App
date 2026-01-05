@@ -79,9 +79,26 @@ async function main() {
   // Dynamic import after env is loaded
   const { runSentinel, fetchDiscoveredItems } = await import("../agents/sentinel")
 
-  const priorityArg = args[0] // "CRITICAL", "HIGH", "MEDIUM", "LOW", or undefined for all
+  // Parse arguments: filter out flags (--fetch, --fetch-only) to get priority
+  const flagArgs = args.filter((a) => a.startsWith("--"))
+  const positionalArgs = args.filter((a) => !a.startsWith("--"))
+  const priorityArg = positionalArgs[0] // "CRITICAL", "HIGH", "MEDIUM", "LOW", or undefined for all
+  const forceFetch = flagArgs.includes("--fetch")
+  const fetchOnly = flagArgs.includes("--fetch-only")
 
   try {
+    // Fetch-only mode: skip discovery, just fetch pending items
+    if (fetchOnly) {
+      console.log("[sentinel] Running fetch-only mode (skipping discovery)...")
+      console.log("[sentinel] Fetching discovered items...")
+      const fetchResult = await fetchDiscoveredItems(100)
+      console.log(`  - Fetched: ${fetchResult.fetched}`)
+      console.log(`  - Failed: ${fetchResult.failed}`)
+      console.log("[sentinel] Complete!")
+      await pool.end()
+      process.exit(0)
+    }
+
     console.log("[sentinel] Running discovery agent...")
 
     // Validate priority argument
@@ -113,7 +130,8 @@ async function main() {
     }
 
     // Fetch discovered items
-    if (result.newItemsDiscovered > 0) {
+    // Use --fetch flag to force fetch even if no new items discovered
+    if (result.newItemsDiscovered > 0 || forceFetch) {
       console.log("\n[sentinel] Fetching discovered items...")
       const fetchResult = await fetchDiscoveredItems(100)
       console.log(`  - Fetched: ${fetchResult.fetched}`)

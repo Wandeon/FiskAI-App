@@ -1101,10 +1101,13 @@ async function processSingleItem(item: {
             contentClass: "PDF_SCANNED",
           },
           update: {
-            // If we re-encounter same content, just update fetchedAt timestamp
-            fetchedAt: new Date(),
+            // Evidence is immutable - if same url+contentHash exists, just reuse it
+            // fetchedAt cannot be updated (immutability constraint)
           },
         })
+
+        // Log evidence creation/reuse
+        console.log(`[sentinel] EVIDENCE_SAVED id=${evidence.id} url=${item.url}`)
 
         await db.discoveredItem.update({
           where: { id: item.id },
@@ -1157,10 +1160,13 @@ async function processSingleItem(item: {
             contentClass: "PDF_TEXT",
           },
           update: {
-            // If we re-encounter same content, just update fetchedAt timestamp
-            fetchedAt: new Date(),
+            // Evidence is immutable - if same url+contentHash exists, just reuse it
+            // fetchedAt cannot be updated (immutability constraint)
           },
         })
+
+        // Log evidence creation/reuse
+        console.log(`[sentinel] EVIDENCE_SAVED id=${evidence.id} url=${item.url}`)
 
         // Create PDF_TEXT artifact
         const artifact = await dbReg.evidenceArtifact.create({
@@ -1359,10 +1365,13 @@ async function processSingleItem(item: {
           : null,
       },
       update: {
-        // If we re-encounter same content, just update fetchedAt timestamp
-        fetchedAt: new Date(),
+        // Evidence is immutable - if same url+contentHash exists, just reuse it
+        // fetchedAt cannot be updated (immutability constraint)
       },
     })
+
+    // EVIDENCE_SAVED: Log evidence creation/reuse (required for verification)
+    console.log(`[sentinel] EVIDENCE_SAVED id=${evidence.id} url=${item.url}`)
 
     // Log audit event for evidence creation
     await logAuditEvent({
@@ -1378,16 +1387,24 @@ async function processSingleItem(item: {
 
     // Queue embedding generation for semantic duplicate detection
     // Uses dedicated queue with retry logic (GitHub issue #828)
+    // NOTE: Embedding is optional enrichment - if it fails, evidence is still valid
     const runId = `sentinel-embed-${Date.now()}`
-    await evidenceEmbeddingQueue.add(
-      "generate-embedding",
-      { evidenceId: evidence.id, runId },
-      { jobId: `embed-${evidence.id}` }
-    )
-    log("debug", `Queued embedding generation for Evidence ${evidence.id}`, {
-      operation: "queue-embedding",
-      metadata: { evidenceId: evidence.id, runId },
-    })
+    try {
+      await evidenceEmbeddingQueue.add(
+        "generate-embedding",
+        { evidenceId: evidence.id, runId },
+        { jobId: `embed-${evidence.id}` }
+      )
+      log("debug", `Queued embedding generation for Evidence ${evidence.id}`, {
+        operation: "queue-embedding",
+        metadata: { evidenceId: evidence.id, runId },
+      })
+    } catch (embeddingError) {
+      // EMBEDDING_FAILED: Non-blocking - evidence is already saved
+      console.log(
+        `[sentinel] EMBEDDING_FAILED reason=${embeddingError instanceof Error ? embeddingError.message : String(embeddingError)} (non-blocking)`
+      )
+    }
 
     await db.discoveredItem.update({
       where: { id: item.id },
