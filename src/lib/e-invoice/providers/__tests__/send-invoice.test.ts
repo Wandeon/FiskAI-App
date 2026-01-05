@@ -30,6 +30,7 @@ vi.mock("@/lib/secrets", () => ({
 vi.mock("@/lib/integration", () => ({
   touchIntegrationAccount: vi.fn().mockResolvedValue(undefined),
   findIntegrationAccount: vi.fn(),
+  assertLegacyPathAllowed: vi.fn(), // Phase 5: Added enforcement function (no-op when not enforcing)
 }))
 
 vi.mock("@/lib/logger", () => ({

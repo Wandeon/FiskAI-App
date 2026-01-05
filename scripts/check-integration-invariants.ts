@@ -19,6 +19,7 @@
  */
 
 import { db } from "@/lib/db"
+import { FiscalStatus } from "@prisma/client"
 
 interface InvariantViolation {
   model: string
@@ -61,7 +62,7 @@ async function checkInvariants(): Promise<InvariantViolation[]> {
   // Check 2: FiscalRequest SUCCESS without integrationAccountId
   const fiscalNoIntegration = await db.fiscalRequest.findMany({
     where: {
-      status: "SUCCESS",
+      status: FiscalStatus.SUCCESS,
       integrationAccountId: null,
     },
     select: { id: true, companyId: true, createdAt: true },
@@ -70,7 +71,7 @@ async function checkInvariants(): Promise<InvariantViolation[]> {
 
   const fiscalCount = await db.fiscalRequest.count({
     where: {
-      status: "SUCCESS",
+      status: FiscalStatus.SUCCESS,
       integrationAccountId: null,
     },
   })
