@@ -16,7 +16,7 @@ vi.mock("@/lib/db", () => ({
   },
 }))
 
-vi.mock("@/lib/feature-flags", () => ({
+vi.mock("@/lib/integration-feature-flags", () => ({
   isFeatureEnabled: vi.fn(),
   FEATURE_FLAGS: {
     USE_INTEGRATION_ACCOUNT_OUTBOUND: false,
@@ -79,7 +79,7 @@ vi.mock("../../ubl-generator", () => ({
 
 // Now import the module under test
 import { sendEInvoice, type SendEInvoiceInput } from "../../send-invoice"
-import { isFeatureEnabled } from "@/lib/feature-flags"
+import { isFeatureEnabled } from "@/lib/integration-feature-flags"
 import { decryptOptionalSecret } from "@/lib/secrets"
 import { findIntegrationAccount, touchIntegrationAccount } from "@/lib/integration"
 import { createEInvoiceProvider } from "../../provider"
@@ -155,13 +155,13 @@ describe("sendEInvoice", () => {
         vatRate: { toNumber: () => 25 } as never,
         vatCategory: "S",
         vatAmount: { toNumber: () => 25 } as never,
-        productId: null,
         vatRuleId: null,
       },
     ],
     buyer: {
       id: "buyer-123",
       companyId: "company-123",
+      type: "CUSTOMER",
       name: "Test Buyer",
       email: "buyer@test.com",
       phone: null,
@@ -170,12 +170,11 @@ describe("sendEInvoice", () => {
       postalCode: "10000",
       country: "HR",
       oib: "12345678901",
-      vatId: null,
-      notes: null,
+      vatNumber: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      isMe: false,
       organizationId: null,
+      paymentTermsDays: 15,
     },
     seller: null,
     company: {

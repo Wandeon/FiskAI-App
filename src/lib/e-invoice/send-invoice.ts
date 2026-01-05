@@ -13,7 +13,7 @@
 
 import { db } from "@/lib/db"
 import type { Company, EInvoice, EInvoiceLine, Contact } from "@prisma/client"
-import { isFeatureEnabled } from "@/lib/feature-flags"
+import { isFeatureEnabled } from "@/lib/integration-feature-flags"
 import { createEInvoiceProvider } from "./provider"
 import { createProviderFromIntegrationAccount, resolveProviderForCompany } from "./provider-v2"
 import { generateUBLInvoice } from "./ubl-generator"
@@ -167,9 +167,9 @@ async function sendViaIntegrationAccount(input: SendEInvoiceInput): Promise<Send
       }
 
       if (!account) {
-        // Try sandbox as fallback
+        // Try test environment as fallback
         for (const kind of kinds) {
-          account = await findIntegrationAccount(companyId, kind, "SANDBOX")
+          account = await findIntegrationAccount(companyId, kind, "TEST")
           if (account) break
         }
       }
