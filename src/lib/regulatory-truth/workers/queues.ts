@@ -3,12 +3,9 @@ import { Queue, QueueEvents, JobsOptions } from "bullmq"
 import { redis } from "./redis"
 
 const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
-const RETENTION_MS = parseInt(process.env.JOB_RETENTION_HOURS || "24") * 60 * 60 * 1000
 
 // DLQ configuration
 export const DLQ_THRESHOLD = parseInt(process.env.DLQ_ALERT_THRESHOLD || "10")
-export const DLQ_RETENTION_DAYS = parseInt(process.env.DLQ_RETENTION_DAYS || "30")
-const DLQ_RETENTION_MS = DLQ_RETENTION_DAYS * 24 * 60 * 60 * 1000
 
 const defaultJobOptions: JobsOptions = {
   attempts: 3,
@@ -16,15 +13,17 @@ const defaultJobOptions: JobsOptions = {
     type: "exponential" as const,
     delay: 10000, // 10s, 20s, 40s
   },
-  removeOnComplete: { age: RETENTION_MS },
-  removeOnFail: false, // Keep temporarily for DLQ processing
+  // Keep last 1000 completed jobs (count-based prevents unbounded growth)
+  removeOnComplete: { count: 1000 },
+  // Keep last 100 failed jobs for DLQ processing (was: keep forever = OOM)
+  removeOnFail: { count: 100 },
 }
 
-// DLQ job options - longer retention for analysis
+// DLQ job options - keep more for analysis but still bounded
 const dlqJobOptions: JobsOptions = {
   attempts: 1, // DLQ jobs don't retry automatically
-  removeOnComplete: { age: DLQ_RETENTION_MS },
-  removeOnFail: false, // Keep failed DLQ jobs for inspection
+  removeOnComplete: { count: 5000 }, // Keep more DLQ history
+  removeOnFail: { count: 500 }, // Keep failed DLQ jobs for inspection (bounded)
 }
 
 // Queue factory
@@ -87,8 +86,8 @@ export const systemStatusQueue = new Queue("system-status", {
   prefix: PREFIX,
   defaultJobOptions: {
     attempts: 2, // Allow 1 retry for transient errors
-    removeOnComplete: { age: RETENTION_MS },
-    removeOnFail: false, // Keep for inspection
+    removeOnComplete: { count: 500 }, // Keep recent status checks
+    removeOnFail: { count: 50 }, // Keep failures for debugging (bounded)
   },
 })
 
