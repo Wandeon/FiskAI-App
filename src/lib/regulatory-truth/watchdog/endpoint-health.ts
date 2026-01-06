@@ -2,7 +2,7 @@
 // Endpoint health monitoring for Discovery v1
 // Implements alerts for SLA breach, consecutive errors, circuit breaker
 
-import { dbReg } from "@/lib/db"
+import { db } from "@/lib/db"
 import { DiscoveryPriority } from "@prisma/client"
 import { raiseAlert } from "./alerting"
 import { sendSlackMessage } from "./slack"
@@ -48,7 +48,7 @@ export async function computeEndpointHealth(
   const now = new Date()
   const slaThreshold = new Date(now.getTime() - SLA_BREACH_HOURS * 60 * 60 * 1000)
 
-  const endpoints = await dbReg.discoveryEndpoint.findMany({
+  const endpoints = await db.discoveryEndpoint.findMany({
     where: {
       priority,
       isActive: true,

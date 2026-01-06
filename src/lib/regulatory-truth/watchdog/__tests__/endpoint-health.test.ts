@@ -5,12 +5,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest"
 
 // Mock the database
 vi.mock("@/lib/db", () => ({
-  dbReg: {
+  db: {
     discoveryEndpoint: {
       findMany: vi.fn(),
     },
-  },
-  db: {
     watchdogAlert: {
       findFirst: vi.fn(),
       findMany: vi.fn(),
@@ -45,7 +43,7 @@ vi.mock("../resend-email", () => ({
   sendCriticalAlertResend: vi.fn(() => Promise.resolve()),
 }))
 
-import { dbReg, db } from "@/lib/db"
+import { db } from "@/lib/db"
 import { rateLimiter } from "../../utils/rate-limiter"
 import { computeEndpointHealth, getCircuitBreakerStatus } from "../endpoint-health"
 
@@ -69,7 +67,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
@@ -95,7 +93,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
@@ -120,7 +118,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
@@ -145,7 +143,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
@@ -171,7 +169,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
@@ -195,7 +193,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
@@ -255,7 +253,7 @@ describe("computeEndpointHealth", () => {
       },
     ]
 
-    vi.mocked(dbReg.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
+    vi.mocked(db.discoveryEndpoint.findMany).mockResolvedValue(mockEndpoints as never)
 
     const result = await computeEndpointHealth("CRITICAL")
 
