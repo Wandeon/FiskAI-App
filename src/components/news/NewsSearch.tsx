@@ -196,7 +196,7 @@ export function NewsSearch({ initialQuery = "" }: NewsSearchProps) {
                         className="group flex items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-surface/5"
                       >
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-white line-clamp-2 group-hover:text-cyan-300">
+                          <p className="text-sm font-medium text-white line-clamp-2 group-hover:text-accent-light">
                             {item.title}
                           </p>
                           {item.summaryHr && (

@@ -21,7 +21,7 @@ export const LoadingState = ({ size = "md", text }: LoadingStateProps) => {
         <FiskAILogo className={`${sizes[size]} text-foreground`} />
         {/* Overlay Logo that pulses */}
         <div className="absolute inset-0 animate-pulse">
-          <FiskAILogo className={`${sizes[size]} text-cyan-500 opacity-60`} />
+          <FiskAILogo className={`${sizes[size]} text-accent opacity-60`} />
         </div>
       </div>
       {text && <p className="text-sm text-tertiary animate-pulse">{text}</p>}

@@ -1,3 +1,4 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors -- @design-override: Email HTML requires inline styles */
 // src/app/api/cron/support-escalation/route.ts
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"

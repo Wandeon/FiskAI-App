@@ -38,14 +38,14 @@ export function RecommendationCard({
       <div
         className={cn(
           "border rounded-lg p-5 my-4",
-          highlighted ? "border-emerald-400/40 bg-chart-4/10" : "border-white/10 bg-surface/5"
+          highlighted ? "border-success/40 bg-chart-4/10" : "border-white/10 bg-surface/5"
         )}
       >
         <div className="prose prose-sm prose-invert max-w-none">{children}</div>
         {slug && (
           <a
             href={`/vodic/${slug}`}
-            className="mt-4 inline-block text-sm text-accent hover:text-cyan-300"
+            className="mt-4 inline-block text-sm text-accent hover:text-accent-light"
           >
             Saznaj više o {displayTitle} →
           </a>
@@ -62,7 +62,7 @@ export function RecommendationCard({
     <div
       className={cn(
         "border rounded-lg p-5",
-        highlighted ? "border-emerald-400/40 bg-chart-4/10" : "border-white/10 bg-surface/5"
+        highlighted ? "border-success/40 bg-chart-4/10" : "border-white/10 bg-surface/5"
       )}
     >
       <div className="flex items-start justify-between mb-3">
@@ -107,7 +107,7 @@ export function RecommendationCard({
       {slug && (
         <a
           href={`/vodic/${slug}`}
-          className="mt-4 inline-block text-sm text-accent hover:text-cyan-300"
+          className="mt-4 inline-block text-sm text-accent hover:text-accent-light"
         >
           Saznaj više o {displayTitle} →
         </a>

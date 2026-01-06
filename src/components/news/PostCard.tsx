@@ -18,9 +18,9 @@ interface PostCardProps {
 }
 
 const impactColors = {
-  high: "bg-danger/20 text-red-300",
-  medium: "bg-warning/20 text-yellow-300",
-  low: "bg-success/20 text-green-300",
+  high: "bg-danger/20 text-danger-text",
+  medium: "bg-warning/20 text-warning-text",
+  low: "bg-success/20 text-success-text",
 }
 
 const impactLabels = {
@@ -60,7 +60,7 @@ export function PostCard({
           {/* Category Badge */}
           <div className="mb-2 flex flex-wrap gap-2">
             {categoryName && (
-              <span className="rounded-full bg-interactive/20 px-2 py-0.5 text-xs font-medium text-blue-300">
+              <span className="rounded-full bg-interactive/20 px-2 py-0.5 text-xs font-medium text-info-text">
                 {categoryName}
               </span>
             )}

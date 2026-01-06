@@ -141,7 +141,7 @@ export function PortalCard({
                 <span className="font-semibold text-white truncate">{title}</span>
                 {badge && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg0/20 px-2 py-0.5 text-[10px] font-semibold text-danger-text">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-danger" />
                     {badge}
                   </span>
                 )}

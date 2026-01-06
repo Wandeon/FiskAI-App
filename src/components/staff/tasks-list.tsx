@@ -51,7 +51,7 @@ function getPriorityColor(priority: SupportTicketPriority) {
     case "NORMAL":
       return "bg-interactive/10 text-info-text dark:text-info-icon"
     case "HIGH":
-      return "bg-warning/10 text-warning-text dark:text-orange-400"
+      return "bg-warning/10 text-warning-text"
     case "URGENT":
       return "bg-danger/10 text-danger-text "
   }

@@ -89,7 +89,7 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
         {/* Copy Link */}
         <button
           onClick={copyToClipboard}
-          className={`${buttonBaseClass} ${copied ? "border-emerald-500/50 bg-chart-4/20" : ""}`}
+          className={`${buttonBaseClass} ${copied ? "border-success/50 bg-chart-4/20" : ""}`}
           aria-label={copied ? "Link kopiran" : "Kopiraj link"}
           title={copied ? "Link kopiran!" : "Kopiraj link"}
         >

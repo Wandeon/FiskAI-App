@@ -177,10 +177,10 @@ export function OibInput({
             className="pr-10"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {isLookingUp && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
-            {!isLookingUp && lookupSuccess && <Check className="h-4 w-4 text-green-500" />}
+            {isLookingUp && <Loader2 className="h-4 w-4 animate-spin text-info" />}
+            {!isLookingUp && lookupSuccess && <Check className="h-4 w-4 text-success" />}
             {!isLookingUp && (lookupError || validationError) && (
-              <AlertCircle className="h-4 w-4 text-yellow-500" />
+              <AlertCircle className="h-4 w-4 text-warning" />
             )}
           </div>
         </div>

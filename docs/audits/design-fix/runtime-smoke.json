@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-01-05T23:25:00Z",
+  "baseUrl": "http://localhost:3099",
+  "status": "PARTIAL",
+  "environment": {
+    "node": "v22.21.0",
+    "npm": "10.9.4",
+    "memory_total": "15Gi",
+    "memory_free": "7.0Gi",
+    "swap_used": "6.2Gi"
+  },
+  "tailwind_compilation": {
+    "status": "SUCCESS",
+    "file_size_bytes": 123397,
+    "brand_classes": {
+      "bg-brand-600": true,
+      "text-brand-600": true,
+      "bg-brand-500": true,
+      "border-brand-*": true
+    },
+    "semantic_classes": {
+      "bg-surface": true,
+      "bg-base": true,
+      "text-foreground": true,
+      "text-inverse": true,
+      "text-link": true
+    },
+    "default_spacing": {
+      "p-4": true,
+      "mt-2": true,
+      "gap-6": true
+    },
+    "css_variables": {
+      "--surface-base": true,
+      "--text-primary": true,
+      "--border-default": true,
+      ".dark_mode": true
+    }
+  },
+  "dev_server": {
+    "status": "STARTED_THEN_BLOCKED",
+    "turbopack": true,
+    "compilation": {
+      "instrumentation_nodejs": "12.9s",
+      "instrumentation_edge": "1.3s",
+      "middleware": "1.0s"
+    },
+    "listening_on": 3099,
+    "http_response": "BLOCKED - processes killed with exit 144"
+  },
+  "runtime_test": {
+    "status": "BLOCKED",
+    "reason": "Playwright/curl processes killed with SIGKILL (exit 144)",
+    "variables_computed": null,
+    "screenshots_captured": false
+  },
+  "notes": [
+    "Exit code 144 = 128 + SIGKILL(16) - processes being terminated by system",
+    "Not OOM - 7GB free memory available",
+    "Likely process limit, watchdog, or sandbox restriction",
+    "Dev server starts and compiles but HTTP requests blocked"
+  ]
+}

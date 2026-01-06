@@ -93,7 +93,7 @@ export function MigrationPageClient() {
         <div className="mx-auto max-w-5xl px-4 py-16 md:px-6 md:py-24">
           <Stagger className="space-y-6 text-center">
             <StaggerItem>
-              <div className="inline-flex items-center gap-2 rounded-full bg-surface/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-rose-300">
+              <div className="inline-flex items-center gap-2 rounded-full bg-surface/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-danger-text">
                 <Heart className="h-4 w-4" />
                 Razumijemo te
               </div>
@@ -103,7 +103,7 @@ export function MigrationPageClient() {
               <h1 className="text-4xl font-bold text-white md:text-5xl lg:text-6xl">
                 Promjena softvera ne mora
                 <br />
-                <span className="text-rose-400">biti noćna mora.</span>
+                <span className="text-danger-text">biti noćna mora.</span>
               </h1>
             </StaggerItem>
 
@@ -152,7 +152,9 @@ export function MigrationPageClient() {
                   className="rounded-full border border-white/10 bg-surface/5 backdrop-blur-sm px-4 py-2 text-sm text-white/60"
                   whileHover={{
                     scale: 1.05,
+                    // eslint-disable-next-line fisk-design-system/no-hardcoded-colors -- @design-override: framer-motion color interpolation
                     borderColor: "rgba(244,63,94,0.5)",
+                    // eslint-disable-next-line fisk-design-system/no-hardcoded-colors -- @design-override: framer-motion color interpolation
                     backgroundColor: "rgba(244,63,94,0.1)",
                   }}
                 >
@@ -175,7 +177,7 @@ export function MigrationPageClient() {
       <SectionBackground variant="subtle" id="kako">
         <div className="mx-auto max-w-5xl px-4 py-16 md:px-6">
           <Reveal className="mb-12 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-success-bg0/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-green-300">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-success-bg/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-success-text">
               <Clock className="h-4 w-4" />5 minuta ukupno
             </div>
             <h2 className="text-3xl font-bold text-white md:text-4xl">Tri koraka. To je sve.</h2>
@@ -305,7 +307,7 @@ export function MigrationPageClient() {
       <SectionBackground variant="dark">
         <div className="mx-auto max-w-3xl px-4 py-16 md:px-6">
           <Reveal className="mb-10 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-bg0/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-amber-300">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-bg/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-warning-text">
               <HelpCircle className="h-4 w-4" />
               Česta pitanja
             </div>

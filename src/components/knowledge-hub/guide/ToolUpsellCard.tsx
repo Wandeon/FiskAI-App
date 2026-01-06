@@ -53,7 +53,7 @@ export function ToolUpsellCard({
             <p className="mt-1 text-sm text-white/70">{description}</p>
             <Link
               href={ctaLink}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-link hover:text-blue-300"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-link hover:brightness-110"
             >
               {ctaText} <ArrowRight className="h-4 w-4" />
             </Link>

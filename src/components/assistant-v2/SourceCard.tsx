@@ -60,7 +60,7 @@ export function SourceCard({ source, variant, className, theme = "light" }: Sour
             className={cn(
               "text-xs px-2 py-0.5 rounded",
               isDark
-                ? "bg-amber-900/30 text-warning border border-warning/30"
+                ? "bg-warning-bg/30 text-warning border border-warning/30"
                 : "bg-warning-bg text-warning-text"
             )}
           >

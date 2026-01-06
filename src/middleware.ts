@@ -271,6 +271,32 @@ export async function middleware(request: NextRequest) {
       controlCenterPath = "/app-control-center"
   }
 
+  // Legacy /dashboard compatibility - redirect to root (then to control-center)
+  // This prevents 404s from old bookmarks and legacy code still referencing /dashboard
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+    const externalUrl = getExternalUrl(request)
+    // Preserve any sub-path or query params
+    const newPath = pathname === "/dashboard" ? "/" : pathname.replace("/dashboard", "")
+    const redirectUrl = new URL(newPath || "/", externalUrl)
+    redirectUrl.search = request.nextUrl.search
+
+    logger.info(
+      {
+        requestId,
+        subdomain,
+        systemRole,
+        originalPath: pathname,
+        redirectPath: redirectUrl.pathname,
+      },
+      "Redirecting legacy /dashboard to root"
+    )
+
+    const response = NextResponse.redirect(redirectUrl)
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
   // Redirect root path to control-center for protected subdomains
   // This replaces the redirect that was in individual page.tsx files
   if (pathname === "/") {

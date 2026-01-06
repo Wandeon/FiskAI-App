@@ -34,6 +34,7 @@ import {
   updateVelocity,
   calculateNextScan,
 } from "../utils/adaptive-sentinel"
+import { fetchWithHeadless, shouldUseHeadless } from "../fetchers/headless-fetcher"
 
 // =============================================================================
 // STRUCTURED LOGGING
@@ -547,12 +548,58 @@ async function processEndpoint(
   console.log(`[sentinel] Checking: ${baseUrl}`)
 
   try {
-    const response = await fetchWithRateLimit(baseUrl)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    // Check if endpoint requires headless browser fetching
+    const endpointForHeadlessCheck = {
+      id: endpoint.id,
+      domain: endpoint.domain,
+      path: endpoint.path,
+      metadata: endpoint.metadata as Record<string, unknown> | null,
     }
+    const useHeadless = shouldUseHeadless(endpointForHeadlessCheck)
 
-    const content = await response.text()
+    let content: string
+    const fetchStartTime = Date.now()
+
+    if (useHeadless) {
+      // Use headless browser for JS-rendered sites
+      const headlessResult = await fetchWithHeadless(baseUrl)
+      if (!headlessResult.ok) {
+        throw new Error(`Headless fetch failed: ${headlessResult.error}`)
+      }
+      content = headlessResult.html!
+
+      // GUARDRAIL: Log fetch metrics for headless requests
+      log("info", "Fetch completed", {
+        operation: "fetch-metrics",
+        domain: endpoint.domain,
+        url: baseUrl,
+        metadata: {
+          fetcher: "headless",
+          durationMs: Date.now() - fetchStartTime,
+          contentLength: content.length,
+          renderTimeMs: headlessResult.renderTimeMs,
+        },
+      })
+    } else {
+      // Use standard HTTP fetch
+      const response = await fetchWithRateLimit(baseUrl)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      content = await response.text()
+
+      // GUARDRAIL: Log fetch metrics for HTTP requests
+      log("info", "Fetch completed", {
+        operation: "fetch-metrics",
+        domain: endpoint.domain,
+        url: baseUrl,
+        metadata: {
+          fetcher: "http",
+          durationMs: Date.now() - fetchStartTime,
+          contentLength: content.length,
+        },
+      })
+    }
     const { hasChanged, newHash } = detectContentChange(content, endpoint.lastContentHash)
 
     // Update endpoint with new hash
@@ -1054,10 +1101,13 @@ async function processSingleItem(item: {
             contentClass: "PDF_SCANNED",
           },
           update: {
-            // If we re-encounter same content, just update fetchedAt timestamp
-            fetchedAt: new Date(),
+            // Evidence is immutable - if same url+contentHash exists, just reuse it
+            // fetchedAt cannot be updated (immutability constraint)
           },
         })
+
+        // Log evidence creation/reuse
+        console.log(`[sentinel] EVIDENCE_SAVED id=${evidence.id} url=${item.url}`)
 
         await db.discoveredItem.update({
           where: { id: item.id },
@@ -1110,10 +1160,13 @@ async function processSingleItem(item: {
             contentClass: "PDF_TEXT",
           },
           update: {
-            // If we re-encounter same content, just update fetchedAt timestamp
-            fetchedAt: new Date(),
+            // Evidence is immutable - if same url+contentHash exists, just reuse it
+            // fetchedAt cannot be updated (immutability constraint)
           },
         })
+
+        // Log evidence creation/reuse
+        console.log(`[sentinel] EVIDENCE_SAVED id=${evidence.id} url=${item.url}`)
 
         // Create PDF_TEXT artifact
         const artifact = await dbReg.evidenceArtifact.create({
@@ -1312,10 +1365,13 @@ async function processSingleItem(item: {
           : null,
       },
       update: {
-        // If we re-encounter same content, just update fetchedAt timestamp
-        fetchedAt: new Date(),
+        // Evidence is immutable - if same url+contentHash exists, just reuse it
+        // fetchedAt cannot be updated (immutability constraint)
       },
     })
+
+    // EVIDENCE_SAVED: Log evidence creation/reuse (required for verification)
+    console.log(`[sentinel] EVIDENCE_SAVED id=${evidence.id} url=${item.url}`)
 
     // Log audit event for evidence creation
     await logAuditEvent({
@@ -1331,16 +1387,24 @@ async function processSingleItem(item: {
 
     // Queue embedding generation for semantic duplicate detection
     // Uses dedicated queue with retry logic (GitHub issue #828)
+    // NOTE: Embedding is optional enrichment - if it fails, evidence is still valid
     const runId = `sentinel-embed-${Date.now()}`
-    await evidenceEmbeddingQueue.add(
-      "generate-embedding",
-      { evidenceId: evidence.id, runId },
-      { jobId: `embed-${evidence.id}` }
-    )
-    log("debug", `Queued embedding generation for Evidence ${evidence.id}`, {
-      operation: "queue-embedding",
-      metadata: { evidenceId: evidence.id, runId },
-    })
+    try {
+      await evidenceEmbeddingQueue.add(
+        "generate-embedding",
+        { evidenceId: evidence.id, runId },
+        { jobId: `embed-${evidence.id}` }
+      )
+      log("debug", `Queued embedding generation for Evidence ${evidence.id}`, {
+        operation: "queue-embedding",
+        metadata: { evidenceId: evidence.id, runId },
+      })
+    } catch (embeddingError) {
+      // EMBEDDING_FAILED: Non-blocking - evidence is already saved
+      console.log(
+        `[sentinel] EMBEDDING_FAILED reason=${embeddingError instanceof Error ? embeddingError.message : String(embeddingError)} (non-blocking)`
+      )
+    }
 
     await db.discoveredItem.update({
       where: { id: item.id },

@@ -421,7 +421,7 @@ export function EuTransactionReview({ companyId }: Props) {
                         variant="default"
                         onClick={() => void handleConfirm(tx.id)}
                         disabled={processingId === tx.id || !selectedCountries[tx.id]}
-                        className="bg-success hover:bg-green-700"
+                        className="bg-success hover:brightness-90"
                       >
                         {processingId === tx.id ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

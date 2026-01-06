@@ -152,7 +152,7 @@ export function PDVThresholdCalculator() {
           "p-4 rounded-xl transition-colors animate-fade-in",
           analysis.willCrossThreshold
             ? "bg-warning/10 border border-warning/30"
-            : "bg-chart-4/10 border border-emerald-500/30"
+            : "bg-chart-4/10 border border-success/30"
         )}
       >
         {analysis.willCrossThreshold ? (

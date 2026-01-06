@@ -1,3 +1,10 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors --
+ * @design-override: Marketing hero uses dark cockpit aesthetic with:
+ * - Animated glow orbs requiring framer-motion color interpolation
+ * - Dark gradient backgrounds for tech/cockpit feel
+ * - Vibrant CTAs for conversion on dark backgrounds
+ * These cannot use CSS variables due to animation interpolation requirements.
+ */
 "use client"
 
 import Link from "next/link"

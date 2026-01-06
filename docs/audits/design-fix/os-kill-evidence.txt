@@ -1,0 +1,62 @@
+=== OS Kill Evidence Investigation ===
+Generated: $(date)
+
+dmesg: read kernel buffer failed: Operation not permitted
+
+=== journalctl -k (kernel messages) ===
+-- No entries --
+
+=== grep for OOM/kill in journalctl user messages === journalctl --user --no-pager -n 500
+No user journal entries matching echo 
+=== ps aux sorted by memory (top 20) === ps aux --sort=-%mem
+
+=== ps aux sorted by memory (top 20) === ps aux --sort=-%mem
+
+=== /proc/sys/kernel/pid_max ===
+4194304
+
+=== ulimit ===
+real-time non-blocking time  (microseconds, -R) unlimited
+core file size              (blocks, -c) 0
+data seg size               (kbytes, -d) unlimited
+scheduling priority                 (-e) 0
+file size                   (blocks, -f) unlimited
+pending signals                     (-i) 63488
+max locked memory           (kbytes, -l) 2044400
+max memory size             (kbytes, -m) unlimited
+open files                          (-n) 1048576
+pipe size                (512 bytes, -p) 8
+POSIX message queues         (bytes, -q) 819200
+real-time priority                  (-r) 0
+stack size                  (kbytes, -s) 8192
+cpu time                   (seconds, -t) unlimited
+max user processes                  (-u) 63488
+virtual memory              (kbytes, -v) unlimited
+file locks                          (-x) unlimited
+
+=== free -h ===
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi        11Gi       2.0Gi       228Mi       2.5Gi       3.9Gi
+Swap:          8.0Gi       6.3Gi       1.7Gi
+
+=== /proc/meminfo (key entries) ===
+MemTotal:       16355204 kB
+MemFree:         2098680 kB
+MemAvailable:    4103476 kB
+SwapTotal:       8388604 kB
+SwapFree:        1825064 kB
+CommitLimit:    16566204 kB
+Committed_AS:   15105400 kB
+
+=== ANALYSIS ===
+1. dmesg/journalctl: No kernel log access (permission denied)
+2. Memory pressure detected:
+   - MemAvailable: 4.1GB (25% of 16GB)
+   - Committed_AS: 15.1GB vs CommitLimit: 16.5GB (91% committed)
+   - SwapFree: 1.7GB of 8GB (79% swap used)
+3. Process limits are high (pid_max=4M, nproc=63488)
+4. Exit code 144 = 128 + 16 (SIGKILL from kernel)
+
+CONCLUSION: System is under memory pressure with high commit ratio.
+New processes requesting memory may be killed by kernel OOM or
+memory overcommit policy. Cannot confirm without kernel log access.

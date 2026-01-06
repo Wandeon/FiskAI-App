@@ -13,7 +13,7 @@ export default async function PausalniDashboardPage() {
   const company = await requireCompany(user.id!)
 
   if (company.legalForm !== "OBRT_PAUSAL") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   return <PausalniDashboard companyId={company.id} />

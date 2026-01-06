@@ -8,10 +8,10 @@ export const metadata = {
 }
 
 export default async function AuthPage() {
-  // Redirect if already authenticated
+  // Redirect if already authenticated - middleware handles routing to control-center
   const session = await auth()
   if (session?.user) {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   return <AuthFlow />

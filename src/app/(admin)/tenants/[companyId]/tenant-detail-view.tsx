@@ -510,9 +510,9 @@ export function TenantDetailView({ tenant }: { tenant: TenantDetail }) {
             value={Math.min(tenant.limitTracker.percentage, 100)}
             className={
               tenant.limitTracker.status === "critical"
-                ? "bg-red-200"
+                ? "bg-danger-bg"
                 : tenant.limitTracker.status === "warning"
-                  ? "bg-amber-200"
+                  ? "bg-warning-bg"
                   : ""
             }
           />

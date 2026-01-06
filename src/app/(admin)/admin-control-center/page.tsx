@@ -82,7 +82,7 @@ export default async function AdminControlCenterPage() {
   })
 
   if (user?.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   // Fetch items for all queues

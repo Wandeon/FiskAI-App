@@ -205,7 +205,7 @@ export async function checkRouteAccess(
     return {
       allowed: false,
       reason: "hidden",
-      redirectTo: "/dashboard?blocked=feature-unavailable",
+      redirectTo: "/?blocked=feature-unavailable",
     }
   }
 
@@ -215,7 +215,7 @@ export async function checkRouteAccess(
       allowed: false,
       reason: "locked",
       hint: hint || undefined,
-      redirectTo: `/dashboard?locked=${encodeURIComponent(hint || "")}`,
+      redirectTo: `/?locked=${encodeURIComponent(hint || "")}`,
     }
   }
 

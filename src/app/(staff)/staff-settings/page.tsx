@@ -22,7 +22,7 @@ export default async function StaffSettingsPage({ searchParams }: PageProps) {
 
   // Check for STAFF or ADMIN role
   if (user.systemRole !== "STAFF" && user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   // Fetch full user data

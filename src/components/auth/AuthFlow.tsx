@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion"
 import { signIn } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 import { useAuthFlow } from "./useAuthFlow"
 import { FloatingOrbs } from "./FloatingOrbs"
 import { GlassCard } from "./GlassCard"
@@ -16,9 +17,12 @@ import {
 
 export function AuthFlow() {
   const auth = useAuthFlow()
+  const searchParams = useSearchParams()
 
   const handleGoogleSignIn = () => {
-    void signIn("google", { callbackUrl: "/dashboard" })
+    // Preserve the original callbackUrl so user returns to their intended portal
+    const callbackUrl = searchParams?.get("callbackUrl") || "/"
+    void signIn("google", { callbackUrl })
   }
 
   const handleForgotPassword = () => {

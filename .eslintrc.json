@@ -1,9 +1,24 @@
 {
   "root": true,
-  "ignorePatterns": ["src/generated/**"],
+  "ignorePatterns": [
+    "src/generated/**",
+    "src/design-system/eslint/**/*.js",
+    "src/design-system/tokens/**",
+    "src/design-system/scripts/**",
+    "src/emails/**",
+    "src/lib/email/templates/**",
+    "src/lib/reports/*-pdf.tsx",
+    "src/lib/pausalni/forms/*-pdf-template.tsx",
+    "src/app/**/*.png/route.tsx",
+    "src/lib/pdf/**",
+    "src/styles/tokens.ts",
+    "src/lib/admin/weekly-digest-format.ts",
+    "src/lib/__tests__/**",
+    "src/lib/compliance/certificate-monitor.ts",
+    "src/lib/regulatory-truth/watchdog/resend-email.tsx"
+  ],
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],
-  "ignorePatterns": ["src/generated/**"],
   "parserOptions": {
     "project": "./tsconfig.json"
   },
@@ -69,20 +84,9 @@
   },
   "overrides": [
     {
-      "files": [
-        "src/app/(app)/**/*",
-        "src/app/(admin)/**/*",
-        "src/app/(staff)/**/*",
-        "src/components/**/*"
-      ],
+      "files": ["src/**/*"],
       "rules": {
-        "fisk-design-system/no-hardcoded-colors": "warn"
-      }
-    },
-    {
-      "files": ["src/app/(marketing)/**/*"],
-      "rules": {
-        "fisk-design-system/no-hardcoded-colors": "warn"
+        "fisk-design-system/no-hardcoded-colors": "error"
       }
     },
     {
@@ -210,6 +214,14 @@
           {
             "selector": "BinaryExpression[operator='/'][right.value=100]",
             "message": "Percentage calculation in UI may indicate VAT calc. Use InvoiceDisplayAdapter for money operations."
+          },
+          {
+            "selector": "Literal[value=/^https?:\\/\\/(app|staff|admin)\\.fiskai\\.hr/]",
+            "message": "Hardcoded portal URL detected. Use getPortalUrl() from @/lib/portal-urls instead."
+          },
+          {
+            "selector": "TemplateLiteral > TemplateElement[value.raw=/https?:\\/\\/(app|staff|admin)\\.fiskai\\.hr/]",
+            "message": "Hardcoded portal URL in template literal. Use getPortalUrl() from @/lib/portal-urls instead."
           }
         ]
       }

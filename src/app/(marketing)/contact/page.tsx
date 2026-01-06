@@ -42,7 +42,7 @@ export default function ContactPage() {
                     <p className="font-medium">Email</p>
                     <a
                       href="mailto:info@fiskai.hr"
-                      className="text-sm text-cyan-400 hover:underline block"
+                      className="text-sm text-accent-light hover:underline block"
                     >
                       info@fiskai.hr
                     </a>
@@ -57,7 +57,7 @@ export default function ContactPage() {
                     <p className="font-medium">Podrška</p>
                     <a
                       href="mailto:podrska@fiskai.hr"
-                      className="text-sm text-cyan-400 hover:underline block"
+                      className="text-sm text-accent-light hover:underline block"
                     >
                       podrska@fiskai.hr
                     </a>
@@ -145,7 +145,7 @@ export default function ContactPage() {
                     placeholder="Specifična pitanja ili zahtjevi..."
                   />
                 </div>
-                <button className="w-full rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 text-sm font-semibold text-white hover:opacity-90">
+                <button className="w-full rounded-md bg-gradient-to-r from-accent to-interactive px-4 py-3 text-sm font-semibold text-white hover:opacity-90">
                   Pošalji zahtjev za demo
                 </button>
                 <p className="text-xs text-white/60">
@@ -168,7 +168,7 @@ export default function ContactPage() {
                 </Link>
                 <Link
                   href="/register"
-                  className="flex-1 rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:opacity-90"
+                  className="flex-1 rounded-md bg-gradient-to-r from-accent to-interactive px-4 py-2 text-center text-sm font-semibold text-white hover:opacity-90"
                 >
                   Besplatna registracija
                 </Link>
@@ -177,9 +177,9 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="mt-12 rounded-lg border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-6">
+        <div className="mt-12 rounded-lg border border-accent/30 bg-gradient-to-r from-accent/10 to-interactive/10 p-6">
           <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-            <Phone className="h-5 w-5 text-red-700" />
+            <Phone className="h-5 w-5 text-danger-text" />
             Hitna podrška
           </h3>
           <p className="text-sm text-white/60 mb-3">
@@ -189,7 +189,7 @@ export default function ContactPage() {
           <div className="flex items-center gap-4">
             <a
               href="tel:+38512345679"
-              className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-white/95 border border-red-200"
+              className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-danger-text hover:bg-white/95 border border-danger-border"
             >
               <Phone className="h-4 w-4" />
               +385 1 234 5679

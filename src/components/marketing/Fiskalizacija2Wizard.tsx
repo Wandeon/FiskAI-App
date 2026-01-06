@@ -565,7 +565,7 @@ function Fiskalizacija2FullResults({
         </ul>
       </div>
 
-      <div className="rounded-xl border border-info-border bg-gradient-to-br from-blue-50 to-indigo-50 p-5">
+      <div className="rounded-xl border border-info-border bg-gradient-to-br from-info-bg to-surface-2 p-5">
         <h3 className="mb-4 flex items-center gap-2 font-semibold text-info-text">
           <Rocket className="h-5 w-5" />
           Kako FiskAI pomaže

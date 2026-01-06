@@ -181,6 +181,7 @@ model Company {
   expenseCategories              ExpenseCategory[]
   fiscalCertificates             FiscalCertificate[]
   fiscalRequests                 FiscalRequest[]
+  integrationAccounts            IntegrationAccount[]
   importJobs                     ImportJob[]
   invoiceSequences               InvoiceSequence[]
   payouts                        Payout[]
@@ -250,6 +251,7 @@ model Company {
   organizations                  Organization[]
   taxIdentities                  TaxIdentity[]
   documents                      Document[]
+  providerSyncStates             ProviderSyncState[]
 }
 
 model ChartOfAccounts {
@@ -1210,6 +1212,10 @@ model EInvoice {
   invoiceEvents          InvoiceEvent[]
   matchRecords           MatchRecord[]
 
+  // Integration account used for sending (Phase 2+)
+  integrationAccountId   String?
+  integrationAccount     IntegrationAccount? @relation(fields: [integrationAccountId], references: [id])
+
   @@unique([companyId, invoiceNumber])
   @@index([companyId])
   @@index([status])
@@ -1222,6 +1228,7 @@ model EInvoice {
   @@index([sellerOrganizationId])
   @@index([buyerOrganizationId])
   @@index([correctsInvoiceId])
+  @@index([integrationAccountId])
 }
 
 model EInvoiceLine {
@@ -2245,6 +2252,44 @@ model FiscalCertificate {
   @@index([status])
 }
 
+/// Tenant-owned integration identity with encrypted secrets
+/// All regulated actions MUST resolve through this model
+model IntegrationAccount {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Integration identity
+  kind          IntegrationKind
+  environment   IntegrationEnv   @default(PROD)
+  status        IntegrationStatus @default(ACTIVE)
+
+  // Provider configuration (non-sensitive JSON)
+  providerConfig Json?
+
+  // Encrypted secrets (unified vault)
+  // Format: envelope-encrypted JSON payload
+  secretEnvelope    String?
+  secretKeyVersion  Int      @default(1)
+
+  // Audit fields
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  rotatedAt     DateTime?
+  lastUsedAt    DateTime?
+
+  // Relations
+  eInvoices          EInvoice[]
+  providerSyncStates ProviderSyncState[]
+  fiscalRequests     FiscalRequest[]
+
+  // Constraints
+  @@unique([companyId, kind, environment], map: "integration_account_company_kind_env_key")
+  @@index([companyId], map: "integration_account_company_idx")
+  @@index([status], map: "integration_account_status_idx")
+  @@map("integration_account")
+}
+
 // Certificate expiry notification tracking with retry support
 model CertificateNotification {
   id              String                        @id @default(cuid())
@@ -2268,8 +2313,9 @@ model CertificateNotification {
 model FiscalRequest {
   id                   String            @id @default(cuid())
   companyId            String
-  certificateId        String
+  certificateId        String? // Optional: null when cert-missing failure
   invoiceId            String?
+  integrationAccountId String? // IntegrationAccount used for signing (Phase 4+)
   messageType          FiscalMessageType
   status               FiscalStatus      @default(QUEUED)
   attemptCount         Int               @default(0)
@@ -2298,15 +2344,17 @@ model FiscalRequest {
   responseXml          String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
-  certificate          FiscalCertificate @relation(fields: [certificateId], references: [id], onDelete: Restrict)
+  certificate          FiscalCertificate? @relation(fields: [certificateId], references: [id], onDelete: Restrict)
   company              Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   invoice              EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  integrationAccount   IntegrationAccount? @relation(fields: [integrationAccountId], references: [id], onDelete: Restrict)
   responses            FiscalResponse[]
 
   @@unique([companyId, invoiceId, messageType])
   @@index([status, nextRetryAt])
   @@index([companyId])
   @@index([invoiceId])
+  @@index([integrationAccountId])
 }
 
 model FiscalResponse {
@@ -3383,6 +3431,29 @@ enum CertificateNotificationStatus {
   RETRYING // Failed but will retry
 }
 
+// =============================================================================
+// INTEGRATION ACCOUNT - Multi-tenant integration credentials
+// =============================================================================
+
+enum IntegrationKind {
+  EINVOICE_EPOSLOVANJE
+  EINVOICE_FINA
+  EINVOICE_IE_RACUNI
+  FISCALIZATION_CIS
+}
+
+enum IntegrationEnv {
+  TEST
+  PROD
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  DISABLED
+  EXPIRED
+  REVOKED
+}
+
 enum ArticleType {
   NEWS
   GUIDE
@@ -4426,6 +4497,11 @@ enum WatchdogAlertType {
   DRAINER_STALL // PR #90 fix: no progress for N minutes
   QUEUE_BACKLOG // PR #90 fix: queue depth exceeds threshold
   DLQ_SPIKE // PR #90 fix: dead letter queue growing
+  // Endpoint health alerts (Discovery v1)
+  ENDPOINT_SLA_BREACH // CRITICAL endpoint lastSuccessAt > 24h
+  ENDPOINT_CONSECUTIVE_ERRORS // CRITICAL endpoint consecutiveErrors >= 3
+  CIRCUIT_BREAKER_OPEN // Domain circuit breaker tripped
+  ENDPOINT_RECOVERED // Previously unhealthy endpoint now healthy (Slack-only)
 }
 
 enum AuditResult {
@@ -5478,4 +5554,29 @@ enum OutboxEventStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+// =============================================================================
+// E-INVOICE PROVIDER SYNC STATE - Cursor persistence for inbound polling
+// =============================================================================
+
+model ProviderSyncState {
+  id                   String            @id @default(cuid())
+  companyId            String
+  provider             String // e.g., "eposlovanje", "moj-eracun"
+  direction            EInvoiceDirection
+  lastSuccessfulPollAt DateTime
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  // Phase 3+: Integration account used for syncing
+  integrationAccountId String?
+  integrationAccount   IntegrationAccount? @relation(fields: [integrationAccountId], references: [id])
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, provider, direction])
+  @@index([companyId])
+  @@index([provider, direction])
+  @@index([integrationAccountId])
 }

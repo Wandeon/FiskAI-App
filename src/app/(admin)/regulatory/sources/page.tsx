@@ -9,7 +9,7 @@ export default async function RegulatorySourcesPage() {
   const user = await getCurrentUser()
 
   if (!user || user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   // Get all regulatory sources

@@ -96,8 +96,8 @@ export function getRedirectUrlForSystemRole(
 
     return `${protocol}//${targetSubdomain}${baseDomain}${port}`
   } catch (e) {
-    // Fallback if URL parsing fails
-    return "/dashboard"
+    // Fallback if URL parsing fails - root path lets middleware handle routing
+    return "/"
   }
 }
 

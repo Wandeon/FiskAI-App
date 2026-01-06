@@ -114,10 +114,11 @@ function PreviewFrame({
             </div>
             <p className="text-xs font-semibold text-[var(--muted)]">FiskAI • Demo</p>
           </div>
+          {/* @design-override: macOS window controls are intentionally red/yellow/green */}
           <div className="flex gap-1">
-            <span className="h-2 w-2 rounded-full bg-red-400/80" />
-            <span className="h-2 w-2 rounded-full bg-yellow-400/80" />
-            <span className="h-2 w-2 rounded-full bg-green-400/80" />
+            <span className="h-2 w-2 rounded-full bg-danger/80" />
+            <span className="h-2 w-2 rounded-full bg-warning/80" />
+            <span className="h-2 w-2 rounded-full bg-success/80" />
           </div>
         </div>
 

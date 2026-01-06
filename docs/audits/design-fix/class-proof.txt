@@ -1,0 +1,42 @@
+=== Tailwind Class Resolution Proof ===
+Generated: Mon Jan  5 11:36:20 PM CET 2026
+File size: 123397 bytes
+
+=== Brand Color Classes ===
+OK .bg-brand-50
+OK .bg-brand-600
+OK .text-brand-600
+OK .border-brand-200
+
+=== Semantic Token Classes ===
+OK .bg-surface
+OK .text-foreground
+
+=== CSS Variable Usage Classes ===
+.bg-\[var\(--background\)\]
+.bg-\[var\(--border\)\]
+.bg-\[var\(--border-light\)\]
+.bg-\[var\(--danger-bg\)\]
+.bg-\[var\(--glass-surface\)\]
+
+=== Spacing Classes ===
+NOT USED .p-7 (not in codebase)
+NOT USED .mt-9 (not in codebase)
+OK .p-4 (default spacing)
+OK .mt-2 (default spacing)
+
+=== Additional Verification ===
+Brand color shades in CSS:
+.bg-brand-100
+.bg-brand-50
+.bg-brand-500
+.bg-brand-600
+
+Text brand colors:
+.text-brand-100
+.text-brand-400
+.text-brand-500
+.text-brand-600
+.text-brand-700
+.text-brand-800
+.text-brand-900

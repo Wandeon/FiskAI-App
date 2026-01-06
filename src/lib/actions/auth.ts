@@ -144,7 +144,8 @@ export async function login(formData: z.infer<typeof loginSchema>) {
     redirect("/select-role")
   }
 
-  redirect("/dashboard")
+  // Redirect to root - middleware handles routing to control-center
+  redirect("/")
 }
 
 export async function logout() {

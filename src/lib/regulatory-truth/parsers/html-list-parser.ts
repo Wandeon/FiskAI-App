@@ -47,6 +47,18 @@ const SITE_CONFIGS: Record<string, Partial<ListParserConfig>> = {
     titleSelector: "h2, h3, a",
     dateSelector: ".date, time, .meta-date",
   },
+  "vlada.gov.hr": {
+    itemSelector: ".news-list-item",
+    linkSelector: ".news-list-item-content a",
+    titleSelector: "h2",
+    dateSelector: ".news-item-details .date, time",
+  },
+  "hanfa.hr": {
+    itemSelector: ".resultItem",
+    linkSelector: ".resultHolder a",
+    titleSelector: ".resultTitle",
+    dateSelector: ".dateSrch",
+  },
 }
 
 /**
@@ -58,7 +70,8 @@ export function parseHtmlList(html: string, config: ListParserConfig): ListItem[
   const items: ListItem[] = []
 
   const siteConfig = SITE_CONFIGS[new URL(config.baseUrl).hostname] || {}
-  const mergedConfig = { ...siteConfig, ...config }
+  // Site-specific config takes precedence over caller-provided defaults
+  const mergedConfig = { ...config, ...siteConfig }
 
   const elements = document.querySelectorAll(mergedConfig.itemSelector)
 

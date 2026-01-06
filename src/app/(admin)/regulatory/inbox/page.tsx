@@ -20,7 +20,7 @@ export default async function RegulatoryInboxPage({
   const user = await getCurrentUser()
 
   if (!user || user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   const params = await searchParams

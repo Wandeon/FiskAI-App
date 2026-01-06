@@ -41,26 +41,26 @@ const REFUSAL_CONFIG: Record<
   MISSING_CLIENT_DATA: {
     title: "Potrebni dodatni podaci",
     icon: <Database className="w-5 h-5" />,
-    lightBg: "bg-info-bg dark:bg-blue-950/20",
-    darkBg: "bg-blue-900/20 border-focus/30",
+    lightBg: "bg-info-bg",
+    darkBg: "bg-info-bg/30 border-focus/30",
   },
   UNRESOLVED_CONFLICT: {
     title: "Proturječne informacije",
     icon: <AlertTriangle className="w-5 h-5" />,
-    lightBg: "bg-warning-bg dark:bg-amber-950/20",
-    darkBg: "bg-amber-900/20 border-warning/30",
+    lightBg: "bg-warning-bg",
+    darkBg: "bg-warning-bg/30 border-warning/30",
   },
   NEEDS_CLARIFICATION: {
     title: "Molimo pojasnite pitanje",
     icon: <MessageCircle className="w-5 h-5" />,
-    lightBg: "bg-info-bg dark:bg-blue-950/20",
-    darkBg: "bg-cyan-900/20 border-interactive/30",
+    lightBg: "bg-info-bg",
+    darkBg: "bg-accent/10 border-interactive/30",
   },
   UNSUPPORTED_JURISDICTION: {
     title: "Nepodržana jurisdikcija",
     icon: <Globe className="w-5 h-5" />,
     lightBg: "bg-muted/30",
-    darkBg: "bg-purple-900/20 border-purple-500/30",
+    darkBg: "bg-category-expert-bg/30 border-category-expert/30",
   },
 }
 
@@ -164,7 +164,7 @@ export function AnswerSection({
         className={cn(
           "p-6",
           isDark
-            ? "bg-red-950/30 border border-danger-border/40 backdrop-blur-md rounded-xl"
+            ? "bg-danger-bg/30 border border-danger-border/40 backdrop-blur-md rounded-xl"
             : "border border-destructive/50 rounded-lg bg-destructive/5",
           className
         )}
@@ -289,8 +289,8 @@ export function AnswerSection({
                     "text-sm px-3 py-1.5 rounded-full transition-all",
                     isDark
                       ? [
-                          "bg-surface-elevated/30 border border-cyan-500/20",
-                          "text-cyan-200 hover:bg-accent/10 hover:border-accent-light/40",
+                          "bg-surface-elevated/30 border border-accent/20",
+                          "text-accent-light hover:bg-accent/10 hover:border-accent-light/40",
                           "hover:shadow-[0_0_10px_rgba(6,182,212,0.15)]",
                         ]
                       : "bg-background border hover:bg-muted"

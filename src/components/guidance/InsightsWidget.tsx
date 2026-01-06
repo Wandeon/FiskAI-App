@@ -30,9 +30,9 @@ const typeIcons = {
 
 const typeColors = {
   invoice_reminder: "text-link bg-chart-1/10",
-  expense_pattern: "text-warning bg-amber-400/10",
+  expense_pattern: "text-warning bg-warning/10",
   revenue_trend: "text-success bg-chart-4/10",
-  compliance_risk: "text-danger-text bg-red-400/10",
+  compliance_risk: "text-danger-text bg-danger/10",
 }
 
 export function InsightsWidget({ className }: InsightsWidgetProps) {

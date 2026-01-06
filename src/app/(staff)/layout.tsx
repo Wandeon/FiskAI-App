@@ -14,7 +14,7 @@ export default async function StaffLayout({ children }: { children: ReactNode })
 
   // Check for STAFF or ADMIN role
   if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   return (

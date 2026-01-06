@@ -35,7 +35,7 @@ export function CategorySection({ categoryName, categorySlug, posts, icon }: Cat
             {icon && <span className="text-2xl">{icon}</span>}
             <h2 className="text-2xl font-bold text-white">{categoryName}</h2>
           </div>
-          <Button variant="ghost" size="sm" asChild className="text-accent hover:text-cyan-300">
+          <Button variant="ghost" size="sm" asChild className="text-accent hover:text-accent-light">
             <Link href={`/vijesti/kategorija/${categorySlug}`} className="flex items-center gap-1">
               Vidi sve
               <ChevronRight className="h-4 w-4" />

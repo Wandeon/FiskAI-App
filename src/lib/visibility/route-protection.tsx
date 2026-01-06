@@ -40,8 +40,8 @@ export async function protectRoute(elementId: ElementId): Promise<void> {
   const accessResult = await checkRouteAccess(session.user.id, company.id, elementId)
 
   if (!accessResult.allowed) {
-    // Redirect to the suggested location
-    redirect(accessResult.redirectTo || "/dashboard")
+    // Redirect to the suggested location (root -> middleware handles control-center)
+    redirect(accessResult.redirectTo || "/")
   }
 }
 

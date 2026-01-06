@@ -178,9 +178,9 @@ export function WizardContainer() {
                       disabled={isThinking}
                       className={cn(
                         "w-full rounded-xl border p-4 text-left transition-all",
-                        "focus:outline-none focus:ring-2 focus:ring-cyan-500/30",
+                        "focus:outline-none focus:ring-2 focus:ring-accent/30",
                         selected
-                          ? "border-cyan-500 bg-chart-7/10 ring-2 ring-cyan-500/40"
+                          ? "border-accent bg-chart-7/10 ring-2 ring-accent/40"
                           : "border-white/10 hover:border-white/20 hover:bg-surface/5",
                         isThinking && "opacity-70 cursor-not-allowed"
                       )}

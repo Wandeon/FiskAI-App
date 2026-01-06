@@ -1,0 +1,38 @@
+=== Dev Server Attempt 1 (port 3010, regular) ===
+Failed with EADDRINUSE
+
+=== Dev Server Attempt 2 (port 3099, Turbopack) ===
+
+> fiskai@0.1.0 dev
+> next dev --port 3099 --turbo
+
+   ▲ Next.js 15.5.9 (Turbopack)
+   - Local:        http://localhost:3099
+   - Network:      http://152.53.146.3:3099
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · clientTraceMetadata
+
+ ✓ Starting...
+ ○ Compiling instrumentation Node.js ...
+ ✓ Compiled instrumentation Node.js in 12.9s
+ ○ Compiling instrumentation Edge ...
+ ✓ Compiled instrumentation Edge in 1287ms
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1033ms
+[scheduler] Starting watchdog scheduler...
+[scheduler] Timezone: Europe/Zagreb
+[scheduler] Scheduled: Main pipeline at 06:00
+[scheduler] Scheduled: Regulatory Truth Digest (Resend) at 07:00
+[scheduler] Scheduled: Legacy digest (SMTP) at 08:00
+[scheduler] Scheduled: Tier 1 fetchers (morning) at 08:00
+[scheduler] Scheduled: Tier 1 fetchers (midday) at 13:00
+[scheduler] Scheduled: Tier 1 fetchers (evening) at 17:00
+[scheduler] Scheduled: Tier 1 fetchers (NN evening check) at 18:00
+[scheduler] Scheduled: Audit 1 at 13:57
+[scheduler] Watchdog scheduler started
+[instrumentation] Regulatory truth scheduler started
+
+=== Server Status ===
+Listening on port 3099 (confirmed via ss -tlnp)
+HTTP requests blocked due to system-level process termination (exit 144)

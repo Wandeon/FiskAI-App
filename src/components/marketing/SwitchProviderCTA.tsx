@@ -75,7 +75,7 @@ export function SwitchProviderCTA({ className, showAfterScroll = 600 }: SwitchPr
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
               >
-                <Heart className="h-4 w-4 text-rose-400" />
+                <Heart className="h-4 w-4 text-danger-text" />
               </motion.div>
 
               {/* Message */}

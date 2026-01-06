@@ -89,7 +89,7 @@ export default function OIBValidatorPage() {
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-chart-2 to-pink-500 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-chart-2 to-chart-3 mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold mb-3 text-white">OIB Validator</h1>
@@ -137,7 +137,7 @@ export default function OIBValidatorPage() {
                   <>
                     <CheckCircle className="w-6 h-6 text-success-text flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-green-900">OIB je valjan</p>
+                      <p className="font-semibold text-success-text">OIB je valjan</p>
                       <p className="text-sm text-success-text">
                         OIB {oib} je prošao ISO 7064, MOD 11-10 validaciju
                       </p>
@@ -147,7 +147,7 @@ export default function OIBValidatorPage() {
                   <>
                     <XCircle className="w-6 h-6 text-danger-text flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-red-900">OIB nije valjan</p>
+                      <p className="font-semibold text-danger-text">OIB nije valjan</p>
                       <p className="text-sm text-danger-text">
                         OIB {oib} nije prošao ISO 7064, MOD 11-10 validaciju
                       </p>

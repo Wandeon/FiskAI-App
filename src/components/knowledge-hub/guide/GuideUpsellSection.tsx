@@ -34,7 +34,7 @@ export function GuideUpsellSection({
         </div>
         <Link
           href={href}
-          className="flex-shrink-0 text-sm font-medium text-link hover:text-blue-300"
+          className="flex-shrink-0 text-sm font-medium text-link hover:brightness-110"
         >
           {cta} →
         </Link>

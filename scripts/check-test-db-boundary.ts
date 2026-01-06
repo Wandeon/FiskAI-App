@@ -72,6 +72,8 @@ const EXCLUDED_PATTERNS = [
 const MOCKED_FILES = [
   "src/lib/assistant/query-engine/__tests__/rule-selector.test.ts",
   "src/lib/assistant/query-engine/__tests__/concept-matcher.test.ts",
+  "src/lib/e-invoice/workers/__tests__/eposlovanje-inbound-poller.test.ts",
+  "src/lib/e-invoice/providers/__tests__/send-invoice.test.ts",
 ]
 
 async function main() {

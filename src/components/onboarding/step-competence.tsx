@@ -95,7 +95,7 @@ export function StepCompetence() {
               key={option.value}
               className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
                 isSelected
-                  ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-500/20"
+                  ? "border-accent bg-accent/10 ring-2 ring-accent/20"
                   : "border-default hover:border-default hover:bg-surface-1"
               }`}
             >

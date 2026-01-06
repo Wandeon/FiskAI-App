@@ -18,7 +18,7 @@ export function DigestBanner({ date, itemCount, slug }: DigestBannerProps) {
   return (
     <HoverScale scale={1.02}>
       <Link href={`/vijesti/${slug}`} className="group mb-12 block">
-        <GlassCard className="border-interactive/30 bg-gradient-to-r from-accent/10 to-chart-2/10 transition-all hover:border-cyan-500/50 hover:from-accent/20 hover:to-chart-2/20">
+        <GlassCard className="border-interactive/30 bg-gradient-to-r from-accent/10 to-chart-2/10 transition-all hover:border-accent/50 hover:from-accent/20 hover:to-chart-2/20">
           <div className="flex items-center gap-6 p-6">
             {/* Icon */}
             <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-chart-7/20">

@@ -15,7 +15,7 @@ export default async function PausalniSettingsPage() {
   const company = await requireCompany(user.id!)
 
   if (company.legalForm !== "OBRT_PAUSAL") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   return (

@@ -349,7 +349,7 @@ export function PaymentSlipGenerator({ embedded = true }: Props) {
             <a
               href={barcodeDataUrl}
               download={`hub3-${selectedPayment}-${oib}.png`}
-              className="inline-flex items-center justify-center rounded-md bg-interactive px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 min-h-[44px] md:min-h-0"
+              className="inline-flex items-center justify-center rounded-md bg-interactive px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark min-h-[44px] md:min-h-0"
             >
               Preuzmi PNG
             </a>

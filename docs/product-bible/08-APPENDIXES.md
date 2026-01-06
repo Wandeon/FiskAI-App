@@ -4,6 +4,54 @@
 
 ---
 
+> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
+> **Version:** 3.0.0
+>
+> Reality-audited against codebase. Change ledger added for v5.0.0 reconstruction.
+
+---
+
+## Documentation Reconstruction Ledger (v5.0.0)
+
+**Audit Date:** 2026-01-05
+**Methodology:** 7 parallel haiku subagents audited codebase reality
+**Canonical Rule Hierarchy:** Runtime > Source > Schema > Migrations > Config > Tests > Docs
+
+### Summary of Changes
+
+| Document                  | Key Changes                                                                |
+| ------------------------- | -------------------------------------------------------------------------- |
+| 00-INDEX.md               | Version 5.0.0, System Reality Snapshot, updated version alignment          |
+| 01-VISION-ARCHITECTURE.md | Module count corrected (18), legal form auto-assignment documented         |
+| 02-USERS-JOURNEYS.md      | CompanyRole enum corrected (5 roles), portal page counts added             |
+| 03-LEGAL-COMPLIANCE.md    | Version/date header updated                                                |
+| 04-ACCESS-CONTROL.md      | Module count corrected (18), status labels added, platform-core documented |
+| 05-UI-EXPERIENCE.md       | Version/date header updated                                                |
+| 06-INTEGRATIONS.md        | ePoslovanje v2 added as production provider                                |
+| 07-DATA-API.md            | Version/date header updated                                                |
+| 08-APPENDIXES.md          | Change ledger added, version/date header updated                           |
+
+### Discrepancies Found & Resolved
+
+| Item            | Old Documentation         | Actual Codebase                      | Resolution                           |
+| --------------- | ------------------------- | ------------------------------------ | ------------------------------------ |
+| Module count    | 16                        | 18                                   | Added platform-core, corrected count |
+| CompanyRole     | OWNER/ACCOUNTANT/EMPLOYEE | OWNER/ADMIN/MEMBER/ACCOUNTANT/VIEWER | Updated to actual 5-role enum        |
+| ePoslovanje     | Not documented            | Production with v2 API               | Added to integrations                |
+| Database models | Not specified             | 182 models, 80+ enums                | Added to reality snapshot            |
+| Portal pages    | Not specified             | ~45/~85/12/~22                       | Added to reality snapshot            |
+| RTL workers     | 10 listed                 | 14 actual                            | Corrected worker count               |
+
+### New Features Documented
+
+- platform-core module (always enabled)
+- Legal form auto-assignment via `getEntitlementsForLegalForm()`
+- Entitlements v2 format with permission granularity
+- ePoslovanje v2 integration as primary e-invoice provider
+- 14 RTL workers (vs 10 previously documented)
+
+---
+
 ## Appendix A: Glossary
 
 | Term                  | Croatian                                     | Meaning                                  |

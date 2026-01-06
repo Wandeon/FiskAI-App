@@ -1,0 +1,188 @@
+============================================================
+PHASE 5: INTEGRATION ACCOUNT PROVISIONING
+Mode: APPLY
+Timestamp: 2026-01-05T11:59:53.903Z
+============================================================
+
+=== IDENTIFYING TARGETS ===
+Found 3 provisioning targets
+  Artemi Media (cmjbtptms000001nzepg6azh6): EINVOICE_EPOSLOVANJE PROD
+    Reason: Has EInvoice activity, defaulting to EPOSLOVANJE
+  Metrica d.o.o. (cmj02op1e000101lmu08z0hps): EINVOICE_EPOSLOVANJE TEST
+    Reason: Has e-invoice entitlement
+  Test D.O.O. Lane2 (test-doo-lane2): EINVOICE_EPOSLOVANJE PROD
+    Reason: Has EInvoice activity
+
+=== CHECKING EXISTING ACCOUNTS ===
+
+Will create 3 new IntegrationAccounts:
+  Artemi Media: EINVOICE_EPOSLOVANJE PROD
+  Metrica d.o.o.: EINVOICE_EPOSLOVANJE TEST
+  Test D.O.O. Lane2: EINVOICE_EPOSLOVANJE PROD
+
+=== CREATING INTEGRATION ACCOUNTS ===
+  ✗ Failed to create for Artemi Media: PrismaClientValidationError: 
+Invalid `db.integrationAccount.create()` invocation in
+/home/admin/FiskAI/scripts/provision-integration-accounts.ts:202:51
+
+  199 for (const target of toCreate) {
+  200   try {
+  201     // For now, create with minimal config - secrets will be encrypted when API keys are added
+→ 202     const account = await db.integrationAccount.create({
+            data: {
+              companyId: "cmjbtptms000001nzepg6azh6",
+              kind: "EINVOICE_EPOSLOVANJE",
+              environment: "PROD",
+              status: "ACTIVE",
+              providerConfig: {},
+              secrets: {},
+              ~~~~~~~
+          ?   id?: String,
+          ?   secretEnvelope?: String | Null,
+          ?   secretKeyVersion?: Int,
+          ?   createdAt?: DateTime,
+          ?   updatedAt?: DateTime,
+          ?   rotatedAt?: DateTime | Null,
+          ?   lastUsedAt?: DateTime | Null,
+          ?   eInvoices?: EInvoiceUncheckedCreateNestedManyWithoutIntegrationAccountInput,
+          ?   providerSyncStates?: ProviderSyncStateUncheckedCreateNestedManyWithoutIntegrationAccountInput,
+          ?   fiscalRequests?: FiscalRequestUncheckedCreateNestedManyWithoutIntegrationAccountInput
+            }
+          })
+
+Unknown argument `secrets`. Available options are marked with ?.
+    at throwValidationException (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/errorRendering/throwValidationException.ts:46:9)
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:202:7)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.create (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2099:26)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async provision (/home/admin/FiskAI/scripts/provision-integration-accounts.ts:202:23) {
+  clientVersion: '7.2.0'
+}
+  ✗ Failed to create for Metrica d.o.o.: PrismaClientValidationError: 
+Invalid `db.integrationAccount.create()` invocation in
+/home/admin/FiskAI/scripts/provision-integration-accounts.ts:202:51
+
+  199 for (const target of toCreate) {
+  200   try {
+  201     // For now, create with minimal config - secrets will be encrypted when API keys are added
+→ 202     const account = await db.integrationAccount.create({
+            data: {
+              companyId: "cmj02op1e000101lmu08z0hps",
+              kind: "EINVOICE_EPOSLOVANJE",
+              environment: "TEST",
+              status: "ACTIVE",
+              providerConfig: {},
+              secrets: {},
+              ~~~~~~~
+          ?   id?: String,
+          ?   secretEnvelope?: String | Null,
+          ?   secretKeyVersion?: Int,
+          ?   createdAt?: DateTime,
+          ?   updatedAt?: DateTime,
+          ?   rotatedAt?: DateTime | Null,
+          ?   lastUsedAt?: DateTime | Null,
+          ?   eInvoices?: EInvoiceUncheckedCreateNestedManyWithoutIntegrationAccountInput,
+          ?   providerSyncStates?: ProviderSyncStateUncheckedCreateNestedManyWithoutIntegrationAccountInput,
+          ?   fiscalRequests?: FiscalRequestUncheckedCreateNestedManyWithoutIntegrationAccountInput
+            }
+          })
+
+Unknown argument `secrets`. Available options are marked with ?.
+    at throwValidationException (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/errorRendering/throwValidationException.ts:46:9)
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:202:7)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.create (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2099:26)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async provision (/home/admin/FiskAI/scripts/provision-integration-accounts.ts:202:23) {
+  clientVersion: '7.2.0'
+}
+  ✗ Failed to create for Test D.O.O. Lane2: PrismaClientValidationError: 
+Invalid `db.integrationAccount.create()` invocation in
+/home/admin/FiskAI/scripts/provision-integration-accounts.ts:202:51
+
+  199 for (const target of toCreate) {
+  200   try {
+  201     // For now, create with minimal config - secrets will be encrypted when API keys are added
+→ 202     const account = await db.integrationAccount.create({
+            data: {
+              companyId: "test-doo-lane2",
+              kind: "EINVOICE_EPOSLOVANJE",
+              environment: "PROD",
+              status: "ACTIVE",
+              providerConfig: {},
+              secrets: {},
+              ~~~~~~~
+          ?   id?: String,
+          ?   secretEnvelope?: String | Null,
+          ?   secretKeyVersion?: Int,
+          ?   createdAt?: DateTime,
+          ?   updatedAt?: DateTime,
+          ?   rotatedAt?: DateTime | Null,
+          ?   lastUsedAt?: DateTime | Null,
+          ?   eInvoices?: EInvoiceUncheckedCreateNestedManyWithoutIntegrationAccountInput,
+          ?   providerSyncStates?: ProviderSyncStateUncheckedCreateNestedManyWithoutIntegrationAccountInput,
+          ?   fiscalRequests?: FiscalRequestUncheckedCreateNestedManyWithoutIntegrationAccountInput
+            }
+          })
+
+Unknown argument `secrets`. Available options are marked with ?.
+    at throwValidationException (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/core/errorRendering/throwValidationException.ts:46:9)
+    at qr.handleRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:202:7)
+    at qr.handleAndLogRequestError (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at qr.request (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Array.create (/home/admin/FiskAI/src/lib/prisma-extensions.ts:2099:26)
+    at async a (/home/admin/FiskAI/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:805:24)
+    at async provision (/home/admin/FiskAI/scripts/provision-integration-accounts.ts:202:23) {
+  clientVersion: '7.2.0'
+}
+
+=== PROVISIONING SUMMARY ===
+Created: 0
+Skipped (existing): 0
+Total targets: 3
+============================================================
+PHASE 5: INTEGRATION ACCOUNT PROVISIONING
+Mode: APPLY
+Timestamp: 2026-01-05T12:00:32.169Z
+============================================================
+
+=== IDENTIFYING TARGETS ===
+Found 3 provisioning targets
+  Artemi Media (cmjbtptms000001nzepg6azh6): EINVOICE_EPOSLOVANJE PROD
+    Reason: Has EInvoice activity, defaulting to EPOSLOVANJE
+  Metrica d.o.o. (cmj02op1e000101lmu08z0hps): EINVOICE_EPOSLOVANJE TEST
+    Reason: Has e-invoice entitlement
+  Test D.O.O. Lane2 (test-doo-lane2): EINVOICE_EPOSLOVANJE PROD
+    Reason: Has EInvoice activity
+
+=== CHECKING EXISTING ACCOUNTS ===
+
+Will create 3 new IntegrationAccounts:
+  Artemi Media: EINVOICE_EPOSLOVANJE PROD
+  Metrica d.o.o.: EINVOICE_EPOSLOVANJE TEST
+  Test D.O.O. Lane2: EINVOICE_EPOSLOVANJE PROD
+
+=== CREATING INTEGRATION ACCOUNTS ===
+  ✓ Created cmk13zt6u000081warchfnjsg for Artemi Media
+  ✓ Created cmk13zt78000181wacgawskrk for Metrica d.o.o.
+  ✓ Created cmk13zt7i000281wafq54q7td for Test D.O.O. Lane2
+
+=== PROVISIONING SUMMARY ===
+Created: 3
+Skipped (existing): 0
+Total targets: 3
+
+Created accounts:
+┌─────────┬─────────────────────────────┬─────────────────────────────┬────────────────────────┬─────────────┐
+│ (index) │ id                          │ companyId                   │ kind                   │ environment │
+├─────────┼─────────────────────────────┼─────────────────────────────┼────────────────────────┼─────────────┤
+│ 0       │ 'cmk13zt6u000081warchfnjsg' │ 'cmjbtptms000001nzepg6azh6' │ 'EINVOICE_EPOSLOVANJE' │ 'PROD'      │
+│ 1       │ 'cmk13zt78000181wacgawskrk' │ 'cmj02op1e000101lmu08z0hps' │ 'EINVOICE_EPOSLOVANJE' │ 'TEST'      │
+│ 2       │ 'cmk13zt7i000281wafq54q7td' │ 'test-doo-lane2'            │ 'EINVOICE_EPOSLOVANJE' │ 'PROD'      │
+└─────────┴─────────────────────────────┴─────────────────────────────┴────────────────────────┴─────────────┘

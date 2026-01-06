@@ -55,7 +55,7 @@ export default async function ClientContextLayout({ children, params }: ClientCo
 
   // Check for STAFF or ADMIN role
   if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   // Verify staff has access to this client

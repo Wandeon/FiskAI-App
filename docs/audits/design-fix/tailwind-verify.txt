@@ -1,0 +1,30 @@
+=== Tailwind Class Verification ===
+Generated: Mon Jan  5 11:06:14 PM CET 2026
+File size: 123397 bytes
+
+=== Brand color classes (from compatibility layer) ===
+OK bg-brand-600
+OK text-brand-600
+OK bg-brand-500
+OK border-brand-*
+
+=== Semantic surface/text classes ===
+OK bg-surface
+OK bg-base
+OK text-foreground
+OK text-inverse
+OK text-link
+
+=== Default spacing (Tailwind defaults via extend) ===
+OK p-4 (default)
+OK mt-2 (default)
+OK gap-6 (default)
+
+=== CSS Variables in output ===
+OK --surface-base
+OK --text-primary
+OK --border-default
+OK .dark mode definitions
+
+NOTE: p-7, mt-9, text-primary (as utility class) are NOT in codebase.
+Tailwind JIT only generates classes that are actually used.

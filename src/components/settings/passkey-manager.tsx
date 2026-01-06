@@ -167,7 +167,7 @@ export function PasskeyManager() {
           <p className="mt-1 text-sm text-tertiary">Dodajte passkey za brzu i sigurnu prijavu</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-200 rounded-md border">
+        <div className="divide-y divide-default rounded-md border">
           {passkeys.map((passkey) => (
             <div key={passkey.id} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">

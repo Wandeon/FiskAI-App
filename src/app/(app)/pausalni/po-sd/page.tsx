@@ -15,7 +15,7 @@ export default async function PoSDPage() {
   const company = await requireCompany(user.id!)
 
   if (company.legalForm !== "OBRT_PAUSAL") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   const currentYear = new Date().getFullYear()

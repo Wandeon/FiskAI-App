@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss"
 import { spacing, radius, shadows, zIndex } from "./src/design-system/tokens/layout"
 import { fonts, textStyles } from "./src/design-system/tokens/typography"
+import { designTokens } from "./src/styles/tokens"
 import tailwindcssAnimate from "tailwindcss-animate"
 import tailwindcssTypography from "@tailwindcss/typography"
 import plugin from "tailwindcss/plugin"
@@ -18,7 +19,7 @@ const config: Config = {
     // This makes blue-600, red-500, etc. unavailable
     // ═══════════════════════════════════════════════════════════════
 
-    spacing: spacing,
+    // NOTE: spacing moved to extend.spacing to preserve Tailwind defaults (p-7, mt-9, etc.)
     borderRadius: radius,
     zIndex: zIndex,
     boxShadow: shadows,
@@ -35,6 +36,13 @@ const config: Config = {
       current: "currentColor",
       white: "#ffffff",
       black: "#000000",
+
+      // ─────────────────────────────────────────────────────────────
+      // TEMPORARY COMPATIBILITY LAYER
+      // TODO: Migrate all bg-brand-*, text-brand-*, border-brand-* usages
+      // to semantic tokens, then remove this block.
+      // ─────────────────────────────────────────────────────────────
+      brand: designTokens.colors.brand,
 
       // ─────────────────────────────────────────────────────────────
       // SURFACE LADDER
@@ -136,9 +144,35 @@ const config: Config = {
         grid: "var(--chart-grid)",
         axis: "var(--chart-axis)",
       },
+
+      // ─────────────────────────────────────────────────────────────
+      // CATEGORY COLORS (Type/category distinctions)
+      // ─────────────────────────────────────────────────────────────
+      category: {
+        guide: {
+          DEFAULT: "var(--category-guide)",
+          text: "var(--category-guide-text)",
+          bg: "var(--category-guide-bg)",
+        },
+        expert: {
+          DEFAULT: "var(--category-expert)",
+          text: "var(--category-expert-text)",
+          bg: "var(--category-expert-bg)",
+        },
+        feature: {
+          DEFAULT: "var(--category-feature)",
+          text: "var(--category-feature-text)",
+          bg: "var(--category-feature-bg)",
+        },
+      },
     },
 
     extend: {
+      // ─────────────────────────────────────────────────────────────
+      // SPACING (extends Tailwind defaults, adds semantic spacing)
+      // ─────────────────────────────────────────────────────────────
+      spacing: spacing,
+
       // ─────────────────────────────────────────────────────────────
       // ANIMATIONS (keep existing)
       // ─────────────────────────────────────────────────────────────

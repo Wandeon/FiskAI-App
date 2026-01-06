@@ -23,7 +23,7 @@ export const Logo = ({ showBeta = true, size = "md", variant = "default" }: Logo
       {/* The Symbol: Cyan by default, subtle glow on hover */}
       <div className="relative flex items-center justify-center">
         <FiskAILogo
-          className={`${s.icon} text-cyan-500 transition-all duration-300 group-hover:brightness-110`}
+          className={`${s.icon} text-accent transition-all duration-300 group-hover:brightness-110`}
         />
         {/* Subtle backdrop glow for dark mode */}
         <div className="absolute inset-0 bg-accent/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -36,7 +36,7 @@ export const Logo = ({ showBeta = true, size = "md", variant = "default" }: Logo
             variant === "white" ? "text-white" : "text-white"
           }`}
         >
-          Fisk<span className="text-cyan-500">AI</span>
+          Fisk<span className="text-accent">AI</span>
         </span>
         {showBeta && (
           <span

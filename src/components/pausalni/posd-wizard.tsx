@@ -426,7 +426,7 @@ export function PosdWizard({ companyId }: Props) {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="rounded-lg bg-success/10 border border-success-border/50 p-4">
-              <p className="font-medium text-success-text dark:text-green-200">
+              <p className="font-medium text-success-text">
                 Pripremili smo za vas sve potrebne podatke za podnošenje PO-SD obrasca!
               </p>
             </div>

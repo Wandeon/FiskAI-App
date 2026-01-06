@@ -58,7 +58,8 @@ export async function requireAdmin() {
   })
 
   if (dbUser?.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    // Redirect to root - middleware handles routing to control-center
+    redirect("/")
   }
 
   return user

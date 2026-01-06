@@ -9,7 +9,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-white/60 transition-colors hover:text-white"
+      className="text-sm font-medium text-inverse/60 transition-colors hover:text-inverse"
     >
       {children}
     </Link>
@@ -33,23 +33,23 @@ export default async function MarketingLayout({
       <div className="pb-16">{children}</div>
       <ComplianceProgressBar />
 
-      <footer className="border-t border-white/10 bg-slate-950">
+      <footer className="border-t border-inverse/10 bg-base">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-2 lg:grid-cols-5 md:px-6">
           <div className="space-y-3 lg:col-span-2">
             <div>
-              <p className="text-sm font-semibold text-white">FiskAI</p>
-              <p className="text-sm text-white/60 mt-1">
+              <p className="text-sm font-semibold text-inverse">FiskAI</p>
+              <p className="text-sm text-inverse/60 mt-1">
                 AI-first računovodstveni asistent za Hrvatsku. Beta program.
               </p>
             </div>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-white/50">PODUZEĆE I KONTAKT</p>
-              <div className="space-y-1 text-sm text-white/70">
-                <p className="font-medium text-white">FiskAI d.o.o.</p>
+              <p className="text-xs font-medium text-inverse/50">PODUZEĆE I KONTAKT</p>
+              <div className="space-y-1 text-sm text-inverse/70">
+                <p className="font-medium text-inverse">FiskAI d.o.o.</p>
                 <p>Zagreb, Hrvatska</p>
                 <p>
                   Email:{" "}
-                  <a href="mailto:info@fiskai.hr" className="text-cyan-400 hover:underline">
+                  <a href="mailto:info@fiskai.hr" className="text-link hover:underline">
                     info@fiskai.hr
                   </a>
                 </p>
@@ -57,7 +57,7 @@ export default async function MarketingLayout({
             </div>
           </div>
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-white">Linkovi</p>
+            <p className="text-sm font-semibold text-inverse">Linkovi</p>
             <div className="flex flex-col gap-2">
               <NavLink href="/features">Mogućnosti</NavLink>
               <NavLink href="/pricing">Cijene</NavLink>
@@ -68,7 +68,7 @@ export default async function MarketingLayout({
             </div>
           </div>
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-white">Legal</p>
+            <p className="text-sm font-semibold text-inverse">Legal</p>
             <div className="flex flex-col gap-2">
               <NavLink href="/privacy">Privatnost</NavLink>
               <NavLink href="/terms">Uvjeti korištenja</NavLink>
@@ -78,33 +78,33 @@ export default async function MarketingLayout({
             </div>
           </div>
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-white">Transparentnost</p>
+            <p className="text-sm font-semibold text-inverse">Transparentnost</p>
             <div className="flex flex-col gap-2">
               <NavLink href="/metodologija">Metodologija</NavLink>
               <NavLink href="/urednicka-politika">Urednička politika</NavLink>
               <NavLink href="/izvori">Službeni izvori</NavLink>
             </div>
             <div className="pt-4">
-              <p className="text-xs font-medium text-white/50">PODRŠKA</p>
-              <p className="text-xs text-white/60 mt-1">
+              <p className="text-xs font-medium text-inverse/50">PODRŠKA</p>
+              <p className="text-xs text-inverse/60 mt-1">
                 Odgovor unutar 24h radnim danima putem emaila.
               </p>
             </div>
           </div>
         </div>
-        <div className="mx-auto max-w-6xl border-t border-white/10 px-4 py-4 md:px-6">
+        <div className="mx-auto max-w-6xl border-t border-inverse/10 px-4 py-4 md:px-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-inverse/60">
               © {new Date().getFullYear()} FiskAI d.o.o. Sva prava pridržana.
             </p>
             <div className="flex items-center gap-6">
-              <a href="/status" className="text-xs text-white/60 hover:text-white">
+              <a href="/status" className="text-xs text-inverse/60 hover:text-inverse">
                 Status sustava
               </a>
-              <a href="/sitemap.xml" className="text-xs text-white/60 hover:text-white">
+              <a href="/sitemap.xml" className="text-xs text-inverse/60 hover:text-inverse">
                 Sitemap
               </a>
-              <a href="/robots.txt" className="text-xs text-white/60 hover:text-white">
+              <a href="/robots.txt" className="text-xs text-inverse/60 hover:text-inverse">
                 Robots.txt
               </a>
             </div>

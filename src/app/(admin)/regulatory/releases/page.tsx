@@ -9,7 +9,7 @@ export default async function RegulatoryReleasesPage() {
   const user = await getCurrentUser()
 
   if (!user || user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   // Get all rule releases

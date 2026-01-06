@@ -40,7 +40,7 @@ export function LatestNewsSection({ posts }: LatestNewsSectionProps) {
           {posts.map((post) => (
             <StaggerItem key={post.slug}>
               <Link href={`/vijesti/${post.slug}`} className="group block h-full">
-                <Card className="card h-full transition-all group-hover:shadow-lg group-hover:border-blue-300 group-hover:-translate-y-0.5">
+                <Card className="card h-full transition-all group-hover:shadow-lg group-hover:border-info-border group-hover:-translate-y-0.5">
                   <CardHeader className="pb-2">
                     {post.categoryName && (
                       <span className="text-xs font-medium text-link mb-1 block">

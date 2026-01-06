@@ -208,7 +208,7 @@ export function ClientDataPanel({
                 className={cn(
                   "p-3 rounded-lg border",
                   isDark
-                    ? "bg-amber-900/20 border-warning/30"
+                    ? "bg-warning-bg/30 border-warning/30"
                     : "bg-warning-bg border-warning-border"
                 )}
               >
@@ -251,8 +251,8 @@ export function ClientDataPanel({
                         className={cn(
                           "mt-2 text-xs px-3 py-1.5 rounded transition-colors",
                           isDark
-                            ? "bg-warning-bg0/20 text-warning-text border border-warning/30 hover:bg-warning-bg0/30"
-                            : "bg-yellow-600 text-white hover:bg-yellow-700"
+                            ? "bg-warning-bg/20 text-warning-text border border-warning/30 hover:bg-warning-bg/30"
+                            : "bg-warning text-white hover:bg-warning/80"
                         )}
                       >
                         Connect your data

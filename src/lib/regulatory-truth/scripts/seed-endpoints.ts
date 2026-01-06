@@ -157,16 +157,18 @@ const endpoints = [
     listingStrategy: "HTML_LIST" as const,
   },
   {
-    domain: "hnb.hr",
-    path: "/devizni-tecajevi/referentni-tecajevi-esb-a",
-    name: "HNB - Devizni tečajevi",
+    // FIXED: URL was wrong - verified correct path 2026-01-05
+    domain: "www.hnb.hr",
+    path: "/statistika/statisticki-podaci/financijski-sektor/sredisnja-banka-hnb/devizni-tecajevi/referentni-tecajevi-esb-a",
+    name: "HNB - Devizni tečajevi (ECB referentni)",
     endpointType: "STATISTICS" as const,
     priority: "CRITICAL" as const,
     scrapeFrequency: "EVERY_RUN" as const,
     listingStrategy: "HTML_LIST" as const,
+    metadata: { verified: "2026-01-05", note: "ECB reference rates via HNB" },
   },
   {
-    domain: "hok.hr",
+    domain: "www.hok.hr", // FIXED: hok.hr requires www prefix (verified 2026-01-05)
     path: "/novosti/novosti-iz-hok",
     name: "HOK - Novosti iz HOK-a",
     endpointType: "NEWS_LISTING" as const,
@@ -179,7 +181,7 @@ const endpoints = [
 
   // Tier 2: HIGH (daily)
   {
-    domain: "hok.hr",
+    domain: "www.hok.hr", // FIXED: hok.hr requires www prefix (verified 2026-01-05)
     path: "/aktualno",
     name: "HOK - Aktualno",
     endpointType: "ANNOUNCEMENTS" as const,
@@ -189,7 +191,7 @@ const endpoints = [
     metadata: { domain: "pausalni", focus: "current announcements and updates for craftsmen" },
   },
   {
-    domain: "hok.hr",
+    domain: "www.hok.hr", // FIXED: hok.hr requires www prefix (verified 2026-01-05)
     path: "/medunarodna-suradnja-i-eu/novosti-i-dogadanja",
     name: "HOK - Novosti i događanja",
     endpointType: "NEWS_LISTING" as const,
@@ -315,23 +317,17 @@ const endpoints = [
     scrapeFrequency: "DAILY" as const,
     listingStrategy: "HTML_LIST" as const,
   },
+  // DZS - FIXED: dzs.hr redirects to dzs.gov.hr (verified 2026-01-05)
   {
-    domain: "dzs.hr",
-    path: "/hr/novosti",
-    name: "DZS - Novosti",
+    domain: "dzs.gov.hr",
+    path: "/vijesti/8",
+    name: "DZS - Vijesti",
     endpointType: "NEWS_LISTING" as const,
     priority: "HIGH" as const,
     scrapeFrequency: "DAILY" as const,
-    listingStrategy: "HTML_LIST" as const,
-  },
-  {
-    domain: "dzs.hr",
-    path: "/hr/publikacije",
-    name: "DZS - Publikacije i statistički podaci",
-    endpointType: "STATISTICS" as const,
-    priority: "HIGH" as const,
-    scrapeFrequency: "DAILY" as const,
-    listingStrategy: "HTML_LIST" as const,
+    listingStrategy: "PAGINATION" as const,
+    paginationPattern: "?page={N}",
+    metadata: { verified: "2026-01-05", totalItems: 586 },
   },
 
   // Tier 3: MEDIUM (twice weekly)
@@ -492,65 +488,105 @@ const endpoints = [
   },
 
   // ==========================================================================
-  // EUR-Lex: EU Legislation RSS Feeds (Croatian-relevant)
+  // EUR-Lex: REMOVED - All 4 RSS endpoints return 404 (verified 2026-01-05)
+  // Access method needs research - RSS URL format was incorrect
+  // Status: INCOMPLETE - EU law coverage blocked until correct API identified
   // ==========================================================================
+
+  // ==========================================================================
+  // NEW VERIFIED ENDPOINTS (added 2026-01-05)
+  // ==========================================================================
+
+  // Sabor - Parliamentary press releases (VERIFIED: 200, 9380 items)
   {
-    domain: "eur-lex.europa.eu",
-    path: "/EN/display-rss.do?lang=HR&eurovoc=8471", // VAT - Taxation
-    name: "EUR-Lex - VAT & Taxation (HR)",
-    endpointType: "LEGAL_ACTS" as const,
+    domain: "sabor.hr",
+    path: "/hr/press/priopcenja",
+    name: "Sabor - Priopćenja",
+    endpointType: "NEWS_LISTING" as const,
     priority: "HIGH" as const,
     scrapeFrequency: "DAILY" as const,
-    listingStrategy: "RSS_FEED" as const,
+    listingStrategy: "PAGINATION" as const,
+    paginationPattern: "?page={N}",
+    metadata: { domain: "zakonodavstvo", totalItems: 9380, verified: "2026-01-05" },
+  },
+
+  // Vlada - Government news (VERIFIED: 200)
+  {
+    domain: "vlada.gov.hr",
+    path: "/vijesti/8",
+    name: "Vlada - Vijesti",
+    endpointType: "NEWS_LISTING" as const,
+    priority: "CRITICAL" as const,
+    scrapeFrequency: "EVERY_RUN" as const,
+    listingStrategy: "PAGINATION" as const,
+    paginationPattern: "?page={N}",
+    metadata: { domain: "vlada", focus: "government announcements", verified: "2026-01-05" },
+  },
+
+  // e-Savjetovanja - Public consultations (VERIFIED: 200, public view)
+  {
+    domain: "esavjetovanja.gov.hr",
+    path: "/ECon/Dashboard",
+    name: "e-Savjetovanja - Otvorena savjetovanja",
+    endpointType: "CONSULTATIONS" as const,
+    priority: "CRITICAL" as const,
+    scrapeFrequency: "DAILY" as const,
+    listingStrategy: "HTML_LIST" as const,
     metadata: {
-      domain: "pdv",
-      language: "HR",
-      eurovoc: "8471", // VAT subject code
-      description: "EU VAT directives and regulations relevant to Croatia",
+      domain: "zakonodavstvo",
+      authRequired: "partial", // public view, login to comment
+      note: "Use /ECon/Dashboard NOT /ECon/MainScreen",
+      verified: "2026-01-05",
     },
   },
+
+  // HANFA - Financial services regulator (VERIFIED: 200)
   {
-    domain: "eur-lex.europa.eu",
-    path: "/EN/display-rss.do?lang=HR&eurovoc=8464", // Invoicing
-    name: "EUR-Lex - Invoicing & E-invoicing (HR)",
-    endpointType: "LEGAL_ACTS" as const,
+    domain: "hanfa.hr",
+    path: "/vijesti/",
+    name: "HANFA - Vijesti",
+    endpointType: "NEWS_LISTING" as const,
     priority: "HIGH" as const,
     scrapeFrequency: "DAILY" as const,
-    listingStrategy: "RSS_FEED" as const,
+    listingStrategy: "HTML_LIST" as const,
     metadata: {
-      domain: "fiskalizacija",
-      language: "HR",
-      eurovoc: "8464",
-      description: "EU invoicing and e-invoicing directives",
+      domain: "financije",
+      paginationType: "load-more",
+      itemsPerPage: 20,
+      verified: "2026-01-05",
     },
   },
+
+  // AZOP - Data protection authority (VERIFIED: 200)
   {
-    domain: "eur-lex.europa.eu",
-    path: "/EN/display-rss.do?lang=HR&type_doc=DIR&type_doc=REG", // Directives and Regulations only
-    name: "EUR-Lex - Croatian EU Law Updates",
-    endpointType: "LEGAL_ACTS" as const,
-    priority: "MEDIUM" as const,
+    domain: "azop.hr",
+    path: "/novosti/",
+    name: "AZOP - Novosti",
+    endpointType: "NEWS_LISTING" as const,
+    priority: "HIGH" as const,
     scrapeFrequency: "DAILY" as const,
-    listingStrategy: "RSS_FEED" as const,
-    metadata: {
-      domain: "pausalni",
-      language: "HR",
-      description: "General EU directives and regulations applicable to Croatia",
-    },
+    listingStrategy: "HTML_LIST" as const,
+    metadata: { domain: "gdpr", sitemap: "/sitemap_index.xml", verified: "2026-01-05" },
   },
+  // ==========================================================================
+  // HEADLESS-REQUIRED SOURCES (JS-rendered sites requiring Playwright)
+  // ==========================================================================
+
+  // HGK - Croatian Chamber of Economy (JS-rendered, requires headless browser)
+  // Status: BLOCKED without headless - returns HTTP 500 on direct fetch
+  // See: docs/regulatory-sources/SOURCE_COVERAGE_DECLARATIONS.md
   {
-    domain: "eur-lex.europa.eu",
-    path: "/EN/display-rss.do?lang=HR&eurovoc=1954", // Social security
-    name: "EUR-Lex - Social Security (HR)",
-    endpointType: "LEGAL_ACTS" as const,
-    priority: "MEDIUM" as const,
-    scrapeFrequency: "TWICE_WEEKLY" as const,
-    listingStrategy: "RSS_FEED" as const,
+    domain: "hgk.hr",
+    path: "/vijesti",
+    name: "HGK - Vijesti",
+    endpointType: "NEWS_LISTING" as const,
+    priority: "HIGH" as const,
+    scrapeFrequency: "DAILY" as const,
+    listingStrategy: "HTML_LIST" as const,
     metadata: {
-      domain: "doprinosi",
-      language: "HR",
-      eurovoc: "1954",
-      description: "EU social security and contributions regulations",
+      requiresHeadless: true,
+      verified: "2026-01-05",
+      notes: "JS-rendered site, requires Playwright for content extraction",
     },
   },
 ]

@@ -15,7 +15,7 @@ export default async function CorporateTaxPage() {
 
   // Only DOO and JDOO can access corporate tax
   if (company.legalForm !== "DOO" && company.legalForm !== "JDOO") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   const now = new Date()

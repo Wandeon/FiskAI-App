@@ -112,13 +112,13 @@ export function SuggestionChips({
             isDark
               ? [
                   "bg-surface-elevated/30 backdrop-blur-sm",
-                  "border border-cyan-500/20",
-                  "text-cyan-200",
+                  "border border-accent/20",
+                  "text-accent-light",
                   "hover:bg-accent/10 hover:border-accent-light/40",
                   "hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]",
-                  "hover:text-cyan-100",
+                  "hover:text-white",
                   index === activeIndex &&
-                    "ring-2 ring-cyan-500/30 ring-offset-2 ring-offset-slate-900",
+                    "ring-2 ring-accent/30 ring-offset-2 ring-offset-surface",
                 ]
               : [
                   "bg-background text-foreground border border-border",

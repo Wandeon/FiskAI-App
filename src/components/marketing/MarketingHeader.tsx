@@ -1,3 +1,10 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors --
+ * @design-override: Marketing header uses dark cockpit aesthetic with:
+ * - Animated glow effects requiring framer-motion color interpolation
+ * - Gradient CTA buttons for brand visibility
+ * - Rotating border animations
+ * All colors are intentional for the marketing "command center" theme.
+ */
 "use client"
 
 import { useEffect, useState } from "react"
@@ -9,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { PortalNavigation } from "./PortalNavigation"
 import { CommandPalette } from "@/components/ui/command-palette"
 import { Logo } from "@/components/ui/Logo"
+import { getAppUrl } from "@/lib/portal-urls"
 
 const NAV_LINKS = [
   { href: "/znacajke", label: "Značajke" },
@@ -46,7 +54,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
       {/* @design-override: Marketing header always uses dark colors for cockpit aesthetic */}
       <motion.header
         className={cn(
-          "fixed left-0 right-0 top-0 z-30 transition-all duration-300",
+          "fixed left-0 right-0 top-0 z-fixed transition-all duration-300",
           isScrolled
             ? "border-b border-white/10 bg-slate-950/85 shadow-lg shadow-black/20 backdrop-blur-xl backdrop-saturate-150"
             : "border-b border-white/5 bg-transparent"
@@ -162,7 +170,7 @@ export function MarketingHeader({ isLoggedIn = false }: MarketingHeaderProps) {
               {/* @design-override: Header CTAs use vibrant colors for visibility */}
               {isLoggedIn ? (
                 <a
-                  href="https://app.fiskai.hr/dashboard"
+                  href={getAppUrl()}
                   className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30"
                 >
                   <span className="hidden sm:inline">Otvori aplikaciju</span>

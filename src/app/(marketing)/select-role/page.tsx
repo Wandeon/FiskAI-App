@@ -52,17 +52,17 @@ export default async function SelectRolePage() {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
     const url = new URL(baseUrl)
 
-    // In development, just redirect to /dashboard since subdomains don't work on localhost
+    // In development, redirect to / - middleware handles control-center routing
     if (process.env.NODE_ENV === "development") {
-      redirect("/dashboard")
+      redirect("/")
     }
 
-    // In production, redirect to app subdomain
+    // In production, redirect to app subdomain root - middleware handles control-center
     const appUrl = baseUrl.replace(
       url.hostname,
       `app.${url.hostname.replace(/^(www\.|app\.|staff\.|admin\.)/, "")}`
     )
-    redirect(`${appUrl}/dashboard`)
+    redirect(`${appUrl}/`)
   }
 
   const availableSubdomains = getAvailableSubdomains(systemRole)
@@ -71,7 +71,7 @@ export default async function SelectRolePage() {
   const baseDomain = url.hostname.replace(/^(www\.|app\.|staff\.|admin\.)/, "")
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-surface-1 to-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-surface-1 to-surface-2 p-4">
       <div className="w-full max-w-2xl space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">
@@ -88,12 +88,12 @@ export default async function SelectRolePage() {
             const Icon = info.icon
 
             // In development, use local paths; in production, use subdomains
+            // Redirect to root - middleware handles control-center routing
             let href: string
             if (process.env.NODE_ENV === "development") {
-              // For development, just go to /dashboard (subdomain routing handled by middleware)
-              href = "/dashboard"
+              href = "/"
             } else {
-              href = `${url.protocol}//${subdomain}.${baseDomain}/dashboard`
+              href = `${url.protocol}//${subdomain}.${baseDomain}/`
             }
 
             return (

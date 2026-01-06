@@ -89,11 +89,11 @@ export default function CalendarPage() {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold">Nikad ne propusti rok</h3>
-              <p className="mt-1 text-sm text-blue-100">
+              <p className="mt-1 text-sm text-info-text">
                 FiskAI šalje automatske podsjetnike 7 dana, 3 dana i 1 dan prije svakog roka. Plus
                 generirane uplatnice spremne za plaćanje.
               </p>
-              <ul className="mt-3 space-y-1 text-sm text-blue-100">
+              <ul className="mt-3 space-y-1 text-sm text-info-text">
                 <li className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" /> Personalizirani kalendar za vaš obrt
                 </li>

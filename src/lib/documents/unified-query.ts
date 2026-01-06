@@ -21,9 +21,9 @@ export interface UnifiedDocument {
 // Category metadata
 export const CATEGORY_META: Record<DocumentCategory, { label: string; color: string }> = {
   invoice: { label: "Račun", color: "bg-info-bg text-info-text" },
-  "e-invoice": { label: "E-Račun", color: "bg-chart-2/10 text-purple-800" },
-  "bank-statement": { label: "Izvod", color: "bg-emerald-100 text-emerald-800" },
-  expense: { label: "Trošak", color: "bg-orange-100 text-orange-800" },
+  "e-invoice": { label: "E-Račun", color: "bg-chart-2/10 text-info-text" },
+  "bank-statement": { label: "Izvod", color: "bg-success-bg text-success-text" },
+  expense: { label: "Trošak", color: "bg-warning-bg text-warning-text" },
 }
 
 // Status color mapping

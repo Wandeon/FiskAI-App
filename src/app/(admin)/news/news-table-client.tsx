@@ -483,8 +483,8 @@ function ImpactBadge({ level }: { level: string | null }) {
   if (!level) return <span className="text-[var(--muted)]">-</span>
 
   const colors: Record<string, string> = {
-    high: "bg-danger/20 text-danger-text dark:text-red-300",
-    medium: "bg-warning/20 text-warning-text dark:text-orange-300",
+    high: "bg-danger/20 text-danger-text",
+    medium: "bg-warning/20 text-warning-text",
     low: "bg-surface/20 text-secondary ",
   }
 

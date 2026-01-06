@@ -65,7 +65,7 @@ export default async function RegulatoryDashboardPage() {
   const user = await getCurrentUser()
 
   if (!user || user.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   const data = await getDashboardData()

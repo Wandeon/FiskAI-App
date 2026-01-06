@@ -1,6 +1,13 @@
 # Access Control
 
-[<- Back to Index](./00-INDEX.md)
+[← Back to Index](./00-INDEX.md)
+
+---
+
+> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
+> **Version:** 3.0.0
+>
+> Reality-audited against codebase. Module count corrected to 18. Permission matrix verified.
 
 ---
 
@@ -132,34 +139,36 @@ export function canAccessSubdomain(systemRole: SystemRole, subdomain: string): b
 
 ## 5. Module System & Entitlements
 
-### 5.1 The 16 Module Keys
+### 5.1 The 18 Module Keys
 
 Stored in `Company.entitlements[]` as kebab-case strings:
 
-| Module Key         | Description              | Default |
-| ------------------ | ------------------------ | ------- |
-| `invoicing`        | Manual PDF generation    | FREE    |
-| `e-invoicing`      | UBL/XML B2B/B2G          | FREE    |
-| `contacts`         | CRM directory            | FREE    |
-| `products`         | Product catalog          | FREE    |
-| `expenses`         | Expense tracking         | FREE    |
-| `banking`          | Bank import & sync       | PAID    |
-| `documents`        | Document vault (archive) | FREE    |
-| `reports-basic`    | KPR, aging, P&L          | FREE    |
-| `fiscalization`    | CIS integration          | PAID    |
-| `reconciliation`   | Auto-matching            | PAID    |
-| `reports-advanced` | VAT reports, exports     | PAID    |
-| `pausalni`         | Pausalni features        | AUTO\*  |
-| `vat`              | VAT management           | AUTO\*  |
-| `corporate-tax`    | D.O.O./JDOO tax          | AUTO\*  |
-| `pos`              | Point of sale            | PAID    |
-| `ai-assistant`     | AI chat & extraction     | PAID    |
+| Module Key         | Description              | Default | Status         |
+| ------------------ | ------------------------ | ------- | -------------- |
+| `platform-core`    | Core dashboards/settings | FREE    | ✅ Implemented |
+| `invoicing`        | Manual PDF generation    | FREE    | ✅ Implemented |
+| `e-invoicing`      | UBL/XML B2B/B2G          | FREE    | ✅ Implemented |
+| `contacts`         | CRM directory            | FREE    | ✅ Implemented |
+| `products`         | Product catalog          | FREE    | ✅ Implemented |
+| `expenses`         | Expense tracking         | FREE    | ✅ Implemented |
+| `banking`          | Bank import & sync       | PAID    | ✅ Implemented |
+| `documents`        | Document vault (archive) | FREE    | ✅ Implemented |
+| `reports-basic`    | KPR, aging, P&L          | FREE    | ✅ Implemented |
+| `fiscalization`    | CIS integration          | PAID    | ✅ Implemented |
+| `reconciliation`   | Auto-matching            | PAID    | ✅ Implemented |
+| `reports-advanced` | VAT reports, exports     | PAID    | ⚠️ Partial     |
+| `pausalni`         | Pausalni features        | AUTO\*  | ✅ Implemented |
+| `vat`              | VAT management           | AUTO\*  | ⚠️ Partial     |
+| `corporate-tax`    | D.O.O./JDOO tax          | AUTO\*  | 📋 Planned     |
+| `pos`              | Point of sale            | PAID    | ⚠️ Partial     |
+| `ai-assistant`     | AI chat & extraction     | PAID    | ✅ Implemented |
 
-\*AUTO modules are recommended based on `legalForm` but must be explicitly added to entitlements. The visibility system hides irrelevant modules (e.g., VAT widgets for non-VAT payers) regardless of entitlements.
+\*AUTO modules are auto-assigned based on `legalForm` via `getEntitlementsForLegalForm()`.
 
-**Current behavior:** Legal-form-specific features are controlled by the visibility system (`src/lib/visibility/rules.ts`), not by auto-enabling entitlements.
+**Current behavior:** Legal-form-specific features are controlled by both:
 
-**Planned:** Future versions may auto-add relevant entitlements during onboarding based on legalForm selection.
+1. Module entitlements (feature access)
+2. Visibility system (`src/lib/visibility/rules.ts`) - hides irrelevant UI
 
 ### 5.2 Module Definition Structure
 
@@ -175,15 +184,15 @@ export interface ModuleDefinition {
 }
 
 export const MODULES: Record<ModuleKey, ModuleDefinition> = {
-  fiscalization: {
-    key: "fiscalization",
-    name: "Fiscalization",
-    description: "Fiscal receipts, JIR/ZKI, CIS integration",
-    routes: ["/settings/fiscalisation", "/settings/premises"],
-    navItems: ["fiscalization"],
-    defaultEnabled: false,
+  "platform-core": {
+    key: "platform-core",
+    name: "Platform Core",
+    description: "Core platform access (dashboards, settings, support)",
+    routes: ["/dashboard", "/settings", "/support", "/accountant", "/compliance"],
+    navItems: ["dashboard", "settings", "support"],
+    defaultEnabled: true,
   },
-  // ... 15 more modules
+  // ... 17 more modules (see src/lib/modules/definitions.ts)
 }
 ```
 

@@ -4,6 +4,13 @@
 
 ---
 
+> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
+> **Version:** 3.0.0
+>
+> Reality-audited against codebase. Pricing tiers verified against subscriptionPlans.ts.
+
+---
+
 ## 13. Monetization & Pricing
 
 ### 13.1 Tier Structure

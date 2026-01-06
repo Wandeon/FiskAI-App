@@ -117,6 +117,8 @@ export function MiniAssistant() {
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
+                id="question"
+                name="question"
                 placeholder="Postavite pitanje..."
                 className={cn(
                   "w-full px-4 py-3.5 pr-12 rounded-xl",

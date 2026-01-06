@@ -6,6 +6,7 @@ import cron from "node-cron"
 import { sentinelQueue, scheduledQueue } from "./queues"
 import { closeRedis } from "./redis"
 import { logWorkerStartup } from "./startup-log"
+import { runEndpointHealthCheck } from "../watchdog/endpoint-health"
 
 logWorkerStartup("scheduler")
 
@@ -39,6 +40,28 @@ async function startScheduler(): Promise<void> {
     { timezone: TIMEZONE }
   )
   console.log("[scheduler] Scheduled: Morning discovery at 06:00")
+
+  // 06:30 - Endpoint health check (after discovery completes)
+  // Raises alerts for SLA breaches, consecutive errors, circuit breakers
+  cron.schedule(
+    "30 6 * * *",
+    async () => {
+      console.log("[scheduler] Running endpoint health check...")
+      const runId = `health-check-${Date.now()}`
+      try {
+        const report = await runEndpointHealthCheck(runId)
+        console.log(
+          `[scheduler] Endpoint health check complete: ` +
+            `${report.healthyCritical}/${report.totalCritical} healthy, ` +
+            `${report.alertsRaised.length} alerts raised`
+        )
+      } catch (error) {
+        console.error("[scheduler] Endpoint health check failed:", error)
+      }
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Endpoint health check at 06:30")
 
   // =========================================
   // Maintenance Jobs (not processing)

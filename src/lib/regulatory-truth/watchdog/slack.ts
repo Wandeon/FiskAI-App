@@ -25,7 +25,7 @@ interface SlackBlock {
   fields?: Array<{ type: string; text: string }>
 }
 
-interface SlackMessage {
+export interface SlackMessage {
   channel?: string
   blocks: SlackBlock[]
 }
@@ -33,7 +33,7 @@ interface SlackMessage {
 /**
  * Send a message to Slack
  */
-async function sendSlackMessage(message: SlackMessage): Promise<boolean> {
+export async function sendSlackMessage(message: SlackMessage): Promise<boolean> {
   if (!SLACK_WEBHOOK_URL) {
     console.log("[slack] No webhook URL configured, skipping notification")
     return false

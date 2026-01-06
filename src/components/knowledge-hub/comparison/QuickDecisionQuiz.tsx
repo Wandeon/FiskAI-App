@@ -168,7 +168,7 @@ export function QuickDecisionQuiz({
             })()}
             <button
               onClick={reset}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-accent hover:text-cyan-300"
+              className="mt-4 inline-flex items-center gap-2 text-sm text-accent hover:text-accent-light"
             >
               <RotateCcw className="h-4 w-4" />
               Ponovi kviz

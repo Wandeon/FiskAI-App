@@ -7,9 +7,20 @@ const UBL_NAMESPACES = {
   cbc: "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
 }
 
-const CUSTOMIZATION_ID =
-  "urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0"
-const PROFILE_ID = "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"
+// Croatian CIUS-2025 profile (required by ePoslovanje)
+// See: https://eracun.mfin.hr/
+const CUSTOMIZATION_ID_HR =
+  "urn:cen.eu:en16931:2017#compliant#urn:mfin.gov.hr:cius-2025:1.0#conformant#urn:mfin.gov.hr:ext-2025:1.0"
+
+// Process ID P1 = B2B e-invoice (most common)
+// P1-P12 are defined by Croatian CIUS, P99 = custom buyer reference
+const PROFILE_ID_HR = "P1"
+
+// Default operator designation (required for Croatian e-invoices)
+// CIUS-2025 spec page 23: HR-BT-4 (Oznaka operatera) and HR-BT-5 (OIB operatera)
+// These go in SellerContact element inside AccountingSupplierParty
+const DEFAULT_OPERATOR_NAME = "Operator-1" // Default operator designation
+const DEFAULT_OPERATOR_OIB = "00000000000" // Placeholder - should be real operator OIB
 
 function escapeXml(str: string): string {
   return str
@@ -22,6 +33,11 @@ function escapeXml(str: string): string {
 
 function formatDate(date: Date): string {
   return date.toISOString().split("T")[0]
+}
+
+function formatTime(date: Date): string {
+  // Croatian CIUS requires time in hh:mm:ss format
+  return date.toISOString().split("T")[1].split(".")[0]
 }
 
 function formatDecimal(value: number | string | Prisma.Decimal, decimals: number = 2): string {
@@ -43,16 +59,44 @@ function generatePaymentTermsNote(issueDate: Date, dueDate: Date): string {
   }
 }
 
-function generatePartyXml(party: Contact | Company, isSupplier: boolean): string {
+/**
+ * Generate AccountingSupplierParty or AccountingCustomerParty XML
+ *
+ * For suppliers (isSupplier=true), includes SellerContact element with:
+ * - HR-BT-4 (Oznaka operatera): cac:SellerContact/cbc:Name
+ * - HR-BT-5 (OIB operatera): cac:SellerContact/cbc:ID
+ *
+ * Per CIUS-2025 spec page 23-24, SellerContact is inside AccountingSupplierParty
+ * but OUTSIDE of Party element.
+ */
+function generatePartyXml(
+  party: Contact | Company,
+  isSupplier: boolean,
+  operatorName?: string,
+  operatorOib?: string
+): string {
   const oib = "oib" in party ? party.oib : null
   const vatNumber = "vatNumber" in party ? party.vatNumber : null
 
+  // Build SellerContact for suppliers (Croatian CIUS-2025 HR-BT-4 and HR-BT-5)
+  // Per spec: SellerContact is inside AccountingSupplierParty but OUTSIDE Party
+  const sellerContactXml = isSupplier
+    ? `
+      <cac:SellerContact>
+        <cbc:ID>${escapeXml(operatorOib || DEFAULT_OPERATOR_OIB)}</cbc:ID>
+        <cbc:Name>${escapeXml(operatorName || DEFAULT_OPERATOR_NAME)}</cbc:Name>
+      </cac:SellerContact>`
+    : ""
+
+  // Croatian CIUS-2025 spec page 25-26:
+  // - EndpointID: schemeID="9934" (HR:VAT in CEF EAS code list) with OIB as value
+  // - PartyIdentification/ID: format "9934:{OIB}" as value (no schemeID attribute)
   return `
     <cac:${isSupplier ? "AccountingSupplierParty" : "AccountingCustomerParty"}>
       <cac:Party>
-        ${oib ? `<cbc:EndpointID schemeID="0191">${escapeXml(oib)}</cbc:EndpointID>` : ""}
+        ${oib ? `<cbc:EndpointID schemeID="9934">${escapeXml(oib)}</cbc:EndpointID>` : ""}
         <cac:PartyIdentification>
-          <cbc:ID${oib ? ' schemeID="0191"' : ""}>${escapeXml(oib || "")}</cbc:ID>
+          <cbc:ID>${oib ? `9934:${escapeXml(oib)}` : ""}</cbc:ID>
         </cac:PartyIdentification>
         <cac:PartyName>
           <cbc:Name>${escapeXml(party.name)}</cbc:Name>
@@ -78,13 +122,19 @@ function generatePartyXml(party: Contact | Company, isSupplier: boolean): string
         }
         <cac:PartyLegalEntity>
           <cbc:RegistrationName>${escapeXml(party.name)}</cbc:RegistrationName>
-          ${oib ? `<cbc:CompanyID schemeID="0191">${escapeXml(oib)}</cbc:CompanyID>` : ""}
+          ${oib ? `<cbc:CompanyID>${escapeXml(oib)}</cbc:CompanyID>` : ""}
         </cac:PartyLegalEntity>
-      </cac:Party>
+      </cac:Party>${sellerContactXml}
     </cac:${isSupplier ? "AccountingSupplierParty" : "AccountingCustomerParty"}>`
 }
 
 function generateInvoiceLineXml(line: EInvoiceLine): string {
+  // Croatian CIUS requires CPA classification (HR-BR-25)
+  // Per CIUS-2025 spec page 113-115: listID="CG" with KPD/CPA code
+  // Using exact code from spec example: 62.20.20 (Computer consultancy activities)
+  // TODO: Store actual CPA code in line item or product
+  const cpaCode = "62.20.20"
+
   return `
     <cac:InvoiceLine>
       <cbc:ID>${line.lineNumber}</cbc:ID>
@@ -92,6 +142,9 @@ function generateInvoiceLineXml(line: EInvoiceLine): string {
       <cbc:LineExtensionAmount currencyID="EUR">${formatDecimal(line.netAmount)}</cbc:LineExtensionAmount>
       <cac:Item>
         <cbc:Name>${escapeXml(line.description)}</cbc:Name>
+        <cac:CommodityClassification>
+          <cbc:ItemClassificationCode listID="CG">${escapeXml(cpaCode)}</cbc:ItemClassificationCode>
+        </cac:CommodityClassification>
         <cac:ClassifiedTaxCategory>
           <cbc:ID>${escapeXml(line.vatCategory)}</cbc:ID>
           <cbc:Percent>${formatDecimal(line.vatRate)}</cbc:Percent>
@@ -140,20 +193,29 @@ export function generateUBLInvoice(invoice: EInvoiceWithRelations): string {
     >
   )
 
+  // Get operator info for Croatian CIUS-2025
+  // HR-BT-4 (Oznaka operatera) = operator name/designation
+  // HR-BT-5 (OIB operatera) = operator's OIB (11 digits)
+  // These are placed in SellerContact element per CIUS-2025 spec page 23-24
+  // Note: operatorName field doesn't exist in schema yet, using company name or default
+  const operatorName = DEFAULT_OPERATOR_NAME
+  const operatorOib = invoice.operatorOib || company.oib || DEFAULT_OPERATOR_OIB
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="${UBL_NAMESPACES.invoice}"
          xmlns:cac="${UBL_NAMESPACES.cac}"
          xmlns:cbc="${UBL_NAMESPACES.cbc}">
-  <cbc:CustomizationID>${CUSTOMIZATION_ID}</cbc:CustomizationID>
-  <cbc:ProfileID>${PROFILE_ID}</cbc:ProfileID>
+  <cbc:CustomizationID>${CUSTOMIZATION_ID_HR}</cbc:CustomizationID>
+  <cbc:ProfileID>${PROFILE_ID_HR}</cbc:ProfileID>
   <cbc:ID>${escapeXml(invoice.invoiceNumber)}</cbc:ID>
   <cbc:IssueDate>${formatDate(invoice.issueDate)}</cbc:IssueDate>
+  <cbc:IssueTime>${formatTime(invoice.issueDate)}</cbc:IssueTime>
   ${invoice.dueDate ? `<cbc:DueDate>${formatDate(invoice.dueDate)}</cbc:DueDate>` : ""}
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>${escapeXml(invoice.currency)}</cbc:DocumentCurrencyCode>
   ${invoice.buyerReference ? `<cbc:BuyerReference>${escapeXml(invoice.buyerReference)}</cbc:BuyerReference>` : ""}
 
-  ${generatePartyXml(company, true)}
+  ${generatePartyXml(company, true, operatorName, operatorOib)}
   ${generatePartyXml(buyer, false)}
 
   ${

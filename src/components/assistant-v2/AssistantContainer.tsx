@@ -225,7 +225,7 @@ export function AssistantContainer({
             className={cn(
               "lg:col-span-2 p-4 border border-dashed rounded-lg",
               isDark
-                ? "bg-accent/5 border-cyan-500/20 text-white/70"
+                ? "bg-accent/5 border-accent/20 text-white/70"
                 : "bg-primary/5 border-default"
             )}
           >

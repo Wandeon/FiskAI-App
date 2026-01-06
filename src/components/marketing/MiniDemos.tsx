@@ -175,7 +175,7 @@ export function DemoExport({ reduce }: { reduce: boolean }) {
       <div className="flex items-center justify-between">
         <div className="h-2 w-28 overflow-hidden rounded-full bg-[var(--border-light)]">
           <motion.div
-            className="h-full rounded-full bg-green-600"
+            className="h-full rounded-full bg-success"
             initial={reduce ? false : { width: "0%" }}
             animate={reduce ? undefined : { width: ["0%", "100%"] }}
             transition={reduce ? undefined : { duration: 1.1, repeat: Infinity, repeatDelay: 0.6 }}
@@ -203,7 +203,7 @@ export function DemoStatusFlow({ reduce }: { reduce: boolean }) {
                 aria-hidden
                 className={cn(
                   "h-2.5 w-2.5 rounded-full",
-                  index < 2 ? "bg-green-600" : "bg-[var(--border)]"
+                  index < 2 ? "bg-success" : "bg-[var(--border)]"
                 )}
                 animate={
                   reduce ? undefined : index === 2 ? { opacity: [0.35, 1, 0.35] } : undefined

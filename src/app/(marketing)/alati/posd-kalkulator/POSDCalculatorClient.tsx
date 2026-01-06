@@ -240,9 +240,9 @@ export function POSDCalculatorClient() {
               className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-semibold",
                 deadlineInfo.daysLeft <= 7
-                  ? "bg-danger-bg0/20 text-red-300"
+                  ? "bg-danger-bg/20 text-danger-text"
                   : deadlineInfo.daysLeft <= 14
-                    ? "bg-warning-bg0/20 text-amber-300"
+                    ? "bg-warning-bg/20 text-warning-text"
                     : "bg-interactive/20 text-primary"
               )}
             >
@@ -335,7 +335,7 @@ export function POSDCalculatorClient() {
                         key={bank.name}
                         className="flex items-center gap-2 rounded-lg bg-surface/5 px-3 py-2"
                       >
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-success-text" />
                         <span className="text-sm font-medium text-white">{bank.name}</span>
                         <span className="ml-auto text-xs text-white/40">{bank.format}</span>
                       </div>
@@ -544,7 +544,7 @@ export function POSDCalculatorClient() {
                                 {tx.description.slice(0, 50)}
                               </p>
                             </div>
-                            <span className="font-medium text-green-500">
+                            <span className="font-medium text-success-text">
                               +{formatCurrency(tx.amount)}
                             </span>
                           </div>
@@ -615,7 +615,7 @@ export function POSDCalculatorClient() {
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="border-purple-200 bg-purple-50">
+                <Card className="border-category-expert bg-category-expert-bg">
                   <CardContent className="pt-6">
                     <p className="text-sm text-chart-2">Porezna osnovica</p>
                     <p className="text-2xl font-bold text-chart-1">
@@ -720,7 +720,7 @@ export function POSDCalculatorClient() {
                     </div>
                     <div className="flex justify-between border-t border-white/20 pt-3">
                       <span className="font-bold text-white">Neto nakon obveza</span>
-                      <span className="font-bold text-green-500">
+                      <span className="font-bold text-success-text">
                         {formatCurrency(result.netAfterTax)}
                       </span>
                     </div>

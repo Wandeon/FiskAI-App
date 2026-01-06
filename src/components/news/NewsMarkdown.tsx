@@ -11,7 +11,7 @@ export function NewsMarkdown({ content, className }: NewsMarkdownProps) {
   return (
     <div
       className={cn(
-        "prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-link prose-strong:text-white prose-code:text-blue-300 prose-pre:border prose-pre:border-white/10 prose-pre:bg-surface/5",
+        "prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-link prose-strong:text-white prose-code:text-info-text prose-pre:border prose-pre:border-white/10 prose-pre:bg-surface/5",
         className
       )}
     >
@@ -28,7 +28,7 @@ export function NewsMarkdown({ content, className }: NewsMarkdownProps) {
                 target={isExternal ? "_blank" : undefined}
                 rel={isExternal ? "noopener noreferrer" : undefined}
                 className={cn(
-                  "text-link underline decoration-white/20 underline-offset-4 hover:text-blue-300",
+                  "text-link underline decoration-white/20 underline-offset-4 hover:text-info-text",
                   anchorClassName
                 )}
                 {...props}

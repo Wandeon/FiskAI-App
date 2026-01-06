@@ -33,7 +33,7 @@ const calloutStyles: Record<
   },
   tip: {
     bg: "bg-chart-4/10",
-    border: "border-emerald-500/20",
+    border: "border-success/20",
     iconBg: "bg-chart-4/20",
     iconColor: "text-success",
     icon: PiggyBank,

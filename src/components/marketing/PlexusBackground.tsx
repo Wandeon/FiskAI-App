@@ -219,7 +219,7 @@ export function PlexusBackground({
   return (
     <canvas
       ref={canvasRef}
-      className={cn("absolute inset-0 h-full w-full opacity-70", className)}
+      className={cn("pointer-events-none absolute inset-0 h-full w-full opacity-70", className)}
       aria-hidden="true"
     />
   )

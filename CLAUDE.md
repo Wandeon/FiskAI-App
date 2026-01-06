@@ -419,6 +419,12 @@ Key variables configured:
 - `RESEND_API_KEY` - Email service
 - `RESEND_FROM_EMAIL` - FiskAI <noreply@fiskai.hr>
 
+## Integration Vault
+
+- `INTEGRATION_VAULT_KEY` - Master encryption key for IntegrationAccount secrets (32-byte hex = 64 characters)
+
+Generate with: `openssl rand -hex 32`
+
 ## AI API Key Security
 
 **CRITICAL: AI API keys must remain server-side only.**

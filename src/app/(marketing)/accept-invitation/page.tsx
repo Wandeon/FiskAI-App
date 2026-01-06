@@ -123,7 +123,7 @@ export default function AcceptInvitationPage() {
   // Verifying state
   if (verifying) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-info-bg via-white to-surface-2">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -137,7 +137,7 @@ export default function AcceptInvitationPage() {
   // Error state (invalid/expired token)
   if (error && !invitation) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-info-bg via-white to-surface-2">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-bg">
@@ -164,11 +164,11 @@ export default function AcceptInvitationPage() {
 
   // Registration form
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-info-bg via-white to-surface-2 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100">
-            <CheckCircle className="h-10 w-10 text-indigo-600" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-bg">
+            <CheckCircle className="h-10 w-10 text-success-text" />
           </div>
           <CardTitle className="text-2xl">Dobrodošli u FiskAI</CardTitle>
           <CardDescription>
@@ -177,22 +177,22 @@ export default function AcceptInvitationPage() {
         </CardHeader>
         <CardContent>
           {/* Invitation details */}
-          <div className="mb-6 rounded-lg bg-indigo-50 p-4">
+          <div className="mb-6 rounded-lg bg-info-bg p-4">
             <div className="space-y-2 text-sm">
               <div>
-                <span className="font-medium text-indigo-900">Email:</span>{" "}
-                <span className="text-indigo-700">{invitation?.email}</span>
+                <span className="font-medium text-foreground">Email:</span>{" "}
+                <span className="text-info-text">{invitation?.email}</span>
               </div>
               {invitation?.companyName && (
                 <div>
-                  <span className="font-medium text-indigo-900">Tvrtka:</span>{" "}
-                  <span className="text-indigo-700">{invitation.companyName}</span>
+                  <span className="font-medium text-foreground">Tvrtka:</span>{" "}
+                  <span className="text-info-text">{invitation.companyName}</span>
                 </div>
               )}
               {invitation?.message && (
                 <div>
-                  <span className="font-medium text-indigo-900">Poruka:</span>{" "}
-                  <p className="mt-1 text-indigo-700">{invitation.message}</p>
+                  <span className="font-medium text-foreground">Poruka:</span>{" "}
+                  <p className="mt-1 text-info-text">{invitation.message}</p>
                 </div>
               )}
             </div>

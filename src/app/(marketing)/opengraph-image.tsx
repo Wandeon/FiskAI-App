@@ -1,3 +1,4 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors -- OG image generation uses inline styles for PNG output */
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"

@@ -99,7 +99,7 @@ export function BetaFeedbackWidget({ feature, className }: BetaFeedbackWidgetPro
                       className={cn(
                         "rounded p-1.5 transition-colors",
                         selectedRating && selectedRating >= rating
-                          ? "text-amber-500"
+                          ? "text-warning"
                           : "text-muted hover:text-warning"
                       )}
                       aria-label={`Ocjena ${rating} od 5`}

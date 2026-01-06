@@ -116,7 +116,7 @@ export default async function AccountantControlCenterPage() {
   })
 
   if (user?.systemRole !== "STAFF" && user?.systemRole !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/")
   }
 
   // Fetch items for all queues

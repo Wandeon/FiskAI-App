@@ -72,8 +72,8 @@ const tools: ToolCard[] = [
     subtitle: "Iz izvoda",
     description: "Učitaj XML iz banke",
     href: "/alati/posd-kalkulator",
-    color: "text-rose-400",
-    bgGlow: "group-hover:shadow-rose-500/20",
+    color: "text-danger-text",
+    bgGlow: "group-hover:shadow-danger/20",
   },
 ]
 
@@ -180,7 +180,7 @@ export function ToolsGrid({ className }: { className?: string }) {
             <div
               className={cn(
                 "mb-3 flex h-12 w-12 items-center justify-center rounded-xl",
-                "bg-gradient-to-br from-interactive to-indigo-600"
+                "bg-gradient-to-br from-interactive to-chart-2"
               )}
             >
               <Icon className="h-6 w-6 text-white" />

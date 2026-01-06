@@ -339,10 +339,10 @@ export default async function VatThresholdReportPage() {
                       width: `${Math.min(month.percentageOfThreshold * 2.5, 100)}%`,
                       backgroundColor:
                         month.percentageOfThreshold >= 100
-                          ? "#ef4444" // Red if over threshold
+                          ? "var(--danger)" // Red if over threshold
                           : month.percentageOfThreshold >= 85
-                            ? "#f59e0b" // Amber if approaching
-                            : "#3b82f6", // Blue if normal
+                            ? "var(--warning)" // Amber if approaching
+                            : "var(--interactive)", // Blue if normal
                     }}
                   ></div>
                 </div>

@@ -17,9 +17,9 @@ const LIGHT_STYLES: Record<AuthorityLevel, string> = {
 }
 
 const DARK_STYLES: Record<AuthorityLevel, string> = {
-  LAW: "bg-purple-900/30 text-purple-300 border border-purple-500/30",
-  REGULATION: "bg-blue-900/30 text-blue-300 border border-focus/30",
-  GUIDANCE: "bg-green-900/30 text-green-300 border border-success-border/30",
+  LAW: "bg-category-expert-bg text-category-expert-text border border-category-expert/30",
+  REGULATION: "bg-info-bg text-info-text border border-focus/30",
+  GUIDANCE: "bg-success-bg text-success-text border border-success-border/30",
   PRACTICE: "bg-surface-elevated/30 text-secondary border border-subtle/30",
 }
 

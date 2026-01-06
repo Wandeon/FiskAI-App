@@ -1,3 +1,4 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors -- @design-override: Global error boundary uses inline styles because CSS may not load during critical errors */
 "use client"
 
 import * as Sentry from "@sentry/nextjs"

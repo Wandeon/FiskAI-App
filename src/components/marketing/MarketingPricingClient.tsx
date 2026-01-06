@@ -111,7 +111,7 @@ export function MarketingPricingClient() {
         ],
         ctaLabel: "Kontaktirajte prodaju",
         ctaHref: "/contact",
-        ctaClassName: "bg-gradient-to-r from-chart-2 to-indigo-600",
+        ctaClassName: "bg-gradient-to-r from-chart-2 to-interactive",
         footnote: "Timska obuka i prilagođena implementacija",
       },
     ],
@@ -166,7 +166,7 @@ export function MarketingPricingClient() {
                 className={cn(
                   "relative h-9 w-16 rounded-full border transition-colors",
                   billing === "annual"
-                    ? "border-cyan-500 bg-accent"
+                    ? "border-accent bg-accent"
                     : "border-white/10 bg-surface/10"
                 )}
               >
@@ -405,7 +405,7 @@ export function MarketingPricingClient() {
         </Reveal>
 
         <Reveal>
-          <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-accent/10 to-interactive/10 p-8">
+          <div className="rounded-2xl border border-accent/30 bg-gradient-to-r from-accent/10 to-interactive/10 p-8">
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface/10">

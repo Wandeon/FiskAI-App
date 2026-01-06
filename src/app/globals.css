@@ -13,23 +13,31 @@
   --line-height-snug: 1.3;
   --line-height-relaxed: 1.6;
 
+  /* ─────────────────────────────────────────────────────────────
+     LEGACY COMPATIBILITY LAYER
+     These variables map to the new design system tokens.
+     TODO: Migrate usages to semantic tokens, then remove.
+     ───────────────────────────────────────────────────────────── */
+
   /* Colors - Default to Dark Mode Base to prevent white flash */
-  --background: #020617; /* Slate 950 */
-  --foreground: #f8fafc;
-  --surface: #1e293b;
-  --surface-secondary: #334155;
-  --surface-elevated: #1e293b;
-  --border: #334155;
-  --border-light: #1e293b;
-  --muted: #94a3b8;
-  --accent: #60a5fa;
-  --accent-foreground: #0f172a;
+  --background: var(--surface-base);
+  --foreground: var(--text-primary);
+  --surface: var(--surface-0);
+  --surface-secondary: var(--surface-1);
+  --surface-elevated: var(--surface-elevated);
+  --border: var(--border-default);
+  --border-light: var(--border-subtle);
+  --muted: var(--text-tertiary);
+  --accent: var(--interactive-primary);
+  --accent-foreground: #ffffff;
+
+  /* Glass effects (no direct token equivalent) */
   --glass-surface: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(148, 163, 184, 0.25);
   --gradient-hero: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
   --gradient-card: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(248, 113, 113, 0.08));
 
-  /* Shadows */
+  /* Shadows (no direct token equivalent) */
   --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.3);
   --shadow-card-hover: 0 25px 50px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.35);
@@ -46,16 +54,18 @@
 }
 
 /* Light Theme Overrides (Applied when class="light" is present) */
+/* NOTE: These are now redundant since :root inherits from design tokens,
+   but kept for backwards compatibility with components checking .light class */
 .light {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --surface: #ffffff;
-  --surface-secondary: #f1f5f9;
-  --surface-elevated: #ffffff;
-  --border: #e2e8f0;
-  --border-light: #f1f5f9;
-  --muted: #64748b;
-  --accent: #3b82f6;
+  --background: var(--surface-base);
+  --foreground: var(--text-primary);
+  --surface: var(--surface-0);
+  --surface-secondary: var(--surface-1);
+  --surface-elevated: var(--surface-elevated);
+  --border: var(--border-default);
+  --border-light: var(--border-subtle);
+  --muted: var(--text-tertiary);
+  --accent: var(--interactive-primary);
   --accent-foreground: #ffffff;
   --glass-surface: rgba(255, 255, 255, 0.9);
   --glass-border: rgba(255, 255, 255, 0.35);
@@ -64,16 +74,18 @@
 }
 
 /* Dark Theme - Applied when class="dark" is on <html> or ancestor */
+/* NOTE: Design tokens already handle dark mode via .dark selector in variables.css,
+   these mappings ensure legacy variable consumers get correct dark values */
 .dark {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --surface: #1e293b;
-  --surface-secondary: #334155;
-  --surface-elevated: #1e293b;
-  --border: #334155;
-  --border-light: #1e293b;
-  --muted: #94a3b8;
-  --accent: #60a5fa;
+  --background: var(--surface-base);
+  --foreground: var(--text-primary);
+  --surface: var(--surface-0);
+  --surface-secondary: var(--surface-1);
+  --surface-elevated: var(--surface-elevated);
+  --border: var(--border-default);
+  --border-light: var(--border-subtle);
+  --muted: var(--text-tertiary);
+  --accent: var(--interactive-primary);
   --accent-foreground: #0f172a;
   --glass-surface: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(148, 163, 184, 0.25);

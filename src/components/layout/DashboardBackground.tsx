@@ -1,3 +1,4 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors -- @design-override: Decorative animated background uses hardcoded colors for smooth framer-motion color transitions. CSS variables don't interpolate well in motion animations. */
 "use client"
 
 import { motion } from "framer-motion"

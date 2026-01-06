@@ -152,12 +152,11 @@ export function useAuthFlow() {
           const currentHost = window.location.host
           const destUrl = new URL(destinationBase)
 
-          // Add /dashboard if it's not already there (getRedirectUrlForSystemRole returns base domain)
-          if (
-            !destUrl.pathname.startsWith("/dashboard") &&
-            !destUrl.pathname.startsWith("/select-role")
-          ) {
-            destUrl.pathname = "/dashboard"
+          // Let middleware handle the redirect to control-center for authenticated users
+          // getRedirectUrlForSystemRole returns the base portal URL (e.g., https://app.fiskai.hr)
+          // Middleware will redirect "/" to the appropriate control-center path
+          if (!destUrl.pathname.startsWith("/select-role")) {
+            destUrl.pathname = "/"
           }
 
           if (destUrl.host !== currentHost) {
@@ -166,8 +165,8 @@ export function useAuthFlow() {
             router.push(destUrl.pathname + destUrl.search)
           }
         } catch {
-          // Fallback to simple dashboard redirect
-          router.push("/dashboard")
+          // Fallback to root - middleware handles control-center redirect
+          router.push("/")
         }
       })()
     }, 1500)

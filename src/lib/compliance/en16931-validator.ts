@@ -227,6 +227,268 @@ export function validateCroatianCompliance(invoice: EN16931Invoice): ComplianceR
 }
 
 /**
+ * B2B E-Invoice Preflight Validation
+ *
+ * Checks master data requirements before sending to e-invoice provider.
+ * Based on EN 16931 business terms (BT-*) and Croatian requirements.
+ *
+ * This must pass BEFORE calling provider.sendInvoice() to avoid
+ * rejected invoices due to missing/invalid identifiers.
+ */
+export interface PreflightResult {
+  valid: boolean
+  errors: { field: string; btCode: string; message: string }[]
+  warnings: string[]
+}
+
+export function validateB2BEInvoicePreflight(invoice: EN16931Invoice): PreflightResult {
+  const errors: PreflightResult["errors"] = []
+  const warnings: string[] = []
+
+  // === SELLER (Company) validation ===
+  const company = invoice.company
+
+  if (!company) {
+    errors.push({
+      field: "company",
+      btCode: "BG-4",
+      message: "Seller party (company) is required",
+    })
+  } else {
+    // BT-32: Seller Tax Registration Identifier (OIB for Croatian companies)
+    if (!company.oib) {
+      errors.push({
+        field: "company.oib",
+        btCode: "BT-32",
+        message: "Seller tax registration identifier (OIB) is required",
+      })
+    } else if (!/^\d{11}$/.test(company.oib)) {
+      errors.push({
+        field: "company.oib",
+        btCode: "BT-32",
+        message: "Seller OIB must be exactly 11 digits",
+      })
+    }
+
+    // BT-31: Seller VAT Identifier - required for standard VAT rate invoices
+    // For Croatian companies, vatNumber should be HR + OIB
+    const hasStandardVatLine = invoice.lines?.some(
+      (line) => line.vatCategory === "S" || (line.vatRate && Number(line.vatRate) > 0)
+    )
+
+    if (hasStandardVatLine) {
+      if (!company.vatNumber) {
+        errors.push({
+          field: "company.vatNumber",
+          btCode: "BT-31",
+          message:
+            "Seller VAT identifier is required for invoices with standard VAT rate (BR-S-02). " +
+            "For Croatian companies, set vatNumber to HR + OIB (e.g., HR12345678901)",
+        })
+      } else if (company.country === "HR" && !company.vatNumber.startsWith("HR")) {
+        warnings.push(
+          `Seller VAT number should start with HR for Croatian companies (current: ${company.vatNumber})`
+        )
+      }
+    }
+
+    // Seller address validation
+    if (!company.address) {
+      errors.push({
+        field: "company.address",
+        btCode: "BT-35",
+        message: "Seller street address is required",
+      })
+    }
+
+    if (!company.city) {
+      errors.push({
+        field: "company.city",
+        btCode: "BT-37",
+        message: "Seller city is required",
+      })
+    }
+
+    if (!company.postalCode) {
+      errors.push({
+        field: "company.postalCode",
+        btCode: "BT-38",
+        message: "Seller postal code is required",
+      })
+    }
+
+    if (!company.country) {
+      errors.push({
+        field: "company.country",
+        btCode: "BT-40",
+        message: "Seller country code is required",
+      })
+    } else if (!/^[A-Z]{2}$/.test(company.country)) {
+      errors.push({
+        field: "company.country",
+        btCode: "BT-40",
+        message: "Seller country must be ISO 3166-1 alpha-2 code (e.g., HR)",
+      })
+    }
+
+    // === CROATIAN CIUS-2025 OPERATOR VALIDATION ===
+    // HR-BT-5 (OIB operatera) - operator OIB is mandatory per HR-BR-9
+    // Per CIUS-2025 spec page 23: placed in SellerContact/cbc:ID
+    // Falls back to company.oib if invoice.operatorOib not set
+    const operatorOib = invoice.operatorOib || company.oib
+    if (!operatorOib) {
+      errors.push({
+        field: "operatorOib",
+        btCode: "HR-BT-5",
+        message:
+          "Operator OIB is required per HR-BR-9. " +
+          "Either set operatorOib on invoice or ensure company.oib is set.",
+      })
+    } else if (!/^\d{11}$/.test(operatorOib)) {
+      errors.push({
+        field: "operatorOib",
+        btCode: "HR-BT-5",
+        message: "Operator OIB must be exactly 11 digits",
+      })
+    }
+
+    // HR-BT-4 (Oznaka operatera) - operator designation mandatory per HR-BR-37
+    // Currently using default "Operator-1" since operatorName not in schema
+    // This is acceptable per spec - just needs to be non-empty
+  }
+
+  // === BUYER (Contact) validation ===
+  const buyer = invoice.buyer
+
+  if (!buyer) {
+    errors.push({
+      field: "buyer",
+      btCode: "BG-7",
+      message: "Buyer party is required for B2B invoices",
+    })
+  } else {
+    // BT-48: Buyer VAT Identifier - required for B2B
+    if (!buyer.vatNumber) {
+      // For B2B, buyer must have VAT number
+      if (buyer.oib && buyer.country === "HR") {
+        errors.push({
+          field: "buyer.vatNumber",
+          btCode: "BT-48",
+          message:
+            "Buyer VAT identifier is required for B2B invoices. " +
+            "For Croatian buyers, set vatNumber to HR + OIB (e.g., HR98765432109)",
+        })
+      } else {
+        errors.push({
+          field: "buyer.vatNumber",
+          btCode: "BT-48",
+          message: "Buyer VAT identifier is required for B2B invoices",
+        })
+      }
+    }
+
+    // Buyer address validation
+    if (!buyer.address) {
+      warnings.push("Buyer street address (BT-50) is recommended")
+    }
+
+    if (!buyer.city) {
+      warnings.push("Buyer city (BT-52) is recommended")
+    }
+
+    if (!buyer.country) {
+      errors.push({
+        field: "buyer.country",
+        btCode: "BT-55",
+        message: "Buyer country code is required",
+      })
+    } else if (!/^[A-Z]{2}$/.test(buyer.country)) {
+      errors.push({
+        field: "buyer.country",
+        btCode: "BT-55",
+        message: "Buyer country must be ISO 3166-1 alpha-2 code (e.g., HR)",
+      })
+    }
+  }
+
+  // === Invoice line validation ===
+  if (invoice.lines && invoice.lines.length > 0) {
+    invoice.lines.forEach((line, index) => {
+      // BT-151: VAT category code is required
+      if (!line.vatCategory) {
+        errors.push({
+          field: `lines[${index}].vatCategory`,
+          btCode: "BT-151",
+          message: `Line ${index + 1}: VAT category code is required (S, Z, E, AE, etc.)`,
+        })
+      }
+
+      // HR-BR-25: Each item MUST have CPA classification code (BT-158)
+      // Per CIUS-2025 spec page 113: CommodityClassification with listID="CG"
+      // Note: cpaCode field not in schema yet - UBL generator uses default "62.02"
+      // TODO: Add cpaCode field to EInvoiceLine schema when ready
+    })
+
+    // Add warning that CPA codes are being defaulted
+    warnings.push(
+      "HR-BR-25: CPA classification codes (BT-158) not in schema - using default '62.02'. " +
+        "For production, add cpaCode field to line items with actual KPD/CPA codes."
+    )
+  }
+
+  // === Invoice-level validation ===
+  if (!invoice.currency) {
+    errors.push({
+      field: "currency",
+      btCode: "BT-5",
+      message: "Invoice currency code is required",
+    })
+  } else if (!/^[A-Z]{3}$/.test(invoice.currency)) {
+    errors.push({
+      field: "currency",
+      btCode: "BT-5",
+      message: "Currency must be ISO 4217 code (e.g., EUR)",
+    })
+  }
+
+  if (!invoice.invoiceNumber) {
+    errors.push({
+      field: "invoiceNumber",
+      btCode: "BT-1",
+      message: "Invoice number is required",
+    })
+  }
+
+  if (!invoice.issueDate) {
+    errors.push({
+      field: "issueDate",
+      btCode: "BT-2",
+      message: "Invoice issue date is required",
+    })
+  }
+
+  const result: PreflightResult = {
+    valid: errors.length === 0,
+    errors,
+    warnings,
+  }
+
+  logger.info(
+    {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      valid: result.valid,
+      errorCount: result.errors.length,
+      warningCount: result.warnings.length,
+      operation: "b2b_einvoice_preflight",
+    },
+    `B2B e-invoice preflight ${result.valid ? "passed" : "FAILED"}`
+  )
+
+  return result
+}
+
+/**
  * Get compliance summary for an invoice
  */
 export function getComplianceSummary(invoice: EN16931Invoice): {

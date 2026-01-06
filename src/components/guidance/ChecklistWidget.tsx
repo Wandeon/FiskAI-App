@@ -142,7 +142,7 @@ export function ChecklistWidget({ initialItems, initialStats }: ChecklistWidgetP
         <div className="mt-4 pt-4 border-t border-white/10">
           <Link
             href="/checklist"
-            className="flex items-center justify-between text-sm text-accent hover:text-cyan-300 transition-colors"
+            className="flex items-center justify-between text-sm text-accent hover:text-accent-light transition-colors"
           >
             <span>
               Još {stats.total - items.length} zadatak
