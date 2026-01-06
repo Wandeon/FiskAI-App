@@ -1,6 +1,11 @@
 {
   "root": true,
-  "ignorePatterns": ["src/generated/**", "src/design-system/eslint/**/*.js"],
+  "ignorePatterns": [
+    "src/generated/**",
+    "src/design-system/eslint/**/*.js",
+    "src/design-system/tokens/**",
+    "src/design-system/scripts/**"
+  ],
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],
   "parserOptions": {
