@@ -69,18 +69,18 @@
   },
   "overrides": [
     {
-      "files": [
-        "src/app/(app)/**/*",
-        "src/app/(admin)/**/*",
-        "src/app/(staff)/**/*"
-      ],
+      "files": ["src/**/*"],
       "rules": {
         "fisk-design-system/no-hardcoded-colors": "error"
       }
     },
     {
       "files": [
-        "src/components/**/*",
+        "src/components/news/**/*",
+        "src/components/assistant-v2/**/*",
+        "src/components/marketing/**/*",
+        "src/components/knowledge-hub/**/*",
+        "src/components/ui/command-palette/**/*",
         "src/app/(marketing)/**/*"
       ],
       "rules": {

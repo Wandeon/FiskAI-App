@@ -11,7 +11,8 @@
 
 | Category | Before | After | Progress |
 |----------|--------|-------|----------|
-| Raw Tailwind palette | 125 | 50 | -60% |
+| Raw Tailwind palette | 125 | 103 (quarantined) | -18%, HARDENED |
+| Violations outside quarantine | - | 0 | ENFORCED |
 | Arbitrary color values | 960 | TBD | - |
 | Hex colors in code | 1070 | TBD | - |
 | Legacy CSS variables | 513 | TBD | - |
@@ -30,11 +31,22 @@ Created initial violation inventory.
 - Kept `warn` for marketing and components (pending migration)
 
 ### Phase 3: Token Migration ✅
-- Fixed 45 violations in src/components (95 → 50)
-- Remaining 50 violations are in dark-mode aesthetic components:
-  - `news/` (14) - Dark-first news components
-  - `marketing/` (19) - Hero/landing dark gradients
-  - `assistant-v2/` (17) - Cockpit/HUD aesthetic
+- Fixed 45+ violations in src/components
+- Additional fixes in app/staff, components/ai, components/staff, lib/documents
+- Remaining 103 violations quarantined with mechanical enforcement
+
+### Phase 3.5: Quarantine Hardening ✅
+- Defined quarantine boundary (6 folder paths)
+- ESLint enforces `error` outside quarantine, `warn` inside
+- CI script `scripts/check-raw-palette.mjs` prevents spread
+- Cap set to 103 - violations cannot increase
+- Quarantine folders:
+  - `src/components/news/` - Dark-first news UI
+  - `src/components/assistant-v2/` - Cockpit/HUD aesthetic
+  - `src/components/marketing/` - Hero/landing gradients
+  - `src/components/knowledge-hub/` - Category color-coding
+  - `src/components/ui/command-palette/` - Entry type colors
+  - `src/app/(marketing)/` - Marketing routes
 
 ### Phase 4: Spacing Normalization ⏭️ SKIPPED
 - Zero arbitrary spacing violations in app/admin/staff routes

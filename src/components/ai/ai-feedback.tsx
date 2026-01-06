@@ -158,7 +158,7 @@ export function AIFeedback({
           <button
             onClick={() => handleFeedbackClick("partial")}
             disabled={isSubmitting}
-            className="p-1 text-muted hover:text-orange-600 transition-colors disabled:opacity-50"
+            className="p-1 text-muted hover:text-warning transition-colors disabled:opacity-50"
             title="Prijavi problem"
           >
             <AlertCircle className="h-4 w-4" />

@@ -309,7 +309,7 @@ export function ContactFilters({
                 <button
                   type="button"
                   onClick={() => deletePreset(preset.name)}
-                  className="text-[var(--muted)] hover:text-rose-600"
+                  className="text-[var(--muted)] hover:text-danger"
                   aria-label={`Obriši preset ${preset.name}`}
                 >
                   ×

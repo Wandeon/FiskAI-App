@@ -283,7 +283,7 @@ export default async function ClientEInvoicesPage({ params, searchParams }: Page
         </Card>
         <Link href={`/clients/${clientId}/e-invoices?filter=pending`}>
           <Card
-            className={`cursor-pointer transition-colors hover:bg-accent/50 ${filter === "pending" ? "border-orange-500 bg-warning-bg" : ""}`}
+            className={`cursor-pointer transition-colors hover:bg-accent/50 ${filter === "pending" ? "border-warning-border bg-warning-bg" : ""}`}
           >
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Za pregledati</p>

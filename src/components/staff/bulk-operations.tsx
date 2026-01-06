@@ -394,8 +394,8 @@ export function BulkOperations() {
                     {reportData.totals.netProfit.toFixed(2)} EUR
                   </div>
                 </div>
-                <div className="p-4 bg-warning-bg dark:bg-orange-950 rounded-lg">
-                  <div className="flex items-center gap-2 text-warning-text dark:text-orange-400 mb-1">
+                <div className="p-4 bg-warning-bg rounded-lg">
+                  <div className="flex items-center gap-2 text-warning-text mb-1">
                     <ClipboardCheck className="h-4 w-4" />
                     <span className="text-sm font-medium">Pending Review</span>
                   </div>
