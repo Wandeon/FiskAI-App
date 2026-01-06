@@ -1,0 +1,207 @@
+# DOCS_MANIFEST.yaml
+# Documentation Governance Manifest
+# Created: 2026-01-05
+# Purpose: Machine-readable rules for AI agents and tooling
+
+version: "1.0.0"
+last_updated: "2026-01-05"
+
+# ============================================================================
+# FOLDER DEFINITIONS
+# ============================================================================
+folders:
+  product-bible:
+    path: "docs/product-bible/"
+    purpose: "Source of truth for product specification"
+    owner: "Product team"
+    update_rules:
+      - "Version bump required for any change"
+      - "Changes require explicit human approval"
+      - "Never edit during feature development"
+    allowed_content:
+      - "Product vision and architecture"
+      - "User personas and journeys"
+      - "Legal and compliance requirements"
+      - "Access control specifications"
+      - "UI/UX standards"
+      - "Integration specifications"
+      - "Data and API contracts"
+    forbidden_content:
+      - "Draft content"
+      - "Working documents"
+      - "Implementation plans"
+      - "Audit reports"
+    write_protected: true
+
+  architecture:
+    path: "docs/01_ARCHITECTURE/"
+    purpose: "System architecture documentation"
+    owner: "Engineering team"
+    update_rules:
+      - "ADR required for architectural changes"
+      - "Link to relevant Product Bible section"
+    allowed_content:
+      - "System design documents"
+      - "Component diagrams"
+      - "Integration patterns"
+    forbidden_content:
+      - "Feature specifications"
+      - "Implementation details"
+
+  features:
+    path: "docs/02_FEATURES/"
+    purpose: "Feature specifications and registry"
+    owner: "Product team"
+    update_rules:
+      - "Feature registry must stay current"
+      - "Status labels required"
+    allowed_content:
+      - "Feature specifications"
+      - "Component library docs"
+      - "Feature registry"
+    forbidden_content:
+      - "Architecture decisions"
+      - "Audit reports"
+
+  audits:
+    path: "docs/audits/"
+    purpose: "Audit reports and evidence"
+    owner: "Compliance team"
+    update_rules:
+      - "Append-only mindset"
+      - "Never modify historical records"
+      - "Date prefix required (YYYY-MM-DD)"
+    allowed_content:
+      - "Audit reports"
+      - "Compliance evidence"
+      - "Schema audits"
+      - "Security assessments"
+    forbidden_content:
+      - "Implementation plans"
+      - "Feature specs"
+    subdirectories:
+      _archive:
+        purpose: "Historical/deprecated audit docs"
+        write_protected: false
+
+  07_AUDITS:
+    path: "docs/07_AUDITS/"
+    purpose: "Structured audit runs with evidence"
+    owner: "Compliance team"
+    update_rules:
+      - "Follow audit playbook"
+      - "Evidence must be immutable"
+    subdirectories:
+      runs:
+        purpose: "Dated audit execution records"
+
+  plans:
+    path: "docs/plans/"
+    purpose: "Implementation plans only"
+    owner: "Engineering team"
+    update_rules:
+      - "Date prefix required (YYYY-MM-DD)"
+      - "Move to archived/ when complete"
+    allowed_content:
+      - "Implementation plans"
+      - "Design documents"
+      - "Phase breakdowns"
+    forbidden_content:
+      - "Audit reports"
+      - "Product specifications"
+    subdirectories:
+      archived:
+        purpose: "Completed or abandoned plans"
+
+  adr:
+    path: "docs/adr/"
+    purpose: "Architecture Decision Records"
+    owner: "Engineering team"
+    update_rules:
+      - "Sequential numbering (001, 002, ...)"
+      - "Never delete, only supersede"
+      - "Status field required"
+    allowed_content:
+      - "Architecture decisions"
+      - "Trade-off analyses"
+      - "Decision rationale"
+
+  operations:
+    path: "docs/operations/"
+    purpose: "Operational runbooks"
+    owner: "DevOps team"
+    allowed_content:
+      - "Runbooks"
+      - "Migration guides"
+      - "Monitoring setup"
+
+  _meta:
+    path: "docs/_meta/"
+    purpose: "Meta-documentation and tooling"
+    owner: "Systems team"
+    subdirectories:
+      retired:
+        purpose: "Tombstone records for removed content"
+      inventory:
+        purpose: "Auto-generated inventory files"
+      scripts:
+        purpose: "Documentation tooling scripts"
+      templates:
+        purpose: "Document templates"
+
+  _archive:
+    path: "docs/_archive/"
+    purpose: "Deprecated documentation"
+    owner: "Systems team"
+    update_rules:
+      - "Read-only except for archival operations"
+      - "Never reference from active docs"
+
+# ============================================================================
+# INVARIANTS
+# ============================================================================
+invariants:
+  - id: "INV-001"
+    rule: "Exactly one product-bible directory"
+    check: "find . -type d -name 'product-bible' | grep -v architecture-erp | wc -l == 1"
+
+  - id: "INV-002"
+    rule: "No .md files outside docs/ except CLAUDE.md, CHANGELOG.md, README.md"
+    check: "find . -name '*.md' -not -path './docs/*' | grep -v CLAUDE.md | grep -v CHANGELOG.md | grep -v README.md | wc -l == 0"
+
+  - id: "INV-003"
+    rule: "All audit files have date prefix"
+    check: "find docs/audits -name '*.md' | xargs -I{} basename {} | grep -v '^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' | grep -v '^_' | wc -l == 0"
+
+  - id: "INV-004"
+    rule: "Product Bible files are versioned"
+    check: "grep -l 'Version:' docs/product-bible/*.md | wc -l >= 1"
+
+# ============================================================================
+# AI AGENT RULES
+# ============================================================================
+ai_agent_rules:
+  - "Never create files outside docs/ without explicit human approval"
+  - "Never modify product-bible/ without version bump"
+  - "Always use date prefix for audit and plan files"
+  - "Check DOCS_MANIFEST.yaml before creating new directories"
+  - "Respect write_protected folders"
+  - "Archive, never delete historical content"
+
+# ============================================================================
+# NAMING CONVENTIONS
+# ============================================================================
+naming:
+  date_prefix: "YYYY-MM-DD"
+  adr_prefix: "NNN-"
+  allowed_extensions:
+    - ".md"
+    - ".yaml"
+    - ".json"
+    - ".csv"
+  forbidden_patterns:
+    - "final"
+    - "final_v2"
+    - "backup"
+    - "copy"
+    - "old"
