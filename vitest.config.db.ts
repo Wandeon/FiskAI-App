@@ -15,7 +15,7 @@ export default defineConfig({
     include: ["**/*.db.test.ts"],
     // No setupFiles - DB tests use real database, not mocks
     setupFiles: [],
-    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**", ".worktrees/**", "architecture-erp/**"],
     // Force serial execution to prevent race conditions on shared DB state
     // This is a temporary stabilizer until proper test isolation is implemented
     fileParallelism: false,
