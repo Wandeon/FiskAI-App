@@ -1,23 +1,36 @@
 // src/lib/article-agent/verification/embedder.ts
-// Ollama Cloud embeddings API
+// Embeddings API - uses dedicated endpoint (local Ollama via Tailscale)
+// Separate from extraction/LLM which uses Ollama Cloud
 
-import { getOllamaConfig, OllamaError } from "../llm/ollama-client"
+import { OllamaError } from "../llm/ollama-client"
+
+/**
+ * Get embedding-specific configuration.
+ * Uses OLLAMA_EMBED_* env vars, completely separate from LLM/extraction config.
+ */
+function getEmbedConfig() {
+  return {
+    endpoint: process.env.OLLAMA_EMBED_ENDPOINT || "http://localhost:11434",
+    model: process.env.OLLAMA_EMBED_MODEL || "nomic-embed-text",
+    dims: parseInt(process.env.OLLAMA_EMBED_DIMS || "768"),
+    apiKey: process.env.OLLAMA_EMBED_API_KEY,
+  }
+}
 
 export async function embedText(text: string): Promise<number[]> {
-  const config = getOllamaConfig()
+  const config = getEmbedConfig()
 
-  if (!config.apiKey) {
-    throw new OllamaError("OLLAMA_API_KEY is required for embeddings")
+  const headers: HeadersInit = { "Content-Type": "application/json" }
+  // Only add auth header if API key is set and not "local"
+  if (config.apiKey && config.apiKey !== "local") {
+    headers["Authorization"] = `Bearer ${config.apiKey}`
   }
 
   const response = await fetch(`${config.endpoint}/api/embed`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.apiKey}`,
-    },
+    headers,
     body: JSON.stringify({
-      model: config.embedModel,
+      model: config.model,
       input: text,
     }),
   })
@@ -39,21 +52,20 @@ export async function embedText(text: string): Promise<number[]> {
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return []
 
-  const config = getOllamaConfig()
+  const config = getEmbedConfig()
 
-  if (!config.apiKey) {
-    throw new OllamaError("OLLAMA_API_KEY is required for embeddings")
+  const headers: HeadersInit = { "Content-Type": "application/json" }
+  // Only add auth header if API key is set and not "local"
+  if (config.apiKey && config.apiKey !== "local") {
+    headers["Authorization"] = `Bearer ${config.apiKey}`
   }
 
   // Ollama embed API supports batch input
   const response = await fetch(`${config.endpoint}/api/embed`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.apiKey}`,
-    },
+    headers,
     body: JSON.stringify({
-      model: config.embedModel,
+      model: config.model,
       input: texts,
     }),
   })

@@ -12,8 +12,9 @@ RUN apk add --no-cache python3 make g++
 
 COPY package.json package-lock.json ./
 
-# Copy prisma schema before npm ci (needed for postinstall prisma generate)
+# Copy prisma schema and config before npm ci (needed for postinstall prisma generate)
 COPY prisma ./prisma
+COPY prisma.config.regulatory.ts ./
 
 # Install all dependencies
 RUN npm ci
@@ -52,6 +53,7 @@ COPY --from=builder --chown=worker:nodejs /app/src ./src
 COPY --from=builder --chown=worker:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=worker:nodejs /app/package.json ./
 COPY --from=builder --chown=worker:nodejs /app/tsconfig.json ./
+COPY --from=builder --chown=worker:nodejs /app/prisma.config.regulatory.ts ./
 
 USER worker
 

@@ -53,6 +53,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - WORKER_TYPE=orchestrator
       - WORKER_CONCURRENCY=1
     depends_on:
@@ -73,6 +74,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - WORKER_TYPE=sentinel
       - WORKER_CONCURRENCY=1
     depends_on:
@@ -93,6 +95,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_MODEL=${OLLAMA_MODEL}
@@ -120,6 +123,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_VISION_MODEL=${OLLAMA_VISION_MODEL:-llama3.2-vision}
@@ -143,6 +147,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_MODEL=${OLLAMA_MODEL}
@@ -166,6 +171,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_MODEL=${OLLAMA_MODEL}
@@ -208,6 +214,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - WORKER_TYPE=releaser
       - WORKER_CONCURRENCY=1
     depends_on:
@@ -228,6 +235,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_MODEL=${OLLAMA_MODEL}
@@ -254,6 +262,7 @@ services:
       # DATABASE_URL uses environment variable - set in .env or shell
       # Format: postgresql://user:password@host:port/database?schema=public
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
       - WORKER_TYPE=continuous-drainer
     depends_on:
       redis:
@@ -274,6 +283,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
       - WORKER_TYPE=content-sync
       - WORKER_CONCURRENCY=1
       # GitHub token for PR creation
@@ -304,6 +314,7 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - OLLAMA_MODEL=${OLLAMA_MODEL}
@@ -320,7 +331,40 @@ services:
         limits:
           memory: 1G
 
+  # Evidence Embedding Worker: Generates embeddings for Evidence records (semantic duplicate detection)
+  # Uses local Ollama (ArtemiPC via Tailscale) for embeddings - separate from extraction
+  worker-evidence-embedding:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: fiskai-worker-evidence-embedding
+    restart: unless-stopped
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/evidence-embedding.worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://fiskai-redis:6379
+      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
+      # Embedding-specific Ollama config (local Ollama via Tailscale)
+      - OLLAMA_EMBED_ENDPOINT=${OLLAMA_EMBED_ENDPOINT}
+      - OLLAMA_EMBED_API_KEY=${OLLAMA_EMBED_API_KEY}
+      - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-nomic-embed-text}
+      - OLLAMA_EMBED_DIMS=${OLLAMA_EMBED_DIMS:-768}
+      - WORKER_TYPE=evidence-embedding
+      - WORKER_CONCURRENCY=2
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
   # Embedding Worker: Generates embeddings for published rules
+  # Uses local Ollama (ArtemiPC via Tailscale) for embeddings - separate from extraction
   worker-embedding:
     build:
       context: .
@@ -332,8 +376,10 @@ services:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
+      # Embedding-specific Ollama config (local Ollama via Tailscale)
+      - OLLAMA_EMBED_ENDPOINT=${OLLAMA_EMBED_ENDPOINT}
+      - OLLAMA_EMBED_API_KEY=${OLLAMA_EMBED_API_KEY}
       - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-nomic-embed-text}
       - OLLAMA_EMBED_DIMS=${OLLAMA_EMBED_DIMS:-768}
       - WORKER_TYPE=embedding
@@ -361,6 +407,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
+      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
       - EPOSLOVANJE_API_BASE=${EPOSLOVANJE_API_BASE}
       - EPOSLOVANJE_API_KEY=${EPOSLOVANJE_API_KEY}
       - COMPANY_ID=${EINVOICE_COMPANY_ID}
