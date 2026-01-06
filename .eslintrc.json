@@ -11,7 +11,10 @@
     "src/lib/pausalni/forms/*-pdf-template.tsx",
     "src/app/**/*.png/route.tsx",
     "src/lib/pdf/**",
-    "src/styles/tokens.ts"
+    "src/styles/tokens.ts",
+    "src/lib/admin/weekly-digest-format.ts",
+    "src/lib/__tests__/**",
+    "src/lib/compliance/certificate-monitor.ts"
   ],
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],

@@ -1,3 +1,4 @@
+/* eslint-disable fisk-design-system/no-hardcoded-colors -- @design-override: Favicon SVG generation requires hardcoded hex colors. Favicons render outside the DOM/CSS context and cannot use CSS variables. */
 // State-aware favicon manager
 // Changes favicon color based on app state for premium UX
 
