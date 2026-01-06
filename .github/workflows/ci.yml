@@ -34,7 +34,10 @@ jobs:
         run: npx prisma validate
 
       - name: Run lint
-        run: npx eslint src --ext .ts,.tsx --max-warnings=-1
+        # TECH DEBT: 500 warnings ceiling matches existing codebase state
+        # TODO: Create lint baseline file and ratchet down over time (like lint-ratchet does)
+        # See issue: #XXX for tracking lint debt reduction
+        run: npx eslint src --ext .ts,.tsx --max-warnings=500
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
 
