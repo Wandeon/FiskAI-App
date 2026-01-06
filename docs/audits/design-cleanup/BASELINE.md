@@ -29,12 +29,27 @@ Created initial violation inventory.
 - Fixed 3 violations in admin (migrated to semantic tokens)
 - Kept `warn` for marketing and components (pending migration)
 
-### Phase 3: Token Migration 🔄
+### Phase 3: Token Migration ✅
 - Fixed 45 violations in src/components (95 → 50)
 - Remaining 50 violations are in dark-mode aesthetic components:
   - `news/` (14) - Dark-first news components
   - `marketing/` (19) - Hero/landing dark gradients
   - `assistant-v2/` (17) - Cockpit/HUD aesthetic
+
+### Phase 4: Spacing Normalization ⏭️ SKIPPED
+- Zero arbitrary spacing violations in app/admin/staff routes
+- No action required
+
+### Phase 5: Legacy CSS Variables 📋 DEFERRED
+- 191 usages in app routes (app: 152, admin: 37, staff: 2)
+- Variables are correctly mapped via globals.css compatibility layer
+- Recommend: Migrate incrementally during feature work, not a dedicated sweep
+- Low priority since current implementation works correctly
+
+### Phase 6: Brand Deprecation 📋 DOCUMENTED
+- 146 brand-* usages are intentional for primary CTA/branding
+- Future path: Migrate to semantic `--interactive-primary` tokens
+- Not a violation - brand colors serve a specific design purpose
 
 ---
 
