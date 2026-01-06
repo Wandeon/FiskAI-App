@@ -14,7 +14,10 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["regulatory", "public"]
+  // IMPORTANT: Only manage "regulatory" schema. Including "public" here
+  // causes db push to DROP all tables in public (not defined in this file).
+  // The core schema (schema.prisma) manages the public schema.
+  schemas  = ["regulatory"]
 }
 
 // =============================================================================
