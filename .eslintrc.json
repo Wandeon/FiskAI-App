@@ -14,7 +14,8 @@
     "src/styles/tokens.ts",
     "src/lib/admin/weekly-digest-format.ts",
     "src/lib/__tests__/**",
-    "src/lib/compliance/certificate-monitor.ts"
+    "src/lib/compliance/certificate-monitor.ts",
+    "src/lib/regulatory-truth/watchdog/resend-email.tsx"
   ],
   "extends": ["next/core-web-vitals", "next/typescript"],
   "plugins": ["fisk-design-system", "import"],
