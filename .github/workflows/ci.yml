@@ -359,23 +359,42 @@ jobs:
       - name: Create regulatory schema
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
 
+      - name: Debug - verify DB before schema push
+        run: |
+          echo "DATABASE_URL: ${DATABASE_URL:0:30}..."
+          echo "Testing connection..."
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT current_database(), current_schema();"
+
       - name: Apply core schema
-        run: npx prisma db push --accept-data-loss
+        run: |
+          echo "Applying core schema..."
+          # Use explicit schema path
+          npx prisma db push --accept-data-loss --schema=prisma/schema.prisma 2>&1 | tee /tmp/prisma-push.log
+          echo ""
+          echo "Checking tables immediately after push..."
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = 'public';"
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt public.*" || echo "(no tables)"
 
       - name: Apply regulatory schema
-        run: npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss
+        run: |
+          echo "Applying regulatory schema..."
+          npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss 2>&1 | tee /tmp/prisma-push-reg.log
+          echo ""
+          echo "Checking regulatory tables immediately after push..."
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt regulatory.*" || echo "(no tables)"
 
       - name: Schema sanity check
         run: |
-          echo "Verifying required tables exist..."
+          echo "Final verification..."
 
           # Check core tables
           echo "Checking core schema tables..."
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt public.*"
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | grep -E "^\s*[1-9]" || {
+          CORE_COUNT=$(PGPASSWORD=ci psql -h localhost -U ci -d ci -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+          echo "Tables in public schema: $CORE_COUNT"
+          if [ "$CORE_COUNT" -lt 1 ]; then
             echo "::error::No tables in public schema - core schema setup failed"
             exit 1
-          }
+          fi
           PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'User';" | grep -q "User" || {
             echo "::error::public.User table does not exist - core schema setup failed"
             exit 1
