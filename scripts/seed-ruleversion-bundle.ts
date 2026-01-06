@@ -5,8 +5,8 @@
  * Populates RuleTable and RuleVersion tables with fiscal data from
  * src/lib/fiscal-data/data/*.ts
  *
- * This script seeds the CORE database tables. Use copy-ruleversion-to-regulatory.ts
- * to migrate to regulatory schema after seeding.
+ * PR#1306: Now seeds directly to regulatory schema (dbReg).
+ * Core RuleVersion bundle has been removed.
  *
  * Usage:
  *   npx tsx scripts/seed-ruleversion-bundle.ts [--dry-run]
@@ -20,8 +20,8 @@
  */
 
 import { createHash } from "crypto"
-import { Prisma } from "@prisma/client"
-import { db } from "../src/lib/db"
+import type { Prisma } from "../src/generated/regulatory-client"
+import { dbReg } from "../src/lib/db/regulatory"
 
 // Import fiscal data
 import { CONTRIBUTIONS } from "../src/lib/fiscal-data/data/contributions"
@@ -73,7 +73,7 @@ async function seedRuleTables(): Promise<Map<string, string>> {
       continue
     }
 
-    const result = await db.ruleTable.upsert({
+    const result = await dbReg.ruleTable.upsert({
       where: { key: table.key },
       create: {
         key: table.key,
@@ -110,7 +110,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   console.log(`  VAT: ${vatData.year} (${vatData.reduced.length + 1} rates)`)
   if (!dryRun) {
     const vatHash = hashData(vatData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: vatTableId, version: `${vatData.year}.1` },
       },
@@ -148,7 +148,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   console.log(`  INCOME_TAX: ${incomeTaxData.year} (${incomeTaxData.brackets.length} brackets)`)
   if (!dryRun) {
     const hash = hashData(incomeTaxData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: incomeTaxTableId, version: `${incomeTaxData.year}.1` },
       },
@@ -192,7 +192,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   )
   if (!dryRun) {
     const hash = hashData(municipalityData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: municipalityTableId, version: `${municipalityData.year}.1` },
       },
@@ -230,7 +230,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   console.log(`  CONTRIBUTIONS: ${contributionsData.year}`)
   if (!dryRun) {
     const hash = hashData(contributionsData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: contributionsTableId, version: `${contributionsData.year}.1` },
       },
@@ -270,7 +270,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   console.log(`  PER_DIEM: ${perDiemData.year}`)
   if (!dryRun) {
     const hash = hashData(perDiemData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: perDiemTableId, version: `${perDiemData.year}.1` },
       },
@@ -303,7 +303,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   console.log(`  MILEAGE: ${mileageData.year}`)
   if (!dryRun) {
     const hash = hashData(mileageData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: mileageTableId, version: `${mileageData.year}.1` },
       },
@@ -353,7 +353,7 @@ async function seedRuleVersions(tableIdMap: Map<string, string>): Promise<number
   console.log(`  JOPPD_CODEBOOK: ${joppdData.year} (${joppdData.entries.length} codes)`)
   if (!dryRun) {
     const hash = hashData(joppdData)
-    await db.ruleVersion.upsert({
+    await dbReg.ruleVersion.upsert({
       where: {
         tableId_version: { tableId: joppdTableId, version: `${joppdData.year}.1` },
       },
@@ -384,8 +384,8 @@ async function main() {
 
   try {
     // Check current state
-    const existingTables = await db.ruleTable.count()
-    const existingVersions = await db.ruleVersion.count()
+    const existingTables = await dbReg.ruleTable.count()
+    const existingVersions = await dbReg.ruleVersion.count()
     console.log(`\nCurrent state: ${existingTables} tables, ${existingVersions} versions`)
 
     // Seed tables
@@ -407,16 +407,16 @@ async function main() {
 
     // Verify
     if (!dryRun) {
-      const finalTables = await db.ruleTable.count()
-      const finalVersions = await db.ruleVersion.count()
+      const finalTables = await dbReg.ruleTable.count()
+      const finalVersions = await dbReg.ruleVersion.count()
       console.log(`\nFinal state: ${finalTables} tables, ${finalVersions} versions`)
     }
 
-    await db.$disconnect()
+    await dbReg.$disconnect()
     process.exit(0)
   } catch (error) {
     console.error("\nSeed failed:", error)
-    await db.$disconnect()
+    await dbReg.$disconnect()
     process.exit(1)
   }
 }

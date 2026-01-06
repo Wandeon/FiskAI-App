@@ -223,8 +223,7 @@ export async function getOrCreateSnapshotFromRuleVersionId(
     throw new SnapshotTenantContextError()
   }
 
-  // PR#10: Use ruleversion-store for RuleVersion lookup (supports core/regulatory/dual modes)
-  // Note: The store handles source selection based on RULE_VERSION_SOURCE env var
+  // PR#1306: RuleVersion lookup uses regulatory DB only (migration complete)
   const ruleVersion = await getRuleVersionByIdWithTable(ruleVersionId)
 
   if (!ruleVersion) {

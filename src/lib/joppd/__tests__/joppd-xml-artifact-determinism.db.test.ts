@@ -3,7 +3,7 @@ import { mkdtempSync } from "fs"
 import os from "os"
 import path from "path"
 
-import { db, runWithTenant } from "@/lib/db"
+import { db, dbReg, runWithTenant } from "@/lib/db"
 import { runWithContext } from "@/lib/context"
 import { runWithAuditContext } from "@/lib/audit-context"
 import { createRuleVersion } from "@/lib/fiscal-rules/service"
@@ -31,7 +31,7 @@ describe("H4: JOPPD XML artifacts are reproducible", () => {
       },
     })
 
-    await db.ruleTable.upsert({
+    await dbReg.ruleTable.upsert({
       where: { key: "JOPPD_CODEBOOK" },
       create: { key: "JOPPD_CODEBOOK", name: "JOPPD codebook", description: "Test seed" },
       update: {},

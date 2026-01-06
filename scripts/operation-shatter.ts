@@ -5,7 +5,7 @@ import { promises as fs } from "node:fs"
 import pdfParse from "pdf-parse"
 import { Prisma } from "@prisma/client"
 
-import { db, runWithTenant } from "@/lib/db"
+import { db, dbReg, runWithTenant } from "@/lib/db"
 import { runWithContext } from "@/lib/context"
 import { runWithAuditContext } from "@/lib/audit-context"
 import {
@@ -1545,17 +1545,17 @@ async function main() {
 
     // Fiscal rule versions (pinned ids must be visible in snapshot evidence).
     const ruleDate = new Date("2026-01-01T00:00:00.000Z")
-    await db.ruleTable.upsert({
+    await dbReg.ruleTable.upsert({
       where: { key: "CONTRIBUTIONS" },
       update: {},
       create: { key: "CONTRIBUTIONS", name: "Contributions", description: "Shatter bootstrap" },
     })
-    await db.ruleTable.upsert({
+    await dbReg.ruleTable.upsert({
       where: { key: "INCOME_TAX" },
       update: {},
       create: { key: "INCOME_TAX", name: "Income tax", description: "Shatter bootstrap" },
     })
-    await db.ruleTable.upsert({
+    await dbReg.ruleTable.upsert({
       where: { key: "MUNICIPALITY_INCOME_TAX" },
       update: {},
       create: {
@@ -1564,7 +1564,7 @@ async function main() {
         description: "Shatter bootstrap",
       },
     })
-    await db.ruleTable.upsert({
+    await dbReg.ruleTable.upsert({
       where: { key: "JOPPD_CODEBOOK" },
       update: {},
       create: { key: "JOPPD_CODEBOOK", name: "JOPPD codebook", description: "Shatter bootstrap" },
