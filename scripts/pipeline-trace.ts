@@ -139,9 +139,8 @@ async function main() {
     console.log(`  Value Type: ${p.valueType}`)
     console.log(`  Extracted Value: ${p.extractedValue}`)
     console.log(`  Exact Quote: ${p.exactQuote?.substring(0, 150)}...`)
-    console.log(`  Quote Location: ${p.quoteLocation || "N/A"}`)
-    console.log(`  Effective From: ${p.effectiveFrom || "N/A"}`)
-    console.log(`  Effective Until: ${p.effectiveUntil || "N/A"}`)
+    console.log(`  Article Number: ${p.articleNumber || "N/A"}`)
+    console.log(`  Law Reference: ${p.lawReference || "N/A"}`)
     console.log(`  Confidence: ${p.confidence}`)
     console.log(`  Created At: ${p.createdAt}`)
 
