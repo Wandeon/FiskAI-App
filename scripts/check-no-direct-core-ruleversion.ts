@@ -2,13 +2,14 @@
 /**
  * CI Guardrail: Prevent direct core db.ruleVersion / db.ruleTable usage
  *
- * PR#11: All RuleVersion reads should go through the compatibility store
- * (src/lib/fiscal-rules/ruleversion-store.ts) which handles source switching.
+ * PR#1306: Core RuleVersion bundle has been REMOVED from the schema.
+ * All RuleVersion data now lives in regulatory schema (dbReg).
  *
- * Direct db.ruleVersion or db.ruleTable usage is only allowed in:
- * - The compatibility store itself
- * - Migration/parity scripts (scripts/)
- * - DB tests that need to seed data
+ * This guardrail prevents accidental reintroduction of core db.ruleVersion usage.
+ *
+ * Usage should go through:
+ * - Reads: src/lib/fiscal-rules/ruleversion-store.ts (uses dbReg)
+ * - Writes: src/lib/fiscal-rules/service.ts (uses dbReg)
  *
  * Run: npx tsx scripts/check-no-direct-core-ruleversion.ts
  *
@@ -23,39 +24,35 @@ import { join, relative } from "path"
 // Patterns that indicate direct core RuleVersion usage
 const FORBIDDEN_PATTERNS = [
   {
-    // db.ruleTable.* (direct core access)
+    // db.ruleTable.* (direct core access - model removed in PR#1306)
     regex: /\bdb\s*\.\s*ruleTable\s*\./gm,
-    description: "db.ruleTable.* (use store functions instead)",
+    description: "db.ruleTable.* (model removed - use dbReg.ruleTable instead)",
   },
   {
-    // db.ruleVersion.* (direct core access)
+    // db.ruleVersion.* (direct core access - model removed in PR#1306)
     regex: /\bdb\s*\.\s*ruleVersion\s*\./gm,
-    description: "db.ruleVersion.* (use store functions instead)",
+    description: "db.ruleVersion.* (model removed - use dbReg.ruleVersion instead)",
   },
   {
-    // db.ruleSnapshot.* (direct core access)
+    // db.ruleSnapshot.* (direct core access - model removed in PR#1306)
     regex: /\bdb\s*\.\s*ruleSnapshot\s*\./gm,
-    description: "db.ruleSnapshot.* (use dbReg instead)",
+    description: "db.ruleSnapshot.* (model removed - use dbReg.ruleSnapshot instead)",
   },
   {
-    // db.ruleCalculation.* (direct core access)
+    // db.ruleCalculation.* (direct core access - model removed in PR#1306)
     regex: /\bdb\s*\.\s*ruleCalculation\s*\./gm,
-    description: "db.ruleCalculation.* (use dbReg instead)",
+    description: "db.ruleCalculation.* (model removed - use dbReg.ruleCalculation instead)",
   },
 ]
 
 // Files to scan
 const INCLUDE_PATTERNS = [/\.tsx?$/]
 
-// Paths that are ALLOWED to use direct core access
+// Paths that are ALLOWED (for legacy/migration reference only)
 const ALLOWED_PATHS = [
-  // The compatibility store (needs both sources for dual mode)
-  /src\/lib\/fiscal-rules\/ruleversion-store\.ts$/,
-  // Service layer - writes still go to core until full cutover
-  /src\/lib\/fiscal-rules\/service\.ts$/,
-  // Migration scripts
+  // Copy script (historical - may still exist for reference)
   /scripts\/copy-ruleversion-to-regulatory\.ts$/,
-  /scripts\/verify-ruleversion-parity\.ts$/,
+  // Seed script (bootstrap/demo data - may use dbReg directly)
   /scripts\/seed-ruleversion-bundle\.ts$/,
   // Shatter script (bootstrap/demo data)
   /scripts\/operation-shatter\.ts$/,
@@ -197,12 +194,9 @@ function main(): void {
   }
 
   if (allViolations.length === 0) {
-    console.log("✓ No direct core RuleVersion/RuleTable usage found.\n")
-    console.log("Allowed paths (not scanned):")
-    for (const p of ALLOWED_PATHS) {
-      console.log(`  - ${p.source}`)
-    }
-    console.log()
+    console.log("No direct core RuleVersion/RuleTable usage found.\n")
+    console.log("PR#1306: Core RuleVersion bundle has been removed from schema.")
+    console.log("All rule data now lives in regulatory schema (dbReg).\n")
     process.exit(0)
   }
 
@@ -228,12 +222,12 @@ function main(): void {
   }
 
   console.log(`Found ${allViolations.length} violation(s).`)
-  console.log("\nPR#11: RuleVersion bundle migrated to regulatory schema.")
-  console.log("Use the compatibility store instead of direct core access:")
+  console.log("\nPR#1306: Core RuleVersion bundle has been REMOVED.")
+  console.log("Use the regulatory schema (dbReg) instead:")
   console.log(
     "  import { getRuleTableByKey, getEffectiveRuleVersion } from '@/lib/fiscal-rules/ruleversion-store'"
   )
-  console.log("\nSee: docs/operations/ruleversion-cutover-exit-criteria.md\n")
+  console.log("\n")
 
   process.exit(1)
 }

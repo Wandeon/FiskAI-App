@@ -1,6 +1,6 @@
 import { createHash } from "crypto"
 import { Prisma } from "@prisma/client"
-import { db } from "@/lib/db"
+import { dbReg } from "@/lib/db"
 import {
   getEffectiveRuleVersion as storeGetEffectiveRuleVersion,
   getRuleVersionByIdWithTable,
@@ -67,8 +67,8 @@ export async function createRuleVersion(params: {
 
   const dataHash = hashRuleData(params.data)
 
-  // NOTE: Writes still go to core DB until full cutover
-  return db.$transaction(async (tx) => {
+  // PR#1306: Migration complete - writes now go to regulatory DB
+  return dbReg.$transaction(async (tx) => {
     const ruleVersion = await tx.ruleVersion.create({
       data: {
         tableId: table.id,
@@ -334,8 +334,8 @@ export async function calculateDeterministicRule(
     }
   }
 
-  // NOTE: Writes still go to core DB until full cutover
-  await db.ruleCalculation.create({
+  // PR#1306: Migration complete - writes now go to regulatory DB
+  await dbReg.ruleCalculation.create({
     data: {
       ruleVersionId: ruleVersion.id,
       tableKey: input.tableKey,

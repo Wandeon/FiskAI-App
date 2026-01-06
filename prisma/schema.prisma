@@ -1717,8 +1717,8 @@ model TravelOrder {
   mileageAmount        Decimal?          @db.Decimal(12, 2)
   totalAmount          Decimal           @db.Decimal(12, 2)
   currency             String            @default("EUR")
-  perDiemRuleVersionId String?
-  mileageRuleVersionId String?
+  perDiemRuleVersionId String? // Soft ref to regulatory.RuleVersion (PR#1306)
+  mileageRuleVersionId String? // Soft ref to regulatory.RuleVersion (PR#1306)
   status               TravelOrderStatus @default(DRAFT)
   notes                String?
   createdAt            DateTime          @default(now())
@@ -1727,8 +1727,6 @@ model TravelOrder {
   travelerUser         User?             @relation("TravelOrderTraveler", fields: [travelerUserId], references: [id], onDelete: SetNull)
   mileageLogs          MileageLog[]
   pdfs                 TravelPdf[]
-  perDiemRuleVersion   RuleVersion?      @relation("TravelOrderPerDiemRuleVersion", fields: [perDiemRuleVersionId], references: [id])
-  mileageRuleVersion   RuleVersion?      @relation("TravelOrderMileageRuleVersion", fields: [mileageRuleVersionId], references: [id])
 
   @@unique([companyId, orderNumber])
   @@index([companyId])
@@ -3905,89 +3903,18 @@ model RegulatoryRule {
 }
 
 // ============================================================================
-// FISCAL RULE TABLES (Deterministic Calculations)
+// FISCAL RULE TABLES - REMOVED (PR#1306)
 // ============================================================================
 //
-// ⚠️  DEPRECATED (PR#10/PR#11): These models are migrated to regulatory schema.
-//     All reads now go through src/lib/fiscal-rules/ruleversion-store.ts
-//     which reads from dbReg (regulatory client) when RULE_VERSION_SOURCE=regulatory.
+// RuleTable, RuleVersion, RuleSnapshot, RuleCalculation models have been
+// removed from core schema. All rule data now lives in regulatory schema.
 //
-//     These core models remain ONLY for:
-//     1. TravelOrder relations (travelOrdersPerDiem, travelOrdersMileage)
-//     2. Migration scripts during transition period
+// Access via: src/lib/fiscal-rules/ruleversion-store.ts
+// Writes via: src/lib/fiscal-rules/service.ts (uses dbReg)
 //
-//     DO NOT add new code that uses db.ruleTable or db.ruleVersion directly.
-//     Use the store functions: getRuleTableByKey(), getEffectiveRuleVersion(), etc.
-//
-//     CLEANUP GATE: Remove these models after:
-//     - TravelOrder relations migrated to soft references
-//     - Production stable on RULE_VERSION_SOURCE=regulatory for 48h+
-//     - Platform owner sign-off on docs/operations/ruleversion-cutover-exit-criteria.md
+// TravelOrder.perDiemRuleVersionId and mileageRuleVersionId are now soft refs
+// pointing to regulatory.RuleVersion IDs.
 // ============================================================================
-
-model RuleTable {
-  id          String   @id @default(cuid())
-  key         String   @unique // VAT, MUNICIPALITY_INCOME_TAX, CONTRIBUTIONS, PER_DIEM, MILEAGE, JOPPD_CODEBOOK
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  versions RuleVersion[]
-
-  @@index([key])
-}
-
-model RuleVersion {
-  id             String    @id @default(cuid())
-  tableId        String
-  version        String
-  effectiveFrom  DateTime
-  effectiveUntil DateTime?
-  data           Json
-  dataHash       String
-  publishedAt    DateTime  @default(now())
-  createdAt      DateTime  @default(now())
-
-  table                RuleTable             @relation(fields: [tableId], references: [id], onDelete: Cascade)
-  snapshots            RuleSnapshot[]
-  calculations         RuleCalculation[]
-  // payoutLines and joppdSubmissionLines relations removed in PR#9
-  // These now use soft references via ruleVersionId + AppliedRuleSnapshot
-  travelOrdersPerDiem  TravelOrder[]         @relation("TravelOrderPerDiemRuleVersion")
-  travelOrdersMileage  TravelOrder[]         @relation("TravelOrderMileageRuleVersion")
-
-  @@unique([tableId, version])
-  @@index([tableId, effectiveFrom])
-}
-
-model RuleSnapshot {
-  id            String   @id @default(cuid())
-  ruleVersionId String
-  data          Json
-  dataHash      String
-  createdAt     DateTime @default(now())
-
-  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
-
-  @@index([ruleVersionId])
-}
-
-model RuleCalculation {
-  id            String   @id @default(cuid())
-  ruleVersionId String
-  tableKey      String
-  input         Json
-  result        Json
-  referenceDate DateTime
-  createdAt     DateTime @default(now())
-
-  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
-
-  @@index([tableKey])
-  @@index([ruleVersionId])
-  @@index([referenceDate])
-}
 
 // ============================================================================
 // SHAPE 1: ATOMIC CLAIMS (Logic Frames)
