@@ -412,11 +412,11 @@ async function main() {
       console.log(`\nFinal state: ${finalTables} tables, ${finalVersions} versions`)
     }
 
-    await db.$disconnect()
+    await dbReg.$disconnect()
     process.exit(0)
   } catch (error) {
     console.error("\nSeed failed:", error)
-    await db.$disconnect()
+    await dbReg.$disconnect()
     process.exit(1)
   }
 }
