@@ -224,9 +224,7 @@ export function AssistantContainer({
             data-testid="personalization-preview"
             className={cn(
               "lg:col-span-2 p-4 border border-dashed rounded-lg",
-              isDark
-                ? "bg-accent/5 border-accent/20 text-white/70"
-                : "bg-primary/5 border-default"
+              isDark ? "bg-accent/5 border-accent/20 text-white/70" : "bg-primary/5 border-default"
             )}
           >
             <p className={cn("text-sm", isDark ? "text-secondary" : "text-muted-foreground")}>

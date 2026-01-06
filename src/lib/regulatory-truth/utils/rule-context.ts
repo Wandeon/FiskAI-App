@@ -70,9 +70,29 @@ export async function findRelevantRules(query: string, limit: number = 5): Promi
     })
 }
 
+/**
+ * Normalize Croatian diacritics to ASCII for slug matching.
+ * š→s, č→c, ć→c, ž→z, đ→d
+ */
+function normalizeDiacritics(text: string): string {
+  return text
+    .replace(/š/g, "s")
+    .replace(/č/g, "c")
+    .replace(/ć/g, "c")
+    .replace(/ž/g, "z")
+    .replace(/đ/g, "d")
+    .replace(/Š/g, "S")
+    .replace(/Č/g, "C")
+    .replace(/Ć/g, "C")
+    .replace(/Ž/g, "Z")
+    .replace(/Đ/g, "D")
+}
+
 function extractKeywords(query: string): string[] {
-  const stopwords = [
-    "što",
+  // Stopwords in both normalized and original forms
+  const stopwords = new Set([
+    "sto",
+    "što", // what
     "koja",
     "koji",
     "kako",
@@ -89,17 +109,28 @@ function extractKeywords(query: string): string[] {
     "a",
     "li",
     "biti",
-    "može",
-    "hoće",
+    "moze",
+    "može", // can
+    "hoce",
+    "hoće", // will
     "kada",
     "gdje",
-  ]
-  return query
-    .toLowerCase()
-    .replace(/[^\w\sčćžšđ]/g, "") // Strip punctuation, preserve Croatian chars
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !stopwords.includes(w))
-    .slice(0, 5) // Increased from 3 to 5
+  ])
+
+  const cleanQuery = query.toLowerCase().replace(/[^\w\sčćžšđ]/g, "")
+  const words = cleanQuery.split(/\s+/).filter((w) => w.length > 2 && !stopwords.has(w))
+
+  // Return both original Croatian and normalized ASCII versions for better matching
+  // This allows matching titleHr (with diacritics) and conceptSlug (ASCII)
+  const result = new Set<string>()
+  for (const word of words.slice(0, 5)) {
+    result.add(word) // Original (may have diacritics)
+    const normalized = normalizeDiacritics(word)
+    if (normalized !== word) {
+      result.add(normalized) // ASCII version
+    }
+  }
+  return Array.from(result).slice(0, 8) // Allow up to 8 keywords (original + normalized)
 }
 
 /**

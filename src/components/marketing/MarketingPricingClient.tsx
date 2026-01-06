@@ -165,9 +165,7 @@ export function MarketingPricingClient() {
                 onClick={() => setBilling((prev) => (prev === "monthly" ? "annual" : "monthly"))}
                 className={cn(
                   "relative h-9 w-16 rounded-full border transition-colors",
-                  billing === "annual"
-                    ? "border-accent bg-accent"
-                    : "border-white/10 bg-surface/10"
+                  billing === "annual" ? "border-accent bg-accent" : "border-white/10 bg-surface/10"
                 )}
               >
                 <span

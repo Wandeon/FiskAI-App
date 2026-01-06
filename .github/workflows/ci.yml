@@ -34,7 +34,10 @@ jobs:
         run: npx prisma validate
 
       - name: Run lint
-        run: npx eslint src --ext .ts,.tsx --max-warnings=-1
+        # TECH DEBT: 500 warnings ceiling matches existing codebase state
+        # TODO: Create lint baseline file and ratchet down over time (like lint-ratchet does)
+        # See issue: #XXX for tracking lint debt reduction
+        run: npx eslint src --ext .ts,.tsx --max-warnings=500
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
 
@@ -259,8 +262,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      # Use public schema for CI - simpler and pgvector extension is already there
       DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+      REGULATORY_DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=regulatory"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -274,14 +277,22 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Generate Prisma client
-        run: npx prisma generate
+      - name: Generate Prisma clients (core + regulatory)
+        run: |
+          npx prisma generate
+          npx prisma generate --schema=prisma/regulatory.prisma
 
       - name: Enable pgvector extension
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Apply schema
+      - name: Create regulatory schema
+        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
+
+      - name: Apply core schema
         run: npx prisma db push --accept-data-loss
+
+      - name: Apply regulatory schema
+        run: npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss
 
       - name: Run integration tests
         run: node --import tsx --test src/lib/regulatory-truth/__tests__/*.test.ts
@@ -321,6 +332,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      REGULATORY_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=regulatory
       INTEGRATION_VAULT_KEY: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
     steps:
@@ -336,14 +348,82 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Generate Prisma client
-        run: npx prisma generate
+      - name: Generate Prisma clients (core + regulatory)
+        run: |
+          npx prisma generate
+          npx prisma generate --schema=prisma/regulatory.prisma
 
       - name: Enable pgvector extension
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Apply schema
-        run: npx prisma db push --accept-data-loss
+      - name: Create regulatory schema
+        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
+
+      - name: Apply schemas with verification
+        run: |
+          set -e
+
+          echo "=== Applying core schema ==="
+          npx prisma db push --accept-data-loss --schema=prisma/schema.prisma 2>&1
+
+          # Verify tables were created
+          echo "Verifying core tables..."
+          for i in 1 2 3 4 5; do
+            CORE_COUNT=$(PGPASSWORD=ci psql -h localhost -U ci -d ci -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+            CORE_COUNT=$(echo "$CORE_COUNT" | tr -d ' ')
+            echo "Attempt $i: Found $CORE_COUNT tables in public schema"
+            if [ "$CORE_COUNT" -ge 100 ]; then
+              echo "✅ Core schema verified ($CORE_COUNT tables)"
+              break
+            fi
+            if [ "$i" -eq 5 ]; then
+              echo "::error::Failed to create core schema tables after 5 attempts"
+              exit 1
+            fi
+            echo "Waiting and retrying..."
+            sleep 2
+          done
+
+          echo ""
+          echo "=== Applying regulatory schema ==="
+          npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss 2>&1
+
+          # Verify regulatory tables
+          echo "Verifying regulatory tables..."
+          sleep 1
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt regulatory.*" || echo "(no regulatory tables)"
+
+          echo ""
+          echo "=== Final verification ==="
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT table_schema, COUNT(*) as count FROM information_schema.tables WHERE table_schema IN ('public', 'regulatory') GROUP BY table_schema;"
+
+      - name: Schema sanity check
+        run: |
+          echo "Final verification..."
+
+          # Check core tables
+          echo "Checking core schema tables..."
+          CORE_COUNT=$(PGPASSWORD=ci psql -h localhost -U ci -d ci -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+          echo "Tables in public schema: $CORE_COUNT"
+          if [ "$CORE_COUNT" -lt 1 ]; then
+            echo "::error::No tables in public schema - core schema setup failed"
+            exit 1
+          fi
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'User';" | grep -q "User" || {
+            echo "::error::public.User table does not exist - core schema setup failed"
+            exit 1
+          }
+          echo "✅ Core schema verified"
+
+          # Check regulatory tables
+          echo "Checking regulatory schema tables..."
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt regulatory.*" | grep -q "rule_table" || {
+            echo "::error::regulatory.rule_table does not exist - regulatory schema setup failed"
+            exit 1
+          }
+          echo "✅ Regulatory schema verified"
+
+          echo "✅ All schema sanity checks passed"
 
       - name: Run DB vitest tests
         run: npm run test:db
@@ -368,6 +448,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      REGULATORY_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=regulatory
 
     steps:
       - name: Checkout repository
@@ -382,14 +463,22 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Generate Prisma client
-        run: npx prisma generate
+      - name: Generate Prisma clients (core + regulatory)
+        run: |
+          npx prisma generate
+          npx prisma generate --schema=prisma/regulatory.prisma
 
       - name: Enable pgvector extension
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Apply schema
+      - name: Create regulatory schema
+        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
+
+      - name: Apply core schema
         run: npx prisma db push --accept-data-loss
+
+      - name: Apply regulatory schema
+        run: npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss
 
       - name: Run acceptance tests
         run: node --import tsx --test acceptance/*.test.ts
