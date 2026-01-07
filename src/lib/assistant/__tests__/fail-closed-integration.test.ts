@@ -9,6 +9,8 @@
  * These tests prove the product promise: "evidence-backed answers or refusal"
  *
  * NOTE: These tests require a running database. Skip in CI if no DB available.
+ *
+ * PHASE-C CUTOVER: Updated to use RuleFact instead of RegulatoryRule
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
@@ -30,27 +32,27 @@ describe.skipIf(!hasDatabase)("Fail-Closed Integration", () => {
     evidenceIds: string[]
     sourceIds: string[]
     conceptIds: string[]
-    ruleIds: string[]
-    pointerIds: string[]
+    ruleFactIds: string[]
   } = {
     evidenceIds: [],
     sourceIds: [],
     conceptIds: [],
-    ruleIds: [],
-    pointerIds: [],
+    ruleFactIds: [],
   }
 
   beforeAll(async () => {
     // Create test fixtures that represent complete citation chain:
-    // Source → Evidence → SourcePointer → RegulatoryRule → Concept
+    // Source → Evidence → RuleFact (with groundingQuotes) → Concept
+    //
+    // PHASE-C: Now uses RuleFact instead of RegulatoryRule + SourcePointer
 
-    // 1. Create Source
-    const source = await (db as any).source.create({
+    // 1. Create RegulatorySource (in regulatory schema)
+    const source = await dbReg.regulatorySource.create({
       data: {
+        slug: `test-nn-${testRunId}`,
         name: `Test Narodne Novine ${testRunId}`,
         url: `https://test.nn.hr/${testRunId}`,
-        authorityLevel: "LAW",
-        priority: 1,
+        hierarchy: 2, // LAW level
       },
     })
     createdIds.sourceIds.push(source.id)
@@ -63,7 +65,7 @@ describe.skipIf(!hasDatabase)("Fail-Closed Integration", () => {
         contentHash: `test-hash-${testRunId}`,
         rawContent: "Članak 38. Opća stopa poreza na dodanu vrijednost iznosi 25%.",
         fetchedAt: new Date(),
-      } as any,
+      },
     })
     createdIds.evidenceIds.push(evidence.id)
 
@@ -79,44 +81,46 @@ describe.skipIf(!hasDatabase)("Fail-Closed Integration", () => {
     })
     createdIds.conceptIds.push(concept.id)
 
-    // 4. Create RegulatoryRule (unique conceptSlug per test run)
-    const rule = await db.regulatoryRule.create({
+    // 4. Create RuleFact (PHASE-C: replaces RegulatoryRule + SourcePointer)
+    // RuleFact stores groundingQuotes directly as JSON instead of via SourcePointer relation
+    const ruleFact = await dbReg.ruleFact.create({
       data: {
         conceptSlug: `pdv-opca-stopa-test-${testRunId}`,
         conceptId: concept.id,
-        titleHr: "Opća stopa PDV-a",
-        titleEn: "VAT Standard Rate",
-        explanationHr: "Opća stopa poreza na dodanu vrijednost iznosi 25%.",
+        subjectType: "ALL",
+        subjectDescription: "Svi porezni obveznici PDV-a",
+        objectType: "POREZNA_STOPA",
+        objectDescription: "Opća stopa PDV-a",
+        conditions: { always: true },
         value: "25",
-        valueType: "percentage",
-        authorityLevel: "LAW",
-        status: "PUBLISHED",
+        valueType: "PERCENTAGE",
+        displayValue: "25%",
         effectiveFrom: new Date("2024-01-01"),
+        authority: "LAW",
+        legalReference: {
+          raw: "Zakon o PDV-u (NN 73/13)",
+          articleNumber: "38",
+        },
+        groundingQuotes: [
+          {
+            text: "Opća stopa poreza na dodanu vrijednost iznosi 25%.",
+            evidenceId: evidence.id,
+            articleNumber: "38",
+            lawReference: "Zakon o PDV-u (NN 73/13)",
+          },
+        ],
+        riskTier: "T1",
         confidence: 0.98,
-      } as any,
+        status: "PUBLISHED",
+      },
     })
-    createdIds.ruleIds.push(rule.id)
-
-    // 5. Create SourcePointer (links Rule to Evidence with quote)
-    const pointer = await db.sourcePointer.create({
-      data: {
-        regulatoryRuleId: rule.id,
-        evidenceId: evidence.id,
-        exactQuote: "Opća stopa poreza na dodanu vrijednost iznosi 25%.",
-        articleNumber: "38",
-        lawReference: "Zakon o PDV-u (NN 73/13)",
-      } as any,
-    })
-    createdIds.pointerIds.push(pointer.id)
+    createdIds.ruleFactIds.push(ruleFact.id)
   })
 
   afterAll(async () => {
     // Cleanup in reverse order of creation
-    for (const id of createdIds.pointerIds) {
-      await db.sourcePointer.delete({ where: { id } }).catch(() => {})
-    }
-    for (const id of createdIds.ruleIds) {
-      await db.regulatoryRule.delete({ where: { id } }).catch(() => {})
+    for (const id of createdIds.ruleFactIds) {
+      await dbReg.ruleFact.delete({ where: { id } }).catch(() => {})
     }
     for (const id of createdIds.conceptIds) {
       await db.concept.delete({ where: { id } }).catch(() => {})
@@ -126,7 +130,7 @@ describe.skipIf(!hasDatabase)("Fail-Closed Integration", () => {
       await deleteOneEvidenceForTest(id).catch(() => {})
     }
     for (const id of createdIds.sourceIds) {
-      await (db as any).source.delete({ where: { id } }).catch(() => {})
+      await dbReg.regulatorySource.delete({ where: { id } }).catch(() => {})
     }
   })
 

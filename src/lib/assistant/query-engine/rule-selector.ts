@@ -1,12 +1,9 @@
 // src/lib/assistant/query-engine/rule-selector.ts
-import { prisma } from "@/lib/prisma"
+// PHASE-C CUTOVER: Now reads exclusively from RuleFact (regulatory schema)
+// RegulatoryRule fallback has been removed.
+
 import { dbReg } from "@/lib/db/regulatory"
-import {
-  checkRuleEligibility,
-  buildEvaluationContext,
-  type EvaluationContext,
-  type EligibilityResult,
-} from "./rule-eligibility"
+import { checkRuleEligibility, buildEvaluationContext } from "./rule-eligibility"
 import type { ObligationType } from "../types"
 import { calculateEvidenceQuality } from "./evidence-quality"
 
@@ -15,6 +12,7 @@ const AUTHORITY_RANK: Record<string, number> = {
   REGULATION: 2,
   GUIDANCE: 3,
   PRACTICE: 4,
+  PROCEDURE: 4, // Same rank as PRACTICE
 }
 
 export interface RuleCandidate {
@@ -93,6 +91,80 @@ export interface RuleSelectionResult {
   asOfDate: string
 }
 
+// Type for groundingQuotes JSON structure
+interface GroundingQuote {
+  text: string
+  evidenceId: string
+  contextBefore?: string | null
+  contextAfter?: string | null
+  sourcePointerId?: string
+  articleNumber?: string | null
+  lawReference?: string | null
+}
+
+// Type for legalReference JSON structure
+interface LegalReference {
+  raw?: string
+  note?: string
+  articleNumber?: string
+  lawName?: string
+}
+
+// Type for conditions JSON structure
+interface ConditionsJson {
+  always?: boolean
+  expression?: string
+  [key: string]: unknown
+}
+
+/**
+ * Map RuleFact objectType to ObligationType
+ */
+function mapObjectTypeToObligation(objectType: string): ObligationType {
+  switch (objectType) {
+    case "POREZNA_STOPA":
+    case "POSTOTAK":
+      return "OBLIGATION"
+    case "ROK":
+    case "OBVEZA":
+      return "OBLIGATION"
+    case "PRAG_PRIHODA":
+    case "OSNOVICA":
+    case "IZNOS":
+      return "CONDITIONAL"
+    default:
+      return "INFORMATIONAL"
+  }
+}
+
+/**
+ * Map RuleFact valueType enum to lowercase string for answer formatting
+ */
+function mapValueType(valueType: string): string {
+  const mapping: Record<string, string> = {
+    PERCENTAGE: "percentage",
+    CURRENCY_EUR: "currency_eur",
+    CURRENCY_HRK: "currency_hrk",
+    DEADLINE_DAY: "deadline_day",
+    DEADLINE_DESCRIPTION: "deadline_description",
+    BOOLEAN: "boolean",
+    COUNT: "count",
+  }
+  return mapping[valueType] || valueType.toLowerCase()
+}
+
+/**
+ * Extract appliesWhen string from conditions JSON
+ */
+function extractAppliesWhen(conditions: unknown): string | null {
+  if (!conditions || typeof conditions !== "object") return null
+  const cond = conditions as ConditionsJson
+  if (cond.always === true) return null
+  if (cond.expression) return cond.expression
+  // Return JSON string for complex conditions
+  return JSON.stringify(conditions)
+}
+
 /**
  * Select eligible rules for the given concept slugs.
  *
@@ -101,6 +173,8 @@ export interface RuleSelectionResult {
  * 2. effectiveUntil < asOfDate (EXPIRED)
  * 3. appliesWhen evaluates to FALSE (CONDITION_FALSE)
  * 4. appliesWhen requires context we don't have (MISSING_CONTEXT)
+ *
+ * PHASE-C: Now reads exclusively from RuleFact (no RegulatoryRule fallback)
  */
 export async function selectRules(
   conceptSlugs: string[],
@@ -125,51 +199,25 @@ export async function selectRules(
     transactionData: selectionContext?.transactionData,
   })
 
-  // PHASE-4 BRIDGE: Try RuleFact first (new canonical system), fallback to RegulatoryRule
-  // This dual-query allows gradual migration while maintaining backward compatibility
-  // Eventually, only RuleFact should be queried (Phase 5 retirement)
-  let useRuleFact = false
-  let ruleFactCount = 0
-
-  try {
-    // Check if RuleFact has any published data for these concepts
-    ruleFactCount = await dbReg.ruleFact.count({
-      where: {
-        conceptSlug: { in: conceptSlugs },
-        status: "PUBLISHED",
-      },
-    })
-    useRuleFact = ruleFactCount > 0
-    if (useRuleFact) {
-      console.log(`[rule-selector] Phase-4: Using RuleFact (${ruleFactCount} published rules)`)
-    }
-  } catch (error) {
-    // RuleFact query failed - fall back to RegulatoryRule
-    console.warn(
-      `[rule-selector] Phase-4: RuleFact query failed, using RegulatoryRule fallback:`,
-      error
-    )
-  }
-
-  // Fetch all PUBLISHED rules for these concepts
-  // Note: We fetch all and filter in-memory to properly handle appliesWhen
-  // and to track ineligible rules for debugging
-  const allRulesRaw = await prisma.regulatoryRule.findMany({
+  // Query RuleFact directly (PHASE-C: No more RegulatoryRule fallback)
+  const allRuleFactsRaw = await dbReg.ruleFact.findMany({
     where: {
       conceptSlug: { in: conceptSlugs },
       status: "PUBLISHED",
     },
-    include: {
-      sourcePointers: true,
-    },
-    orderBy: [{ authorityLevel: "asc" }, { confidence: "desc" }, { effectiveFrom: "desc" }],
+    orderBy: [{ authority: "asc" }, { confidence: "desc" }, { effectiveFrom: "desc" }],
   })
 
-  // Collect all evidence IDs and fetch from regulatory db
+  // Collect all evidence IDs from groundingQuotes
   const allEvidenceIds = new Set<string>()
-  for (const rule of allRulesRaw) {
-    for (const sp of rule.sourcePointers) {
-      allEvidenceIds.add(sp.evidenceId)
+  for (const rf of allRuleFactsRaw) {
+    const quotes = rf.groundingQuotes as GroundingQuote[] | null
+    if (Array.isArray(quotes)) {
+      for (const q of quotes) {
+        if (q.evidenceId) {
+          allEvidenceIds.add(q.evidenceId)
+        }
+      }
     }
   }
 
@@ -178,15 +226,25 @@ export async function selectRules(
     where: { id: { in: Array.from(allEvidenceIds) } },
     include: { source: true },
   })
-  const evidenceMap = new Map(evidenceRecords.map((e) => [e.id, e]))
+  type EvidenceWithSource = (typeof evidenceRecords)[number]
+  const evidenceMap = new Map<string, EvidenceWithSource>(evidenceRecords.map((e) => [e.id, e]))
 
-  // Join evidence to rules
-  const allRules = allRulesRaw.map((rule) => ({
-    ...rule,
-    sourcePointers: rule.sourcePointers.map((sp) => {
-      const evidence = evidenceMap.get(sp.evidenceId)
+  // Transform RuleFacts to RuleCandidates
+  const allRules: RuleCandidate[] = allRuleFactsRaw.map((rf) => {
+    const quotes = (rf.groundingQuotes as GroundingQuote[] | null) || []
+    const legalRef = rf.legalReference as LegalReference | null
+
+    // Build sourcePointers from groundingQuotes
+    const sourcePointers = quotes.map((q, idx) => {
+      const evidence = evidenceMap.get(q.evidenceId)
       return {
-        ...sp,
+        id: q.sourcePointerId || `${rf.id}-quote-${idx}`,
+        evidenceId: q.evidenceId,
+        exactQuote: q.text,
+        contextBefore: q.contextBefore || null,
+        contextAfter: q.contextAfter || null,
+        articleNumber: q.articleNumber || legalRef?.articleNumber || null,
+        lawReference: q.lawReference || legalRef?.raw || null,
         evidence: evidence
           ? {
               id: evidence.id,
@@ -201,8 +259,33 @@ export async function selectRules(
             }
           : undefined,
       }
-    }),
-  }))
+    })
+
+    // Get primary evidence for reasoning pipeline
+    const primaryEvidence = sourcePointers[0]?.evidence
+
+    return {
+      id: rf.id,
+      conceptSlug: rf.conceptSlug,
+      titleHr: rf.objectDescription || rf.conceptSlug,
+      authorityLevel: rf.authority,
+      status: rf.status,
+      effectiveFrom: rf.effectiveFrom,
+      effectiveUntil: rf.effectiveUntil,
+      confidence: rf.confidence,
+      value: rf.value,
+      valueType: mapValueType(rf.valueType),
+      obligationType: mapObjectTypeToObligation(rf.objectType),
+      explanationHr: rf.subjectDescription || null,
+      appliesWhen: extractAppliesWhen(rf.conditions),
+      sourcePointers,
+      // Additional fields for compatibility
+      authority: rf.authority,
+      bodyHr: rf.subjectDescription,
+      evidence: primaryEvidence,
+      evidenceId: sourcePointers[0]?.evidenceId,
+    }
+  })
 
   const eligibleRules: RuleCandidate[] = []
   const ineligible: RuleSelectionResult["ineligible"] = []
@@ -221,15 +304,17 @@ export async function selectRules(
     )
 
     if (result.eligible) {
-      eligibleRules.push(rule as RuleCandidate)
+      eligibleRules.push(rule)
     } else {
+      // TypeScript knows result.reason exists when eligible is false
+      const reason = result.reason
       ineligible.push({
         ruleId: rule.id,
         conceptSlug: rule.conceptSlug,
-        reason: result.reason,
+        reason,
       })
 
-      if (result.reason === "MISSING_CONTEXT") {
+      if (reason === "MISSING_CONTEXT") {
         missingContextRuleIds.push(rule.id)
       }
     }
@@ -245,8 +330,8 @@ export async function selectRules(
 
     // Secondary sort: evidence quality combined with rule confidence
     // Calculate evidence quality scores for both rules
-    const evidenceQualityA = calculateEvidenceQuality(a as RuleCandidate).overall
-    const evidenceQualityB = calculateEvidenceQuality(b as RuleCandidate).overall
+    const evidenceQualityA = calculateEvidenceQuality(a).overall
+    const evidenceQualityB = calculateEvidenceQuality(b).overall
 
     // Combine rule confidence (30%) with evidence quality (70%)
     const combinedScoreA = a.confidence * 0.3 + evidenceQualityA * 0.7

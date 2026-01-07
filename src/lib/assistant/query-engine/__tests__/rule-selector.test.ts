@@ -1,25 +1,20 @@
 // src/lib/assistant/query-engine/__tests__/rule-selector.test.ts
+// PHASE-C CUTOVER: Updated to mock dbReg.ruleFact instead of prisma.regulatoryRule
 /* eslint-disable @typescript-eslint/no-explicit-any -- Test file uses partial mocks */
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { selectRules, type RuleCandidate, type RuleSelectionResult } from "../rule-selector"
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    regulatoryRule: {
-      findMany: vi.fn(),
-    },
-  },
-}))
+import { selectRules } from "../rule-selector"
 
 vi.mock("@/lib/db/regulatory", () => ({
   dbReg: {
+    ruleFact: {
+      findMany: vi.fn(),
+    },
     evidence: {
       findMany: vi.fn().mockResolvedValue([]),
     },
   },
 }))
 
-import { prisma } from "@/lib/prisma"
 import { dbReg } from "@/lib/db/regulatory"
 
 const today = new Date()
@@ -27,78 +22,106 @@ const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
 const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000)
 const lastYear = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000)
 
-const mockRules = [
+// PHASE-C: Mock data now uses RuleFact format instead of RegulatoryRule
+const mockRuleFacts = [
   {
     id: "r1",
     conceptSlug: "pausalni-prag",
-    titleHr: "Prag za paušalno oporezivanje",
-    authorityLevel: "LAW",
-    status: "PUBLISHED",
+    conceptId: "c1",
+    subjectType: "ALL",
+    subjectDescription: "Prag za paušalno oporezivanje",
+    objectType: "PRAG_PRIHODA",
+    objectDescription: "Godišnji prag za paušalni obrt",
+    conditions: { always: true },
+    value: "39816.84",
+    valueType: "CURRENCY_EUR",
+    displayValue: "39.816,84 EUR",
     effectiveFrom: lastYear,
     effectiveUntil: null,
-    confidence: 0.95,
-    value: "39816.84",
-    valueType: "currency_eur",
-    appliesWhen: JSON.stringify({ op: "true" }),
-    sourcePointers: [
+    authority: "LAW",
+    legalReference: { raw: "Zakon o porezu na dohodak" },
+    groundingQuotes: [
       {
-        id: "sp1",
+        text: "Quote 1",
         evidenceId: "e1",
-        exactQuote: "Quote 1",
-        contextBefore: null,
-        contextAfter: null,
-        articleNumber: null,
-        lawReference: null,
-        evidence: {
-          id: "e1",
-          url: "https://example.com",
-          fetchedAt: new Date(),
-          source: { name: "Test Source", url: "https://example.com" },
-        },
+        articleNumber: "38",
+        lawReference: "Zakon o porezu na dohodak",
       },
     ],
+    riskTier: "T1",
+    confidence: 0.95,
+    status: "PUBLISHED",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "r2",
     conceptSlug: "pausalni-prag",
-    titleHr: "Stari prag",
-    authorityLevel: "GUIDANCE",
-    status: "PUBLISHED",
+    conceptId: "c1",
+    subjectType: "ALL",
+    subjectDescription: "Stari prag",
+    objectType: "PRAG_PRIHODA",
+    objectDescription: "Stari godišnji prag",
+    conditions: { always: true },
+    value: "35000",
+    valueType: "CURRENCY_EUR",
+    displayValue: "35.000 EUR",
     effectiveFrom: lastYear,
     effectiveUntil: yesterday, // Expired
+    authority: "GUIDANCE",
+    legalReference: null,
+    groundingQuotes: [],
+    riskTier: "T2",
     confidence: 0.9,
-    value: "35000",
-    valueType: "currency_eur",
-    appliesWhen: null,
-    sourcePointers: [],
+    status: "PUBLISHED",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "r3",
     conceptSlug: "pausalni-prag",
-    titleHr: "Draft rule",
-    authorityLevel: "LAW",
-    status: "DRAFT", // Not published
+    conceptId: "c1",
+    subjectType: "ALL",
+    subjectDescription: "Draft rule",
+    objectType: "PRAG_PRIHODA",
+    objectDescription: "Draft godišnji prag",
+    conditions: { always: true },
+    value: "40000",
+    valueType: "CURRENCY_EUR",
+    displayValue: "40.000 EUR",
     effectiveFrom: lastYear,
     effectiveUntil: null,
+    authority: "LAW",
+    legalReference: null,
+    groundingQuotes: [],
+    riskTier: "T1",
     confidence: 0.85,
-    value: "40000",
-    valueType: "currency_eur",
-    appliesWhen: null,
-    sourcePointers: [],
+    status: "DRAFT", // Not published
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "r4",
     conceptSlug: "pausalni-prag",
-    titleHr: "Future rule",
-    authorityLevel: "LAW",
-    status: "PUBLISHED",
+    conceptId: "c1",
+    subjectType: "ALL",
+    subjectDescription: "Future rule",
+    objectType: "PRAG_PRIHODA",
+    objectDescription: "Future godišnji prag",
+    conditions: { always: true },
+    value: "45000",
+    valueType: "CURRENCY_EUR",
+    displayValue: "45.000 EUR",
     effectiveFrom: tomorrow, // Not yet effective
     effectiveUntil: null,
+    authority: "LAW",
+    legalReference: null,
+    groundingQuotes: [],
+    riskTier: "T1",
     confidence: 0.95,
-    value: "45000",
-    valueType: "currency_eur",
-    appliesWhen: null,
-    sourcePointers: [],
+    status: "PUBLISHED",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ]
 
@@ -114,21 +137,21 @@ describe("selectRules", () => {
       } as any,
     ])
 
-    // Mock implementation that only filters by status (PUBLISHED)
-    // The eligibility gate handles temporal filtering in-memory
-    vi.mocked(prisma.regulatoryRule.findMany).mockImplementation((async (args: any) => {
-      return mockRules.filter((rule) => {
+    // PHASE-C: Mock dbReg.ruleFact.findMany instead of prisma.regulatoryRule.findMany
+    // The mock filters by status (PUBLISHED only) - eligibility gate handles temporal filtering
+    vi.mocked(dbReg.ruleFact.findMany).mockImplementation((async (args: any) => {
+      return mockRuleFacts.filter((rf) => {
         // Filter by conceptSlug
         const whereAny = args?.where as Record<string, unknown> | undefined
         if (whereAny?.conceptSlug) {
           const slugFilter = whereAny.conceptSlug as { in?: string[] }
-          if (slugFilter.in && !slugFilter.in.includes(rule.conceptSlug)) {
+          if (slugFilter.in && !slugFilter.in.includes(rf.conceptSlug)) {
             return false
           }
         }
 
         // Filter by status
-        if (whereAny?.status && rule.status !== whereAny.status) {
+        if (whereAny?.status && rf.status !== whereAny.status) {
           return false
         }
 
