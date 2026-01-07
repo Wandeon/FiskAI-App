@@ -17,7 +17,7 @@ import { isBlockedDomain } from "../utils/concept-resolver"
 import { generateCoverageReport, saveCoverageReport } from "../quality/coverage-report"
 import { normalizeQuotes } from "../utils/quote-normalizer"
 import { isValidDomain } from "../schemas/common"
-import { generatePointerEmbeddingsBatch } from "../utils/rtl-embedder"
+// PHASE-D: generatePointerEmbeddingsBatch import removed - no longer creating SourcePointers
 
 // =============================================================================
 // EXTRACTOR AGENT
@@ -26,7 +26,10 @@ import { generatePointerEmbeddingsBatch } from "../utils/rtl-embedder"
 export interface ExtractorResult {
   success: boolean
   output: ExtractorOutput | null
+  /** @deprecated PHASE-D: SourcePointer creation removed. Use candidateFactIds instead. */
   sourcePointerIds: string[]
+  /** PHASE-D: CandidateFacts created during extraction */
+  candidateFactIds: string[]
   error: string | null
 }
 
@@ -117,6 +120,7 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       success: false,
       output: null,
       sourcePointerIds: [],
+      candidateFactIds: [],
       error: `Evidence not found: ${evidenceId}`,
     }
   }
@@ -130,6 +134,7 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
         success: false,
         output: null,
         sourcePointerIds: [],
+        candidateFactIds: [],
         error: `Blocked test domain: ${urlDomain}`,
       }
     }
@@ -173,12 +178,13 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       success: false,
       output: null,
       sourcePointerIds: [],
+      candidateFactIds: [],
       error: result.error,
     }
   }
 
-  // Store source pointers
-  const sourcePointerIds: string[] = []
+  // PHASE-D: Store CandidateFacts (SourcePointer creation removed)
+  const candidateFactIds: string[] = []
   const rejectedExtractions: Array<{
     extraction: ExtractorOutput["extractions"][number]
     errors: string[]
@@ -275,59 +281,36 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       ? normalizeQuotes(extraction.context_after)
       : undefined
 
-    const pointer = await db.sourcePointer.create({
+    // PHASE-D: CandidateFact is now the primary extraction storage
+    // SourcePointer creation removed - Phase-1 system is canonical
+    const candidateFact = await db.candidateFact.create({
       data: {
-        evidenceId: evidence.id,
-        domain: extraction.domain,
-        valueType: extraction.value_type,
+        suggestedDomain: extraction.domain,
+        suggestedValueType: extraction.value_type,
         extractedValue: String(extraction.extracted_value),
-        displayValue: extraction.display_value ?? String(extraction.extracted_value),
-        exactQuote: normalizedQuote,
-        contextBefore: normalizedContextBefore,
-        contextAfter: normalizedContextAfter,
-        selector: extraction.selector,
-        // Article anchoring
-        articleNumber: extraction.article_number,
-        paragraphNumber: extraction.paragraph_number,
-        lawReference: extraction.law_reference,
-        confidence: extraction.confidence,
-        extractionNotes: extraction.extraction_notes,
+        overallConfidence: extraction.confidence,
+        valueConfidence: extraction.confidence,
+        groundingQuotes: [
+          {
+            text: normalizedQuote,
+            contextBefore: normalizedContextBefore || null,
+            contextAfter: normalizedContextAfter || null,
+            evidenceId: evidence.id,
+            // PHASE-D: sourcePointerId removed - no longer creating SourcePointers
+            articleNumber: extraction.article_number || null,
+            lawReference: extraction.law_reference || null,
+          },
+        ],
+        suggestedConceptSlug: `${extraction.domain}-${extraction.value_type}`.toLowerCase(),
+        legalReferenceRaw: extraction.law_reference || null,
+        extractorNotes: extraction.extraction_notes || null,
+        suggestedPillar: extraction.domain,
+        // Mark as captured but not yet reviewed
+        status: "CAPTURED",
+        promotionCandidate: extraction.confidence >= 0.9,
       },
     })
-    sourcePointerIds.push(pointer.id)
-
-    // PHASE-3 BRIDGE: Also create CandidateFact for Phase-1 system
-    // This dual-write allows gradual migration while maintaining backward compatibility
-    try {
-      await db.candidateFact.create({
-        data: {
-          suggestedDomain: extraction.domain,
-          suggestedValueType: extraction.value_type,
-          extractedValue: String(extraction.extracted_value),
-          overallConfidence: extraction.confidence,
-          valueConfidence: extraction.confidence,
-          groundingQuotes: [
-            {
-              text: normalizedQuote,
-              contextBefore: normalizedContextBefore || null,
-              contextAfter: normalizedContextAfter || null,
-              evidenceId: evidence.id,
-              sourcePointerId: pointer.id,
-            },
-          ],
-          suggestedConceptSlug: `${extraction.domain}-${extraction.value_type}`.toLowerCase(),
-          legalReferenceRaw: extraction.law_reference || null,
-          extractorNotes: extraction.extraction_notes || null,
-          suggestedPillar: extraction.domain,
-          // Mark as captured but not yet reviewed
-          status: "CAPTURED",
-          promotionCandidate: extraction.confidence >= 0.9,
-        },
-      })
-    } catch (cfError) {
-      // Log but don't fail - CandidateFact is Phase-3 bridge, not critical path
-      console.warn(`[extractor] Failed to create CandidateFact: ${cfError}`)
-    }
+    candidateFactIds.push(candidateFact.id)
   }
 
   // Log rejection stats
@@ -337,17 +320,8 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     )
   }
 
-  // Generate embeddings for source pointers (async, non-blocking)
-  if (sourcePointerIds.length > 0) {
-    console.log(`[extractor] Generating embeddings for ${sourcePointerIds.length} pointers...`)
-    try {
-      const embeddings = await generatePointerEmbeddingsBatch(sourcePointerIds)
-      console.log(`[extractor] ✓ Generated ${embeddings.size} embeddings`)
-    } catch (embeddingError) {
-      // Log but don't fail - embeddings can be backfilled later
-      console.warn(`[extractor] Failed to generate embeddings: ${embeddingError}`)
-    }
-  }
+  // PHASE-D: SourcePointer embedding generation removed
+  // Embeddings for CandidateFacts/RuleFacts are generated during promotion
 
   // Generate and save coverage report
   try {
@@ -360,35 +334,53 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     console.warn(`[extractor] Failed to generate coverage report: ${coverageError}`)
   }
 
+  // PHASE-D: Return candidateFactIds as the primary output
+  // sourcePointerIds kept for backward compatibility (always empty)
   return {
     success: true,
     output: result.output,
-    sourcePointerIds,
+    sourcePointerIds: [], // PHASE-D: Always empty - SourcePointer creation removed
+    candidateFactIds,
     error: null,
   }
 }
 
 /**
  * Run extractor on multiple unprocessed evidence records
+ * PHASE-D: Updated to use CandidateFact for tracking processed evidence
  */
 export async function runExtractorBatch(limit: number = 20): Promise<{
   processed: number
   failed: number
+  /** @deprecated PHASE-D: Always empty - use candidateFactIds instead */
   sourcePointerIds: string[]
+  candidateFactIds: string[]
   errors: string[]
 }> {
-  // Find evidence that hasn't been processed (no source pointers link to it)
-  // Query all evidence IDs that have source pointers
-  const pointersWithEvidence = await db.sourcePointer.findMany({
-    select: { evidenceId: true },
-    distinct: ["evidenceId"],
+  // PHASE-D: Find evidence that hasn't been processed (no CandidateFacts link to it)
+  // Query all evidence IDs that have CandidateFacts via groundingQuotes JSON
+  const candidateFactsWithEvidence = await db.candidateFact.findMany({
+    select: { groundingQuotes: true },
   })
-  const processedEvidenceIds = pointersWithEvidence.map((p) => p.evidenceId)
+  // Extract unique evidenceIds from groundingQuotes JSON
+  const processedEvidenceIds = new Set<string>()
+  for (const cf of candidateFactsWithEvidence) {
+    const quotes = cf.groundingQuotes as Array<{ evidenceId?: string }> | null
+    if (quotes) {
+      for (const quote of quotes) {
+        if (quote.evidenceId) {
+          processedEvidenceIds.add(quote.evidenceId)
+        }
+      }
+    }
+  }
 
   // Find evidence not in that list
   const unprocessedEvidence = await dbReg.evidence.findMany({
     where: {
-      id: { notIn: processedEvidenceIds.length > 0 ? processedEvidenceIds : ["__none__"] },
+      id: {
+        notIn: processedEvidenceIds.size > 0 ? Array.from(processedEvidenceIds) : ["__none__"],
+      },
     },
     take: limit,
     orderBy: { fetchedAt: "asc" },
@@ -396,7 +388,7 @@ export async function runExtractorBatch(limit: number = 20): Promise<{
 
   let processed = 0
   let failed = 0
-  const allPointerIds: string[] = []
+  const allCandidateFactIds: string[] = []
   const errors: string[] = []
 
   for (let i = 0; i < unprocessedEvidence.length; i++) {
@@ -424,8 +416,10 @@ export async function runExtractorBatch(limit: number = 20): Promise<{
 
     if (softFailResult.success && softFailResult.data?.success) {
       processed++
-      allPointerIds.push(...softFailResult.data.sourcePointerIds)
-      console.log(`[extractor] ✓ Extracted ${softFailResult.data.sourcePointerIds.length} pointers`)
+      allCandidateFactIds.push(...softFailResult.data.candidateFactIds)
+      console.log(
+        `[extractor] ✓ Extracted ${softFailResult.data.candidateFactIds.length} candidate facts`
+      )
     } else {
       failed++
       const errorMsg = softFailResult.error || softFailResult.data?.error || "Unknown error"
@@ -434,5 +428,11 @@ export async function runExtractorBatch(limit: number = 20): Promise<{
     }
   }
 
-  return { processed, failed, sourcePointerIds: allPointerIds, errors }
+  return {
+    processed,
+    failed,
+    sourcePointerIds: [], // PHASE-D: Always empty for backward compatibility
+    candidateFactIds: allCandidateFactIds,
+    errors,
+  }
 }
