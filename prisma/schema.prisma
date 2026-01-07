@@ -3976,6 +3976,61 @@ model ClaimException {
 }
 
 // ============================================================================
+// PHASE-1: CANDIDATE FACT (Exploratory Signal Capture)
+// ============================================================================
+// CandidateFact captures extracted signals before promotion to canonical RuleFact.
+// See: docs/audits/PHASE_1_PROOF_RUN.md
+
+enum CandidateStatus {
+  CAPTURED // Initial capture from extractor
+  UNDER_REVIEW // Human reviewer is examining
+  NEEDS_EVIDENCE // More grounding required
+  PROMOTABLE // Ready for promotion to RuleFact
+  REJECTED // Not valid/useful
+  PROMOTED // Successfully promoted to RuleFact
+  ARCHIVED // Historical, no longer relevant
+}
+
+model CandidateFact {
+  id                   String          @id @default(cuid())
+  suggestedConceptSlug String?
+  suggestedDomain      String?
+  subjectDescription   String?
+  subjectConfidence    Float           @default(0)
+  objectDescription    String?
+  objectConfidence     Float           @default(0)
+  conditions           String?
+  conditionsConfidence Float           @default(0)
+  extractedValue       String?
+  suggestedValueType   String?
+  valueConfidence      Float           @default(0)
+  effectiveFrom        DateTime?
+  effectiveUntil       DateTime?
+  temporalConfidence   Float           @default(0)
+  temporalNotes        String?
+  suggestedAuthority   String?
+  legalReferenceRaw    String?
+  groundingQuotes      Json            @default("[]") @db.JsonB
+  status               CandidateStatus @default(CAPTURED)
+  overallConfidence    Float           @default(0)
+  extractorNotes       String?
+  reviewNotes          String?
+  createdAt            DateTime        @default(now())
+  reviewedAt           DateTime?
+  reviewedBy           String?
+  suggestedPillar      String?
+  promotionCandidate   Boolean         @default(false)
+  promotedToRuleFactId String? // Soft ref to regulatory.RuleFact
+
+  @@index([status])
+  @@index([suggestedConceptSlug])
+  @@index([suggestedDomain])
+  @@index([overallConfidence])
+  @@index([promotionCandidate])
+  @@index([createdAt])
+}
+
+// ============================================================================
 // SHAPE 2: TAXONOMY (Concept Graph)
 // ============================================================================
 

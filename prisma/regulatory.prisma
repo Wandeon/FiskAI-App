@@ -295,3 +295,106 @@ model RuleCalculation {
   @@map("rule_calculation")
   @@schema("regulatory")
 }
+
+// =============================================================================
+// PHASE-1: RULE FACT (Canonical Regulatory Truth)
+// =============================================================================
+// RuleFact is the canonical form of verified regulatory truth.
+// See: docs/audits/PHASE_1_PROOF_RUN.md
+
+enum RuleFactSubjectType {
+  TAXPAYER
+  EMPLOYER
+  COMPANY
+  INDIVIDUAL
+  ALL
+
+  @@schema("regulatory")
+}
+
+enum RuleFactObjectType {
+  POREZNA_STOPA
+  PRAG_PRIHODA
+  OSNOVICA
+  ROK
+  OBVEZA
+  IZNOS
+  POSTOTAK
+
+  @@schema("regulatory")
+}
+
+enum RuleFactValueType {
+  PERCENTAGE
+  CURRENCY_EUR
+  CURRENCY_HRK
+  DEADLINE_DAY
+  DEADLINE_DESCRIPTION
+  BOOLEAN
+  COUNT
+
+  @@schema("regulatory")
+}
+
+enum RuleFactAuthorityLevel {
+  LAW
+  GUIDANCE
+  PROCEDURE
+  PRACTICE
+
+  @@schema("regulatory")
+}
+
+enum RuleFactRiskTier {
+  T0
+  T1
+  T2
+  T3
+
+  @@schema("regulatory")
+}
+
+enum RuleFactStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  PUBLISHED
+  DEPRECATED
+  REJECTED
+
+  @@schema("regulatory")
+}
+
+model RuleFact {
+  id                 String                 @id @default(cuid())
+  conceptSlug        String
+  conceptId          String? // Soft ref to public.Concept
+  subjectType        RuleFactSubjectType
+  subjectDescription String
+  subjectConstraints Json?                  @db.JsonB
+  objectType         RuleFactObjectType
+  objectDescription  String
+  objectConstraints  Json?                  @db.JsonB
+  conditions         Json                   @default("{\"always\": true}") @db.JsonB
+  value              String
+  valueType          RuleFactValueType
+  displayValue       String
+  effectiveFrom      DateTime
+  effectiveUntil     DateTime?
+  authority          RuleFactAuthorityLevel
+  legalReference     Json                   @db.JsonB
+  groundingQuotes    Json                   @db.JsonB
+  riskTier           RuleFactRiskTier
+  confidence         Float                  @default(0.90)
+  status             RuleFactStatus         @default(DRAFT)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([conceptSlug])
+  @@index([status])
+  @@index([effectiveFrom])
+  @@index([riskTier])
+  @@index([authority])
+  @@index([conceptId])
+  @@schema("regulatory")
+}
