@@ -4,9 +4,12 @@
 //
 // Discovery v1 FROZEN: This script does NOT fetch new content from the web.
 // It ONLY processes existing Evidence records that:
-//   1. Have COMPLETED embeddings
+//   1. Have extractable content (rawContent for HTML, artifact for PDF_TEXT)
 //   2. Are from LOCKED sources (not HNB, HGK, EUR-Lex)
 //   3. Don't already have SourcePointers
+//
+// NOTE: Embeddings are for retrieval, NOT extraction eligibility.
+//       Evidence creation is decoupled from embeddings and extraction.
 //
 // Usage:
 //   npx tsx scripts/baseline-extraction.ts --dry-run   # Preview without processing
@@ -61,7 +64,8 @@ interface Evidence {
   sourceSlug: string
   sourceName: string
   contentClass: string
-  embeddingStatus: string
+  rawContentLength: number
+  hasArtifact: boolean
 }
 
 interface ExtractionMetrics {
@@ -94,8 +98,10 @@ const EXTRACTABLE_CONTENT_CLASSES = ["HTML", "PDF_TEXT"]
 
 /**
  * Find Evidence eligible for baseline extraction
- * Only selects Evidence with extractable content (HTML, PDF_TEXT)
- * Skips PDF_SCANNED, DOC, XLSX which need OCR first
+ * Eligibility criteria (NO embedding requirement):
+ *   - HTML: has non-empty rawContent (always true due to NOT NULL constraint)
+ *   - PDF_TEXT: has PDF_TEXT artifact with content
+ * Skips: PDF_SCANNED, DOC, DOCX, XLSX (need OCR/conversion first)
  */
 async function findEligibleEvidence(pool: Pool, limit: number): Promise<Evidence[]> {
   const client = await pool.connect()
@@ -106,14 +112,28 @@ async function findEligibleEvidence(pool: Pool, limit: number): Promise<Evidence
         e.id,
         e.url,
         e."contentClass",
-        e."embeddingStatus",
+        LENGTH(e."rawContent") as "rawContentLength",
         s.slug as "sourceSlug",
-        s.name as "sourceName"
+        s.name as "sourceName",
+        EXISTS (
+          SELECT 1 FROM regulatory."EvidenceArtifact" ea
+          WHERE ea."evidenceId" = e.id
+          AND ea."kind" = 'PDF_TEXT'
+        ) as "hasArtifact"
       FROM regulatory."Evidence" e
       JOIN regulatory."RegulatorySource" s ON e."sourceId" = s.id
-      WHERE e."embeddingStatus" = 'COMPLETED'
-        AND e."deletedAt" IS NULL
+      WHERE e."deletedAt" IS NULL
         AND e."contentClass" IN ('HTML', 'PDF_TEXT')
+        -- HTML: rawContent is NOT NULL by schema, so always extractable
+        -- PDF_TEXT: must have PDF_TEXT artifact
+        AND (
+          e."contentClass" = 'HTML'
+          OR EXISTS (
+            SELECT 1 FROM regulatory."EvidenceArtifact" ea
+            WHERE ea."evidenceId" = e.id
+            AND ea."kind" = 'PDF_TEXT'
+          )
+        )
         AND NOT EXISTS (
           SELECT 1 FROM public."SourcePointer" sp
           WHERE sp."evidenceId" = e.id
@@ -132,12 +152,15 @@ async function findEligibleEvidence(pool: Pool, limit: number): Promise<Evidence
 
 /**
  * Get current counts for reporting
+ * NOTE: Eligibility is NOT based on embedding status
  */
 async function getCounts(pool: Pool): Promise<{
   totalEvidence: number
   withPointers: number
-  eligibleForExtraction: number
+  eligibleHtml: number
+  eligiblePdfText: number
   needsOcr: number
+  needsConversion: number
 }> {
   const client = await pool.connect()
   try {
@@ -145,28 +168,57 @@ async function getCounts(pool: Pool): Promise<{
       SELECT
         (SELECT COUNT(*) FROM regulatory."Evidence" WHERE "deletedAt" IS NULL) as "totalEvidence",
         (SELECT COUNT(DISTINCT "evidenceId") FROM public."SourcePointer" WHERE "deletedAt" IS NULL) as "withPointers",
+        -- HTML: eligible if no pointers yet (rawContent is always present)
         (SELECT COUNT(*) FROM regulatory."Evidence" e
-         WHERE e."embeddingStatus" = 'COMPLETED'
-           AND e."deletedAt" IS NULL
-           AND e."contentClass" IN ('HTML', 'PDF_TEXT')
+         WHERE e."deletedAt" IS NULL
+           AND e."contentClass" = 'HTML'
            AND NOT EXISTS (
              SELECT 1 FROM public."SourcePointer" sp
              WHERE sp."evidenceId" = e.id
              AND sp."deletedAt" IS NULL
            )
-        ) as "eligibleForExtraction",
+        ) as "eligibleHtml",
+        -- PDF_TEXT: eligible if has PDF_TEXT artifact and no pointers yet
         (SELECT COUNT(*) FROM regulatory."Evidence" e
-         WHERE e."embeddingStatus" = 'COMPLETED'
-           AND e."deletedAt" IS NULL
-           AND e."contentClass" NOT IN ('HTML', 'PDF_TEXT')
+         WHERE e."deletedAt" IS NULL
+           AND e."contentClass" = 'PDF_TEXT'
+           AND EXISTS (
+             SELECT 1 FROM regulatory."EvidenceArtifact" ea
+             WHERE ea."evidenceId" = e.id
+             AND ea."kind" = 'PDF_TEXT'
+           )
            AND NOT EXISTS (
              SELECT 1 FROM public."SourcePointer" sp
              WHERE sp."evidenceId" = e.id
              AND sp."deletedAt" IS NULL
            )
-        ) as "needsOcr"
+        ) as "eligiblePdfText",
+        -- PDF_SCANNED: needs OCR first
+        (SELECT COUNT(*) FROM regulatory."Evidence" e
+         WHERE e."deletedAt" IS NULL
+           AND e."contentClass" = 'PDF_SCANNED'
+           AND NOT EXISTS (
+             SELECT 1 FROM regulatory."EvidenceArtifact" ea
+             WHERE ea."evidenceId" = e.id
+             AND ea."kind" = 'OCR_TEXT'
+           )
+        ) as "needsOcr",
+        -- DOC/DOCX/XLSX: needs conversion first
+        (SELECT COUNT(*) FROM regulatory."Evidence" e
+         WHERE e."deletedAt" IS NULL
+           AND e."contentClass" IN ('DOC', 'DOCX', 'XLSX')
+        ) as "needsConversion"
     `)
-    return result.rows[0]
+    // Parse counts as integers (pg returns bigint as strings)
+    const row = result.rows[0]
+    return {
+      totalEvidence: parseInt(row.totalEvidence) || 0,
+      withPointers: parseInt(row.withPointers) || 0,
+      eligibleHtml: parseInt(row.eligibleHtml) || 0,
+      eligiblePdfText: parseInt(row.eligiblePdfText) || 0,
+      needsOcr: parseInt(row.needsOcr) || 0,
+      needsConversion: parseInt(row.needsConversion) || 0,
+    }
   } finally {
     client.release()
   }
@@ -198,16 +250,23 @@ async function main() {
   try {
     // Pre-flight checks
     const counts = await getCounts(pool)
+    const eligibleTotal = counts.eligibleHtml + counts.eligiblePdfText
     console.log("\n--- PRE-FLIGHT COUNTS ---")
     console.log(`Total Evidence: ${counts.totalEvidence}`)
     console.log(`With SourcePointers: ${counts.withPointers}`)
-    console.log(`Eligible for extraction (HTML/PDF_TEXT): ${counts.eligibleForExtraction}`)
-    console.log(`Needs OCR first (PDF_SCANNED/DOC/XLSX): ${counts.needsOcr}`)
+    console.log(`Eligible HTML: ${counts.eligibleHtml}`)
+    console.log(`Eligible PDF_TEXT: ${counts.eligiblePdfText}`)
+    console.log(`Total eligible for extraction: ${eligibleTotal}`)
+    console.log(`Needs OCR (PDF_SCANNED): ${counts.needsOcr}`)
+    console.log(`Needs conversion (DOC/XLSX): ${counts.needsConversion}`)
 
-    if (counts.eligibleForExtraction === 0) {
+    if (eligibleTotal === 0) {
       console.log("\n✓ No extractable evidence found. All caught up!")
       if (counts.needsOcr > 0) {
         console.log(`  Note: ${counts.needsOcr} records need OCR before extraction.`)
+      }
+      if (counts.needsConversion > 0) {
+        console.log(`  Note: ${counts.needsConversion} records need DOC/XLSX conversion.`)
       }
       await pool.end()
       process.exit(0)
@@ -259,7 +318,11 @@ async function main() {
       const e = filtered[i]
       const progress = `[${i + 1}/${filtered.length}]`
 
+      // Enhanced per-evidence logging
       console.log(`\n${progress} Processing: ${e.sourceSlug}`)
+      console.log(`  evidenceId: ${e.id}`)
+      console.log(`  contentClass: ${e.contentClass}`)
+      console.log(`  rawContentLength: ${e.rawContentLength} chars`)
       console.log(`  URL: ${e.url}`)
 
       // Initialize source metrics
@@ -333,11 +396,15 @@ async function main() {
 
     // Post-flight counts
     const postCounts = await getCounts(pool)
+    const postEligibleTotal = postCounts.eligibleHtml + postCounts.eligiblePdfText
     console.log("\n--- POST-FLIGHT COUNTS ---")
     console.log(`Total Evidence: ${postCounts.totalEvidence}`)
     console.log(`With SourcePointers: ${postCounts.withPointers}`)
-    console.log(`Remaining eligible (HTML/PDF_TEXT): ${postCounts.eligibleForExtraction}`)
+    console.log(`Remaining eligible HTML: ${postCounts.eligibleHtml}`)
+    console.log(`Remaining eligible PDF_TEXT: ${postCounts.eligiblePdfText}`)
+    console.log(`Total remaining eligible: ${postEligibleTotal}`)
     console.log(`Needs OCR: ${postCounts.needsOcr}`)
+    console.log(`Needs conversion: ${postCounts.needsConversion}`)
 
     await pool.end()
     process.exit(metrics.failed > 0 ? 1 : 0)

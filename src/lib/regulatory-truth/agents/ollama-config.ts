@@ -12,9 +12,7 @@
  * Priority: OLLAMA_EXTRACT_ENDPOINT > OLLAMA_ENDPOINT > default
  */
 export function getOllamaExtractEndpoint(): string {
-  return (
-    process.env.OLLAMA_EXTRACT_ENDPOINT || process.env.OLLAMA_ENDPOINT || "https://api.ollama.ai"
-  )
+  return process.env.OLLAMA_EXTRACT_ENDPOINT || process.env.OLLAMA_ENDPOINT || "https://ollama.com"
 }
 
 /**

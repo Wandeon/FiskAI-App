@@ -55,7 +55,7 @@ describe("Ollama Config Split", () => {
     })
 
     it("uses default when no env vars set", () => {
-      expect(getOllamaExtractEndpoint()).toBe("https://api.ollama.ai")
+      expect(getOllamaExtractEndpoint()).toBe("https://ollama.com")
       expect(getOllamaExtractModel()).toBe("llama3.1")
     })
   })
