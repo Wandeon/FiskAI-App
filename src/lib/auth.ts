@@ -12,14 +12,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/login",
     error: "/login",
-    verifyRequest: "/auth/verify-request", // for password reset
+    verifyRequest: "/auth/verify-request",
   },
   cookies: {
     sessionToken: {
       name:
         process.env.NODE_ENV === "production"
-          ? "__Secure-next-auth.session-token"
-          : "next-auth.session-token",
+          ? "__Secure-authjs.session-token"
+          : "authjs.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -28,6 +28,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         domain: process.env.NODE_ENV === "production" ? ".fiskai.hr" : undefined,
       },
     },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-authjs.callback-url"
+          : "authjs.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".fiskai.hr" : undefined,
+      },
+    },
+    // Note: csrfToken uses __Host- prefix which CANNOT have domain set (security requirement)
+    // We don't override it - Auth.js handles it correctly
   },
   providers: [
     CredentialsProvider({
@@ -41,19 +56,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        // Rate limiting for login attempts
         const email = credentials.email as string
         const identifier = `login_${email.toLowerCase()}`
         const rateLimitResult = await checkRateLimit(identifier, "LOGIN")
 
         if (!rateLimitResult.allowed) {
           console.log(`Rate limited login attempt for ${credentials.email}`)
-          return null // Don't reveal that account exists
+          return null
         }
 
         const password = credentials.password as string
 
-        // Check for passkey authentication
         if (password.startsWith("__PASSKEY__")) {
           const userId = password.replace("__PASSKEY__", "")
           const user = await db.user.findUnique({
@@ -69,7 +82,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        // Check for OTP verification authentication
         if (password.startsWith("__OTP_VERIFIED__")) {
           const userId = password.replace("__OTP_VERIFIED__", "")
           const user = await db.user.findUnique({
@@ -96,12 +108,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const passwordMatch = await bcrypt.compare(password, user.passwordHash)
 
         if (!passwordMatch) {
-          // The failed attempt is already tracked by checkRateLimit
           return null
         }
 
-        // Reset rate limit on successful login
-        // Note: In production, you might want to implement this differently
         return {
           id: user.id,
           email: user.email,
@@ -120,10 +129,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Auto-verify email for OAuth providers (Google, etc.)
       if (account?.provider && account.provider !== "credentials") {
         if (user.id) {
-          // Check if user exists and needs verification
           const existingUser = await db.user.findUnique({
             where: { id: user.id },
             select: { emailVerified: true },
@@ -139,10 +146,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true
     },
     async redirect({ url, baseUrl }) {
-      // Handle callback URLs
       const callbackUrl = new URL(url, baseUrl)
 
-      // If redirecting to login or auth pages, allow it
       if (
         callbackUrl.pathname.startsWith("/login") ||
         callbackUrl.pathname.startsWith("/register") ||
@@ -151,25 +156,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return url
       }
 
-      // If there's a specific callback URL requested, use it
       if (url.startsWith(baseUrl)) {
         return url
       }
 
-      // Default redirect based on user role will be handled by the default behavior
       return baseUrl
     },
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
-        // Fetch the full user from the database to get systemRole
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
           select: { systemRole: true },
         })
         token.systemRole = dbUser?.systemRole || "USER"
       }
-      // On session update, refresh the role
       if (trigger === "update" && token.id) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id as string },
@@ -189,11 +190,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async signIn({ user, account }) {
-      // Log successful sign in for audit purposes
       console.log(`User ${user.email} signed in via ${account?.provider || "credentials"}`)
     },
     async signOut(message) {
-      // Log sign out for audit purposes
       const email =
         "token" in message
           ? message.token?.email

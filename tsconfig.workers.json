@@ -1,12 +1,24 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "module": "commonjs",
+    "outDir": "dist/workers",
+    "rootDir": "src",
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "declaration": false,
+    "sourceMap": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "baseUrl": "."
   },
-  "include": ["src/lib/regulatory-truth/workers/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": [
+    "src/lib/regulatory-truth/workers/**/*.ts",
+    "src/lib/regulatory-truth/agents/**/*.ts",
+    "src/lib/regulatory-truth/utils/**/*.ts",
+    "src/lib/db/**/*.ts"
+  ],
+  "exclude": ["**/*.test.ts", "**/__tests__/**"]
 }

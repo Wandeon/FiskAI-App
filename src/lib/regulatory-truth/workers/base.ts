@@ -2,6 +2,10 @@
 import { Worker, Job } from "bullmq"
 import { createWorkerConnection, closeRedis } from "./redis"
 import { deadletterQueue, DLQ_THRESHOLD, type DeadLetterJobData } from "./queues"
+import { runStartupGuards, registerWorkerVersion } from "./utils/version-guard"
+
+// Run version guards FIRST (before any Redis/BullMQ initialization)
+runStartupGuards()
 
 const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
 
@@ -89,6 +93,9 @@ export function createWorker<T>(
 ): Worker<T> {
   const connection = createWorkerConnection()
   const concurrency = options.concurrency ?? parseInt(process.env.WORKER_CONCURRENCY || "2")
+
+  // Register worker version in Redis (non-blocking)
+  void registerWorkerVersion()
 
   const worker = new Worker<T>(
     queueName,

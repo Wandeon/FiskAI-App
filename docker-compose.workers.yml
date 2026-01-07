@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-orchestrator
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/orchestrator.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/orchestrator.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -69,7 +69,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-sentinel
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/sentinel.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/sentinel.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -90,7 +90,7 @@ services:
       dockerfile: Dockerfile.worker
     # No container_name when using replicas
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/extractor.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/extractor.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -116,9 +116,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        WITH_OCR: "true"
     container_name: fiskai-worker-ocr
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/ocr.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/ocr.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -142,7 +144,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-composer
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/composer.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/composer.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -166,7 +168,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-reviewer
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/reviewer.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/reviewer.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -190,7 +192,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-scheduler
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/scheduler.service.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/scheduler.service.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -209,7 +211,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-releaser
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/releaser.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/releaser.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -230,7 +232,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-arbiter
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/arbiter.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/arbiter.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -255,7 +257,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-continuous-drainer
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/continuous-drainer.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/continuous-drainer.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -278,7 +280,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-content-sync
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/content-sync.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/content-sync.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -309,7 +311,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-article
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/article.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/article.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -339,7 +341,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-evidence-embedding
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/evidence-embedding.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/evidence-embedding.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -371,7 +373,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-embedding
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/embedding.worker.ts"]
+    command: ["node", "dist/workers/lib/regulatory-truth/workers/embedding.worker.js"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
@@ -403,7 +405,7 @@ services:
       dockerfile: Dockerfile.worker
     container_name: fiskai-worker-einvoice-inbound
     restart: unless-stopped
-    command: ["npx", "tsx", "src/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.ts"]
+    command: ["node", "dist/workers/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.js"]
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
