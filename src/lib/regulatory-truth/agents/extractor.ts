@@ -295,6 +295,39 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
       },
     })
     sourcePointerIds.push(pointer.id)
+
+    // PHASE-3 BRIDGE: Also create CandidateFact for Phase-1 system
+    // This dual-write allows gradual migration while maintaining backward compatibility
+    try {
+      await db.candidateFact.create({
+        data: {
+          suggestedDomain: extraction.domain,
+          suggestedValueType: extraction.value_type,
+          extractedValue: String(extraction.extracted_value),
+          overallConfidence: extraction.confidence,
+          valueConfidence: extraction.confidence,
+          groundingQuotes: [
+            {
+              text: normalizedQuote,
+              contextBefore: normalizedContextBefore || null,
+              contextAfter: normalizedContextAfter || null,
+              evidenceId: evidence.id,
+              sourcePointerId: pointer.id,
+            },
+          ],
+          suggestedConceptSlug: `${extraction.domain}-${extraction.value_type}`.toLowerCase(),
+          legalReferenceRaw: extraction.law_reference || null,
+          extractorNotes: extraction.extraction_notes || null,
+          suggestedPillar: extraction.domain,
+          // Mark as captured but not yet reviewed
+          status: "CAPTURED",
+          promotionCandidate: extraction.confidence >= 0.9,
+        },
+      })
+    } catch (cfError) {
+      // Log but don't fail - CandidateFact is Phase-3 bridge, not critical path
+      console.warn(`[extractor] Failed to create CandidateFact: ${cfError}`)
+    }
   }
 
   // Log rejection stats
