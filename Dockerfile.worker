@@ -5,6 +5,11 @@ FROM node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488a
 
 # Build stage - install all deps
 FROM base AS builder
+
+# Build args for version tracking (set by CI/deploy)
+ARG GIT_SHA=unknown
+ARG BUILD_DATE=unknown
+
 WORKDIR /app
 
 # Install build tools for native modules (canvas, sharp, etc.)
@@ -29,19 +34,25 @@ RUN npx tsc --noEmit --skipLibCheck || true
 FROM base AS runner
 WORKDIR /app
 
+# Bake version info into image
+ARG GIT_SHA
+ARG BUILD_DATE
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILD_DATE=${BUILD_DATE}
+
 ENV NODE_ENV=production
 
-# ========== OCR DEPENDENCIES ==========
-RUN apk add --no-cache \
-    tesseract-ocr \
-    tesseract-ocr-data-hrv \
-    tesseract-ocr-data-eng \
-    poppler-utils \
-    ghostscript
-# tesseract-ocr-data-hrv = Croatian language pack
-# poppler-utils = pdftoppm, pdfinfo for PDF→image rendering
-# ghostscript = required by some PDF operations
-# ======================================
+# ========== OCR DEPENDENCIES (conditional) ==========
+ARG WITH_OCR=false
+RUN if [ "$WITH_OCR" = "true" ]; then \
+    apk add --no-cache \
+        tesseract-ocr \
+        tesseract-ocr-data-hrv \
+        tesseract-ocr-data-eng \
+        poppler-utils \
+        ghostscript; \
+    fi
+# ====================================================
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
