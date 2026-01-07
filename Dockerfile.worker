@@ -1,5 +1,5 @@
 # Dockerfile.worker
-# Worker image - runs TypeScript directly with tsx
+# Worker image - compiles TypeScript and runs JavaScript with Node.js
 
 FROM node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448 AS base
 
@@ -27,8 +27,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Compile TypeScript to check for errors (but we'll run with tsx)
-RUN npx tsc --noEmit --skipLibCheck || true
+# Compile workers to JavaScript
+RUN npm run build:workers
 
 # Production image
 FROM base AS runner
@@ -61,6 +61,7 @@ RUN adduser --system --uid 1001 worker
 # Copy everything needed to run workers (with proper ownership)
 COPY --from=builder --chown=worker:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=worker:nodejs /app/src ./src
+COPY --from=builder --chown=worker:nodejs /app/dist ./dist
 COPY --from=builder --chown=worker:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=worker:nodejs /app/package.json ./
 COPY --from=builder --chown=worker:nodejs /app/tsconfig.json ./
@@ -68,5 +69,5 @@ COPY --from=builder --chown=worker:nodejs /app/prisma.config.regulatory.ts ./
 
 USER worker
 
-# Default command - run with tsx (override in docker-compose)
-CMD ["npx", "tsx", "src/lib/regulatory-truth/workers/orchestrator.worker.ts"]
+# Default command - run compiled JavaScript (override in docker-compose)
+CMD ["node", "dist/workers/lib/regulatory-truth/workers/orchestrator.worker.js"]
