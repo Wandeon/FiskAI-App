@@ -322,5 +322,258 @@ After Phase-1 cutover is complete:
 
 ---
 
+## Phase 2: Prisma/DB Alignment
+
+**Date:** 2026-01-07
+**Status:** COMPLETE
+
+### Changes Made
+
+1. **Added CandidateFact to `prisma/schema.prisma`:**
+   - CandidateStatus enum (CAPTURED, UNDER_REVIEW, NEEDS_EVIDENCE, PROMOTABLE, REJECTED, PROMOTED, ARCHIVED)
+   - CandidateFact model matching existing DB table structure (29 columns)
+   - Indexes on status, promotionCandidate, conceptSlug, etc.
+
+2. **Added RuleFact to `prisma/regulatory.prisma`:**
+   - RuleFactSubjectType enum (TAXPAYER, EMPLOYER, COMPANY, INDIVIDUAL, ALL)
+   - RuleFactObjectType enum (POREZNA_STOPA, PRAG_PRIHODA, OSNOVICA, ROK, OBVEZA, IZNOS, POSTOTAK)
+   - RuleFactValueType enum (PERCENTAGE, CURRENCY_EUR, CURRENCY_HRK, DEADLINE_DAY, DEADLINE_DESCRIPTION, BOOLEAN, COUNT)
+   - RuleFactAuthorityLevel enum (LAW, GUIDANCE, PROCEDURE, PRACTICE)
+   - RuleFactRiskTier enum (T0, T1, T2, T3)
+   - RuleFactStatus enum (DRAFT, PENDING_REVIEW, APPROVED, PUBLISHED, DEPRECATED, REJECTED)
+   - RuleFact model matching existing DB table structure
+
+### Verification
+
+```bash
+npx prisma validate --schema=prisma/schema.prisma
+# ✓ Valid
+
+npx prisma validate --schema=prisma/regulatory.prisma
+# ✓ Valid
+```
+
+---
+
+## Phase 3: Write-Path Cutover (Extractor)
+
+**Date:** 2026-01-07
+**Status:** COMPLETE
+
+### Changes Made
+
+Modified `src/lib/regulatory-truth/agents/extractor.ts`:
+
+```typescript
+// PHASE-3 BRIDGE: Also create CandidateFact for Phase-1 system
+// This dual-write allows gradual migration while maintaining backward compatibility
+try {
+  await db.candidateFact.create({
+    data: {
+      suggestedDomain: extraction.domain,
+      suggestedValueType: extraction.value_type,
+      extractedValue: String(extraction.extracted_value),
+      overallConfidence: extraction.confidence,
+      valueConfidence: extraction.confidence,
+      groundingQuotes: [...],
+      suggestedConceptSlug: `${extraction.domain}-${extraction.value_type}`.toLowerCase(),
+      legalReferenceRaw: extraction.law_reference || null,
+      extractorNotes: extraction.extraction_notes || null,
+      suggestedPillar: extraction.domain,
+      status: "CAPTURED",
+      promotionCandidate: extraction.confidence >= 0.9,
+    },
+  })
+} catch (cfError) {
+  // Log but don't fail - CandidateFact is Phase-3 bridge, not critical path
+  console.warn(`[extractor] Failed to create CandidateFact: ${cfError}`)
+}
+```
+
+### Behavior Change
+
+| Before                               | After                                                  |
+| ------------------------------------ | ------------------------------------------------------ |
+| Extractor creates SourcePointer only | Extractor creates BOTH SourcePointer AND CandidateFact |
+| CandidateFact = 0 rows               | CandidateFact grows with each extraction               |
+
+### Backward Compatibility
+
+- SourcePointer creation unchanged (critical path)
+- CandidateFact wrapped in try/catch (non-blocking)
+- If CandidateFact fails, extractor continues normally
+
+---
+
+## Phase 4: Read-Path Cutover (Assistant)
+
+**Date:** 2026-01-07
+**Status:** COMPLETE
+
+### Changes Made
+
+Modified `src/lib/assistant/query-engine/rule-selector.ts`:
+
+```typescript
+// PHASE-4 BRIDGE: Try RuleFact first (new canonical system), fallback to RegulatoryRule
+// This dual-query allows gradual migration while maintaining backward compatibility
+// Eventually, only RuleFact should be queried (Phase 5 retirement)
+let useRuleFact = false
+let ruleFactCount = 0
+
+try {
+  // Check if RuleFact has any published data for these concepts
+  ruleFactCount = await dbReg.ruleFact.count({
+    where: {
+      conceptSlug: { in: conceptSlugs },
+      status: "PUBLISHED",
+    },
+  })
+  useRuleFact = ruleFactCount > 0
+  if (useRuleFact) {
+    console.log(`[rule-selector] Phase-4: Using RuleFact (${ruleFactCount} published rules)`)
+  }
+} catch (error) {
+  // RuleFact query failed - fall back to RegulatoryRule
+  console.warn(
+    `[rule-selector] Phase-4: RuleFact query failed, using RegulatoryRule fallback:`,
+    error
+  )
+}
+```
+
+### Behavior Change
+
+| Before                                | After                                                         |
+| ------------------------------------- | ------------------------------------------------------------- |
+| Assistant queries RegulatoryRule only | Assistant checks RuleFact first, falls back to RegulatoryRule |
+| RuleFact = ignored                    | RuleFact used when it has PUBLISHED data                      |
+
+### Current State
+
+- RuleFact = 0 PUBLISHED rows → Fallback to RegulatoryRule (no change in behavior)
+- When RuleFact has PUBLISHED data → Assistant uses new canonical system
+
+---
+
+## Phase 5: Legacy Retirement
+
+**Date:** 2026-01-07
+**Status:** DOCUMENTED (Awaiting RuleFact data)
+
+### Current State
+
+The bridge is in place but cannot retire legacy because:
+
+| Component          | Current State                       | Required for Retirement                   |
+| ------------------ | ----------------------------------- | ----------------------------------------- |
+| CandidateFact      | 0 rows (will grow with extractions) | N/A (staging table)                       |
+| RuleFact           | 0 rows                              | ≥1 PUBLISHED rule per concept             |
+| Promotion Pipeline | NOT IMPLEMENTED                     | Required to move CandidateFact → RuleFact |
+
+### Missing Component: Promotion Pipeline
+
+To retire the legacy system, we need a promotion pipeline:
+
+```
+CandidateFact (CAPTURED)
+    ↓ [Human Review or Auto-Promote high-confidence]
+CandidateFact (PROMOTABLE)
+    ↓ [Promotion Script]
+RuleFact (DRAFT)
+    ↓ [Review/Approval]
+RuleFact (PUBLISHED)
+    ↓ [Assistant queries RuleFact]
+Legacy Retired ✓
+```
+
+### Retirement Criteria
+
+Legacy stack (RegulatoryRule, SourcePointer) can be retired when:
+
+1. **Coverage:** RuleFact has PUBLISHED rules for ALL concepts currently in RegulatoryRule
+2. **Quality:** RuleFact data passes quality checks (confidence ≥ 0.8, valid grounding quotes)
+3. **Verification:** Assistant produces equivalent answers using RuleFact vs RegulatoryRule
+4. **Stability:** No regressions in 7 days of dual-query operation
+
+### Deprecation Markers Added
+
+The following code now has bridge comments indicating future retirement:
+
+| File               | Line | Comment                                                               |
+| ------------------ | ---- | --------------------------------------------------------------------- |
+| `extractor.ts`     | ~299 | `// PHASE-3 BRIDGE: Also create CandidateFact for Phase-1 system`     |
+| `rule-selector.ts` | ~128 | `// PHASE-4 BRIDGE: Try RuleFact first, fallback to RegulatoryRule`   |
+| `rule-selector.ts` | ~130 | `// Eventually, only RuleFact should be queried (Phase 5 retirement)` |
+
+### Tables to DROP (After Retirement)
+
+| Table              | Schema | Rows  | Retirement Action                     |
+| ------------------ | ------ | ----- | ------------------------------------- |
+| `Evidence`         | public | 2,022 | DROP TABLE                            |
+| `RegulatorySource` | public | 75    | DROP TABLE                            |
+| `RegulatoryRule`   | public | 615   | DROP TABLE (after RuleFact populated) |
+
+### SourcePointer Retirement Strategy
+
+SourcePointer has 2,177 rows referenced by RegulatoryRule:
+
+**Option A: Keep Forever (Recommended)**
+
+- SourcePointer contains grounding quotes (self-contained)
+- Can still be used for citations even after RegulatoryRule retired
+- RuleFact.groundingQuotes will duplicate this data
+
+**Option B: Migrate to RuleFact**
+
+- Copy SourcePointer data into RuleFact.groundingQuotes during promotion
+- Then DROP SourcePointer table
+
+**Decision:** Option A - Keep SourcePointer as historical record. RuleFact will have its own groundingQuotes.
+
+---
+
+## Phase 6: Proof-Run Audit
+
+**Date:** 2026-01-07
+**Status:** IN PROGRESS
+
+### Verification Checklist
+
+- [x] Phase 0: Baseline audit documented
+- [x] Phase 1: regulatory.Evidence declared canonical
+- [x] Phase 2: CandidateFact and RuleFact in Prisma schemas
+- [x] Phase 3: Extractor dual-writes to CandidateFact
+- [x] Phase 4: Assistant checks RuleFact first
+- [x] Phase 5: Retirement criteria documented
+- [ ] CI passing on all changes
+- [ ] No production regressions
+
+### Bridge State Summary
+
+```
+CURRENT PRODUCTION FLOW (Active):
+Evidence (regulatory) → Extractor → SourcePointer → Composer → RegulatoryRule → Assistant
+
+BRIDGE ADDITIONS (In Place):
+Evidence (regulatory) → Extractor → CandidateFact ─┐
+                                                    ├─→ (Promotion) → RuleFact → Assistant
+                                                    │
+RegulatoryRule ─────────────────────────────────────┘ (Fallback when RuleFact empty)
+
+TARGET FLOW (When RuleFact populated):
+Evidence (regulatory) → Extractor → CandidateFact → (Promotion) → RuleFact → Assistant
+```
+
+### Next Actions
+
+1. **Immediate:** Wait for CI green on PR #1349
+2. **Short-term:** Run Extractor batch to populate CandidateFact
+3. **Medium-term:** Implement promotion pipeline (CandidateFact → RuleFact)
+4. **Long-term:** Retire legacy stack when retirement criteria met
+
+---
+
 **Audit Complete:** 2026-01-07
-**Next Phase:** Phase 2 - Prisma/DB Alignment
+**PR:** #1349
+**Status:** Bridge in place, awaiting RuleFact population for full cutover
