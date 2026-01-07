@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { switchCompany } from "@/lib/actions/company-switch"
+import { toast } from "@/lib/toast"
 
 type Company = {
   id: string
@@ -20,16 +22,33 @@ export function CompanySwitcher({
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const currentCompany = companies.find((c) => c.id === currentCompanyId)
 
   if (companies.length <= 1) {
-    return <div className="text-sm text-secondary">{currentCompany?.name}</div>
+    return (
+      <div className="flex flex-col text-xs text-secondary">
+        <span className="font-medium text-sm text-foreground truncate max-w-[180px]">
+          {currentCompany?.name}
+        </span>
+        {currentCompany?.oib && <span className="text-tertiary">OIB: {currentCompany.oib}</span>}
+      </div>
+    )
   }
 
   const handleSwitch = (companyId: string) => {
     startTransition(async () => {
-      await switchCompany(companyId)
+      const result = await switchCompany(companyId)
+      if (result?.success) {
+        toast.success(
+          "Aktivna tvrtka promijenjena",
+          result.company ? `${result.company.name} (OIB: ${result.company.oib})` : undefined
+        )
+        router.refresh()
+      } else {
+        toast.error("Promjena tvrtke nije uspjela", result?.error)
+      }
       setIsOpen(false)
     })
   }
@@ -38,10 +57,15 @@ export function CompanySwitcher({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-md border border-default bg-surface px-3 py-1.5 text-sm hover:bg-surface-1"
+        className="flex items-center gap-3 rounded-md border border-default bg-surface px-3 py-1.5 text-sm hover:bg-surface-1"
         disabled={isPending}
       >
-        <span className="max-w-[150px] truncate">{currentCompany?.name}</span>
+        <span className="flex flex-col text-left">
+          <span className="max-w-[150px] truncate font-medium">{currentCompany?.name}</span>
+          {currentCompany?.oib && (
+            <span className="text-xs text-tertiary">OIB: {currentCompany.oib}</span>
+          )}
+        </span>
         <svg
           className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
           fill="none"

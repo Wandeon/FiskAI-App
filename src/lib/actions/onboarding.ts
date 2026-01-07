@@ -4,6 +4,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import type { LegalForm } from "@/lib/capabilities"
 import type { CompetenceLevel } from "@/lib/visibility/rules"
 import { getEntitlementsForLegalForm } from "@/lib/modules/definitions"
@@ -49,6 +50,15 @@ export async function getOnboardingData(): Promise<OnboardingData | null> {
   const company = await getCurrentCompany(user.id!)
 
   if (!company) {
+    const hasMembership = await db.companyUser.findFirst({
+      where: { userId: user.id! },
+      select: { id: true },
+    })
+
+    if (hasMembership) {
+      redirect("/onboarding/choose-company")
+    }
+
     // If user selected business type during registration, pre-fill it
     const fullUser = await db.user.findUnique({
       where: { id: user.id! },
@@ -178,14 +188,24 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
 
       if (userMembership) {
         // User already has access, update company details
-        await db.company.update({
-          where: { id: oibExists.id },
-          data: {
-            name: data.name,
-            legalForm: data.legalForm,
-            entitlements: getEntitlementsForLegalForm(data.legalForm),
-          },
-        })
+        await db.$transaction([
+          db.companyUser.updateMany({
+            where: { userId: user.id! },
+            data: { isDefault: false },
+          }),
+          db.company.update({
+            where: { id: oibExists.id },
+            data: {
+              name: data.name,
+              legalForm: data.legalForm,
+              entitlements: getEntitlementsForLegalForm(data.legalForm),
+            },
+          }),
+          db.companyUser.update({
+            where: { id: userMembership.id },
+            data: { isDefault: true },
+          }),
+        ])
 
         revalidatePath("/dashboard")
         revalidatePath("/onboarding")
@@ -205,28 +225,34 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
     }
 
     // Create minimal company with placeholder values
-    const newCompany = await db.company.create({
-      data: {
-        name: data.name,
-        oib: data.oib,
-        legalForm: data.legalForm,
-        address: "", // Placeholder - will be filled in step 3
-        postalCode: "", // Placeholder
-        city: "", // Placeholder
-        country: "HR",
-        email: null,
-        iban: null,
-        isVatPayer: false,
-        entitlements: getEntitlementsForLegalForm(data.legalForm),
-        users: {
-          create: {
-            userId: user.id!,
-            role: "OWNER",
-            isDefault: true,
+    const [, newCompany] = await db.$transaction([
+      db.companyUser.updateMany({
+        where: { userId: user.id! },
+        data: { isDefault: false },
+      }),
+      db.company.create({
+        data: {
+          name: data.name,
+          oib: data.oib,
+          legalForm: data.legalForm,
+          address: "", // Placeholder - will be filled in step 3
+          postalCode: "", // Placeholder
+          city: "", // Placeholder
+          country: "HR",
+          email: null,
+          iban: null,
+          isVatPayer: false,
+          entitlements: getEntitlementsForLegalForm(data.legalForm),
+          users: {
+            create: {
+              userId: user.id!,
+              role: "OWNER",
+              isDefault: true,
+            },
           },
         },
-      },
-    })
+      }),
+    ])
 
     revalidatePath("/dashboard")
     revalidatePath("/onboarding")

@@ -54,16 +54,26 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
             ? existingCompany.entitlements
             : getEntitlementsForLegalForm(legalForm)
 
-        const updated = await db.company.update({
-          where: { id: existingCompany.id },
-          data: {
-            ...data,
-            vatNumber: data.isVatPayer ? `HR${data.oib}` : existingCompany.vatNumber,
-            legalForm,
-            featureFlags: Object.keys(newFeatureFlags).length > 0 ? newFeatureFlags : undefined,
-            entitlements,
-          },
-        })
+        const [, updated] = await db.$transaction([
+          db.companyUser.updateMany({
+            where: { userId: user.id! },
+            data: { isDefault: false },
+          }),
+          db.company.update({
+            where: { id: existingCompany.id },
+            data: {
+              ...data,
+              vatNumber: data.isVatPayer ? `HR${data.oib}` : existingCompany.vatNumber,
+              legalForm,
+              featureFlags: Object.keys(newFeatureFlags).length > 0 ? newFeatureFlags : undefined,
+              entitlements,
+            },
+          }),
+          db.companyUser.update({
+            where: { id: userMembership.id },
+            data: { isDefault: true },
+          }),
+        ])
 
         companyId = updated.id
       } else if (isOrphaned) {
@@ -81,22 +91,28 @@ export async function createCompany(formData: z.input<typeof companySchema>) {
     } else {
       // Create new company and link to user as owner
       const legalForm = data.legalForm || "DOO"
-      const newCompany = await db.company.create({
-        data: {
-          ...data,
-          vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
-          legalForm,
-          featureFlags: data.competence ? { competence: data.competence } : undefined,
-          entitlements: getEntitlementsForLegalForm(legalForm),
-          users: {
-            create: {
-              userId: user.id!,
-              role: "OWNER",
-              isDefault: true,
+      const [, newCompany] = await db.$transaction([
+        db.companyUser.updateMany({
+          where: { userId: user.id! },
+          data: { isDefault: false },
+        }),
+        db.company.create({
+          data: {
+            ...data,
+            vatNumber: data.isVatPayer ? `HR${data.oib}` : null,
+            legalForm,
+            featureFlags: data.competence ? { competence: data.competence } : undefined,
+            entitlements: getEntitlementsForLegalForm(legalForm),
+            users: {
+              create: {
+                userId: user.id!,
+                role: "OWNER",
+                isDefault: true,
+              },
             },
           },
-        },
-      })
+        }),
+      ])
       companyId = newCompany.id
     }
 
@@ -341,15 +357,16 @@ export async function switchCompany(companyId: string) {
   }
 
   // Set as default
-  await db.companyUser.updateMany({
-    where: { userId: user.id! },
-    data: { isDefault: false },
-  })
-
-  await db.companyUser.update({
-    where: { id: companyUser.id },
-    data: { isDefault: true },
-  })
+  await db.$transaction([
+    db.companyUser.updateMany({
+      where: { userId: user.id! },
+      data: { isDefault: false },
+    }),
+    db.companyUser.update({
+      where: { id: companyUser.id },
+      data: { isDefault: true },
+    }),
+  ])
 
   revalidatePath("/dashboard")
   return { success: "Company switched" }

@@ -116,63 +116,19 @@ export async function getCurrentCompany(userId: string) {
     },
   })
 
-  if (!companyUser) {
-    // Get first company if no default
-    const firstCompany = await db.companyUser.findFirst({
-      where: { userId },
-      select: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            oib: true,
-            vatNumber: true,
-            address: true,
-            city: true,
-            postalCode: true,
-            country: true,
-            email: true,
-            phone: true,
-            iban: true,
-            checksum: true,
-            isVatPayer: true,
-            eInvoiceProvider: true,
-            eInvoiceApiKeyEncrypted: true,
-            legalForm: true,
-            fiscalEnabled: true,
-            fiscalEnvironment: true,
-            premisesCode: true,
-            deviceCode: true,
-            featureFlags: true,
-            entitlements: true,
-            stripeCustomerId: true,
-            stripeSubscriptionId: true,
-            subscriptionStatus: true,
-            subscriptionPlan: true,
-            trialEndsAt: true,
-            subscriptionCurrentPeriodStart: true,
-            subscriptionCurrentPeriodEnd: true,
-            invoiceLimit: true,
-            userLimit: true,
-            stripeTerminalLocationId: true,
-            stripeTerminalReaderId: true,
-            stockValuationMethod: true,
-            onboardingStep: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-    })
-    return firstCompany?.company ?? null
-  }
-
-  return companyUser.company
+  return companyUser?.company ?? null
 }
 
 export async function requireCompany(userId: string) {
   const company = await getCurrentCompany(userId)
   if (!company) {
+    const hasMembership = await db.companyUser.findFirst({
+      where: { userId },
+      select: { id: true },
+    })
+    if (hasMembership) {
+      redirect("/onboarding/choose-company")
+    }
     redirect("/onboarding")
   }
   // Check if onboarding is complete - redirect back if company exists but is incomplete

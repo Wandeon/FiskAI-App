@@ -41,7 +41,7 @@ function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5
   // Minimum: Step 1 (basic info) - that's it! Everything else is optional
 
   // If user has email, they've likely completed the flow - go to billing
-  if (data.email?.includes("@")) {
+  if (data.email?.includes("@") && data.legalForm !== "OBRT_PAUSAL") {
     return 6 // Go to billing step
   }
 

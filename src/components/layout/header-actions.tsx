@@ -259,6 +259,7 @@ export function UserMenu({ user, className }: UserMenuProps) {
 // Company Status Pill
 interface CompanyStatusProps {
   companyName: string
+  companyOib?: string | null
   isConnected?: boolean
   draftCount?: number
   className?: string
@@ -266,6 +267,7 @@ interface CompanyStatusProps {
 
 export function CompanyStatus({
   companyName,
+  companyOib,
   isConnected = false,
   draftCount = 0,
   className,
@@ -280,9 +282,12 @@ export function CompanyStatus({
       <div
         className={cn("h-2 w-2 rounded-full", isConnected ? "bg-success-500" : "bg-warning-500")}
       />
-      <span className="text-sm font-medium text-[var(--foreground)] truncate max-w-[120px]">
-        {companyName}
-      </span>
+      <div className="flex flex-col max-w-[160px]">
+        <span className="text-sm font-medium text-[var(--foreground)] truncate">{companyName}</span>
+        {companyOib && (
+          <span className="text-xs text-[var(--muted)] truncate">OIB: {companyOib}</span>
+        )}
+      </div>
       {draftCount > 0 && (
         <span className="rounded-full bg-warning-100 px-2 py-0.5 text-xs font-medium text-warning-700">
           {draftCount} nacrt{draftCount === 1 ? "" : draftCount < 5 ? "a" : "a"}

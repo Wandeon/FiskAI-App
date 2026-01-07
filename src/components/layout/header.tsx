@@ -92,11 +92,26 @@ export async function Header() {
             </div>
           )}
 
+          {/* Company Indicator (Mobile) */}
+          {currentCompany && (
+            <div className="flex flex-col text-xs text-secondary lg:hidden md:hidden">
+              <span className="font-medium text-sm text-foreground truncate max-w-[140px]">
+                {currentCompany.name}
+              </span>
+              {currentCompany.oib && (
+                <span className="text-tertiary truncate max-w-[140px]">
+                  OIB: {currentCompany.oib}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Company Status Pill (Tablet) */}
           {currentCompany && (
             <div className="hidden md:block lg:hidden">
               <CompanyStatus
                 companyName={currentCompany.name}
+                companyOib={currentCompany.oib}
                 isConnected={!!currentCompany.eInvoiceProvider}
                 draftCount={0}
               />

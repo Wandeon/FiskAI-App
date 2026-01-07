@@ -13,6 +13,16 @@ export async function switchCompany(companyId: string) {
       userId: user.id!,
       companyId: companyId,
     },
+    select: {
+      id: true,
+      company: {
+        select: {
+          id: true,
+          name: true,
+          oib: true,
+        },
+      },
+    },
   })
 
   if (!companyUser) {
@@ -34,7 +44,10 @@ export async function switchCompany(companyId: string) {
   ])
 
   revalidatePath("/")
-  return { success: true }
+  return {
+    success: true,
+    company: companyUser.company,
+  }
 }
 
 export async function getUserCompanies() {
