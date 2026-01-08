@@ -363,24 +363,36 @@ async function fetchAndCreateEvidence(
       })
 
       // Queue for extraction
-      await extractQueue.add("extract", {
-        evidenceId: evidence.id,
-        runId: `webhook-${Date.now()}`,
-      })
+      await extractQueue.add(
+        "extract",
+        {
+          evidenceId: evidence.id,
+          runId: `webhook-${Date.now()}`,
+        },
+        { jobId: `extract-${evidence.id}` }
+      )
       console.log(`[webhook-processor] Queued ${evidence.id} for extraction`)
     } else if (contentClass === "PDF_SCANNED") {
       // Queue for OCR
-      await ocrQueue.add("ocr", {
-        evidenceId: evidence.id,
-        runId: `webhook-${Date.now()}`,
-      })
+      await ocrQueue.add(
+        "ocr",
+        {
+          evidenceId: evidence.id,
+          runId: `webhook-${Date.now()}`,
+        },
+        { jobId: `ocr-${evidence.id}` }
+      )
       console.log(`[webhook-processor] Queued ${evidence.id} for OCR`)
     } else {
       // Queue for extraction (HTML, etc.)
-      await extractQueue.add("extract", {
-        evidenceId: evidence.id,
-        runId: `webhook-${Date.now()}`,
-      })
+      await extractQueue.add(
+        "extract",
+        {
+          evidenceId: evidence.id,
+          runId: `webhook-${Date.now()}`,
+        },
+        { jobId: `extract-${evidence.id}` }
+      )
       console.log(`[webhook-processor] Queued ${evidence.id} for extraction`)
     }
 

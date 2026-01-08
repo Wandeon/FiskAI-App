@@ -442,7 +442,7 @@ services:
         WITH_OCR: "false"
     container_name: fiskai-worker-evidence-embedding
     restart: unless-stopped
-    command: ["node", "dist/workers/lib/regulatory-truth/workers/evidence-embedding.worker.js"]
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/evidence-embedding.worker.ts"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379

@@ -23,11 +23,15 @@ async function processComposeJob(job: Job<ComposeJobData>): Promise<JobResult> {
 
     if (result.success && result.ruleId) {
       // Queue review job
-      await reviewQueue.add("review", {
-        ruleId: result.ruleId,
-        runId,
-        parentJobId: job.id,
-      })
+      await reviewQueue.add(
+        "review",
+        {
+          ruleId: result.ruleId,
+          runId,
+          parentJobId: job.id,
+        },
+        { jobId: `review-${result.ruleId}` }
+      )
     } else if (result.error?.includes("Conflict detected")) {
       // Conflict was created - arbiter will pick it up
       console.log(`[composer] Conflict detected for domain ${domain}`)

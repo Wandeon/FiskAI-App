@@ -46,6 +46,7 @@ async function processSentinelJob(job: Job<SentinelJobData>): Promise<JobResult>
         newEvidence.map((e) => ({
           name: "extract",
           data: { evidenceId: e.id, runId, parentJobId: job.id },
+          opts: { jobId: `extract-${e.id}` },
         }))
       )
       console.log(`[sentinel] Queued ${newEvidence.length} extract jobs`)

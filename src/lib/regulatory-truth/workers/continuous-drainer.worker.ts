@@ -233,6 +233,7 @@ async function drainPendingOcr(): Promise<number> {
     pending.map((e) => ({
       name: "ocr",
       data: { evidenceId: e.id, runId },
+      opts: { jobId: `ocr-${e.id}` },
     }))
   )
 
@@ -281,6 +282,7 @@ async function drainFetchedEvidence(): Promise<number> {
     newEvidence.map((e) => ({
       name: "extract",
       data: { evidenceId: e.id, runId },
+      opts: { jobId: `extract-${e.id}` },
     }))
   )
 
@@ -337,7 +339,13 @@ async function drainSourcePointers(): Promise<number> {
   let queued = 0
 
   for (const [domain, pointerIds] of byDomain) {
-    await composeQueue.add("compose", { pointerIds, domain, runId })
+    // Use sorted pointer IDs for stable jobId (order-independent)
+    const sortedIds = [...pointerIds].sort().join(",")
+    await composeQueue.add(
+      "compose",
+      { pointerIds, domain, runId },
+      { jobId: `compose-${domain}-${sortedIds}` }
+    )
     queued++
   }
 
@@ -367,6 +375,7 @@ async function drainDraftRules(): Promise<number> {
     drafts.map((r) => ({
       name: "review",
       data: { ruleId: r.id, runId },
+      opts: { jobId: `review-${r.id}` },
     }))
   )
 
@@ -390,7 +399,7 @@ async function drainConflicts(): Promise<number> {
 
   const runId = `drain-${Date.now()}`
   for (const c of conflicts) {
-    await arbiterQueue.add("arbiter", { conflictId: c.id, runId })
+    await arbiterQueue.add("arbiter", { conflictId: c.id, runId }, { jobId: `arbiter-${c.id}` })
   }
 
   console.log(`[drainer] Queued ${conflicts.length} arbiter jobs`)
@@ -415,10 +424,19 @@ async function drainApprovedRules(): Promise<number> {
   if (approved.length === 0) return 0
 
   const runId = `drain-${Date.now()}`
-  await releaseQueue.add("release", {
-    ruleIds: approved.map((r) => r.id),
-    runId,
-  })
+  // Use sorted rule IDs for stable jobId (order-independent)
+  const sortedRuleIds = approved
+    .map((r) => r.id)
+    .sort()
+    .join(",")
+  await releaseQueue.add(
+    "release",
+    {
+      ruleIds: approved.map((r) => r.id),
+      runId,
+    },
+    { jobId: `release-${sortedRuleIds}` }
+  )
 
   console.log(`[drainer] Queued release job for ${approved.length} approved rules`)
   state.stats.releaseJobsQueued++
