@@ -54,7 +54,7 @@ export function AuthenticateStep({
           type="button"
           onClick={onBack}
           layoutId="email-field"
-          className="mt-2 inline-flex items-center gap-1 rounded-full bg-surface/10 px-3 py-1 text-sm text-white/80 hover:bg-surface/20"
+          className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-sm text-white/80 hover:bg-surface/20"
         >
           {email}
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +79,7 @@ export function AuthenticateStep({
             autoFocus
             className={cn(
               "w-full h-12 px-4 pr-12 text-base rounded-xl border transition-all",
-              "bg-surface/10 text-white placeholder:text-white/40 backdrop-blur-sm",
+              "bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm",
               "focus:outline-none focus:ring-2 focus:ring-accent-light/30 focus:border-accent-light",
               error ? "border-danger-border" : "border-white/20"
             )}

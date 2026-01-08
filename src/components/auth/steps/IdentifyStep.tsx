@@ -51,7 +51,7 @@ export function IdentifyStep({ onSubmit, onGoogleSignIn, isLoading, error }: Ide
             autoFocus
             className={cn(
               "w-full h-12 px-4 text-base rounded-xl border transition-all",
-              "bg-surface/10 text-white placeholder:text-white/40 backdrop-blur-sm",
+              "bg-white/10 text-white placeholder:text-white/40 backdrop-blur-sm",
               "focus:outline-none focus:ring-2 focus:ring-accent-light/30",
               showError ? "border-danger-border" : "border-white/20 focus:border-accent-light",
               isValidEmail && touched && "border-success-border"
@@ -96,7 +96,7 @@ export function IdentifyStep({ onSubmit, onGoogleSignIn, isLoading, error }: Ide
       <button
         type="button"
         onClick={onGoogleSignIn}
-        className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-surface/10 px-4 py-3 text-white transition-all hover:bg-surface/20 backdrop-blur-sm"
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white transition-all hover:bg-surface/20 backdrop-blur-sm"
       >
         {/* eslint-disable fisk-design-system/no-hardcoded-colors -- @design-override: Google brand logo uses mandatory brand colors per Google branding guidelines */}
         <svg className="h-5 w-5" viewBox="0 0 24 24">

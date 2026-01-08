@@ -155,7 +155,7 @@ export function ResetStep({ email, onSubmit, onResend, onBack, isLoading, error 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Najmanje 8 znakova"
-                className="w-full rounded-xl border border-white/20 bg-surface/10 px-4 pr-12 py-3 text-white placeholder:text-white/40 focus:border-accent-light focus:outline-none focus:ring-1 focus:ring-accent-light/50 backdrop-blur-sm"
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 pr-12 py-3 text-white placeholder:text-white/40 focus:border-accent-light focus:outline-none focus:ring-1 focus:ring-accent-light/50 backdrop-blur-sm"
                 disabled={isLoading}
                 autoFocus
               />
@@ -207,7 +207,7 @@ export function ResetStep({ email, onSubmit, onResend, onBack, isLoading, error 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ponovite lozinku"
-                className="w-full rounded-xl border border-white/20 bg-surface/10 px-4 pr-12 py-3 text-white placeholder:text-white/40 focus:border-accent-light focus:outline-none focus:ring-1 focus:ring-accent-light/50 backdrop-blur-sm"
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 pr-12 py-3 text-white placeholder:text-white/40 focus:border-accent-light focus:outline-none focus:ring-1 focus:ring-accent-light/50 backdrop-blur-sm"
                 disabled={isLoading}
               />
               <button

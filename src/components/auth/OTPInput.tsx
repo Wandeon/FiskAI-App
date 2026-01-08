@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils"
 interface OTPInputProps {
   length?: number
   onComplete: (code: string) => void
-  onError?: () => void
   disabled?: boolean
   error?: boolean
   autoFocus?: boolean
@@ -17,7 +16,6 @@ interface OTPInputProps {
 export function OTPInput({
   length = 6,
   onComplete,
-  onError,
   disabled = false,
   error = false,
   autoFocus = true,
@@ -144,7 +142,7 @@ export function OTPInput({
             onPaste={handlePaste}
             onFocus={() => handleFocus(index)}
             className={cn(
-              "h-14 w-11 sm:h-16 sm:w-14 rounded-xl border bg-surface/10 backdrop-blur-sm text-center text-2xl font-bold text-white transition-all",
+              "h-14 w-11 sm:h-16 sm:w-14 rounded-xl border bg-white/10 backdrop-blur-sm text-center text-2xl font-bold text-white transition-all",
               "focus:outline-none focus:ring-0",
               activeIndex === index && !error
                 ? "border-accent-light ring-2 ring-cyan-400/30 scale-105"

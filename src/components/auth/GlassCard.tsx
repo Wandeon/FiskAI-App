@@ -59,7 +59,7 @@ export function GlassCard({ children, className }: GlassCardProps) {
       className={`relative overflow-hidden rounded-3xl ${className || ""}`}
     >
       {/* Glass background */}
-      <div className="absolute inset-0 bg-surface/10 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-xl" />
 
       {/* Gradient border */}
       <div className="absolute inset-0 rounded-3xl border border-white/20" />
