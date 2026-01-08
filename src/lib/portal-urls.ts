@@ -104,6 +104,14 @@ export function getMarketingUrl(path: string = "/"): string {
 }
 
 /**
+ * Get the auth URL (login/register).
+ * Auth is now hosted on app.fiskai.hr/auth
+ */
+export function getAuthUrl(): string {
+  return getPortalUrl("app", "/auth")
+}
+
+/**
  * Determine which portal the current request is being served from.
  * Useful for server components that need portal context.
  */

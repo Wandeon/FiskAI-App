@@ -118,6 +118,36 @@ export async function middleware(request: NextRequest) {
   const realHost = getRealHost(request)
   const subdomain = getSubdomain(realHost)
 
+  // Legacy subdomain redirects: admin.fiskai.hr → app.fiskai.hr/admin, staff.fiskai.hr → app.fiskai.hr/staff
+  // These are 308 permanent redirects to preserve method (POST stays POST)
+  if (subdomain === "admin" || subdomain === "staff") {
+    const externalUrl = getExternalUrl(request)
+    const baseDomain = externalUrl.hostname.replace(/^(admin|staff)\./, "")
+    const redirectUrl = new URL(externalUrl)
+    redirectUrl.hostname = `app.${baseDomain}`
+    // Prepend the subdomain as a path prefix
+    redirectUrl.pathname = `/${subdomain}${pathname === "/" ? "" : pathname}`
+
+    logger.info(
+      {
+        requestId,
+        subdomain,
+        pathname,
+        redirectUrl: redirectUrl.toString(),
+      },
+      "Legacy subdomain redirect to app subdomain with path prefix"
+    )
+
+    return new NextResponse(null, {
+      status: 308,
+      headers: {
+        Location: redirectUrl.toString(),
+        "x-request-id": requestId,
+        "x-response-time": `${Date.now() - startTime}ms`,
+      },
+    })
+  }
+
   // Marketing subdomain - apply rate limiting for unauthenticated traffic
   if (subdomain === "marketing") {
     // Rate limit unauthenticated traffic by IP address
@@ -184,11 +214,13 @@ export async function middleware(request: NextRequest) {
   })
 
   if (!token) {
-    // Redirect to login on marketing subdomain
+    // Redirect to auth on app subdomain (app.fiskai.hr/auth)
     const externalUrl = getExternalUrl(request)
-    const loginUrl = new URL("/login", externalUrl)
-    loginUrl.hostname = externalUrl.hostname.replace(/^(app|staff|admin)\./, "")
-    loginUrl.searchParams.set("callbackUrl", externalUrl.toString())
+    const authUrl = new URL("/auth", externalUrl)
+    // Ensure we're on the app subdomain
+    const baseDomain = externalUrl.hostname.replace(/^(app|staff|admin)\./, "")
+    authUrl.hostname = `app.${baseDomain}`
+    authUrl.searchParams.set("callbackUrl", externalUrl.toString())
 
     logger.info(
       {
@@ -196,10 +228,10 @@ export async function middleware(request: NextRequest) {
         subdomain,
         pathname,
       },
-      "Redirecting unauthenticated user to login"
+      "Redirecting unauthenticated user to auth"
     )
 
-    const response = NextResponse.redirect(loginUrl)
+    const response = NextResponse.redirect(authUrl)
     response.headers.set("x-request-id", requestId)
     response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
     response.headers.set("Content-Security-Policy", generateCSP(nonce))
@@ -225,32 +257,6 @@ export async function middleware(request: NextRequest) {
         redirectUrl,
       },
       "Redirecting user to correct subdomain for their role"
-    )
-
-    const response = NextResponse.redirect(redirectUrl)
-    response.headers.set("x-request-id", requestId)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
-    response.headers.set("Content-Security-Policy", generateCSP(nonce))
-    return response
-  }
-
-  // Auto-redirect STAFF/ADMIN users from app subdomain to their primary subdomain
-  // This prevents confusion where staff see client UI instead of staff tools
-  if (subdomain === "app" && (systemRole === "STAFF" || systemRole === "ADMIN")) {
-    const externalUrl = getExternalUrl(request)
-    const redirectUrl = getRedirectUrlForSystemRole(
-      systemRole as "USER" | "STAFF" | "ADMIN",
-      externalUrl.toString()
-    )
-
-    logger.info(
-      {
-        requestId,
-        systemRole,
-        currentSubdomain: subdomain,
-        redirectUrl,
-      },
-      "Auto-redirecting staff/admin user from app subdomain to their primary subdomain"
     )
 
     const response = NextResponse.redirect(redirectUrl)

@@ -7,7 +7,19 @@ import { startAuthentication } from "@simplewebauthn/browser"
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types"
 import { AuthStep, AuthFlowState, UserInfo } from "./types"
 import { setFaviconState, resetFavicon, flashFavicon } from "@/lib/favicon"
-import { getRedirectUrlForSystemRole } from "@/lib/middleware/subdomain"
+
+// Path-based routing for different roles (all on same origin: app.fiskai.hr)
+function getPathForRole(role: "USER" | "STAFF" | "ADMIN"): string {
+  switch (role) {
+    case "ADMIN":
+      return "/admin"
+    case "STAFF":
+      return "/staff"
+    case "USER":
+    default:
+      return "/"
+  }
+}
 
 const initialState: AuthFlowState = {
   step: "identify",
@@ -129,14 +141,18 @@ export function useAuthFlow() {
           const session = await getSession()
           const role = (session?.user?.systemRole as "USER" | "STAFF" | "ADMIN") || "USER"
 
-          // If we have a valid callbackUrl, use it
+          // If we have a valid callbackUrl on the same origin, use it
           if (callbackUrl) {
             try {
               const url = new URL(callbackUrl)
-              // Basic security check: ensure it's http/https and matches our domain structure ideally
-              // For now, we trust NextAuth's internal handling, but since we are doing manual redirection:
-              if (url.protocol.startsWith("http")) {
-                window.location.href = url.toString()
+              // Security: only allow callbacks to app.fiskai.hr (same origin)
+              if (url.protocol.startsWith("http") && url.host === window.location.host) {
+                router.push(url.pathname + url.search)
+                return
+              }
+              // For cross-origin callbacks, extract the path and use it
+              if (url.protocol.startsWith("http") && url.hostname.endsWith("fiskai.hr")) {
+                router.push(url.pathname + url.search)
                 return
               }
             } catch {
@@ -144,28 +160,14 @@ export function useAuthFlow() {
             }
           }
 
-          // Construct the correct URL based on the user's role and current environment
-          const destinationBase = getRedirectUrlForSystemRole(role, window.location.href)
-
-          // If the destination hostname is different (e.g., app.fiskai.hr vs fiskai.hr),
-          // use window.location.href to ensure a full redirect that picks up cookies correctly
-          const currentHost = window.location.host
-          const destUrl = new URL(destinationBase)
-
-          // Let middleware handle the redirect to control-center for authenticated users
-          // getRedirectUrlForSystemRole returns the base portal URL (e.g., https://app.fiskai.hr)
-          // Middleware will redirect "/" to the appropriate control-center path
-          if (!destUrl.pathname.startsWith("/select-role")) {
-            destUrl.pathname = "/"
-          }
-
-          if (destUrl.host !== currentHost) {
-            window.location.href = destUrl.toString()
-          } else {
-            router.push(destUrl.pathname + destUrl.search)
-          }
+          // Path-based routing: all roles stay on app.fiskai.hr
+          // USER → / (app-control-center via middleware)
+          // ADMIN → /admin
+          // STAFF → /staff
+          const destinationPath = getPathForRole(role)
+          router.push(destinationPath)
         } catch {
-          // Fallback to root - middleware handles control-center redirect
+          // Fallback to root
           router.push("/")
         }
       })()
