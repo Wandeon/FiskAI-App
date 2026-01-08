@@ -20,15 +20,19 @@ import { BetaSettingsForm } from "./beta-settings-form"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { AlertBanner } from "@/components/dashboard/alert-banner"
+import { MODULES, type ModuleKey } from "@/lib/modules/definitions"
 
 interface PageProps {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; blocked?: string }>
 }
 
 export default async function SettingsPage({ searchParams }: PageProps) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
   const params = await searchParams
+  const blockedModuleKey = params.blocked as ModuleKey | undefined
+  const blockedModule = blockedModuleKey ? MODULES[blockedModuleKey] : null
 
   // Fetch user's beta status
   const dbUser = await db.user.findUnique({
@@ -115,6 +119,15 @@ export default async function SettingsPage({ searchParams }: PageProps) {
         </p>
       </div>
 
+      {blockedModule && (
+        <AlertBanner
+          type="warning"
+          title={`Modul ${blockedModule.name} nije uključen`}
+          description="Nemate pristup traženom modulu. Uključite ga u planu kako biste mogli koristiti ovu stranicu."
+          action={{ label: "Upravljaj modulima", href: "/settings?tab=plan" }}
+        />
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[260px,1fr] max-w-6xl">
         <nav className="space-y-4">
           <div className="flex flex-col gap-2">
@@ -160,20 +173,24 @@ export default async function SettingsPage({ searchParams }: PageProps) {
               Napredne sekcije
             </p>
             <div className="mt-3 space-y-2 text-sm">
-              <Link
-                href="/settings/fiscalisation"
-                className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"
-              >
-                <span>Fiskalizacija</span>
-                <ArrowUpRight className="h-4 w-4 text-[var(--muted)]" />
-              </Link>
-              <Link
-                href="/settings/premises"
-                className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"
-              >
-                <span>Poslovni prostori</span>
-                <ArrowUpRight className="h-4 w-4 text-[var(--muted)]" />
-              </Link>
+              {capabilities.modules.fiscalization?.enabled && (
+                <>
+                  <Link
+                    href="/settings/fiscalisation"
+                    className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"
+                  >
+                    <span>Fiskalizacija</span>
+                    <ArrowUpRight className="h-4 w-4 text-[var(--muted)]" />
+                  </Link>
+                  <Link
+                    href="/settings/premises"
+                    className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"
+                  >
+                    <span>Poslovni prostori</span>
+                    <ArrowUpRight className="h-4 w-4 text-[var(--muted)]" />
+                  </Link>
+                </>
+              )}
               <Link
                 href="/settings/audit-log"
                 className="flex items-center justify-between rounded-xl px-3 py-2 text-[var(--foreground)] transition-colors hover:bg-[var(--surface-secondary)]/70"

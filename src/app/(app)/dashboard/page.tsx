@@ -25,6 +25,7 @@ import { getTutorialProgress } from "@/lib/tutorials/progress"
 import { getActiveTriggersForContext } from "@/lib/tutorials/triggers"
 import { ComplianceStatusCard } from "@/components/dashboard/compliance-status-card"
 import { getCertificateStatus, getFiscalizationStats } from "@/lib/compliance/data"
+import { deriveCapabilities } from "@/lib/capabilities"
 
 const Decimal = Prisma.Decimal
 
@@ -33,6 +34,7 @@ const revenueStatuses: EInvoiceStatus[] = ["FISCALIZED", "SENT", "DELIVERED", "A
 export default async function DashboardPage() {
   const user = await requireAuth()
   const company = await getCurrentCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
 
   // Redirect to onboarding if no company or if onboarding is incomplete
   // This prevents redirect loop when company exists but has missing required fields
@@ -145,9 +147,10 @@ export default async function DashboardPage() {
   })
 
   // Get compliance status for fiscalization-enabled companies
-  const [certificateStatus, fiscalizationStats] = company.fiscalEnabled
-    ? await Promise.all([getCertificateStatus(company.id), getFiscalizationStats(company.id)])
-    : [null, null]
+  const [certificateStatus, fiscalizationStats] =
+    company.fiscalEnabled && capabilities.modules.fiscalization?.enabled
+      ? await Promise.all([getCertificateStatus(company.id), getFiscalizationStats(company.id)])
+      : [null, null]
 
   // Map legalForm to businessType for deadlines
   const businessTypeMap: Record<string, string> = {
@@ -364,29 +367,35 @@ export default async function DashboardPage() {
           </Visible>
         </div>
         <div className="space-y-6">
-          <Visible id="card:fiscalization-status">
-            <FiscalizationStatus
-              isVatPayer={company.isVatPayer}
-              eInvoiceProvider={company.eInvoiceProvider}
-              oib={company.oib}
-              vatNumber={company.vatNumber}
-            />
-          </Visible>
-
-          {certificateStatus && fiscalizationStats && (
+          {capabilities.modules.fiscalization?.enabled && (
             <Visible id="card:fiscalization-status">
-              <ComplianceStatusCard certificate={certificateStatus} stats={fiscalizationStats} />
+              <FiscalizationStatus
+                isVatPayer={company.isVatPayer}
+                eInvoiceProvider={company.eInvoiceProvider}
+                oib={company.oib}
+                vatNumber={company.vatNumber}
+              />
             </Visible>
           )}
 
-          <Visible id="card:pausalni-status">
-            <PausalniStatusCard
-              ytdRevenue={Number(ytdRevenue._sum.totalAmount || 0)}
-              vatThreshold={60000}
-              nextDeadline={nextDeadline}
-              quarterlyIncome={{ q1: 0, q2: 0, q3: 0, q4: 0 }}
-            />
-          </Visible>
+          {capabilities.modules.fiscalization?.enabled &&
+            certificateStatus &&
+            fiscalizationStats && (
+              <Visible id="card:fiscalization-status">
+                <ComplianceStatusCard certificate={certificateStatus} stats={fiscalizationStats} />
+              </Visible>
+            )}
+
+          {company.legalForm === "OBRT_PAUSAL" && (
+            <Visible id="card:pausalni-status">
+              <PausalniStatusCard
+                ytdRevenue={Number(ytdRevenue._sum.totalAmount || 0)}
+                vatThreshold={60000}
+                nextDeadline={nextDeadline}
+                quarterlyIncome={{ q1: 0, q2: 0, q3: 0, q4: 0 }}
+              />
+            </Visible>
+          )}
 
           <Visible id="card:deadline-countdown">
             <DeadlineCountdownCard deadlines={upcomingDeadlines} businessType={businessType} />

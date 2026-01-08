@@ -3,10 +3,17 @@ import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { db } from "@/lib/db"
 import { CertificateCard } from "./certificate-card"
 import { FiscalStatusPanel } from "./fiscal-status-panel"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 export default async function FiscalisationSettingsPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.fiscalization?.enabled) {
+    redirect("/settings?tab=plan&blocked=fiscalization")
+  }
 
   const [testCert, prodCert, recentRequests, stats] = await Promise.all([
     db.fiscalCertificate.findUnique({

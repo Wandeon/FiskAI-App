@@ -5,6 +5,8 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ReconciliationDashboard } from "./dashboard-client"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 export default async function ReconciliationPage({
   searchParams,
@@ -15,6 +17,11 @@ export default async function ReconciliationPage({
 }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.reconciliation?.enabled) {
+    redirect("/settings?tab=plan&blocked=reconciliation")
+  }
 
   setTenantContext({
     companyId: company.id,

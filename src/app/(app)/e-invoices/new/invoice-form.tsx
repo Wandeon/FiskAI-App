@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useForm, useFieldArray, type Path } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { eInvoiceSchema } from "@/lib/validations"
@@ -323,6 +324,14 @@ export function InvoiceForm({
                         placeholder="Pretraži kupce..."
                         emptyMessage="Nema pronađenih kupaca"
                       />
+                      {contacts.length === 0 && (
+                        <div className="mt-3 flex items-center justify-between gap-3 rounded-card border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
+                          <span>Dodajte kupca kako biste mogli izraditi e-račun.</span>
+                          <Button size="sm" asChild>
+                            <Link href="/contacts/new?returnTo=/e-invoices/new">Dodaj kupca</Link>
+                          </Button>
+                        </div>
+                      )}
                       {errors.buyerId && (
                         <p className="text-sm text-danger-500 mt-1">{errors.buyerId.message}</p>
                       )}

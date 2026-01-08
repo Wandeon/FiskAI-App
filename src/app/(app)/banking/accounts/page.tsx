@@ -8,10 +8,17 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { AccountForm } from "./account-form"
 import { setDefaultBankAccount, deleteBankAccount } from "../actions"
 import { Landmark } from "lucide-react"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 export default async function BankAccountsPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.banking?.enabled) {
+    redirect("/settings?tab=plan&blocked=banking")
+  }
 
   setTenantContext({
     companyId: company.id,

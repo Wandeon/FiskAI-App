@@ -71,6 +71,7 @@ export const navigation: NavSection[] = [
     items: [
       { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos", legacy: true },
       { name: "Računi", href: "/invoices", icon: FileText, module: "invoicing", legacy: true },
+      { name: "E-Računi", href: "/e-invoices", icon: Receipt, module: "e-invoicing" },
       { name: "Troškovi", href: "/expenses", icon: Receipt, module: "expenses", legacy: true },
       {
         name: "Dokumenti",

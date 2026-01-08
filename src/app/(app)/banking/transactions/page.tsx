@@ -8,6 +8,8 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Prisma, MatchStatus } from "@prisma/client"
 import { ResponsiveTable, type Column } from "@/components/ui/responsive-table"
 import { ArrowLeftRight } from "lucide-react"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   UNMATCHED: "Nepovezano",
@@ -36,6 +38,11 @@ export default async function TransactionsPage({
 }) {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.banking?.enabled) {
+    redirect("/settings?tab=plan&blocked=banking")
+  }
 
   setTenantContext({
     companyId: company.id,

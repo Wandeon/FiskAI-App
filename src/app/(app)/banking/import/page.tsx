@@ -6,10 +6,17 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ImportForm } from "./import-form"
 import { StatementDropzone } from "./statement-dropzone"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 export default async function ImportPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.banking?.enabled) {
+    redirect("/settings?tab=plan&blocked=banking")
+  }
 
   setTenantContext({
     companyId: company.id,

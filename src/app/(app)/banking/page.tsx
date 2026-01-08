@@ -9,10 +9,17 @@ import { ConnectButton } from "./components/connect-button"
 import { ConnectionBadge } from "./components/connection-badge"
 import { Landmark, ArrowLeftRight } from "lucide-react"
 import { LegacyBanner } from "@/components/layout/LegacyBanner"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 export default async function BankingPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.banking?.enabled) {
+    redirect("/settings?tab=plan&blocked=banking")
+  }
 
   setTenantContext({
     companyId: company.id,

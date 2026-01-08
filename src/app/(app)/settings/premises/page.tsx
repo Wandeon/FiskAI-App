@@ -7,10 +7,17 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { PremisesForm } from "./premises-form"
 import { PremisesList } from "./premises-list"
 import { Building } from "lucide-react"
+import { deriveCapabilities } from "@/lib/capabilities"
+import { redirect } from "next/navigation"
 
 export default async function PremisesPage() {
   const user = await requireAuth()
   const company = await requireCompany(user.id!)
+  const capabilities = deriveCapabilities(company)
+
+  if (!capabilities.modules.fiscalization?.enabled) {
+    redirect("/settings?tab=plan&blocked=fiscalization")
+  }
 
   setTenantContext({
     companyId: company.id,
