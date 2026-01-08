@@ -116,7 +116,7 @@ async function processOcrJob(job: Job<OcrJobData>): Promise<JobResult> {
     }
 
     // 6. Queue for extraction (now has text artifact)
-    await extractQueue.add("extract", { evidenceId, runId })
+    await extractQueue.add("extract", { evidenceId, runId }, { jobId: `extract-${evidenceId}` })
 
     const duration = Date.now() - start
     jobsProcessed.inc({ worker: "ocr", status: "success", queue: "ocr" })

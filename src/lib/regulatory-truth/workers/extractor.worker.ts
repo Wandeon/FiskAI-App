@@ -25,7 +25,11 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
     if (!ready) {
       // Re-queue with delay - OCR might still be processing
       console.log(`[extractor] Evidence ${evidenceId} not ready, requeueing...`)
-      await extractQueue.add("extract", { evidenceId, runId }, { delay: 30000 })
+      await extractQueue.add(
+        "extract",
+        { evidenceId, runId },
+        { delay: 30000, jobId: `extract-${evidenceId}` }
+      )
       return {
         success: true,
         duration: 0,
@@ -62,10 +66,12 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
 
       // Queue compose job for each domain
       for (const [domain, pointerIds] of byDomain) {
+        // Use sorted pointer IDs for stable jobId (order-independent)
+        const sortedIds = [...pointerIds].sort().join(",")
         await composeQueue.add(
           "compose",
           { pointerIds, domain, runId, parentJobId: job.id },
-          { delay: getDomainDelay(domain) }
+          { delay: getDomainDelay(domain), jobId: `compose-${domain}-${sortedIds}` }
         )
       }
     }

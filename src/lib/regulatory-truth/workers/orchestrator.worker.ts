@@ -67,7 +67,11 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
         })
 
         for (const c of conflicts) {
-          await arbiterQueue.add("arbiter", { conflictId: c.id, runId })
+          await arbiterQueue.add(
+            "arbiter",
+            { conflictId: c.id, runId },
+            { jobId: `arbiter-${c.id}` }
+          )
         }
 
         return {
@@ -85,10 +89,19 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
         })
 
         if (approved.length > 0) {
-          await releaseQueue.add("release", {
-            ruleIds: approved.map((r) => r.id),
-            runId,
-          })
+          // Use sorted rule IDs for stable jobId (order-independent)
+          const sortedIds = approved
+            .map((r) => r.id)
+            .sort()
+            .join(",")
+          await releaseQueue.add(
+            "release",
+            {
+              ruleIds: approved.map((r) => r.id),
+              runId,
+            },
+            { jobId: `release-${sortedIds}` }
+          )
         }
 
         return { success: true, duration: Date.now() - start, data: { approved: approved.length } }

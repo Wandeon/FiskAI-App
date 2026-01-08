@@ -1121,7 +1121,11 @@ async function processSingleItem(item: {
 
         // Queue for OCR, NOT extract
         const runId = `sentinel-${Date.now()}`
-        await ocrQueue.add("ocr", { evidenceId: evidence.id, runId })
+        await ocrQueue.add(
+          "ocr",
+          { evidenceId: evidence.id, runId },
+          { jobId: `ocr-${evidence.id}` }
+        )
         console.log(`[sentinel] Queued ${evidence.id} for OCR`)
 
         await logAuditEvent({
@@ -1196,7 +1200,11 @@ async function processSingleItem(item: {
 
         // Queue for extraction
         const runId = `sentinel-${Date.now()}`
-        await extractQueue.add("extract", { evidenceId: evidence.id, runId })
+        await extractQueue.add(
+          "extract",
+          { evidenceId: evidence.id, runId },
+          { jobId: `extract-${evidence.id}` }
+        )
         console.log(`[sentinel] Queued ${evidence.id} for extraction`)
 
         await logAuditEvent({

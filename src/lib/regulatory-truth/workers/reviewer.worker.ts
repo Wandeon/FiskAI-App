@@ -30,11 +30,15 @@ async function processReviewJob(job: Job<ReviewJobData>): Promise<JobResult> {
 
       if (rule?.status === "APPROVED") {
         // Queue for release
-        await releaseQueue.add("release-single", {
-          ruleIds: [ruleId],
-          runId,
-          parentJobId: job.id,
-        })
+        await releaseQueue.add(
+          "release-single",
+          {
+            ruleIds: [ruleId],
+            runId,
+            parentJobId: job.id,
+          },
+          { jobId: `release-${ruleId}` }
+        )
       }
     }
 
