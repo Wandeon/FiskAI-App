@@ -5,7 +5,10 @@ import { deadletterQueue, DLQ_THRESHOLD, type DeadLetterJobData } from "./queues
 import { runStartupGuards, registerWorkerVersion } from "./utils/version-guard"
 
 // Run version guards FIRST (before any Redis/BullMQ initialization)
-runStartupGuards()
+// Only run when WORKER_TYPE is set - indicates actual worker startup, not Next.js build import
+if (process.env.WORKER_TYPE) {
+  runStartupGuards()
+}
 
 export interface WorkerOptions {
   name: string
