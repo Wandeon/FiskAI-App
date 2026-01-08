@@ -12,7 +12,8 @@ export default function AuthLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="min-h-screen bg-base font-sans antialiased">
+    // Force dark mode for auth page - the glassmorphic design requires dark background
+    <div className="dark min-h-screen bg-base font-sans antialiased">
       <MarketingAnalyticsInit />
       {/* We can add a simple absolute positioned logo here if needed, 
           but AuthFlow seems to handle its own full-page design. 

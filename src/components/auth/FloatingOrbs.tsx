@@ -69,7 +69,8 @@ export function FloatingOrbs({ state, className }: FloatingOrbsProps) {
       aria-hidden="true"
     >
       {/* Base gradient - @design-override: intentional dark gradient for auth backdrop */}
-      <div className="absolute inset-0 bg-gradient-to-br from-surface via-slate-950 to-black" />
+      {/* Note: Using surface-2 instead of slate-950 since default Tailwind colors were removed */}
+      <div className="absolute inset-0 bg-gradient-to-br from-surface via-surface-2 to-black" />
 
       {/* Floating orbs */}
       {orbs.map((orb, index) => (
