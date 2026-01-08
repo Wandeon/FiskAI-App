@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
 
   const host = request.headers.get("host") || "unknown"
   const cookies = request.cookies.getAll()
-  const cookieNames = cookies.map(c => c.name)
-  
+  const cookieNames = cookies.map((c) => c.name)
+
   // Check for auth cookies
-  const hasSessionCookie = cookieNames.some(n => 
-    n.includes("session-token") || n.includes("authjs")
+  const hasSessionCookie = cookieNames.some(
+    (n) => n.includes("session-token") || n.includes("authjs")
   )
-  
+
   // Try getToken
   let tokenResult = false
   let tokenError = null
