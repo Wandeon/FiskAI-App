@@ -172,7 +172,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected subdomains require authentication
-  const token = await getToken({ req: request })
+  // Must specify secureCookie for production to look for __Secure-authjs.session-token
+  const isSecure =
+    request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https"
+  const token = await getToken({
+    req: request,
+    secureCookie: isSecure,
+    cookieName: isSecure ? "__Secure-authjs.session-token" : "authjs.session-token",
+  })
 
   if (!token) {
     // Redirect to login on marketing subdomain

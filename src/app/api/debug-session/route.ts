@@ -18,11 +18,17 @@ export async function GET(request: NextRequest) {
     (n) => n.includes("session-token") || n.includes("authjs")
   )
 
-  // Try getToken
+  // Try getToken with proper secure cookie config
   let tokenResult = false
   let tokenError = null
   try {
-    const token = await getToken({ req: request })
+    const isSecure =
+      request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https"
+    const token = await getToken({
+      req: request,
+      secureCookie: isSecure,
+      cookieName: isSecure ? "__Secure-authjs.session-token" : "authjs.session-token",
+    })
     tokenResult = !!token
   } catch (e) {
     tokenError = String(e)
