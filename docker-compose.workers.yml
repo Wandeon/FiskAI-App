@@ -46,6 +46,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-orchestrator
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/orchestrator.worker.js"]
@@ -56,17 +60,26 @@ services:
       - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - WORKER_TYPE=orchestrator
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   worker-sentinel:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-sentinel
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/sentinel.worker.js"]
@@ -77,17 +90,26 @@ services:
       - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - WORKER_TYPE=sentinel
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   worker-extractor:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     # No container_name when using replicas
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/extractor.worker.js"]
@@ -101,6 +123,7 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - WORKER_TYPE=extractor
       - WORKER_CONCURRENCY=2
+      - GIT_SHA=${GIT_SHA:-unknown}
     volumes:
       - ./src:/app/src:ro
     depends_on:
@@ -108,6 +131,9 @@ services:
         condition: service_healthy
     deploy:
       replicas: 2
+      resources:
+        limits:
+          memory: 1G
     networks:
       - default
       - coolify
@@ -117,6 +143,8 @@ services:
       context: .
       dockerfile: Dockerfile.worker
       args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
         WITH_OCR: "true"
     container_name: fiskai-worker-ocr
     restart: unless-stopped
@@ -131,17 +159,26 @@ services:
       - OLLAMA_VISION_MODEL=${OLLAMA_VISION_MODEL:-llama3.2-vision}
       - WORKER_TYPE=ocr
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   worker-composer:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-composer
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/composer.worker.js"]
@@ -155,17 +192,26 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - WORKER_TYPE=composer
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   worker-reviewer:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-reviewer
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/reviewer.worker.js"]
@@ -179,17 +225,26 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - WORKER_TYPE=reviewer
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   worker-scheduler:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-scheduler
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/scheduler.service.js"]
@@ -198,17 +253,26 @@ services:
       - REDIS_URL=redis://fiskai-redis:6379
       - WATCHDOG_TIMEZONE=Europe/Zagreb
       - WORKER_TYPE=scheduler
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   worker-releaser:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-releaser
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/releaser.worker.js"]
@@ -219,17 +283,26 @@ services:
       - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
       - WORKER_TYPE=releaser
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   worker-arbiter:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-arbiter
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/arbiter.worker.js"]
@@ -243,18 +316,27 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - WORKER_TYPE=arbiter
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   # Layer B: Continuous 24/7 queue draining
   worker-continuous-drainer:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-continuous-drainer
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/continuous-drainer.worker.js"]
@@ -266,18 +348,27 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
       - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
       - WORKER_TYPE=continuous-drainer
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - default
       - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   # Content Sync: Patches MDX frontmatter with RTL rule changes
   worker-content-sync:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-content-sync
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/content-sync.worker.js"]
@@ -290,6 +381,7 @@ services:
       - WORKER_CONCURRENCY=1
       # GitHub token for PR creation
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GIT_SHA=${GIT_SHA:-unknown}
     volumes:
       # Mount content directory for patching (read-write)
       - ./content:/app/content:rw
@@ -309,6 +401,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-article
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/article.worker.js"]
@@ -322,6 +418,7 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - WORKER_TYPE=article
       - WORKER_CONCURRENCY=1
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
@@ -339,6 +436,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-evidence-embedding
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/evidence-embedding.worker.js"]
@@ -354,6 +455,7 @@ services:
       - OLLAMA_EMBED_DIMS=${OLLAMA_EMBED_DIMS:-768}
       - WORKER_TYPE=evidence-embedding
       - WORKER_CONCURRENCY=2
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
@@ -371,6 +473,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-embedding
     restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/embedding.worker.js"]
@@ -386,6 +492,7 @@ services:
       - OLLAMA_EMBED_DIMS=${OLLAMA_EMBED_DIMS:-768}
       - WORKER_TYPE=embedding
       - WORKER_CONCURRENCY=2
+      - GIT_SHA=${GIT_SHA:-unknown}
     depends_on:
       redis:
         condition: service_healthy
@@ -403,6 +510,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        WITH_OCR: "false"
     container_name: fiskai-worker-einvoice-inbound
     restart: unless-stopped
     command: ["node", "dist/workers/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.js"]
@@ -416,6 +527,7 @@ services:
       - POLL_INTERVAL_MS=${EINVOICE_POLL_INTERVAL_MS:-300000}
       - MAX_WINDOW_DAYS=${EINVOICE_MAX_WINDOW_DAYS:-7}
       - WORKER_TYPE=einvoice-inbound
+      - GIT_SHA=${GIT_SHA:-unknown}
     networks:
       - default
       - coolify
