@@ -110,19 +110,19 @@ services:
         GIT_SHA: ${GIT_SHA:-unknown}
         BUILD_DATE: ${BUILD_DATE:-unknown}
         WITH_OCR: "false"
-    # No container_name when using replicas
+    container_name: fiskai-worker-extractor
     restart: unless-stopped
-    command: ["node", "dist/workers/lib/regulatory-truth/workers/extractor.worker.js"]
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/extractor.worker.ts"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
       - DATABASE_URL=${DATABASE_URL}
       - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - OLLAMA_EXTRACT_ENDPOINT=${OLLAMA_EXTRACT_ENDPOINT}
+      - OLLAMA_EXTRACT_API_KEY=${OLLAMA_EXTRACT_API_KEY}
+      - OLLAMA_EXTRACT_MODEL=${OLLAMA_EXTRACT_MODEL}
       - WORKER_TYPE=extractor
-      - WORKER_CONCURRENCY=2
+      - WORKER_CONCURRENCY=1
       - GIT_SHA=${GIT_SHA:-unknown}
     volumes:
       - ./src:/app/src:ro
@@ -130,7 +130,6 @@ services:
       redis:
         condition: service_healthy
     deploy:
-      replicas: 2
       resources:
         limits:
           memory: 1G
@@ -339,7 +338,7 @@ services:
         WITH_OCR: "false"
     container_name: fiskai-worker-continuous-drainer
     restart: unless-stopped
-    command: ["node", "dist/workers/lib/regulatory-truth/workers/continuous-drainer.worker.js"]
+    command: ["npx", "tsx", "src/lib/regulatory-truth/workers/continuous-drainer.worker.ts"]
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://fiskai-redis:6379
