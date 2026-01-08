@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https"
     const token = await getToken({
       req: request,
+      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
       secureCookie: isSecure,
       cookieName: isSecure ? "__Secure-authjs.session-token" : "authjs.session-token",
     })

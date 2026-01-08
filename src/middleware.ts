@@ -173,10 +173,12 @@ export async function middleware(request: NextRequest) {
 
   // Protected subdomains require authentication
   // Must specify secureCookie for production to look for __Secure-authjs.session-token
+  // Must pass secret explicitly for edge runtime compatibility
   const isSecure =
     request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https"
   const token = await getToken({
     req: request,
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
     secureCookie: isSecure,
     cookieName: isSecure ? "__Secure-authjs.session-token" : "authjs.session-token",
   })
