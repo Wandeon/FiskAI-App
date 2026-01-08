@@ -15,6 +15,7 @@ import { fetchDiscoveredItems } from "../agents/sentinel"
 import { closeRedis, updateDrainerHeartbeat, updateStageHeartbeat } from "./redis"
 import { logWorkerStartup } from "./startup-log"
 import { createCircuitBreaker } from "./circuit-breaker"
+import { FeatureFlags } from "./utils/feature-flags"
 
 logWorkerStartup("continuous-drainer")
 
@@ -24,6 +25,7 @@ interface DrainerState {
   stats: {
     itemsFetched: number
     ocrJobsQueued: number
+    classifyJobsQueued: number
     extractJobsQueued: number
     composeJobsQueued: number
     reviewJobsQueued: number
@@ -39,6 +41,7 @@ const state: DrainerState = {
   stats: {
     itemsFetched: 0,
     ocrJobsQueued: 0,
+    classifyJobsQueued: 0,
     extractJobsQueued: 0,
     composeJobsQueued: 0,
     reviewJobsQueued: 0,
@@ -288,6 +291,26 @@ async function drainFetchedEvidence(): Promise<number> {
 }
 
 /**
+ * Queue FETCHED evidence for pre-extraction classification
+ *
+ * This is a stub for the classification pipeline (Task 11 - Docker Worker Infrastructure Hardening).
+ * When CLASSIFICATION_ENABLED=true, evidence goes through classification before extraction.
+ *
+ * The classification worker (future work) will:
+ * 1. Classify evidence content type (regulation, guidance, news, etc.)
+ * 2. Determine processing priority
+ * 3. Route to appropriate extraction strategy
+ *
+ * @returns Number of classification jobs queued (currently always 0 - stub)
+ */
+async function drainForClassification(): Promise<number> {
+  // TODO: Implement when classification queue and worker are ready
+  // This stub exists to establish the kill switch infrastructure
+  console.log("[drainer] Classification not yet implemented - skipping")
+  return 0
+}
+
+/**
  * Check for unprocessed source pointers and queue compose jobs
  */
 async function drainSourcePointers(): Promise<number> {
@@ -432,12 +455,24 @@ async function runDrainCycle(): Promise<boolean> {
     console.error("[drainer] Stage 1.5 error:", error instanceof Error ? error.message : error)
   }
 
-  // Stage 2: Queue Evidence for extraction
+  // Stage 2: Queue Evidence for extraction (or classification if enabled)
+  // Kill switch: CLASSIFICATION_ENABLED controls routing at drainer level (single source of truth)
   try {
-    const extracted = await executeStage("fetched-evidence", drainFetchedEvidence)
-    if (extracted > 0) {
-      workDone = true
-      console.log(`[drainer] Stage 2: Queued ${extracted} extract jobs`)
+    if (FeatureFlags.classificationEnabled) {
+      // Classification pipeline: evidence → classify → extract
+      const classified = await executeStage("fetched-evidence", drainForClassification)
+      if (classified > 0) {
+        workDone = true
+        state.stats.classifyJobsQueued += classified
+        console.log(`[drainer] Stage 2: Queued ${classified} classify jobs`)
+      }
+    } else {
+      // Legacy pipeline: evidence → extract directly
+      const extracted = await executeStage("fetched-evidence", drainFetchedEvidence)
+      if (extracted > 0) {
+        workDone = true
+        console.log(`[drainer] Stage 2: Queued ${extracted} extract jobs`)
+      }
     }
   } catch (error) {
     console.error("[drainer] Stage 2 error:", error instanceof Error ? error.message : error)
@@ -496,6 +531,7 @@ async function runDrainCycle(): Promise<boolean> {
   const totalItemsProcessed =
     state.stats.itemsFetched +
     state.stats.ocrJobsQueued +
+    state.stats.classifyJobsQueued +
     state.stats.extractJobsQueued +
     state.stats.composeJobsQueued +
     state.stats.reviewJobsQueued +
@@ -522,11 +558,13 @@ function logState(): void {
   console.log(`[drainer] Stats after cycle ${state.stats.cycleCount}:`, {
     itemsFetched: state.stats.itemsFetched,
     ocrJobs: state.stats.ocrJobsQueued,
+    classifyJobs: state.stats.classifyJobsQueued,
     extractJobs: state.stats.extractJobsQueued,
     composeJobs: state.stats.composeJobsQueued,
     reviewJobs: state.stats.reviewJobsQueued,
     arbiterJobs: state.stats.arbiterJobsQueued,
     releaseJobs: state.stats.releaseJobsQueued,
+    classificationEnabled: FeatureFlags.classificationEnabled,
     backoffDelay: `${BACKOFF.currentDelay}ms`,
   })
 }
