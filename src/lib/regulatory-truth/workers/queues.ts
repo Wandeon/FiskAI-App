@@ -1,8 +1,6 @@
 // src/lib/regulatory-truth/workers/queues.ts
 import { Queue, QueueEvents, JobsOptions } from "bullmq"
-import { redis } from "./redis"
-
-const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
+import { getBullMqOptions, BULLMQ_PREFIX } from "./redis"
 
 // DLQ configuration
 export const DLQ_THRESHOLD = parseInt(process.env.DLQ_ALERT_THRESHOLD || "10")
@@ -29,9 +27,9 @@ const dlqJobOptions: JobsOptions = {
 
 // Queue factory
 function createQueue(name: string, limiter?: { max: number; duration: number }) {
+  const opts = getBullMqOptions()
   return new Queue(name, {
-    connection: redis,
-    prefix: PREFIX,
+    ...opts,
     defaultJobOptions,
     ...(limiter && { limiter }),
   })
@@ -75,16 +73,14 @@ export const scheduledQueue = createQueue("scheduled")
 
 // Dead Letter Queue with custom retention for permanently failed jobs
 export const deadletterQueue = new Queue("deadletter", {
-  connection: redis,
-  prefix: PREFIX,
+  ...getBullMqOptions(),
   defaultJobOptions: dlqJobOptions,
 })
 
 // System status queue (used by human-control-layer)
 // Custom job options: 2 attempts (1 initial + 1 retry for transient errors)
 export const systemStatusQueue = new Queue("system-status", {
-  connection: redis,
-  prefix: PREFIX,
+  ...getBullMqOptions(),
   defaultJobOptions: {
     attempts: 2, // Allow 1 retry for transient errors
     removeOnComplete: { count: 500 }, // Keep recent status checks
@@ -114,7 +110,7 @@ export const allQueues = {
 
 // Queue events for monitoring
 export function createQueueEvents(queueName: string): QueueEvents {
-  return new QueueEvents(queueName, { connection: redis, prefix: PREFIX })
+  return new QueueEvents(queueName, getBullMqOptions())
 }
 
 // DLQ job data structure

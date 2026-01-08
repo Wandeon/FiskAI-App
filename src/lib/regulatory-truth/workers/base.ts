@@ -1,13 +1,11 @@
 // src/lib/regulatory-truth/workers/base.ts
 import { Worker, Job } from "bullmq"
-import { createWorkerConnection, closeRedis } from "./redis"
+import { createWorkerConnection, closeRedis, BULLMQ_PREFIX } from "./redis"
 import { deadletterQueue, DLQ_THRESHOLD, type DeadLetterJobData } from "./queues"
 import { runStartupGuards, registerWorkerVersion } from "./utils/version-guard"
 
 // Run version guards FIRST (before any Redis/BullMQ initialization)
 runStartupGuards()
-
-const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
 
 export interface WorkerOptions {
   name: string
@@ -114,7 +112,7 @@ export function createWorker<T>(
     },
     {
       connection,
-      prefix: PREFIX,
+      prefix: BULLMQ_PREFIX,
       concurrency,
       lockDuration: options.lockDuration ?? 60000,
       stalledInterval: options.stalledInterval ?? 30000,

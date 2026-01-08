@@ -1,9 +1,35 @@
 // src/lib/regulatory-truth/workers/redis.ts
-import Redis from "ioredis"
+import Redis, { RedisOptions } from "ioredis"
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"
 
-// Shared connection for all queues
+/**
+ * Redis connection options (NOT a live instance)
+ * Pass these to BullMQ Queue/Worker constructors
+ */
+export const redisConnectionOptions: RedisOptions = {
+  host: new URL(REDIS_URL).hostname,
+  port: parseInt(new URL(REDIS_URL).port || "6379"),
+  maxRetriesPerRequest: null, // Required by BullMQ
+  enableReadyCheck: false,
+}
+
+/**
+ * BullMQ prefix for all queues/workers
+ */
+export const BULLMQ_PREFIX = process.env.BULLMQ_PREFIX || "fiskai"
+
+/**
+ * Get BullMQ connection options (for Queue and Worker constructors)
+ */
+export function getBullMqOptions() {
+  return {
+    connection: redisConnectionOptions,
+    prefix: BULLMQ_PREFIX,
+  }
+}
+
+// Shared Redis instance for non-BullMQ use (heartbeats, version tracking)
 export const redis = new Redis(REDIS_URL, {
   maxRetriesPerRequest: null, // Required by BullMQ
   enableReadyCheck: false,
@@ -11,10 +37,7 @@ export const redis = new Redis(REDIS_URL, {
 
 // Separate connection for workers (BullMQ requirement)
 export function createWorkerConnection(): Redis {
-  return new Redis(REDIS_URL, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  })
+  return new Redis(redisConnectionOptions)
 }
 
 // Health check with timeout protection
