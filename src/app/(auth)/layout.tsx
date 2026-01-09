@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { MarketingAnalyticsInit } from "@/components/marketing/marketing-analytics-init"
 
 export const metadata: Metadata = {
   title: "FiskAI - Prijava",
@@ -14,10 +13,7 @@ export default function AuthLayout({
   return (
     // Force dark mode for auth page - the glassmorphic design requires dark background
     <div className="dark min-h-screen bg-base font-sans antialiased">
-      <MarketingAnalyticsInit />
-      {/* We can add a simple absolute positioned logo here if needed, 
-          but AuthFlow seems to handle its own full-page design. 
-          Keeping this layout minimal ensures no conflict. */}
+      {/* AuthFlow handles its own full-page design. Keeping this layout minimal. */}
       {children}
     </div>
   )
