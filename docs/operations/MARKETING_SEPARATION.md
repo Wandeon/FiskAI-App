@@ -22,9 +22,12 @@ app.fiskai.hr             → Coolify (Next.js app)
   └─ /*                   → Client dashboard (all roles)
 ```
 
-### Removed/Deprecated
-- `admin.fiskai.hr` - DNS deleted, redirect via middleware to `app.fiskai.hr/admin`
-- `staff.fiskai.hr` - DNS deleted, redirect via middleware to `app.fiskai.hr/staff`
+### Discontinued Subdomains
+The following subdomains have been **permanently removed** (DNS records deleted):
+- `admin.fiskai.hr` - No longer exists. Use `app.fiskai.hr/admin` instead
+- `staff.fiskai.hr` - No longer exists. Use `app.fiskai.hr/staff` instead
+
+**Note**: With DNS deleted, these hostnames will not resolve. Users with old bookmarks will see DNS errors, not redirects. The middleware redirect logic exists only to handle any cached DNS resolution.
 
 ## Marketing Site (fiskai-marketing repo)
 
@@ -37,13 +40,18 @@ app.fiskai.hr             → Coolify (Next.js app)
 - **Trigger**: Push to main branch
 - **Workflow**: `.github/workflows/deploy.yml`
 
-### FTP Configuration
+### FTP Configuration (GitHub Actions Secrets)
 ```yaml
-server: siteground-ftp-host
-username: bot@fiskai.hr
+# .github/workflows/deploy.yml uses these secrets:
+server: ${{ secrets.SITEGROUND_SFTP_HOST }}  # SiteGround FTP hostname
+username: ${{ secrets.SITEGROUND_SFTP_USER }}  # bot@fiskai.hr
+password: ${{ secrets.SITEGROUND_SFTP_PASSWORD }}
 port: 21  # Standard FTP, not SFTP
+local-dir: ./out/
 server-dir: ./fiskai.hr/public_html/
 ```
+
+**Important**: Secrets are stored in the fiskai-marketing repo's GitHub Settings → Secrets.
 
 ### Manual Deployment
 ```bash
@@ -70,18 +78,24 @@ Marketing site has stub pages that redirect to app.fiskai.hr for auth:
 - **Application UUID**: `bsswgo8ggwgkw8c88wo8wcw8`
 - **Trigger**: Push to main or manual deploy
 
-### Deploy Commands
+### Deploy Commands (Local Development Only)
+
+**Note**: These commands require `COOLIFY_API_TOKEN` in your local `.env` file.
+Do not use in CI - the token should never be committed or logged.
+
 ```bash
-# Trigger deployment
+# Trigger deployment (run from project root with .env present)
 curl -X POST "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8/start" \
-  -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" \
+  -H "Authorization: Bearer $COOLIFY_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"force": true}'
 
 # Check deployment status
 curl -s "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8" \
-  -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" | jq '.status'
+  -H "Authorization: Bearer $COOLIFY_API_TOKEN" | jq '.status'
 ```
+
+To set the token for a session: `export COOLIFY_API_TOKEN=$(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)`
 
 ### Role-Based Access
 Access control is path-based, not subdomain-based:
@@ -117,10 +131,14 @@ export function canAccessPath(systemRole: string, pathname: string): boolean {
 2. Verify app.fiskai.hr auth routes are working
 3. Check NextAuth configuration
 
-### Legacy subdomain access
-Legacy subdomains (admin.fiskai.hr, staff.fiskai.hr) should redirect to app.fiskai.hr paths. If they don't:
-1. Verify DNS records are deleted in Cloudflare
-2. Check middleware handles redirects
+### Legacy subdomain access (discontinued)
+The legacy subdomains (admin.fiskai.hr, staff.fiskai.hr) have been permanently removed.
+- **Expected behavior**: DNS lookup fails, browser shows "site cannot be reached"
+- **User impact**: Users with old bookmarks need updated URLs:
+  - `admin.fiskai.hr` → `app.fiskai.hr/admin`
+  - `staff.fiskai.hr` → `app.fiskai.hr/staff`
+
+If a user reports they can still access legacy subdomains, check for stale DNS caching on their end.
 
 ### Application 404s on /admin or /staff
 1. Verify pages exist in `src/app/admin/` and `src/app/staff/`
