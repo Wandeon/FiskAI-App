@@ -299,6 +299,76 @@
       "rules": {
         "no-restricted-syntax": "off"
       }
+    },
+    {
+      "files": [
+        "src/app/(marketing)/**/*.ts",
+        "src/app/(marketing)/**/*.tsx",
+        "src/components/marketing/**/*.ts",
+        "src/components/marketing/**/*.tsx"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/lib/auth", "@/lib/auth/**"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot import auth utilities. Auth lives on app.fiskai.hr only."
+              },
+              {
+                "group": ["drizzle-orm", "drizzle-orm/**"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot import Drizzle ORM. No database at runtime."
+              },
+              {
+                "group": ["@/lib/db", "@/lib/db/**"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot import database utilities. No database at runtime."
+              },
+              {
+                "group": ["@prisma/client", "@prisma/*"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot import Prisma. No database at runtime."
+              },
+              {
+                "group": ["next/server"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot import next/server. Static export has no server."
+              },
+              {
+                "group": ["@/app/actions", "@/app/actions/**"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot import server actions. Static export has no server."
+              },
+              {
+                "group": ["next/headers"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot use next/headers. No server to read headers from."
+              },
+              {
+                "group": ["fs", "fs/*", "path", "child_process"],
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot use Node.js filesystem APIs. Runs in browser only."
+              }
+            ],
+            "paths": [
+              {
+                "name": "next/cache",
+                "message": "STATIC EXPORT VIOLATION: Marketing cannot use next/cache. No server for revalidation."
+              }
+            ]
+          }
+        ],
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "ExpressionStatement > Literal[value='use server']",
+            "message": "STATIC EXPORT VIOLATION: Marketing cannot use 'use server' directive. Static export has no server."
+          },
+          {
+            "selector": "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name='dynamic'][init.value='force-dynamic']",
+            "message": "STATIC EXPORT VIOLATION: Marketing cannot use force-dynamic. Must be statically renderable."
+          },
+          {
+            "selector": "Identifier[name='Buffer']",
+            "message": "STATIC EXPORT VIOLATION: Marketing cannot use Node.js Buffer. Runs in browser only."
+          }
+        ]
+      }
     }
   ]
 }
