@@ -266,25 +266,10 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Map subdomain to route group and control-center path
-  // Control-center pages are uniquely named to avoid Next.js route conflicts at build time
-  // Note: "marketing" is handled above and returns early, so subdomain here is only "staff" | "app" | "admin"
-  let routeGroup = ""
-  let controlCenterPath = ""
-  switch (subdomain) {
-    case "admin":
-      routeGroup = "/(admin)"
-      controlCenterPath = "/admin-control-center"
-      break
-    case "staff":
-      routeGroup = "/(staff)"
-      controlCenterPath = "/staff-control-center"
-      break
-    case "app":
-    default:
-      routeGroup = "/(app)"
-      controlCenterPath = "/app-control-center"
-  }
+  // After early returns above, subdomain is narrowed to "app" only
+  // (admin/staff redirect at L123, marketing returns at L152)
+  const routeGroup = "/(app)"
+  const controlCenterPath = "/app-control-center"
 
   // Legacy /dashboard compatibility - redirect to root (then to control-center)
   // This prevents 404s from old bookmarks and legacy code still referencing /dashboard
