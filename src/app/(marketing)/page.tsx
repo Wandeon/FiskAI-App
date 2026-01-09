@@ -50,7 +50,16 @@ export const metadata: Metadata = {
 }
 
 export default async function MarketingHomePage() {
-  const latestNews = await getFeaturedPosts(4)
+  const posts = await getFeaturedPosts(4)
+
+  // Convert string dates to Date objects for component compatibility
+  const latestNews = posts.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    categoryName: post.categoryName,
+    publishedAt: post.publishedAt ? new Date(post.publishedAt) : null,
+  }))
 
   return <MarketingHomeClient latestNews={latestNews} />
 }
