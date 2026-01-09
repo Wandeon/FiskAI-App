@@ -1,7 +1,8 @@
 /* eslint-disable fisk-design-system/no-hardcoded-colors -- OG image generation uses inline styles for PNG output */
 import { ImageResponse } from "next/og"
 
-export const runtime = "edge"
+// Use nodejs runtime for static export compatibility
+export const runtime = "nodejs"
 export const alt = "FiskAI - AI-powered E-fakturiranje i Fiskalizacija"
 export const size = {
   width: 1200,

@@ -5,7 +5,8 @@ import { ComparisonPageContent } from "@/components/knowledge-hub/comparison/Com
 
 interface PageProps {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ [key: string]: string | undefined }>
+  // searchParams removed for static export compatibility
+  // User preferences now handled client-side via URL params in ComparisonPageContent
 }
 
 export async function generateStaticParams() {
@@ -13,8 +14,8 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }))
 }
 
-export const dynamicParams = true
-export const dynamic = "force-dynamic"
+// Prevent runtime dynamic routes - all slugs must be known at build time
+export const dynamicParams = false
 
 function getBaseUrl() {
   const env = process.env.NEXT_PUBLIC_APP_URL
@@ -66,9 +67,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function ComparisonPage({ params, searchParams }: PageProps) {
+export default async function ComparisonPage({ params }: PageProps) {
   const { slug } = await params
-  const resolvedSearchParams = await searchParams
+  // For static export, searchParams are handled client-side via useSearchParams
   const comparison = await getComparisonBySlug(slug)
 
   if (!comparison) {
@@ -116,7 +117,7 @@ export default async function ComparisonPage({ params, searchParams }: PageProps
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ComparisonPageContent comparison={comparison} searchParams={resolvedSearchParams} />
+      <ComparisonPageContent comparison={comparison} searchParams={{}} />
     </>
   )
 }

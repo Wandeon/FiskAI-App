@@ -2,14 +2,17 @@ import type { NextConfig } from "next"
 import { withSentryConfig } from "@sentry/nextjs"
 import path from "path"
 
+// Static export mode for marketing site (set STATIC_EXPORT=true)
+const isStaticExport = process.env.STATIC_EXPORT === "true"
+
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: isStaticExport ? "export" : "standalone",
   // Exclude ioredis from bundling to avoid worker thread issues during build
-  serverExternalPackages: ["ioredis", "bullmq"],
-  // Image optimization with modern formats
-  images: {
-    formats: ["image/avif", "image/webp"],
-  },
+  serverExternalPackages: isStaticExport ? [] : ["ioredis", "bullmq"],
+  // Image optimization - must be unoptimized for static export
+  images: isStaticExport ? { unoptimized: true } : { formats: ["image/avif", "image/webp"] },
+  // Trailing slash for clean static URLs
+  ...(isStaticExport && { trailingSlash: true }),
   // Silence monorepo root inference issues when multiple lockfiles exist on host
   outputFileTracingRoot: path.join(__dirname),
   eslint: {
@@ -21,47 +24,51 @@ const nextConfig: NextConfig = {
     // Temporarily allow builds to succeed despite TS issues flagged in analysis
     ignoreBuildErrors: true,
   },
-  // Security headers
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          // HSTS - enable only in production with HTTPS
-          ...(process.env.NODE_ENV === "production"
-            ? [
+  // Security headers (not available in static export - use host config instead)
+  ...(isStaticExport
+    ? {}
+    : {
+        async headers() {
+          return [
+            {
+              source: "/:path*",
+              headers: [
                 {
-                  key: "Strict-Transport-Security",
-                  value: "max-age=31536000; includeSubDomains",
+                  key: "X-Frame-Options",
+                  value: "DENY",
                 },
-              ]
-            : []),
-          // Note: Content-Security-Policy is handled in middleware with nonce-based security
-          // See src/middleware.ts and src/lib/middleware/csp.ts for implementation
-        ],
-      },
-    ]
-  },
+                {
+                  key: "X-Content-Type-Options",
+                  value: "nosniff",
+                },
+                {
+                  key: "Referrer-Policy",
+                  value: "strict-origin-when-cross-origin",
+                },
+                {
+                  key: "X-XSS-Protection",
+                  value: "1; mode=block",
+                },
+                {
+                  key: "Permissions-Policy",
+                  value: "camera=(), microphone=(), geolocation=()",
+                },
+                // HSTS - enable only in production with HTTPS
+                ...(process.env.NODE_ENV === "production"
+                  ? [
+                      {
+                        key: "Strict-Transport-Security",
+                        value: "max-age=31536000; includeSubDomains",
+                      },
+                    ]
+                  : []),
+                // Note: Content-Security-Policy is handled in middleware with nonce-based security
+                // See src/middleware.ts and src/lib/middleware/csp.ts for implementation
+              ],
+            },
+          ]
+        },
+      }),
 }
 
 // Sentry configuration options
@@ -81,7 +88,8 @@ const sentryWebpackPluginOptions = {
   },
 
   // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers
-  tunnelRoute: "/monitoring",
+  // Disabled for static export (no server to handle tunnel)
+  ...(isStaticExport ? {} : { tunnelRoute: "/monitoring" }),
 
   // Hides source maps from generated client bundles
   hideSourceMaps: true,

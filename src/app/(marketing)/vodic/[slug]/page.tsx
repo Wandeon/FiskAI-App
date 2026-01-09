@@ -2,7 +2,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { MDXRemote } from "next-mdx-remote/rsc"
-import { getGuideBySlug } from "@/lib/knowledge-hub/mdx"
+import { getGuideBySlug, getGuideSlugs } from "@/lib/knowledge-hub/mdx"
 import { mdxComponents } from "@/components/knowledge-hub/mdx-components"
 import { TableOfContents } from "@/components/knowledge-hub/guide/TableOfContents"
 import { slugifyHeading } from "@/lib/knowledge-hub/slugify"
@@ -15,15 +15,14 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
-// Temporarily disabled static generation due to MDX/React compatibility issue
-// TODO: Re-enable once MDX rendering is fixed
-// export async function generateStaticParams() {
-//   const slugs = getGuideSlugs()
-//   return slugs.map((slug) => ({ slug }))
-// }
+// Generate all guide pages at build time for static export
+export async function generateStaticParams() {
+  const slugs = getGuideSlugs()
+  return slugs.map((slug) => ({ slug }))
+}
 
-export const dynamicParams = true
-export const dynamic = "force-dynamic"
+// Prevent runtime dynamic routes - all slugs must be known at build time
+export const dynamicParams = false
 
 type TOCItem = { id: string; title: string; level: number }
 

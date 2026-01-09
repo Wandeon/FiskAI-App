@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { auth } from "@/lib/auth"
 import { MarketingHeader } from "@/components/marketing/MarketingHeader"
 import { MarketingAnalyticsInit } from "@/components/marketing/marketing-analytics-init"
 import { ComplianceProgressBar } from "@/components/marketing/ComplianceProgressBar"
@@ -16,17 +15,14 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   )
 }
 
-export default async function MarketingLayout({
+export default function MarketingLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await auth()
-  const isLoggedIn = !!session?.user
-
   return (
     <div className="marketing-surface min-h-[calc(100vh-var(--header-height))]">
-      <MarketingHeader isLoggedIn={isLoggedIn} />
+      <MarketingHeader />
       <MarketingAnalyticsInit />
       <SpeculationRules />
 

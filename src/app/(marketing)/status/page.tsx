@@ -1,200 +1,87 @@
 import type { Metadata } from "next"
-import { getDetailedHealth } from "@/lib/monitoring/system-health"
 import { SectionBackground } from "@/components/ui/patterns/SectionBackground"
+import { ExternalLink, CheckCircle2 } from "lucide-react"
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
+const APP_URL = "https://app.fiskai.hr"
 
 export const metadata: Metadata = {
   title: "FiskAI — Status",
   description: "Status sustava i informacije o dostupnosti FiskAI platforme.",
-  alternates: {
-    canonical: `${BASE_URL}/status`,
-  },
-  openGraph: {
-    title: "FiskAI — Status",
-    description: "Status sustava i informacije o dostupnosti FiskAI platforme.",
-    url: `${BASE_URL}/status`,
-    siteName: "FiskAI",
-    locale: "hr_HR",
-    type: "website",
-    images: [
-      {
-        url: `${BASE_URL}/opengraph-image`,
-        width: 1200,
-        height: 630,
-        alt: "FiskAI - Status sustava",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "FiskAI — Status",
-    description: "Status sustava i informacije o dostupnosti FiskAI platforme.",
-    images: [`${BASE_URL}/opengraph-image`],
-  },
+  alternates: { canonical: `${BASE_URL}/status` },
 }
 
-// Force dynamic rendering - this page needs database access
-export const dynamic = "force-dynamic"
-
-export default async function StatusPage() {
-  let health: Awaited<ReturnType<typeof getDetailedHealth>> | null = null
-  let error: string | null = null
-
-  try {
-    health = await getDetailedHealth()
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Unknown error"
-  }
-
-  const formatTimestamp = (date: Date) => {
-    return new Intl.DateTimeFormat("hr-HR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }).format(date)
-  }
-
+// STATIC PAGE - No runtime DB access
+export default function StatusPage() {
   return (
     <SectionBackground variant="dark" showGrid={true} showOrbs={true}>
       <div className="mx-auto max-w-4xl px-4 py-14 md:px-6">
         <h1 className="text-display text-4xl font-semibold text-white/90">Status sustava</h1>
 
-        {error ? (
-          <div className="mt-6 rounded-lg bg-danger-bg0/10 backdrop-blur-sm border border-danger-border/20 p-6 text-danger-text">
-            <h2 className="text-xl font-semibold">Greška prilikom provjere statusa</h2>
-            <p className="mt-2">{error}</p>
+        <div className="mt-6 space-y-6">
+          <div className="rounded-lg p-6 backdrop-blur-sm border bg-success-bg0/10 border-success-border/20 text-success-text">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-6 w-6" />
+              <h2 className="text-xl font-semibold">Sustav operativan</h2>
+            </div>
+            <p className="mt-2 text-white/60">
+              Za detaljni status u realnom vremenu, posjetite kontrolnu plocu aplikacije.
+            </p>
           </div>
-        ) : health ? (
-          <div className="mt-6 space-y-6">
-            <div
-              className={`rounded-lg p-6 backdrop-blur-sm border ${
-                health.status === "healthy"
-                  ? "bg-success-bg0/10 border-success-border/20 text-success-text"
-                  : health.status === "degraded"
-                    ? "bg-warning-bg0/10 border-warning/20 text-warning-text"
-                    : "bg-danger-bg0/10 border-danger-border/20 text-danger-text"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">
-                  Status:{" "}
-                  {health.status === "healthy"
-                    ? "Zdrav"
-                    : health.status === "degraded"
-                      ? "Delimično ometen"
-                      : "Nedostupan"}
-                </h2>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    health.status === "healthy"
-                      ? "bg-success-bg0/20 text-success-text"
-                      : health.status === "degraded"
-                        ? "bg-warning-bg0/20 text-warning-text"
-                        : "bg-danger-bg0/20 text-danger-text"
-                  }`}
-                >
-                  {health.status === "healthy"
-                    ? "OK"
-                    : health.status === "degraded"
-                      ? "POZOR"
-                      : "KRITIČNO"}
-                </span>
+
+          <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
+            <h3 className="text-lg font-semibold text-white/90">
+              Provjera statusa u realnom vremenu
+            </h3>
+            <p className="mt-2 text-white/60">
+              Detaljne metrike sustava, provjere zdravlja i statistike dostupne su u aplikaciji.
+            </p>
+            <div className="mt-4">
+              <a
+                href={`${APP_URL}/status`}
+                className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-accent to-interactive px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Otvori kontrolnu plocu
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
+            <h3 className="text-lg font-semibold text-white/90">API endpoint za monitoring</h3>
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="font-medium text-white/90">Osnovna provjera zdravlja</h4>
+                <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
+                  GET {APP_URL}/api/health
+                </code>
               </div>
-              <p className="mt-2 text-white/60">Ažurirano: {formatTimestamp(health.timestamp)}</p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {health.metrics && (
-                <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
-                  <h3 className="text-lg font-semibold text-white/90">Metrike sustava</h3>
-                  <div className="mt-4 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Korisnici</span>
-                      <span className="font-medium text-white/90">{health.metrics.users}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Tvrtke</span>
-                      <span className="font-medium text-white/90">{health.metrics.companies}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Računi</span>
-                      <span className="font-medium text-white/90">{health.metrics.invoices}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Troškovi</span>
-                      <span className="font-medium text-white/90">{health.metrics.expenses}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Kontakti</span>
-                      <span className="font-medium text-white/90">{health.metrics.contacts}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
-                <h3 className="text-lg font-semibold text-white/90">Provjere zdravlja</h3>
-                <div className="mt-4 space-y-3">
-                  {health.checks.map((check, index) => (
-                    <div key={index} className="flex justify-between items-start">
-                      <span className="text-white/60">{check.name}</span>
-                      <span
-                        className={`font-medium ${
-                          check.status === "passed"
-                            ? "text-success-text"
-                            : check.status === "warning"
-                              ? "text-warning-text"
-                              : "text-danger-text"
-                        }`}
-                      >
-                        {check.status === "passed"
-                          ? "PROŠLO"
-                          : check.status === "warning"
-                            ? "UPOZORENJE"
-                            : "NEPROŠLO"}
-                      </span>
-                      {check.message && (
-                        <span className="ml-2 text-sm text-white/50">{check.message}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <div>
+                <h4 className="font-medium text-white/90">Detaljna provjera zdravlja</h4>
+                <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
+                  GET {APP_URL}/api/health?detailed=true
+                </code>
               </div>
+              <p className="text-sm text-white/60">
+                Vraca JSON s statusom sustava. Za integraciju s monitoring alatima.
+              </p>
             </div>
           </div>
-        ) : (
-          <div className="mt-6 rounded-lg bg-surface/5 backdrop-blur-sm border border-white/10 p-6">
-            <p className="text-white/60">Učitavanje statusa...</p>
-          </div>
-        )}
 
-        <div className="mt-12 rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
-          <h3 className="text-lg font-semibold text-white/90">API endpointi za nadgledanje</h3>
-          <div className="mt-4 space-y-4">
-            <div>
-              <h4 className="font-medium text-white/90">Osnovna provjera zdravlja</h4>
-              <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
-                GET /api/health
-              </code>
-            </div>
-            <div>
-              <h4 className="font-medium text-white/90">Detaljna provjera zdravlja</h4>
-              <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
-                GET /api/health?detailed=true
-              </code>
-            </div>
-            <div>
-              <h4 className="font-medium text-white/90">
-                Izvoz podataka tvrtke (za administratora)
-              </h4>
-              <code className="mt-1 block rounded bg-surface/5 border border-white/10 p-3 font-mono text-sm text-primary">
-                GET /api/exports/company
-              </code>
-            </div>
+          <div className="rounded-lg border border-white/10 bg-surface/5 backdrop-blur-sm p-6">
+            <h3 className="text-lg font-semibold text-white/90">Kontakt za hitne slucajeve</h3>
+            <p className="mt-2 text-white/60">
+              Ako imate problema s pristupom sustavu ili kriticne tehnicke probleme:
+            </p>
+            <ul className="mt-3 space-y-2 text-sm text-white/60">
+              <li>
+                Email:{" "}
+                <a href="mailto:podrska@fiskai.hr" className="text-primary hover:underline">
+                  podrska@fiskai.hr
+                </a>
+              </li>
+              <li>Odgovor unutar 24h radnim danima</li>
+            </ul>
           </div>
         </div>
       </div>

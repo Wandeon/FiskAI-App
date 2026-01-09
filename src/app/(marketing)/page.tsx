@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
 import { MarketingHomeClient } from "@/components/marketing/MarketingHomeClient"
-import { getLatestPosts } from "@/lib/news/queries"
+import { getFeaturedPosts } from "@/lib/content/news"
 
-// Force dynamic rendering - database not available during static build
-export const dynamic = "force-dynamic"
+// Static rendering - uses WordPress/JSON fallback, no database required
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://fiskai.hr"
 
@@ -51,7 +50,16 @@ export const metadata: Metadata = {
 }
 
 export default async function MarketingHomePage() {
-  const latestNews = await getLatestPosts(4)
+  const posts = await getFeaturedPosts(4)
+
+  // Convert string dates to Date objects for component compatibility
+  const latestNews = posts.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    categoryName: post.categoryName,
+    publishedAt: post.publishedAt ? new Date(post.publishedAt) : null,
+  }))
 
   return <MarketingHomeClient latestNews={latestNews} />
 }

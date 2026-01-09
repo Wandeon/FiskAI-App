@@ -1,123 +1,39 @@
-/**
- * Role Selection Page
- *
- * This page allows users with access to multiple portals to choose which one to enter.
- * Currently shown only to STAFF and ADMIN users who can access multiple portals:
- * - ADMIN: Can choose between admin, staff, or app portal
- * - STAFF: Can choose between staff or app portal
- * - USER: Redirected directly to app portal (no choice needed)
- *
- * AUDIT FIX #212: This behavior is intentional. Regular users only have access to one
- * portal, so showing a selection page would be redundant. Future enhancement could
- * show a welcome message or company context for all users.
- */
-import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth-utils"
-import { getAvailableSubdomains, hasMultipleRoles } from "@/lib/auth/system-role"
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
-import { Building2, Users, Shield } from "lucide-react"
+import type { Metadata } from "next"
 
-const SUBDOMAIN_INFO = {
-  app: {
-    title: "Client Dashboard",
-    description: "Access your business dashboard",
-    icon: Building2,
-    color: "text-primary",
-  },
-  staff: {
-    title: "Staff Portal",
-    description: "Manage assigned client accounts",
-    icon: Users,
-    color: "text-green-500",
-  },
-  admin: {
-    title: "Admin Portal",
-    description: "Platform management and oversight",
-    icon: Shield,
-    color: "text-purple-500",
-  },
+const APP_URL = "https://app.fiskai.hr"
+
+export const metadata: Metadata = {
+  title: "Odabir portala - FiskAI",
+  description: "Preusmjeravanje na odabir portala...",
+  robots: { index: false, follow: false },
 }
 
-export default async function SelectRolePage() {
-  const user = await getCurrentUser()
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  const systemRole = user.systemRole || "USER"
-
-  // If user only has one role, redirect directly
-  if (!hasMultipleRoles(systemRole)) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    const url = new URL(baseUrl)
-
-    // In development, redirect to / - middleware handles control-center routing
-    if (process.env.NODE_ENV === "development") {
-      redirect("/")
-    }
-
-    // In production, redirect to app subdomain root - middleware handles control-center
-    const appUrl = baseUrl.replace(
-      url.hostname,
-      `app.${url.hostname.replace(/^(www\.|app\.|staff\.|admin\.)/, "")}`
-    )
-    redirect(`${appUrl}/`)
-  }
-
-  const availableSubdomains = getAvailableSubdomains(systemRole)
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  const url = new URL(baseUrl)
-  const baseDomain = url.hostname.replace(/^(www\.|app\.|staff\.|admin\.)/, "")
+/**
+ * Static redirect stub for /select-role
+ * The actual select-role functionality lives at app.fiskai.hr/select-role
+ * This page exists only to preserve the URL and redirect users.
+ */
+export default function SelectRoleRedirect() {
+  const redirectUrl = `${APP_URL}/select-role`
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-surface-1 to-surface-2 p-4">
-      <div className="w-full max-w-2xl space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {user.name || user.email}
-          </h1>
-          <p className="text-secondary mt-2">Select which portal you&apos;d like to access</p>
+    <html lang="hr">
+      <head>
+        <meta httpEquiv="refresh" content={`0;url=${redirectUrl}`} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.location.replace("${redirectUrl}");`,
+          }}
+        />
+      </head>
+      <body className="min-h-screen flex items-center justify-center bg-surface-1">
+        <div className="text-center p-8">
+          <p className="text-secondary mb-4">Preusmjeravanje na aplikaciju...</p>
+          <a href={redirectUrl} className="text-link hover:underline">
+            Kliknite ovdje ako se stranica ne učita automatski
+          </a>
         </div>
-
-        <div className="grid gap-4">
-          {availableSubdomains.map((subdomain) => {
-            const info = SUBDOMAIN_INFO[subdomain as keyof typeof SUBDOMAIN_INFO]
-            if (!info) return null
-
-            const Icon = info.icon
-
-            // In development, use local paths; in production, use subdomains
-            // Redirect to root - middleware handles control-center routing
-            let href: string
-            if (process.env.NODE_ENV === "development") {
-              href = "/"
-            } else {
-              href = `${url.protocol}//${subdomain}.${baseDomain}/`
-            }
-
-            return (
-              <a key={subdomain} href={href}>
-                <Card className="hover:bg-surface/80 transition-colors cursor-pointer border-default bg-surface">
-                  <CardContent className="flex items-center gap-4 p-6">
-                    <div
-                      className={`h-12 w-12 rounded-full bg-surface-1 flex items-center justify-center ${info.color}`}
-                    >
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-foreground">{info.title}</CardTitle>
-                      <CardDescription className="text-secondary">
-                        {info.description}
-                      </CardDescription>
-                    </div>
-                  </CardContent>
-                </Card>
-              </a>
-            )
-          })}
-        </div>
-      </div>
-    </div>
+      </body>
+    </html>
   )
 }

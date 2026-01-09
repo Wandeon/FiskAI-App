@@ -1,10 +1,13 @@
 /* eslint-disable fisk-design-system/no-hardcoded-colors -- OG image generation uses inline styles for PNG output */
 import { ImageResponse } from "next/og"
-import { drizzleDb } from "@/lib/db/drizzle"
-import { newsPosts, newsCategories } from "@/lib/db/schema"
-import { eq, and, lte } from "drizzle-orm"
+import { getAllPostSlugs, getPostBySlug } from "@/lib/content/news"
 
-export const runtime = "nodejs" // Need node runtime for drizzle/postgres
+// Required for static export - pre-generate OG images for all posts
+export async function generateStaticParams() {
+  const slugs = await getAllPostSlugs()
+  return slugs.map((slug) => ({ slug }))
+}
+
 export const alt = "FiskAI Vijesti"
 export const size = {
   width: 1200,
@@ -19,26 +22,8 @@ interface Props {
 export default async function OGImage({ params }: Props) {
   const { slug } = await params
 
-  // Fetch post data
-  const result = await drizzleDb
-    .select({
-      title: newsPosts.title,
-      excerpt: newsPosts.excerpt,
-      categoryName: newsCategories.nameHr,
-      impactLevel: newsPosts.impactLevel,
-    })
-    .from(newsPosts)
-    .leftJoin(newsCategories, eq(newsPosts.categoryId, newsCategories.id))
-    .where(
-      and(
-        eq(newsPosts.slug, slug),
-        eq(newsPosts.status, "published"),
-        lte(newsPosts.publishedAt, new Date())
-      )
-    )
-    .limit(1)
-
-  const post = result[0]
+  // Fetch post data from WordPress content client
+  const post = await getPostBySlug(slug)
 
   if (!post) {
     // Fallback image for missing posts
