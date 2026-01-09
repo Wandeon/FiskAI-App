@@ -50,13 +50,15 @@ export default defineConfig({
       "**/node_modules/**",
       "**/dist/**",
       "**/e2e/**",
+      ".worktrees/**",
+      "architecture-erp/**",
       "**/tests/marketing-audit/**",
       "**/*.spec.ts", // Playwright spec files
       // Files using node:test (to be run with Node test runner instead)
       "src/lib/__tests__/**",
       "src/lib/auth/otp.test.ts",
       "src/app/actions/__tests__/**",
-      "src/lib/auth/__tests__/**",
+      // Note: src/lib/auth/__tests__/** migrated to vitest
       "src/lib/config/__tests__/**",
       "src/lib/e-invoice/__tests__/**",
       // Fiscal tests using node:test (golden tests use vitest)

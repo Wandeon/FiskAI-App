@@ -264,7 +264,10 @@ export async function middleware(request: NextRequest) {
   // Legacy /dashboard compatibility - redirect to app-control-center
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     const externalUrl = getExternalUrl(request)
-    const newPath = pathname === "/dashboard" ? "/app-control-center" : pathname.replace("/dashboard", "/app-control-center")
+    const newPath =
+      pathname === "/dashboard"
+        ? "/app-control-center"
+        : pathname.replace("/dashboard", "/app-control-center")
     const redirectUrl = new URL(newPath, externalUrl)
     redirectUrl.search = request.nextUrl.search
 
@@ -321,7 +324,11 @@ export async function middleware(request: NextRequest) {
 
   // Don't rewrite if already in the correct route group or if accessing /admin or /staff paths
   // /admin and /staff are top-level routes, not in route groups
-  if (!pathname.startsWith(routeGroup) && !pathname.startsWith("/admin") && !pathname.startsWith("/staff")) {
+  if (
+    !pathname.startsWith(routeGroup) &&
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/staff")
+  ) {
     url.pathname = `${routeGroup}${rewrittenPath}`
 
     const response = NextResponse.rewrite(url)

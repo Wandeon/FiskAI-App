@@ -17,31 +17,60 @@ export async function setSystemRole(userId: string, role: SystemRole): Promise<v
   })
 }
 
+/**
+ * Check if a user can access a specific subdomain.
+ * With path-based architecture, only "app" and "marketing" subdomains exist.
+ * Role-based access is enforced at the path level, not subdomain level.
+ */
 export function canAccessSubdomain(systemRole: SystemRole, subdomain: string): boolean {
-  switch (subdomain) {
-    case "admin":
-      return systemRole === "ADMIN"
-    case "staff":
-      return systemRole === "STAFF" || systemRole === "ADMIN"
-    case "app":
-      return true // All roles can access app
-    case "marketing":
-      return true // Public
+  // App subdomain is accessible by all authenticated users
+  // Role restrictions are enforced at the path level (/admin, /staff)
+  if (subdomain === "app") {
+    return true
+  }
+  if (subdomain === "marketing") {
+    return true // Public
+  }
+  return false
+}
+
+/**
+ * Check if a user can access a specific path based on their role.
+ * This replaces subdomain-based access control.
+ */
+export function canAccessPath(systemRole: SystemRole, pathname: string): boolean {
+  if (pathname.startsWith("/admin")) {
+    return systemRole === "ADMIN"
+  }
+  if (pathname.startsWith("/staff")) {
+    return systemRole === "STAFF" || systemRole === "ADMIN"
+  }
+  // All other paths accessible by all authenticated users
+  return true
+}
+
+/**
+ * Get available paths for a given system role.
+ * Replaces getAvailableSubdomains with path-based equivalents.
+ */
+export function getAvailablePaths(systemRole: SystemRole): string[] {
+  switch (systemRole) {
+    case "ADMIN":
+      return ["/admin", "/staff", "/dashboard"]
+    case "STAFF":
+      return ["/staff", "/dashboard"]
+    case "USER":
     default:
-      return false
+      return ["/dashboard"]
   }
 }
 
+/**
+ * @deprecated Use getAvailablePaths instead. Subdomains are no longer used for role-based routing.
+ */
 export function getAvailableSubdomains(systemRole: SystemRole): string[] {
-  switch (systemRole) {
-    case "ADMIN":
-      return ["admin", "staff", "app"]
-    case "STAFF":
-      return ["staff", "app"]
-    case "USER":
-    default:
-      return ["app"]
-  }
+  // All roles now use the same subdomains (app for authenticated, marketing for public)
+  return ["app"]
 }
 
 /**

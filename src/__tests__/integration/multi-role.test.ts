@@ -1,31 +1,62 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
+
+// Mock database - these tests only test pure functions
+vi.mock("@/lib/prisma", () => ({
+  prisma: {},
+}))
+vi.mock("@/lib/db", () => ({
+  db: {},
+}))
+
 import { createModuleAccess } from "@/lib/modules"
-import { getSubdomain, canAccessSubdomain } from "@/lib/middleware/subdomain"
+import { getSubdomain, canAccessSubdomain, canAccessPath } from "@/lib/middleware/subdomain"
 
 describe("Multi-Role Architecture Integration", () => {
-  describe("Subdomain Access Control", () => {
-    it("allows ADMIN to access all subdomains", () => {
-      expect(canAccessSubdomain("ADMIN", "admin")).toBe(true)
-      expect(canAccessSubdomain("ADMIN", "staff")).toBe(true)
+  describe("Subdomain Access Control (path-based architecture)", () => {
+    it("allows all roles to access app subdomain", () => {
       expect(canAccessSubdomain("ADMIN", "app")).toBe(true)
-    })
-
-    it("allows STAFF to access staff and app", () => {
-      expect(canAccessSubdomain("STAFF", "admin")).toBe(false)
-      expect(canAccessSubdomain("STAFF", "staff")).toBe(true)
       expect(canAccessSubdomain("STAFF", "app")).toBe(true)
-    })
-
-    it("allows USER only to app", () => {
-      expect(canAccessSubdomain("USER", "admin")).toBe(false)
-      expect(canAccessSubdomain("USER", "staff")).toBe(false)
       expect(canAccessSubdomain("USER", "app")).toBe(true)
     })
 
-    it("allows everyone to access marketing subdomain", () => {
+    it("allows all roles to access marketing subdomain (public)", () => {
       expect(canAccessSubdomain("ADMIN", "marketing")).toBe(true)
       expect(canAccessSubdomain("STAFF", "marketing")).toBe(true)
       expect(canAccessSubdomain("USER", "marketing")).toBe(true)
+    })
+
+    it("rejects legacy subdomains (admin/staff no longer exist)", () => {
+      // These subdomains have been removed - access is now path-based
+      expect(canAccessSubdomain("ADMIN", "admin")).toBe(false)
+      expect(canAccessSubdomain("ADMIN", "staff")).toBe(false)
+      expect(canAccessSubdomain("STAFF", "admin")).toBe(false)
+      expect(canAccessSubdomain("STAFF", "staff")).toBe(false)
+      expect(canAccessSubdomain("USER", "admin")).toBe(false)
+      expect(canAccessSubdomain("USER", "staff")).toBe(false)
+    })
+  })
+
+  describe("Path-based Access Control", () => {
+    it("allows only ADMIN to access /admin paths", () => {
+      expect(canAccessPath("ADMIN", "/admin")).toBe(true)
+      expect(canAccessPath("ADMIN", "/admin/tenants")).toBe(true)
+      expect(canAccessPath("STAFF", "/admin")).toBe(false)
+      expect(canAccessPath("USER", "/admin")).toBe(false)
+    })
+
+    it("allows STAFF and ADMIN to access /staff paths", () => {
+      expect(canAccessPath("ADMIN", "/staff")).toBe(true)
+      expect(canAccessPath("ADMIN", "/staff/clients")).toBe(true)
+      expect(canAccessPath("STAFF", "/staff")).toBe(true)
+      expect(canAccessPath("STAFF", "/staff/clients")).toBe(true)
+      expect(canAccessPath("USER", "/staff")).toBe(false)
+    })
+
+    it("allows all authenticated users to access other paths", () => {
+      expect(canAccessPath("USER", "/dashboard")).toBe(true)
+      expect(canAccessPath("USER", "/invoices")).toBe(true)
+      expect(canAccessPath("STAFF", "/dashboard")).toBe(true)
+      expect(canAccessPath("ADMIN", "/dashboard")).toBe(true)
     })
   })
 

@@ -61,7 +61,7 @@ describe("Client Control Center", () => {
 
 describe("Accountant Control Center", () => {
   it("should define all required queues", async () => {
-    const { ACCOUNTANT_QUEUES } = await import("../../../(staff)/staff-control-center/queues")
+    const { ACCOUNTANT_QUEUES } = await import("../../../staff/staff-control-center/queues")
 
     expect(ACCOUNTANT_QUEUES).toHaveLength(3)
     expect(ACCOUNTANT_QUEUES.map((q) => q.id)).toEqual([
@@ -74,7 +74,7 @@ describe("Accountant Control Center", () => {
 
 describe("Admin Control Center", () => {
   it("should define all required queues", async () => {
-    const { ADMIN_QUEUES } = await import("../../../(admin)/admin-control-center/queues")
+    const { ADMIN_QUEUES } = await import("../../../admin/admin-control-center/queues")
 
     expect(ADMIN_QUEUES).toHaveLength(4)
     expect(ADMIN_QUEUES.map((q) => q.id)).toEqual([
