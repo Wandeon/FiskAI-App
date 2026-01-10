@@ -1,7 +1,7 @@
 # Build Authority
 
 > **Status**: Active
-> **Last Updated**: 2026-01-10
+> **Last Updated**: 2026-01-11
 
 ## Overview
 
@@ -20,9 +20,21 @@ This document defines where and how Docker images are built for the FiskAI platf
 │                   GitHub Actions Self-Hosted Runner                  │
 │                        VPS (x86, 100.120.14.126)                    │
 │                                                                      │
-│   • Builds app image using docker buildx                            │
+│   • Orchestrates build via docker buildx                            │
+│   • Uses REMOTE BuildKit on VPS-01 for native ARM64 builds          │
 │   • Uses registry cache for layer reuse                             │
 │   • Pushes to ghcr.io/wandeon/fiskai-app                           │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │ TCP over Tailscale
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    BuildKit (VPS-01, ARM64)                         │
+│                     100.64.123.81:1234                              │
+│                                                                      │
+│   • Native ARM64 builds (no QEMU emulation!)                        │
+│   • Bound to Tailscale IP only (not public)                        │
+│   • Container: moby/buildkit:latest                                 │
+│   • Firewall: iptables allows only Tailscale network               │
 └───────────────────────────────┬─────────────────────────────────────┘
                                 │
                                 ▼
@@ -49,35 +61,37 @@ This document defines where and how Docker images are built for the FiskAI platf
 
 ### App Image (fiskai-app)
 
-| Rule               | Details                             |
-| ------------------ | ----------------------------------- |
-| **Build Location** | VPS (x86) via GitHub Actions runner |
-| **Build Trigger**  | Push to `main` branch               |
-| **Image Registry** | ghcr.io/wandeon/fiskai-app          |
-| **Deploy Method**  | Coolify pulls from GHCR             |
-| **VPS-01 Builds**  | ❌ NEVER (too slow on ARM64)        |
+| Rule               | Details                                |
+| ------------------ | -------------------------------------- |
+| **Build Location** | VPS-01 (ARM64) via remote BuildKit     |
+| **Orchestration**  | VPS (x86) via GitHub Actions runner    |
+| **Build Trigger**  | Push to `main` branch                  |
+| **Image Registry** | ghcr.io/wandeon/fiskai-app             |
+| **Deploy Method**  | Coolify pulls from GHCR                |
+| **QEMU Usage**     | ❌ NEVER (too slow, 4+ hours)          |
 
-### Why Not Build on VPS-01?
+### Why Remote BuildKit?
 
-1. **ARM64 is slow for Node.js builds** - Next.js build takes 12+ minutes
-2. **No persistent cache** - Coolify doesn't preserve buildx cache between deployments
-3. **Shared resources** - Building competes with running app for CPU/RAM
+1. **Native ARM64 builds** - No QEMU emulation overhead
+2. **Fast builds** - ~15-25 minutes vs 4-8 hours with QEMU
+3. **Network isolation** - BuildKit bound to Tailscale IP only
+4. **Separation of concerns** - Build orchestration on VPS, compilation on VPS-01
 
-### Why Build on VPS (x86)?
+### Previous Approaches (DO NOT USE)
 
-1. **Faster CPU** - AMD EPYC vs ARM64
-2. **More RAM** - 24GB vs 16GB
-3. **Persistent cache** - GitHub Actions uses registry cache
-4. **Separation of concerns** - Build doesn't impact production
+| Approach | Problem |
+| -------- | ------- |
+| **QEMU on VPS** | 4-8 hours build time (emulation overhead) |
+| **Direct builds on VPS-01** | 16+ minutes, no persistent cache, impacts production |
 
-## Runner Configuration
+## Infrastructure
+
+### Self-Hosted Runner (VPS)
 
 **Runner Name**: `fiskai-vps-x86`
 **Labels**: `self-hosted`, `linux`, `x64`, `fiskai-build`
 **Location**: `/opt/github-runner/fiskai-app`
 **Service**: `actions.runner.Wandeon-FiskAI.fiskai-vps-x86.service`
-
-### Verify Runner Status
 
 ```bash
 # Check runner service
@@ -85,6 +99,36 @@ sudo systemctl status actions.runner.Wandeon-FiskAI.fiskai-vps-x86.service
 
 # Check runner in GitHub
 gh api repos/Wandeon/FiskAI/actions/runners --jq '.runners[] | select(.name == "fiskai-vps-x86") | {status, labels: [.labels[].name]}'
+```
+
+### BuildKit (VPS-01)
+
+**Container**: `buildkitd`
+**Image**: `moby/buildkit:latest`
+**Endpoint**: `tcp://100.64.123.81:1234`
+**Binding**: Tailscale IP only (not public interface)
+
+```bash
+# Check BuildKit status
+ssh admin@100.64.123.81 "docker ps --filter name=buildkitd --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+
+# Check port binding (should show 100.64.123.81:1234 only)
+ssh admin@100.64.123.81 "ss -tlnp | grep 1234"
+
+# Restart BuildKit if needed
+ssh admin@100.64.123.81 "docker restart buildkitd"
+```
+
+### Firewall Rules (VPS-01)
+
+BuildKit is protected by:
+1. **Tailscale network isolation** - Only accessible from Tailscale network
+2. **IP binding** - Bound to 100.64.123.81 (Tailscale IP), not 0.0.0.0
+3. **iptables rules** - Additional protection for port 1234
+
+```bash
+# View iptables rules
+ssh admin@100.64.123.81 "sudo iptables -L INPUT -n | grep 1234"
 ```
 
 ## Coolify Configuration
@@ -107,11 +151,23 @@ This must be done **manually in the Coolify UI**:
 4. Set "Docker Image" to `ghcr.io/wandeon/fiskai-app:latest`
 5. Save and trigger a deployment
 
-**Current Status (2026-01-10):**
+## Environment Variable Management
 
-- GitHub Actions builds and pushes to GHCR ✅
-- GHCR has `latest` tag ready ✅
-- Coolify still configured to build from source ⚠️ (needs UI change)
+Use the `coolify-copy-envs.sh` script to copy env vars between Coolify apps:
+
+```bash
+# Requires COOLIFY_API_TOKEN
+export COOLIFY_API_TOKEN='your-token'
+
+# Copy from source to target app
+./scripts/coolify-copy-envs.sh <source_app_uuid> <target_app_uuid>
+```
+
+The script:
+- Validates token exists (fails fast if missing)
+- Verifies both apps exist
+- Copies all env vars preserving build-time/preview flags
+- Reports success/failure for each variable
 
 ## Fallback / Rollback
 
@@ -121,7 +177,24 @@ If the GitHub Actions build pipeline fails:
 2. **Fix**: Debug and fix the workflow
 3. **Restore**: Switch back to image pull mode
 
-This is NOT preferred as VPS-01 builds take 16+ minutes.
+If BuildKit on VPS-01 is down:
+
+```bash
+# Restart BuildKit
+ssh admin@100.64.123.81 "docker restart buildkitd"
+
+# If container is missing, recreate it
+ssh admin@100.64.123.81 << 'EOF'
+docker rm -f buildkitd 2>/dev/null || true
+docker run -d \
+  --name buildkitd \
+  --restart unless-stopped \
+  --privileged \
+  -p 100.64.123.81:1234:1234 \
+  moby/buildkit:latest \
+  --addr tcp://0.0.0.0:1234
+EOF
+```
 
 ## Related Documents
 
