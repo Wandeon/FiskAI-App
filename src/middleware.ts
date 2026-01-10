@@ -110,6 +110,15 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
+  // Public API routes bypass authentication (health checks, webhooks, etc.)
+  // Must check BEFORE subdomain/auth routing to allow internal healthchecks from localhost
+  if (pathname.startsWith("/api/") && isPublicApiRoute(pathname)) {
+    const response = NextResponse.next()
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    return response
+  }
+
   // Detect subdomain using real host
   const realHost = getRealHost(request)
   const subdomain = getSubdomain(realHost)
