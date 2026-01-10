@@ -96,6 +96,23 @@ Coolify should be configured to deploy from Docker image:
 - **Registry**: GitHub Container Registry (public)
 - **Build**: Disabled (no local builds)
 
+### Manual Setup Required
+
+The Coolify API doesn't support changing `build_pack` from "dockerfile" to "dockerimage".
+This must be done **manually in the Coolify UI**:
+
+1. Go to Coolify Dashboard → Applications → fiskai-app
+2. Click "Settings" or "Configuration"
+3. Change "Build Pack" from "Dockerfile" to "Docker Image"
+4. Set "Docker Image" to `ghcr.io/wandeon/fiskai-app:latest`
+5. Save and trigger a deployment
+
+**Current Status (2026-01-10):**
+
+- GitHub Actions builds and pushes to GHCR ✅
+- GHCR has `latest` tag ready ✅
+- Coolify still configured to build from source ⚠️ (needs UI change)
+
 ## Fallback / Rollback
 
 If the GitHub Actions build pipeline fails:
