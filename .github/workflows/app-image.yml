@@ -82,6 +82,7 @@ jobs:
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
           build-args: |
             DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy?schema=public
+            REGULATORY_DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy?schema=public
           # Use inline cache for better layer reuse
           provenance: false
           sbom: false
