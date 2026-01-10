@@ -29,10 +29,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Prisma needs a DATABASE_URL at generation time but doesn't use it.
-# This dummy URL is only for schema parsing, not database connection.
-# Using ARG instead of ENV ensures this value doesn't leak to the final image.
+# Database URLs needed at build time for Prisma generation and Next.js static pages.
+# These dummy URLs are only for schema parsing, not database connection.
+# Using ARG + ENV ensures they're available during build but don't leak to final image.
 ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+ARG REGULATORY_DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+ENV DATABASE_URL=${DATABASE_URL}
+ENV REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
 
 # Generate Prisma clients (both core and regulatory)
 RUN npx prisma generate && npx prisma generate --config=prisma.config.regulatory.ts
