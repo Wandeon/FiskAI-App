@@ -9,10 +9,7 @@ import {
   getContentPipelineHealth,
   getPendingContentSyncPRs,
 } from "@/lib/regulatory-truth/monitoring/metrics"
-import {
-  hasRegulatoryTruthTables,
-  CONTENT_AUTOMATION_TABLES,
-} from "@/lib/admin/runtime-capabilities"
+import { hasRegulatoryTruthTables } from "@/lib/admin/runtime-capabilities"
 import { NotConfigured } from "@/components/admin/not-configured"
 
 export const dynamic = "force-dynamic"
@@ -26,7 +23,7 @@ export default async function ContentAutomationPage() {
       <NotConfigured
         feature="Content Automation"
         missingTables={capability.missingTables}
-        actionHint={`Run migrations for Content Automation tables: ${CONTENT_AUTOMATION_TABLES.join(", ")}`}
+        actionHint={`Run migrations for Content Automation tables: ${capability.requiredTables.join(", ")}`}
       />
     )
   }

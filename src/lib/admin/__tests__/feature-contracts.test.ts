@@ -24,42 +24,43 @@ vi.mock("@/lib/logger", () => ({
 
 // Import after mocks
 import {
+  getFeatureStatus,
+  getAllFeatureStatuses,
   verifyFeatureContract,
   verifyAllFeatureContracts,
-  TYPE_A_FEATURES,
+  FEATURES,
 } from "../feature-contracts"
 
 describe("feature-contracts", () => {
-  const originalEnv = process.env
-
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env = { ...originalEnv }
+    vi.unstubAllEnvs()
   })
 
   afterEach(() => {
-    process.env = originalEnv
+    vi.unstubAllEnvs()
   })
 
-  describe("verifyFeatureContract", () => {
-    it("returns healthy when all News tables exist", async () => {
+  describe("getFeatureStatus", () => {
+    it("returns configured: true when all News tables exist", async () => {
       // Enable News as Type A
-      process.env.NEWS_TYPE_A = "true"
+      vi.stubEnv("NEWS_TYPE_A", "true")
 
       // All tables exist
       mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
 
-      const result = await verifyFeatureContract("news")
+      const status = await getFeatureStatus("news")
 
-      expect(result.enabled).toBe(true)
-      expect(result.healthy).toBe(true)
-      expect(result.missingTables).toEqual([])
+      expect(status.configured).toBe(true)
+      expect(status.enforced).toBe(true)
+      expect(status.missingTables).toEqual([])
+      expect(status.type).toBe("A")
       // Should check all required tables
-      expect(mockExecute).toHaveBeenCalledTimes(TYPE_A_FEATURES.news.requiredTables.length)
+      expect(mockExecute).toHaveBeenCalledTimes(FEATURES.news.requiredTables.length)
     })
 
-    it("returns unhealthy with missing tables list when some tables missing", async () => {
-      process.env.NEWS_TYPE_A = "true"
+    it("returns configured: false with missingTables when some tables are missing", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "true")
 
       // First two tables exist, rest don't
       mockExecute
@@ -68,109 +69,189 @@ describe("feature-contracts", () => {
         .mockResolvedValueOnce({ rows: [{ exists: false }] }) // news_items
         .mockResolvedValueOnce({ rows: [{ exists: false }] }) // news_sources
 
-      const result = await verifyFeatureContract("news")
+      const status = await getFeatureStatus("news")
 
-      expect(result.enabled).toBe(true)
-      expect(result.healthy).toBe(false)
-      expect(result.missingTables).toEqual(["news_items", "news_sources"])
+      expect(status.configured).toBe(false)
+      expect(status.enforced).toBe(true)
+      expect(status.missingTables).toEqual(["news_items", "news_sources"])
+      expect(status.requiredTables).toEqual(FEATURES.news.requiredTables)
     })
 
-    it("returns not enabled when NEWS_TYPE_A is false", async () => {
-      process.env.NEWS_TYPE_A = "false"
+    it("returns enforced: false when NEWS_TYPE_A is false", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "false")
 
-      const result = await verifyFeatureContract("news")
+      mockExecute.mockResolvedValue({ rows: [{ exists: false }] })
 
-      expect(result.enabled).toBe(false)
-      expect(result.healthy).toBe(true)
-      expect(result.missingTables).toEqual([])
-      // Should not check any tables
-      expect(mockExecute).not.toHaveBeenCalled()
+      const status = await getFeatureStatus("news")
+
+      expect(status.enforced).toBe(false)
+      // Should still check tables to know if configured
+      expect(status.configured).toBe(false)
     })
 
-    it("logs CRITICAL error in production when tables missing", async () => {
-      process.env.NODE_ENV = "production"
-      process.env.NEWS_TYPE_A = "true"
+    it("logs CRITICAL error in production when enforced tables are missing", async () => {
+      vi.stubEnv("NODE_ENV", "production")
+      // Type A defaults to enforced in production
 
       // All tables missing
       mockExecute.mockResolvedValue({ rows: [{ exists: false }] })
 
-      await verifyFeatureContract("news")
+      await getFeatureStatus("news")
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         expect.objectContaining({
           featureId: "news",
           severity: "CRITICAL",
+          schema: "public",
         }),
         expect.stringContaining("TYPE A CONTRACT VIOLATION")
       )
     })
 
-    it("does not log CRITICAL in development", async () => {
-      process.env.NODE_ENV = "development"
-      process.env.NEWS_TYPE_A = "true"
+    it("does not log CRITICAL in development even if tables missing", async () => {
+      vi.stubEnv("NODE_ENV", "development")
+      vi.stubEnv("NEWS_TYPE_A", "true")
 
       // All tables missing
       mockExecute.mockResolvedValue({ rows: [{ exists: false }] })
 
-      await verifyFeatureContract("news")
+      await getFeatureStatus("news")
 
       expect(mockLoggerError).not.toHaveBeenCalled()
     })
+
+    it("returns correct status for Type B features", async () => {
+      // Type B features are never enforced unless explicitly enabled
+      vi.stubEnv("CONTENT_AUTOMATION_TYPE_A", "")
+
+      mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
+
+      const status = await getFeatureStatus("contentAutomation")
+
+      expect(status.type).toBe("B")
+      expect(status.enforced).toBe(false)
+      expect(status.configured).toBe(true)
+      expect(status.requiredTables).toEqual(FEATURES.contentAutomation.requiredTables)
+    })
+
+    it("Type B can be explicitly promoted to enforced", async () => {
+      vi.stubEnv("CONTENT_AUTOMATION_TYPE_A", "true")
+
+      mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
+
+      const status = await getFeatureStatus("contentAutomation")
+
+      expect(status.type).toBe("B")
+      expect(status.enforced).toBe(true)
+    })
   })
 
-  describe("verifyAllFeatureContracts", () => {
-    it("returns allHealthy: true when all enabled features have their tables", async () => {
-      process.env.NEWS_TYPE_A = "true"
+  describe("getAllFeatureStatuses", () => {
+    it("returns allEnforcedHealthy: true when all enforced features have their tables", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "true")
+      mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
+
+      const { allEnforcedHealthy, allConfigured, features } = await getAllFeatureStatuses()
+
+      expect(allEnforcedHealthy).toBe(true)
+      expect(allConfigured).toBe(true)
+      expect(features.length).toBe(Object.keys(FEATURES).length)
+    })
+
+    it("returns allEnforcedHealthy: false when enforced feature has missing tables", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "true")
+      mockExecute.mockResolvedValue({ rows: [{ exists: false }] })
+
+      const { allEnforcedHealthy, features } = await getAllFeatureStatuses()
+
+      expect(allEnforcedHealthy).toBe(false)
+      const newsFeature = features.find((f) => f.featureId === "news")
+      expect(newsFeature?.configured).toBe(false)
+      expect(newsFeature?.enforced).toBe(true)
+    })
+
+    it("returns allEnforcedHealthy: true when no features are enforced", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "false")
+      vi.stubEnv("NODE_ENV", "development")
+
+      mockExecute.mockResolvedValue({ rows: [{ exists: false }] })
+
+      const { allEnforcedHealthy, features } = await getAllFeatureStatuses()
+
+      expect(allEnforcedHealthy).toBe(true)
+      expect(features.every((f) => !f.enforced)).toBe(true)
+    })
+  })
+
+  describe("backward compatibility API", () => {
+    it("verifyFeatureContract maps to new API", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "true")
+      mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
+
+      const result = await verifyFeatureContract("news")
+
+      expect(result.enabled).toBe(true) // maps to enforced
+      expect(result.healthy).toBe(true) // maps to configured
+      expect(result.missingTables).toEqual([])
+    })
+
+    it("verifyAllFeatureContracts maps to new API", async () => {
+      vi.stubEnv("NEWS_TYPE_A", "true")
       mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
 
       const { allHealthy, features } = await verifyAllFeatureContracts()
 
       expect(allHealthy).toBe(true)
       expect(features.length).toBeGreaterThan(0)
-      expect(features.every((f) => f.healthy)).toBe(true)
-    })
-
-    it("returns allHealthy: false when any enabled feature has missing tables", async () => {
-      process.env.NEWS_TYPE_A = "true"
-      mockExecute.mockResolvedValue({ rows: [{ exists: false }] })
-
-      const { allHealthy, features } = await verifyAllFeatureContracts()
-
-      expect(allHealthy).toBe(false)
-      const newsFeature = features.find((f) => f.featureId === "news")
-      expect(newsFeature?.healthy).toBe(false)
-    })
-
-    it("returns allHealthy: true when no features are enabled", async () => {
-      process.env.NEWS_TYPE_A = "false"
-      process.env.NODE_ENV = "development"
-
-      const { allHealthy, features } = await verifyAllFeatureContracts()
-
-      expect(allHealthy).toBe(true)
-      expect(features.every((f) => !f.enabled)).toBe(true)
+      expect(features[0]).toHaveProperty("enabled")
+      expect(features[0]).toHaveProperty("healthy")
     })
   })
 
   describe("Type A default behavior", () => {
-    it("defaults to enabled in production when env flag not set", async () => {
-      process.env.NODE_ENV = "production"
-      delete process.env.NEWS_TYPE_A
+    it("defaults to enforced in production when env flag not set", async () => {
+      vi.stubEnv("NODE_ENV", "production")
+      vi.stubEnv("NEWS_TYPE_A", "")
 
       mockExecute.mockResolvedValue({ rows: [{ exists: true }] })
 
-      const result = await verifyFeatureContract("news")
+      const status = await getFeatureStatus("news")
 
-      expect(result.enabled).toBe(true)
+      expect(status.enforced).toBe(true)
     })
 
-    it("defaults to disabled in development when env flag not set", async () => {
-      process.env.NODE_ENV = "development"
-      delete process.env.NEWS_TYPE_A
+    it("defaults to not enforced in development when env flag not set", async () => {
+      vi.stubEnv("NODE_ENV", "development")
+      vi.stubEnv("NEWS_TYPE_A", "")
 
-      const result = await verifyFeatureContract("news")
+      const status = await getFeatureStatus("news")
 
-      expect(result.enabled).toBe(false)
+      expect(status.enforced).toBe(false)
+    })
+  })
+
+  describe("FEATURES registry", () => {
+    it("has News as Type A feature", () => {
+      expect(FEATURES.news.type).toBe("A")
+      expect(FEATURES.news.requiredTables).toContain("news_posts")
+      expect(FEATURES.news.requiredTables).toContain("news_categories")
+    })
+
+    it("has Content Automation as Type B feature", () => {
+      expect(FEATURES.contentAutomation.type).toBe("B")
+      expect(FEATURES.contentAutomation.requiredTables).toContain("ArticleJob")
+      expect(FEATURES.contentAutomation.requiredTables).toContain("content_sync_events")
+    })
+
+    it("is the single source of truth for table names", () => {
+      // Verify no hardcoded table lists - just checking structure
+      for (const [, feature] of Object.entries(FEATURES)) {
+        expect(Array.isArray(feature.requiredTables)).toBe(true)
+        expect(feature.requiredTables.length).toBeGreaterThan(0)
+        expect(typeof feature.name).toBe("string")
+        expect(typeof feature.envFlag).toBe("string")
+        expect(["A", "B"]).toContain(feature.type)
+      }
     })
   })
 })

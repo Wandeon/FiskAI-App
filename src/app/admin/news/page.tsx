@@ -2,7 +2,7 @@ import { drizzleDb } from "@/lib/db/drizzle"
 import { newsPosts, newsCategories } from "@/lib/db/schema/news"
 import { desc, sql } from "drizzle-orm"
 import { NewsTableClient } from "./news-table-client"
-import { hasNewsTables, NEWS_TABLES } from "@/lib/admin/runtime-capabilities"
+import { hasNewsTables } from "@/lib/admin/runtime-capabilities"
 import { NotConfigured } from "@/components/admin/not-configured"
 
 export const dynamic = "force-dynamic"
@@ -82,7 +82,7 @@ export default async function AdminNewsPage() {
       <NotConfigured
         feature="News"
         missingTables={capability.missingTables}
-        actionHint={`Run migrations for News tables: ${NEWS_TABLES.join(", ")}`}
+        actionHint={`Run migrations for News tables: ${capability.requiredTables.join(", ")}`}
       />
     )
   }

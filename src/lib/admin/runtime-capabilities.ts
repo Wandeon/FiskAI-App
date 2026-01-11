@@ -1,92 +1,83 @@
 // src/lib/admin/runtime-capabilities.ts
+/**
+ * Runtime Capability Detection - Thin Wrapper
+ *
+ * This module provides a simplified API for admin pages to check if features
+ * are configured (tables exist). It delegates to feature-contracts.ts which
+ * is the single source of truth for table requirements.
+ *
+ * DO NOT add table names here - all table definitions live in feature-contracts.ts.
+ */
+
 import "server-only"
-import { drizzleDb } from "@/lib/db/drizzle"
-import { sql } from "drizzle-orm"
+import { getFeatureStatus, FEATURES, type FeatureId } from "./feature-contracts"
 
 /**
- * Runtime capability detection for admin pages.
- *
- * Uses information_schema to detect table existence without querying data.
- * This allows pages to render gracefully when optional features are not deployed.
+ * Capability check result for admin pages.
  */
-
-/**
- * Check if a table exists in the current database schema.
- */
-async function tableExists(tableName: string): Promise<boolean> {
-  const result = await drizzleDb.execute(
-    sql`SELECT EXISTS (
-      SELECT 1 FROM information_schema.tables
-      WHERE table_schema = 'public'
-      AND table_name = ${tableName}
-    ) as exists`
-  )
-  return result.rows[0]?.exists === true
-}
-
-/**
- * Required tables for News feature:
- * - news_posts: Core content table for news articles
- * - news_categories: Category taxonomy for news
- */
-const NEWS_REQUIRED_TABLES = ["news_posts", "news_categories"] as const
-
-/**
- * Required tables for Content Automation (Regulatory Truth) feature:
- * - ArticleJob: Prisma model for article generation pipeline
- * - content_sync_events: Drizzle table for content sync queue
- */
-const CONTENT_AUTOMATION_REQUIRED_TABLES = ["ArticleJob", "content_sync_events"] as const
-
 export interface CapabilityResult {
+  /** All required tables exist */
   available: boolean
+  /** List of missing tables */
   missingTables: string[]
+  /** List of all required tables (for action hints) */
+  requiredTables: readonly string[]
 }
 
 /**
- * Check if News tables are available.
+ * Check if News feature tables are available.
  *
- * @returns { available: true } if all required tables exist
- * @returns { available: false, missingTables: [...] } if any tables are missing
+ * Delegates to feature-contracts.ts for the actual table list.
  */
 export async function hasNewsTables(): Promise<CapabilityResult> {
-  const missing: string[] = []
-
-  for (const table of NEWS_REQUIRED_TABLES) {
-    if (!(await tableExists(table))) {
-      missing.push(table)
-    }
-  }
-
+  const status = await getFeatureStatus("news")
   return {
-    available: missing.length === 0,
-    missingTables: missing,
+    available: status.configured,
+    missingTables: status.missingTables,
+    requiredTables: status.requiredTables,
   }
 }
 
 /**
- * Check if Regulatory Truth / Content Automation tables are available.
+ * Check if Content Automation (Regulatory Truth) tables are available.
  *
- * @returns { available: true } if all required tables exist
- * @returns { available: false, missingTables: [...] } if any tables are missing
+ * Delegates to feature-contracts.ts for the actual table list.
  */
 export async function hasRegulatoryTruthTables(): Promise<CapabilityResult> {
-  const missing: string[] = []
-
-  for (const table of CONTENT_AUTOMATION_REQUIRED_TABLES) {
-    if (!(await tableExists(table))) {
-      missing.push(table)
-    }
-  }
-
+  const status = await getFeatureStatus("contentAutomation")
   return {
-    available: missing.length === 0,
-    missingTables: missing,
+    available: status.configured,
+    missingTables: status.missingTables,
+    requiredTables: status.requiredTables,
   }
 }
 
 /**
- * Table requirement constants for display purposes.
+ * Generic capability check for any feature.
+ *
+ * Use this when you need capability info for a specific feature.
  */
-export const NEWS_TABLES = NEWS_REQUIRED_TABLES
-export const CONTENT_AUTOMATION_TABLES = CONTENT_AUTOMATION_REQUIRED_TABLES
+export async function hasFeatureTables(featureId: FeatureId): Promise<CapabilityResult> {
+  const status = await getFeatureStatus(featureId)
+  return {
+    available: status.configured,
+    missingTables: status.missingTables,
+    requiredTables: status.requiredTables,
+  }
+}
+
+// ============================================================================
+// DEPRECATED: Table constants
+// These are kept for backward compatibility but should not be used.
+// Import FEATURES from feature-contracts.ts instead.
+// ============================================================================
+
+/**
+ * @deprecated Use FEATURES.news.requiredTables from feature-contracts.ts
+ */
+export const NEWS_TABLES = FEATURES.news.requiredTables
+
+/**
+ * @deprecated Use FEATURES.contentAutomation.requiredTables from feature-contracts.ts
+ */
+export const CONTENT_AUTOMATION_TABLES = FEATURES.contentAutomation.requiredTables

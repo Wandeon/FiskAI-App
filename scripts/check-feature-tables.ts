@@ -5,6 +5,9 @@
  * This script checks that all Type A feature tables exist in the database.
  * Run this after migrations to ensure deployment is healthy.
  *
+ * IMPORTANT: This script imports table definitions from feature-contracts.ts.
+ * Do NOT duplicate table lists here - that's the source of truth drift bug.
+ *
  * Usage:
  *   DATABASE_URL=... npx tsx scripts/check-feature-tables.ts
  *
@@ -14,22 +17,25 @@
  *   2 - Could not connect to database
  *
  * Options:
- *   --strict    Exit 1 if ANY feature is unhealthy (default in prod)
+ *   --strict    Exit 1 if ANY enforced feature is unhealthy (default in prod)
  *   --verbose   Show detailed output for each feature
+ *   --all       Check all features (including Type B)
  */
 
 import { Client } from "pg"
 
-// Type A feature definitions (keep in sync with src/lib/admin/feature-contracts.ts)
-const TYPE_A_FEATURES = {
-  news: {
-    name: "News",
-    requiredTables: ["news_posts", "news_categories", "news_items", "news_sources"],
-    envFlag: "NEWS_TYPE_A",
-  },
-} as const
+// Import from single source of truth - NO local table definitions!
+import { FEATURES, type FeatureId, type FeatureType } from "../src/lib/admin/feature-contracts"
 
-type FeatureId = keyof typeof TYPE_A_FEATURES
+interface FeatureCheckResult {
+  featureId: string
+  name: string
+  type: FeatureType
+  enforced: boolean
+  configured: boolean
+  missingTables: string[]
+  requiredTables: readonly string[]
+}
 
 async function tableExists(client: Client, tableName: string): Promise<boolean> {
   const result = await client.query(
@@ -43,17 +49,28 @@ async function tableExists(client: Client, tableName: string): Promise<boolean> 
   return result.rows[0]?.exists === true
 }
 
-function isFeatureEnabled(envFlag: string): boolean {
+function isEnforcementEnabled(type: FeatureType, envFlag: string): boolean {
   const envValue = process.env[envFlag]
+
+  // Explicit disable takes precedence
   if (envValue === "false" || envValue === "0") return false
-  // Default to enabled in production
+
+  // Type B features are never enforced unless explicitly promoted
+  if (type === "B") {
+    return envValue === "true" || envValue === "1"
+  }
+
+  // Type A in production: default to enforced
   if (process.env.NODE_ENV === "production") return true
+
+  // Type A in development: opt-in
   return envValue === "true" || envValue === "1"
 }
 
 async function main() {
   const verbose = process.argv.includes("--verbose")
   const strict = process.argv.includes("--strict") || process.env.NODE_ENV === "production"
+  const checkAll = process.argv.includes("--all")
 
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
@@ -66,66 +83,78 @@ async function main() {
   try {
     await client.connect()
     console.log("✅ Connected to database")
+    console.log(`   Schema: public (explicitly checked)`)
   } catch (error) {
     console.error("❌ Could not connect to database:", error)
     process.exit(2)
   }
 
-  let allHealthy = true
-  const results: Array<{
-    featureId: string
-    name: string
-    enabled: boolean
-    healthy: boolean
-    missingTables: string[]
-  }> = []
+  let allEnforcedHealthy = true
+  const results: FeatureCheckResult[] = []
 
-  for (const [featureId, feature] of Object.entries(TYPE_A_FEATURES)) {
-    const enabled = isFeatureEnabled(feature.envFlag)
+  for (const [featureId, feature] of Object.entries(FEATURES)) {
+    const enforced = isEnforcementEnabled(feature.type, feature.envFlag)
+
+    // Skip Type B features unless --all is passed
+    if (!checkAll && feature.type === "B" && !enforced) {
+      if (verbose) {
+        console.log(`⏭️  ${feature.name}: SKIPPED (Type B, not enforced)`)
+      }
+      continue
+    }
+
     const missingTables: string[] = []
-
-    if (enabled) {
-      for (const table of feature.requiredTables) {
-        if (!(await tableExists(client, table))) {
-          missingTables.push(table)
-        }
+    for (const table of feature.requiredTables) {
+      if (!(await tableExists(client, table))) {
+        missingTables.push(table)
       }
     }
 
-    const healthy = missingTables.length === 0
-    if (enabled && !healthy) allHealthy = false
+    const configured = missingTables.length === 0
+    if (enforced && !configured) allEnforcedHealthy = false
 
     results.push({
       featureId,
       name: feature.name,
-      enabled,
-      healthy,
+      type: feature.type,
+      enforced,
+      configured,
       missingTables,
+      requiredTables: feature.requiredTables,
     })
   }
 
   await client.end()
 
   // Output results
-  console.log("\n=== Type A Feature Contract Verification ===\n")
+  console.log("\n=== Feature Contract Verification ===\n")
 
   for (const result of results) {
-    if (!result.enabled) {
+    const typeLabel = result.type === "A" ? "[Type A]" : "[Type B]"
+
+    if (!result.enforced && !checkAll) {
       if (verbose) {
-        console.log(`⏭️  ${result.name}: SKIPPED (not enabled via ${TYPE_A_FEATURES[result.featureId as FeatureId].envFlag})`)
+        console.log(
+          `⏭️  ${result.name} ${typeLabel}: SKIPPED (not enforced via ${FEATURES[result.featureId as FeatureId].envFlag})`
+        )
       }
       continue
     }
 
-    if (result.healthy) {
-      console.log(`✅ ${result.name}: All ${TYPE_A_FEATURES[result.featureId as FeatureId].requiredTables.length} required tables exist`)
+    if (result.configured) {
+      const enforceStatus = result.enforced ? "✓ enforced" : "○ optional"
+      console.log(
+        `✅ ${result.name} ${typeLabel}: All ${result.requiredTables.length} tables exist (${enforceStatus})`
+      )
       if (verbose) {
-        for (const table of TYPE_A_FEATURES[result.featureId as FeatureId].requiredTables) {
+        for (const table of result.requiredTables) {
           console.log(`   ✓ ${table}`)
         }
       }
     } else {
-      console.log(`❌ ${result.name}: MISSING TABLES`)
+      const severityIcon = result.enforced ? "❌" : "⚠️"
+      const severityLabel = result.enforced ? "MISSING TABLES" : "MISSING TABLES (optional)"
+      console.log(`${severityIcon} ${result.name} ${typeLabel}: ${severityLabel}`)
       for (const table of result.missingTables) {
         console.log(`   ✗ ${table}`)
       }
@@ -134,22 +163,38 @@ async function main() {
 
   console.log("")
 
-  const enabledCount = results.filter((r) => r.enabled).length
-  const unhealthyCount = results.filter((r) => r.enabled && !r.healthy).length
+  const enforcedResults = results.filter((r) => r.enforced)
+  const unhealthyEnforced = enforcedResults.filter((r) => !r.configured)
+  const optionalResults = results.filter((r) => !r.enforced)
+  const unhealthyOptional = optionalResults.filter((r) => !r.configured)
 
-  if (enabledCount === 0) {
-    console.log("ℹ️  No Type A features enabled. Nothing to verify.")
+  // Summary
+  console.log("=== Summary ===")
+  console.log(`Enforced features: ${enforcedResults.length}`)
+  console.log(`  Healthy: ${enforcedResults.length - unhealthyEnforced.length}`)
+  console.log(`  Missing tables: ${unhealthyEnforced.length}`)
+
+  if (checkAll && optionalResults.length > 0) {
+    console.log(`Optional features: ${optionalResults.length}`)
+    console.log(`  Configured: ${optionalResults.length - unhealthyOptional.length}`)
+    console.log(`  Not configured: ${unhealthyOptional.length}`)
+  }
+
+  console.log("")
+
+  if (enforcedResults.length === 0) {
+    console.log("ℹ️  No features enforced in this environment. Nothing to verify.")
     process.exit(0)
   }
 
-  if (allHealthy) {
-    console.log(`✅ All ${enabledCount} enabled Type A feature(s) have their required tables.`)
+  if (allEnforcedHealthy) {
+    console.log(`✅ All ${enforcedResults.length} enforced feature(s) have their required tables.`)
     process.exit(0)
   } else {
     console.error(
-      `\n❌ DEPLOYMENT DEFECT: ${unhealthyCount} Type A feature(s) are missing required tables.`
+      `\n❌ DEPLOYMENT DEFECT: ${unhealthyEnforced.length} enforced feature(s) are missing required tables.`
     )
-    console.error("   Run migrations to fix: npm run db:migrate")
+    console.error("   Run migrations to fix: npm run prisma:migrate && npm run db:migrate")
 
     if (strict) {
       console.error("\n   Exiting with error (--strict mode or production)")
