@@ -213,6 +213,22 @@ export async function middleware(request: NextRequest) {
   }
 
   // App subdomain - require authentication
+  // But first, check if this is a public auth page that doesn't require authentication
+  const PUBLIC_AUTH_PATHS = ["/auth", "/login", "/register", "/forgot-password", "/reset-password"]
+  const isPublicAuthPath = PUBLIC_AUTH_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  )
+
+  // Allow public auth pages without authentication
+  if (isPublicAuthPath) {
+    const response = NextResponse.next()
+    response.headers.set("x-request-id", requestId)
+    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
+    response.headers.set("Content-Security-Policy", generateCSP(nonce))
+    response.headers.set("x-nonce", nonce)
+    return response
+  }
+
   const isSecure =
     request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https"
   const token = await getToken({
