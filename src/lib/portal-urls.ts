@@ -45,32 +45,58 @@ function getProtocol(): string {
 /**
  * Get the full base URL for a specific portal.
  *
+ * Architecture (2026-01):
+ * - All portals are now served from app.fiskai.hr with path-based routing
+ * - admin.fiskai.hr and staff.fiskai.hr subdomains have been permanently removed
+ * - Use app.fiskai.hr/admin and app.fiskai.hr/staff instead
+ *
  * @example
  * getPortalBaseUrl("app") // "https://app.fiskai.hr"
- * getPortalBaseUrl("marketing") // "https://fiskai.hr"
+ * getPortalBaseUrl("staff") // "https://app.fiskai.hr" (path added by getPortalUrl)
+ * getPortalBaseUrl("admin") // "https://app.fiskai.hr" (path added by getPortalUrl)
+ * getPortalBaseUrl("marketing") // "https://www.fiskai.hr"
  */
 export function getPortalBaseUrl(portal: Portal): string {
   const baseDomain = getBaseDomain()
   const protocol = getProtocol()
 
   if (portal === "marketing") {
-    return `${protocol}//${baseDomain}`
+    // Marketing site is on www subdomain
+    return `${protocol}//www.${baseDomain}`
   }
 
-  return `${protocol}//${portal}.${baseDomain}`
+  // All app portals (app, staff, admin) are served from app.fiskai.hr
+  return `${protocol}//app.${baseDomain}`
 }
 
 /**
  * Get a full URL for a specific portal and path.
  *
+ * Architecture (2026-01):
+ * - staff and admin portals use path prefixes on app.fiskai.hr
+ * - app portal uses app.fiskai.hr directly
+ * - marketing uses www.fiskai.hr
+ *
  * @example
  * getPortalUrl("app", "/dashboard") // "https://app.fiskai.hr/dashboard"
- * getPortalUrl("marketing", "/login") // "https://fiskai.hr/login"
+ * getPortalUrl("staff", "/clients") // "https://app.fiskai.hr/staff/clients"
+ * getPortalUrl("admin", "/tenants") // "https://app.fiskai.hr/admin/tenants"
+ * getPortalUrl("marketing", "/pricing") // "https://www.fiskai.hr/pricing"
  */
 export function getPortalUrl(portal: Portal, path: string = "/"): string {
   const baseUrl = getPortalBaseUrl(portal)
   // Ensure path starts with /
   const normalizedPath = path.startsWith("/") ? path : `/${path}`
+
+  // Staff and admin portals use path prefixes
+  if (portal === "staff" || portal === "admin") {
+    // Avoid double prefix if path already starts with /staff or /admin
+    if (normalizedPath.startsWith(`/${portal}`)) {
+      return `${baseUrl}${normalizedPath}`
+    }
+    return `${baseUrl}/${portal}${normalizedPath === "/" ? "" : normalizedPath}`
+  }
+
   return `${baseUrl}${normalizedPath}`
 }
 

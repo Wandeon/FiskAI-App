@@ -5,8 +5,10 @@ type RouteGroup = "marketing" | "kb" | "app" | "staff" | "admin" | "other"
 
 /**
  * Determines route group from hostname (subdomain) and pathname.
- * Production uses subdomains: app.fiskai.hr, staff.fiskai.hr, admin.fiskai.hr
- * Marketing site at fiskai.hr uses pathname-based detection.
+ * Production uses app.fiskai.hr with path-based routing (/staff, /admin).
+ * Marketing site at www.fiskai.hr uses pathname-based detection.
+ *
+ * Note: Legacy subdomain detection kept for backwards compatibility during transition.
  */
 function getRouteGroup(pathname: string): RouteGroup {
   // Check hostname for subdomain-based routing (production)
