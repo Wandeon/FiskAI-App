@@ -45,8 +45,8 @@ export async function runBackfillDiscovery(
 ): Promise<BackfillDiscoveryResult> {
   const startTime = Date.now()
 
-  // Kill switch check
-  if (!isBackfillEnabled()) {
+  // Kill switch check (skip for dry runs - they don't write to DB anyway)
+  if (!config.dryRun && !isBackfillEnabled()) {
     throw new Error("Backfill disabled. Set BACKFILL_ENABLED=true to enable.")
   }
 
