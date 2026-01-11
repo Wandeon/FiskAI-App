@@ -1,4 +1,5 @@
-# Dockerfile
+# syntax=docker/dockerfile:1
+# Dockerfile with BuildKit cache mounts for fast warm builds
 # Use TARGETPLATFORM for multi-arch builds (defaults to host platform in CI)
 # For production ARM64 builds: docker buildx build --platform linux/arm64
 FROM node:22-alpine AS base
@@ -20,8 +21,10 @@ COPY prisma.config.ts prisma.config.regulatory.ts ./
 # Disable Husky in Docker builds (no .git directory available)
 ENV HUSKY=0
 
-# Install dependencies (using legacy-peer-deps for openai package compatibility)
-RUN npm ci --legacy-peer-deps
+# Install dependencies with npm cache mount for fast subsequent builds
+# Cache mount persists on BuildKit daemon between builds
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -52,8 +55,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Increase Node.js memory limit for build
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 
-# Build the application
-RUN npm run build
+# Build the application with Next.js cache mount for incremental builds
+# This dramatically speeds up rebuilds when only a few files change
+RUN --mount=type=cache,target=/app/.next/cache,sharing=locked \
+    npm run build
 
 # Production image
 FROM base AS runner
