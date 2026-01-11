@@ -3521,6 +3521,25 @@ enum DiscoveredItemStatus {
   FAILED
 }
 
+enum DiscoveryMethod {
+  SENTINEL // Daily scheduled discovery
+  BACKFILL // Historical backfill discovery
+}
+
+enum BackfillRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BackfillMode {
+  SITEMAP // Parse sitemap.xml and sitemap indexes
+  ARCHIVE // Crawl archive listing pages
+  PAGINATION // Iterate through paginated listings
+}
+
 enum NodeType {
   HUB // Container page (lists, indexes, sitemaps)
   LEAF // Content page (articles, regulations)
@@ -3723,6 +3742,51 @@ model DiscoveryEndpoint {
   @@index([lastScrapedAt])
 }
 
+// --- Backfill Run Tracking ---
+// Tracks historical backfill discovery runs with full audit trail
+model BackfillRun {
+  id        String            @id @default(cuid())
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  status    BackfillRunStatus @default(PENDING)
+
+  // Configuration
+  sources     Json // Array of source slugs: ["narodne-novine", "porezna-uprava"]
+  mode        BackfillMode
+  dateFrom    DateTime? // Optional date range filter
+  dateTo      DateTime?
+  maxUrls     Int              @default(1000) // Global cap per run
+  concurrency Int              @default(2)
+  delayMs     Int              @default(5000) // Per-domain delay
+  dryRun      Boolean          @default(false)
+
+  // Execution
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  // Counters
+  discoveredCount Int @default(0) // URLs discovered
+  queuedCount     Int @default(0) // Jobs enqueued
+  skippedCount    Int @default(0) // Already existed
+  errorCount      Int @default(0) // Errors encountered
+
+  // Metadata
+  errorLog Json?   // JSON array of error details
+  runBy    String? // Operator identifier (user ID or CLI)
+  notes    String? // Operator notes
+
+  // Progress tracking (for resume)
+  lastProcessedSource String?
+  lastProcessedPage   Int?
+  lastProcessedUrl    String?
+
+  // Relations
+  discoveredItems DiscoveredItem[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model DiscoveredItem {
   id           String               @id @default(cuid())
   endpointId   String
@@ -3736,6 +3800,10 @@ model DiscoveredItem {
   errorMessage String?
   retryCount   Int                  @default(0)
   createdAt    DateTime             @default(now())
+
+  // --- Discovery Method ---
+  discoveryMethod DiscoveryMethod @default(SENTINEL)
+  backfillRunId   String? // Link to BackfillRun if discovered via backfill
 
   // --- Topology ---
   nodeType  NodeType  @default(LEAF)
@@ -3754,7 +3822,8 @@ model DiscoveredItem {
   // --- Scheduling ---
   nextScanDue DateTime @default(now())
 
-  endpoint DiscoveryEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  endpoint    DiscoveryEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  backfillRun BackfillRun?      @relation(fields: [backfillRunId], references: [id])
 
   @@unique([endpointId, url])
   @@index([status])
@@ -3762,6 +3831,8 @@ model DiscoveredItem {
   @@index([evidenceId])
   @@index([nextScanDue, freshnessRisk]) // The "Manifest" query
   @@index([endpointId, nodeType]) // Grouping queries
+  @@index([discoveryMethod])
+  @@index([backfillRunId])
 }
 
 // Evidence and EvidenceArtifact moved to regulatory.prisma
