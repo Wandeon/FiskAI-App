@@ -54,6 +54,27 @@ describe("SOURCE_BACKFILL_CONFIGS", () => {
         ).toBe(config.domain)
       }
     })
+
+    it("archiveUrl must not be site root (prevents redirect-to-homepage bugs)", () => {
+      for (const [slug, config] of Object.entries(SOURCE_BACKFILL_CONFIGS)) {
+        if (config.archiveUrl) {
+          const url = new URL(config.archiveUrl)
+          expect(
+            url.pathname.length,
+            `${slug}: archiveUrl "${config.archiveUrl}" must have a path (not site root)`
+          ).toBeGreaterThan(1)
+        }
+      }
+    })
+
+    it("sitemapUrl must not be site root", () => {
+      for (const [slug, config] of Object.entries(SOURCE_BACKFILL_CONFIGS)) {
+        if (config.sitemapUrl) {
+          const url = new URL(config.sitemapUrl)
+          expect(url.pathname.length, `${slug}: sitemapUrl must have a path`).toBeGreaterThan(1)
+        }
+      }
+    })
   })
 
   describe("required fields", () => {

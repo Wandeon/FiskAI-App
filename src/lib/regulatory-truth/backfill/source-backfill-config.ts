@@ -52,23 +52,22 @@ export const SOURCE_BACKFILL_CONFIGS: Record<string, SourceBackfillConfig> = {
    * Porezna Uprava (Tax Administration)
    *
    * Croatian tax authority. Contains tax regulations, guides, and announcements.
-   * No official sitemap, but has predictable archive pagination.
+   * Site was restructured - old /HR/Stranice/Arhiva.aspx redirects to homepage.
    *
-   * Archive URL: https://www.porezna-uprava.hr/HR/Stranice/Arhiva.aspx
-   * Pagination: ?Page=N
+   * Archive URL: https://porezna-uprava.gov.hr/hr/vijesti/8
+   * Pagination: ?Page=N (50 pages with ~2600 total news items)
    *
    * URL patterns:
-   * - /HR/Stranice/Vijesti/*.aspx (news)
-   * - /HR/Stranice/Propisi/*.aspx (regulations)
+   * - /hr/[slug]/[id] (e.g., /hr/pdv-3938/3938, /hr/vijesti/8)
    */
   "porezna-uprava": {
     slug: "porezna-uprava",
     domain: "porezna-uprava.gov.hr",
     mode: BackfillMode.PAGINATION,
-    archiveUrl: "https://porezna-uprava.gov.hr/HR/Stranice/Arhiva.aspx",
+    archiveUrl: "https://porezna-uprava.gov.hr/hr/vijesti/8",
     paginationPattern: "?Page={N}",
-    urlPattern: /\/HR\/Stranice\/(?:Vijesti|Propisi)\/[^\/]+\.aspx$/,
-    maxPages: 50, // Limit to 50 pages
+    urlPattern: /porezna-uprava\.gov\.hr\/hr\/[^/]+\/\d+$/,
+    maxPages: 50,
     rateLimit: {
       domain: "porezna-uprava.gov.hr",
       minDelayMs: 10000, // 10 seconds
