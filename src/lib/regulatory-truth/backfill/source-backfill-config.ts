@@ -65,7 +65,7 @@ export const SOURCE_BACKFILL_CONFIGS: Record<string, SourceBackfillConfig> = {
     slug: "porezna-uprava",
     domain: "porezna-uprava.gov.hr",
     mode: BackfillMode.PAGINATION,
-    archiveUrl: "https://www.porezna-uprava.gov.hr/HR/Stranice/Arhiva.aspx",
+    archiveUrl: "https://porezna-uprava.gov.hr/HR/Stranice/Arhiva.aspx",
     paginationPattern: "?Page={N}",
     urlPattern: /\/HR\/Stranice\/(?:Vijesti|Propisi)\/[^\/]+\.aspx$/,
     maxPages: 50, // Limit to 50 pages
