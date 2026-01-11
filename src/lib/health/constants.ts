@@ -73,6 +73,9 @@ export interface ReadinessFailurePayload {
   version: string
   uptime: number
 
+  /** Environment: production, staging, development */
+  env: string
+
   /** For missing_feature_tables failures */
   failingFeatures?: Array<{
     featureId: string

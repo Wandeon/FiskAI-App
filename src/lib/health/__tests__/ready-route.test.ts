@@ -19,11 +19,17 @@ vi.mock("@/lib/api-logging", () => ({
   withApiLogging: <T>(fn: T) => fn,
 }))
 
-// Mock logger
+// Mock logger with child support
 vi.mock("@/lib/logger", () => ({
   logger: {
     error: (...args: unknown[]) => mockLoggerError(...args),
     info: vi.fn(),
+    child: () => ({
+      error: (...args: unknown[]) => mockLoggerError(...args),
+      info: vi.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
+    }),
   },
 }))
 
@@ -141,6 +147,7 @@ describe("health/ready route", () => {
       expect(data).toHaveProperty("status", "not_ready")
       expect(data).toHaveProperty("reason")
       expect(data).toHaveProperty("timestamp")
+      expect(data).toHaveProperty("env")
       expect(data).toHaveProperty("version")
       expect(data).toHaveProperty("uptime")
       expect(data).toHaveProperty("message")

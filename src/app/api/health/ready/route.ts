@@ -8,6 +8,8 @@ import { emitContractFailureAlert } from "@/lib/health/alerting"
 
 export const dynamic = "force-dynamic"
 
+const alertLogger = logger.child({ context: "health-ready" })
+
 interface HealthCheck {
   status: "ok" | "degraded" | "failed"
   latency?: number
@@ -39,6 +41,7 @@ export const GET = withApiLogging(async () => {
     process.env.APP_VERSION ||
     process.env.npm_package_version ||
     "dev"
+  const env = process.env.NODE_ENV || "development"
   const uptimeSeconds = Math.round(process.uptime())
 
   // Database check - CRITICAL for readiness
@@ -166,8 +169,11 @@ export const GET = withApiLogging(async () => {
         "Type A feature contract violation detected in readiness check"
       )
 
-      // Emit throttled alert for contract failure
-      await emitContractFailureAlert(failingFeatures, version)
+      // Emit throttled alert for contract failure (fire-and-forget to not block readiness)
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      emitContractFailureAlert(failingFeatures, version).catch((err) => {
+        alertLogger.error({ error: err }, "Failed to emit contract failure alert")
+      })
     }
   } catch (error) {
     logger.error({ error }, "Failed to verify feature contracts")
@@ -185,6 +191,7 @@ export const GET = withApiLogging(async () => {
       reason: failureReason as ReadinessFailurePayload["reason"],
       timestamp: new Date().toISOString(),
       version,
+      env,
       uptime: uptimeSeconds,
       message: getFailureMessage(failureReason, failingFeatures),
       action: getFailureAction(failureReason),

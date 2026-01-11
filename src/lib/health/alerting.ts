@@ -19,7 +19,15 @@ const alertLogger = logger.child({ context: "health-alerting" })
 
 /**
  * Throttle state for contract failure alerts.
- * In-memory for single instance; for multi-instance, use Redis.
+ *
+ * DEPLOYMENT NOTE: This is in-memory, single-instance safe only.
+ * Current deployment: Single Hetzner ARM64 server (152.53.146.3).
+ *
+ * If you scale to multiple instances, you MUST switch to shared storage:
+ * - Redis: SET contract_failure_alert_last with EX 900 (15 min TTL)
+ * - Database: Simple timestamp row with upsert
+ *
+ * Without shared storage, each instance will alert independently every 15 min.
  */
 const contractFailureThrottle = {
   lastAlertTime: 0,
