@@ -28,21 +28,21 @@ import { Button } from "@/components/ui/button"
 import { getNavAriaLabel } from "@/lib/a11y"
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Tenants", href: "/tenants", icon: Building2 },
-  { name: "Staff", href: "/staff", icon: Users },
-  { name: "Alerts", href: "/alerts", icon: AlertTriangle },
-  { name: "System Status", href: "/system-status", icon: Activity },
-  { name: "Compliance Status", href: "/compliance-status", icon: Shield },
-  { name: "Content Automation", href: "/content-automation", icon: Bot },
-  { name: "Feature Flags", href: "/feature-flags", icon: Flag },
-  { name: "Digest Preview", href: "/digest", icon: Mail },
-  { name: "News", href: "/news", icon: Newspaper },
-  { name: "Regulatory", href: "/regulatory", icon: Scale },
-  { name: "Subscriptions", href: "/subscriptions", icon: CreditCard },
-  { name: "Services", href: "/services", icon: Server },
-  { name: "Support", href: "/support", icon: MessageSquare },
-  { name: "Audit Log", href: "/audit", icon: FileText },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Tenants", href: "/admin/tenants", icon: Building2 },
+  { name: "Staff", href: "/admin/staff", icon: Users },
+  { name: "Alerts", href: "/admin/alerts", icon: AlertTriangle },
+  { name: "System Status", href: "/admin/system-status", icon: Activity },
+  { name: "Compliance Status", href: "/admin/compliance-status", icon: Shield },
+  { name: "Content Automation", href: "/admin/content-automation", icon: Bot },
+  { name: "Feature Flags", href: "/admin/feature-flags", icon: Flag },
+  { name: "Digest Preview", href: "/admin/digest", icon: Mail },
+  { name: "News", href: "/admin/news", icon: Newspaper },
+  { name: "Regulatory", href: "/admin/regulatory", icon: Scale },
+  { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
+  { name: "Services", href: "/admin/services", icon: Server },
+  { name: "Support", href: "/admin/platform-support", icon: MessageSquare },
+  { name: "Audit Log", href: "/admin/audit", icon: FileText },
 ]
 
 interface AdminSidebarProps {
@@ -110,7 +110,7 @@ export function AdminSidebar({ defaultCollapsed = false }: AdminSidebarProps) {
       <div className="border-t border-default p-4 space-y-2" role="contentinfo">
         {/* Settings Link */}
         <Link
-          href="/settings"
+          href="/admin/platform-settings"
           title={isCollapsed ? "Settings" : undefined}
           aria-label="Settings"
           className={cn(
