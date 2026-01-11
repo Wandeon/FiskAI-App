@@ -30,8 +30,10 @@ export const SOURCE_BACKFILL_CONFIGS: Record<string, SourceBackfillConfig> = {
    * Has a sitemap at /sitemap.xml and structured issue URLs.
    *
    * URL patterns:
-   * - /clanci/sluzbeni/YYYY_NN_NNN.html (individual articles)
-   * - /clanci/sluzbeni/YYYY_NN_NNN_NNN.html (sub-articles)
+   * - Content: /clanci/sluzbeni/YYYY_NN_NNN.html (individual articles)
+   * - Content: /clanci/sluzbeni/YYYY_NN_NNN_NNN.html (sub-articles)
+   * - Child sitemaps: sitemap_1_YYYY_N.xml (e.g., sitemap_1_2024_1.xml)
+   * - Special: sitemap_0_0_0.xml (undated, should be skipped)
    */
   "narodne-novine": {
     slug: "narodne-novine",
@@ -39,7 +41,8 @@ export const SOURCE_BACKFILL_CONFIGS: Record<string, SourceBackfillConfig> = {
     mode: BackfillMode.SITEMAP,
     sitemapUrl: "https://narodne-novine.nn.hr/sitemap.xml",
     urlPattern: /\/clanci\/sluzbeni\/\d{4}_\d+_\d+/,
-    datePattern: /\/(\d{4})_(\d+)_/,
+    datePattern: /\/(\d{4})_(\d+)_/, // For content URLs
+    childSitemapDatePattern: /sitemap_\d+_(\d{4})_/, // For child sitemap URLs (captures year)
     rateLimit: {
       domain: "narodne-novine.nn.hr",
       minDelayMs: 8000, // 8 seconds (be respectful)

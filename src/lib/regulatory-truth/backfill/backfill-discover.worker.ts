@@ -14,7 +14,7 @@
 
 // eslint-disable-next-line no-restricted-imports -- BackfillRun/DiscoveredItem are in main schema, not regulatory
 import { db } from "@/lib/db"
-import { BackfillMode, DiscoveryMethod } from "@prisma/client"
+import { BackfillMode, DiscoveryMethod, Prisma } from "@prisma/client"
 import type {
   BackfillRunConfig,
   BackfillRunState,
@@ -26,6 +26,11 @@ import { getBackfillConfig, calculateDelay, validateSourceSlugs } from "./source
 import { fetchAllSitemapUrls, filterEntriesByDate } from "./sitemap-parser"
 import { fetchPaginatedListing } from "./pagination-parser"
 import { canonicalizeUrl } from "./url-canonicalizer"
+import {
+  isMassiveSitemapSource,
+  discoverFromSitemapIndex,
+  type SitemapDiscoveryCheckpoint,
+} from "./streaming-sitemap-discovery"
 
 /**
  * Kill switch check
@@ -210,12 +215,32 @@ async function processSource(
     return
   }
 
+  // Load existing checkpoint from BackfillRun for resume capability
+  const backfillRun = await db.backfillRun.findUnique({
+    where: { id: state.runId },
+    select: { checkpoint: true },
+  })
+  const existingCheckpoint = backfillRun?.checkpoint as SitemapDiscoveryCheckpoint | null
+
+  if (existingCheckpoint && isMassiveSitemapSource(sourceSlug)) {
+    console.log(
+      `[backfill] Resuming ${sourceSlug} from checkpoint: child ${existingCheckpoint.lastCompletedChildSitemapIndex}, ` +
+        `${existingCheckpoint.urlsEmittedSoFar} URLs already processed`
+    )
+  }
+
   // Discover URLs based on mode
   let discoveredUrls: BackfillDiscoveredUrl[] = []
 
   try {
     if (config.mode === BackfillMode.SITEMAP && sourceConfig.sitemapUrl) {
-      discoveredUrls = await discoverFromSitemap(sourceSlug, sourceConfig, config)
+      discoveredUrls = await discoverFromSitemap(
+        sourceSlug,
+        sourceConfig,
+        config,
+        state.runId,
+        existingCheckpoint
+      )
     } else if (
       (config.mode === BackfillMode.PAGINATION || config.mode === BackfillMode.ARCHIVE) &&
       sourceConfig.archiveUrl
@@ -275,11 +300,16 @@ async function processSource(
 
 /**
  * Discover URLs from sitemap
+ *
+ * For massive sitemap sources (e.g., narodne-novine with 9551 children),
+ * uses streaming discovery to avoid memory exhaustion and timeouts.
  */
 async function discoverFromSitemap(
   sourceSlug: string,
   sourceConfig: ReturnType<typeof getBackfillConfig>,
-  config: BackfillRunConfig
+  config: BackfillRunConfig,
+  backfillRunId: string,
+  existingCheckpoint?: SitemapDiscoveryCheckpoint | null
 ): Promise<BackfillDiscoveredUrl[]> {
   if (!sourceConfig?.sitemapUrl) {
     throw new Error(`No sitemap URL configured for ${sourceSlug}`)
@@ -287,7 +317,19 @@ async function discoverFromSitemap(
 
   console.log(`[backfill] Fetching sitemap: ${sourceConfig.sitemapUrl}`)
 
-  // Fetch all sitemap entries (handles indexes recursively)
+  // For massive sitemap sources, use streaming discovery
+  if (isMassiveSitemapSource(sourceSlug)) {
+    console.log(`[backfill] Using streaming discovery for ${sourceSlug}`)
+    return discoverFromSitemapStreaming(
+      sourceSlug,
+      sourceConfig,
+      config,
+      backfillRunId,
+      existingCheckpoint
+    )
+  }
+
+  // Standard path: Fetch all sitemap entries (handles indexes recursively)
   let entries = await fetchAllSitemapUrls(sourceConfig.sitemapUrl)
 
   // Filter by date range if specified
@@ -308,6 +350,96 @@ async function discoverFromSitemap(
     publishedAt: entry.lastmod ? new Date(entry.lastmod) : undefined,
     sourceSlug,
   }))
+}
+
+/**
+ * Streaming sitemap discovery for massive sources
+ *
+ * Uses SAX-based streaming parser to process sitemap index and children
+ * without materializing the entire structure in memory.
+ *
+ * Key invariants:
+ * - Uses childSitemapDatePattern for prefiltering (fail-closed by default)
+ * - Persists checkpoint after each child completes for crash recovery
+ * - Respects maxUrls limit across checkpoint resumes
+ */
+async function discoverFromSitemapStreaming(
+  sourceSlug: string,
+  sourceConfig: ReturnType<typeof getBackfillConfig>,
+  config: BackfillRunConfig,
+  backfillRunId: string,
+  existingCheckpoint?: SitemapDiscoveryCheckpoint | null
+): Promise<BackfillDiscoveredUrl[]> {
+  if (!sourceConfig?.sitemapUrl || !sourceConfig.urlPattern) {
+    throw new Error(`Missing sitemap config for streaming discovery: ${sourceSlug}`)
+  }
+
+  // Validate date range requirement for massive sources
+  if (!sourceConfig.childSitemapDatePattern && !config.dateFrom) {
+    throw new Error(
+      `[${sourceSlug}] Streaming discovery requires either childSitemapDatePattern or --date-from. ` +
+        `Use --force-full-history to override (not recommended for massive sources).`
+    )
+  }
+
+  const results: BackfillDiscoveredUrl[] = []
+  let urlCount = 0
+
+  // Progress tracking
+  const onProgress = (progress: { urlsEmitted: number; childSitemapsFetched: number }) => {
+    console.log(
+      `[backfill] [${sourceSlug}] Progress: ${progress.urlsEmitted} URLs from ${progress.childSitemapsFetched} sitemaps`
+    )
+  }
+
+  // Checkpoint persistence callback
+  const onCheckpoint = async (checkpoint: SitemapDiscoveryCheckpoint) => {
+    await db.backfillRun.update({
+      where: { id: backfillRunId },
+      data: { checkpoint: checkpoint as unknown as Prisma.InputJsonValue },
+    })
+    console.log(
+      `[backfill] [${sourceSlug}] Checkpoint saved: child ${checkpoint.lastCompletedChildSitemapIndex}, ` +
+        `${checkpoint.urlsEmittedSoFar} URLs`
+    )
+  }
+
+  // Create the streaming generator with proper date prefiltering
+  const generator = discoverFromSitemapIndex({
+    sitemapUrl: sourceConfig.sitemapUrl,
+    urlPattern: sourceConfig.urlPattern,
+    datePattern: sourceConfig.childSitemapDatePattern, // Use child sitemap pattern for prefiltering
+    dateFrom: config.dateFrom,
+    dateTo: config.dateTo,
+    maxUrls: config.maxUrls,
+    rateLimit: sourceConfig.rateLimit,
+    includeUndatedChildren: false, // Fail-closed: skip children without date match
+    checkpoint: existingCheckpoint ?? undefined, // Resume from existing checkpoint
+    onCheckpoint,
+    onProgress,
+  })
+
+  // Consume URLs from generator
+  try {
+    for await (const url of generator) {
+      results.push({
+        url: canonicalizeUrl(url),
+        sourceSlug,
+      })
+      urlCount++
+
+      // Log progress every 100 URLs
+      if (urlCount % 100 === 0) {
+        console.log(`[backfill] [${sourceSlug}] Discovered ${urlCount} URLs so far...`)
+      }
+    }
+  } catch (error) {
+    console.error(`[backfill] [${sourceSlug}] Streaming discovery error:`, error)
+    throw error
+  }
+
+  console.log(`[backfill] [${sourceSlug}] Streaming discovery complete: ${results.length} URLs`)
+  return results
 }
 
 /**

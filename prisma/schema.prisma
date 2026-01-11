@@ -3779,6 +3779,7 @@ model BackfillRun {
   lastProcessedSource String?
   lastProcessedPage   Int?
   lastProcessedUrl    String?
+  checkpoint          Json?   // SitemapDiscoveryCheckpoint for streaming resume
 
   // Relations
   discoveredItems DiscoveredItem[]

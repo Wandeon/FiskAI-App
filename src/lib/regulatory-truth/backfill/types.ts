@@ -27,7 +27,8 @@ export interface SourceBackfillConfig {
   archiveUrl?: string // For ARCHIVE mode
   paginationPattern?: string // For PAGINATION mode (e.g., "?page={N}")
   urlPattern?: RegExp // URL matching pattern
-  datePattern?: RegExp // Date extraction pattern from URL
+  datePattern?: RegExp // Date extraction pattern from content URL
+  childSitemapDatePattern?: RegExp // Date extraction pattern from child sitemap URL (for streaming)
   maxPages?: number // Maximum pagination pages to crawl
   rateLimit: DomainRateLimit
 }
