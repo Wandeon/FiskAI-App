@@ -517,7 +517,7 @@ export async function runAgent<TInput, TOutput>(
         error: `Cached output failed validation: ${cachedOutputValidation.error.message}`,
         runId: run.id,
         durationMs,
-        tokensUsed: undefined,
+        tokensUsed: null,
         outcome: "VALIDATION_REJECTED",
         itemsProduced: 0,
       }
