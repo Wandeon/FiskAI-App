@@ -269,9 +269,10 @@ export function useAuthFlow() {
             return false
           }
 
+          // Send loginToken as password - server will detect and verify the JWT
           const result = await signIn("credentials", {
             email: state.email,
-            loginToken: data.loginToken,
+            password: data.loginToken,
             redirect: false,
           })
 
@@ -421,9 +422,10 @@ export function useAuthFlow() {
         setError("Greška pri prijavi")
         return
       }
+      // Send loginToken as password - server will detect and verify the JWT
       const result = await signIn("credentials", {
         email: state.email,
-        loginToken,
+        password: loginToken,
         redirect: false,
       })
 

@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { checkRateLimit } from "@/lib/security/rate-limit"
+import { verifyLoginToken } from "@/lib/auth/login-token"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
@@ -67,6 +68,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const password = credentials.password as string
 
+        // Check if password is a JWT login token (from OTP or passkey verification)
+        if (password.startsWith("eyJ")) {
+          const tokenPayload = await verifyLoginToken(password)
+          if (!tokenPayload) {
+            console.log("Invalid or expired login token")
+            return null
+          }
+
+          // Verify email matches
+          if (tokenPayload.email.toLowerCase() !== (credentials.email as string).toLowerCase()) {
+            console.log("Login token email mismatch")
+            return null
+          }
+
+          const user = await db.user.findUnique({
+            where: { id: tokenPayload.userId, email: tokenPayload.email.toLowerCase() },
+          })
+          if (user) {
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+            }
+          }
+          return null
+        }
+
+        // Legacy support: prefix-based tokens (can be removed after deployment)
         if (password.startsWith("__PASSKEY__")) {
           const userId = password.replace("__PASSKEY__", "")
           const user = await db.user.findUnique({
