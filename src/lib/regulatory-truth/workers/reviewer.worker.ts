@@ -19,7 +19,14 @@ async function processReviewJob(job: Job<ReviewJobData>): Promise<JobResult> {
 
   try {
     // Rate limit LLM calls
-    const result = await llmLimiter.schedule(() => runReviewer(ruleId))
+    const result = await llmLimiter.schedule(() =>
+      runReviewer(ruleId, {
+        runId,
+        jobId: String(job.id),
+        parentJobId: job.data.parentJobId,
+        queueName: "review",
+      })
+    )
 
     if (result.success) {
       // Check if rule was auto-approved

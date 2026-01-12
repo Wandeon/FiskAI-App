@@ -19,7 +19,14 @@ async function processComposeJob(job: Job<ComposeJobData>): Promise<JobResult> {
 
   try {
     // Rate limit LLM calls
-    const result = await llmLimiter.schedule(() => runComposer(pointerIds))
+    const result = await llmLimiter.schedule(() =>
+      runComposer(pointerIds, {
+        runId,
+        jobId: String(job.id),
+        parentJobId: job.data.parentJobId,
+        queueName: "compose",
+      })
+    )
 
     if (result.success && result.ruleId) {
       // Queue review job

@@ -169,11 +169,11 @@ export async function getRegulatoryPipelineStatus(): Promise<RegulatoryPipelineS
     if (!agentRunsByType[run.agentType]) {
       agentRunsByType[run.agentType] = { completed: 0, failed: 0, running: 0 }
     }
-    if (run.status === "completed") {
+    if (run.status === "COMPLETED") {
       agentRunsByType[run.agentType].completed = run._count
-    } else if (run.status === "failed") {
+    } else if (run.status === "FAILED") {
       agentRunsByType[run.agentType].failed = run._count
-    } else if (run.status === "running") {
+    } else if (run.status === "RUNNING") {
       agentRunsByType[run.agentType].running = run._count
     }
   }
@@ -218,7 +218,7 @@ export async function getRegulatoryPipelineStatus(): Promise<RegulatoryPipelineS
   // Calculate pipeline health score (0-100)
   const failureRate =
     totalAgentRuns24h > 0
-      ? recentAgentRuns.filter((r) => r.status === "failed").reduce((sum, r) => sum + r._count, 0) /
+      ? recentAgentRuns.filter((r) => r.status === "FAILED").reduce((sum, r) => sum + r._count, 0) /
         totalAgentRuns24h
       : 0
 
@@ -240,7 +240,7 @@ export async function getRegulatoryPipelineStatus(): Promise<RegulatoryPipelineS
   // Get recent activity (last 10 significant events)
   const recentActivity = await db.agentRun.findMany({
     where: {
-      status: "completed",
+      status: "COMPLETED",
       agentType: { in: ["SENTINEL", "COMPOSER", "REVIEWER", "RELEASER"] },
     },
     orderBy: { completedAt: "desc" },

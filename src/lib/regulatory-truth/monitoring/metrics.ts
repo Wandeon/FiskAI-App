@@ -125,8 +125,8 @@ export async function collectMetrics(): Promise<PipelineMetrics> {
 
     // Agent runs
     db.agentRun.count({ where: { startedAt: { gte: today } } }),
-    db.agentRun.count({ where: { startedAt: { gte: today }, status: "completed" } }),
-    db.agentRun.count({ where: { startedAt: { gte: today }, status: "failed" } }),
+    db.agentRun.count({ where: { startedAt: { gte: today }, status: "COMPLETED" } }),
+    db.agentRun.count({ where: { startedAt: { gte: today }, status: "FAILED" } }),
   ])
 
   return {
@@ -213,7 +213,7 @@ export async function getRecentAgentRuns(limit: number = 20): Promise<
     agentType: run.agentType,
     startedAt: run.startedAt,
     completedAt: run.completedAt,
-    success: run.status === "completed",
+    success: run.status === "COMPLETED",
     error: run.error,
     inputId: run.evidenceId,
     outputId: run.ruleId,

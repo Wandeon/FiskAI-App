@@ -43,7 +43,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const agentRun = await db.agentRun.create({
       data: {
         agentType: "SENTINEL",
-        status: "running",
+        status: "RUNNING",
         input: {
           sourceId: source.id,
           sourceName: source.name,

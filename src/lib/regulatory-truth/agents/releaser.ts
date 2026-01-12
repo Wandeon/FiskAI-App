@@ -548,7 +548,7 @@ export async function runReleaser(approvedRuleIds: string[]): Promise<ReleaserRe
     where: {
       agentType: "REVIEWER",
       ruleId: { in: approvedRuleIds },
-      status: "completed",
+      status: "COMPLETED",
     },
   })
 

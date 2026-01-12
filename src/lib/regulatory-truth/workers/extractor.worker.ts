@@ -48,7 +48,15 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
     }
 
     // Rate limit LLM calls
-    const result = await llmLimiter.schedule(() => runExtractor(evidenceId))
+    const result = await llmLimiter.schedule(() =>
+      runExtractor(evidenceId, {
+        runId,
+        jobId: String(job.id),
+        parentJobId: job.data.parentJobId,
+        sourceSlug: evidence.source?.slug,
+        queueName: "extract",
+      })
+    )
 
     if (result.success && result.sourcePointerIds.length > 0) {
       // Group pointers by domain and queue compose jobs
