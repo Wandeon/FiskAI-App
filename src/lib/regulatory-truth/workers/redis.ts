@@ -4,15 +4,44 @@ import Redis, { RedisOptions } from "ioredis"
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"
 
 /**
+ * Parse a Redis URL into ioredis connection options.
+ * Supports: redis://host:port/db, redis://:pass@host, redis://user:pass@host, rediss:// (TLS)
+ */
+export function buildRedisOptions(redisUrl: string): RedisOptions {
+  const u = new URL(redisUrl)
+
+  const port = u.port ? Number(u.port) : 6379
+  const db = u.pathname && u.pathname.length > 1 ? Number(u.pathname.slice(1)) : 0
+
+  // ioredis uses `username` + `password` for ACL auth (Redis 6+)
+  const username = u.username ? decodeURIComponent(u.username) : undefined
+  const password = u.password ? decodeURIComponent(u.password) : undefined
+
+  const opts: RedisOptions = {
+    host: u.hostname,
+    port,
+    db,
+    username,
+    password,
+
+    // Required by BullMQ
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  }
+
+  // TLS if using rediss://
+  if (u.protocol === "rediss:") {
+    opts.tls = {}
+  }
+
+  return opts
+}
+
+/**
  * Redis connection options (NOT a live instance)
  * Pass these to BullMQ Queue/Worker constructors
  */
-export const redisConnectionOptions: RedisOptions = {
-  host: new URL(REDIS_URL).hostname,
-  port: parseInt(new URL(REDIS_URL).port || "6379"),
-  maxRetriesPerRequest: null, // Required by BullMQ
-  enableReadyCheck: false,
-}
+export const redisConnectionOptions: RedisOptions = buildRedisOptions(REDIS_URL)
 
 /**
  * BullMQ prefix for all queues/workers
@@ -38,9 +67,8 @@ let _redis: Redis | null = null
  */
 export function getRedis(): Redis {
   if (!_redis) {
-    _redis = new Redis(REDIS_URL, {
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
+    _redis = new Redis({
+      ...redisConnectionOptions,
       lazyConnect: true, // Don't connect until first command
     })
   }
