@@ -4494,6 +4494,33 @@ model AgentRun {
   @@index([sourceSlug, startedAt])
 }
 
+/// Cache for agent LLM results to avoid redundant API calls
+/// Key: (agentType, provider, model, promptHash, inputContentHash)
+/// Only stores SUCCESS_APPLIED and SUCCESS_NO_CHANGE outcomes
+model AgentResultCache {
+  id               String    @id @default(cuid())
+  agentType        AgentType
+  provider         String    // e.g. "ollama_cloud", "openai"
+  model            String    // e.g. "gemma-3-27b"
+  promptHash       String
+  inputContentHash String
+
+  // Cached result (validated output artifact - no outcome stored)
+  output           Json      // The validated output JSON
+  confidence       Float?
+  tokensUsed       Int?
+
+  // Metadata
+  originalRunId    String?   // Reference to the AgentRun that created this cache entry
+  hitCount         Int       @default(0) // Number of times this cache entry was used
+  createdAt        DateTime  @default(now())
+  lastHitAt        DateTime?
+
+  @@unique([agentType, provider, model, promptHash, inputContentHash])
+  @@index([agentType, inputContentHash])
+  @@index([createdAt])
+}
+
 model RegulatoryConflict {
   id                  String         @id @default(cuid())
   conflictType        ConflictType

@@ -105,6 +105,107 @@ function shouldSkipLLM(_agentType: AgentType, _input: unknown): boolean {
 }
 
 // =============================================================================
+// CACHE HELPERS (PR-B)
+// =============================================================================
+
+/**
+ * Get provider identifier from endpoint URL
+ */
+function getProviderFromEndpoint(endpoint: string): string {
+  if (endpoint.includes("ollama.com") || endpoint.includes("ollama.ai")) {
+    return "ollama_cloud"
+  }
+  if (endpoint.includes("openai.com")) {
+    return "openai"
+  }
+  if (endpoint.includes("localhost") || endpoint.includes("127.0.0.1")) {
+    return "ollama_local"
+  }
+  // Tailscale or other internal endpoints
+  if (endpoint.match(/^https?:\/\/100\./)) {
+    return "ollama_local"
+  }
+  return "unknown"
+}
+
+interface CacheKey {
+  agentType: AgentType
+  provider: string
+  model: string
+  promptHash: string
+  inputContentHash: string
+}
+
+/**
+ * Look up cached result by composite key
+ */
+async function lookupCache(key: CacheKey) {
+  return db.agentResultCache.findUnique({
+    where: {
+      agentType_provider_model_promptHash_inputContentHash: {
+        agentType: key.agentType,
+        provider: key.provider,
+        model: key.model,
+        promptHash: key.promptHash,
+        inputContentHash: key.inputContentHash,
+      },
+    },
+  })
+}
+
+/**
+ * Write result to cache (only for success outcomes)
+ * Note: outcome is NOT stored - cache is a pure artifact store.
+ * On cache hit, the output is re-validated against the current outputSchema.
+ */
+async function writeCache(
+  key: CacheKey,
+  output: object,
+  originalRunId: string,
+  confidence?: number,
+  tokensUsed?: number
+) {
+  await db.agentResultCache.upsert({
+    where: {
+      agentType_provider_model_promptHash_inputContentHash: {
+        agentType: key.agentType,
+        provider: key.provider,
+        model: key.model,
+        promptHash: key.promptHash,
+        inputContentHash: key.inputContentHash,
+      },
+    },
+    create: {
+      agentType: key.agentType,
+      provider: key.provider,
+      model: key.model,
+      promptHash: key.promptHash,
+      inputContentHash: key.inputContentHash,
+      output,
+      originalRunId,
+      confidence,
+      tokensUsed,
+    },
+    update: {
+      // Don't update existing cache entries - first result wins
+    },
+  })
+}
+
+/**
+ * Increment cache hit counter
+ */
+async function incrementCacheHit(cacheId: string) {
+  await db.agentResultCache.update({
+    where: { id: cacheId },
+    data: {
+      hitCount: { increment: 1 },
+      lastHitAt: new Date(),
+    },
+  })
+}
+
+// =============================================================================
 // AGENT RUNNER OPTIONS & RESULT
 // =============================================================================
 
@@ -351,6 +452,126 @@ export async function runAgent<TInput, TOutput>(
   }
 
   // ==========================================================================
+  // PRE-LLM GATE 4: Cache lookup (PR-B)
+  // ==========================================================================
+  const extractEndpoint = getOllamaExtractEndpoint()
+  const extractModel = getOllamaExtractModel()
+  const provider = getProviderFromEndpoint(extractEndpoint)
+
+  const cacheKey: CacheKey = {
+    agentType,
+    provider,
+    model: extractModel,
+    promptHash: provenance.promptHash,
+    inputContentHash,
+  }
+
+  const cachedResult = await lookupCache(cacheKey)
+  if (cachedResult) {
+    // Cache hit - re-validate output against current outputSchema
+    // This ensures schema evolution doesn't serve stale/invalid data
+    const cachedOutputValidation = outputSchema.safeParse(cachedResult.output)
+    const durationMs = Date.now() - startTime
+
+    if (!cachedOutputValidation.success) {
+      // Cached output fails current schema validation
+      // Return VALIDATION_REJECTED, not DUPLICATE_CACHED
+      console.log(
+        `[runner] Cache hit for ${agentType} but validation failed: ${cachedOutputValidation.error.message}`
+      )
+
+      const run = await db.agentRun.create({
+        data: {
+          agentType,
+          status: "COMPLETED",
+          outcome: "VALIDATION_REJECTED",
+          noChangeCode: "VALIDATION_BLOCKED",
+          noChangeDetail: `Cached output failed current schema validation: ${cachedOutputValidation.error.message}`,
+          input: input as object,
+          output: cachedResult.output as object,
+          evidenceId,
+          ruleId,
+          runId,
+          jobId,
+          parentJobId,
+          sourceSlug,
+          queueName,
+          inputChars,
+          inputBytes,
+          inputContentHash,
+          promptTemplateId: provenance.templateId,
+          promptTemplateVersion: provenance.version,
+          promptHash: provenance.promptHash,
+          cacheHit: true, // It WAS a cache hit, but validation failed
+          durationMs,
+          completedAt: new Date(),
+        },
+      })
+
+      // Note: We do NOT overwrite the cache entry or call incrementCacheHit
+      // The stale cache entry will be replaced when a fresh LLM result arrives
+
+      return {
+        success: false,
+        output: null,
+        error: `Cached output failed validation: ${cachedOutputValidation.error.message}`,
+        runId: run.id,
+        durationMs,
+        tokensUsed: undefined,
+        outcome: "VALIDATION_REJECTED",
+        itemsProduced: 0,
+      }
+    }
+
+    // Validation passed - return cached output
+    const run = await db.agentRun.create({
+      data: {
+        agentType,
+        status: "COMPLETED",
+        outcome: "DUPLICATE_CACHED",
+        input: input as object,
+        output: cachedResult.output as object,
+        evidenceId,
+        ruleId,
+        runId,
+        jobId,
+        parentJobId,
+        sourceSlug,
+        queueName,
+        inputChars,
+        inputBytes,
+        inputContentHash,
+        promptTemplateId: provenance.templateId,
+        promptTemplateVersion: provenance.version,
+        promptHash: provenance.promptHash,
+        cacheHit: true,
+        durationMs,
+        confidence: cachedResult.confidence,
+        tokensUsed: cachedResult.tokensUsed,
+        completedAt: new Date(),
+      },
+    })
+
+    // Increment cache hit counter (fire and forget)
+    incrementCacheHit(cachedResult.id).catch(() => {
+      // Ignore errors - hit counting is best-effort
+    })
+
+    console.log(`[runner] Cache hit for ${agentType} (key=${inputContentHash.slice(0, 8)}...)`)
+
+    return {
+      success: true,
+      output: cachedOutputValidation.data,
+      error: null,
+      runId: run.id,
+      durationMs,
+      tokensUsed: cachedResult.tokensUsed,
+      outcome: "DUPLICATE_CACHED",
+      itemsProduced: 0, // Caller should still run apply logic
+    }
+  }
+
+  // ==========================================================================
   // CREATE RUN RECORD
   // ==========================================================================
   const run = await db.agentRun.create({
@@ -398,8 +619,7 @@ export async function runAgent<TInput, TOutput>(
       const timeoutMs = getAgentTimeoutMs(agentType)
       timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
-      const extractEndpoint = getOllamaExtractEndpoint()
-      const extractModel = getOllamaExtractModel()
+      // extractEndpoint, extractModel, provider already computed above for cache lookup
       console.log(`[runner] Extraction call: endpoint=${extractEndpoint} model=${extractModel}`)
 
       const response = await fetch(`${extractEndpoint}/api/chat`, {
@@ -629,6 +849,23 @@ export async function runAgent<TInput, TOutput>(
           completedAt: new Date(),
           tokensUsed: data.eval_count || null,
         },
+      })
+
+      // ==========================================================================
+      // CACHE WRITE (PR-B): Store successful result for future cache hits
+      // ==========================================================================
+      // Write to cache after successful LLM call (parse OK, schema OK, confidence OK)
+      // Note: outcome is NOT stored - cache is a pure artifact store
+      // On cache hit, output is re-validated against current schema
+      writeCache(
+        cacheKey,
+        outputValidation.data as object,
+        run.id,
+        confidence,
+        data.eval_count || undefined
+      ).catch((err) => {
+        // Cache write is best-effort - don't fail the run if cache write fails
+        console.error(`[runner] Cache write failed: ${err.message}`)
       })
 
       return {
