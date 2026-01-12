@@ -17,7 +17,7 @@ async function cleanupStuckRuns() {
 
   const stuckRuns = await db.agentRun.findMany({
     where: {
-      status: "running",
+      status: "RUNNING",
       startedAt: { lt: stuckThreshold },
     },
   })
@@ -30,7 +30,7 @@ async function cleanupStuckRuns() {
     await db.agentRun.update({
       where: { id: run.id },
       data: {
-        status: "failed",
+        status: "FAILED",
         error: `Marked as failed: stuck in running state for ${runningMinutes} minutes`,
         completedAt: new Date(),
       },

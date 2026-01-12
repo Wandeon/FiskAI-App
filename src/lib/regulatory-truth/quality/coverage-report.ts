@@ -100,7 +100,7 @@ export async function generateCoverageReport(evidenceId: string): Promise<Covera
     where: {
       evidenceId,
       agentType: "CONTENT_CLASSIFIER",
-      status: "completed",
+      status: "COMPLETED",
     },
     orderBy: { completedAt: "desc" },
   })

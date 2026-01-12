@@ -33,6 +33,15 @@ export interface ExtractorResult {
   error: string | null
 }
 
+/** Correlation options for tracking agent runs across the pipeline */
+export interface CorrelationOptions {
+  runId?: string
+  jobId?: string
+  parentJobId?: string
+  sourceSlug?: string
+  queueName?: string
+}
+
 /**
  * Check if content is JSON (starts with { or [)
  */
@@ -108,7 +117,10 @@ function extractQuoteFromJson(content: string, value: string): string | null {
 /**
  * Run the Extractor agent to extract data points from evidence
  */
-export async function runExtractor(evidenceId: string): Promise<ExtractorResult> {
+export async function runExtractor(
+  evidenceId: string,
+  correlationOpts?: CorrelationOptions
+): Promise<ExtractorResult> {
   // Get evidence from database
   const evidence = await dbReg.evidence.findUnique({
     where: { id: evidenceId },
@@ -171,6 +183,12 @@ export async function runExtractor(evidenceId: string): Promise<ExtractorResult>
     outputSchema: ExtractorOutputSchema,
     temperature: 0.1,
     evidenceId: evidence.id,
+    // Pass correlation options from worker
+    runId: correlationOpts?.runId,
+    jobId: correlationOpts?.jobId,
+    parentJobId: correlationOpts?.parentJobId,
+    sourceSlug: correlationOpts?.sourceSlug ?? evidence.source?.slug,
+    queueName: correlationOpts?.queueName ?? "extract",
   })
 
   if (!result.success || !result.output) {

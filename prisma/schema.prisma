@@ -3590,6 +3590,36 @@ enum AgentType {
   EXEMPTION_EXTRACTOR
 }
 
+// AgentRun outcome taxonomy (PR-A: 2026-01-12)
+enum AgentRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum AgentRunOutcome {
+  SUCCESS_APPLIED        // Output validated and state advanced
+  SUCCESS_NO_CHANGE      // Output valid but no new information
+  VALIDATION_REJECTED    // Failed deterministic validation
+  LOW_CONFIDENCE         // Below confidence threshold
+  EMPTY_OUTPUT           // LLM returned empty/null
+  PARSE_FAILED           // LLM output not valid JSON
+  CONTENT_LOW_QUALITY    // Pre-filter rejected input
+  SKIPPED_DETERMINISTIC  // Pre-LLM rules decided no LLM needed
+  CIRCUIT_OPEN           // Circuit breaker prevented call
+  DUPLICATE_CACHED       // Cache hit, no LLM call (PR-B)
+  RETRY_EXHAUSTED        // All retries failed
+  TIMEOUT                // Aborted due to timeout
+}
+
+enum NoChangeCode {
+  ALREADY_EXTRACTED
+  DUPLICATE_POINTERS
+  NO_RELEVANT_CHANGES
+  BELOW_MIN_CONFIDENCE
+  VALIDATION_BLOCKED
+}
+
 enum RuleStatus {
   DRAFT
   PENDING_REVIEW
@@ -4403,28 +4433,65 @@ model RuleRelease {
 }
 
 model AgentRun {
-  id          String    @id @default(cuid())
+  id          String         @id @default(cuid())
   agentType   AgentType
-  status      String    @default("running") // running, completed, failed
-  input       Json // The input provided to the agent
-  output      Json? // The output from the agent (null if failed)
-  rawOutput   Json? // Raw LLM output on failure (for debugging)
-  error       String? // Error message if failed
+  status      AgentRunStatus @default(RUNNING)
+
+  // Input/Output
+  input       Json
+  output      Json?
+  rawOutput   Json?
+  error       String?
+
+  // Metrics
   tokensUsed  Int?
+  inputChars  Int?
+  inputBytes  Int?
   durationMs  Int?
   confidence  Float?
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
 
-  // Optional relations based on what the agent processed
+  // Prompt provenance
+  promptTemplateId      String?
+  promptTemplateVersion String?
+  promptHash            String?
+
+  // Outcome taxonomy
+  outcome        AgentRunOutcome?
+  noChangeCode   NoChangeCode?
+  noChangeDetail String?
+  itemsProduced  Int              @default(0)
+
+  // Correlation
+  runId       String?
+  jobId       String?
+  parentJobId String?
+  sourceSlug  String?
+  queueName   String?
+
+  // Retry tracking
+  attempt     Int @default(1)
+
+  // Cache metadata (for PR-B)
+  inputContentHash String?
+  cacheHit         Boolean @default(false)
+
+  // Linkage
   evidenceId String? // Soft ref to Evidence in regulatory.prisma
   ruleId     String?
+  rule       RegulatoryRule? @relation(fields: [ruleId], references: [id])
 
-  rule RegulatoryRule? @relation(fields: [ruleId], references: [id])
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
 
   @@index([agentType])
   @@index([status])
+  @@index([outcome])
   @@index([startedAt])
+  @@index([agentType, outcome, startedAt])
+  @@index([queueName, outcome, startedAt])
+  @@index([inputContentHash])
+  @@index([runId])
+  @@index([sourceSlug, startedAt])
 }
 
 model RegulatoryConflict {

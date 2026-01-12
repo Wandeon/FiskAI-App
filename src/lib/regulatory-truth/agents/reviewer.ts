@@ -23,6 +23,15 @@ export interface ReviewerResult {
   error: string | null
 }
 
+/** Correlation options for tracking agent runs across the pipeline */
+export interface CorrelationOptions {
+  runId?: string
+  jobId?: string
+  parentJobId?: string
+  sourceSlug?: string
+  queueName?: string
+}
+
 /**
  * Find existing rules that might conflict with this one
  */
@@ -256,7 +265,10 @@ export async function autoApproveEligibleRules(): Promise<{
 /**
  * Run the Reviewer agent to validate a Draft Rule
  */
-export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
+export async function runReviewer(
+  ruleId: string,
+  correlationOpts?: CorrelationOptions
+): Promise<ReviewerResult> {
   // Get rule from database
   const rule = await db.regulatoryRule.findUnique({
     where: { id: ruleId },
@@ -303,6 +315,12 @@ export async function runReviewer(ruleId: string): Promise<ReviewerResult> {
     outputSchema: ReviewerOutputSchema,
     temperature: 0.1,
     ruleId: rule.id,
+    // Pass correlation options from worker
+    runId: correlationOpts?.runId,
+    jobId: correlationOpts?.jobId,
+    parentJobId: correlationOpts?.parentJobId,
+    sourceSlug: correlationOpts?.sourceSlug,
+    queueName: correlationOpts?.queueName ?? "review",
   })
 
   if (!result.success || !result.output) {

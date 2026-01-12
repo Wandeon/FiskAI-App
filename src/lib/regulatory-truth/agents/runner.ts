@@ -1,14 +1,17 @@
 // src/lib/regulatory-truth/agents/runner.ts
 
 import { z } from "zod"
+import { createHash } from "crypto"
 import { db } from "@/lib/db"
 import type { AgentType } from "../schemas"
 import { getAgentPrompt } from "../prompts"
+import { getPromptProvenance } from "./prompt-registry"
 import {
   getOllamaExtractEndpoint,
   getOllamaExtractModel,
   getOllamaExtractHeaders,
 } from "./ollama-config"
+import type { AgentRunStatus, AgentRunOutcome, NoChangeCode } from "@prisma/client"
 
 // =============================================================================
 // AGENT TIMEOUT CONFIGURATION
@@ -44,25 +47,37 @@ const AGENT_TIMEOUTS: Record<string, number> = {
 
 const DEFAULT_TIMEOUT_MS = 300000 // 5 minutes fallback
 
+// Minimum input size thresholds per agent type (bytes)
+// Inputs below this are rejected as CONTENT_LOW_QUALITY
+const MIN_INPUT_BYTES: Record<string, number> = {
+  EXTRACTOR: 100,
+  COMPOSER: 50,
+  REVIEWER: 50,
+  CONTENT_CLASSIFIER: 50,
+  CLAIM_EXTRACTOR: 100,
+  PROCESS_EXTRACTOR: 100,
+  REFERENCE_EXTRACTOR: 100,
+  ASSET_EXTRACTOR: 100,
+  TRANSITIONAL_EXTRACTOR: 100,
+  COMPARISON_EXTRACTOR: 100,
+  EXEMPTION_EXTRACTOR: 100,
+}
+
+const DEFAULT_MIN_INPUT_BYTES = 20
+
 // =============================================================================
-// AGENT TIMEOUT CONFIGURATION (continued)
+// HELPER FUNCTIONS
 // =============================================================================
 
-// Read env vars lazily (at call time) to support dotenv loading after import
-// Supports per-agent override via {AGENT_TYPE}_TIMEOUT_MS env var
-// Falls back to AGENT_TIMEOUT_MS global override, then per-agent defaults
 function getAgentTimeoutMs(agentType?: string): number {
-  // Check for per-agent env var override (e.g., OCR_TIMEOUT_MS)
   if (agentType) {
     const envOverride = process.env[`${agentType}_TIMEOUT_MS`]
     if (envOverride) return parseInt(envOverride)
   }
 
-  // Check for global env var override
   const globalOverride = process.env.AGENT_TIMEOUT_MS
   if (globalOverride) return parseInt(globalOverride)
 
-  // Use per-agent default or fallback
   if (agentType && AGENT_TIMEOUTS[agentType]) {
     return AGENT_TIMEOUTS[agentType]
   }
@@ -70,8 +85,27 @@ function getAgentTimeoutMs(agentType?: string): number {
   return DEFAULT_TIMEOUT_MS
 }
 
+function getMinInputBytes(agentType: string): number {
+  return MIN_INPUT_BYTES[agentType] ?? DEFAULT_MIN_INPUT_BYTES
+}
+
+function computeContentHash(content: string): string {
+  return createHash("sha256").update(content, "utf8").digest("hex")
+}
+
+/**
+ * Stub for deterministic skip logic.
+ * Returns true if LLM call should be skipped based on deterministic rules.
+ * Placeholder for PR-B and future optimizations.
+ */
+function shouldSkipLLM(_agentType: AgentType, _input: unknown): boolean {
+  // Stub: always returns false for now
+  // Future: implement rules like "if this exact extraction already exists"
+  return false
+}
+
 // =============================================================================
-// AGENT RUNNER
+// AGENT RUNNER OPTIONS & RESULT
 // =============================================================================
 
 export interface AgentRunOptions<TInput, TOutput> {
@@ -83,7 +117,14 @@ export interface AgentRunOptions<TInput, TOutput> {
   maxRetries?: number
   evidenceId?: string
   ruleId?: string
-  softFail?: boolean // If true, returns error instead of throwing (default: true)
+  softFail?: boolean
+
+  // Correlation fields (passed from workers)
+  runId?: string
+  jobId?: string
+  parentJobId?: string
+  sourceSlug?: string
+  queueName?: string
 }
 
 export interface AgentRunResult<TOutput> {
@@ -93,10 +134,73 @@ export interface AgentRunResult<TOutput> {
   runId: string
   durationMs: number
   tokensUsed: number | null
+  outcome?: AgentRunOutcome
+  itemsProduced?: number
 }
 
+// =============================================================================
+// HELPER: Create early exit result
+// =============================================================================
+
+async function createEarlyExitRun(params: {
+  agentType: AgentType
+  input: object
+  status: AgentRunStatus
+  outcome: AgentRunOutcome
+  noChangeCode?: NoChangeCode
+  noChangeDetail?: string
+  error?: string
+  evidenceId?: string
+  ruleId?: string
+  runId?: string
+  jobId?: string
+  parentJobId?: string
+  sourceSlug?: string
+  queueName?: string
+  inputChars: number
+  inputBytes: number
+  inputContentHash: string
+  promptTemplateId: string
+  promptTemplateVersion: string
+  promptHash: string
+  durationMs: number
+}): Promise<{ id: string }> {
+  return db.agentRun.create({
+    data: {
+      agentType: params.agentType,
+      status: params.status,
+      outcome: params.outcome,
+      noChangeCode: params.noChangeCode,
+      noChangeDetail: params.noChangeDetail,
+      input: params.input,
+      error: params.error,
+      evidenceId: params.evidenceId,
+      ruleId: params.ruleId,
+      runId: params.runId,
+      jobId: params.jobId,
+      parentJobId: params.parentJobId,
+      sourceSlug: params.sourceSlug,
+      queueName: params.queueName,
+      inputChars: params.inputChars,
+      inputBytes: params.inputBytes,
+      inputContentHash: params.inputContentHash,
+      promptTemplateId: params.promptTemplateId,
+      promptTemplateVersion: params.promptTemplateVersion,
+      promptHash: params.promptHash,
+      durationMs: params.durationMs,
+      completedAt: new Date(),
+      itemsProduced: 0,
+      cacheHit: false,
+    },
+  })
+}
+
+// =============================================================================
+// AGENT RUNNER
+// =============================================================================
+
 /**
- * Run an agent with full validation and logging.
+ * Run an agent with full validation, logging, and outcome taxonomy.
  * Supports soft-fail mode (default) where failures return error results
  * instead of throwing, allowing pipelines to continue processing other items.
  */
@@ -113,23 +217,49 @@ export async function runAgent<TInput, TOutput>(
     maxRetries = 3,
     evidenceId,
     ruleId,
-    softFail = true, // Default to soft-fail mode
+    softFail = true,
+    runId,
+    jobId,
+    parentJobId,
+    sourceSlug,
+    queueName,
   } = options
 
-  // Validate input
+  // Compute input metrics
+  const inputStr = JSON.stringify(input)
+  const inputChars = inputStr.length
+  const inputBytes = Buffer.byteLength(inputStr, "utf8")
+  const inputContentHash = computeContentHash(inputStr)
+
+  // Get prompt provenance
+  const provenance = getPromptProvenance(agentType, input)
+
+  // ==========================================================================
+  // PRE-LLM GATE 1: Input validation
+  // ==========================================================================
   const inputValidation = inputSchema.safeParse(input)
   if (!inputValidation.success) {
     const errorMsg = `Invalid input: ${inputValidation.error.message}`
-    const run = await db.agentRun.create({
-      data: {
-        agentType,
-        status: "failed",
-        input: input as object,
-        error: errorMsg,
-        durationMs: Date.now() - startTime,
-        evidenceId,
-        ruleId,
-      },
+    const run = await createEarlyExitRun({
+      agentType,
+      input: input as object,
+      status: "FAILED",
+      outcome: "PARSE_FAILED",
+      error: errorMsg,
+      evidenceId,
+      ruleId,
+      runId,
+      jobId,
+      parentJobId,
+      sourceSlug,
+      queueName,
+      inputChars,
+      inputBytes,
+      inputContentHash,
+      promptTemplateId: provenance.templateId,
+      promptTemplateVersion: provenance.version,
+      promptHash: provenance.promptHash,
+      durationMs: Date.now() - startTime,
     })
     return {
       success: false,
@@ -138,32 +268,132 @@ export async function runAgent<TInput, TOutput>(
       runId: run.id,
       durationMs: Date.now() - startTime,
       tokensUsed: null,
+      outcome: "PARSE_FAILED",
+      itemsProduced: 0,
     }
   }
 
-  // Create run record
+  // ==========================================================================
+  // PRE-LLM GATE 2: Content quality check
+  // ==========================================================================
+  const minBytes = getMinInputBytes(agentType)
+  if (inputBytes < minBytes) {
+    const errorMsg = `Input too small: ${inputBytes} bytes < ${minBytes} minimum`
+    const run = await createEarlyExitRun({
+      agentType,
+      input: input as object,
+      status: "COMPLETED",
+      outcome: "CONTENT_LOW_QUALITY",
+      noChangeCode: "NO_RELEVANT_CHANGES",
+      noChangeDetail: errorMsg,
+      evidenceId,
+      ruleId,
+      runId,
+      jobId,
+      parentJobId,
+      sourceSlug,
+      queueName,
+      inputChars,
+      inputBytes,
+      inputContentHash,
+      promptTemplateId: provenance.templateId,
+      promptTemplateVersion: provenance.version,
+      promptHash: provenance.promptHash,
+      durationMs: Date.now() - startTime,
+    })
+    return {
+      success: false,
+      output: null,
+      error: errorMsg,
+      runId: run.id,
+      durationMs: Date.now() - startTime,
+      tokensUsed: null,
+      outcome: "CONTENT_LOW_QUALITY",
+      itemsProduced: 0,
+    }
+  }
+
+  // ==========================================================================
+  // PRE-LLM GATE 3: Deterministic skip check
+  // ==========================================================================
+  if (shouldSkipLLM(agentType, input)) {
+    const run = await createEarlyExitRun({
+      agentType,
+      input: input as object,
+      status: "COMPLETED",
+      outcome: "SKIPPED_DETERMINISTIC",
+      noChangeDetail: "Deterministic rules decided LLM not needed",
+      evidenceId,
+      ruleId,
+      runId,
+      jobId,
+      parentJobId,
+      sourceSlug,
+      queueName,
+      inputChars,
+      inputBytes,
+      inputContentHash,
+      promptTemplateId: provenance.templateId,
+      promptTemplateVersion: provenance.version,
+      promptHash: provenance.promptHash,
+      durationMs: Date.now() - startTime,
+    })
+    return {
+      success: true,
+      output: null,
+      error: null,
+      runId: run.id,
+      durationMs: Date.now() - startTime,
+      tokensUsed: null,
+      outcome: "SKIPPED_DETERMINISTIC",
+      itemsProduced: 0,
+    }
+  }
+
+  // ==========================================================================
+  // CREATE RUN RECORD
+  // ==========================================================================
   const run = await db.agentRun.create({
     data: {
       agentType,
-      status: "running",
+      status: "RUNNING",
       input: input as object,
       evidenceId,
       ruleId,
+      runId,
+      jobId,
+      parentJobId,
+      sourceSlug,
+      queueName,
+      inputChars,
+      inputBytes,
+      inputContentHash,
+      promptTemplateId: provenance.templateId,
+      promptTemplateVersion: provenance.version,
+      promptHash: provenance.promptHash,
     },
   })
 
   let lastError: Error | null = null
 
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timeoutId: NodeJS.Timeout | undefined
     try {
+      // Update attempt number
+      if (attempt > 1) {
+        await db.agentRun.update({
+          where: { id: run.id },
+          data: { attempt },
+        })
+      }
+
       // Get prompt template
       const systemPrompt = getAgentPrompt(agentType)
 
       // Build user message with input
       const userMessage = `INPUT:\n${JSON.stringify(input, null, 2)}\n\nPlease process this input and return the result in the specified JSON format.`
 
-      // Call Ollama - don't use format:"json" as qwen3-next model returns empty content with it
+      // Call Ollama
       const controller = new AbortController()
       const timeoutMs = getAgentTimeoutMs(agentType)
       timeoutId = setTimeout(() => controller.abort(), timeoutMs)
@@ -208,14 +438,12 @@ export async function runAgent<TInput, TOutput>(
       }
 
       const data = await response.json()
-      // Ollama format: data.message.content
       let rawContent = data.message?.content || ""
       if (!rawContent && data.message?.thinking) {
-        // Extract JSON from thinking field if content is empty
         rawContent = data.message.thinking
       }
 
-      // Extract JSON from response (handle markdown code blocks, whitespace, etc.)
+      // Extract JSON from response
       let jsonContent = rawContent.trim()
 
       // Remove markdown code blocks if present
@@ -227,50 +455,179 @@ export async function runAgent<TInput, TOutput>(
       // Try to find JSON object in response
       const jsonMatch = jsonContent.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        throw new Error(`No JSON object found in response: ${rawContent.slice(0, 200)}`)
+        // OUTCOME: PARSE_FAILED (no JSON found)
+        await db.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: "FAILED",
+            outcome: "PARSE_FAILED",
+            rawOutput: { rawContent },
+            error: `No JSON object found in response`,
+            durationMs: Date.now() - startTime,
+            completedAt: new Date(),
+            tokensUsed: data.eval_count || null,
+          },
+        })
+        return {
+          success: false,
+          output: null,
+          error: `No JSON object found in response: ${rawContent.slice(0, 200)}`,
+          runId: run.id,
+          durationMs: Date.now() - startTime,
+          tokensUsed: data.eval_count || null,
+          outcome: "PARSE_FAILED",
+          itemsProduced: 0,
+        }
       }
       jsonContent = jsonMatch[0]
 
-      // Parse JSON from response
+      // Parse JSON
       let parsed: unknown
       try {
         parsed = JSON.parse(jsonContent)
       } catch (parseError) {
-        // Store raw output on parse failure
+        // OUTCOME: PARSE_FAILED (invalid JSON)
         await db.agentRun.update({
           where: { id: run.id },
           data: {
+            status: "FAILED",
+            outcome: "PARSE_FAILED",
             rawOutput: { rawContent, jsonContent },
             error: `Failed to parse JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+            durationMs: Date.now() - startTime,
+            completedAt: new Date(),
+            tokensUsed: data.eval_count || null,
           },
         })
-        throw new Error(`Failed to parse JSON response: ${jsonContent.slice(0, 200)}`)
+        return {
+          success: false,
+          output: null,
+          error: `Failed to parse JSON response: ${jsonContent.slice(0, 200)}`,
+          runId: run.id,
+          durationMs: Date.now() - startTime,
+          tokensUsed: data.eval_count || null,
+          outcome: "PARSE_FAILED",
+          itemsProduced: 0,
+        }
       }
 
-      // Validate output
-      const outputValidation = outputSchema.safeParse(parsed)
-      if (!outputValidation.success) {
-        // Store raw output on validation failure for debugging
+      // Check for empty output
+      const isEmptyOutput =
+        parsed === null ||
+        parsed === undefined ||
+        (Array.isArray(parsed) && parsed.length === 0) ||
+        (typeof parsed === "object" &&
+          parsed !== null &&
+          "extractions" in parsed &&
+          Array.isArray((parsed as { extractions: unknown[] }).extractions) &&
+          (parsed as { extractions: unknown[] }).extractions.length === 0)
+
+      if (isEmptyOutput) {
+        // OUTCOME: EMPTY_OUTPUT
+        const durationMs = Date.now() - startTime
         await db.agentRun.update({
           where: { id: run.id },
           data: {
-            rawOutput: parsed as object,
-            error: `Schema validation failed: ${outputValidation.error.message}`,
+            status: "COMPLETED",
+            outcome: "EMPTY_OUTPUT",
+            output: parsed as object,
+            durationMs,
+            completedAt: new Date(),
+            tokensUsed: data.eval_count || null,
+            itemsProduced: 0,
           },
         })
-        throw new Error(`Invalid output: ${outputValidation.error.message}`)
+        return {
+          success: true,
+          output: null,
+          error: null,
+          runId: run.id,
+          durationMs,
+          tokensUsed: data.eval_count || null,
+          outcome: "EMPTY_OUTPUT",
+          itemsProduced: 0,
+        }
       }
 
-      // Success - update run record
+      // Validate output schema
+      const outputValidation = outputSchema.safeParse(parsed)
+      if (!outputValidation.success) {
+        // OUTCOME: VALIDATION_REJECTED
+        await db.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: "COMPLETED",
+            outcome: "VALIDATION_REJECTED",
+            noChangeCode: "VALIDATION_BLOCKED",
+            noChangeDetail: outputValidation.error.message,
+            rawOutput: parsed as object,
+            error: `Schema validation failed: ${outputValidation.error.message}`,
+            durationMs: Date.now() - startTime,
+            completedAt: new Date(),
+            tokensUsed: data.eval_count || null,
+            itemsProduced: 0,
+          },
+        })
+        return {
+          success: false,
+          output: null,
+          error: `Invalid output: ${outputValidation.error.message}`,
+          runId: run.id,
+          durationMs: Date.now() - startTime,
+          tokensUsed: data.eval_count || null,
+          outcome: "VALIDATION_REJECTED",
+          itemsProduced: 0,
+        }
+      }
+
+      // Check confidence threshold
+      const outputData = outputValidation.data as { confidence?: number }
+      const confidence = outputData.confidence
+      const MIN_CONFIDENCE = 0.5 // Configurable threshold
+      if (confidence !== undefined && confidence < MIN_CONFIDENCE) {
+        // OUTCOME: LOW_CONFIDENCE
+        const durationMs = Date.now() - startTime
+        await db.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: "COMPLETED",
+            outcome: "LOW_CONFIDENCE",
+            noChangeCode: "BELOW_MIN_CONFIDENCE",
+            noChangeDetail: `Confidence ${confidence} < ${MIN_CONFIDENCE}`,
+            output: outputValidation.data as object,
+            confidence,
+            durationMs,
+            completedAt: new Date(),
+            tokensUsed: data.eval_count || null,
+            itemsProduced: 0,
+          },
+        })
+        return {
+          success: false,
+          output: null,
+          error: `Low confidence: ${confidence}`,
+          runId: run.id,
+          durationMs,
+          tokensUsed: data.eval_count || null,
+          outcome: "LOW_CONFIDENCE",
+          itemsProduced: 0,
+        }
+      }
+
+      // OUTCOME: SUCCESS_APPLIED (caller will set itemsProduced)
+      // Note: We set SUCCESS_APPLIED here, but caller should update to
+      // SUCCESS_NO_CHANGE if no items were actually produced
       const durationMs = Date.now() - startTime
       await db.agentRun.update({
         where: { id: run.id },
         data: {
-          status: "completed",
+          status: "COMPLETED",
+          outcome: "SUCCESS_APPLIED",
           output: outputValidation.data as object,
           durationMs,
-          confidence: (outputValidation.data as { confidence?: number }).confidence,
+          confidence,
           completedAt: new Date(),
+          tokensUsed: data.eval_count || null,
         },
       })
 
@@ -281,6 +638,7 @@ export async function runAgent<TInput, TOutput>(
         runId: run.id,
         durationMs,
         tokensUsed: data.eval_count || null,
+        outcome: "SUCCESS_APPLIED",
       }
     } catch (error) {
       if (timeoutId) clearTimeout(timeoutId)
@@ -288,33 +646,55 @@ export async function runAgent<TInput, TOutput>(
 
       // Check if aborted due to timeout
       if (lastError?.name === "AbortError") {
-        lastError = new Error(
-          `Agent ${agentType} timed out after ${getAgentTimeoutMs(agentType)}ms`
-        )
+        // OUTCOME: TIMEOUT
+        const durationMs = Date.now() - startTime
+        await db.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: "FAILED",
+            outcome: "TIMEOUT",
+            error: `Agent ${agentType} timed out after ${getAgentTimeoutMs(agentType)}ms`,
+            durationMs,
+            completedAt: new Date(),
+            attempt,
+          },
+        })
+        return {
+          success: false,
+          output: null,
+          error: `Agent ${agentType} timed out after ${getAgentTimeoutMs(agentType)}ms`,
+          runId: run.id,
+          durationMs,
+          tokensUsed: null,
+          outcome: "TIMEOUT",
+          itemsProduced: 0,
+        }
       }
 
-      if (attempt < maxRetries - 1) {
-        // Exponential backoff with longer delays for rate limiting
+      if (attempt < maxRetries) {
+        // Exponential backoff
         const isRateLimit = lastError?.message?.includes("429")
-        const baseDelay = isRateLimit ? 30000 : 1000 // 30s for rate limits
-        const delay = Math.pow(2, attempt) * baseDelay
-        console.log(`[runner] Retry ${attempt + 1}/${maxRetries} in ${delay / 1000}s...`)
+        const baseDelay = isRateLimit ? 30000 : 1000
+        const delay = Math.pow(2, attempt - 1) * baseDelay
+        console.log(`[runner] Retry ${attempt}/${maxRetries} in ${delay / 1000}s...`)
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
   }
 
-  // All retries failed
+  // OUTCOME: RETRY_EXHAUSTED
   const durationMs = Date.now() - startTime
   const errorMsg = `Agent failed after ${maxRetries} attempts: ${lastError?.message}`
 
   await db.agentRun.update({
     where: { id: run.id },
     data: {
-      status: "failed",
+      status: "FAILED",
+      outcome: "RETRY_EXHAUSTED",
       error: errorMsg,
       durationMs,
       completedAt: new Date(),
+      attempt: maxRetries,
     },
   })
 
@@ -325,5 +705,29 @@ export async function runAgent<TInput, TOutput>(
     runId: run.id,
     durationMs,
     tokensUsed: null,
+    outcome: "RETRY_EXHAUSTED",
+    itemsProduced: 0,
   }
+}
+
+/**
+ * Update an AgentRun's outcome after items have been produced.
+ * Call this from workers after they know how many items were created.
+ */
+export async function updateRunOutcome(
+  runId: string,
+  itemsProduced: number,
+  noChangeCode?: NoChangeCode,
+  noChangeDetail?: string
+): Promise<void> {
+  const outcome: AgentRunOutcome = itemsProduced > 0 ? "SUCCESS_APPLIED" : "SUCCESS_NO_CHANGE"
+  await db.agentRun.update({
+    where: { id: runId },
+    data: {
+      outcome,
+      itemsProduced,
+      noChangeCode: itemsProduced === 0 ? noChangeCode : undefined,
+      noChangeDetail: itemsProduced === 0 ? noChangeDetail : undefined,
+    },
+  })
 }

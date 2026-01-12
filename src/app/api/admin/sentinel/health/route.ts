@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
 
     // Calculate run statistics
     const totalRuns = recentRuns.length
-    const completedRuns = recentRuns.filter((r) => r.status === "completed").length
-    const failedRuns = recentRuns.filter((r) => r.status === "failed").length
-    const runningRuns = recentRuns.filter((r) => r.status === "running").length
+    const completedRuns = recentRuns.filter((r) => r.status === "COMPLETED").length
+    const failedRuns = recentRuns.filter((r) => r.status === "FAILED").length
+    const runningRuns = recentRuns.filter((r) => r.status === "RUNNING").length
     const successRate = totalRuns > 0 ? completedRuns / totalRuns : 1
 
     // Get source statistics
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get last successful run
-    const lastSuccessfulRun = recentRuns.find((r) => r.status === "completed")
+    const lastSuccessfulRun = recentRuns.find((r) => r.status === "COMPLETED")
 
     // Get endpoints by domain
     const endpointsByDomain = await db.$queryRaw<

@@ -35,10 +35,22 @@ export interface ComposerResult {
   error: string | null
 }
 
+/** Correlation options for tracking agent runs across the pipeline */
+export interface CorrelationOptions {
+  runId?: string
+  jobId?: string
+  parentJobId?: string
+  sourceSlug?: string
+  queueName?: string
+}
+
 /**
  * Run the Composer agent to create Draft Rules from SourcePointers
  */
-export async function runComposer(sourcePointerIds: string[]): Promise<ComposerResult> {
+export async function runComposer(
+  sourcePointerIds: string[],
+  correlationOpts?: CorrelationOptions
+): Promise<ComposerResult> {
   if (sourcePointerIds.length === 0) {
     return {
       success: false,
@@ -127,6 +139,12 @@ export async function runComposer(sourcePointerIds: string[]): Promise<ComposerR
     inputSchema: ComposerInputSchema,
     outputSchema: ComposerOutputSchema,
     temperature: 0.1,
+    // Pass correlation options from worker
+    runId: correlationOpts?.runId,
+    jobId: correlationOpts?.jobId,
+    parentJobId: correlationOpts?.parentJobId,
+    sourceSlug: correlationOpts?.sourceSlug,
+    queueName: correlationOpts?.queueName ?? "compose",
   })
 
   if (!result.success || !result.output) {

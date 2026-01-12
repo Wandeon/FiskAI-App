@@ -176,12 +176,12 @@ describe("Arbiter E2E", { skip: shouldSkip ? skipReason : undefined }, () => {
 
       // AgentRun should be completed or failed (not still running)
       assert.ok(
-        ["completed", "failed"].includes(agentRun.status),
-        `AgentRun status should be completed or failed, got: ${agentRun.status}`
+        ["COMPLETED", "FAILED"].includes(agentRun.status),
+        `AgentRun status should be COMPLETED or FAILED, got: ${agentRun.status}`
       )
 
       // If successful, check timing
-      if (agentRun.status === "completed") {
+      if (agentRun.status === "COMPLETED") {
         assert.ok(agentRun.completedAt, "Successful run should have completedAt")
         const durationMs =
           new Date(agentRun.completedAt).getTime() - new Date(agentRun.startedAt).getTime()
