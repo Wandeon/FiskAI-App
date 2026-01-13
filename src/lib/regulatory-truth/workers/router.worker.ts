@@ -127,8 +127,8 @@ function determineRouting(
     }
   }
 
-  // Cloud not allowed or not high enough score - use local
-  if (!cloudAllowed && budgetCheck.recommendedProvider !== "LOCAL_OLLAMA") {
+  // Cloud not allowed - use local (recommendedProvider is CLOUD_* at this point, but cloud is restricted)
+  if (!cloudAllowed) {
     return {
       decision: "EXTRACT_LOCAL",
       reason: `Local extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, health=${healthScore.toFixed(2)}, cloud restricted)`,

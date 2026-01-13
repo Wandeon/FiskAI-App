@@ -8,6 +8,19 @@ import { runStartupGuards, registerWorkerVersion } from "./utils/version-guard"
 // Only run when WORKER_TYPE is set - indicates actual worker startup, not Next.js build import
 if (process.env.WORKER_TYPE) {
   runStartupGuards()
+
+  // Log startup info exactly once per process
+  const workerType = process.env.WORKER_TYPE
+  const env = process.env.NODE_ENV || "development"
+  const sha = process.env.GIT_SHA || "unknown"
+  const observationMode = process.env.RTL_OBSERVATION_MODE === "true"
+  const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_EXTRACT_ENDPOINT || ""
+  const cloudLlmEnabled =
+    !observationMode && ollamaEndpoint.length > 0 && !ollamaEndpoint.includes("localhost")
+
+  console.log(
+    `RTL Worker starting | worker=${workerType} env=${env} sha=${sha} observation=${observationMode} cloud_llm_enabled=${cloudLlmEnabled}`
+  )
 }
 
 export interface WorkerOptions {

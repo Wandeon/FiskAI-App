@@ -87,6 +87,10 @@ export default defineConfig({
       "src/lib/regulatory-truth/content-sync/__tests__/integration.test.ts",
       "src/lib/regulatory-truth/workers/__tests__/integration.test.ts",
       "src/lib/assistant/__tests__/fail-closed-integration.test.ts",
+      // RTL worker tests using node:test
+      "src/lib/regulatory-truth/workers/__tests__/budget-governor.test.ts",
+      "src/lib/regulatory-truth/workers/__tests__/routing-decisions.test.ts",
+      "src/lib/regulatory-truth/workers/__tests__/source-health.test.ts",
       // Acceptance and infrastructure tests using node:test
       "acceptance/**",
       "src/infrastructure/invoicing/__tests__/tenant-isolation.test.ts",

@@ -19,7 +19,13 @@ export {
   computeInputsHash,
 } from "./audit-snapshot.types"
 
-import { computeRuleHash, computeInputsHash, type AuditSnapshotInput } from "./audit-snapshot.types"
+import {
+  computeRuleHash,
+  computeInputsHash,
+  type AuditSnapshotInput,
+  type RoutingBudgetSummary,
+  type SourceHealthSnapshot,
+} from "./audit-snapshot.types"
 
 // =============================================================================
 // MAIN FUNCTIONS
@@ -142,10 +148,10 @@ export async function getCurrentRoutingBudgetSummary(): Promise<RoutingBudgetSum
   // Count active and paused routings from source health
   const [activeCount, pausedCount] = await Promise.all([
     db.sourceHealth.count({
-      where: { health: "GOOD" },
+      where: { healthState: "GOOD" },
     }),
     db.sourceHealth.count({
-      where: { health: { in: ["POOR", "CRITICAL"] } },
+      where: { healthState: { in: ["POOR", "CRITICAL"] } },
     }),
   ])
 
@@ -178,16 +184,16 @@ export async function getCurrentSourceHealthStates(): Promise<SourceHealthSnapsh
   const healthRecords = await db.sourceHealth.findMany({
     select: {
       sourceSlug: true,
-      health: true,
-      stateChangedAt: true,
-      decisionReason: true,
+      healthState: true,
+      healthStateEnteredAt: true,
+      lastDecisionReason: true,
     },
   })
 
   return healthRecords.map((r) => ({
     sourceSlug: r.sourceSlug,
-    health: r.health,
-    stateChangedAt: r.stateChangedAt ?? undefined,
-    decisionReason: r.decisionReason ?? undefined,
+    health: r.healthState,
+    stateChangedAt: r.healthStateEnteredAt ?? undefined,
+    decisionReason: r.lastDecisionReason ?? undefined,
   }))
 }

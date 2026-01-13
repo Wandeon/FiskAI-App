@@ -75,7 +75,7 @@ function determineRouting(
     return { decision: "EXTRACT_CLOUD", reason: `Cloud extraction (high-value)` }
   }
 
-  if (!cloudAllowed && budgetCheck.recommendedProvider !== "LOCAL_OLLAMA") {
+  if (!cloudAllowed) {
     return { decision: "EXTRACT_LOCAL", reason: `Local extraction (cloud restricted)` }
   }
 

@@ -235,33 +235,4 @@ export async function getRulesRequiringReview(options?: { limit?: number; concep
   })
 }
 
-/**
- * Summarize review reasons for human display.
- */
-export function summarizeReviewReasons(reasons: ReviewRequiredReasonEntry[]): string {
-  if (reasons.length === 0) return "No review required"
-
-  const critical = reasons.filter(
-    (r) =>
-      r.reason === ReviewRequiredReason.SOURCE_CRITICAL_HEALTH ||
-      r.reason === ReviewRequiredReason.CONTRADICTS_EXISTING
-  )
-
-  const normal = reasons.filter(
-    (r) =>
-      r.reason !== ReviewRequiredReason.SOURCE_CRITICAL_HEALTH &&
-      r.reason !== ReviewRequiredReason.CONTRADICTS_EXISTING
-  )
-
-  const parts: string[] = []
-
-  if (critical.length > 0) {
-    parts.push(`CRITICAL: ${critical.map((r) => r.detail).join("; ")}`)
-  }
-
-  if (normal.length > 0) {
-    parts.push(`Review needed: ${normal.map((r) => r.detail).join("; ")}`)
-  }
-
-  return parts.join(" | ")
-}
+// Note: summarizeReviewReasons is re-exported from review-required.types.ts

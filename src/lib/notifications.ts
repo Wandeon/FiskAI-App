@@ -49,6 +49,7 @@ const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   RULE_DELETED: "Pravilo obrisano",
   RULE_MERGED: "Pravilo spojeno",
   RULE_ROLLBACK: "Pravilo vraćeno",
+  RULE_REVOKED: "Pravilo opozvano",
   RULE_QUEUED_FOR_REVIEW: "Pravilo u redu za pregled",
   RULE_CONCEPT_LINKED: "Pravilo povezano s konceptom",
   MERGE_RULES: "Pravila spojena",
