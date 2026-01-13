@@ -83,6 +83,10 @@ describe("Source Health Scoring", () => {
         efficiencyWeight: 0.2,
         emptyPenalty: 0.05,
         errorPenalty: 0.1,
+        minDwellHoursPoor: 12,
+        minDwellHoursCritical: 24,
+        starvationAllowanceIntervalHours: 48,
+        starvationAllowanceMaxPerWindow: 3,
       }
 
       // With default config (10 attempts required), this would return 0.5
