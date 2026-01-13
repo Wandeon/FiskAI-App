@@ -50,7 +50,7 @@ export default async function ClientContextLayout({ children, params }: ClientCo
   const { clientId } = await params
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   // Check for STAFF or ADMIN role

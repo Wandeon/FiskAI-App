@@ -47,7 +47,7 @@ export default async function ClientMessagesPage({ params }: PageProps) {
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const { company, tickets } = await getClientMessages(clientId)

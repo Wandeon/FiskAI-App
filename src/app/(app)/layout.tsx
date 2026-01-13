@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   let currentCompany: Awaited<ReturnType<typeof getCurrentCompany>> | null = null

@@ -72,7 +72,7 @@ async function getQueueItems(queue: (typeof ADMIN_QUEUES)[number]): Promise<Queu
 export default async function AdminControlCenterPage() {
   const session = await auth()
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   // Verify user is ADMIN

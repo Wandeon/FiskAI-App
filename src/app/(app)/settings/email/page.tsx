@@ -13,7 +13,7 @@ export default async function EmailSettingsPage({
   searchParams: Promise<{ success?: string; error?: string }>
 }) {
   const user = await requireAuth()
-  if (!user.id) redirect("/login")
+  if (!user.id) redirect("/auth")
 
   const company = await requireCompany(user.id)
   setTenantContext({ companyId: company.id, userId: user.id })

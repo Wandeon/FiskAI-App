@@ -9,7 +9,7 @@ export default async function StaffLayout({ children }: { children: ReactNode })
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   // Check for STAFF or ADMIN role

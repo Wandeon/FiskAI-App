@@ -27,7 +27,7 @@ export function createSafeAction<T, R>(
       // Simple redirect or error depending on preference.
       // For actions, throwing or returning error result is often better,
       // but matching auth-utils style:
-      redirect("/login")
+      redirect("/auth")
     }
 
     // Run within context

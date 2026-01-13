@@ -312,7 +312,7 @@ export default async function StaffDocumentsPage({ searchParams }: PageProps) {
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const params = await searchParams

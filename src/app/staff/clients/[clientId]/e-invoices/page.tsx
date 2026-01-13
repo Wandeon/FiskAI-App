@@ -132,7 +132,7 @@ export default async function ClientEInvoicesPage({ params, searchParams }: Page
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const invoices = await getClientInvoices(clientId, filter)

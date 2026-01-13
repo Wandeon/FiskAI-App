@@ -43,7 +43,7 @@ export async function getCurrentUser() {
 export async function requireAuth() {
   const user = await getCurrentUser()
   if (!user) {
-    redirect("/login")
+    redirect("/auth")
   }
   return user
 }
@@ -169,7 +169,7 @@ export async function requireCompanyWithContext<T>(
 ): Promise<T> {
   const user = await db.user.findUnique({ where: { id: userId } })
   if (!user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const company = await requireCompany(userId)
@@ -215,7 +215,7 @@ export async function requireCompanyWithPermission<T>(
 ): Promise<T> {
   const user = await db.user.findUnique({ where: { id: userId } })
   if (!user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const company = await requireCompany(userId)
