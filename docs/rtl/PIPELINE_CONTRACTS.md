@@ -10,8 +10,13 @@
 The Regulatory Truth Layer (RTL) pipeline processes regulatory content through these stages:
 
 ```
-sentinel → ocr (optional) → extract → compose → review → arbiter → release
+sentinel → ocr (optional) → extract → compose → apply → review → arbiter → release
 ```
+
+**PHASE-D Architecture** (2026-01-13):
+
+- **Compose**: Generates proposals (LLM only, no DB writes)
+- **Apply**: Persists truth (SourcePointer + RegulatoryRule creation)
 
 ---
 
@@ -167,23 +172,12 @@ interface ExtractorResult {
 
 ### Downstream Scheduling
 
-> **CONTRACT MISMATCH IDENTIFIED (PHASE-D)**
->
-> Location: `extractor.worker.ts:61-84`
->
-> ```typescript
-> if (result.success && result.sourcePointerIds.length > 0) {
->   // This condition is NEVER true in PHASE-D
->   // because extractor.ts:360 always returns sourcePointerIds: []
-> }
-> ```
->
-> **Impact**: Compose jobs are never queued after extraction.
-> **Root Cause**: PHASE-D migrated to CandidateFact but worker was not updated.
+> **PHASE-D (RESOLVED)**: Extractor now queues compose jobs using `candidateFactIds`.
+> CandidateFact is the inter-stage carrier between extractor and composer.
 
-| Condition                         | Queue          | Payload                                      |
-| --------------------------------- | -------------- | -------------------------------------------- |
-| ~~`sourcePointerIds.length > 0`~~ | `composeQueue` | `{ pointerIds, domain, runId, parentJobId }` |
+| Condition                     | Queue          | Payload                                            |
+| ----------------------------- | -------------- | -------------------------------------------------- |
+| `candidateFactIds.length > 0` | `composeQueue` | `{ candidateFactIds, domain, runId, parentJobId }` |
 
 ### Gating Conditions
 
@@ -200,7 +194,7 @@ interface ExtractorResult {
 
 ---
 
-## Stage 4: Composer
+## Stage 4: Composer (PHASE-D: Proposal Generation Only)
 
 ### File Locations
 
@@ -211,7 +205,7 @@ interface ExtractorResult {
 
 ```typescript
 interface ComposeJobData {
-  pointerIds: string[]
+  candidateFactIds: string[] // PHASE-D: Primary input
   domain: string
   runId: string
   parentJobId?: string
@@ -222,7 +216,75 @@ interface ComposeJobData {
 
 | Table            | Purpose                                  |
 | ---------------- | ---------------------------------------- |
-| `SourcePointer`  | Get pointers to compose into rule        |
+| `CandidateFact`  | Get candidate facts to compose into rule |
+| `Evidence`       | Get evidence for source attribution      |
+| `RegulatoryRule` | Check for existing rules (deduplication) |
+
+### DB Writes
+
+**PHASE-D: Composer performs NO DB writes.**
+
+All persistence is delegated to the Apply stage.
+
+| Table      | Effect                           |
+| ---------- | -------------------------------- |
+| `AgentRun` | Log agent execution (via runner) |
+
+### Agent Output
+
+```typescript
+interface ComposerProposal {
+  success: boolean
+  output: ComposerOutput | null
+  agentRunId: string | null
+  candidateFactIds: string[]
+  error: string | null
+}
+```
+
+### Downstream Scheduling
+
+| Condition          | Queue        | Payload                                    |
+| ------------------ | ------------ | ------------------------------------------ |
+| Proposal generated | `applyQueue` | `{ proposal, domain, runId, parentJobId }` |
+
+### Gating Conditions
+
+- Must have at least one valid CandidateFact
+- Domain must be valid per `DomainSchema`
+- AppliesWhen DSL must be valid
+
+### Success Definition
+
+- ComposerProposal generated with valid output
+- Apply job queued with proposal
+- No persistence performed (delegated to Apply)
+
+---
+
+## Stage 5: Apply (PHASE-D: Truth Persistence)
+
+### File Locations
+
+- Worker: `src/lib/regulatory-truth/workers/apply.worker.ts`
+- Agent: `src/lib/regulatory-truth/agents/composer.ts` (applyComposerProposal function)
+
+### Job Payload (Input)
+
+```typescript
+interface ApplyJobData {
+  proposal: ComposerProposal
+  domain: string
+  runId: string
+  parentJobId?: string
+}
+```
+
+### DB Reads
+
+| Table            | Purpose                                  |
+| ---------------- | ---------------------------------------- |
+| `CandidateFact`  | Get candidate facts from proposal        |
 | `Evidence`       | Get evidence for source attribution      |
 | `RegulatoryRule` | Check for existing rules (deduplication) |
 
@@ -230,6 +292,7 @@ interface ComposeJobData {
 
 | Table                | Effect                            |
 | -------------------- | --------------------------------- |
+| `SourcePointer`      | Create source pointers from facts |
 | `RegulatoryRule`     | Create draft rule                 |
 | `Concept`            | Upsert concept record             |
 | `RuleEdge`           | Create AMENDS edge if superseding |
@@ -239,49 +302,38 @@ interface ComposeJobData {
 ### Agent Output
 
 ```typescript
-interface ComposerResult {
+interface ApplyResult {
   success: boolean
-  output: ComposerOutput | null
   ruleId: string | null
+  sourcePointerIds: string[]
   error: string | null
 }
 ```
 
 ### Downstream Scheduling
 
-| Condition                 | Queue          | Payload                              |
-| ------------------------- | -------------- | ------------------------------------ |
-| Rule created successfully | `reviewQueue`  | `{ ruleId, runId, parentJobId }`     |
-| Conflict detected         | `arbiterQueue` | `{ conflictId, runId, parentJobId }` |
+| Condition                 | Queue         | Payload                              |
+| ------------------------- | ------------- | ------------------------------------ |
+| Rule created successfully | `reviewQueue` | `{ ruleId, runId, parentJobId }`     |
+| Conflict detected         | None          | Arbiter picks up from conflict table |
 
 ### Gating Conditions
 
-- Must have at least one valid SourcePointer
+- Proposal must be valid (non-null candidateFactIds)
 - Domain must not be blocked
-- AppliesWhen DSL must be valid
-
-> **CONTRACT MISMATCH IDENTIFIED (PHASE-D)**
->
-> Location: `composer.ts:64-66`
->
-> ```typescript
-> const sourcePointers = await db.sourcePointer.findMany({
->   where: { id: { in: sourcePointerIds } },
-> })
-> ```
->
-> **Impact**: Returns empty array because PHASE-D stopped creating SourcePointers.
-> **Root Cause**: Composer still expects SourcePointers but extractor now creates CandidateFacts.
+- Must not duplicate existing rule
 
 ### Success Definition
 
+- SourcePointer records created from CandidateFacts
 - RegulatoryRule created with status `DRAFT`
 - Rule linked to source pointers
-- Job queued to Review or Arbiter
+- AgentRun outcome updated via `updateRunOutcome()`
+- Review job queued if rule created
 
 ---
 
-## Stage 5: Reviewer
+## Stage 6: Reviewer
 
 ### File Locations
 
@@ -348,7 +400,7 @@ interface ReviewerResult {
 
 ---
 
-## Stage 6: Arbiter
+## Stage 7: Arbiter
 
 ### File Locations
 
@@ -415,7 +467,7 @@ interface ArbiterResult {
 
 ---
 
-## Stage 7: Releaser
+## Stage 8: Releaser
 
 ### File Locations
 
@@ -502,48 +554,33 @@ to finalize the outcome. The extractor worker does this at `extractor.worker.ts:
 
 ## Known Issues (PHASE-D Migration)
 
-### Issue 1: Extractor → Composer Pipeline Broken
+### ~~Issue 1: Extractor → Composer Pipeline Broken~~ (RESOLVED)
 
-**Symptom**: Compose jobs never queued after extraction.
+**Status**: ✅ RESOLVED (2026-01-13)
 
-**Location**: `extractor.worker.ts:61-84`
+**Resolution**: PHASE-D architecture implemented with clean stage separation:
 
-**Cause**: PHASE-D changed extractor to create `CandidateFact` instead of `SourcePointer`, but:
+1. Extractor creates `CandidateFact` records and queues compose jobs with `candidateFactIds`
+2. Composer generates proposals (LLM only, no persistence) via `generateComposerProposal()`
+3. Apply stage handles all persistence via `applyComposerProposal()`
 
-1. `extractor.ts:360` returns `sourcePointerIds: []` (always empty)
-2. Worker checks `result.sourcePointerIds.length > 0` - never true
-3. Even if fixed, `composer.ts` queries `SourcePointer` which is empty
+**Key Changes**:
 
-**Impact**:
+- `extractor.worker.ts`: Queues compose jobs with `candidateFactIds` grouped by domain
+- `composer.worker.ts`: Calls `generateComposerProposal()`, queues apply jobs
+- `apply.worker.ts`: NEW - Calls `applyComposerProposal()`, queues review jobs
+- Clean separation: Compose = interpret (LLM), Apply = persist (DB writes)
 
-- Extractions succeed but nothing flows to compose
-- Pipeline terminates at extraction stage
-- Rules never created from extracted facts
+### ~~Issue 2: itemsProduced Always 0 for SUCCESS_APPLIED~~ (RESOLVED)
 
-**Resolution**: Requires architectural decision:
+**Status**: ✅ RESOLVED (2026-01-13)
 
-- Option A: Update worker to use `candidateFactIds` and create new compose path
-- Option B: Restore SourcePointer creation in extractor
-- Option C: New pipeline from CandidateFact → RuleFact
+**Resolution**: Workers now call `updateRunOutcome(agentRunId, itemsProduced)` after processing:
 
-### Issue 2: itemsProduced Always 0 for SUCCESS_APPLIED
+- `extractor.worker.ts:67-69`: Updates with `candidateFactIds.length`
+- `apply.worker.ts:53-56`: Updates with `1` if rule created, `0` otherwise
 
-**Symptom**: AgentRun records show `outcome: SUCCESS_APPLIED` but `itemsProduced: 0`.
-
-**Location**: `runner.ts:837-852` vs `extractor.worker.ts`
-
-**Cause**:
-
-- `runner.ts` sets `SUCCESS_APPLIED` but doesn't know item count
-- Worker should call `updateRunOutcome(runId, itemCount)` but doesn't
-- `extractor.worker.ts:94` returns `pointersCreated: result.sourcePointerIds.length` (always 0)
-
-**Impact**:
-
-- Monitoring queries fail to identify productive runs
-- Cannot distinguish "LLM worked, nothing extracted" from "LLM worked, items created"
-
-**Resolution**: Worker must call `updateRunOutcome()` with actual `candidateFactIds.length`.
+The single choke point `updateRunOutcome()` in `runner.ts` ensures outcome is derived from actual `itemsProduced` count.
 
 ---
 
@@ -566,11 +603,12 @@ All stages pass these fields for end-to-end tracing:
 | Queue      | Rate Limit | Retry Config                    |
 | ---------- | ---------- | ------------------------------- |
 | `sentinel` | 5/60s      | 3 attempts, exponential backoff |
-| `ocr`      | 5/60s      | 3 attempts, exponential backoff |
+| `ocr`      | 2/60s      | 3 attempts, exponential backoff |
 | `extract`  | 10/60s     | 3 attempts, exponential backoff |
 | `compose`  | 5/60s      | 3 attempts, exponential backoff |
+| `apply`    | 5/60s      | 3 attempts, exponential backoff |
 | `review`   | 5/60s      | 3 attempts, exponential backoff |
-| `arbiter`  | 5/60s      | 3 attempts, exponential backoff |
-| `release`  | 5/60s      | 3 attempts, exponential backoff |
+| `arbiter`  | 3/60s      | 3 attempts, exponential backoff |
+| `release`  | 2/60s      | 3 attempts, exponential backoff |
 
 Default retry: 10s → 20s → 40s (exponential with 2x factor)

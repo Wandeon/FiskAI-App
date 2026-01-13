@@ -40,6 +40,9 @@ export const sentinelQueue = createQueue("sentinel", { max: 5, duration: 60000 }
 export const extractQueue = createQueue("extract", { max: 10, duration: 60000 })
 export const ocrQueue = createQueue("ocr", { max: 2, duration: 60000 })
 export const composeQueue = createQueue("compose", { max: 5, duration: 60000 })
+// PHASE-D: Apply stage handles persistence (SourcePointer + RegulatoryRule creation)
+// Separates "proposal generation" (compose) from "truth persistence" (apply)
+export const applyQueue = createQueue("apply", { max: 5, duration: 60000 })
 export const reviewQueue = createQueue("review", { max: 5, duration: 60000 })
 export const arbiterQueue = createQueue("arbiter", { max: 3, duration: 60000 })
 export const releaseQueue = createQueue("release", { max: 2, duration: 60000 })
@@ -94,6 +97,7 @@ export const allQueues = {
   extract: extractQueue,
   ocr: ocrQueue,
   compose: composeQueue,
+  apply: applyQueue,
   review: reviewQueue,
   arbiter: arbiterQueue,
   release: releaseQueue,

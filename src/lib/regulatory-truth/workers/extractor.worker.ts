@@ -68,31 +68,34 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
       await updateRunOutcome(result.agentRunId, itemsProduced)
     }
 
-    // TODO(PHASE-D): Compose pipeline is broken - sourcePointerIds always empty
-    // This block is dead code until composer is migrated to use candidateFactIds
-    // See docs/rtl/PIPELINE_CONTRACTS.md for details on the contract mismatch
-    if (result.success && result.sourcePointerIds.length > 0) {
-      // Group pointers by domain and queue compose jobs
-      const pointers = await db.sourcePointer.findMany({
-        where: { id: { in: result.sourcePointerIds } },
-        select: { id: true, domain: true },
+    // PHASE-D: Queue compose jobs using candidateFactIds (not sourcePointerIds)
+    // CandidateFact is now the inter-stage carrier between extractor and composer
+    if (result.success && result.candidateFactIds.length > 0) {
+      // Group candidate facts by domain and queue compose jobs
+      const candidateFacts = await db.candidateFact.findMany({
+        where: { id: { in: result.candidateFactIds } },
+        select: { id: true, suggestedDomain: true },
       })
 
       const byDomain = new Map<string, string[]>()
-      for (const p of pointers) {
-        const ids = byDomain.get(p.domain) || []
-        ids.push(p.id)
-        byDomain.set(p.domain, ids)
+      for (const cf of candidateFacts) {
+        const domain = cf.suggestedDomain || "unknown"
+        const ids = byDomain.get(domain) || []
+        ids.push(cf.id)
+        byDomain.set(domain, ids)
       }
 
       // Queue compose job for each domain
-      for (const [domain, pointerIds] of byDomain) {
-        // Use sorted pointer IDs for stable jobId (order-independent)
-        const sortedIds = [...pointerIds].sort().join(",")
+      for (const [domain, candidateIds] of byDomain) {
+        // Use sorted candidate fact IDs for stable jobId (order-independent)
+        const sortedIds = [...candidateIds].sort().join(",")
         await composeQueue.add(
           "compose",
-          { pointerIds, domain, runId, parentJobId: job.id },
+          { candidateFactIds: candidateIds, domain, runId, parentJobId: job.id },
           { delay: getDomainDelay(domain), jobId: `compose-${domain}-${sortedIds}` }
+        )
+        console.log(
+          `[extractor] Queued compose job for domain ${domain} with ${candidateIds.length} CandidateFacts`
         )
       }
     }
