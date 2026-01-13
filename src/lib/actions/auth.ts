@@ -150,7 +150,7 @@ export async function login(formData: z.infer<typeof loginSchema>) {
 
 export async function logout() {
   await signOut({ redirect: false })
-  redirect("/login")
+  redirect("/auth")
 }
 
 export async function requestPasswordReset(email: string) {

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default async function BillingPage() {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const company = await requireCompany(session.user.id)

@@ -86,7 +86,7 @@ export default async function ClientReportsPage({ params }: PageProps) {
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const { company, yearlyRevenue, monthlyRevenue, lastMonthRevenue, expenseTotal } =

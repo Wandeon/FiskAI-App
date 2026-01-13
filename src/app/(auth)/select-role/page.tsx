@@ -42,7 +42,7 @@ export default async function SelectRolePage() {
   const user = await getCurrentUser()
 
   if (!user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const systemRole = user.systemRole || "USER"

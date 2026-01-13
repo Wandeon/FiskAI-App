@@ -63,7 +63,7 @@ export default async function ClientDocumentsPage({ params }: PageProps) {
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const documents = await getClientDocuments(clientId)

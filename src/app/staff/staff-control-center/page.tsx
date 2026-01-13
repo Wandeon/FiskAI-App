@@ -106,7 +106,7 @@ async function getQueueItems(
 export default async function AccountantControlCenterPage() {
   const session = await auth()
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   // Verify user is STAFF

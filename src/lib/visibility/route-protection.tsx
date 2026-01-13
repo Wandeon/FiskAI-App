@@ -25,7 +25,7 @@ export async function protectRoute(elementId: ElementId): Promise<void> {
 
   if (!session?.user?.id) {
     // Not authenticated - redirect to login
-    redirect("/login")
+    redirect("/auth")
   }
 
   // Get user's company

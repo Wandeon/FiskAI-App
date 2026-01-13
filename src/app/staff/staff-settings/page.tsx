@@ -40,7 +40,7 @@ export default async function StaffSettingsPage({ searchParams }: PageProps) {
   })
 
   if (!dbUser) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const params = await searchParams

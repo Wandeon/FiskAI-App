@@ -93,7 +93,7 @@ export default async function ClientOverviewPage({ params }: PageProps) {
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const {

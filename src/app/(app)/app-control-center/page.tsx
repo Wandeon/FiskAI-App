@@ -145,7 +145,7 @@ async function getQueueItems(queue: (typeof CLIENT_QUEUES)[number]): Promise<Que
 export default async function ClientControlCenterPage() {
   const session = await auth()
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   // Fetch items for all queues

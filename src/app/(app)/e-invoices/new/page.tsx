@@ -12,7 +12,7 @@ export default async function NewEInvoicePage() {
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect("/auth")
   }
 
   const company = await requireCompany(session.user.id)
