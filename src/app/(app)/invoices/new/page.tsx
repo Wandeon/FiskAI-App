@@ -38,7 +38,7 @@ export default async function NewInvoicePage({
   })
 
   if (capability.state === "UNAUTHORIZED") {
-    redirect("/app-control-center")
+    redirect("/cc")
   }
 
   if (capability.state === "BLOCKED") {
@@ -46,7 +46,7 @@ export default async function NewInvoicePage({
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Nije moguće kreirati račun</h1>
         <BlockerDisplay blockers={capability.blockers} />
-        <Link href="/app-control-center">
+        <Link href="/cc">
           <Button>Povratak na Kontrolni centar</Button>
         </Link>
       </div>
@@ -79,7 +79,7 @@ export default async function NewInvoicePage({
             Spremi nacrt, zatim koristi Kontrolni centar za daljnje akcije.
           </p>
         </div>
-        <Link href="/app-control-center">
+        <Link href="/cc">
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kontrolni centar

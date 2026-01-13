@@ -74,7 +74,7 @@ export function getDashboardPathForRole(systemRole: "USER" | "STAFF" | "ADMIN"):
       return "/staff"
     case "USER":
     default:
-      return "/dashboard"
+      return "/cc"
   }
 }
 
@@ -104,7 +104,7 @@ export function getRedirectUrlForSystemRole(
     const path = getDashboardPathForRole(systemRole)
     return `${url.protocol}//app.${baseDomain}${url.port ? `:${url.port}` : ""}${path}`
   } catch {
-    return "/dashboard"
+    return "/cc"
   }
 }
 

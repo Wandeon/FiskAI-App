@@ -286,14 +286,14 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Legacy /dashboard compatibility - redirect to app-control-center
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+  // Legacy path redirects - all old control center paths go to /cc
+  if (
+    pathname === "/dashboard" ||
+    pathname === "/app-control-center" ||
+    pathname === "/control-center"
+  ) {
     const externalUrl = getExternalUrl(request)
-    const newPath =
-      pathname === "/dashboard"
-        ? "/app-control-center"
-        : pathname.replace("/dashboard", "/app-control-center")
-    const redirectUrl = new URL(newPath, externalUrl)
+    const redirectUrl = new URL("/cc", externalUrl)
     redirectUrl.search = request.nextUrl.search
 
     logger.info(
@@ -302,9 +302,9 @@ export async function middleware(request: NextRequest) {
         subdomain,
         systemRole,
         originalPath: pathname,
-        redirectPath: redirectUrl.pathname,
+        redirectPath: "/cc",
       },
-      "Redirecting legacy /dashboard to app-control-center"
+      "Redirecting legacy path to /cc"
     )
 
     const response = NextResponse.redirect(redirectUrl)
@@ -341,12 +341,6 @@ export async function middleware(request: NextRequest) {
   const routeGroup = "/(app)"
   const url = request.nextUrl.clone()
 
-  // Rewrite /control-center to app-control-center
-  let rewrittenPath = pathname
-  if (pathname === "/control-center") {
-    rewrittenPath = "/app-control-center"
-  }
-
   // Don't rewrite if already in the correct route group or if accessing /admin or /staff paths
   // /admin and /staff are top-level routes, not in route groups
   if (
@@ -354,7 +348,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/staff")
   ) {
-    url.pathname = `${routeGroup}${rewrittenPath}`
+    url.pathname = `${routeGroup}${pathname}`
 
     const response = NextResponse.rewrite(url)
     response.headers.set("x-request-id", requestId)

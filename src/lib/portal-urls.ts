@@ -185,7 +185,7 @@ export function isProtectedPortal(portal: Portal): boolean {
 export function getDefaultLandingPath(portal: Portal): string {
   switch (portal) {
     case "app":
-      return "/app-control-center"
+      return "/cc"
     case "staff":
       return "/staff-control-center"
     case "admin":

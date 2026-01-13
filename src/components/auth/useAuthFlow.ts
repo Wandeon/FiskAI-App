@@ -161,7 +161,7 @@ export function useAuthFlow() {
           }
 
           // Path-based routing: all roles stay on app.fiskai.hr
-          // USER → / (app-control-center via middleware)
+          // USER → / (/cc via middleware)
           // ADMIN → /admin
           // STAFF → /staff
           const destinationPath = getPathForRole(role)

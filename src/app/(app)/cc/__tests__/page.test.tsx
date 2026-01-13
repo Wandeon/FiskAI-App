@@ -1,4 +1,4 @@
-// src/app/(app)/app-control-center/__tests__/page.test.tsx
+// src/app/(app)/cc/__tests__/page.test.tsx
 /**
  * Client Control Center Tests
  *
