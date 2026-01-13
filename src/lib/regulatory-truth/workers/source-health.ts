@@ -638,7 +638,7 @@ export async function recordOutcome(record: OutcomeRecord): Promise<void> {
         ? {
             lastDecisionReason: decisionReason,
             lastDecisionAt: new Date(),
-            lastDecisionDetails: decisionDetails,
+            lastDecisionDetails: decisionDetails as object | undefined,
           }
         : {}),
       // Auto-pause if critical

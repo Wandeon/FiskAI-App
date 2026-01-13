@@ -6,10 +6,6 @@ import { jobsProcessed, jobDuration } from "./metrics"
 import { llmLimiter } from "./rate-limiter"
 import { runExtractor } from "../agents/extractor"
 import { updateRunOutcome } from "../agents/runner"
-<<<<<<< HEAD
-import { db } from "@/lib/db"
-=======
->>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
 import { dbReg } from "@/lib/db/regulatory"
 import { isReadyForExtraction } from "../utils/content-provider"
 
@@ -67,52 +63,10 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
       })
     )
 
-<<<<<<< HEAD
-    // PHASE-D: Use candidateFactIds for item count (sourcePointerIds always empty)
-    const itemsProduced = result.candidateFactIds.length
-
-    // INVARIANT ENFORCEMENT: Update AgentRun with actual item count
-    // This ensures outcome reflects reality: itemsProduced > 0 → SUCCESS_APPLIED
-    if (result.agentRunId) {
-      await updateRunOutcome(result.agentRunId, itemsProduced)
-    }
-
-    // PHASE-D: Queue compose jobs using candidateFactIds (not sourcePointerIds)
-    // CandidateFact is now the inter-stage carrier between extractor and composer
-    if (result.success && result.candidateFactIds.length > 0) {
-      // Group candidate facts by domain and queue compose jobs
-      const candidateFacts = await db.candidateFact.findMany({
-        where: { id: { in: result.candidateFactIds } },
-        select: { id: true, suggestedDomain: true },
-      })
-
-      const byDomain = new Map<string, string[]>()
-      for (const cf of candidateFacts) {
-        const domain = cf.suggestedDomain || "unknown"
-        const ids = byDomain.get(domain) || []
-        ids.push(cf.id)
-        byDomain.set(domain, ids)
-      }
-
-      // Queue compose job for each domain
-      for (const [domain, candidateIds] of byDomain) {
-        // Use sorted candidate fact IDs for stable jobId (order-independent)
-        const sortedIds = [...candidateIds].sort().join(",")
-        await composeQueue.add(
-          "compose",
-          { candidateFactIds: candidateIds, domain, runId, parentJobId: job.id },
-          { delay: getDomainDelay(domain), jobId: `compose-${domain}-${sortedIds}` }
-        )
-        console.log(
-          `[extractor] Queued compose job for domain ${domain} with ${candidateIds.length} CandidateFacts`
-        )
-      }
-=======
     // PHASE-D: Update AgentRun.itemsProduced with the count of CandidateFacts created
     // This ensures SUCCESS_APPLIED/SUCCESS_NO_CHANGE is set correctly based on actual items
     if (result.success && result.agentRunId) {
       await updateRunOutcome(result.agentRunId, result.candidateFactIds.length)
->>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
     }
 
     // PHASE-D: Compose queueing is DISABLED until composer is migrated to use CandidateFacts
@@ -136,12 +90,8 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
     return {
       success: true,
       duration,
-<<<<<<< HEAD
-      data: { candidateFactsCreated: itemsProduced },
-=======
       // PHASE-D: Report candidateFactsCreated instead of pointersCreated
       data: { candidateFactsCreated: result.candidateFactIds.length },
->>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
     }
   } catch (error) {
     jobsProcessed.inc({ worker: "extractor", status: "failed", queue: "extract" })
