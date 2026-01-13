@@ -108,18 +108,39 @@ jobs:
           echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-  # Optional: Trigger Coolify deployment
-  notify-coolify:
-    name: Notify Coolify
+  # Auto-deploy to Coolify after successful image push
+  deploy:
+    name: Deploy to Coolify
     runs-on: [self-hosted, linux, x64, fiskai-build]
     needs: build-and-push
     if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Trigger Coolify deployment
-        if: ${{ vars.COOLIFY_WEBHOOK_URL != '' }}
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          COOLIFY_APP_UUID: bsswgo8ggwgkw8c88wo8wcw8
         run: |
-          curl -s -X POST "${{ vars.COOLIFY_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{"image": "ghcr.io/${{ env.IMAGE_NAME }}:latest"}' || true
-          echo "Coolify deployment triggered (or skipped if webhook not configured)"
+          if [ -z "$COOLIFY_TOKEN" ]; then
+            echo "::warning::COOLIFY_API_TOKEN not set, skipping deployment"
+            exit 0
+          fi
+
+          echo "Triggering deployment for image: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "http://152.53.146.3:8000/api/v1/applications/${COOLIFY_APP_UUID}/restart" \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Deployment triggered successfully"
+            echo "$body" | jq . 2>/dev/null || echo "$body"
+          else
+            echo "::error::Deployment failed with HTTP $http_code"
+            echo "$body"
+            exit 1
+          fi
