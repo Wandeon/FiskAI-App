@@ -1,8 +1,12 @@
 // src/lib/regulatory-truth/workers/sentinel.worker.ts
+//
+// Sentinel Worker: Discovery and initial routing
+// Routes new evidence through scout for pre-LLM quality assessment.
+//
 import { Job } from "bullmq"
 import { DiscoveryPriority } from "@prisma/client"
 import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
-import { extractQueue } from "./queues"
+import { scoutQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
 import { runSentinel, fetchDiscoveredItems } from "../agents/sentinel"
 import { db, dbReg } from "@/lib/db"
@@ -41,15 +45,17 @@ async function processSentinelJob(job: Job<SentinelJobData>): Promise<JobResult>
       take: 50,
     })
 
+    // Route new evidence through scout for pre-LLM quality assessment
+    // Scout → Router → (OCR|Extract|Skip) based on content quality and budget
     if (newEvidence.length > 0) {
-      await extractQueue.addBulk(
+      await scoutQueue.addBulk(
         newEvidence.map((e) => ({
-          name: "extract",
+          name: "scout",
           data: { evidenceId: e.id, runId, parentJobId: job.id },
-          opts: { jobId: `extract-${e.id}` },
+          opts: { jobId: `scout-${e.id}` },
         }))
       )
-      console.log(`[sentinel] Queued ${newEvidence.length} extract jobs`)
+      console.log(`[sentinel] Queued ${newEvidence.length} scout jobs`)
     }
 
     const duration = Date.now() - start

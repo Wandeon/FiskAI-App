@@ -37,6 +37,13 @@ function createQueue(name: string, limiter?: { max: number; duration: number }) 
 
 // Pipeline queues
 export const sentinelQueue = createQueue("sentinel", { max: 5, duration: 60000 })
+
+// Pre-LLM scouting and routing (cheap-first strategy)
+// Scout: deterministic quality assessment, high throughput
+export const scoutQueue = createQueue("scout", { max: 20, duration: 60000 })
+// Router: budget-aware routing decisions, no LLM calls
+export const routerQueue = createQueue("router", { max: 20, duration: 60000 })
+
 export const extractQueue = createQueue("extract", { max: 10, duration: 60000 })
 export const ocrQueue = createQueue("ocr", { max: 2, duration: 60000 })
 export const composeQueue = createQueue("compose", { max: 5, duration: 60000 })
@@ -94,6 +101,8 @@ export const systemStatusQueue = new Queue("system-status", {
 // All queues for health checks
 export const allQueues = {
   sentinel: sentinelQueue,
+  scout: scoutQueue,
+  router: routerQueue,
   extract: extractQueue,
   ocr: ocrQueue,
   compose: composeQueue,
