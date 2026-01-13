@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { OTPInput } from "../OTPInput"
 
@@ -42,13 +42,16 @@ export function VerifyStep({
     }
   }, [error])
 
-  const handleComplete = async (code: string) => {
-    const success = await onVerify(code)
-    if (!success) {
-      setOtpError(true)
-      setTimeout(() => setOtpError(false), 300)
-    }
-  }
+  const handleComplete = useCallback(
+    async (code: string) => {
+      const success = await onVerify(code)
+      if (!success) {
+        setOtpError(true)
+        setTimeout(() => setOtpError(false), 300)
+      }
+    },
+    [onVerify]
+  )
 
   const handleResend = async () => {
     if (resendCooldown > 0 || resending) return
