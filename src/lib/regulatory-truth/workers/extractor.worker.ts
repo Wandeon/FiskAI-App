@@ -5,6 +5,7 @@ import { composeQueue, extractQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
 import { llmLimiter, getDomainDelay } from "./rate-limiter"
 import { runExtractor } from "../agents/extractor"
+import { updateRunOutcome } from "../agents/runner"
 import { db } from "@/lib/db"
 import { dbReg } from "@/lib/db/regulatory"
 import { isReadyForExtraction } from "../utils/content-provider"
@@ -58,6 +59,18 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
       })
     )
 
+    // PHASE-D: Use candidateFactIds for item count (sourcePointerIds always empty)
+    const itemsProduced = result.candidateFactIds.length
+
+    // INVARIANT ENFORCEMENT: Update AgentRun with actual item count
+    // This ensures outcome reflects reality: itemsProduced > 0 → SUCCESS_APPLIED
+    if (result.agentRunId) {
+      await updateRunOutcome(result.agentRunId, itemsProduced)
+    }
+
+    // TODO(PHASE-D): Compose pipeline is broken - sourcePointerIds always empty
+    // This block is dead code until composer is migrated to use candidateFactIds
+    // See docs/rtl/PIPELINE_CONTRACTS.md for details on the contract mismatch
     if (result.success && result.sourcePointerIds.length > 0) {
       // Group pointers by domain and queue compose jobs
       const pointers = await db.sourcePointer.findMany({
@@ -91,7 +104,7 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
     return {
       success: true,
       duration,
-      data: { pointersCreated: result.sourcePointerIds.length },
+      data: { candidateFactsCreated: itemsProduced },
     }
   } catch (error) {
     jobsProcessed.inc({ worker: "extractor", status: "failed", queue: "extract" })

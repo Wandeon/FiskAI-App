@@ -950,6 +950,13 @@ export async function runAgent<TInput, TOutput>(
 /**
  * Update an AgentRun's outcome after items have been produced.
  * Call this from workers after they know how many items were created.
+ *
+ * INVARIANT ENFORCEMENT: This is the single choke point where outcomes
+ * are finalized. The mapping is deterministic:
+ * - itemsProduced > 0 → SUCCESS_APPLIED
+ * - itemsProduced = 0 → SUCCESS_NO_CHANGE
+ *
+ * This prevents "SUCCESS_APPLIED with itemsProduced = 0" contract violations.
  */
 export async function updateRunOutcome(
   runId: string,
@@ -957,7 +964,19 @@ export async function updateRunOutcome(
   noChangeCode?: NoChangeCode,
   noChangeDetail?: string
 ): Promise<void> {
+  // INVARIANT: Outcome is derived from itemsProduced, not passed in
+  // This prevents callers from setting SUCCESS_APPLIED with itemsProduced = 0
   const outcome: AgentRunOutcome = itemsProduced > 0 ? "SUCCESS_APPLIED" : "SUCCESS_NO_CHANGE"
+
+  // Log for observability - helps catch callers that might expect different behavior
+  if (itemsProduced === 0) {
+    console.log(`[runner] updateRunOutcome: runId=${runId} itemsProduced=0 → SUCCESS_NO_CHANGE`)
+  } else {
+    console.log(
+      `[runner] updateRunOutcome: runId=${runId} itemsProduced=${itemsProduced} → SUCCESS_APPLIED`
+    )
+  }
+
   await db.agentRun.update({
     where: { id: runId },
     data: {

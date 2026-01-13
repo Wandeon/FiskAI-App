@@ -30,6 +30,8 @@ export interface ExtractorResult {
   sourcePointerIds: string[]
   /** PHASE-D: CandidateFacts created during extraction */
   candidateFactIds: string[]
+  /** AgentRun ID for outcome updates */
+  agentRunId: string | null
   error: string | null
 }
 
@@ -133,6 +135,7 @@ export async function runExtractor(
       output: null,
       sourcePointerIds: [],
       candidateFactIds: [],
+      agentRunId: null,
       error: `Evidence not found: ${evidenceId}`,
     }
   }
@@ -147,6 +150,7 @@ export async function runExtractor(
         output: null,
         sourcePointerIds: [],
         candidateFactIds: [],
+        agentRunId: null,
         error: `Blocked test domain: ${urlDomain}`,
       }
     }
@@ -197,6 +201,7 @@ export async function runExtractor(
       output: null,
       sourcePointerIds: [],
       candidateFactIds: [],
+      agentRunId: result.runId,
       error: result.error,
     }
   }
@@ -359,6 +364,7 @@ export async function runExtractor(
     output: result.output,
     sourcePointerIds: [], // PHASE-D: Always empty - SourcePointer creation removed
     candidateFactIds,
+    agentRunId: result.runId,
     error: null,
   }
 }
