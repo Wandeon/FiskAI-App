@@ -1,14 +1,22 @@
 // src/lib/regulatory-truth/workers/extractor.worker.ts
 import { Job } from "bullmq"
 import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
-import { composeQueue, extractQueue } from "./queues"
+import { extractQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
-import { llmLimiter, getDomainDelay } from "./rate-limiter"
+import { llmLimiter } from "./rate-limiter"
 import { runExtractor } from "../agents/extractor"
 import { updateRunOutcome } from "../agents/runner"
+<<<<<<< HEAD
 import { db } from "@/lib/db"
+=======
+>>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
 import { dbReg } from "@/lib/db/regulatory"
 import { isReadyForExtraction } from "../utils/content-provider"
+
+// PHASE-D: Compose imports disabled until composer is migrated to CandidateFacts
+// import { composeQueue } from "./queues"
+// import { getDomainDelay } from "./rate-limiter"
+// import { db } from "@/lib/db"
 
 interface ExtractJobData {
   evidenceId: string
@@ -59,6 +67,7 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
       })
     )
 
+<<<<<<< HEAD
     // PHASE-D: Use candidateFactIds for item count (sourcePointerIds always empty)
     const itemsProduced = result.candidateFactIds.length
 
@@ -98,7 +107,27 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
           `[extractor] Queued compose job for domain ${domain} with ${candidateIds.length} CandidateFacts`
         )
       }
+=======
+    // PHASE-D: Update AgentRun.itemsProduced with the count of CandidateFacts created
+    // This ensures SUCCESS_APPLIED/SUCCESS_NO_CHANGE is set correctly based on actual items
+    if (result.success && result.agentRunId) {
+      await updateRunOutcome(result.agentRunId, result.candidateFactIds.length)
+>>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
     }
+
+    // PHASE-D: Compose queueing is DISABLED until composer is migrated to use CandidateFacts
+    // The composer agent (runComposer) is tightly coupled to SourcePointer:
+    // - Takes sourcePointerIds as input
+    // - Queries db.sourcePointer.findMany()
+    // - Connects rules to sourcePointers
+    //
+    // Since PHASE-D removed SourcePointer creation, compose would fail immediately.
+    // CandidateFacts are stored and itemsProduced is updated correctly above.
+    // TODO: Migrate composer.ts and composer.worker.ts to use CandidateFacts
+    //
+    // if (result.success && result.candidateFactIds.length > 0) {
+    //   ... queue compose jobs with candidateFactIds ...
+    // }
 
     const duration = Date.now() - start
     jobsProcessed.inc({ worker: "extractor", status: "success", queue: "extract" })
@@ -107,7 +136,12 @@ async function processExtractJob(job: Job<ExtractJobData>): Promise<JobResult> {
     return {
       success: true,
       duration,
+<<<<<<< HEAD
       data: { candidateFactsCreated: itemsProduced },
+=======
+      // PHASE-D: Report candidateFactsCreated instead of pointersCreated
+      data: { candidateFactsCreated: result.candidateFactIds.length },
+>>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
     }
   } catch (error) {
     jobsProcessed.inc({ worker: "extractor", status: "failed", queue: "extract" })

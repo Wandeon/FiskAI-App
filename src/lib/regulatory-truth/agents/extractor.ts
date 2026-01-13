@@ -30,7 +30,11 @@ export interface ExtractorResult {
   sourcePointerIds: string[]
   /** PHASE-D: CandidateFacts created during extraction */
   candidateFactIds: string[]
+<<<<<<< HEAD
   /** AgentRun ID for outcome updates */
+=======
+  /** AgentRun ID for updating itemsProduced via updateRunOutcome */
+>>>>>>> 85bace93 (fix(rtl): update extractor worker to use candidateFactIds (PHASE-D))
   agentRunId: string | null
   error: string | null
 }

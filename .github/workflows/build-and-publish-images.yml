@@ -1,0 +1,206 @@
+# Build and publish all Docker images to GHCR
+# Produces immutable images for app and workers, tagged by commit SHA
+#
+# Images produced:
+#   - ghcr.io/wandeon/fiskai-app:<sha>     (Next.js app, ARM64)
+#   - ghcr.io/wandeon/fiskai-worker:<sha>  (RTL workers, ARM64)
+#   - ghcr.io/wandeon/fiskai-worker-ocr:<sha> (OCR worker with tesseract, ARM64)
+#
+# All images also get :latest tag on main branch for convenience.
+# Production deploys should use SHA or digest for reproducibility.
+
+name: Build and Publish Images
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+    inputs:
+      force_no_cache:
+        description: "Force build without cache"
+        required: false
+        default: "false"
+        type: boolean
+      dry_run:
+        description: "Dry run (build but do not push)"
+        required: false
+        default: "false"
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  # Remote BuildKit on VPS-01 (ARM64) via Tailscale
+  BUILDKIT_HOST: tcp://100.64.123.81:1234
+
+jobs:
+  # Build all images in parallel using matrix strategy
+  build-images:
+    name: Build ${{ matrix.image }}
+    runs-on: [self-hosted, linux, x64, fiskai-build]
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: fiskai-app
+            dockerfile: Dockerfile
+            build-args: |
+              DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy?schema=public
+              REGULATORY_DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy?schema=public
+          - image: fiskai-worker
+            dockerfile: Dockerfile.worker
+            build-args: |
+              WITH_OCR=false
+              GIT_SHA=${{ github.sha }}
+              BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          - image: fiskai-worker-ocr
+            dockerfile: Dockerfile.worker
+            build-args: |
+              WITH_OCR=true
+              GIT_SHA=${{ github.sha }}
+              BUILD_DATE=${{ github.event.head_commit.timestamp }}
+
+    outputs:
+      app-digest: ${{ steps.build-fiskai-app.outputs.digest }}
+      worker-digest: ${{ steps.build-fiskai-worker.outputs.digest }}
+      worker-ocr-digest: ${{ steps.build-fiskai-worker-ocr.outputs.digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx with remote builder
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: remote
+          endpoint: ${{ env.BUILDKIT_HOST }}
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/wandeon/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=,format=short
+            type=sha,prefix=,format=long
+
+      - name: Record build start time
+        id: build_start
+        run: echo "start=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: Build and push ${{ matrix.image }}
+        id: build-${{ matrix.image }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./${{ matrix.dockerfile }}
+          push: ${{ github.event.inputs.dry_run != 'true' }}
+          platforms: linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/wandeon/${{ matrix.image }}:buildcache
+          cache-to: |
+            type=registry,ref=${{ env.REGISTRY }}/wandeon/${{ matrix.image }}:buildcache,mode=max
+          build-args: ${{ matrix.build-args }}
+          provenance: false
+          sbom: false
+
+      - name: Calculate build duration
+        id: build_time
+        run: |
+          end=$(date +%s)
+          start=${{ steps.build_start.outputs.start }}
+          duration=$((end - start))
+          minutes=$((duration / 60))
+          seconds=$((duration % 60))
+          echo "duration=${minutes}m ${seconds}s" >> $GITHUB_OUTPUT
+
+      - name: Write build summary
+        run: |
+          echo "### ${{ matrix.image }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build time:** ${{ steps.build_time.outputs.duration }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Digest:** \`${{ steps.build-${{ matrix.image }}.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # Collect and display all image digests
+  summarize:
+    name: Summarize Builds
+    runs-on: [self-hosted, linux, x64, fiskai-build]
+    needs: build-images
+    if: always()
+
+    steps:
+      - name: Display deployment info
+        run: |
+          echo "## 📦 Image Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deploy Commands" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**App (via Coolify):** Automatically deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workers (via SSH to VPS 152.53.179.101):**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "ssh admin@152.53.179.101 'cd /home/admin/FiskAI && IMAGE_TAG=${{ github.sha }} ./scripts/deploy-workers.sh'" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # Auto-deploy app to Coolify after successful build
+  deploy-app:
+    name: Deploy App to Coolify
+    runs-on: [self-hosted, linux, x64, fiskai-build]
+    needs: build-images
+    if: github.ref == 'refs/heads/main' && github.event.inputs.dry_run != 'true'
+
+    steps:
+      - name: Trigger Coolify deployment
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          COOLIFY_APP_UUID: tgg4gkcco8k8s0wwg08cck40
+        run: |
+          if [ -z "$COOLIFY_TOKEN" ]; then
+            echo "::warning::COOLIFY_API_TOKEN not set, skipping deployment"
+            exit 0
+          fi
+
+          echo "Triggering deployment for image: ghcr.io/wandeon/fiskai-app:${{ github.sha }}"
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "http://152.53.146.3:8000/api/v1/applications/${COOLIFY_APP_UUID}/restart" \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ App deployment triggered successfully"
+            echo "$body" | jq . 2>/dev/null || echo "$body"
+          else
+            echo "::error::Deployment failed with HTTP $http_code"
+            echo "$body"
+            exit 1
+          fi

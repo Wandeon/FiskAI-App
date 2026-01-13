@@ -1,5 +1,43 @@
 # docker-compose.workers.yml
-# Extends base docker-compose.yml with worker services
+# Production worker services using pre-built GHCR images
+#
+# Usage:
+#   IMAGE_TAG=abc123 docker compose -f docker-compose.workers.yml up -d
+#
+# For local development with builds, use:
+#   docker compose -f docker-compose.workers.yml -f docker-compose.workers.dev.yml up -d
+#
+# IMAGE_TAG can be:
+#   - A commit SHA (e.g., abc123def) - recommended for production
+#   - "latest" - convenience tag, updated on each main push
+#   - A full digest (e.g., sha256:abc...) - most reproducible
+
+x-worker-common: &worker-common
+  image: ghcr.io/wandeon/fiskai-worker:${IMAGE_TAG:-latest}
+  restart: unless-stopped
+  networks:
+    - default
+    - coolify
+  depends_on:
+    redis:
+      condition: service_healthy
+  environment: &worker-env
+    NODE_ENV: production
+    REDIS_URL: redis://fiskai-redis:6379
+    DATABASE_URL: ${DATABASE_URL}
+    REGULATORY_DATABASE_URL: ${REGULATORY_DATABASE_URL}
+
+x-worker-ocr: &worker-ocr
+  image: ghcr.io/wandeon/fiskai-worker-ocr:${IMAGE_TAG:-latest}
+  restart: unless-stopped
+  networks:
+    - default
+    - coolify
+  depends_on:
+    redis:
+      condition: service_healthy
+  environment:
+    <<: *worker-env
 
 services:
   redis:
@@ -17,519 +55,229 @@ services:
     networks:
       - default
       - coolify
-    # Port mapping removed - Redis accessible only within Docker network
-    # Workers connect via internal hostname: redis://fiskai-redis:6379
-    # For external access (e.g., queue-status.ts), use: docker exec fiskai-redis redis-cli
-    # or SSH tunnel: ssh -L 6379:localhost:6379 admin@server
 
-  # Bull Board disabled - no ARM64 support
-  # Use scripts/queue-status.ts for monitoring instead
-  # bull-board:
-  #   image: deadly0/bull-board:latest
-  #   container_name: fiskai-bull-board
-  #   restart: unless-stopped
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - BULL_PREFIX=fiskai
-  #   ports:
-  #     - "3003:3000"
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - default
-  #     - coolify
-
-  # Worker services
   worker-orchestrator:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-orchestrator
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/orchestrator.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - WORKER_TYPE=orchestrator
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      WORKER_TYPE: orchestrator
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker-sentinel:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-sentinel
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/sentinel.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - WORKER_TYPE=sentinel
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      WORKER_TYPE: sentinel
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker-extractor:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-extractor
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/extractor.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - OLLAMA_EXTRACT_ENDPOINT=${OLLAMA_EXTRACT_ENDPOINT}
-      - OLLAMA_EXTRACT_API_KEY=${OLLAMA_EXTRACT_API_KEY}
-      - OLLAMA_EXTRACT_MODEL=${OLLAMA_EXTRACT_MODEL}
-      - WORKER_TYPE=extractor
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
+      <<: *worker-env
+      OLLAMA_EXTRACT_ENDPOINT: ${OLLAMA_EXTRACT_ENDPOINT}
+      OLLAMA_EXTRACT_API_KEY: ${OLLAMA_EXTRACT_API_KEY}
+      OLLAMA_EXTRACT_MODEL: ${OLLAMA_EXTRACT_MODEL}
+      WORKER_TYPE: extractor
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 1G
-    networks:
-      - default
-      - coolify
 
   worker-ocr:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "true"
+    <<: *worker-ocr
     container_name: fiskai-worker-ocr
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/ocr.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_VISION_MODEL=${OLLAMA_VISION_MODEL:-llama3.2-vision}
-      - WORKER_TYPE=ocr
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY}
+      OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llama3.2-vision}
+      WORKER_TYPE: ocr
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 2G
 
   worker-composer:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-composer
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/composer.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
-      - WORKER_TYPE=composer
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      WORKER_TYPE: composer
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker-reviewer:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-reviewer
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/reviewer.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
-      - WORKER_TYPE=reviewer
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      WORKER_TYPE: reviewer
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker-scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-scheduler
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/scheduler.service.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - WATCHDOG_TIMEZONE=Europe/Zagreb
-      - WORKER_TYPE=scheduler
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      WATCHDOG_TIMEZONE: Europe/Zagreb
+      WORKER_TYPE: scheduler
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker-releaser:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-releaser
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/releaser.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - WORKER_TYPE=releaser
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      WORKER_TYPE: releaser
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker-arbiter:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-arbiter
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/arbiter.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
-      - WORKER_TYPE=arbiter
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      WORKER_TYPE: arbiter
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 512M
 
-  # Layer B: Continuous 24/7 queue draining
   worker-continuous-drainer:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-continuous-drainer
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/continuous-drainer.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      # DATABASE_URL uses environment variable - set in .env or shell
-      # Format: postgresql://user:password@host:port/database?schema=public
-      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
-      - WORKER_TYPE=continuous-drainer
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      WORKER_TYPE: continuous-drainer
     deploy:
       resources:
         limits:
           memory: 256M
 
-  # Content Sync: Patches MDX frontmatter with RTL rule changes
   worker-content-sync:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-content-sync
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/content-sync.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
-      - WORKER_TYPE=content-sync
-      - WORKER_CONCURRENCY=1
-      # GitHub token for PR creation
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - GIT_SHA=${GIT_SHA:-unknown}
+      <<: *worker-env
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      WORKER_TYPE: content-sync
+      WORKER_CONCURRENCY: 1
     volumes:
-      # Mount content directory for patching (read-write)
       - ./content:/app/content:rw
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
     deploy:
       resources:
         limits:
           memory: 512M
 
-  # Article Agent: Generates articles from news/RTL events
   worker-article:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-article
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/article.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
-      - WORKER_TYPE=article
-      - WORKER_CONCURRENCY=1
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      WORKER_TYPE: article
+      WORKER_CONCURRENCY: 1
     deploy:
       resources:
         limits:
           memory: 1G
 
-  # Evidence Embedding Worker: Generates embeddings for Evidence records (semantic duplicate detection)
-  # Uses local Ollama (ArtemiPC via Tailscale) for embeddings - separate from extraction
   worker-evidence-embedding:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-evidence-embedding
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/evidence-embedding.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
-      # Embedding-specific Ollama config (local Ollama via Tailscale)
-      - OLLAMA_EMBED_ENDPOINT=${OLLAMA_EMBED_ENDPOINT}
-      - OLLAMA_EMBED_API_KEY=${OLLAMA_EMBED_API_KEY}
-      - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-nomic-embed-text}
-      - OLLAMA_EMBED_DIMS=${OLLAMA_EMBED_DIMS:-768}
-      - WORKER_TYPE=evidence-embedding
-      - WORKER_CONCURRENCY=2
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_EMBED_ENDPOINT: ${OLLAMA_EMBED_ENDPOINT}
+      OLLAMA_EMBED_API_KEY: ${OLLAMA_EMBED_API_KEY}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-nomic-embed-text}
+      OLLAMA_EMBED_DIMS: ${OLLAMA_EMBED_DIMS:-768}
+      WORKER_TYPE: evidence-embedding
+      WORKER_CONCURRENCY: 2
     deploy:
       resources:
         limits:
           memory: 512M
 
-  # Embedding Worker: Generates embeddings for published rules
-  # Uses local Ollama (ArtemiPC via Tailscale) for embeddings - separate from extraction
   worker-embedding:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-embedding
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/regulatory-truth/workers/embedding.worker.js"]
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://fiskai-redis:6379
-      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
-      # Embedding-specific Ollama config (local Ollama via Tailscale)
-      - OLLAMA_EMBED_ENDPOINT=${OLLAMA_EMBED_ENDPOINT}
-      - OLLAMA_EMBED_API_KEY=${OLLAMA_EMBED_API_KEY}
-      - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-nomic-embed-text}
-      - OLLAMA_EMBED_DIMS=${OLLAMA_EMBED_DIMS:-768}
-      - WORKER_TYPE=embedding
-      - WORKER_CONCURRENCY=2
-      - GIT_SHA=${GIT_SHA:-unknown}
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      OLLAMA_EMBED_ENDPOINT: ${OLLAMA_EMBED_ENDPOINT}
+      OLLAMA_EMBED_API_KEY: ${OLLAMA_EMBED_API_KEY}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-nomic-embed-text}
+      OLLAMA_EMBED_DIMS: ${OLLAMA_EMBED_DIMS:-768}
+      WORKER_TYPE: embedding
+      WORKER_CONCURRENCY: 2
     deploy:
       resources:
         limits:
           memory: 512M
 
-  # E-Invoice Inbound Poller: Polls ePoslovanje for incoming invoices
-  # Note: One instance per company (configured via COMPANY_ID)
   worker-einvoice-inbound:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-      args:
-        GIT_SHA: ${GIT_SHA:-unknown}
-        BUILD_DATE: ${BUILD_DATE:-unknown}
-        WITH_OCR: "false"
+    <<: *worker-common
     container_name: fiskai-worker-einvoice-inbound
-    restart: unless-stopped
     command: ["node", "dist/workers/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.js"]
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=public}
-      - REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL:-postgresql://fiskai:${DB_PASSWORD}@fiskai-db:5432/fiskai?schema=regulatory}
-      - EPOSLOVANJE_API_BASE=${EPOSLOVANJE_API_BASE}
-      - EPOSLOVANJE_API_KEY=${EPOSLOVANJE_API_KEY}
-      - COMPANY_ID=${EINVOICE_COMPANY_ID}
-      - POLL_INTERVAL_MS=${EINVOICE_POLL_INTERVAL_MS:-300000}
-      - MAX_WINDOW_DAYS=${EINVOICE_MAX_WINDOW_DAYS:-7}
-      - WORKER_TYPE=einvoice-inbound
-      - GIT_SHA=${GIT_SHA:-unknown}
-    networks:
-      - default
-      - coolify
+      <<: *worker-env
+      EPOSLOVANJE_API_BASE: ${EPOSLOVANJE_API_BASE}
+      EPOSLOVANJE_API_KEY: ${EPOSLOVANJE_API_KEY}
+      COMPANY_ID: ${EINVOICE_COMPANY_ID}
+      POLL_INTERVAL_MS: ${EINVOICE_POLL_INTERVAL_MS:-300000}
+      MAX_WINDOW_DAYS: ${EINVOICE_MAX_WINDOW_DAYS:-7}
+      WORKER_TYPE: einvoice-inbound
     deploy:
       resources:
         limits:
