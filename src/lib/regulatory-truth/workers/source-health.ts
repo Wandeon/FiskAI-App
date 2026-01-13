@@ -3,6 +3,12 @@
 // Source Health: Self-correcting feedback loop for RTL pipeline
 // Computes rolling health scores and adapts routing/budget decisions automatically.
 //
+// Stability features:
+// - Dwell time: Sources must stay in POOR/CRITICAL for minimum duration before upgrade
+// - Stepwise transitions: Health state can only change one level at a time
+// - Explainability: Every decision is recorded with reason and details
+// - Starvation guard: Rare sources get occasional evaluation allowance
+//
 
 import { db } from "@/lib/db"
 
@@ -15,6 +21,23 @@ export const HEALTH_THRESHOLDS = {
   CRITICAL: 0.1, // Very poor, should be paused
 }
 
+// Health states (ordered from best to worst)
+export type HealthState = "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "CRITICAL"
+export const HEALTH_STATES: HealthState[] = ["EXCELLENT", "GOOD", "FAIR", "POOR", "CRITICAL"]
+
+// Decision reasons for explainability
+export type DecisionReason =
+  | "HEALTH_UPGRADE" // Health improved, state upgraded
+  | "HEALTH_DOWNGRADE" // Health worsened, state downgraded
+  | "DWELL_TIME_BLOCKED" // Upgrade blocked due to insufficient dwell time
+  | "STEPWISE_BLOCKED" // Upgrade blocked due to stepwise constraint
+  | "AUTO_PAUSE" // Auto-paused due to critical health
+  | "AUTO_UNPAUSE" // Auto-unpaused after pause expired
+  | "MANUAL_PAUSE" // Manually paused by operator
+  | "MANUAL_UNPAUSE" // Manually unpaused by operator
+  | "STARVATION_ALLOWANCE" // Starvation allowance granted
+  | "WINDOW_RESET" // Rolling window was reset
+
 // Health configuration
 export interface HealthConfig {
   windowSizeHours: number // Rolling window size (default: 168 = 7 days)
@@ -24,6 +47,12 @@ export interface HealthConfig {
   efficiencyWeight: number // Weight for token efficiency in score
   emptyPenalty: number // Penalty for empty outputs
   errorPenalty: number // Penalty for errors
+  // Stability: Dwell time configuration (anti-flapping)
+  minDwellHoursPoor: number // Min hours to stay in POOR before upgrade
+  minDwellHoursCritical: number // Min hours to stay in CRITICAL before upgrade
+  // Starvation guard configuration
+  starvationAllowanceIntervalHours: number // Min hours between starvation allowances
+  starvationAllowanceMaxPerWindow: number // Max allowances per rolling window
 }
 
 const DEFAULT_HEALTH_CONFIG: HealthConfig = {
@@ -34,6 +63,17 @@ const DEFAULT_HEALTH_CONFIG: HealthConfig = {
   efficiencyWeight: 0.3, // 30% weight for token efficiency
   emptyPenalty: 0.1, // 10% penalty per 10% empty rate
   errorPenalty: 0.2, // 20% penalty per 10% error rate
+  // Stability: Dwell time (anti-flapping)
+  minDwellHoursPoor: 12, // Must stay in POOR for 12 hours minimum
+  minDwellHoursCritical: 24, // Must stay in CRITICAL for 24 hours minimum
+  // Starvation guard
+  starvationAllowanceIntervalHours: 48, // One allowance every 48 hours max
+  starvationAllowanceMaxPerWindow: 3, // Max 3 allowances per 7-day window
+}
+
+// Observation mode flag
+export const isObservationMode = (): boolean => {
+  return process.env.RTL_OBSERVATION_MODE === "true"
 }
 
 // Cached health config
@@ -53,6 +93,8 @@ const CACHE_TTL_MS = 30000 // 30 seconds
 export interface SourceHealthData {
   sourceSlug: string
   healthScore: number
+  healthState: HealthState
+  healthStateEnteredAt: Date
   isPaused: boolean
   pauseReason: string | null
   minScoutScore: number
@@ -62,6 +104,19 @@ export interface SourceHealthData {
   emptyRate: number
   errorRate: number
   avgTokensPerItem: number
+  // Starvation guard
+  lastStarvationAllowanceAt: Date | null
+  starvationAllowanceCount: number
+  canReceiveStarvationAllowance: boolean
+}
+
+// Decision details for explainability
+export interface DecisionDetails {
+  triggeredBy: string // What caused the decision
+  metricValue?: number // Current value of relevant metric
+  threshold?: number // Threshold that was crossed
+  previousValue?: number // Previous value before change
+  dwellHoursRemaining?: number // Hours remaining in dwell time (if blocked)
 }
 
 // Outcome record for batch updates
@@ -185,6 +240,174 @@ export function computeAdaptiveThresholds(healthScore: number): {
 }
 
 /**
+ * Get health state from score
+ */
+export function getHealthStateFromScore(score: number): HealthState {
+  if (score >= HEALTH_THRESHOLDS.EXCELLENT) return "EXCELLENT"
+  if (score >= HEALTH_THRESHOLDS.GOOD) return "GOOD"
+  if (score >= HEALTH_THRESHOLDS.FAIR) return "FAIR"
+  if (score >= HEALTH_THRESHOLDS.POOR) return "POOR"
+  return "CRITICAL"
+}
+
+/**
+ * Get index of health state (0 = EXCELLENT, 4 = CRITICAL)
+ */
+export function getHealthStateIndex(state: HealthState): number {
+  return HEALTH_STATES.indexOf(state)
+}
+
+/**
+ * Check if dwell time constraint is satisfied for state upgrade
+ * Returns { allowed: boolean, hoursRemaining: number }
+ */
+export function checkDwellTime(
+  currentState: HealthState,
+  stateEnteredAt: Date,
+  config: HealthConfig = healthConfig
+): { allowed: boolean; hoursRemaining: number } {
+  const now = new Date()
+  const hoursInState = (now.getTime() - stateEnteredAt.getTime()) / (1000 * 60 * 60)
+
+  // Only POOR and CRITICAL have dwell time requirements for upgrades
+  if (currentState === "CRITICAL") {
+    const required = config.minDwellHoursCritical
+    if (hoursInState < required) {
+      return { allowed: false, hoursRemaining: required - hoursInState }
+    }
+  } else if (currentState === "POOR") {
+    const required = config.minDwellHoursPoor
+    if (hoursInState < required) {
+      return { allowed: false, hoursRemaining: required - hoursInState }
+    }
+  }
+
+  return { allowed: true, hoursRemaining: 0 }
+}
+
+/**
+ * Compute allowed state transition with stepwise and dwell time constraints
+ * Returns the target state (may be same as current if blocked)
+ */
+export function computeAllowedStateTransition(
+  currentState: HealthState,
+  targetState: HealthState,
+  stateEnteredAt: Date,
+  config: HealthConfig = healthConfig
+): {
+  allowedState: HealthState
+  blocked: boolean
+  reason: DecisionReason | null
+  details: DecisionDetails | null
+} {
+  const currentIndex = getHealthStateIndex(currentState)
+  const targetIndex = getHealthStateIndex(targetState)
+
+  // If target is same as current, no change needed
+  if (currentIndex === targetIndex) {
+    return { allowedState: currentState, blocked: false, reason: null, details: null }
+  }
+
+  // Downgrade: Always allowed (no constraints on getting worse)
+  if (targetIndex > currentIndex) {
+    return {
+      allowedState: targetState,
+      blocked: false,
+      reason: "HEALTH_DOWNGRADE",
+      details: {
+        triggeredBy: "health_score_decrease",
+        previousValue: currentIndex,
+        metricValue: targetIndex,
+      },
+    }
+  }
+
+  // Upgrade: Apply stepwise constraint (can only go up one level at a time)
+  const stepwiseTarget = HEALTH_STATES[currentIndex - 1] // One level better
+
+  // Check dwell time for POOR/CRITICAL upgrades
+  const dwellCheck = checkDwellTime(currentState, stateEnteredAt, config)
+  if (!dwellCheck.allowed) {
+    return {
+      allowedState: currentState,
+      blocked: true,
+      reason: "DWELL_TIME_BLOCKED",
+      details: {
+        triggeredBy: "dwell_time_constraint",
+        metricValue: dwellCheck.hoursRemaining,
+        threshold:
+          currentState === "CRITICAL" ? config.minDwellHoursCritical : config.minDwellHoursPoor,
+        dwellHoursRemaining: dwellCheck.hoursRemaining,
+      },
+    }
+  }
+
+  // Stepwise constraint: If target is more than one level better, cap at one level
+  if (targetIndex < currentIndex - 1) {
+    return {
+      allowedState: stepwiseTarget,
+      blocked: true,
+      reason: "STEPWISE_BLOCKED",
+      details: {
+        triggeredBy: "stepwise_constraint",
+        previousValue: currentIndex,
+        metricValue: targetIndex,
+        threshold: currentIndex - 1,
+      },
+    }
+  }
+
+  // Normal upgrade (one level)
+  return {
+    allowedState: stepwiseTarget,
+    blocked: false,
+    reason: "HEALTH_UPGRADE",
+    details: {
+      triggeredBy: "health_score_increase",
+      previousValue: currentIndex,
+      metricValue: targetIndex,
+    },
+  }
+}
+
+/**
+ * Check if source is eligible for starvation allowance
+ */
+export function checkStarvationAllowanceEligibility(
+  healthState: HealthState,
+  lastAllowanceAt: Date | null,
+  allowanceCount: number,
+  windowStartAt: Date,
+  config: HealthConfig = healthConfig
+): { eligible: boolean; reason: string } {
+  // Only POOR and CRITICAL sources need starvation allowance
+  if (healthState !== "POOR" && healthState !== "CRITICAL") {
+    return { eligible: false, reason: "Source health state does not require starvation allowance" }
+  }
+
+  // Check max allowances per window
+  if (allowanceCount >= config.starvationAllowanceMaxPerWindow) {
+    return {
+      eligible: false,
+      reason: `Max allowances (${config.starvationAllowanceMaxPerWindow}) reached in current window`,
+    }
+  }
+
+  // Check interval since last allowance
+  if (lastAllowanceAt) {
+    const hoursSinceLastAllowance = (Date.now() - lastAllowanceAt.getTime()) / (1000 * 60 * 60)
+    if (hoursSinceLastAllowance < config.starvationAllowanceIntervalHours) {
+      return {
+        eligible: false,
+        reason: `Minimum interval (${config.starvationAllowanceIntervalHours}h) not reached. Hours since last: ${hoursSinceLastAllowance.toFixed(1)}`,
+      }
+    }
+  }
+
+  return { eligible: true, reason: "Eligible for starvation allowance" }
+}
+
+/**
  * Get health data for a source (with caching)
  */
 export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthData> {
@@ -205,6 +428,8 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
       data: {
         sourceSlug,
         healthScore: 0.5, // Neutral starting score
+        healthState: "FAIR", // Default state
+        healthStateEnteredAt: new Date(),
         windowSizeHours: healthConfig.windowSizeHours,
       },
     })
@@ -215,7 +440,7 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
     health.windowStartAt.getTime() + health.windowSizeHours * 60 * 60 * 1000
   )
   if (new Date() > windowEnd) {
-    // Reset window
+    // Reset window - also reset starvation allowance count
     health = await db.sourceHealth.update({
       where: { sourceSlug },
       data: {
@@ -226,8 +451,13 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
         errorCount: 0,
         totalTokensUsed: 0,
         totalItemsProduced: 0,
+        starvationAllowanceCount: 0, // Reset per-window count
+        lastDecisionReason: "WINDOW_RESET",
+        lastDecisionAt: new Date(),
+        lastDecisionDetails: { triggeredBy: "window_expiry" },
       },
     })
+    console.log(`[source-health] Window reset for source: ${sourceSlug}`)
   }
 
   // Check auto-unpause
@@ -239,6 +469,9 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
         pausedAt: null,
         pauseReason: null,
         pauseExpiresAt: null,
+        lastDecisionReason: "AUTO_UNPAUSE",
+        lastDecisionAt: new Date(),
+        lastDecisionDetails: { triggeredBy: "pause_expiry" },
       },
     })
     console.log(`[source-health] Auto-unpaused source: ${sourceSlug}`)
@@ -250,9 +483,20 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
   const emptyRate = health.emptyCount / totalAttempts
   const errorRate = health.errorCount / totalAttempts
 
+  // Check starvation allowance eligibility
+  const starvationEligibility = checkStarvationAllowanceEligibility(
+    health.healthState as HealthState,
+    health.lastStarvationAllowanceAt,
+    health.starvationAllowanceCount,
+    health.windowStartAt,
+    healthConfig
+  )
+
   const data: SourceHealthData = {
     sourceSlug: health.sourceSlug,
     healthScore: health.healthScore,
+    healthState: health.healthState as HealthState,
+    healthStateEnteredAt: health.healthStateEnteredAt,
     isPaused: health.isPaused,
     pauseReason: health.pauseReason,
     minScoutScore: health.minScoutScore,
@@ -262,6 +506,10 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
     emptyRate,
     errorRate,
     avgTokensPerItem: health.avgTokensPerItem,
+    // Starvation guard
+    lastStarvationAllowanceAt: health.lastStarvationAllowanceAt,
+    starvationAllowanceCount: health.starvationAllowanceCount,
+    canReceiveStarvationAllowance: starvationEligibility.eligible,
   }
 
   // Update cache
@@ -272,6 +520,7 @@ export async function getSourceHealth(sourceSlug: string): Promise<SourceHealthD
 
 /**
  * Record an outcome and update health metrics
+ * Applies stability constraints (dwell time, stepwise transitions) and records decision reasons
  */
 export async function recordOutcome(record: OutcomeRecord): Promise<void> {
   const { sourceSlug, tokensUsed, itemsProduced, outcome } = record
@@ -295,6 +544,8 @@ export async function recordOutcome(record: OutcomeRecord): Promise<void> {
         totalItemsProduced: itemsProduced,
         avgTokensPerItem: itemsProduced > 0 ? tokensUsed / itemsProduced : 0,
         healthScore: 0.5,
+        healthState: "FAIR",
+        healthStateEnteredAt: new Date(),
         ...thresholds,
       },
     })
@@ -318,13 +569,55 @@ export async function recordOutcome(record: OutcomeRecord): Promise<void> {
     newTotalItems
   )
 
-  // Compute new thresholds
-  const thresholds = computeAdaptiveThresholds(newHealthScore)
+  // Compute target state based on new score
+  const targetState = getHealthStateFromScore(newHealthScore)
+  const currentState = health.healthState as HealthState
+
+  // Apply stability constraints (dwell time + stepwise)
+  const transition = computeAllowedStateTransition(
+    currentState,
+    targetState,
+    health.healthStateEnteredAt,
+    healthConfig
+  )
+
+  // Compute thresholds based on the actual allowed state (not raw target)
+  const effectiveScore =
+    transition.allowedState === currentState
+      ? health.healthScore // Keep old score if state didn't change
+      : newHealthScore
+  const thresholds = computeAdaptiveThresholds(effectiveScore)
 
   // Check if should auto-pause
   const shouldPause =
     newHealthScore < HEALTH_THRESHOLDS.CRITICAL &&
     newTotalAttempts >= healthConfig.minAttemptsForScore
+
+  // Determine state change data
+  const stateChanged = transition.allowedState !== currentState
+  const stateChangeData = stateChanged
+    ? {
+        healthState: transition.allowedState,
+        healthStateEnteredAt: new Date(),
+        previousHealthState: currentState,
+      }
+    : {}
+
+  // Determine decision reason
+  let decisionReason: DecisionReason | null = null
+  let decisionDetails: DecisionDetails | null = null
+
+  if (transition.reason) {
+    decisionReason = transition.reason
+    decisionDetails = transition.details
+  } else if (shouldPause && !health.isPaused) {
+    decisionReason = "AUTO_PAUSE"
+    decisionDetails = {
+      triggeredBy: "health_score_critical",
+      metricValue: newHealthScore,
+      threshold: HEALTH_THRESHOLDS.CRITICAL,
+    }
+  }
 
   await db.sourceHealth.update({
     where: { sourceSlug },
@@ -339,6 +632,15 @@ export async function recordOutcome(record: OutcomeRecord): Promise<void> {
       healthScore: newHealthScore,
       lastBatchAt: new Date(),
       ...thresholds,
+      ...stateChangeData,
+      // Record decision if there was one
+      ...(decisionReason
+        ? {
+            lastDecisionReason: decisionReason,
+            lastDecisionAt: new Date(),
+            lastDecisionDetails: decisionDetails,
+          }
+        : {}),
       // Auto-pause if critical
       ...(shouldPause && !health.isPaused
         ? {
@@ -353,6 +655,19 @@ export async function recordOutcome(record: OutcomeRecord): Promise<void> {
 
   // Invalidate cache
   healthCache.delete(sourceSlug)
+
+  // Logging
+  if (stateChanged) {
+    console.log(
+      `[source-health] Source ${sourceSlug} state transition: ${currentState} -> ${transition.allowedState} (reason=${transition.reason})`
+    )
+  }
+
+  if (transition.blocked) {
+    console.log(
+      `[source-health] Source ${sourceSlug} upgrade blocked: ${transition.reason} (target was ${targetState})`
+    )
+  }
 
   if (shouldPause && !health.isPaused) {
     console.warn(
@@ -503,21 +818,34 @@ export async function pauseSource(
   durationHours?: number
 ): Promise<void> {
   const expiresAt = durationHours ? new Date(Date.now() + durationHours * 60 * 60 * 1000) : null
+  const now = new Date()
 
   await db.sourceHealth.upsert({
     where: { sourceSlug },
     create: {
       sourceSlug,
       isPaused: true,
-      pausedAt: new Date(),
+      pausedAt: now,
       pauseReason: reason,
       pauseExpiresAt: expiresAt,
+      lastDecisionReason: "MANUAL_PAUSE",
+      lastDecisionAt: now,
+      lastDecisionDetails: {
+        triggeredBy: "manual_pause",
+        metricValue: durationHours ?? null,
+      },
     },
     update: {
       isPaused: true,
-      pausedAt: new Date(),
+      pausedAt: now,
       pauseReason: reason,
       pauseExpiresAt: expiresAt,
+      lastDecisionReason: "MANUAL_PAUSE",
+      lastDecisionAt: now,
+      lastDecisionDetails: {
+        triggeredBy: "manual_pause",
+        metricValue: durationHours ?? null,
+      },
     },
   })
 
@@ -529,6 +857,8 @@ export async function pauseSource(
  * Manually unpause a source
  */
 export async function unpauseSource(sourceSlug: string): Promise<void> {
+  const now = new Date()
+
   await db.sourceHealth.update({
     where: { sourceSlug },
     data: {
@@ -536,6 +866,11 @@ export async function unpauseSource(sourceSlug: string): Promise<void> {
       pausedAt: null,
       pauseReason: null,
       pauseExpiresAt: null,
+      lastDecisionReason: "MANUAL_UNPAUSE",
+      lastDecisionAt: now,
+      lastDecisionDetails: {
+        triggeredBy: "manual_unpause",
+      },
     },
   })
 
@@ -551,19 +886,89 @@ export async function getAllSourceHealth(): Promise<SourceHealthData[]> {
     orderBy: { healthScore: "desc" },
   })
 
-  return records.map((h) => ({
-    sourceSlug: h.sourceSlug,
-    healthScore: h.healthScore,
-    isPaused: h.isPaused,
-    pauseReason: h.pauseReason,
-    minScoutScore: h.minScoutScore,
-    allowCloud: h.allowCloud,
-    budgetMultiplier: h.budgetMultiplier,
-    successRate: h.totalAttempts > 0 ? h.successCount / h.totalAttempts : 0,
-    emptyRate: h.totalAttempts > 0 ? h.emptyCount / h.totalAttempts : 0,
-    errorRate: h.totalAttempts > 0 ? h.errorCount / h.totalAttempts : 0,
-    avgTokensPerItem: h.avgTokensPerItem,
-  }))
+  return records.map((h) => {
+    const starvationEligibility = checkStarvationAllowanceEligibility(
+      h.healthState as HealthState,
+      h.lastStarvationAllowanceAt,
+      h.starvationAllowanceCount,
+      h.windowStartAt,
+      healthConfig
+    )
+
+    return {
+      sourceSlug: h.sourceSlug,
+      healthScore: h.healthScore,
+      healthState: h.healthState as HealthState,
+      healthStateEnteredAt: h.healthStateEnteredAt,
+      isPaused: h.isPaused,
+      pauseReason: h.pauseReason,
+      minScoutScore: h.minScoutScore,
+      allowCloud: h.allowCloud,
+      budgetMultiplier: h.budgetMultiplier,
+      successRate: h.totalAttempts > 0 ? h.successCount / h.totalAttempts : 0,
+      emptyRate: h.totalAttempts > 0 ? h.emptyCount / h.totalAttempts : 0,
+      errorRate: h.totalAttempts > 0 ? h.errorCount / h.totalAttempts : 0,
+      avgTokensPerItem: h.avgTokensPerItem,
+      lastStarvationAllowanceAt: h.lastStarvationAllowanceAt,
+      starvationAllowanceCount: h.starvationAllowanceCount,
+      canReceiveStarvationAllowance: starvationEligibility.eligible,
+    }
+  })
+}
+
+/**
+ * Grant starvation allowance to a source
+ * This allows a POOR/CRITICAL source to receive a minimal evaluation budget
+ * Returns true if allowance was granted, false if not eligible
+ */
+export async function grantStarvationAllowance(sourceSlug: string): Promise<{
+  granted: boolean
+  reason: string
+}> {
+  const health = await db.sourceHealth.findUnique({
+    where: { sourceSlug },
+  })
+
+  if (!health) {
+    return { granted: false, reason: "Source not found" }
+  }
+
+  const eligibility = checkStarvationAllowanceEligibility(
+    health.healthState as HealthState,
+    health.lastStarvationAllowanceAt,
+    health.starvationAllowanceCount,
+    health.windowStartAt,
+    healthConfig
+  )
+
+  if (!eligibility.eligible) {
+    return { granted: false, reason: eligibility.reason }
+  }
+
+  // Grant the allowance
+  await db.sourceHealth.update({
+    where: { sourceSlug },
+    data: {
+      lastStarvationAllowanceAt: new Date(),
+      starvationAllowanceCount: health.starvationAllowanceCount + 1,
+      lastDecisionReason: "STARVATION_ALLOWANCE",
+      lastDecisionAt: new Date(),
+      lastDecisionDetails: {
+        triggeredBy: "starvation_guard",
+        metricValue: health.starvationAllowanceCount + 1,
+        threshold: healthConfig.starvationAllowanceMaxPerWindow,
+      },
+    },
+  })
+
+  // Invalidate cache
+  healthCache.delete(sourceSlug)
+
+  console.log(
+    `[source-health] Starvation allowance granted to ${sourceSlug} (count=${health.starvationAllowanceCount + 1})`
+  )
+
+  return { granted: true, reason: "Starvation allowance granted" }
 }
 
 /**

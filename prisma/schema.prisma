@@ -4587,6 +4587,20 @@ model SourceHealth {
   allowCloud          Boolean   @default(true)  // Whether cloud LLM is permitted
   budgetMultiplier    Float     @default(1.0)   // 0-2, scales per-source cap
 
+  // Stability: Health state tracking with dwell time (anti-flapping)
+  healthState             String    @default("FAIR")    // EXCELLENT, GOOD, FAIR, POOR, CRITICAL
+  healthStateEnteredAt    DateTime  @default(now())     // When current state was entered
+  previousHealthState     String?                       // For audit trail
+
+  // Explainability: Last decision tracking
+  lastDecisionReason      String?   // Enum: HEALTH_UPGRADE, HEALTH_DOWNGRADE, AUTO_PAUSE, AUTO_UNPAUSE, MANUAL_PAUSE, STARVATION_ALLOWANCE
+  lastDecisionAt          DateTime? // When the decision was made
+  lastDecisionDetails     Json?     // { triggeredBy, metricValue, threshold, previousValue }
+
+  // Starvation guard: Minimum evaluation allowance for rare sources
+  lastStarvationAllowanceAt DateTime? // When last starvation allowance was granted
+  starvationAllowanceCount  Int       @default(0) // How many allowances granted in window
+
   // Timestamps
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
@@ -4595,6 +4609,8 @@ model SourceHealth {
   @@index([healthScore])
   @@index([isPaused])
   @@index([updatedAt])
+  @@index([healthState])
+  @@index([lastDecisionAt])
 }
 
 model RegulatoryConflict {

@@ -5,8 +5,7 @@
 // Integrates with SourceHealth for adaptive budget reallocation.
 //
 
-import { db } from "@/lib/db"
-import { getSourceHealth, type SourceHealthData } from "./source-health"
+import { getSourceHealth, isObservationMode, type SourceHealthData } from "./source-health"
 
 // Budget configuration (can be overridden via env vars)
 export interface BudgetConfig {
@@ -45,6 +44,7 @@ export type BudgetDenialReason =
   | "CIRCUIT_OPEN"
   | "AUTH_ERROR"
   | "QUOTA_ERROR"
+  | "OBSERVATION_MODE" // RTL_OBSERVATION_MODE=true blocks cloud calls
 
 // Budget check result
 export interface BudgetCheckResult {
@@ -58,6 +58,8 @@ export interface BudgetCheckResult {
   healthScore?: number
   adjustedSourceCap?: number // Per-source cap after health multiplier
   cloudAllowed?: boolean // Whether cloud LLM is permitted for this source
+  // Observation mode
+  observationMode?: boolean // Whether RTL_OBSERVATION_MODE is active (no real cloud calls)
 }
 
 // Token spend record for tracking
@@ -158,10 +160,14 @@ function checkBudgetSync(
 ): BudgetCheckResult {
   maybeResetDaily()
 
+  // Check observation mode
+  const observationModeActive = isObservationMode()
+
   // Apply health-based budget multiplier
   const budgetMultiplier = healthData?.budgetMultiplier ?? 1.0
   const adjustedSourceCap = Math.floor(config.perSourceDailyTokenCap * budgetMultiplier)
-  const cloudAllowed = healthData?.allowCloud ?? true
+  // Cloud is not allowed in observation mode OR if health says no
+  const cloudAllowed = !observationModeActive && (healthData?.allowCloud ?? true)
 
   // Check circuit breaker first
   if (state.circuitOpen) {
@@ -174,6 +180,7 @@ function checkBudgetSync(
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
   }
 
@@ -188,6 +195,7 @@ function checkBudgetSync(
       healthScore: healthData.healthScore,
       adjustedSourceCap,
       cloudAllowed: false,
+      observationMode: observationModeActive,
     }
   }
 
@@ -204,6 +212,7 @@ function checkBudgetSync(
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
   }
 
@@ -218,6 +227,7 @@ function checkBudgetSync(
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
   }
 
@@ -232,6 +242,7 @@ function checkBudgetSync(
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
   }
 
@@ -247,17 +258,18 @@ function checkBudgetSync(
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
   }
 
-  // Determine recommended provider based on concurrency, cooldowns, and health
+  // Determine recommended provider based on concurrency, cooldowns, health, and observation mode
   let recommendedProvider: LLMProvider = "LOCAL_OLLAMA"
 
   // Prefer local first (cheap-first strategy)
   if (state.activeLocalCalls < config.maxConcurrentLocalCalls) {
     recommendedProvider = "LOCAL_OLLAMA"
   } else if (
-    cloudAllowed && // Only if health allows cloud
+    cloudAllowed && // Only if health allows cloud AND not in observation mode
     state.activeCloudCalls < config.maxConcurrentCloudCalls &&
     Date.now() - state.lastCloudCall.getTime() >= config.cloudCallCooldownMs
   ) {
@@ -265,15 +277,21 @@ function checkBudgetSync(
     recommendedProvider = "CLOUD_OLLAMA"
   } else if (!cloudAllowed && state.activeLocalCalls >= config.maxConcurrentLocalCalls) {
     // Local saturated and cloud not allowed - deny
+    // In observation mode, report OBSERVATION_MODE as the reason if that's what blocked cloud
+    const denialReason =
+      observationModeActive && (healthData?.allowCloud ?? true)
+        ? "OBSERVATION_MODE"
+        : "CONCURRENT_LIMIT_REACHED"
     return {
       allowed: false,
-      denialReason: "CONCURRENT_LIMIT_REACHED",
+      denialReason,
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
       remainingSourceTokens: adjustedSourceCap - sourceTokens,
       recommendedProvider: "LOCAL_OLLAMA",
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
   } else {
     // Both saturated - deny with concurrent limit
@@ -286,7 +304,15 @@ function checkBudgetSync(
       healthScore: healthData?.healthScore,
       adjustedSourceCap,
       cloudAllowed,
+      observationMode: observationModeActive,
     }
+  }
+
+  // Log observation mode decision for dry-run learning
+  if (observationModeActive) {
+    console.log(
+      `[budget-governor] OBSERVATION MODE: Would route ${sourceSlug}/${evidenceId} to ${recommendedProvider} (${estimatedTokens} tokens)`
+    )
   }
 
   return {
@@ -297,6 +323,7 @@ function checkBudgetSync(
     healthScore: healthData?.healthScore,
     adjustedSourceCap,
     cloudAllowed,
+    observationMode: observationModeActive,
   }
 }
 
@@ -418,6 +445,7 @@ export interface BudgetStatus {
   activeLocalCalls: number
   circuitOpen: boolean
   lastReset: string
+  observationMode: boolean // Whether RTL_OBSERVATION_MODE is active
 }
 
 export function getBudgetStatus(): BudgetStatus {
@@ -441,6 +469,7 @@ export function getBudgetStatus(): BudgetStatus {
     activeLocalCalls: state.activeLocalCalls,
     circuitOpen: state.circuitOpen,
     lastReset: state.lastReset.toISOString(),
+    observationMode: isObservationMode(),
   }
 }
 

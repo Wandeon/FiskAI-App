@@ -959,3 +959,370 @@ GROUP BY "sourceSlug"
 HAVING SUM("tokensUsed") > 25000  -- Over 50% of cap
 ORDER BY tokens_used DESC;
 ```
+
+---
+
+## Stability Guards Monitoring
+
+> Added: 2026-01-13 - For health-state dwell time, explainability, and starvation guards
+
+### Health State Distribution
+
+```sql
+-- Current health state distribution with dwell time
+SELECT
+  "healthState",
+  COUNT(*) as source_count,
+  ROUND(AVG("healthScore")::numeric, 3) as avg_score,
+  ROUND(AVG(EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600)::numeric, 1) as avg_hours_in_state,
+  COUNT(*) FILTER (WHERE "isPaused") as paused_count
+FROM "SourceHealth"
+GROUP BY "healthState"
+ORDER BY
+  CASE "healthState"
+    WHEN 'EXCELLENT' THEN 1
+    WHEN 'GOOD' THEN 2
+    WHEN 'FAIR' THEN 3
+    WHEN 'POOR' THEN 4
+    WHEN 'CRITICAL' THEN 5
+  END;
+```
+
+### Health State Transitions (Last 24 Hours)
+
+```sql
+-- Recent state transitions with decision reasons
+SELECT
+  "sourceSlug",
+  "healthState",
+  "previousHealthState",
+  "healthScore",
+  "lastDecisionReason",
+  "lastDecisionAt",
+  "lastDecisionDetails",
+  EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600 as hours_in_current_state
+FROM "SourceHealth"
+WHERE "lastDecisionAt" > NOW() - INTERVAL '24 hours'
+  AND "lastDecisionReason" IN ('HEALTH_UPGRADE', 'HEALTH_DOWNGRADE', 'DWELL_TIME_BLOCKED', 'STEPWISE_BLOCKED')
+ORDER BY "lastDecisionAt" DESC;
+```
+
+### Dwell Time Blocked Upgrades
+
+```sql
+-- Sources blocked from upgrading due to dwell time
+SELECT
+  "sourceSlug",
+  "healthState",
+  "healthScore",
+  "healthStateEnteredAt",
+  EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600 as hours_in_state,
+  CASE
+    WHEN "healthState" = 'CRITICAL' THEN 24 - EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600
+    WHEN "healthState" = 'POOR' THEN 12 - EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600
+    ELSE 0
+  END as hours_until_upgrade_allowed,
+  "lastDecisionReason",
+  "lastDecisionDetails"
+FROM "SourceHealth"
+WHERE "healthState" IN ('POOR', 'CRITICAL')
+  AND "lastDecisionReason" = 'DWELL_TIME_BLOCKED'
+ORDER BY hours_until_upgrade_allowed ASC;
+```
+
+### Stepwise Blocked Upgrades
+
+```sql
+-- Sources where rapid improvement was constrained
+SELECT
+  "sourceSlug",
+  "healthState",
+  "previousHealthState",
+  "healthScore",
+  "lastDecisionAt",
+  "lastDecisionDetails"->>'previousValue' as from_state_index,
+  "lastDecisionDetails"->>'metricValue' as target_state_index,
+  "lastDecisionDetails"->>'threshold' as allowed_state_index
+FROM "SourceHealth"
+WHERE "lastDecisionReason" = 'STEPWISE_BLOCKED'
+  AND "lastDecisionAt" > NOW() - INTERVAL '7 days'
+ORDER BY "lastDecisionAt" DESC;
+```
+
+---
+
+## Decision Audit Trail
+
+### All Decision Events (Last 7 Days)
+
+```sql
+-- Complete decision audit trail
+SELECT
+  DATE("lastDecisionAt") as date,
+  "lastDecisionReason",
+  COUNT(*) as count,
+  ARRAY_AGG(DISTINCT "sourceSlug") as affected_sources
+FROM "SourceHealth"
+WHERE "lastDecisionAt" > NOW() - INTERVAL '7 days'
+GROUP BY DATE("lastDecisionAt"), "lastDecisionReason"
+ORDER BY date DESC, count DESC;
+```
+
+### Auto-Pause Events
+
+```sql
+-- Sources auto-paused due to critical health
+SELECT
+  "sourceSlug",
+  "healthScore",
+  "pausedAt",
+  "pauseReason",
+  "pauseExpiresAt",
+  EXTRACT(EPOCH FROM ("pauseExpiresAt" - NOW())) / 3600 as hours_until_unpause,
+  "lastDecisionDetails"
+FROM "SourceHealth"
+WHERE "isPaused" = true
+  AND "lastDecisionReason" = 'AUTO_PAUSE'
+ORDER BY "pausedAt" DESC;
+```
+
+### Auto-Unpause Events
+
+```sql
+-- Recent auto-unpause events
+SELECT
+  "sourceSlug",
+  "healthScore",
+  "healthState",
+  "lastDecisionAt",
+  "lastDecisionDetails"
+FROM "SourceHealth"
+WHERE "lastDecisionReason" = 'AUTO_UNPAUSE'
+  AND "lastDecisionAt" > NOW() - INTERVAL '7 days'
+ORDER BY "lastDecisionAt" DESC;
+```
+
+### Manual Interventions
+
+```sql
+-- Manual pause/unpause events (operator actions)
+SELECT
+  "sourceSlug",
+  "lastDecisionReason",
+  "lastDecisionAt",
+  "isPaused",
+  "pauseReason",
+  "lastDecisionDetails"
+FROM "SourceHealth"
+WHERE "lastDecisionReason" IN ('MANUAL_PAUSE', 'MANUAL_UNPAUSE')
+  AND "lastDecisionAt" > NOW() - INTERVAL '30 days'
+ORDER BY "lastDecisionAt" DESC;
+```
+
+---
+
+## Starvation Guard Monitoring
+
+### Starvation Allowance Status
+
+```sql
+-- Current starvation allowance status for restricted sources
+SELECT
+  "sourceSlug",
+  "healthState",
+  "healthScore",
+  "starvationAllowanceCount",
+  "lastStarvationAllowanceAt",
+  EXTRACT(EPOCH FROM (NOW() - COALESCE("lastStarvationAllowanceAt", "windowStartAt"))) / 3600 as hours_since_last_allowance,
+  3 - "starvationAllowanceCount" as allowances_remaining,
+  CASE
+    WHEN "starvationAllowanceCount" >= 3 THEN 'MAX_REACHED'
+    WHEN "lastStarvationAllowanceAt" IS NULL THEN 'ELIGIBLE'
+    WHEN EXTRACT(EPOCH FROM (NOW() - "lastStarvationAllowanceAt")) / 3600 < 48 THEN 'INTERVAL_BLOCKED'
+    ELSE 'ELIGIBLE'
+  END as eligibility_status
+FROM "SourceHealth"
+WHERE "healthState" IN ('POOR', 'CRITICAL')
+ORDER BY "healthScore" ASC;
+```
+
+### Starvation Allowance Events
+
+```sql
+-- Recent starvation allowance grants
+SELECT
+  "sourceSlug",
+  "healthState",
+  "healthScore",
+  "lastStarvationAllowanceAt",
+  "starvationAllowanceCount",
+  "lastDecisionDetails"->>'metricValue' as allowance_number,
+  "lastDecisionDetails"->>'threshold' as max_allowances
+FROM "SourceHealth"
+WHERE "lastDecisionReason" = 'STARVATION_ALLOWANCE'
+  AND "lastDecisionAt" > NOW() - INTERVAL '7 days'
+ORDER BY "lastDecisionAt" DESC;
+```
+
+### Sources Without Evaluation
+
+```sql
+-- POOR/CRITICAL sources that haven't been evaluated recently
+SELECT
+  "sourceSlug",
+  "healthState",
+  "healthScore",
+  "lastBatchAt",
+  EXTRACT(EPOCH FROM (NOW() - "lastBatchAt")) / 3600 as hours_since_evaluation,
+  "starvationAllowanceCount",
+  "lastStarvationAllowanceAt"
+FROM "SourceHealth"
+WHERE "healthState" IN ('POOR', 'CRITICAL')
+  AND ("lastBatchAt" IS NULL OR "lastBatchAt" < NOW() - INTERVAL '72 hours')
+ORDER BY hours_since_evaluation DESC NULLS FIRST;
+```
+
+---
+
+## Budget Allocation vs Spent
+
+### Budget Multiplier Distribution
+
+```sql
+-- How budget multipliers are distributed
+SELECT
+  "budgetMultiplier",
+  COUNT(*) as source_count,
+  ROUND(AVG("healthScore")::numeric, 3) as avg_health_score,
+  SUM("totalTokensUsed") as total_tokens_consumed
+FROM "SourceHealth"
+GROUP BY "budgetMultiplier"
+ORDER BY "budgetMultiplier" DESC;
+```
+
+### Budget Efficiency by Multiplier
+
+```sql
+-- Token efficiency at different budget levels
+SELECT
+  "budgetMultiplier",
+  COUNT(*) as source_count,
+  SUM("totalTokensUsed") as total_tokens,
+  SUM("totalItemsProduced") as total_items,
+  ROUND(
+    SUM("totalTokensUsed")::numeric / NULLIF(SUM("totalItemsProduced"), 0),
+    0
+  ) as tokens_per_item,
+  ROUND(AVG("avgTokensPerItem")::numeric, 0) as avg_source_efficiency
+FROM "SourceHealth"
+WHERE "totalAttempts" >= 10
+GROUP BY "budgetMultiplier"
+ORDER BY "budgetMultiplier" DESC;
+```
+
+### Cloud Access Status
+
+```sql
+-- Sources by cloud access permission
+SELECT
+  "allowCloud",
+  COUNT(*) as source_count,
+  ROUND(AVG("healthScore")::numeric, 3) as avg_health_score,
+  SUM("totalTokensUsed") as total_tokens,
+  SUM("totalItemsProduced") as total_items
+FROM "SourceHealth"
+GROUP BY "allowCloud"
+ORDER BY "allowCloud" DESC;
+```
+
+---
+
+## Health Oscillation Detection (Anti-Flapping)
+
+### Rapid State Changes
+
+```sql
+-- Sources with frequent state changes (potential flapping)
+WITH state_changes AS (
+  SELECT
+    "sourceSlug",
+    COUNT(*) as changes_7d
+  FROM "SourceHealth"
+  WHERE "lastDecisionReason" IN ('HEALTH_UPGRADE', 'HEALTH_DOWNGRADE')
+    AND "lastDecisionAt" > NOW() - INTERVAL '7 days'
+  GROUP BY "sourceSlug"
+)
+SELECT
+  sh."sourceSlug",
+  sh."healthState",
+  sh."healthScore",
+  sc.changes_7d,
+  sh."lastDecisionReason",
+  sh."lastDecisionAt"
+FROM "SourceHealth" sh
+JOIN state_changes sc ON sc."sourceSlug" = sh."sourceSlug"
+WHERE sc.changes_7d >= 3  -- 3+ state changes in 7 days
+ORDER BY sc.changes_7d DESC;
+```
+
+### State Stability Report
+
+```sql
+-- How long sources stay in each state
+SELECT
+  "healthState",
+  COUNT(*) as source_count,
+  ROUND(AVG(EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600)::numeric, 1) as avg_hours_in_state,
+  MIN(EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600) as min_hours,
+  MAX(EXTRACT(EPOCH FROM (NOW() - "healthStateEnteredAt")) / 3600) as max_hours
+FROM "SourceHealth"
+WHERE "healthStateEnteredAt" IS NOT NULL
+GROUP BY "healthState"
+ORDER BY
+  CASE "healthState"
+    WHEN 'EXCELLENT' THEN 1
+    WHEN 'GOOD' THEN 2
+    WHEN 'FAIR' THEN 3
+    WHEN 'POOR' THEN 4
+    WHEN 'CRITICAL' THEN 5
+  END;
+```
+
+---
+
+## Observation Mode Monitoring
+
+### Routing Decisions in Observation Mode
+
+```sql
+-- Track what would happen if observation mode were off
+SELECT
+  DATE(timestamp) as date,
+  "sourceSlug",
+  COUNT(*) as routing_decisions,
+  COUNT(*) FILTER (WHERE metadata->>'cloudAllowed' = 'true') as would_allow_cloud,
+  COUNT(*) FILTER (WHERE metadata->>'cloudAllowed' = 'false') as would_deny_cloud,
+  COUNT(*) FILTER (WHERE metadata->>'observationMode' = 'true') as observation_mode_blocks
+FROM "PipelineProgress"
+WHERE "stageName" = 'router'
+  AND timestamp > NOW() - INTERVAL '7 days'
+GROUP BY DATE(timestamp), "sourceSlug"
+ORDER BY date DESC, routing_decisions DESC;
+```
+
+### Observation Mode Token Savings
+
+```sql
+-- Estimated tokens saved by observation mode
+SELECT
+  DATE(timestamp) as date,
+  SUM(COALESCE((metadata->>'estimatedTokens')::int, 0)) as tokens_would_spend,
+  COUNT(*) as decisions_blocked
+FROM "PipelineProgress"
+WHERE "stageName" = 'router'
+  AND metadata->>'observationMode' = 'true'
+  AND metadata->>'recommendedProvider' LIKE 'CLOUD%'
+  AND timestamp > NOW() - INTERVAL '7 days'
+GROUP BY DATE(timestamp)
+ORDER BY date DESC;
+```
