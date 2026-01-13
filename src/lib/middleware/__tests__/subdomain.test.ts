@@ -60,8 +60,8 @@ describe("getDashboardPathForRole", () => {
     expect(getDashboardPathForRole("STAFF")).toBe("/staff")
   })
 
-  it("returns /dashboard for USER role", () => {
-    expect(getDashboardPathForRole("USER")).toBe("/dashboard")
+  it("returns /cc for USER role", () => {
+    expect(getDashboardPathForRole("USER")).toBe("/cc")
   })
 })
 
@@ -100,9 +100,9 @@ describe("getRedirectUrlForSystemRole", () => {
     expect(result).toBe("https://app.fiskai.hr/staff")
   })
 
-  it("redirects USER to app.fiskai.hr/dashboard", () => {
+  it("redirects USER to app.fiskai.hr/cc", () => {
     const result = getRedirectUrlForSystemRole("USER", "https://app.fiskai.hr/invoices")
-    expect(result).toBe("https://app.fiskai.hr/dashboard")
+    expect(result).toBe("https://app.fiskai.hr/cc")
   })
 
   it("handles legacy subdomain URLs by converting to app subdomain", () => {

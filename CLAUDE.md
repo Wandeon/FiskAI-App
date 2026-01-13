@@ -252,12 +252,12 @@ Anything else is unfinished work.
 **Domain:** `fiskai.hr` (Cloudflare-managed, primary)
 **Legacy:** `fiskai.eu` (redirects to fiskai.hr)
 
-| Portal       | URL                     | Audience             | Purpose                 |
-| ------------ | ----------------------- | -------------------- | ----------------------- |
-| Marketing    | `fiskai.hr`             | Public               | Landing, guides, auth   |
-| Client App   | `app.fiskai.hr`         | Clients              | Business dashboard      |
-| Staff Portal | `app.fiskai.hr/staff`   | Internal accountants | Multi-client workspace  |
-| Admin Portal | `app.fiskai.hr/admin`   | Platform owner       | Tenant/staff management |
+| Portal       | URL                   | Audience             | Purpose                 |
+| ------------ | --------------------- | -------------------- | ----------------------- |
+| Marketing    | `fiskai.hr`           | Public               | Landing, guides, auth   |
+| Client App   | `app.fiskai.hr`       | Clients              | Business dashboard      |
+| Staff Portal | `app.fiskai.hr/staff` | Internal accountants | Multi-client workspace  |
+| Admin Portal | `app.fiskai.hr/admin` | Platform owner       | Tenant/staff management |
 
 **SystemRole Enum:** `USER` | `STAFF` | `ADMIN` (separate from per-company roles)
 
@@ -267,12 +267,12 @@ Anything else is unfinished work.
 
 **Coolify Dashboard:** https://ci.fiskai.hr (or http://152.53.146.3:8000)
 
-**Application UUID:** `bsswgo8ggwgkw8c88wo8wcw8`
+**Application UUID:** `tgg4gkcco8k8s0wwg08cck40`
 
 **Deploy API (trigger deployment):**
 
 ```bash
-curl -X POST "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8/start" \
+curl -X POST "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cck40/start" \
   -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" \
   -H "Content-Type: application/json" \
   -d '{"force": true}'
@@ -281,14 +281,14 @@ curl -X POST "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8w
 **Check deployment status:**
 
 ```bash
-curl -s "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8" \
+curl -s "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cck40" \
   -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" | jq '.status'
 ```
 
 **Update environment variables:**
 
 ```bash
-curl -X PATCH "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8/envs" \
+curl -X PATCH "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cck40/envs" \
   -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" \
   -H "Content-Type: application/json" \
   -d '{"key": "KEY_NAME", "value": "value"}'

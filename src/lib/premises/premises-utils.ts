@@ -65,7 +65,9 @@ export function parsePremisesCsv(csvContent: string): {
       code,
       name,
       address:
-        addressIndex !== -1 ? values[addressIndex]?.trim().replace(/"/g, "") || undefined : undefined,
+        addressIndex !== -1
+          ? values[addressIndex]?.trim().replace(/"/g, "") || undefined
+          : undefined,
       isDefault:
         defaultIndex !== -1
           ? ["da", "yes", "true", "1"].includes(values[defaultIndex]?.toLowerCase().trim() ?? "")

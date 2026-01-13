@@ -24,7 +24,13 @@ export default async function SupportPage({ searchParams }: PageProps) {
   await requireAdmin()
   const params = await searchParams
   return (
-    <Suspense fallback={<div className="flex items-center justify-center p-8"><LoadingSpinner /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center p-8">
+          <LoadingSpinner />
+        </div>
+      }
+    >
       <SupportDashboard
         statusFilter={params.statusFilter}
         categoryFilter={params.categoryFilter}
