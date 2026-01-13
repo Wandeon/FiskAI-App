@@ -1,0 +1,2 @@
+-- AlterEnum: Add RULE_REVOKED to AuditAction
+ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'RULE_REVOKED';
