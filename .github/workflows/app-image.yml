@@ -119,7 +119,7 @@ jobs:
       - name: Trigger Coolify deployment
         env:
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
-          COOLIFY_APP_UUID: bsswgo8ggwgkw8c88wo8wcw8
+          COOLIFY_APP_UUID: tgg4gkcco8k8s0wwg08cck40
         run: |
           if [ -z "$COOLIFY_TOKEN" ]; then
             echo "::warning::COOLIFY_API_TOKEN not set, skipping deployment"
