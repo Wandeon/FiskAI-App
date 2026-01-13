@@ -846,6 +846,124 @@ Recovery:
 
 ---
 
+## Source Health Scoring
+
+> Added: 2026-01-13
+
+The Source Health system implements self-correcting feedback loops that automatically
+adjust routing and budget decisions based on per-source performance metrics.
+
+### File Locations
+
+- Model: `prisma/schema.prisma` (SourceHealth model)
+- Logic: `src/lib/regulatory-truth/workers/source-health.ts`
+- Integration: `router.worker.ts`, `budget-governor.ts`, `progress-tracker.ts`
+
+### Health Score Computation
+
+Health scores (0-1) are computed from rolling window metrics:
+
+```typescript
+healthScore = successRate × 0.5 + efficiencyScore × 0.3 - penalties
+
+where:
+  successRate = successCount / totalAttempts
+  efficiencyScore = min(1, 2000 / tokensPerItem)
+  penalties = (emptyRate × 0.1 + errorRate × 0.2) × 10
+```
+
+### Health Thresholds and Adaptive Behavior
+
+| Health Level | Score Range | Scout Threshold | Cloud Access | Budget Multiplier |
+| ------------ | ----------- | --------------- | ------------ | ----------------- |
+| EXCELLENT    | ≥ 0.8       | 0.30            | ✓ Allowed    | 1.5× (50% bonus)  |
+| GOOD         | 0.6 – 0.8   | 0.35            | ✓ Allowed    | 1.2× (20% bonus)  |
+| FAIR         | 0.4 – 0.6   | 0.40 (default)  | ✓ Allowed    | 1.0× (normal)     |
+| POOR         | 0.2 – 0.4   | 0.50            | ✗ Restricted | 0.5× (half)       |
+| CRITICAL     | < 0.2       | 0.70            | ✗ Restricted | 0.2× (20%)        |
+
+### Auto-Pause and Recovery
+
+Sources with health below CRITICAL (0.1) are automatically paused:
+
+- Paused sources cannot consume any budget
+- Auto-unpause after configurable duration (default: 24 hours)
+- Manual unpause via `unpauseSource(sourceSlug)`
+
+### Integration Points
+
+**Router** (adaptive thresholds):
+
+```typescript
+const healthData = await getSourceHealth(sourceSlug)
+// Uses healthData.minScoutScore instead of fixed 0.4
+// Uses healthData.allowCloud for cloud routing decisions
+```
+
+**Budget Governor** (budget reallocation):
+
+```typescript
+const adjustedCap = perSourceDailyTokenCap * healthData.budgetMultiplier
+// High-health sources get up to 1.5× budget
+// Low-health sources get as little as 0.2× budget
+```
+
+**Progress Tracker** (health updates):
+
+```typescript
+// On flush, derives outcomes from LLM-using stages
+// Calls recordOutcome() to update health metrics
+```
+
+### Database Model
+
+```prisma
+model SourceHealth {
+  id                  String    @id @default(cuid())
+  sourceSlug          String    @unique
+  windowStartAt       DateTime  @default(now())
+  windowSizeHours     Int       @default(168)   // 7 days
+  totalAttempts       Int       @default(0)
+  successCount        Int       @default(0)
+  emptyCount          Int       @default(0)
+  errorCount          Int       @default(0)
+  totalTokensUsed     Int       @default(0)
+  totalItemsProduced  Int       @default(0)
+  avgTokensPerItem    Float     @default(0)
+  healthScore         Float     @default(0.5)
+  isPaused            Boolean   @default(false)
+  pausedAt            DateTime?
+  pauseReason         String?
+  pauseExpiresAt      DateTime?
+  minScoutScore       Float     @default(0.4)
+  allowCloud          Boolean   @default(true)
+  budgetMultiplier    Float     @default(1.0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastBatchAt         DateTime?
+}
+```
+
+### Safety Invariants
+
+1. **Paused sources cannot consume cloud LLM budget**: Enforced at `checkBudgetWithHealth()`
+2. **Health changes are monotonic per update**: Single incremental updates prevent wild swings
+3. **Router decisions change at threshold boundaries**: Tests verify boundary behavior
+
+### Key Functions
+
+| Function                      | Purpose                                     |
+| ----------------------------- | ------------------------------------------- |
+| `computeHealthScore()`        | Pure function: compute score from counts    |
+| `computeAdaptiveThresholds()` | Pure function: derive thresholds from score |
+| `getSourceHealth()`           | Get health data with caching (30s TTL)      |
+| `recordOutcome()`             | Record single outcome and update health     |
+| `syncHealthFromProgress()`    | Batch sync from PipelineProgress data       |
+| `pauseSource()`               | Manual pause with reason and duration       |
+| `unpauseSource()`             | Manual unpause                              |
+
+---
+
 ## Error → Retry Matrix
 
 How different error types are handled across stages:

@@ -9,13 +9,13 @@ import { createWorker, setupGracefulShutdown, type JobResult } from "./base"
 import { extractQueue, ocrQueue } from "./queues"
 import { jobsProcessed, jobDuration } from "./metrics"
 import {
-  checkBudget,
-  estimateTokens,
+  checkBudgetWithHealth,
   openCircuit,
   type BudgetCheckResult,
   type LLMProvider,
 } from "./budget-governor"
 import { recordProgressEvent, classifyError, shouldOpenCircuit } from "./progress-tracker"
+import { getSourceHealth, type SourceHealthData } from "./source-health"
 import type { ScoutResult } from "./content-scout"
 import { dbReg } from "@/lib/db"
 
@@ -42,36 +42,47 @@ export interface RouterJobResult extends JobResult {
     reason: string
     budgetCheck?: BudgetCheckResult
     recommendedProvider?: LLMProvider
+    healthScore?: number
+    minScoutScore?: number
   }
 }
 
-// Routing thresholds
-const ROUTING_CONFIG = {
+// Default routing thresholds (overridden by source health)
+const DEFAULT_ROUTING_CONFIG = {
   worthItThreshold: 0.4, // Min score to proceed with extraction
   cloudThreshold: 0.7, // Min score for cloud LLM
   localPreferred: 0.5, // Score range where local is preferred
 }
 
 /**
- * Determine routing decision based on scout result and budget
+ * Determine routing decision based on scout result, budget, and source health
+ * Uses adaptive thresholds based on source health score
  */
 function determineRouting(
   scoutResult: ScoutResult,
-  budgetCheck: BudgetCheckResult
-): { decision: RoutingDecision; reason: string } {
+  budgetCheck: BudgetCheckResult,
+  healthData?: SourceHealthData
+): { decision: RoutingDecision; reason: string; minScoutScore: number } {
+  // Use health-based threshold or default
+  const minScoutScore = healthData?.minScoutScore ?? DEFAULT_ROUTING_CONFIG.worthItThreshold
+  const cloudAllowed = budgetCheck.cloudAllowed ?? true
+  const healthScore = healthData?.healthScore ?? 0.5
+
   // Check for explicit skip from scout
   if (scoutResult.skipReason) {
     return {
       decision: "SKIP",
       reason: scoutResult.skipReason,
+      minScoutScore,
     }
   }
 
-  // Check if score is below threshold
-  if (scoutResult.worthItScore < ROUTING_CONFIG.worthItThreshold) {
+  // Check if score is below health-adjusted threshold
+  if (scoutResult.worthItScore < minScoutScore) {
     return {
       decision: "SKIP",
-      reason: `Low worth-it score: ${(scoutResult.worthItScore * 100).toFixed(1)}% < ${ROUTING_CONFIG.worthItThreshold * 100}%`,
+      reason: `Low worth-it score: ${(scoutResult.worthItScore * 100).toFixed(1)}% < ${(minScoutScore * 100).toFixed(1)}% (health=${healthScore.toFixed(2)})`,
+      minScoutScore,
     }
   }
 
@@ -80,6 +91,7 @@ function determineRouting(
     return {
       decision: "OCR",
       reason: "PDF requires OCR before extraction",
+      minScoutScore,
     }
   }
 
@@ -88,33 +100,47 @@ function determineRouting(
     return {
       decision: "SKIP",
       reason: `Budget denied: ${budgetCheck.denialReason}`,
+      minScoutScore,
     }
   }
 
-  // Determine extract type based on score and recommended provider
+  // Determine extract type based on score, provider, and health
   if (budgetCheck.recommendedProvider === "LOCAL_OLLAMA") {
     return {
       decision: "EXTRACT_LOCAL",
-      reason: `Local extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, provider=${budgetCheck.recommendedProvider})`,
+      reason: `Local extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, health=${healthScore.toFixed(2)})`,
+      minScoutScore,
     }
   }
 
-  // Cloud extraction only for high-value content
+  // Cloud extraction only for high-value content AND if health permits
   if (
-    scoutResult.worthItScore >= ROUTING_CONFIG.cloudThreshold &&
+    cloudAllowed &&
+    scoutResult.worthItScore >= DEFAULT_ROUTING_CONFIG.cloudThreshold &&
     (budgetCheck.recommendedProvider === "CLOUD_OLLAMA" ||
       budgetCheck.recommendedProvider === "CLOUD_OPENAI")
   ) {
     return {
       decision: "EXTRACT_CLOUD",
-      reason: `Cloud extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, high-value content)`,
+      reason: `Cloud extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, health=${healthScore.toFixed(2)}, high-value)`,
+      minScoutScore,
+    }
+  }
+
+  // Cloud not allowed or not high enough score - use local
+  if (!cloudAllowed && budgetCheck.recommendedProvider !== "LOCAL_OLLAMA") {
+    return {
+      decision: "EXTRACT_LOCAL",
+      reason: `Local extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, health=${healthScore.toFixed(2)}, cloud restricted)`,
+      minScoutScore,
     }
   }
 
   // Default to local for medium-value content
   return {
     decision: "EXTRACT_LOCAL",
-    reason: `Local extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, medium-value content)`,
+    reason: `Local extraction (score=${(scoutResult.worthItScore * 100).toFixed(1)}%, health=${healthScore.toFixed(2)})`,
+    minScoutScore,
   }
 }
 
@@ -123,13 +149,22 @@ async function processRouterJob(job: Job<RouterJobData>): Promise<RouterJobResul
   const { evidenceId, scoutResult, sourceSlug, runId } = job.data
 
   try {
-    // Check budget
-    const budgetCheck = checkBudget(sourceSlug, evidenceId, scoutResult.estimatedTokens)
+    // Fetch health data and check budget with health-aware caps
+    const healthData = await getSourceHealth(sourceSlug)
+    const budgetCheck = await checkBudgetWithHealth(
+      sourceSlug,
+      evidenceId,
+      scoutResult.estimatedTokens
+    )
 
-    // Determine routing
-    const { decision, reason } = determineRouting(scoutResult, budgetCheck)
+    // Determine routing with health-aware thresholds
+    const { decision, reason, minScoutScore } = determineRouting(
+      scoutResult,
+      budgetCheck,
+      healthData
+    )
 
-    // Record progress event
+    // Record progress event with health metadata
     await recordProgressEvent({
       stageName: "router",
       evidenceId,
@@ -146,6 +181,13 @@ async function processRouterJob(job: Job<RouterJobData>): Promise<RouterJobResul
         budgetAllowed: budgetCheck.allowed,
         budgetDenialReason: budgetCheck.denialReason,
         recommendedProvider: budgetCheck.recommendedProvider,
+        // Health-aware metadata
+        healthScore: healthData.healthScore,
+        minScoutScore,
+        cloudAllowed: budgetCheck.cloudAllowed,
+        adjustedSourceCap: budgetCheck.adjustedSourceCap,
+        budgetMultiplier: healthData.budgetMultiplier,
+        isPaused: healthData.isPaused,
       },
     })
 
@@ -209,6 +251,8 @@ async function processRouterJob(job: Job<RouterJobData>): Promise<RouterJobResul
         reason,
         budgetCheck,
         recommendedProvider: budgetCheck.recommendedProvider,
+        healthScore: healthData.healthScore,
+        minScoutScore,
       },
     }
   } catch (error) {

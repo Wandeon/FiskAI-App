@@ -5,6 +5,7 @@
 //
 
 import { db } from "@/lib/db"
+import { recordOutcome, type OutcomeRecord } from "./source-health"
 
 // Pipeline stage names
 export type StageName =
@@ -57,8 +58,9 @@ export interface StageStats {
   lastRunAt: Date | null
 }
 
-// Source health tracking
-export interface SourceHealth {
+// Source health tracking (legacy interface for backwards compatibility)
+// For adaptive health scoring, use SourceHealthData from ./source-health
+export interface ProgressSourceHealth {
   sourceSlug: string
   totalEvidence: number
   processedCount: number
@@ -70,6 +72,9 @@ export interface SourceHealth {
   lastProcessedAt: Date | null
   status: "HEALTHY" | "DEGRADED" | "UNHEALTHY"
 }
+
+// Stages that use LLM tokens (for health tracking)
+const LLM_USING_STAGES: StageName[] = ["extract", "compose"]
 
 // In-memory buffer for batched writes
 const eventBuffer: ProgressEvent[] = []
@@ -103,6 +108,58 @@ export async function recordProgressEvent(event: ProgressEvent): Promise<void> {
   } else if (!flushTimeout) {
     // Schedule flush
     flushTimeout = setTimeout(() => void flushEventBuffer(), BUFFER_FLUSH_INTERVAL)
+  }
+}
+
+/**
+ * Derive health outcome from a progress event
+ */
+function deriveOutcome(event: ProgressEvent): OutcomeRecord["outcome"] {
+  if (event.errorClass) {
+    return "ERROR"
+  }
+  if (event.tokensUsed && event.tokensUsed > 0 && event.producedCount === 0) {
+    return "EMPTY"
+  }
+  return "SUCCESS"
+}
+
+/**
+ * Update source health from LLM-using events
+ */
+async function updateSourceHealth(events: ProgressEvent[]): Promise<void> {
+  // Filter to LLM-using stages only
+  const llmEvents = events.filter(
+    (e) => LLM_USING_STAGES.includes(e.stageName) && e.tokensUsed !== undefined
+  )
+
+  if (llmEvents.length === 0) {
+    return
+  }
+
+  // Group by source and aggregate
+  const bySource = new Map<string, OutcomeRecord[]>()
+  for (const event of llmEvents) {
+    const records = bySource.get(event.sourceSlug) || []
+    records.push({
+      sourceSlug: event.sourceSlug,
+      tokensUsed: event.tokensUsed || 0,
+      itemsProduced: event.producedCount,
+      outcome: deriveOutcome(event),
+    })
+    bySource.set(event.sourceSlug, records)
+  }
+
+  // Record outcomes for each source
+  for (const [sourceSlug, records] of bySource) {
+    for (const record of records) {
+      try {
+        await recordOutcome(record)
+      } catch (error) {
+        // Log but don't fail - health tracking is observability
+        console.error(`[progress] Failed to record outcome for ${sourceSlug}:`, error)
+      }
+    }
   }
 }
 
@@ -142,6 +199,9 @@ async function flushEventBuffer(): Promise<void> {
       })),
       skipDuplicates: true,
     })
+
+    // Update source health from LLM-using events (non-blocking)
+    void updateSourceHealth(eventsToWrite)
   } catch (error) {
     // Log but don't fail - progress tracking is observability, not critical path
     console.error("[progress] Failed to flush event buffer:", error)
@@ -206,11 +266,12 @@ export async function getStageStats(
 }
 
 /**
- * Get source health metrics
+ * Get source health metrics from progress data (legacy function)
+ * For adaptive health scoring, use getSourceHealth from ./source-health
  */
-export async function getSourceHealth(
+export async function getProgressSourceHealth(
   since: Date = new Date(Date.now() - 24 * 60 * 60 * 1000)
-): Promise<SourceHealth[]> {
+): Promise<ProgressSourceHealth[]> {
   // Get per-source stats
   const sourceStats = await db.pipelineProgress.groupBy({
     by: ["sourceSlug"],
@@ -434,3 +495,11 @@ export function shouldOpenCircuit(errorClass: ErrorClass): boolean {
 
 // Ensure buffer is flushed on shutdown
 process.on("beforeExit", () => void flushEventBuffer())
+
+// Re-export SourceHealth interface as alias for backwards compatibility
+/** @deprecated Use ProgressSourceHealth instead */
+export type SourceHealth = ProgressSourceHealth
+
+// Re-export getSourceHealth as alias for backwards compatibility
+/** @deprecated Use getProgressSourceHealth instead */
+export const getSourceHealth = getProgressSourceHealth

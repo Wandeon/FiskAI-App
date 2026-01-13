@@ -2,9 +2,11 @@
 //
 // Budget Governor: Single authority for token spending decisions
 // Enforces global daily caps, per-source limits, and concurrency bounds.
+// Integrates with SourceHealth for adaptive budget reallocation.
 //
 
 import { db } from "@/lib/db"
+import { getSourceHealth, type SourceHealthData } from "./source-health"
 
 // Budget configuration (can be overridden via env vars)
 export interface BudgetConfig {
@@ -39,6 +41,7 @@ export type BudgetDenialReason =
   | "EVIDENCE_TOO_LARGE"
   | "CONCURRENT_LIMIT_REACHED"
   | "SOURCE_IN_COOLDOWN"
+  | "SOURCE_PAUSED" // Health-based pause
   | "CIRCUIT_OPEN"
   | "AUTH_ERROR"
   | "QUOTA_ERROR"
@@ -51,6 +54,10 @@ export interface BudgetCheckResult {
   remainingSourceTokens: number
   recommendedProvider: LLMProvider
   cooldownUntil?: Date
+  // Health-aware fields
+  healthScore?: number
+  adjustedSourceCap?: number // Per-source cap after health multiplier
+  cloudAllowed?: boolean // Whether cloud LLM is permitted for this source
 }
 
 // Token spend record for tracking
@@ -130,13 +137,31 @@ function maybeResetDaily(): void {
 
 /**
  * Check if budget allows an LLM call for given evidence
+ * Synchronous version - does not use health data
  */
 export function checkBudget(
   sourceSlug: string,
   evidenceId: string,
   estimatedTokens: number
 ): BudgetCheckResult {
+  return checkBudgetSync(sourceSlug, evidenceId, estimatedTokens)
+}
+
+/**
+ * Internal synchronous budget check
+ */
+function checkBudgetSync(
+  sourceSlug: string,
+  evidenceId: string,
+  estimatedTokens: number,
+  healthData?: SourceHealthData
+): BudgetCheckResult {
   maybeResetDaily()
+
+  // Apply health-based budget multiplier
+  const budgetMultiplier = healthData?.budgetMultiplier ?? 1.0
+  const adjustedSourceCap = Math.floor(config.perSourceDailyTokenCap * budgetMultiplier)
+  const cloudAllowed = healthData?.allowCloud ?? true
 
   // Check circuit breaker first
   if (state.circuitOpen) {
@@ -144,9 +169,25 @@ export function checkBudget(
       allowed: false,
       denialReason: "CIRCUIT_OPEN",
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
-      remainingSourceTokens:
-        config.perSourceDailyTokenCap - (state.sourceTokensToday.get(sourceSlug) || 0),
+      remainingSourceTokens: adjustedSourceCap - (state.sourceTokensToday.get(sourceSlug) || 0),
       recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
+    }
+  }
+
+  // Check health-based pause
+  if (healthData?.isPaused) {
+    return {
+      allowed: false,
+      denialReason: "SOURCE_PAUSED",
+      remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
+      remainingSourceTokens: adjustedSourceCap - (state.sourceTokensToday.get(sourceSlug) || 0),
+      recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData.healthScore,
+      adjustedSourceCap,
+      cloudAllowed: false,
     }
   }
 
@@ -157,10 +198,12 @@ export function checkBudget(
       allowed: false,
       denialReason: "SOURCE_IN_COOLDOWN",
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
-      remainingSourceTokens:
-        config.perSourceDailyTokenCap - (state.sourceTokensToday.get(sourceSlug) || 0),
+      remainingSourceTokens: adjustedSourceCap - (state.sourceTokensToday.get(sourceSlug) || 0),
       recommendedProvider: "LOCAL_OLLAMA",
       cooldownUntil,
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
     }
   }
 
@@ -170,9 +213,11 @@ export function checkBudget(
       allowed: false,
       denialReason: "EVIDENCE_TOO_LARGE",
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
-      remainingSourceTokens:
-        config.perSourceDailyTokenCap - (state.sourceTokensToday.get(sourceSlug) || 0),
+      remainingSourceTokens: adjustedSourceCap - (state.sourceTokensToday.get(sourceSlug) || 0),
       recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
     }
   }
 
@@ -182,53 +227,91 @@ export function checkBudget(
       allowed: false,
       denialReason: "GLOBAL_DAILY_CAP_EXCEEDED",
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
-      remainingSourceTokens:
-        config.perSourceDailyTokenCap - (state.sourceTokensToday.get(sourceSlug) || 0),
+      remainingSourceTokens: adjustedSourceCap - (state.sourceTokensToday.get(sourceSlug) || 0),
       recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
     }
   }
 
-  // Check per-source daily cap
+  // Check per-source daily cap (adjusted by health multiplier)
   const sourceTokens = state.sourceTokensToday.get(sourceSlug) || 0
-  if (sourceTokens + estimatedTokens > config.perSourceDailyTokenCap) {
+  if (sourceTokens + estimatedTokens > adjustedSourceCap) {
     return {
       allowed: false,
       denialReason: "SOURCE_DAILY_CAP_EXCEEDED",
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
-      remainingSourceTokens: config.perSourceDailyTokenCap - sourceTokens,
+      remainingSourceTokens: adjustedSourceCap - sourceTokens,
       recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
     }
   }
 
-  // Determine recommended provider based on concurrency and cooldowns
+  // Determine recommended provider based on concurrency, cooldowns, and health
   let recommendedProvider: LLMProvider = "LOCAL_OLLAMA"
 
   // Prefer local first (cheap-first strategy)
   if (state.activeLocalCalls < config.maxConcurrentLocalCalls) {
     recommendedProvider = "LOCAL_OLLAMA"
   } else if (
+    cloudAllowed && // Only if health allows cloud
     state.activeCloudCalls < config.maxConcurrentCloudCalls &&
     Date.now() - state.lastCloudCall.getTime() >= config.cloudCallCooldownMs
   ) {
-    // Cloud is available if local is saturated
+    // Cloud is available if local is saturated and health permits
     recommendedProvider = "CLOUD_OLLAMA"
+  } else if (!cloudAllowed && state.activeLocalCalls >= config.maxConcurrentLocalCalls) {
+    // Local saturated and cloud not allowed - deny
+    return {
+      allowed: false,
+      denialReason: "CONCURRENT_LIMIT_REACHED",
+      remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
+      remainingSourceTokens: adjustedSourceCap - sourceTokens,
+      recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
+    }
   } else {
     // Both saturated - deny with concurrent limit
     return {
       allowed: false,
       denialReason: "CONCURRENT_LIMIT_REACHED",
       remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday,
-      remainingSourceTokens: config.perSourceDailyTokenCap - sourceTokens,
+      remainingSourceTokens: adjustedSourceCap - sourceTokens,
       recommendedProvider: "LOCAL_OLLAMA",
+      healthScore: healthData?.healthScore,
+      adjustedSourceCap,
+      cloudAllowed,
     }
   }
 
   return {
     allowed: true,
     remainingGlobalTokens: config.globalDailyTokenCap - state.globalTokensToday - estimatedTokens,
-    remainingSourceTokens: config.perSourceDailyTokenCap - sourceTokens - estimatedTokens,
+    remainingSourceTokens: adjustedSourceCap - sourceTokens - estimatedTokens,
     recommendedProvider,
+    healthScore: healthData?.healthScore,
+    adjustedSourceCap,
+    cloudAllowed,
   }
+}
+
+/**
+ * Health-aware budget check (async)
+ * Fetches source health and applies adaptive budget allocation
+ */
+export async function checkBudgetWithHealth(
+  sourceSlug: string,
+  evidenceId: string,
+  estimatedTokens: number
+): Promise<BudgetCheckResult> {
+  // Fetch health data
+  const healthData = await getSourceHealth(sourceSlug)
+  return checkBudgetSync(sourceSlug, evidenceId, estimatedTokens, healthData)
 }
 
 /**

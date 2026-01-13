@@ -562,14 +562,160 @@ ORDER BY s.date DESC;
 
 ---
 
-## Source Health Score
+## Source Health Score (Adaptive Health System)
 
-Track which sources are producing value vs wasting budget.
+> Updated: 2026-01-13 - Now using persistent SourceHealth model
 
-### Source Health Summary
+Track which sources are producing value vs wasting budget. The adaptive health system
+automatically adjusts routing thresholds and budget allocation based on source performance.
+
+### Source Health Overview
 
 ```sql
--- Source health score (higher = better)
+-- Current health status of all sources
+SELECT
+  "sourceSlug",
+  "healthScore",
+  CASE
+    WHEN "healthScore" >= 0.8 THEN 'EXCELLENT'
+    WHEN "healthScore" >= 0.6 THEN 'GOOD'
+    WHEN "healthScore" >= 0.4 THEN 'FAIR'
+    WHEN "healthScore" >= 0.2 THEN 'POOR'
+    ELSE 'CRITICAL'
+  END as health_level,
+  "isPaused",
+  "pauseReason",
+  "minScoutScore",
+  "allowCloud",
+  "budgetMultiplier",
+  "totalAttempts",
+  "successCount",
+  "emptyCount",
+  "errorCount",
+  "avgTokensPerItem",
+  "lastBatchAt"
+FROM "SourceHealth"
+ORDER BY "healthScore" DESC;
+```
+
+### Paused Sources
+
+```sql
+-- Sources currently paused (cannot consume budget)
+SELECT
+  "sourceSlug",
+  "healthScore",
+  "pauseReason",
+  "pausedAt",
+  "pauseExpiresAt",
+  EXTRACT(EPOCH FROM ("pauseExpiresAt" - NOW())) / 3600 as hours_until_unpause
+FROM "SourceHealth"
+WHERE "isPaused" = true
+ORDER BY "pausedAt" DESC;
+```
+
+### Health Trend by Source
+
+```sql
+-- Compare current health to 7-day average (requires PipelineProgress)
+WITH recent_health AS (
+  SELECT
+    "sourceSlug",
+    COUNT(*) as recent_attempts,
+    COUNT(*) FILTER (WHERE "errorClass" IS NULL AND "producedCount" > 0) as recent_success,
+    COUNT(*) FILTER (WHERE "tokensUsed" > 0 AND "producedCount" = 0 AND "errorClass" IS NULL) as recent_empty,
+    COUNT(*) FILTER (WHERE "errorClass" IS NOT NULL) as recent_errors
+  FROM "PipelineProgress"
+  WHERE timestamp > NOW() - INTERVAL '24 hours'
+    AND "stageName" IN ('extract', 'compose')
+  GROUP BY "sourceSlug"
+)
+SELECT
+  sh."sourceSlug",
+  sh."healthScore" as current_health,
+  rh.recent_attempts,
+  ROUND(rh.recent_success::numeric / NULLIF(rh.recent_attempts, 0), 2) as recent_success_rate,
+  ROUND(rh.recent_empty::numeric / NULLIF(rh.recent_attempts, 0), 2) as recent_empty_rate,
+  ROUND(rh.recent_errors::numeric / NULLIF(rh.recent_attempts, 0), 2) as recent_error_rate
+FROM "SourceHealth" sh
+LEFT JOIN recent_health rh ON rh."sourceSlug" = sh."sourceSlug"
+WHERE sh."totalAttempts" >= 10
+ORDER BY sh."healthScore" DESC;
+```
+
+### Budget Efficiency by Health Level
+
+```sql
+-- Token efficiency grouped by health level
+SELECT
+  CASE
+    WHEN "healthScore" >= 0.8 THEN 'EXCELLENT'
+    WHEN "healthScore" >= 0.6 THEN 'GOOD'
+    WHEN "healthScore" >= 0.4 THEN 'FAIR'
+    WHEN "healthScore" >= 0.2 THEN 'POOR'
+    ELSE 'CRITICAL'
+  END as health_level,
+  COUNT(*) as source_count,
+  SUM("totalAttempts") as total_attempts,
+  SUM("totalTokensUsed") as total_tokens,
+  SUM("totalItemsProduced") as total_items,
+  ROUND(AVG("budgetMultiplier")::numeric, 2) as avg_budget_mult,
+  ROUND(
+    SUM("totalTokensUsed")::numeric / NULLIF(SUM("totalItemsProduced"), 0),
+    0
+  ) as tokens_per_item
+FROM "SourceHealth"
+WHERE "totalAttempts" >= 10
+GROUP BY
+  CASE
+    WHEN "healthScore" >= 0.8 THEN 'EXCELLENT'
+    WHEN "healthScore" >= 0.6 THEN 'GOOD'
+    WHEN "healthScore" >= 0.4 THEN 'FAIR'
+    WHEN "healthScore" >= 0.2 THEN 'POOR'
+    ELSE 'CRITICAL'
+  END
+ORDER BY
+  CASE health_level
+    WHEN 'EXCELLENT' THEN 1
+    WHEN 'GOOD' THEN 2
+    WHEN 'FAIR' THEN 3
+    WHEN 'POOR' THEN 4
+    ELSE 5
+  END;
+```
+
+### Sources Approaching Threshold Boundaries
+
+```sql
+-- Sources near health thresholds (may change behavior soon)
+SELECT
+  "sourceSlug",
+  "healthScore",
+  "minScoutScore",
+  "allowCloud",
+  "budgetMultiplier",
+  CASE
+    WHEN "healthScore" BETWEEN 0.38 AND 0.42 THEN 'NEAR_FAIR_BOUNDARY'
+    WHEN "healthScore" BETWEEN 0.58 AND 0.62 THEN 'NEAR_GOOD_BOUNDARY'
+    WHEN "healthScore" BETWEEN 0.78 AND 0.82 THEN 'NEAR_EXCELLENT_BOUNDARY'
+    WHEN "healthScore" BETWEEN 0.18 AND 0.22 THEN 'NEAR_POOR_BOUNDARY'
+    WHEN "healthScore" BETWEEN 0.08 AND 0.12 THEN 'NEAR_CRITICAL_BOUNDARY'
+    ELSE 'STABLE'
+  END as threshold_proximity,
+  "totalAttempts"
+FROM "SourceHealth"
+WHERE "healthScore" BETWEEN 0.08 AND 0.12
+   OR "healthScore" BETWEEN 0.18 AND 0.22
+   OR "healthScore" BETWEEN 0.38 AND 0.42
+   OR "healthScore" BETWEEN 0.58 AND 0.62
+   OR "healthScore" BETWEEN 0.78 AND 0.82
+ORDER BY "healthScore";
+```
+
+### Legacy Health Score (from AgentRun)
+
+```sql
+-- Legacy calculation for comparison
 WITH source_metrics AS (
   SELECT
     "sourceSlug",

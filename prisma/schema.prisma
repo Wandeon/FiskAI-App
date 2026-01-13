@@ -4552,6 +4552,51 @@ model PipelineProgress {
   @@index([stageName, sourceSlug, timestamp])
 }
 
+// Source Health: Rolling metrics for adaptive routing and budget allocation
+// Updated after each batch to enable self-correcting behavior
+model SourceHealth {
+  id                  String    @id @default(cuid())
+  sourceSlug          String    @unique // Identifier for the regulatory source
+
+  // Rolling success metrics (window-based, e.g., last 7 days)
+  windowStartAt       DateTime  @default(now()) // Start of current rolling window
+  windowSizeHours     Int       @default(168)   // 7 days default
+
+  // Outcome counts in current window
+  totalAttempts       Int       @default(0)     // Total LLM calls attempted
+  successCount        Int       @default(0)     // itemsProduced > 0
+  emptyCount          Int       @default(0)     // itemsProduced = 0 but no error
+  errorCount          Int       @default(0)     // Errors/failures
+
+  // Token efficiency metrics
+  totalTokensUsed     Int       @default(0)     // Tokens spent in window
+  totalItemsProduced  Int       @default(0)     // Rules/facts created
+  avgTokensPerItem    Float     @default(0)     // Rolling avg: tokens / items
+
+  // Derived health score (0-1, higher = better)
+  healthScore         Float     @default(0.5)   // Computed from metrics
+
+  // Pause/cooldown state
+  isPaused            Boolean   @default(false) // If true, no LLM budget allocated
+  pausedAt            DateTime? // When paused
+  pauseReason         String?   // Why paused (LOW_HEALTH, MANUAL, etc.)
+  pauseExpiresAt      DateTime? // Auto-unpause time
+
+  // Adaptive thresholds (set based on health)
+  minScoutScore       Float     @default(0.4)   // Min worthItScore to proceed
+  allowCloud          Boolean   @default(true)  // Whether cloud LLM is permitted
+  budgetMultiplier    Float     @default(1.0)   // 0-2, scales per-source cap
+
+  // Timestamps
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastBatchAt         DateTime? // Last time metrics were updated
+
+  @@index([healthScore])
+  @@index([isPaused])
+  @@index([updatedAt])
+}
+
 model RegulatoryConflict {
   id                  String         @id @default(cuid())
   conflictType        ConflictType
