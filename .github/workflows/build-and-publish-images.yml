@@ -68,11 +68,6 @@ jobs:
               GIT_SHA=${{ github.sha }}
               BUILD_DATE=${{ github.event.head_commit.timestamp }}
 
-    outputs:
-      app-digest: ${{ steps.build-fiskai-app.outputs.digest }}
-      worker-digest: ${{ steps.build-fiskai-worker.outputs.digest }}
-      worker-ocr-digest: ${{ steps.build-fiskai-worker-ocr.outputs.digest }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -105,7 +100,7 @@ jobs:
         run: echo "start=$(date +%s)" >> $GITHUB_OUTPUT
 
       - name: Build and push ${{ matrix.image }}
-        id: build-${{ matrix.image }}
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -143,7 +138,7 @@ jobs:
           echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Digest:** \`${{ steps.build-${{ matrix.image }}.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Digest:** \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
 
   # Collect and display all image digests
   summarize:
