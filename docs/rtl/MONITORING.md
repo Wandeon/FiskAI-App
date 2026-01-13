@@ -1326,3 +1326,448 @@ WHERE "stageName" = 'router'
 GROUP BY DATE(timestamp)
 ORDER BY date DESC;
 ```
+
+---
+
+## Confidence Monitoring (Mission #3)
+
+> Added: 2026-01-13 - Confidence envelope, auditability, and rollback safety
+
+### Confidence Distribution by Risk Tier
+
+```sql
+-- Confidence distribution grouped by risk tier
+SELECT
+  "riskTier",
+  COUNT(*) as rule_count,
+  ROUND(AVG("derivedConfidence")::numeric, 3) as avg_confidence,
+  ROUND(MIN("derivedConfidence")::numeric, 3) as min_confidence,
+  ROUND(MAX("derivedConfidence")::numeric, 3) as max_confidence,
+  COUNT(*) FILTER (WHERE "derivedConfidence" < 0.7) as low_confidence_count,
+  COUNT(*) FILTER (WHERE "derivedConfidence" >= 0.85) as high_confidence_count
+FROM "RegulatoryRule"
+WHERE status NOT IN ('REVOKED', 'REJECTED')
+GROUP BY "riskTier"
+ORDER BY
+  CASE "riskTier"
+    WHEN 'T0' THEN 1
+    WHEN 'T1' THEN 2
+    WHEN 'T2' THEN 3
+    WHEN 'T3' THEN 4
+  END;
+```
+
+### Confidence Bands Over Time
+
+```sql
+-- Daily confidence band distribution
+SELECT
+  DATE("createdAt") as date,
+  COUNT(*) as total_rules,
+  COUNT(*) FILTER (WHERE "derivedConfidence" < 0.5) as very_low,
+  COUNT(*) FILTER (WHERE "derivedConfidence" >= 0.5 AND "derivedConfidence" < 0.7) as low,
+  COUNT(*) FILTER (WHERE "derivedConfidence" >= 0.7 AND "derivedConfidence" < 0.85) as medium,
+  COUNT(*) FILTER (WHERE "derivedConfidence" >= 0.85 AND "derivedConfidence" < 0.95) as high,
+  COUNT(*) FILTER (WHERE "derivedConfidence" >= 0.95) as very_high
+FROM "RegulatoryRule"
+WHERE "createdAt" > NOW() - INTERVAL '30 days'
+  AND status NOT IN ('REVOKED', 'REJECTED')
+GROUP BY DATE("createdAt")
+ORDER BY date DESC;
+```
+
+### Confidence Trend by Source
+
+```sql
+-- Average confidence by source over time
+WITH rule_sources AS (
+  SELECT
+    rr.id as rule_id,
+    rr."derivedConfidence",
+    rr."createdAt",
+    e."sourceId"
+  FROM "RegulatoryRule" rr
+  JOIN "SourcePointer" sp ON sp."ruleId" = rr.id
+  JOIN "Evidence" e ON e.id = sp."evidenceId"
+  WHERE rr."createdAt" > NOW() - INTERVAL '14 days'
+    AND rr.status NOT IN ('REVOKED', 'REJECTED')
+)
+SELECT
+  rs.slug as source_slug,
+  DATE(rule_sources."createdAt") as date,
+  COUNT(DISTINCT rule_sources.rule_id) as rule_count,
+  ROUND(AVG(rule_sources."derivedConfidence")::numeric, 3) as avg_confidence
+FROM rule_sources
+JOIN "RegulatorySource" rs ON rs.id = rule_sources."sourceId"
+GROUP BY rs.slug, DATE(rule_sources."createdAt")
+ORDER BY date DESC, avg_confidence DESC;
+```
+
+### Low Confidence Rules Requiring Review
+
+```sql
+-- Rules with low confidence that need attention
+SELECT
+  id,
+  "conceptSlug",
+  "titleHr",
+  "riskTier",
+  "derivedConfidence",
+  "reviewRequired",
+  "confidenceReasons",
+  "createdAt"
+FROM "RegulatoryRule"
+WHERE "derivedConfidence" < 0.7
+  AND status NOT IN ('REVOKED', 'REJECTED', 'PUBLISHED')
+ORDER BY "derivedConfidence" ASC, "riskTier" ASC
+LIMIT 50;
+```
+
+---
+
+## Review Required Monitoring
+
+### Rules Pending Review
+
+```sql
+-- All rules flagged for human review
+SELECT
+  "riskTier",
+  status,
+  COUNT(*) as count,
+  ROUND(AVG("derivedConfidence")::numeric, 3) as avg_confidence,
+  MIN("createdAt") as oldest_pending
+FROM "RegulatoryRule"
+WHERE "reviewRequired" = true
+  AND status NOT IN ('REVOKED', 'REJECTED', 'PUBLISHED')
+GROUP BY "riskTier", status
+ORDER BY "riskTier", count DESC;
+```
+
+### Review Reasons Distribution
+
+```sql
+-- Why rules are flagged for review
+SELECT
+  jsonb_array_elements("reviewRequiredReasons")->>'reason' as review_reason,
+  COUNT(*) as count
+FROM "RegulatoryRule"
+WHERE "reviewRequired" = true
+  AND "reviewRequiredReasons" IS NOT NULL
+GROUP BY jsonb_array_elements("reviewRequiredReasons")->>'reason'
+ORDER BY count DESC;
+```
+
+### Review Backlog Aging
+
+```sql
+-- How long rules have been waiting for review
+SELECT
+  CASE
+    WHEN EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600 < 24 THEN '<24h'
+    WHEN EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600 < 72 THEN '1-3d'
+    WHEN EXTRACT(EPOCH FROM (NOW() - "createdAt")) / 3600 < 168 THEN '3-7d'
+    ELSE '>7d'
+  END as age_bucket,
+  "riskTier",
+  COUNT(*) as count
+FROM "RegulatoryRule"
+WHERE "reviewRequired" = true
+  AND status NOT IN ('REVOKED', 'REJECTED', 'PUBLISHED')
+GROUP BY age_bucket, "riskTier"
+ORDER BY
+  CASE age_bucket
+    WHEN '<24h' THEN 1
+    WHEN '1-3d' THEN 2
+    WHEN '3-7d' THEN 3
+    ELSE 4
+  END,
+  "riskTier";
+```
+
+---
+
+## Revoked Rules Monitoring
+
+### Revocation Summary
+
+```sql
+-- Summary of revoked rules
+SELECT
+  COUNT(*) as total_revoked,
+  COUNT(*) FILTER (WHERE "revokedAt" > NOW() - INTERVAL '24 hours') as revoked_24h,
+  COUNT(*) FILTER (WHERE "revokedAt" > NOW() - INTERVAL '7 days') as revoked_7d,
+  COUNT(*) FILTER (WHERE "revokedAt" > NOW() - INTERVAL '30 days') as revoked_30d
+FROM "RegulatoryRule"
+WHERE status = 'REVOKED';
+```
+
+### Revocation Reasons Breakdown
+
+```sql
+-- Why rules are being revoked
+SELECT
+  SUBSTRING("revokedReason" FROM '\[([A-Z_]+)\]') as revocation_reason,
+  COUNT(*) as count,
+  ROUND(AVG("derivedConfidence")::numeric, 3) as avg_confidence_at_revocation
+FROM "RegulatoryRule"
+WHERE status = 'REVOKED'
+  AND "revokedReason" IS NOT NULL
+GROUP BY SUBSTRING("revokedReason" FROM '\[([A-Z_]+)\]')
+ORDER BY count DESC;
+```
+
+### Recently Revoked Rules
+
+```sql
+-- Most recently revoked rules with details
+SELECT
+  id,
+  "conceptSlug",
+  "titleHr",
+  "riskTier",
+  "derivedConfidence",
+  "revokedAt",
+  "revokedReason"
+FROM "RegulatoryRule"
+WHERE status = 'REVOKED'
+ORDER BY "revokedAt" DESC
+LIMIT 20;
+```
+
+### Revocation Rate by Source
+
+```sql
+-- Which sources are producing rules that get revoked
+WITH rule_sources AS (
+  SELECT
+    rr.id as rule_id,
+    rr.status,
+    e."sourceId"
+  FROM "RegulatoryRule" rr
+  JOIN "SourcePointer" sp ON sp."ruleId" = rr.id
+  JOIN "Evidence" e ON e.id = sp."evidenceId"
+)
+SELECT
+  rs.slug as source_slug,
+  COUNT(DISTINCT rule_sources.rule_id) as total_rules,
+  COUNT(DISTINCT rule_sources.rule_id) FILTER (WHERE rule_sources.status = 'REVOKED') as revoked_rules,
+  ROUND(
+    COUNT(DISTINCT rule_sources.rule_id) FILTER (WHERE rule_sources.status = 'REVOKED')::numeric * 100 /
+    NULLIF(COUNT(DISTINCT rule_sources.rule_id), 0),
+    1
+  ) as revocation_rate_pct
+FROM rule_sources
+JOIN "RegulatorySource" rs ON rs.id = rule_sources."sourceId"
+GROUP BY rs.slug
+HAVING COUNT(DISTINCT rule_sources.rule_id) >= 5  -- Only sources with enough rules
+ORDER BY revocation_rate_pct DESC;
+```
+
+---
+
+## Audit Snapshot Monitoring
+
+### Audit Snapshot Coverage
+
+```sql
+-- How many rules have audit snapshots
+SELECT
+  COUNT(DISTINCT "ruleId") as rules_with_snapshots,
+  (SELECT COUNT(*) FROM "RegulatoryRule" WHERE status NOT IN ('REVOKED', 'REJECTED')) as total_active_rules,
+  ROUND(
+    COUNT(DISTINCT "ruleId")::numeric * 100 /
+    NULLIF((SELECT COUNT(*) FROM "RegulatoryRule" WHERE status NOT IN ('REVOKED', 'REJECTED')), 0),
+    1
+  ) as coverage_pct
+FROM "AuditSnapshot";
+```
+
+### Audit Snapshots by Day
+
+```sql
+-- Daily audit snapshot creation
+SELECT
+  DATE("createdAt") as date,
+  COUNT(*) as snapshots_created,
+  COUNT(DISTINCT "ruleId") as unique_rules,
+  ROUND(AVG("confidenceScore")::numeric, 3) as avg_confidence
+FROM "AuditSnapshot"
+WHERE "createdAt" > NOW() - INTERVAL '14 days'
+GROUP BY DATE("createdAt")
+ORDER BY date DESC;
+```
+
+### Rules Without Audit Snapshots
+
+```sql
+-- Active rules missing audit snapshots (gap analysis)
+SELECT
+  rr.id,
+  rr."conceptSlug",
+  rr."titleHr",
+  rr.status,
+  rr."derivedConfidence",
+  rr."createdAt"
+FROM "RegulatoryRule" rr
+LEFT JOIN "AuditSnapshot" a ON a."ruleId" = rr.id
+WHERE a.id IS NULL
+  AND rr.status NOT IN ('REVOKED', 'REJECTED')
+  AND rr."createdAt" > NOW() - INTERVAL '30 days'
+ORDER BY rr."createdAt" DESC
+LIMIT 50;
+```
+
+### Snapshot Source Health States
+
+```sql
+-- What health states were active when rules were created
+SELECT
+  a.id as snapshot_id,
+  a."ruleId",
+  a."createdAt",
+  a."confidenceScore",
+  jsonb_object_keys(a."sourceHealthState") as source_slug,
+  a."sourceHealthState"->jsonb_object_keys(a."sourceHealthState")->>'health' as health_at_creation
+FROM "AuditSnapshot" a
+WHERE a."createdAt" > NOW() - INTERVAL '7 days'
+ORDER BY a."createdAt" DESC
+LIMIT 100;
+```
+
+---
+
+## Cost Per Confidence Point
+
+### Token Cost vs Confidence Produced
+
+```sql
+-- Token efficiency by confidence band
+WITH rule_costs AS (
+  SELECT
+    rr.id as rule_id,
+    rr."derivedConfidence",
+    SUM(ar."tokensUsed") as tokens_for_rule
+  FROM "RegulatoryRule" rr
+  JOIN "AgentRun" ar ON ar."ruleId" = rr.id
+  WHERE rr."createdAt" > NOW() - INTERVAL '30 days'
+    AND rr.status NOT IN ('REVOKED', 'REJECTED')
+    AND ar."tokensUsed" > 0
+  GROUP BY rr.id, rr."derivedConfidence"
+)
+SELECT
+  CASE
+    WHEN "derivedConfidence" < 0.5 THEN '0.0-0.5'
+    WHEN "derivedConfidence" < 0.7 THEN '0.5-0.7'
+    WHEN "derivedConfidence" < 0.85 THEN '0.7-0.85'
+    WHEN "derivedConfidence" < 0.95 THEN '0.85-0.95'
+    ELSE '0.95-1.0'
+  END as confidence_band,
+  COUNT(*) as rule_count,
+  ROUND(AVG(tokens_for_rule)::numeric, 0) as avg_tokens_per_rule,
+  ROUND(SUM(tokens_for_rule)::numeric / SUM("derivedConfidence"), 0) as tokens_per_confidence_point
+FROM rule_costs
+GROUP BY
+  CASE
+    WHEN "derivedConfidence" < 0.5 THEN '0.0-0.5'
+    WHEN "derivedConfidence" < 0.7 THEN '0.5-0.7'
+    WHEN "derivedConfidence" < 0.85 THEN '0.7-0.85'
+    WHEN "derivedConfidence" < 0.95 THEN '0.85-0.95'
+    ELSE '0.95-1.0'
+  END
+ORDER BY confidence_band;
+```
+
+### Daily Cost Efficiency Trend
+
+```sql
+-- Daily tokens spent per confidence point
+WITH daily_costs AS (
+  SELECT
+    DATE(rr."createdAt") as date,
+    SUM(rr."derivedConfidence") as total_confidence,
+    COUNT(*) as rule_count
+  FROM "RegulatoryRule" rr
+  WHERE rr."createdAt" > NOW() - INTERVAL '14 days'
+    AND rr.status NOT IN ('REVOKED', 'REJECTED')
+  GROUP BY DATE(rr."createdAt")
+),
+daily_tokens AS (
+  SELECT
+    DATE("createdAt") as date,
+    SUM("tokensUsed") as total_tokens
+  FROM "AgentRun"
+  WHERE "createdAt" > NOW() - INTERVAL '14 days'
+    AND "agentType" IN ('COMPOSER', 'EXTRACTOR', 'REVIEWER')
+    AND "tokensUsed" > 0
+  GROUP BY DATE("createdAt")
+)
+SELECT
+  dc.date,
+  dc.rule_count,
+  ROUND(dc.total_confidence::numeric, 2) as total_confidence,
+  COALESCE(dt.total_tokens, 0) as total_tokens,
+  CASE
+    WHEN dc.total_confidence > 0 THEN ROUND(dt.total_tokens::numeric / dc.total_confidence, 0)
+    ELSE NULL
+  END as tokens_per_confidence_point
+FROM daily_costs dc
+LEFT JOIN daily_tokens dt ON dt.date = dc.date
+ORDER BY dc.date DESC;
+```
+
+---
+
+## Confidence Alerting Thresholds
+
+### Critical: Low Confidence T0/T1 Rules
+
+```sql
+-- T0/T1 rules created with confidence below 0.85
+SELECT COUNT(*) as critical_low_confidence
+FROM "RegulatoryRule"
+WHERE "riskTier" IN ('T0', 'T1')
+  AND "derivedConfidence" < 0.85
+  AND status NOT IN ('REVOKED', 'REJECTED')
+  AND "createdAt" > NOW() - INTERVAL '24 hours';
+-- Alert if > 0
+```
+
+### Warning: Rising Revocation Rate
+
+```sql
+-- Compare recent vs historical revocation rate
+WITH recent AS (
+  SELECT
+    COUNT(*) FILTER (WHERE status = 'REVOKED')::numeric /
+    NULLIF(COUNT(*), 0) as rate
+  FROM "RegulatoryRule"
+  WHERE "createdAt" > NOW() - INTERVAL '7 days'
+),
+historical AS (
+  SELECT
+    COUNT(*) FILTER (WHERE status = 'REVOKED')::numeric /
+    NULLIF(COUNT(*), 0) as rate
+  FROM "RegulatoryRule"
+  WHERE "createdAt" > NOW() - INTERVAL '30 days'
+    AND "createdAt" <= NOW() - INTERVAL '7 days'
+)
+SELECT
+  ROUND(recent.rate * 100, 1) as recent_revocation_pct,
+  ROUND(historical.rate * 100, 1) as historical_revocation_pct,
+  ROUND((recent.rate - historical.rate) * 100, 1) as change_pct
+FROM recent, historical;
+-- Alert if recent_revocation_pct > historical_revocation_pct * 1.5
+```
+
+### Warning: Review Backlog Growing
+
+```sql
+-- Rules waiting for review more than 72 hours
+SELECT COUNT(*) as stale_reviews
+FROM "RegulatoryRule"
+WHERE "reviewRequired" = true
+  AND status NOT IN ('REVOKED', 'REJECTED', 'PUBLISHED')
+  AND "createdAt" < NOW() - INTERVAL '72 hours';
+-- Alert if > 10
+```

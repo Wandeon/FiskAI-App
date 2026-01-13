@@ -3627,6 +3627,7 @@ enum RuleStatus {
   PUBLISHED
   DEPRECATED
   REJECTED
+  REVOKED // Rule was revoked after publication (deterministic rollback)
 }
 
 enum ConflictType {
@@ -3975,6 +3976,20 @@ model RegulatoryRule {
   confidence        Float            @default(0.8) // DEPRECATED: Use derivedConfidence instead (kept for backward compatibility)
   llmConfidence     Float            @default(0.8) // LLM's self-assessed confidence in composition
   derivedConfidence Float            @default(0.8) // Confidence derived from source pointer quality (Issue #770)
+
+  // Confidence Envelope (Mission #3: confidence, auditability, rollback)
+  confidenceReasons          Json     @default("[]") // Array of {reason: ConfidenceReason, weight: number, detail?: string}
+  originatingCandidateFactIds String[] // CandidateFact IDs that contributed to this rule
+  originatingAgentRunIds     String[] // AgentRun IDs involved in creating this rule
+
+  // Human Review Readiness (Mission #3)
+  reviewRequired        Boolean @default(false) // True when confidence < threshold or source health poor
+  reviewRequiredReasons Json?                   // Array of {reason: ReviewRequiredReason, detail?: string}
+
+  // Rollback Capability (Mission #3)
+  revokedAt     DateTime? // When the rule was revoked
+  revokedReason String?   // Human-readable reason for revocation
+
   composerNotes     String?
   reviewerNotes     String?
   approvedBy        String? // User ID who approved (for T0/T1)
@@ -3995,6 +4010,7 @@ model RegulatoryRule {
   incomingEdges  GraphEdge[]          @relation("EdgeTo")
   atomicClaims   AtomicClaim[]
   eInvoiceLines  EInvoiceLine[]
+  auditSnapshots AuditSnapshot[] // Immutable audit records created on Apply success
 
   // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
   // This enables conflict candidates to be stored before arbiter resolution
@@ -4005,6 +4021,49 @@ model RegulatoryRule {
   @@index([effectiveFrom])
   @@index([meaningSignature])
   @@index([conceptId])
+  @@index([reviewRequired]) // Mission #3: quick lookup for rules needing review
+  @@index([revokedAt])      // Mission #3: quick lookup for revoked rules
+}
+
+// ============================================================================
+// AUDIT SNAPSHOTS (Mission #3: confidence, auditability, rollback)
+// ============================================================================
+// Immutable audit records created on Apply success. These capture the full
+// context at the moment a rule was created/updated, enabling deterministic
+// replay and external audit.
+
+model AuditSnapshot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Rule linkage
+  ruleId String
+  rule   RegulatoryRule @relation(fields: [ruleId], references: [id])
+
+  // Content hashes for deterministic replay
+  ruleHash   String // SHA256 of rule content (conceptSlug+value+valueType+effectiveFrom+effectiveUntil+derivedConfidence)
+  inputsHash String // SHA256 of inputs (candidateFactIds, agentRunIds, sourcePointerIds)
+
+  // State snapshots at time of creation
+  sourceHealthState    Json // Map of sourceSlug -> {health, stateChangedAt, decisionReason}
+  routingBudgetSummary Json // Current routing/budget state from budget governor
+
+  // Confidence snapshot
+  confidenceScore   Float // derivedConfidence at time of snapshot
+  confidenceReasons Json  // Array of {reason, weight, detail} at time of snapshot
+
+  // Originating data
+  candidateFactIds String[] // CandidateFact IDs used
+  agentRunIds      String[] // AgentRun IDs involved
+  sourcePointerIds String[] // SourcePointer IDs referenced
+
+  // Pipeline correlation
+  agentRunId String? // The AgentRun that triggered this snapshot (Apply worker)
+  jobId      String? // BullMQ job ID for correlation
+
+  @@index([ruleId])
+  @@index([createdAt])
+  @@index([agentRunId])
 }
 
 // ============================================================================
