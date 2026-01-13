@@ -316,8 +316,8 @@ export async function middleware(request: NextRequest) {
   // Redirect root path to appropriate dashboard for user's role
   if (pathname === "/") {
     const dashboardPath = getDashboardPathForRole(systemRole as "USER" | "STAFF" | "ADMIN")
-    // For regular users, send to control center; for admin/staff, send to their dashboards
-    const targetPath = systemRole === "USER" ? "/app-control-center" : dashboardPath
+    // All roles go to their respective dashboard path
+    const targetPath = dashboardPath
     const externalUrl = getExternalUrl(request)
     const controlCenterUrl = new URL(targetPath, externalUrl)
 
