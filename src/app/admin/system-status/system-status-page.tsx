@@ -1,5 +1,5 @@
 "use client"
-/* eslint-disable fisk-design-system/no-hardcoded-colors, react/no-unescaped-entities -- Pre-existing issues, fix separately */
+/* eslint-disable fisk-design-system/no-hardcoded-colors, react/no-unescaped-entities, @typescript-eslint/no-unused-vars -- Pre-existing issues, fix separately */
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -134,6 +134,23 @@ const SEVERITY_BADGE: Record<string, "danger" | "warning" | "info" | "secondary"
   low: "secondary",
 }
 
+// LLM Health types
+interface LLMProviderHealth {
+  provider: string
+  status: string
+  latencyMs: number
+  circuitState: string
+  consecutiveFailures: number
+  isActive: boolean
+  error?: string
+}
+
+interface LLMHealthResponse {
+  activeProvider: string
+  providers: LLMProviderHealth[]
+  timestamp: string
+}
+
 const EVENT_TYPE_LABELS: Record<SystemStatusEventType, string> = {
   NEW_CRITICAL: "New Critical Issue",
   CRITICAL_RESOLVED: "Critical Resolved",
@@ -159,6 +176,7 @@ export function SystemStatusPage({
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [workerHealth, setWorkerHealth] = useState<WorkerHealthResponse | null>(null)
   const [workerHealthLoading, setWorkerHealthLoading] = useState(true)
+  const [llmHealth, setLlmHealth] = useState<LLMHealthResponse | null>(null)
 
   // Track if component is mounted to prevent memory leaks in polling
   const mountedRef = useRef(true)
@@ -191,12 +209,35 @@ export function SystemStatusPage({
     }
   }, [])
 
+  // Fetch LLM health on mount and periodically
+  const fetchLlmHealth = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/llm-health")
+      if (response.ok) {
+        const data = await response.json()
+        if (mountedRef.current) {
+          setLlmHealth(data)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch LLM health:", error)
+      if (mountedRef.current) {
+        setLlmHealth(null)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     void fetchWorkerHealth()
-    // Refresh worker health every 30 seconds
-    const interval = setInterval(() => void fetchWorkerHealth(), 30000)
-    return () => clearInterval(interval)
-  }, [fetchWorkerHealth])
+    void fetchLlmHealth()
+    // Refresh worker health and LLM health every 30 seconds
+    const workerInterval = setInterval(() => void fetchWorkerHealth(), 30000)
+    const llmInterval = setInterval(() => void fetchLlmHealth(), 30000)
+    return () => {
+      clearInterval(workerInterval)
+      clearInterval(llmInterval)
+    }
+  }, [fetchWorkerHealth, fetchLlmHealth])
 
   const pollJobStatus = useCallback(async (jobId: string) => {
     try {
@@ -544,6 +585,73 @@ export function SystemStatusPage({
                 Last updated: {new Date(workerHealth.timestamp).toLocaleString("hr-HR")}
               </div>
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* LLM Provider Health */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              LLM Providers
+            </div>
+            <Button variant="ghost" size="sm" onClick={fetchLlmHealth} className="h-6 w-6 p-0">
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {llmHealth ? (
+            <div className="space-y-3">
+              {llmHealth.providers.map((p) => (
+                <div
+                  key={p.provider}
+                  className="flex items-center justify-between p-2 border rounded-lg hover:bg-surface-1"
+                >
+                  <div className="flex items-center gap-2">
+                    {p.status === "HEALTHY" ? (
+                      <CheckCircle className="h-4 w-4 text-success-icon" />
+                    ) : p.status === "DEGRADED" ? (
+                      <AlertTriangle className="h-4 w-4 text-warning-icon" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-danger-icon" />
+                    )}
+                    <div>
+                      <div
+                        className={
+                          p.isActive ? "text-sm font-medium" : "text-sm text-muted-foreground"
+                        }
+                      >
+                        {p.provider}
+                        {p.isActive && (
+                          <Badge variant="secondary" className="ml-2">
+                            active
+                          </Badge>
+                        )}
+                      </div>
+                      {p.error && <div className="text-xs text-danger-icon">{p.error}</div>}
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {p.circuitState === "OPEN" ? (
+                      <Badge variant="danger">CIRCUIT OPEN</Badge>
+                    ) : p.circuitState === "HALF_OPEN" ? (
+                      <Badge variant="warning">HALF OPEN</Badge>
+                    ) : (
+                      <span>{p.latencyMs}ms</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {/* Last updated */}
+              <div className="text-xs text-muted-foreground text-right">
+                Last updated: {new Date(llmHealth.timestamp).toLocaleString("hr-HR")}
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">Loading...</div>
           )}
         </CardContent>
       </Card>
