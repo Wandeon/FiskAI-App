@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { getStatusAriaLabel } from "@/lib/a11y"
+import { getStatusAriaLabel } from "@/lib/a11y/aria-labels"
 
 const badgeVariants = cva(
   // Base styles

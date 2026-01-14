@@ -1,7 +1,7 @@
 import { Shield, Percent, Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Capabilities } from "@/lib/capabilities"
-import { getStatusAriaLabel } from "@/lib/a11y"
+import { getStatusAriaLabel } from "@/lib/a11y/aria-labels"
 
 interface PlanBadgeProps {
   capabilities: Capabilities
