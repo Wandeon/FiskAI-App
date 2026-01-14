@@ -261,13 +261,10 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Legacy /dashboard compatibility - redirect to app-control-center
+  // Legacy /dashboard compatibility - redirect to cc
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     const externalUrl = getExternalUrl(request)
-    const newPath =
-      pathname === "/dashboard"
-        ? "/app-control-center"
-        : pathname.replace("/dashboard", "/app-control-center")
+    const newPath = pathname === "/dashboard" ? "/cc" : pathname.replace("/dashboard", "/cc")
     const redirectUrl = new URL(newPath, externalUrl)
     redirectUrl.search = request.nextUrl.search
 
@@ -279,7 +276,7 @@ export async function middleware(request: NextRequest) {
         originalPath: pathname,
         redirectPath: redirectUrl.pathname,
       },
-      "Redirecting legacy /dashboard to app-control-center"
+      "Redirecting legacy /dashboard to cc"
     )
 
     const response = NextResponse.redirect(redirectUrl)
@@ -292,7 +289,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/") {
     const dashboardPath = getDashboardPathForRole(systemRole as "USER" | "STAFF" | "ADMIN")
     // For regular users, send to control center; for admin/staff, send to their dashboards
-    const targetPath = systemRole === "USER" ? "/app-control-center" : dashboardPath
+    const targetPath = systemRole === "USER" ? "/cc" : dashboardPath
     const externalUrl = getExternalUrl(request)
     const controlCenterUrl = new URL(targetPath, externalUrl)
 
@@ -313,18 +310,21 @@ export async function middleware(request: NextRequest) {
   }
 
   // Rewrite to (app) route group for app subdomain
-  const routeGroup = "/(app)"
+  // Note: Parentheses must be URL-encoded for Next.js routing to work
+  const routeGroup = "/%28app%29"
+  const routeGroupDisplay = "/(app)"
   const url = request.nextUrl.clone()
 
-  // Rewrite /control-center to app-control-center
+  // Rewrite /control-center to cc
   let rewrittenPath = pathname
   if (pathname === "/control-center") {
-    rewrittenPath = "/app-control-center"
+    rewrittenPath = "/cc"
   }
 
   // Don't rewrite if already in the correct route group or if accessing /admin or /staff paths
   // /admin and /staff are top-level routes, not in route groups
   if (
+    !pathname.startsWith(routeGroupDisplay) &&
     !pathname.startsWith(routeGroup) &&
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/staff")
@@ -334,7 +334,7 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.rewrite(url)
     response.headers.set("x-request-id", requestId)
     response.headers.set("x-subdomain", subdomain)
-    response.headers.set("x-route-group", routeGroup)
+    response.headers.set("x-route-group", routeGroupDisplay)
     response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
 
     logger.info(
