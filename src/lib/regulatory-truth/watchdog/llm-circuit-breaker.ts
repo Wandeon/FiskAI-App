@@ -63,7 +63,23 @@ export class LLMCircuitBreaker {
       return this.getDefaultState(provider)
     }
 
-    const state = JSON.parse(data) as CircuitBreakerState
+    let state: CircuitBreakerState
+    try {
+      state = JSON.parse(data) as CircuitBreakerState
+    } catch {
+      // Corrupted data in Redis - return default state and clean up
+      console.warn(`[llm-circuit] Corrupted state for ${provider}, resetting`)
+      await redis.del(key)
+      return {
+        provider,
+        state: "CLOSED",
+        consecutiveFailures: 0,
+        lastFailureAt: null,
+        lastSuccessAt: null,
+        openedAt: null,
+        lastError: null,
+      }
+    }
 
     // Check if OPEN should transition to HALF_OPEN
     if (state.state === "OPEN" && state.openedAt) {
