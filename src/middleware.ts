@@ -1,3 +1,4 @@
+// Build cache invalidation: 2026-01-14T16:00
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
