@@ -559,11 +559,16 @@ WATCHDOG_TIMEZONE=Europe/Zagreb
 ### Deployment Topology
 
 ```
-Coolify Server (152.53.146.3:8000)
-├── Next.js App (fiskai.hr, app.fiskai.hr, staff.fiskai.hr, admin.fiskai.hr)
-├── PostgreSQL (fiskai-db)
+VPS-01 (152.53.146.3 - ARM64)
+├── Coolify Dashboard (ci.fiskai.hr)
+├── Next.js App (fiskai.hr, app.fiskai.hr)
+│   └── Path-based portals: app.fiskai.hr/staff, app.fiskai.hr/admin
+└── PostgreSQL (fiskai-db)
+
+VPS (152.53.179.101 - x86_64)
 ├── Redis (worker job queue)
-└── Worker Services
+└── Worker Services (15 workers)
+    ├── worker-orchestrator (1 instance)
     ├── worker-sentinel (1 instance)
     ├── worker-ocr (1 instance)
     ├── worker-extractor (2 replicas)
@@ -572,7 +577,12 @@ Coolify Server (152.53.146.3:8000)
     ├── worker-arbiter (1 instance)
     ├── worker-releaser (1 instance)
     ├── worker-scheduler (1 instance)
-    └── worker-continuous-drainer (1 instance)
+    ├── worker-continuous-drainer (1 instance)
+    ├── worker-content-sync (1 instance)
+    ├── worker-article (1 instance)
+    ├── worker-evidence-embedding (1 instance)
+    ├── worker-embedding (1 instance)
+    └── worker-einvoice-inbound (1 instance)
 ```
 
 ---

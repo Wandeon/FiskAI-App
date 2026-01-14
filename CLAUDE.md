@@ -1,6 +1,6 @@
 # FiskAI Project Notes
 
-> Canonical document - reviewed 2025-12-28
+> Canonical document - reviewed 2026-01-14
 >
 > This file provides AI assistants with project context. For full documentation, see [docs/](./docs/).
 
@@ -261,18 +261,35 @@ Anything else is unfinished work.
 
 **SystemRole Enum:** `USER` | `STAFF` | `ADMIN` (separate from per-company roles)
 
-## Deployment
+## Infrastructure & Deployment
 
-**Server:** `152.53.146.3` (Hetzner ARM64)
+### Production Topology
+
+FiskAI uses a distributed architecture across multiple servers:
+
+| Server     | IP                                                 | Architecture    | Purpose                    | Components              |
+| ---------- | -------------------------------------------------- | --------------- | -------------------------- | ----------------------- |
+| **VPS-01** | 152.53.146.3 (public)<br>100.64.123.81 (Tailscale) | ARM64 (aarch64) | Primary application server | App, Database, Coolify  |
+| **VPS**    | 152.53.179.101 (public)<br>Tailscale IP (internal) | x86_64          | Background workers         | 15 workers, Redis queue |
+| **GPU-01** | 100.100.47.43 (Tailscale only)                     | x86_64          | LLM inference              | Ollama models           |
+
+**Network Architecture:**
+
+- All public traffic proxied through Cloudflare
+- Inter-service communication over Tailscale VPN
+- Workers on VPS connect to database on VPS-01 via Tailscale
+- Redis queue shared by workers on same VPS device
+
+### VPS-01: Application Server
 
 **Coolify Dashboard:** https://ci.fiskai.hr (or http://152.53.146.3:8000)
 
-**Application UUID:** `tgg4gkcco8k8s0wwg08cck40`
+**Application UUID:** `bsswgo8ggwgkw8c88wo8wcw8`
 
 **Deploy API (trigger deployment):**
 
 ```bash
-curl -X POST "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cck40/start" \
+curl -X POST "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8/start" \
   -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" \
   -H "Content-Type: application/json" \
   -d '{"force": true}'
@@ -281,20 +298,75 @@ curl -X POST "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cc
 **Check deployment status:**
 
 ```bash
-curl -s "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cck40" \
+curl -s "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8" \
   -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" | jq '.status'
 ```
 
 **Update environment variables:**
 
 ```bash
-curl -X PATCH "http://152.53.146.3:8000/api/v1/applications/tgg4gkcco8k8s0wwg08cck40/envs" \
+curl -X PATCH "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8/envs" \
   -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d'=' -f2)" \
   -H "Content-Type: application/json" \
   -d '{"key": "KEY_NAME", "value": "value"}'
 ```
 
 See `.claude/skills/coolify-deployment/SKILL.md` for complete API documentation.
+
+### VPS: Worker Server
+
+**Worker Deployment:**
+
+- Managed via `docker-compose.workers.yml`
+- Deployed using `scripts/deploy-workers.sh`
+- Workers pull pre-built images from GHCR (GitHub Container Registry)
+
+**Deploy Workers:**
+
+```bash
+# From project root
+./scripts/deploy-workers.sh
+```
+
+### Marketing Site Separation
+
+Marketing pages are now in a **separate repository** and deployed separately:
+
+| Component      | URL                      | Hosting                    | Repository       |
+| -------------- | ------------------------ | -------------------------- | ---------------- |
+| Marketing Site | fiskai.hr, www.fiskai.hr | SiteGround (static)        | fiskai-marketing |
+| Application    | app.fiskai.hr            | Coolify (Docker on VPS-01) | FiskAI           |
+
+**Note:** Auth pages (login, register) are handled by the app, not marketing site.
+
+See `docs/operations/MARKETING_SEPARATION.md` for complete details.
+
+### Docker Images
+
+FiskAI uses **3 Docker images** for different deployment targets:
+
+| Image          | Dockerfile          | Build Arg       | Purpose             | Components                               |
+| -------------- | ------------------- | --------------- | ------------------- | ---------------------------------------- |
+| **App**        | `Dockerfile`        | -               | Next.js application | Web server, API routes, SSR              |
+| **Worker**     | `Dockerfile.worker` | -               | Background workers  | 15 BullMQ workers (no OCR)               |
+| **Worker OCR** | `Dockerfile.worker` | `WITH_OCR=true` | OCR-enabled worker  | Includes Tesseract, Poppler, Ghostscript |
+
+**Image Registry:** GitHub Container Registry (GHCR)
+
+- App image: Built by Coolify on deployment
+- Worker images: Built by GitHub Actions, pulled by `docker-compose.workers.yml`
+
+**Building Worker Images:**
+
+```bash
+# Standard worker (no OCR dependencies)
+docker build -f Dockerfile.worker -t fiskai-worker .
+
+# OCR worker (with Tesseract and PDF tools)
+docker build -f Dockerfile.worker --build-arg WITH_OCR=true -t fiskai-worker-ocr .
+```
+
+See `docs/operations/WORKER_BUILD_AUTHORITY.md` for CI/CD pipeline details.
 
 ## Database
 
@@ -362,15 +434,38 @@ See `docs/adr/001-ddd-clean-architecture.md` for the full decision record.
 
 ## Key Directories
 
-- `/content/vodici/` - MDX guides
+### Content & Documentation
+
+- `/content/vodici/` - MDX guides (synced by content-sync worker)
 - `/content/usporedbe/` - MDX comparisons
+- `/docs/` - Project documentation (see DOC-MAP.md)
 - `/docs/plans/` - Implementation plans
+- `/docs/operations/` - Operational runbooks
+- `/docs/audits/` - Audit reports
+
+### Source Code
+
+- `/src/app/(app)/` - Client dashboard (authenticated users)
+- `/src/app/staff/` - Staff portal (STAFF/ADMIN role required)
+- `/src/app/admin/` - Admin portal (ADMIN role required)
+- `/src/app/api/` - API routes
+- `/src/components/` - React components (4-layer architecture)
+- `/src/lib/` - Business logic and utilities
+- `/src/lib/regulatory-truth/` - Regulatory Truth Layer implementation
+- `/src/lib/regulatory-truth/workers/` - Worker implementations (15 workers)
 - `/src/lib/modules/` - Module definitions & access control
 - `/src/lib/middleware/` - Subdomain and path-based routing
-- `/src/app/(marketing)/` - Public pages, auth
-- `/src/app/(app)/` - Client dashboard
-- `/src/app/staff/` - Staff portal (role-protected top-level route)
-- `/src/app/admin/` - Admin portal (role-protected top-level route)
+- `/src/domain/` - Pure business logic (DDD)
+- `/src/application/` - Use cases
+- `/src/infrastructure/` - External services & DB
+- `/src/interfaces/` - API routes & server actions
+
+### Configuration & Scripts
+
+- `/scripts/` - Operational scripts (deployment, backfills, audits)
+- `/prisma/` - Prisma schemas and migrations
+- `/drizzle/` - Drizzle ORM migrations (regulatory DB)
+- `/.github/workflows/` - CI/CD pipelines
 
 ## Component Architecture
 
@@ -408,42 +503,119 @@ Since Cloudflare proxies traffic, Let's Encrypt HTTP-01 challenge fails.
 2. Set Cloudflare SSL mode to "Full" (not Strict)
 3. Use DNS-01 challenge with Cloudflare API token
 
-## Environment Variables (Coolify)
+## Environment Variables
 
-Key variables configured:
+### Core Infrastructure
 
-- `DATABASE_URL` - PostgreSQL connection
+**Databases:**
+
+- `DATABASE_URL` - Main PostgreSQL connection (app database)
+- `REGULATORY_DATABASE_URL` - Regulatory database connection (separate schema/instance)
+
+**Queue & Cache:**
+
+- `REDIS_URL` - Redis connection for BullMQ job queues
+
+**Authentication:**
+
 - `NEXTAUTH_URL` - https://fiskai.hr
-- `NEXTAUTH_SECRET` - Auth encryption key
+- `NEXTAUTH_SECRET` - Auth encryption key (32 bytes hex)
+
+**Application:**
+
 - `NEXT_PUBLIC_APP_URL` - https://fiskai.hr
+- `NEXT_PUBLIC_APP_NAME` - FiskAI
+
+**Email:**
+
 - `RESEND_API_KEY` - Email service
 - `RESEND_FROM_EMAIL` - FiskAI <noreply@fiskai.hr>
 
-## Integration Vault
+### AI & LLM Configuration
 
-- `INTEGRATION_VAULT_KEY` - Master encryption key for IntegrationAccount secrets (32-byte hex = 64 characters)
+**Ollama (Split Configuration):**
 
-Generate with: `openssl rand -hex 32`
+- `OLLAMA_EXTRACT_ENDPOINT` - Ollama Cloud endpoint for extraction (large models)
+- `OLLAMA_EXTRACT_API_KEY` - API key for Ollama Cloud
+- `OLLAMA_EXTRACT_MODEL` - Model for regulatory fact extraction (e.g., gemma-3-27b)
+- `OLLAMA_EMBED_ENDPOINT` - Local Ollama endpoint for embeddings (via Tailscale)
+- `OLLAMA_EMBED_API_KEY` - API key for embedding service
+- `OLLAMA_EMBED_MODEL` - Embedding model (e.g., nomic-embed-text)
+- `OLLAMA_EMBED_DIMS` - Embedding dimensions (default: 768)
+- `OLLAMA_ENDPOINT` - Default Ollama endpoint (fallback/legacy)
+- `OLLAMA_API_KEY` - Default Ollama API key
+- `OLLAMA_MODEL` - Default model for general tasks
+- `OLLAMA_VISION_MODEL` - Model for OCR/vision tasks (e.g., llama3.2-vision)
 
-## AI API Key Security
+**OpenAI:**
 
-**CRITICAL: AI API keys must remain server-side only.**
+- `OPENAI_API_KEY` - OpenAI API key (alternative to Ollama)
 
-All AI API keys (`OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `OLLAMA_API_KEY`) are accessed exclusively via `process.env` in server-side code. This is by design.
+**DeepSeek:**
+
+- `DEEPSEEK_API_KEY` - DeepSeek API key (alternative LLM provider)
+
+### Integrations
+
+**E-Invoicing (ePoslovanje):**
+
+- `EPOSLOVANJE_API_BASE` - ePoslovanje API base URL
+- `EPOSLOVANJE_API_KEY` - ePoslovanje API key
+- `EINVOICE_COMPANY_ID` - Company ID for e-invoice polling
+- `EINVOICE_POLL_INTERVAL_MS` - Polling interval (default: 300000 = 5min)
+- `EINVOICE_MAX_WINDOW_DAYS` - Max days to look back (default: 7)
+- `EINVOICE_KEY_SECRET` - Encryption key for e-invoice data (32 bytes hex)
+
+**GitHub:**
+
+- `GITHUB_TOKEN` - GitHub PAT for content sync worker
+
+**Bank Sync:**
+
+- `GOCARDLESS_SECRET_ID` - GoCardless secret ID
+- `GOCARDLESS_SECRET_KEY` - GoCardless secret key
+- `GOCARDLESS_BASE_URL` - GoCardless API base URL
+
+### Security & Encryption
+
+- `STATE_SECRET` - OAuth state signing secret (32 bytes hex)
+- `FISCAL_CERT_KEY` - Fiscal certificate encryption key (32 bytes hex)
+- `INTEGRATION_VAULT_KEY` - Master encryption key for IntegrationAccount secrets (32 bytes hex)
+- `CRON_SECRET` - Secret for authorizing cron job requests
+
+### Worker Configuration
+
+- `WORKER_CONCURRENCY` - Number of concurrent jobs per worker (default: 2)
+- `BULLMQ_PREFIX` - BullMQ queue prefix (default: fiskai)
+- `JOB_RETENTION_HOURS` - Job retention in hours (default: 24)
+- `WATCHDOG_ENABLED` - Enable watchdog monitoring (default: true)
+- `WATCHDOG_TIMEZONE` - Timezone for scheduling (default: Europe/Zagreb)
+
+**Note:** Generate secrets with `openssl rand -hex 32`
+
+## AI Configuration
+
+**Architecture:** All AI operations use Ollama as primary provider, with OpenAI and DeepSeek as alternatives. Supports both local Ollama instances (via Tailscale) and Ollama Cloud.
+
+**Split Configuration Strategy:**
+
+- **Extraction:** Uses Ollama Cloud with large models (gemma-3-27b) for regulatory fact extraction
+- **Embeddings:** Uses local Ollama (GPU-01) with fast models (nomic-embed-text) for vector generation
+- **General:** Uses configurable endpoint for other LLM tasks
 
 **Security Rules:**
 
 1. **Never prefix AI keys with `NEXT_PUBLIC_`** - This would expose them to the browser
 2. **All AI code runs server-side** - Located in `/src/lib/ai/` and `/src/lib/assistant/`
-3. **Lazy-load pattern** - OpenAI client uses `getOpenAI()` to avoid build-time errors
-4. **No client-side AI calls** - All AI operations go through API routes
+3. **No client-side AI calls** - All AI operations go through API routes
 
-**Verified Locations:**
+**AI Modules:**
 
-- `/src/lib/ai/extract.ts` - Server-side `getOpenAI()`
-- `/src/lib/ai/ocr.ts` - Server-side `getOpenAI()`
-- `/src/lib/ai/deepseek.ts` - Server-side `DEEPSEEK_API_KEY`
-- `/src/lib/assistant/query-engine/answer-synthesizer.ts` - Server-side `getOpenAI()`
+- `/src/lib/ai/ollama-client.ts` - Unified Ollama client with circuit breaker support
+- `/src/lib/ai/extract.ts` - Receipt/invoice text extraction
+- `/src/lib/ai/ocr.ts` - Vision-based OCR for images
+- `/src/lib/news/pipeline/ollama-client.ts` - News pipeline LLM client
+- `/src/lib/assistant/query-engine/answer-synthesizer.ts` - Regulatory assistant
 
 This architecture ensures API keys never reach the client bundle.
 
@@ -475,7 +647,27 @@ Two-layer execution model for processing Croatian regulatory content:
 - Fail-closed - ambiguous content goes to human review
 - Evidence.rawContent is immutable
 
-**Workers:** `docker-compose.workers.yml`
+**Workers:** 15 background workers defined in `docker-compose.workers.yml`
+
+| Worker                 | Container Name                   | Purpose                                     | Uses LLM             | Uses OCR |
+| ---------------------- | -------------------------------- | ------------------------------------------- | -------------------- | -------- |
+| **orchestrator**       | fiskai-worker-orchestrator       | Main pipeline coordinator                   | No                   | No       |
+| **sentinel**           | fiskai-worker-sentinel           | Scrapes regulatory sources daily            | No                   | No       |
+| **extractor**          | fiskai-worker-extractor          | Extracts facts from evidence text using LLM | Yes (OLLAMA_EXTRACT) | No       |
+| **ocr**                | fiskai-worker-ocr                | OCR for scanned PDFs (Tesseract + Vision)   | Yes (vision)         | Yes      |
+| **composer**           | fiskai-worker-composer           | Composes facts into regulatory rules        | Yes (OLLAMA)         | No       |
+| **reviewer**           | fiskai-worker-reviewer           | Quality checks on composed rules            | Yes (OLLAMA)         | No       |
+| **arbiter**            | fiskai-worker-arbiter            | Resolves conflicts between rules            | Yes (OLLAMA)         | No       |
+| **releaser**           | fiskai-worker-releaser           | Publishes rules to production               | No                   | No       |
+| **scheduler**          | fiskai-worker-scheduler          | Schedules daily discovery tasks             | No                   | No       |
+| **continuous-drainer** | fiskai-worker-continuous-drainer | Drains queues continuously                  | No                   | No       |
+| **content-sync**       | fiskai-worker-content-sync       | Syncs content to GitHub                     | No                   | No       |
+| **article**            | fiskai-worker-article            | Generates news articles from rules          | Yes (OLLAMA)         | No       |
+| **evidence-embedding** | fiskai-worker-evidence-embedding | Generates embeddings for evidence           | Yes (OLLAMA_EMBED)   | No       |
+| **embedding**          | fiskai-worker-embedding          | Generates embeddings for rules              | Yes (OLLAMA_EMBED)   | No       |
+| **einvoice-inbound**   | fiskai-worker-einvoice-inbound   | Polls ePoslovanje for inbound e-invoices    | No                   | No       |
+
+**Worker Operations:**
 
 ```bash
 # Check queue status
@@ -483,6 +675,10 @@ npx tsx scripts/queue-status.ts
 
 # View worker logs
 docker logs fiskai-worker-ocr --tail 50
+docker logs fiskai-worker-extractor --tail 50
+
+# Deploy all workers (on VPS)
+./scripts/deploy-workers.sh
 ```
 
 ## Development Workflow
@@ -511,6 +707,57 @@ Docker builds take 10-15 minutes. Instead:
    docker compose -f docker-compose.workers.yml build worker-extractor
    docker compose -f docker-compose.workers.yml up -d worker-extractor
    ```
+
+### Available Scripts
+
+**Deployment:**
+
+- `scripts/deploy-to-vps01.sh` - Deploy app to VPS-01 via Coolify API
+- `scripts/deploy-workers.sh` - Deploy workers to VPS
+- `scripts/build-workers.sh` - Build worker Docker images
+- `scripts/build-remote.sh` - Build images on remote BuildKit
+- `scripts/build-arm64.sh` - Build ARM64 images
+
+**Database:**
+
+- `scripts/backup-database.sh` - Backup PostgreSQL to S3/R2
+- `scripts/restore-database.sh` - Restore from backup
+
+**Workers & Queues:**
+
+- `scripts/queue-status.ts` - Check BullMQ queue depths
+- `scripts/test-pipeline.ts` - Test full RTL pipeline
+- `scripts/trigger-pipeline.ts` - Manually trigger pipeline
+- `scripts/drain-content-sync.ts` - Drain content sync queue
+
+**Audits & Checks:**
+
+- `scripts/check-db-counts.ts` - Verify database record counts
+- `scripts/check-integration-invariants.ts` - Verify integration data integrity
+- `scripts/check-regulatory-integrity.ts` - Check regulatory DB consistency
+- `scripts/check-test-db-boundary.ts` - Verify unit tests don't use DB
+- `scripts/check-secrets-drift.ts` - Compare secrets across environments
+
+**Backfills:**
+
+- `scripts/backfill-run.ts` - Generic backfill runner
+- `scripts/backfill-evidence-embeddings.ts` - Generate embeddings for evidence
+- `scripts/backfill-integration-accounts.ts` - Provision integration accounts
+
+**E-Invoicing:**
+
+- `scripts/eposlovanje-ping.ts` - Test ePoslovanje API connection
+- `scripts/lane2-inbound-poll-once.ts` - Manually poll for inbound e-invoices
+- `scripts/lane2-outbound-dry-run.ts` - Test outbound e-invoice submission
+
+**Utilities:**
+
+- `scripts/set-admin-role.ts` - Grant ADMIN role to user
+- `scripts/validate-env.sh` - Verify environment variables
+- `scripts/smoke-portals.sh` - Test all portal endpoints
+- `scripts/test-ai.ts` - Test AI/LLM connections
+
+See `scripts/README.md` for complete script documentation.
 
 ## Documentation Structure
 

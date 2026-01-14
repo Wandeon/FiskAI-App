@@ -12,12 +12,12 @@
 
 FiskAI is a Croatian business management SaaS with four portals:
 
-| Portal       | Subdomain       | Audience       | Verified Routes |
-| ------------ | --------------- | -------------- | --------------- |
-| Marketing    | fiskai.hr       | Public         | 52 pages        |
-| Client App   | app.fiskai.hr   | Business users | 70 pages        |
-| Staff Portal | staff.fiskai.hr | Accountants    | 15 pages        |
-| Admin Portal | admin.fiskai.hr | Platform owner | 22 pages        |
+| Portal       | URL                 | Audience       | Verified Routes |
+| ------------ | ------------------- | -------------- | --------------- |
+| Marketing    | fiskai.hr           | Public         | 52 pages        |
+| Client App   | app.fiskai.hr       | Business users | 70 pages        |
+| Staff Portal | app.fiskai.hr/staff | Accountants    | 15 pages        |
+| Admin Portal | app.fiskai.hr/admin | Platform owner | 22 pages        |
 
 **Core Verified Capabilities:**
 

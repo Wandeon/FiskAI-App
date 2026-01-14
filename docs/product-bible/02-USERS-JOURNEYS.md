@@ -2,10 +2,10 @@
 
 [← Back to Index](./00-INDEX.md)
 
-> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
-> **Version:** 3.0.0
+> **Last Audit:** 2026-01-14 | **Auditor:** Claude Sonnet 4.5
+> **Version:** 3.1.0
 >
-> Reality-audited against codebase. Portal page counts and route structure verified.
+> Comprehensive update: Control Center journeys, marketing separation impact, and new portal structures documented.
 
 ---
 
@@ -130,42 +130,60 @@ STAGE 3: STRATEGIC (10+ invoices OR VAT)
 | **Manages**    | Multiple client companies                   |
 | **Needs**      | Bulk operations, export, multi-company view |
 
-**Petra's Portal (`staff.fiskai.hr`):**
+**Petra's Portal (app.fiskai.hr/staff):**
 
-**Current Implementation:**
+**NEW Architecture (2026-01-03):** Path-based access, not subdomain
 
 ```
-Staff Dashboard (/staff-dashboard)
-├── Dashboard
+Staff Portal (app.fiskai.hr/staff)
+├── Staff Control Center (/staff/staff-control-center) - Primary entry point
+│   ├── Queue: Assigned Clients (with pending items)
+│   ├── Queue: Period Lock Requests (placeholder Phase 2)
+│   ├── Queue: Client Invitations (placeholder)
+│   └── Capability-driven actions per queue item
+│
+├── Legacy Staff Dashboard (/staff/staff-dashboard) - Being phased out
 │   ├── Assigned Clients count
 │   ├── Pending Tickets count
-│   ├── Upcoming Deadlines count (TODO: implement)
 │   ├── Items Need Attention count
 │   └── Recent Activity list
-├── Clients (/clients) - list with status indicators
-├── Calendar (/calendar) - shared deadlines view [stub]
-├── Tasks (/tasks) - assigned work items [stub]
-├── Tickets (/tickets) - support tickets from clients [stub]
-├── Documents (/documents) - cross-client document access [stub]
-└── Settings (/settings)
+│
+├── Clients (/staff/clients) - Client list with filters
+│   └── Client Detail (/staff/clients/[clientId])
+│       ├── Client Overview
+│       ├── Reports (/reports)
+│       ├── E-Invoices (/e-invoices)
+│       ├── Documents (/documents)
+│       └── Messages (/messages)
+│
+├── Bulk Operations (/staff/bulk-operations) - Multi-client actions
+├── Staff Documents (/staff/staff-documents) - Cross-client view
+├── Staff Settings (/staff/staff-settings) - Profile and preferences
+│
+├── Stub Pages (planned, not implemented):
+│   ├── Calendar (/staff/calendar) - shared deadlines view
+│   ├── Tasks (/staff/tasks) - assigned work items
+│   ├── Tickets (/staff/tickets) - support tickets
+│   └── Invitations (/staff/invitations) - client invitations
 ```
 
 **Access Control:**
 
 - Requires `systemRole === "STAFF"` or `systemRole === "ADMIN"`
+- Path-based: `/staff/*` routes protected by middleware
 - Uses `StaffClientProvider` for client context switching
 - Staff can switch between clients and work in client context
 
 **Per-Client Context:**
 
-- Click client → enters client context
-- Same UI as client app
+- Click client → enters client context at `/staff/clients/[clientId]`
+- Same UI components as client app
 - Role: ACCOUNTANT (read + export)
-- Special: "Pregledano" (Reviewed) button
+- Special: "Pregledano" (Reviewed) button on documents
 
 **Planned Features (not yet implemented):**
 
-- Calendar, Tasks, Tickets, Documents pages (currently stubs)
+- Calendar, Tasks, Tickets pages (currently stubs)
 - Pending Actions aggregate view
 - Bulk export across clients
 - Quick deadline overview
@@ -174,68 +192,144 @@ Staff Dashboard (/staff-dashboard)
 
 #### Persona 5: Admin (Platform Owner)
 
-| Attribute        | Value             |
-| ---------------- | ----------------- |
-| **SystemRole**   | `ADMIN`           |
-| **Portal**       | `admin.fiskai.hr` |
-| **Capabilities** | Everything        |
+| Attribute        | Value                 |
+| ---------------- | --------------------- |
+| **SystemRole**   | `ADMIN`               |
+| **Portal**       | `app.fiskai.hr/admin` |
+| **Capabilities** | Everything            |
 
-**Admin Portal (`admin.fiskai.hr`):**
+**Admin Portal (app.fiskai.hr/admin):**
+
+**NEW Architecture (2026-01-03):** Path-based access, not subdomain
 
 **Current Implementation:**
 
 ```
-Admin Dashboard (/overview)
-├── Overview Dashboard
+Admin Portal (app.fiskai.hr/admin)
+├── Admin Control Center (/admin/admin-control-center) - Primary entry point
+│   ├── Queue: Platform Alerts (system health, errors)
+│   ├── Queue: Regulatory Conflicts (RTL conflicts needing review)
+│   ├── Queue: Pending News Posts (AI-generated news awaiting approval)
+│   ├── Queue: Failed Jobs (background job failures)
+│   └── Capability-driven actions per queue item
+│
+├── Overview Dashboard (/admin/overview) - Legacy dashboard
 │   ├── Admin Metrics (cached)
 │   ├── Onboarding Funnel (cached)
-│   └── Compliance Health (cached)
-├── Tenants (/tenants)
-│   ├── Tenant List with filters (legalForm, subscriptionStatus, flags, hasAlerts)
-│   ├── Tenant Detail (/tenants/[companyId])
-│   ├── Sorting and Pagination
-│   └── Search functionality
-├── Staff (/staff) - staff user management
-├── Alerts (/alerts) - platform-wide alert management [IMPLEMENTED]
-├── Digest Preview (/digest) - weekly digest email preview [IMPLEMENTED]
-├── News (/news) - AI-powered news pipeline management [IMPLEMENTED]
-│   ├── News List with status (pending, draft, reviewing, published)
-│   ├── News Detail/Edit (/news/[id])
-│   ├── Cron job triggers (fetch-classify, review, publish)
-│   └── Impact level tracking
-├── Subscriptions (/subscriptions) - Stripe subscription management [stub]
-├── Services (/services) - feature flag management [stub]
-├── Support (/support) - ticket management [stub]
-├── Audit Log (/audit) - system-wide activity [stub]
-├── Regulatory Truth Layer (/regulatory) [IMPLEMENTED]
+│   ├── Compliance Health (cached)
+│   └── Recent Signups
+│
+├── Tenant Management
+│   ├── Tenants (/admin/tenants)
+│   │   ├── List with filters (legalForm, subscriptionStatus, flags, hasAlerts)
+│   │   ├── Sorting and Pagination
+│   │   └── Search functionality
+│   └── Tenant Detail (/admin/tenants/[companyId])
+│       ├── Company Overview
+│       ├── Subscription Status
+│       ├── Module Entitlements
+│       └── Audit Trail
+│
+├── Staff Management (/admin/staff)
+│   ├── Staff User List
+│   ├── Staff Assignments
+│   └── Role Management
+│
+├── Content Management
+│   ├── News (/admin/news) - AI-powered news pipeline [IMPLEMENTED]
+│   │   ├── News List with status (pending, draft, reviewing, published)
+│   │   ├── News Detail/Edit (/admin/news/[id])
+│   │   ├── Cron job triggers (fetch-classify, review, publish)
+│   │   └── Impact level tracking
+│   ├── Alerts (/admin/alerts) - platform-wide alerts [IMPLEMENTED]
+│   ├── Digest Preview (/admin/digest) - weekly digest email [IMPLEMENTED]
+│   └── Content Automation (/admin/content-automation) - article generation
+│
+├── Regulatory Truth Layer (/admin/regulatory) [IMPLEMENTED]
 │   ├── Dashboard - health score, rules, evidence stats
-│   ├── Sources (/regulatory/sources) - regulatory endpoint management
-│   ├── Inbox (/regulatory/inbox) - rules awaiting review
-│   ├── Conflicts (/regulatory/conflicts) - conflict resolution
-│   ├── Releases (/regulatory/releases) - rule publication
-│   └── Coverage (/regulatory/coverage) - coverage dashboard
-└── Settings (/settings)
+│   ├── Sources (/admin/regulatory/sources) - endpoint management
+│   ├── Sentinel (/admin/regulatory/sentinel) - discovery monitoring
+│   ├── Inbox (/admin/regulatory/inbox) - rules awaiting review
+│   ├── Conflicts (/admin/regulatory/conflicts) - conflict resolution
+│   ├── Releases (/admin/regulatory/releases) - rule publication
+│   └── Coverage (/admin/regulatory/coverage) - coverage dashboard
+│
+├── System Monitoring
+│   ├── System Status (/admin/system-status) - health checks
+│   ├── Compliance Status (/admin/compliance-status) - tenant compliance
+│   └── Platform Settings (/admin/platform-settings)
+│
+├── Stub Pages (planned, not implemented):
+│   ├── Subscriptions (/admin/subscriptions) - Stripe management
+│   ├── Services (/admin/services) - feature flag management
+│   ├── Platform Support (/admin/platform-support) - ticket management
+│   ├── Audit Log (/admin/audit) - system-wide activity
+│   └── Feature Flags (/admin/feature-flags) - feature toggles
 ```
 
 **Access Control:**
 
 - Requires `systemRole === "ADMIN"` (exclusive)
+- Path-based: `/admin/*` routes protected by middleware
 - Full platform management capabilities
-- Can access all subdomains (admin, staff, app)
+- Can access all portals (admin, staff, app) via role selection
+
+**Key Features:**
+
+1. **Control Center First**: Primary entry point is task-oriented, not overview
+2. **Regulatory Truth Layer**: Complete management of RTL pipeline
+3. **AI Content Pipeline**: Manage news generation, classification, and publishing
+4. **Tenant Management**: Full CRUD on companies, subscriptions, entitlements
+5. **System Health**: Monitor platform metrics, worker status, job queues
 
 **Planned Features (not yet implemented):**
 
 - Subscriptions, Services, Support, Audit Log pages (currently stubs)
-- Tenant impersonation
-- Support ticket escalation
+- Tenant impersonation (login as tenant)
+- Support ticket escalation workflows
+- Advanced feature flag management
 
 ---
 
-### 3.2 Pre-Authentication Journeys (Marketing)
+### 3.2 Marketing to Application Journey
 
-These journeys occur before user registration, on the public marketing site (`fiskai.hr`).
+**Critical Update (2026-01-09):** Marketing pages have been moved to a **separate repository** (`fiskai-marketing`) and are deployed as static HTML on SiteGround. This architectural change impacts the user journey from discovery to application.
+
+#### 3.2.0 Marketing Split Architecture
+
+| Component      | URL                 | Deployment       | Repository       | Purpose                 |
+| -------------- | ------------------- | ---------------- | ---------------- | ----------------------- |
+| Marketing Site | fiskai.hr           | SiteGround       | fiskai-marketing | Static landing pages    |
+| Authentication | app.fiskai.hr/auth  | Coolify (VPS-01) | FiskAI           | Login, register, verify |
+| Client App     | app.fiskai.hr       | Coolify (VPS-01) | FiskAI           | Business dashboard      |
+| Staff Portal   | app.fiskai.hr/staff | Coolify (VPS-01) | FiskAI           | Multi-client workspace  |
+| Admin Portal   | app.fiskai.hr/admin | Coolify (VPS-01) | FiskAI           | Platform administration |
+
+**Critical Journey Impact:**
+
+1. **Marketing → App Transition**:
+   - Marketing pages are static HTML on SiteGround
+   - Auth pages redirect to `app.fiskai.hr/auth`
+   - User completes login/register on app subdomain
+   - After auth, redirected to appropriate portal based on systemRole
+
+2. **Discovery Path:**
+
+   ```
+   Google → fiskai.hr (marketing) → /login redirect → app.fiskai.hr/auth → onboarding or dashboard
+   ```
+
+3. **Role Selection:**
+   - After login, users with multiple roles see `/select-role` page
+   - ADMIN: Can choose admin, staff, or app portal
+   - STAFF: Can choose staff or app portal
+   - USER: Redirected directly to app dashboard
+
+---
 
 #### 3.2.1 Persona-Specific Landing Pages
+
+**Location:** Marketing repository (`fiskai-marketing`), deployed to fiskai.hr
 
 | Route                | Target Persona   | Key Value Props                                                 | CTA                                                |
 | -------------------- | ---------------- | --------------------------------------------------------------- | -------------------------------------------------- |
@@ -243,10 +337,14 @@ These journeys occur before user registration, on the public marketing site (`fi
 | `/for/dooo`          | Ivan (D.O.O.)    | VAT processing, e-invoices, team access, JOPPD                  | 30-day trial, Standard 99 EUR / Enterprise 199 EUR |
 | `/for/accountants`   | Petra (Staff)    | 70% time reduction, clean exports, free access for accountants  | Free registration for certified accountants        |
 
-#### 3.2.2 Discovery & Education Journeys
+#### 3.2.2 Marketing Site Structure
+
+**Repository:** `fiskai-marketing` (separate from main application)
+**Deployment:** Static HTML export to SiteGround via GitHub Actions
+**URL:** fiskai.hr, www.fiskai.hr
 
 ```
-Marketing Site (fiskai.hr)
+Marketing Site (fiskai.hr) - Static Export
 ├── Homepage (/) - main landing page
 ├── Features (/features) - feature overview
 ├── Pricing (/pricing) - plan comparison
@@ -262,7 +360,7 @@ Marketing Site (fiskai.hr)
 │   ├── Kako Da (/kako-da) - how-to articles
 │   │   └── Article Detail (/kako-da/[slug])
 │   ├── Izvori (/izvori) - source references
-│   └── Wizard (/wizard) - interactive business form selector [IMPLEMENTED]
+│   └── Wizard (/wizard) - interactive business form selector
 │
 ├── Comparison Pages
 │   ├── Usporedba (/usporedba) - comparison explorer
@@ -301,27 +399,67 @@ Marketing Site (fiskai.hr)
 │   ├── Prelazak (/prelazak) - migration guide
 │   └── Status (/status) - system status
 │
-└── Authentication
-    ├── Login (/login) → redirects to /auth
-    ├── Register (/register) → redirects to /auth
-    ├── Check Email (/check-email)
-    ├── Verify Email (/verify-email)
-    ├── Forgot Password (/forgot-password)
-    ├── Reset Password (/reset-password)
-    └── Select Role (/select-role) - for STAFF/ADMIN with multiple roles
+└── Authentication (Redirects to app.fiskai.hr)
+    ├── Login (/login) → REDIRECT to app.fiskai.hr/auth
+    ├── Register (/register) → REDIRECT to app.fiskai.hr/auth
+    ├── Forgot Password (/forgot-password) → REDIRECT to app.fiskai.hr/forgot-password
+    └── Reset Password (/reset-password) → REDIRECT to app.fiskai.hr/reset-password
 ```
 
-#### 3.2.3 Role Selection Flow
+**Key Architectural Rules:**
 
-For users with `systemRole === "STAFF"` or `systemRole === "ADMIN"`, after login:
+- Marketing site is **static HTML** - no database, no auth, no server actions
+- All authentication handled by `app.fiskai.hr/auth`
+- Marketing CTA buttons link to `app.fiskai.hr/auth?mode=signup`
+- Enforced by ESLint rules + CI checks (see `docs/marketing/BOUNDARY_CONTRACT.md`)
 
-1. User authenticates at `/auth`
-2. If `hasMultipleRoles(systemRole)` is true, redirect to `/select-role`
-3. User sees available portals:
-   - **ADMIN**: admin, staff, app
-   - **STAFF**: staff, app
-   - **USER**: app only (no selection needed)
-4. User clicks portal card → redirected to subdomain dashboard
+#### 3.2.3 Authentication Flow
+
+**Location:** Main application repository, `app.fiskai.hr/auth`
+
+```
+Authentication Journey (app.fiskai.hr)
+├── Entry Points
+│   ├── app.fiskai.hr/auth - unified auth page
+│   ├── Redirect from marketing /login
+│   └── Redirect from marketing /register
+│
+├── Authentication Methods
+│   ├── Email + Password
+│   ├── Magic Link (email)
+│   └── OTP verification
+│
+├── Post-Authentication
+│   ├── If no company → /onboarding
+│   ├── If USER role → /dashboard (app.fiskai.hr)
+│   ├── If STAFF/ADMIN with multiple roles → /select-role
+│   ├── If STAFF role (single) → /staff/staff-control-center
+│   └── If ADMIN role (single) → /admin/admin-control-center
+│
+└── Email Verification
+    ├── /check-email → waiting for verification
+    ├── /verify-email → token validation
+    ├── /forgot-password → password reset request
+    └── /reset-password → new password entry
+```
+
+#### 3.2.4 Role Selection Flow
+
+**Location:** `app.fiskai.hr/select-role`
+
+For users with `systemRole === "STAFF"` or `systemRole === "ADMIN"`:
+
+1. User authenticates at `app.fiskai.hr/auth`
+2. System checks `hasMultipleRoles(systemRole)`
+3. If true, redirect to `/select-role`
+4. User sees available portal cards:
+   - **ADMIN users see**: Admin Portal, Staff Portal, Client Dashboard
+   - **STAFF users see**: Staff Portal, Client Dashboard
+   - **USER users**: Skip this step (no choice needed)
+5. User clicks portal card → navigates to appropriate path:
+   - Admin Portal → `/admin/admin-control-center`
+   - Staff Portal → `/staff/staff-control-center`
+   - Client Dashboard → `/dashboard` or `/cc` (Control Center)
 
 ---
 
@@ -338,7 +476,45 @@ For users with `systemRole === "STAFF"` or `systemRole === "ADMIN"`, after login
 
 ### 3.4 Client App Journey (app.fiskai.hr)
 
-After onboarding, the authenticated user enters the main application:
+After onboarding, the authenticated user enters the main application. FiskAI provides two primary entry points:
+
+#### 3.4.1 Control Center (/cc) - Task-Oriented Entry Point
+
+**NEW (2026-01-03):** Control Center is a capability-driven task queue interface.
+
+```
+Control Center (/cc) - "What Needs Attention"
+├── Queue-based interface powered by Capability Resolution API
+├── Shows only actionable items (no empty queues)
+├── Each item displays:
+│   ├── Entity status (DRAFT, PENDING, etc.)
+│   ├── Timestamp
+│   └── Available capabilities (actions)
+│
+└── Typical Queues:
+    ├── Draft Invoices (requires completion)
+    ├── Pending Fiscalization (requires submission)
+    ├── Unmatched Bank Transactions (requires reconciliation)
+    └── Pending Expenses (requires categorization)
+```
+
+**Journey:**
+
+1. User logs in → redirected to `/cc` if they have pending tasks
+2. Sees queue cards with counts and items
+3. Clicks item → redirected to entity page with pre-resolved capabilities
+4. Completes action → returns to `/cc` with updated queue
+
+**Implementation:**
+
+- Server components call `/api/capabilities/resolve`
+- No business logic in UI
+- Blockers displayed with clear explanations
+- Example: Can't fiscalize invoice without certificate → shows certificate setup link
+
+#### 3.4.2 Classic Dashboard (/dashboard) - Overview Entry Point
+
+After onboarding, users can also access the traditional dashboard view:
 
 ```
 Client Dashboard (/dashboard)
@@ -461,106 +637,325 @@ Self-enforcing design tokens ensure consistent UX:
 
 ---
 
-### 3.6 Authentication Flow
+### 3.6 Complete Authentication & Onboarding Flow
+
+**Updated 2026-01-14:** Reflects marketing split and Control Center architecture
 
 ```
-User Authentication Journey
-├── Entry Points
-│   ├── /login → redirects to /auth
-│   ├── /register → redirects to /auth
-│   └── Direct /auth access
+Complete User Journey: Discovery → Authentication → Onboarding → Application
 │
-├── Authentication Methods
-│   ├── Email + Password
-│   ├── Magic Link (email)
-│   └── OTP verification (/src/lib/auth/otp.ts)
+├── STAGE 1: DISCOVERY (Marketing Site)
+│   ├── User lands on fiskai.hr (Google, social, direct)
+│   ├── Browses: Features, Pricing, Knowledge Hub, Calculators
+│   ├── Decides to register
+│   └── Clicks "Registriraj se" CTA
 │
-├── Post-Authentication
-│   ├── If no company → /onboarding
-│   ├── If USER role → /dashboard (app.fiskai.hr)
-│   ├── If STAFF role → /select-role or /staff-dashboard
-│   └── If ADMIN role → /select-role or /overview (admin.fiskai.hr)
+├── STAGE 2: AUTHENTICATION (app.fiskai.hr/auth)
+│   ├── Redirected to app.fiskai.hr/auth
+│   ├── Authentication Methods:
+│   │   ├── Email + Password
+│   │   ├── Magic Link (email)
+│   │   └── OTP verification
+│   ├── Email Verification Flow:
+│   │   ├── /check-email → waiting for verification
+│   │   ├── /verify-email → token validation
+│   │   └── Email confirmed → proceed
+│   └── Password Reset Flow:
+│       ├── /forgot-password → request reset
+│       └── /reset-password → set new password
 │
-└── Email Verification
-    ├── /check-email → waiting for verification
-    ├── /verify-email → token validation
-    ├── /forgot-password → password reset request
-    └── /reset-password → new password entry
+├── STAGE 3: ONBOARDING (app.fiskai.hr/onboarding)
+│   ├── Check: Does user have company?
+│   ├── If NO → Start onboarding flow
+│   │   ├── Step 1: Basic Info (OIB, name, legal form) [REQUIRED]
+│   │   ├── Step 2: Competence Level (beginner/average/pro) [OPTIONAL]
+│   │   ├── Step 3: Address [OPTIONAL]
+│   │   ├── Step 4: Contact & Tax (email, IBAN, VAT status) [OPTIONAL]
+│   │   ├── Step 5: Paušalni Profile (only for OBRT_PAUSAL) [OPTIONAL]
+│   │   └── Step 6: Billing (plan selection) [INFORMATIONAL]
+│   └── If YES → Skip to portal selection
+│
+├── STAGE 4: PORTAL SELECTION (app.fiskai.hr/select-role)
+│   ├── Check: hasMultipleRoles(systemRole)?
+│   ├── If USER → Redirect directly to /cc or /dashboard
+│   ├── If STAFF → Show: Staff Portal or Client Dashboard
+│   ├── If ADMIN → Show: Admin Portal, Staff Portal, or Client Dashboard
+│   └── User selects portal → navigate to entry point
+│
+└── STAGE 5: APPLICATION ENTRY
+    ├── Client (USER role) → /cc (Control Center) or /dashboard
+    ├── Staff (STAFF role) → /staff/staff-control-center
+    └── Admin (ADMIN role) → /admin/admin-control-center
 ```
+
+**Critical Rules:**
+
+1. **Marketing is static** - No auth happens on fiskai.hr
+2. **Auth is centralized** - All login/register at app.fiskai.hr/auth
+3. **Onboarding is optional** - Only Step 1 (Basic Info) is required
+4. **Control Center is primary** - Task-oriented entry, not overview dashboards
+5. **Path-based access** - No separate subdomains for admin/staff (was removed 2026-01-09)
 
 ---
 
 ### 3.7 Identified Gaps & Incomplete Journeys
 
+**Last Review:** 2026-01-14
+
 #### 3.7.1 Staff Portal Gaps
 
-| Feature           | Status              | Notes                              |
-| ----------------- | ------------------- | ---------------------------------- |
-| Calendar page     | **Stub**            | Route exists but no implementation |
-| Tasks page        | **Stub**            | Route exists but no implementation |
-| Tickets page      | **Stub**            | Route exists but no implementation |
-| Documents page    | **Stub**            | Route exists but no implementation |
-| Deadline tracking | **TODO**            | Marked in code comments            |
-| Bulk operations   | **Not implemented** | Documented as planned              |
+| Feature                | Status              | Location                   | Notes                              |
+| ---------------------- | ------------------- | -------------------------- | ---------------------------------- |
+| Calendar page          | **Stub**            | `/staff/calendar`          | Route exists but no implementation |
+| Tasks page             | **Stub**            | `/staff/tasks`             | Route exists but no implementation |
+| Tickets page           | **Stub**            | `/staff/tickets`           | Route exists but no implementation |
+| Staff Documents page   | **Stub**            | `/staff/staff-documents`   | Route exists but no implementation |
+| Deadline tracking      | **TODO**            | Staff Control Center       | Marked in code comments            |
+| Bulk operations        | **Partial**         | `/staff/bulk-operations`   | Page exists, limited functionality |
+| Period Lock Requests   | **Placeholder**     | Staff Control Center queue | Phase 2 planned                    |
+| Multi-client reporting | **Not implemented** | -                          | Documented as planned              |
 
 #### 3.7.2 Admin Portal Gaps
 
-| Feature              | Status              | Notes                  |
-| -------------------- | ------------------- | ---------------------- |
-| Subscriptions page   | **Stub**            | Navigation link exists |
-| Services page        | **Stub**            | Navigation link exists |
-| Support page         | **Stub**            | Navigation link exists |
-| Audit Log page       | **Stub**            | Navigation link exists |
-| Tenant impersonation | **Not implemented** | Documented as planned  |
+| Feature              | Status              | Location                  | Notes                        |
+| -------------------- | ------------------- | ------------------------- | ---------------------------- |
+| Subscriptions page   | **Stub**            | `/admin/subscriptions`    | Navigation link exists       |
+| Services page        | **Stub**            | `/admin/services`         | Navigation link exists       |
+| Platform Support     | **Stub**            | `/admin/platform-support` | Navigation link exists       |
+| Audit Log page       | **Stub**            | `/admin/audit`            | Navigation link exists       |
+| Feature Flags        | **Stub**            | `/admin/feature-flags`    | Navigation link exists       |
+| Tenant impersonation | **Not implemented** | -                         | Documented as planned        |
+| Worker management    | **Partial**         | System Status page        | Monitor only, no restart/etc |
+| Queue management     | **Placeholder**     | Admin Control Center      | Phase 2 planned              |
 
-#### 3.7.3 Documented but Missing Journeys
+#### 3.7.3 Client Portal Gaps
 
-| Journey                    | Documentation         | Implementation                                  |
-| -------------------------- | --------------------- | ----------------------------------------------- |
-| Ana (Obrt Real) onboarding | Documented in persona | Generic onboarding, no OBRT_REAL specific steps |
-| Ivan (D.O.O.) onboarding   | Documented in persona | Generic onboarding, no DOO specific steps       |
-| KPI setup for Obrt Real    | Journey matrix        | Not implemented                                 |
-| Asset tracking             | Journey matrix        | Not implemented                                 |
-| JOPPD preparation          | Journey matrix        | Not implemented                                 |
-| "Consider D.O.O.?" prompt  | Strategic stage       | Not implemented                                 |
-| Employee prep flow         | Strategic stage       | Not implemented                                 |
+| Feature               | Status              | Location                           | Notes                                 |
+| --------------------- | ------------------- | ---------------------------------- | ------------------------------------- |
+| Control Center queues | **Partial**         | `/cc`                              | Basic queues working, needs expansion |
+| Capability blockers   | **Implemented**     | Various pages                      | Shows blockers with explanations      |
+| Invoice workflow      | **Partial**         | `/invoices/new`, `/e-invoices/new` | Capability checks added               |
+| POS integration       | **Stub**            | `/pos`                             | Page exists, limited functionality    |
+| Corporate tax         | **Stub**            | `/corporate-tax`                   | Page exists, no calculations          |
+| Asset registry        | **Not implemented** | -                                  | Not started                           |
+| JOPPD                 | **Not implemented** | -                                  | Not started                           |
 
-#### 3.7.4 Implemented but Undocumented Features
+#### 3.7.4 Documented but Missing Persona-Specific Journeys
 
-| Feature                | Route            | Notes                               |
-| ---------------------- | ---------------- | ----------------------------------- |
-| Article Agent          | `/article-agent` | AI-powered article generation       |
-| Regulatory Truth Layer | `/regulatory/*`  | Full admin management UI            |
-| News Pipeline          | `/news/*`        | AI content pipeline with cron jobs  |
-| Alerts Management      | `/alerts`        | Platform-wide alerts                |
-| Digest Preview         | `/digest`        | Weekly digest email preview         |
-| Business Form Wizard   | `/wizard`        | Interactive business type selector  |
-| Multiple free tools    | `/alati/*`       | Calculators, validators, generators |
+| Journey                    | Persona  | Documentation      | Implementation Status                           |
+| -------------------------- | -------- | ------------------ | ----------------------------------------------- |
+| Ana (Obrt Real) onboarding | Ana      | Persona definition | Generic onboarding, no OBRT_REAL specific steps |
+| Ivan (D.O.O.) onboarding   | Ivan     | Persona definition | Generic onboarding, no DOO specific steps       |
+| KPI setup for Obrt Real    | Ana      | Journey matrix     | Not implemented                                 |
+| Asset tracking             | Ana/Ivan | Journey matrix     | Not implemented                                 |
+| JOPPD preparation          | Ivan     | Journey matrix     | Not implemented                                 |
+| "Consider D.O.O.?" prompt  | Marko    | Strategic stage    | Not implemented                                 |
+| Employee prep flow         | Ana      | Strategic stage    | Not implemented                                 |
+| Paušalni limit warnings    | Marko    | Persona definition | Partially implemented (basic warning)           |
+
+#### 3.7.5 Implemented but Previously Undocumented Features
+
+**Now Documented (2026-01-14):**
+
+| Feature                 | Route                         | Status          | Notes                              |
+| ----------------------- | ----------------------------- | --------------- | ---------------------------------- |
+| Control Center (Client) | `/cc`                         | **NEW**         | Task-oriented entry point          |
+| Control Center (Staff)  | `/staff/staff-control-center` | **NEW**         | Multi-client oversight             |
+| Control Center (Admin)  | `/admin/admin-control-center` | **NEW**         | Platform health monitoring         |
+| Article Agent           | `/article-agent`              | **Implemented** | AI-powered article generation      |
+| Regulatory Truth Layer  | `/admin/regulatory/*`         | **Implemented** | Complete RTL management UI         |
+| News Pipeline           | `/admin/news/*`               | **Implemented** | AI content pipeline with cron jobs |
+| Alerts Management       | `/admin/alerts`               | **Implemented** | Platform-wide alerts               |
+| Digest Preview          | `/admin/digest`               | **Implemented** | Weekly digest email preview        |
+| Content Automation      | `/admin/content-automation`   | **Implemented** | AI article generation              |
+| System Status           | `/admin/system-status`        | **Implemented** | Health checks and monitoring       |
+| Compliance Status       | `/admin/compliance-status`    | **Implemented** | Tenant compliance tracking         |
+
+**Marketing Site Features (in separate repo):**
+
+| Feature              | Route          | Status          | Notes                              |
+| -------------------- | -------------- | --------------- | ---------------------------------- |
+| Business Form Wizard | `/wizard`      | **Implemented** | Interactive business type selector |
+| Free Calculators     | `/alati/*`     | **Implemented** | Multiple calculators and tools     |
+| Knowledge Hub        | `/baza-znanja` | **Implemented** | Guides, glossary, how-tos          |
+| Comparison Pages     | `/usporedba/*` | **Implemented** | Business form comparisons          |
 
 ---
 
-### 3.8 System Roles & Access Matrix
+### 3.8 Control Center Architecture (NEW)
 
-| SystemRole | Marketing | App | Staff | Admin |
-| ---------- | --------- | --- | ----- | ----- |
-| `USER`     | Yes       | Yes | No    | No    |
-| `STAFF`    | Yes       | Yes | Yes   | No    |
-| `ADMIN`    | Yes       | Yes | Yes   | Yes   |
+**Introduced:** 2026-01-03
+**Status:** Phase 1 implemented, Phase 2-4 planned
+
+Control Center is FiskAI's new task-oriented interface paradigm, replacing traditional dashboard-first navigation with a queue-based workflow system.
+
+#### 3.8.1 Design Philosophy
+
+**Problem:** Traditional dashboards show metrics and charts, but users still ask "what do I need to do next?"
+
+**Solution:** Control Center shows **only actionable items** with clear next steps.
+
+**Core Principles:**
+
+1. **Queue-based**: Work items grouped by entity type and status
+2. **Capability-driven**: Actions determined by Capability Resolution API
+3. **Zero business logic in UI**: All rules in backend, UI displays state
+4. **Blockers explained**: If action unavailable, system explains why + how to fix
+5. **No empty queues**: Only show queues with items (reduces noise)
+
+#### 3.8.2 Three Control Centers
+
+| Portal         | Route                         | User  | Purpose                                                         |
+| -------------- | ----------------------------- | ----- | --------------------------------------------------------------- |
+| **Client**     | `/cc`                         | USER  | "What needs my attention?" - invoices, expenses, reconciliation |
+| **Accountant** | `/staff/staff-control-center` | STAFF | "Which clients need review?" - multi-client oversight           |
+| **Admin**      | `/admin/admin-control-center` | ADMIN | "What's broken?" - platform health, conflicts, alerts           |
+
+#### 3.8.3 Implementation Phases
+
+**Phase 1: Control Center Shells** ✅ Complete (2026-01-03)
+
+- Three control center pages created
+- Basic queue rendering
+- Capability resolution integration
+- Blocker display components
+
+**Phase 2: Minimal Entity Editors** 🔄 In Progress
+
+- Inline editing for queue items
+- Quick actions (mark paid, approve, etc.)
+- State refresh after action
+
+**Phase 3: Workflow Completion UX** 📋 Planned
+
+- Completion animations
+- "What's next?" suggestions
+- Queue item removal on completion
+
+**Phase 4: Visual Refinement** 📋 Planned
+
+- Polish UI/UX
+- Keyboard shortcuts
+- Batch operations
+
+#### 3.8.4 Example: Client Control Center Journey
+
+```
+User logs in → Redirected to /cc
+│
+├── Queue: Draft Invoices (3 items)
+│   ├── Invoice #2025-001 - Status: DRAFT
+│   │   └── Actions: [Edit], [Delete], [Mark as Sent]
+│   ├── Invoice #2025-002 - Status: DRAFT
+│   │   └── Actions: [Edit], [Delete]
+│   └── Invoice #2025-003 - Status: DRAFT
+│       └── Actions: BLOCKED
+│           └── Blocker: Missing buyer OIB
+│               └── Fix: [Add buyer info]
+│
+├── Queue: Pending Fiscalization (1 item)
+│   └── Invoice #2025-004 - Status: PENDING_FISCALIZATION
+│       └── Actions: BLOCKED
+│           └── Blocker: No fiscal certificate
+│               └── Fix: [Setup fiscalization] → /settings/fiscalisation
+│
+└── Queue: Unmatched Transactions (5 items)
+    ├── Transaction: "Payment from Client A" - €150.00
+    │   └── Actions: [Match to invoice], [Ignore]
+    └── ... (4 more)
+```
+
+**User clicks "Setup fiscalization":**
+
+1. Redirected to `/settings/fiscalisation`
+2. Completes certificate setup
+3. Returns to `/cc`
+4. Invoice #2025-004 now shows: Actions: [Fiscalize]
+
+#### 3.8.5 Architecture Decision Records
+
+**Why not use Visibility System?**
+
+- Visibility system is toxic (hardcoded rules, not extensible)
+- Control Center uses Capability Resolution API (single source of truth)
+- Enables dynamic rules based on tenant state, not just static config
+
+**Why queue-based, not dashboard-based?**
+
+- Users want tasks, not metrics
+- Reduces cognitive load (only show actionable items)
+- Clear completion state (empty queue = all done)
+
+**Why three separate Control Centers?**
+
+- Different roles have different mental models
+- Client: "My work"
+- Accountant: "My clients"
+- Admin: "Platform health"
+
+---
+
+### 3.9 System Roles & Access Matrix
+
+**Updated 2026-01-14:** Path-based access (no subdomains)
+
+#### 3.9.1 SystemRole Access Matrix
+
+| SystemRole | Marketing (fiskai.hr) | App Paths | Staff Paths (`/staff/*`) | Admin Paths (`/admin/*`) |
+| ---------- | --------------------- | --------- | ------------------------ | ------------------------ |
+| `USER`     | Yes (public)          | Yes       | No                       | No                       |
+| `STAFF`    | Yes (public)          | Yes       | Yes                      | No                       |
+| `ADMIN`    | Yes (public)          | Yes       | Yes                      | Yes                      |
+
+**Access Control Implementation:**
+
+- **Marketing**: Public static site, no authentication
+- **App paths**: Requires authentication, any systemRole
+- **Staff paths** (`/staff/*`): Requires `systemRole === "STAFF"` OR `"ADMIN"`
+- **Admin paths** (`/admin/*`): Requires `systemRole === "ADMIN"` (exclusive)
+- **Enforcement**: Middleware checks path + systemRole (see `src/lib/middleware/subdomain.ts`)
 
 **Role Assignment:**
 
 - Default registration: `USER`
 - Staff promotion: Admin sets via `/admin/staff`
 - Admin access: Database update required (see CLAUDE.md)
+- Role stored in: `User.systemRole` (enum: USER, STAFF, ADMIN)
 
-**Per-Company Roles (CompanyRole enum):**
+**Legacy Note:** Prior to 2026-01-09, admin and staff used separate subdomains (`admin.fiskai.hr`, `staff.fiskai.hr`). These have been removed. All access is now path-based on `app.fiskai.hr`.
 
-| Role       | Description         | Capabilities                   |
-| ---------- | ------------------- | ------------------------------ |
-| OWNER      | Company founder     | Full access including billing  |
-| ADMIN      | Trusted manager     | Manage resources, invite users |
-| MEMBER     | Employee            | Create/edit, limited delete    |
-| ACCOUNTANT | External accountant | Read + exports                 |
-| VIEWER     | Investor/advisor    | Read-only access               |
+#### 3.9.2 Per-Company Roles (CompanyRole enum)
 
-These are stored in `CompanyUser.role` and control access within a company context. See [04-ACCESS-CONTROL.md](./04-ACCESS-CONTROL.md) for full permission matrix.
+These roles control access **within a specific company**, separate from systemRole.
+
+| Role       | Description         | Capabilities                   | CompanyUser.role |
+| ---------- | ------------------- | ------------------------------ | ---------------- |
+| OWNER      | Company founder     | Full access including billing  | `OWNER`          |
+| ADMIN      | Trusted manager     | Manage resources, invite users | `ADMIN`          |
+| MEMBER     | Employee            | Create/edit, limited delete    | `MEMBER`         |
+| ACCOUNTANT | External accountant | Read + exports                 | `ACCOUNTANT`     |
+| VIEWER     | Investor/advisor    | Read-only access               | `VIEWER`         |
+
+**Storage:** `CompanyUser.role` links User to Company with specific role
+
+**Example:**
+
+- User John has `systemRole = "USER"`
+- John is linked to Company A as `CompanyUser.role = "OWNER"`
+- John is linked to Company B as `CompanyUser.role = "ACCOUNTANT"`
+- Result: John can manage Company A fully, but only view/export from Company B
+
+**See Also:** [04-ACCESS-CONTROL.md](./04-ACCESS-CONTROL.md) for full permission matrix.
+
+#### 3.9.3 Multi-Portal Access Flow
+
+For users with elevated systemRole (STAFF, ADMIN):
+
+1. User logs in at `app.fiskai.hr/auth`
+2. System checks `systemRole`:
+   - If `USER`: Direct to `/cc` or `/dashboard`
+   - If `STAFF`: Show role selection (Staff Portal or Client Dashboard)
+   - If `ADMIN`: Show role selection (Admin, Staff, or Client)
+3. User selects portal → navigates to corresponding path
+4. Middleware enforces access based on path + systemRole
+5. User can switch portals anytime via role selector

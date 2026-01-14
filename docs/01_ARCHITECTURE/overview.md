@@ -22,12 +22,12 @@ FiskAI is a Croatian AI-first accounting and invoicing SaaS platform. The system
 
 ## Domain Architecture
 
-| Portal       | URL               | Audience       | Purpose                 |
-| ------------ | ----------------- | -------------- | ----------------------- |
-| Marketing    | `fiskai.hr`       | Public         | Landing, guides, auth   |
-| Client App   | `app.fiskai.hr`   | Clients        | Business dashboard      |
-| Staff Portal | `staff.fiskai.hr` | Accountants    | Multi-client workspace  |
-| Admin Portal | `admin.fiskai.hr` | Platform owner | Tenant/staff management |
+| Portal       | URL                   | Audience       | Purpose                 |
+| ------------ | --------------------- | -------------- | ----------------------- |
+| Marketing    | `fiskai.hr`           | Public         | Landing, guides, auth   |
+| Client App   | `app.fiskai.hr`       | Clients        | Business dashboard      |
+| Staff Portal | `app.fiskai.hr/staff` | Accountants    | Multi-client workspace  |
+| Admin Portal | `app.fiskai.hr/admin` | Platform owner | Tenant/staff management |
 
 ## Multi-Tenancy
 

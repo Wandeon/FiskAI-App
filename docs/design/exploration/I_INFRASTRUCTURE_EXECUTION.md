@@ -40,7 +40,7 @@ redis:
 
 ### Location
 
-`docker-compose.workers.yml` (431 lines, 14 worker services)
+`docker-compose.workers.yml` (431 lines, 15 worker services)
 
 ### Layer A: Discovery Workers
 

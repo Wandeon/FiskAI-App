@@ -6,9 +6,11 @@
 
 ## 14. Guidance System Overview
 
-> **Last Audit:** 2025-12-28 | **Status:** Implemented
+> **Last Audit:** 2026-01-14 | **Status:** Implemented & Verified
 
 The Guidance System is FiskAI's adaptive help and task management layer that personalizes the user experience based on competence levels. It reduces cognitive load for beginners while providing efficiency for experienced users.
+
+**Architecture Status:** Fully implemented with React Context, Help Density configs, Pattern Detection AI, and Email Digest system.
 
 ### 14.1 System Purpose & User Benefit
 
@@ -62,13 +64,17 @@ The Guidance System is FiskAI's adaptive help and task management layer that per
 
 **File Locations:**
 
-| Component     | Location                            |
-| ------------- | ----------------------------------- |
-| Core Library  | `/src/lib/guidance/`                |
-| API Routes    | `/src/app/api/guidance/`            |
-| Components    | `/src/components/guidance/`         |
-| Settings Page | `/src/app/(app)/settings/guidance/` |
-| DB Schema     | `/src/lib/db/schema/guidance.ts`    |
+| Component        | Location                                          |
+| ---------------- | ------------------------------------------------- |
+| Core Library     | `/src/lib/guidance/`                              |
+| API Routes       | `/src/app/api/guidance/`                          |
+| Components       | `/src/components/guidance/`                       |
+| Settings Page    | `/src/app/(app)/settings/guidance/`               |
+| DB Schema        | `/src/lib/db/schema/guidance.ts`                  |
+| Context Provider | `/src/contexts/GuidanceContext.tsx`               |
+| Types (Shared)   | `/src/lib/types/competence.ts`                    |
+| Email Templates  | `/src/lib/email/templates/checklist-digest-*.tsx` |
+| Cron Jobs        | `/src/app/api/cron/checklist-digest/`             |
 
 ---
 
@@ -87,13 +93,24 @@ Users can set their experience level globally or per-category:
 **Implementation:**
 
 ```typescript
-// src/lib/guidance/constants.ts
+// src/lib/types/competence.ts (Single Source of Truth)
 export const COMPETENCE_LEVELS = {
   BEGINNER: "beginner",
   AVERAGE: "average",
   PRO: "pro",
 } as const
 
+export type CompetenceLevel = (typeof COMPETENCE_LEVELS)[keyof typeof COMPETENCE_LEVELS]
+```
+
+This type is shared between:
+
+- **Guidance System** (`/src/lib/guidance/constants.ts`) - Re-exports and adds labels
+- **Visibility System** (`/src/lib/visibility/rules.ts`) - Uses for progression stage and feature gating
+- **Onboarding** (`/src/components/onboarding/step-competence.tsx`) - Captures initial user competence
+
+```typescript
+// src/lib/guidance/constants.ts
 export const LEVEL_DESCRIPTIONS: Record<CompetenceLevel, string> = {
   beginner: "Puna pomoć: korak-po-korak vodiči, tooltipovi, česti podsjetnici",
   average: "Uravnoteženo: pomoć samo kod rizičnih akcija i novih značajki",
@@ -494,11 +511,17 @@ The Guidance System works in conjunction with the Visibility System to create a 
 
 ### 19.2 Shared CompetenceLevel
 
-Both systems use the same three-tier competence model:
+Both systems use the same three-tier competence model from a single source of truth:
 
 ```typescript
-// Both systems import from visibility/rules.ts
-type CompetenceLevel = "beginner" | "average" | "pro"
+// Both systems import from /src/lib/types/competence.ts
+export const COMPETENCE_LEVELS = {
+  BEGINNER: "beginner",
+  AVERAGE: "average",
+  PRO: "pro",
+} as const
+
+export type CompetenceLevel = (typeof COMPETENCE_LEVELS)[keyof typeof COMPETENCE_LEVELS]
 ```
 
 **Visibility System Uses Competence For:**
@@ -555,9 +578,168 @@ export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
 
 ---
 
-## 20. API Reference
+## 20. React Context & Client Integration
 
-### 20.1 GET /api/guidance/preferences
+### 20.1 GuidanceContext Provider
+
+The Guidance System provides a React Context for client-side components to access guidance settings.
+
+**Location:** `/src/contexts/GuidanceContext.tsx`
+
+**Provider Setup:**
+
+```tsx
+// src/app/(app)/layout.tsx
+import { GuidanceProvider } from "@/contexts"
+
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <GuidanceProvider>
+      {/* All dashboard pages have access to guidance context */}
+      {children}
+    </GuidanceProvider>
+  )
+}
+```
+
+**Context API:**
+
+```typescript
+interface GuidanceContextType {
+  preferences: GuidancePreferences
+  isLoading: boolean
+  getLevel: (category: GuidanceCategory) => CompetenceLevel
+  setLevel: (category: GuidanceCategory | "global", level: CompetenceLevel) => Promise<void>
+  shouldShowTooltip: (category: GuidanceCategory) => boolean
+  shouldShowWizard: (category: GuidanceCategory) => boolean
+  isDenseMode: () => boolean
+  getHelpDensity: (category: GuidanceCategory) => HelpDensityConfig
+}
+```
+
+### 20.2 Client Hooks
+
+**useGuidance()** - Access full guidance context:
+
+```tsx
+import { useGuidance } from "@/contexts/GuidanceContext"
+
+function MyComponent() {
+  const { getLevel, setLevel, getHelpDensity } = useGuidance()
+
+  const currentLevel = getLevel("fakturiranje")
+  const density = getHelpDensity("fakturiranje")
+
+  return <button onClick={() => setLevel("fakturiranje", "average")}>Promijeni na Srednji</button>
+}
+```
+
+**useGuidanceLevel(category)** - Shorthand for category-specific guidance:
+
+```tsx
+import { useGuidanceLevel } from "@/contexts/GuidanceContext"
+
+function InvoiceForm() {
+  const { level, showTooltip, showWizard } = useGuidanceLevel("fakturiranje")
+
+  return (
+    <div>
+      {showWizard && <InvoiceWizard />}
+      <form>{/* ... */}</form>
+    </div>
+  )
+}
+```
+
+### 20.3 Component Integration Patterns
+
+**HelpTooltip with Guidance:**
+
+```tsx
+import { HelpTooltip } from "@/components/guidance/HelpTooltip"
+
+;<HelpTooltip
+  title="OIB"
+  content="Osobni identifikacijski broj - 11 znamenki"
+  category="fakturiranje"
+  isKeyField={true} // Shows for "key" and "all" field tooltip settings
+>
+  <label>OIB *</label>
+</HelpTooltip>
+```
+
+**ConfirmationDialog with Guidance:**
+
+```tsx
+import { ConfirmationDialog } from "@/components/guidance/ConfirmationDialog"
+
+;<ConfirmationDialog
+  trigger={<Button variant="destructive">Obriši</Button>}
+  title="Obriši račun?"
+  description="Ova radnja se ne može poništiti."
+  destructive={true}
+  category="fakturiranje"
+  onConfirm={handleDelete}
+>
+  {/* Shows based on actionConfirmations setting */}
+</ConfirmationDialog>
+```
+
+**KeyboardShortcutHint with Guidance:**
+
+```tsx
+import { KeyboardShortcutHint } from "@/components/guidance/KeyboardShortcutHint"
+
+;<KeyboardShortcutHint
+  shortcut="Ctrl+S"
+  description="Spremi"
+  category="fakturiranje"
+  // Visibility: hidden (beginner), hover (average), visible (pro)
+/>
+```
+
+**Success Toast with Guidance:**
+
+```tsx
+import { showSuccessToast } from "@/lib/guidance/toast"
+import { useGuidance } from "@/contexts/GuidanceContext"
+
+function handleSave() {
+  const { getHelpDensity } = useGuidance()
+
+  await saveInvoice()
+
+  showSuccessToast("Račun spremljen", {
+    description: "Račun je uspješno spremljen.",
+    detailedExplanation: "Račun je spremljen u bazu podataka i spreman je za slanje.",
+    helpDensity: getHelpDensity("fakturiranje"),
+  })
+}
+```
+
+### 20.4 Initial Load & SSR
+
+The `GuidanceProvider` fetches user preferences on mount:
+
+```typescript
+// Client-side fetch on mount
+useEffect(() => {
+  async function fetchPreferences() {
+    const res = await fetch("/api/guidance/preferences")
+    const data = await res.json()
+    setPreferences(data.preferences)
+  }
+  fetchPreferences()
+}, [])
+```
+
+For server-side rendering scenarios, components can still render with default values (`beginner`) until client hydration completes.
+
+---
+
+## 21. API Reference
+
+### 21.1 GET /api/guidance/preferences
 
 Get the current user's guidance preferences.
 
@@ -594,7 +776,7 @@ Get the current user's guidance preferences.
 }
 ```
 
-### 20.2 PUT /api/guidance/preferences
+### 21.2 PUT /api/guidance/preferences
 
 Update user's guidance preferences.
 
@@ -626,7 +808,7 @@ Update user's guidance preferences.
 }
 ```
 
-### 20.3 GET /api/guidance/checklist
+### 21.3 GET /api/guidance/checklist
 
 Get aggregated checklist items.
 
@@ -677,7 +859,7 @@ Get aggregated checklist items.
 }
 ```
 
-### 20.4 POST /api/guidance/checklist
+### 21.4 POST /api/guidance/checklist
 
 Mark a checklist item as completed, dismissed, or snoozed.
 
@@ -709,7 +891,7 @@ Mark a checklist item as completed, dismissed, or snoozed.
 }
 ```
 
-### 20.5 GET /api/guidance/insights
+### 21.5 GET /api/guidance/insights
 
 Get AI-powered pattern insights for the current company.
 
@@ -738,23 +920,67 @@ Get AI-powered pattern insights for the current company.
 }
 ```
 
+### 21.6 GET /api/cron/checklist-digest
+
+**Protected Endpoint** - Requires `CRON_SECRET` in Authorization header.
+
+Sends email digests to users based on their `emailDigest` preference (`daily`, `weekly`, or `none`).
+
+**Schedule:**
+
+- **Daily:** Run every day at 8:00 AM for users with `emailDigest: "daily"`
+- **Weekly:** Run every Monday at 8:00 AM for users with `emailDigest: "weekly"`
+
+**Email Content:**
+
+- Top 10 pending items (critical, soon, or upcoming)
+- Completed items count in the period
+- Direct links to action items
+
+**Implementation:**
+
+```typescript
+// src/app/api/cron/checklist-digest/route.ts
+export async function GET(request: Request) {
+  // Verify authorization
+  const authHeader = request.headers.get("authorization")
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const isMonday = new Date().getDay() === 1
+  const digestTypes = isMonday ? ["daily", "weekly"] : ["daily"]
+
+  // For each user with matching digest preference:
+  // 1. Fetch their checklist items
+  // 2. Filter urgent items (critical, soon, upcoming)
+  // 3. Send email with ChecklistDigestEmail template
+
+  return NextResponse.json({ success: true, sent, errors })
+}
+```
+
+**Email Template:** `/src/lib/email/templates/checklist-digest-email.tsx`
+
 ---
 
-## 21. UI Component Inventory
+## 22. UI Component Inventory
 
-### 21.1 Component Catalog
+### 22.1 Component Catalog
 
-| Component            | Location                                          | Description                                    |
-| -------------------- | ------------------------------------------------- | ---------------------------------------------- |
-| `CompetenceSelector` | `/src/components/guidance/CompetenceSelector.tsx` | Full or compact competence level selector      |
-| `ChecklistWidget`    | `/src/components/guidance/ChecklistWidget.tsx`    | Dashboard widget showing top 5 checklist items |
-| `ChecklistItem`      | `/src/components/guidance/ChecklistItem.tsx`      | Individual checklist item with urgency styling |
-| `ChecklistMiniView`  | `/src/components/guidance/ChecklistMiniView.tsx`  | Compact inline checklist view                  |
-| `HelpTooltip`        | `/src/components/guidance/HelpTooltip.tsx`        | Contextual help tooltip with positioning       |
-| `QuickLevelToggle`   | `/src/components/guidance/QuickLevelToggle.tsx`   | Header dropdown for quick level switching      |
-| `InsightsWidget`     | `/src/components/guidance/InsightsWidget.tsx`     | Dashboard widget showing AI insights           |
+| Component              | Location                                            | Description                                     |
+| ---------------------- | --------------------------------------------------- | ----------------------------------------------- |
+| `CompetenceSelector`   | `/src/components/guidance/CompetenceSelector.tsx`   | Full or compact competence level selector       |
+| `ChecklistWidget`      | `/src/components/guidance/ChecklistWidget.tsx`      | Dashboard widget showing top 5 checklist items  |
+| `ChecklistItem`        | `/src/components/guidance/ChecklistItem.tsx`        | Individual checklist item with urgency styling  |
+| `ChecklistMiniView`    | `/src/components/guidance/ChecklistMiniView.tsx`    | Compact inline checklist view                   |
+| `HelpTooltip`          | `/src/components/guidance/HelpTooltip.tsx`          | Contextual help tooltip with positioning        |
+| `QuickLevelToggle`     | `/src/components/guidance/QuickLevelToggle.tsx`     | Header dropdown for quick level switching       |
+| `InsightsWidget`       | `/src/components/guidance/InsightsWidget.tsx`       | Dashboard widget showing AI insights            |
+| `ConfirmationDialog`   | `/src/components/guidance/ConfirmationDialog.tsx`   | Adaptive confirmation dialog                    |
+| `KeyboardShortcutHint` | `/src/components/guidance/KeyboardShortcutHint.tsx` | Keyboard shortcut badge with visibility control |
 
-### 21.2 CompetenceSelector
+### 22.2 CompetenceSelector
 
 Two variants for different contexts:
 
@@ -785,7 +1011,7 @@ Two variants for different contexts:
 />
 ```
 
-### 21.3 ChecklistWidget
+### 22.3 ChecklistWidget
 
 Dashboard integration:
 
@@ -803,7 +1029,7 @@ Dashboard integration:
 - Supports complete/dismiss actions
 - Links to full checklist page if more items exist
 
-### 21.4 QuickLevelToggle
+### 22.4 QuickLevelToggle
 
 Header dropdown or button group:
 
@@ -821,7 +1047,7 @@ Header dropdown or button group:
 - Supports keyboard shortcut (`toggle-guidance-level` event)
 - Links to full settings page
 
-### 21.5 HelpTooltip
+### 22.5 HelpTooltip
 
 Contextual help that respects visibility settings:
 
@@ -849,7 +1075,99 @@ Contextual help that respects visibility settings:
 
 ---
 
-## 22. Settings Page
+## 23. Onboarding Integration
+
+### 23.1 Competence Selection Step
+
+During onboarding, users select their competence level which affects both the Guidance and Visibility systems.
+
+**Location:** `/src/components/onboarding/step-competence.tsx`
+
+**Onboarding Options:**
+
+```typescript
+const COMPETENCE_OPTIONS = [
+  {
+    value: "beginner",
+    label: "Početnik",
+    description: "Tek započinjem s fakturiranjem. Trebam vodstvo korak po korak.",
+    benefits: [
+      "Vodstvo kroz svaki korak",
+      "Detaljne upute i objašnjenja",
+      "Postupno otključavanje značajki",
+    ],
+    uiChanges: "Vidjeti ćete detaljne tooltipove na svakom polju...",
+  },
+  {
+    value: "average",
+    label: "Iskusan",
+    description: "Imam iskustva s fakturiranjem. Razumijem osnove.",
+    benefits: [
+      "Preskočite osnovne korake",
+      "Direktan pristup fakturama",
+      "Umjerene upute kad je potrebno",
+    ],
+  },
+  {
+    value: "pro",
+    label: "Stručnjak",
+    description: "Profesionalac sam. Želim sve značajke odmah.",
+    benefits: ["Sve otključano odmah", "Bez ograničenja i čekanja", "Napredne postavke vidljive"],
+  },
+]
+```
+
+### 23.2 Initial Preference Creation
+
+When a user completes onboarding, their selected competence level is saved to the `user_guidance_preferences` table:
+
+```typescript
+// src/lib/actions/onboarding.ts
+await updateGuidancePreferences(userId, {
+  globalLevel: competenceLevel,
+  levelFakturiranje: competenceLevel,
+  levelFinancije: competenceLevel,
+  levelEu: competenceLevel,
+})
+```
+
+This ensures users immediately experience the interface adapted to their declared skill level.
+
+### 23.3 Visibility System Interaction
+
+The selected competence affects the user's initial progression stage:
+
+```typescript
+// src/lib/visibility/rules.ts
+export const COMPETENCE_STARTING_STAGE: Record<CompetenceLevel, ProgressionStage> = {
+  beginner: "onboarding", // Start from scratch
+  average: "setup", // Skip initial onboarding
+  pro: "active", // Go straight to full features
+}
+```
+
+**Pro users** effectively skip the entire progression system and see all features immediately.
+
+### 23.4 Onboarding Checklist Items
+
+The checklist system includes onboarding-specific items that guide new users through setup:
+
+| Item Reference                  | Title                     | Description                                     |
+| ------------------------------- | ------------------------- | ----------------------------------------------- |
+| `onboarding:company_data`       | Dopuni podatke o tvrtki   | Dodaj OIB i adresu za pravilno fakturiranje     |
+| `onboarding:einvoice_provider`  | Poveži posrednika         | Konfiguriraj IE-Računi za slanje e-računa       |
+| `onboarding:first_invoice`      | Kreiraj prvi račun        | Izradite svoj prvi e-račun koristeći vodič      |
+| `onboarding:first_contact`      | Dodaj prvi kontakt        | Kreiraj kupca ili dobavljača                    |
+| `onboarding:first_product`      | Dodaj proizvod ili uslugu | Kreiraj artikl za fakturiranje                  |
+| `onboarding:first_bank_account` | Dodaj bankovni račun      | Povežite bankovni račun za praćenje transakcija |
+| `onboarding:bank_import`        | Uvezi bankovne izvode     | Importirajte izvode za automatsko uparivanje    |
+| `onboarding:first_expense`      | Evidentiraj prvi trošak   | Dodajte prvi trošak za praćenje rashoda         |
+
+These items automatically appear in the ChecklistWidget and can be completed or dismissed by the user.
+
+---
+
+## 24. Settings Page
 
 **Route:** `/settings/guidance`
 
@@ -894,56 +1212,92 @@ Contextual help that respects visibility settings:
 
 ---
 
-## 23. Implementation Status
+## 25. Implementation Status
 
-| Feature                      | Status         | Location                                      |
-| ---------------------------- | -------------- | --------------------------------------------- |
-| User preferences CRUD        | ✅ Implemented | `preferences.ts`, `/api/guidance/preferences` |
-| Per-category competence      | ✅ Implemented | DB schema, preferences API                    |
-| Global level override        | ✅ Implemented | `setGlobalLevel()`, API                       |
-| Checklist aggregation        | ✅ Implemented | `checklist.ts`, `/api/guidance/checklist`     |
-| Payment obligations          | ✅ Implemented | `getObligationItems()`                        |
-| Compliance deadlines         | ✅ Implemented | `getDeadlineItems()`                          |
-| Onboarding tasks             | ✅ Implemented | `getOnboardingItems()`                        |
-| Seasonal tasks               | ✅ Implemented | `getSeasonalItems()`                          |
-| Complete/dismiss/snooze      | ✅ Implemented | API, `checklistInteractions` table            |
-| Invoice pattern detection    | ✅ Implemented | `detectInvoicePatterns()`                     |
-| Expense pattern detection    | ✅ Implemented | `detectExpensePatterns()`                     |
-| Revenue trend detection      | ✅ Implemented | `detectRevenueTrends()`                       |
-| Help density config          | ✅ Implemented | `help-density.ts`                             |
-| Settings page                | ✅ Implemented | `/settings/guidance/`                         |
-| Dashboard widgets            | ✅ Implemented | `ChecklistWidget`, `InsightsWidget`           |
-| Quick level toggle           | ✅ Implemented | `QuickLevelToggle`                            |
-| Email digest sending         | ✅ Implemented | `/api/cron/checklist-digest`, email template  |
-| Push notifications           | 📋 Planned     | Not implemented                               |
-| Context provider integration | ⚠️ Partial     | `ConditionalHelpTooltip` stub exists          |
+| Feature                   | Status         | Location                                      |
+| ------------------------- | -------------- | --------------------------------------------- |
+| User preferences CRUD     | ✅ Implemented | `preferences.ts`, `/api/guidance/preferences` |
+| Per-category competence   | ✅ Implemented | DB schema, preferences API                    |
+| Global level override     | ✅ Implemented | `setGlobalLevel()`, API                       |
+| Checklist aggregation     | ✅ Implemented | `checklist.ts`, `/api/guidance/checklist`     |
+| Payment obligations       | ✅ Implemented | `getObligationItems()`                        |
+| Compliance deadlines      | ✅ Implemented | `getDeadlineItems()`                          |
+| Onboarding tasks          | ✅ Implemented | `getOnboardingItems()`                        |
+| Seasonal tasks            | ✅ Implemented | `getSeasonalItems()`                          |
+| Complete/dismiss/snooze   | ✅ Implemented | API, `checklistInteractions` table            |
+| Invoice pattern detection | ✅ Implemented | `detectInvoicePatterns()`                     |
+| Expense pattern detection | ✅ Implemented | `detectExpensePatterns()`                     |
+| Revenue trend detection   | ✅ Implemented | `detectRevenueTrends()`                       |
+| Help density config       | ✅ Implemented | `help-density.ts`                             |
+| Settings page             | ✅ Implemented | `/settings/guidance/`                         |
+| Dashboard widgets         | ✅ Implemented | `ChecklistWidget`, `InsightsWidget`           |
+| Quick level toggle        | ✅ Implemented | `QuickLevelToggle`                            |
+| Email digest sending      | ✅ Implemented | `/api/cron/checklist-digest`, email template  |
+| React Context Provider    | ✅ Implemented | `GuidanceContext.tsx`, `useGuidance()`        |
+| ConfirmationDialog        | ✅ Implemented | Respects `actionConfirmations` setting        |
+| KeyboardShortcutHint      | ✅ Implemented | Respects `keyboardShortcuts` setting          |
+| Success Toast Adaptation  | ✅ Implemented | `showSuccessToast()` with help density        |
+| Push notifications        | 📋 Planned     | Not implemented                               |
 
 ---
 
-## 24. Audit Notes
+## 26. Audit Notes
 
-> **Audit Date:** 2025-12-28
+> **Previous Audit:** 2025-12-28
+> **Latest Audit:** 2026-01-14
 
-### Previously Undocumented
+### Audit 2026-01-14: Comprehensive Verification
+
+**Verified Components:**
+
+- ✅ React Context Provider (`GuidanceContext.tsx`) - Fully implemented with hooks
+- ✅ Email Digest System - Cron job and email templates operational
+- ✅ All UI Components - HelpTooltip, ConfirmationDialog, KeyboardShortcutHint verified
+- ✅ Pattern Detection AI - Invoice, expense, and revenue trend detection
+- ✅ Shared Type System - Single source of truth in `/src/lib/types/competence.ts`
+- ✅ Integration with Visibility System - Shared competence levels confirmed
+
+**New Findings:**
+
+1. **GuidanceContext Integration** - Provider wraps entire dashboard layout at `/src/app/(app)/layout.tsx`
+2. **Help Density System** - Fully implements all four adaptive UI aspects (tooltips, confirmations, success messages, keyboard hints)
+3. **Checklist System** - Supports snoozing, completion tracking, and persistence across sessions
+4. **Pattern Insights** - AI-powered detection with confidence thresholds (60%+ required)
+5. **Email Digests** - Protected cron endpoint with daily/weekly scheduling
+
+**Documentation Updates:**
+
+- Added React Context section (§20) with hooks and integration patterns
+- Added Email Digest API endpoint (§21.6)
+- Updated component inventory with ConfirmationDialog and KeyboardShortcutHint
+- Clarified shared type system between Guidance and Visibility systems
+- Verified all file locations and implementation status
+
+### Audit 2025-12-28: Initial Documentation
 
 The entire Guidance System was not mentioned in the Product Bible prior to this audit, despite being fully implemented with:
 
 - 9 library files
 - 3 API routes
-- 8 UI components
+- 10 UI components
 - 1 database schema file
 - 1 settings page
+- 1 React Context Provider
+- 1 cron job + email template
 
 ### Integration Points Clarified
 
 - Visibility System relationship documented
 - Dashboard widget gating by business type noted
 - Competence level sharing between systems explained
+- React Context provider integration verified
+- Help density configuration system documented
 
 ### Future Considerations
 
-1. **Context Provider** - `ConditionalHelpTooltip` notes "Task 3.4" for context integration
-2. **Calendar Integration** - Mentioned in notification preferences but not implemented
+1. **Push Notifications** - `pushEnabled` preference exists but push notification system not implemented
+2. **Advanced Pattern Detection** - Current patterns cover invoicing, expenses, and revenue; could expand to tax thresholds and compliance risks
+3. **Checklist Prioritization ML** - Could use ML to personalize urgency levels based on user behavior
 
 ---
 

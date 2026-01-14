@@ -4,10 +4,10 @@
 
 ---
 
-> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
-> **Version:** 3.0.0
+> **Last Audit:** 2026-01-14 | **Auditor:** Claude Sonnet 4.5
+> **Version:** 3.1.0
 >
-> Reality-audited against codebase. Integration statuses verified against actual implementation.
+> Reality-audited against codebase. Comprehensive update covering all integrations including newly documented ePoslovanje inbound worker, Ollama AI configuration, GoCardless bank sync, and GitHub automation.
 
 ---
 
@@ -48,7 +48,163 @@
 | FINA Direct    | Direct       | ⚠️ 80%         | `/src/lib/fiscal/porezna-client.ts`                    | Requires certificate              |
 | Moj-eRacun     | Intermediary | ❌ Not started | -                                                      | Low priority                      |
 
-### 12.3 Bank Import Formats
+#### ePoslovanje Integration Details
+
+**Location:** `/src/lib/e-invoice/providers/eposlovanje-einvoice.ts`
+
+**API Version:** v2 (v1 end-of-support 2026-01-01)
+
+**Environment Variables:**
+
+- `EPOSLOVANJE_API_BASE` - Base URL without path (required)
+  - TEST: `https://test.eposlovanje.hr`
+  - PROD: `https://eracun.eposlovanje.hr`
+- `EPOSLOVANJE_API_KEY` - API key for Authorization header (required)
+- `EPOSLOVANJE_TIMEOUT_MS` - Request timeout in milliseconds (optional, default: 15000)
+
+**Key Features:**
+
+- Idempotency via content hash and custom header (`X-Idempotency-Key`)
+- Automatic retry with exponential backoff for transient failures
+- Comprehensive error mapping (auth, validation, rate limit, temporary failures)
+- Circuit breaker integration for provider health monitoring
+- Structured logging with security-safe truncation
+
+**API Endpoints:**
+
+- `GET /api/v2/ping` - Connection test
+- `POST /api/v2/document/send` - Send outbound invoice (UBL XML)
+- `GET /api/v2/document/incoming` - Fetch incoming invoices
+- `GET /api/v2/document/{id}/status` - Check invoice status
+- `POST /api/v2/document/{id}/archive` - Archive invoice
+
+**Status Mapping:**
+
+- 200/201/202 → `QUEUED`
+- 400 → `PROVIDER_REJECTED` (validation errors, inactive account)
+- 401/403 → `PROVIDER_AUTH_FAILED`
+- 409 → `QUEUED` (idempotent duplicate)
+- 429 → `PROVIDER_RATE_LIMIT` (retryable)
+- 500/502/503/504 → `PROVIDER_TEMPORARY_FAILURE` (retryable)
+
+#### Inbound Invoice Worker
+
+**Location:** `/src/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.ts`
+
+**Purpose:** Continuously polls ePoslování for incoming B2B invoices
+
+**Configuration:**
+
+- `COMPANY_ID` - Company to poll for (required)
+- `POLL_INTERVAL_MS` - Polling frequency (default: 300000 = 5 minutes)
+- `MAX_WINDOW_DAYS` - Maximum lookback window on first run (default: 7 days)
+- `USE_INTEGRATION_ACCOUNT_INBOUND` - Use IntegrationAccount credentials instead of env vars (default: false)
+
+**Dual-Path Architecture:**
+
+- **V1 Path (Legacy):** Uses `EPOSLOVANJE_API_BASE` + `EPOSLOVANJE_API_KEY` from environment
+- **V2 Path (IntegrationAccount):** Uses encrypted credentials from database when `USE_INTEGRATION_ACCOUNT_INBOUND=true`
+
+**Features:**
+
+- Tenant-safe: polls for specific company only
+- Graceful shutdown with max 30s wait for current poll
+- Comprehensive metrics tracking (fetched, inserted, skipped, errors)
+- Automatic deduplication of incoming invoices
+- UBL XML parsing and storage
+
+### 12.3 Bank Sync Integration (GoCardless)
+
+**Location:** `/src/lib/bank-sync/providers/gocardless.ts`
+
+**Status:** ✅ Production
+
+**Purpose:** PSD2 bank synchronization for automated transaction fetching
+
+#### Environment Variables
+
+- `GOCARDLESS_SECRET_ID` - Secret ID from GoCardless dashboard (required)
+- `GOCARDLESS_SECRET_KEY` - Secret key from GoCardless dashboard (required)
+- `GOCARDLESS_BASE_URL` - API base URL (default: `https://bankaccountdata.gocardless.com/api/v2`)
+
+#### Supported Croatian Banks
+
+| Bank                     | Institution ID              |
+| ------------------------ | --------------------------- |
+| Zagrebačka Banka         | `ZAGREBACKA_BANKA_ZABAHR2X` |
+| Privredna Banka Zagreb   | `PBZ_PBZGHR2X`              |
+| Erste Bank               | `ERSTE_BANK_GIBAHR2X`       |
+| Raiffeisenbank Austria   | `RBA_RZBHHR2X`              |
+| OTP Banka                | `OTP_BANKA_OTPVHR2X`        |
+| Addiko Bank              | `ADDIKO_BANK_HAABHR22`      |
+| Hrvatska Poštanska Banka | `HPB_HABORHR2X`             |
+
+#### Key Features
+
+**Token Management:**
+
+- Automatic token refresh with 60s safety buffer
+- Promise deduplication to prevent concurrent refresh race conditions
+- In-memory caching of access tokens
+
+**Connection Flow:**
+
+1. Create requisition (connection request) via `createConnection()`
+2. User redirected to bank for authentication
+3. Handle callback with `handleCallback()` to get account details
+4. 90-day consent period
+
+**Transaction Fetching:**
+
+- Incremental sync from specified date
+- Automatic deduplication via `externalId`
+- Counterparty information (name, IBAN)
+- Payment reference extraction
+
+**API Methods:**
+
+```typescript
+// Get institution ID for bank name
+const institutionId = await gocardlessProvider.getInstitutionId("Zagrebačka Banka")
+
+// Create connection request
+const { connectionId, redirectUrl } = await gocardlessProvider.createConnection(
+  institutionId,
+  "https://app.fiskai.hr/banking/callback",
+  "user-reference"
+)
+
+// Handle callback after user auth
+const { accounts, expiresAt } = await gocardlessProvider.handleCallback(connectionId)
+
+// Fetch transactions since date
+const transactions = await gocardlessProvider.fetchTransactions(
+  providerAccountId,
+  new Date("2025-01-01")
+)
+
+// Fetch current balance
+const balance = await gocardlessProvider.fetchBalance(providerAccountId)
+
+// Check if connection is still valid
+const valid = await gocardlessProvider.isConnectionValid(connectionId)
+```
+
+**Transaction Structure:**
+
+```typescript
+interface ProviderTransaction {
+  externalId: string // Unique transaction ID
+  date: Date // Booking date
+  amount: number // Positive for credit, negative for debit
+  description: string // Transaction description
+  reference?: string // Payment reference
+  counterpartyName?: string // Other party name
+  counterpartyIban?: string // Other party IBAN
+}
+```
+
+### 12.4 Bank Import Formats
 
 | Format         | Extension | Status | Notes                  |
 | -------------- | --------- | ------ | ---------------------- |
@@ -59,7 +215,7 @@
 | PBZ Export     | .csv      | ⚠️ WIP | Parser in development  |
 | MT940          | .sta      | ❌     | Not yet implemented    |
 
-### 12.4 Stripe Integration
+### 12.5 Stripe Integration
 
 **Location:** `/src/lib/billing/stripe.ts`, `/src/lib/stripe/terminal.ts`
 
@@ -102,7 +258,7 @@ getReaderStatus(readerId)
 - `customer.subscription.deleted` - Downgrade
 - `invoice.payment_failed` - Alert (TODO: email)
 
-### 12.5 Resend Email Integration
+### 12.6 Resend Email Integration
 
 **Location:** `/src/lib/email.ts`, `/src/lib/email/templates/`
 
@@ -140,7 +296,7 @@ await sendEmail({
 - `email.bounced` - Bounce handling
 - `email.complained` - Spam complaints
 
-### 12.6 Cloudflare Integration
+### 12.7 Cloudflare Integration
 
 #### R2 Document Storage
 
@@ -194,7 +350,7 @@ const isValid = await verifyTurnstileToken(token, clientIp)
 const clientIp = getClientIp(request.headers)
 ```
 
-### 12.7 Sentry Error Tracking
+### 12.8 Sentry Error Tracking
 
 **Location:** `/instrumentation.ts`
 
@@ -213,7 +369,7 @@ const clientIp = getClientIp(request.headers)
 - `ResizeObserver loop` (browser)
 - `NEXT_REDIRECT` (expected)
 
-### 12.8 PostHog Analytics
+### 12.9 PostHog Analytics
 
 **Location:** `/src/lib/analytics.ts`, `/src/lib/web-vitals.ts`
 
@@ -252,7 +408,7 @@ const AnalyticsEvents = {
 }
 ```
 
-### 12.9 Slack Alerting
+### 12.10 Slack Alerting
 
 **Location:** `/src/lib/regulatory-truth/watchdog/slack.ts`
 
@@ -280,7 +436,7 @@ await sendContentAlert({
 - `SLACK_WEBHOOK_URL` - Incoming webhook URL
 - `SLACK_CHANNEL` - Target channel (default: `#fiskai-alerts`)
 
-### 12.10 Regulatory Truth Layer (Sentinel)
+### 12.11 Regulatory Truth Layer (Sentinel)
 
 **Location:** `/src/lib/regulatory-truth/`
 
@@ -302,41 +458,310 @@ const status = await getTier1Status()
 // Returns: { hnb: { available, lastRate }, nn: { available, latestIssue }, eurlex: { available } }
 ```
 
-### 12.11 RTL Content Sync (PR #140)
+### 12.12 GitHub Integration
 
-**Location:** `/src/lib/regulatory-truth/content-sync/`
+**Location:** `/src/lib/fiscal-data/validator/create-pr.ts`, `/src/lib/regulatory-truth/content-sync/`
 
-Synchronizes regulatory rule changes to MDX content files.
+**Status:** ✅ Production
 
-| Component            | Purpose                            | Location                    |
-| -------------------- | ---------------------------------- | --------------------------- |
-| Content Sync Worker  | BullMQ worker for sync jobs        | `workers/content-sync.ts`   |
-| Concept Registry     | Maps RTL concepts to content files | `concept-registry.ts`       |
-| Frontmatter Patcher  | Updates MDX frontmatter            | `frontmatter-patcher.ts`    |
-| Releaser Integration | Event emission on rule publication | `agents/releaser/events.ts` |
+**Purpose:** Automated pull request creation for data updates and content synchronization
+
+#### Environment Variables
+
+- `GITHUB_TOKEN` - GitHub API token with repo permissions (required)
+- `GITHUB_REPO` - Repository in format `owner/repo` (e.g., `your-org/FiskAI`)
+- `GITHUB_API` - GitHub API base URL (default: `https://api.github.com`)
+
+#### Use Cases
+
+**1. Fiscal Data Validation PRs**
+
+**Location:** `/src/lib/fiscal-data/validator/create-pr.ts`
+
+Automatically creates PRs when fiscal data validation detects changes in official sources:
 
 ```typescript
-// Concept registry maps regulatory concepts to content
+// Create PR with fiscal data updates
+const prUrl = await createUpdatePR(changes)
+
+// Create issue for validation report
+const issueUrl = await createValidationIssue(changes, summary)
+```
+
+**Features:**
+
+- Automated branch creation: `fiscal-update-[timestamp]`
+- Structured commit messages with change summary
+- Detailed PR body with:
+  - Change table (current vs. new values)
+  - Confidence scores
+  - Source URLs
+  - Extracted text context
+- Updates `lastVerified` dates in fiscal data files
+- Automatic return to main branch after PR creation
+
+**2. Content Sync PRs**
+
+**Location:** `/src/lib/regulatory-truth/workers/content-sync.worker.ts`
+
+Automatically creates PRs when regulatory rules change:
+
+```typescript
+// Create PR for MDX content updates
+const prUrl = await gitAdapter.createPR({
+  title: "Update pausalni-limit in content files",
+  body: generatePRBody(changes),
+  baseBranch: "main",
+})
+```
+
+**Features:**
+
+- Automated branch creation: `content-sync/[conceptId]-[timestamp]`
+- Frontmatter updates with changelog entries
+- Multi-file commits when concept affects multiple guides
+- Structured PR body with regulatory context
+
+#### API Usage
+
+```typescript
+// Create pull request
+const response = await fetch(`${GITHUB_API}/repos/${GITHUB_REPO}/pulls`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    "Content-Type": "application/json",
+    Accept: "application/vnd.github.v3+json",
+  },
+  body: JSON.stringify({
+    title: "PR Title",
+    body: "PR Description",
+    head: "feature-branch",
+    base: "main",
+  }),
+})
+
+// Create issue
+const response = await fetch(`${GITHUB_API}/repos/${GITHUB_REPO}/issues`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    title: "Issue Title",
+    body: "Issue Description",
+    labels: ["automated", "fiscal-data"],
+  }),
+})
+```
+
+#### Security Considerations
+
+- Token must have `repo` scope for private repositories
+- Token stored as environment variable (never in code)
+- All API calls use HTTPS
+- Token never logged or exposed in error messages
+
+### 12.13 RTL Content Sync
+
+**Location:** `/src/lib/regulatory-truth/content-sync/`, `/src/lib/regulatory-truth/workers/content-sync.worker.ts`
+
+Automatically synchronizes regulatory rule changes from the Regulatory Truth Layer to MDX content files via automated pull requests (see GitHub Integration above).
+
+#### Architecture
+
+| Component            | Purpose                            | Location                                |
+| -------------------- | ---------------------------------- | --------------------------------------- |
+| Content Sync Worker  | BullMQ worker for sync jobs        | `workers/content-sync.worker.ts`        |
+| Concept Registry     | Maps RTL concepts to content files | `content-sync/concept-registry.ts`      |
+| Frontmatter Patcher  | Updates MDX frontmatter            | `content-sync/frontmatter-patcher.ts`   |
+| Git Adapter          | Branch/commit/PR creation          | `content-sync/GitContentRepoAdapter.ts` |
+| Releaser Integration | Event emission on rule publication | `agents/releaser/events.ts`             |
+
+#### Workflow
+
+1. **Trigger:** Releaser agent publishes a regulatory rule change
+2. **Event Creation:** `ContentSyncEvent` record created in database with status `PENDING`
+3. **Worker Claim:** Content sync worker atomically claims event (UPDATE WHERE status='PENDING')
+4. **Concept Mapping:** Looks up which MDX files are affected by the concept
+5. **Frontmatter Patch:** Updates MDX frontmatter with changelog entry
+6. **Git Operations:**
+   - Creates branch: `content-sync/[conceptId]-[timestamp]`
+   - Commits changes with structured message
+   - Pushes to remote repository
+   - Creates GitHub PR with detailed change summary
+7. **Status Update:** Marks event as `DONE` on success
+
+#### Configuration
+
+**Environment Variables:**
+
+- `REPO_ROOT` - Repository root directory (default: current working directory)
+- `CONTENT_DIR` - Content directory path (default: `content`, relative to REPO_ROOT)
+- `GITHUB_TOKEN` - GitHub API token for creating PRs (required)
+- `GITHUB_REPO` - Repository in format `owner/repo` (e.g., `your-org/FiskAI`)
+
+**BullMQ Job Options:**
+
+- 8 retry attempts with exponential backoff
+- Initial delay: 30s
+- Maximum delay: ~30 minutes
+
+#### Concept Registry Example
+
+```typescript
+// Maps regulatory concepts to MDX content files
 const registry = {
   "pausalni-limit": ["vodici/pausalni-obrt.mdx"],
   "pdv-threshold": ["vodici/pdv-obveznik.mdx", "usporedbe/pausalni-vs-doo.mdx"],
+  "contribution-rates": ["vodici/doprinosi.mdx", "kalkulatori/doprinosi.mdx"],
 }
 
 // Worker processes sync jobs on rule release
 await contentSyncQueue.add("sync", { ruleId, conceptId, changes })
 ```
 
-### 12.12 AI Providers
+#### Error Handling
+
+**Permanent Errors (immediate dead-letter):**
+
+- `UnmappedConceptError` - Concept not found in registry
+- `PatchConflictError` - Conflicting frontmatter structure
+- Invalid repository configuration
+
+**Transient Errors (retry with backoff):**
+
+- Git operations (network, permissions)
+- GitHub API rate limits
+- Database connection issues
+
+#### Database Schema
+
+```typescript
+interface ContentSyncEvent {
+  id: string
+  status: "PENDING" | "PROCESSING" | "DONE" | "FAILED" | "DEAD_LETTER"
+  ruleId: string
+  conceptId: string
+  changes: Record<string, unknown>
+  createdAt: Date
+  processingStartedAt?: Date
+  completedAt?: Date
+  errorMessage?: string
+  deadLetterReason?: DeadLetterReason
+}
+```
+
+### 12.14 AI Providers (Ollama)
 
 **Location:** `/src/lib/ai/`
 
-| Provider | Purpose                         | Model         | Location      |
-| -------- | ------------------------------- | ------------- | ------------- |
-| DeepSeek | Text extraction, categorization | deepseek-chat | `deepseek.ts` |
-| (Vision) | OCR backup                      | -             | `ocr.ts`      |
+FiskAI uses Ollama exclusively for all AI operations, supporting both local instances and Ollama Cloud.
+
+#### Configuration Architecture
+
+**Split Configuration Model:**
+
+- **Extraction:** `OLLAMA_EXTRACT_*` - Ollama Cloud with larger models for regulatory fact extraction
+- **Embeddings:** `OLLAMA_EMBED_*` - Local Ollama for fast vector generation
+- **Legacy/Fallback:** `OLLAMA_*` - Used when specific configs not set
+
+#### Environment Variables
+
+**Extraction (Regulatory Truth Layer):**
+
+- `OLLAMA_EXTRACT_ENDPOINT` - API endpoint (e.g., `https://api.ollama.ai`)
+- `OLLAMA_EXTRACT_MODEL` - Model for text extraction (e.g., `gemma-3-27b`)
+- `OLLAMA_EXTRACT_API_KEY` - API key for authentication
+
+**Embeddings (Vector Generation):**
+
+- `OLLAMA_EMBED_ENDPOINT` - API endpoint (e.g., `http://100.89.2.111:11434` for local via Tailscale)
+- `OLLAMA_EMBED_MODEL` - Embedding model (default: `nomic-embed-text`)
+- `OLLAMA_EMBED_API_KEY` - API key (use `local` for local instances)
+- `OLLAMA_EMBED_DIMS` - Embedding dimensions (default: 768)
+
+**General/Fallback:**
+
+- `OLLAMA_ENDPOINT` - Default API endpoint (default: `http://localhost:11434`)
+- `OLLAMA_API_KEY` - Default API key for authentication
+- `OLLAMA_MODEL` - Default text model (default: `llama3.2`)
+- `OLLAMA_VISION_MODEL` - Vision/OCR model (default: `llava`)
+
+**Priority Resolution:**
+
+- Extraction uses: `OLLAMA_EXTRACT_*` → `OLLAMA_*` → defaults
+- Embeddings use: `OLLAMA_EMBED_*` → defaults (never falls back to EXTRACT)
+
+#### Core Functions
+
+**Location:** `/src/lib/ai/ollama-client.ts`
 
 ```typescript
-// DeepSeek JSON response
+// Simple chat completion
+const response = await chat(prompt, {
+  systemPrompt: "You are a helpful assistant",
+  temperature: 0.7,
+  maxTokens: 4000,
+  jsonMode: false,
+  model: "llama3.2",
+  companyId: "...", // For usage tracking
+  operation: "ollama_chat",
+})
+
+// Chat with JSON response
+const data = await chatJSON<ExpenseData>(prompt, {
+  systemPrompt: "Extract invoice data",
+  temperature: 0.3,
+  model: "gemma-3-27b",
+})
+
+// Vision/OCR for images
+const text = await vision(imageBase64, "Extract text from this receipt", {
+  temperature: 0.3,
+  jsonMode: false,
+})
+
+// Vision with JSON response
+const parsed = await visionJSON<ReceiptData>(imageBase64, "Parse receipt")
+
+// Check availability
+const available = await isAvailable()
+```
+
+#### Features
+
+- **Circuit Breaker:** Automatic failfast when provider is unhealthy
+- **Retry Logic:** Exponential backoff with configurable attempts (default: 3)
+- **Usage Tracking:** Automatic token counting and cost tracking per company
+- **Error Handling:** Typed errors (`OllamaError`, `CircuitOpenError`)
+- **Timeout Protection:** Configurable timeouts with abort controller
+- **Security:** API keys never exposed to client (server-side only)
+
+#### Use Cases
+
+| Use Case                    | Model Type | Config Vars            | Location                                                      |
+| --------------------------- | ---------- | ---------------------- | ------------------------------------------------------------- |
+| Receipt OCR                 | Vision     | `OLLAMA_VISION_MODEL`  | `/src/lib/ai/ocr.ts`                                          |
+| Expense categorization      | Text       | `OLLAMA_MODEL`         | `/src/lib/ai/categorize.ts`                                   |
+| Invoice data extraction     | Text       | `OLLAMA_MODEL`         | `/src/lib/ai/extract.ts`                                      |
+| Regulatory fact extraction  | Text       | `OLLAMA_EXTRACT_MODEL` | `/src/lib/regulatory-truth/agents/ollama-config.ts`           |
+| Document embeddings         | Embedding  | `OLLAMA_EMBED_MODEL`   | `/src/lib/article-agent/verification/embedder.ts`             |
+| Semantic concept matching   | Embedding  | `OLLAMA_EMBED_MODEL`   | `/src/lib/assistant/query-engine/semantic-concept-matcher.ts` |
+| News classification         | Text       | `OLLAMA_MODEL`         | `/src/lib/news/pipeline/ollama-client.ts`                     |
+| Bank transaction processing | Text       | `OLLAMA_MODEL`         | `/src/lib/banking/import/processor.ts`                        |
+
+#### Legacy DeepSeek Integration
+
+**Status:** ⚠️ Deprecated - maintained for backward compatibility only
+
+**Location:** `/src/lib/ai/deepseek.ts`
+
+DeepSeek was the original AI provider but has been superseded by Ollama. The integration remains available but is no longer actively used in new features.
+
+```typescript
+// Legacy DeepSeek usage (not recommended for new code)
 const result = await deepseekJson({
   model: "deepseek-chat",
   messages: [...],
@@ -344,7 +769,7 @@ const result = await deepseekJson({
 })
 ```
 
-### 12.13 FINA Fiscalization
+### 12.15 FINA Fiscalization
 
 **Location:** `/src/lib/fiscal/`
 
@@ -371,7 +796,7 @@ const response = await submitToPorezna(signedXml, "TEST")
 // Returns: { success, jir?, zki?, errorCode?, errorMessage? }
 ```
 
-### 12.14 OIB/VAT Lookup
+### 12.16 OIB/VAT Lookup
 
 **Location:** `/src/lib/oib-lookup.ts`
 
@@ -390,7 +815,7 @@ const results = await searchCompanies("Primjer d.o.o.")
 // Returns: { success, results: [{ name, oib, mbs, address }] }
 ```
 
-### 12.15 Cron Jobs
+### 12.17 Cron Jobs
 
 | Endpoint                       | Schedule    | Purpose                    |
 | ------------------------------ | ----------- | -------------------------- |
@@ -403,7 +828,7 @@ const results = await searchCompanies("Primjer d.o.o.")
 | `/api/cron/checklist-digest`   | Weekly      | User digest emails         |
 | `/api/cron/certificate-check`  | Daily       | Cert expiration check      |
 
-### 12.16 Proactive AI Agents
+### 12.18 Proactive AI Agents
 
 FiskAI uses AI agents that **act proactively**, not just respond to queries.
 
@@ -561,23 +986,82 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/...
 SLACK_CHANNEL=#fiskai-alerts
 ```
 
-### Optional / Development
+### E-Invoice Integrations
 
 ```bash
-# E-Invoice (when ready)
+# ePoslovanje (Primary - Production)
+EPOSLOVANJE_API_BASE=https://eracun.eposlovanje.hr  # or https://test.eposlovanje.hr for testing
+EPOSLOVANJE_API_KEY=...
+EPOSLOVANJE_TIMEOUT_MS=15000  # Optional, default 15000
+
+# Inbound Invoice Worker (optional)
+USE_INTEGRATION_ACCOUNT_INBOUND=true  # Use IntegrationAccount credentials instead of env vars
+COMPANY_ID=...  # Company to poll for (worker-specific)
+POLL_INTERVAL_MS=300000  # 5 minutes
+MAX_WINDOW_DAYS=7  # Lookback window
+
+# IE-Računi (Secondary - Stub Ready)
 IE_RACUNI_API_KEY=...
 IE_RACUNI_API_URL=https://api.ie-racuni.hr/v1
 IE_RACUNI_SANDBOX=true
+```
 
+### AI Configuration (Ollama)
+
+```bash
+# Extraction (Regulatory Truth Layer) - Ollama Cloud with larger models
+OLLAMA_EXTRACT_ENDPOINT=https://api.ollama.ai
+OLLAMA_EXTRACT_MODEL=gemma-3-27b
+OLLAMA_EXTRACT_API_KEY=...
+
+# Embeddings - Local Ollama for fast vector generation
+OLLAMA_EMBED_ENDPOINT=http://100.89.2.111:11434  # Tailscale address
+OLLAMA_EMBED_MODEL=nomic-embed-text
+OLLAMA_EMBED_API_KEY=local
+OLLAMA_EMBED_DIMS=768
+
+# General/Fallback (used if EXTRACT/EMBED not set)
+OLLAMA_ENDPOINT=http://localhost:11434
+OLLAMA_API_KEY=...
+OLLAMA_MODEL=llama3.2
+OLLAMA_VISION_MODEL=llava
+
+# Legacy DeepSeek (deprecated, backward compatibility only)
+DEEPSEEK_API_KEY=...
+```
+
+### GitHub Integration
+
+```bash
+# Automated PR creation for fiscal data and content sync
+GITHUB_TOKEN=ghp_...  # Token with repo permissions
+GITHUB_REPO=your-org/FiskAI  # Repository in owner/repo format
+GITHUB_API=https://api.github.com  # Optional, defaults to GitHub API
+```
+
+### Optional / Development
+
+```bash
 # Sudski Registar (public API, has defaults)
 SUDSKI_REGISTAR_CLIENT_ID=...
 SUDSKI_REGISTAR_CLIENT_SECRET=...
+
+# Content Sync Worker (optional overrides)
+REPO_ROOT=...  # Default: current working directory
+CONTENT_DIR=content  # Default: content (relative to REPO_ROOT)
 ```
 
 ---
 
 ## Changelog
 
+- **2026-01-14:** Comprehensive integration update (v3.1.0)
+  - **ePoslovanje:** Documented v2 API details, inbound invoice worker, dual-path architecture
+  - **Ollama AI:** Complete split configuration documentation (EXTRACT/EMBED/general)
+  - **GoCardless:** Full bank sync integration with Croatian banks, token management
+  - **GitHub Integration:** Automated PR creation for fiscal data validation and content sync
+  - **RTL Content Sync:** Expanded workflow, error handling, and database schema
+  - Updated environment variables section with all new configs
 - **2025-12-29:** Added RTL Content Sync integration (PR #140)
 - **2025-12-28:** Major audit - added 15+ undocumented integrations
   - Cloudflare (R2, CDN purge, Turnstile)
@@ -586,7 +1070,7 @@ SUDSKI_REGISTAR_CLIENT_SECRET=...
   - Slack alerting
   - Regulatory Truth fetchers (HNB, NN, EUR-Lex)
   - OIB/VIES lookup
-  - DeepSeek AI
+  - DeepSeek AI (now marked as deprecated)
   - Structured logger (Pino)
   - All cron jobs
   - Updated AI agent documentation

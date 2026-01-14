@@ -4,10 +4,18 @@
 
 ---
 
-> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
-> **Version:** 3.0.0
+> **Last Audit:** 2026-01-14 | **Auditor:** Claude Sonnet 4.5
+> **Version:** 3.1.0
 >
-> Reality-audited against codebase. Pricing tiers verified against subscriptionPlans.ts.
+> **Comprehensive update:** Dual Prisma architecture, RTL models, GL engine, Person/Organization models, Payroll/JOPPD, News system v2, Paušalni EU/Intrastat tracking, Integration vault, Cash management, Review queue.
+>
+> **Schema Summary:**
+>
+> - **Core Schema** (schema.prisma): 120+ models (Company, Invoice, Expense, User, etc.)
+> - **Regulatory Schema** (regulatory.prisma): 15+ models (Evidence, RegulatorySource, RuleFact, etc.)
+> - **Drizzle Tables**: 25+ tables (news, pausalni, guidance, tutorials, deadlines)
+> - **API Endpoints**: 242+ routes across 58 API groups
+> - **Server Actions**: 27 action files
 
 ---
 
@@ -255,14 +263,15 @@ These tables are managed by Drizzle (not Prisma) for performance-critical or new
 
 **Location:** `/src/lib/db/schema/`
 
-| Schema File     | Tables                                                                                                               | Purpose                                |
-| --------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| `guidance.ts`   | `user_guidance_preferences`, `checklist_interactions`                                                                | User competence levels, setup progress |
-| `pausalni.ts`   | `pausalni_profile`, `eu_vendor`, `eu_transaction`, `payment_obligation`, `generated_form`, `notification_preference` | Paušalni compliance hub                |
-| `news.ts`       | `news_sources`, `news_items`, `news_posts`, `news_categories`, `news_tags`, `news_post_sources`                      | News aggregation system                |
-| `newsletter.ts` | `newsletter_subscriptions`                                                                                           | Newsletter subscribers                 |
-| `deadlines.ts`  | `compliance_deadlines`                                                                                               | Generated tax deadlines                |
-| `tutorials.ts`  | `tutorial_progress`                                                                                                  | User tutorial tracking                 |
+| Schema File       | Tables                                                                                                                                     | Purpose                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
+| `guidance.ts`     | `user_guidance_preferences`, `checklist_interactions`                                                                                      | User competence levels, setup progress |
+| `pausalni.ts`     | `pausalni_profile`, `eu_vendor`, `eu_transaction`, `payment_obligation`, `generated_form`, `notification_preference`, `intrastat_tracking` | Paušalni compliance hub with Intrastat |
+| `news.ts`         | `news_sources`, `news_items`, `news_posts`, `news_categories`, `news_tags`, `news_post_sources`, `news_pipeline_runs`                      | News aggregation system                |
+| `newsletter.ts`   | `newsletter_subscriptions`                                                                                                                 | Newsletter subscribers                 |
+| `deadlines.ts`    | `compliance_deadlines`                                                                                                                     | Generated tax deadlines                |
+| `tutorials.ts`    | `tutorial_progress`                                                                                                                        | User tutorial tracking                 |
+| `content-sync.ts` | Content sync tracking tables                                                                                                               | Content synchronization                |
 
 **Example Schema:**
 
@@ -297,6 +306,7 @@ export const pausalniProfile = pgTable("pausalni_profile", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: text("company_id").notNull(),
   hasPdvId: boolean("has_pdv_id").default(false),
+  registrationDate: date("registration_date"), // Business registration date
   pdvId: varchar("pdv_id", { length: 20 }), // HR12345678901
   pdvIdSince: date("pdv_id_since"),
   euActive: boolean("eu_active").default(false),
@@ -317,7 +327,56 @@ export const paymentObligation = pgTable("payment_obligation", {
   status: varchar("status", { length: 20 }).default("PENDING"),
   paidDate: date("paid_date"),
   paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }),
+  matchedTransactionId: uuid("matched_transaction_id"),
+  matchType: varchar("match_type", { length: 20 }),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+// EU transactions for PDV reporting
+export const euTransaction = pgTable("eu_transaction", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: text("company_id").notNull(),
+  bankTransactionId: uuid("bank_transaction_id"),
+  direction: varchar("direction", { length: 20 }).notNull(), // RECEIVED, PROVIDED
+  counterpartyName: varchar("counterparty_name", { length: 255 }),
+  counterpartyCountry: varchar("counterparty_country", { length: 2 }),
+  counterpartyVatId: varchar("counterparty_vat_id", { length: 20 }),
+  viesValidated: boolean("vies_validated").default(false),
+  viesValidatedAt: timestamp("vies_validated_at"),
+  viesValid: boolean("vies_valid"),
+  transactionDate: date("transaction_date").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("EUR"),
+  pdvRate: decimal("pdv_rate", { precision: 4, scale: 2 }).default("25.00"),
+  pdvAmount: decimal("pdv_amount", { precision: 10, scale: 2 }),
+  reportingMonth: integer("reporting_month").notNull(),
+  reportingYear: integer("reporting_year").notNull(),
+  vendorId: uuid("vendor_id"),
+  detectionMethod: varchar("detection_method", { length: 20 }),
+  confidenceScore: integer("confidence_score"),
+  userConfirmed: boolean("user_confirmed").default(false),
+  transactionType: varchar("transaction_type", { length: 20 }).default("SERVICES"),
+  intrastatReportable: boolean("intrastat_reportable").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+})
+
+// Intrastat tracking for goods movement thresholds
+export const intrastatTracking = pgTable("intrastat_tracking", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: text("company_id").notNull(),
+  year: integer("year").notNull(),
+  arrivalsTotal: decimal("arrivals_total", { precision: 12, scale: 2 }).default("0"),
+  dispatchesTotal: decimal("dispatches_total", { precision: 12, scale: 2 }).default("0"),
+  arrivalsThresholdBreached: boolean("arrivals_threshold_breached").default(false),
+  arrivalsThresholdBreachedAt: timestamp("arrivals_threshold_breached_at"),
+  dispatchesThresholdBreached: boolean("dispatches_threshold_breached").default(false),
+  dispatchesThresholdBreachedAt: timestamp("dispatches_threshold_breached_at"),
+  arrivalsWarningShown: boolean("arrivals_warning_shown").default(false),
+  dispatchesWarningShown: boolean("dispatches_warning_shown").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 })
 ```
 
@@ -332,12 +391,81 @@ export const newsPosts = pgTable("news_posts", {
   title: varchar("title", { length: 500 }).notNull(),
   content: text("content").notNull(), // markdown
   excerpt: varchar("excerpt", { length: 500 }),
+
+  // Images with attribution
+  featuredImageUrl: varchar("featured_image_url", { length: 1000 }),
+  featuredImageSource: varchar("featured_image_source", { length: 200 }),
+  featuredImageCaption: varchar("featured_image_caption", { length: 500 }),
+  featuredLocalImagePath: varchar("featured_local_image_path", { length: 500 }),
+
+  // Classification
   categoryId: varchar("category_id", { length: 50 }),
   tags: jsonb("tags").default([]),
   impactLevel: varchar("impact_level", { length: 20 }), // 'high' | 'medium' | 'low'
-  status: varchar("status", { length: 20 }).default("draft"), // 'draft' | 'reviewing' | 'published'
+
+  // AI Processing
+  aiPasses: jsonb("ai_passes").default({}), // stores all 3 passes
+  status: varchar("status", { length: 20 }).default("draft"), // 'draft' | 'reviewing' | 'published' | 'failed'
+
+  // Error recovery
+  processingAttempts: integer("processing_attempts").default(0),
+  lastError: text("last_error"),
+  lastErrorAt: timestamp("last_error_at"),
+
+  // Content Freshness
+  expiresAt: timestamp("expires_at"),
+  lastVerifiedAt: timestamp("last_verified_at"),
+  freshnessStatus: varchar("freshness_status", { length: 20 }).default("fresh"),
+  freshnessCheckedAt: timestamp("freshness_checked_at"),
+
   publishedAt: timestamp("published_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+})
+
+export const newsItems = pgTable("news_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sourceId: varchar("source_id", { length: 100 }).notNull(),
+  sourceUrl: varchar("source_url", { length: 1000 }).notNull(),
+  originalTitle: varchar("original_title", { length: 500 }).notNull(),
+  originalContent: text("original_content"),
+  publishedAt: timestamp("published_at"),
+  fetchedAt: timestamp("fetched_at"),
+
+  // AI-generated fields
+  summaryHr: text("summary_hr"),
+  summaryEn: text("summary_en"),
+  categories: jsonb("categories").default([]),
+  relevanceScore: varchar("relevance_score", { length: 10 }),
+  impactLevel: varchar("impact_level", { length: 20 }),
+
+  // Assignment
+  assignedToPostId: uuid("assigned_to_post_id"),
+
+  // Images
+  imageUrl: varchar("image_url", { length: 1000 }),
+  imageSource: varchar("image_source", { length: 200 }),
+  localImagePath: varchar("local_image_path", { length: 500 }),
+
+  // Processing status
+  status: varchar("status", { length: 20 }).default("pending"),
+  processedAt: timestamp("processed_at"),
+  processingAttempts: integer("processing_attempts").default(0),
+  lastError: text("last_error"),
+  lastErrorAt: timestamp("last_error_at"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+})
+
+// Pipeline run tracking
+export const newsPipelineRuns = pgTable("news_pipeline_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  runDate: timestamp("run_date").notNull(),
+  stage: varchar("stage", { length: 20 }).notNull(), // 'fetch-classify' | 'review' | 'publish'
+  status: varchar("status", { length: 20 }).notNull(), // 'running' | 'completed' | 'failed'
+  startedAt: timestamp("started_at").notNull(),
+  completedAt: timestamp("completed_at"),
+  summary: jsonb("summary").default({}),
+  errors: jsonb("errors").default([]),
 })
 ```
 
@@ -694,7 +822,7 @@ GET    /api/pausalni/calendar       Tax calendar
 | `/api/capabilities`    | GET    | API capabilities      |
 | `/api/webhooks/resend` | POST   | Email service webhook |
 
-**Total API Routes:** 129 endpoints (see Section 19 for additional Regulatory Truth endpoints)
+**Total API Routes:** 242 endpoints (includes Regulatory Truth, News, Pausalni, Health monitoring, and all CRUD operations)
 
 ### 17.20 Server Actions
 
@@ -753,9 +881,36 @@ async function handleSubmit(data: InvoiceData) {
 
 ## 18. Regulatory Truth Layer Data Models
 
-The Regulatory Truth Layer is a comprehensive system for processing Croatian regulatory content with full audit trail. These models are defined in `/prisma/schema.prisma`.
+The Regulatory Truth Layer is a comprehensive system for processing Croatian regulatory content with full audit trail. Models are split between two Prisma schemas:
 
-### 18.1 Source & Discovery Models
+- **Core Schema** (`/prisma/schema.prisma`): Tenant-scoped models using standard `db` client
+- **Regulatory Schema** (`/prisma/regulatory.prisma`): System-wide RTL models using `dbReg` client
+
+### 18.0 Dual Prisma Client Architecture
+
+**Why Two Schemas?**
+
+FiskAI uses a **dual Prisma client architecture** to separate tenant-scoped data from system-wide regulatory truth:
+
+| Schema                               | Client  | Database            | Tenant Isolation | Purpose                          |
+| ------------------------------------ | ------- | ------------------- | ---------------- | -------------------------------- |
+| **Core** (`schema.prisma`)           | `db`    | `public` schema     | ✅ Yes           | Company data, invoices, users    |
+| **Regulatory** (`regulatory.prisma`) | `dbReg` | `regulatory` schema | ❌ No            | RTL, evidence, rules, monitoring |
+
+**Key Benefits:**
+
+- **Safety**: Prevents accidental tenant data leaks in RTL pipelines
+- **Performance**: RTL queries don't need tenant filtering
+- **Migrations**: Independent migration cycles for core vs regulatory
+- **Scaling**: Regulatory schema can be moved to separate database later
+
+**Relations Across Schemas:**
+
+- Use **soft references** (string IDs) when linking across schemas
+- Example: `Evidence.sourceId` references `RegulatorySource.id` in regulatory schema
+- Example: `RegulatoryRule.conceptId` soft-references `Concept.id` in core schema
+
+### 18.1 Source & Discovery Models (Regulatory Schema)
 
 ```prisma
 model RegulatorySource {
@@ -800,22 +955,44 @@ model DiscoveredItem {
 }
 ```
 
-### 18.2 Evidence & Extraction Models
+### 18.2 Evidence & Extraction Models (Regulatory Schema)
 
 ```prisma
+// Location: /prisma/regulatory.prisma
 model Evidence {
   id              String   @id @default(cuid())
   sourceId        String
   fetchedAt       DateTime @default(now())
   contentHash     String
-  rawContent      String   @db.Text  // Full HTML/PDF text
+  rawContent      String   @db.Text  // Full HTML/PDF text (immutable)
   contentType     String   @default("html")
   url             String
   hasChanged      Boolean  @default(false)
+  changeSummary   String?
+  deletedAt       DateTime?
+
+  // Staleness tracking for regulatory compliance
+  lastVerifiedAt       DateTime?  // Last time source URL checked and content confirmed unchanged
+  expiresAt            DateTime?  // Explicit expiration date
+  sourceEtag           String?    // ETag from source for change detection
+  sourceLastMod        DateTime?  // Last-Modified header
+  verifyCount          Int        @default(0)
+  stalenessStatus      String     @default("FRESH") // FRESH, AGING, STALE, UNAVAILABLE, EXPIRED
+  consecutiveFailures  Int        @default(0)
+
   // OCR support fields (PR #119)
-  contentClass            String   @default("HTML")  // HTML, PDF_TEXT, PDF_SCANNED
+  contentClass            String   @default("HTML")  // HTML, PDF_TEXT, PDF_SCANNED, DOC, XLSX, JSON
   ocrMetadata             Json?
-  primaryTextArtifactId   String?
+  primaryTextArtifactId   String?  // Points to canonical text artifact for Extractor
+
+  // Semantic similarity for duplicate detection (NEW: embedding worker)
+  embedding          Unsupported("vector(768)")?  // pgvector embedding
+  embeddingStatus    String     @default("PENDING")  // PENDING, PROCESSING, COMPLETED, FAILED
+  embeddingError     String?
+  embeddingAttempts  Int        @default(0)
+  embeddingUpdatedAt DateTime?
+
+  @@schema("regulatory")
 }
 
 model EvidenceArtifact {
@@ -1128,6 +1305,335 @@ model ReasoningTrace {
 
 ---
 
+## 18.7 New Core Models (Added Since Last Audit)
+
+### General Ledger Engine Models
+
+FiskAI now includes a complete General Ledger (GL) engine for double-entry accounting:
+
+```prisma
+model ChartOfAccounts {
+  id              String               @id @default(cuid())
+  companyId       String
+  code            String               // e.g., "1000" for assets, "4000" for revenue
+  name            String
+  description     String?
+  normalBalance   AccountNormalBalance // DEBIT or CREDIT
+  statementType   StatementType        // BALANCE_SHEET, INCOME_STATEMENT, CASH_FLOW
+  lockLevel       AccountLockLevel     @default(USER)
+  isActive        Boolean              @default(true)
+}
+
+model JournalEntry {
+  id                     String              @id @default(cuid())
+  companyId              String
+  entryNumber            Int
+  fiscalYear             Int
+  entryDate              DateTime
+  periodId               String
+  status                 EntryStatus         @default(DRAFT)
+  description            String
+  reference              String?
+  contentHash            String               // SHA256 for immutability
+  hashAlgoVersion        Int                 @default(1)
+  canonicalFormatVersion Int                 @default(1)
+  lines                  JournalLine[]
+}
+
+model JournalLine {
+  id             String          @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal         @db.Decimal(14, 2)
+  credit         Decimal         @db.Decimal(14, 2)
+  lineNumber     Int
+  description    String?
+  dimensions     Json?            // Multi-dimensional accounting support
+}
+
+model AccountingPeriod {
+  id                String            @id @default(cuid())
+  companyId         String
+  fiscalYear        Int
+  periodNumber      Int
+  periodType        PeriodType        @default(MONTHLY)
+  startDate         DateTime
+  endDate           DateTime
+  status            PeriodStatus      @default(OPEN)
+  closedAt          DateTime?
+  closedById        String?
+  lockedAt          DateTime?
+  lockedById        String?
+  lockReason        String?
+}
+
+model TrialBalance {
+  id          String           @id @default(cuid())
+  companyId   String
+  periodId    String
+  accountId   String
+  debitTotal  Decimal          @db.Decimal(14, 2)
+  creditTotal Decimal          @db.Decimal(14, 2)
+  netBalance  Decimal          @db.Decimal(14, 2)
+}
+```
+
+**Purpose**: Enables full double-entry accounting for D.O.O. and complex business structures. See [GL Engine Spec](../plans/2025-01-GL-ENGINE-SPEC.md).
+
+### Person & Organization Models
+
+New normalized person/organization models for proper contact/employee/director management:
+
+```prisma
+model Person {
+  id                 String               @id @default(cuid())
+  companyId          String
+  fullName           String
+  normalizedFullName String               // For deduplication
+  firstName          String?
+  lastName           String?
+  oib                String?
+  email              String?
+  phone              String?
+  iban               String?
+  addressLine1       String?
+  city               String?
+  country            String               @default("HR")
+  contactRoles       PersonContactRole[]  // Can be a customer/vendor
+  employeeRoles      PersonEmployeeRole[] // Can be an employee
+  directorRoles      PersonDirectorRole[] // Can be a director
+  snapshots          PersonSnapshot[]     // Audit trail
+}
+
+model Organization {
+  id                       String            @id @default(cuid())
+  companyId                String
+  legalName                String
+  normalizedLegalName      String            // For matching
+  email                    String?
+  phone                    String?
+  primaryAddressId         String?
+  taxIdentities            TaxIdentity[]     // OIB, VAT, etc.
+  contacts                 Contact[]
+  bankAccounts             BankAccount[]
+  buyerInvoices            EInvoice[]
+  sellerInvoices           EInvoice[]
+}
+
+model TaxIdentity {
+  id             String          @id @default(cuid())
+  companyId      String
+  type           TaxIdentityType  // OIB, VAT_ID, TAX_ID, EORI
+  value          String
+  country        String          @default("HR")
+  organizationId String?
+  personId       String?
+}
+```
+
+**Purpose**: Separates person/organization entities from Contact (which is now just a role). Enables proper deduplication and multi-role support (same person can be employee + vendor).
+
+### Integration Account Model
+
+Unified integration vault for encrypted credentials:
+
+```prisma
+model IntegrationAccount {
+  id            String   @id @default(cuid())
+  companyId     String
+  kind          IntegrationKind    // E_INVOICE, FISCAL, EMAIL, BANK
+  environment   IntegrationEnv     @default(PROD)
+  status        IntegrationStatus  @default(ACTIVE)
+
+  // Provider configuration (non-sensitive JSON)
+  providerConfig Json?
+
+  // Encrypted secrets (unified vault)
+  secretEnvelope    String?
+  secretKeyVersion  Int      @default(1)
+
+  // Audit
+  createdAt     DateTime @default(now())
+  rotatedAt     DateTime?
+  lastUsedAt    DateTime?
+}
+```
+
+**Purpose**: Centralized credential management with envelope encryption. All API keys, certificates, and tokens stored here.
+
+### Payroll & JOPPD Models
+
+Complete payroll system for employee management:
+
+```prisma
+model Employee {
+  id          String    @id @default(cuid())
+  companyId   String
+  firstName   String
+  lastName    String
+  oib         String?
+  dateOfBirth DateTime?
+  employmentContracts         EmploymentContract[]
+  dependents                  Dependent[]
+  allowances                  Allowance[]
+  pensionPillars              PensionPillar[]
+  payoutLines                 PayoutLine[]
+  payslips                    Payslip[]
+}
+
+model EmploymentContract {
+  id           String                   @id @default(cuid())
+  companyId    String
+  employeeId   String
+  contractCode String?
+  startedAt    DateTime
+  endedAt      DateTime?
+  status       EmploymentContractStatus @default(ACTIVE)
+  versions     EmploymentContractVersion[]
+}
+
+model Payout {
+  id                  String              @id @default(cuid())
+  companyId           String
+  payoutMonth         Int
+  payoutYear          Int
+  status              PayoutStatus        @default(DRAFT)
+  lockStatus          PayoutLockStatus    @default(UNLOCKED)
+  lockedAt            DateTime?
+  lockedById          String?
+  lines               PayoutLine[]
+  calculationSnapshot CalculationSnapshot?
+}
+
+model JoppdSubmission {
+  id               String   @id @default(cuid())
+  companyId        String
+  payoutId         String
+  payoutMonth      Int
+  payoutYear       Int
+  xmlContent       String   @db.Text
+  submittedAt      DateTime @default(now())
+  finaStatus       String?
+  finaResponse     Json?
+}
+```
+
+**Purpose**: Full payroll processing for companies with employees. Supports JOPPD submissions to FINA.
+
+### Fixed Assets Model
+
+Depreciation and asset management:
+
+```prisma
+model FixedAsset {
+  id                String   @id @default(cuid())
+  companyId         String
+  name              String
+  category          AssetCategory
+  acquisitionDate   DateTime
+  acquisitionCost   Decimal
+  usefulLifeMonths  Int
+  depreciationMethod DepreciationMethod
+  status            AssetStatus
+  currentBookValue  Decimal
+  accumulatedDepreciation Decimal
+  depreciationEntries     DepreciationEntry[]
+}
+
+model DepreciationEntry {
+  id             String   @id @default(cuid())
+  assetId        String
+  periodId       String
+  journalEntryId String?
+  depreciation   Decimal
+  bookValue      Decimal
+}
+```
+
+**Purpose**: Track company assets (vehicles, equipment, real estate) and calculate depreciation for tax purposes (required for Obrt Dohodak and D.O.O.).
+
+### Cash Management Models
+
+Daily cash register tracking:
+
+```prisma
+model CashIn {
+  id           String   @id @default(cuid())
+  companyId    String
+  businessDate DateTime @db.Date
+  amount       Decimal  @db.Decimal(14, 2)
+  note         String?
+}
+
+model CashOut {
+  id           String   @id @default(cuid())
+  companyId    String
+  businessDate DateTime @db.Date
+  amount       Decimal  @db.Decimal(14, 2)
+  note         String?
+}
+
+model CashDayClose {
+  id             String   @id @default(cuid())
+  companyId      String
+  businessDate   DateTime @db.Date
+  openingBalance Decimal
+  totalIn        Decimal
+  totalOut       Decimal
+  closingBalance Decimal
+  note           String?
+  closedAt       DateTime @default(now())
+}
+
+model CashLimitSetting {
+  id          String   @id @default(cuid())
+  companyId   String   @unique
+  limitAmount Decimal  @db.Decimal(14, 2)
+  currency    String   @default("EUR")
+  isActive    Boolean  @default(true)
+}
+```
+
+**Purpose**: Track daily cash operations for retail businesses. Ensures compliance with cash transaction limits (Article 11 of Zakon o PDV-u).
+
+### Review & Reporting Models
+
+Staff portal and reporting workflow:
+
+```prisma
+model ReviewQueueItem {
+  id              String                @id @default(cuid())
+  companyId       String
+  entityType      ReviewQueueEntityType // PAYOUT, REPORT, INVOICE
+  entityId        String
+  status          ReviewQueueStatus     @default(PENDING)
+  priority        ReviewQueuePriority   @default(NORMAL)
+  requestedById   String?
+  assignedToId    String?
+  dueAt           DateTime?
+  completedAt     DateTime?
+  notes           String?
+  metadata        Json?
+}
+
+model ReportingStatus {
+  id                String           @id @default(cuid())
+  companyId         String
+  periodId          String
+  reportType        ReportType        // PDV, URA, IRA, JOPPD
+  status            ReportingState    @default(DRAFT)
+  reviewQueueItemId String?          @unique
+  submittedAt       DateTime?
+  approvedAt        DateTime?
+  approvedById      String?
+  notes             String?
+}
+```
+
+**Purpose**: Staff portal workflow for accountants to review and approve client reports before submission.
+
+---
+
 ## 19. Regulatory Truth Layer API Endpoints
 
 ### 19.1 Admin Regulatory Truth APIs
@@ -1178,7 +1684,7 @@ model ReasoningTrace {
 | `/api/cron/certificate-check` | Daily   | Check cert expiry          |
 | `/api/cron/weekly-digest`     | Weekly  | Weekly user digest         |
 
-**Updated Total API Routes:** 148 endpoints
+**Total Regulatory API Routes:** 31 endpoints (15 admin RTL endpoints + 6 public + 5 assistant + 5 cron)
 
 ---
 
@@ -1356,3 +1862,264 @@ Discovery → Sentinel → Evidence → Extractor → SourcePointer
 2. **Source pointer integrity**: Every rule must have at least one SourcePointer
 3. **Fail-closed extraction**: Invalid DSL never defaults to "always true"
 4. **Audit trail**: All rule state changes logged to RegulatoryAuditLog
+5. **Tenant isolation**: Core schema enforces companyId filtering; regulatory schema has no tenant data
+6. **Content hash integrity**: JournalEntry, Evidence, and Statement use SHA256 for immutability
+
+---
+
+## 25. Major Changes Since Last Audit (2026-01-05 → 2026-01-14)
+
+### 25.1 New Data Models
+
+#### Dual Prisma Architecture
+
+- **Regulatory Schema** (`regulatory.prisma`) added with `dbReg` client
+- Moved RTL models from core to regulatory schema for safety
+- Soft references across schemas (no FK constraints)
+
+#### General Ledger Engine (Complete)
+
+- `ChartOfAccounts`: Multi-dimensional accounting with lock levels
+- `JournalEntry`: Immutable entries with content hashing
+- `JournalLine`: Double-entry bookkeeping
+- `AccountingPeriod`: Period locking and closing
+- `TrialBalance`: Period-end balances
+- `PostingRule`: Automated GL posting from operational events
+
+#### Person & Organization Separation
+
+- `Person`: Normalized person entities (replaces mixed Contact model)
+- `Organization`: Company/organization entities with tax identities
+- `TaxIdentity`: OIB, VAT, EORI tracking per entity
+- `PersonContactRole`, `PersonEmployeeRole`, `PersonDirectorRole`: Multi-role support
+- `PersonSnapshot`: Audit trail for person changes
+
+#### Payroll & JOPPD
+
+- `Employee`: Employee master data
+- `EmploymentContract`: Versioned employment contracts
+- `EmploymentContractVersion`: Contract change history
+- `Payout`: Monthly payroll calculations
+- `PayoutLine`: Individual employee payouts
+- `CalculationSnapshot`: Frozen calculation state
+- `JoppdSubmission`: FINA payroll tax submissions
+- `Dependent`, `Allowance`, `PensionPillar`: Employee benefits
+
+#### Fixed Assets & Depreciation
+
+- `FixedAsset`: Asset register
+- `DepreciationEntry`: Monthly depreciation calculations
+- `AssetCandidate`: Auto-detection from expenses
+- GL integration for depreciation journal entries
+
+#### Cash Management
+
+- `CashIn`, `CashOut`: Daily cash transactions
+- `CashDayClose`: End-of-day cash reconciliation
+- `CashLimitSetting`: Configurable cash transaction limits
+
+#### Integration Management
+
+- `IntegrationAccount`: Unified credential vault
+- Envelope encryption for secrets
+- Supports E_INVOICE, FISCAL, EMAIL, BANK integrations
+- `ProviderSyncState`: Last sync tracking per integration
+
+#### Review & Reporting Workflow
+
+- `ReviewQueueItem`: Staff portal task queue
+- `ReviewDecision`: Approval/rejection decisions
+- `ReportingStatus`: Report submission tracking (PDV, URA, IRA, JOPPD)
+- Links to `AccountingPeriod` for period-based reporting
+
+#### News System v2 (Drizzle)
+
+- `newsItems`: Individual news articles with AI processing
+- `newsPosts`: Published digest posts
+- `newsPostSources`: Many-to-many linking
+- `newsPipelineRuns`: Cron job coordination
+- Image caching support (`localImagePath`, `featuredLocalImagePath`)
+- Error recovery tracking (`processingAttempts`, `lastError`)
+- Freshness status (`expiresAt`, `lastVerifiedAt`, `freshnessStatus`)
+
+#### Paušalni EU/Intrastat (Drizzle)
+
+- `euTransaction`: EU service/goods transactions
+- `intrastatTracking`: Annual goods movement totals
+- VIES validation support
+- Automatic threshold breach detection
+- `registrationDate` added to `pausalniProfile`
+
+#### Evidence Embedding Worker
+
+- `Evidence.embedding`: pgvector(768) for semantic search
+- `Evidence.embeddingStatus`: PENDING/PROCESSING/COMPLETED/FAILED
+- `Evidence.embeddingAttempts`: Retry tracking
+- Enables duplicate detection via semantic similarity
+
+#### Evidence Staleness Tracking
+
+- `Evidence.lastVerifiedAt`: Last content verification
+- `Evidence.stalenessStatus`: FRESH/AGING/STALE/UNAVAILABLE/EXPIRED
+- `Evidence.sourceEtag`, `Evidence.sourceLastMod`: HTTP caching
+- `Evidence.consecutiveFailures`: Grace period tracking
+
+### 25.2 New API Endpoints
+
+**Cash Management:**
+
+- `/api/cash/in`, `/api/cash/out`: Record cash transactions
+- `/api/cash/close`: End-of-day reconciliation
+
+**Accounting Periods:**
+
+- `/api/accounting-periods`: List/create periods
+- `/api/accounting-periods/lock`: Lock period to prevent changes
+
+**Review Queue:**
+
+- `/api/reporting-status`: Report submission workflow
+- Staff portal review endpoints
+
+**Contracts:**
+
+- `/api/contracts`: Employment contract management
+
+**Procurement:**
+
+- `/api/procurement`: Procurement tracking
+
+**JOPPD:**
+
+- `/api/joppd`: Payroll submissions
+
+**Experiments:**
+
+- `/api/experiments`: A/B testing framework
+
+**People:**
+
+- `/api/people`: Person entity management
+
+**Health Monitoring:**
+
+- `/api/health/content-pipelines`: News pipeline health
+- `/api/admin/workers/status`: Worker health dashboard
+- `/api/admin/workers/circuit-breaker/*`: Circuit breaker management
+
+**News System:**
+
+- `/api/news/latest`: Latest posts
+- `/api/admin/news/posts/[id]/reprocess`: Retry AI processing
+
+### 25.3 Schema Migrations
+
+**Moved to Regulatory Schema:**
+
+- `Evidence` (from core)
+- `EvidenceArtifact` (from core)
+- `ExtractionRejected` (from core)
+- `RegulatorySource` (from core)
+- `MonitoringAlert` (new)
+- `ConflictResolutionAudit` (new)
+- `RuleTable`, `RuleVersion`, `RuleSnapshot`, `RuleCalculation` (from core - fiscal rules)
+
+**Soft References Created:**
+
+- `Evidence.sourceId` → `RegulatorySource.id` (both in regulatory schema)
+- `RegulatoryRule.conceptId` → `Concept.id` (cross-schema)
+- `SourcePointer.evidenceId` → `Evidence.id` (cross-schema)
+- `TravelOrder.perDiemRuleVersionId` → `RuleVersion.id` (cross-schema)
+
+### 25.4 Breaking Changes
+
+**None** - All changes are additive. Existing APIs remain compatible.
+
+### 25.5 Database Size Impact
+
+Estimated storage requirements for new models:
+
+| Model Group         | Est. Rows/Year      | Storage Impact       |
+| ------------------- | ------------------- | -------------------- |
+| JournalEntry/Line   | 50K entries         | ~500 MB              |
+| Evidence embeddings | 5K documents        | ~20 MB (vector data) |
+| NewsItems           | 10K items           | ~100 MB              |
+| Payouts/JOPPD       | 12 submissions/year | ~10 MB               |
+| Person/Organization | 1K entities         | ~5 MB                |
+
+**Total new data**: ~635 MB/year per active company (worst case)
+
+### 25.6 Performance Considerations
+
+**New Indexes Added:**
+
+- `Evidence.embeddingStatus` for retry queue queries
+- `Evidence.stalenessStatus` for monitoring
+- `newsItems.processingAttempts` for error recovery
+- `euTransaction.transactionType` for Intrastat filtering
+- `ReviewQueueItem.assignedToId` for staff portal
+- `AccountingPeriod.status` for period queries
+
+**Vector Search:**
+
+- pgvector extension required for `Evidence.embedding`
+- HNSW index recommended for >10K evidence records
+- Cosine similarity queries for duplicate detection
+
+---
+
+## 26. API Coverage Matrix
+
+### 26.1 By Feature Module
+
+| Module           | REST APIs | Server Actions | Drizzle Queries | Status         |
+| ---------------- | --------- | -------------- | --------------- | -------------- |
+| Invoicing        | 8         | 6              | 0               | ✅ Complete    |
+| E-Invoicing      | 3         | 2              | 0               | ✅ Complete    |
+| Banking          | 9         | 4              | 0               | ✅ Complete    |
+| Expenses         | 6         | 5              | 0               | ✅ Complete    |
+| Pausalni         | 10        | 3              | 12              | ✅ Complete    |
+| News             | 8         | 1              | 8               | ✅ Complete    |
+| Regulatory Truth | 31        | 0              | 0               | ⚠️ In Progress |
+| Fiscalization    | 4         | 3              | 0               | ⚠️ 60%         |
+| Payroll/JOPPD    | 3         | 0              | 0               | ⚠️ 30%         |
+| GL Engine        | 2         | 0              | 0               | ⚠️ 40%         |
+| Cash Management  | 3         | 0              | 0               | ✅ Complete    |
+| Review Queue     | 4         | 0              | 0               | ✅ Complete    |
+
+### 26.2 API Health Monitoring
+
+**Production Endpoints:**
+
+- `/api/health` - Basic health check (DB connection, Redis)
+- `/api/health/ready` - Readiness probe (includes workers)
+- `/api/health/content-pipelines` - News/RTL pipeline status
+- `/api/metrics` - Prometheus-compatible metrics
+- `/api/admin/workers/status` - Worker health dashboard
+
+**Circuit Breakers:**
+
+- Sentinel agent (regulatory truth)
+- LLM clients (Ollama, external APIs)
+- Bank sync (PSD2)
+- Email sync (IMAP/OAuth)
+
+---
+
+## 27. Documentation Links
+
+**Architecture:**
+
+- [Regulatory Truth Layer](../01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md)
+- [GL Engine Spec](../plans/2025-01-GL-ENGINE-SPEC.md)
+- [Component Layers](../03_ARCHITECTURE/COMPONENT_LAYERS_MIGRATION.md)
+
+**Operations:**
+
+- [Worker Deployment](../operations/WORKER_BUILD_AUTHORITY.md)
+- [Marketing Separation](../operations/MARKETING_SEPARATION.md)
+
+**Plans:**
+
+- [Phase 1 Proof Run](../audits/PHASE_1_PROOF_RUN.md)
+- [Mission 3: Confidence & Rollback](../plans/MISSION_3_CONFIDENCE_AUDITABILITY_ROLLBACK.md)

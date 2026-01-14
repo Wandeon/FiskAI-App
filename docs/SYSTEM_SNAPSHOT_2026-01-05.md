@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-FiskAI is a production-ready Croatian business compliance platform serving paušalni obrt owners. The system consists of 4 web portals, 18 feature modules, 182 database models, and 14 background workers.
+FiskAI is a production-ready Croatian business compliance platform serving paušalni obrt owners. The system consists of 4 web portals, 17 feature modules, 184 database models, and 15 background workers.
 
 ---
 
@@ -21,15 +21,15 @@ FiskAI is a production-ready Croatian business compliance platform serving pauš
 | Prisma Models      | 182   | Multi-tenant with companyId              |
 | Enums              | 80+   | SystemRole, CompanyRole, LegalForm, etc. |
 | **Code**           |       |                                          |
-| Modules            | 18    | 8 default-enabled, 10 opt-in             |
+| Modules            | 17    | 8 default-enabled, 9 opt-in              |
 | API Route Files    | 241   | Under src/app/api/                       |
 | HTTP Endpoints     | ~216  | REST + webhooks                          |
-| RTL Workers        | 14    | BullMQ-based pipeline                    |
+| RTL Workers        | 15    | BullMQ-based pipeline                    |
 | **Portals**        |       |                                          |
 | Marketing Pages    | ~45   | fiskai.hr                                |
 | Client App Pages   | ~85   | app.fiskai.hr                            |
-| Staff Portal Pages | 12    | staff.fiskai.hr                          |
-| Admin Portal Pages | ~22   | admin.fiskai.hr                          |
+| Staff Portal Pages | 12    | app.fiskai.hr/staff                      |
+| Admin Portal Pages | ~22   | app.fiskai.hr/admin                      |
 
 ---
 
