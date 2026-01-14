@@ -1,4 +1,3 @@
-// Build cache invalidation: 2026-01-14T16:00
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
@@ -338,40 +337,10 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Rewrite to (app) route group for app subdomain
-  const routeGroup = "/(app)"
-  const routeGroupDisplay = "/(app)"
-  const url = request.nextUrl.clone()
-
-  // Don't rewrite if already in the correct route group or if accessing /admin or /staff paths
-  // /admin and /staff are top-level routes, not in route groups
-  if (
-    !pathname.startsWith(routeGroupDisplay) &&
-    !pathname.startsWith(routeGroup) &&
-    !pathname.startsWith("/admin") &&
-    !pathname.startsWith("/staff")
-  ) {
-    url.pathname = `${routeGroup}${pathname}`
-
-    const response = NextResponse.rewrite(url)
-    response.headers.set("x-request-id", requestId)
-    response.headers.set("x-subdomain", subdomain)
-    response.headers.set("x-route-group", routeGroupDisplay)
-    response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
-
-    logger.info(
-      {
-        requestId,
-        subdomain,
-        systemRole,
-        pathname,
-        rewrittenPath: url.pathname,
-      },
-      "Request rewritten to route group"
-    )
-
-    return response
-  }
+  // Note: Route groups (like "(app)") are file system organization only.
+  // They don't create URL segments. URLs like /cc automatically route to
+  // src/app/(app)/cc/page.tsx without any rewriting needed.
+  // The previous rewrite logic was INCORRECT and caused 404 errors.
 
   // Add subdomain to headers
   const response = NextResponse.next()
