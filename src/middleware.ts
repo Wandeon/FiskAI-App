@@ -339,8 +339,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Rewrite to (app) route group for app subdomain
-  // Note: Parentheses must be URL-encoded for Next.js routing to work
-  const routeGroup = "/%28app%29"
+  const routeGroup = "/(app)"
   const routeGroupDisplay = "/(app)"
   const url = request.nextUrl.clone()
 
