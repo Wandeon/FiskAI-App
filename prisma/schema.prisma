@@ -4786,6 +4786,10 @@ enum WatchdogCheckType {
   QUEUE_BACKLOG // PR #90 fix: detect queue buildup
   DLQ_HEALTH // PR #90 fix: dead letter queue monitoring
   LLM_PROVIDER_HEALTH // PR-1: Ollama/OpenAI/DeepSeek reachability
+  // PR-2: Progress gate checks (pipeline stage stall detection)
+  PROGRESS_GATE_EVIDENCE // Evidence → SourcePointer stall detection
+  PROGRESS_GATE_EXTRACTION // SourcePointer → Rule stall detection
+  PROGRESS_GATE_RELEASE // Approved → Published stall detection
 }
 
 enum WatchdogAlertType {
@@ -4809,6 +4813,10 @@ enum WatchdogAlertType {
   // LLM Provider health alerts (PR-1)
   LLM_PROVIDER_DOWN // PR-1: Provider unreachable
   LLM_CIRCUIT_OPEN // PR-1: Circuit breaker tripped
+  // PR-2: Progress gate alerts (pipeline stage stall detection)
+  PROGRESS_STALL_EVIDENCE // Evidence stuck without extraction
+  PROGRESS_STALL_EXTRACTION // Extraction stuck without rule
+  PROGRESS_STALL_RELEASE // Approved stuck without release
 }
 
 enum AuditResult {
