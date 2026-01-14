@@ -61,11 +61,20 @@ export default async function NewInvoicePage({
   })
 
   // Get products for quick add
-  const products = await db.product.findMany({
+  const rawProducts = await db.product.findMany({
     where: { companyId: company.id, isActive: true },
     select: { id: true, name: true, price: true, vatRate: true, unit: true },
     orderBy: { name: "asc" },
   })
+
+  // Convert Decimal fields to numbers for client component serialization
+  const products = rawProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: Number(p.price),
+    vatRate: Number(p.vatRate),
+    unit: p.unit,
+  }))
 
   const type = params.type || "INVOICE"
   const title = TYPE_LABELS[type] || "Dokument"
