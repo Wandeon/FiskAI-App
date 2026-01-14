@@ -55,9 +55,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Increase Node.js memory limit for build
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 
-# Build the application
-# Note: Cache mount temporarily disabled to pick up routing fix
-RUN npm run build
+# Build the application with Next.js cache mount for incremental builds
+# This dramatically speeds up rebuilds when only a few files change
+RUN --mount=type=cache,target=/app/.next/cache,sharing=locked \
+    npm run build
 
 # Production image
 FROM base AS runner
