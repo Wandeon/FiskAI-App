@@ -288,6 +288,238 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
   })
   const evidenceMap = new Map<string, EvidenceWithSource>(allEvidenceRecords.map((e) => [e.id, e]))
 
+  // ==========================================================================
+  // TASK 1.3: TRY DETERMINISTIC RESOLUTION BEFORE LLM
+  // ==========================================================================
+  // Resolution hierarchy:
+  // 1. Authority hierarchy (LAW > GUIDANCE > PROCEDURE > PRACTICE)
+  // 2. Source hierarchy (Constitution > Law > Regulation > Guidance)
+  // 3. Temporal (newer effective date wins if dates differ)
+  //
+  // Critical safeguards:
+  // - T0/T1 rules NEVER auto-resolved (recommendationOnly=true → human review)
+  // - Only T2/T3 rules can be auto-resolved (recommendationOnly=false → apply directly)
+
+  // Get source hierarchy for each rule (lowest number = highest authority)
+  const getLowestSourceHierarchy = (
+    pointers: Array<{ evidenceId: string }>,
+    evMap: Map<string, EvidenceWithSource>
+  ): number | undefined => {
+    let lowest: number | undefined
+    for (const sp of pointers) {
+      const evidence = evMap.get(sp.evidenceId)
+      if (evidence?.source?.hierarchy !== undefined) {
+        if (lowest === undefined || evidence.source.hierarchy < lowest) {
+          lowest = evidence.source.hierarchy
+        }
+      }
+    }
+    return lowest
+  }
+
+  const ruleAForResolution: RuleForResolution = {
+    id: itemA.id,
+    riskTier: itemA.riskTier as "T0" | "T1" | "T2" | "T3",
+    authorityLevel: itemA.authorityLevel,
+    effectiveFrom: itemA.effectiveFrom,
+    sourceHierarchy: getLowestSourceHierarchy(itemA.sourcePointers, evidenceMap),
+  }
+
+  const ruleBForResolution: RuleForResolution = {
+    id: itemB.id,
+    riskTier: itemB.riskTier as "T0" | "T1" | "T2" | "T3",
+    authorityLevel: itemB.authorityLevel,
+    effectiveFrom: itemB.effectiveFrom,
+    sourceHierarchy: getLowestSourceHierarchy(itemB.sourcePointers, evidenceMap),
+  }
+
+  const deterministicResult = tryDeterministicResolution(ruleAForResolution, ruleBForResolution)
+
+  console.log(
+    `[arbiter] Deterministic resolution for conflict ${conflictId}: ` +
+      `resolved=${deterministicResult.resolved}, recommendationOnly=${deterministicResult.recommendationOnly}`
+  )
+
+  // Handle deterministic resolution
+  if (deterministicResult.resolved) {
+    // Determine resolution type
+    const detResolution: "RULE_A_PREVAILS" | "RULE_B_PREVAILS" | "ESCALATE_TO_HUMAN" =
+      deterministicResult.recommendationOnly
+        ? "ESCALATE_TO_HUMAN" // T0/T1: Escalate to human review
+        : deterministicResult.winner === itemA.id
+          ? "RULE_A_PREVAILS"
+          : "RULE_B_PREVAILS"
+
+    // Create audit trail for deterministic resolution
+    await createConflictResolutionAudit(
+      conflictId,
+      detResolution,
+      itemA.id,
+      itemB.id,
+      deterministicResult.reason,
+      {
+        authorityComparison: {
+          scoreA: getAuthorityScore(itemA.authorityLevel),
+          scoreB: getAuthorityScore(itemB.authorityLevel),
+        },
+        sourceComparison: {
+          sourceAHierarchy: ruleAForResolution.sourceHierarchy ?? null,
+          sourceBHierarchy: ruleBForResolution.sourceHierarchy ?? null,
+          sourceAName: null, // Not tracked at this level
+          sourceBName: null,
+        },
+        temporalAnalysis: {
+          effectiveFromA: itemA.effectiveFrom.toISOString(),
+          effectiveFromB: itemB.effectiveFrom.toISOString(),
+        },
+      }
+    )
+
+    if (deterministicResult.recommendationOnly) {
+      // T0/T1: Create recommendation and escalate to human review
+      console.log(
+        `[arbiter] T0/T1 conflict detected - creating recommendation for human review: ${conflictId}`
+      )
+
+      // Update conflict with recommendation (but don't auto-resolve)
+      await db.regulatoryConflict.update({
+        where: { id: conflict.id },
+        data: {
+          status: "ESCALATED",
+          resolution: {
+            deterministicRecommendation: {
+              winningItemId: deterministicResult.winner,
+              losingItemId: deterministicResult.loser,
+              reason: deterministicResult.reason,
+            },
+            strategy: "deterministic_recommendation",
+            rationaleHr: `Preporučeno rješenje (zahtijeva ljudski pregled): ${deterministicResult.reason}`,
+            rationaleEn: `Recommended resolution (requires human review): ${deterministicResult.reason}`,
+          },
+          requiresHumanReview: true,
+          humanReviewReason: `T0/T1 rule conflict - deterministic recommendation provided but requires human approval`,
+        },
+      })
+
+      // Create human review request
+      await requestConflictReview(conflict.id, {
+        conflictType: conflict.conflictType,
+        ruleATier: itemA.riskTier,
+        ruleBTier: itemB.riskTier,
+        escalationReason: "tier_protection",
+      })
+
+      // Log audit event
+      await logAuditEvent({
+        action: "CONFLICT_ESCALATED",
+        entityType: "CONFLICT",
+        entityId: conflictId,
+        metadata: {
+          resolution: "ESCALATE_TO_HUMAN",
+          method: "deterministic_recommendation",
+          reason: deterministicResult.reason,
+          recommendedWinner: deterministicResult.winner,
+          tierA: itemA.riskTier,
+          tierB: itemB.riskTier,
+        },
+      })
+
+      return {
+        success: true,
+        output: null,
+        resolution: "ESCALATE_TO_HUMAN",
+        updatedConflictId: conflict.id,
+        error: null,
+      }
+    } else {
+      // T2/T3: Apply deterministic resolution directly (no LLM needed)
+      console.log(
+        `[arbiter] T2/T3 conflict resolved deterministically: ${conflictId} -> ${detResolution}`
+      )
+
+      // Update conflict with resolution
+      await db.regulatoryConflict.update({
+        where: { id: conflict.id },
+        data: {
+          status: "RESOLVED",
+          resolution: {
+            winningItemId: deterministicResult.winner,
+            losingItemId: deterministicResult.loser,
+            strategy: "deterministic",
+            rationaleHr: deterministicResult.reason,
+            rationaleEn: deterministicResult.reason,
+            resolution: detResolution,
+          },
+          confidence: 1.0, // Deterministic resolutions have full confidence
+          requiresHumanReview: false,
+          resolvedAt: new Date(),
+        },
+      })
+
+      // Update the losing rule's status
+      if (detResolution === "RULE_A_PREVAILS") {
+        await db.regulatoryRule.update({
+          where: { id: itemB.id },
+          data: {
+            status: "DEPRECATED",
+            reviewerNotes: JSON.stringify({
+              deprecated_reason: "Deterministic conflict resolution - Rule A prevails",
+              conflict_id: conflict.id,
+              superseded_by: itemA.id,
+              resolution_reason: deterministicResult.reason,
+            }),
+          },
+        })
+      } else if (detResolution === "RULE_B_PREVAILS") {
+        await db.regulatoryRule.update({
+          where: { id: itemA.id },
+          data: {
+            status: "DEPRECATED",
+            reviewerNotes: JSON.stringify({
+              deprecated_reason: "Deterministic conflict resolution - Rule B prevails",
+              conflict_id: conflict.id,
+              superseded_by: itemB.id,
+              resolution_reason: deterministicResult.reason,
+            }),
+          },
+        })
+      }
+
+      // Log audit event
+      await logAuditEvent({
+        action: "CONFLICT_RESOLVED",
+        entityType: "CONFLICT",
+        entityId: conflictId,
+        metadata: {
+          resolution: detResolution,
+          method: "deterministic",
+          reason: deterministicResult.reason,
+          winner: deterministicResult.winner,
+          loser: deterministicResult.loser,
+          tierA: itemA.riskTier,
+          tierB: itemB.riskTier,
+        },
+      })
+
+      return {
+        success: true,
+        output: null,
+        resolution: detResolution,
+        updatedConflictId: conflict.id,
+        error: null,
+      }
+    }
+  }
+
+  // Deterministic resolution not possible - fall through to LLM arbitration
+  console.log(
+    `[arbiter] Deterministic resolution not possible for ${conflictId}: ${deterministicResult.reason}`
+  )
+
+  // ==========================================================================
+  // END TASK 1.3: DETERMINISTIC RESOLUTION
+  // ==========================================================================
+
   // Build conflicting items for the agent
   const conflictingItems: ConflictingItem[] = [
     {
@@ -488,144 +720,6 @@ export function checkEscalationCriteria(
   }
 
   return false
-}
-
-/**
- * Compare source hierarchy when authority levels are equal.
- * Returns the rule that should prevail based on source hierarchy, or null if they're equal.
- *
- * Source hierarchy (lower = higher authority):
- * 1 = Ustav (Constitution)
- * 2 = Zakon (Law)
- * 3 = Podzakonski akt (Regulation)
- * 4 = Pravilnik (Ordinance)
- * 5 = Uputa (Instruction)
- * 6 = Mišljenje (Opinion)
- * 7 = Praksa (Practice)
- */
-async function compareSourceHierarchy(
-  ruleA: {
-    id: string
-    sourcePointers: Array<{
-      evidenceId: string
-    }>
-  },
-  ruleB: {
-    id: string
-    sourcePointers: Array<{
-      evidenceId: string
-    }>
-  },
-  evidenceMap: Map<string, EvidenceWithSource>
-): Promise<{
-  winningRuleId: string | null
-  sourceAHierarchy: number | null
-  sourceBHierarchy: number | null
-  sourceAName: string | null
-  sourceBName: string | null
-  reason: string
-}> {
-  // Get the highest authority source for each rule (lowest hierarchy number)
-  const sourceA = ruleA.sourcePointers.reduce(
-    (highest, sp) => {
-      const evidence = evidenceMap.get(sp.evidenceId)
-      if (!evidence?.source) return highest
-      if (!highest || evidence.source.hierarchy < highest.hierarchy) {
-        return { hierarchy: evidence.source.hierarchy, name: evidence.source.name }
-      }
-      return highest
-    },
-    null as { hierarchy: number; name: string } | null
-  )
-
-  const sourceB = ruleB.sourcePointers.reduce(
-    (highest, sp) => {
-      const evidence = evidenceMap.get(sp.evidenceId)
-      if (!evidence?.source) return highest
-      if (!highest || evidence.source.hierarchy < highest.hierarchy) {
-        return { hierarchy: evidence.source.hierarchy, name: evidence.source.name }
-      }
-      return highest
-    },
-    null as { hierarchy: number; name: string } | null
-  )
-
-  if (!sourceA || !sourceB) {
-    return {
-      winningRuleId: null,
-      sourceAHierarchy: sourceA?.hierarchy ?? null,
-      sourceBHierarchy: sourceB?.hierarchy ?? null,
-      sourceAName: sourceA?.name ?? null,
-      sourceBName: sourceB?.name ?? null,
-      reason: "One or both rules lack source evidence",
-    }
-  }
-
-  if (sourceA.hierarchy < sourceB.hierarchy) {
-    return {
-      winningRuleId: ruleA.id,
-      sourceAHierarchy: sourceA.hierarchy,
-      sourceBHierarchy: sourceB.hierarchy,
-      sourceAName: sourceA.name,
-      sourceBName: sourceB.name,
-      reason: `Source hierarchy: ${sourceA.name} (hierarchy ${sourceA.hierarchy}) prevails over ${sourceB.name} (hierarchy ${sourceB.hierarchy})`,
-    }
-  } else if (sourceB.hierarchy < sourceA.hierarchy) {
-    return {
-      winningRuleId: ruleB.id,
-      sourceAHierarchy: sourceA.hierarchy,
-      sourceBHierarchy: sourceB.hierarchy,
-      sourceAName: sourceA.name,
-      sourceBName: sourceB.name,
-      reason: `Source hierarchy: ${sourceB.name} (hierarchy ${sourceB.hierarchy}) prevails over ${sourceA.name} (hierarchy ${sourceA.hierarchy})`,
-    }
-  }
-
-  return {
-    winningRuleId: null,
-    sourceAHierarchy: sourceA.hierarchy,
-    sourceBHierarchy: sourceB.hierarchy,
-    sourceAName: sourceA.name,
-    sourceBName: sourceB.name,
-    reason: `Equal source hierarchy: both from ${sourceA.name} (hierarchy ${sourceA.hierarchy})`,
-  }
-}
-
-/**
- * Apply lex posterior (newer law wins) as tiebreaker.
- */
-function applyLexPosterior(
-  ruleA: {
-    id: string
-    effectiveFrom: Date
-    titleHr: string
-  },
-  ruleB: {
-    id: string
-    effectiveFrom: Date
-    titleHr: string
-  }
-): {
-  winningRuleId: string
-  reason: string
-} {
-  if (ruleA.effectiveFrom.getTime() > ruleB.effectiveFrom.getTime()) {
-    return {
-      winningRuleId: ruleA.id,
-      reason: `Lex posterior: "${ruleA.titleHr}" effective from ${ruleA.effectiveFrom.toISOString().split("T")[0]} is newer than "${ruleB.titleHr}" from ${ruleB.effectiveFrom.toISOString().split("T")[0]}`,
-    }
-  } else if (ruleB.effectiveFrom.getTime() > ruleA.effectiveFrom.getTime()) {
-    return {
-      winningRuleId: ruleB.id,
-      reason: `Lex posterior: "${ruleB.titleHr}" effective from ${ruleB.effectiveFrom.toISOString().split("T")[0]} is newer than "${ruleA.titleHr}" from ${ruleA.effectiveFrom.toISOString().split("T")[0]}`,
-    }
-  } else {
-    // Same effective date - fall back to alphabetical by ID for determinism
-    return {
-      winningRuleId: ruleA.id < ruleB.id ? ruleA.id : ruleB.id,
-      reason: `Same effective date (${ruleA.effectiveFrom.toISOString().split("T")[0]}), using deterministic ID ordering as final tiebreaker`,
-    }
-  }
 }
 
 /**
