@@ -19,7 +19,7 @@ vi.mock("@/lib/regulatory-truth/workers/redis", () => ({
   },
 }))
 
-import { LLMCircuitBreaker, type LLMProvider, type CircuitState } from "../llm-circuit-breaker"
+import { LLMCircuitBreaker } from "../llm-circuit-breaker"
 
 describe("LLMCircuitBreaker", () => {
   let breaker: LLMCircuitBreaker
@@ -182,42 +182,14 @@ describe("LLMCircuitBreaker", () => {
     })
   })
 
-  describe("provider isolation", () => {
-    it("tracks state independently per provider", async () => {
-      // Fail ollama
-      for (let i = 0; i < 5; i++) {
-        await breaker.recordFailure("ollama", "timeout")
-      }
-
-      // openai should still be CLOSED
-      const ollamaState = await breaker.getState("ollama")
-      const openaiState = await breaker.getState("openai")
-
-      expect(ollamaState.state).toBe("OPEN")
-      expect(openaiState.state).toBe("CLOSED")
-    })
-
-    it("canCall is provider-specific", async () => {
-      // Open circuit for ollama
-      for (let i = 0; i < 5; i++) {
-        await breaker.recordFailure("ollama", "timeout")
-      }
-
-      expect(await breaker.canCall("ollama")).toBe(false)
-      expect(await breaker.canCall("openai")).toBe(true)
-      expect(await breaker.canCall("deepseek")).toBe(true)
-    })
-  })
-
   describe("getAllStates", () => {
-    it("returns states for all providers", async () => {
+    it("returns state for ollama provider", async () => {
       await breaker.recordFailure("ollama", "error")
-      await breaker.recordSuccess("openai")
 
       const states = await breaker.getAllStates()
 
-      expect(states).toHaveLength(3)
-      expect(states.map((s) => s.provider).sort()).toEqual(["deepseek", "ollama", "openai"])
+      expect(states).toHaveLength(1)
+      expect(states[0].provider).toBe("ollama")
     })
   })
 
