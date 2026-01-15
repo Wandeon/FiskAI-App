@@ -41,6 +41,7 @@ enum AlertType {
   DEADLINE_APPROACHING
   CONFIDENCE_DEGRADED
   COVERAGE_GAP
+  NEGATIVE_USER_FEEDBACK
 
   @@schema("regulatory")
 }

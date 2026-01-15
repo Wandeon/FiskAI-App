@@ -297,11 +297,16 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
             data: {
               type: "NEGATIVE_USER_FEEDBACK",
               severity: "HIGH",
-              message: `Rule ${rule.ruleId} has ${(rule.negativePercent * 100).toFixed(1)}% negative feedback (${rule.totalFeedback} total)`,
-              metadata: {
-                ruleId: rule.ruleId,
-                negativePercent: rule.negativePercent,
-                totalFeedback: rule.totalFeedback,
+              description: `Rule ${rule.ruleId} has ${(rule.negativePercent * 100).toFixed(1)}% negative feedback (${rule.totalFeedback} total)`,
+              affectedRuleIds: [rule.ruleId],
+              autoAction: {
+                action: "FLAG_FOR_REVIEW",
+                executed: false,
+                result: null,
+                context: {
+                  negativePercent: rule.negativePercent,
+                  totalFeedback: rule.totalFeedback,
+                },
               },
               humanActionRequired: true,
               resolvedAt: null,
