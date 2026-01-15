@@ -12,7 +12,7 @@
 | --- | ---------------------------------- | ------------------------------------ | ------------------- | ------ |
 | 1   | No worker uses bind mounts to /src | See command below                    | All "OK", no "FAIL" | ☐      |
 | 2   | No module resolution errors        | See command below                    | 0 errors per worker | ☐      |
-| 3   | All workers running                | `docker ps \| grep -c fiskai-worker` | 14+ containers      | ☐      |
+| 3   | All workers running                | `docker ps \| grep -c fiskai-worker` | 15+ containers      | ☐      |
 
 ### 1.5.1 Bind Mount Check Command
 
@@ -66,7 +66,7 @@ done
 | 1   | VPS Redis started     | `docker run --rm redis:7-alpine redis-cli -h 100.120.14.126 -a $PASS ping` → PONG                          | ☐      |
 | 2   | Workers stopped       | `docker ps \| grep fiskai-worker` → no results                                                             | ☐      |
 | 3   | REDIS_URL updated     | `.env` has new URL                                                                                         | ☐      |
-| 4   | Workers restarted     | `docker ps \| grep fiskai-worker` → 14+ containers                                                         | ☐      |
+| 4   | Workers restarted     | `docker ps \| grep fiskai-worker` → 15+ containers                                                         | ☐      |
 | 5   | No connection errors  | `docker logs fiskai-worker-orchestrator 2>&1 \| grep -i ECONNREFUSED` → empty                              | ☐      |
 | 6   | No module errors      | `docker logs fiskai-worker-orchestrator 2>&1 \| grep -i "Cannot find module"` → empty                      | ☐      |
 | 7   | VPS Redis has clients | `docker run --rm redis:7-alpine redis-cli -h 100.120.14.126 -a $PASS info clients` → connected_clients > 0 | ☐      |
@@ -101,13 +101,13 @@ done
 
 ## Final Sign-Off
 
-| Milestone                  | Time          | Confirmed By     |
-| -------------------------- | ------------- | ---------------- |
-| Phase 1.5 complete         | **\_**:**\_** | ****\_\_\_\_**** |
-| Pre-flight complete        | **\_**:**\_** | ****\_\_\_\_**** |
-| Workers on VPS Redis       | **\_**:**\_** | ****\_\_\_\_**** |
-| App on VPS Redis           | **\_**:**\_** | ****\_\_\_\_**** |
-| 30-min stability confirmed | **\_**:**\_** | ****\_\_\_\_**** |
+| Milestone                  | Time          | Confirmed By         |
+| -------------------------- | ------------- | -------------------- |
+| Phase 1.5 complete         | **\_**:**\_** | \***\*\_\_\_\_\*\*** |
+| Pre-flight complete        | **\_**:**\_** | \***\*\_\_\_\_\*\*** |
+| Workers on VPS Redis       | **\_**:**\_** | \***\*\_\_\_\_\*\*** |
+| App on VPS Redis           | **\_**:**\_** | \***\*\_\_\_\_\*\*** |
+| 30-min stability confirmed | **\_**:**\_** | \***\*\_\_\_\_\*\*** |
 
 **Migration Complete:** ☐ Yes ☐ No (Rolled Back)
 

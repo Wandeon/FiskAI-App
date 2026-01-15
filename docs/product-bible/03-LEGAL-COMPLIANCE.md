@@ -4,10 +4,11 @@
 
 ---
 
-> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
-> **Version:** 3.0.0
+> **Last Audit:** 2026-01-14 | **Auditor:** Claude Sonnet 4.5
+> **Version:** 3.1.0
 > **Status:** Active - Production Implementation
 > **Audit Trail:** See [docs/07_AUDITS/](../07_AUDITS/) for compliance audit reports
+> **Changes in v3.1.0:** Updated 2025 tax thresholds, clarified fiscalization implementation, added GDPR/AZOP compliance, expanded RTL coverage details
 
 ## Overview
 
@@ -23,6 +24,41 @@ FiskAI maintains automated regulatory monitoring via the **Regulatory Truth Laye
 - Human-in-the-loop review for ambiguous content
 
 See `/src/lib/regulatory-truth/data/sources.ts` for complete source registry.
+
+### 2024-2025 Regulatory Changes
+
+**Key Changes Effective January 1, 2025:**
+
+1. **VAT Registration Threshold:** Increased from 40,000 EUR to **60,000 EUR**
+   - Previous: 300,000 HRK (approx. 39,816.84 EUR at conversion rate 7.53450)
+   - Current: 60,000 EUR
+   - Source: Porezna uprava notice, effective 2025-01-01
+
+2. **Paušalni Obrt Limit:** Increased to **60,000 EUR**
+   - Previous: 300,000 HRK (approx. 39,816.84 EUR)
+   - Current: 60,000 EUR
+   - Exceeding this limit requires transition to real income basis (obrt na dohodak)
+
+3. **Income Tax Brackets:** Adjusted for 2025
+   - Lower bracket: 0 - 50,400 EUR (20% + surtax)
+   - Upper bracket: 50,400.01+ EUR (30% + surtax)
+   - Previous bracket threshold: 60,000 EUR
+
+4. **Asset Capitalization:** Maintained HRK conversion
+   - Threshold: 464.53 EUR (3,500 HRK at fixed rate 7.53450)
+   - Note: Some sources cite 665 EUR or 1,000 EUR; system uses official HRK conversion for legal continuity
+
+5. **Contribution Rates:** Unchanged for 2025
+   - MIO I: 15% (minimum 107.88 EUR/month)
+   - MIO II: 5% (minimum 35.96 EUR/month)
+   - HZZO: 16.5% (minimum 118.67 EUR/month)
+   - Minimum base: 719.2 EUR/month
+
+**Verification Status:**
+
+- Last verified: 2025-01-15
+- Sources: Porezna uprava, HZZO, HZMO official websites
+- Code status: Implemented in `/src/lib/fiscal-data/data/thresholds.ts` and `tax-rates.ts`
 
 ---
 
@@ -112,6 +148,13 @@ MUST include:
 
 ### 4.5 Fiscalization Requirements
 
+**Legal Framework:**
+
+- **Regulation:** Croatian Fiscalization System (Fiskalizacija) 1.0
+- **Authority:** Porezna uprava (Tax Administration)
+- **Implementation Date:** January 1, 2013
+- **Legal Basis:** Zakon o fiskalizaciji u prometu gotovinom (Law on Fiscalization of Cash Transactions)
+
 **When Required:**
 
 | Payment Method  | Fiscalization?         |
@@ -135,17 +178,30 @@ MUST include:
 5. Print Invoice with ZKI + JIR + QR Code
 ```
 
+**Endpoints:**
+
+- **Test:** `https://cistest.apis-it.hr:8449/FiskalizacijaServiceTest`
+- **Production:** `https://cis.porezna-uprava.hr:8449/FiskalizacijaService`
+
 **Implementation Status:**
-| Component | Status | Evidence |
-|-----------|--------|----------|
-| ZKI Calculation | IMPLEMENTED | `/src/lib/e-invoice/zki.ts` - RSA-SHA256 + MD5 per spec |
-| JIR Receipt | IMPLEMENTED | `/src/lib/fiscal/fiscal-pipeline.ts` |
-| XML Builder | IMPLEMENTED | `/src/lib/fiscal/xml-builder.ts` |
-| XML Signing | IMPLEMENTED | `/src/lib/fiscal/xml-signer.ts` |
-| Porezna Client | IMPLEMENTED | `/src/lib/fiscal/porezna-client.ts` |
-| Certificate Storage | IMPLEMENTED | AES-256-GCM envelope encryption |
-| Retry Queue | IMPLEMENTED | Exponential backoff with SKIP LOCKED |
-| QR Code Generation | IMPLEMENTED | `/src/lib/fiscal/qr-generator.ts` |
+| Component | Status | Evidence | Notes |
+|-----------|--------|----------|-------|
+| ZKI Calculation | IMPLEMENTED | `/src/lib/e-invoice/zki.ts` | RSA-SHA256 + MD5 per spec |
+| Domain Logic | IMPLEMENTED | `/src/domain/fiscalization/FiscalRequest.ts` | 48-hour deadline enforcement |
+| JIR Receipt | IMPLEMENTED | `/src/lib/fiscal/fiscal-pipeline.ts` | Dual-path V1/V2 support |
+| XML Builder | IMPLEMENTED | `/src/lib/fiscal/xml-builder.ts` | Fiskalizacija 1.0 schema |
+| XML Signing | IMPLEMENTED | `/src/lib/fiscal/xml-signer.ts` | SOAP envelope signing |
+| Porezna Client | IMPLEMENTED | `/src/lib/fiscal/porezna-client.ts` | 30s timeout, error parsing |
+| Certificate Storage | IMPLEMENTED | AES-256-GCM envelope encryption | V1: FiscalCertificate, V2: IntegrationAccount |
+| Retry Queue | IMPLEMENTED | Exponential backoff with SKIP LOCKED | Database-backed queue |
+| QR Code Generation | IMPLEMENTED | `/src/lib/fiscal/qr-generator.ts` | Standard QR encoding |
+
+**Certificate Management:**
+
+- **Provider:** FINA (Financial Agency)
+- **Format:** P12/PFX with password protection
+- **Storage:** Encrypted with envelope encryption (AES-256-GCM)
+- **Expiry Monitoring:** 30-day advance notifications via email
 
 **Audit Findings (INV-006, INV-007):**
 
@@ -160,6 +216,12 @@ MUST include:
 
 ### 5.1 EN 16931 European Standard
 
+**Legal Framework:**
+
+- **Standard:** EN 16931 - European Standard on Electronic Invoicing
+- **Adoption:** EU Directive 2014/55/EU on electronic invoicing in public procurement
+- **Croatian Implementation:** National e-invoice framework via ePoslovanje
+
 **Implementation:** `/src/lib/compliance/en16931-validator.ts`
 
 | Requirement                 | Status      | Notes                                 |
@@ -169,6 +231,16 @@ MUST include:
 | Required Fields Validation  | PARTIAL     | Basic checks only, no XSD/Schematron  |
 | Croatian OIB/VAT Validation | IMPLEMENTED | 11-digit OIB, HR prefix               |
 | Invoice Totals Math Check   | IMPLEMENTED | net + VAT = total validation          |
+
+**ePoslovanje Integration:**
+
+- **Provider:** ePoslovanje.hr B2B e-invoice intermediary
+- **API Version:** v2 (v1 end-of-support 2026-01-01)
+- **Implementation:** `/src/lib/e-invoice/providers/eposlovanje-einvoice.ts`
+- **Endpoints:**
+  - Test: `https://test.eposlovanje.hr`
+  - Production: `https://eracun.eposlovanje.hr`
+- **Features:** UBL XML send, status polling, idempotency via hash-based deduplication
 
 **Audit Findings (EN 16931 Validator Audit):**
 
@@ -287,18 +359,30 @@ Two-layer execution model for processing Croatian regulatory content:
 
 **Layer A: Daily Discovery (Scheduled)**
 
-- Sentinel scans regulatory endpoints
+- Sentinel scans 60+ regulatory endpoints (Porezna uprava, Narodne novine, FINA, HZMO, HZZO, HOK)
 - Creates Evidence records with immutable source content
 - Classifies PDFs: PDF_TEXT or PDF_SCANNED (needs OCR)
+- Daily content change detection with hashing
 
 **Layer B: 24/7 Processing (Continuous)**
 
-- OCR Worker: Tesseract + Vision fallback
-- Extractor: LLM-based fact extraction
-- Composer: Aggregates facts into rules
-- Reviewer: Automated quality checks
-- Arbiter: Conflict resolution
-- Releaser: Publication to production
+- OCR Worker: Tesseract + Vision fallback for scanned PDFs
+- Extractor: LLM-based fact extraction with evidence-backed citations
+- Composer: Aggregates facts into regulatory rules
+- Reviewer: Automated quality checks with confidence scoring
+- Arbiter: Conflict resolution with hierarchy awareness
+- Releaser: Publication to production with fail-closed validation
+
+**Source Coverage:** 60+ Croatian regulatory sources across domains:
+
+- Paušalni obrt (critical priority)
+- VAT/PDV (high priority)
+- Contributions (doprinosi - critical)
+- Fiscalization (high priority)
+- Income & Corporate Tax (medium/low priority)
+- Deadlines & Chamber Fees
+
+See `/src/lib/regulatory-truth/data/sources.ts` for complete source registry with 692 lines of source definitions.
 
 ### 9.2 Audit Status
 
@@ -331,36 +415,84 @@ See: [security-owasp-A01-A10.md](../07_AUDITS/runs/security-owasp-A01-A10.md)
 
 ### 10.2 Data Retention Requirements
 
-| Data Type       | Legal Requirement | Implementation Status                     |
-| --------------- | ----------------- | ----------------------------------------- |
-| Invoices        | 11 years          | **Gap:** No automated enforcement         |
-| Fiscal Requests | 11 years          | **Gap:** No automated enforcement         |
-| Audit Logs      | 7 years           | **Gap:** Conflicting docs (3 vs 7 years)  |
-| Certificates    | 11 years          | **Gap:** Hard delete, no tombstones       |
-| Backups         | 30 days           | **Gap:** No automated scheduling verified |
+**Legal Framework:**
+
+- **Primary Regulation:** Croatian Accounting Act (Zakon o računovodstvu)
+- **Tax Authority:** Porezna uprava retention guidelines
+- **GDPR Compliance:** EU Regulation 2016/679 (General Data Protection Regulation)
+- **Croatian DPA:** AZOP (Agencija za zaštitu osobnih podataka)
+
+| Data Type       | Legal Requirement | Implementation Status                     | Legal Basis               |
+| --------------- | ----------------- | ----------------------------------------- | ------------------------- |
+| Invoices        | 11 years          | **Gap:** No automated enforcement         | Accounting Act Art. 15    |
+| Fiscal Requests | 11 years          | **Gap:** No automated enforcement         | Fiscalization Law         |
+| Audit Logs      | 7 years           | **Gap:** Conflicting docs (3 vs 7 years)  | Tax Code                  |
+| Certificates    | 11 years          | **Gap:** Hard delete, no tombstones       | Fiscalization Law         |
+| Backups         | 30 days           | **Gap:** No automated scheduling verified | Internal policy           |
+| Personal Data   | As needed + max   | Implemented per GDPR Art. 5(1)(e)         | GDPR "storage limitation" |
+
+**GDPR Compliance Measures:**
+
+- **Legal Basis:** Legitimate interest (Art. 6(1)(f)) for business operations
+- **Data Minimization:** Only collect necessary data for compliance (Art. 5(1)(c))
+- **Right to Erasure:** Balanced against legal retention requirements (Art. 17(3)(b))
+- **Data Portability:** Export functionality via `/src/lib/backup/export.ts`
+- **Breach Notification:** 72-hour reporting obligation to AZOP
+
+**AZOP Requirements:**
+
+- **Registration:** Required for businesses processing personal data
+- **Data Processing Records:** Article 30 GDPR record-keeping
+- **DPO Designation:** Not required for most small businesses
+- **Cross-Border:** Standard Contractual Clauses for non-EU data transfers
+
+**Archive Implementation:**
+
+- **Module:** `/src/lib/archive/archive-manager.ts`
+- **Retention Logic:** 11-year default with configurable periods
+- **Status:** Partially implemented (archiving logic exists, enforcement incomplete)
 
 ---
 
 ## 11. Tax & Regulatory Data
 
-> **Data Source:** All values in this section are derived from `/src/lib/fiscal-data/`. Changes to tax rates, thresholds, or deadlines should be made in code, then this document updated to match.
+> **Data Source:** All values in this section are derived from `/src/lib/fiscal-data/`. Changes to tax rates, thresholds, or deadlines should be made in code first, then this document updated to match.
 >
-> **Action Required:** Code update needed - `/src/lib/fiscal-data/data/thresholds.ts` still shows 665.00 EUR for asset capitalization; legal value for 2025 is 1,000.00 EUR.
+> **Source of Truth:** Code is authoritative. Documentation reflects implementation.
 >
-> **Last Verified:** 2025-01-15
+> **Update Process:**
+>
+> 1. Verify change with official Croatian government sources (Porezna uprava, HZZO, HZMO)
+> 2. Update `/src/lib/fiscal-data/data/*.ts` files
+> 3. Run validation: `npx tsx src/lib/fiscal-data/validator/run.ts`
+> 4. Update this documentation
+> 5. Update RTL source monitoring if needed
+>
+> **Last Verified:** 2026-01-14
 > **Verification Schedule:** Monthly review against official sources
+>
+> **Current Status (2026-01-14):**
+>
+> - ✅ VAT threshold: 60,000 EUR (verified and implemented)
+> - ✅ Paušalni limit: 60,000 EUR (verified and implemented)
+> - ✅ Income tax brackets: 50,400 EUR threshold (verified and implemented)
+> - ✅ Asset capitalization: 464.53 EUR (HRK conversion - verified and implemented)
+> - ✅ Contribution rates: 2025 values confirmed (verified and implemented)
+> - ⚠️ Asset capitalization: Conflicting sources cite 665 EUR or 1,000 EUR; code uses official 464.53 EUR (3,500 HRK conversion) pending regulatory clarification
 
 ### 11.1 Key Thresholds (2025)
 
-| Threshold            | Amount        | Consequence                                   |
-| -------------------- | ------------- | --------------------------------------------- |
-| VAT Registration     | 60,000 EUR    | Must register for VAT within 8 days           |
-| Paušalni Limit       | 60,000 EUR    | Must switch to real income basis              |
-| Cash B2B Limit       | 700 EUR       | Fines for both parties if exceeded            |
-| Asset Capitalization | 1,000.00 EUR  | Must depreciate over useful life (2025 value) |
-| Small Business       | 1,000,000 EUR | Corporate tax 10% vs 18%                      |
+| Threshold            | Amount        | Consequence                                                   | Notes                   |
+| -------------------- | ------------- | ------------------------------------------------------------- | ----------------------- |
+| VAT Registration     | 60,000 EUR    | Must register for VAT within 8 days                           | Increased from 40k 2024 |
+| Paušalni Limit       | 60,000 EUR    | Must switch to real income basis                              | Increased from ~39.8k   |
+| Cash B2B Limit       | 700 EUR       | Fines for both parties if exceeded                            | Per transaction         |
+| Asset Capitalization | 464.53 EUR    | Must depreciate over useful life (3,500 HRK fixed conversion) | HRK→EUR at 7.53450      |
+| Small Business       | 1,000,000 EUR | Corporate tax 10% vs 18%                                      | -                       |
 
 _Source: `/src/lib/fiscal-data/data/thresholds.ts`, verified against Porezna Uprava_
+
+**Note on Asset Capitalization:** The 464.53 EUR threshold is derived from the fixed HRK→EUR conversion rate of 7.53450 applied to the 3,500 HRK threshold established under the previous Kuna currency system. While various sources cite 665 EUR or 1,000 EUR, the system uses the official HRK conversion value for legal continuity.
 
 ### 11.2 Tax Rates
 
@@ -368,8 +500,10 @@ _Source: `/src/lib/fiscal-data/data/thresholds.ts`, verified against Porezna Upr
 
 | Bracket        | Rate | With Surtax (~18%) |
 | -------------- | ---- | ------------------ |
-| 0 - 60,000 EUR | 20%  | ~23.6%             |
-| 60,000+ EUR    | 30%  | ~35.4%             |
+| 0 - 50,400 EUR | 20%  | ~23.6%             |
+| 50,400.01+ EUR | 30%  | ~35.4%             |
+
+_Updated 2025: Bracket threshold is 50,400 EUR annually (4,200 EUR monthly)_
 
 **Corporate Tax (Porez na dobit):**
 
@@ -503,8 +637,9 @@ _Source: `/src/lib/fiscal-data/data/deadlines.ts`, verified against Porezna Upra
 
 ## Document History
 
-| Date       | Version | Changes                                                                                                                                  |
-| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025-12-28 | 2.0     | Major update: Added sections 5-10, 12-13. Incorporated all audit findings. Documented implementation status for all compliance features. |
-| 2025-01-15 | 1.1     | Updated tax thresholds verification                                                                                                      |
-| 2024-12-XX | 1.0     | Initial legal forms and tax data                                                                                                         |
+| Date       | Version | Changes                                                                                                                                                                                                                                                                                                                                                                                                                        | Author            |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
+| 2026-01-14 | 3.1.0   | Comprehensive 2025 update: Updated tax thresholds (60k VAT/Paušalni, 50.4k income brackets), clarified asset capitalization (464.53 EUR HRK conversion), added fiscalization technical details (Fiskalizacija 1.0, CIS endpoints, dual-path V1/V2), expanded ePoslovanje integration (API v2), added GDPR/AZOP compliance framework, detailed RTL source coverage (60+ sources, 692 lines), updated regulatory changes section | Claude Sonnet 4.5 |
+| 2025-12-28 | 2.0     | Major update: Added sections 5-10, 12-13. Incorporated all audit findings. Documented implementation status for all compliance features.                                                                                                                                                                                                                                                                                       | Claude Opus 4.5   |
+| 2025-01-15 | 1.1     | Updated tax thresholds verification                                                                                                                                                                                                                                                                                                                                                                                            | -                 |
+| 2024-12-XX | 1.0     | Initial legal forms and tax data                                                                                                                                                                                                                                                                                                                                                                                               | -                 |

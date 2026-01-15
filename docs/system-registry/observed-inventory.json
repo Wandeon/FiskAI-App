@@ -1,16 +1,17 @@
 {
-  "harvestDate": "2025-12-28T12:00:00Z",
+  "harvestDate": "2026-01-14T12:00:00Z",
   "harvester": "deterministic-code-scan",
   "components": [
     {
       "componentId": "ui-portal-marketing",
       "type": "UI",
       "name": "Marketing Portal",
-      "observedAt": ["src/app/(marketing)/"],
+      "observedAt": ["fiskai-marketing repo (SiteGround)"],
       "discoveryMethod": "directory-exists",
       "metadata": {
-        "subdomain": "fiskai.hr",
-        "routeGroups": 15
+        "url": "fiskai.hr",
+        "routeGroups": 15,
+        "note": "Marketing site now in separate fiskai-marketing repository"
       }
     },
     {
@@ -20,7 +21,7 @@
       "observedAt": ["src/app/(app)/"],
       "discoveryMethod": "directory-exists",
       "metadata": {
-        "subdomain": "app.fiskai.hr",
+        "url": "app.fiskai.hr",
         "routeGroups": 60
       }
     },
@@ -28,22 +29,24 @@
       "componentId": "ui-portal-staff",
       "type": "UI",
       "name": "Staff Portal",
-      "observedAt": ["src/app/(staff)/"],
+      "observedAt": ["src/app/staff/"],
       "discoveryMethod": "directory-exists",
       "metadata": {
-        "subdomain": "staff.fiskai.hr",
-        "routeGroups": 3
+        "url": "app.fiskai.hr/staff",
+        "routeGroups": 3,
+        "note": "Path-based routing under app.fiskai.hr (subdomains removed 2026-01-09)"
       }
     },
     {
       "componentId": "ui-portal-admin",
       "type": "UI",
       "name": "Admin Portal",
-      "observedAt": ["src/app/(admin)/"],
+      "observedAt": ["src/app/admin/"],
       "discoveryMethod": "directory-exists",
       "metadata": {
-        "subdomain": "admin.fiskai.hr",
-        "routeGroups": 15
+        "url": "app.fiskai.hr/admin",
+        "routeGroups": 15,
+        "note": "Path-based routing under app.fiskai.hr (subdomains removed 2026-01-09)"
       }
     },
     {

@@ -4,10 +4,375 @@
 
 ---
 
-> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
-> **Version:** 3.0.0
+> **Last Audit:** 2026-01-14 | **Auditor:** Claude Sonnet 4.5
+> **Version:** 3.1.0
 >
-> Reality-audited against codebase. Component architecture verified.
+> Reality-audited against codebase. Visibility system documented. Component architecture verified.
+
+---
+
+## 6. Visibility System
+
+> **Location:** `/src/lib/visibility/`
+
+The visibility system is a context-based UI control mechanism that shows/hides/locks UI elements based on:
+
+1. **Business Type** (legal form)
+2. **Competence Level** (beginner/average/pro)
+3. **Progression Stage** (onboarding → setup → active → strategic → complete)
+
+### 6.1 Architecture Overview
+
+```
+/src/lib/visibility/
+├── elements.ts         # Registry of all controllable elements (63 elements)
+├── rules.ts            # Business logic for visibility/locking
+├── context.tsx         # React Context + useVisibility hook (client)
+├── components.tsx      # <Visible>, <VisibleButton>, <VisibleNavItem> components
+├── server.ts           # Server-side visibility utilities
+├── route-protection.tsx # Middleware for route access control
+└── index.ts            # Public exports
+```
+
+### 6.2 Element Registry
+
+**All controllable UI elements** are declared in `elements.ts`:
+
+```typescript
+export const VISIBILITY_ELEMENTS = {
+  // Dashboard cards (23 elements)
+  "card:pausalni-status": { type: "card", label: "Paušalni status" },
+  "card:vat-overview": { type: "card", label: "PDV pregled" },
+  "card:invoice-funnel": { type: "card", label: "Status faktura" },
+  "card:insights": { type: "card", label: "Uvidi" },
+  // ...
+
+  // Navigation items (15 elements)
+  "nav:dashboard": { type: "nav", label: "Nadzorna ploča", path: "/dashboard" },
+  "nav:pausalni": { type: "nav", label: "Paušalni obrt", path: "/pausalni" },
+  "nav:vat": { type: "nav", label: "PDV", path: "/vat" },
+  // ...
+
+  // Actions (6 elements)
+  "action:create-invoice": { type: "action", label: "Nova faktura" },
+  "action:import-statements": { type: "action", label: "Uvezi izvode" },
+  // ...
+
+  // Pages (6 elements for route protection)
+  "page:vat": { type: "page", path: "/vat" },
+  "page:reports": { type: "page", path: "/reports" },
+  // ...
+} as const
+
+export type ElementId = keyof typeof VISIBILITY_ELEMENTS
+```
+
+**Element Types:**
+
+- `card` - Dashboard widgets
+- `nav` - Navigation menu items
+- `action` - User-initiated actions (buttons, CTAs)
+- `page` - Full pages (for route protection)
+
+### 6.3 Visibility Rules
+
+#### Rule 1: Business Type (Legal Form)
+
+Elements hidden based on company's legal structure:
+
+```typescript
+export const BUSINESS_TYPE_HIDDEN: Record<LegalForm, ElementId[]> = {
+  OBRT_PAUSAL: [
+    "card:vat-overview", // No VAT
+    "nav:vat",
+    "page:vat",
+    "card:corporate-tax", // No corporate tax
+    "nav:corporate-tax",
+  ],
+  OBRT_REAL: [
+    "card:vat-overview", // Usually no VAT
+    "card:pausalni-status", // Not paušalni
+    "card:corporate-tax",
+  ],
+  OBRT_VAT: [
+    "card:pausalni-status", // Not paušalni
+    "card:corporate-tax",
+  ],
+  JDOO: [
+    "card:pausalni-status",
+    "card:doprinosi", // Different contribution system
+    "card:posd-reminder", // No PO-SD form
+  ],
+  DOO: ["card:pausalni-status", "card:doprinosi", "card:posd-reminder"],
+}
+```
+
+#### Rule 2: Competence Level
+
+Elements hidden based on user expertise:
+
+```typescript
+export const COMPETENCE_HIDDEN: Record<CompetenceLevel, ElementId[]> = {
+  beginner: [
+    "card:advanced-insights", // Too complex
+    "nav:api-settings", // Advanced feature
+  ],
+  average: [
+    "nav:api-settings", // Still too advanced
+  ],
+  pro: [], // Sees everything
+}
+```
+
+**Competence Levels:**
+
+| Level      | Label     | Default Stage | Description                  |
+| ---------- | --------- | ------------- | ---------------------------- |
+| `beginner` | Početnik  | onboarding    | Shows all guidance, tooltips |
+| `average`  | Iskusan   | setup         | Standard view                |
+| `pro`      | Stručnjak | complete      | Minimal guidance, full power |
+
+#### Rule 3: Progression Stages
+
+Elements locked until user reaches a certain stage:
+
+```typescript
+export const PROGRESSION_LOCKED: Record<
+  ProgressionStage,
+  {
+    locked: ElementId[]
+    unlockHint: string
+  }
+> = {
+  onboarding: {
+    locked: [
+      "action:create-invoice",
+      "card:invoice-funnel",
+      "nav:reports",
+      // ...
+    ],
+    unlockHint: "Dovršite registraciju tvrtke",
+  },
+  setup: {
+    locked: ["card:invoice-funnel", "nav:reports", "action:export-data"],
+    unlockHint: "Izradite prvi račun ili uvezite podatke",
+  },
+  active: {
+    locked: ["card:insights", "card:advanced-insights"],
+    unlockHint: "Prikupite više podataka za dublje uvide",
+  },
+  strategic: {
+    locked: [], // Everything unlocked
+    unlockHint: "",
+  },
+  complete: {
+    locked: [],
+    unlockHint: "",
+  },
+}
+```
+
+**Progression Stages:**
+
+| Stage              | Description                   | Trigger                                    |
+| ------------------ | ----------------------------- | ------------------------------------------ |
+| `onboarding`       | In 4-step registration wizard | Missing: OIB, address, city, IBAN, email   |
+| `setup`            | Profile complete, no data     | Onboarding done, 0 invoices, 0 statements  |
+| `needs-customer`   | Needs first customer          | Substage of setup                          |
+| `needs-product`    | Needs first product           | Substage of setup                          |
+| `needs-invoice`    | Needs first invoice           | Substage of setup                          |
+| `needs-statements` | Needs bank statements         | Substage of setup                          |
+| `active`           | Operational                   | 1+ invoice OR 1+ bank statement            |
+| `strategic`        | Mature business               | 10+ invoices OR VAT registered             |
+| `complete`         | All stages complete           | Pro user OR strategic + all data collected |
+
+**Stage Calculation:**
+
+```typescript
+export function calculateActualStage(counts: {
+  contacts: number
+  products: number
+  invoices: number
+  statements: number
+  hasCompletedOnboarding: boolean
+  isVatPayer?: boolean
+}): ProgressionStage {
+  if (!counts.hasCompletedOnboarding) return "onboarding"
+  if (counts.invoices >= 10 || counts.isVatPayer) return "strategic"
+  if (counts.invoices > 0 || counts.statements > 0) return "active"
+  return "setup" // Onboarding done, but no data
+}
+
+// Effective stage respects competence level
+export function getEffectiveStage(
+  actualStage: ProgressionStage,
+  competence: CompetenceLevel
+): ProgressionStage {
+  if (competence === "pro") return "complete" // Pro users skip all progression
+  const actualIndex = STAGE_ORDER.indexOf(actualStage)
+  const startingIndex = STAGE_ORDER.indexOf(COMPETENCE_STARTING_STAGE[competence])
+  return STAGE_ORDER[Math.max(actualIndex, startingIndex)]
+}
+```
+
+### 6.4 Client-Side Usage
+
+**VisibilityProvider** (wraps app in `(app)/layout.tsx`):
+
+```tsx
+import { VisibilityProvider } from "@/lib/visibility"
+import { getVisibilityProviderProps } from "@/lib/visibility/server"
+
+export default async function DashboardLayout({ children }) {
+  const visibilityProps = await getVisibilityProviderProps(userId, companyId)
+
+  return <VisibilityProvider {...visibilityProps}>{children}</VisibilityProvider>
+}
+```
+
+**Components:**
+
+```tsx
+import { Visible, VisibleButton, VisibleNavItem, useVisibility } from "@/lib/visibility"
+
+// 1. Visible wrapper - handles hidden/locked states
+<Visible id="card:vat-overview">
+  <VatOverviewCard />
+</Visible>
+
+// 2. VisibleButton - auto-disables when locked
+<VisibleButton id="action:create-invoice" onClick={createInvoice}>
+  Nova faktura
+</VisibleButton>
+
+// 3. VisibleNavItem - shows lock icon when locked
+<VisibleNavItem
+  id="nav:reports"
+  href="/reports"
+  icon={<ChartBar />}
+  label="Izvještaji"
+/>
+
+// 4. useVisibility hook - check status programmatically
+function MyComponent() {
+  const visibility = useVisibility()
+
+  if (!visibility.isVisible("card:insights")) return null
+  if (visibility.isLocked("card:insights")) {
+    const hint = visibility.getUnlockHint("card:insights")
+    return <div>Locked: {hint}</div>
+  }
+
+  return <InsightsCard />
+}
+```
+
+**Lock UI States:**
+
+- **Hidden** (`isVisible === false`) → Component not rendered at all
+- **Locked** (`isLocked === true`) → Component rendered with:
+  - Opacity reduced to 40%
+  - `pointer-events: none`
+  - Lock icon overlay
+  - Unlock hint displayed
+
+### 6.5 Server-Side Usage
+
+**Route Protection:**
+
+```tsx
+// In page.tsx
+import { protectRoute } from "@/lib/visibility/route-protection"
+
+export default async function ReportsPage() {
+  await protectRoute("page:reports") // Throws if locked/hidden, redirects to dashboard
+
+  return <ReportsView />
+}
+```
+
+**Server Actions:**
+
+```typescript
+import { getServerVisibility } from "@/lib/visibility/server"
+
+export async function createInvoiceAction(userId: string, companyId: string, data: InvoiceData) {
+  const visibility = await getServerVisibility(userId, companyId)
+
+  if (!visibility.isVisible("action:create-invoice")) {
+    throw new Error("Action not available")
+  }
+
+  if (visibility.isLocked("action:create-invoice")) {
+    throw new Error(visibility.getUnlockHint("action:create-invoice") || "Action locked")
+  }
+
+  // Proceed with action...
+}
+```
+
+### 6.6 Data Flow
+
+```
+Server (RSC)
+  ├── getVisibilityData(userId, companyId)
+  │     ├── Fetch company (legalForm, isVatPayer, oib, address, iban, email)
+  │     ├── Fetch counts (contacts, products, invoices, statements)
+  │     ├── Fetch guidance preferences (competence level)
+  │     ├── Calculate actualStage = calculateActualStage(counts, onboarding)
+  │     └── Calculate effectiveStage = getEffectiveStage(actualStage, competence)
+  │
+  └── Pass props to VisibilityProvider
+        ├── legalForm
+        ├── competence
+        ├── counts
+        └── hasCompletedOnboarding
+
+Client (VisibilityProvider)
+  ├── useMemo() calculates:
+  │     ├── actualStage, effectiveStage
+  │     ├── isVisible(id) → Check business type + competence rules
+  │     ├── isLocked(id) → Check progression rules
+  │     └── getUnlockHint(id) → Return hint string
+  │
+  └── Components consume via useVisibility() hook
+```
+
+### 6.7 Graceful Degradation
+
+All visibility components gracefully degrade if used outside `VisibilityProvider`:
+
+```tsx
+export function Visible({ id, children }) {
+  const visibility = useVisibilityOptional() // Returns null if no provider
+
+  if (!visibility) {
+    return <>{children}</> // Render normally
+  }
+
+  // Normal visibility logic...
+}
+```
+
+This ensures components work in:
+
+- Server Components
+- Storybook
+- Test environments
+- Non-dashboard contexts (marketing, auth, staff, admin)
+
+### 6.8 Migration from Entitlements
+
+The visibility system replaces the old module-based entitlements:
+
+| Old System                             | New System                                        |
+| -------------------------------------- | ------------------------------------------------- |
+| `company.entitlements.includes('vat')` | `isVisible('nav:vat')`                            |
+| Module-level access control            | Element-level access control                      |
+| Binary (on/off)                        | Three states (hidden/locked/unlocked)             |
+| No progression support                 | Progressive disclosure based on user journey      |
+| No competence awareness                | Adapts to user skill level                        |
+| Checked in every component             | Centralized in VisibilityProvider, cached in memo |
 
 ---
 
@@ -1311,35 +1676,343 @@ All animations respect `prefers-reduced-motion`:
 
 ---
 
+## 12. Portal-Specific UI
+
+FiskAI has 4 distinct portal experiences, each with its own layout and navigation:
+
+### 12.1 Marketing Portal
+
+**Route:** `/` (public, no auth required)
+**Layout:** `/src/app/(marketing)/layout.tsx`
+**Target:** Prospective customers, knowledge hub visitors
+
+**Features:**
+
+- Public landing pages
+- Knowledge Hub (guides, comparisons)
+- Pricing page
+- No sidebar, minimal header
+- Full-width hero sections with `SectionBackground`
+- Uses motion components: `Reveal`, `Stagger`, `FadeIn`, `HoverScale`
+
+**Component Stack:**
+
+```
+templates/MarketingPageTemplate
+  └─ sections/HeroSection
+       ├─ patterns/GradientButton
+       ├─ patterns/GlassCard
+       └─ ui/motion/Reveal
+```
+
+**Navigation:**
+
+- Marketing header (logo, docs link, login/signup)
+- Footer with links to resources
+- No complex navigation needed
+
+### 12.2 Client Dashboard (App)
+
+**Route:** `/dashboard`, `/invoices`, `/contacts`, etc.
+**Layout:** `/src/app/(app)/layout.tsx`
+**Target:** Business owners, freelancers
+
+**Features:**
+
+- Desktop: Sidebar navigation + header
+- Mobile: Hamburger menu + bottom FAB for command palette
+- `VisibilityProvider` wraps entire app
+- Progressive disclosure based on progression stage
+- Dashboard cards adapt to business type and competence
+
+**Layout Structure:**
+
+```
+DashboardLayout
+  ├─ VisibilityProvider (wraps content)
+  │    ├─ Sidebar (desktop only)
+  │    ├─ MobileNav (mobile only)
+  │    └─ Main content
+  ├─ Header (fixed top)
+  ├─ BottomNav (mobile only)
+  └─ WhatsNewModal (announcements)
+```
+
+**Sidebar Navigation:**
+
+1. **Pregled** - Dashboard
+2. **Financije** - POS, Documents, Banking, Paušalni Hub, Reports
+3. **Suradnja** - Accountant, Support
+4. **Podaci** - Contacts, Products, Article Agent (STAFF only)
+5. **Sustav** - Settings
+
+Each nav item can be:
+
+- Hidden by business type (`BUSINESS_TYPE_HIDDEN`)
+- Hidden by competence (`COMPETENCE_HIDDEN`)
+- Locked by progression (`PROGRESSION_LOCKED`)
+- Gated by module entitlements
+
+**Mobile Navigation:**
+
+- Slide-out drawer from left (☰ icon)
+- Command palette FAB (bottom-right, + icon)
+- Quick actions: New invoice, contact, product, expense
+- No bottom navigation bar (replaced by command palette)
+
+### 12.3 Staff Portal
+
+**Route:** `/staff`
+**Layout:** `/src/app/staff/layout.tsx`
+**Target:** Internal accountants (systemRole: STAFF or ADMIN)
+
+**Features:**
+
+- Access to multiple client companies
+- `StaffClientProvider` for client context switching
+- `StaffSidebar` and `StaffHeader` (different from app)
+- No visibility provider (staff sees everything)
+- Full-screen layout with no bottom padding
+
+**Layout Structure:**
+
+```
+StaffLayout
+  └─ StaffClientProvider
+       ├─ StaffSidebar (always visible)
+       ├─ StaffHeader
+       └─ Main content (p-6)
+```
+
+**Staff Sidebar:**
+
+- Client switcher (dropdown of all assigned clients)
+- Staff-specific navigation:
+  - Dashboard (overview of all clients)
+  - Clients (list of assigned companies)
+  - Tasks (pending review items)
+  - Knowledge Hub (internal guides)
+  - Settings
+
+**Access Control:**
+
+```typescript
+// Enforced at layout level
+if (session.user.systemRole !== "STAFF" && session.user.systemRole !== "ADMIN") {
+  redirect("/")
+}
+```
+
+### 12.4 Admin Portal
+
+**Route:** `/admin`
+**Layout:** `/src/app/admin/layout.tsx`
+**Target:** Platform owner (systemRole: ADMIN only)
+
+**Features:**
+
+- Full system administration
+- `AdminSidebar` and `AdminHeaderWrapper`
+- Skip links for accessibility
+- Full-screen layout similar to staff
+
+**Layout Structure:**
+
+```
+AdminLayout
+  ├─ AdminSkipLinks (a11y)
+  ├─ AdminSidebar
+  ├─ AdminHeaderWrapper
+  └─ Main content (max-w-6xl, p-6)
+```
+
+**Admin Sidebar:**
+
+- Platform overview
+- Users (all system users)
+- Companies (all tenants)
+- Staff (STAFF role users)
+- Regulatory (RTL management)
+- System logs
+- Settings
+
+**Access Control:**
+
+```typescript
+// Enforced at layout level
+if (session.user.systemRole !== "ADMIN") {
+  redirect("/")
+}
+```
+
+### 12.5 Portal Comparison
+
+| Aspect               | Marketing      | App (Client)             | Staff                  | Admin                      |
+| -------------------- | -------------- | ------------------------ | ---------------------- | -------------------------- |
+| **Auth Required**    | No             | Yes                      | Yes (STAFF/ADMIN)      | Yes (ADMIN only)           |
+| **Layout**           | Marketing      | Dashboard                | Staff workspace        | Admin workspace            |
+| **Sidebar**          | None           | Collapsible              | Fixed                  | Fixed                      |
+| **Header**           | Simple         | Full (company, profile)  | Staff-specific         | Admin-specific             |
+| **Mobile Nav**       | None           | Drawer + FAB             | Same as desktop        | Same as desktop            |
+| **Visibility**       | N/A            | Yes (VisibilityProvider) | No (sees all)          | No (sees all)              |
+| **Context Provider** | None           | VisibilityProvider       | StaffClientProvider    | None                       |
+| **Background**       | Gradients/orbs | Subtle gradient          | Flat                   | Flat                       |
+| **Motion**           | Heavy use      | Moderate                 | Minimal                | Minimal                    |
+| **Max Width**        | Full-width     | max-w-6xl                | max-w-6xl              | max-w-6xl                  |
+| **Color Scheme**     | Brand colors   | Semantic tokens          | Semantic tokens        | Semantic tokens            |
+| **Primary CTA**      | GradientButton | Button (variant=primary) | Button (variant=ghost) | Button (variant=secondary) |
+
+### 12.6 Shared Components Across Portals
+
+| Component | Marketing | App | Staff | Admin |
+| --------- | --------- | --- | ----- | ----- |
+| Button    | ✓         | ✓   | ✓     | ✓     |
+| Badge     | ✓         | ✓   | ✓     | ✓     |
+| Card      | ✓         | ✓   | ✓     | ✓     |
+| Motion    | ✓         | ✓   | ✗     | ✗     |
+| Visible\* | ✗         | ✓   | ✗     | ✗     |
+| Forms     | ✗         | ✓   | ✓     | ✓     |
+
+_\* Visibility components only used in App portal_
+
+---
+
 ## 13. Audit Notes & Known Gaps
 
-> **Audit Date:** 2025-12-28
+> **Audit Date:** 2026-01-14
 
-### Components Implemented but Not Previously Documented
+### Major Changes in v3.1.0
 
-1. **Motion Components** - `FadeIn`, `HoverScale`, `Reveal`, `Stagger`, `GlowOrb`
-2. **Pattern Components** - `GradientButton`, `GlassCard`, `SectionBackground`
-3. **Living Truth Components** - `RegulatorySection`, `AIAnswerBlock`
-4. **Fiscal Components** - `FiscalValue`, `FiscalCurrency`, `FiscalPercentage`, `FiscalTable`, `LastVerified`
-5. **Knowledge Hub Components** - All MDX components for guides/comparisons
+1. **Visibility System Added (Section 6)**
+   - Complete documentation of `/src/lib/visibility/` architecture
+   - 63 controllable elements (cards, nav, actions, pages)
+   - 3-layer rule system: Business Type, Competence, Progression
+   - 9 progression stages with unlock hints
+   - Client-side `VisibilityProvider` + server-side utilities
+   - Route protection and graceful degradation
+
+2. **Portal-Specific UI Documented (Section 12)**
+   - 4 portals: Marketing, App, Staff, Admin
+   - Layout structure comparison
+   - Navigation patterns per portal
+   - Context providers per portal
+   - Shared component usage matrix
+
+3. **Component Architecture Verified (Section 7.6)**
+   - 4-layer system confirmed: ui → patterns → sections → templates
+   - ESLint import boundaries verified
+   - Motion components respect `useReducedMotion()`
+   - CVA usage in Button, Badge, Card
+
+### Components Previously Undocumented (Now Added)
+
+1. **Visibility Components** (Section 6.4)
+   - `<Visible>` - Wrapper with hidden/locked states
+   - `<VisibleButton>` - Auto-disabling button
+   - `<VisibleNavItem>` - Nav item with lock icon
+   - `<VisibleLink>` - Link with disabled state
+   - `useVisibility()` hook
+   - `useElementStatus()` hook
+
+2. **Motion Components** (Section 7.6)
+   - `FadeIn` - Scroll-triggered fade animation
+   - `HoverScale` - Hover/tap scale animation
+   - `Reveal` - Slide-up reveal on scroll
+   - `Stagger` - List stagger animation
+   - `GlowOrb` - Animated background orb
+
+3. **Pattern Components** (Section 7.6)
+   - `GradientButton` - Primary CTA with hover animation
+   - `GlassCard` - Glass morphism card
+   - `SectionBackground` - Page section backgrounds
+
+4. **Living Truth Components** (Section 7.7)
+   - `RegulatorySection` - Regulatory content wrapper
+   - `AIAnswerBlock` - AI-generated answer display
+
+5. **Fiscal Components** (Section 11.2)
+   - `FiscalValue`, `FiscalCurrency`, `FiscalPercentage`, `FiscalTable`, `LastVerified`
 
 ### Design System Enforcement
 
 The design system now includes:
 
 - ESLint rule `no-hardcoded-colors` blocking raw Tailwind colors
-- CSS variables for all color tokens
+- CSS variables for all color tokens (surfaces, text, borders, status)
 - Dark mode support via `.dark` class
-- Reduced motion support
+- Reduced motion support via `@media (prefers-reduced-motion: reduce)`
+- CVA (class-variance-authority) for component variants
 
-### Component Naming Discrepancies Fixed
+### Component Naming Verified
 
-| Old Name              | New Name                   |
-| --------------------- | -------------------------- |
-| `ChecklistWidget.tsx` | `onboarding-checklist.tsx` |
+All components match actual file paths:
 
-### New Dashboard Components Added to Catalog
+| Component Type         | Location                             | Count |
+| ---------------------- | ------------------------------------ | ----- |
+| UI Primitives          | `/src/components/ui/`                | 30+   |
+| Motion                 | `/src/components/motion/`            | 5     |
+| Patterns               | `/src/components/patterns/`          | 6     |
+| Sections               | `/src/components/sections/`          | 3     |
+| Templates              | `/src/components/templates/`         | 1     |
+| Dashboard Cards        | `/src/app/(app)/dashboard/_cards/`   | 15+   |
+| Knowledge Hub          | `/src/components/knowledge-hub/`     | 20+   |
+| Visibility (new)       | `/src/lib/visibility/components.tsx` | 4     |
+| Content (Living Truth) | `/src/components/content/`           | 8     |
 
-- `today-actions-card.tsx`
-- `alert-banner.tsx`
-- `compliance-status-card.tsx`
+### Dashboard Components Catalog Updated
+
+New components added to catalog (Section 8.2):
+
+- `today-actions-card.tsx` - Today's pending actions
+- `alert-banner.tsx` - System alerts
+- `compliance-status-card.tsx` - Compliance overview
+
+### Known Gaps
+
+1. **Visibility Element Registry Completeness**
+   - 63 elements currently registered
+   - Some dashboard cards may not have corresponding ElementId
+   - Action buttons in forms may not all be controlled
+
+2. **Mobile Navigation UX**
+   - Command palette FAB implementation documented
+   - Bottom navigation bar removed (replaced by FAB)
+   - Gesture support (swipe to open/close) not fully documented
+
+3. **Accessibility Compliance**
+   - Focus management documented (Section 12.1)
+   - Touch targets documented (Section 12.2)
+   - Actual WCAG compliance testing not yet performed
+
+4. **Animation Performance**
+   - All animations respect `prefers-reduced-motion`
+   - Performance impact of simultaneous animations not measured
+   - GPU acceleration not explicitly documented
+
+### Migration Notes
+
+**From Entitlements to Visibility:**
+
+Old code:
+
+```typescript
+if (company.entitlements.includes("vat")) {
+  return <VatOverview />
+}
+```
+
+New code:
+
+```tsx
+<Visible id="card:vat-overview">
+  <VatOverview />
+</Visible>
+```
+
+**Benefits:**
+
+- Centralized visibility logic
+- Server-side and client-side support
+- Progressive disclosure (locked state)
+- Unlock hints for users
+- Route protection built-in

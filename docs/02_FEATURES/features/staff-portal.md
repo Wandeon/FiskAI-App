@@ -1,8 +1,8 @@
 # Staff Portal
 
-> **Last Updated:** 2025-12-28
+> **Last Updated:** 2026-01-14
 > **Status:** Partial Implementation
-> **Portal URL:** `staff.fiskai.hr`
+> **Portal URL:** `app.fiskai.hr/staff`
 
 ---
 

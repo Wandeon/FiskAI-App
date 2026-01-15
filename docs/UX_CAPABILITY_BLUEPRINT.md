@@ -22,11 +22,11 @@ This document defines the authoritative contract between backend, UI, and AI age
 
 ### System Boundaries
 
-| Role             | Portal | Subdomain       | Capabilities Accessible            |
-| ---------------- | ------ | --------------- | ---------------------------------- |
-| Client/User      | App    | app.fiskai.hr   | 35 capabilities                    |
-| Accountant/Staff | Staff  | staff.fiskai.hr | 12 capabilities + client oversight |
-| Admin            | Admin  | admin.fiskai.hr | 18 capabilities + platform control |
+| Role             | Portal | URL                 | Capabilities Accessible            |
+| ---------------- | ------ | ------------------- | ---------------------------------- |
+| Client/User      | App    | app.fiskai.hr       | 35 capabilities                    |
+| Accountant/Staff | Staff  | app.fiskai.hr/staff | 12 capabilities + client oversight |
+| Admin            | Admin  | app.fiskai.hr/admin | 18 capabilities + platform control |
 
 ### Capability Status Summary
 

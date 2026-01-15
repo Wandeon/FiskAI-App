@@ -45,12 +45,12 @@
 
 ### Portal Implementation
 
-| Portal                         | Status | Routes | Navigation | Auth   | Notes                                             |
-| ------------------------------ | ------ | ------ | ---------- | ------ | ------------------------------------------------- |
-| Marketing `fiskai.hr`          | [I]    | 15+    | Complete   | Public | All landing pages functional                      |
-| Client App `app.fiskai.hr`     | [I]    | 60+    | Complete   | USER   | Primary application                               |
-| Staff Portal `staff.fiskai.hr` | [P]    | 3      | Basic      | STAFF  | **Dashboard only, missing multi-client features** |
-| Admin Portal `admin.fiskai.hr` | [I]    | 15+    | Complete   | ADMIN  | Full regulatory management                        |
+| Portal                             | Status | Routes | Navigation | Auth   | Notes                                             |
+| ---------------------------------- | ------ | ------ | ---------- | ------ | ------------------------------------------------- |
+| Marketing `fiskai.hr`              | [I]    | 15+    | Complete   | Public | All landing pages functional                      |
+| Client App `app.fiskai.hr`         | [I]    | 60+    | Complete   | USER   | Primary application                               |
+| Staff Portal `app.fiskai.hr/staff` | [P]    | 3      | Basic      | STAFF  | **Dashboard only, missing multi-client features** |
+| Admin Portal `app.fiskai.hr/admin` | [I]    | 15+    | Complete   | ADMIN  | Full regulatory management                        |
 
 ---
 

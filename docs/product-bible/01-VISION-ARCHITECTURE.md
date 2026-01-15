@@ -2,9 +2,9 @@
 
 [← Back to Index](./00-INDEX.md)
 
-> **Last Audit:** 2026-01-05 | **Auditor:** Claude Opus 4.5
+> **Last Audit:** 2026-01-14 | **Auditor:** Claude Sonnet 4.5
 >
-> Reality-audited against codebase via parallel subagent analysis. All statuses verified against actual implementation.
+> Comprehensive update: Infrastructure split documented, Docker build process clarified, module count corrected (17 not 18), DDD architecture detailed, tech stack versions added.
 
 ---
 
@@ -29,18 +29,19 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 | **Evidence Immutability**  | Prisma extensions block Evidence.rawContent modification post-creation | Implemented | Regulatory chain integrity (PR #115)                      |
 | **System Registry**        | Component criticality tracking with blast radius + CI enforcement      | Implemented | Governance of CRITICAL components (PR #138)               |
 
-### 1.3 The Three Portals
+### 1.3 The Four Environments
 
-| Portal           | URL               | SystemRole | Purpose                           | Status      |
-| ---------------- | ----------------- | ---------- | --------------------------------- | ----------- |
-| **Client App**   | `app.fiskai.hr`   | `USER`     | Business owner's cockpit          | Implemented |
-| **Staff Portal** | `staff.fiskai.hr` | `STAFF`    | Accountant multi-client workspace | Partial     |
-| **Admin Portal** | `admin.fiskai.hr` | `ADMIN`    | Platform management               | Implemented |
+| Environment        | URL                   | SystemRole | Purpose                           | Repository         | Status      |
+| ------------------ | --------------------- | ---------- | --------------------------------- | ------------------ | ----------- |
+| **Marketing Site** | `fiskai.hr`           | Public     | Landing, guides, news             | `fiskai-marketing` | Implemented |
+| **Client App**     | `app.fiskai.hr`       | `USER`     | Business owner's cockpit          | `FiskAI`           | Implemented |
+| **Staff Portal**   | `app.fiskai.hr/staff` | `STAFF`    | Accountant multi-client workspace | `FiskAI`           | Partial     |
+| **Admin Portal**   | `app.fiskai.hr/admin` | `ADMIN`    | Platform management               | `FiskAI`           | Implemented |
 
+> **Marketing Site:** Completely separate repository (`fiskai-marketing`). Static Next.js export served from CDN. Survives backend outages. No database, no auth, no server actions.
+>
 > **Staff Portal Note:** Basic dashboard and client list only. Multi-client workspace features pending.
 > See [docs/02_FEATURES/features/staff-portal.md](../02_FEATURES/features/staff-portal.md) for detailed gap analysis.
-
-**Marketing Site:** `fiskai.hr` (public, no auth required)
 
 ---
 
@@ -48,70 +49,159 @@ FiskAI is not a dashboard. It is a **Financial Cockpit** - a single command cent
 
 ### 2.1 Tech Stack
 
-| Layer       | Technology               | Purpose                                | Status      |
-| ----------- | ------------------------ | -------------------------------------- | ----------- |
-| Framework   | Next.js 15 App Router    | Server components, streaming, routing  | Implemented |
-| Database    | PostgreSQL 16 + Prisma 7 | Primary data persistence, multi-tenant | Implemented |
-| Database    | Drizzle ORM              | Guidance, news, paušalni tables        | Implemented |
-| Auth        | NextAuth v5 (Auth.js)    | Session management, OAuth, Passkeys    | Implemented |
-| Styling     | Tailwind CSS + CVA       | Design system, component variants      | Implemented |
-| Validation  | Zod                      | Schema validation everywhere           | Implemented |
-| Email       | Resend                   | Transactional email                    | Implemented |
-| Storage     | Cloudflare R2            | Encrypted document archive             | Implemented |
-| Payments    | Stripe                   | Subscriptions, Terminal                | Implemented |
-| Banking     | Gocardless/SaltEdge      | PSD2 bank connections                  | Implemented |
-| Fiscal      | FINA CIS                 | Croatian fiscalization                 | Implemented |
-| Queue       | Redis + BullMQ           | Worker job queues                      | Implemented |
-| AI/LLM      | Ollama (local)           | Extraction, composition, review        | Implemented |
-| Bot Defense | Cloudflare Turnstile     | Auth form protection                   | Implemented |
+| Layer       | Technology            | Version       | Purpose                                | Status      |
+| ----------- | --------------------- | ------------- | -------------------------------------- | ----------- |
+| Runtime     | Node.js               | 22 (Alpine)   | JavaScript runtime environment         | Implemented |
+| Framework   | Next.js App Router    | 15.5.0        | Server components, streaming, routing  | Implemented |
+| UI Library  | React                 | 19.0.0        | Component-based UI                     | Implemented |
+| Database    | PostgreSQL + Prisma   | 16 + 7.1.0    | Primary data persistence, multi-tenant | Implemented |
+| Database    | Drizzle ORM           | 0.45.1        | Guidance, news, paušalni tables        | Implemented |
+| Auth        | NextAuth v5 (Auth.js) | 5.0.0-beta.30 | Session management, OAuth, Passkeys    | Implemented |
+| Styling     | Tailwind CSS + CVA    | 3.4.1         | Design system, component variants      | Implemented |
+| Validation  | Zod                   | 4.1.13        | Schema validation everywhere           | Implemented |
+| Email       | Resend                | 6.6.0         | Transactional email                    | Implemented |
+| Storage     | Cloudflare R2         | -             | Encrypted document archive             | Implemented |
+| Payments    | Stripe                | 20.0.0        | Subscriptions, Terminal                | Implemented |
+| Banking     | Gocardless/SaltEdge   | -             | PSD2 bank connections                  | Implemented |
+| Fiscal      | FINA CIS              | -             | Croatian fiscalization                 | Implemented |
+| Queue       | Redis + BullMQ        | 7 + 5.66.2    | Worker job queues                      | Implemented |
+| AI/LLM      | Ollama                | -             | Extraction, composition, review        | Implemented |
+| Bot Defense | Cloudflare Turnstile  | -             | Auth form protection                   | Implemented |
+| Monitoring  | Sentry                | 10.30.0       | Error tracking and performance         | Implemented |
+| Analytics   | PostHog               | 1.304.0       | Product analytics and feature flags    | Implemented |
 
 ### 2.2 Directory Structure
 
 ```
 /src
 ├── app/
-│   ├── (marketing)/     # Public pages (fiskai.hr)
 │   ├── (app)/           # Client dashboard (app.fiskai.hr)
-│   ├── (staff)/         # Staff portal (staff.fiskai.hr)
-│   ├── (admin)/         # Admin portal (admin.fiskai.hr)
+│   ├── (staff)/         # Staff portal (app.fiskai.hr/staff)
+│   ├── (admin)/         # Admin portal (app.fiskai.hr/admin)
 │   ├── (auth)/          # Authentication flows
+│   ├── admin/           # Legacy admin routes
+│   ├── staff/           # Legacy staff routes
 │   └── api/             # API routes
 ├── components/
 │   ├── ui/              # Design system primitives
+│   ├── motion/          # Animation behaviors (Reveal, Stagger)
+│   ├── patterns/        # Composed primitives (SectionHeading, FeatureCard)
+│   ├── sections/        # Page sections (HeroSection, FeatureGrid)
+│   ├── templates/       # Portal-scoped templates
 │   ├── layout/          # Header, sidebar, navigation
 │   ├── dashboard/       # Dashboard widgets
 │   ├── onboarding/      # Wizard steps
-│   ├── guidance/        # Help system
 │   └── [feature]/       # Feature-specific components
+├── domain/              # Pure business logic (DDD - no external deps)
+│   ├── shared/          # Value objects (Money, Quantity, VatRate)
+│   ├── invoicing/       # Invoice aggregate, InvoiceLine entity
+│   ├── tax/             # VatCalculator, VatBreakdown
+│   ├── fiscalization/   # FiscalRequest, ZkiCalculator
+│   ├── banking/         # BankTransaction, ReconciliationMatcher
+│   ├── compliance/      # Deadline, ComplianceStatus
+│   └── identity/        # Tenant, Permission
+├── application/         # Use cases (imports domain only)
+│   ├── invoicing/       # CreateInvoice, IssueInvoice
+│   ├── fiscalization/   # SubmitFiscalRequest
+│   ├── banking/         # Bank operations
+│   ├── compliance/      # Compliance workflows
+│   └── tax/             # Tax calculations
+├── infrastructure/      # External services, DB, frameworks
+│   ├── persistence/     # Prisma repositories
+│   ├── fiscal/          # XML builders, signing, Porezna client
+│   └── mappers/         # DB ↔ Domain conversion
+├── interfaces/          # API routes, server actions
+│   ├── api/             # REST endpoints
+│   └── actions/         # Server actions
 ├── design-system/       # Token architecture (PR #107)
 │   ├── tokens/          # Semantic tokens (surfaces, text, status)
 │   ├── css/             # CSS variables
 │   └── eslint/          # Enforcement rules
-├── lib/
-│   ├── modules/         # Module definitions & gating
-│   ├── visibility/      # Progressive disclosure rules
-│   ├── regulatory-truth/ # Regulatory Truth Layer (PRs #85-95, #115)
-│   │   ├── agents/      # Sentinel, Extractor, Composer, etc.
-│   │   ├── workers/     # Queue-based worker services
-│   │   ├── dsl/         # AppliesWhen predicate DSL
-│   │   ├── graph/       # Cycle detection for rule dependencies
-│   │   └── taxonomy/    # Concept classification
-│   ├── assistant/       # AI Assistant query engine
-│   │   ├── query-engine/ # Text processing, rule selection
-│   │   └── reasoning/   # Answer composition
-│   ├── rbac.ts          # Permission matrix
-│   ├── fiscal-data/     # Tax rates, thresholds, deadlines
-│   ├── pausalni/        # Paušalni obrt logic
-│   ├── e-invoice/       # UBL/XML generation
-│   ├── cache/           # Cloudflare cache purge utilities
-│   ├── turnstile.ts     # Bot protection verification
-│   └── db/
-│       ├── drizzle.ts   # Drizzle client
-│       └── schema/      # Drizzle table definitions
-└── content/             # MDX guides & tools
+└── lib/
+    ├── modules/         # Module definitions & gating
+    ├── visibility/      # Progressive disclosure rules
+    ├── regulatory-truth/ # Regulatory Truth Layer (PRs #85-95, #115)
+    │   ├── agents/      # Sentinel, Extractor, Composer, etc.
+    │   ├── workers/     # Queue-based worker services
+    │   ├── dsl/         # AppliesWhen predicate DSL
+    │   ├── graph/       # Cycle detection for rule dependencies
+    │   └── taxonomy/    # Concept classification
+    ├── assistant/       # AI Assistant query engine
+    │   ├── query-engine/ # Text processing, rule selection
+    │   └── reasoning/   # Answer composition
+    ├── ai/              # Ollama client and AI utilities
+    ├── rbac.ts          # Permission matrix
+    ├── fiscal-data/     # Tax rates, thresholds, deadlines
+    ├── pausalni/        # Paušalni obrt logic
+    ├── e-invoice/       # UBL/XML generation
+    ├── knowledge-hub/   # Content management
+    ├── cache/           # Cloudflare cache purge utilities
+    ├── turnstile.ts     # Bot protection verification
+    ├── system-registry/ # Component criticality tracking
+    └── db/
+        ├── drizzle.ts   # Drizzle client
+        └── schema/      # Drizzle table definitions
+
+/content                 # MDX content (deprecated - moved to fiskai-marketing)
+└── (legacy guides)      # Now maintained in separate marketing repo
 ```
 
-### 2.3 Request Flow
+### 2.3 DDD & Clean Architecture
+
+FiskAI follows **Domain-Driven Design (DDD)** and **Clean Architecture** principles with strict layer boundaries:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    UI Layer (Next.js)                    │
+│              src/app/**, src/components/**               │
+└────────────────────────┬─────────────────────────────────┘
+                         │ calls
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│                  Interfaces Layer                        │
+│         src/interfaces/api/**, actions/**                │
+│              (API routes, Server Actions)                │
+└────────────────────────┬─────────────────────────────────┘
+                         │ orchestrates
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│                Application Layer (Use Cases)             │
+│              src/application/invoicing/**                │
+│         CreateInvoice, IssueInvoice, etc.                │
+│              (imports domain only)                       │
+└────────────────────────┬─────────────────────────────────┘
+                         │ uses
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│              Domain Layer (Business Logic)               │
+│         src/domain/shared/**, invoicing/**, tax/**       │
+│    Value Objects: Money, VatRate, Quantity               │
+│    Entities: Invoice, InvoiceLine, FiscalRequest         │
+│    Services: VatCalculator, ZkiCalculator                │
+│              (NO external dependencies)                  │
+└─────────────────────────────────────────────────────────┘
+                         ↑
+                         │ implements
+┌─────────────────────────────────────────────────────────┐
+│               Infrastructure Layer                       │
+│         src/infrastructure/persistence/**                │
+│         Prisma repositories, XML builders                │
+│         External service clients (Porezna, Banks)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Architectural Rules (Enforced by ESLint + CI):**
+
+1. **Domain** has NO external dependencies (no Prisma, no Next.js, no DB)
+2. **Application** imports from domain only, injects repositories via interfaces
+3. **Infrastructure** implements domain interfaces
+4. **UI** calls interfaces only, never domain/application directly
+5. **Money** is always a value object - use `Money.fromCents()`, never floats
+6. **Validation** uses Zod at all boundaries (100% coverage)
+
+> **Reference:** See [CLAUDE.md](../../CLAUDE.md) section "Code Architecture (DDD + Clean Architecture)"
+
+### 2.4 Request Flow
 
 ```
 User Request
@@ -126,10 +216,37 @@ Visibility Provider (feature gating)
     ↓
 Server Action (RBAC check)
     ↓
+Application Use Case (business logic)
+    ↓
+Domain Entities/Services (pure logic)
+    ↓
+Infrastructure Repository (Prisma)
+    ↓
 Prisma Extensions (AsyncLocalStorage tenant context)
     ↓
 PostgreSQL
 ```
+
+### 2.5 Component Architecture
+
+FiskAI uses a **4-layer component system** with ESLint-enforced import boundaries:
+
+```
+ui/ + motion/  →  patterns/  →  sections/  →  templates/  →  pages
+```
+
+| Layer         | Path                        | Purpose                                  | Can Import From         |
+| ------------- | --------------------------- | ---------------------------------------- | ----------------------- |
+| **UI**        | `src/components/ui/`        | Design system primitives (Button, Card)  | Nothing                 |
+| **Motion**    | `src/components/motion/`    | Animation behaviors (Reveal, Stagger)    | ui/                     |
+| **Patterns**  | `src/components/patterns/`  | Composed primitives (SectionHeading)     | ui/, motion/            |
+| **Sections**  | `src/components/sections/`  | Page sections (HeroSection, FeatureGrid) | ui/, motion/, patterns/ |
+| **Templates** | `src/components/templates/` | Portal-scoped templates                  | All layers              |
+| **Pages**     | `src/app/**/page.tsx`       | Route pages                              | All layers              |
+
+**Rule:** Each layer can only import from layers to its left. ESLint blocks upward imports.
+
+> **Reference:** See [docs/03_ARCHITECTURE/COMPONENT_LAYERS_MIGRATION.md](../03_ARCHITECTURE/COMPONENT_LAYERS_MIGRATION.md)
 
 ---
 
@@ -158,18 +275,32 @@ Sentinel   Tesseract   LLM      Rule Draft   QA Check  Conflicts  Publish
            +Vision              (Composer)   (Reviewer)
 ```
 
-**Workers:** Defined in `docker-compose.workers.yml`
+**Primary Workers (Regulatory Truth Layer):** Defined in `docker-compose.workers.yml`
 
-- `worker-orchestrator` - Pipeline coordination
-- `worker-sentinel` - Source discovery (Adaptive, topology-aware - PR #111)
-- `worker-ocr` - Tesseract + Vision fallback (temporal filtering, cycle detection - PR #119)
-- `worker-extractor` - LLM-based fact extraction (2 replicas)
-- `worker-composer` - Rule aggregation
-- `worker-reviewer` - Quality checks
-- `worker-arbiter` - Conflict resolution
-- `worker-releaser` - Publication to production
-- `worker-scheduler` - Cron-based scheduling
-- `worker-continuous-drainer` - 24/7 queue processing
+| Worker                 | Purpose                                           | Concurrency | Memory | Special Features                                             |
+| ---------------------- | ------------------------------------------------- | ----------- | ------ | ------------------------------------------------------------ |
+| **orchestrator**       | Pipeline coordination, job routing                | 1           | 512M   | State machine coordination                                   |
+| **sentinel**           | Source discovery (Narodne novine, Porezna, FINA)  | 1           | 512M   | Adaptive, topology-aware (PR #111)                           |
+| **ocr**                | PDF processing: Tesseract + Vision fallback       | 1           | 2G     | Temporal filtering, cycle detection (PR #119), Tesseract OCR |
+| **extractor**          | LLM-based fact extraction with confidence scoring | 1           | 1G     | Uses Ollama extract endpoint                                 |
+| **composer**           | Aggregates facts into regulatory rules            | 1           | 512M   | Rule synthesis with evidence links                           |
+| **reviewer**           | Automated quality checks, ambiguity detection     | 1           | 512M   | Fail-closed design                                           |
+| **arbiter**            | Conflict resolution between competing rules       | 1           | 512M   | LLM-assisted arbitration                                     |
+| **releaser**           | Publication to production, versioning             | 1           | 512M   | Atomic rule publishing                                       |
+| **scheduler**          | Cron-based job scheduling (daily sentinel runs)   | -           | 512M   | Europe/Zagreb timezone                                       |
+| **continuous-drainer** | 24/7 queue processing, ensures no jobs stuck      | -           | 256M   | Watchdog pattern                                             |
+
+**Supporting Workers:**
+
+| Worker                 | Purpose                                       | Concurrency | Memory |
+| ---------------------- | --------------------------------------------- | ----------- | ------ |
+| **content-sync**       | GitHub content synchronization for MDX guides | 1           | 512M   |
+| **article**            | Article generation and rewriting              | 1           | 1G     |
+| **evidence-embedding** | Generate embeddings for evidence search       | 2           | 512M   |
+| **embedding**          | Generate embeddings for general content       | 2           | 512M   |
+| **einvoice-inbound**   | Poll e-Poslovanje API for incoming e-invoices | -           | 256M   |
+
+**Total:** 15 worker containers + 1 Redis instance
 
 ### 3.3 Trust Guarantees
 
@@ -258,7 +389,7 @@ LAYER 3: SPECIALIZED
 
 ### 6.1 Module Registry
 
-18 toggleable modules stored in `Company.entitlements[]`:
+17 toggleable modules stored in `Company.entitlements[]`:
 
 | Module             | Default | Description                                 | Status         |
 | ------------------ | ------- | ------------------------------------------- | -------------- |
@@ -355,26 +486,173 @@ Modules are auto-assigned based on business type selection:
 >
 > **Reference:** See [CLAUDE.md](../../CLAUDE.md)
 
-### 9.1 Deployment
+### 9.1 Infrastructure Split
 
-| Component | Location                     | Notes                  |
-| --------- | ---------------------------- | ---------------------- |
-| Server    | Hetzner ARM64 (152.53.146.3) | Coolify-managed        |
-| Database  | PostgreSQL 16 (Docker)       | Container: `fiskai-db` |
-| Redis     | Redis 7 Alpine (Docker)      | BullMQ job queues      |
-| CDN       | Cloudflare                   | SSL, caching, DDoS     |
-| DNS       | Cloudflare                   | Primary: fiskai.hr     |
+**Current Architecture:** FiskAI operates on a split infrastructure model:
 
-### 9.2 Docker Compose Files
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Cloudflare CDN                               │
+│                  (DNS, SSL, DDoS Protection)                         │
+└────────────┬──────────────────────────────┬─────────────────────────┘
+             │                              │
+             │                              │
+   ┌─────────▼──────────┐        ┌─────────▼─────────────────┐
+   │   Marketing Site   │        │      VPS-01 (ARM64)       │
+   │  fiskai-marketing  │        │   152.53.146.3            │
+   │                    │        │                           │
+   │  Static HTML/CSS/JS│        │  ┌─────────────────────┐  │
+   │  Next.js Export    │        │  │  Coolify (Docker)   │  │
+   │  CDN-Served        │        │  │                     │  │
+   │                    │        │  │  ┌───────────────┐  │  │
+   │  100% Public Pages │        │  │  │  Next.js App  │  │  │
+   │  - Landing         │        │  │  │  (app.fiskai) │  │  │
+   │  - Guides          │        │  │  └───────────────┘  │  │
+   │  - News            │        │  │                     │  │
+   │  - Login Redirect  │        │  │  ┌───────────────┐  │  │
+   └────────────────────┘        │  │  │  PostgreSQL   │  │  │
+                                 │  │  │  (fiskai-db)  │  │  │
+                                 │  │  └───────────────┘  │  │
+                                 │  └─────────────────────┘  │
+                                 └───────────────────────────┘
+                                              │
+                                              │ Database Connection
+                                              │
+                                 ┌────────────▼──────────────┐
+                                 │   VPS (Worker Server)     │
+                                 │   152.53.179.101          │
+                                 │                           │
+                                 │  ┌─────────────────────┐  │
+                                 │  │  Redis 7 Alpine     │  │
+                                 │  │  (BullMQ Queues)    │  │
+                                 │  └─────────────────────┘  │
+                                 │                           │
+                                 │  ┌─────────────────────┐  │
+                                 │  │  15 Worker Services │  │
+                                 │  │                     │  │
+                                 │  │  - Orchestrator     │  │
+                                 │  │  - Sentinel         │  │
+                                 │  │  - OCR (Tesseract)  │  │
+                                 │  │  - Extractor (LLM)  │  │
+                                 │  │  - Composer         │  │
+                                 │  │  - Reviewer         │  │
+                                 │  │  - Arbiter          │  │
+                                 │  │  - Releaser         │  │
+                                 │  │  - Scheduler        │  │
+                                 │  │  - Cont. Drainer    │  │
+                                 │  │  - Content Sync     │  │
+                                 │  │  - Article          │  │
+                                 │  │  - Evidence Embed   │  │
+                                 │  │  - Embedding        │  │
+                                 │  │  - E-Invoice In     │  │
+                                 │  └─────────────────────┘  │
+                                 └───────────────────────────┘
+```
 
-| File                         | Purpose                                |
-| ---------------------------- | -------------------------------------- |
-| `docker-compose.yml`         | Base database configuration            |
-| `docker-compose.dev.yml`     | Development overrides                  |
-| `docker-compose.prod.yml`    | Production configuration               |
-| `docker-compose.workers.yml` | Regulatory Truth Layer workers + Redis |
+| Environment   | Location                                 | Purpose                                    | Status     |
+| ------------- | ---------------------------------------- | ------------------------------------------ | ---------- |
+| **VPS-01**    | Hetzner ARM64 (152.53.146.3)             | Application server only                    | Production |
+| **VPS**       | Hetzner x86_64 (152.53.179.101)          | Workers and Redis                          | Production |
+| **Marketing** | Separate repository (`fiskai-marketing`) | Static marketing site (100% static export) | Production |
 
-### 9.3 Branch Protection
+**Key Changes:**
+
+1. **Marketing Split** - Marketing pages moved to separate static repository
+   - Repository: `fiskai-marketing` (Next.js static export)
+   - Deployment: CDN-served static HTML
+   - Survives backend outages
+   - WordPress integration with JSON fallback
+
+2. **VPS-01 Focus** - Now dedicated to application only
+   - Next.js application (app.fiskai.hr)
+   - PostgreSQL database
+   - Coolify orchestration
+
+3. **Workers Consolidation** - Workers and Redis on same device
+   - VPS (152.53.179.101)
+   - 15 worker containers + Redis
+   - Separate images: `fiskai-worker` and `fiskai-worker-ocr`
+
+### 9.2 Deployment Architecture
+
+| Component  | Location              | Notes                                 |
+| ---------- | --------------------- | ------------------------------------- |
+| App Server | VPS-01 (152.53.146.3) | Coolify-managed Next.js               |
+| Database   | VPS-01 (Docker)       | PostgreSQL 16, container: `fiskai-db` |
+| Workers    | VPS (Docker)          | 15 worker containers                  |
+| Redis      | VPS (Docker)          | Redis 7 Alpine, BullMQ queues         |
+| CDN        | Cloudflare            | SSL, caching, DDoS                    |
+| DNS        | Cloudflare            | Primary: fiskai.hr                    |
+
+### 9.3 Docker Build Process
+
+**Three Separate Images:**
+
+1. **App Image** (`Dockerfile`)
+   - Base: `node:22-alpine`
+   - Multi-stage build with BuildKit cache mounts
+   - Prisma client generation (core + regulatory)
+   - Next.js standalone output
+   - Health check: `/api/health`
+
+2. **Worker Image** (`Dockerfile.worker`)
+   - Base: `node:20-alpine`
+   - Compiled TypeScript workers (dist/)
+   - Used by: all workers except OCR
+   - Registry: `ghcr.io/wandeon/fiskai-worker`
+
+3. **Worker OCR Image** (`Dockerfile.worker` with `WITH_OCR=true`)
+   - Base: `node:20-alpine`
+   - Additional packages: Tesseract, poppler-utils, ghostscript
+   - Language data: Croatian (hrv) + English (eng)
+   - Registry: `ghcr.io/wandeon/fiskai-worker-ocr`
+
+**Build Args:**
+
+- `GIT_SHA` - Commit hash for version tracking
+- `BUILD_DATE` - Build timestamp
+- `WITH_OCR` - Enable OCR dependencies (worker-ocr only)
+
+### 9.4 Docker Compose Files
+
+| File                             | Purpose                      |
+| -------------------------------- | ---------------------------- |
+| `docker-compose.yml`             | Base database configuration  |
+| `docker-compose.dev.yml`         | Development overrides        |
+| `docker-compose.prod.yml`        | Production configuration     |
+| `docker-compose.workers.yml`     | 15 worker services + Redis   |
+| `docker-compose.workers.dev.yml` | Development worker overrides |
+
+### 9.5 Worker Services
+
+**15 Worker Containers** (all use pre-built GHCR images):
+
+| Worker             | Container Name                     | Image Type | Concurrency | Memory |
+| ------------------ | ---------------------------------- | ---------- | ----------- | ------ |
+| Orchestrator       | `fiskai-worker-orchestrator`       | worker     | 1           | 512M   |
+| Sentinel           | `fiskai-worker-sentinel`           | worker     | 1           | 512M   |
+| OCR                | `fiskai-worker-ocr`                | worker-ocr | 1           | 2G     |
+| Extractor          | `fiskai-worker-extractor`          | worker     | 1           | 1G     |
+| Composer           | `fiskai-worker-composer`           | worker     | 1           | 512M   |
+| Reviewer           | `fiskai-worker-reviewer`           | worker     | 1           | 512M   |
+| Arbiter            | `fiskai-worker-arbiter`            | worker     | 1           | 512M   |
+| Releaser           | `fiskai-worker-releaser`           | worker     | 1           | 512M   |
+| Scheduler          | `fiskai-worker-scheduler`          | worker     | -           | 512M   |
+| Continuous Drainer | `fiskai-worker-continuous-drainer` | worker     | -           | 256M   |
+| Content Sync       | `fiskai-worker-content-sync`       | worker     | 1           | 512M   |
+| Article            | `fiskai-worker-article`            | worker     | 1           | 1G     |
+| Evidence Embedding | `fiskai-worker-evidence-embedding` | worker     | 2           | 512M   |
+| Embedding          | `fiskai-worker-embedding`          | worker     | 2           | 512M   |
+| E-Invoice Inbound  | `fiskai-worker-einvoice-inbound`   | worker     | -           | 256M   |
+
+**Redis Configuration:**
+
+- Image: `redis:7-alpine`
+- Persistence: Append-only file (AOF)
+- Memory: 2GB max with `noeviction` policy
+- Networks: `default` + `coolify`
+
+### 9.6 Branch Protection
 
 **CRITICAL:** All changes MUST go through Pull Requests. Direct pushes to `main` are blocked by pre-push hook (PR #109).
 
@@ -411,16 +689,17 @@ Modules are auto-assigned based on business type selection:
 
 ## Changelog
 
-| Date       | Change                                    | PR/Commit |
-| ---------- | ----------------------------------------- | --------- |
-| 2026-01-05 | Reality audit: 18 modules, status labels  | v5.0.0    |
-| 2025-12-29 | Added System Registry, RTL Content Sync   | #138-#142 |
-| 2025-12-28 | Staff Portal status corrected to Partial  | Audit     |
-| 2025-12-28 | Full chapter audit and update             | Audit     |
-| 2025-12-27 | Authority-First Performance design merged | #117      |
-| 2025-12-26 | Living Truth Infrastructure merged        | #115      |
-| 2025-12-25 | OCR processing improvements merged        | #119      |
-| 2025-12-24 | Adaptive Sentinel merged                  | #111      |
-| 2025-12-22 | Regulatory Truth Layer audits             | #85-95    |
-| 2025-12-21 | Design System Token Architecture          | #107      |
-| 2025-12-20 | Branch protection policy                  | #109      |
+| Date       | Change                                                                                                                                | PR/Commit |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 2026-01-14 | Comprehensive update: Infrastructure split, Docker builds, module count correction (17 not 18), DDD architecture, tech stack versions | v6.0.0    |
+| 2026-01-05 | Reality audit: status labels                                                                                                          | v5.0.0    |
+| 2025-12-29 | Added System Registry, RTL Content Sync                                                                                               | #138-#142 |
+| 2025-12-28 | Staff Portal status corrected to Partial                                                                                              | Audit     |
+| 2025-12-28 | Full chapter audit and update                                                                                                         | Audit     |
+| 2025-12-27 | Authority-First Performance design merged                                                                                             | #117      |
+| 2025-12-26 | Living Truth Infrastructure merged                                                                                                    | #115      |
+| 2025-12-25 | OCR processing improvements merged                                                                                                    | #119      |
+| 2025-12-24 | Adaptive Sentinel merged                                                                                                              | #111      |
+| 2025-12-22 | Regulatory Truth Layer audits                                                                                                         | #85-95    |
+| 2025-12-21 | Design System Token Architecture                                                                                                      | #107      |
+| 2025-12-20 | Branch protection policy                                                                                                              | #109      |

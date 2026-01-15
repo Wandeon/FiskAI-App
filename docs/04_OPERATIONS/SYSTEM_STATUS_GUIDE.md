@@ -2,7 +2,7 @@
 
 ## Overview
 
-The System Status page (`/admin.fiskai.hr/system-status`) provides a real-time view of system health for non-technical operators.
+The System Status page (`app.fiskai.hr/admin/system-status`) provides a real-time view of system health for non-technical operators.
 
 ## Headline States
 
