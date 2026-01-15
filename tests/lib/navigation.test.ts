@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { navigation, LEGACY_ROUTES } from "@/lib/navigation"
+import { navigation } from "@/lib/navigation"
 
 describe("Navigation", () => {
   it("has Control Center as first navigation item", () => {
@@ -9,13 +9,9 @@ describe("Navigation", () => {
     expect(firstItem.name).toBe("Kontrolni centar")
   })
 
-  it("exports LEGACY_ROUTES constant", () => {
-    expect(LEGACY_ROUTES).toBeDefined()
-    expect(LEGACY_ROUTES).toContain("/dashboard")
-  })
-
-  it("marks dashboard as legacy in navigation", () => {
+  it("includes dashboard in navigation without legacy marker", () => {
     const dashboardItem = navigation.flatMap((s) => s.items).find((i) => i.href === "/dashboard")
-    expect(dashboardItem?.legacy).toBe(true)
+    expect(dashboardItem).toBeDefined()
+    expect(dashboardItem?.legacy).toBeUndefined()
   })
 })

@@ -84,6 +84,8 @@ export const shadowsDark = {
  * Z-index scale for stacking contexts
  */
 export const zIndex = {
+  /** Far below default stacking - for backgrounds */
+  "-10": "-10",
   /** Below default stacking */
   behind: "-1",
   /** Default stacking context */
