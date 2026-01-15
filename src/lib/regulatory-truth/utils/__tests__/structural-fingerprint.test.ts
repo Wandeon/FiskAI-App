@@ -11,6 +11,7 @@ import {
   generateFingerprint,
   calculateDrift,
   checkStructuralDrift,
+  approveBaseline,
   type StructuralFingerprint,
   type BaselineMetadata,
   DRIFT_THRESHOLD_PERCENT,
@@ -492,6 +493,100 @@ describe("structural-fingerprint", () => {
   describe("DRIFT_THRESHOLD_PERCENT constant", () => {
     it("is set to 30%", () => {
       expect(DRIFT_THRESHOLD_PERCENT).toBe(30)
+    })
+  })
+
+  describe("approveBaseline", () => {
+    it("changes status from pending to approved", () => {
+      const pendingBaseline: BaselineMetadata = {
+        fingerprint: {
+          tagCounts: { div: 10, p: 20 },
+          selectorYields: { ".item": 5 },
+          contentRatio: 0.6,
+          totalElements: 40,
+          generatedAt: new Date("2024-01-01"),
+        },
+        baselineUpdatedAt: new Date("2024-01-01"),
+        baselineUpdatedBy: "system",
+        approvalStatus: "pending",
+      }
+
+      const approved = approveBaseline(pendingBaseline, "admin@example.com")
+
+      expect(approved.approvalStatus).toBe("approved")
+    })
+
+    it("records approver email in baselineUpdatedBy", () => {
+      const pendingBaseline: BaselineMetadata = {
+        fingerprint: {
+          tagCounts: { div: 10 },
+          selectorYields: {},
+          contentRatio: 0.5,
+          totalElements: 15,
+          generatedAt: new Date("2024-01-01"),
+        },
+        baselineUpdatedAt: new Date("2024-01-01"),
+        baselineUpdatedBy: "system",
+        approvalStatus: "pending",
+      }
+
+      const approved = approveBaseline(pendingBaseline, "reviewer@fiskai.hr")
+
+      expect(approved.baselineUpdatedBy).toBe("reviewer@fiskai.hr")
+    })
+
+    it("updates timestamp to current time", () => {
+      const oldDate = new Date("2024-01-01")
+      const pendingBaseline: BaselineMetadata = {
+        fingerprint: {
+          tagCounts: { div: 5 },
+          selectorYields: {},
+          contentRatio: 0.4,
+          totalElements: 10,
+          generatedAt: oldDate,
+        },
+        baselineUpdatedAt: oldDate,
+        baselineUpdatedBy: "initial",
+        approvalStatus: "pending",
+      }
+
+      const before = new Date()
+      const approved = approveBaseline(pendingBaseline, "admin@example.com")
+      const after = new Date()
+
+      expect(approved.baselineUpdatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime())
+      expect(approved.baselineUpdatedAt.getTime()).toBeLessThanOrEqual(after.getTime())
+    })
+
+    it("preserves fingerprint data unchanged", () => {
+      const fingerprint: StructuralFingerprint = {
+        tagCounts: { div: 10, p: 20, table: 5 },
+        selectorYields: { "#main": 1, ".item": 10 },
+        contentRatio: 0.65,
+        totalElements: 50,
+        generatedAt: new Date("2024-01-15"),
+      }
+
+      const pendingBaseline: BaselineMetadata = {
+        fingerprint,
+        baselineUpdatedAt: new Date("2024-01-15"),
+        baselineUpdatedBy: "proposal-system",
+        approvalStatus: "pending",
+        previousFingerprint: {
+          tagCounts: { div: 8, p: 18 },
+          selectorYields: { "#main": 1, ".item": 8 },
+          contentRatio: 0.6,
+          totalElements: 45,
+          generatedAt: new Date("2024-01-01"),
+        },
+      }
+
+      const approved = approveBaseline(pendingBaseline, "admin@example.com")
+
+      // Fingerprint should be unchanged
+      expect(approved.fingerprint).toEqual(fingerprint)
+      // Previous fingerprint should also be preserved
+      expect(approved.previousFingerprint).toEqual(pendingBaseline.previousFingerprint)
     })
   })
 })

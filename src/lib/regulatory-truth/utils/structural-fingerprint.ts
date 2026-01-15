@@ -371,3 +371,26 @@ export function proposeBaselineUpdate(
     previousFingerprint: currentBaseline.fingerprint,
   }
 }
+
+/**
+ * Approve a pending baseline.
+ *
+ * This function transitions a baseline from "pending" to "approved" status,
+ * recording who approved it and when. This is the human-in-the-loop step
+ * required by baseline governance rules (Appendix A.7).
+ *
+ * @param pendingBaseline - Baseline metadata in pending state
+ * @param approvedBy - Email of the admin who approved the baseline
+ * @returns New baseline metadata with approved status
+ */
+export function approveBaseline(
+  pendingBaseline: BaselineMetadata,
+  approvedBy: string
+): BaselineMetadata {
+  return {
+    ...pendingBaseline,
+    approvalStatus: "approved",
+    baselineUpdatedBy: approvedBy,
+    baselineUpdatedAt: new Date(),
+  }
+}
