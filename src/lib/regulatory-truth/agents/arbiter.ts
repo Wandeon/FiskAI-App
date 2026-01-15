@@ -520,6 +520,266 @@ export async function runArbiter(conflictId: string): Promise<ArbiterResult> {
   // END TASK 1.3: DETERMINISTIC RESOLUTION
   // ==========================================================================
 
+  // ==========================================================================
+  // TASK 2.3: TRY PRECEDENT-BASED RESOLUTION BEFORE LLM
+  // ==========================================================================
+  // Before escalating to human or invoking LLM:
+  // 1. Query historical resolutions for same concept + conflict type
+  // 2. If 3+ precedents with 70%+ agreement, auto-apply precedent
+  // 3. System learns from human decisions
+  //
+  // Critical safeguards (Appendix A.3):
+  // - Tier Gating: Precedent resolution also respects T0/T1 gating
+  // - Minimum Precedents: Require 3+ matching precedents
+  // - Agreement Threshold: Require 70%+ agreement among precedents
+
+  // Use the first rule's conceptSlug for precedent lookup (both rules should have same concept)
+  const conceptSlug = itemA.conceptSlug
+
+  const precedentResult = await findPrecedent(
+    conceptSlug,
+    conflict.conflictType,
+    ruleAForResolution.riskTier // Use highest risk tier for gating
+  )
+
+  console.log(
+    `[arbiter] Precedent lookup for conflict ${conflictId}: ` +
+      `found=${precedentResult.found}, canAutoApply=${precedentResult.canAutoApply}, ` +
+      `count=${precedentResult.precedentCount ?? 0}, agreement=${precedentResult.agreementPercentage ?? 0}%`
+  )
+
+  // Handle precedent-based resolution
+  if (precedentResult.found) {
+    // Map precedent strategy to resolution - use the dominant strategy to determine winner
+    // The strategy indicates HOW to resolve, we need to apply it to determine WHICH rule wins
+    const applyPrecedentStrategy = (strategy: string): string | null => {
+      // For precedent-based resolution, we follow the historical pattern
+      // The strategy tells us the resolution method, but we need additional context
+      // to determine which specific rule wins. For now, we'll use the strategy
+      // as a hint and apply the same logic that would produce that strategy.
+      switch (strategy) {
+        case "authority_higher":
+          // Authority hierarchy - lower score wins
+          return getAuthorityScore(itemA.authorityLevel) < getAuthorityScore(itemB.authorityLevel)
+            ? itemA.id
+            : getAuthorityScore(itemB.authorityLevel) < getAuthorityScore(itemA.authorityLevel)
+              ? itemB.id
+              : null
+        case "temporal_newer":
+          // Temporal - newer wins
+          return itemA.effectiveFrom > itemB.effectiveFrom
+            ? itemA.id
+            : itemB.effectiveFrom > itemA.effectiveFrom
+              ? itemB.id
+              : null
+        case "source_higher":
+          // Source hierarchy - lower number wins
+          const sourceA = ruleAForResolution.sourceHierarchy ?? 999
+          const sourceB = ruleBForResolution.sourceHierarchy ?? 999
+          return sourceA < sourceB ? itemA.id : sourceB < sourceA ? itemB.id : null
+        default:
+          return null
+      }
+    }
+
+    const precedentWinnerId = applyPrecedentStrategy(precedentResult.winnerStrategy ?? "")
+    const precedentLoserId =
+      precedentWinnerId === itemA.id ? itemB.id : precedentWinnerId === itemB.id ? itemA.id : null
+
+    if (precedentWinnerId && precedentLoserId) {
+      // Determine resolution type based on winner
+      const precResolution: "RULE_A_PREVAILS" | "RULE_B_PREVAILS" | "ESCALATE_TO_HUMAN" =
+        !precedentResult.canAutoApply
+          ? "ESCALATE_TO_HUMAN" // T0/T1: Escalate to human review
+          : precedentWinnerId === itemA.id
+            ? "RULE_A_PREVAILS"
+            : "RULE_B_PREVAILS"
+
+      // Create audit trail for precedent-based resolution
+      await createConflictResolutionAudit(
+        conflictId,
+        precResolution,
+        itemA.id,
+        itemB.id,
+        precedentResult.reason,
+        {
+          precedentBased: {
+            strategy: precedentResult.winnerStrategy ?? "unknown",
+            precedentCount: precedentResult.precedentCount ?? 0,
+            agreementPercentage: precedentResult.agreementPercentage ?? 0,
+            canAutoApply: precedentResult.canAutoApply,
+          },
+          conceptSlug,
+          conflictType: conflict.conflictType,
+          resolutionStrategy: precedentResult.winnerStrategy,
+        }
+      )
+
+      if (!precedentResult.canAutoApply) {
+        // T0/T1: Create recommendation and escalate to human review
+        console.log(
+          `[arbiter] T0/T1 conflict with precedent - creating recommendation for human review: ${conflictId}`
+        )
+
+        // Update conflict with precedent recommendation (but don't auto-resolve)
+        await db.regulatoryConflict.update({
+          where: { id: conflict.id },
+          data: {
+            status: "ESCALATED",
+            resolution: {
+              precedentRecommendation: {
+                winningItemId: precedentWinnerId,
+                losingItemId: precedentLoserId,
+                strategy: precedentResult.winnerStrategy,
+                precedentCount: precedentResult.precedentCount,
+                agreementPercentage: precedentResult.agreementPercentage,
+              },
+              strategy: "precedent_recommendation",
+              rationaleHr: `Preporučeno rješenje temeljeno na ${precedentResult.precedentCount} povijesnih presedana (${precedentResult.agreementPercentage}% suglasnosti)`,
+              rationaleEn: `Recommended resolution based on ${precedentResult.precedentCount} historical precedents (${precedentResult.agreementPercentage}% agreement)`,
+            },
+            requiresHumanReview: true,
+            humanReviewReason: `T0/T1 rule conflict - precedent-based recommendation provided but requires human approval`,
+          },
+        })
+
+        // Create human review request
+        await requestConflictReview(conflict.id, {
+          conflictType: conflict.conflictType,
+          ruleATier: itemA.riskTier,
+          ruleBTier: itemB.riskTier,
+          escalationReason: "tier_protection_with_precedent",
+          precedentInfo: {
+            count: precedentResult.precedentCount,
+            agreement: precedentResult.agreementPercentage,
+            strategy: precedentResult.winnerStrategy,
+          },
+        })
+
+        // Log audit event
+        await logAuditEvent({
+          action: "CONFLICT_ESCALATED",
+          entityType: "CONFLICT",
+          entityId: conflictId,
+          metadata: {
+            resolution: "ESCALATE_TO_HUMAN",
+            method: "precedent_recommendation",
+            reason: precedentResult.reason,
+            recommendedWinner: precedentWinnerId,
+            tierA: itemA.riskTier,
+            tierB: itemB.riskTier,
+            precedentCount: precedentResult.precedentCount,
+            agreementPercentage: precedentResult.agreementPercentage,
+          },
+        })
+
+        return {
+          success: true,
+          output: null,
+          resolution: "ESCALATE_TO_HUMAN",
+          updatedConflictId: conflict.id,
+          error: null,
+        }
+      } else {
+        // T2/T3: Apply precedent-based resolution directly (no LLM needed)
+        console.log(
+          `[arbiter] T2/T3 conflict resolved by precedent: ${conflictId} -> ${precResolution}`
+        )
+
+        // Update conflict with resolution
+        await db.regulatoryConflict.update({
+          where: { id: conflict.id },
+          data: {
+            status: "RESOLVED",
+            resolution: {
+              winningItemId: precedentWinnerId,
+              losingItemId: precedentLoserId,
+              strategy: "precedent",
+              precedentStrategy: precedentResult.winnerStrategy,
+              precedentCount: precedentResult.precedentCount,
+              agreementPercentage: precedentResult.agreementPercentage,
+              rationaleHr: `Riješeno prema ${precedentResult.precedentCount} povijesnih presedana (${precedentResult.agreementPercentage}% suglasnosti, strategija: ${precedentResult.winnerStrategy})`,
+              rationaleEn: `Resolved based on ${precedentResult.precedentCount} historical precedents (${precedentResult.agreementPercentage}% agreement, strategy: ${precedentResult.winnerStrategy})`,
+              resolution: precResolution,
+            },
+            confidence: (precedentResult.agreementPercentage ?? 70) / 100, // Convert percentage to 0-1 scale
+            requiresHumanReview: false,
+            resolvedAt: new Date(),
+          },
+        })
+
+        // Update the losing rule's status
+        if (precResolution === "RULE_A_PREVAILS") {
+          await db.regulatoryRule.update({
+            where: { id: itemB.id },
+            data: {
+              status: "DEPRECATED",
+              reviewerNotes: JSON.stringify({
+                deprecated_reason: "Precedent-based conflict resolution - Rule A prevails",
+                conflict_id: conflict.id,
+                superseded_by: itemA.id,
+                resolution_reason: precedentResult.reason,
+                precedent_count: precedentResult.precedentCount,
+                agreement_percentage: precedentResult.agreementPercentage,
+              }),
+            },
+          })
+        } else if (precResolution === "RULE_B_PREVAILS") {
+          await db.regulatoryRule.update({
+            where: { id: itemA.id },
+            data: {
+              status: "DEPRECATED",
+              reviewerNotes: JSON.stringify({
+                deprecated_reason: "Precedent-based conflict resolution - Rule B prevails",
+                conflict_id: conflict.id,
+                superseded_by: itemB.id,
+                resolution_reason: precedentResult.reason,
+                precedent_count: precedentResult.precedentCount,
+                agreement_percentage: precedentResult.agreementPercentage,
+              }),
+            },
+          })
+        }
+
+        // Log audit event
+        await logAuditEvent({
+          action: "CONFLICT_RESOLVED",
+          entityType: "CONFLICT",
+          entityId: conflictId,
+          metadata: {
+            resolution: precResolution,
+            method: "precedent",
+            reason: precedentResult.reason,
+            winner: precedentWinnerId,
+            loser: precedentLoserId,
+            tierA: itemA.riskTier,
+            tierB: itemB.riskTier,
+            precedentCount: precedentResult.precedentCount,
+            agreementPercentage: precedentResult.agreementPercentage,
+            strategy: precedentResult.winnerStrategy,
+          },
+        })
+
+        return {
+          success: true,
+          output: null,
+          resolution: precResolution,
+          updatedConflictId: conflict.id,
+          error: null,
+        }
+      }
+    }
+  }
+
+  // Precedent-based resolution not possible - fall through to LLM arbitration
+  console.log(
+    `[arbiter] Precedent-based resolution not possible for ${conflictId}: ${precedentResult.reason}`
+  )
+
+  // ==========================================================================
+  // END TASK 2.3: PRECEDENT-BASED RESOLUTION
+  // ==========================================================================
+
   // Build conflicting items for the agent
   const conflictingItems: ConflictingItem[] = [
     {
@@ -746,6 +1006,16 @@ async function createConflictResolutionAudit(
       rationaleHr: string
       rationaleEn: string
     }
+    // Task 2.3: Precedent-based resolution metadata
+    precedentBased?: {
+      strategy: string
+      precedentCount: number
+      agreementPercentage: number
+      canAutoApply: boolean
+    }
+    conceptSlug?: string
+    conflictType?: string
+    resolutionStrategy?: string
   }
 ): Promise<void> {
   await dbReg.conflictResolutionAudit.create({
@@ -1106,5 +1376,173 @@ export function tryDeterministicResolution(
     resolved: false,
     reason: `${tierContext}Deterministic resolution unresolved: equal authority (${ruleA.authorityLevel}), equal/missing source hierarchy, and same effective date (${ruleA.effectiveFrom.toISOString().split("T")[0]}). Requires LLM arbitration or human review.`,
     recommendationOnly: requiresHumanApproval,
+  }
+}
+
+// =============================================================================
+// TASK 2.3: PRECEDENT-BASED CONFLICT RESOLUTION
+// =============================================================================
+// Before escalating to human:
+// 1. Query historical resolutions for same concept + conflict type
+// 2. If 3+ precedents with 70%+ agreement, auto-apply precedent
+// 3. System learns from human decisions
+//
+// Critical safeguards (Appendix A.3):
+// - Tier Gating: Precedent resolution also respects T0/T1 gating
+// - Minimum Precedents: Require 3+ matching precedents
+// - Agreement Threshold: Require 70%+ agreement among precedents
+
+/** Minimum number of precedents required to apply precedent-based resolution */
+const MIN_PRECEDENTS = 3
+
+/** Minimum agreement percentage (0-100) required among precedents */
+const MIN_AGREEMENT_PERCENT = 70
+
+/**
+ * Result of precedent-based conflict resolution lookup.
+ */
+export interface PrecedentResult {
+  /** Whether matching precedents were found that meet threshold requirements */
+  found: boolean
+  /** Whether precedent can be auto-applied (false for T0/T1 tiers) */
+  canAutoApply: boolean
+  /** The winning strategy from precedents (e.g., "authority_higher", "temporal_newer") */
+  winnerStrategy?: string
+  /** Number of matching precedents found */
+  precedentCount?: number
+  /** Agreement percentage among precedents (0-100) */
+  agreementPercentage?: number
+  /** Human-readable explanation of the result */
+  reason: string
+}
+
+/**
+ * Find historical precedents for a conflict and determine if they can be applied.
+ *
+ * This function queries the ConflictResolutionAudit table for past resolutions
+ * with the same concept slug and conflict type. If enough precedents exist
+ * with sufficient agreement on resolution strategy, it returns the dominant
+ * strategy for application.
+ *
+ * CRITICAL: T0/T1 rules get recommendation only (canAutoApply=false).
+ * Only T2/T3 rules can have precedent applied automatically.
+ *
+ * @param conceptSlug The concept slug to find precedents for
+ * @param conflictType The type of conflict (e.g., "TEMPORAL_CONFLICT")
+ * @param riskTier The risk tier of the conflict ("T0", "T1", "T2", "T3")
+ * @returns PrecedentResult with lookup results and recommendation
+ */
+export async function findPrecedent(
+  conceptSlug: string,
+  conflictType: string,
+  riskTier: string
+): Promise<PrecedentResult> {
+  // Step 1: Check tier gating - T0/T1 get recommendation only
+  const canAutoApply = !isHighRiskTier(riskTier)
+  const tierContext = !canAutoApply ? `[${riskTier} - recommendation only] ` : ""
+
+  try {
+    // Step 2: Query ConflictResolutionAudit for same concept + conflict type
+    // Using JSON path queries to filter by metadata fields
+    const audits = await dbReg.conflictResolutionAudit.findMany({
+      where: {
+        metadata: {
+          path: ["conceptSlug"],
+          equals: conceptSlug,
+        },
+        AND: {
+          metadata: {
+            path: ["conflictType"],
+            equals: conflictType,
+          },
+        },
+      },
+      orderBy: {
+        resolvedAt: "desc",
+      },
+    })
+
+    // Filter audits with valid metadata and resolution strategy
+    const validAudits = audits.filter((audit) => {
+      const meta = audit.metadata as {
+        conceptSlug?: string
+        conflictType?: string
+        resolutionStrategy?: string
+      } | null
+      return meta?.resolutionStrategy != null
+    })
+
+    const precedentCount = validAudits.length
+
+    // Not enough precedents
+    if (precedentCount === 0) {
+      return {
+        found: false,
+        canAutoApply: false,
+        precedentCount: 0,
+        reason: `${tierContext}Precedent lookup: no matching precedents found for concept "${conceptSlug}" with conflict type "${conflictType}"`,
+      }
+    }
+
+    if (precedentCount < MIN_PRECEDENTS) {
+      return {
+        found: false,
+        canAutoApply: false,
+        precedentCount,
+        reason: `${tierContext}Precedent lookup: insufficient precedents (${precedentCount}/${MIN_PRECEDENTS} required) for concept "${conceptSlug}"`,
+      }
+    }
+
+    // Step 3: Group by resolution strategy, count occurrences (case-insensitive)
+    const strategyCounts = new Map<string, number>()
+    for (const audit of validAudits) {
+      const meta = audit.metadata as { resolutionStrategy?: string } | null
+      const strategy = (meta?.resolutionStrategy ?? "unknown").toLowerCase()
+      strategyCounts.set(strategy, (strategyCounts.get(strategy) ?? 0) + 1)
+    }
+
+    // Find the dominant strategy
+    let dominantStrategy = ""
+    let dominantCount = 0
+    for (const [strategy, count] of strategyCounts) {
+      if (count > dominantCount) {
+        dominantStrategy = strategy
+        dominantCount = count
+      }
+    }
+
+    // Step 4: Calculate agreement percentage
+    const agreementPercentage = Math.round((dominantCount / precedentCount) * 100)
+
+    // Check if agreement threshold is met
+    if (agreementPercentage < MIN_AGREEMENT_PERCENT) {
+      return {
+        found: false,
+        canAutoApply: false,
+        precedentCount,
+        agreementPercentage,
+        reason: `${tierContext}Precedent lookup: insufficient agreement (${agreementPercentage}%/${MIN_AGREEMENT_PERCENT}% required) among ${precedentCount} precedents for concept "${conceptSlug}"`,
+      }
+    }
+
+    // Step 5: Precedent found - return result
+    return {
+      found: true,
+      canAutoApply,
+      winnerStrategy: dominantStrategy,
+      precedentCount,
+      agreementPercentage,
+      reason: `${tierContext}Precedent-based resolution: ${precedentCount} historical precedents found for concept "${conceptSlug}" with ${agreementPercentage}% agreement on strategy "${dominantStrategy}"`,
+    }
+  } catch (error) {
+    // Handle database errors gracefully
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.error(`[arbiter] Precedent lookup error for ${conceptSlug}: ${errorMessage}`)
+    return {
+      found: false,
+      canAutoApply: false,
+      precedentCount: 0,
+      reason: `${tierContext}Precedent lookup error: ${errorMessage}`,
+    }
   }
 }
