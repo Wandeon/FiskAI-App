@@ -10,7 +10,7 @@ import { db } from "@/lib/db"
 import { JobStatus, DocumentType } from "@prisma/client"
 import { promises as fs } from "fs"
 import { XMLParser } from "fast-xml-parser"
-import { deepseekJson } from "@/lib/ai/deepseek"
+import { chat as ollamaChat } from "@/lib/ai/ollama-client"
 import { BANK_STATEMENT_SYSTEM_PROMPT, INVOICE_SYSTEM_PROMPT } from "@/lib/banking/import/prompt"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { setTenantContext } from "@/lib/prisma-extensions"
@@ -241,7 +241,7 @@ async function processPdfOrImage(job: any, ext: string) {
   let response: string
 
   if (ext === "pdf") {
-    // For PDFs, extract text and use Deepseek
+    // For PDFs, extract text and use Ollama
     let textContent = ""
     try {
       const pdfParse = (await import("pdf-parse")).default
@@ -251,52 +251,45 @@ async function processPdfOrImage(job: any, ext: string) {
       textContent = ""
     }
 
-    response = await deepseekJson({
-      model: "deepseek-chat",
-      messages: [
-        { role: "system", content: BANK_STATEMENT_SYSTEM_PROMPT },
-        { role: "user", content: textContent || "Extract transactions from this bank statement." },
-      ],
+    response = await ollamaChat(textContent || "Extract transactions from this bank statement.", {
+      systemPrompt: BANK_STATEMENT_SYSTEM_PROMPT,
+      jsonMode: true,
     })
   } else {
     // For images, use Ollama vision
     const ollamaKey = process.env.OLLAMA_API_KEY
-    const ollamaBase = process.env.OLLAMA_BASE_URL || "https://ollama.com"
-    const ollamaModel = process.env.OLLAMA_VISION_MODEL || "qwen3-vl:235b-instruct"
+    const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || "http://localhost:11434"
+    const ollamaVisionModel = process.env.OLLAMA_VISION_MODEL || "llava"
 
     if (!ollamaKey) {
       throw new Error("OLLAMA_API_KEY not configured for image processing")
     }
 
     const imageBase64 = buffer.toString("base64")
-    const mimeType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg"
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 120000)
 
     try {
-      const resp = await fetch(`${ollamaBase}/v1/chat/completions`, {
+      const resp = await fetch(`${ollamaEndpoint}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${ollamaKey}`,
         },
         body: JSON.stringify({
-          model: ollamaModel,
+          model: ollamaVisionModel,
           messages: [
             { role: "system", content: BANK_STATEMENT_SYSTEM_PROMPT },
             {
               role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Extract transactions from this bank statement image. Return valid JSON only.",
-                },
-                { type: "image_url", image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-              ],
+              content:
+                "Extract transactions from this bank statement image. Return valid JSON only.",
+              images: [imageBase64],
             },
           ],
-          response_format: { type: "json_object" },
+          stream: false,
+          format: "json",
         }),
         signal: controller.signal,
       })
@@ -308,7 +301,7 @@ async function processPdfOrImage(job: any, ext: string) {
       }
 
       const json = await resp.json()
-      response = json?.choices?.[0]?.message?.content
+      response = json?.message?.content
       if (!response) {
         throw new Error("Ollama vision returned empty content")
       }
@@ -369,7 +362,7 @@ async function processInvoice(job: any, ext: string) {
   let response: string
 
   if (ext === "pdf") {
-    // For PDFs, extract text and use Deepseek
+    // For PDFs, extract text and use Ollama
     let textContent = ""
     try {
       const pdfParse = (await import("pdf-parse")).default
@@ -379,52 +372,44 @@ async function processInvoice(job: any, ext: string) {
       textContent = ""
     }
 
-    response = await deepseekJson({
-      model: "deepseek-chat",
-      messages: [
-        { role: "system", content: INVOICE_SYSTEM_PROMPT },
-        { role: "user", content: textContent || "Extract invoice data from this document." },
-      ],
+    response = await ollamaChat(textContent || "Extract invoice data from this document.", {
+      systemPrompt: INVOICE_SYSTEM_PROMPT,
+      jsonMode: true,
     })
   } else {
     // For images, use Ollama vision
     const ollamaKey = process.env.OLLAMA_API_KEY
-    const ollamaBase = process.env.OLLAMA_BASE_URL || "https://ollama.com"
-    const ollamaModel = process.env.OLLAMA_VISION_MODEL || "qwen3-vl:235b-instruct"
+    const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || "http://localhost:11434"
+    const ollamaVisionModel = process.env.OLLAMA_VISION_MODEL || "llava"
 
     if (!ollamaKey) {
       throw new Error("OLLAMA_API_KEY not configured for image processing")
     }
 
     const imageBase64 = buffer.toString("base64")
-    const mimeType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg"
 
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 120000) // 2 min timeout for images
+    const timeout = setTimeout(() => controller.abort(), 120000)
 
     try {
-      const resp = await fetch(`${ollamaBase}/v1/chat/completions`, {
+      const resp = await fetch(`${ollamaEndpoint}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${ollamaKey}`,
         },
         body: JSON.stringify({
-          model: ollamaModel,
+          model: ollamaVisionModel,
           messages: [
             { role: "system", content: INVOICE_SYSTEM_PROMPT },
             {
               role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Extract invoice data from this image. Return valid JSON only.",
-                },
-                { type: "image_url", image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-              ],
+              content: "Extract invoice data from this image. Return valid JSON only.",
+              images: [imageBase64],
             },
           ],
-          response_format: { type: "json_object" },
+          stream: false,
+          format: "json",
         }),
         signal: controller.signal,
       })
@@ -436,7 +421,7 @@ async function processInvoice(job: any, ext: string) {
       }
 
       const json = await resp.json()
-      response = json?.choices?.[0]?.message?.content
+      response = json?.message?.content
       if (!response) {
         throw new Error("Ollama vision returned empty content")
       }

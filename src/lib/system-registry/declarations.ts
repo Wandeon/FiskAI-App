@@ -2004,18 +2004,20 @@ export const INTEGRATION_COMPONENTS: SystemComponent[] = [
     metadata: { purpose: "Croatian e-invoicing compliance" },
   },
   {
-    componentId: "integration-openai",
+    componentId: "integration-ollama",
     type: "INTEGRATION",
-    name: "OpenAI API",
+    name: "Ollama LLM",
     status: "STABLE",
     criticality: "HIGH",
     owner: "team:ai",
     docsRef: null,
-    codeRef: "src/lib/ai/extract.ts",
+    codeRef: "src/lib/ai/ollama-client.ts",
     dependencies: [],
     dependents: [],
     criticalPaths: [],
-    metadata: { purpose: "AI-powered receipt and invoice extraction" },
+    metadata: {
+      purpose: "AI-powered extraction, OCR, and assistant (local and cloud Ollama instances)",
+    },
   },
   {
     componentId: "integration-posthog",
@@ -2297,7 +2299,7 @@ export const LIB_COMPONENTS: SystemComponent[] = [
     owner: "team:ai",
     docsRef: null,
     codeRef: "src/lib/ai/",
-    dependencies: [{ componentId: "integration-openai", type: "HARD" }],
+    dependencies: [{ componentId: "integration-ollama", type: "HARD" }],
     criticalPaths: [],
     metadata: {
       features: [

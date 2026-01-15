@@ -3,7 +3,7 @@
  * Quality critique and feedback generation with source verification
  */
 
-import { callDeepSeekJSON } from "./deepseek-client"
+import { callOllamaJSON } from "./ollama-client"
 
 export interface ReviewFeedback {
   score: number // 1-10
@@ -95,7 +95,7 @@ export async function reviewArticle(
     .replace("{source_url}", source?.url || "N/A")
 
   try {
-    const feedback = await callDeepSeekJSON<ReviewFeedback>(prompt, {
+    const feedback = await callOllamaJSON<ReviewFeedback>(prompt, {
       systemPrompt: NEWS_REVIEWER_SYSTEM_PROMPT,
       temperature: 0.6, // Slightly higher for more varied scoring
       maxTokens: 1500,

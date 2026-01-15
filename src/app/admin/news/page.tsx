@@ -93,18 +93,9 @@ export default async function AdminNewsPage() {
     getCategories(),
   ])
   const cronConfigured = Boolean(process.env.CRON_SECRET)
-  const aiConfigured = Boolean(
-    process.env.OLLAMA_API_KEY || process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY
-  )
-  const aiProvider =
-    (process.env.NEWS_AI_PROVIDER || process.env.AI_PROVIDER || "").toLowerCase() ||
-    (process.env.OLLAMA_API_KEY
-      ? "ollama"
-      : process.env.DEEPSEEK_API_KEY
-        ? "deepseek"
-        : process.env.OPENAI_API_KEY
-          ? "openai"
-          : "")
+  // Ollama is configured via OLLAMA_ENDPOINT (API key optional for local instances)
+  const aiConfigured = Boolean(process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_API_KEY)
+  const aiProvider = "ollama" // Ollama is the only supported provider
 
   return (
     <div className="space-y-6">

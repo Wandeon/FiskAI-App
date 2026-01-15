@@ -3,7 +3,7 @@
  * Groups medium-impact items into cohesive daily digest
  */
 
-import { callDeepSeek } from "./deepseek-client"
+import { callOllama } from "./ollama-client"
 
 export interface DigestSection {
   theme: string // e.g., "PDV novosti", "Propisi i zakoni"
@@ -119,7 +119,7 @@ async function groupItemsByTheme(
 
   const prompt = DIGEST_GROUPING_PROMPT.replace("{news_list}", newsList)
 
-  const response = await callDeepSeek(prompt, {
+  const response = await callOllama(prompt, {
     systemPrompt: NEWS_DIGEST_SYSTEM_PROMPT,
     temperature: 0.5,
     maxTokens: 1000,
@@ -189,7 +189,7 @@ async function generateDigestIntro(
 
   const prompt = DIGEST_INTRO_PROMPT.replace("{news_list}", newsList)
 
-  const intro = await callDeepSeek(prompt, {
+  const intro = await callOllama(prompt, {
     systemPrompt: NEWS_DIGEST_SYSTEM_PROMPT,
     temperature: 0.4,
     maxTokens: 300,

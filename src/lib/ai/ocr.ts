@@ -1,39 +1,9 @@
-import OpenAI from "openai"
 import { ExtractionResult, ExtractedReceipt } from "./types"
 import { trackAIUsage } from "./usage-tracking"
 import { extractedReceiptSchema } from "./schemas"
+import { vision, OllamaError } from "./ollama-client"
 
-// Lazy-load OpenAI client to avoid build errors when API key is not set
-function getOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OpenAI API key not configured")
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
-}
-
-export async function extractFromImage(
-  imageBase64: string,
-  companyId?: string
-): Promise<ExtractionResult<ExtractedReceipt>> {
-  const model = "gpt-4o"
-  let success = false
-  let inputTokens = 0
-  let outputTokens = 0
-  const startTime = Date.now()
-
-  try {
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Extract receipt data from this image. Return JSON:
+const OCR_PROMPT = `Extract receipt data from this image. Return JSON:
 {
   "vendor": "business name",
   "vendorOib": "OIB if visible",
@@ -46,24 +16,23 @@ export async function extractFromImage(
   "currency": "EUR",
   "confidence": 0.0-1.0
 }
-Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
-            },
-            {
-              type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
-            },
-          ],
-        },
-      ],
-      max_tokens: 1000,
+Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`
+
+export async function extractFromImage(
+  imageBase64: string,
+  companyId?: string
+): Promise<ExtractionResult<ExtractedReceipt>> {
+  const model = process.env.OLLAMA_VISION_MODEL || "llava"
+  const startTime = Date.now()
+
+  try {
+    const content = await vision(imageBase64, OCR_PROMPT, {
+      jsonMode: true,
+      operation: "ocr_receipt",
+      companyId,
     })
     const durationMs = Date.now() - startTime
 
-    // Track token usage
-    inputTokens = response.usage?.prompt_tokens || 0
-    outputTokens = response.usage?.completion_tokens || 0
-
-    const content = response.choices[0]?.message?.content || ""
     // Extract JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
@@ -72,15 +41,17 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
           companyId,
           operation: "ocr_receipt",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return { success: false, error: "No JSON in response", rawText: content }
-    } // Parse and validate JSON response
+    }
+
+    // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(jsonMatch[0])
@@ -90,11 +61,11 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
           companyId,
           operation: "ocr_receipt",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return {
@@ -112,11 +83,11 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
           companyId,
           operation: "ocr_receipt",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return {
@@ -127,21 +98,6 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
     }
 
     const data = validationResult.data
-    success = true
-
-    // Track successful usage
-    if (companyId) {
-      await trackAIUsage({
-        companyId,
-        operation: "ocr_receipt",
-        model,
-        inputTokens,
-        outputTokens,
-        success: true,
-        durationMs,
-        provider: "openai",
-      })
-    }
 
     return { success: true, data }
   } catch (error) {
@@ -152,17 +108,17 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         companyId,
         operation: "ocr_receipt",
         model,
-        inputTokens,
-        outputTokens,
+        inputTokens: 0,
+        outputTokens: 0,
         success: false,
         durationMs,
-        provider: "openai",
+        provider: "ollama",
       })
     }
 
-    // Provide user-friendly error message for missing API key
+    // Provide user-friendly error message
     const errorMessage =
-      error instanceof Error && error.message === "OpenAI API key not configured"
+      error instanceof OllamaError
         ? "AI features temporarily unavailable. Please enter receipt details manually."
         : error instanceof Error
           ? error.message
@@ -179,130 +135,20 @@ export async function extractFromImageUrl(
   imageUrl: string,
   companyId?: string
 ): Promise<ExtractionResult<ExtractedReceipt>> {
-  const model = "gpt-4o"
-  let inputTokens = 0
-  let outputTokens = 0
+  const model = process.env.OLLAMA_VISION_MODEL || "llava"
   const startTime = Date.now()
 
   try {
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Extract receipt data from this image. Return JSON:
-{
-  "vendor": "business name",
-  "vendorOib": "OIB if visible",
-  "date": "YYYY-MM-DD",
-  "items": [{"description": "", "quantity": 1, "unitPrice": 0, "total": 0, "vatRate": 25}],
-  "subtotal": 0,
-  "vatAmount": 0,
-  "total": 0,
-  "paymentMethod": "cash|card|transfer",
-  "currency": "EUR",
-  "confidence": 0.0-1.0
-}
-Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
-            },
-            {
-              type: "image_url",
-              image_url: { url: imageUrl },
-            },
-          ],
-        },
-      ],
-      max_tokens: 1000,
-    })
-    const durationMs = Date.now() - startTime
-
-    // Track token usage
-    inputTokens = response.usage?.prompt_tokens || 0
-    outputTokens = response.usage?.completion_tokens || 0
-
-    const content = response.choices[0]?.message?.content || ""
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      if (companyId) {
-        await trackAIUsage({
-          companyId,
-          operation: "ocr_receipt",
-          model,
-          inputTokens,
-          outputTokens,
-          success: false,
-          durationMs,
-          provider: "openai",
-        })
-      }
-      return { success: false, error: "No JSON in response", rawText: content }
-    } // Parse and validate JSON response
-    let parsedData: unknown
-    try {
-      parsedData = JSON.parse(jsonMatch[0])
-    } catch (parseError) {
-      if (companyId) {
-        await trackAIUsage({
-          companyId,
-          operation: "ocr_receipt",
-          model,
-          inputTokens,
-          outputTokens,
-          success: false,
-          durationMs,
-          provider: "openai",
-        })
-      }
-      return {
-        success: false,
-        error: "Invalid JSON format in response",
-        rawText: content,
-      }
+    // Fetch the image and convert to base64
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`)
     }
+    const arrayBuffer = await response.arrayBuffer()
+    const imageBase64 = Buffer.from(arrayBuffer).toString("base64")
 
-    // Validate against schema
-    const validationResult = extractedReceiptSchema.safeParse(parsedData)
-    if (!validationResult.success) {
-      if (companyId) {
-        await trackAIUsage({
-          companyId,
-          operation: "ocr_receipt",
-          model,
-          inputTokens,
-          outputTokens,
-          success: false,
-          durationMs,
-          provider: "openai",
-        })
-      }
-      return {
-        success: false,
-        error: `Invalid extraction format: ${validationResult.error.issues.map((e) => e.message).join(", ")}`,
-        rawText: content,
-      }
-    }
-
-    const data = validationResult.data
-
-    // Track successful usage
-    if (companyId) {
-      await trackAIUsage({
-        companyId,
-        operation: "ocr_receipt",
-        model,
-        inputTokens,
-        outputTokens,
-        success: true,
-        durationMs,
-        provider: "openai",
-      })
-    }
-
-    return { success: true, data }
+    // Use the base64 version
+    return extractFromImage(imageBase64, companyId)
   } catch (error) {
     const durationMs = Date.now() - startTime
     // Track failed usage
@@ -311,17 +157,17 @@ Croatian: PDV=VAT, Ukupno=Total, Gotovina=Cash, Kartica=Card`,
         companyId,
         operation: "ocr_receipt",
         model,
-        inputTokens,
-        outputTokens,
+        inputTokens: 0,
+        outputTokens: 0,
         success: false,
         durationMs,
-        provider: "openai",
+        provider: "ollama",
       })
     }
 
-    // Provide user-friendly error message for missing API key
+    // Provide user-friendly error message
     const errorMessage =
-      error instanceof Error && error.message === "OpenAI API key not configured"
+      error instanceof OllamaError
         ? "AI features temporarily unavailable. Please enter receipt details manually."
         : error instanceof Error
           ? error.message

@@ -2,13 +2,8 @@
 /**
  * LLM Provider Health Ping Functions
  *
- * Provides lightweight health checks for LLM providers to detect
+ * Provides lightweight health checks for Ollama to detect
  * availability, authentication issues, and rate limiting.
- *
- * Each provider has a dedicated ping function that:
- * - Checks a lightweight endpoint (e.g., /v1/models, /api/tags)
- * - Returns a structured result with status, reason code, and latency
- * - Times out after TOTAL_TIMEOUT_MS to avoid hanging
  */
 
 import type { LLMProvider } from "./llm-circuit-breaker"
@@ -85,7 +80,7 @@ function classifyError(
  * available on both local and cloud Ollama instances.
  */
 export async function pingOllama(): Promise<ProviderPingResult> {
-  const endpoint = process.env.OLLAMA_ENDPOINT || "https://ollama.com"
+  const endpoint = process.env.OLLAMA_ENDPOINT || "http://localhost:11434"
   const apiKey = process.env.OLLAMA_API_KEY
   const startTime = Date.now()
 
@@ -135,168 +130,20 @@ export async function pingOllama(): Promise<ProviderPingResult> {
 }
 
 /**
- * Ping OpenAI provider
+ * Ping all providers
  *
- * Uses the /v1/models endpoint which is lightweight and
- * validates API key authentication.
- */
-export async function pingOpenAI(): Promise<ProviderPingResult> {
-  const apiKey = process.env.OPENAI_API_KEY
-  const startTime = Date.now()
-
-  // Fail fast if no API key configured
-  if (!apiKey) {
-    return {
-      provider: "openai",
-      status: "CRITICAL",
-      reasonCode: "AUTH",
-      latencyMs: 0,
-      error: "OPENAI_API_KEY not configured",
-      checkedAt: new Date(),
-    }
-  }
-
-  try {
-    const response = await fetchWithTimeout(
-      "https://api.openai.com/v1/models",
-      {
-        method: "GET",
-        headers: { Authorization: `Bearer ${apiKey}` },
-      },
-      TOTAL_TIMEOUT_MS
-    )
-
-    const latencyMs = Date.now() - startTime
-
-    if (response.ok) {
-      return {
-        provider: "openai",
-        status: "HEALTHY",
-        reasonCode: "OK",
-        latencyMs,
-        checkedAt: new Date(),
-      }
-    }
-
-    const { status, reasonCode } = classifyError(null, response.status)
-    return {
-      provider: "openai",
-      status,
-      reasonCode,
-      latencyMs,
-      error: `HTTP ${response.status}`,
-      checkedAt: new Date(),
-    }
-  } catch (error) {
-    const latencyMs = Date.now() - startTime
-    const { status, reasonCode } = classifyError(error)
-    return {
-      provider: "openai",
-      status,
-      reasonCode,
-      latencyMs,
-      error: error instanceof Error ? error.message : String(error),
-      checkedAt: new Date(),
-    }
-  }
-}
-
-/**
- * Ping DeepSeek provider
- *
- * Uses the /v1/models endpoint which follows OpenAI-compatible API format.
- */
-export async function pingDeepSeek(): Promise<ProviderPingResult> {
-  const apiKey = process.env.DEEPSEEK_API_KEY
-  const startTime = Date.now()
-
-  // Fail fast if no API key configured
-  if (!apiKey) {
-    return {
-      provider: "deepseek",
-      status: "CRITICAL",
-      reasonCode: "AUTH",
-      latencyMs: 0,
-      error: "DEEPSEEK_API_KEY not configured",
-      checkedAt: new Date(),
-    }
-  }
-
-  try {
-    const response = await fetchWithTimeout(
-      "https://api.deepseek.com/v1/models",
-      {
-        method: "GET",
-        headers: { Authorization: `Bearer ${apiKey}` },
-      },
-      TOTAL_TIMEOUT_MS
-    )
-
-    const latencyMs = Date.now() - startTime
-
-    if (response.ok) {
-      return {
-        provider: "deepseek",
-        status: "HEALTHY",
-        reasonCode: "OK",
-        latencyMs,
-        checkedAt: new Date(),
-      }
-    }
-
-    const { status, reasonCode } = classifyError(null, response.status)
-    return {
-      provider: "deepseek",
-      status,
-      reasonCode,
-      latencyMs,
-      error: `HTTP ${response.status}`,
-      checkedAt: new Date(),
-    }
-  } catch (error) {
-    const latencyMs = Date.now() - startTime
-    const { status, reasonCode } = classifyError(error)
-    return {
-      provider: "deepseek",
-      status,
-      reasonCode,
-      latencyMs,
-      error: error instanceof Error ? error.message : String(error),
-      checkedAt: new Date(),
-    }
-  }
-}
-
-/**
- * Ping all providers in parallel
- *
- * Returns results for all three providers, useful for
+ * Returns results for Ollama provider, useful for
  * health dashboards and failover decisions.
  */
 export async function pingAllProviders(): Promise<ProviderPingResult[]> {
-  return Promise.all([pingOllama(), pingOpenAI(), pingDeepSeek()])
+  return Promise.all([pingOllama()])
 }
 
 /**
  * Determine the currently active LLM provider
  *
- * Priority:
- * 1. Explicit NEWS_AI_PROVIDER or AI_PROVIDER env var
- * 2. Inferred from available API keys (ollama > deepseek > openai)
- * 3. Default to ollama if nothing configured
+ * Returns "ollama" as it's the only supported provider.
  */
 export function getActiveProvider(): LLMProvider {
-  // Check explicit provider configuration
-  const explicit = (process.env.NEWS_AI_PROVIDER || process.env.AI_PROVIDER || "").toLowerCase()
-  if (explicit === "openai") return "openai"
-  if (explicit === "deepseek") return "deepseek"
-  if (explicit === "ollama") return "ollama"
-
-  // Infer from available API keys
-  if (process.env.OLLAMA_API_KEY) return "ollama"
-  if (process.env.DEEPSEEK_API_KEY) return "deepseek"
-  if (process.env.OPENAI_API_KEY) return "openai"
-
-  // Default to ollama (self-hosted, no API key required)
   return "ollama"
 }

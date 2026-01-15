@@ -19,7 +19,7 @@
 
 import { redis } from "@/lib/regulatory-truth/workers/redis"
 
-export type LLMProvider = "ollama" | "openai" | "deepseek"
+export type LLMProvider = "ollama"
 export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN"
 
 export interface CircuitBreakerState {
@@ -171,7 +171,7 @@ export class LLMCircuitBreaker {
    * Get states for all known providers
    */
   async getAllStates(): Promise<CircuitBreakerState[]> {
-    const providers: LLMProvider[] = ["ollama", "openai", "deepseek"]
+    const providers: LLMProvider[] = ["ollama"]
     return Promise.all(providers.map((p) => this.getState(p)))
   }
 

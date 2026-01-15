@@ -4,7 +4,7 @@
  */
 
 import type { NewsItem } from "@/lib/db/schema/news"
-import { callDeepSeek } from "./deepseek-client"
+import { callOllama } from "./ollama-client"
 
 export interface ArticleContent {
   title: string
@@ -82,7 +82,7 @@ export async function writeArticle(
     .replace("{source_url}", item.sourceUrl)
 
   try {
-    const response = await callDeepSeek(filledPrompt, {
+    const response = await callOllama(filledPrompt, {
       systemPrompt: NEWS_WRITER_SYSTEM_PROMPT,
       temperature: impact === "high" ? 0.4 : 0.2,
       maxTokens: impact === "high" ? 2000 : 500,

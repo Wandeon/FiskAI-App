@@ -4,7 +4,7 @@
  */
 
 import type { NewsItem } from "@/lib/db/schema/news"
-import { callDeepSeekJSON } from "./deepseek-client"
+import { callOllamaJSON } from "./ollama-client"
 
 export interface ClassificationResult {
   impact: "high" | "medium" | "low"
@@ -91,7 +91,7 @@ export async function classifyNewsItem(item: NewsItem): Promise<ClassificationRe
   )
 
   try {
-    const result = await callDeepSeekJSON<ClassificationResult>(prompt, {
+    const result = await callOllamaJSON<ClassificationResult>(prompt, {
       temperature: 0.3,
       maxTokens: 800,
     })

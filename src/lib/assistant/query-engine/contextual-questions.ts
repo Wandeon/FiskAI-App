@@ -1,6 +1,6 @@
-import OpenAI from "openai"
 import type { RuleCandidate } from "./rule-selector"
 import { assistantLogger } from "@/lib/logger"
+import { chatJSON, OllamaError } from "@/lib/ai/ollama-client"
 
 /**
  * CONTEXTUAL QUESTION GENERATION
@@ -12,17 +12,8 @@ import { assistantLogger } from "@/lib/logger"
  * - Rule dependencies and related concepts
  *
  * This replaces the hardcoded question maps with dynamic LLM generation.
+ * Uses Ollama for LLM inference.
  */
-
-// Lazy-load OpenAI client
-function getOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OpenAI API key not configured")
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
-}
 
 interface QuestionGenerationContext {
   userQuery: string
@@ -88,39 +79,25 @@ Surface: ${context.surface}
 
     userPrompt += `\n\nGenerate 3-4 relevant follow-up questions in Croatian:`
 
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
+    const parsed = await chatJSON<{ questions: string[] } | string[]>(userPrompt, {
+      systemPrompt,
       temperature: 0.7,
-      max_tokens: 300,
+      maxTokens: 300,
+      operation: "ollama_assistant",
     })
 
-    const content = response.choices[0]?.message?.content
-    if (!content) {
+    if (!parsed) {
       assistantLogger.warn(
         { context },
-        "No response from OpenAI for contextual questions, falling back to static"
+        "No response from Ollama for contextual questions, falling back to static"
       )
       return getFallbackQuestions(context.conceptSlugs)
     }
 
     // Parse response - expect either array or object with questions array
-    let questions: string[]
-    try {
-      const parsed = JSON.parse(content)
-      questions = Array.isArray(parsed) ? parsed : parsed.questions || []
-    } catch (parseError) {
-      assistantLogger.warn(
-        { content, parseError },
-        "Failed to parse OpenAI response, falling back to static"
-      )
-      return getFallbackQuestions(context.conceptSlugs)
-    }
+    const questions: string[] = Array.isArray(parsed)
+      ? parsed
+      : (parsed as { questions: string[] }).questions || []
 
     // Validate and filter questions
     const validQuestions = questions
@@ -136,7 +113,6 @@ Surface: ${context.surface}
       {
         query: context.userQuery,
         generated: validQuestions.length,
-        tokensUsed: response.usage?.total_tokens || 0,
       },
       "Generated contextual questions"
     )
@@ -184,30 +160,20 @@ Return ONLY a JSON array of question strings, nothing else.`
 
     userPrompt += `\nGenerate 3-5 clarification questions in Croatian:`
 
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
+    const parsed = await chatJSON<{ questions: string[] } | string[]>(userPrompt, {
+      systemPrompt,
       temperature: 0.8,
-      max_tokens: 400,
+      maxTokens: 400,
+      operation: "ollama_assistant",
     })
 
-    const content = response.choices[0]?.message?.content
-    if (!content) {
+    if (!parsed) {
       return getDefaultClarifications(topic)
     }
 
-    let questions: string[]
-    try {
-      const parsed = JSON.parse(content)
-      questions = Array.isArray(parsed) ? parsed : parsed.questions || []
-    } catch {
-      return getDefaultClarifications(topic)
-    }
+    const questions: string[] = Array.isArray(parsed)
+      ? parsed
+      : (parsed as { questions: string[] }).questions || []
 
     const validQuestions = questions
       .filter((q) => typeof q === "string" && q.length > 10 && q.length < 120)
@@ -221,7 +187,6 @@ Return ONLY a JSON array of question strings, nothing else.`
       {
         query: userQuery,
         generated: validQuestions.length,
-        tokensUsed: response.usage?.total_tokens || 0,
       },
       "Generated contextual clarifications"
     )

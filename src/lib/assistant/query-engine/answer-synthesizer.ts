@@ -1,8 +1,8 @@
-import OpenAI from "openai"
 import type { RuleCandidate } from "./rule-selector"
 import { assistantLogger } from "@/lib/logger"
 import { synthesizedAnswerSchema } from "@/lib/ai/schemas"
 import { sanitizePII } from "@/lib/security/sanitize"
+import { chatJSON, OllamaError } from "@/lib/ai/ollama-client"
 
 /**
  * ANSWER SYNTHESIZER
@@ -23,7 +23,7 @@ import { sanitizePII } from "@/lib/security/sanitize"
  *
  * Security:
  * - Rule content is sanitized to prevent prompt injection
- * - User queries are sanitized to prevent PII leakage to OpenAI
+ * - User queries are sanitized to prevent PII leakage to the LLM
  * - System prompts include hardening against embedded instructions
  * - Defense-in-depth approach for untrusted database content
  */
@@ -70,16 +70,6 @@ function sanitizeRuleContent(text: string): string {
       .replace(/\s+/g, " ")
       .trim()
   )
-}
-
-// Lazy-load OpenAI client
-function getOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OpenAI API key not configured")
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
 }
 
 export interface SynthesisContext {
@@ -170,7 +160,7 @@ Generiraj JSON objekt sa sljedećim poljima:
 
 NIKADA ne generiraj tekst izvan JSON objekta.`
 
-    // Sanitize user query to prevent PII leakage to OpenAI
+    // Sanitize user query to prevent PII leakage to the LLM
     const sanitizedQuery = sanitizePII(context.userQuery)
 
     let userPrompt = `Korisničko pitanje: "${sanitizedQuery}"
@@ -188,58 +178,35 @@ ${context.companyContext.vatStatus ? `PDV status: ${context.companyContext.vatSt
 
     userPrompt += `\nGENERIRAJ prirodan, točan odgovor temeljen ISKLJUČIVO na gornjim propisima:`
 
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.3, // Lower temperature for more consistent, factual responses
-      max_tokens: 600,
-      top_p: 0.9,
+    const parsed = await chatJSON<{
+      headline: string
+      directAnswer: string
+      explanation?: string
+    }>(userPrompt, {
+      systemPrompt,
+      temperature: 0.3,
+      maxTokens: 600,
+      operation: "ollama_assistant",
     })
 
-    const content = response.choices[0]?.message?.content
-    if (!content) {
+    // Validate against Zod schema
+    const validationResult = synthesizedAnswerSchema.safeParse(parsed)
+    if (!validationResult.success) {
       assistantLogger.warn(
-        { context: { query: context.userQuery, ruleCount: context.rules.length } },
-        "No response from OpenAI for answer synthesis"
+        {
+          parsed,
+          errors: validationResult.error.issues.map((e) => e.message),
+        },
+        "Invalid LLM response: schema validation failed"
       )
       return null
     }
 
-    // Parse and validate response
-    let synthesized: SynthesizedAnswer
-    try {
-      const parsed = JSON.parse(content)
-
-      // Validate against Zod schema
-      const validationResult = synthesizedAnswerSchema.safeParse(parsed)
-      if (!validationResult.success) {
-        assistantLogger.warn(
-          {
-            parsed,
-            errors: validationResult.error.issues.map((e) => e.message),
-          },
-          "Invalid LLM response: schema validation failed"
-        )
-        return null
-      }
-
-      synthesized = {
-        headline: validationResult.data.headline.trim(),
-        directAnswer: validationResult.data.directAnswer.trim(),
-        explanation: validationResult.data.explanation?.trim(),
-        confidence: context.primaryRule.confidence,
-      }
-    } catch (parseError) {
-      assistantLogger.warn(
-        { content, parseError },
-        "Failed to parse OpenAI response for answer synthesis"
-      )
-      return null
+    const synthesized: SynthesizedAnswer = {
+      headline: validationResult.data.headline.trim(),
+      directAnswer: validationResult.data.directAnswer.trim(),
+      explanation: validationResult.data.explanation?.trim(),
+      confidence: context.primaryRule.confidence,
     }
 
     // Log successful synthesis
@@ -249,7 +216,6 @@ ${context.companyContext.vatStatus ? `PDV status: ${context.companyContext.vatSt
         ruleCount: context.rules.length,
         headlineLength: synthesized.headline.length,
         answerLength: synthesized.directAnswer.length,
-        tokensUsed: response.usage?.total_tokens || 0,
       },
       "Synthesized answer with LLM"
     )
@@ -323,7 +289,7 @@ Generiraj JSON objekt:
   "explanation": "Opcionalno: Dodatno pojašnjenje uvjeta (max 300 znakova)"
 }`
 
-    // Sanitize user query to prevent PII leakage to OpenAI
+    // Sanitize user query to prevent PII leakage to the LLM
     const sanitizedQuery = sanitizePII(context.userQuery)
 
     const userPrompt = `Korisničko pitanje: "${sanitizedQuery}"
@@ -335,24 +301,16 @@ ${context.companyContext ? `KONTEKST: ${JSON.stringify(context.companyContext)}`
 
 GENERIRAJ sveobuhvatan odgovor koji objašnjava kako se ova pravila primjenjuju:`
 
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
+    const parsed = await chatJSON<{
+      headline: string
+      directAnswer: string
+      explanation?: string
+    }>(userPrompt, {
+      systemPrompt,
       temperature: 0.4,
-      max_tokens: 700,
+      maxTokens: 700,
+      operation: "ollama_assistant",
     })
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      return null
-    }
-
-    const parsed = JSON.parse(content)
 
     // Validate against Zod schema
     const validationResult = synthesizedAnswerSchema.safeParse(parsed)
@@ -378,7 +336,6 @@ GENERIRAJ sveobuhvatan odgovor koji objašnjava kako se ova pravila primjenjuju:
       {
         query: context.userQuery,
         ruleCount: context.rules.length,
-        tokensUsed: response.usage?.total_tokens || 0,
       },
       "Synthesized multi-rule answer with LLM"
     )

@@ -13,6 +13,14 @@ vi.mock("../citation-builder")
 
 // Mock DB clients to prevent real database calls
 vi.mock("@/lib/db/regulatory", () => ({ dbReg: {} }))
+vi.mock("@/lib/db", () => ({ db: {} }))
+vi.mock("@/lib/ai/ollama-client", () => ({
+  chatJSON: vi.fn().mockResolvedValue({ questions: [] }),
+  OllamaError: class OllamaError extends Error {},
+}))
+vi.mock("@/lib/ai/usage-tracking", () => ({
+  trackAIUsage: vi.fn().mockResolvedValue(undefined),
+}))
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     company: {

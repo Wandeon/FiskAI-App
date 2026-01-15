@@ -80,8 +80,6 @@ describe("LLM Provider Health Integration", () => {
     // Set default env
     process.env.AI_PROVIDER = "ollama"
     process.env.OLLAMA_ENDPOINT = "http://localhost:11434"
-    delete process.env.OPENAI_API_KEY
-    delete process.env.DEEPSEEK_API_KEY
   })
 
   afterEach(() => {
@@ -90,7 +88,7 @@ describe("LLM Provider Health Integration", () => {
 
   describe("provider unreachable scenarios", () => {
     it("raises CRITICAL alert when active provider is unreachable", async () => {
-      // Mock all providers to fail - ollama with timeout, others with no API key
+      // Mock provider to fail with timeout
       vi.mocked(fetch).mockRejectedValue(new Error("timeout"))
 
       const results = await checkLLMProviderHealth()
@@ -241,55 +239,6 @@ describe("LLM Provider Health Integration", () => {
 
       const ollamaResult = results.find((r) => r.entityId === "ollama")
       expect(ollamaResult?.status).toBe("HEALTHY")
-    })
-  })
-
-  describe("multi-provider scenarios", () => {
-    it("only raises alerts for active provider, not all unhealthy providers", async () => {
-      // Set ollama as active
-      process.env.AI_PROVIDER = "ollama"
-
-      // All providers fail
-      vi.mocked(fetch).mockRejectedValue(new Error("timeout"))
-
-      await checkLLMProviderHealth()
-
-      // Should only raise alert for ollama (active), not for openai/deepseek
-      const providerDownCalls = vi
-        .mocked(raiseAlert)
-        .mock.calls.filter((call) => call[0].type === "LLM_PROVIDER_DOWN")
-
-      expect(providerDownCalls.length).toBe(1)
-      expect(providerDownCalls[0][0].entityId).toBe("ollama")
-    })
-
-    it("tracks circuit breaker state independently per provider", async () => {
-      vi.mocked(fetch).mockRejectedValue(new Error("timeout"))
-
-      // Fail ollama 5 times to open circuit
-      for (let i = 0; i < 5; i++) {
-        await checkLLMProviderHealth()
-      }
-
-      // Ollama circuit should be open
-      const ollamaState = await llmCircuitBreaker.getState("ollama")
-      expect(ollamaState.state).toBe("OPEN")
-
-      // OpenAI circuit should still be closed (no API key means it fails differently)
-      const openaiState = await llmCircuitBreaker.getState("openai")
-      // Note: OpenAI fails with AUTH (no API key) which still counts as failure
-      // After 5 health checks, it should also be open
-      expect(openaiState.state).toBe("OPEN")
-
-      // Reset ollama circuit
-      await llmCircuitBreaker.reset("ollama")
-
-      // Verify ollama is reset but openai is still open
-      const ollamaStateAfter = await llmCircuitBreaker.getState("ollama")
-      const openaiStateAfter = await llmCircuitBreaker.getState("openai")
-
-      expect(ollamaStateAfter.state).toBe("CLOSED")
-      expect(openaiStateAfter.state).toBe("OPEN")
     })
   })
 

@@ -385,19 +385,12 @@ export const INTEGRATION_PATTERNS: IntegrationPattern[] = [
     reason: "Transactional email",
   },
 
-  // AI/ML
+  // AI/ML - Ollama only (local and cloud instances)
   {
     key: "ollama",
     displayName: "Ollama",
     envPrefix: "OLLAMA_",
-    reason: "Local LLM inference",
-  },
-  {
-    key: "openai",
-    displayName: "OpenAI",
-    envPrefix: "OPENAI_",
-    packageName: "openai",
-    reason: "Cloud LLM API",
+    reason: "LLM inference (local and cloud instances)",
   },
 
   // Croatian government

@@ -9,34 +9,30 @@ export type AIOperation =
   | "extract_receipt"
   | "extract_invoice"
   | "categorize_expense"
-  | "deepseek_chat"
-  | "deepseek_vision"
-  | "deepseek_news_classify"
-  | "deepseek_news_write"
-  | "deepseek_news_review"
-  | "deepseek_news_rewrite"
+  | "ollama_chat"
+  | "ollama_vision"
+  | "ollama_news_classify"
+  | "ollama_news_write"
+  | "ollama_news_review"
+  | "ollama_news_rewrite"
+  | "ollama_assistant"
 
 /**
  * Model pricing in cents (EUR) per 1M tokens
- * Based on OpenAI and Deepseek pricing as of 2024-2025
+ *
+ * Ollama models run locally (free) or via Ollama Cloud.
+ * For local models, cost is 0. For cloud models, pricing varies by provider.
  */
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  "gpt-4o": {
-    input: 250, // $2.50 per 1M input tokens
-    output: 1000, // $10.00 per 1M output tokens
-  },
-  "gpt-4o-mini": {
-    input: 15, // $0.15 per 1M input tokens
-    output: 60, // $0.60 per 1M output tokens
-  },
-  "deepseek-chat": {
-    input: 14, // $0.14 per 1M input tokens (cache miss)
-    output: 28, // $0.28 per 1M output tokens
-  },
-  "deepseek-reasoner": {
-    input: 55, // $0.55 per 1M input tokens
-    output: 219, // $2.19 per 1M output tokens
-  },
+  // Local Ollama models - free (compute cost only)
+  "llama3.2": { input: 0, output: 0 },
+  "llama3.2:3b": { input: 0, output: 0 },
+  "llama3.2:70b": { input: 0, output: 0 },
+  llava: { input: 0, output: 0 },
+  "qwen3-next:80b": { input: 0, output: 0 },
+  // Gemini models via Ollama Cloud
+  "gemini-2.0-flash": { input: 10, output: 40 },
+  "gemini-2.5-flash-preview-05-20": { input: 15, output: 60 },
 }
 
 /**

@@ -30,8 +30,8 @@ const DEFAULT_CONFIG: BudgetConfig = {
   emptyOutputThreshold: parseInt(process.env.RTL_EMPTY_OUTPUT_THRESHOLD || "3"),
 }
 
-// LLM provider types for routing
-export type LLMProvider = "LOCAL_OLLAMA" | "CLOUD_OLLAMA" | "CLOUD_OPENAI"
+// LLM provider types for routing (Ollama only - local and cloud instances)
+export type LLMProvider = "LOCAL_OLLAMA" | "CLOUD_OLLAMA"
 
 // Budget denial reasons
 export type BudgetDenialReason =

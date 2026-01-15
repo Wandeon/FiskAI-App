@@ -4,7 +4,7 @@
  */
 
 import type { ReviewFeedback } from "./reviewer"
-import { callDeepSeek } from "./deepseek-client"
+import { callOllama } from "./ollama-client"
 
 export interface RewriteResult {
   title: string
@@ -98,7 +98,7 @@ export async function rewriteArticle(
     .replace("{source_url}", source?.url || "N/A")
 
   try {
-    const response = await callDeepSeek(prompt, {
+    const response = await callOllama(prompt, {
       systemPrompt: NEWS_REWRITER_SYSTEM_PROMPT,
       temperature: 0.35, // Lower for more accurate factual corrections
       maxTokens: 2500,

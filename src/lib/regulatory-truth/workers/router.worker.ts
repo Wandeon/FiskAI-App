@@ -117,8 +117,7 @@ function determineRouting(
   if (
     cloudAllowed &&
     scoutResult.worthItScore >= DEFAULT_ROUTING_CONFIG.cloudThreshold &&
-    (budgetCheck.recommendedProvider === "CLOUD_OLLAMA" ||
-      budgetCheck.recommendedProvider === "CLOUD_OPENAI")
+    budgetCheck.recommendedProvider === "CLOUD_OLLAMA"
   ) {
     return {
       decision: "EXTRACT_CLOUD",

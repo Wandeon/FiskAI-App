@@ -110,13 +110,11 @@ function shouldSkipLLM(_agentType: AgentType, _input: unknown): boolean {
 
 /**
  * Get provider identifier from endpoint URL
+ * All LLM calls use Ollama (local or cloud instances)
  */
 function getProviderFromEndpoint(endpoint: string): string {
   if (endpoint.includes("ollama.com") || endpoint.includes("ollama.ai")) {
     return "ollama_cloud"
-  }
-  if (endpoint.includes("openai.com")) {
-    return "openai"
   }
   if (endpoint.includes("localhost") || endpoint.includes("127.0.0.1")) {
     return "ollama_local"
@@ -125,7 +123,8 @@ function getProviderFromEndpoint(endpoint: string): string {
   if (endpoint.match(/^https?:\/\/100\./)) {
     return "ollama_local"
   }
-  return "unknown"
+  // Default to ollama_cloud for any other endpoint
+  return "ollama_cloud"
 }
 
 interface CacheKey {

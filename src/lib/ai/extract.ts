@@ -1,17 +1,7 @@
-import OpenAI from "openai"
 import { ExtractedReceipt, ExtractedInvoice, ExtractionResult } from "./types"
 import { trackAIUsage } from "./usage-tracking"
 import { extractedReceiptSchema, extractedInvoiceSchema } from "./schemas"
-
-// Lazy-load OpenAI client to avoid build errors when API key is not set
-function getOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OpenAI API key not configured")
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
-}
+import { chat, OllamaError } from "./ollama-client"
 
 const RECEIPT_PROMPT = `Extract the following information from this receipt text. Return JSON only.
 {
@@ -56,43 +46,19 @@ export async function extractReceipt(
   text: string,
   companyId?: string
 ): Promise<ExtractionResult<ExtractedReceipt>> {
-  const model = "gpt-4o-mini"
-  let inputTokens = 0
-  let outputTokens = 0
+  const model = process.env.OLLAMA_MODEL || "llama3.2"
   const startTime = Date.now()
 
   try {
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model,
-      messages: [
-        { role: "system", content: RECEIPT_PROMPT },
-        { role: "user", content: text },
-      ],
-      response_format: { type: "json_object" },
+    const content = await chat(text, {
+      systemPrompt: RECEIPT_PROMPT,
+      jsonMode: true,
+      operation: "extract_receipt",
+      companyId,
     })
     const durationMs = Date.now() - startTime
 
-    // Track token usage
-    inputTokens = response.usage?.prompt_tokens || 0
-    outputTokens = response.usage?.completion_tokens || 0
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      if (companyId) {
-        await trackAIUsage({
-          companyId,
-          operation: "extract_receipt",
-          model,
-          inputTokens,
-          outputTokens,
-          success: false,
-          durationMs,
-          provider: "openai",
-        })
-      }
-      return { success: false, error: "No response from AI" }
-    } // Parse and validate JSON response
+    // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(content)
@@ -102,11 +68,11 @@ export async function extractReceipt(
           companyId,
           operation: "extract_receipt",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return {
@@ -124,11 +90,11 @@ export async function extractReceipt(
           companyId,
           operation: "extract_receipt",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return {
@@ -140,20 +106,6 @@ export async function extractReceipt(
 
     const data = validationResult.data
 
-    // Track successful usage
-    if (companyId) {
-      await trackAIUsage({
-        companyId,
-        operation: "extract_receipt",
-        model,
-        inputTokens,
-        outputTokens,
-        success: true,
-        durationMs,
-        provider: "openai",
-      })
-    }
-
     return { success: true, data, rawText: text }
   } catch (error) {
     const durationMs = Date.now() - startTime
@@ -163,17 +115,17 @@ export async function extractReceipt(
         companyId,
         operation: "extract_receipt",
         model,
-        inputTokens,
-        outputTokens,
+        inputTokens: 0,
+        outputTokens: 0,
         success: false,
         durationMs,
-        provider: "openai",
+        provider: "ollama",
       })
     }
 
-    // Provide user-friendly error message for missing API key
+    // Provide user-friendly error message
     const errorMessage =
-      error instanceof Error && error.message === "OpenAI API key not configured"
+      error instanceof OllamaError
         ? "AI features temporarily unavailable. Please enter receipt details manually."
         : error instanceof Error
           ? error.message
@@ -191,43 +143,19 @@ export async function extractInvoice(
   text: string,
   companyId?: string
 ): Promise<ExtractionResult<ExtractedInvoice>> {
-  const model = "gpt-4o-mini"
-  let inputTokens = 0
-  let outputTokens = 0
+  const model = process.env.OLLAMA_MODEL || "llama3.2"
   const startTime = Date.now()
 
   try {
-    const openai = getOpenAI()
-    const response = await openai.chat.completions.create({
-      model,
-      messages: [
-        { role: "system", content: INVOICE_PROMPT },
-        { role: "user", content: text },
-      ],
-      response_format: { type: "json_object" },
+    const content = await chat(text, {
+      systemPrompt: INVOICE_PROMPT,
+      jsonMode: true,
+      operation: "extract_invoice",
+      companyId,
     })
     const durationMs = Date.now() - startTime
 
-    // Track token usage
-    inputTokens = response.usage?.prompt_tokens || 0
-    outputTokens = response.usage?.completion_tokens || 0
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      if (companyId) {
-        await trackAIUsage({
-          companyId,
-          operation: "extract_invoice",
-          model,
-          inputTokens,
-          outputTokens,
-          success: false,
-          durationMs,
-          provider: "openai",
-        })
-      }
-      return { success: false, error: "No response from AI" }
-    } // Parse and validate JSON response
+    // Parse and validate JSON response
     let parsedData: unknown
     try {
       parsedData = JSON.parse(content)
@@ -237,11 +165,11 @@ export async function extractInvoice(
           companyId,
           operation: "extract_invoice",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return {
@@ -259,11 +187,11 @@ export async function extractInvoice(
           companyId,
           operation: "extract_invoice",
           model,
-          inputTokens,
-          outputTokens,
+          inputTokens: 0,
+          outputTokens: 0,
           success: false,
           durationMs,
-          provider: "openai",
+          provider: "ollama",
         })
       }
       return {
@@ -275,20 +203,6 @@ export async function extractInvoice(
 
     const data = validationResult.data
 
-    // Track successful usage
-    if (companyId) {
-      await trackAIUsage({
-        companyId,
-        operation: "extract_invoice",
-        model,
-        inputTokens,
-        outputTokens,
-        success: true,
-        durationMs,
-        provider: "openai",
-      })
-    }
-
     return { success: true, data, rawText: text }
   } catch (error) {
     const durationMs = Date.now() - startTime
@@ -298,17 +212,17 @@ export async function extractInvoice(
         companyId,
         operation: "extract_invoice",
         model,
-        inputTokens,
-        outputTokens,
+        inputTokens: 0,
+        outputTokens: 0,
         success: false,
         durationMs,
-        provider: "openai",
+        provider: "ollama",
       })
     }
 
-    // Provide user-friendly error message for missing API key
+    // Provide user-friendly error message
     const errorMessage =
-      error instanceof Error && error.message === "OpenAI API key not configured"
+      error instanceof OllamaError
         ? "AI features temporarily unavailable. Please enter invoice details manually."
         : error instanceof Error
           ? error.message

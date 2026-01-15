@@ -35,12 +35,12 @@ describe("usage-tracking", () => {
       await trackAIUsage({
         companyId: "company-123",
         operation: "extract_receipt",
-        model: "gpt-4o-mini",
+        model: "llama3.2",
         inputTokens: 100,
         outputTokens: 50,
         success: true,
         durationMs: 1500,
-        provider: "openai",
+        provider: "ollama",
       })
 
       expect(mockCreate).toHaveBeenCalledWith({
@@ -53,15 +53,15 @@ describe("usage-tracking", () => {
     it("stores provider when provided", async () => {
       await trackAIUsage({
         companyId: "company-123",
-        operation: "deepseek_chat",
-        model: "deepseek-chat",
+        operation: "ollama_chat",
+        model: "llama3.2",
         success: true,
-        provider: "deepseek",
+        provider: "ollama",
       })
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          provider: "deepseek",
+          provider: "ollama",
         }),
       })
     })
@@ -70,7 +70,7 @@ describe("usage-tracking", () => {
       await trackAIUsage({
         companyId: "company-123",
         operation: "extract_receipt",
-        model: "gpt-4o-mini",
+        model: "llama3.2",
         success: true,
       })
 
@@ -85,7 +85,7 @@ describe("usage-tracking", () => {
       await trackAIUsage({
         companyId: "company-123",
         operation: "extract_receipt",
-        model: "gpt-4o-mini",
+        model: "llama3.2",
         success: true,
       })
 
@@ -100,24 +100,24 @@ describe("usage-tracking", () => {
       await trackAIUsage({
         companyId: "company-123",
         operation: "ocr_receipt",
-        model: "gpt-4o",
+        model: "gemini-2.0-flash",
         inputTokens: 200,
         outputTokens: 100,
         success: true,
         durationMs: 2500,
-        provider: "openai",
+        provider: "ollama",
       })
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
           companyId: "company-123",
           operation: "ocr_receipt",
-          model: "gpt-4o",
+          model: "gemini-2.0-flash",
           tokensUsed: 300,
           costCents: expect.any(Number),
           success: true,
           durationMs: 2500,
-          provider: "openai",
+          provider: "ollama",
         },
       })
     })
@@ -126,13 +126,13 @@ describe("usage-tracking", () => {
       await trackAIUsage({
         companyId: "company-123",
         operation: "extract_receipt",
-        model: "gpt-4o-mini",
+        model: "gemini-2.5-flash-preview-05-20",
         inputTokens: 1000000, // 1M tokens
         outputTokens: 0,
         success: true,
       })
 
-      // gpt-4o-mini: 15 cents per 1M input tokens
+      // gemini-2.5-flash-preview-05-20: 15 cents per 1M input tokens
       expect(mockCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
           costCents: 15,
@@ -143,7 +143,7 @@ describe("usage-tracking", () => {
     it("stores null costCents for unknown models", async () => {
       await trackAIUsage({
         companyId: "company-123",
-        operation: "deepseek_chat",
+        operation: "ollama_chat",
         model: "unknown-model-xyz",
         inputTokens: 100,
         outputTokens: 50,
@@ -212,7 +212,7 @@ describe("usage-tracking", () => {
     it("returns correct monthly aggregations", async () => {
       mockFindMany.mockResolvedValue([
         { operation: "extract_receipt", tokensUsed: 100, costCents: 5 },
-        { operation: "deepseek_chat", tokensUsed: 200, costCents: 3 },
+        { operation: "ollama_chat", tokensUsed: 200, costCents: 3 },
       ])
 
       const result = await getUsageThisMonth("company-123")
@@ -221,12 +221,12 @@ describe("usage-tracking", () => {
       expect(result.totalTokens).toBe(300)
       expect(result.totalCostCents).toBe(8)
       expect(result.byOperation.extract_receipt.calls).toBe(1)
-      expect(result.byOperation.deepseek_chat.calls).toBe(1)
+      expect(result.byOperation.ollama_chat.calls).toBe(1)
     })
 
     it("handles null token values", async () => {
       mockFindMany.mockResolvedValue([
-        { operation: "deepseek_chat", tokensUsed: null, costCents: null },
+        { operation: "ollama_chat", tokensUsed: null, costCents: null },
       ])
 
       const result = await getUsageThisMonth("company-123")

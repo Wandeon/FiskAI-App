@@ -7,8 +7,8 @@
  * - Pass 3: Rewrite & Finalize
  */
 
-// DeepSeek API client
-export { callDeepSeek, callDeepSeekJSON, DeepSeekError } from "./deepseek-client"
+// Ollama API client (LLM inference)
+export { callOllama, callOllamaJSON, OllamaError } from "./ollama-client"
 
 // Pass 1: Classification
 export { classifyNewsItem, classifyNewsItems, type ClassificationResult } from "./classifier"

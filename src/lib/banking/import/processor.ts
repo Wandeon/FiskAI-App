@@ -4,10 +4,9 @@ import { Prisma, JobStatus, TierType, PageStatus, MatchStatus, ImportFormat } fr
 import { db } from "@/lib/db"
 import { auditPageMath, ExtractedPageData } from "./audit"
 import { BANK_STATEMENT_SYSTEM_PROMPT } from "./prompt"
-import { deepseekJson } from "@/lib/ai/deepseek"
+import { chat as ollamaChat } from "@/lib/ai/ollama-client"
 import { XMLParser } from "fast-xml-parser"
 import Decimal from "decimal.js"
-import OpenAI from "openai"
 
 type ParsedPage = {
   pageNumber: number
@@ -534,12 +533,9 @@ async function handlePdf(jobId: string) {
 }
 
 async function callWorkhorseModel(pageText: string): Promise<Omit<ParsedPage, "pageNumber">> {
-  const content = await deepseekJson({
-    model: "deepseek-chat",
-    messages: [
-      { role: "system", content: BANK_STATEMENT_SYSTEM_PROMPT },
-      { role: "user", content: pageText },
-    ],
+  const content = await ollamaChat(pageText, {
+    systemPrompt: BANK_STATEMENT_SYSTEM_PROMPT,
+    jsonMode: true,
   })
 
   const parsed = JSON.parse(content) as RawParsedPageResponse
@@ -628,85 +624,58 @@ async function tryRepairPageWithVision({
   pageNumber: number
 }): Promise<Omit<ParsedPage, "pageNumber"> | null> {
   const ollamaKey = process.env.OLLAMA_API_KEY
-  const ollamaBase = process.env.OLLAMA_BASE_URL || "https://ollama.com"
-  const ollamaModel = process.env.OLLAMA_VISION_MODEL || "qwen3-vl:235b-instruct"
-  const openaiKey = process.env.OPENAI_API_KEY
+  const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || "http://localhost:11434"
+  const ollamaVisionModel = process.env.OLLAMA_VISION_MODEL || "llava"
   const prompt = `You are a vision model fixing bank statement extraction. Focus on page ${pageNumber}. Use the image/PDF to correct multi-line transactions and balances. Return valid JSON only.`
 
-  const runOllama = async () => {
-    if (!ollamaKey) return null
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 90000)
-    try {
-      const resp = await fetch(`${ollamaBase}/v1/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${ollamaKey}`,
-        },
-        body: JSON.stringify({
-          model: ollamaModel,
-          messages: [
-            { role: "system", content: prompt },
-            {
-              role: "user",
-              content: [
-                { type: "text", text: "RAW_PAGE_TEXT:\n" + pageText },
-                { type: "text", text: "PREVIOUS_JSON:\n" + JSON.stringify(previousJson) },
-                {
-                  type: "image_url",
-                  image_url: { url: `data:application/pdf;base64,${pdfBase64}` },
-                },
-              ],
-            },
-          ],
-          response_format: { type: "json_object" },
-        }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeout)
-      if (!resp.ok) {
-        const txt = await resp.text()
-        throw new Error(`Ollama HTTP ${resp.status}: ${txt}`)
-      }
-      const json = await resp.json()
-      const content = json?.choices?.[0]?.message?.content
-      if (!content) return null
-      return content
-    } catch (err) {
-      clearTimeout(timeout)
-      console.warn("[vision] Ollama call failed", err)
-      return null
-    }
+  if (!ollamaKey) {
+    console.warn("[vision] OLLAMA_API_KEY not configured for vision repair")
+    return null
   }
 
-  const runOpenAI = async () => {
-    if (!openaiKey) return null
-    const client = new OpenAI({ apiKey: openaiKey })
-    try {
-      const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 90000)
+
+  let content: string | null = null
+  try {
+    const resp = await fetch(`${ollamaEndpoint}/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${ollamaKey}`,
+      },
+      body: JSON.stringify({
+        model: ollamaVisionModel,
         messages: [
           { role: "system", content: prompt },
           {
             role: "user",
-            content: [
-              { type: "text", text: "RAW_PAGE_TEXT:\n" + pageText },
-              { type: "text", text: "PREVIOUS_JSON:\n" + JSON.stringify(previousJson) },
-              { type: "image_url", image_url: { url: `data:application/pdf;base64,${pdfBase64}` } },
-            ],
+            content: `RAW_PAGE_TEXT:\n${pageText}\n\nPREVIOUS_JSON:\n${JSON.stringify(previousJson)}`,
+            images: [pdfBase64],
           },
         ],
-        response_format: { type: "json_object" },
-      })
-      return response.choices[0]?.message?.content || null
-    } catch (err) {
-      console.warn("[vision] OpenAI fallback failed", err)
+        stream: false,
+        format: "json",
+      }),
+      signal: controller.signal,
+    })
+    clearTimeout(timeout)
+    if (!resp.ok) {
+      const txt = await resp.text()
+      throw new Error(`Ollama HTTP ${resp.status}: ${txt}`)
+    }
+    const json = await resp.json()
+    content = json?.message?.content
+    if (!content) {
+      console.warn("[vision] Ollama returned no content")
       return null
     }
+  } catch (err) {
+    clearTimeout(timeout)
+    console.warn("[vision] Ollama call failed", err)
+    return null
   }
 
-  const content = (await runOllama()) ?? (await runOpenAI())
   if (!content) return null
 
   const parsed = JSON.parse(content) as RawParsedPageResponse
