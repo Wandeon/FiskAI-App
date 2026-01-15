@@ -306,6 +306,24 @@ async function startScheduler(): Promise<void> {
   )
   console.log("[scheduler] Scheduled: Feedback retention cleanup on 1st of month at 02:00")
 
+  // Weekly feedback review flagging on Mondays at 03:00
+  // Task 4.1: RTL Autonomy - User Feedback Loop
+  // Identifies rules with >30% negative feedback and creates monitoring alerts
+  // These alerts require human review to investigate why users are giving negative feedback
+  cron.schedule(
+    "0 3 * * 1", // Every Monday at 03:00
+    async () => {
+      console.log("[scheduler] Running weekly feedback review flagging...")
+      await scheduledQueue.add("scheduled", {
+        type: "feedback-review-flagging",
+        runId: `feedback-review-${Date.now()}`,
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: Feedback review flagging on Mondays at 03:00")
+
   console.log("[scheduler] Scheduler service started")
   console.log("[scheduler] ==================================")
   console.log("[scheduler] REMOVED: Daily pipeline processing (now continuous)")

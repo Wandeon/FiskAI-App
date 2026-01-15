@@ -25,6 +25,7 @@ interface ScheduledJobData {
     | "dlq-healing"
     | "regression-detection"
     | "feedback-retention-cleanup"
+    | "feedback-review-flagging"
   runId: string
   triggeredBy?: string
 }
@@ -273,6 +274,57 @@ async function processScheduledJob(job: Job<ScheduledJobData>): Promise<JobResul
             beforeTotal: beforeStats.total,
             afterTotal: afterStats.total,
             oldestRemaining: afterStats.oldestRecord?.toISOString() || null,
+          },
+        }
+      }
+
+      case "feedback-review-flagging": {
+        // Task 4.1: RTL Autonomy - User Feedback Loop
+        // Weekly check for rules with >30% negative feedback
+        // Creates monitoring alerts for flagged rules requiring human review
+        const { getRulesWithNegativeFeedback } = await import("../utils/user-feedback.db")
+        const { filterRulesWithHighNegativeFeedback } = await import("../utils/user-feedback")
+
+        // Get all rules with feedback statistics
+        const allStats = await getRulesWithNegativeFeedback()
+
+        // Filter to only rules exceeding the 30% negative feedback threshold
+        const flagged = filterRulesWithHighNegativeFeedback(allStats)
+
+        // Create monitoring alerts for flagged rules
+        for (const rule of flagged) {
+          await dbReg.monitoringAlert.create({
+            data: {
+              type: "NEGATIVE_USER_FEEDBACK",
+              severity: "HIGH",
+              message: `Rule ${rule.ruleId} has ${(rule.negativePercent * 100).toFixed(1)}% negative feedback (${rule.totalFeedback} total)`,
+              metadata: {
+                ruleId: rule.ruleId,
+                negativePercent: rule.negativePercent,
+                totalFeedback: rule.totalFeedback,
+              },
+              humanActionRequired: true,
+              resolvedAt: null,
+            },
+          })
+        }
+
+        console.log(
+          `[orchestrator] Feedback review flagging: checked=${allStats.length} ` +
+            `flagged=${flagged.length}`
+        )
+
+        return {
+          success: true,
+          duration: Date.now() - start,
+          data: {
+            checked: allStats.length,
+            flagged: flagged.length,
+            flaggedRules: flagged.map((r) => ({
+              ruleId: r.ruleId,
+              negativePercent: r.negativePercent,
+              totalFeedback: r.totalFeedback,
+            })),
           },
         }
       }
