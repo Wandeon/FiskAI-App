@@ -324,6 +324,79 @@ async function startScheduler(): Promise<void> {
   )
   console.log("[scheduler] Scheduled: Feedback review flagging on Mondays at 03:00")
 
+  // =========================================
+  // Task 4.2: Continuous Re-Validation
+  // =========================================
+  // Tier-based revalidation of published rules:
+  // - T0 (critical): Weekly - every Sunday at 02:00
+  // - T1 (high-risk): Bi-weekly - 1st and 15th of month at 02:30
+  // - T2 (medium-risk): Monthly - 1st of month at 03:00
+  // - T3 (low-risk): Quarterly - 1st of Jan/Apr/Jul/Oct at 03:30
+
+  // T0 rules: Weekly revalidation (every Sunday at 02:00)
+  cron.schedule(
+    "0 2 * * 0", // Every Sunday at 02:00
+    async () => {
+      console.log("[scheduler] Running weekly T0 rule revalidation...")
+      await scheduledQueue.add("scheduled", {
+        type: "revalidation",
+        runId: `revalidation-t0-${Date.now()}`,
+        riskTier: "T0",
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: T0 rule revalidation on Sundays at 02:00")
+
+  // T1 rules: Bi-weekly revalidation (1st and 15th of month at 02:30)
+  cron.schedule(
+    "30 2 1,15 * *", // At 02:30 on day 1 and 15 of every month
+    async () => {
+      console.log("[scheduler] Running bi-weekly T1 rule revalidation...")
+      await scheduledQueue.add("scheduled", {
+        type: "revalidation",
+        runId: `revalidation-t1-${Date.now()}`,
+        riskTier: "T1",
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: T1 rule revalidation on 1st/15th at 02:30")
+
+  // T2 rules: Monthly revalidation (1st of month at 03:00)
+  cron.schedule(
+    "0 3 1 * *", // At 03:00 on day 1 of every month
+    async () => {
+      console.log("[scheduler] Running monthly T2 rule revalidation...")
+      await scheduledQueue.add("scheduled", {
+        type: "revalidation",
+        runId: `revalidation-t2-${Date.now()}`,
+        riskTier: "T2",
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: T2 rule revalidation on 1st of month at 03:00")
+
+  // T3 rules: Quarterly revalidation (1st of Jan/Apr/Jul/Oct at 03:30)
+  cron.schedule(
+    "30 3 1 1,4,7,10 *", // At 03:30 on day 1 of Jan, Apr, Jul, Oct
+    async () => {
+      console.log("[scheduler] Running quarterly T3 rule revalidation...")
+      await scheduledQueue.add("scheduled", {
+        type: "revalidation",
+        runId: `revalidation-t3-${Date.now()}`,
+        riskTier: "T3",
+        triggeredBy: "cron",
+      })
+    },
+    { timezone: TIMEZONE }
+  )
+  console.log("[scheduler] Scheduled: T3 rule revalidation quarterly at 03:30")
+
   console.log("[scheduler] Scheduler service started")
   console.log("[scheduler] ==================================")
   console.log("[scheduler] REMOVED: Daily pipeline processing (now continuous)")

@@ -93,6 +93,16 @@ export const selectorAdaptationQueue = createQueue("selector-adaptation", {
   duration: 300000, // 5 min rate limit - don't overwhelm LLM
 })
 
+// Revalidation queue - scheduled re-validation of published rules
+// Task 4.2: RTL Autonomy - Continuous Re-Validation
+// Runs validation suite on published rules based on risk tier schedule:
+// - T0: Weekly, T1: Bi-weekly, T2: Monthly, T3: Quarterly
+// Low rate limit since it runs validation suite on multiple rules
+export const revalidationQueue = createQueue("revalidation", {
+  max: 1,
+  duration: 3600000, // 1 hour rate limit - allow time for full validation
+})
+
 // Control queues
 export const scheduledQueue = createQueue("scheduled")
 
@@ -133,6 +143,7 @@ export const allQueues = {
   "evidence-embedding": evidenceEmbeddingQueue,
   "regression-detector": regressionDetectorQueue,
   "selector-adaptation": selectorAdaptationQueue,
+  revalidation: revalidationQueue,
   scheduled: scheduledQueue,
   deadletter: deadletterQueue,
   "system-status": systemStatusQueue,

@@ -489,3 +489,34 @@ model RuleFeedback {
   @@index([sentiment]) // For aggregation queries
   @@schema("regulatory")
 }
+
+// =============================================================================
+// RULE REVALIDATION - Tracks scheduled revalidation of published rules
+// =============================================================================
+// Task 4.2: RTL Autonomy - Continuous Re-Validation
+// Records each revalidation run for audit and tracking purposes.
+// Revalidation runs the full validation suite on published rules based on risk tier:
+// - T0: Weekly (7 days) - Critical compliance rules
+// - T1: Bi-weekly (14 days) - High-risk rules
+// - T2: Monthly (30 days) - Medium-risk rules
+// - T3: Quarterly (90 days) - Low-risk rules
+//
+// Critical Safeguards:
+// - All validations recorded for audit trail
+// - Failed validations trigger MonitoringAlert with humanActionRequired=true
+// - Retention: Keep 90 days of records for trend analysis
+
+model RuleRevalidation {
+  id              String   @id @default(cuid())
+  ruleId          String // Soft ref to RuleFact.id
+  validatedAt     DateTime @default(now())
+  passed          Boolean
+  failures        Json? // [{check, reason}] - only populated on failure
+  validationSuite String // "full" | "quote-only" | "source-only" | etc.
+  createdAt       DateTime @default(now())
+
+  @@index([ruleId, validatedAt]) // Query revalidation history for a rule
+  @@index([validatedAt]) // TTL cleanup queries
+  @@index([passed]) // Query failed revalidations
+  @@schema("regulatory")
+}
