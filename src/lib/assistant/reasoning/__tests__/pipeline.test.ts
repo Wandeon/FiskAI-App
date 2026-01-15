@@ -1,5 +1,23 @@
 // src/lib/assistant/reasoning/__tests__/pipeline.test.ts
 import { describe, it, expect, vi } from "vitest"
+
+// Mock DB and AI clients BEFORE any imports that depend on them
+vi.mock("@/lib/db", () => ({ db: {} }))
+vi.mock("@/lib/ai/ollama-client", () => ({
+  chatJSON: vi.fn().mockResolvedValue({ questions: [] }),
+  OllamaError: class OllamaError extends Error {},
+}))
+vi.mock("@/lib/ai/usage-tracking", () => ({
+  trackAIUsage: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock("@/lib/regulatory-truth/watchdog/llm-circuit-breaker", () => ({
+  llmCircuitBreaker: {
+    canCall: vi.fn().mockResolvedValue(true),
+    recordSuccess: vi.fn().mockResolvedValue(undefined),
+    recordFailure: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+
 import { buildAnswerWithReasoning } from "../pipeline"
 import { isTerminal, type ReasoningEvent, type TerminalPayload } from "../types"
 
