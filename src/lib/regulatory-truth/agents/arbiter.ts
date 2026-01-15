@@ -868,3 +868,149 @@ export async function resolveRulePrecedence(ruleIds: string[]): Promise<{
     overriddenRuleIds: sortedByDate.slice(1).map((r) => r.id),
   }
 }
+
+// =============================================================================
+// TASK 1.3: DETERMINISTIC CONFLICT PRE-RESOLUTION
+// =============================================================================
+// Resolution hierarchy (checked in order):
+// 1. Authority hierarchy (LAW > GUIDANCE > PROCEDURE > PRACTICE)
+// 2. Source hierarchy (Constitution > Law > Regulation > Guidance)
+// 3. Temporal (newer effective date wins if dates differ)
+//
+// Critical safeguards:
+// - T0/T1 rules NEVER auto-resolved (recommendation only)
+// - Only T2/T3 rules can be auto-resolved
+// - Audit trail with reasoning for all resolutions
+
+/**
+ * Minimal rule data required for deterministic resolution.
+ * This type is decoupled from the full RegulatoryRule to enable pure unit testing.
+ */
+export interface RuleForResolution {
+  id: string
+  riskTier: "T0" | "T1" | "T2" | "T3"
+  authorityLevel: AuthorityLevel
+  effectiveFrom: Date
+  sourceHierarchy?: number // 1=Ustav, 2=Zakon, 3=Podzakonski, 4=Pravilnik, 5=Uputa, 6=Misljenje, 7=Praksa
+}
+
+/**
+ * Result of deterministic resolution attempt.
+ */
+export interface DeterministicResolution {
+  /** Whether a deterministic resolution was found */
+  resolved: boolean
+  /** ID of the winning rule (if resolved) */
+  winner?: string
+  /** ID of the losing rule (if resolved) */
+  loser?: string
+  /** Human-readable explanation of the resolution or why it could not be resolved */
+  reason: string
+  /** True if this is a recommendation only (T0/T1 rules) - requires human approval */
+  recommendationOnly: boolean
+}
+
+/**
+ * Check if a risk tier requires human approval (T0 or T1).
+ */
+function isHighRiskTier(tier: string): boolean {
+  return tier === "T0" || tier === "T1"
+}
+
+/**
+ * Attempt deterministic resolution of a conflict between two rules.
+ *
+ * This function tries to resolve conflicts WITHOUT invoking the LLM by applying
+ * well-defined hierarchies:
+ *
+ * 1. Authority hierarchy: LAW > GUIDANCE > PROCEDURE > PRACTICE
+ * 2. Source hierarchy: Constitution(1) > Law(2) > Regulation(3) > ... > Practice(7)
+ * 3. Temporal: Newer effective date wins (lex posterior)
+ *
+ * CRITICAL: T0/T1 rules are NEVER auto-resolved. If either rule is T0 or T1,
+ * the resolution is marked as `recommendationOnly: true` and requires human approval.
+ *
+ * @param ruleA First rule in the conflict
+ * @param ruleB Second rule in the conflict
+ * @returns DeterministicResolution with resolution details and audit info
+ */
+export function tryDeterministicResolution(
+  ruleA: RuleForResolution,
+  ruleB: RuleForResolution
+): DeterministicResolution {
+  // Edge case: same rule ID
+  if (ruleA.id === ruleB.id) {
+    return {
+      resolved: false,
+      reason: "Cannot resolve conflict: same rule ID for both sides",
+      recommendationOnly: false,
+    }
+  }
+
+  // Determine if this requires human approval (T0/T1 protection)
+  const requiresHumanApproval = isHighRiskTier(ruleA.riskTier) || isHighRiskTier(ruleB.riskTier)
+  const tierContext = requiresHumanApproval
+    ? `[${ruleA.riskTier}/${ruleB.riskTier} - recommendation only, requires human approval] `
+    : ""
+
+  // Step 1: Try authority hierarchy resolution
+  const authorityScoreA = getAuthorityScore(ruleA.authorityLevel)
+  const authorityScoreB = getAuthorityScore(ruleB.authorityLevel)
+
+  if (authorityScoreA !== authorityScoreB) {
+    const winner = authorityScoreA < authorityScoreB ? ruleA : ruleB
+    const loser = authorityScoreA < authorityScoreB ? ruleB : ruleA
+
+    return {
+      resolved: true,
+      winner: winner.id,
+      loser: loser.id,
+      reason: `${tierContext}Resolved by authority hierarchy: ${winner.authorityLevel} (score ${getAuthorityScore(winner.authorityLevel)}) prevails over ${loser.authorityLevel} (score ${getAuthorityScore(loser.authorityLevel)})`,
+      recommendationOnly: requiresHumanApproval,
+    }
+  }
+
+  // Step 2: Try source hierarchy resolution (when authority is equal)
+  // Lower hierarchy number = higher authority (1=Constitution, 7=Practice)
+  const sourceA = ruleA.sourceHierarchy ?? 999
+  const sourceB = ruleB.sourceHierarchy ?? 999
+
+  if (sourceA !== sourceB && sourceA !== 999 && sourceB !== 999) {
+    const winner = sourceA < sourceB ? ruleA : ruleB
+    const loser = sourceA < sourceB ? ruleB : ruleA
+    const winnerSource = winner.sourceHierarchy ?? 999
+    const loserSource = loser.sourceHierarchy ?? 999
+
+    return {
+      resolved: true,
+      winner: winner.id,
+      loser: loser.id,
+      reason: `${tierContext}Resolved by source hierarchy: source level ${winnerSource} prevails over source level ${loserSource}`,
+      recommendationOnly: requiresHumanApproval,
+    }
+  }
+
+  // Step 3: Try temporal resolution (lex posterior - newer wins)
+  const effectiveA = ruleA.effectiveFrom.getTime()
+  const effectiveB = ruleB.effectiveFrom.getTime()
+
+  if (effectiveA !== effectiveB) {
+    const winner = effectiveA > effectiveB ? ruleA : ruleB
+    const loser = effectiveA > effectiveB ? ruleB : ruleA
+
+    return {
+      resolved: true,
+      winner: winner.id,
+      loser: loser.id,
+      reason: `${tierContext}Resolved by temporal precedence (lex posterior): ${winner.effectiveFrom.toISOString().split("T")[0]} is newer than ${loser.effectiveFrom.toISOString().split("T")[0]}`,
+      recommendationOnly: requiresHumanApproval,
+    }
+  }
+
+  // Step 4: Unable to resolve deterministically
+  return {
+    resolved: false,
+    reason: `${tierContext}Deterministic resolution unresolved: equal authority (${ruleA.authorityLevel}), equal/missing source hierarchy, and same effective date (${ruleA.effectiveFrom.toISOString().split("T")[0]}). Requires LLM arbitration or human review.`,
+    recommendationOnly: requiresHumanApproval,
+  }
+}
