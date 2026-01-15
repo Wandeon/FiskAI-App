@@ -31,17 +31,6 @@ export interface NavItem {
   legacy?: boolean // Mark legacy routes that will be deprecated
 }
 
-export const LEGACY_ROUTES = [
-  "/dashboard",
-  "/invoices",
-  "/expenses",
-  "/banking",
-  "/contacts",
-  "/products",
-  "/pos",
-  "/reports",
-] as const
-
 export interface NavSection {
   title: string
   items: NavItem[]
@@ -62,17 +51,16 @@ export const navigation: NavSection[] = [
         href: "/dashboard",
         icon: LayoutDashboard,
         module: "platform-core",
-        legacy: true,
       },
     ],
   },
   {
     title: "Financije",
     items: [
-      { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos", legacy: true },
-      { name: "Računi", href: "/invoices", icon: FileText, module: "invoicing", legacy: true },
+      { name: "Blagajna", href: "/pos", icon: ShoppingCart, module: "pos" },
+      { name: "Računi", href: "/invoices", icon: FileText, module: "invoicing" },
       { name: "E-Računi", href: "/e-invoices", icon: Receipt, module: "e-invoicing" },
-      { name: "Troškovi", href: "/expenses", icon: Receipt, module: "expenses", legacy: true },
+      { name: "Troškovi", href: "/expenses", icon: Receipt, module: "expenses" },
       {
         name: "Dokumenti",
         href: "/documents",
@@ -86,7 +74,7 @@ export const navigation: NavSection[] = [
           { name: "Ponavljajući troškovi", href: "/expenses/recurring" },
         ],
       },
-      { name: "Banka", href: "/banking", icon: Building2, module: "banking", legacy: true },
+      { name: "Banka", href: "/banking", icon: Building2, module: "banking" },
       {
         name: "Paušalni Hub",
         href: "/pausalni",
@@ -106,7 +94,6 @@ export const navigation: NavSection[] = [
         href: "/reports",
         icon: BarChart3,
         module: "reports-basic",
-        legacy: true,
         children: [
           { name: "Svi izvještaji", href: "/reports" },
           { name: "PO-SD izvještaj", href: "/reports/pausalni-obrt" },
@@ -124,8 +111,8 @@ export const navigation: NavSection[] = [
   {
     title: "Podaci",
     items: [
-      { name: "Kontakti", href: "/contacts", icon: Users, legacy: true },
-      { name: "Proizvodi", href: "/products", icon: Package, legacy: true },
+      { name: "Kontakti", href: "/contacts", icon: Users },
+      { name: "Proizvodi", href: "/products", icon: Package },
       { name: "Article Agent", href: "/article-agent", icon: Bot, module: "ai-assistant" },
     ],
   },
