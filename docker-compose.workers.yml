@@ -287,10 +287,12 @@ services:
     command: ["node", "dist/workers/lib/e-invoice/workers/eposlovanje-inbound-poller.worker.js"]
     environment:
       <<: *worker-env
-      EPOSLOVANJE_API_BASE: ${EPOSLOVANJE_API_BASE}
-      EPOSLOVANJE_API_KEY: ${EPOSLOVANJE_API_KEY}
-      COMPANY_ID: ${EINVOICE_COMPANY_ID}
+      # Multi-tenant mode: discovers all companies with EINVOICE_EPOSLOVANJE IntegrationAccount
+      # Set COMPANY_ID to enable single-tenant mode (backwards compatible)
+      # COMPANY_ID: ${EINVOICE_COMPANY_ID}
+      USE_INTEGRATION_ACCOUNT_INBOUND: "true"
       POLL_INTERVAL_MS: ${EINVOICE_POLL_INTERVAL_MS:-300000}
+      TENANT_DELAY_MS: ${EINVOICE_TENANT_DELAY_MS:-10000}
       MAX_WINDOW_DAYS: ${EINVOICE_MAX_WINDOW_DAYS:-7}
       WORKER_TYPE: einvoice-inbound
     deploy:

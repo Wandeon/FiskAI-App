@@ -27,6 +27,7 @@ export {
   createIntegrationAccount,
   findIntegrationAccount,
   findIntegrationAccountById,
+  findAllActiveIntegrationAccounts,
   updateIntegrationAccountSecrets,
   disableIntegrationAccount,
   touchIntegrationAccount,
