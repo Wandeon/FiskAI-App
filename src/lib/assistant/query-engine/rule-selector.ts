@@ -1,8 +1,8 @@
 // src/lib/assistant/query-engine/rule-selector.ts
-// PHASE-C CUTOVER: Now reads exclusively from RuleFact (regulatory schema)
-// RegulatoryRule fallback has been removed.
+// PHASE-D COMPLETION: Now reads exclusively from RegulatoryRule (public schema)
+// RuleFact is deprecated - retained only for regression testing.
 
-import { dbReg } from "@/lib/db/regulatory"
+import { db, dbReg } from "@/lib/db"
 import { checkRuleEligibility, buildEvaluationContext } from "./rule-eligibility"
 import type { ObligationType } from "../types"
 import { calculateEvidenceQuality } from "./evidence-quality"
@@ -91,80 +91,6 @@ export interface RuleSelectionResult {
   asOfDate: string
 }
 
-// Type for groundingQuotes JSON structure
-interface GroundingQuote {
-  text: string
-  evidenceId: string
-  contextBefore?: string | null
-  contextAfter?: string | null
-  sourcePointerId?: string
-  articleNumber?: string | null
-  lawReference?: string | null
-}
-
-// Type for legalReference JSON structure
-interface LegalReference {
-  raw?: string
-  note?: string
-  articleNumber?: string
-  lawName?: string
-}
-
-// Type for conditions JSON structure
-interface ConditionsJson {
-  always?: boolean
-  expression?: string
-  [key: string]: unknown
-}
-
-/**
- * Map RuleFact objectType to ObligationType
- */
-function mapObjectTypeToObligation(objectType: string): ObligationType {
-  switch (objectType) {
-    case "POREZNA_STOPA":
-    case "POSTOTAK":
-      return "OBLIGATION"
-    case "ROK":
-    case "OBVEZA":
-      return "OBLIGATION"
-    case "PRAG_PRIHODA":
-    case "OSNOVICA":
-    case "IZNOS":
-      return "CONDITIONAL"
-    default:
-      return "INFORMATIONAL"
-  }
-}
-
-/**
- * Map RuleFact valueType enum to lowercase string for answer formatting
- */
-function mapValueType(valueType: string): string {
-  const mapping: Record<string, string> = {
-    PERCENTAGE: "percentage",
-    CURRENCY_EUR: "currency_eur",
-    CURRENCY_HRK: "currency_hrk",
-    DEADLINE_DAY: "deadline_day",
-    DEADLINE_DESCRIPTION: "deadline_description",
-    BOOLEAN: "boolean",
-    COUNT: "count",
-  }
-  return mapping[valueType] || valueType.toLowerCase()
-}
-
-/**
- * Extract appliesWhen string from conditions JSON
- */
-function extractAppliesWhen(conditions: unknown): string | null {
-  if (!conditions || typeof conditions !== "object") return null
-  const cond = conditions as ConditionsJson
-  if (cond.always === true) return null
-  if (cond.expression) return cond.expression
-  // Return JSON string for complex conditions
-  return JSON.stringify(conditions)
-}
-
 /**
  * Select eligible rules for the given concept slugs.
  *
@@ -174,7 +100,7 @@ function extractAppliesWhen(conditions: unknown): string | null {
  * 3. appliesWhen evaluates to FALSE (CONDITION_FALSE)
  * 4. appliesWhen requires context we don't have (MISSING_CONTEXT)
  *
- * PHASE-C: Now reads exclusively from RuleFact (no RegulatoryRule fallback)
+ * PHASE-D: Now reads exclusively from RegulatoryRule (public schema)
  */
 export async function selectRules(
   conceptSlugs: string[],
@@ -199,29 +125,29 @@ export async function selectRules(
     transactionData: selectionContext?.transactionData,
   })
 
-  // Query RuleFact directly (PHASE-C: No more RegulatoryRule fallback)
-  const allRuleFactsRaw = await dbReg.ruleFact.findMany({
+  // Query RegulatoryRule directly (PHASE-D: Single source of truth)
+  const allRulesRaw = await db.regulatoryRule.findMany({
     where: {
       conceptSlug: { in: conceptSlugs },
       status: "PUBLISHED",
     },
-    orderBy: [{ authority: "asc" }, { confidence: "desc" }, { effectiveFrom: "desc" }],
+    include: {
+      sourcePointers: true,
+    },
+    orderBy: [{ authorityLevel: "asc" }, { confidence: "desc" }, { effectiveFrom: "desc" }],
   })
 
-  // Collect all evidence IDs from groundingQuotes
+  // Collect all evidence IDs from sourcePointers
   const allEvidenceIds = new Set<string>()
-  for (const rf of allRuleFactsRaw) {
-    const quotes = rf.groundingQuotes as GroundingQuote[] | null
-    if (Array.isArray(quotes)) {
-      for (const q of quotes) {
-        if (q.evidenceId) {
-          allEvidenceIds.add(q.evidenceId)
-        }
+  for (const rule of allRulesRaw) {
+    for (const sp of rule.sourcePointers) {
+      if (sp.evidenceId) {
+        allEvidenceIds.add(sp.evidenceId)
       }
     }
   }
 
-  // Fetch evidence with source from regulatory schema
+  // Fetch evidence with source from regulatory schema (cross-schema soft ref)
   const evidenceRecords = await dbReg.evidence.findMany({
     where: { id: { in: Array.from(allEvidenceIds) } },
     include: { source: true },
@@ -229,22 +155,19 @@ export async function selectRules(
   type EvidenceWithSource = (typeof evidenceRecords)[number]
   const evidenceMap = new Map<string, EvidenceWithSource>(evidenceRecords.map((e) => [e.id, e]))
 
-  // Transform RuleFacts to RuleCandidates
-  const allRules: RuleCandidate[] = allRuleFactsRaw.map((rf) => {
-    const quotes = (rf.groundingQuotes as GroundingQuote[] | null) || []
-    const legalRef = rf.legalReference as LegalReference | null
-
-    // Build sourcePointers from groundingQuotes
-    const sourcePointers = quotes.map((q, idx) => {
-      const evidence = evidenceMap.get(q.evidenceId)
+  // Transform RegulatoryRules to RuleCandidates
+  const allRules: RuleCandidate[] = allRulesRaw.map((rule) => {
+    // Map sourcePointers to the expected format
+    const sourcePointers = rule.sourcePointers.map((sp) => {
+      const evidence = evidenceMap.get(sp.evidenceId)
       return {
-        id: q.sourcePointerId || `${rf.id}-quote-${idx}`,
-        evidenceId: q.evidenceId,
-        exactQuote: q.text,
-        contextBefore: q.contextBefore || null,
-        contextAfter: q.contextAfter || null,
-        articleNumber: q.articleNumber || legalRef?.articleNumber || null,
-        lawReference: q.lawReference || legalRef?.raw || null,
+        id: sp.id,
+        evidenceId: sp.evidenceId,
+        exactQuote: sp.exactQuote,
+        contextBefore: sp.contextBefore,
+        contextAfter: sp.contextAfter,
+        articleNumber: sp.articleNumber,
+        lawReference: sp.lawReference,
         evidence: evidence
           ? {
               id: evidence.id,
@@ -265,23 +188,23 @@ export async function selectRules(
     const primaryEvidence = sourcePointers[0]?.evidence
 
     return {
-      id: rf.id,
-      conceptSlug: rf.conceptSlug,
-      titleHr: rf.objectDescription || rf.conceptSlug,
-      authorityLevel: rf.authority,
-      status: rf.status,
-      effectiveFrom: rf.effectiveFrom,
-      effectiveUntil: rf.effectiveUntil,
-      confidence: rf.confidence,
-      value: rf.value,
-      valueType: mapValueType(rf.valueType),
-      obligationType: mapObjectTypeToObligation(rf.objectType),
-      explanationHr: rf.subjectDescription || null,
-      appliesWhen: extractAppliesWhen(rf.conditions),
+      id: rule.id,
+      conceptSlug: rule.conceptSlug,
+      titleHr: rule.titleHr,
+      authorityLevel: rule.authorityLevel,
+      status: rule.status,
+      effectiveFrom: rule.effectiveFrom,
+      effectiveUntil: rule.effectiveUntil,
+      confidence: rule.confidence,
+      value: rule.value,
+      valueType: rule.valueType.toLowerCase(),
+      obligationType: rule.obligationType as ObligationType,
+      explanationHr: rule.explanationHr ?? null,
+      appliesWhen: rule.appliesWhen,
       sourcePointers,
       // Additional fields for compatibility
-      authority: rf.authority,
-      bodyHr: rf.subjectDescription,
+      authority: rule.authorityLevel,
+      bodyHr: rule.explanationHr ?? undefined,
       evidence: primaryEvidence,
       evidenceId: sourcePointers[0]?.evidenceId,
     }
