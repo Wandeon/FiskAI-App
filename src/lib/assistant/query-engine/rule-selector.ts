@@ -29,6 +29,8 @@ export interface RuleCandidate {
   obligationType: ObligationType
   explanationHr: string | null
   appliesWhen: string | null
+  /** Risk tier for disclaimer selection (T0, T1, T2, T3) */
+  riskTier?: string
   sourcePointers: {
     id: string
     evidenceId: string
@@ -201,6 +203,7 @@ export async function selectRules(
       obligationType: rule.obligationType as ObligationType,
       explanationHr: rule.explanationHr ?? null,
       appliesWhen: rule.appliesWhen,
+      riskTier: rule.riskTier ?? undefined,
       sourcePointers,
       // Additional fields for compatibility
       authority: rule.authorityLevel,

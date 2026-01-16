@@ -6,6 +6,8 @@ import {
   type Topic,
   type RefusalReason,
   type ClientContextBlock,
+  STANDARD_DISCLAIMER,
+  HIGH_RISK_DISCLAIMER,
 } from "@/lib/assistant/types"
 import { assistantLogger } from "@/lib/logger"
 import { extractKeywords } from "./text-utils"
@@ -583,6 +585,11 @@ export async function buildAnswer(
     }),
     relatedQuestions,
     ...(clientContext && { clientContext }),
+    // Disclaimer (Appendix A: Safe Human-Removal Policy)
+    disclaimer:
+      primaryRule?.riskTier === "T0" || primaryRule?.riskTier === "T1"
+        ? HIGH_RISK_DISCLAIMER
+        : STANDARD_DISCLAIMER,
   }
 }
 

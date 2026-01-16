@@ -178,6 +178,35 @@ export interface DebugBlock {
   pipelineStages?: string[]
 }
 
+// === DISCLAIMER (Appendix A: Safe Human-Removal Policy) ===
+export interface Disclaimer {
+  /** Always-visible short disclaimer */
+  short: string
+  /** Expanded disclaimer shown on hover/click */
+  expanded: string
+  /** High-risk warning for T0/T1 rules (null if not applicable) */
+  highRiskWarning: string | null
+}
+
+/** Standard disclaimer for autonomous guidance (Appendix A) */
+export const STANDARD_DISCLAIMER: Disclaimer = {
+  short:
+    "Autonomna regulatorna smjernica. Provjereno prema izvornom tekstu; može zahtijevati stručnu potvrdu.",
+  expanded:
+    "Ova smjernica je generirana autonomnim sustavom koji verificira navode prema službenim izvorima. Nije pravni savjet. Za odluke od velikog značaja, konzultirajte licenciranog stručnjaka.",
+  highRiskWarning: null,
+}
+
+/** High-risk disclaimer for T0/T1 rules (Appendix A) */
+export const HIGH_RISK_DISCLAIMER: Disclaimer = {
+  short:
+    "Autonomna regulatorna smjernica. Provjereno prema izvornom tekstu; može zahtijevati stručnu potvrdu.",
+  expanded:
+    "Ova smjernica je generirana autonomnim sustavom koji verificira navode prema službenim izvorima. Nije pravni savjet. Za odluke od velikog značaja, konzultirajte licenciranog stručnjaka.",
+  highRiskWarning:
+    "Pravilo visokog utjecaja. Verificirajte prema službenom izvoru ili konzultirajte računovođu.",
+}
+
 // === CONFIDENCE ===
 export type ConfidenceLevel = "HIGH" | "MEDIUM" | "LOW"
 
@@ -281,6 +310,9 @@ export interface AssistantResponse {
 
   // Follow-up
   relatedQuestions?: string[]
+
+  // Disclaimer (Appendix A: Safe Human-Removal Policy)
+  disclaimer?: Disclaimer
 
   // Debug (non-production)
   _debug?: DebugBlock
