@@ -219,10 +219,10 @@ describe("isMatchTypeAcceptableForTier", () => {
       assert.strictEqual(isMatchTypeAcceptableForTier("exact", "T1").acceptable, true)
     })
 
-    it("rejects normalized match", () => {
+    it("accepts normalized match (policy change 2026-01-16)", () => {
       const result = isMatchTypeAcceptableForTier("normalized", "T0")
-      assert.strictEqual(result.acceptable, false)
-      assert.ok(result.reason?.includes("exact quote match"))
+      assert.strictEqual(result.acceptable, true)
+      assert.ok(result.reason?.includes("logged for audit"))
     })
 
     it("rejects not_found", () => {

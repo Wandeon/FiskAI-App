@@ -145,7 +145,6 @@ async function validateRuleProvenance(
 
   const pointerResults: ProvenanceValidationResult[] = []
   const failures: ProvenanceValidationResult[] = []
-  const isCriticalTier = riskTier === "T0" || riskTier === "T1"
 
   for (const pointer of sourcePointers) {
     // Get extractable content (artifact text for PDFs, rawContent for HTML)
@@ -174,22 +173,10 @@ async function validateRuleProvenance(
       }
     }
 
-    // HARD GATE: T0/T1 require EXACT match with valid offsets
-    if (validationResult.valid && isCriticalTier) {
-      // Must be exact match (already checked by isMatchTypeAcceptableForTier, but be explicit)
-      if (validationResult.matchResult.matchType !== "exact") {
-        validationResult.valid = false
-        validationResult.error = `${riskTier} rules require EXACT match, got ${validationResult.matchResult.matchType}`
-      }
-      // Must have valid offsets
-      else if (
-        validationResult.matchResult.start === undefined ||
-        validationResult.matchResult.end === undefined
-      ) {
-        validationResult.valid = false
-        validationResult.error = `${riskTier} rules require byte-level offsets, offsets are missing`
-      }
-    }
+    // NOTE: HARD GATE for T0/T1 exact-match requirement REMOVED (2026-01-16)
+    // NORMALIZED matches are now accepted for all tiers per policy change.
+    // The isMatchTypeAcceptableForTier() function handles all tier-based policy.
+    // Offsets are still recorded when available but not required for validation.
 
     // Persist offsets and matchType to SourcePointer
     // ALWAYS record what we found, including NOT_FOUND failures

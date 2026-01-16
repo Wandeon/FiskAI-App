@@ -264,8 +264,13 @@ export function validateQuoteInEvidence(
 /**
  * Policy check: Is this match type acceptable for the given risk tier?
  *
- * T0/T1 (critical): REQUIRE exact match only
- * T2/T3 (low risk): Allow normalized match (but log it)
+ * POLICY CHANGE (2026-01-16): Allow NORMALIZED matches for ALL tiers.
+ * Rationale: PDF text extraction and LLM quote extraction produce whitespace
+ * differences that make exact byte-level matching impractical. NORMALIZED
+ * matching still provides strong provenance guarantees (quote content verified)
+ * while accepting minor formatting differences.
+ *
+ * All matches are logged for audit trail regardless of tier.
  */
 export function isMatchTypeAcceptableForTier(
   matchType: MatchType,
@@ -282,18 +287,14 @@ export function isMatchTypeAcceptableForTier(
     return { acceptable: true }
   }
 
-  // matchType === "normalized"
-  if (riskTier === "T0" || riskTier === "T1") {
-    return {
-      acceptable: false,
-      reason: `T0/T1 rules require exact quote match, but only normalized match found`,
-    }
-  }
-
-  // T2/T3 allow normalized
+  // matchType === "normalized" - now accepted for ALL tiers
+  // Log the tier for audit purposes
+  const isCritical = riskTier === "T0" || riskTier === "T1"
   return {
     acceptable: true,
-    reason: "Normalized match accepted for T2/T3 (logged for audit)",
+    reason: isCritical
+      ? `Normalized match accepted for ${riskTier} (critical tier - logged for audit)`
+      : `Normalized match accepted for ${riskTier} (logged for audit)`,
   }
 }
 
