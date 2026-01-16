@@ -368,6 +368,17 @@ enum RuleFactStatus {
   @@schema("regulatory")
 }
 
+// =============================================================================
+// DEPRECATED: RuleFact - Use RegulatoryRule (public schema) instead
+// =============================================================================
+// Phase-D Completion: RuleFact is deprecated as of 2026-01-16.
+// RegulatoryRule in the public schema is now the single source of truth.
+// RuleFact is retained ONLY for:
+// - RuleFactSnapshot regression testing
+// - Historical reference during migration period
+// DO NOT write new code that reads from or writes to RuleFact.
+// All new regulatory rule data flows through RegulatoryRule exclusively.
+/// @deprecated Use RegulatoryRule (public schema) instead.
 model RuleFact {
   id                 String                 @id @default(cuid())
   conceptSlug        String
