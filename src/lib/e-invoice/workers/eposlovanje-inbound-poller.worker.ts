@@ -32,7 +32,7 @@ import { logger } from "@/lib/logger"
 
 const COMPANY_ID = process.env.COMPANY_ID
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "300000", 10) // 5 min
-const TENANT_DELAY_MS = parseInt(process.env.TENANT_DELAY_MS || "5000", 10) // 5 seconds between tenants
+const TENANT_DELAY_MS = parseInt(process.env.TENANT_DELAY_MS || "300000", 10) // 5 min between tenants
 
 // =============================================================================
 // Worker State
