@@ -204,3 +204,38 @@ export async function touchIntegrationAccount(id: string): Promise<void> {
     data: { lastUsedAt: new Date() },
   })
 }
+
+/**
+ * Returns all active e-invoice integration accounts for multi-tenant polling.
+ * Only returns accounts with status=ACTIVE and valid secrets.
+ *
+ * @param kind - Integration kind to filter (e.g., EINVOICE_EPOSLOVANJE)
+ * @param environment - Environment to filter (default: PROD)
+ * @returns List of accounts with companyId and accountId (secrets not decrypted for efficiency)
+ */
+export async function findAllActiveIntegrationAccounts(
+  kind: IntegrationKind,
+  environment: IntegrationEnv = "PROD"
+): Promise<
+  Array<{ id: string; companyId: string; kind: IntegrationKind; lastUsedAt: Date | null }>
+> {
+  const accounts = await db.integrationAccount.findMany({
+    where: {
+      kind,
+      environment,
+      status: "ACTIVE",
+      secretEnvelope: { not: null },
+    },
+    select: {
+      id: true,
+      companyId: true,
+      kind: true,
+      lastUsedAt: true,
+    },
+    orderBy: {
+      lastUsedAt: "asc", // Poll least recently used first
+    },
+  })
+
+  return accounts
+}
