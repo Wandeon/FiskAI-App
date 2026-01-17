@@ -14,12 +14,31 @@ const RATE_LIMIT_PREFIX = "rate-limit:"
 // Lazy-loaded Redis client to avoid Edge Runtime issues
 let redisClient: Awaited<typeof import("@/lib/infra/redis")>["redis"] | null = null
 
+// Timeout for Redis operations (prevents hanging when Redis is unreachable)
+const REDIS_OPERATION_TIMEOUT_MS = 3000
+
 async function getRedis() {
   if (redisClient) return redisClient
   // Dynamic import to avoid Edge Runtime bundling issues
   const { redis } = await import("@/lib/infra/redis")
   redisClient = redis
   return redisClient
+}
+
+/**
+ * Execute a Redis operation with timeout protection
+ * Prevents hanging when Redis is unreachable
+ */
+async function withRedisTimeout<T>(
+  operation: () => Promise<T>,
+  timeoutMs = REDIS_OPERATION_TIMEOUT_MS
+): Promise<T> {
+  return Promise.race([
+    operation(),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Redis operation timeout")), timeoutMs)
+    ),
+  ])
 }
 
 // Detect Edge Runtime
@@ -138,8 +157,8 @@ export async function checkRateLimit(
   const key = getKey(identifier, limitType)
 
   try {
-    const redis = await getRedis()
-    const data = await redis.get(key)
+    const redis = await withRedisTimeout(() => getRedis())
+    const data = await withRedisTimeout(() => redis.get(key))
     const record: RateLimitRecord | null = data ? JSON.parse(data) : null
 
     if (!record) {
@@ -149,7 +168,9 @@ export async function checkRateLimit(
         resetAt: now + limit.window,
       }
       // Set with TTL equal to the window duration (in seconds)
-      await redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(newRecord))
+      await withRedisTimeout(() =>
+        redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(newRecord))
+      )
       return { allowed: true, resetAt: now + limit.window }
     }
 
@@ -168,7 +189,9 @@ export async function checkRateLimit(
         count: 1,
         resetAt: now + limit.window,
       }
-      await redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(newRecord))
+      await withRedisTimeout(() =>
+        redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(newRecord))
+      )
       return { allowed: true, resetAt: now + limit.window }
     }
 
@@ -181,7 +204,9 @@ export async function checkRateLimit(
         blockedUntil: now + limit.blockDuration,
       }
       // Set TTL to the block duration
-      await redis.setex(key, Math.ceil(limit.blockDuration / 1000), JSON.stringify(blockedRecord))
+      await withRedisTimeout(() =>
+        redis.setex(key, Math.ceil(limit.blockDuration / 1000), JSON.stringify(blockedRecord))
+      )
       return {
         allowed: false,
         resetAt: record.resetAt,
@@ -195,11 +220,13 @@ export async function checkRateLimit(
       count: record.count + 1,
     }
     // Preserve remaining TTL
-    const ttl = await redis.ttl(key)
+    const ttl = await withRedisTimeout(() => redis.ttl(key))
     if (ttl > 0) {
-      await redis.setex(key, ttl, JSON.stringify(updatedRecord))
+      await withRedisTimeout(() => redis.setex(key, ttl, JSON.stringify(updatedRecord)))
     } else {
-      await redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(updatedRecord))
+      await withRedisTimeout(() =>
+        redis.setex(key, Math.ceil(limit.window / 1000), JSON.stringify(updatedRecord))
+      )
     }
 
     return { allowed: true, resetAt: record.resetAt }
@@ -317,8 +344,10 @@ export async function resetRateLimit(identifier: string): Promise<void> {
   if (isEdgeRuntime()) return
 
   try {
-    const redis = await getRedis()
-    await Promise.all(limitTypes.map((type) => redis.del(getKey(identifier, type))))
+    const redis = await withRedisTimeout(() => getRedis())
+    await withRedisTimeout(() =>
+      Promise.all(limitTypes.map((type) => redis.del(getKey(identifier, type))))
+    )
   } catch (error) {
     console.error("[rate-limit] Redis error during reset:", error)
   }
@@ -337,8 +366,8 @@ export async function getRateLimitInfo(
   }
 
   try {
-    const redis = await getRedis()
-    const data = await redis.get(getKey(identifier, limitType))
+    const redis = await withRedisTimeout(() => getRedis())
+    const data = await withRedisTimeout(() => redis.get(getKey(identifier, limitType)))
     return data ? JSON.parse(data) : undefined
   } catch (error) {
     console.error("[rate-limit] Redis error during info fetch:", error)
