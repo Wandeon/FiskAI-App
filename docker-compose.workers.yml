@@ -26,6 +26,8 @@ x-worker-common: &worker-common
     REDIS_URL: redis://fiskai-redis:6379
     DATABASE_URL: ${DATABASE_URL}
     REGULATORY_DATABASE_URL: ${REGULATORY_DATABASE_URL}
+    # RTL Pipeline mode: PHASE_D | LEGACY | OFF (default: OFF for safety)
+    RTL_PIPELINE_MODE: ${RTL_PIPELINE_MODE:-OFF}
 
 x-worker-ocr: &worker-ocr
   image: ghcr.io/wandeon/fiskai-worker-ocr:${IMAGE_TAG:-latest}
@@ -75,6 +77,10 @@ services:
     command: ["node", "dist/workers/lib/regulatory-truth/workers/sentinel.worker.js"]
     environment:
       <<: *worker-env
+      OLLAMA_EMBED_ENDPOINT: ${OLLAMA_EMBED_ENDPOINT}
+      OLLAMA_EMBED_API_KEY: ${OLLAMA_EMBED_API_KEY}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-nomic-embed-text}
+      OLLAMA_EMBED_DIMS: ${OLLAMA_EMBED_DIMS:-768}
       WORKER_TYPE: sentinel
       WORKER_CONCURRENCY: 1
     deploy:
@@ -209,6 +215,10 @@ services:
     command: ["node", "dist/workers/lib/regulatory-truth/workers/continuous-drainer.worker.js"]
     environment:
       <<: *worker-env
+      OLLAMA_EMBED_ENDPOINT: ${OLLAMA_EMBED_ENDPOINT}
+      OLLAMA_EMBED_API_KEY: ${OLLAMA_EMBED_API_KEY}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-nomic-embed-text}
+      OLLAMA_EMBED_DIMS: ${OLLAMA_EMBED_DIMS:-768}
       WORKER_TYPE: continuous-drainer
     deploy:
       resources:

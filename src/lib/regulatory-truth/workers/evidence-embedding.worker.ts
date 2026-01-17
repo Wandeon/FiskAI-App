@@ -113,7 +113,7 @@ const worker = createWorker<EvidenceEmbeddingJobData>(
   processEvidenceEmbeddingJob,
   {
     name: "evidence-embedding",
-    concurrency: 2, // Process 2 evidence records in parallel
+    concurrency: 1, // Serial processing - GPU-01 can only handle one request at a time
   }
 )
 

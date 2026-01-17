@@ -66,7 +66,7 @@ async function processEmbeddingJob(job: Job<EmbeddingJobData>): Promise<JobResul
 // Create and start worker
 const worker = createWorker<EmbeddingJobData>("embedding", processEmbeddingJob, {
   name: "embedding",
-  concurrency: 2, // Process 2 rules in parallel
+  concurrency: 1, // Serial processing - GPU-01 can only handle one request at a time
 })
 
 setupGracefulShutdown([worker])
