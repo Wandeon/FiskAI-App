@@ -34,6 +34,8 @@ import {
 // Feature flags stub - workers repo manages actual flags
 const FeatureFlags = {
   isEnabled: (_flag: string) => false, // Default to disabled in app
+  isLegacy: false, // Use continuous drainer mode by default
+  pipelineMode: "continuous" as const, // Continuous drainer mode
 }
 import { isScannedPdf } from "../utils/ocr-processor"
 import { isBlockedDomain } from "../utils/concept-resolver"
