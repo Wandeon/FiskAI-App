@@ -21,7 +21,7 @@ import {
   acquireRefreshLock,
 } from "./store"
 import { sendSystemStatusAlerts } from "./alerting"
-import { createWorkerConnection, closeRedis } from "@/lib/regulatory-truth/workers/redis"
+import { createWorkerConnection, closeRedis } from "@/lib/infra/redis"
 import { deadletterQueue } from "@/lib/regulatory-truth/workers/queues"
 
 const PREFIX = process.env.BULLMQ_PREFIX || "fiskai"

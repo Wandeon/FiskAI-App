@@ -6,7 +6,7 @@
  */
 
 import { trackAIUsage, type AIOperation } from "@/lib/ai/usage-tracking"
-import { llmCircuitBreaker } from "@/lib/regulatory-truth/watchdog/llm-circuit-breaker"
+import { llmCircuitBreaker } from "@/lib/infra/circuit-breaker"
 
 export class OllamaError extends Error {
   constructor(

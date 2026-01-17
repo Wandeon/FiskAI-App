@@ -17,7 +17,7 @@
 
 import { Worker, Job } from "bullmq"
 import { Queue } from "bullmq"
-import { redis, createWorkerConnection } from "@/lib/regulatory-truth/workers/redis"
+import { redis, createWorkerConnection } from "@/lib/infra/redis"
 import {
   getPendingEvents,
   processEvent,

@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { getEmailProvider } from "./providers"
 import { decryptSecret, encryptSecret } from "@/lib/secrets"
 import { uploadToR2, generateR2Key } from "@/lib/r2-client"
-import { redis } from "@/lib/regulatory-truth/workers/redis"
+import { redis } from "@/lib/infra/redis"
 import type { EmailConnection, EmailImportRule } from "@prisma/client"
 import type { EmailMessage, EmailAttachmentInfo } from "./types"
 

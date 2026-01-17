@@ -12,13 +12,12 @@ interface RateLimitRecord {
 const RATE_LIMIT_PREFIX = "rate-limit:"
 
 // Lazy-loaded Redis client to avoid Edge Runtime issues
-let redisClient: Awaited<typeof import("@/lib/regulatory-truth/workers/redis")>["redis"] | null =
-  null
+let redisClient: Awaited<typeof import("@/lib/infra/redis")>["redis"] | null = null
 
 async function getRedis() {
   if (redisClient) return redisClient
   // Dynamic import to avoid Edge Runtime bundling issues
-  const { redis } = await import("@/lib/regulatory-truth/workers/redis")
+  const { redis } = await import("@/lib/infra/redis")
   redisClient = redis
   return redisClient
 }

@@ -1,10 +1,6 @@
 // src/lib/assistant/query-engine/rule-eligibility.ts
 
-import {
-  evaluateAppliesWhen,
-  parseAppliesWhen,
-  type EvaluationContext,
-} from "@/lib/regulatory-truth/dsl/applies-when"
+import { evaluateAppliesWhen, parseAppliesWhen, type EvaluationContext } from "@/lib/shared/dsl"
 
 export type EligibilityResult =
   | { eligible: true }

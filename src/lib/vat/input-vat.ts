@@ -1,6 +1,6 @@
 import type { Company, Expense, ExpenseCategory, ExpenseLine } from "@prisma/client"
 import type { TransactionClient } from "@/lib/db"
-import { parseAppliesWhen, evaluateAppliesWhen } from "@/lib/regulatory-truth/dsl/applies-when"
+import { parseAppliesWhen, evaluateAppliesWhen } from "@/lib/shared/dsl"
 import { Prisma } from "@prisma/client"
 
 const Decimal = Prisma.Decimal
