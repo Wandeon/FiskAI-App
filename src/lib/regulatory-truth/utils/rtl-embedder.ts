@@ -11,7 +11,8 @@
  */
 
 import { embedText, embedBatch } from "@/lib/article-agent/verification/embedder"
-import { prisma } from "@/lib/prisma"
+// Use db directly instead of @/lib/db alias for workers repo compatibility
+import { db } from "@/lib/db"
 
 /**
  * Build embedding text from SourcePointer fields
@@ -46,7 +47,7 @@ export function buildEmbeddingText(pointer: {
  */
 export async function generatePointerEmbedding(pointerId: string): Promise<number[]> {
   // Fetch pointer
-  const pointer = await prisma.sourcePointer.findUnique({
+  const pointer = await db.sourcePointer.findUnique({
     where: { id: pointerId },
     select: {
       id: true,
@@ -67,7 +68,7 @@ export async function generatePointerEmbedding(pointerId: string): Promise<numbe
   const embedding = await embedText(text)
 
   // Update database
-  await prisma.$executeRaw`
+  await db.$executeRaw`
     UPDATE "SourcePointer"
     SET "embedding" = ${JSON.stringify(embedding)}::vector
     WHERE "id" = ${pointerId}
@@ -88,7 +89,7 @@ export async function generatePointerEmbeddingsBatch(
   }
 
   // Fetch pointers
-  const pointers = await prisma.sourcePointer.findMany({
+  const pointers = await db.sourcePointer.findMany({
     where: { id: { in: pointerIds } },
     select: {
       id: true,
@@ -117,7 +118,7 @@ export async function generatePointerEmbeddingsBatch(
     if (!embedding) continue
 
     // Update database with raw SQL (Prisma doesn't support vector type directly)
-    await prisma.$executeRaw`
+    await db.$executeRaw`
       UPDATE "SourcePointer"
       SET "embedding" = ${JSON.stringify(embedding)}::vector
       WHERE "id" = ${pointer.id}
@@ -133,7 +134,7 @@ export async function generatePointerEmbeddingsBatch(
  * Check if a SourcePointer has an embedding
  */
 export async function hasEmbedding(pointerId: string): Promise<boolean> {
-  const result = await prisma.$queryRaw<[{ has_embedding: boolean }]>`
+  const result = await db.$queryRaw<[{ has_embedding: boolean }]>`
     SELECT ("embedding" IS NOT NULL) as has_embedding
     FROM "SourcePointer"
     WHERE "id" = ${pointerId}
@@ -151,7 +152,7 @@ export async function getEmbeddingStats(): Promise<{
   withoutEmbedding: number
   percentage: number
 }> {
-  const result = await prisma.$queryRaw<
+  const result = await db.$queryRaw<
     [{ total: bigint; with_embedding: bigint; without_embedding: bigint }]
   >`
     SELECT
@@ -181,7 +182,7 @@ export async function getEmbeddingStats(): Promise<{
 export async function findPointersWithoutEmbeddings(
   limit: number = 100
 ): Promise<Array<{ id: string; exactQuote: string }>> {
-  const result = await prisma.$queryRaw<Array<{ id: string; exactQuote: string }>>`
+  const result = await db.$queryRaw<Array<{ id: string; exactQuote: string }>>`
     SELECT "id", "exactQuote"
     FROM "SourcePointer"
     WHERE "embedding" IS NULL

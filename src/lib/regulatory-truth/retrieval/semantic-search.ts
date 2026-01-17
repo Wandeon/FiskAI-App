@@ -12,7 +12,8 @@
  * - Can be used standalone or combined with keyword search (hybrid search)
  */
 
-import { prisma } from "@/lib/prisma"
+// Use db directly instead of @/lib/db alias for workers repo compatibility
+import { db } from "@/lib/db"
 import { embedText } from "@/lib/article-agent/verification/embedder"
 
 export interface SemanticSearchOptions {
@@ -144,7 +145,7 @@ export async function semanticSearch(
   const allParams = [JSON.stringify(queryEmbedding), ...params, limit * 2] // Fetch 2x limit to filter later
 
   // Execute query
-  const results = await prisma.$queryRawUnsafe<
+  const results = await db.$queryRawUnsafe<
     Array<{
       pointerId: string
       similarity: number
@@ -170,7 +171,7 @@ export async function semanticSearch(
   // Fetch associated rules for each pointer
   const pointerIds = filteredResults.map((r) => r.pointerId)
 
-  const rulesData = await prisma.regulatoryRule.findMany({
+  const rulesData = await db.regulatoryRule.findMany({
     where: {
       sourcePointers: {
         some: {
@@ -279,7 +280,7 @@ export async function findSimilarPointers(
   options: Omit<SemanticSearchOptions, "limit"> & { limit?: number } = {}
 ): Promise<SemanticSearchResult[]> {
   // Fetch the source pointer
-  const pointer = await prisma.sourcePointer.findUnique({
+  const pointer = await db.sourcePointer.findUnique({
     where: { id: pointerId },
     select: {
       exactQuote: true,

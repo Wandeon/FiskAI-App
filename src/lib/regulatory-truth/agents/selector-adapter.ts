@@ -16,8 +16,9 @@
 // - Human Approval: Block auto-merge, require PR review
 
 import { JSDOM } from "jsdom"
-import { chatJSON } from "@/lib/ai/ollama-client"
-import type { AIOperation } from "@/lib/ai/usage-tracking"
+// Use article-agent's simpler ollama client instead of app's usage-tracking one
+// This removes the app dependency for workers repo split
+import { callOllamaJSON } from "@/lib/article-agent/llm/ollama-client"
 
 // =============================================================================
 // CONSTANTS
@@ -185,14 +186,14 @@ Return your response as JSON:
   "reasoning": "Brief explanation of why these selectors should work"
 }`
 
-  const response = await chatJSON<{
+  const response = await callOllamaJSON<{
     suggestedSelectors: string[]
     reasoning: string
   }>(userPrompt, {
     systemPrompt,
     temperature: 0.3, // Lower temperature for more consistent results
-    maxTokens: 1000,
-    operation: "selector_adaptation" as AIOperation,
+    // Note: callOllamaJSON doesn't support maxTokens or operation tracking
+    // Usage tracking is handled at the worker level for workers repo
   })
 
   return {
