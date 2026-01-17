@@ -25,19 +25,36 @@ import { normalizeHtmlContent } from "./content-hash"
  * Longer content is truncated to keep embeddings focused
  *
  * Rationale:
- * - Embedding models work best with focused text
- * - First 4000 chars capture document essence (title, intro, key sections)
+ * - nomic-embed-text has 8192 token limit but Croatian text + HTML entities tokenize poorly
+ * - Testing shows ~1000 chars is safe limit for mixed content
+ * - First 1000 chars capture document title, summary, and key sections
  * - Reduces API costs and processing time
- * - nomic-embed-text has token limits; HTML tags inflate token count significantly
  */
-const MAX_EMBEDDING_LENGTH = 4000
+const MAX_EMBEDDING_LENGTH = 1000
+
+/**
+ * Decode common HTML entities to reduce token count
+ * HTML entities like &#x17E; tokenize into multiple tokens
+ */
+function decodeHtmlEntities(content: string): string {
+  return (
+    content
+      // Decode numeric entities (hex and decimal)
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+      // Decode common named entities
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'")
+  )
+}
 
 /**
  * Strip HTML tags from content for embedding preparation
- * This is essential because HTML tags cause token count explosion:
- * - A 4000 char HTML document can tokenize to 2000+ tokens
- * - nomic-embed-text has limited context window
- * - Stripped text preserves semantic meaning with fewer tokens
+ * This is essential because HTML tags cause token count explosion
  */
 function stripHtmlTags(content: string): string {
   return (
@@ -58,19 +75,24 @@ export function buildEvidenceEmbeddingText(evidence: {
   rawContent: string
   contentType?: string
 }): string {
-  // First normalize to remove scripts, styles, comments
+  // 1. Normalize to remove scripts, styles, comments
   let text = normalizeHtmlContent(evidence.rawContent)
 
-  // Then strip remaining HTML tags to reduce token count
-  // This is critical: HTML tags cause token overflow in embedding model
+  // 2. Strip remaining HTML tags to reduce token count
   text = stripHtmlTags(text)
 
-  // Truncate to max length if needed
+  // 3. Decode HTML entities to reduce token count (&#x17E; -> ž)
+  text = decodeHtmlEntities(text)
+
+  // 4. Final whitespace cleanup
+  text = text.replace(/\s+/g, " ").trim()
+
+  // 5. Truncate to max length if needed (1000 chars safe for nomic-embed-text)
   if (text.length > MAX_EMBEDDING_LENGTH) {
     text = text.substring(0, MAX_EMBEDDING_LENGTH)
   }
 
-  return text.trim()
+  return text
 }
 
 /**
