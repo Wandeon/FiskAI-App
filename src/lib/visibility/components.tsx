@@ -184,16 +184,25 @@ export function VisibleNavItem({
 export interface VisibleButtonProps extends ButtonProps {
   /** The element ID to check visibility for */
   id: ElementId
+  /** Render as child component using Radix Slot */
+  asChild?: boolean
 }
 
 export const VisibleButton = forwardRef<HTMLButtonElement, VisibleButtonProps>(
-  ({ id, children, className, disabled, title, ...props }, ref) => {
+  ({ id, children, className, disabled, title, asChild, ...props }, ref) => {
     const visibility = useVisibilityOptional()
 
     // If no provider, render normal button (graceful degradation)
     if (!visibility) {
       return (
-        <Button ref={ref} className={className} disabled={disabled} title={title} {...props}>
+        <Button
+          ref={ref}
+          className={className}
+          disabled={disabled}
+          title={title}
+          asChild={asChild}
+          {...props}
+        >
           {children}
         </Button>
       )
@@ -204,7 +213,25 @@ export const VisibleButton = forwardRef<HTMLButtonElement, VisibleButtonProps>(
     // Hidden - don't render
     if (!visible) return null
 
-    // Render button (locked state affects disabled and shows lock icon)
+    // When asChild is true, we need to render children directly with merged props
+    // because Button with asChild uses Slot which requires exactly ONE child
+    // (we can't have {children} AND {locked && <Lock />} as siblings)
+    if (asChild) {
+      return (
+        <Button
+          ref={ref}
+          className={cn(className, locked && "opacity-60")}
+          disabled={locked || disabled}
+          title={locked ? hint || undefined : title}
+          asChild
+          {...props}
+        >
+          {children}
+        </Button>
+      )
+    }
+
+    // Regular button mode - can safely add Lock icon as sibling
     return (
       <Button
         ref={ref}
