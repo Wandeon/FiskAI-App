@@ -4,7 +4,19 @@
  * Type definitions for the RTL historical backfill system.
  */
 
-import type { BackfillMode } from "@prisma/client"
+/**
+ * Backfill discovery mode
+ *
+ * Mirrors Prisma BackfillMode enum but defined locally to allow unit testing
+ * without Prisma client dependencies. Must stay in sync with prisma/schema.prisma.
+ */
+export const BackfillMode = {
+  SITEMAP: "SITEMAP",
+  ARCHIVE: "ARCHIVE",
+  PAGINATION: "PAGINATION",
+} as const
+
+export type BackfillMode = (typeof BackfillMode)[keyof typeof BackfillMode]
 
 /**
  * Per-domain rate limit configuration

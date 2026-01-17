@@ -10,8 +10,7 @@
  * - Rate-limit friendly
  */
 
-import type { SourceBackfillConfig, DomainRateLimit } from "./types"
-import { BackfillMode } from "@prisma/client"
+import { type SourceBackfillConfig, type DomainRateLimit, BackfillMode } from "./types"
 
 /**
  * Source-specific backfill configurations
