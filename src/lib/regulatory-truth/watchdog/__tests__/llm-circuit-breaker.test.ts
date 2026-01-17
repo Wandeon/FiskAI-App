@@ -5,7 +5,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest"
 const mockRedisStore = new Map<string, string>()
 
 // Mock Redis with stateful behavior
-vi.mock("@/lib/regulatory-truth/workers/redis", () => ({
+// Note: The circuit breaker now lives in @/lib/infra/circuit-breaker and imports
+// from @/lib/infra/redis, so we mock that location
+vi.mock("@/lib/infra/redis", () => ({
   redis: {
     get: vi.fn((key: string) => Promise.resolve(mockRedisStore.get(key) ?? null)),
     set: vi.fn((key: string, value: string) => {
