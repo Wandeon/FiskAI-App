@@ -28,19 +28,42 @@ import { normalizeHtmlContent } from "./content-hash"
  * - Embedding models work best with focused text
  * - First 4000 chars capture document essence (title, intro, key sections)
  * - Reduces API costs and processing time
+ * - nomic-embed-text has token limits; HTML tags inflate token count significantly
  */
 const MAX_EMBEDDING_LENGTH = 4000
 
 /**
+ * Strip HTML tags from content for embedding preparation
+ * This is essential because HTML tags cause token count explosion:
+ * - A 4000 char HTML document can tokenize to 2000+ tokens
+ * - nomic-embed-text has limited context window
+ * - Stripped text preserves semantic meaning with fewer tokens
+ */
+function stripHtmlTags(content: string): string {
+  return (
+    content
+      // Remove all HTML tags (but keep content between tags)
+      .replace(/<[^>]*>/g, " ")
+      // Collapse multiple spaces into one
+      .replace(/\s+/g, " ")
+      .trim()
+  )
+}
+
+/**
  * Build embedding text from Evidence rawContent
- * Normalizes and truncates for optimal semantic representation
+ * Normalizes, strips HTML tags, and truncates for optimal semantic representation
  */
 export function buildEvidenceEmbeddingText(evidence: {
   rawContent: string
   contentType?: string
 }): string {
-  // Normalize HTML/text content to remove noise
+  // First normalize to remove scripts, styles, comments
   let text = normalizeHtmlContent(evidence.rawContent)
+
+  // Then strip remaining HTML tags to reduce token count
+  // This is critical: HTML tags cause token overflow in embedding model
+  text = stripHtmlTags(text)
 
   // Truncate to max length if needed
   if (text.length > MAX_EMBEDDING_LENGTH) {
