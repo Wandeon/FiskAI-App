@@ -396,44 +396,47 @@ export class PaymentMatchingService {
     // Map method to MatchSource
     const source = "AUTO" as const
 
-    // Create match record
-    const matchRecord = await db.matchRecord.create({
-      data: {
-        companyId: invoice.companyId,
-        bankTransactionId: paymentId,
-        matchStatus: "AUTO_MATCHED",
-        matchKind: "INVOICE",
-        matchedInvoiceId: invoiceId,
-        confidenceScore: Math.round(confidence * 100),
-        reason,
-        source,
-        metadata: {
-          method,
-          matchedAt: new Date().toISOString(),
+    // Wrap multi-table operations in transaction for atomicity
+    return db.$transaction(async (tx) => {
+      // Create match record
+      const matchRecord = await tx.matchRecord.create({
+        data: {
+          companyId: invoice.companyId,
+          bankTransactionId: paymentId,
+          matchStatus: "AUTO_MATCHED",
+          matchKind: "INVOICE",
+          matchedInvoiceId: invoiceId,
+          confidenceScore: Math.round(confidence * 100),
+          reason,
+          source,
+          metadata: {
+            method,
+            matchedAt: new Date().toISOString(),
+          },
+          createdBy: null, // System-initiated
         },
-        createdBy: null, // System-initiated
-      },
-    })
-
-    // Update bank transaction status
-    await db.bankTransaction.update({
-      where: { id: paymentId },
-      data: {
-        matchStatus: "AUTO_MATCHED",
-        matchedInvoiceId: invoiceId,
-        matchedBy: "system",
-      },
-    })
-
-    // Update invoice status to PAID if not already
-    if (invoice.status !== "PAID") {
-      await db.eInvoice.update({
-        where: { id: invoiceId },
-        data: { status: "PAID" },
       })
-    }
 
-    return matchRecord
+      // Update bank transaction status
+      await tx.bankTransaction.update({
+        where: { id: paymentId },
+        data: {
+          matchStatus: "AUTO_MATCHED",
+          matchedInvoiceId: invoiceId,
+          matchedBy: "system",
+        },
+      })
+
+      // Update invoice status to PAID if not already
+      if (invoice.status !== "PAID") {
+        await tx.eInvoice.update({
+          where: { id: invoiceId },
+          data: { status: "PAID" },
+        })
+      }
+
+      return matchRecord
+    })
   }
 
   /**
@@ -477,44 +480,47 @@ export class PaymentMatchingService {
 
     const matchReason = reason || CROATIAN_LABELS.reasonManualMatch
 
-    // Create match record
-    const matchRecord = await db.matchRecord.create({
-      data: {
-        companyId: invoice.companyId,
-        bankTransactionId: paymentId,
-        matchStatus: "MANUAL_MATCHED",
-        matchKind: "INVOICE",
-        matchedInvoiceId: invoiceId,
-        confidenceScore: 100, // Manual matches have full confidence
-        reason: matchReason,
-        source: "MANUAL",
-        metadata: {
-          method: "manual",
-          matchedAt: new Date().toISOString(),
+    // Wrap multi-table operations in transaction for atomicity
+    return db.$transaction(async (tx) => {
+      // Create match record
+      const matchRecord = await tx.matchRecord.create({
+        data: {
+          companyId: invoice.companyId,
+          bankTransactionId: paymentId,
+          matchStatus: "MANUAL_MATCHED",
+          matchKind: "INVOICE",
+          matchedInvoiceId: invoiceId,
+          confidenceScore: 100, // Manual matches have full confidence
+          reason: matchReason,
+          source: "MANUAL",
+          metadata: {
+            method: "manual",
+            matchedAt: new Date().toISOString(),
+          },
+          createdBy: userId,
         },
-        createdBy: userId,
-      },
-    })
-
-    // Update bank transaction status
-    await db.bankTransaction.update({
-      where: { id: paymentId },
-      data: {
-        matchStatus: "MANUAL_MATCHED",
-        matchedInvoiceId: invoiceId,
-        matchedBy: userId,
-      },
-    })
-
-    // Update invoice status to PAID if not already
-    if (invoice.status !== "PAID") {
-      await db.eInvoice.update({
-        where: { id: invoiceId },
-        data: { status: "PAID" },
       })
-    }
 
-    return matchRecord
+      // Update bank transaction status
+      await tx.bankTransaction.update({
+        where: { id: paymentId },
+        data: {
+          matchStatus: "MANUAL_MATCHED",
+          matchedInvoiceId: invoiceId,
+          matchedBy: userId,
+        },
+      })
+
+      // Update invoice status to PAID if not already
+      if (invoice.status !== "PAID") {
+        await tx.eInvoice.update({
+          where: { id: invoiceId },
+          data: { status: "PAID" },
+        })
+      }
+
+      return matchRecord
+    })
   }
 
   // ===========================================================================
@@ -569,54 +575,57 @@ export class PaymentMatchingService {
       throw new Error("New invoice must belong to the same company")
     }
 
-    // Update old invoice status back to unpaid if it was this match that marked it paid
-    if (existingMatch.matchedInvoiceId && existingMatch.matchedInvoice) {
-      await db.eInvoice.update({
-        where: { id: existingMatch.matchedInvoiceId },
-        data: { status: "ISSUED" },
-      })
-    }
+    // Wrap multi-table operations in transaction for atomicity
+    return db.$transaction(async (tx) => {
+      // Update old invoice status back to unpaid if it was this match that marked it paid
+      if (existingMatch.matchedInvoiceId && existingMatch.matchedInvoice) {
+        await tx.eInvoice.update({
+          where: { id: existingMatch.matchedInvoiceId },
+          data: { status: "ISSUED" },
+        })
+      }
 
-    // Create new match record with override reference
-    const newMatch = await db.matchRecord.create({
-      data: {
-        companyId: existingMatch.companyId,
-        bankTransactionId: existingMatch.bankTransactionId,
-        matchStatus: "MANUAL_MATCHED",
-        matchKind: "INVOICE",
-        matchedInvoiceId: newInvoiceId,
-        confidenceScore: 100,
-        reason,
-        source: "MANUAL",
-        metadata: {
-          method: "manual",
-          matchedAt: new Date().toISOString(),
-          overrideReason: reason,
+      // Create new match record with override reference
+      const newMatch = await tx.matchRecord.create({
+        data: {
+          companyId: existingMatch.companyId,
+          bankTransactionId: existingMatch.bankTransactionId,
+          matchStatus: "MANUAL_MATCHED",
+          matchKind: "INVOICE",
+          matchedInvoiceId: newInvoiceId,
+          confidenceScore: 100,
+          reason,
+          source: "MANUAL",
+          metadata: {
+            method: "manual",
+            matchedAt: new Date().toISOString(),
+            overrideReason: reason,
+          },
+          createdBy: userId,
+          overrideOf: matchId,
         },
-        createdBy: userId,
-        overrideOf: matchId,
-      },
-    })
-
-    // Update bank transaction
-    await db.bankTransaction.update({
-      where: { id: existingMatch.bankTransactionId },
-      data: {
-        matchStatus: "MANUAL_MATCHED",
-        matchedInvoiceId: newInvoiceId,
-        matchedBy: userId,
-      },
-    })
-
-    // Update new invoice status
-    if (newInvoice.status !== "PAID") {
-      await db.eInvoice.update({
-        where: { id: newInvoiceId },
-        data: { status: "PAID" },
       })
-    }
 
-    return newMatch
+      // Update bank transaction
+      await tx.bankTransaction.update({
+        where: { id: existingMatch.bankTransactionId },
+        data: {
+          matchStatus: "MANUAL_MATCHED",
+          matchedInvoiceId: newInvoiceId,
+          matchedBy: userId,
+        },
+      })
+
+      // Update new invoice status
+      if (newInvoice.status !== "PAID") {
+        await tx.eInvoice.update({
+          where: { id: newInvoiceId },
+          data: { status: "PAID" },
+        })
+      }
+
+      return newMatch
+    })
   }
 
   /**
@@ -641,44 +650,47 @@ export class PaymentMatchingService {
       throw new Error(`Match record not found: ${matchId}`)
     }
 
-    // Create a new "unlink" match record for audit trail
-    await db.matchRecord.create({
-      data: {
-        companyId: existingMatch.companyId,
-        bankTransactionId: existingMatch.bankTransactionId,
-        matchStatus: "UNMATCHED",
-        matchKind: "UNMATCH",
-        matchedInvoiceId: null,
-        confidenceScore: null,
-        reason: CROATIAN_LABELS.auditUnlinked,
-        source: "MANUAL",
-        metadata: {
-          method: "unlink",
-          unlinkedAt: new Date().toISOString(),
-          previousMatchId: matchId,
+    // Wrap multi-table operations in transaction for atomicity
+    await db.$transaction(async (tx) => {
+      // Create a new "unlink" match record for audit trail
+      await tx.matchRecord.create({
+        data: {
+          companyId: existingMatch.companyId,
+          bankTransactionId: existingMatch.bankTransactionId,
+          matchStatus: "UNMATCHED",
+          matchKind: "UNMATCH",
+          matchedInvoiceId: null,
+          confidenceScore: null,
+          reason: CROATIAN_LABELS.auditUnlinked,
+          source: "MANUAL",
+          metadata: {
+            method: "unlink",
+            unlinkedAt: new Date().toISOString(),
+            previousMatchId: matchId,
+          },
+          createdBy: userId,
+          overrideOf: matchId,
         },
-        createdBy: userId,
-        overrideOf: matchId,
-      },
-    })
-
-    // Update bank transaction to unmatched
-    await db.bankTransaction.update({
-      where: { id: existingMatch.bankTransactionId },
-      data: {
-        matchStatus: "UNMATCHED",
-        matchedInvoiceId: null,
-        matchedBy: null,
-      },
-    })
-
-    // Update invoice status back to unpaid
-    if (existingMatch.matchedInvoiceId && existingMatch.matchedInvoice) {
-      await db.eInvoice.update({
-        where: { id: existingMatch.matchedInvoiceId },
-        data: { status: "ISSUED" },
       })
-    }
+
+      // Update bank transaction to unmatched
+      await tx.bankTransaction.update({
+        where: { id: existingMatch.bankTransactionId },
+        data: {
+          matchStatus: "UNMATCHED",
+          matchedInvoiceId: null,
+          matchedBy: null,
+        },
+      })
+
+      // Update invoice status back to unpaid
+      if (existingMatch.matchedInvoiceId && existingMatch.matchedInvoice) {
+        await tx.eInvoice.update({
+          where: { id: existingMatch.matchedInvoiceId },
+          data: { status: "ISSUED" },
+        })
+      }
+    })
   }
 
   // ===========================================================================
