@@ -332,6 +332,7 @@ describe("RegulatoryCalendarService", () => {
       // Monthly amounts
       expect(tokens.monthly_mio_i).toBe(107.88)
       expect(tokens.monthly_mio_ii).toBe(35.96)
+      expect(tokens.contribution_mio).toBe(143.84) // Combined MIO I + MIO II (107.88 + 35.96)
       expect(tokens.monthly_hzzo).toBe(118.67)
       expect(tokens.monthly_contributions_total).toBe(262.51)
 

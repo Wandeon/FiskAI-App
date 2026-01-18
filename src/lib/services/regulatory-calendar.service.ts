@@ -424,6 +424,7 @@ export class RegulatoryCalendarService {
       // Monthly contribution amounts (at minimum base)
       monthly_mio_i: monthlyContribs.mioI,
       monthly_mio_ii: monthlyContribs.mioII,
+      contribution_mio: monthlyContribs.mioI + monthlyContribs.mioII, // Combined MIO total
       monthly_hzzo: monthlyContribs.hzzo,
       monthly_contributions_total: monthlyContribs.total,
       contribution_base_minimum: CONTRIBUTIONS.base.minimum,
