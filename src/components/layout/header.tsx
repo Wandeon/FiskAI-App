@@ -126,7 +126,10 @@ export async function Header() {
             />
           )}
 
-          <PlanBadge capabilities={capabilities} className="hidden xl:flex" />
+          {/* Only show PlanBadge when company has a valid legalForm */}
+          {currentCompany?.legalForm && (
+            <PlanBadge capabilities={capabilities} className="hidden xl:flex" />
+          )}
         </div>
 
         {/* Right Section */}

@@ -2,6 +2,7 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { useOnboardingStore } from "@/lib/stores/onboarding-store"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ const LEGAL_FORM_OPTIONS: { value: LegalForm; label: string; description: string
 ]
 
 export function StepBasicInfo() {
+  const router = useRouter()
   const { data, updateData, setStep, isStepValid } = useOnboardingStore()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +56,13 @@ export function StepBasicInfo() {
         toast.error("Greška", result.error)
       } else {
         trackEvent(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, { step: 1 })
-        setStep(2)
+
+        // Paušalni users get redirected to the specialized 3-step wizard
+        if (data.legalForm === "OBRT_PAUSAL") {
+          router.push("/pausalni/onboarding")
+        } else {
+          setStep(2)
+        }
       }
     })
   }
