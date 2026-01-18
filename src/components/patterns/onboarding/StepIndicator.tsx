@@ -14,7 +14,7 @@ interface StepInfo {
 const STEPS: StepInfo[] = [
   { number: 1, title: "Identitet", question: "Tko ste?" },
   { number: 2, title: "Situacija", question: "Vaša situacija" },
-  { number: 3, title: "Postavljanje", question: "Setup checklist" },
+  { number: 3, title: "Postavljanje", question: "Postavite svoj obrt" },
 ]
 
 interface StepIndicatorProps {

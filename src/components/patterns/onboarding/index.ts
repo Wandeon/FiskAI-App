@@ -7,3 +7,11 @@ export {
   type IncomeRange,
 } from "./OnboardingStep2Situation"
 export { SituationQuestion, type SituationOption } from "./SituationQuestion"
+export {
+  SetupChecklistItem,
+  type SetupChecklistItemProps,
+  type ChecklistItemStatus,
+  type ChecklistAction,
+  type ChecklistInputField,
+} from "./SetupChecklistItem"
+export { OnboardingStep3Setup, type Step3FormData } from "./OnboardingStep3Setup"
