@@ -369,9 +369,9 @@ skipIfNoDb("DataProvenanceService DB Tests", () => {
     it("generates display text for manual entry without confidence", () => {
       const display = service.getProvenanceDisplay(DataSource.MANUAL)
 
-      expect(display.sourceLabel).toBe("Rucni unos")
+      expect(display.sourceLabel).toBe("Ručni unos")
       expect(display.confidenceText).toBeNull()
-      expect(display.fullText).toBe("Rucni unos")
+      expect(display.fullText).toBe("Ručni unos")
       expect(display.confidenceLevel).toBeNull()
       expect(display.isManual).toBe(true)
     })
@@ -494,7 +494,7 @@ skipIfNoDb("DataProvenanceService DB Tests", () => {
 
     it("singleton works correctly", () => {
       const display = dataProvenanceService.getProvenanceDisplay(DataSource.MANUAL)
-      expect(display.sourceLabel).toBe("Rucni unos")
+      expect(display.sourceLabel).toBe("Ručni unos")
     })
   })
 })

@@ -151,7 +151,7 @@ const SOURCE_LABELS: Record<string, string> = {
   [DataSource.REGISTRY_LOOKUP]: "Iz sudskog registra",
   [DataSource.DOCUMENT_PARSE]: "Iz dokumenta",
   [DataSource.BANK_STATEMENT]: "Iz bankovnog izvoda",
-  [DataSource.MANUAL]: "Rucni unos",
+  [DataSource.MANUAL]: "Ručni unos",
   [DataSource.SYSTEM]: "Automatski generirano",
   [DataSource.AUTO_MATCH]: "Automatski spojeno",
 }
@@ -479,7 +479,7 @@ export class DataProvenanceService {
    * // "Iz sudskog registra (95% pouzdanost)"
    *
    * const manualDisplay = dataProvenanceService.getProvenanceDisplay('manual')
-   * // "Rucni unos"
+   * // "Ručni unos"
    */
   getProvenanceDisplay(source: DataSource | string, confidence?: number | null): ProvenanceDisplay {
     const sourceLabel = SOURCE_LABELS[source] ?? `Izvor: ${source}`
