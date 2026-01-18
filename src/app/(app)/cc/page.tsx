@@ -11,6 +11,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireAuth, requireCompany } from "@/lib/auth-utils"
 import { ControlCenterShell, QueueRenderer, type QueueItem } from "@/components/capability"
 import { resolveCapabilitiesForUser } from "@/lib/capabilities/server"
 import { CLIENT_QUEUES } from "./queues"
@@ -143,10 +144,8 @@ async function getQueueItems(queue: (typeof CLIENT_QUEUES)[number]): Promise<Que
 }
 
 export default async function ClientControlCenterPage() {
-  const session = await auth()
-  if (!session?.user) {
-    redirect("/auth")
-  }
+  const user = await requireAuth()
+  await requireCompany(user.id!)
 
   // Fetch items for all queues
   const queueData = await Promise.all(
