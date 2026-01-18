@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { StepIndicator } from "./StepIndicator"
 import { SituationQuestion, type SituationOption } from "./SituationQuestion"
-import { tokenResolver } from "@/lib/services"
+import { tokenResolver } from "@/lib/services/token-resolver.service"
 
 // =============================================================================
 // TYPES
