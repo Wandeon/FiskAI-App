@@ -1,8 +1,32 @@
-# FiskAI Project Notes
+# FiskAI Application Repository
 
-> Canonical document - reviewed 2026-01-14
+> Canonical document - reviewed 2026-01-18
 >
 > This file provides AI assistants with project context. For full documentation, see [docs/](./docs/).
+
+## Repository Scope
+
+**This repository contains the FiskAI application only.** The marketing site is in a separate repository.
+
+| Repository        | Purpose                       | URL           |
+| ----------------- | ----------------------------- | ------------- |
+| **FiskAI** (this) | Next.js app, API, workers     | app.fiskai.hr |
+| fiskai-marketing  | Marketing site, landing pages | fiskai.hr     |
+
+**What's in this repo:**
+
+- Client dashboard (authenticated users)
+- Staff portal (accountants)
+- Admin portal (platform management)
+- API routes and server actions
+- Background workers (Regulatory Truth Layer)
+- Database schemas (Prisma + Drizzle)
+
+**What's NOT in this repo:**
+
+- Marketing landing pages
+- Public guides/vodici content (moved to fiskai-marketing)
+- SEO/comparison pages
 
 ## ⛔ CRITICAL: Branch Protection Policy
 
@@ -252,12 +276,14 @@ Anything else is unfinished work.
 **Domain:** `fiskai.hr` (Cloudflare-managed, primary)
 **Legacy:** `fiskai.eu` (redirects to fiskai.hr)
 
-| Portal       | URL                   | Audience             | Purpose                 |
-| ------------ | --------------------- | -------------------- | ----------------------- |
-| Marketing    | `fiskai.hr`           | Public               | Landing, guides, auth   |
-| Client App   | `app.fiskai.hr`       | Clients              | Business dashboard      |
-| Staff Portal | `app.fiskai.hr/staff` | Internal accountants | Multi-client workspace  |
-| Admin Portal | `app.fiskai.hr/admin` | Platform owner       | Tenant/staff management |
+| Portal       | URL                   | Audience             | Purpose                 | Repository       |
+| ------------ | --------------------- | -------------------- | ----------------------- | ---------------- |
+| Marketing    | `fiskai.hr`           | Public               | Landing, guides         | fiskai-marketing |
+| Client App   | `app.fiskai.hr`       | Clients              | Business dashboard      | **FiskAI**       |
+| Staff Portal | `app.fiskai.hr/staff` | Internal accountants | Multi-client workspace  | **FiskAI**       |
+| Admin Portal | `app.fiskai.hr/admin` | Platform owner       | Tenant/staff management | **FiskAI**       |
+
+**This repository serves `app.fiskai.hr` only.**
 
 **SystemRole Enum:** `USER` | `STAFF` | `ADMIN` (separate from per-company roles)
 
@@ -328,18 +354,29 @@ See `.claude/skills/coolify-deployment/SKILL.md` for complete API documentation.
 ./scripts/deploy-workers.sh
 ```
 
-### Marketing Site Separation
+### Deployment Flow (This Repository)
 
-Marketing pages are now in a **separate repository** and deployed separately:
+**Automatic deployment on merge to `main`:**
 
-| Component      | URL                      | Hosting                    | Repository       |
-| -------------- | ------------------------ | -------------------------- | ---------------- |
-| Marketing Site | fiskai.hr, www.fiskai.hr | SiteGround (static)        | fiskai-marketing |
-| Application    | app.fiskai.hr            | Coolify (Docker on VPS-01) | FiskAI           |
+1. GitHub Actions builds ARM64 Docker image
+2. Image pushed to GHCR (GitHub Container Registry)
+3. Coolify webhook triggers deployment on VPS-01
+4. New container replaces old with zero-downtime
 
-**Note:** Auth pages (login, register) are handled by the app, not marketing site.
+**Manual deployment (if needed):**
 
-See `docs/operations/MARKETING_SEPARATION.md` for complete details.
+```bash
+# Trigger via GitHub Actions (preferred)
+gh workflow run "Build and Publish Images" --ref main
+
+# Or via Coolify API
+curl -X POST "http://152.53.146.3:8000/api/v1/applications/bsswgo8ggwgkw8c88wo8wcw8/start" \
+  -H "Authorization: Bearer $COOLIFY_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"force": true}'
+```
+
+**Marketing site is deployed separately** from the `fiskai-marketing` repository to SiteGround.
 
 ### Docker Images
 
@@ -434,10 +471,8 @@ See `docs/adr/001-ddd-clean-architecture.md` for the full decision record.
 
 ## Key Directories
 
-### Content & Documentation
+### Documentation
 
-- `/content/vodici/` - MDX guides (synced by content-sync worker)
-- `/content/usporedbe/` - MDX comparisons
 - `/docs/` - Project documentation (see DOC-MAP.md)
 - `/docs/plans/` - Implementation plans
 - `/docs/operations/` - Operational runbooks
@@ -449,12 +484,13 @@ See `docs/adr/001-ddd-clean-architecture.md` for the full decision record.
 - `/src/app/staff/` - Staff portal (STAFF/ADMIN role required)
 - `/src/app/admin/` - Admin portal (ADMIN role required)
 - `/src/app/api/` - API routes
-- `/src/components/` - React components (4-layer architecture)
+- `/src/app/(auth)/` - Authentication pages (login, register, etc.)
+- `/src/components/` - React components (ui, patterns, sections)
 - `/src/lib/` - Business logic and utilities
+- `/src/lib/services/` - Application services
 - `/src/lib/regulatory-truth/` - Regulatory Truth Layer implementation
 - `/src/lib/regulatory-truth/workers/` - Worker implementations (15 workers)
 - `/src/lib/modules/` - Module definitions & access control
-- `/src/lib/middleware/` - Subdomain and path-based routing
 - `/src/domain/` - Pure business logic (DDD)
 - `/src/application/` - Use cases
 - `/src/infrastructure/` - External services & DB
@@ -469,21 +505,20 @@ See `docs/adr/001-ddd-clean-architecture.md` for the full decision record.
 
 ## Component Architecture
 
-4-layer component system with ESLint-enforced import boundaries:
+Layered component system with ESLint-enforced import boundaries:
 
 ```
-ui/ + motion/  →  patterns/  →  sections/  →  templates/  →  pages
+ui/  →  patterns/  →  pages
 ```
 
-- `src/components/ui/` - Primitives (Button, Card, Badge)
-- `src/components/motion/` - Animation behaviors (Reveal, Stagger)
-- `src/components/patterns/` - Composed primitives (SectionHeading, FeatureCard)
-- `src/components/sections/` - Page sections (HeroSection, FeatureGrid)
-- `src/components/templates/` - Portal-scoped templates (MarketingPageTemplate)
+- `src/components/ui/` - Design system primitives (Button, Card, Badge, Input, etc.)
+- `src/components/patterns/` - Composed components for app features:
+  - `patterns/onboarding/` - Onboarding flow components
+  - `patterns/dashboard/` - Dashboard widgets and cards
+  - `patterns/invoicing/` - Invoice-related UI
+  - `patterns/settings/` - Settings and configuration UI
 
 **Rule:** Each layer can only import from layers to its left. ESLint blocks upward imports.
-
-See `docs/03_ARCHITECTURE/COMPONENT_LAYERS_MIGRATION.md` for migration guide.
 
 ## Module System
 
@@ -518,12 +553,12 @@ Since Cloudflare proxies traffic, Let's Encrypt HTTP-01 challenge fails.
 
 **Authentication:**
 
-- `NEXTAUTH_URL` - https://fiskai.hr
+- `NEXTAUTH_URL` - https://app.fiskai.hr
 - `NEXTAUTH_SECRET` - Auth encryption key (32 bytes hex)
 
 **Application:**
 
-- `NEXT_PUBLIC_APP_URL` - https://fiskai.hr
+- `NEXT_PUBLIC_APP_URL` - https://app.fiskai.hr
 - `NEXT_PUBLIC_APP_NAME` - FiskAI
 
 **Email:**
@@ -710,13 +745,10 @@ Docker builds take 10-15 minutes. Instead:
 
 ### Available Scripts
 
-**Deployment:**
+**Deployment (usually automatic via GitHub Actions on merge to main):**
 
-- `scripts/deploy-to-vps01.sh` - Deploy app to VPS-01 via Coolify API
 - `scripts/deploy-workers.sh` - Deploy workers to VPS
 - `scripts/build-workers.sh` - Build worker Docker images
-- `scripts/build-remote.sh` - Build images on remote BuildKit
-- `scripts/build-arm64.sh` - Build ARM64 images
 
 **Database:**
 
@@ -765,33 +797,22 @@ See `scripts/README.md` for complete script documentation.
 docs/
 ├── product-bible/       # Product Bible (modular chapters)
 │   ├── 00-INDEX.md      # Master index with version history
-│   ├── 01-VISION-ARCHITECTURE.md
-│   ├── 02-USERS-JOURNEYS.md
-│   ├── 03-LEGAL-COMPLIANCE.md
-│   ├── 04-ACCESS-CONTROL.md
-│   ├── 05-UI-EXPERIENCE.md
-│   ├── 06-INTEGRATIONS.md
-│   ├── 07-DATA-API.md
-│   ├── 08-APPENDIXES.md
-│   └── 09-GUIDANCE-SYSTEM.md    # NEW: Adaptive help system
+│   └── ...              # Vision, users, compliance, UI, integrations
 ├── 01_ARCHITECTURE/     # System architecture
 │   └── REGULATORY_TRUTH_LAYER.md  # Complete RTL architecture
 ├── 02_FEATURES/         # Feature specifications
 │   └── FEATURE_REGISTRY.md        # Master feature list with status
 ├── 03_ARCHITECTURE/     # Component architecture
 │   └── AI_ASSISTANT.md            # AI Assistant system architecture
-├── 04_OPERATIONS/       # Operations runbooks
-├── 05_REGULATORY/       # Regulatory Truth Layer
-├── 07_AUDITS/           # Audit reports
-├── _meta/               # Meta-documentation
-└── plans/               # Implementation plans
+├── operations/          # Operations runbooks
+├── audits/              # Audit reports
+└── plans/               # Implementation plans (design docs)
 ```
 
-**Product Bible:** For complete product specification (vision, personas, compliance, modules, UI flows, API), see [docs/product-bible/00-INDEX.md](./docs/product-bible/00-INDEX.md).
+**Key Documents:**
 
-**Architecture Docs:**
-
-- [RTL Architecture](./docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md) - Complete Regulatory Truth Layer specification
-- [AI Assistant](./docs/03_ARCHITECTURE/AI_ASSISTANT.md) - AI Assistant system architecture
+- [Product Bible](./docs/product-bible/00-INDEX.md) - Complete product specification
+- [RTL Architecture](./docs/01_ARCHITECTURE/REGULATORY_TRUTH_LAYER.md) - Regulatory Truth Layer
+- [Feature Registry](./docs/02_FEATURES/FEATURE_REGISTRY.md) - Feature list with status
 
 See [docs/DOC-MAP.md](./docs/DOC-MAP.md) for complete documentation structure.
