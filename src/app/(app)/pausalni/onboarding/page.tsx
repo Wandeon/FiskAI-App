@@ -17,16 +17,17 @@ export default function PausalniOnboardingPage() {
   const [formData, setFormData] = useState<Partial<Step1FormData>>({})
 
   // Handle step 1 completion
-  const handleStep1Next = useCallback((data: Step1FormData) => {
-    setFormData(data)
-    // TODO: Save to server/store
-    // TODO: Navigate to step 2
-    console.log("Step 1 completed:", data)
+  const handleStep1Next = useCallback(
+    (data: Step1FormData) => {
+      setFormData(data)
+      // TODO: Save to server/store
+      console.log("Step 1 completed:", data)
 
-    // For now, just log the data
-    // In the future, this will navigate to step 2:
-    // router.push("/pausalni/onboarding/step-2")
-  }, [])
+      // Navigate to step 2
+      router.push("/pausalni/onboarding/step-2")
+    },
+    [router]
+  )
 
   // Handle back navigation
   const handleBack = useCallback(() => {
