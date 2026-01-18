@@ -252,6 +252,7 @@ model Company {
   taxIdentities                  TaxIdentity[]
   documents                      Document[]
   providerSyncStates             ProviderSyncState[]
+  complianceEvaluations          ComplianceEvaluation[]
 }
 
 model ChartOfAccounts {
@@ -1892,6 +1893,7 @@ model MatchRecord {
   metadata          Json?
   createdAt         DateTime        @default(now())
   createdBy         String?
+  overrideOf        String? // Previous match ID if this match overrides another
   company           Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
   bankTransaction   BankTransaction @relation(fields: [bankTransactionId], references: [id], onDelete: Cascade)
   matchedInvoice    EInvoice?       @relation(fields: [matchedInvoiceId], references: [id], onDelete: SetNull)
@@ -1902,6 +1904,7 @@ model MatchRecord {
   @@index([matchStatus])
   @@index([matchKind])
   @@index([createdAt])
+  @@index([overrideOf])
 }
 
 model UnappliedPayment {
@@ -3242,6 +3245,12 @@ enum MatchKind {
   EXPENSE
   IGNORE
   UNMATCH
+}
+
+enum ComplianceState {
+  OK
+  ATTENTION
+  RISK
 }
 
 enum ImportFormat {
@@ -5897,4 +5906,43 @@ model ProviderSyncState {
   @@index([companyId])
   @@index([provider, direction])
   @@index([integrationAccountId])
+}
+
+// =============================================================================
+// COMPLIANCE EVALUATION - Tracks paušalni obrt compliance state
+// =============================================================================
+
+model ComplianceEvaluation {
+  id          String          @id @default(cuid())
+  companyId   String
+  state       ComplianceState
+  reasons     Json // ComplianceReason[]
+  evaluatedAt DateTime        @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([companyId, evaluatedAt])
+  @@index([state])
+}
+
+// =============================================================================
+// DATA PROVENANCE - Tracks source and confidence of entity field values
+// =============================================================================
+
+model DataProvenance {
+  id         String   @id @default(cuid())
+  entityType String // 'Contact', 'Invoice', etc.
+  entityId   String
+  field      String // 'address', 'name', etc.
+  source     String // 'registry_lookup', 'document_parse', 'manual'
+  confidence Float? // 0.0 - 1.0
+  sourceRef  String? // External reference
+  capturedAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([entityType, entityId, field])
+  @@index([source])
+  @@index([capturedAt])
+  @@unique([entityType, entityId, field])
 }
