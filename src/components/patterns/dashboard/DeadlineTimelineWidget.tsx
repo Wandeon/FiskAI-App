@@ -107,9 +107,7 @@ export function DeadlineTimelineWidget({ deadlines, className }: DeadlineTimelin
   const upcomingDeadlines = sortedDeadlines.filter((d) => !isDeadlinePast(d.date))
 
   // Find the next urgent deadline (within 14 days or explicitly marked urgent)
-  const urgentDeadline = upcomingDeadlines.find(
-    (d) => d.isUrgent || isDeadlineUrgent(d.date)
-  )
+  const urgentDeadline = upcomingDeadlines.find((d) => d.isUrgent || isDeadlineUrgent(d.date))
 
   // Take first 3-5 deadlines for the timeline display
   const timelineDeadlines = upcomingDeadlines.slice(0, 5)
@@ -167,9 +165,10 @@ export function DeadlineTimelineWidget({ deadlines, className }: DeadlineTimelin
                 <div className="relative flex justify-between w-full">
                   {timelineDeadlines.map((deadline, index) => {
                     const isUrgentPoint = deadline.isUrgent || isDeadlineUrgent(deadline.date)
-                    const positionPercent = timelineDeadlines.length === 1
-                      ? 50
-                      : (index / (timelineDeadlines.length - 1)) * 100
+                    const positionPercent =
+                      timelineDeadlines.length === 1
+                        ? 50
+                        : (index / (timelineDeadlines.length - 1)) * 100
 
                     return (
                       <div
@@ -238,12 +237,7 @@ export function DeadlineTimelineWidget({ deadlines, className }: DeadlineTimelin
                       {formatDateFull(urgentDeadline.date)}
                     </p>
                     {urgentDeadline.actionUrl && urgentDeadline.actionLabel && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-3"
-                        asChild
-                      >
+                      <Button variant="outline" size="sm" className="mt-3" asChild>
                         <a href={urgentDeadline.actionUrl}>{urgentDeadline.actionLabel}</a>
                       </Button>
                     )}

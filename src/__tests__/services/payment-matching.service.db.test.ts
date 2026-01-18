@@ -46,7 +46,9 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
       data: {
         name: `Test Company Payment Matching ${testSuffix}`,
         oib: `111222333${testSuffix.slice(-2)}`,
-        ownerId: testUserId,
+        address: "Test Address 1",
+        city: "Zagreb",
+        postalCode: "10000",
       },
     })
     testCompanyId = testCompany.id
@@ -59,6 +61,7 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
         iban: `HR123456789012345${testSuffix.slice(-4)}`,
         currency: "EUR",
         bankName: "Test Bank",
+        currentBalance: 0,
       },
     })
     testBankAccountId = testBankAccount.id
@@ -123,7 +126,7 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
     const {
       invoiceNumber = `INV-${Date.now()}`,
       totalAmount = 1200.0,
-      status = "ISSUED",
+      status = "FISCALIZED" as const,
       buyerName = "Test Buyer d.o.o.",
       buyerOib = "98765432109",
       dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
@@ -133,7 +136,7 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
     const buyer = await db.contact.create({
       data: {
         companyId: testCompanyId,
-        type: "CLIENT",
+        type: "CUSTOMER",
         name: buyerName,
         oib: buyerOib,
       },
@@ -165,7 +168,7 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
       amount?: number
       description?: string
       counterpartyName?: string
-      matchStatus?: string
+      matchStatus?: "UNMATCHED" | "AUTO_MATCHED" | "MANUAL_MATCHED" | "IGNORED"
       date?: Date
     } = {}
   ) {
@@ -173,7 +176,7 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
       amount = 1200.0,
       description = "Uplata",
       counterpartyName = "Test Payer",
-      matchStatus = "UNMATCHED",
+      matchStatus = "UNMATCHED" as const,
       date = new Date(),
     } = options
 
@@ -363,7 +366,9 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
         data: {
           name: `Other Company ${testSuffix}`,
           oib: "99999999999",
-          ownerId: otherUser.id,
+          address: "Other Address 1",
+          city: "Split",
+          postalCode: "21000",
         },
       })
       const otherBankAccount = await db.bankAccount.create({
@@ -373,6 +378,7 @@ skipIfNoDb("PaymentMatchingService DB Tests", () => {
           iban: "HR9999999999999999999",
           currency: "EUR",
           bankName: "Other Bank",
+          currentBalance: 0,
         },
       })
       const otherTransaction = await db.bankTransaction.create({

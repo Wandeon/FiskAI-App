@@ -142,7 +142,12 @@ export function IncomeTrackingWidget({
       <div className={cn("px-6 py-4", config.bgClass)}>
         <div className="flex items-center gap-3">
           <BarChart3 className={cn("h-5 w-5 shrink-0", config.textClass)} aria-hidden="true" />
-          <h2 className={cn("text-heading-sm font-semibold uppercase tracking-wide", config.textClass)}>
+          <h2
+            className={cn(
+              "text-heading-sm font-semibold uppercase tracking-wide",
+              config.textClass
+            )}
+          >
             Prihod {year}
           </h2>
         </div>
@@ -172,27 +177,20 @@ export function IncomeTrackingWidget({
             <span className={cn("text-body-sm font-medium", config.textClass)}>
               {displayPercentage}%
             </span>
-            <span className="text-body-sm text-secondary">
-              {formatMoneyCroatian(limit)}
-            </span>
+            <span className="text-body-sm text-secondary">{formatMoneyCroatian(limit)}</span>
           </div>
         </div>
 
         {/* Source and timestamp */}
         <div className="mt-4 space-y-1">
           <p className="text-body-sm text-tertiary">Izvor: izdani računi</p>
-          <p className="text-body-sm text-tertiary">
-            Ažurirano: {formatDateCroatian(lastUpdated)}
-          </p>
+          <p className="text-body-sm text-tertiary">Ažurirano: {formatDateCroatian(lastUpdated)}</p>
         </div>
 
         {/* Details link */}
         {detailsUrl && (
           <div className="mt-4 pt-4 border-t border-border flex justify-end">
-            <a
-              href={detailsUrl}
-              className="text-body-sm font-medium text-primary hover:underline"
-            >
+            <a href={detailsUrl} className="text-body-sm font-medium text-primary hover:underline">
               Detalji →
             </a>
           </div>

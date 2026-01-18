@@ -319,7 +319,8 @@ export class PaymentMatchingService {
     const unpaidInvoices = await db.eInvoice.findMany({
       where: {
         companyId: transaction.companyId,
-        status: { in: ["SENT", "ISSUED"] }, // Not yet paid
+        status: { in: ["FISCALIZED", "SENT", "DELIVERED", "ACCEPTED"] }, // Active invoices
+        paymentStatus: "UNPAID", // Not yet paid
         direction: "OUTBOUND", // Issued invoices
       },
       include: {
@@ -427,11 +428,11 @@ export class PaymentMatchingService {
         },
       })
 
-      // Update invoice status to PAID if not already
-      if (invoice.status !== "PAID") {
+      // Update invoice payment status to PAID if not already
+      if (invoice.paymentStatus !== "PAID") {
         await tx.eInvoice.update({
           where: { id: invoiceId },
-          data: { status: "PAID" },
+          data: { paymentStatus: "PAID" },
         })
       }
 
@@ -511,11 +512,11 @@ export class PaymentMatchingService {
         },
       })
 
-      // Update invoice status to PAID if not already
-      if (invoice.status !== "PAID") {
+      // Update invoice payment status to PAID if not already
+      if (invoice.paymentStatus !== "PAID") {
         await tx.eInvoice.update({
           where: { id: invoiceId },
-          data: { status: "PAID" },
+          data: { paymentStatus: "PAID" },
         })
       }
 
@@ -577,11 +578,11 @@ export class PaymentMatchingService {
 
     // Wrap multi-table operations in transaction for atomicity
     return db.$transaction(async (tx) => {
-      // Update old invoice status back to unpaid if it was this match that marked it paid
+      // Update old invoice payment status back to unpaid if it was this match that marked it paid
       if (existingMatch.matchedInvoiceId && existingMatch.matchedInvoice) {
         await tx.eInvoice.update({
           where: { id: existingMatch.matchedInvoiceId },
-          data: { status: "ISSUED" },
+          data: { paymentStatus: "UNPAID" },
         })
       }
 
@@ -616,11 +617,11 @@ export class PaymentMatchingService {
         },
       })
 
-      // Update new invoice status
-      if (newInvoice.status !== "PAID") {
+      // Update new invoice payment status
+      if (newInvoice.paymentStatus !== "PAID") {
         await tx.eInvoice.update({
           where: { id: newInvoiceId },
-          data: { status: "PAID" },
+          data: { paymentStatus: "PAID" },
         })
       }
 
@@ -683,11 +684,11 @@ export class PaymentMatchingService {
         },
       })
 
-      // Update invoice status back to unpaid
+      // Update invoice payment status back to unpaid
       if (existingMatch.matchedInvoiceId && existingMatch.matchedInvoice) {
         await tx.eInvoice.update({
           where: { id: existingMatch.matchedInvoiceId },
-          data: { status: "ISSUED" },
+          data: { paymentStatus: "UNPAID" },
         })
       }
     })
@@ -757,7 +758,7 @@ export class PaymentMatchingService {
     }
 
     // Get user name if not system
-    let matchedByName = CROATIAN_LABELS.actorSystem
+    let matchedByName: string = CROATIAN_LABELS.actorSystem
     if (match.createdBy) {
       const user = await db.user.findUnique({
         where: { id: match.createdBy },
@@ -825,7 +826,8 @@ export class PaymentMatchingService {
     const unpaidInvoices = await db.eInvoice.findMany({
       where: {
         companyId,
-        status: { in: ["SENT", "ISSUED"] },
+        status: { in: ["FISCALIZED", "SENT", "DELIVERED", "ACCEPTED"] },
+        paymentStatus: "UNPAID",
         direction: "OUTBOUND",
       },
       include: {
@@ -1269,7 +1271,7 @@ export class PaymentMatchingService {
     const metadata = match.metadata as { method?: string } | null
     const isManual = (metadata?.method || "manual") === "manual"
 
-    let matchedByName = CROATIAN_LABELS.actorSystem
+    let matchedByName: string = CROATIAN_LABELS.actorSystem
     if (match.createdBy) {
       const user = await db.user.findUnique({
         where: { id: match.createdBy },

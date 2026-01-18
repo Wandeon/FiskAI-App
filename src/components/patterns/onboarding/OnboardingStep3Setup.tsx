@@ -30,7 +30,7 @@ interface IbanData {
  * Logo setup data
  */
 interface LogoData {
-  status: "pending" | "completed" | "skipped"
+  status: "pending" | "in_progress" | "completed" | "skipped"
   file?: File
 }
 
@@ -38,7 +38,7 @@ interface LogoData {
  * Bank connection setup data
  */
 interface BankConnectionData {
-  status: "pending" | "completed" | "skipped"
+  status: "pending" | "in_progress" | "completed" | "skipped"
   connected: boolean
 }
 

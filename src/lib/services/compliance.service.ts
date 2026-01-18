@@ -489,7 +489,7 @@ export class ComplianceService {
       },
     })
 
-    return result._sum.totalAmount ?? 0
+    return result._sum.totalAmount?.toNumber() ?? 0
   }
 
   // ===========================================================================
