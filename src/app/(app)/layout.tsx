@@ -1,5 +1,6 @@
 import { ReactNode } from "react"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { getCurrentCompany } from "@/lib/auth-utils"
 import { Header } from "@/components/layout/header"
@@ -14,8 +15,13 @@ import { GuidanceProvider } from "@/contexts"
 import { getVisibilityProviderProps } from "@/lib/visibility/server"
 import { DashboardSkipLinks } from "@/components/a11y/skip-link"
 import { WhatsNewModal } from "@/components/announcements/WhatsNewModal"
+import { OnboardingHeader } from "@/components/layout/onboarding-header"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  // Check if we're on an onboarding route - hide chrome for focused experience
+  const headersList = await headers()
+  const pathname = headersList.get("x-pathname") || headersList.get("x-invoke-path") || ""
+  const isOnboardingRoute = pathname.includes("/onboarding")
   const session = await auth()
 
   if (!session?.user) {
@@ -38,6 +44,25 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       console.error("Failed to fetch visibility props:", error)
       // Continue without visibility system - will use defaults
     }
+  }
+
+  // For onboarding routes, render minimal layout without sidebar
+  if (isOnboardingRoute) {
+    return (
+      <GuidanceProvider>
+        <div className="min-h-screen bg-surface">
+          <OnboardingHeader />
+          <main className="px-4 py-8 md:py-12">{children}</main>
+          <footer className="border-t border-border bg-surface px-4 py-4 mt-auto">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-body-xs text-muted">
+                Vaši podaci se automatski spremaju tijekom unosa
+              </p>
+            </div>
+          </footer>
+        </div>
+      </GuidanceProvider>
+    )
   }
 
   // Prepare the content that needs to be wrapped by VisibilityProvider

@@ -342,10 +342,11 @@ export async function middleware(request: NextRequest) {
   // src/app/(app)/cc/page.tsx without any rewriting needed.
   // The previous rewrite logic was INCORRECT and caused 404 errors.
 
-  // Add subdomain to headers
+  // Add subdomain and pathname to headers
   const response = NextResponse.next()
   response.headers.set("x-request-id", requestId)
   response.headers.set("x-subdomain", subdomain)
+  response.headers.set("x-pathname", pathname)
   response.headers.set("x-response-time", `${Date.now() - startTime}ms`)
 
   logger.info(
