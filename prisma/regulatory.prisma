@@ -112,7 +112,11 @@ model Evidence {
   embeddingAttempts  Int                         @default(0) // Number of embedding generation attempts
   embeddingUpdatedAt DateTime? // Last embedding status update
 
+  // Instrument linking (nullable - can be backfilled by parser if not known at fetch time)
+  instrumentId       String? // FK to Instrument
+
   source             RegulatorySource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  instrument         Instrument?             @relation(fields: [instrumentId], references: [id])
   artifacts          EvidenceArtifact[]
   extractionRejected ExtractionRejected[]
   // NOTE: Relations to models still in core schema (SourcePointer, AtomicClaim, etc.)
@@ -127,6 +131,7 @@ model Evidence {
   @@index([expiresAt])
   @@index([lastVerifiedAt])
   @@index([embeddingStatus]) // For retry queue queries
+  @@index([instrumentId]) // Query evidence by instrument
   @@schema("regulatory")
 }
 
@@ -558,5 +563,97 @@ model ConfidenceCalibration {
   computedAt DateTime @default(now())
 
   @@index([computedAt]) // Query latest calibration, TTL cleanup
+  @@schema("regulatory")
+}
+
+// =============================================================================
+// NN ENQUEUED JOB - Race-proof global idempotency registry
+// =============================================================================
+// Prevents duplicate enqueues across concurrent nn-sentinel runs.
+// Insert-if-not-exists pattern: only enqueue if insert succeeds.
+// This replaces audit-based idempotency which is brittle under summary mode.
+
+model NNEnqueuedJob {
+  jobKey              String   @id // nn:item:YYYY:ISSUE:ITEM - unique job identifier
+  firstSeenAt         DateTime @default(now())
+  firstSchedulerRunId String // The run that first enqueued this job
+  latestSchedulerRunId String? // Updated if same job seen in later run (skipped)
+
+  // Denormalized location for queries
+  year  Int
+  issue Int
+  item  Int
+  url   String?
+
+  @@index([year, issue]) // Query by location
+  @@index([firstSchedulerRunId]) // Query by run
+  @@map("nn_enqueued_job")
+  @@schema("regulatory")
+}
+
+// =============================================================================
+// INSTRUMENT - Core law/regulation tracking with honest coverage
+// =============================================================================
+// Tracks Croatian legal instruments (zakoni, pravilnici, uredbe, odluke).
+// Models the reality that we may not have complete historical coverage.
+//
+// Key concepts:
+// - canonicalId: Deterministic ID for deduplication (eliUri ?? nnCanonicalKey)
+// - coverageStart: Earliest text we have (honest about gaps)
+// - baseline: Reference point for consolidation (may be later than original enactment)
+// - status: Whether we can produce consolidated text or only cite deltas
+
+model Instrument {
+  id            String   @id @default(cuid())
+  canonicalId   String   @unique // Deterministic: eliUri ?? nnCanonicalKey
+
+  // Identity (at least one required, both allowed)
+  eliUri        String?  @unique // eli/hr/zakon/2024/152/2505 (preferred)
+  nnCanonicalKey String?  @unique // nn:2024:152:2505 (fallback)
+
+  // Human-readable
+  title         String            // "Zakon o porezu na dobit"
+  shortTitle    String?           // "ZPD"
+
+  // Coverage tracking (honest about what we have)
+  coverageStartDate       DateTime?       // Earliest text date we have
+  coverageStartEvidenceId String?         // FK to Evidence (soft ref)
+  coverageStartType       InstrumentTextType @default(UNKNOWN)
+  coverageGapNote         String?         // "Original 1993 enactment pre-dates NN digital archive"
+
+  // Baseline state (reference point for consolidation)
+  hasBaselineText         Boolean @default(false)
+  baselineEvidenceId      String?         // FK to Evidence with baseline text (soft ref)
+  baselineValidFrom       DateTime?       // When this baseline became effective
+
+  // Consolidation status
+  status        InstrumentStatus @default(DELTA_ONLY)
+
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  evidence      Evidence[] // All evidence linked to this instrument
+
+  @@index([status])
+  @@index([coverageStartDate])
+  @@index([createdAt])
+  @@map("instrument")
+  @@schema("regulatory")
+}
+
+enum InstrumentTextType {
+  CONSOLIDATED  // pročišćeni tekst - official consolidated version
+  AMENDMENT     // izmjene i dopune - changes to existing law
+  ORIGINAL      // original enactment (rare to find in archive)
+  UNKNOWN       // couldn't determine type
+  @@schema("regulatory")
+}
+
+enum InstrumentStatus {
+  DELTA_ONLY              // Have amendments but no baseline - can cite deltas, can't consolidate
+  BASELINED               // Have a baseline text - can consolidate forward from it
+  CONSOLIDATED_AVAILABLE  // Have official pročišćeni tekst
   @@schema("regulatory")
 }
