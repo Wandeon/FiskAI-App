@@ -24,6 +24,8 @@ let _extractQueue: Queue | null = null
 let _ocrQueue: Queue | null = null
 let _embeddingQueue: Queue | null = null
 let _selectorAdaptationQueue: Queue | null = null
+let _nnSentinelQueue: Queue | null = null
+let _nnFetchQueue: Queue | null = null
 
 /**
  * Get the scheduled queue for triggering pipeline runs
@@ -154,6 +156,32 @@ export function getSelectorAdaptationQueue(): Queue {
   return _selectorAdaptationQueue
 }
 
+/**
+ * Get the NN sentinel queue for enumeration jobs
+ */
+export function getNNSentinelQueue(): Queue {
+  if (!_nnSentinelQueue) {
+    _nnSentinelQueue = new Queue("nn-sentinel", {
+      connection: redisOptions,
+      prefix: BULLMQ_PREFIX,
+    })
+  }
+  return _nnSentinelQueue
+}
+
+/**
+ * Get the NN fetch queue for fetching NN documents
+ */
+export function getNNFetchQueue(): Queue {
+  if (!_nnFetchQueue) {
+    _nnFetchQueue = new Queue("nn-fetch", {
+      connection: redisOptions,
+      prefix: BULLMQ_PREFIX,
+    })
+  }
+  return _nnFetchQueue
+}
+
 // Backwards-compatible queue exports (proxy to lazy getters)
 export const extractQueue = new Proxy({} as Queue, {
   get(_, prop: string | symbol) {
@@ -224,6 +252,8 @@ export async function closeQueues(): Promise<void> {
     _ocrQueue,
     _embeddingQueue,
     _selectorAdaptationQueue,
+    _nnSentinelQueue,
+    _nnFetchQueue,
   ].filter(Boolean) as Queue[]
   await Promise.all(queues.map((q) => q.close()))
   _scheduledQueue = null
@@ -235,4 +265,6 @@ export async function closeQueues(): Promise<void> {
   _ocrQueue = null
   _embeddingQueue = null
   _selectorAdaptationQueue = null
+  _nnSentinelQueue = null
+  _nnFetchQueue = null
 }

@@ -657,3 +657,117 @@ enum InstrumentStatus {
   CONSOLIDATED_AVAILABLE  // Have official pročišćeni tekst
   @@schema("regulatory")
 }
+
+// =============================================================================
+// NN SENTINEL CHECKPOINT - Resumable enumeration state per year
+// =============================================================================
+// Tracks progress of nn-sentinel enumeration runs.
+// Allows resuming after failures without gaps or duplicates.
+
+model NNSentinelCheckpoint {
+  id                       String                      @id @default(cuid())
+  schedulerRunId           String                      // FK to SchedulerRun (soft ref)
+  year                     Int
+  lastCompletedIssueNumber Int?                        // Last issue fully processed
+  status                   NNSentinelCheckpointStatus  @default(RUNNING)
+  anomalyCount             Int                         @default(0)
+  totalIssuesDiscovered    Int                         @default(0)
+  totalItemsEnqueued       Int                         @default(0)
+  totalItemsSkipped        Int                         @default(0)
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+
+  @@unique([schedulerRunId, year])
+  @@index([status])
+  @@map("nn_sentinel_checkpoint")
+  @@schema("regulatory")
+}
+
+enum NNSentinelCheckpointStatus {
+  RUNNING    // Currently processing
+  COMPLETED  // All issues processed
+  PAUSED     // Stopped due to anomaly or error
+  @@schema("regulatory")
+}
+
+// =============================================================================
+// NN SENTINEL AUDIT EVENT - Immutable audit trail for enumeration decisions
+// =============================================================================
+// Every decision (enqueue, skip, pause) produces an audit event.
+// Enables debugging, coverage analysis, and compliance reporting.
+
+model NNSentinelAuditEvent {
+  id              String                @id @default(cuid())
+  schedulerRunId  String
+  ts              DateTime              @default(now())
+  eventType       NNSentinelEventType
+  decision        NNSentinelDecision
+  reasonCode      NNSentinelReasonCode
+
+  // Location context (nullable depending on event stage)
+  year            Int?
+  issue           Int?
+  item            Int?
+  url             String?
+  jobKey          String?
+
+  // Additional details
+  issueCount      Int?                  // For DISCOVERED_YEAR_ISSUES
+  itemCount       Int?                  // For DISCOVERED_ISSUE_ITEMS
+  details         Json?                 @db.JsonB
+
+  @@index([schedulerRunId, ts])
+  @@index([year, issue, item])
+  @@index([jobKey])
+  @@index([reasonCode])
+  @@map("nn_sentinel_audit_event")
+  @@schema("regulatory")
+}
+
+enum NNSentinelEventType {
+  DISCOVERY  // Found issues/items
+  ENQUEUE    // Enqueued a fetch job
+  SKIP       // Skipped an item
+  ANOMALY    // Detected anomaly
+  ERROR      // Error occurred
+  @@schema("regulatory")
+}
+
+enum NNSentinelDecision {
+  INFO      // Informational event
+  ENQUEUED  // Job was enqueued
+  SKIPPED   // Job was skipped
+  PAUSED    // Enumeration paused
+  FAILED    // Operation failed
+  @@schema("regulatory")
+}
+
+enum NNSentinelReasonCode {
+  // Discovery events
+  RUN_STARTED
+  RUN_COMPLETED
+  DISCOVERED_YEAR_ISSUES
+  DISCOVERED_ISSUE_ITEMS
+  ISSUE_SUMMARY
+  CHECKPOINT_UPDATED
+
+  // Enqueue events
+  ENQUEUED_ITEM
+
+  // Skip events
+  SKIPPED_ALREADY_ENQUEUED
+  SKIPPED_OUT_OF_RANGE
+
+  // Anomaly events (trigger PAUSED)
+  PAUSED_ANOMALY_NO_ISSUES
+  PAUSED_ANOMALY_NO_ITEMS
+  PAUSED_ANOMALY_DUPLICATE_KEYS
+
+  // Error events
+  FAILED_FETCH_LISTING
+
+  // Mode switch
+  SWITCHED_TO_SUMMARY_MODE
+
+  @@schema("regulatory")
+}
