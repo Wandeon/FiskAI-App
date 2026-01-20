@@ -3165,6 +3165,12 @@ enum AuditAction {
   PIPELINE_STAGE_COMPLETE
   STRUCTURAL_DRIFT_DETECTED
 
+  // Regulatory Truth Layer - API Operations
+  BULK_APPROVE_VIA_API
+  BULK_PUBLISH_VIA_API
+  IDEMPOTENCY_CONFLICT
+  IDEMPOTENT_REPLAY
+
   // Staff Portal - Client Data Access (GDPR compliance)
   STAFF_VIEW_CLIENT
   STAFF_VIEW_INVOICES
@@ -3679,6 +3685,53 @@ enum GraphStatus {
   STALE   // Edges need rebuild (rebuild failed or rule modified)
 }
 
+// Hash algorithm used for deterministic content hashing
+enum HashAlgo {
+  SHA256
+}
+
+// Outcome of a publish attempt
+enum PublishOutcome {
+  SUCCESS      // Rule was successfully published
+  BLOCKED      // Rule blocked by invariant check
+  FAILED       // Unexpected error during publish
+}
+
+// Canonical reasons why a rule publish was blocked
+// Keep alphabetical within categories for easy lookup
+enum RulePublishBlockReason {
+  // Lineage failures
+  MISSING_CANDIDATE_FACT_LINEAGE  // No originatingCandidateFactIds
+  MISSING_AGENT_RUN_LINEAGE       // No originatingAgentRunIds
+
+  // Provenance failures
+  PROVENANCE_NOT_FOUND            // Quote not found in evidence
+  PROVENANCE_DRIFT                // Quote found but offsets wrong
+  PROVENANCE_MISMATCH             // Quote text doesn't match
+
+  // Graph failures
+  GRAPH_STATUS_NOT_CURRENT        // graphStatus != CURRENT
+  GRAPH_BUILD_FAILED              // Edge building failed
+
+  // Content failures
+  MISSING_INPUTS_HASH             // inputsHash not computed
+  MISSING_EVIDENCE_HASH           // evidenceHash not computed
+  HASH_MISMATCH                   // Re-computed hash doesn't match stored
+
+  // Budget/policy failures
+  PUBLISH_BUDGET_EXCEEDED         // Daily/monthly budget exhausted
+  TIER_NOT_ELIGIBLE               // Rule tier not allowed for auto-publish
+  CONFIDENCE_TOO_LOW              // derivedConfidence below threshold
+
+  // Status failures
+  INVALID_STATUS_TRANSITION       // Can't transition from current status
+  ALREADY_PUBLISHED               // Rule already has PUBLISHED status
+
+  // Manual intervention
+  MANUAL_BLOCK                    // Operator explicitly blocked
+  PENDING_REVIEW                  // Awaiting human review
+}
+
 enum AuthorityLevel {
   LAW // Legally binding (Narodne novine)
   GUIDANCE // Interpretation (Porezna uprava)
@@ -4017,6 +4070,12 @@ model RegulatoryRule {
   // Graph Status (event-driven edge building)
   graphStatus   GraphStatus @default(PENDING) // PENDING, CURRENT, STALE (edges need rebuild)
 
+  // Determinism Hashes (RTL2 - publish attempt telemetry)
+  // These enable idempotent retries and cheap failure diagnosis
+  inputsHash    String?    // SHA256 of compiler inputs (candidateFacts, evidence IDs, config)
+  evidenceHash  String?    // SHA256 of evidence.rawContent at composition time
+  hashAlgo      HashAlgo?  // Algorithm used (currently always SHA256)
+
   composerNotes     String?
   reviewerNotes     String?
   approvedBy        String? // User ID who approved (for T0/T1)
@@ -4037,7 +4096,8 @@ model RegulatoryRule {
   incomingEdges  GraphEdge[]          @relation("EdgeTo")
   atomicClaims   AtomicClaim[]
   eInvoiceLines  EInvoiceLine[]
-  auditSnapshots AuditSnapshot[] // Immutable audit records created on Apply success
+  auditSnapshots  AuditSnapshot[]      // Immutable audit records created on Apply success
+  publishAttempts RulePublishAttempt[] // Publish attempt telemetry (RTL2)
 
   // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
   // This enables conflict candidates to be stored before arbiter resolution
@@ -4090,6 +4150,39 @@ model AuditSnapshot {
 
   @@index([ruleId])
   @@index([createdAt])
+  @@index([agentRunId])
+}
+
+// ============================================================================
+// RULE PUBLISH ATTEMPTS (RTL2 - Publish Telemetry)
+// ============================================================================
+// Records every publish attempt with outcome and block reasons.
+// Enables cheap failure diagnosis and idempotent retry detection.
+
+model RulePublishAttempt {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Rule being published
+  ruleId String
+  rule   RegulatoryRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  // Outcome
+  outcome      PublishOutcome          // SUCCESS | BLOCKED | FAILED
+  blockReasons RulePublishBlockReason[] // Canonical reasons (empty if SUCCESS)
+
+  // Hashes at attempt time (for idempotent retry detection)
+  inputsHashAtAttempt   String?  // What inputsHash was when we tried
+  evidenceHashAtAttempt String?  // What evidenceHash was when we tried
+
+  // Context
+  agentRunId String? // Pipeline correlation
+  jobId      String? // BullMQ job ID
+  errorDetail String? @db.Text // Stack trace or detailed error message (for FAILED)
+
+  @@index([ruleId])
+  @@index([createdAt])
+  @@index([outcome])
   @@index([agentRunId])
 }
 
@@ -5963,4 +6056,27 @@ model DataProvenance {
   @@index([source])
   @@index([capturedAt])
   @@unique([entityType, entityId, field])
+}
+
+// =============================================================================
+// API IDEMPOTENCY - Prevents duplicate approve/publish operations
+// =============================================================================
+
+model ApiIdempotencyKey {
+  id              String              @id @default(cuid())
+  key             String // releaseId from request
+  route           ApiIdempotencyRoute
+  payloadHash     String // sha256 of canonical payload
+  createdAt       DateTime            @default(now())
+  expiresAt       DateTime // now + 24h, for cleanup
+  requestMeta     Json? // source, counts, actor, etc.
+  responseSummary Json? // Actual response from first execution (for deterministic replay)
+
+  @@unique([route, key])
+  @@index([expiresAt]) // For cleanup job
+}
+
+enum ApiIdempotencyRoute {
+  APPROVE_RULES
+  PUBLISH_RULES
 }

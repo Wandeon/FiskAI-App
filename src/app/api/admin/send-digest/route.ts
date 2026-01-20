@@ -6,7 +6,14 @@ import { Resend } from "resend"
 import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
 import type { WeeklyDigestData } from "@/lib/admin/weekly-digest-types"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors when RESEND_API_KEY is missing
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY not configured")
+  }
+  return new Resend(apiKey)
+}
 
 // Validate required fields for the digest data
 const digestDataSchema = z.object({
@@ -76,7 +83,7 @@ export async function POST(req: Request) {
     // Send to admin recipients
     const adminEmail = process.env.ADMIN_EMAIL || "admin@fiskai.hr"
 
-    await resend.emails.send({
+    await getResendClient().emails.send({
       from: process.env.RESEND_FROM_EMAIL || "FiskAI <noreply@fiskai.hr>",
       to: adminEmail,
       subject: `FiskAI Weekly Digest - ${digestData.weekStart.toLocaleDateString("hr-HR")} - ${digestData.weekEnd.toLocaleDateString("hr-HR")}`,

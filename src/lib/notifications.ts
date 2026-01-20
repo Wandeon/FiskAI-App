@@ -73,6 +73,12 @@ const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   RULE_STATUS_CHANGED: "Status pravila promijenjen",
   PIPELINE_STAGE_COMPLETE: "Faza cjevovoda završena",
 
+  // Regulatory Truth Layer - API Operations
+  BULK_APPROVE_VIA_API: "Skupno odobrenje putem API-ja",
+  BULK_PUBLISH_VIA_API: "Skupna objava putem API-ja",
+  IDEMPOTENCY_CONFLICT: "Konflikt idempotentnosti",
+  IDEMPOTENT_REPLAY: "Idempotentno ponavljanje",
+
   // Staff Portal - Client Data Access (GDPR compliance)
   STAFF_VIEW_CLIENT: "Pregled klijenta",
   STAFF_VIEW_INVOICES: "Pregled računa klijenta",

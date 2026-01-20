@@ -9,7 +9,7 @@
 
 import { db, dbReg, runWithRegulatoryContext, getRegulatoryContext } from "@/lib/db"
 import { isAutoApprovalAllowed } from "../policy/auto-approval-policy"
-import { Prisma } from "@prisma/client"
+import { Prisma, RulePublishBlockReason } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
 import { rebuildEdgesForRule } from "../graph/edge-builder"
 import { raiseAlert } from "../watchdog/alerting"
@@ -55,6 +55,39 @@ export interface RevertRulesResult {
   revertedCount: number
   failedCount: number
   errors: string[]
+}
+
+/**
+ * Records a publish attempt in the database for telemetry.
+ * Called after each rule publish attempt (success or blocked).
+ */
+async function recordPublishAttempt(params: {
+  ruleId: string
+  outcome: "SUCCESS" | "BLOCKED" | "FAILED"
+  blockReasons: RulePublishBlockReason[]
+  inputsHash?: string | null
+  evidenceHash?: string | null
+  agentRunId?: string
+  jobId?: string
+  errorDetail?: string
+}): Promise<void> {
+  try {
+    await db.rulePublishAttempt.create({
+      data: {
+        ruleId: params.ruleId,
+        outcome: params.outcome,
+        blockReasons: params.blockReasons,
+        inputsHashAtAttempt: params.inputsHash,
+        evidenceHashAtAttempt: params.evidenceHash,
+        agentRunId: params.agentRunId,
+        jobId: params.jobId,
+        errorDetail: params.errorDetail,
+      },
+    })
+  } catch (error) {
+    // Don't fail the publish due to telemetry error
+    console.error("[rule-status-service] Failed to record publish attempt:", error)
+  }
 }
 
 /**
@@ -293,11 +326,20 @@ export async function publishRules(
       await db.$transaction(
         async (tx) => {
           for (const ruleId of ruleIds) {
+            // Track block reasons for telemetry
+            const blockReasons: RulePublishBlockReason[] = []
+
             try {
-              // First get current status and risk tier
+              // First get current status, risk tier, and hashes
               const existing = await tx.regulatoryRule.findUnique({
                 where: { id: ruleId },
-                select: { status: true, conceptSlug: true, riskTier: true },
+                select: {
+                  status: true,
+                  conceptSlug: true,
+                  riskTier: true,
+                  inputsHash: true,
+                  evidenceHash: true,
+                },
               })
 
               if (!existing) {
@@ -313,6 +355,11 @@ export async function publishRules(
               }
 
               if (existing.status !== "APPROVED") {
+                blockReasons.push(
+                  existing.status === "PUBLISHED"
+                    ? RulePublishBlockReason.ALREADY_PUBLISHED
+                    : RulePublishBlockReason.INVALID_STATUS_TRANSITION
+                )
                 results.push({
                   ruleId,
                   success: false,
@@ -323,7 +370,62 @@ export async function publishRules(
                 errors.push(
                   `Rule ${ruleId} (${existing.conceptSlug}) is ${existing.status}, not APPROVED`
                 )
+                // Record blocked attempt
+                await recordPublishAttempt({
+                  ruleId,
+                  outcome: "BLOCKED",
+                  blockReasons,
+                  inputsHash: existing.inputsHash,
+                  evidenceHash: existing.evidenceHash,
+                })
                 continue
+              }
+
+              // ========================================
+              // HARD GATE: RTL2 LINEAGE INVARIANT
+              // ========================================
+              // RTL2-valid rules MUST have lineage to CandidateFacts and AgentRuns.
+              // This prevents legacy/orphan rules from being published without audit trail.
+              // Cutover: 2026-01-20T15:20:00Z
+              const lineageRule = await tx.regulatoryRule.findUnique({
+                where: { id: ruleId },
+                select: {
+                  originatingCandidateFactIds: true,
+                  originatingAgentRunIds: true,
+                },
+              })
+
+              const hasCandidateFactLineage =
+                lineageRule?.originatingCandidateFactIds &&
+                lineageRule.originatingCandidateFactIds.length > 0
+              const hasAgentRunLineage =
+                lineageRule?.originatingAgentRunIds && lineageRule.originatingAgentRunIds.length > 0
+
+              if (!hasCandidateFactLineage || !hasAgentRunLineage) {
+                if (!hasCandidateFactLineage) {
+                  blockReasons.push(RulePublishBlockReason.MISSING_CANDIDATE_FACT_LINEAGE)
+                }
+                if (!hasAgentRunLineage) {
+                  blockReasons.push(RulePublishBlockReason.MISSING_AGENT_RUN_LINEAGE)
+                }
+                const errorMsg = `RTL2 lineage invariant failed: missing ${blockReasons.join(", ")}`
+                results.push({
+                  ruleId,
+                  success: false,
+                  previousStatus: existing.status,
+                  newStatus: "PUBLISHED",
+                  error: errorMsg,
+                })
+                errors.push(`Rule ${ruleId} (${existing.conceptSlug}): ${errorMsg}`)
+                // Record blocked attempt
+                await recordPublishAttempt({
+                  ruleId,
+                  outcome: "BLOCKED",
+                  blockReasons,
+                  inputsHash: existing.inputsHash,
+                  evidenceHash: existing.evidenceHash,
+                })
+                throw new Error(errorMsg)
               }
 
               // ========================================
@@ -332,6 +434,13 @@ export async function publishRules(
               // Pass tx for transaction atomicity - provenance writes must be part of tx
               const provenanceResult = await validateRuleProvenance(ruleId, existing.riskTier, tx)
               if (!provenanceResult.valid) {
+                // Map provenance failures to block reasons
+                for (const pr of provenanceResult.pointerResults) {
+                  if (!pr.matchResult.found) {
+                    blockReasons.push(RulePublishBlockReason.PROVENANCE_NOT_FOUND)
+                    break
+                  }
+                }
                 const errorMsg = formatProvenanceErrors(provenanceResult)
                 results.push({
                   ruleId,
@@ -342,6 +451,14 @@ export async function publishRules(
                   provenanceResult,
                 })
                 errors.push(errorMsg)
+                // Record blocked attempt
+                await recordPublishAttempt({
+                  ruleId,
+                  outcome: "BLOCKED",
+                  blockReasons,
+                  inputsHash: existing.inputsHash,
+                  evidenceHash: existing.evidenceHash,
+                })
                 // Abort transaction - provenance failure is fatal
                 throw new Error(`Provenance validation failed for ${existing.conceptSlug}`)
               }
@@ -354,6 +471,15 @@ export async function publishRules(
                 data: { status: "PUBLISHED", graphStatus: "PENDING" },
               })
 
+              // Record successful publish attempt
+              await recordPublishAttempt({
+                ruleId,
+                outcome: "SUCCESS",
+                blockReasons: [],
+                inputsHash: existing.inputsHash,
+                evidenceHash: existing.evidenceHash,
+              })
+
               results.push({
                 ruleId,
                 success: true,
@@ -363,14 +489,30 @@ export async function publishRules(
               })
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : String(error)
-              results.push({
-                ruleId,
-                success: false,
-                previousStatus: "UNKNOWN",
-                newStatus: "PUBLISHED",
-                error: errorMessage,
-              })
-              errors.push(`Rule ${ruleId}: ${errorMessage}`)
+              // Only add to results if not already added
+              const existingResult = results.find((r) => r.ruleId === ruleId)
+              if (!existingResult) {
+                results.push({
+                  ruleId,
+                  success: false,
+                  previousStatus: "UNKNOWN",
+                  newStatus: "PUBLISHED",
+                  error: errorMessage,
+                })
+              }
+              // Only add error if not already added
+              if (!errors.some((e) => e.includes(ruleId))) {
+                errors.push(`Rule ${ruleId}: ${errorMessage}`)
+              }
+              // Record FAILED attempt if we didn't already record a BLOCKED attempt
+              if (blockReasons.length === 0) {
+                await recordPublishAttempt({
+                  ruleId,
+                  outcome: "FAILED",
+                  blockReasons: [],
+                  errorDetail: errorMessage,
+                })
+              }
               // Re-throw to abort transaction
               throw error
             }
