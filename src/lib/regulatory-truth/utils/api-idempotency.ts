@@ -109,7 +109,7 @@ export async function checkIdempotency(
         route,
         payloadHash,
         expiresAt,
-        requestMeta: requestMeta ?? null,
+        requestMeta: requestMeta,
       },
     })
 
@@ -128,7 +128,7 @@ export async function checkIdempotency(
         route,
         payloadHash,
         expiresAt,
-        requestMeta: requestMeta ?? null,
+        requestMeta: requestMeta,
       },
     })
 
