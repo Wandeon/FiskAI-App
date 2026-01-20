@@ -49,7 +49,8 @@ export async function main() {
   const { runArbiter } = await import("../agents/arbiter")
   const { runReleaser } = await import("../agents/releaser")
   const { runTier1Fetchers } = await import("../fetchers")
-  const { buildKnowledgeGraph } = await import("../graph/knowledge-graph")
+  // NOTE: buildKnowledgeGraph removed - edges are now built event-driven on publish
+  // See rule-status-service.ts:publishRules() → rebuildEdgesForRule()
 
   const client = await pool.connect()
 
@@ -306,19 +307,13 @@ export async function main() {
       console.log("No approved rules to release")
     }
 
-    // Phase 5: Build/Update Knowledge Graph
+    // Phase 5: Knowledge Graph
+    // NOTE (2026-01-20): Batch edge building removed.
+    // Edges are now built event-driven when rules transition to PUBLISHED.
+    // See rule-status-service.ts:publishRules() → rebuildEdgesForRule()
+    // The buildKnowledgeGraph() function still exists for manual repair if needed.
     console.log("\n=== PHASE 5: KNOWLEDGE GRAPH ===")
-    try {
-      const graphResult = await buildKnowledgeGraph()
-      console.log(
-        `[graph] ${graphResult.conceptsCreated} concepts, ${graphResult.conceptsLinked} links, ${graphResult.edgesCreated} edges`
-      )
-      if (graphResult.errors.length > 0) {
-        console.log(`[graph] ${graphResult.errors.length} errors encountered`)
-      }
-    } catch (error) {
-      console.error("[graph] Error building knowledge graph:", error)
-    }
+    console.log("[graph] Skipped - edges are built event-driven on publish")
 
     // Final status
     console.log("\n=== FINAL STATUS ===")

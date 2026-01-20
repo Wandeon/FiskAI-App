@@ -6,7 +6,8 @@ import { runComposer, groupSourcePointersByDomain } from "../agents/composer"
 import { runReviewer, autoApproveEligibleRules } from "../agents/reviewer"
 import { runArbiter } from "../agents/arbiter"
 import { runReleaser } from "../agents/releaser"
-import { buildKnowledgeGraph } from "../graph/knowledge-graph"
+// NOTE: buildKnowledgeGraph removed - edges are now built event-driven on publish
+// See rule-status-service.ts:publishRules() which calls rebuildEdgesForRule()
 import { runAllHealthChecks } from "./health-monitors"
 import { runRandomAudit } from "./audit"
 import { sendDailyDigestEmail, raiseAlert } from "./alerting"
@@ -303,8 +304,9 @@ async function runProcessPhase(): Promise<PhaseResult> {
       }
     }
 
-    // Build knowledge graph
-    await buildKnowledgeGraph()
+    // NOTE: Batch buildKnowledgeGraph() removed (2026-01-20)
+    // Edges are now built event-driven when rules transition to PUBLISHED.
+    // See rule-status-service.ts:publishRules() → rebuildEdgesForRule()
 
     return {
       phase: "PROCESS",

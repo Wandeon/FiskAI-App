@@ -11,6 +11,9 @@ import { db, dbReg, runWithRegulatoryContext, getRegulatoryContext } from "@/lib
 import { isAutoApprovalAllowed } from "../policy/auto-approval-policy"
 import { Prisma } from "@prisma/client"
 import { logAuditEvent } from "../utils/audit-log"
+import { rebuildEdgesForRule } from "../graph/edge-builder"
+import { raiseAlert } from "../watchdog/alerting"
+import { enqueueGraphRebuildJob } from "@/lib/infra/queues"
 import {
   validateQuoteInEvidence,
   isMatchTypeAcceptableForTier,
@@ -343,10 +346,12 @@ export async function publishRules(
                 throw new Error(`Provenance validation failed for ${existing.conceptSlug}`)
               }
 
-              // Update status - Prisma extension will validate transition
+              // Update status and set graphStatus to PENDING
+              // graphStatus will be set to CURRENT after edge rebuild succeeds (post-commit)
+              // This ensures rules are auditable even if process crashes after commit
               await tx.regulatoryRule.update({
                 where: { id: ruleId },
-                data: { status: "PUBLISHED" },
+                data: { status: "PUBLISHED", graphStatus: "PENDING" },
               })
 
               results.push({
@@ -398,6 +403,70 @@ export async function publishRules(
             matchTypes: result.provenanceResult?.pointerResults.map((p) => p.matchResult.matchType),
           },
         })
+      }
+
+      // ========================================
+      // EVENT-DRIVEN EDGE BUILDING
+      // ========================================
+      // After transaction commits, rebuild SRG edges for each published rule.
+      // This replaces the batch buildKnowledgeGraph() with on-demand edge computation.
+      // Edges are built outside the transaction to avoid blocking publish on graph failures.
+      const publishedRuleIds = results.filter((r) => r.success).map((r) => r.ruleId)
+      for (const ruleId of publishedRuleIds) {
+        try {
+          const edgeResult = await rebuildEdgesForRule(ruleId)
+          console.log(
+            `[rule-status] Built edges for ${ruleId}: ` +
+              `SUPERSEDES=${edgeResult.supersedes.created}, ` +
+              `OVERRIDES=${edgeResult.overrides.created}, ` +
+              `DEPENDS_ON=${edgeResult.dependsOn.created}`
+          )
+
+          // Update graphStatus to CURRENT on success
+          await db.regulatoryRule.update({
+            where: { id: ruleId },
+            data: { graphStatus: "CURRENT" },
+          })
+
+          // Log edge errors as warnings (not fatal)
+          const allEdgeErrors = [
+            ...edgeResult.supersedes.errors,
+            ...edgeResult.overrides.errors,
+            ...edgeResult.dependsOn.errors,
+          ]
+          if (allEdgeErrors.length > 0) {
+            console.warn(`[rule-status] Edge warnings for ${ruleId}:`, allEdgeErrors)
+          }
+        } catch (edgeError) {
+          // Edge build failed - mark rule as STALE and raise alert
+          // This is NON-FATAL: the rule is still published, but edges need attention
+          console.error(`[rule-status] Edge build failed for ${ruleId}:`, edgeError)
+
+          await db.regulatoryRule.update({
+            where: { id: ruleId },
+            data: { graphStatus: "STALE" },
+          })
+
+          const errorMessage = edgeError instanceof Error ? edgeError.message : String(edgeError)
+          const errorStack = edgeError instanceof Error ? edgeError.stack : undefined
+
+          await raiseAlert({
+            severity: "WARNING",
+            type: "PIPELINE_FAILURE",
+            entityId: ruleId, // Enable per-rule dedupe
+            message: `[Graph] Edge build failed for rule ${ruleId}: ${errorMessage}`,
+            details: {
+              ruleId,
+              errorName: edgeError instanceof Error ? edgeError.name : "Unknown",
+              errorMessage,
+              stack: errorStack,
+              phase: "post-publish-edge-rebuild",
+            },
+          })
+
+          // Enqueue retry with backoff (attempt 0 = first retry after 5 minutes)
+          await enqueueGraphRebuildJob(ruleId, 0)
+        }
       }
 
       const publishedCount = results.filter((r) => r.success).length

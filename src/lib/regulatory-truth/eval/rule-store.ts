@@ -1,28 +1,28 @@
 // src/lib/regulatory-truth/eval/rule-store.ts
 /**
- * Rule Store - DB-backed rule selection with conflict detection
+ * Rule Store - DB-backed rule selection with KG edge integration
  *
- * Replaces the static RULE_REGISTRY with proper KG integration.
- * Uses the existing RegulatoryRule table and temporal-filter utilities.
+ * Uses the Statutory Reference Graph (SRG) edges for:
+ * - SUPERSEDES: temporal ordering within same conceptSlug
+ * - OVERRIDES: specific rules overriding general rules
+ *
+ * The selection algorithm uses edge traversal to determine which rule
+ * is authoritative for a given date, rather than just comparing effectiveFrom.
  */
 
 import { db } from "@/lib/db"
 import type { RegulatoryRule } from "@prisma/client"
-import {
-  isTemporallyEffective,
-  buildTemporalWhereClause,
-  type TemporalFilterReason,
-} from "../utils/temporal-filter"
+import { isTemporallyEffective, type TemporalFilterReason } from "../utils/temporal-filter"
+import { buildEdgeTrace, findSupersedingRules } from "../graph/edge-builder"
+import { findOverridingRules } from "../taxonomy/precedence-builder"
+import type { TopicKey, RuleSelectionResult, RuleSelectionReason } from "./rule-store-types"
+
+// Re-export types for convenience
+export type { TopicKey, RuleSelectionResult, RuleSelectionReason }
 
 // =============================================================================
-// Types
+// Configuration
 // =============================================================================
-
-/**
- * Topic key format: domain/area/subarea
- * Maps to conceptSlug in the database.
- */
-export type TopicKey = string
 
 /**
  * Mapping from topic keys to conceptSlug patterns.
@@ -34,26 +34,6 @@ const TOPIC_TO_CONCEPT_SLUG: Record<TopicKey, string> = {
   // Add more mappings as needed
 }
 
-export type RuleSelectionReason =
-  | "EFFECTIVE"
-  | "FUTURE"
-  | "EXPIRED"
-  | "NO_RULE_FOUND"
-  | "CONFLICT_MULTIPLE_EFFECTIVE"
-
-export interface RuleSelectionResult {
-  success: boolean
-  rule: RegulatoryRule | null
-  reason: RuleSelectionReason
-  /** If conflict, lists the conflicting rule IDs */
-  conflictingRuleIds?: string[]
-  /** Effective period of selected rule */
-  effectivePeriod?: {
-    from: string
-    until: string | null
-  }
-}
-
 // =============================================================================
 // Rule Selection
 // =============================================================================
@@ -61,15 +41,16 @@ export interface RuleSelectionResult {
 /**
  * Select the correct rule for a topic at a given date.
  *
- * Selection algorithm:
+ * Selection algorithm using SRG edges:
  * 1. Map topicKey to conceptSlug
  * 2. Query RegulatoryRule by conceptSlug with status=PUBLISHED
  * 3. Filter to those temporally effective at asOfDate
- * 4. Check for conflicts:
- *    - If multiple effective rules exist WITHOUT supersession edges, return CONFLICT
- *    - If supersession exists, pick the superseding rule
- * 5. If single rule, return it
- * 6. If none, return appropriate reason (FUTURE, EXPIRED, NO_RULE_FOUND)
+ * 4. If multiple effective rules:
+ *    a. Use SUPERSEDES edges from the SRG to find the authoritative rule
+ *    b. A rule is authoritative if no other effective rule supersedes it
+ *    c. If multiple authoritative rules remain, return CONFLICT
+ * 5. Build edge trace for selected rule
+ * 6. Check for OVERRIDES edges (context for evaluation)
  */
 export async function selectRuleFromDb(
   topicKey: TopicKey,
@@ -123,20 +104,41 @@ export async function selectRuleFromDb(
     }
   }
 
-  // No effective rules
+  // No effective rules - determine why
   if (effectiveRules.length === 0) {
     const hasFuture = reasons.includes("FUTURE")
     const hasExpired = reasons.includes("EXPIRED")
+
+    // Find earliest coverage date for helpful error message
+    const sortedByFrom = [...rules].sort(
+      (a, b) => a.effectiveFrom.getTime() - b.effectiveFrom.getTime()
+    )
+    const earliestDate = sortedByFrom[0]?.effectiveFrom.toISOString().split("T")[0]
+
+    // Use NO_COVERAGE for dates before any rule (clearer than FUTURE for historical queries)
+    if (hasFuture && rules.every((r) => asOfDate < r.effectiveFrom)) {
+      return {
+        success: false,
+        rule: null,
+        reason: "NO_COVERAGE",
+        earliestCoverageDate: earliestDate,
+      }
+    }
+
     return {
       success: false,
       rule: null,
       reason: hasFuture ? "FUTURE" : hasExpired ? "EXPIRED" : "NO_RULE_FOUND",
+      earliestCoverageDate: earliestDate,
     }
   }
 
   // Single effective rule - success
   if (effectiveRules.length === 1) {
     const rule = effectiveRules[0]
+    const edgeTrace = await buildEdgeTrace(rule.id)
+    const overridingRuleIds = await findOverridingRules(rule.id)
+
     return {
       success: true,
       rule,
@@ -145,48 +147,93 @@ export async function selectRuleFromDb(
         from: rule.effectiveFrom.toISOString().split("T")[0],
         until: rule.effectiveUntil?.toISOString().split("T")[0] ?? null,
       },
+      edgeTrace,
+      overridingRuleIds: overridingRuleIds.length > 0 ? overridingRuleIds : undefined,
+      // Include graphStatus for evaluation gate (STALE = edges incomplete)
+      graphStatus: (rule as { graphStatus?: string }).graphStatus as
+        | "PENDING"
+        | "CURRENT"
+        | "STALE"
+        | undefined,
     }
   }
 
-  // Multiple effective rules - check for supersession
-  // Sort by effectiveFrom desc (most recent first)
-  effectiveRules.sort((a, b) => b.effectiveFrom.getTime() - a.effectiveFrom.getTime())
+  // Multiple effective rules - use SRG SUPERSEDES edges to find authoritative rule
+  // A rule is authoritative if no other effective rule supersedes it
+  const effectiveRuleIds = new Set(effectiveRules.map((r) => r.id))
+  const supersededByEffective = new Set<string>()
 
-  // Check if the most recent rule supersedes all others
-  const mostRecent = effectiveRules[0]
-  const supersededIds = new Set<string>()
+  // For each effective rule, check if another effective rule supersedes it
+  for (const rule of effectiveRules) {
+    const supersedingRuleIds = await findSupersedingRules(rule.id)
 
-  // Walk the supersession chain
-  let current: RegulatoryRule | null = mostRecent
-  while (current?.supersedesId) {
-    supersededIds.add(current.supersedesId)
-    current = effectiveRules.find((r) => r.id === current!.supersedesId) ?? null
+    // If any superseding rule is also effective, this rule is superseded
+    for (const supersedingId of supersedingRuleIds) {
+      if (effectiveRuleIds.has(supersedingId)) {
+        supersededByEffective.add(rule.id)
+        break
+      }
+    }
   }
 
-  // Check if all other effective rules are superseded
-  const unsuperseded = effectiveRules.filter(
-    (r) => r.id !== mostRecent.id && !supersededIds.has(r.id)
-  )
+  // Find authoritative rules (not superseded by any effective rule)
+  const authoritativeRules = effectiveRules.filter((r) => !supersededByEffective.has(r.id))
 
-  if (unsuperseded.length > 0) {
-    // Conflict: multiple effective rules without supersession chain
+  if (authoritativeRules.length === 0) {
+    // This shouldn't happen with proper edges, but handle gracefully
+    // Fall back to most recent by effectiveFrom
+    const mostRecent = effectiveRules[0] // Already sorted desc
+    const edgeTrace = await buildEdgeTrace(mostRecent.id)
+    const overridingRuleIds = await findOverridingRules(mostRecent.id)
+
     return {
-      success: false,
-      rule: null,
-      reason: "CONFLICT_MULTIPLE_EFFECTIVE",
-      conflictingRuleIds: effectiveRules.map((r) => r.id),
+      success: true,
+      rule: mostRecent,
+      reason: "EFFECTIVE",
+      effectivePeriod: {
+        from: mostRecent.effectiveFrom.toISOString().split("T")[0],
+        until: mostRecent.effectiveUntil?.toISOString().split("T")[0] ?? null,
+      },
+      edgeTrace,
+      overridingRuleIds: overridingRuleIds.length > 0 ? overridingRuleIds : undefined,
+      graphStatus: (mostRecent as { graphStatus?: string }).graphStatus as
+        | "PENDING"
+        | "CURRENT"
+        | "STALE"
+        | undefined,
     }
   }
 
-  // All other rules are superseded, use most recent
+  if (authoritativeRules.length === 1) {
+    // Single authoritative rule - success
+    const rule = authoritativeRules[0]
+    const edgeTrace = await buildEdgeTrace(rule.id)
+    const overridingRuleIds = await findOverridingRules(rule.id)
+
+    return {
+      success: true,
+      rule,
+      reason: "EFFECTIVE",
+      effectivePeriod: {
+        from: rule.effectiveFrom.toISOString().split("T")[0],
+        until: rule.effectiveUntil?.toISOString().split("T")[0] ?? null,
+      },
+      edgeTrace,
+      overridingRuleIds: overridingRuleIds.length > 0 ? overridingRuleIds : undefined,
+      graphStatus: (rule as { graphStatus?: string }).graphStatus as
+        | "PENDING"
+        | "CURRENT"
+        | "STALE"
+        | undefined,
+    }
+  }
+
+  // Multiple authoritative rules - genuine conflict
   return {
-    success: true,
-    rule: mostRecent,
-    reason: "EFFECTIVE",
-    effectivePeriod: {
-      from: mostRecent.effectiveFrom.toISOString().split("T")[0],
-      until: mostRecent.effectiveUntil?.toISOString().split("T")[0] ?? null,
-    },
+    success: false,
+    rule: null,
+    reason: "CONFLICT_MULTIPLE_EFFECTIVE",
+    conflictingRuleIds: authoritativeRules.map((r) => r.id),
   }
 }
 
@@ -240,4 +287,25 @@ export async function getRuleCoverage(
     until: r.effectiveUntil?.toISOString().split("T")[0] ?? null,
     ruleId: r.id,
   }))
+}
+
+// =============================================================================
+// DB-Backed RuleStore Implementation
+// =============================================================================
+
+import type { RuleStore } from "./rule-store-types"
+
+/**
+ * DB-backed implementation of RuleStore.
+ *
+ * Wraps the existing selectRuleFromDb and hasRuleForTopic functions
+ * in the RuleStore interface for dependency injection.
+ */
+export const dbRuleStore: RuleStore = {
+  selectRule: async (topicKey, asOfDate) => {
+    return selectRuleFromDb(topicKey as "TAX/VAT/REGISTRATION", asOfDate)
+  },
+  hasRule: async (topicKey) => {
+    return hasRuleForTopic(topicKey as "TAX/VAT/REGISTRATION")
+  },
 }

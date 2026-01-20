@@ -95,6 +95,7 @@ const QUEUE_NAMES = [
   "content-sync",
   "article",
   "scheduled",
+  "graph-rebuild",
 ] as const
 
 // Lazy-loaded queue map for health monitoring

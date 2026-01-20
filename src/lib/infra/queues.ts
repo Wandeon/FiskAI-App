@@ -26,6 +26,7 @@ let _embeddingQueue: Queue | null = null
 let _selectorAdaptationQueue: Queue | null = null
 let _nnSentinelQueue: Queue | null = null
 let _nnFetchQueue: Queue | null = null
+let _graphRebuildQueue: Queue | null = null
 
 /**
  * Get the scheduled queue for triggering pipeline runs
@@ -182,6 +183,66 @@ export function getNNFetchQueue(): Queue {
   return _nnFetchQueue
 }
 
+/**
+ * Get the graph rebuild queue for edge rebuilding jobs
+ */
+export function getGraphRebuildQueue(): Queue {
+  if (!_graphRebuildQueue) {
+    _graphRebuildQueue = new Queue("graph-rebuild", {
+      connection: redisOptions,
+      prefix: BULLMQ_PREFIX,
+    })
+  }
+  return _graphRebuildQueue
+}
+
+/**
+ * Backoff delays for graph rebuild retries (in ms)
+ * 5min, 30min, 2h, 12h
+ */
+const GRAPH_REBUILD_BACKOFF_DELAYS = [
+  5 * 60 * 1000, // 5 minutes
+  30 * 60 * 1000, // 30 minutes
+  2 * 60 * 60 * 1000, // 2 hours
+  12 * 60 * 60 * 1000, // 12 hours
+]
+
+/**
+ * Enqueue a graph rebuild job for a rule with exponential backoff
+ *
+ * @param ruleId - The rule ID to rebuild edges for
+ * @param attempt - Current attempt number (0-based, default 0)
+ * @returns The job ID if enqueued, undefined if max retries exceeded
+ */
+export async function enqueueGraphRebuildJob(
+  ruleId: string,
+  attempt: number = 0
+): Promise<string | undefined> {
+  // Max retries = length of backoff array
+  if (attempt >= GRAPH_REBUILD_BACKOFF_DELAYS.length) {
+    console.warn(`[graph-rebuild] Max retries exceeded for rule ${ruleId}, not re-enqueueing`)
+    return undefined
+  }
+
+  const delay = GRAPH_REBUILD_BACKOFF_DELAYS[attempt]
+  const job = await getGraphRebuildQueue().add(
+    "rebuild",
+    { ruleId, attempt },
+    {
+      jobId: `graph-rebuild-${ruleId}-${attempt}`,
+      delay,
+      attempts: 1, // No BullMQ auto-retries - we manage attempts via job data
+      removeOnComplete: 100, // Keep last 100 completed jobs
+      removeOnFail: 1000, // Keep last 1000 failed jobs for debugging
+    }
+  )
+
+  console.log(
+    `[graph-rebuild] Enqueued rebuild for rule ${ruleId}, attempt ${attempt + 1}/${GRAPH_REBUILD_BACKOFF_DELAYS.length}, delay ${delay / 1000}s`
+  )
+  return job.id
+}
+
 // Backwards-compatible queue exports (proxy to lazy getters)
 export const extractQueue = new Proxy({} as Queue, {
   get(_, prop: string | symbol) {
@@ -254,6 +315,7 @@ export async function closeQueues(): Promise<void> {
     _selectorAdaptationQueue,
     _nnSentinelQueue,
     _nnFetchQueue,
+    _graphRebuildQueue,
   ].filter(Boolean) as Queue[]
   await Promise.all(queues.map((q) => q.close()))
   _scheduledQueue = null

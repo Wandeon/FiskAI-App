@@ -3666,6 +3666,19 @@ enum GraphEdgeType {
   OVERRIDES // Lex specialis - specific overrides general
 }
 
+// Namespace for graph edges to distinguish structural vs semantic relationships
+enum GraphNamespace {
+  SRG // Statutory Reference Graph - deterministic law/rule relationships
+  CBG // Concept Binding Graph - concept ↔ field mappings
+}
+
+// Status of a rule's graph edges (event-driven edge building)
+enum GraphStatus {
+  PENDING // Edges not yet built (new rule)
+  CURRENT // Edges are up-to-date
+  STALE   // Edges need rebuild (rebuild failed or rule modified)
+}
+
 enum AuthorityLevel {
   LAW // Legally binding (Narodne novine)
   GUIDANCE // Interpretation (Porezna uprava)
@@ -4000,6 +4013,9 @@ model RegulatoryRule {
   // Rollback Capability (Mission #3)
   revokedAt     DateTime? // When the rule was revoked
   revokedReason String?   // Human-readable reason for revocation
+
+  // Graph Status (event-driven edge building)
+  graphStatus   GraphStatus @default(PENDING) // PENDING, CURRENT, STALE (edges need rebuild)
 
   composerNotes     String?
   reviewerNotes     String?
@@ -4466,19 +4482,21 @@ model TruthHealthSnapshot {
 }
 
 model GraphEdge {
-  id         String        @id @default(cuid())
+  id         String         @id @default(cuid())
   fromRuleId String
   toRuleId   String
   relation   GraphEdgeType
+  namespace  GraphNamespace @default(SRG) // SRG = statutory, CBG = concept bindings
   validFrom  DateTime
   validTo    DateTime?
   notes      String?
-  createdAt  DateTime      @default(now())
+  createdAt  DateTime       @default(now())
 
   fromRule RegulatoryRule @relation("EdgeFrom", fields: [fromRuleId], references: [id], onDelete: Cascade)
   toRule   RegulatoryRule @relation("EdgeTo", fields: [toRuleId], references: [id], onDelete: Cascade)
 
-  @@unique([fromRuleId, toRuleId, relation])
+  @@unique([namespace, fromRuleId, toRuleId, relation])
+  @@index([namespace])
   @@index([fromRuleId])
   @@index([toRuleId])
 }
