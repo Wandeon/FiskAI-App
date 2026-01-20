@@ -181,3 +181,77 @@ describe("Edge Cases", () => {
     expect(result.answer.answerHr).toContain("Da")
   })
 })
+
+describe("Temporal Selection", () => {
+  describe("asOfDate parameter", () => {
+    it("includes asOfDate in output", () => {
+      const queryDate = new Date("2025-06-15")
+      const result = answerMoramLiUciUPdv(92000, "OBRT", queryDate)
+
+      expect(result.asOfDate).toBeInstanceOf(Date)
+      expect(result.asOfDate.toISOString().split("T")[0]).toBe("2025-06-15")
+    })
+
+    it("defaults to current date when asOfDate not provided", () => {
+      const result = answerMoramLiUciUPdv(92000)
+
+      expect(result.asOfDate).toBeInstanceOf(Date)
+      // Should be today (normalized to start of day)
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+      expect(result.asOfDate.toISOString().split("T")[0]).toBe(today.toISOString().split("T")[0])
+    })
+
+    it("includes temporal selection info when rule is effective", () => {
+      // Query after the rule's effectiveFrom date (2025-01-01)
+      const result = answerMoramLiUciUPdv(92000, "OBRT", new Date("2025-06-15"))
+
+      expect(result.temporalSelection).toBeDefined()
+      expect(result.temporalSelection?.wasSelected).toBe(true)
+      expect(result.temporalSelection?.reason).toBe("EFFECTIVE")
+      expect(result.temporalSelection?.effectivePeriod).toBeDefined()
+      expect(result.temporalSelection?.effectivePeriod?.from).toBe("2025-01-01")
+      expect(result.temporalSelection?.effectivePeriod?.until).toBeNull()
+    })
+
+    it("shows temporal selection info in formatted output", () => {
+      const result = answerMoramLiUciUPdv(92000, "OBRT", new Date("2025-06-15"))
+      const formatted = formatQueryOutput(result)
+
+      expect(formatted).toContain("Temporalna selekcija")
+      expect(formatted).toContain("2025-06-15")
+      expect(formatted).toContain("2025-01-01")
+    })
+  })
+
+  describe("rule not yet effective", () => {
+    it("returns error when query date is before rule effectiveFrom", () => {
+      // Query before the rule's effectiveFrom date (2025-01-01)
+      const result = answerMoramLiUciUPdv(92000, "OBRT", new Date("2024-06-15"))
+
+      expect(result.success).toBe(false)
+      expect(result.temporalSelection?.wasSelected).toBe(false)
+      expect(result.temporalSelection?.reason).toBe("FUTURE")
+      expect(result.answer.answerHr).toContain("nije stupilo na snagu")
+    })
+  })
+
+  describe("answerQuery with explicit asOfDate", () => {
+    it("passes asOfDate through to temporal selection", () => {
+      const result = answerQuery({
+        queryType: "VAT_REGISTRATION",
+        context: {
+          taxpayer: {
+            country: "HR",
+            entityType: "OBRT",
+            vat: { annualRevenueEurTrailing12m: 92000 },
+          },
+        },
+        asOfDate: new Date("2025-12-31"),
+      })
+
+      expect(result.asOfDate.toISOString().split("T")[0]).toBe("2025-12-31")
+      expect(result.temporalSelection?.wasSelected).toBe(true)
+    })
+  })
+})
