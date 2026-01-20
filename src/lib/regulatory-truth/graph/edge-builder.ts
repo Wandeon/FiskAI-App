@@ -95,12 +95,15 @@ async function rebuildSupersedesEdges(
   const result = { created: 0, deleted: 0, errors: [] as string[] }
 
   // Find all published rules with same conceptSlug
+  // RTL2 GUARD: Only consider rules with RTL2 lineage to prevent legacy contamination
   const sameConceptRules = await db.regulatoryRule.findMany({
     where: {
       conceptSlug: rule.conceptSlug,
       status: { in: ["PUBLISHED", "APPROVED"] },
       revokedAt: null,
       id: { not: rule.id },
+      // RTL2: Skip legacy rules without lineage
+      originatingCandidateFactIds: { isEmpty: false },
     },
     orderBy: { effectiveFrom: "desc" },
   })
@@ -206,11 +209,14 @@ async function rebuildOverridesEdges(
   for (const claim of rule.atomicClaims) {
     for (const exception of claim.exceptions) {
       // Find the overriding rule by conceptSlug
+      // RTL2 GUARD: Only consider rules with RTL2 lineage
       const overridingRule = await db.regulatoryRule.findFirst({
         where: {
           conceptSlug: exception.overridesTo,
           status: { in: ["PUBLISHED", "APPROVED"] },
           revokedAt: null,
+          // RTL2: Skip legacy rules without lineage
+          originatingCandidateFactIds: { isEmpty: false },
         },
       })
 
@@ -266,6 +272,7 @@ async function rebuildDependsOnEdges(rule: RegulatoryRule): Promise<EdgeBuildRes
 
   for (const depSlug of dependencies) {
     // Find the dependency rule
+    // RTL2 GUARD: Only consider rules with RTL2 lineage
     const depRule = await db.regulatoryRule.findFirst({
       where: {
         conceptSlug: depSlug,
@@ -274,6 +281,8 @@ async function rebuildDependsOnEdges(rule: RegulatoryRule): Promise<EdgeBuildRes
         // Must be effective (simplified check)
         effectiveFrom: { lte: new Date() },
         OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: new Date() } }],
+        // RTL2: Skip legacy rules without lineage
+        originatingCandidateFactIds: { isEmpty: false },
       },
       orderBy: { effectiveFrom: "desc" },
     })
