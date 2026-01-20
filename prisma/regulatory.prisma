@@ -771,3 +771,64 @@ enum NNSentinelReasonCode {
 
   @@schema("regulatory")
 }
+
+// =============================================================================
+// NN FETCH AUDIT EVENT - Immutable audit trail for fetch decisions
+// =============================================================================
+// Every fetch decision produces an audit event.
+// Lean: stores hashes and status codes, not content.
+
+model NNFetchAuditEvent {
+  id              String            @id @default(cuid())
+  runId           String            // From NNFetchJob.runId
+  jobKey          String            // From NNFetchJob.jobKey
+  ts              DateTime          @default(now())
+  eventType       NNFetchEventType
+  decision        NNFetchDecision
+
+  // Fetch context
+  url             String?
+  statusCode      Int?
+  contentHash     String?
+  durationMs      Int?
+  retryCount      Int?
+
+  // Result references
+  evidenceId      String?           // Created/found Evidence
+  instrumentId    String?           // Linked Instrument
+  pdfUrl          String?           // For PDF fetches
+  pdfEvidenceId   String?           // PDF Evidence if fetched
+
+  // Error details
+  error           String?
+
+  @@index([runId, ts])
+  @@index([jobKey])
+  @@index([eventType])
+  @@index([evidenceId])
+  @@map("nn_fetch_audit_event")
+  @@schema("regulatory")
+}
+
+enum NNFetchEventType {
+  FETCH_STARTED           // Beginning fetch
+  FETCH_SUCCESS           // Fetched and stored new evidence
+  FETCH_RETRY             // Retrying after failure
+  FETCH_FAILED            // All retries exhausted
+  FETCH_SKIPPED_UNCHANGED // Content hash matches existing
+  FETCH_PDF_STORED        // PDF fetched and stored
+  FETCH_PDF_FAILED        // PDF fetch failed
+  PARSE_ENQUEUED          // Parse job enqueued
+  INSTRUMENT_LINKED       // Evidence linked to existing instrument
+  INSTRUMENT_CREATED      // New instrument created
+  @@schema("regulatory")
+}
+
+enum NNFetchDecision {
+  STARTED   // Fetch initiated
+  SUCCESS   // Operation succeeded
+  SKIPPED   // Skipped (unchanged or duplicate)
+  RETRY     // Will retry
+  FAILED    // Operation failed
+  @@schema("regulatory")
+}
