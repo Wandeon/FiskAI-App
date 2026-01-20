@@ -6,8 +6,9 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-    // Explicit include to support both standard *.test.ts, *.db.test.ts, and *.vitest.ts naming
-    include: ["**/*.{test,spec}.?(c|m)[jt]s?(x)", "**/*.db.test.ts", "**/*.vitest.ts"],
+    // Explicit include to support standard *.test.ts and *.vitest.ts naming
+    // Note: *.db.test.ts files are excluded here (run with vitest.config.db.ts instead)
+    include: ["**/*.{test,spec}.?(c|m)[jt]s?(x)", "**/*.vitest.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
@@ -50,6 +51,8 @@ export default defineConfig({
       "**/node_modules/**",
       "**/dist/**",
       "**/e2e/**",
+      // DB tests run with vitest.config.db.ts (require database connection)
+      "**/*.db.test.ts",
       ".worktrees/**",
       "architecture-erp/**",
       "**/tests/marketing-audit/**",

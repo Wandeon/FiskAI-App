@@ -1,6 +1,6 @@
 // src/lib/regulatory-truth/graph/__tests__/edge-builder.db.test.ts
 /**
- * Edge Builder Tests
+ * Edge Builder Tests (DB Integration)
  *
  * Tests for SRG edge computation including:
  * - SUPERSEDES edges (temporal ordering)
@@ -9,8 +9,7 @@
  * - Edge trace building
  * - Rule selection with edge traversal
  */
-import { describe, it, before, after } from "node:test"
-import assert from "node:assert"
+import { describe, it, afterAll, expect } from "vitest"
 import { db } from "@/lib/db"
 import {
   rebuildEdgesForRule,
@@ -55,7 +54,7 @@ describe("edge-builder", () => {
   }
 
   // Clean up test data
-  after(async () => {
+  afterAll(async () => {
     // Delete edges first (both namespaces)
     await db.graphEdge.deleteMany({
       where: {
@@ -90,8 +89,8 @@ describe("edge-builder", () => {
       // Rebuild edges for the newer rule
       const result = await rebuildEdgesForRule(newerRuleId)
 
-      assert.ok(result.supersedes.created >= 1, "Should create at least one SUPERSEDES edge")
-      assert.deepStrictEqual(result.supersedes.errors, [], "Should have no errors")
+      expect(result.supersedes.created).toBeGreaterThanOrEqual(1)
+      expect(result.supersedes.errors).toEqual([])
 
       // Verify edge exists: newerRule -> olderRule (newer supersedes older)
       const edge = await db.graphEdge.findFirst({
@@ -103,7 +102,7 @@ describe("edge-builder", () => {
         },
       })
 
-      assert.ok(edge, "SUPERSEDES edge should exist from newer to older rule")
+      expect(edge).toBeTruthy()
     })
 
     it("creates bidirectional supersession awareness", async () => {
@@ -152,14 +151,14 @@ describe("edge-builder", () => {
         },
       })
 
-      assert.ok(edge2025to2024, "2025 should supersede 2024")
-      assert.ok(edge2024to2023, "2024 should supersede 2023")
+      expect(edge2025to2024).toBeTruthy()
+      expect(edge2024to2023).toBeTruthy()
     })
 
     it("does not create edges for DRAFT rules", async () => {
       const conceptSlug = `${testPrefix}-draft-test`
 
-      const publishedRule = await createTestRule({
+      await createTestRule({
         conceptSlug,
         effectiveFrom: new Date(2024, 0, 1),
         status: "PUBLISHED",
@@ -174,12 +173,8 @@ describe("edge-builder", () => {
       const result = await rebuildEdgesForRule(draftRule)
 
       // DRAFT rules should not have edges created
-      assert.strictEqual(
-        result.supersedes.created,
-        0,
-        "DRAFT rule should not create SUPERSEDES edges"
-      )
-      assert.strictEqual(result.totalEdges, 0, "DRAFT rule should have no edges")
+      expect(result.supersedes.created).toBe(0)
+      expect(result.totalEdges).toBe(0)
     })
   })
 
@@ -188,7 +183,7 @@ describe("edge-builder", () => {
       const conceptSlug = `${testPrefix}-trace-test`
 
       // Create chain: 2025 -> 2024 -> 2023
-      const rule2023 = await createTestRule({
+      await createTestRule({
         conceptSlug,
         effectiveFrom: new Date(2023, 0, 1),
         status: "PUBLISHED",
@@ -207,20 +202,19 @@ describe("edge-builder", () => {
       })
 
       // Rebuild edges
-      await rebuildEdgesForRule(rule2023)
       await rebuildEdgesForRule(rule2024)
       await rebuildEdgesForRule(rule2025)
 
       // Build trace for 2025 rule
       const trace = await buildEdgeTrace(rule2025)
 
-      assert.strictEqual(trace.selectedRuleId, rule2025, "Selected rule should match")
-      assert.ok(trace.supersessionChain.length >= 1, "Should have supersession chain")
-      assert.ok(trace.supersessionChain.includes(rule2024), "Chain should include 2024 rule")
+      expect(trace.selectedRuleId).toBe(rule2025)
+      expect(trace.supersessionChain.length).toBeGreaterThanOrEqual(1)
+      expect(trace.supersessionChain).toContain(rule2024)
 
       // Check traversed edges
       const supersedesEdges = trace.traversedEdges.filter((e) => e.type === "SUPERSEDES")
-      assert.ok(supersedesEdges.length >= 1, "Should have SUPERSEDES edges in trace")
+      expect(supersedesEdges.length).toBeGreaterThanOrEqual(1)
     })
 
     it("returns empty trace for rule with no edges", async () => {
@@ -232,9 +226,9 @@ describe("edge-builder", () => {
 
       const trace = await buildEdgeTrace(isolatedRule)
 
-      assert.strictEqual(trace.selectedRuleId, isolatedRule)
-      assert.deepStrictEqual(trace.supersessionChain, [])
-      assert.deepStrictEqual(trace.overriddenBy, [])
+      expect(trace.selectedRuleId).toBe(isolatedRule)
+      expect(trace.supersessionChain).toEqual([])
+      expect(trace.overriddenBy).toEqual([])
     })
   })
 
@@ -268,9 +262,9 @@ describe("edge-builder", () => {
       // Find rules that supersede the oldest
       const superseding = await findSupersedingRules(ruleOld)
 
-      assert.ok(superseding.includes(ruleMid), "Mid rule should supersede old")
+      expect(superseding).toContain(ruleMid)
       // ruleNew transitively supersedes ruleOld via ruleMid
-      assert.ok(superseding.includes(ruleNew), "New rule should transitively supersede old")
+      expect(superseding).toContain(ruleNew)
     })
 
     it("finds all rules superseded by a given rule (transitively)", async () => {
@@ -302,9 +296,9 @@ describe("edge-builder", () => {
       // Find rules superseded by newest
       const superseded = await findSupersededRules(rule2022)
 
-      assert.ok(superseded.includes(rule2021), "2022 should supersede 2021 directly")
+      expect(superseded).toContain(rule2021)
       // 2022 -> 2021 -> 2020 transitively
-      assert.ok(superseded.includes(rule2020), "2022 should transitively supersede 2020")
+      expect(superseded).toContain(rule2020)
     })
   })
 
@@ -341,7 +335,7 @@ describe("edge-builder", () => {
       // Rebuild edges
       const result = await rebuildEdgesForRule(mainRule.id)
 
-      assert.ok(result.dependsOn.created >= 1, "Should create DEPENDS_ON edge")
+      expect(result.dependsOn.created).toBeGreaterThanOrEqual(1)
 
       // Verify edge exists
       const edge = await db.graphEdge.findFirst({
@@ -353,7 +347,7 @@ describe("edge-builder", () => {
         },
       })
 
-      assert.ok(edge, "DEPENDS_ON edge should exist")
+      expect(edge).toBeTruthy()
     })
   })
 })
@@ -365,7 +359,7 @@ describe("selectRuleFromDb with edges", () => {
   const testPrefix = `test-select-${Date.now()}`
   const ruleIds: string[] = []
 
-  after(async () => {
+  afterAll(async () => {
     await db.graphEdge.deleteMany({
       where: {
         OR: [{ fromRuleId: { in: ruleIds } }, { toRuleId: { in: ruleIds } }],
@@ -380,7 +374,7 @@ describe("selectRuleFromDb with edges", () => {
   it("selectRuleFromDb returns NO_RULE_FOUND for unmapped topic", async () => {
     const result = await selectRuleFromDb("UNKNOWN/TOPIC/KEY", new Date())
 
-    assert.strictEqual(result.success, false)
-    assert.strictEqual(result.reason, "NO_RULE_FOUND")
+    expect(result.success).toBe(false)
+    expect(result.reason).toBe("NO_RULE_FOUND")
   })
 })
