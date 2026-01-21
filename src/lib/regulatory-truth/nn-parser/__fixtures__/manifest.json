@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "description": "NN Parser test fixtures",
+  "categories": {
+    "simple-laws": {
+      "description": "Basic structure, 5-15 articles",
+      "count": 1
+    }
+  },
+  "fixtures": [
+    {
+      "id": "nn-2020-001-001",
+      "category": "simple-laws",
+      "source": "Pravilnik o paušalnom oporezivanju",
+      "nnYear": 2020,
+      "nnIssue": 1,
+      "nnItem": 1,
+      "expectedArticles": 13
+    }
+  ]
+}

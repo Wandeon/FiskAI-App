@@ -1,0 +1,13 @@
+{
+  "requiredPaths": [
+    "/članak:1",
+    "/članak:2",
+    "/članak:2/stavak:1",
+    "/članak:2/stavak:2",
+    "/članak:3",
+    "/članak:3/stavak:1",
+    "/članak:3/stavak:2"
+  ],
+  "minNodeCount": 7,
+  "minCoveragePercent": 50
+}

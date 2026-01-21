@@ -67,3 +67,4 @@ public/search-index.json
 logs/*
 !logs/.gitkeep
 dist/
+tmp/

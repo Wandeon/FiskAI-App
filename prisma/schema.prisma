@@ -1214,8 +1214,8 @@ model EInvoice {
   matchRecords           MatchRecord[]
 
   // Integration account used for sending (Phase 2+)
-  integrationAccountId   String?
-  integrationAccount     IntegrationAccount? @relation(fields: [integrationAccountId], references: [id])
+  integrationAccountId String?
+  integrationAccount   IntegrationAccount? @relation(fields: [integrationAccountId], references: [id])
 
   @@unique([companyId, invoiceNumber])
   @@index([companyId])
@@ -2256,28 +2256,28 @@ model FiscalCertificate {
 /// Tenant-owned integration identity with encrypted secrets
 /// All regulated actions MUST resolve through this model
 model IntegrationAccount {
-  id            String   @id @default(cuid())
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Integration identity
-  kind          IntegrationKind
-  environment   IntegrationEnv   @default(PROD)
-  status        IntegrationStatus @default(ACTIVE)
+  kind        IntegrationKind
+  environment IntegrationEnv    @default(PROD)
+  status      IntegrationStatus @default(ACTIVE)
 
   // Provider configuration (non-sensitive JSON)
   providerConfig Json?
 
   // Encrypted secrets (unified vault)
   // Format: envelope-encrypted JSON payload
-  secretEnvelope    String?
-  secretKeyVersion  Int      @default(1)
+  secretEnvelope   String?
+  secretKeyVersion Int     @default(1)
 
   // Audit fields
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  rotatedAt     DateTime?
-  lastUsedAt    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  rotatedAt  DateTime?
+  lastUsedAt DateTime?
 
   // Relations
   eInvoices          EInvoice[]
@@ -2312,16 +2312,16 @@ model CertificateNotification {
 }
 
 model FiscalRequest {
-  id                   String            @id @default(cuid())
+  id                   String              @id @default(cuid())
   companyId            String
   certificateId        String? // Optional: null when cert-missing failure
   invoiceId            String?
   integrationAccountId String? // IntegrationAccount used for signing (Phase 4+)
   messageType          FiscalMessageType
-  status               FiscalStatus      @default(QUEUED)
-  attemptCount         Int               @default(0)
-  maxAttempts          Int               @default(5)
-  nextRetryAt          DateTime          @default(now())
+  status               FiscalStatus        @default(QUEUED)
+  attemptCount         Int                 @default(0)
+  maxAttempts          Int                 @default(5)
+  nextRetryAt          DateTime            @default(now())
   lockedAt             DateTime?
   lockedBy             String?
   jir                  String?
@@ -2336,18 +2336,18 @@ model FiscalRequest {
   qrInvoiceNumber      String?
   qrIssuerOib          String?
   qrIssueDate          DateTime?
-  qrAmount             Decimal?          @db.Decimal(10, 2)
+  qrAmount             Decimal?            @db.Decimal(10, 2)
   errorCode            String?
   errorMessage         String?
   lastHttpStatus       Int?
   requestXml           String?
   signedXml            String?
   responseXml          String?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  certificate          FiscalCertificate? @relation(fields: [certificateId], references: [id], onDelete: Restrict)
-  company              Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invoice              EInvoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  certificate          FiscalCertificate?  @relation(fields: [certificateId], references: [id], onDelete: Restrict)
+  company              Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoice              EInvoice?           @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   integrationAccount   IntegrationAccount? @relation(fields: [integrationAccountId], references: [id], onDelete: Restrict)
   responses            FiscalResponse[]
 
@@ -2408,8 +2408,8 @@ model AIUsage {
   costCents  Int?
   model      String?
   success    Boolean  @default(true)
-  durationMs Int?     // API call latency in milliseconds
-  provider   String?  // "openai" | "deepseek" | "ollama"
+  durationMs Int? // API call latency in milliseconds
+  provider   String? // "openai" | "deepseek" | "ollama"
   createdAt  DateTime @default(now())
   company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
@@ -2518,11 +2518,6 @@ model ClaimVerification {
 
   @@unique([paragraphId, claimId])
 }
-
-
-
-
-
 
 model Payout {
   id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -2828,17 +2823,6 @@ model JoppdSubmissionEvent {
   @@index([status], map: "joppd_submission_event_status_idx")
   @@map("joppd_submission_event")
 }
-
-
-
-
-
-
-
-
-
-
-
 
 enum VerificationCodeType {
   EMAIL_VERIFY
@@ -3615,18 +3599,18 @@ enum AgentRunStatus {
 }
 
 enum AgentRunOutcome {
-  SUCCESS_APPLIED        // Output validated and state advanced
-  SUCCESS_NO_CHANGE      // Output valid but no new information
-  VALIDATION_REJECTED    // Failed deterministic validation
-  LOW_CONFIDENCE         // Below confidence threshold
-  EMPTY_OUTPUT           // LLM returned empty/null
-  PARSE_FAILED           // LLM output not valid JSON
-  CONTENT_LOW_QUALITY    // Pre-filter rejected input
-  SKIPPED_DETERMINISTIC  // Pre-LLM rules decided no LLM needed
-  CIRCUIT_OPEN           // Circuit breaker prevented call
-  DUPLICATE_CACHED       // Cache hit, no LLM call (PR-B)
-  RETRY_EXHAUSTED        // All retries failed
-  TIMEOUT                // Aborted due to timeout
+  SUCCESS_APPLIED // Output validated and state advanced
+  SUCCESS_NO_CHANGE // Output valid but no new information
+  VALIDATION_REJECTED // Failed deterministic validation
+  LOW_CONFIDENCE // Below confidence threshold
+  EMPTY_OUTPUT // LLM returned empty/null
+  PARSE_FAILED // LLM output not valid JSON
+  CONTENT_LOW_QUALITY // Pre-filter rejected input
+  SKIPPED_DETERMINISTIC // Pre-LLM rules decided no LLM needed
+  CIRCUIT_OPEN // Circuit breaker prevented call
+  DUPLICATE_CACHED // Cache hit, no LLM call (PR-B)
+  RETRY_EXHAUSTED // All retries failed
+  TIMEOUT // Aborted due to timeout
 }
 
 enum NoChangeCode {
@@ -3682,7 +3666,7 @@ enum GraphNamespace {
 enum GraphStatus {
   PENDING // Edges not yet built (new rule)
   CURRENT // Edges are up-to-date
-  STALE   // Edges need rebuild (rebuild failed or rule modified)
+  STALE // Edges need rebuild (rebuild failed or rule modified)
 }
 
 // Hash algorithm used for deterministic content hashing
@@ -3692,44 +3676,44 @@ enum HashAlgo {
 
 // Outcome of a publish attempt
 enum PublishOutcome {
-  SUCCESS      // Rule was successfully published
-  BLOCKED      // Rule blocked by invariant check
-  FAILED       // Unexpected error during publish
+  SUCCESS // Rule was successfully published
+  BLOCKED // Rule blocked by invariant check
+  FAILED // Unexpected error during publish
 }
 
 // Canonical reasons why a rule publish was blocked
 // Keep alphabetical within categories for easy lookup
 enum RulePublishBlockReason {
   // Lineage failures
-  MISSING_CANDIDATE_FACT_LINEAGE  // No originatingCandidateFactIds
-  MISSING_AGENT_RUN_LINEAGE       // No originatingAgentRunIds
+  MISSING_CANDIDATE_FACT_LINEAGE // No originatingCandidateFactIds
+  MISSING_AGENT_RUN_LINEAGE // No originatingAgentRunIds
 
   // Provenance failures
-  PROVENANCE_NOT_FOUND            // Quote not found in evidence
-  PROVENANCE_DRIFT                // Quote found but offsets wrong
-  PROVENANCE_MISMATCH             // Quote text doesn't match
+  PROVENANCE_NOT_FOUND // Quote not found in evidence
+  PROVENANCE_DRIFT // Quote found but offsets wrong
+  PROVENANCE_MISMATCH // Quote text doesn't match
 
   // Graph failures
-  GRAPH_STATUS_NOT_CURRENT        // graphStatus != CURRENT
-  GRAPH_BUILD_FAILED              // Edge building failed
+  GRAPH_STATUS_NOT_CURRENT // graphStatus != CURRENT
+  GRAPH_BUILD_FAILED // Edge building failed
 
   // Content failures
-  MISSING_INPUTS_HASH             // inputsHash not computed
-  MISSING_EVIDENCE_HASH           // evidenceHash not computed
-  HASH_MISMATCH                   // Re-computed hash doesn't match stored
+  MISSING_INPUTS_HASH // inputsHash not computed
+  MISSING_EVIDENCE_HASH // evidenceHash not computed
+  HASH_MISMATCH // Re-computed hash doesn't match stored
 
   // Budget/policy failures
-  PUBLISH_BUDGET_EXCEEDED         // Daily/monthly budget exhausted
-  TIER_NOT_ELIGIBLE               // Rule tier not allowed for auto-publish
-  CONFIDENCE_TOO_LOW              // derivedConfidence below threshold
+  PUBLISH_BUDGET_EXCEEDED // Daily/monthly budget exhausted
+  TIER_NOT_ELIGIBLE // Rule tier not allowed for auto-publish
+  CONFIDENCE_TOO_LOW // derivedConfidence below threshold
 
   // Status failures
-  INVALID_STATUS_TRANSITION       // Can't transition from current status
-  ALREADY_PUBLISHED               // Rule already has PUBLISHED status
+  INVALID_STATUS_TRANSITION // Can't transition from current status
+  ALREADY_PUBLISHED // Rule already has PUBLISHED status
 
   // Manual intervention
-  MANUAL_BLOCK                    // Operator explicitly blocked
-  PENDING_REVIEW                  // Awaiting human review
+  MANUAL_BLOCK // Operator explicitly blocked
+  PENDING_REVIEW // Awaiting human review
 }
 
 enum AuthorityLevel {
@@ -3769,11 +3753,40 @@ enum SubjectType {
   ALL
 }
 
+// Canonical assertion types - single source of truth
+// Atomic types (THRESHOLD, RATE, etc.) require verbatim + canonical values
+// Textual types (OBLIGATION, PROCEDURE, etc.) require statement verbatim
 enum AssertionType {
-  OBLIGATION
-  PROHIBITION
-  PERMISSION
-  DEFINITION
+  // Atomic types - require value.verbatim, value.canonical, value.unit
+  THRESHOLD // Numeric threshold (e.g., "50%", "1.000.000 EUR")
+  RATE // Rate/percentage (e.g., "15%", "stopa od 25%")
+  AMOUNT // Monetary amount (e.g., "500.000 EUR")
+  DEADLINE_DATE // Specific date (e.g., "31.12.2025.")
+  PERIOD // Time period (e.g., "30 dana", "3 godine")
+  REFERENCE // Legal reference (e.g., "članak 58. stavak 2.")
+
+  // Textual types - require statement.verbatim, optional tokens
+  OBLIGATION // Must do something
+  PROCEDURE // How to do something
+  DEFINITION // What something means
+  PROHIBITION // Must not do something
+  PERMISSION // May do something (legacy, kept for compat)
+  EXCEPTION // Exclusion from rule
+  ENTITY // Actor/institution definition
+}
+
+// Units for atomic values
+enum ValueUnit {
+  PERCENT
+  EUR
+  HRK
+  DAYS
+  MONTHS
+  YEARS
+  DATE
+  TEXT_REF
+  COUNT
+  UNSPECIFIED
 }
 
 enum ProcessType {
@@ -3866,10 +3879,10 @@ model BackfillRun {
   mode        BackfillMode
   dateFrom    DateTime? // Optional date range filter
   dateTo      DateTime?
-  maxUrls     Int              @default(1000) // Global cap per run
-  concurrency Int              @default(2)
-  delayMs     Int              @default(5000) // Per-domain delay
-  dryRun      Boolean          @default(false)
+  maxUrls     Int          @default(1000) // Global cap per run
+  concurrency Int          @default(2)
+  delayMs     Int          @default(5000) // Per-domain delay
+  dryRun      Boolean      @default(false)
 
   // Execution
   startedAt  DateTime?
@@ -3882,7 +3895,7 @@ model BackfillRun {
   errorCount      Int @default(0) // Errors encountered
 
   // Metadata
-  errorLog Json?   // JSON array of error details
+  errorLog Json? // JSON array of error details
   runBy    String? // Operator identifier (user ID or CLI)
   notes    String? // Operator notes
 
@@ -3890,7 +3903,7 @@ model BackfillRun {
   lastProcessedSource String?
   lastProcessedPage   Int?
   lastProcessedUrl    String?
-  checkpoint          Json?   // SitemapDiscoveryCheckpoint for streaming resume
+  checkpoint          Json? // SitemapDiscoveryCheckpoint for streaming resume
 
   // Relations
   discoveredItems DiscoveredItem[]
@@ -4055,48 +4068,48 @@ model RegulatoryRule {
   derivedConfidence Float            @default(0.8) // Confidence derived from source pointer quality (Issue #770)
 
   // Confidence Envelope (Mission #3: confidence, auditability, rollback)
-  confidenceReasons          Json     @default("[]") // Array of {reason: ConfidenceReason, weight: number, detail?: string}
+  confidenceReasons           Json     @default("[]") // Array of {reason: ConfidenceReason, weight: number, detail?: string}
   originatingCandidateFactIds String[] // CandidateFact IDs that contributed to this rule
-  originatingAgentRunIds     String[] // AgentRun IDs involved in creating this rule
+  originatingAgentRunIds      String[] // AgentRun IDs involved in creating this rule
 
   // Human Review Readiness (Mission #3)
   reviewRequired        Boolean @default(false) // True when confidence < threshold or source health poor
-  reviewRequiredReasons Json?                   // Array of {reason: ReviewRequiredReason, detail?: string}
+  reviewRequiredReasons Json? // Array of {reason: ReviewRequiredReason, detail?: string}
 
   // Rollback Capability (Mission #3)
   revokedAt     DateTime? // When the rule was revoked
-  revokedReason String?   // Human-readable reason for revocation
+  revokedReason String? // Human-readable reason for revocation
 
   // Graph Status (event-driven edge building)
-  graphStatus   GraphStatus @default(PENDING) // PENDING, CURRENT, STALE (edges need rebuild)
+  graphStatus GraphStatus @default(PENDING) // PENDING, CURRENT, STALE (edges need rebuild)
 
   // Determinism Hashes (RTL2 - publish attempt telemetry)
   // These enable idempotent retries and cheap failure diagnosis
-  inputsHash    String?    // SHA256 of compiler inputs (candidateFacts, evidence IDs, config)
-  evidenceHash  String?    // SHA256 of evidence.rawContent at composition time
-  hashAlgo      HashAlgo?  // Algorithm used (currently always SHA256)
+  inputsHash   String? // SHA256 of compiler inputs (candidateFacts, evidence IDs, config)
+  evidenceHash String? // SHA256 of evidence.rawContent at composition time
+  hashAlgo     HashAlgo? // Algorithm used (currently always SHA256)
 
-  composerNotes     String?
-  reviewerNotes     String?
-  approvedBy        String? // User ID who approved (for T0/T1)
-  approvedAt        DateTime?
-  meaningSignature  String? // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  composerNotes    String?
+  reviewerNotes    String?
+  approvedBy       String? // User ID who approved (for T0/T1)
+  approvedAt       DateTime?
+  meaningSignature String? // SHA256 hash of meaning-defining fields (conceptSlug+value+valueType+effectiveFrom+effectiveUntil)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  concept        Concept?             @relation(fields: [conceptId], references: [id])
-  supersedes     RegulatoryRule?      @relation("RuleSupersession", fields: [supersedesId], references: [id])
-  supersededBy   RegulatoryRule[]     @relation("RuleSupersession")
-  sourcePointers SourcePointer[]      @relation("RuleSourcePointers")
-  releases       RuleRelease[]        @relation("ReleaseRules")
-  conflictsA     RegulatoryConflict[] @relation("ConflictItemA")
-  conflictsB     RegulatoryConflict[] @relation("ConflictItemB")
-  agentRuns      AgentRun[]
-  outgoingEdges  GraphEdge[]          @relation("EdgeFrom")
-  incomingEdges  GraphEdge[]          @relation("EdgeTo")
-  atomicClaims   AtomicClaim[]
-  eInvoiceLines  EInvoiceLine[]
-  auditSnapshots  AuditSnapshot[]      // Immutable audit records created on Apply success
+  concept         Concept?             @relation(fields: [conceptId], references: [id])
+  supersedes      RegulatoryRule?      @relation("RuleSupersession", fields: [supersedesId], references: [id])
+  supersededBy    RegulatoryRule[]     @relation("RuleSupersession")
+  sourcePointers  SourcePointer[]      @relation("RuleSourcePointers")
+  releases        RuleRelease[]        @relation("ReleaseRules")
+  conflictsA      RegulatoryConflict[] @relation("ConflictItemA")
+  conflictsB      RegulatoryConflict[] @relation("ConflictItemB")
+  agentRuns       AgentRun[]
+  outgoingEdges   GraphEdge[]          @relation("EdgeFrom")
+  incomingEdges   GraphEdge[]          @relation("EdgeTo")
+  atomicClaims    AtomicClaim[]
+  eInvoiceLines   EInvoiceLine[]
+  auditSnapshots  AuditSnapshot[] // Immutable audit records created on Apply success
   publishAttempts RulePublishAttempt[] // Publish attempt telemetry (RTL2)
 
   // Allow draft/pending variants to coexist; only PUBLISHED is unique per concept/date
@@ -4109,7 +4122,7 @@ model RegulatoryRule {
   @@index([meaningSignature])
   @@index([conceptId])
   @@index([reviewRequired]) // Mission #3: quick lookup for rules needing review
-  @@index([revokedAt])      // Mission #3: quick lookup for revoked rules
+  @@index([revokedAt]) // Mission #3: quick lookup for revoked rules
 }
 
 // ============================================================================
@@ -4137,7 +4150,7 @@ model AuditSnapshot {
 
   // Confidence snapshot
   confidenceScore   Float // derivedConfidence at time of snapshot
-  confidenceReasons Json  // Array of {reason, weight, detail} at time of snapshot
+  confidenceReasons Json // Array of {reason, weight, detail} at time of snapshot
 
   // Originating data
   candidateFactIds String[] // CandidateFact IDs used
@@ -4168,16 +4181,16 @@ model RulePublishAttempt {
   rule   RegulatoryRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
   // Outcome
-  outcome      PublishOutcome          // SUCCESS | BLOCKED | FAILED
+  outcome      PublishOutcome // SUCCESS | BLOCKED | FAILED
   blockReasons RulePublishBlockReason[] // Canonical reasons (empty if SUCCESS)
 
   // Hashes at attempt time (for idempotent retry detection)
-  inputsHashAtAttempt   String?  // What inputsHash was when we tried
-  evidenceHashAtAttempt String?  // What evidenceHash was when we tried
+  inputsHashAtAttempt   String? // What inputsHash was when we tried
+  evidenceHashAtAttempt String? // What evidenceHash was when we tried
 
   // Context
-  agentRunId String? // Pipeline correlation
-  jobId      String? // BullMQ job ID
+  agentRunId  String? // Pipeline correlation
+  jobId       String? // BullMQ job ID
   errorDetail String? @db.Text // Stack trace or detailed error message (for FAILED)
 
   @@index([ruleId])
@@ -4297,7 +4310,7 @@ model CandidateFact {
   groundingQuotes      Json            @default("[]") @db.JsonB
   status               CandidateStatus @default(CAPTURED)
   overallConfidence    Float           @default(0)
-  extractorNotes       String?
+  extractorNotes       String? // Legacy v1 - keep for backward compat
   reviewNotes          String?
   createdAt            DateTime        @default(now())
   reviewedAt           DateTime?
@@ -4306,12 +4319,18 @@ model CandidateFact {
   promotionCandidate   Boolean         @default(false)
   promotedToRuleFactId String? // Soft ref to regulatory.RuleFact
 
+  // V2 span-anchored extraction fields
+  assertionType    AssertionType? // Canonical type for indexing
+  assertionPayload Json?          @db.JsonB // Structured payload with spans
+  payloadVersion   Int            @default(1) // 1=legacy extractorNotes, 2=span-anchored
+
   @@index([status])
   @@index([suggestedConceptSlug])
   @@index([suggestedDomain])
   @@index([overallConfidence])
   @@index([promotionCandidate])
   @@index([createdAt])
+  @@index([assertionType])
 }
 
 // ============================================================================
@@ -4614,22 +4633,22 @@ model RuleRelease {
 }
 
 model AgentRun {
-  id          String         @id @default(cuid())
-  agentType   AgentType
-  status      AgentRunStatus @default(RUNNING)
+  id        String         @id @default(cuid())
+  agentType AgentType
+  status    AgentRunStatus @default(RUNNING)
 
   // Input/Output
-  input       Json
-  output      Json?
-  rawOutput   Json?
-  error       String?
+  input     Json
+  output    Json?
+  rawOutput Json?
+  error     String?
 
   // Metrics
-  tokensUsed  Int?
-  inputChars  Int?
-  inputBytes  Int?
-  durationMs  Int?
-  confidence  Float?
+  tokensUsed Int?
+  inputChars Int?
+  inputBytes Int?
+  durationMs Int?
+  confidence Float?
 
   // Prompt provenance
   promptTemplateId      String?
@@ -4650,7 +4669,7 @@ model AgentRun {
   queueName   String?
 
   // Retry tracking
-  attempt     Int @default(1)
+  attempt Int @default(1)
 
   // Cache metadata (for PR-B)
   inputContentHash String?
@@ -4661,7 +4680,7 @@ model AgentRun {
   ruleId     String?
   rule       RegulatoryRule? @relation(fields: [ruleId], references: [id])
 
-  startedAt   DateTime @default(now())
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
 
   @@index([agentType])
@@ -4681,21 +4700,21 @@ model AgentRun {
 model AgentResultCache {
   id               String    @id @default(cuid())
   agentType        AgentType
-  provider         String    // e.g. "ollama_cloud", "openai"
-  model            String    // e.g. "gemma-3-27b"
+  provider         String // e.g. "ollama_cloud", "openai"
+  model            String // e.g. "gemma-3-27b"
   promptHash       String
   inputContentHash String
 
   // Cached result (validated output artifact - no outcome stored)
-  output           Json      // The validated output JSON
-  confidence       Float?
-  tokensUsed       Int?
+  output     Json // The validated output JSON
+  confidence Float?
+  tokensUsed Int?
 
   // Metadata
-  originalRunId    String?   // Reference to the AgentRun that created this cache entry
-  hitCount         Int       @default(0) // Number of times this cache entry was used
-  createdAt        DateTime  @default(now())
-  lastHitAt        DateTime?
+  originalRunId String? // Reference to the AgentRun that created this cache entry
+  hitCount      Int       @default(0) // Number of times this cache entry was used
+  createdAt     DateTime  @default(now())
+  lastHitAt     DateTime?
 
   @@unique([agentType, provider, model, promptHash, inputContentHash])
   @@index([agentType, inputContentHash])
@@ -4705,26 +4724,26 @@ model AgentResultCache {
 /// Pipeline progress tracking for observability
 /// Records every stage execution to answer "Did we spend tokens and get persisted value?"
 model PipelineProgress {
-  id                    String    @id @default(cuid())
-  stageName             String    // scout, router, ocr, extract, compose, apply, review, arbiter, release
-  evidenceId            String?   // Soft ref to Evidence
-  sourceSlug            String
-  runId                 String
-  timestamp             DateTime  @default(now())
+  id         String   @id @default(cuid())
+  stageName  String // scout, router, ocr, extract, compose, apply, review, arbiter, release
+  evidenceId String? // Soft ref to Evidence
+  sourceSlug String
+  runId      String
+  timestamp  DateTime @default(now())
 
   // Metrics
-  producedCount         Int       @default(0) // Items created by this stage
-  downstreamQueuedCount Int       @default(0) // Jobs queued to next stage
-  tokensUsed            Int?      // LLM tokens consumed
-  durationMs            Int?      // Processing time
+  producedCount         Int  @default(0) // Items created by this stage
+  downstreamQueuedCount Int  @default(0) // Jobs queued to next stage
+  tokensUsed            Int? // LLM tokens consumed
+  durationMs            Int? // Processing time
 
   // Skip/Error tracking
-  skipReason            String?   // Why skipped (if applicable)
-  errorClass            String?   // TRANSIENT, VALIDATION, AUTH, QUOTA, CONTENT, INTERNAL
-  errorMessage          String?   @db.Text
+  skipReason   String? // Why skipped (if applicable)
+  errorClass   String? // TRANSIENT, VALIDATION, AUTH, QUOTA, CONTENT, INTERNAL
+  errorMessage String? @db.Text
 
   // Stage-specific metadata
-  metadata              Json?
+  metadata Json?
 
   @@index([stageName, timestamp])
   @@index([sourceSlug, timestamp])
@@ -4736,56 +4755,56 @@ model PipelineProgress {
 // Source Health: Rolling metrics for adaptive routing and budget allocation
 // Updated after each batch to enable self-correcting behavior
 model SourceHealth {
-  id                  String    @id @default(cuid())
-  sourceSlug          String    @unique // Identifier for the regulatory source
+  id         String @id @default(cuid())
+  sourceSlug String @unique // Identifier for the regulatory source
 
   // Rolling success metrics (window-based, e.g., last 7 days)
-  windowStartAt       DateTime  @default(now()) // Start of current rolling window
-  windowSizeHours     Int       @default(168)   // 7 days default
+  windowStartAt   DateTime @default(now()) // Start of current rolling window
+  windowSizeHours Int      @default(168) // 7 days default
 
   // Outcome counts in current window
-  totalAttempts       Int       @default(0)     // Total LLM calls attempted
-  successCount        Int       @default(0)     // itemsProduced > 0
-  emptyCount          Int       @default(0)     // itemsProduced = 0 but no error
-  errorCount          Int       @default(0)     // Errors/failures
+  totalAttempts Int @default(0) // Total LLM calls attempted
+  successCount  Int @default(0) // itemsProduced > 0
+  emptyCount    Int @default(0) // itemsProduced = 0 but no error
+  errorCount    Int @default(0) // Errors/failures
 
   // Token efficiency metrics
-  totalTokensUsed     Int       @default(0)     // Tokens spent in window
-  totalItemsProduced  Int       @default(0)     // Rules/facts created
-  avgTokensPerItem    Float     @default(0)     // Rolling avg: tokens / items
+  totalTokensUsed    Int   @default(0) // Tokens spent in window
+  totalItemsProduced Int   @default(0) // Rules/facts created
+  avgTokensPerItem   Float @default(0) // Rolling avg: tokens / items
 
   // Derived health score (0-1, higher = better)
-  healthScore         Float     @default(0.5)   // Computed from metrics
+  healthScore Float @default(0.5) // Computed from metrics
 
   // Pause/cooldown state
-  isPaused            Boolean   @default(false) // If true, no LLM budget allocated
-  pausedAt            DateTime? // When paused
-  pauseReason         String?   // Why paused (LOW_HEALTH, MANUAL, etc.)
-  pauseExpiresAt      DateTime? // Auto-unpause time
+  isPaused       Boolean   @default(false) // If true, no LLM budget allocated
+  pausedAt       DateTime? // When paused
+  pauseReason    String? // Why paused (LOW_HEALTH, MANUAL, etc.)
+  pauseExpiresAt DateTime? // Auto-unpause time
 
   // Adaptive thresholds (set based on health)
-  minScoutScore       Float     @default(0.4)   // Min worthItScore to proceed
-  allowCloud          Boolean   @default(true)  // Whether cloud LLM is permitted
-  budgetMultiplier    Float     @default(1.0)   // 0-2, scales per-source cap
+  minScoutScore    Float   @default(0.4) // Min worthItScore to proceed
+  allowCloud       Boolean @default(true) // Whether cloud LLM is permitted
+  budgetMultiplier Float   @default(1.0) // 0-2, scales per-source cap
 
   // Stability: Health state tracking with dwell time (anti-flapping)
-  healthState             String    @default("FAIR")    // EXCELLENT, GOOD, FAIR, POOR, CRITICAL
-  healthStateEnteredAt    DateTime  @default(now())     // When current state was entered
-  previousHealthState     String?                       // For audit trail
+  healthState          String   @default("FAIR") // EXCELLENT, GOOD, FAIR, POOR, CRITICAL
+  healthStateEnteredAt DateTime @default(now()) // When current state was entered
+  previousHealthState  String? // For audit trail
 
   // Explainability: Last decision tracking
-  lastDecisionReason      String?   // Enum: HEALTH_UPGRADE, HEALTH_DOWNGRADE, AUTO_PAUSE, AUTO_UNPAUSE, MANUAL_PAUSE, STARVATION_ALLOWANCE
-  lastDecisionAt          DateTime? // When the decision was made
-  lastDecisionDetails     Json?     // { triggeredBy, metricValue, threshold, previousValue }
+  lastDecisionReason  String? // Enum: HEALTH_UPGRADE, HEALTH_DOWNGRADE, AUTO_PAUSE, AUTO_UNPAUSE, MANUAL_PAUSE, STARVATION_ALLOWANCE
+  lastDecisionAt      DateTime? // When the decision was made
+  lastDecisionDetails Json? // { triggeredBy, metricValue, threshold, previousValue }
 
   // Starvation guard: Minimum evaluation allowance for rare sources
   lastStarvationAllowanceAt DateTime? // When last starvation allowance was granted
   starvationAllowanceCount  Int       @default(0) // How many allowances granted in window
 
   // Timestamps
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  lastBatchAt         DateTime? // Last time metrics were updated
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastBatchAt DateTime? // Last time metrics were updated
 
   @@index([healthScore])
   @@index([isPaused])
@@ -6051,11 +6070,11 @@ model DataProvenance {
   sourceRef  String? // External reference
   capturedAt DateTime @default(now())
 
+  @@unique([entityType, entityId, field])
   @@index([entityType, entityId])
   @@index([entityType, entityId, field])
   @@index([source])
   @@index([capturedAt])
-  @@unique([entityType, entityId, field])
 }
 
 // =============================================================================
@@ -6079,4 +6098,33 @@ model ApiIdempotencyKey {
 enum ApiIdempotencyRoute {
   APPROVE_RULES
   PUBLISH_RULES
+}
+
+enum ParseStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum ProvisionNodeType {
+  DOC // Root document node
+  TITLE // Naslov (section heading)
+  CHAPTER // Glava
+  PART // Dio
+  CLANAK // Članak (article)
+  STAVAK // Stavak (paragraph)
+  TOCKA // Točka (point)
+  PODTOCKA // Podtočka (subpoint)
+  ALINEJA // Alineja (bullet)
+  PRILOG // Prilog (annex)
+  TABLE // Tablica
+  LIST // Unstructured list
+}
+
+enum OffsetUnit {
+  UTF16 // JavaScript/Java string indices (default)
+  UTF8 // Byte offsets
+  CODEPOINT // Unicode code points
 }
