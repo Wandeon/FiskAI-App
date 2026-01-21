@@ -31,8 +31,6 @@ const PUBLIC_API_ROUTES = [
   "/api/newsletter/unsubscribe", // Newsletter unsubscribe (public action)
   "/api/sandbox/", // Sandbox endpoints (for testing)
   "/api/public/", // Public API endpoints (regulatory companion, etc.)
-  "/api/admin/regulatory-truth/rules/approve", // RTL approve API (protected by RTL_WORKER_API_KEY)
-  "/api/admin/regulatory-truth/rules/publish", // RTL publish API (protected by RTL_WORKER_API_KEY)
 ]
 
 // Check if an API route is public

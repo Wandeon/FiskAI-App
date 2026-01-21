@@ -3,12 +3,10 @@
 //
 // USAGE RULES:
 // - Business/tenant code: import { db } from "@/lib/db"
-// - RTL/regulatory code: import { dbReg } from "@/lib/db"
 // - Drizzle code: import { drizzleDb } from "@/lib/db/drizzle"
 //
-// DO NOT:
-// - Import db in RTL modules (src/lib/regulatory-truth/**)
-// - Import dbReg in business modules (src/app/**, etc.)
+// NOTE: Regulatory database access has been moved to fiskai-intelligence repo.
+// Accounting app must use Intelligence API for regulatory data.
 
 // Core Prisma client (with tenant isolation)
 export { db } from "./core"
@@ -18,20 +16,12 @@ export type { ExtendedPrismaClient, TransactionClient } from "./core"
 import { db } from "./core"
 export const prisma = db
 
-// Regulatory Prisma client (no tenant isolation)
-export { dbReg } from "./regulatory"
-export type { RegulatoryPrismaClient, RegulatoryTransactionClient } from "./regulatory"
-
 // Re-export tenant context utilities for convenience
 export {
   setTenantContext,
   getTenantContext,
   runWithTenant,
-  runWithRegulatoryContext,
-  getRegulatoryContext,
-  RegulatoryRuleStatusTransitionError,
-  RegulatoryRuleUpdateManyStatusNotAllowedError,
   AccountingPeriodLockedError,
 } from "./core"
 
-export type { TenantContext, RegulatoryTransitionContext, RegulatorySystemAction } from "./core"
+export type { TenantContext } from "./core"

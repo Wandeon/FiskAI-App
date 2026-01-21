@@ -16,7 +16,7 @@ COPY package.json package-lock.json* ./
 
 # Copy Prisma schemas and configs (needed for postinstall prisma generate)
 COPY prisma ./prisma
-COPY prisma.config.ts prisma.config.regulatory.ts ./
+COPY prisma.config.ts ./
 
 # Disable Husky in Docker builds (no .git directory available)
 ENV HUSKY=0
@@ -46,8 +46,8 @@ ENV RESEND_FROM_EMAIL="build@example.com"
 ENV OPENAI_API_KEY="sk-dummy-build-key"
 ENV DEEPSEEK_API_KEY="sk-dummy-build-key"
 
-# Generate Prisma clients (both core and regulatory)
-RUN npx prisma generate && npx prisma generate --config=prisma.config.regulatory.ts
+# Generate Prisma client
+RUN npx prisma generate
 
 # Disable telemetry during the build
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -88,7 +88,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modul
 # Copy Prisma schemas, configs and migrations (required for runtime migrations)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.regulatory.ts ./prisma.config.regulatory.ts
 
 # Copy Drizzle migrations and config (required for runtime migrations)
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle

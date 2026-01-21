@@ -1,10 +1,32 @@
 import { Prisma } from "@prisma/client"
 
-import type {
-  ContributionsRuleData,
-  IncomeTaxRuleData,
-  MunicipalityIncomeTaxData,
-} from "@/lib/fiscal-rules/types"
+// Types inlined from removed fiscal-rules module
+// These define the shape of rule data fetched from Intelligence API
+
+export interface ContributionsRuleData {
+  rates: {
+    MIO_I: { rate: number }
+    MIO_II: { rate: number }
+    HZZO: { rate: number }
+  }
+}
+
+export interface IncomeTaxRuleData {
+  personalAllowance: number
+  brackets: Array<{
+    min: number
+    max: number | null
+    rate: number
+  }>
+}
+
+export interface MunicipalityIncomeTaxData {
+  entries: Array<{
+    postalCode: string
+    municipality: string
+    prirezRate: number
+  }>
+}
 
 const Decimal = Prisma.Decimal
 
