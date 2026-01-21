@@ -65,6 +65,23 @@ enum OffsetUnit {
   @@schema("regulatory")
 }
 
+enum ProvisionNodeType {
+  DOC // Root document node
+  TITLE // Naslov (section heading)
+  CHAPTER // Glava
+  PART // Dio
+  CLANAK // Članak (article)
+  STAVAK // Stavak (paragraph)
+  TOCKA // Točka (point)
+  PODTOCKA // Podtočka (subpoint)
+  ALINEJA // Alineja (bullet)
+  PRILOG // Prilog (annex)
+  TABLE // Tablica
+  LIST // Unstructured list
+
+  @@schema("regulatory")
+}
+
 // =============================================================================
 // REGULATORY SOURCE - Root registry of monitored regulatory sources
 // =============================================================================
@@ -236,13 +253,60 @@ model ParsedDocument {
   cleanTextArtifact EvidenceArtifact? @relation("ParsedDocCleanText", fields: [cleanTextArtifactId], references: [id])
   supersedes        ParsedDocument?   @relation("ParseSupersession", fields: [supersedesId], references: [id])
   supersededBy      ParsedDocument?   @relation("ParseSupersession")
-  // nodes: ProvisionNode[] - will be added in Task A3
+  nodes             ProvisionNode[]
 
   @@unique([evidenceId, parserId, parserVersion, parseConfigHash])
   @@index([evidenceId])
   @@index([evidenceId, parserId, isLatest])
   @@index([parserId, status, createdAt])
   @@index([status])
+  @@schema("regulatory")
+}
+
+// =============================================================================
+// PROVISION NODE - Hierarchical provision tree for legal documents
+// =============================================================================
+// Stores the hierarchical tree of legal provisions (articles, paragraphs, etc.)
+// Uses nodePath for stable citation URLs (/članak:28/stavak:1/točka:a)
+// Has startOffset/endOffset into the cleanText for text anchoring
+// Self-referential parent/children relation for tree structure
+// Spec: docs/specs/nn-mirror-v1.md Section 2.5
+
+model ProvisionNode {
+  id               String  @id @default(cuid())
+  parsedDocumentId String
+  parentId         String?
+
+  // Structure
+  nodeType   ProvisionNodeType
+  nodePath   String // /članak:28/stavak:1/točka:a
+  label      String? // "Članak 28.", "(1)", "a)"
+  orderIndex Int // Sibling order (0-based)
+  depth      Int // Tree depth (0 = root)
+
+  // Content - rawText is OPTIONAL (derive from offsets when needed)
+  rawText        String? @db.Text
+  normalizedText String? @db.Text // For search
+
+  // Offsets into cleanText (unit defined by ParsedDocument.offsetUnit)
+  startOffset Int
+  endOffset   Int
+
+  // Derived flag
+  isContainer Boolean @default(false) // DOC, TITLE, CHAPTER, PART
+
+  // Optional HTML anchor for re-linking
+  htmlSelector String?
+
+  // Relations
+  parsedDocument ParsedDocument  @relation(fields: [parsedDocumentId], references: [id], onDelete: Cascade)
+  parent         ProvisionNode?  @relation("NodeTree", fields: [parentId], references: [id])
+  children       ProvisionNode[] @relation("NodeTree")
+
+  @@unique([parsedDocumentId, nodePath])
+  @@index([parsedDocumentId, parentId, orderIndex])
+  @@index([parsedDocumentId, nodeType])
+  @@index([parsedDocumentId, startOffset])
   @@schema("regulatory")
 }
 
