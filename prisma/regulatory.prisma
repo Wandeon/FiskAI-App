@@ -47,6 +47,24 @@ enum AlertType {
   @@schema("regulatory")
 }
 
+enum ParseStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+
+  @@schema("regulatory")
+}
+
+enum OffsetUnit {
+  UTF16 // JavaScript/Java string indices (default)
+  UTF8 // Byte offsets
+  CODEPOINT // Unicode code points
+
+  @@schema("regulatory")
+}
+
 // =============================================================================
 // REGULATORY SOURCE - Root registry of monitored regulatory sources
 // =============================================================================
@@ -113,12 +131,13 @@ model Evidence {
   embeddingUpdatedAt DateTime? // Last embedding status update
 
   // Instrument linking (nullable - can be backfilled by parser if not known at fetch time)
-  instrumentId       String? // FK to Instrument
+  instrumentId String? // FK to Instrument
 
-  source             RegulatorySource        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  instrument         Instrument?             @relation(fields: [instrumentId], references: [id])
+  source             RegulatorySource     @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  instrument         Instrument?          @relation(fields: [instrumentId], references: [id])
   artifacts          EvidenceArtifact[]
   extractionRejected ExtractionRejected[]
+  parsedDocuments    ParsedDocument[]
   // NOTE: Relations to models still in core schema (SourcePointer, AtomicClaim, etc.)
   // will be added back when those models are migrated in later batches
 
@@ -142,17 +161,88 @@ model Evidence {
 model EvidenceArtifact {
   id          String   @id @default(cuid())
   evidenceId  String
-  kind        String // PDF_TEXT, OCR_TEXT, OCR_HOCR, HTML_CLEANED, TABLE_JSON
+  kind        String // PDF_TEXT, OCR_TEXT, OCR_HOCR, HTML_CLEANED, TABLE_JSON, CLEAN_TEXT
   content     String   @db.Text
   contentHash String
   pageMap     Json? // Per-page metadata: [{page, confidence, method}]
   createdAt   DateTime @default(now())
 
-  evidence Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  evidence           Evidence         @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  parsedDocCleanText ParsedDocument[] @relation("ParsedDocCleanText")
 
   @@index([evidenceId])
   @@index([kind])
   @@index([createdAt])
+  @@schema("regulatory")
+}
+
+// =============================================================================
+// PARSED DOCUMENT - Canonical parse layer for legal documents
+// =============================================================================
+// Links to Evidence (source documents), tracks parser versions for safe reparsing,
+// stores document metadata (NN year, issue, item, etc.), references CLEAN_TEXT artifact,
+// and supports supersession chain for version tracking.
+// Spec: docs/specs/nn-mirror-v1.md Section 2.4
+
+model ParsedDocument {
+  id         String @id @default(cuid())
+  evidenceId String
+
+  // Parser identity (full tuple for safe reparsing)
+  parserId        String // "nn-parser"
+  parserVersion   String // Git SHA or semver
+  parseConfigHash String // SHA256 of config JSON
+
+  status       ParseStatus @default(PENDING)
+  errorMessage String?
+
+  // Warnings for PARTIAL status
+  warnings         Json? // [{ code, message, nodePath?, offsets? }]
+  unparsedSegments Json? // [{ startOffset, endOffset, reason }]
+
+  // Document metadata extracted during parse
+  docMeta Json? // { eli, nnYear, nnIssue, nnItem, title, textType, publishedAt, effectiveFrom }
+
+  // Clean text artifact reference
+  cleanTextArtifactId String?
+  cleanTextLength     Int?
+  cleanTextHash       String? // SHA256 for drift detection
+  offsetUnit          OffsetUnit @default(UTF16)
+
+  // Tree stats
+  nodeCount   Int   @default(0)
+  maxDepth    Int   @default(0)
+  statsByType Json? // { CLANAK: 15, STAVAK: 48, ... }
+
+  // Coverage (non-overlapping content nodes)
+  coverageChars   Int? // Characters covered by content nodes
+  coveragePercent Float? // coverageChars / cleanTextLength
+
+  // Deterministic rebuild comparison
+  treeHash String? // Hash of ordered (nodePath, startOffset, endOffset)
+
+  // Versioning
+  isLatest        Boolean   @default(true)
+  supersedesId    String?   @unique
+  supersededById  String?   @unique
+  driftDetectedAt DateTime?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  parseDurationMs Int?
+
+  // Relations
+  evidence          Evidence          @relation(fields: [evidenceId], references: [id])
+  cleanTextArtifact EvidenceArtifact? @relation("ParsedDocCleanText", fields: [cleanTextArtifactId], references: [id])
+  supersedes        ParsedDocument?   @relation("ParseSupersession", fields: [supersedesId], references: [id])
+  supersededBy      ParsedDocument?   @relation("ParseSupersession")
+  // nodes: ProvisionNode[] - will be added in Task A3
+
+  @@unique([evidenceId, parserId, parserVersion, parseConfigHash])
+  @@index([evidenceId])
+  @@index([evidenceId, parserId, isLatest])
+  @@index([parserId, status, createdAt])
+  @@index([status])
   @@schema("regulatory")
 }
 
@@ -465,13 +555,13 @@ model SchedulerRun {
 // - Index: snapshotAt index for efficient TTL queries
 
 model RuleFactSnapshot {
-  id              String   @id @default(cuid())
-  ruleId          String // Soft ref to RuleFact.id (PUBLISHED rules only)
-  conceptSlug     String // Denormalized for query efficiency
-  valueHash       String // SHA-256 hash of the rule value
-  confidence      Float // Confidence score at snapshot time
-  sourceVersions  Json // Array of {evidenceId, contentHash} for diff explanation
-  snapshotAt      DateTime @default(now())
+  id             String   @id @default(cuid())
+  ruleId         String // Soft ref to RuleFact.id (PUBLISHED rules only)
+  conceptSlug    String // Denormalized for query efficiency
+  valueHash      String // SHA-256 hash of the rule value
+  confidence     Float // Confidence score at snapshot time
+  sourceVersions Json // Array of {evidenceId, contentHash} for diff explanation
+  snapshotAt     DateTime @default(now())
 
   @@index([ruleId, snapshotAt]) // Query snapshots for a specific rule over time
   @@index([snapshotAt]) // TTL cleanup queries
@@ -574,9 +664,9 @@ model ConfidenceCalibration {
 // This replaces audit-based idempotency which is brittle under summary mode.
 
 model NNEnqueuedJob {
-  jobKey              String   @id // nn:item:YYYY:ISSUE:ITEM - unique job identifier
-  firstSeenAt         DateTime @default(now())
-  firstSchedulerRunId String // The run that first enqueued this job
+  jobKey               String   @id // nn:item:YYYY:ISSUE:ITEM - unique job identifier
+  firstSeenAt          DateTime @default(now())
+  firstSchedulerRunId  String // The run that first enqueued this job
   latestSchedulerRunId String? // Updated if same job seen in later run (skipped)
 
   // Denormalized location for queries
@@ -604,37 +694,37 @@ model NNEnqueuedJob {
 // - status: Whether we can produce consolidated text or only cite deltas
 
 model Instrument {
-  id            String   @id @default(cuid())
-  canonicalId   String   @unique // Deterministic: eliUri ?? nnCanonicalKey
+  id          String @id @default(cuid())
+  canonicalId String @unique // Deterministic: eliUri ?? nnCanonicalKey
 
   // Identity (at least one required, both allowed)
-  eliUri        String?  @unique // eli/hr/zakon/2024/152/2505 (preferred)
-  nnCanonicalKey String?  @unique // nn:2024:152:2505 (fallback)
+  eliUri         String? @unique // eli/hr/zakon/2024/152/2505 (preferred)
+  nnCanonicalKey String? @unique // nn:2024:152:2505 (fallback)
 
   // Human-readable
-  title         String            // "Zakon o porezu na dobit"
-  shortTitle    String?           // "ZPD"
+  title      String // "Zakon o porezu na dobit"
+  shortTitle String? // "ZPD"
 
   // Coverage tracking (honest about what we have)
-  coverageStartDate       DateTime?       // Earliest text date we have
-  coverageStartEvidenceId String?         // FK to Evidence (soft ref)
+  coverageStartDate       DateTime? // Earliest text date we have
+  coverageStartEvidenceId String? // FK to Evidence (soft ref)
   coverageStartType       InstrumentTextType @default(UNKNOWN)
-  coverageGapNote         String?         // "Original 1993 enactment pre-dates NN digital archive"
+  coverageGapNote         String? // "Original 1993 enactment pre-dates NN digital archive"
 
   // Baseline state (reference point for consolidation)
-  hasBaselineText         Boolean @default(false)
-  baselineEvidenceId      String?         // FK to Evidence with baseline text (soft ref)
-  baselineValidFrom       DateTime?       // When this baseline became effective
+  hasBaselineText    Boolean   @default(false)
+  baselineEvidenceId String? // FK to Evidence with baseline text (soft ref)
+  baselineValidFrom  DateTime? // When this baseline became effective
 
   // Consolidation status
-  status        InstrumentStatus @default(DELTA_ONLY)
+  status InstrumentStatus @default(DELTA_ONLY)
 
   // Metadata
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  evidence      Evidence[] // All evidence linked to this instrument
+  evidence Evidence[] // All evidence linked to this instrument
 
   @@index([status])
   @@index([coverageStartDate])
@@ -644,17 +734,19 @@ model Instrument {
 }
 
 enum InstrumentTextType {
-  CONSOLIDATED  // pročišćeni tekst - official consolidated version
-  AMENDMENT     // izmjene i dopune - changes to existing law
-  ORIGINAL      // original enactment (rare to find in archive)
-  UNKNOWN       // couldn't determine type
+  CONSOLIDATED // pročišćeni tekst - official consolidated version
+  AMENDMENT // izmjene i dopune - changes to existing law
+  ORIGINAL // original enactment (rare to find in archive)
+  UNKNOWN // couldn't determine type
+
   @@schema("regulatory")
 }
 
 enum InstrumentStatus {
-  DELTA_ONLY              // Have amendments but no baseline - can cite deltas, can't consolidate
-  BASELINED               // Have a baseline text - can consolidate forward from it
-  CONSOLIDATED_AVAILABLE  // Have official pročišćeni tekst
+  DELTA_ONLY // Have amendments but no baseline - can cite deltas, can't consolidate
+  BASELINED // Have a baseline text - can consolidate forward from it
+  CONSOLIDATED_AVAILABLE // Have official pročišćeni tekst
+
   @@schema("regulatory")
 }
 
@@ -665,17 +757,17 @@ enum InstrumentStatus {
 // Allows resuming after failures without gaps or duplicates.
 
 model NNSentinelCheckpoint {
-  id                       String                      @id @default(cuid())
-  schedulerRunId           String                      // FK to SchedulerRun (soft ref)
+  id                       String                     @id @default(cuid())
+  schedulerRunId           String // FK to SchedulerRun (soft ref)
   year                     Int
-  lastCompletedIssueNumber Int?                        // Last issue fully processed
-  status                   NNSentinelCheckpointStatus  @default(RUNNING)
-  anomalyCount             Int                         @default(0)
-  totalIssuesDiscovered    Int                         @default(0)
-  totalItemsEnqueued       Int                         @default(0)
-  totalItemsSkipped        Int                         @default(0)
-  createdAt                DateTime                    @default(now())
-  updatedAt                DateTime                    @updatedAt
+  lastCompletedIssueNumber Int? // Last issue fully processed
+  status                   NNSentinelCheckpointStatus @default(RUNNING)
+  anomalyCount             Int                        @default(0)
+  totalIssuesDiscovered    Int                        @default(0)
+  totalItemsEnqueued       Int                        @default(0)
+  totalItemsSkipped        Int                        @default(0)
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
 
   @@unique([schedulerRunId, year])
   @@index([status])
@@ -684,9 +776,10 @@ model NNSentinelCheckpoint {
 }
 
 enum NNSentinelCheckpointStatus {
-  RUNNING    // Currently processing
-  COMPLETED  // All issues processed
-  PAUSED     // Stopped due to anomaly or error
+  RUNNING // Currently processing
+  COMPLETED // All issues processed
+  PAUSED // Stopped due to anomaly or error
+
   @@schema("regulatory")
 }
 
@@ -697,24 +790,24 @@ enum NNSentinelCheckpointStatus {
 // Enables debugging, coverage analysis, and compliance reporting.
 
 model NNSentinelAuditEvent {
-  id              String                @id @default(cuid())
-  schedulerRunId  String
-  ts              DateTime              @default(now())
-  eventType       NNSentinelEventType
-  decision        NNSentinelDecision
-  reasonCode      NNSentinelReasonCode
+  id             String               @id @default(cuid())
+  schedulerRunId String
+  ts             DateTime             @default(now())
+  eventType      NNSentinelEventType
+  decision       NNSentinelDecision
+  reasonCode     NNSentinelReasonCode
 
   // Location context (nullable depending on event stage)
-  year            Int?
-  issue           Int?
-  item            Int?
-  url             String?
-  jobKey          String?
+  year   Int?
+  issue  Int?
+  item   Int?
+  url    String?
+  jobKey String?
 
   // Additional details
-  issueCount      Int?                  // For DISCOVERED_YEAR_ISSUES
-  itemCount       Int?                  // For DISCOVERED_ISSUE_ITEMS
-  details         Json?                 @db.JsonB
+  issueCount Int? // For DISCOVERED_YEAR_ISSUES
+  itemCount  Int? // For DISCOVERED_ISSUE_ITEMS
+  details    Json? @db.JsonB
 
   @@index([schedulerRunId, ts])
   @@index([year, issue, item])
@@ -725,20 +818,22 @@ model NNSentinelAuditEvent {
 }
 
 enum NNSentinelEventType {
-  DISCOVERY  // Found issues/items
-  ENQUEUE    // Enqueued a fetch job
-  SKIP       // Skipped an item
-  ANOMALY    // Detected anomaly
-  ERROR      // Error occurred
+  DISCOVERY // Found issues/items
+  ENQUEUE // Enqueued a fetch job
+  SKIP // Skipped an item
+  ANOMALY // Detected anomaly
+  ERROR // Error occurred
+
   @@schema("regulatory")
 }
 
 enum NNSentinelDecision {
-  INFO      // Informational event
-  ENQUEUED  // Job was enqueued
-  SKIPPED   // Job was skipped
-  PAUSED    // Enumeration paused
-  FAILED    // Operation failed
+  INFO // Informational event
+  ENQUEUED // Job was enqueued
+  SKIPPED // Job was skipped
+  PAUSED // Enumeration paused
+  FAILED // Operation failed
+
   @@schema("regulatory")
 }
 
@@ -779,28 +874,28 @@ enum NNSentinelReasonCode {
 // Lean: stores hashes and status codes, not content.
 
 model NNFetchAuditEvent {
-  id              String            @id @default(cuid())
-  runId           String            // From NNFetchJob.runId
-  jobKey          String            // From NNFetchJob.jobKey
-  ts              DateTime          @default(now())
-  eventType       NNFetchEventType
-  decision        NNFetchDecision
+  id        String           @id @default(cuid())
+  runId     String // From NNFetchJob.runId
+  jobKey    String // From NNFetchJob.jobKey
+  ts        DateTime         @default(now())
+  eventType NNFetchEventType
+  decision  NNFetchDecision
 
   // Fetch context
-  url             String?
-  statusCode      Int?
-  contentHash     String?
-  durationMs      Int?
-  retryCount      Int?
+  url         String?
+  statusCode  Int?
+  contentHash String?
+  durationMs  Int?
+  retryCount  Int?
 
   // Result references
-  evidenceId      String?           // Created/found Evidence
-  instrumentId    String?           // Linked Instrument
-  pdfUrl          String?           // For PDF fetches
-  pdfEvidenceId   String?           // PDF Evidence if fetched
+  evidenceId    String? // Created/found Evidence
+  instrumentId  String? // Linked Instrument
+  pdfUrl        String? // For PDF fetches
+  pdfEvidenceId String? // PDF Evidence if fetched
 
   // Error details
-  error           String?
+  error String?
 
   @@index([runId, ts])
   @@index([jobKey])
@@ -811,24 +906,26 @@ model NNFetchAuditEvent {
 }
 
 enum NNFetchEventType {
-  FETCH_STARTED           // Beginning fetch
-  FETCH_SUCCESS           // Fetched and stored new evidence
-  FETCH_RETRY             // Retrying after failure
-  FETCH_FAILED            // All retries exhausted
+  FETCH_STARTED // Beginning fetch
+  FETCH_SUCCESS // Fetched and stored new evidence
+  FETCH_RETRY // Retrying after failure
+  FETCH_FAILED // All retries exhausted
   FETCH_SKIPPED_UNCHANGED // Content hash matches existing
-  FETCH_PDF_STORED        // PDF fetched and stored
-  FETCH_PDF_FAILED        // PDF fetch failed
-  PARSE_ENQUEUED          // Parse job enqueued
-  INSTRUMENT_LINKED       // Evidence linked to existing instrument
-  INSTRUMENT_CREATED      // New instrument created
+  FETCH_PDF_STORED // PDF fetched and stored
+  FETCH_PDF_FAILED // PDF fetch failed
+  PARSE_ENQUEUED // Parse job enqueued
+  INSTRUMENT_LINKED // Evidence linked to existing instrument
+  INSTRUMENT_CREATED // New instrument created
+
   @@schema("regulatory")
 }
 
 enum NNFetchDecision {
-  STARTED   // Fetch initiated
-  SUCCESS   // Operation succeeded
-  SKIPPED   // Skipped (unchanged or duplicate)
-  RETRY     // Will retry
-  FAILED    // Operation failed
+  STARTED // Fetch initiated
+  SUCCESS // Operation succeeded
+  SKIPPED // Skipped (unchanged or duplicate)
+  RETRY // Will retry
+  FAILED // Operation failed
+
   @@schema("regulatory")
 }
