@@ -263,8 +263,14 @@ interface TextPosition {
   end: number
 }
 
-function normalizeForSearch(text: string): string {
-  return text.replace(/[ \t]+/g, " ").trim()
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function buildWhitespaceRegex(text: string): RegExp {
+  const escaped = escapeRegExp(text.trim())
+  const pattern = escaped.replace(/\s+/g, "\\s+")
+  return new RegExp(pattern, "g")
 }
 
 function findTextPosition(
@@ -272,18 +278,18 @@ function findTextPosition(
   searchText: string,
   startIndex: number
 ): TextPosition | null {
-  const normalizedSearch = normalizeForSearch(searchText)
+  const trimmed = searchText.trim()
+  if (!trimmed) return null
 
-  let index = cleanText.indexOf(normalizedSearch, startIndex)
-  if (index === -1) {
-    index = cleanText.indexOf(normalizedSearch)
-  }
+  const regex = buildWhitespaceRegex(trimmed)
+  regex.lastIndex = startIndex
+  const match = regex.exec(cleanText)
 
-  if (index === -1) return null
+  if (!match) return null
 
   return {
-    start: index,
-    end: index + normalizedSearch.length,
+    start: match.index,
+    end: match.index + match[0].length,
   }
 }
 
