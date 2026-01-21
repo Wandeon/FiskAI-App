@@ -998,3 +998,33 @@ enum NNFetchDecision {
 
   @@schema("regulatory")
 }
+
+// =============================================================================
+// REPARSE JOB - Queue for evidence reprocessing
+// =============================================================================
+// Tracks reparse requests for evidence documents. Used when:
+// - Parser is upgraded and existing parses need refresh
+// - Drift is detected between parse versions
+// - Integrity failures are discovered
+// - Manual reparse is requested
+
+model ReparseJob {
+  id              String    @id @default(cuid())
+  evidenceId      String
+  reason          String    // PARSER_UPGRADE, DRIFT_DETECTED, INTEGRITY_FAILURE, MANUAL
+  priority        Int       @default(0)
+
+  status          String    @default("PENDING")  // PENDING, RUNNING, COMPLETED, FAILED, SKIPPED
+
+  previousParseId String?
+  newParseId      String?
+
+  createdAt       DateTime  @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  errorMessage    String?
+
+  @@index([status, priority, createdAt])
+  @@index([evidenceId])
+  @@schema("regulatory")
+}
