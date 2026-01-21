@@ -178,3 +178,47 @@ jobs:
             echo "$body"
             exit 1
           fi
+
+      - name: Wait for deployment to stabilize
+        run: sleep 60
+
+      - name: Verify Prisma schemas in deployed container
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS01_SSH_KEY }}
+        run: |
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::warning::VPS01_SSH_KEY not set, skipping container verification"
+            exit 0
+          fi
+
+          # Get the app container name (matches Coolify naming pattern)
+          CONTAINER=$(ssh -o StrictHostKeyChecking=no admin@100.64.123.81 \
+            "docker ps --format '{{.Names}}' | grep -E '^tgg4gkcco8k8s0wwg08cck40' | head -1")
+
+          if [ -z "$CONTAINER" ]; then
+            echo "::error::Could not find app container"
+            exit 1
+          fi
+
+          echo "Verifying container: $CONTAINER"
+
+          # Verify prisma directory exists with migrations
+          ssh admin@100.64.123.81 "docker exec $CONTAINER sh -c '
+            echo \"=== Prisma Directory ===\"
+            ls -la /app/prisma/ || exit 1
+
+            echo \"\"
+            echo \"=== Regulatory Migrations ===\"
+            ls -la /app/prisma/migrations-regulatory/ || exit 1
+
+            echo \"\"
+            echo \"=== Config Files ===\"
+            ls -la /app/prisma.config.regulatory.ts || exit 1
+
+            echo \"\"
+            echo \"=== Prisma CLI Available ===\"
+            npx prisma --version || exit 1
+
+            echo \"\"
+            echo \"✅ All Prisma artifacts verified\"
+          '"
