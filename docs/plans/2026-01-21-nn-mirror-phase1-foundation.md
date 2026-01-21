@@ -2847,20 +2847,349 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 
 > **AUDIT FIX:** Exit criteria now include full NN metadata verification and offset integrity checks.
 
-After completing all tasks, verify:
+## 🚦 PHASE 1 EXIT GATE (STRICT)
 
-| Criteria                  | Verification                                                                                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Schema migrations applied | `npx prisma migrate status` shows all migrations applied                                                                                                      |
-| Parser unit tests pass    | `npx vitest run src/lib/regulatory-truth/nn-parser/` all green                                                                                                |
-| Fixture tests pass        | At least 1 fixture passes all checks                                                                                                                          |
-| Integration test passes   | DB test creates and queries records successfully                                                                                                              |
-| Parse 50 diverse items    | Run `scripts/run-nn-parser.ts` on 50 Evidence records, >95% success                                                                                           |
-| **NN metadata present**   | `SELECT COUNT(*) FROM "ParsedDocument" WHERE (docMeta->>'nnYear') IS NULL OR (docMeta->>'nnIssue') IS NULL OR (docMeta->>'nnItem') IS NULL;` returns 0 or <5% |
-| **Unique nodePaths**      | `SELECT parsedDocumentId, nodePath, COUNT(*) FROM "ProvisionNode" GROUP BY 1,2 HAVING COUNT(*)>1;` returns 0 rows                                             |
-| **Offset integrity**      | Zero PARSE-INV-003 violations in warnings for parsed documents                                                                                                |
-| **CLEAN_TEXT artifacts**  | All ParsedDocument.cleanTextArtifactId points to kind='CLEAN_TEXT' artifacts                                                                                  |
-| **parentId populated**    | `SELECT COUNT(*) FROM "ProvisionNode" WHERE depth > 1 AND "parentId" IS NULL;` returns 0                                                                      |
+> **You cannot proceed to Phase 2 until ALL of these pass. No exceptions.**
+
+### Gate 1: Fixture Regression (≥95% pass rate)
+
+Run: `npx vitest run src/lib/regulatory-truth/nn-parser/__tests__/fixtures/`
+Required: ≥95% of fixture tests pass
+
+### Gate 2: Offset Integrity (100% on fixtures - ZERO TOLERANCE)
+
+**This is the hard invariant test. It MUST run in CI on every fixture.**
+
+```typescript
+// src/lib/regulatory-truth/nn-parser/__tests__/offset-invariant.test.ts
+import { describe, it, expect } from "vitest"
+import { dbReg } from "@/lib/db"
+
+describe("PARSE-INV-003: Offset Integrity", () => {
+  it("every node offset matches CLEAN_TEXT artifact exactly", async () => {
+    // Get all parsed documents with their artifacts and nodes
+    const parsedDocs = await dbReg.parsedDocument.findMany({
+      where: { isLatest: true, status: "SUCCESS" },
+      include: {
+        cleanTextArtifact: true,
+        nodes: true,
+      },
+    })
+
+    const violations: string[] = []
+
+    for (const doc of parsedDocs) {
+      if (!doc.cleanTextArtifact?.content) continue
+      const cleanText = doc.cleanTextArtifact.content
+
+      for (const node of doc.nodes) {
+        if (node.startOffset === null || node.endOffset === null) continue
+
+        const extracted = cleanText.substring(node.startOffset, node.endOffset)
+
+        // THE HARD INVARIANT: extracted text MUST match rawText exactly
+        if (node.rawText && extracted !== node.rawText) {
+          violations.push(
+            `${doc.id}/${node.nodePath}: ` +
+              `expected "${node.rawText.slice(0, 50)}..." ` +
+              `got "${extracted.slice(0, 50)}..."`
+          )
+        }
+      }
+    }
+
+    // ZERO TOLERANCE - any violation fails the test
+    expect(violations).toEqual([])
+  })
+})
+```
+
+**CI must run this test on fixtures. Not "later". Now.**
+
+### Gate 3: Atomic Supersession (must rollback on failure)
+
+**Explicit test that proves transaction atomicity:**
+
+```typescript
+// src/lib/regulatory-truth/nn-parser/__tests__/atomic-supersession.db.test.ts
+import { describe, it, expect, beforeAll, afterAll } from "vitest"
+import { dbReg } from "@/lib/db"
+
+describe("Atomic Supersession", () => {
+  let testEvidenceId: string
+
+  beforeAll(async () => {
+    // Setup test evidence with existing parse
+    // ...
+  })
+
+  it("old parse stays isLatest=true if new insert fails", async () => {
+    // 1. Create initial parse with isLatest=true
+    const oldParse = await dbReg.parsedDocument.create({
+      data: {
+        evidenceId: testEvidenceId,
+        parserId: "nn-parser",
+        parserVersion: "1.0.0",
+        status: "SUCCESS",
+        isLatest: true,
+        // ... other fields
+      },
+    })
+
+    // 2. Attempt supersession that will fail (e.g., constraint violation)
+    let newParseCreated = false
+    try {
+      await dbReg.$transaction(async (tx) => {
+        // Create new parse
+        await tx.parsedDocument.create({
+          data: {
+            evidenceId: testEvidenceId,
+            parserId: "nn-parser",
+            parserVersion: "1.0.1",
+            status: "SUCCESS",
+            isLatest: true,
+            supersedesId: oldParse.id,
+          },
+        })
+        newParseCreated = true
+
+        // Simulate failure mid-transaction
+        throw new Error("Simulated failure after new parse created")
+      })
+    } catch (e) {
+      // Expected
+    }
+
+    // 3. CRITICAL CHECK: Old parse must still be isLatest=true
+    const oldParseAfter = await dbReg.parsedDocument.findUnique({
+      where: { id: oldParse.id },
+    })
+
+    expect(oldParseAfter?.isLatest).toBe(true)
+
+    // 4. New parse should NOT exist (rolled back)
+    const allParses = await dbReg.parsedDocument.findMany({
+      where: { evidenceId: testEvidenceId },
+    })
+    expect(allParses).toHaveLength(1)
+    expect(allParses[0].id).toBe(oldParse.id)
+  })
+
+  afterAll(async () => {
+    // Cleanup
+  })
+})
+```
+
+### Gate 4: docMeta Complete for All Fixtures
+
+```sql
+-- Must return 0 or <5% of total
+SELECT COUNT(*) FROM "ParsedDocument"
+WHERE "isLatest" = true
+  AND status = 'SUCCESS'
+  AND (
+    (docMeta->>'nnYear') IS NULL OR
+    (docMeta->>'nnIssue') IS NULL OR
+    (docMeta->>'nnItem') IS NULL
+  );
+```
+
+### Gate 5: ParentId Tree Valid (no orphan nodes except root)
+
+```sql
+-- Must return 0 rows
+SELECT id, "nodePath", depth FROM "ProvisionNode"
+WHERE depth > 1 AND "parentId" IS NULL;
+```
+
+---
+
+## Task FINAL: Mirror Correctness Dashboard Query
+
+> **Run this after first 100 real NN items to see reality immediately.**
+
+**Files:**
+
+- Create: `scripts/nn-mirror-health-check.ts`
+
+```typescript
+/**
+ * NN Mirror Phase 1 Health Check
+ *
+ * Run after parsing first 100 real NN items to catch issues early.
+ * Usage: npx tsx scripts/nn-mirror-health-check.ts
+ */
+
+import { config } from "dotenv"
+config({ path: ".env.local" })
+config({ path: ".env" })
+
+async function main() {
+  const { dbReg } = await import("../src/lib/db")
+
+  console.log("=== NN Mirror Phase 1 Health Check ===\n")
+
+  // 1. Parse success rate
+  const parseStats = await dbReg.$queryRaw<[{ total: bigint; success: bigint; failed: bigint }]>`
+    SELECT
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE status = 'SUCCESS') as success,
+      COUNT(*) FILTER (WHERE status = 'FAILED') as failed
+    FROM "ParsedDocument"
+    WHERE "isLatest" = true
+  `
+  const successRate = (Number(parseStats[0].success) / Number(parseStats[0].total)) * 100
+  console.log("📊 Parse Success Rate:", successRate.toFixed(1) + "%")
+  console.log("   Total:", parseStats[0].total.toString())
+  console.log("   Success:", parseStats[0].success.toString())
+  console.log("   Failed:", parseStats[0].failed.toString())
+  if (successRate < 95) console.log("   ⚠️  WARNING: Below 95% target!")
+
+  // 2. Average node count
+  const nodeStats = await dbReg.$queryRaw<
+    [{ avg_nodes: number; min_nodes: bigint; max_nodes: bigint }]
+  >`
+    SELECT
+      AVG("nodeCount")::float as avg_nodes,
+      MIN("nodeCount") as min_nodes,
+      MAX("nodeCount") as max_nodes
+    FROM "ParsedDocument"
+    WHERE "isLatest" = true AND status = 'SUCCESS'
+  `
+  console.log("\n📊 Node Count:")
+  console.log("   Avg:", nodeStats[0].avg_nodes?.toFixed(1) || "N/A")
+  console.log("   Min:", nodeStats[0].min_nodes?.toString() || "N/A")
+  console.log("   Max:", nodeStats[0].max_nodes?.toString() || "N/A")
+
+  // 3. % documents missing nnYear/nnIssue/nnItem
+  const metaStats = await dbReg.$queryRaw<[{ total: bigint; missing_meta: bigint }]>`
+    SELECT
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE
+        (docMeta->>'nnYear') IS NULL OR
+        (docMeta->>'nnIssue') IS NULL OR
+        (docMeta->>'nnItem') IS NULL
+      ) as missing_meta
+    FROM "ParsedDocument"
+    WHERE "isLatest" = true AND status = 'SUCCESS'
+  `
+  const missingMetaRate = (Number(metaStats[0].missing_meta) / Number(metaStats[0].total)) * 100
+  console.log("\n📊 Missing NN Metadata:")
+  console.log("   Rate:", missingMetaRate.toFixed(1) + "%")
+  console.log(
+    "   Count:",
+    metaStats[0].missing_meta.toString(),
+    "of",
+    metaStats[0].total.toString()
+  )
+  if (missingMetaRate > 5) console.log("   ⚠️  WARNING: Above 5% threshold!")
+
+  // 4. % documents with unparsed segments > 5%
+  const unparsedStats = await dbReg.$queryRaw<[{ total: bigint; high_unparsed: bigint }]>`
+    SELECT
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE
+        jsonb_array_length(COALESCE("unparsedSegments", '[]'::jsonb)) > 0
+      ) as high_unparsed
+    FROM "ParsedDocument"
+    WHERE "isLatest" = true AND status = 'SUCCESS'
+  `
+  const unparsedRate =
+    (Number(unparsedStats[0].high_unparsed) / Number(unparsedStats[0].total)) * 100
+  console.log("\n📊 Unparsed Segments:")
+  console.log("   Docs with unparsed:", unparsedRate.toFixed(1) + "%")
+  if (unparsedRate > 5) console.log("   ⚠️  WARNING: Above 5% threshold!")
+
+  // 5. Orphan nodes (parentId issues)
+  const orphanStats = await dbReg.$queryRaw<[{ orphan_count: bigint }]>`
+    SELECT COUNT(*) as orphan_count
+    FROM "ProvisionNode"
+    WHERE depth > 1 AND "parentId" IS NULL
+  `
+  console.log("\n📊 Orphan Nodes (depth > 1 with no parent):")
+  console.log("   Count:", orphanStats[0].orphan_count.toString())
+  if (Number(orphanStats[0].orphan_count) > 0) console.log("   ⚠️  WARNING: Tree integrity issue!")
+
+  // 6. Offset integrity spot check (sample 10 docs)
+  console.log("\n📊 Offset Integrity Spot Check (10 docs):")
+  const sampleDocs = await dbReg.parsedDocument.findMany({
+    where: { isLatest: true, status: "SUCCESS" },
+    include: {
+      cleanTextArtifact: true,
+      nodes: { take: 5 },
+    },
+    take: 10,
+  })
+
+  let violations = 0
+  for (const doc of sampleDocs) {
+    if (!doc.cleanTextArtifact?.content) continue
+    const cleanText = doc.cleanTextArtifact.content
+
+    for (const node of doc.nodes) {
+      if (node.startOffset === null || node.endOffset === null) continue
+      const extracted = cleanText.substring(node.startOffset, node.endOffset)
+      if (node.rawText && extracted !== node.rawText) {
+        violations++
+        console.log(`   ❌ ${doc.id}/${node.nodePath}: offset mismatch`)
+      }
+    }
+  }
+  if (violations === 0) {
+    console.log("   ✅ All sampled offsets valid")
+  } else {
+    console.log(`   ⚠️  ${violations} violations found!`)
+  }
+
+  // Summary
+  console.log("\n=== Summary ===")
+  const issues: string[] = []
+  if (successRate < 95) issues.push("Parse success rate < 95%")
+  if (missingMetaRate > 5) issues.push("Missing metadata > 5%")
+  if (unparsedRate > 5) issues.push("Unparsed segments > 5%")
+  if (Number(orphanStats[0].orphan_count) > 0) issues.push("Orphan nodes exist")
+  if (violations > 0) issues.push("Offset integrity violations")
+
+  if (issues.length === 0) {
+    console.log("✅ All checks passed! Ready for Phase 2.")
+  } else {
+    console.log("❌ Issues found:")
+    issues.forEach((i) => console.log("   -", i))
+    console.log("\nFix these before proceeding to Phase 2.")
+  }
+
+  await dbReg.$disconnect()
+}
+
+main().catch(console.error)
+```
+
+**Commit:**
+
+```bash
+git add scripts/nn-mirror-health-check.ts
+git commit -m "feat(nn-parser): add Phase 1 health check dashboard query
+
+Run after first 100 real NN items to catch issues early.
+Checks: parse rate, node count, metadata, unparsed, orphans, offsets.
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+```
+
+---
+
+## Exit Criteria Summary Table
+
+| Criteria             | Target        | Verification                                   |
+| -------------------- | ------------- | ---------------------------------------------- |
+| Fixture regression   | ≥95%          | `npx vitest run .../fixtures/`                 |
+| Offset integrity     | **100%**      | Zero violations in offset-invariant.test.ts    |
+| Atomic supersession  | **Must pass** | Transaction rollback test passes               |
+| docMeta complete     | ≥95%          | nnYear/nnIssue/nnItem present                  |
+| ParentId tree valid  | **100%**      | No orphan nodes (depth > 1 with null parentId) |
+| Schema migrations    | Applied       | `npx prisma migrate status`                    |
+| CLEAN_TEXT artifacts | **100%**      | All cleanTextArtifactId → kind='CLEAN_TEXT'    |
 
 ---
 
