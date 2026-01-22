@@ -1,6 +1,13 @@
 #!/bin/sh
 set -e
 
+echo "🔄 Running Prisma migrations..."
+if ! npx prisma migrate deploy; then
+  echo "❌ Prisma migrations failed"
+  exit 1
+fi
+echo "✅ Prisma migrations completed successfully"
+
 echo "🔄 Running Drizzle migrations..."
 
 # Ensure pgcrypto is available for gen_random_uuid() defaults used by Drizzle tables
