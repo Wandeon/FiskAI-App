@@ -50,16 +50,8 @@ export async function register() {
       ],
     })
 
-    // Start regulatory truth scheduler
-    if (process.env.REGULATORY_CRON_ENABLED === "true") {
-      try {
-        const { startScheduler } = await import("@/lib/regulatory-truth/scheduler/cron")
-        startScheduler()
-        console.log("[instrumentation] Regulatory truth scheduler started")
-      } catch (error) {
-        console.error("[instrumentation] Failed to start scheduler:", error)
-      }
-    }
+    // NOTE: Regulatory truth scheduler moved to fiskai-intelligence service
+    // The scheduler is now managed separately and accessed via Intelligence API
   }
 
   // Edge runtime Sentry initialization (middleware, edge routes)

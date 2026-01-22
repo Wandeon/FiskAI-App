@@ -277,40 +277,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Generate Prisma clients (core + regulatory)
-        run: |
-          npx prisma generate
-          npx prisma generate --schema=prisma/regulatory.prisma
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Enable pgvector extension
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Create regulatory schema
-        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
-
       - name: Apply core schema
         run: npx prisma db push --accept-data-loss
 
-      - name: Apply regulatory schema
-        run: npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss
-
-      - name: Run integration tests
-        run: node --import tsx --test src/lib/regulatory-truth/__tests__/*.test.ts
-
-      - name: Regulatory Trust Summary
-        if: always()
-        run: |
-          echo "## 🔒 Regulatory Trust Status" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate | Threshold | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| extractor_parse_failure_rate | >10% CRITICAL | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
-          echo "| validator_rejection_rate | >35% CRITICAL | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
-          echo "| t0_t1_approval_compliance | >0 CRITICAL | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
-          echo "| source_pointer_coverage_published | >0 CRITICAL | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
-          echo "| citation_compliance | ≥95% (28/30) | ✅ Tested |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "See \`docs/regulatory-truth/evidence-pack-2025-12-23.md\` for full details." >> $GITHUB_STEP_SUMMARY
+      # NOTE: RTL integration tests moved to fiskai-intelligence repository
+      - name: Run integration tests (stub)
+        run: echo "RTL integration tests are now in fiskai-intelligence repository"
 
   test-db:
     name: DB Vitest Tests
@@ -348,54 +326,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Generate Prisma clients (core + regulatory)
-        run: |
-          npx prisma generate
-          npx prisma generate --schema=prisma/regulatory.prisma
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Enable pgvector extension
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Create regulatory schema
-        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
-
-      - name: Apply schemas with verification
-        run: |
-          set -e
-
-          echo "=== Applying core schema ==="
-          npx prisma db push --accept-data-loss --schema=prisma/schema.prisma 2>&1
-
-          # Verify tables were created
-          echo "Verifying core tables..."
-          for i in 1 2 3 4 5; do
-            CORE_COUNT=$(PGPASSWORD=ci psql -h localhost -U ci -d ci -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
-            CORE_COUNT=$(echo "$CORE_COUNT" | tr -d ' ')
-            echo "Attempt $i: Found $CORE_COUNT tables in public schema"
-            if [ "$CORE_COUNT" -ge 100 ]; then
-              echo "✅ Core schema verified ($CORE_COUNT tables)"
-              break
-            fi
-            if [ "$i" -eq 5 ]; then
-              echo "::error::Failed to create core schema tables after 5 attempts"
-              exit 1
-            fi
-            echo "Waiting and retrying..."
-            sleep 2
-          done
-
-          echo ""
-          echo "=== Applying regulatory schema ==="
-          npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss 2>&1
-
-          # Verify regulatory tables
-          echo "Verifying regulatory tables..."
-          sleep 1
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt regulatory.*" || echo "(no regulatory tables)"
-
-          echo ""
-          echo "=== Final verification ==="
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "SELECT table_schema, COUNT(*) as count FROM information_schema.tables WHERE table_schema IN ('public', 'regulatory') GROUP BY table_schema;"
+      - name: Apply core schema
+        run: npx prisma db push --accept-data-loss --schema=prisma/schema.prisma
 
       - name: Schema sanity check
         run: |
@@ -415,13 +353,7 @@ jobs:
           }
           echo "✅ Core schema verified"
 
-          # Check regulatory tables
-          echo "Checking regulatory schema tables..."
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt regulatory.*" | grep -q "rule_table" || {
-            echo "::error::regulatory.rule_table does not exist - regulatory schema setup failed"
-            exit 1
-          }
-          echo "✅ Regulatory schema verified"
+          # NOTE: Regulatory schema is now in fiskai-intelligence repository
 
           echo "✅ All schema sanity checks passed"
 
@@ -463,22 +395,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Generate Prisma clients (core + regulatory)
-        run: |
-          npx prisma generate
-          npx prisma generate --schema=prisma/regulatory.prisma
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Enable pgvector extension
         run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Create regulatory schema
-        run: PGPASSWORD=ci psql -h localhost -U ci -d ci -c "CREATE SCHEMA IF NOT EXISTS regulatory;"
-
       - name: Apply core schema
         run: npx prisma db push --accept-data-loss
-
-      - name: Apply regulatory schema
-        run: npx prisma db push --schema=prisma/regulatory.prisma --accept-data-loss
 
       - name: Run acceptance tests
         run: node --import tsx --test acceptance/*.test.ts

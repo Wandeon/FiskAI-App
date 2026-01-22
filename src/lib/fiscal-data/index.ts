@@ -131,36 +131,12 @@ export type {
 } from "./types"
 
 // =============================================================================
-// RTL INTEGRATION EXPORTS
-// =============================================================================
-
-export {
-  // Data point mappings
-  FISCAL_DATA_POINT_MAPPINGS,
-  getRTLDomainForDataPoint,
-  getConceptIdForDataPoint,
-  getDataPointsForDomain,
-  getRTLSourcesForDataPoint,
-  getPriorityRTLSources,
-  // RTL verification
-  verifyAgainstRTL,
-  // Content sync events
-  createContentSyncEvent,
-  // Audit trail
-  createAuditEntry,
-  // Notifications
-  createChangeNotification,
-} from "./validator/rtl-bridge"
-
-export type {
-  FiscalDataPointMapping,
-  RTLVerificationResult,
-  FiscalChangeNotification,
-} from "./validator/rtl-bridge"
-
-// =============================================================================
 // METADATA
 // =============================================================================
+
+// Note: RTL integration exports removed in architectural split.
+// Regulatory verification now handled by fiskai-intelligence service.
+// See: https://iapi.fiskai.hr/v1/rules/resolve
 
 /**
  * Combined metadata for all fiscal data
