@@ -35,10 +35,9 @@ COPY . .
 # Build-time environment variables needed for Prisma generation and Next.js static analysis.
 # These dummy values are only for schema parsing and module evaluation, not actual connections.
 # Using ARG + ENV ensures they're available during build but don't leak to final image.
+# Note: REGULATORY_DATABASE_URL removed - regulatory schema is now in fiskai-workers repo.
 ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
-ARG REGULATORY_DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
 ENV DATABASE_URL=${DATABASE_URL}
-ENV REGULATORY_DATABASE_URL=${REGULATORY_DATABASE_URL}
 
 # Service API keys (dummy values for build - real values provided at runtime)
 ENV RESEND_API_KEY="re_dummy_build_key"

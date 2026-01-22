@@ -1,24 +1,41 @@
-# FiskAI
+# FiskAI-App
 
-Croatian AI-first accounting and invoicing SaaS platform.
+Croatian AI-first accounting and invoicing SaaS platform - Application Repository.
 
 ## Overview
 
-FiskAI is a cloud-based, modular accounting solution designed for Croatian companies, from paušalni obrt to d.o.o. Built with AI at its core for intelligent automation of accounting tasks.
+FiskAI-App is the web application for the FiskAI platform. It provides a cloud-based, modular accounting solution designed for Croatian companies, from paušalni obrt to d.o.o.
+
+### Platform Architecture
+
+| Repository            | Purpose                                        | URL            |
+| --------------------- | ---------------------------------------------- | -------------- |
+| **FiskAI-App** (this) | Accounting web application                     | app.fiskai.hr  |
+| fiskai-intelligence   | Intelligence API + RTL workers + regulatory DB | iapi.fiskai.hr |
+| fiskai-marketing      | Marketing landing pages                        | fiskai.hr      |
 
 ### Key Capabilities
 
 - **E-Invoicing & Fiscalization** - Fiskalizacija 2.0, e-Račun, UBL/EN 16931 compliance
-- **Regulatory Truth Layer** - Automated regulatory content processing with evidence-backed claims
+- **Regulatory Compliance** - Rule resolution via Intelligence API (external service)
 - **Multi-Tenant Architecture** - Single database with company-level isolation
 - **AI-Powered Automation** - OCR, categorization, anomaly detection
 
-### Trust Guarantees
+### Architectural Boundaries
 
-1. **Evidence-Backed** - Every regulatory claim links to source evidence
-2. **No Hallucination** - LLM outputs verified against sources
-3. **Fail-Closed** - Ambiguous content requires human review
-4. **Immutable History** - Source evidence never modified after capture
+This repository contains **only the accounting/ERP application**:
+
+- ✅ Web UI (Client, Staff, Admin portals)
+- ✅ API routes and server actions
+- ✅ Core database schema
+- ✅ Intelligence API client (HTTP calls only)
+
+Regulatory processing is **external**:
+
+- ❌ No NN Mirror parsing (→ fiskai-intelligence)
+- ❌ No regulatory truth layer (→ fiskai-intelligence)
+- ❌ No background workers (→ fiskai-intelligence)
+- ❌ No regulatory database schema (→ fiskai-intelligence)
 
 ## Quick Links
 
@@ -82,12 +99,12 @@ We target browsers with >0.5% global usage, excluding Opera Mini and discontinue
 
 ## Portals
 
-| Portal       | URL                   | Audience       |
-| ------------ | --------------------- | -------------- |
-| Marketing    | fiskai.hr             | Public         |
-| Client App   | app.fiskai.hr         | Clients        |
-| Staff Portal | app.fiskai.hr/staff   | Accountants    |
-| Admin Portal | app.fiskai.hr/admin   | Platform owner |
+| Portal       | URL                 | Audience       |
+| ------------ | ------------------- | -------------- |
+| Marketing    | fiskai.hr           | Public         |
+| Client App   | app.fiskai.hr       | Clients        |
+| Staff Portal | app.fiskai.hr/staff | Accountants    |
+| Admin Portal | app.fiskai.hr/admin | Platform owner |
 
 ## Development
 

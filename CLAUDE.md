@@ -1,17 +1,18 @@
-# FiskAI Application Repository
+# FiskAI-App Repository
 
-> Canonical document - reviewed 2026-01-18
+> Canonical document - reviewed 2026-01-22
 >
 > This file provides AI assistants with project context. For full documentation, see [docs/](./docs/).
 
 ## Repository Scope
 
-**This repository contains the FiskAI application only.** The marketing site is in a separate repository.
+**This repository contains the FiskAI-App (accounting/ERP) application only.** The platform is split across multiple repositories:
 
-| Repository        | Purpose                       | URL           |
-| ----------------- | ----------------------------- | ------------- |
-| **FiskAI** (this) | Next.js app, API, workers     | app.fiskai.hr |
-| fiskai-marketing  | Marketing site, landing pages | fiskai.hr     |
+| Repository            | Purpose                                        | URL            |
+| --------------------- | ---------------------------------------------- | -------------- |
+| **FiskAI-App** (this) | Next.js accounting application                 | app.fiskai.hr  |
+| fiskai-intelligence   | Intelligence API + RTL workers + regulatory DB | iapi.fiskai.hr |
+| fiskai-marketing      | Marketing site, landing pages                  | fiskai.hr      |
 
 **What's in this repo:**
 
@@ -19,14 +20,16 @@
 - Staff portal (accountants)
 - Admin portal (platform management)
 - API routes and server actions
-- Background workers (Regulatory Truth Layer)
-- Database schemas (Prisma + Drizzle)
+- Core database schema (Prisma)
+- Intelligence API client (HTTP only)
 
 **What's NOT in this repo:**
 
-- Marketing landing pages
-- Public guides/vodici content (moved to fiskai-marketing)
-- SEO/comparison pages
+- Marketing landing pages (→ fiskai-marketing)
+- Background workers (→ fiskai-intelligence)
+- Regulatory truth layer (→ fiskai-intelligence)
+- NN Mirror parsing (→ fiskai-intelligence)
+- Regulatory database schema (→ fiskai-intelligence)
 
 ## ⛔ CRITICAL: Branch Protection Policy
 

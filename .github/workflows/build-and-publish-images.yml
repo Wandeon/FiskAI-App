@@ -95,7 +95,6 @@ jobs:
             type=registry,ref=${{ env.REGISTRY }}/wandeon/fiskai-app:buildcache,mode=max
           build-args: |
             DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy?schema=public
-            REGULATORY_DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy?schema=public
           provenance: false
           sbom: false
 
@@ -202,23 +201,23 @@ jobs:
 
           echo "Verifying container: $CONTAINER"
 
-          # Verify prisma directory exists with migrations
+          # Verify core prisma directory exists (regulatory schema is in fiskai-workers repo)
           ssh admin@100.64.123.81 "docker exec $CONTAINER sh -c '
             echo \"=== Prisma Directory ===\"
             ls -la /app/prisma/ || exit 1
 
             echo \"\"
-            echo \"=== Regulatory Migrations ===\"
-            ls -la /app/prisma/migrations-regulatory/ || exit 1
+            echo \"=== Core Schema ===\"
+            ls -la /app/prisma/schema.prisma || exit 1
 
             echo \"\"
-            echo \"=== Config Files ===\"
-            ls -la /app/prisma.config.regulatory.ts || exit 1
+            echo \"=== Core Migrations ===\"
+            ls -la /app/prisma/migrations/ || exit 1
 
             echo \"\"
             echo \"=== Prisma CLI Available ===\"
             npx prisma --version || exit 1
 
             echo \"\"
-            echo \"✅ All Prisma artifacts verified\"
+            echo \"✅ Core Prisma artifacts verified (regulatory schema is in fiskai-workers)\"
           '"

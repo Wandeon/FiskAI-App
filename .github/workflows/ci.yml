@@ -53,6 +53,9 @@ jobs:
       - name: Check no legacy secret access (Phase 5 guardrail)
         run: npx tsx scripts/check-legacy-secrets.ts
 
+      - name: Check no regulatory code imports (repo boundary guardrail)
+        run: npx tsx scripts/check-no-regulatory.ts
+
   lint-ratchet:
     name: Lint Ratchet
     runs-on: ubuntu-latest
