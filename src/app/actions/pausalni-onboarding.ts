@@ -1,6 +1,7 @@
 "use server"
 
 import { z } from "zod"
+import { Prisma } from "@prisma/client"
 import { db } from "@/lib/db"
 import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
@@ -291,7 +292,7 @@ export async function finalizeOnboarding(data: Step3Data) {
       // Clear draft since onboarding is complete
       await db.user.update({
         where: { id: user.id! },
-        data: { onboardingDraft: null },
+        data: { onboardingDraft: Prisma.DbNull },
       })
 
       revalidatePath("/dashboard")
@@ -376,7 +377,7 @@ export async function finalizeOnboarding(data: Step3Data) {
       // 4. Clear the onboarding draft now that Company is created
       await tx.user.update({
         where: { id: user.id! },
-        data: { onboardingDraft: null },
+        data: { onboardingDraft: Prisma.DbNull },
       })
 
       return newCompany
