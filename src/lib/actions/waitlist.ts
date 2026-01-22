@@ -152,7 +152,7 @@ export async function signupForWaitlist(data: { email: string; waitlistType: Wai
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors[0]?.message || "Neispravni podaci"
+      const firstError = error.issues[0]?.message || "Neispravni podaci"
       return { success: false, error: firstError }
     }
 

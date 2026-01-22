@@ -50,8 +50,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   // Get session for user display info (we know user is authenticated at this point)
   const session = await auth()
 
+  // TypeScript guard: session is guaranteed non-null after auth state check
+  if (!session?.user) {
+    redirect("/auth")
+  }
+
   let currentCompany: Awaited<ReturnType<typeof getCurrentCompany>> | null = null
-  if (authState.hasCompanyUser && session?.user?.id) {
+  if (authState.hasCompanyUser && session.user.id) {
     try {
       currentCompany = await getCurrentCompany(session.user.id)
     } catch {
@@ -61,7 +66,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   // Fetch visibility provider props if user has a company
   let visibilityProps = null
-  if (currentCompany) {
+  if (currentCompany && session.user.id) {
     try {
       visibilityProps = await getVisibilityProviderProps(session.user.id, currentCompany.id)
     } catch (error) {
