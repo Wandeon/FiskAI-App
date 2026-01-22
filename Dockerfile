@@ -80,9 +80,10 @@ RUN mkdir .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma client (required at runtime)
+# Copy Prisma client and CLI (required at runtime for migrations)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 
 # Copy Prisma schemas, configs and migrations (required for runtime migrations)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
