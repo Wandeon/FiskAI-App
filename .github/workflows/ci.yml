@@ -353,13 +353,7 @@ jobs:
           }
           echo "✅ Core schema verified"
 
-          # Check regulatory tables
-          echo "Checking regulatory schema tables..."
-          PGPASSWORD=ci psql -h localhost -U ci -d ci -c "\dt regulatory.*" | grep -q "rule_table" || {
-            echo "::error::regulatory.rule_table does not exist - regulatory schema setup failed"
-            exit 1
-          }
-          echo "✅ Regulatory schema verified"
+          # NOTE: Regulatory schema is now in fiskai-intelligence repository
 
           echo "✅ All schema sanity checks passed"
 
