@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useTransition } from "react"
+import { useEffect, useState, useCallback, useTransition, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import {
@@ -18,9 +18,16 @@ import {
 import { savePausalniStep1 } from "@/app/actions/pausalni-onboarding"
 
 /**
- * Onboarding state machine
+ * Onboarding Internal State Machine
  *
- * This tracks the internal state of the onboarding flow:
+ * This implements the internal /onboarding routing per the spec:
+ *
+ * 1. intent = null? -> Show intent selector
+ * 2. intent = DRUSTVO? -> Show gating/waitlist
+ * 3. intent = OBRT? -> Check onboarding progress, route to appropriate step
+ * 4. CompanyUser exists? (edge case: completed in another tab) -> Redirect to /cc
+ *
+ * States:
  * - loading: Initial load, fetching user intent
  * - intent-selection: User has no intent, show selector
  * - drustvo-gating: User selected Drustvo, show waitlist/coming soon
@@ -41,10 +48,12 @@ type OnboardingState =
  *
  * Single entry point that branches based on user's registrationIntent:
  * - intent = null -> Show IntentSelector
- * - intent = DRUSTVO -> Show gating/waitlist screen (placeholder for Task 4)
+ * - intent = DRUSTVO -> Show gating/waitlist screen
  * - intent = OBRT -> Show Obrt onboarding flow (document-first)
  *
- * If CompanyUser exists, redirects to /cc
+ * Edge case handling:
+ * - If CompanyUser exists (e.g., completed in another tab), redirects to /cc
+ * - Checks on visibility change to catch multi-tab completion
  */
 export default function OnboardingPage() {
   const router = useRouter()
@@ -54,15 +63,37 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
   // Store Step 1 data temporarily before creating Company in Step 2
   const [step1Data, setStep1Data] = useState<ObrtStep1FormData | null>(null)
+  // Track if we've already started redirecting to prevent duplicate calls
+  const isRedirecting = useRef(false)
+
+  // Function to check if user has completed onboarding (possibly in another tab)
+  const checkCompanyStatus = useCallback(async () => {
+    if (isRedirecting.current) return
+
+    try {
+      const result = await getRegistrationIntent()
+      if (result.hasCompany) {
+        isRedirecting.current = true
+        setState("redirect")
+        router.replace("/cc")
+      }
+    } catch {
+      // Silently fail - user can continue onboarding
+    }
+  }, [router])
 
   // Load user's registration intent on mount
   useEffect(() => {
     async function loadIntent() {
+      if (isRedirecting.current) return
+
       try {
         const result = await getRegistrationIntent()
 
-        // If user already has a company, redirect to dashboard
+        // Edge case: CompanyUser exists (completed in another tab)
+        // Redirect to /cc immediately
         if (result.hasCompany) {
+          isRedirecting.current = true
           setState("redirect")
           router.replace("/cc")
           return
@@ -87,6 +118,19 @@ export default function OnboardingPage() {
 
     void loadIntent()
   }, [router])
+
+  // Edge case: Check for completion when tab becomes visible
+  // This handles the case where user completes onboarding in another tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && state !== "redirect" && state !== "loading") {
+        void checkCompanyStatus()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [state, checkCompanyStatus])
 
   // Handle intent selection completion
   const handleIntentSaved = useCallback(() => {
