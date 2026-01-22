@@ -14,6 +14,10 @@ export async function GET() {
 
   const httpStatus = status.configured && status.reachable ? 200 : status.configured ? 503 : 424
 
+  // Debug: check if env vars are present
+  const hasBaseUrl = Boolean(process.env.INTELLIGENCE_API_BASE_URL)
+  const hasToken = Boolean(process.env.INTELLIGENCE_API_TOKEN)
+
   return NextResponse.json(
     {
       service: "intelligence",
@@ -22,6 +26,12 @@ export async function GET() {
       status: status.status ?? null,
       error: status.error ?? null,
       timestamp: new Date().toISOString(),
+      _debug: {
+        hasBaseUrl,
+        hasToken,
+        baseUrlLength: process.env.INTELLIGENCE_API_BASE_URL?.length ?? 0,
+        tokenLength: process.env.INTELLIGENCE_API_TOKEN?.length ?? 0,
+      },
     },
     { status: httpStatus }
   )
