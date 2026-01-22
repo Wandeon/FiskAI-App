@@ -1,192 +1,225 @@
-// src/app/(app)/onboarding/page.tsx
 "use client"
 
-import { useEffect, useState } from "react"
-import { useOnboardingStore, type OnboardingStep } from "@/lib/stores/onboarding-store"
-import { useVisitorStore } from "@/stores/visitor-store"
-import { mapWizardToOnboarding, hasValidWizardData } from "@/lib/knowledge-hub/wizard-to-onboarding"
-import { StepIndicator } from "@/components/onboarding/step-indicator"
-import { StepBasicInfo } from "@/components/onboarding/step-basic-info"
-import { StepCompetence } from "@/components/onboarding/step-competence"
-import { StepAddress } from "@/components/onboarding/step-address"
-import { StepContactTax } from "@/components/onboarding/step-contact-tax"
-import { StepPausalniProfile } from "@/components/onboarding/step-pausalni-profile"
-import { StepBilling } from "@/components/onboarding/step-billing"
-import { Card, CardContent } from "@/components/ui/card"
-import { getOnboardingData, type OnboardingData } from "@/app/actions/onboarding"
-import { Loader2 } from "lucide-react"
+import { useEffect, useState, useCallback, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { Loader2, Clock, ArrowLeft } from "lucide-react"
+import {
+  IntentSelector,
+  type RegistrationIntentType,
+} from "@/components/onboarding/intent-selector"
+import { ObrtStep1Info, type ObrtStep1FormData } from "@/components/onboarding/obrt-step1-info"
+import {
+  getRegistrationIntent,
+  clearRegistrationIntent,
+  saveRegistrationIntent,
+} from "@/app/actions/registration-intent"
+import { savePausalniStep1 } from "@/app/actions/pausalni-onboarding"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 
 /**
- * Calculate which onboarding step should be shown based on completion
- * Returns 1-6 for first incomplete step, or 7 if all complete (treated as 6 for display)
+ * Onboarding state machine
  *
- * REQUIRED steps:
- * - Step 1: Basic Info (name, OIB, legal form)
- *
- * OPTIONAL steps (can be skipped):
- * - Step 2: Competence Level
- * - Step 3: Address
- * - Step 4: Contact & Tax (only email is required, IBAN and phone are optional)
- * - Step 5: Paušalni Profile (only for OBRT_PAUSAL)
- * - Step 6: Billing (informational only)
+ * This tracks the internal state of the onboarding flow:
+ * - loading: Initial load, fetching user intent
+ * - intent-selection: User has no intent, show selector
+ * - drustvo-gating: User selected Drustvo, show waitlist/coming soon
+ * - obrt-step1: User selected Obrt, show document-first info collection
+ * - redirect: User has completed onboarding, redirecting to dashboard
  */
-function calculateOnboardingStep(data: OnboardingData | null): 1 | 2 | 3 | 4 | 5 | 6 | 7 {
-  if (!data) return 1
+type OnboardingState = "loading" | "intent-selection" | "drustvo-gating" | "obrt-step1" | "redirect"
 
-  // Step 1: Basic Info (name, oib, legalForm) - REQUIRED
-  const step1Complete = !!(data.name?.trim() && data.oib?.match(/^\d{11}$/) && data.legalForm)
-  if (!step1Complete) return 1
-
-  // After step 1, check if user has completed minimum required data for dashboard access
-  // Minimum: Step 1 (basic info) - that's it! Everything else is optional
-
-  // If user has email, they've likely completed the flow - go to billing
-  if (data.email?.includes("@") && data.legalForm !== "OBRT_PAUSAL") {
-    return 6 // Go to billing step
-  }
-
-  // Otherwise, continue with normal flow
-
-  // Step 2: Competence Level - OPTIONAL
-  const step2Complete = !!data.competence
-  if (!step2Complete) return 2
-
-  // Step 3: Address - OPTIONAL
-  const step3Complete = !!(
-    data.address?.trim() &&
-    data.postalCode?.trim() &&
-    data.city?.trim() &&
-    data.country?.trim()
-  )
-  if (!step3Complete) return 3
-
-  // Step 4: Contact & Tax (only email required, IBAN optional)
-  const step4Complete = !!data.email?.includes("@")
-  if (!step4Complete) return 4
-
-  // Step 5: Paušalni Profile (only for OBRT_PAUSAL)
-  // Note: Paušalni fields are stored in the client store, not in server data
-  // So for OBRT_PAUSAL, return 5 to let them complete the paušalni profile step
-  if (data.legalForm === "OBRT_PAUSAL") {
-    return 5
-  }
-
-  // Step 6: Billing (always show after all core steps complete)
-  return 6
-}
-
+/**
+ * Main Onboarding Page
+ *
+ * Single entry point that branches based on user's registrationIntent:
+ * - intent = null -> Show IntentSelector
+ * - intent = DRUSTVO -> Show gating/waitlist screen (placeholder for Task 4)
+ * - intent = OBRT -> Show Obrt onboarding flow (document-first)
+ *
+ * If CompanyUser exists, redirects to /cc
+ */
 export default function OnboardingPage() {
-  const { currentStep, isStepValid, hydrate, data } = useOnboardingStore()
-  const { wizardAnswers, setStage } = useVisitorStore()
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const [state, setState] = useState<OnboardingState>("loading")
+  const [_intent, setIntent] = useState<RegistrationIntentType | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
 
+  // Load user's registration intent on mount
   useEffect(() => {
-    async function loadExistingData() {
+    async function loadIntent() {
       try {
-        const serverData = await getOnboardingData()
+        const result = await getRegistrationIntent()
 
-        // Check if we have wizard data to pre-fill
-        const wizardData = hasValidWizardData(wizardAnswers)
-          ? mapWizardToOnboarding(wizardAnswers)
-          : {}
-
-        if (serverData) {
-          // Calculate which step to start on based on completion
-          const calculatedStep = calculateOnboardingStep(serverData)
-          // If all steps complete, show billing step (6)
-          // Otherwise show the calculated step
-          let startStep: OnboardingStep
-          if (calculatedStep >= 7) {
-            startStep = 6
-          } else {
-            startStep = calculatedStep as OnboardingStep
-          }
-
-          // Hydrate store with server data and correct starting step
-          // Server data takes precedence over wizard data
-          hydrate(
-            {
-              name: serverData.name || undefined,
-              oib: serverData.oib || undefined,
-              legalForm: serverData.legalForm || wizardData.legalForm || undefined,
-              competence: serverData.competence || wizardData.competence || undefined,
-              address: serverData.address || undefined,
-              postalCode: serverData.postalCode || undefined,
-              city: serverData.city || undefined,
-              country: serverData.country || "HR",
-              email: serverData.email || undefined,
-              phone: serverData.phone || undefined,
-              iban: serverData.iban || undefined,
-              isVatPayer: serverData.isVatPayer ?? false,
-              employedElsewhere:
-                serverData.employedElsewhere ?? wizardData.employedElsewhere ?? false,
-            },
-            startStep
-          )
-        } else {
-          // No server data - use wizard data as defaults
-          hydrate(
-            {
-              legalForm: wizardData.legalForm || undefined,
-              competence: wizardData.competence || undefined,
-              country: "HR",
-              isVatPayer: false,
-              employedElsewhere: wizardData.employedElsewhere ?? false,
-            },
-            1
-          )
+        // If user already has a company, redirect to dashboard
+        if (result.hasCompany) {
+          setState("redirect")
+          router.replace("/cc")
+          return
         }
 
-        // Update stage to onboarding
-        setStage("onboarding")
-      } catch (error) {
-        console.error("Failed to load onboarding data:", error)
-      } finally {
-        setIsLoading(false)
+        // Determine state based on intent
+        if (!result.intent) {
+          setState("intent-selection")
+        } else if (result.intent === "DRUSTVO") {
+          setIntent("DRUSTVO")
+          setState("drustvo-gating")
+        } else if (result.intent === "OBRT") {
+          setIntent("OBRT")
+          setState("obrt-step1")
+        }
+      } catch (err) {
+        console.error("[Onboarding] Failed to load intent:", err)
+        setError("Došlo je do greške. Molimo osvježite stranicu.")
+        setState("intent-selection")
       }
     }
 
-    void loadExistingData()
-  }, [hydrate, wizardAnswers, setStage])
+    void loadIntent()
+  }, [router])
 
-  if (isLoading) {
+  // Handle intent selection completion
+  const handleIntentSaved = useCallback(() => {
+    // Reload intent to get updated state
+    window.location.reload()
+  }, [])
+
+  // Handle Obrt Step 1 completion
+  const handleObrtStep1Next = useCallback(
+    (data: ObrtStep1FormData) => {
+      setError(null)
+      startTransition(async () => {
+        // Parse address into components (simple split by comma)
+        const addressParts = data.address.split(",").map((s) => s.trim())
+        const streetAddress = addressParts[0] || data.address
+        const city = addressParts[1] || "Zagreb"
+        const postalCode = addressParts[2] || "10000"
+
+        const result = await savePausalniStep1({
+          name: data.companyName,
+          oib: data.oib,
+          address: streetAddress,
+          city,
+          postalCode,
+          foundingDate: data.foundingDate || undefined,
+        })
+
+        if (result.error) {
+          setError(result.error)
+          return
+        }
+
+        // Navigate to Step 2 (Situacija - tax regime selection)
+        router.push("/pausalni/onboarding/step-2")
+      })
+    },
+    [router]
+  )
+
+  // Handle "change selection" from gating screens
+  const handleChangeSelection = useCallback(() => {
+    setError(null)
+    startTransition(async () => {
+      const result = await clearRegistrationIntent()
+
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+
+      setIntent(null)
+      setState("intent-selection")
+    })
+  }, [])
+
+  // Loading state
+  if (state === "loading" || state === "redirect") {
     return (
       <div className="mx-auto max-w-xl py-12">
         <div className="flex flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
-          <p className="text-sm text-tertiary">Učitavanje podataka...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-interactive" />
+          <p className="text-sm text-secondary">
+            {state === "redirect" ? "Preusmjeravam..." : "Učitavanje..."}
+          </p>
         </div>
       </div>
     )
   }
 
-  const stepCount = data.legalForm === "OBRT_PAUSAL" ? 6 : 5
-
-  return (
-    <div className="mx-auto max-w-xl py-12">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-foreground">Dobrodošli u FiskAI</h1>
-        <p className="mt-2 text-secondary">
-          Postavite svoju tvrtku u {stepCount} jednostavna koraka
-        </p>
-      </div>
-
-      <StepIndicator currentStep={currentStep} isStepValid={isStepValid} />
-
-      <Card>
-        <CardContent className="pt-6">
-          {currentStep === 1 && <StepBasicInfo />}
-          {currentStep === 2 && <StepCompetence />}
-          {currentStep === 3 && <StepAddress />}
-          {currentStep === 4 && <StepContactTax />}
-          {currentStep === 5 && <StepPausalniProfile />}
-          {currentStep === 6 && <StepBilling />}
-        </CardContent>
-      </Card>
-
-      <p className="mt-6 text-center text-xs text-tertiary">
-        Vaši podaci se automatski spremaju tijekom unosa
-      </p>
+  // Error display
+  const errorBanner = error && (
+    <div className="mb-6 p-4 rounded-lg bg-danger/10 border border-danger text-danger text-sm max-w-xl mx-auto">
+      {error}
     </div>
   )
+
+  // Intent Selection state
+  if (state === "intent-selection") {
+    return (
+      <div className="mx-auto max-w-xl py-12">
+        {errorBanner}
+        <IntentSelector onSaveIntent={saveRegistrationIntent} onIntentSaved={handleIntentSaved} />
+      </div>
+    )
+  }
+
+  // Društvo Gating state (placeholder for Task 4)
+  if (state === "drustvo-gating") {
+    return (
+      <div className="mx-auto max-w-lg py-12">
+        {errorBanner}
+        <Card padding="lg" className="text-center">
+          <div className="flex justify-center mb-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-info-bg">
+              <Clock className="h-8 w-8 text-info" />
+            </div>
+          </div>
+
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            Podrška za društva dolazi uskoro
+          </h1>
+
+          <p className="text-secondary mb-6">
+            Trenutno podržavamo samo obrte. Podrška za j.d.o.o. i d.o.o. stiže uskoro. Ostavite nam
+            svoje podatke i javit ćemo vam kada bude dostupno.
+          </p>
+
+          {/* Placeholder for waitlist form - Task 4 */}
+          <div className="p-4 rounded-lg bg-surface-1 border border-border mb-6">
+            <p className="text-body-sm text-muted">
+              Obrazac za prijavu na listu čekanja bit će dodan u sljedećoj fazi.
+            </p>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={handleChangeSelection}
+            disabled={isPending}
+            className="w-full"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {isPending ? "Spremam..." : "Promijeni odabir"}
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
+  // Obrt Step 1 state
+  if (state === "obrt-step1") {
+    return (
+      <div className="mx-auto max-w-2xl py-8">
+        {errorBanner}
+        <ObrtStep1Info
+          onNext={handleObrtStep1Next}
+          onBack={handleChangeSelection}
+          isSubmitting={isPending}
+        />
+      </div>
+    )
+  }
+
+  // Fallback (should not reach here)
+  return null
 }
