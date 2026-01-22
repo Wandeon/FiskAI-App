@@ -11,6 +11,132 @@ import { requirePermission, type Permission } from "@/lib/rbac"
  */
 const VALID_LEGAL_FORMS = ["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"] as const
 
+// =============================================================================
+// REDIRECT STATE MACHINE
+// =============================================================================
+//
+// This implements the canonical redirect state machine for the app:
+//
+// 1. Not authenticated? → /auth
+// 2. Authenticated, no CompanyUser? → /onboarding
+// 3. Authenticated, has CompanyUser? → /cc (or requested route)
+//
+// Internal /onboarding state is handled by the onboarding page itself.
+// =============================================================================
+
+/**
+ * Possible redirect destinations in the app
+ */
+export type RedirectDestination = "/auth" | "/onboarding" | "/cc" | null
+
+/**
+ * User auth state for redirect decisions
+ */
+export interface AuthState {
+  isAuthenticated: boolean
+  userId: string | null
+  hasCompanyUser: boolean
+  companyId: string | null
+}
+
+/**
+ * Get the current user's auth state for redirect decisions.
+ * This is a lightweight check that doesn't load full company data.
+ */
+export async function getAuthState(): Promise<AuthState> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return {
+      isAuthenticated: false,
+      userId: null,
+      hasCompanyUser: false,
+      companyId: null,
+    }
+  }
+
+  // Check if user has any CompanyUser relationship (lightweight query)
+  const companyUser = await db.companyUser.findFirst({
+    where: { userId: session.user.id, isDefault: true },
+    select: { companyId: true },
+  })
+
+  // If no default, check for any membership
+  if (!companyUser) {
+    const anyMembership = await db.companyUser.findFirst({
+      where: { userId: session.user.id },
+      select: { companyId: true },
+    })
+
+    return {
+      isAuthenticated: true,
+      userId: session.user.id,
+      hasCompanyUser: !!anyMembership,
+      companyId: anyMembership?.companyId ?? null,
+    }
+  }
+
+  return {
+    isAuthenticated: true,
+    userId: session.user.id,
+    hasCompanyUser: true,
+    companyId: companyUser.companyId,
+  }
+}
+
+/**
+ * Determine where to redirect based on auth state.
+ *
+ * Canonical State Machine:
+ * 1. Not authenticated? → /auth
+ * 2. Authenticated, no CompanyUser? → /onboarding
+ * 3. Authenticated, has CompanyUser? → null (allow access)
+ *
+ * @param authState - The user's current auth state
+ * @param currentPath - The current request path (for smart routing)
+ * @returns The redirect destination, or null if no redirect needed
+ */
+export function getRedirectDestination(
+  authState: AuthState,
+  currentPath: string = "/"
+): RedirectDestination {
+  // State 1: Not authenticated → /auth
+  if (!authState.isAuthenticated) {
+    return "/auth"
+  }
+
+  // State 2: Authenticated, no CompanyUser → /onboarding
+  if (!authState.hasCompanyUser) {
+    return "/onboarding"
+  }
+
+  // State 3: Authenticated, has CompanyUser → allow access
+  // Root path should go to /cc
+  if (currentPath === "/") {
+    return "/cc"
+  }
+
+  return null
+}
+
+/**
+ * Execute the redirect state machine.
+ * Call this at the start of protected routes/layouts.
+ *
+ * @param currentPath - Optional current path for smart routing
+ * @returns The auth state if no redirect is needed
+ */
+export async function executeRedirectStateMachine(currentPath: string = "/"): Promise<AuthState> {
+  const authState = await getAuthState()
+  const destination = getRedirectDestination(authState, currentPath)
+
+  if (destination) {
+    redirect(destination)
+  }
+
+  return authState
+}
+
 /**
  * Check if a company has completed the minimum required onboarding fields.
  * A company is considered to have completed onboarding if it has:
@@ -148,6 +274,17 @@ export async function getCurrentCompany(userId: string) {
   return companyUser?.company ?? null
 }
 
+/**
+ * Require a company for the current user.
+ *
+ * This function enforces the redirect state machine at the company level:
+ * - No company membership at all -> /onboarding
+ * - Has membership but no default -> /onboarding/choose-company
+ * - Has company but incomplete onboarding -> appropriate onboarding route
+ *
+ * Note: This assumes authentication has already been verified.
+ * Use executeRedirectStateMachine() for full auth + company checks.
+ */
 export async function requireCompany(userId: string) {
   const company = await getCurrentCompany(userId)
   if (!company) {
@@ -156,8 +293,10 @@ export async function requireCompany(userId: string) {
       select: { id: true },
     })
     if (hasMembership) {
+      // Has membership but no default company selected
       redirect("/onboarding/choose-company")
     }
+    // No company membership at all -> start onboarding
     redirect("/onboarding")
   }
   // Check if onboarding is complete - redirect to appropriate wizard if incomplete

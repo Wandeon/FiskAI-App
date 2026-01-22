@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { getCurrentCompany } from "@/lib/auth-utils"
+import { getCurrentCompany, getAuthState, getRedirectDestination } from "@/lib/auth-utils"
 import { Header } from "@/components/layout/header"
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileNav } from "@/components/layout/mobile-nav"
@@ -22,22 +22,51 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const headersList = await headers()
   const pathname = headersList.get("x-pathname") || headersList.get("x-invoke-path") || ""
   const isOnboardingRoute = pathname.includes("/onboarding")
+
+  // ==========================================================================
+  // REDIRECT STATE MACHINE
+  // ==========================================================================
+  // Execute deterministic redirect logic:
+  // 1. Not authenticated? -> /auth
+  // 2. Authenticated, no CompanyUser? -> /onboarding (unless already there)
+  // 3. Authenticated, has CompanyUser? -> allow access
+  // ==========================================================================
+  const authState = await getAuthState()
+
+  // Only apply redirect state machine for non-onboarding routes
+  // Onboarding routes handle their own internal state machine
+  if (!isOnboardingRoute) {
+    const destination = getRedirectDestination(authState, pathname)
+    if (destination) {
+      redirect(destination)
+    }
+  } else {
+    // For onboarding routes, only check authentication
+    if (!authState.isAuthenticated) {
+      redirect("/auth")
+    }
+  }
+
+  // Get session for user display info (we know user is authenticated at this point)
   const session = await auth()
 
+  // TypeScript guard: session is guaranteed non-null after auth state check
   if (!session?.user) {
     redirect("/auth")
   }
 
   let currentCompany: Awaited<ReturnType<typeof getCurrentCompany>> | null = null
-  try {
-    currentCompany = await getCurrentCompany(session.user.id)
-  } catch {
-    // User not fully set up
+  if (authState.hasCompanyUser && session.user.id) {
+    try {
+      currentCompany = await getCurrentCompany(session.user.id)
+    } catch {
+      // User not fully set up
+    }
   }
 
   // Fetch visibility provider props if user has a company
   let visibilityProps = null
-  if (currentCompany) {
+  if (currentCompany && session.user.id) {
     try {
       visibilityProps = await getVisibilityProviderProps(session.user.id, currentCompany.id)
     } catch (error) {

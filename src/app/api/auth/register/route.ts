@@ -3,17 +3,18 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { parseBody, isValidationError, formatValidationError } from "@/lib/api/validation"
+import { RegistrationIntent } from "@prisma/client"
 
 const schema = z.object({
   email: z.string().email(),
   name: z.string().min(2),
   password: z.string().min(8),
-  businessType: z.enum(["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"]).optional(),
+  registrationIntent: z.enum(["OBRT", "DRUSTVO"]),
 })
 
 export async function POST(request: Request) {
   try {
-    const { email, name, password, businessType } = await parseBody(request, schema)
+    const { email, name, password, registrationIntent } = await parseBody(request, schema)
 
     const emailLower = email.toLowerCase()
 
@@ -29,13 +30,14 @@ export async function POST(request: Request) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10)
 
-    // Create user
+    // Create user with registrationIntent (NO Company creation during registration)
     const user = await db.user.create({
       data: {
         email: emailLower,
         name,
         passwordHash,
-        intendedBusinessType: businessType,
+        registrationIntent: registrationIntent as RegistrationIntent,
+        intentChosenAt: new Date(),
       },
     })
 

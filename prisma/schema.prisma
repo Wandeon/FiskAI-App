@@ -20,6 +20,9 @@ model User {
   intendedBusinessType        String? // Business type selected during registration (OBRT_PAUSAL, OBRT_REAL, OBRT_VAT, JDOO, DOO)
   betaOptIn                   Boolean                @default(false)
   betaOptInAt                 DateTime?
+  registrationIntent          RegistrationIntent?
+  intentChosenAt              DateTime? // For drop-off analytics
+  onboardingDraft             Json? // Temporary storage for onboarding data before Company creation
   accounts                    Account[]
   companies                   CompanyUser[]
   passwordResetTokens         PasswordResetToken[]
@@ -2842,6 +2845,11 @@ enum SystemRole {
   USER
   STAFF
   ADMIN
+}
+
+enum RegistrationIntent {
+  OBRT
+  DRUSTVO
 }
 
 enum EmploymentContractStatus {

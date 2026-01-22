@@ -5,38 +5,44 @@ import { motion } from "framer-motion"
 import { AnimatedButton } from "../AnimatedButton"
 import { cn } from "@/lib/utils"
 
+type RegistrationIntent = "OBRT" | "DRUSTVO"
+
 interface RegisterStepProps {
   email: string
-  onSubmit: (name: string, password: string, businessType?: string) => Promise<void>
+  onSubmit: (
+    name: string,
+    password: string,
+    registrationIntent: RegistrationIntent
+  ) => Promise<void>
   onBack: () => void
   isLoading: boolean
   error: string | null
 }
 
-const BUSINESS_TYPE_OPTIONS = [
-  { value: "OBRT_PAUSAL", label: "Paušalni obrt" },
-  { value: "OBRT_REAL", label: "Obrt u sustavu PDV-a" },
-  { value: "DOO", label: "d.o.o." },
+const REGISTRATION_INTENT_OPTIONS = [
+  { value: "OBRT" as const, label: "Obrt", description: "Samostalna djelatnost" },
+  { value: "DRUSTVO" as const, label: "Drustvo", description: "j.d.o.o. ili d.o.o." },
 ]
 
 export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: RegisterStepProps) {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [businessType, setBusinessType] = useState<string>("")
+  const [registrationIntent, setRegistrationIntent] = useState<RegistrationIntent | "">("")
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [touched, setTouched] = useState({ password: false, confirm: false })
+  const [touched, setTouched] = useState({ password: false, confirm: false, intent: false })
 
   const passwordValid = password.length >= 8
   const passwordsMatch = password === confirmPassword
-  const canSubmit = name && passwordValid && passwordsMatch && acceptTerms
+  const intentSelected = registrationIntent !== ""
+  const canSubmit = name && passwordValid && passwordsMatch && intentSelected && acceptTerms
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (canSubmit) {
-      await onSubmit(name, password, businessType || undefined)
+    if (canSubmit && registrationIntent) {
+      await onSubmit(name, password, registrationIntent)
     }
   }
 
@@ -81,34 +87,39 @@ export function RegisterStep({ email, onSubmit, onBack, isLoading, error }: Regi
 
         <div>
           <label className="block text-sm font-medium text-white/80 mb-2">
-            Vrsta poslovanja (opcionalno)
+            Vrsta poslovanja <span className="text-accent">*</span>
           </label>
           <div className="grid grid-cols-1 gap-2">
-            {BUSINESS_TYPE_OPTIONS.map((option) => (
+            {REGISTRATION_INTENT_OPTIONS.map((option) => (
               <label
                 key={option.value}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
-                  businessType === option.value
+                  registrationIntent === option.value
                     ? "bg-surface/15 border-white/30"
-                    : "bg-surface/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                    : "bg-surface/5 border-white/10 hover:bg-white/10 hover:border-white/20",
+                  touched.intent && !intentSelected && "border-danger-border/50"
                 )}
               >
                 <input
                   type="radio"
-                  name="businessType"
+                  name="registrationIntent"
                   value={option.value}
-                  checked={businessType === option.value}
-                  onChange={(e) => setBusinessType(e.target.value)}
+                  checked={registrationIntent === option.value}
+                  onChange={(e) => setRegistrationIntent(e.target.value as RegistrationIntent)}
+                  onBlur={() => setTouched((t) => ({ ...t, intent: true }))}
                   className="h-4 w-4 border-white/30 bg-white/10 text-white focus:ring-white/30"
                 />
-                <span className="text-sm text-white/90">{option.label}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm text-white/90">{option.label}</span>
+                  <span className="text-xs text-white/50">{option.description}</span>
+                </div>
               </label>
             ))}
           </div>
-          <p className="mt-2 text-xs text-white/50">
-            Pomoći će nam da personaliziramo vašu početnu konfiguraciju
-          </p>
+          {touched.intent && !intentSelected && (
+            <p className="mt-2 text-xs text-danger-text">Odaberite vrstu poslovanja</p>
+          )}
         </div>
 
         <div className="relative">

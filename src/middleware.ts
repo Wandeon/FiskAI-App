@@ -220,6 +220,11 @@ export async function middleware(request: NextRequest) {
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   )
 
+  // Onboarding routes are accessible to authenticated users without CompanyUser
+  // The onboarding page handles its own internal state machine
+  const isOnboardingPath =
+    pathname.startsWith("/onboarding") || pathname.startsWith("/pausalni/onboarding")
+
   // Allow public auth pages without authentication
   if (isPublicAuthPath) {
     const response = NextResponse.next()
