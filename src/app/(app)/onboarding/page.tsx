@@ -2,20 +2,20 @@
 
 import { useEffect, useState, useCallback, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Clock, ArrowLeft } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import {
   IntentSelector,
   type RegistrationIntentType,
 } from "@/components/onboarding/intent-selector"
 import { ObrtStep1Info, type ObrtStep1FormData } from "@/components/onboarding/obrt-step1-info"
+import { ObrtStep2Regime } from "@/components/onboarding/obrt-step2-regime"
+import { DrushtvoGating } from "@/components/onboarding/drustvo-gating"
 import {
   getRegistrationIntent,
   clearRegistrationIntent,
   saveRegistrationIntent,
 } from "@/app/actions/registration-intent"
 import { savePausalniStep1 } from "@/app/actions/pausalni-onboarding"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 
 /**
  * Onboarding state machine
@@ -25,9 +25,16 @@ import { Card } from "@/components/ui/card"
  * - intent-selection: User has no intent, show selector
  * - drustvo-gating: User selected Drustvo, show waitlist/coming soon
  * - obrt-step1: User selected Obrt, show document-first info collection
+ * - obrt-step2: User completed Step 1, show tax regime selection
  * - redirect: User has completed onboarding, redirecting to dashboard
  */
-type OnboardingState = "loading" | "intent-selection" | "drustvo-gating" | "obrt-step1" | "redirect"
+type OnboardingState =
+  | "loading"
+  | "intent-selection"
+  | "drustvo-gating"
+  | "obrt-step1"
+  | "obrt-step2"
+  | "redirect"
 
 /**
  * Main Onboarding Page
@@ -45,6 +52,8 @@ export default function OnboardingPage() {
   const [_intent, setIntent] = useState<RegistrationIntentType | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  // Store Step 1 data temporarily before creating Company in Step 2
+  const [step1Data, setStep1Data] = useState<ObrtStep1FormData | null>(null)
 
   // Load user's registration intent on mount
   useEffect(() => {
@@ -85,37 +94,53 @@ export default function OnboardingPage() {
     window.location.reload()
   }, [])
 
-  // Handle Obrt Step 1 completion
-  const handleObrtStep1Next = useCallback(
-    (data: ObrtStep1FormData) => {
-      setError(null)
-      startTransition(async () => {
-        // Parse address into components (simple split by comma)
-        const addressParts = data.address.split(",").map((s) => s.trim())
-        const streetAddress = addressParts[0] || data.address
-        const city = addressParts[1] || "Zagreb"
-        const postalCode = addressParts[2] || "10000"
+  // Handle Obrt Step 1 completion - moves to tax regime selection
+  const handleObrtStep1Next = useCallback((data: ObrtStep1FormData) => {
+    setError(null)
+    // Store Step 1 data and move to Step 2 (tax regime selection)
+    setStep1Data(data)
+    setState("obrt-step2")
+  }, [])
 
-        const result = await savePausalniStep1({
-          name: data.companyName,
-          oib: data.oib,
-          address: streetAddress,
-          city,
-          postalCode,
-          foundingDate: data.foundingDate || undefined,
-        })
+  // Handle Obrt Step 2 completion - saves data and redirects
+  const handleObrtStep2Next = useCallback(() => {
+    if (!step1Data) {
+      setError("Podaci iz koraka 1 nisu pronađeni. Molimo počnite ispočetka.")
+      setState("obrt-step1")
+      return
+    }
 
-        if (result.error) {
-          setError(result.error)
-          return
-        }
+    setError(null)
+    startTransition(async () => {
+      // Parse address into components (simple split by comma)
+      const addressParts = step1Data.address.split(",").map((s) => s.trim())
+      const streetAddress = addressParts[0] || step1Data.address
+      const city = addressParts[1] || "Zagreb"
+      const postalCode = addressParts[2] || "10000"
 
-        // Navigate to Step 2 (Situacija - tax regime selection)
-        router.push("/pausalni/onboarding/step-2")
+      const result = await savePausalniStep1({
+        name: step1Data.companyName,
+        oib: step1Data.oib,
+        address: streetAddress,
+        city,
+        postalCode,
+        foundingDate: step1Data.foundingDate || undefined,
       })
-    },
-    [router]
-  )
+
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+
+      // Navigate to legacy Step 2 (Situacija)
+      router.push("/pausalni/onboarding/step-2")
+    })
+  }, [step1Data, router])
+
+  // Handle going back from Step 2 to Step 1
+  const handleObrtStep2Back = useCallback(() => {
+    setState("obrt-step1")
+  }, [])
 
   // Handle "change selection" from gating screens
   const handleChangeSelection = useCallback(() => {
@@ -164,44 +189,12 @@ export default function OnboardingPage() {
     )
   }
 
-  // Društvo Gating state (placeholder for Task 4)
+  // Društvo Gating state - shows waitlist form
   if (state === "drustvo-gating") {
     return (
       <div className="mx-auto max-w-lg py-12">
         {errorBanner}
-        <Card padding="lg" className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-info-bg">
-              <Clock className="h-8 w-8 text-info" />
-            </div>
-          </div>
-
-          <h1 className="text-2xl font-bold text-foreground mb-3">
-            Podrška za društva dolazi uskoro
-          </h1>
-
-          <p className="text-secondary mb-6">
-            Trenutno podržavamo samo obrte. Podrška za j.d.o.o. i d.o.o. stiže uskoro. Ostavite nam
-            svoje podatke i javit ćemo vam kada bude dostupno.
-          </p>
-
-          {/* Placeholder for waitlist form - Task 4 */}
-          <div className="p-4 rounded-lg bg-surface-1 border border-border mb-6">
-            <p className="text-body-sm text-muted">
-              Obrazac za prijavu na listu čekanja bit će dodan u sljedećoj fazi.
-            </p>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={handleChangeSelection}
-            disabled={isPending}
-            className="w-full"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {isPending ? "Spremam..." : "Promijeni odabir"}
-          </Button>
-        </Card>
+        <DrushtvoGating onChangeSelection={handleChangeSelection} isChangePending={isPending} />
       </div>
     )
   }
@@ -214,6 +207,21 @@ export default function OnboardingPage() {
         <ObrtStep1Info
           onNext={handleObrtStep1Next}
           onBack={handleChangeSelection}
+          isSubmitting={isPending}
+          initialData={step1Data || undefined}
+        />
+      </div>
+    )
+  }
+
+  // Obrt Step 2 state - Tax Regime Selection
+  if (state === "obrt-step2") {
+    return (
+      <div className="mx-auto max-w-2xl py-8">
+        {errorBanner}
+        <ObrtStep2Regime
+          onNext={handleObrtStep2Next}
+          onBack={handleObrtStep2Back}
           isSubmitting={isPending}
         />
       </div>
