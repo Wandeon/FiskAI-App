@@ -7,35 +7,13 @@ import { requireAuth, getCurrentCompany } from "@/lib/auth-utils"
 import { revalidatePath } from "next/cache"
 import { getEntitlementsForLegalForm } from "@/lib/modules/definitions"
 import { oibSchema } from "@/lib/validations/oib"
-
-// =============================================================================
-// ONBOARDING DRAFT TYPES
-// =============================================================================
-
-/**
- * Shape of the onboardingDraft JSON stored on User
- * This holds all onboarding data until the final Company creation
- */
-export interface OnboardingDraft {
-  // Step 1: Identity
-  name?: string
-  oib?: string
-  address?: string
-  city?: string
-  postalCode?: string
-  foundingDate?: string
-  // Step 2: Situation
-  employedElsewhere?: boolean
-  acceptsCash?: boolean
-  isVatPayer?: boolean
-  expectedIncomeRange?: "under30" | "30to60" | "60to100" | "over100"
-  // Step 3: Setup
-  email?: string
-  iban?: string
-  hasFiscalizationCert?: boolean
-  // Metadata
-  lastStepCompleted?: 0 | 1 | 2 | 3
-}
+import type {
+  OnboardingDraft,
+  Step1Data,
+  Step2Data,
+  Step3Data,
+  PausalniOnboardingData,
+} from "./pausalni-onboarding.types"
 
 // =============================================================================
 // STEP 1: IDENTITY
@@ -49,8 +27,6 @@ const step1Schema = z.object({
   postalCode: z.string().min(1, "Poštanski broj je obavezan"),
   foundingDate: z.string().optional(), // ISO date string
 })
-
-export type Step1Data = z.infer<typeof step1Schema>
 
 /**
  * Save Step 1 data: Identity (OIB, name, address)
@@ -154,8 +130,6 @@ const step2Schema = z.object({
   expectedIncomeRange: z.enum(["under30", "30to60", "60to100", "over100"]),
 })
 
-export type Step2Data = z.infer<typeof step2Schema>
-
 /**
  * Save Step 2 data: Situation (employment, cash, VAT, income range)
  * Stores data in User.onboardingDraft - does NOT create Company
@@ -240,8 +214,6 @@ const step3Schema = z.object({
   hasFiscalizationCert: z.boolean().optional(),
   email: z.string().email("Neispravan email"),
 })
-
-export type Step3Data = z.infer<typeof step3Schema>
 
 /**
  * Finalize onboarding: Create Company + CompanyUser + entitlements in single transaction
@@ -409,27 +381,6 @@ export async function savePausalniStep3(data: Step3Data & { email: string }) {
 // =============================================================================
 // GET CURRENT DATA
 // =============================================================================
-
-export interface PausalniOnboardingData {
-  // Step 1
-  name: string | null
-  oib: string | null
-  address: string | null
-  city: string | null
-  postalCode: string | null
-  foundingDate?: string
-  // Step 2
-  employedElsewhere?: boolean
-  acceptsCash?: boolean
-  isVatPayer: boolean
-  expectedIncomeRange?: string
-  // Step 3
-  email: string | null
-  iban: string | null
-  hasFiscalizationCert?: boolean
-  // Source indicator
-  source: "company" | "draft"
-}
 
 /**
  * Get current onboarding data for the pausalni wizard
