@@ -2,18 +2,8 @@
 
 import { db } from "@/lib/db"
 import { requireAuth, requireCompany } from "@/lib/auth-utils"
-import { ContactType } from "@prisma/client"
 import { z } from "zod"
-
-export interface ContactListParams {
-  search?: string
-  type?: ContactType | "ALL"
-  segments?: ContactSegment[]
-  page?: number
-  limit?: number
-}
-
-export type ContactSegment = "VAT_PAYER" | "MISSING_EMAIL" | "NO_DOCUMENTS"
+import type { ContactListParams, ContactSegment } from "./contact-list.types"
 
 /**
  * Zod schema for validating contact list parameters

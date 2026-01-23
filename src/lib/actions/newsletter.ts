@@ -5,12 +5,7 @@ import { newsletterSubscriptions } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { checkRateLimit } from "@/lib/security/rate-limit"
 import { headers } from "next/headers"
-
-export interface NewsletterSubscribeResult {
-  success: boolean
-  message: string
-  alreadySubscribed?: boolean
-}
+import type { NewsletterSubscribeResult } from "./newsletter.types"
 
 function getClientIp(headersList: Headers): string {
   return (

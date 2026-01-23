@@ -15,31 +15,12 @@ import { db } from "@/lib/db"
 import { getActionHandler } from "./registry"
 import { resolveCapabilityForUser } from "../server"
 import type { ActionResult, ActionContext } from "./types"
+import type { ExecuteActionInput } from "./executor.types"
 
 // Import handlers to register them
 import "./handlers/invoice"
 import "./handlers/expense"
 import "./handlers/bank"
-
-/**
- * Input for executing a capability action.
- */
-export interface ExecuteActionInput {
-  /** Capability ID (e.g., "INV-003") */
-  capabilityId: string
-
-  /** Action ID within the capability (e.g., "fiscalize") */
-  actionId: string
-
-  /** Entity ID if operating on existing entity */
-  entityId?: string
-
-  /** Entity type (e.g., "Invoice") */
-  entityType?: string
-
-  /** Additional action-specific parameters */
-  params?: Record<string, unknown>
-}
 
 /**
  * Build permissions list based on system role and company role.

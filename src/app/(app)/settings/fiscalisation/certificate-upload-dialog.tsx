@@ -8,11 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import {
-  validateCertificateAction,
-  saveCertificateAction,
-  type CertificateInfo,
-} from "@/app/actions/fiscal-certificate"
+import { validateCertificateAction, saveCertificateAction } from "@/app/actions/fiscal-certificate"
+import type { CertificateInfo } from "@/app/actions/fiscal-certificate.types"
 
 interface CertificateUploadDialogProps {
   environment: "TEST" | "PROD"

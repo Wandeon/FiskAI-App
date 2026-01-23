@@ -8,6 +8,7 @@ import { db } from "@/lib/db"
 import { encryptWithEnvelope } from "@/lib/fiscal/envelope-encryption"
 import { parseP12Certificate, validateCertificate } from "@/lib/fiscal/certificate-parser"
 import { buildFiscalRequestSnapshot } from "@/lib/fiscal/request-snapshot"
+import type { UploadCertificateInput, CertificateInfo } from "./fiscal-certificate.types"
 
 // Zod schemas for validation
 const uploadCertificateSchema = z.object({
@@ -18,22 +19,6 @@ const uploadCertificateSchema = z.object({
 
 const environmentSchema = z.enum(["TEST", "PROD"])
 const uuidSchema = z.string().uuid()
-
-export interface UploadCertificateInput {
-  p12Base64: string
-  password: string
-  environment: "TEST" | "PROD"
-}
-
-export interface CertificateInfo {
-  subject: string
-  oib: string
-  serial: string
-  notBefore: Date
-  notAfter: Date
-  issuer: string
-  sha256: string
-}
 
 export async function validateCertificateAction(
   input: unknown

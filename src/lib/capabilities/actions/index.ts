@@ -9,7 +9,8 @@
 
 export * from "./types"
 export * from "./registry"
-export { executeCapabilityAction, type ExecuteActionInput } from "./executor"
+export { executeCapabilityAction } from "./executor"
+export type { ExecuteActionInput } from "./executor.types"
 export {
   useCapabilityAction,
   type UseCapabilityActionOptions,
