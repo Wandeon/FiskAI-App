@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { signupForWaitlist, type WaitlistType } from "@/lib/actions/waitlist"
+import { signupForWaitlist } from "@/lib/actions/waitlist"
+import type { WaitlistType } from "@/lib/actions/waitlist.types"
 
 /**
  * Tax regime types for Obrt businesses

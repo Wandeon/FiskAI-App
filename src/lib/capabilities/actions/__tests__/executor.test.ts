@@ -52,7 +52,8 @@ const mockResolveCapabilityForUser = resolveCapabilityForUser as ReturnType<type
 const mockUserFindUnique = db.user.findUnique as ReturnType<typeof vi.fn>
 
 // Import executor after mocks are set up
-import { executeCapabilityAction, type ExecuteActionInput } from "../executor"
+import { executeCapabilityAction } from "../executor"
+import type { ExecuteActionInput } from "../executor.types"
 
 // Helper to create mock session
 function createMockSession(userId = "user-123") {

@@ -4,5 +4,5 @@ export {
   getOnboardingData,
   createMinimalCompany,
   saveOnboardingData,
-  type OnboardingData,
 } from "@/lib/actions/onboarding"
+export type { OnboardingData } from "@/lib/actions/onboarding.types"
