@@ -71,8 +71,8 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Install Prisma CLI globally for runtime migrations
-# This ensures all dependencies (valibot, etc.) are properly installed
-RUN npm install -g prisma@6
+# Must match project version (Prisma 7) so prisma.config.ts can import "prisma/config"
+RUN npm install -g prisma@7
 
 # Copy public assets
 COPY --from=builder /app/public ./public
@@ -89,10 +89,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy Prisma schemas and migrations (required for runtime migrations)
-# Note: Do NOT copy prisma.config.ts - it has dev dependencies and Prisma 6 loads it
-# even with --schema flag. Migrations work fine with defaults (schema/migrations in prisma/)
+# Copy Prisma schemas, migrations, and config (required for runtime migrations)
+# Note: prisma.config.ts is required for Prisma 7 (provides datasource.url since schema can't have url property)
+# The config only uses: fs (built-in), prisma/config (from global prisma@7), dotenv (optional try/catch)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # Copy Drizzle migrations and config (required for runtime migrations)
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle

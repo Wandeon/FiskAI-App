@@ -2,8 +2,8 @@
 set -e
 
 echo "🔄 Running Prisma migrations..."
-# Use --schema flag to avoid loading prisma.config.ts (which has dev dependencies)
-if ! prisma migrate deploy --schema=prisma/schema.prisma; then
+# Uses prisma.config.ts for datasource URL (Prisma 7 requires URL in config, not schema)
+if ! prisma migrate deploy; then
   echo "❌ Prisma migrations failed"
   exit 1
 fi
