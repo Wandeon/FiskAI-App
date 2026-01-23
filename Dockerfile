@@ -89,6 +89,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
+# Create symlink so prisma.config.ts can import "prisma/config" from the global installation
+# Node.js module resolution looks in ./node_modules first, so we need this symlink
+RUN ln -s /usr/local/lib/node_modules/prisma ./node_modules/prisma
+
 # Copy Prisma schemas, migrations, and config (required for runtime migrations)
 # Note: prisma.config.ts is required for Prisma 7 (provides datasource.url since schema can't have url property)
 # The config only uses: fs (built-in), prisma/config (from global prisma@7), dotenv (optional try/catch)
