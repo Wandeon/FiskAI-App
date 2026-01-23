@@ -22,10 +22,10 @@ const STATE_CONFIG: Record<
   CapabilityState,
   { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
 > = {
-  READY: { label: "Ready", variant: "default" },
-  BLOCKED: { label: "Blocked", variant: "destructive" },
-  MISSING_INPUTS: { label: "Missing Inputs", variant: "secondary" },
-  UNAUTHORIZED: { label: "Unauthorized", variant: "outline" },
+  READY: { label: "Spremno", variant: "default" },
+  BLOCKED: { label: "Blokirano", variant: "destructive" },
+  MISSING_INPUTS: { label: "Nedostaju podaci", variant: "secondary" },
+  UNAUTHORIZED: { label: "Nemate ovlasti", variant: "outline" },
 }
 
 export function CapabilityStateIndicator({ state, className }: Props) {

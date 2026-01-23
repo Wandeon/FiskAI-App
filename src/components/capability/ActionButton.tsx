@@ -53,7 +53,7 @@ export function ActionButton({
     },
     onError: (err) => {
       setShowConfirmation(false)
-      toast.error("Error", err)
+      toast.error("Greška", err)
       onError?.(err)
     },
   })

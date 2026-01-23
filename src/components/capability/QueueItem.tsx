@@ -38,7 +38,7 @@ export function QueueItemCard({ item, showDiagnostics = false, onActionComplete 
           {primaryCapability && <CapabilityStateIndicator state={primaryCapability.state} />}
         </div>
         <p className="text-sm text-muted-foreground">
-          Status: {item.status} | {new Date(item.timestamp).toLocaleDateString()}
+          Stanje: {item.status} | {new Date(item.timestamp).toLocaleDateString("hr-HR")}
         </p>
       </CardHeader>
       <CardContent>

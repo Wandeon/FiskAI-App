@@ -27,7 +27,7 @@ export function BlockerDisplay({ blockers, showResolution = true }: BlockerDispl
           <AlertDescription>
             <p>{blocker.message}</p>
             {showResolution && blocker.resolution && (
-              <p className="mt-1 text-xs opacity-80">Resolution: {blocker.resolution}</p>
+              <p className="mt-1 text-xs opacity-80">Rješenje: {blocker.resolution}</p>
             )}
           </AlertDescription>
         </Alert>

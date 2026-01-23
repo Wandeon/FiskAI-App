@@ -15,12 +15,14 @@ interface Props {
   /** Page title */
   title: string
   /** Role indicator */
-  role: "Client" | "Accountant" | "Admin"
+  role: string
+  /** Subtitle override - if not provided, uses default */
+  subtitle?: string
   /** Queue sections to render */
   children: React.ReactNode
 }
 
-export function ControlCenterShell({ title, role, children }: Props) {
+export function ControlCenterShell({ title, role, subtitle, children }: Props) {
   return (
     <DiagnosticsProvider>
       <div className="space-y-4 md:space-y-6">
@@ -28,7 +30,7 @@ export function ControlCenterShell({ title, role, children }: Props) {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
             <p className="text-sm text-muted-foreground">
-              {role} Control Center - Capability-driven view
+              {subtitle || `${role} kontrolni centar`}
             </p>
           </div>
           <DiagnosticsToggle />

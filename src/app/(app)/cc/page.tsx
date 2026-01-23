@@ -17,7 +17,7 @@ import { resolveCapabilitiesForUser } from "@/lib/capabilities/server"
 import { CLIENT_QUEUES } from "./queues"
 
 export const metadata = {
-  title: "Control Center | FiskAI",
+  title: "Kontrolni centar | FiskAI",
 }
 
 async function getQueueItems(queue: (typeof CLIENT_QUEUES)[number]): Promise<QueueItem[]> {
@@ -156,13 +156,13 @@ export default async function ClientControlCenterPage() {
   )
 
   return (
-    <ControlCenterShell title="What Needs Attention" role="Client">
+    <ControlCenterShell title="Što treba pažnju" role="Klijent">
       {queueData.map(({ queue, items }) => (
         <QueueRenderer
           key={queue.id}
           queue={queue}
           items={items}
-          emptyMessage={`No ${queue.name.toLowerCase()}`}
+          emptyMessage={`Nema: ${queue.name.toLowerCase()}`}
         />
       ))}
     </ControlCenterShell>
