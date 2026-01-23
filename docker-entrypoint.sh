@@ -2,7 +2,8 @@
 set -e
 
 echo "🔄 Running Prisma migrations..."
-if ! prisma migrate deploy; then
+# Use --schema flag to avoid loading prisma.config.ts (which has dev dependencies)
+if ! prisma migrate deploy --schema=prisma/schema.prisma; then
   echo "❌ Prisma migrations failed"
   exit 1
 fi
