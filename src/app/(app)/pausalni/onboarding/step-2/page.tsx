@@ -3,11 +3,8 @@
 import { useState, useCallback, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { OnboardingStep2Situation, type Step2FormData } from "@/components/patterns/onboarding"
-import {
-  savePausalniStep2,
-  getPausalniOnboardingData,
-  type Step2Data,
-} from "@/app/actions/pausalni-onboarding"
+import { savePausalniStep2, getPausalniOnboardingData } from "@/app/actions/pausalni-onboarding"
+import type { Step2Data } from "@/app/actions/pausalni-onboarding.types"
 
 /**
  * Pausalni Obrt Onboarding - Step 2: Situation
