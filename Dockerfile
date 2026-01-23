@@ -89,9 +89,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy Prisma schemas, configs and migrations (required for runtime migrations)
+# Copy Prisma schemas and migrations (required for runtime migrations)
+# Note: Do NOT copy prisma.config.ts - it has dev dependencies and Prisma 6 loads it
+# even with --schema flag. Migrations work fine with defaults (schema/migrations in prisma/)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # Copy Drizzle migrations and config (required for runtime migrations)
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
