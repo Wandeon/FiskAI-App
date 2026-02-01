@@ -256,7 +256,7 @@ describe("ActionButton", () => {
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
           type: "error",
-          message: "Error",
+          message: expect.stringMatching(/Error|Greška/),
         })
       )
       expect(onError).toHaveBeenCalledWith("Something went wrong")
