@@ -67,6 +67,16 @@ export const CAPABILITY_REGISTRY: readonly CapabilityMetadata[] = [
     requiredPermissions: ["invoicing:write"],
     affectedEntities: ["EInvoice"],
   },
+  {
+    id: "INV-008",
+    name: "Mark Invoice Paid",
+    description: "Mark an invoice as paid (without bank reconciliation)",
+    domain: "invoicing",
+    requiredInputs: ["invoiceId"],
+    optionalInputs: ["paymentDate", "notes"],
+    requiredPermissions: ["invoicing:write"],
+    affectedEntities: ["EInvoice"],
+  },
 
   // ============================================
   // EXPENSES DOMAIN
@@ -101,6 +111,16 @@ export const CAPABILITY_REGISTRY: readonly CapabilityMetadata[] = [
     requiredPermissions: ["expenses:write"],
     affectedEntities: ["Expense", "ExpenseCorrection"],
   },
+  {
+    id: "EXP-004",
+    name: "Mark Expense Paid",
+    description: "Mark an expense as paid",
+    domain: "expenses",
+    requiredInputs: ["expenseId"],
+    optionalInputs: ["paymentDate", "paymentMethod"],
+    requiredPermissions: ["expenses:write"],
+    affectedEntities: ["Expense"],
+  },
 
   // ============================================
   // BANKING DOMAIN
@@ -133,6 +153,26 @@ export const CAPABILITY_REGISTRY: readonly CapabilityMetadata[] = [
     requiredInputs: ["bankAccountId", "statementDate", "statementBalance"],
     optionalInputs: [],
     requiredPermissions: ["reconciliation:write"],
+    affectedEntities: ["BankTransaction"],
+  },
+  {
+    id: "BNK-005",
+    name: "Manual Match",
+    description: "Manually match a bank transaction to an invoice or expense",
+    domain: "banking",
+    requiredInputs: ["transactionId", "targetType", "targetId"],
+    optionalInputs: [],
+    requiredPermissions: ["banking:write"],
+    affectedEntities: ["BankTransaction"],
+  },
+  {
+    id: "BNK-007",
+    name: "Ignore Transaction",
+    description: "Mark a bank transaction as ignored (won't appear in reconciliation)",
+    domain: "banking",
+    requiredInputs: ["transactionId"],
+    optionalInputs: ["reason"],
+    requiredPermissions: ["banking:write"],
     affectedEntities: ["BankTransaction"],
   },
 
