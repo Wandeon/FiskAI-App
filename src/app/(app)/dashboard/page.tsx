@@ -1,4 +1,3 @@
-import { LegacyBanner } from "@/components/layout/LegacyBanner"
 import {
   requireAuth,
   getCurrentCompany,
@@ -335,7 +334,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <LegacyBanner message="View-only. Use Control Center for actions." />
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         <div className="space-y-6">
           <Visible id="card:hero-banner">
