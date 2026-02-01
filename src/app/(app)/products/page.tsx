@@ -12,7 +12,6 @@ import { deriveCapabilities } from "@/lib/capabilities"
 import { redirect } from "next/navigation"
 import { Package } from "lucide-react"
 import { VisibleButton } from "@/lib/visibility"
-import { LegacyBanner } from "@/components/layout/LegacyBanner"
 
 export default async function ProductsPage() {
   const user = await requireAuth()
@@ -53,8 +52,6 @@ export default async function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <LegacyBanner />
-
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Proizvodi i usluge</h1>
         <VisibleButton id="action:create-product" asChild>
