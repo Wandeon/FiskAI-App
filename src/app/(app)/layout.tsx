@@ -123,6 +123,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <MobileNav
         companyName={currentCompany?.name}
         userName={session.user.name || session.user.email || undefined}
+        company={
+          currentCompany
+            ? {
+                name: currentCompany.name,
+                legalForm: currentCompany.legalForm,
+                entitlements: currentCompany.entitlements as string[] | undefined,
+              }
+            : undefined
+        }
       />
 
       {/* Main Content - add bottom padding for mobile FAB */}
