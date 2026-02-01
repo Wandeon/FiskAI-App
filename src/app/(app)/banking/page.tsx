@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ConnectButton } from "./components/connect-button"
 import { ConnectionBadge } from "./components/connection-badge"
 import { Landmark, ArrowLeftRight } from "lucide-react"
-import { LegacyBanner } from "@/components/layout/LegacyBanner"
 import { deriveCapabilities } from "@/lib/capabilities"
 import { redirect } from "next/navigation"
 
@@ -85,8 +84,6 @@ export default async function BankingPage() {
 
   return (
     <div className="space-y-6">
-      <LegacyBanner />
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
