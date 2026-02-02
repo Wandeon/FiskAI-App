@@ -253,12 +253,13 @@ export default function OnboardingPage() {
     )
   }
 
-  // Društvo Gating state - shows waitlist form (legacy, kept for backwards compatibility)
+  // Društvo Gating state - legacy redirect (kept for backwards compatibility)
+  // The DrushtvoGating component now just redirects to drustvo-step1
   if (state === "drustvo-gating") {
     return (
       <div className="mx-auto max-w-lg py-12">
         {errorBanner}
-        <DrushtvoGating onChangeSelection={handleChangeSelection} isChangePending={isPending} />
+        <DrushtvoGating />
       </div>
     )
   }
