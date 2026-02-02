@@ -108,6 +108,10 @@ const minimalCompanySchema = z.object({
   name: z.string().min(1),
   oib: oibSchema,
   legalForm: z.enum(["OBRT_PAUSAL", "OBRT_REAL", "OBRT_VAT", "JDOO", "DOO"]),
+  // Optional address fields - can be provided in step 1
+  address: z.string().optional(),
+  postalCode: z.string().optional(),
+  city: z.string().optional(),
 })
 
 /**
@@ -138,6 +142,10 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
           oib: data.oib,
           legalForm: data.legalForm,
           entitlements: getEntitlementsForLegalForm(data.legalForm),
+          // Update address if provided
+          ...(data.address && { address: data.address }),
+          ...(data.postalCode && { postalCode: data.postalCode }),
+          ...(data.city && { city: data.city }),
         },
       })
 
@@ -169,6 +177,10 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
               name: data.name,
               legalForm: data.legalForm,
               entitlements: getEntitlementsForLegalForm(data.legalForm),
+              // Update address if provided
+              ...(data.address && { address: data.address }),
+              ...(data.postalCode && { postalCode: data.postalCode }),
+              ...(data.city && { city: data.city }),
             },
           }),
           db.companyUser.update({
@@ -194,7 +206,7 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
       }
     }
 
-    // Create minimal company with placeholder values
+    // Create minimal company with address if provided
     const [, newCompany] = await db.$transaction([
       db.companyUser.updateMany({
         where: { userId: user.id! },
@@ -205,9 +217,9 @@ export async function createMinimalCompany(formData: z.input<typeof minimalCompa
           name: data.name,
           oib: data.oib,
           legalForm: data.legalForm,
-          address: "", // Placeholder - will be filled in step 3
-          postalCode: "", // Placeholder
-          city: "", // Placeholder
+          address: data.address || "",
+          postalCode: data.postalCode || "",
+          city: data.city || "",
           country: "HR",
           email: null,
           iban: null,

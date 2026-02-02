@@ -116,6 +116,10 @@ export function DrushtvoStep1Info({ onBack }: DrushtvoStep1InfoProps) {
         name: companyName.trim(),
         oib,
         legalForm,
+        // Include address fields if provided
+        address: address.trim() || undefined,
+        postalCode: postalCode.trim() || undefined,
+        city: city.trim() || undefined,
       })
 
       if ("error" in result && result.error) {
@@ -126,7 +130,7 @@ export function DrushtvoStep1Info({ onBack }: DrushtvoStep1InfoProps) {
       // Success - navigate to step 2
       router.push("/onboarding?step=drustvo-step2")
     })
-  }, [isFormValid, isPending, legalForm, companyName, oib, router])
+  }, [isFormValid, isPending, legalForm, companyName, oib, address, postalCode, city, router])
 
   // Render OIB validation status
   const renderOibStatus = () => {
