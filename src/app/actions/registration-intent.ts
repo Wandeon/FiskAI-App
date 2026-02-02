@@ -54,7 +54,7 @@ export async function getRegistrationIntent() {
   const user = await requireAuth()
 
   if (!user.id) {
-    return { intent: null, hasCompany: false }
+    return { intent: null, hasCompany: false, isOnboardingComplete: false }
   }
 
   try {
@@ -70,7 +70,9 @@ export async function getRegistrationIntent() {
               select: {
                 id: true,
                 name: true,
+                oib: true,
                 legalForm: true,
+                email: true,
               },
             },
           },
@@ -79,20 +81,32 @@ export async function getRegistrationIntent() {
     })
 
     if (!dbUser) {
-      return { intent: null, hasCompany: false }
+      return { intent: null, hasCompany: false, isOnboardingComplete: false }
     }
 
     // Check if user has any company with valid data
     const hasCompany = dbUser.companies.some((cu) => cu.company.name && cu.company.legalForm)
 
+    // Check if onboarding is COMPLETE (not just started)
+    // A company needs: name + OIB + legalForm + email to be considered complete
+    // This prevents redirect loops where hasCompany=true but isOnboardingComplete=false
+    const isOnboardingComplete = dbUser.companies.some(
+      (cu) =>
+        cu.company.name?.trim() &&
+        cu.company.oib?.match(/^\d{11}$/) &&
+        cu.company.legalForm &&
+        cu.company.email?.includes("@")
+    )
+
     return {
       intent: dbUser.registrationIntent,
       intentChosenAt: dbUser.intentChosenAt,
       hasCompany,
+      isOnboardingComplete,
     }
   } catch (error) {
     console.error("[Registration Intent] Failed to get:", error)
-    return { intent: null, hasCompany: false }
+    return { intent: null, hasCompany: false, isOnboardingComplete: false }
   }
 }
 

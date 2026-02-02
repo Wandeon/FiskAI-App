@@ -79,7 +79,7 @@ export default function OnboardingPage() {
 
     try {
       const result = await getRegistrationIntent()
-      if (result.hasCompany) {
+      if (result.isOnboardingComplete) {
         isRedirecting.current = true
         setState("redirect")
         router.replace("/cc")
@@ -97,9 +97,9 @@ export default function OnboardingPage() {
       try {
         const result = await getRegistrationIntent()
 
-        // Edge case: CompanyUser exists (completed in another tab)
-        // Redirect to /cc immediately
-        if (result.hasCompany) {
+        // Only redirect to /cc if onboarding is FULLY complete
+        // (not just if a company exists - that would cause loops with incomplete companies)
+        if (result.isOnboardingComplete) {
           isRedirecting.current = true
           setState("redirect")
           router.replace("/cc")
