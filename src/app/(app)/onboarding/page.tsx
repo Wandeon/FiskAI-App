@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useTransition, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import {
   IntentSelector,
@@ -10,6 +10,8 @@ import {
 import { ObrtStep1Info, type ObrtStep1FormData } from "@/components/onboarding/obrt-step1-info"
 import { ObrtStep2Regime } from "@/components/onboarding/obrt-step2-regime"
 import { DrushtvoGating } from "@/components/onboarding/drustvo-gating"
+import { DrushtvoStep1Info } from "@/components/onboarding/drustvo-step1-info"
+import { DrushtvoStep2Contact } from "@/components/onboarding/drustvo-step2-contact"
 import {
   getRegistrationIntent,
   clearRegistrationIntent,
@@ -23,14 +25,16 @@ import { savePausalniStep1 } from "@/app/actions/pausalni-onboarding"
  * This implements the internal /onboarding routing per the spec:
  *
  * 1. intent = null? -> Show intent selector
- * 2. intent = DRUSTVO? -> Show gating/waitlist
+ * 2. intent = DRUSTVO? -> Show DRUSTVO onboarding flow (step1 -> step2)
  * 3. intent = OBRT? -> Check onboarding progress, route to appropriate step
  * 4. CompanyUser exists? (edge case: completed in another tab) -> Redirect to /cc
  *
  * States:
  * - loading: Initial load, fetching user intent
  * - intent-selection: User has no intent, show selector
- * - drustvo-gating: User selected Drustvo, show waitlist/coming soon
+ * - drustvo-gating: Legacy waitlist (kept for backwards compatibility)
+ * - drustvo-step1: DRUSTVO company info (OIB, name, legal form)
+ * - drustvo-step2: DRUSTVO contact info (email, phone, IBAN)
  * - obrt-step1: User selected Obrt, show document-first info collection
  * - obrt-step2: User completed Step 1, show tax regime selection
  * - redirect: User has completed onboarding, redirecting to dashboard
@@ -39,6 +43,8 @@ type OnboardingState =
   | "loading"
   | "intent-selection"
   | "drustvo-gating"
+  | "drustvo-step1"
+  | "drustvo-step2"
   | "obrt-step1"
   | "obrt-step2"
   | "redirect"
@@ -48,7 +54,7 @@ type OnboardingState =
  *
  * Single entry point that branches based on user's registrationIntent:
  * - intent = null -> Show IntentSelector
- * - intent = DRUSTVO -> Show gating/waitlist screen
+ * - intent = DRUSTVO -> Show DRUSTVO onboarding flow (2 steps)
  * - intent = OBRT -> Show Obrt onboarding flow (document-first)
  *
  * Edge case handling:
@@ -57,6 +63,7 @@ type OnboardingState =
  */
 export default function OnboardingPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [state, setState] = useState<OnboardingState>("loading")
   const [_intent, setIntent] = useState<RegistrationIntentType | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -99,12 +106,25 @@ export default function OnboardingPage() {
           return
         }
 
+        // Check URL search params for explicit step navigation
+        const step = searchParams.get("step")
+        if (step === "drustvo-step1") {
+          setIntent("DRUSTVO")
+          setState("drustvo-step1")
+          return
+        }
+        if (step === "drustvo-step2") {
+          setIntent("DRUSTVO")
+          setState("drustvo-step2")
+          return
+        }
+
         // Determine state based on intent
         if (!result.intent) {
           setState("intent-selection")
         } else if (result.intent === "DRUSTVO") {
           setIntent("DRUSTVO")
-          setState("drustvo-gating")
+          setState("drustvo-step1")
         } else if (result.intent === "OBRT") {
           setIntent("OBRT")
           setState("obrt-step1")
@@ -117,7 +137,7 @@ export default function OnboardingPage() {
     }
 
     void loadIntent()
-  }, [router])
+  }, [router, searchParams])
 
   // Edge case: Check for completion when tab becomes visible
   // This handles the case where user completes onboarding in another tab
@@ -233,12 +253,32 @@ export default function OnboardingPage() {
     )
   }
 
-  // Društvo Gating state - shows waitlist form
+  // Društvo Gating state - shows waitlist form (legacy, kept for backwards compatibility)
   if (state === "drustvo-gating") {
     return (
       <div className="mx-auto max-w-lg py-12">
         {errorBanner}
         <DrushtvoGating onChangeSelection={handleChangeSelection} isChangePending={isPending} />
+      </div>
+    )
+  }
+
+  // Društvo Step 1 state
+  if (state === "drustvo-step1") {
+    return (
+      <div className="mx-auto max-w-xl py-12">
+        {errorBanner}
+        <DrushtvoStep1Info onBack={handleChangeSelection} />
+      </div>
+    )
+  }
+
+  // Društvo Step 2 state
+  if (state === "drustvo-step2") {
+    return (
+      <div className="mx-auto max-w-xl py-12">
+        {errorBanner}
+        <DrushtvoStep2Contact onBack={() => setState("drustvo-step1")} />
       </div>
     )
   }
