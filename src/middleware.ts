@@ -31,6 +31,7 @@ const PUBLIC_API_ROUTES = [
   "/api/newsletter/unsubscribe", // Newsletter unsubscribe (public action)
   "/api/sandbox/", // Sandbox endpoints (for testing)
   "/api/public/", // Public API endpoints (regulatory companion, etc.)
+  "/api/ai-diag", // AI diagnostic endpoint (protected by x-ai-secret header)
 ]
 
 // Check if an API route is public
