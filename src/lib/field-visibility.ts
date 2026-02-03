@@ -5,7 +5,10 @@ export interface InvoiceVisibility {
   requireOib: boolean
 }
 
-export function getInvoiceVisibility(capabilities: Capabilities): InvoiceVisibility {
+/** Accepts full Capabilities or serializable version (without `can` function) */
+export function getInvoiceVisibility(
+  capabilities: Pick<Capabilities, "visibility">
+): InvoiceVisibility {
   return {
     showVatFields: capabilities.visibility.requireVatFields,
     requireOib: capabilities.visibility.requireOib,

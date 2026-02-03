@@ -24,6 +24,10 @@ export default async function NewEInvoicePage() {
 
   const capabilities = deriveCapabilities(company)
 
+  // Extract serializable parts of capabilities (can() function is not serializable)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { can: _can, ...serializableCapabilities } = capabilities
+
   const plainProducts = products.map((p: Product) => ({
     id: p.id,
     name: p.name,
@@ -40,7 +44,7 @@ export default async function NewEInvoicePage() {
       contacts={contacts}
       products={plainProducts}
       company={company}
-      capabilities={capabilities}
+      capabilities={serializableCapabilities}
       nextInvoiceNumber={nextInvoiceNumber.invoiceNumber}
     />
   )

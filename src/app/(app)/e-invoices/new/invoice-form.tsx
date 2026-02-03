@@ -49,7 +49,7 @@ interface InvoiceFormProps {
     city: string
     iban?: string | null
   }
-  capabilities: Capabilities
+  capabilities: Omit<Capabilities, "can">
   nextInvoiceNumber: string
 }
 
