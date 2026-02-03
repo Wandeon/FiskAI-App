@@ -20,13 +20,16 @@ export interface SortState {
   order: "asc" | "desc"
 }
 
-interface DataTableProps<T> {
+interface DataTableProps<T extends { id?: string }> {
   columns: Column<T>[]
   data: T[]
   caption: string
   emptyMessage?: string
   className?: string
-  getRowKey: (item: T) => string
+  /** Property name(s) to use as the unique key for each row.
+   *  Can be a single key or array of keys that will be joined with '-'.
+   *  Defaults to 'id'. */
+  rowKey?: keyof T | (keyof T)[]
   /** Callback when a row is activated (Enter key or double-click) */
   onRowActivate?: (item: T) => void
   /** Enable keyboard navigation */
@@ -37,19 +40,27 @@ interface DataTableProps<T> {
   onSort?: (field: string) => void
 }
 
-export function DataTable<T>({
+export function DataTable<T extends { id?: string }>({
   columns,
   data,
   caption,
   emptyMessage = "Nema podataka",
   className,
-  getRowKey,
+  rowKey = "id" as keyof T,
   onRowActivate,
   keyboardNavigation = true,
   sort,
   onSort,
 }: DataTableProps<T>) {
   const [selectedIndex, setSelectedIndex] = useState(-1)
+
+  // Generate row key from single or composite key(s)
+  const getRowKey = (item: T): string => {
+    if (Array.isArray(rowKey)) {
+      return rowKey.map((k) => String(item[k])).join("-")
+    }
+    return String(item[rowKey])
+  }
 
   const handleActivate = useCallback(
     (index: number) => {

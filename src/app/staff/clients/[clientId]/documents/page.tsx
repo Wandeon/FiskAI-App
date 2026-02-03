@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { DataTable, Column } from "@/components/ui/data-table"
-import { FolderOpen, Download, Eye, FileText, Receipt, File } from "lucide-react"
+import { FolderOpen, Eye, FileText, Receipt, File } from "lucide-react"
 import Link from "next/link"
 import type { DocumentStatus, Prisma } from "@prisma/client"
 
@@ -214,7 +214,6 @@ export default async function ClientDocumentsPage({ params }: PageProps) {
               data={documents}
               caption="Client documents"
               emptyMessage="No documents found."
-              getRowKey={(doc) => doc.id}
             />
           )}
         </CardContent>
