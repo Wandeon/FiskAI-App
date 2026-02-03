@@ -64,3 +64,23 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
+
+// OTP verification codes for email verification and password reset
+model VerificationCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String   // 6-digit OTP code
+  type      VerificationCodeType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email, type])
+  @@index([code])
+  @@map("verification_codes")
+}
+
+enum VerificationCodeType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
