@@ -16,11 +16,12 @@ interface OTPInputProps {
 export function OTPInput({
   length = 6,
   onComplete,
-  onError,
+  onError: _onError,
   disabled = false,
   error = false,
   autoFocus = true,
 }: OTPInputProps) {
+  void _onError // Reserved for future use
   const [values, setValues] = useState<string[]>(Array(length).fill(""))
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])

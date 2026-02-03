@@ -12,4 +12,7 @@ export const db =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db;
 
+// Alias for common usage patterns
+export const prisma = db;
+
 export * from '@prisma/client';
