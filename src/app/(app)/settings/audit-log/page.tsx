@@ -197,7 +197,6 @@ export default async function AuditLogPage({
         columns={columns}
         data={logs}
         caption="Revizijski dnevnik"
-        getRowKey={(log) => log.id}
         emptyMessage="Nema revizijskih zapisa"
       />
 

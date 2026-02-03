@@ -8,10 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { DataTable, Column } from "@/components/ui/data-table"
-import { FileText, Download, Eye, Check, Filter } from "lucide-react"
+import { FileText, Eye, Filter } from "lucide-react"
 import Link from "next/link"
 import { ReviewToggle } from "@/components/staff/review-toggle"
-import { StaffReviewEntity } from "@prisma/client"
 
 interface PageProps {
   params: Promise<{ clientId: string }>
@@ -345,7 +344,6 @@ export default async function ClientEInvoicesPage({ params, searchParams }: Page
               data={invoices}
               caption="Client e-invoices"
               emptyMessage="No invoices found."
-              getRowKey={(invoice) => invoice.id}
             />
           )}
         </CardContent>

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
-import { AlertCircle, Home, RefreshCw } from "lucide-react"
+import { useEffect, useState } from "react"
+import { AlertCircle, Home, RefreshCw, Copy, Check, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
 import * as Sentry from "@sentry/nextjs"
 
@@ -20,6 +20,9 @@ export function ErrorDisplay({
   title = "Došlo je do greške",
   message = "Nažalost, došlo je do neočekivane greške. Molimo pokušajte ponovno.",
 }: ErrorDisplayProps) {
+  const [copied, setCopied] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
+
   useEffect(() => {
     // Capture error to Sentry for monitoring
     Sentry.captureException(error, {
@@ -41,6 +44,26 @@ export function ErrorDisplay({
 
   const isDevelopment = process.env.NODE_ENV === "development"
 
+  const errorDetails = `Error: ${error.message}\nDigest: ${error.digest || "N/A"}\nURL: ${typeof window !== "undefined" ? window.location.href : "N/A"}\nTime: ${new Date().toISOString()}\n\nStack Trace:\n${error.stack || "No stack trace available"}`
+
+  const copyErrorDetails = async () => {
+    try {
+      await navigator.clipboard.writeText(errorDetails)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for browsers that don't support clipboard API
+      const textarea = document.createElement("textarea")
+      textarea.value = errorDetails
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textarea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-md text-center">
@@ -54,29 +77,59 @@ export function ErrorDisplay({
 
         <p className="mb-6 text-base text-secondary">{message}</p>
 
-        {isDevelopment && (
-          <div className="mb-6 rounded-lg bg-surface-1 p-4 text-left">
-            <p className="mb-2 text-sm font-semibold text-foreground">
-              Development Mode - Error Details:
-            </p>
-            <p className="mb-2 text-xs text-foreground">
-              <strong>Message:</strong> {error.message}
-            </p>
-            {error.digest && (
-              <p className="mb-2 text-xs text-foreground">
-                <strong>Digest:</strong> {error.digest}
+        {/* Error details section - always available */}
+        <div className="mb-6">
+          {/* Toggle button to show/hide details */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="mb-3 inline-flex items-center gap-1 text-sm text-secondary hover:text-foreground"
+          >
+            {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {showDetails ? "Sakrij detalje greške" : "Prikaži detalje greške"}
+          </button>
+
+          {showDetails && (
+            <div className="rounded-lg bg-surface-1 p-4 text-left">
+              <p className="mb-2 text-sm font-semibold text-foreground">
+                {isDevelopment ? "Development Mode - " : ""}Error Details:
               </p>
+              <p className="mb-2 text-xs text-foreground break-all">
+                <strong>Message:</strong> {error.message}
+              </p>
+              {error.digest && (
+                <p className="mb-2 text-xs text-foreground">
+                  <strong>Digest:</strong> {error.digest}
+                </p>
+              )}
+              {error.stack && (
+                <div className="mt-3">
+                  <p className="mb-1 text-xs font-semibold text-foreground">Stack Trace:</p>
+                  <pre className="max-h-48 overflow-auto rounded bg-base p-3 text-xs text-foreground whitespace-pre-wrap break-all">
+                    {error.stack}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Copy button - always visible */}
+          <button
+            onClick={copyErrorDetails}
+            className="mt-3 inline-flex items-center gap-2 rounded-md border border-default bg-surface px-3 py-2 text-xs font-medium text-secondary transition-colors hover:bg-surface-1 hover:text-foreground"
+          >
+            {copied ? (
+              <>
+                <Check className="h-3 w-3 text-success-icon" />
+                Kopirano!
+              </>
+            ) : (
+              <>
+                <Copy className="h-3 w-3" />
+                Kopiraj detalje greške
+              </>
             )}
-            {error.stack && (
-              <div className="mt-3">
-                <p className="mb-1 text-xs font-semibold text-foreground">Stack Trace:</p>
-                <pre className="max-h-48 overflow-auto rounded bg-base p-3 text-xs text-foreground">
-                  {error.stack}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
+          </button>
+        </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
