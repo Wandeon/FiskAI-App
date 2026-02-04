@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { oibSchema } from '../validations/oib';
 
+export * from "./e-invoice"
+
 // Company schemas
 export const createCompanySchema = z.object({
   name: z.string().min(1, 'Company name is required'),
