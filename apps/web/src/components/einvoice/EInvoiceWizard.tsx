@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BuyerStep, ItemsStep, ReviewStep } from "./steps"
+import type { EInvoiceLineInput } from "@fiskai/shared"
 
 const TOTAL_STEPS = 3
 
@@ -20,15 +21,8 @@ interface WizardData {
   issueDate: string
   dueDate: string
   buyerReference: string
-  // Step 2: Items (to be expanded)
-  lines: Array<{
-    description: string
-    quantity: number
-    unitPrice: number
-    vatRate: number
-    unit: string
-    vatCategory: string
-  }>
+  // Step 2: Items
+  lines: EInvoiceLineInput[]
   // Step 3: Notes
   notes: string
 }
@@ -152,6 +146,10 @@ export function EInvoiceWizard({ companyId }: EInvoiceWizardProps) {
     []
   )
 
+  const handleLinesChange = useCallback((lines: EInvoiceLineInput[]) => {
+    setData((prev) => ({ ...prev, lines }))
+  }, [])
+
   const handleSubmit = useCallback(() => {
     // TODO: Submit invoice via tRPC
     console.log("Submitting invoice:", data)
@@ -183,7 +181,13 @@ export function EInvoiceWizard({ companyId }: EInvoiceWizardProps) {
             />
           )}
           {currentStep === 2 && (
-            <ItemsStep onNext={handleNext} onBack={handleBack} />
+            <ItemsStep
+              companyId={companyId}
+              lines={data.lines}
+              onLinesChange={handleLinesChange}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
           )}
           {currentStep === 3 && (
             <ReviewStep onSubmit={handleSubmit} onBack={handleBack} />
