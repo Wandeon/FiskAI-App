@@ -23,6 +23,26 @@ model Contact {
   @@map("contacts")
 }
 
+model Product {
+  id          String   @id @default(cuid())
+  companyId   String
+  name        String
+  description String?
+  sku         String?  // Stock keeping unit / product code
+  price       Decimal  @db.Decimal(10, 2)  // Price in EUR
+  unit        String   @default("PCE")     // UN/CEFACT code: PCE, HUR, DAY, MON, etc.
+  vatRate     Int      @default(25)        // 25, 13, 5, 0
+  vatCategory String   @default("S")       // S=Standard, R=Reduced, AA=Super-reduced, Z=Zero, E=Exempt
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("products")
+}
+
 enum ContactType {
   CUSTOMER
   SUPPLIER

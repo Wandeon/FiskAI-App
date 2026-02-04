@@ -57,6 +57,7 @@ model Company {
   businessPremises BusinessPremises[]
   invoices         Invoice[]
   contacts         Contact[]
+  products         Product[]
 
   @@map("companies")
 }
