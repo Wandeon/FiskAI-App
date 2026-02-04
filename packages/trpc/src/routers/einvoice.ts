@@ -1,6 +1,9 @@
 import { z } from "zod"
 import { router, protectedProcedure } from "../trpc"
 import { eInvoiceLineSchema, eurosToCents, formatInvoiceNumber } from "@fiskai/shared"
+import { EPoslovanjeProvider } from "../lib/einvoice/eposlovanje"
+import { generateUBLInvoice } from "../lib/einvoice/ubl-generator"
+import { decryptSecret } from "../lib/crypto"
 
 // Input schema for createDraft - we define it here to avoid ZodEffects merge issues
 const createDraftInputSchema = z.object({
@@ -341,7 +344,9 @@ export const eInvoiceRouter = router({
         include: {
           company: true,
           contact: true,
-          lines: true,
+          lines: {
+            orderBy: { sortOrder: "asc" },
+          },
         },
       })
 
@@ -364,23 +369,40 @@ export const eInvoiceRouter = router({
         throw new Error("E-invoice is not enabled for this company")
       }
 
-      // TODO: Integrate with e-Poslovanje provider
-      // This is a placeholder - actual integration will:
-      // 1. Generate UBL XML document
-      // 2. Send to e-Poslovanje API
-      // 3. Store provider reference and response
-      // 4. Update invoice status
+      // Check if company has e-invoice provider configured
+      if (!invoice.company.eInvoiceProvider) {
+        throw new Error("E-invoice provider is not configured")
+      }
 
-      // For now, just update status to SENT with a mock reference
-      const eInvoiceId = `EINV-${invoice.invoiceNumberFull}-${Date.now()}`
+      // Check if company has encrypted API key
+      if (!invoice.company.eInvoiceApiKeyEncrypted) {
+        throw new Error("E-invoice API key is not configured")
+      }
 
+      // Generate UBL XML document
+      const ublXml = generateUBLInvoice(invoice)
+
+      // Decrypt the API key
+      const apiKey = decryptSecret(invoice.company.eInvoiceApiKeyEncrypted)
+
+      // Create provider and send
+      const provider = new EPoslovanjeProvider({ apiKey })
+      const result = await provider.sendDocument(ublXml)
+
+      // Update invoice with provider response
       return ctx.db.invoice.update({
         where: { id: input.id },
         data: {
           status: "SENT",
-          eInvoiceId,
+          eInvoiceId: `EINV-${invoice.invoiceNumberFull}`,
           eInvoiceSentAt: new Date(),
           eInvoiceStatus: "SENT",
+          eInvoiceProviderRef: String(result.id),
+          eInvoiceProviderData: {
+            providerId: result.id,
+            insertedOn: result.insertedOn,
+            message: result.message,
+          },
         },
         include: {
           contact: true,
