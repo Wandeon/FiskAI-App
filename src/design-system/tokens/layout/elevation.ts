@@ -26,27 +26,27 @@ export const shadows = {
   /** No shadow */
   none: "none",
   /** Subtle shadow - inputs, subtle buttons */
-  sm: "var(--shadow-sm)",
+  sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
   /** Medium shadow - cards, dropdowns */
-  md: "var(--shadow-md)",
+  md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
   /** Large shadow - modals, elevated content */
-  lg: "var(--shadow-lg)",
+  lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
   /** Extra large shadow - prominent floating elements */
-  xl: "var(--shadow-xl)",
+  xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
   /** Maximum shadow - tooltips, highest elevation */
-  "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+  "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   /** Focus ring shadow - accessibility focus states */
-  focus: "var(--shadow-focus)",
+  focus: "0 0 0 3px rgba(59, 130, 246, 0.5)",
   /** Focus ring shadow for dark mode */
-  focusDark: "var(--shadow-focus)",
+  focusDark: "0 0 0 3px rgba(96, 165, 250, 0.5)",
   /** Glow effect - hover states, emphasis */
-  glow: "0 0 20px rgba(34, 211, 238, 0.3)",
+  glow: "0 0 20px rgba(59, 130, 246, 0.3)",
   /** Card default shadow */
-  card: "var(--shadow-card)",
+  card: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
   /** Card hover shadow */
-  cardHover: "var(--shadow-card-hover)",
+  cardHover: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
   /** Elevated component shadow */
-  elevated: "var(--shadow-lg)",
+  elevated: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
 } as const
 
 /**

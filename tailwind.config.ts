@@ -79,15 +79,6 @@ const config: Config = {
       },
 
       // ─────────────────────────────────────────────────────────────
-      // PRIMARY (alias for shadcn/ui compatibility)
-      // ─────────────────────────────────────────────────────────────
-      primary: {
-        DEFAULT: "var(--interactive-primary)",
-        hover: "var(--interactive-primary-hover)",
-        foreground: "var(--text-inverse)",
-      },
-
-      // ─────────────────────────────────────────────────────────────
       // BORDER COLORS
       // ─────────────────────────────────────────────────────────────
       border: {
@@ -95,15 +86,6 @@ const config: Config = {
         subtle: "var(--border-subtle)",
         strong: "var(--border-strong)",
         focus: "var(--border-focus)",
-      },
-
-      // ─────────────────────────────────────────────────────────────
-      // RING COLORS (shadcn compatibility)
-      // ─────────────────────────────────────────────────────────────
-      ring: "var(--border-focus)",
-      "ring-offset": {
-        DEFAULT: "var(--surface-base)",
-        background: "var(--surface-base)",
       },
 
       // ─────────────────────────────────────────────────────────────
@@ -182,44 +164,6 @@ const config: Config = {
           text: "var(--category-feature-text)",
           bg: "var(--category-feature-bg)",
         },
-      },
-
-      // ─────────────────────────────────────────────────────────────
-      // RAW PALETTE (controlled subset for marketing gradients)
-      // These are for gradient stops and decorative effects only.
-      // For semantic meaning, always use design system tokens above.
-      // ─────────────────────────────────────────────────────────────
-      cyan: {
-        200: "#a5f3fc",
-        300: "#67e8f9",
-        400: "#22d3ee",
-        500: "#06b6d4",
-        600: "#0891b2",
-      },
-      blue: {
-        50: "#eff6ff",
-        300: "#93c5fd",
-        400: "#60a5fa",
-        500: "#3b82f6",
-        600: "#2563eb",
-        800: "#1e40af",
-        950: "#172554",
-      },
-      purple: {
-        200: "#e9d5ff",
-        400: "#a78bfa",
-        500: "#8b5cf6",
-        600: "#7c3aed",
-        800: "#5b21b6",
-        900: "#4c1d95",
-      },
-      violet: {
-        500: "#8b5cf6",
-      },
-      slate: {
-        800: "#1e293b",
-        900: "#0f172a",
-        950: "#020617",
       },
     },
 
