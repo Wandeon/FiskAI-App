@@ -79,6 +79,15 @@ const config: Config = {
       },
 
       // ─────────────────────────────────────────────────────────────
+      // PRIMARY (alias for shadcn/ui compatibility)
+      // ─────────────────────────────────────────────────────────────
+      primary: {
+        DEFAULT: "var(--interactive-primary)",
+        hover: "var(--interactive-primary-hover)",
+        foreground: "var(--text-inverse)",
+      },
+
+      // ─────────────────────────────────────────────────────────────
       // BORDER COLORS
       // ─────────────────────────────────────────────────────────────
       border: {
@@ -86,6 +95,15 @@ const config: Config = {
         subtle: "var(--border-subtle)",
         strong: "var(--border-strong)",
         focus: "var(--border-focus)",
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // RING COLORS (shadcn compatibility)
+      // ─────────────────────────────────────────────────────────────
+      ring: "var(--border-focus)",
+      "ring-offset": {
+        DEFAULT: "var(--surface-base)",
+        background: "var(--surface-base)",
       },
 
       // ─────────────────────────────────────────────────────────────
