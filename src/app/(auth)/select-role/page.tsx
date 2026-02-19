@@ -28,7 +28,7 @@ const SUBDOMAIN_INFO = {
     title: "Staff Portal",
     description: "Manage assigned client accounts",
     icon: Users,
-    color: "text-green-500",
+    color: "text-success-text",
   },
   admin: {
     title: "Admin Portal",
