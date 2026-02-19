@@ -27,6 +27,7 @@ const FORBIDDEN_PATTERNS = [
   { pattern: /\bborder-red-\d+/, suggestion: "Use border-danger-border" },
   { pattern: /\bborder-green-\d+/, suggestion: "Use border-success-border" },
   { pattern: /\bborder-yellow-\d+/, suggestion: "Use border-warning-border" },
+  { pattern: /\bborder-orange-\d+/, suggestion: "Use border-warning-border" },
   // Raw grays — use semantic surface/text tokens
   { pattern: /\bbg-gray-\d+/, suggestion: "Use bg-surface or bg-base" },
   { pattern: /\btext-gray-\d+/, suggestion: "Use text-secondary or text-tertiary" },
